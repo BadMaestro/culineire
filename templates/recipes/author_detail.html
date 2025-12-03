@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {% if author.slug == "greenbear" %}
+    GreenBear · Author · CulinEire
+  {% else %}
+    {{ author.name }} · Author · CulinEire
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Верхняя кнопка назад -->
+  <a href="{% url 'recipes:recipe_list' %}" class="back-link">← All recipes</a>
+
+  <section class="hero">
+    <h1 class="hero-title">
+      {% if author.slug == "greenbear" %}
+        {# ТОЛЬКО здесь — особый скриптовый стиль #}
+        <span class="author-name author-name--greenbear">GreenBear</span>
+      {% else %}
+        <span class="author-name">{{ author.name }}</span>
+      {% endif %}
+    </h1>
+
+    {% if author.bio %}
+      <p class="hero-subtitle">
+        {{ author.bio }}
+      </p>
+    {% else %}
+      <p class="hero-subtitle">
+        Recipes by:
+        <span class="author-name">{{ author.name }}</span>
+        on CulinEire.
+      </p>
+    {% endif %}
+  </section>
+
+  <section>
+    <h2 style="font-size:1rem; margin-bottom:0.75rem; text-align:center;">
+      Recipes by:
+      <span class="author-name">{{ author.name }}</span>
+    </h2>
+
+    <div class="recipes-grid">
+      {% for recipe in author.recipes.all %}
+        <article class="recipe-card">
+          <a href="{% url 'recipes:recipe_detail' slug=recipe.slug %}" class="recipe-card__image-wrapper">
+            {% if recipe.hero_image %}
+              <img src="{{ recipe.hero_image.url }}" alt="{{ recipe.title }}">
+            {% endif %}
+          </a>
+
+          <div class="recipe-card__body">
+            <div class="recipe-card__top">
+              <h3 class="recipe-card__title">
+                <a href="{% url 'recipes:recipe_detail' slug=recipe.slug %}">
+                  {{ recipe.title }}
+                </a>
+              </h3>
+
+              {% if recipe.short_description %}
+                <p class="recipe-card__excerpt">
+                  {{ recipe.short_description }}
+                </p>
+              {% endif %}
+            </div>
+
+            <div class="recipe-card__footer">
+              <p class="recipe-card__meta">
+                {{ recipe.get_category_display }} ·
+                {{ recipe.get_difficulty_display }} ·
+                {{ recipe.total_time_minutes }} min
+              </p>
+              {# на странице автора имя в карточке не повторяем #}
+            </div>
+          </div>
+        </article>
+      {% empty %}
+        <p>This author has no recipes yet.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Нижняя кнопка назад -->
+  <div style="margin-top:1.5rem; text-align:left;">
+    <a href="{% url 'recipes:recipe_list' %}" class="back-link">← All recipes</a>
+  </div>
+</div>
+{% endblock %}

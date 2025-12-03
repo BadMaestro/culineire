@@ -1,0 +1,60 @@
+/* ==== Footer layout & styles ==== */
+
+footer {
+  padding: 0.75rem 1.5rem;
+  background: #184c3a;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.footer-inner {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+@media (max-width: 480px) {
+  .footer-inner {
+    font-size: 0.7rem;
+  }
+}
+
+/* CulinEire в цветах флага в футере */
+.footer-inner .brand-culineire {
+  font-weight: 700;
+}
+
+.footer-inner .ie-green {
+  color: #169b62;
+}
+
+.footer-inner .ie-white {
+  color: #ffffff;
+}
+
+.footer-inner .ie-orange {
+  color: #ff883e;
+}
+
+/* Жирное выделение для ключевых слов в футере */
+.footer-inner .footer-highlight {
+  font-weight: 600;
+}
+
+/* Ссылка Bearcave: тот же цвет, без подчёркивания, плавный "псевдо-bold" */
+.footer-inner a {
+  color: inherit;
+  text-decoration: none;
+  font-weight: 400;
+  text-shadow: 0 0 0 transparent;
+  transform: translateY(0);
+  transition: text-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.footer-inner a:hover {
+  text-shadow: 0 0 0.8px currentColor;
+  transform: translateY(-0.5px);
+}

@@ -1,0 +1,86 @@
+/* Режим бога.
+   Можно вешать на любого автора через класс .author-name--god.
+   Сейчас используется только для GreenBear (у него в шаблоне этот класс). */
+
+/* Рукописный шрифт для божественных имён */
+@import url("https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&display=swap");
+
+/* Основной стиль:
+   .author-name--god — общий “режим бога”
+   .author-name--greenbear — конкретно GreenBear, ведём их вместе.
+*/
+.author-name--god,
+.author-name--greenbear {
+  position: relative;
+  display: inline-block;
+
+  font-family: "Dancing Script", "Segoe Script", "Brush Script MT", cursive;
+  font-weight: 600;
+  font-size: 1.5rem;
+  letter-spacing: 0.06em;
+  text-transform: none; /* нормальное написание GreenBear */
+
+  /* базовый зелёный + золотой перелив по буквам */
+  background: linear-gradient(
+    90deg,
+    #184c3a,
+    #f5e08a,
+    #184c3a
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+
+  /* перелив туда-обратно за 5 секунд, повторяется бесконечно */
+  animation: god-gold-flow 5s linear infinite;
+}
+
+/* ОДНА звезда слева и ОДНА справа, зеркальные по отношению друг к другу */
+.author-name--god::before,
+.author-name--greenbear::before,
+.author-name--god::after,
+.author-name--greenbear::after {
+  font-size: 0.9em;
+  display: inline-block;
+
+  /* отдельный стиль, чтобы не зависеть от gradient + color: transparent */
+  color: #f5e08a;
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: border-box;
+  text-shadow: 0 0 4px rgba(245, 224, 138, 0.7);
+}
+
+/* слева — звезда, отражённая по горизонтали */
+.author-name--god::before,
+.author-name--greenbear::before {
+  content: "✨";
+  margin-right: 0.25em;
+  transform: scaleX(-1); /* зеркалим */
+}
+
+/* справа — обычная звезда */
+.author-name--god::after,
+.author-name--greenbear::after {
+  content: "✨";
+  margin-left: 0.25em;
+}
+
+/* Анимация перелива:
+   0%   — градиент в начале (слева),
+   50%  — ушёл вправо,
+   100% — вернулся обратно влево.
+   Весь цикл 5s → туда-обратно за 5 секунд, потом сразу повтор.
+*/
+@keyframes god-gold-flow {
+  0% {
+    background-position: 0% 0;
+  }
+  50% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0% 0;
+  }
+}
