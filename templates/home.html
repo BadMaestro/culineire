@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}CulinEire · Irish food at home{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-layout">
+    <div>
+      <p class="pill">Irish-inspired home cooking</p>
+      <h1 class="hero-title">Cook Irish classics, vintage recipes & modern twists at home.</h1>
+      <p class="hero-subtitle">
+        CulinEire brings together traditional Irish dishes, forgotten recipes from old cookbooks,
+        and contemporary restaurant-style plates — all adapted for the home kitchen.
+      </p>
+    </div>
+    <div>
+      <div class="card">
+        <h2 style="font-size:1.1rem; margin-top:0; margin-bottom:0.6rem;">Start exploring</h2>
+        <ul style="padding-left:1.1rem; margin:0;">
+          <li>Irish classics for everyday dinners</li>
+          <li>Vintage recipes with modern tips</li>
+          <li>Restaurant-style dishes for weekends</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="grid" aria-label="Highlights">
+  <div class="card">
+    <h3 style="margin-top:0;">Latest recipes</h3>
+    {% if latest_recipes %}
+      <ul style="padding-left:1.1rem; margin:0;">
+        {% for recipe in latest_recipes %}
+          <li>{{ recipe.title }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p style="margin-bottom:0;">No recipes yet — soon you’ll see fresh soups, breads, desserts and more here.</p>
+    {% endif %}
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0;">Irish context</h3>
+    <p style="margin-bottom:0;">Every recipe will include a short note about its roots, region or story.</p>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0;">Credits & sources</h3>
+    <p style="margin-bottom:0;">We always credit cookbooks, chefs and inspirations behind each dish.</p>
+  </div>
+</section>
+{% endblock %}

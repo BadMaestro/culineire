@@ -1,0 +1,22 @@
+/* Отдельные стили для логотипа CulinEire */
+
+/* Ссылка-логотип в шапке */
+.logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+/* Очень крупный логотип по умолчанию (десктоп) */
+.logo img {
+  display: block;
+  height: 256px; /* было 128px, увеличили ещё в 2 раза */
+}
+
+/* Крупный логотип на узких экранах */
+@media (max-width: 480px) {
+  .logo img {
+    height: 192px; /* было 96px, увеличили в 2 раза */
+  }
+}

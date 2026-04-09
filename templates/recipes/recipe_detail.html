@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}{{ recipe.title }} · CulinEire{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Верхняя кнопка назад -->
+  <a href="{% url 'recipes:recipe_list' %}" class="back-link">← All recipes</a>
+
+  <article class="hero">
+    <div class="hero-layout">
+      <div>
+        <div style="text-align:center; margin-bottom:0.5rem;">
+          <span class="pill">{{ recipe.get_category_display }}</span>
+        </div>
+
+        <h1 class="hero-title">{{ recipe.title }}</h1>
+
+        {% if recipe.short_description %}
+          <p class="hero-subtitle">
+            {{ recipe.short_description }}
+          </p>
+        {% endif %}
+
+        <p class="recipe-detail-meta">
+          {% if recipe.author %}
+            By:
+            <a href="{{ recipe.author.get_absolute_url }}" class="recipe-card-author__link">
+              {{ recipe.author.name }}
+            </a>
+            ·
+          {% endif %}
+          {{ recipe.get_difficulty_display }} ·
+          {{ recipe.total_time_minutes }} min ·
+          Serves {{ recipe.servings }}
+        </p>
+      </div>
+
+      <div class="recipe-detail-image">
+        {% if recipe.hero_image %}
+          <img
+            src="{{ recipe.hero_image.url }}"
+            alt="{{ recipe.title }}"
+          >
+        {% endif %}
+      </div>
+    </div>
+  </article>
+
+  <!-- Основные блоки: ингредиенты + метод -->
+  <section class="grid recipe-detail-main-grid">
+    <div class="card">
+      <h2>Ingredients:</h2>
+      <pre class="recipe-ingredients">{{ recipe.ingredients }}</pre>
+    </div>
+
+    <div class="card">
+      <h2>Method:</h2>
+      <p class="recipe-method">
+        {{ recipe.method|linebreaksbr }}
+      </p>
+    </div>
+  </section>
+
+  {% if recipe.tips or recipe.irish_context or recipe.allergens %}
+    <section class="grid recipe-detail-extra-grid">
+      {% if recipe.tips %}
+        <div class="card">
+          <h3>Tips:</h3>
+          <p>{{ recipe.tips|linebreaksbr }}</p>
+        </div>
+      {% endif %}
+
+      {% if recipe.irish_context %}
+        <div class="card">
+          <h3>Irish context:</h3>
+          <p>{{ recipe.irish_context|linebreaksbr }}</p>
+        </div>
+      {% endif %}
+
+      {% if recipe.allergens %}
+        <div class="card">
+          <h3>Allergens:</h3>
+          <p>{{ recipe.allergens|linebreaksbr }}</p>
+        </div>
+      {% endif %}
+    </section>
+  {% endif %}
+
+  <!-- Нижняя кнопка назад — ОТДЕЛЬНО, под всеми блоками -->
+  <div class="recipe-detail-back-bottom">
+    <a href="{% url 'recipes:recipe_list' %}" class="back-link">← All recipes</a>
+  </div>
+</div>
+{% endblock %}

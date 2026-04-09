@@ -1,0 +1,75 @@
+/* Стили верхней шапки и меню (header / nav)
+   Всё, что будем менять в будущем по шапке — правим здесь. */
+
+/* Мобильная раскладка: всё по центру, колонкой */
+.header-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%; /* ВАЖНО: растянуть flex-контейнер на всю ширину .container */
+}
+
+/* Кнопка-гамбургер */
+.nav-toggle {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: transparent;
+  border: none;
+  padding: 0.25rem;
+  cursor: pointer;
+}
+
+.nav-toggle span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  margin: 4px 0;
+  background: #fff;
+  border-radius: 999px;
+}
+
+/* Меню: на мобиле спрятано, показывается при .main-nav--open */
+.main-nav {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.main-nav--open {
+  display: flex;
+}
+
+.main-nav a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.main-nav a:hover {
+  text-decoration: underline;
+}
+
+/* Десктоп: лого слева, меню справа, гамбургер прячем */
+@media (min-width: 768px) {
+  .nav-toggle {
+    display: none;
+  }
+
+  .main-nav {
+    display: flex;
+    flex-direction: row;
+    gap: 1.5rem;
+    width: auto;
+  }
+
+  .header-inner {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between; /* лого слева, меню справа по краям контейнера */
+  }
+}

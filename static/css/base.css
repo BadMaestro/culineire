@@ -1,0 +1,108 @@
+/* Подключаем стили карточек и прочее */
+@import "recipe_card.css";
+@import "god_mode.css";
+@import "recipe_detail.css";
+@import "footer.css";
+
+/* ==== Базовая типографика + sticky footer ==== */
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  background: #faf6f0;
+  color: #222;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Чуть уменьшаем базовый размер шрифта на очень узких экранах */
+@media (max-width: 480px) {
+  body {
+    font-size: 14px;
+  }
+}
+
+/* Шапка (footer уехал в footer.css) */
+header {
+  padding: 0.75rem 1.5rem;
+  background: #184c3a;
+  color: #fff;
+}
+
+main {
+  flex: 1 0 auto;
+}
+
+/* Общий контейнер для контента */
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+}
+
+/* ----- Специально для шапки: уменьшаем отступы слева/справа ----- */
+header .container {
+  padding-left: 0.3rem;
+  padding-right: 0.3rem;
+}
+
+/* ==== Hero & generic cards ==== */
+
+.hero {
+  padding: 1.5rem 0;
+}
+
+.hero-title {
+  font-size: 1.6rem;
+  margin-bottom: 0.5rem;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.hero-subtitle {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* Заголовки блоков внутри card — по центру */
+.card h2,
+.card h3 {
+  text-align: center;
+  margin: 0 0 0.75rem;
+}
+
+.pill {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background: #f1e4d3;
+  margin-right: 0.4rem;
+  margin-bottom: 0.3rem;
+}
+
+/* Базовый стиль имени автора (для всех) */
+.author-name {
+  font-weight: 600;
+}

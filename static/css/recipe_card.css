@@ -110,7 +110,7 @@
   color: #555;
 }
 
-/* Ссылка с именем автора — мягкий hover как у Bearcave */
+/* Ссылка с именем автора */
 .recipe-card-author__link {
   color: inherit;
   text-decoration: none;
@@ -127,47 +127,33 @@
 
 /* ==== Сетка для разных экранов ==== */
 
+/* планшет — 2 колонки */
 @media (min-width: 640px) {
   .recipes-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
+/* десктоп — 3 колонки */
 @media (min-width: 1024px) {
   .recipes-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
-/* ==== Компактный мобильный режим (3 карточки в ряд) ==== */
-
+/* Узкие телефоны — 1 колонка, чуть мельче текст и без описания */
 @media (max-width: 480px) {
-  .recipes-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.75rem;
-    justify-items: stretch;
-  }
-
-  .recipe-card {
-    max-width: 100%;
-  }
-
-  .recipe-card__image-wrapper {
-    padding-top: 80%;
-  }
-
   .recipe-card__body {
-    padding: 0.35rem 0.4rem 0.4rem;
-    min-height: 80px;
+    padding: 0.5rem 0.6rem 0.6rem;
+    min-height: 100px;
   }
 
   .recipe-card__title {
-    font-size: 0.7rem;
-    margin-bottom: 0.1rem;
+    font-size: 0.8rem;
   }
 
   .recipe-card__meta {
-    font-size: 0.6rem;
+    font-size: 0.7rem;
   }
 
   .recipe-card__excerpt {
@@ -175,6 +161,6 @@
   }
 
   .recipe-card-author {
-    font-size: 0.65rem;
+    font-size: 0.7rem;
   }
 }
