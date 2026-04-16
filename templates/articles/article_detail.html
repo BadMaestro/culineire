@@ -1,0 +1,354 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ article.title }} | CulinEire{% endblock %}
+{% block meta_description %}{% if article.excerpt %}{{ article.excerpt }}{% else %}Article detail page for {{ article.title }} on CulinEire.{% endif %}{% endblock %}
+
+{% block extra_head %}
+<link href="{% static 'css/detail_page.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <article class="detail-page detail-page--article">
+            <header class="detail-page__header detail-page__header--article">
+                <div class="detail-page__header-inner">
+                    <div class="detail-page__topbar">
+                        <div aria-label="Article information" class="detail-page__taxonomy">
+                            <span class="detail-page__taxonomy-chip">Article</span>
+                        </div>
+
+                        {% if article.related_recipe %}
+                        <a class="detail-page__action-pill" href="{{ article.related_recipe.get_absolute_url }}">
+                            <span class="detail-page__action-label">Linked recipe:</span>
+                            <span class="detail-page__action-value">{{ article.related_recipe.title }}</span>
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    <div class="detail-page__hero-copy">
+                        <h1>{{ article.title }}</h1>
+
+                        {% if article.excerpt %}
+                        <p class="detail-page__intro">{{ article.excerpt }}</p>
+                        {% endif %}
+
+                        {% if article.author %}
+                        <p class="detail-page__author">
+                            <span class="detail-page__author-label">By:</span>
+                            <a href="{% url 'recipes:author_detail' article.author.slug %}">{{ article.author.name
+                                }}</a>
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </header>
+
+            {% if gallery_items %}
+            <section
+                    aria-label="Article media gallery"
+                    class="recipe-gallery{% if gallery_items|length == 1 %} recipe-gallery--single{% endif %}"
+                    data-gallery
+            >
+                <div class="recipe-gallery__viewport">
+                    <button
+                            aria-label="Previous media"
+                            class="recipe-gallery__arrow recipe-gallery__arrow--prev"
+                            data-gallery-prev
+                            type="button"
+                    >
+                        &#8249;
+                    </button>
+
+                    <div class="recipe-gallery__stage" data-gallery-stage>
+                        {% for item in gallery_items %}
+                        <figure
+                                class="recipe-gallery__item"
+                                data-gallery-index="{{ forloop.counter0 }}"
+                                data-gallery-item
+                                data-gallery-type="{{ item.media_type|default:'image' }}"
+                        >
+                            <div class="recipe-gallery__image-shell">
+                                {% if item.media_type == "video" %}
+                                <video
+                                        %} %}poster="{{ item.poster }}" class="recipe-gallery__media" endif if
+                                        item.poster muted
+                                        playsinline
+                                        preload="metadata"
+                                        {%
+                                        {%
+                                >
+                                    <source src="{{ item.src }}">
+                                    Your browser does not support the video tag.
+                                </video>
+                                {% else %}
+                                <img
+                                        alt="{{ item.alt }}"
+                                        class="recipe-gallery__media"
+                                        src="{{ item.src }}"
+                                >
+                                {% endif %}
+                            </div>
+
+                            {% if item.caption %}
+                            <figcaption class="recipe-gallery__caption">{{ item.caption }}</figcaption>
+                            {% endif %}
+                        </figure>
+                        {% endfor %}
+                    </div>
+
+                    <button
+                            aria-label="Next media"
+                            class="recipe-gallery__arrow recipe-gallery__arrow--next"
+                            data-gallery-next
+                            type="button"
+                    >
+                        &#8250;
+                    </button>
+                </div>
+            </section>
+            {% endif %}
+
+            <div class="detail-page__grid">
+                <section class="detail-page__main">
+                    <section class="detail-page__section">
+                        <div class="rich-text">
+                            {{ article.body|linebreaks }}
+                        </div>
+                    </section>
+                </section>
+
+                <aside class="detail-page__sidebar">
+                    {% if article.excerpt %}
+                    <section class="detail-page__card">
+                        <p class="detail-page__card-inline detail-page__card-inline--text">
+                            <span class="detail-page__card-label">Summary:</span>
+                            {{ article.excerpt }}
+                        </p>
+                    </section>
+                    {% endif %}
+
+                    {% if article.related_recipe %}
+                    <section class="detail-page__card">
+                        <p class="detail-page__card-inline">
+                            <span class="detail-page__card-label">Related recipe:</span>
+                            <a href="{{ article.related_recipe.get_absolute_url }}">{{ article.related_recipe.title
+                                }}</a>
+                        </p>
+                    </section>
+                    {% endif %}
+
+                    {% if article.author %}
+                    <section class="detail-page__card">
+                        <p class="detail-page__card-inline">
+                            <span class="detail-page__card-label">Author:</span>
+                            <a href="{% url 'recipes:author_detail' article.author.slug %}">{{ article.author.name
+                                }}</a>
+                        </p>
+                    </section>
+                    {% endif %}
+
+                    {% if article.published %}
+                    <section class="detail-page__card">
+                        <p class="detail-page__card-inline">
+                            <span class="detail-page__card-label">Published:</span>
+                            {{ article.published|date:"j F Y" }}
+                        </p>
+                    </section>
+                    {% endif %}
+                </aside>
+            </div>
+        </article>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        const gallery = document.querySelector("[data-gallery]");
+        if (!gallery) {
+            return;
+        }
+
+        const items = Array.from(gallery.querySelectorAll("[data-gallery-item]"));
+        const prevButton = gallery.querySelector("[data-gallery-prev]");
+        const nextButton = gallery.querySelector("[data-gallery-next]");
+
+        if (!items.length) {
+            return;
+        }
+
+        const totalItems = items.length;
+        let currentIndex = 0;
+        let isAnimating = false;
+        let animationTimer = null;
+
+        function clampIndex(index) {
+            if (index < 0) {
+                return 0;
+            }
+            if (index > totalItems - 1) {
+                return totalItems - 1;
+            }
+            return index;
+        }
+
+        function resetItemClasses(item) {
+            item.classList.remove(
+                "is-current",
+                "is-prev",
+                "is-next",
+                "is-hidden",
+                "is-far-prev",
+                "is-far-next"
+            );
+        }
+
+        function pauseAllVideos() {
+            items.forEach((item) => {
+                const video = item.querySelector("video");
+                if (video) {
+                    video.pause();
+                    video.controls = false;
+                }
+            });
+        }
+
+        function syncMediaState() {
+            items.forEach((item, index) => {
+                const video = item.querySelector("video");
+                if (!video) {
+                    return;
+                }
+
+                const isCurrent = index === currentIndex;
+
+                if (isCurrent) {
+                    video.controls = true;
+                    video.muted = false;
+                } else {
+                    video.pause();
+                    video.controls = false;
+                    video.muted = true;
+                }
+            });
+        }
+
+        function updateArrows() {
+            if (!prevButton || !nextButton) {
+                return;
+            }
+
+            if (totalItems <= 1) {
+                prevButton.hidden = true;
+                nextButton.hidden = true;
+                return;
+            }
+
+            if (totalItems === 2) {
+                prevButton.hidden = currentIndex === 0;
+                nextButton.hidden = currentIndex === 1;
+                return;
+            }
+
+            prevButton.hidden = currentIndex === 0;
+            nextButton.hidden = currentIndex === totalItems - 1;
+        }
+
+        function renderGallery(index) {
+            currentIndex = clampIndex(index);
+
+            const hasPrev = currentIndex > 0;
+            const hasNext = currentIndex < totalItems - 1;
+            const prevIndex = hasPrev ? currentIndex - 1 : null;
+            const nextIndex = hasNext ? currentIndex + 1 : null;
+
+            items.forEach((item, itemIndex) => {
+                resetItemClasses(item);
+
+                if (itemIndex === currentIndex) {
+                    item.classList.add("is-current");
+                    return;
+                }
+
+                if (prevIndex !== null && itemIndex === prevIndex) {
+                    item.classList.add("is-prev");
+                    return;
+                }
+
+                if (nextIndex !== null && itemIndex === nextIndex) {
+                    item.classList.add("is-next");
+                    return;
+                }
+
+                if (itemIndex < currentIndex) {
+                    item.classList.add("is-far-prev", "is-hidden");
+                    return;
+                }
+
+                item.classList.add("is-far-next", "is-hidden");
+            });
+
+            updateArrows();
+            pauseAllVideos();
+            syncMediaState();
+        }
+
+        function move(step) {
+            if (isAnimating || totalItems <= 1) {
+                return;
+            }
+
+            const nextIndex = clampIndex(currentIndex + step);
+
+            if (nextIndex === currentIndex) {
+                return;
+            }
+
+            isAnimating = true;
+            renderGallery(nextIndex);
+
+            window.clearTimeout(animationTimer);
+            animationTimer = window.setTimeout(function () {
+                isAnimating = false;
+            }, 520);
+        }
+
+        if (prevButton) {
+            prevButton.addEventListener("click", function () {
+                move(-1);
+            });
+        }
+
+        if (nextButton) {
+            nextButton.addEventListener("click", function () {
+                move(1);
+            });
+        }
+
+        items.forEach((item) => {
+            item.addEventListener("click", function () {
+                const itemIndex = Number(item.dataset.galleryIndex);
+
+                if (item.classList.contains("is-prev")) {
+                    move(-1);
+                    return;
+                }
+
+                if (item.classList.contains("is-next")) {
+                    move(1);
+                    return;
+                }
+
+                if (itemIndex !== currentIndex) {
+                    renderGallery(itemIndex);
+                }
+            });
+        });
+
+        renderGallery(0);
+    })();
+</script>
+{% endblock %}

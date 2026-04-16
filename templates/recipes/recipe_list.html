@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title|default:"Recipes | CulinEire" }}{% endblock %}
+{% block meta_description %}{{ meta_description|default:"Browse Irish-inspired recipes, vintage cookbook dishes, and modern home cooking ideas on CulinEire." }}{% endblock %}
+
+{% block content %}
+<section class="page-section recipe-list-page">
+    <div class="container">
+        <div class="recipe-list-hero">
+            <p class="eyebrow recipe-list-hero__eyebrow">Recipes</p>
+            <h1 class="recipe-list-hero__title">{{ page_heading|default:"Explore the recipe collection" }}</h1>
+
+            <p class="recipe-list-hero__subtitle">
+                {% if page_subtitle %}
+                {{ page_subtitle }}
+                {% else %}
+                Explore Irish classics, vintage recipes, and modern twists, all adapted for the home kitchen.
+                {% endif %}
+            </p>
+        </div>
+
+        {% if categories %}
+        <div class="category-nav-block" data-category-toggle>
+            <div class="category-nav-wrap" data-category-wrap>
+                <nav aria-label="Recipe categories" class="category-nav" data-category-nav>
+                    {% for category in categories %}
+                    {% if category.is_active %}
+                    <span class="category-nav__item category-nav__item--active">{{ category.label }}</span>
+                    {% else %}
+                    <a class="category-nav__item category-nav__link" href="{{ category.url }}">{{ category.label }}</a>
+                    {% endif %}
+                    {% if not forloop.last %}
+                    <span aria-hidden="true" class="category-nav__separator"> · </span>
+                    {% endif %}
+                    {% endfor %}
+                </nav>
+            </div>
+
+            <button
+                    aria-expanded="false"
+                    aria-label="View all recipe categories"
+                    class="category-nav-toggle"
+                    data-category-button
+                    hidden
+                    type="button"
+            >
+                <span class="category-nav-toggle__label" data-category-button-label>View All</span>
+                <span aria-hidden="true" class="category-nav-toggle__icon">⌄</span>
+            </button>
+        </div>
+        {% endif %}
+
+        {% if recipes %}
+        <div class="recipe-grid">
+            {% for recipe in recipes %}
+            <article class="recipe-card">
+                <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
+                    {% if recipe.hero_image %}
+                    <img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}">
+                    {% else %}
+                    <img alt="{{ recipe.title }}" src="{% static 'images/hero.jpg' %}">
+                    {% endif %}
+                </a>
+
+                <div class="recipe-card__body">
+                    <div class="recipe-card__content">
+                        <h2 class="recipe-card__title">
+                            <a href="{{ recipe.get_absolute_url }}">{{ recipe.title }}</a>
+                        </h2>
+
+                        <div aria-label="Recipe category and difficulty" class="recipe-card__taxonomy">
+                            <a class="recipe-card__category-link" href="{{ recipe.get_category_url }}">
+                                {{ recipe.get_category_display|default:"Recipe" }}
+                            </a>
+
+                            {% if recipe.get_difficulty_display %}
+                            <span class="recipe-card__difficulty">{{ recipe.get_difficulty_display }}</span>
+                            {% endif %}
+                        </div>
+
+                        <div aria-label="Recipe timing" class="recipe-card__timing">
+                            <span class="recipe-card__timing-item">
+                                <span class="recipe-card__timing-label">Prep:</span>
+                                <span class="recipe-card__timing-value">{{ recipe.prep_time_minutes|default:0 }} min</span>
+                            </span>
+
+                            <span aria-hidden="true" class="recipe-card__timing-divider">•</span>
+
+                            <span class="recipe-card__timing-item">
+                                <span class="recipe-card__timing-label">Cook:</span>
+                                <span class="recipe-card__timing-value">{{ recipe.cook_time_minutes|default:0 }} min</span>
+                            </span>
+                        </div>
+
+                        {% if recipe.short_description %}
+                        <p class="recipe-card__excerpt">{{ recipe.short_description }}</p>
+                        {% endif %}
+                    </div>
+
+                    {% if recipe.author %}
+                    <div class="recipe-card__footer">
+                        <p class="recipe-card-author">
+                            <span class="recipe-card-author__label">By:</span>
+                            <a
+                                    aria-label="View recipes by {{ recipe.author.name }}"
+                                    class="recipe-card-author__brand-link"
+                                    href="{% url 'recipes:author_detail' recipe.author.slug %}"
+                            >
+                                <img
+                                        alt="{{ recipe.author.name }}"
+                                        class="recipe-card-author__brand-logo"
+                                        src="{% static 'images/greenbear.png' %}"
+                                >
+                            </a>
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h2>No recipes yet</h2>
+            <p>The recipe section is ready and will be filled soon.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

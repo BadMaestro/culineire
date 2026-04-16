@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Articles | CulinEire{% endblock %}
+{% block meta_description %}Explore food stories, cooking notes, practical ideas, and linked recipe articles from the CulinEire kitchen.{% endblock %}
+
+{% block content %}
+<section class="page-section">
+    <div class="container">
+        <div class="page-header">
+            <div>
+                <p class="eyebrow">Articles</p>
+                <h1>Stories, techniques and kitchen notes</h1>
+            </div>
+        </div>
+
+        <p class="page-subtitle">
+            Explore food writing, cooking notes, practical ideas, and linked recipe articles from the CulinEire kitchen.
+        </p>
+
+        {% if articles %}
+        <div class="recipe-grid">
+            {% for article in articles %}
+            <article class="recipe-card recipe-card--article">
+                <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">
+                    {% if article.hero_image %}
+                    <img alt="{{ article.title }}" src="{{ article.hero_image.url }}">
+                    {% else %}
+                    <img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}">
+                    {% endif %}
+                </a>
+
+                <div class="recipe-card__body">
+                    <div class="recipe-card__content">
+                        <h2 class="recipe-card__title recipe-card__title--article">
+                            <a href="{{ article.get_absolute_url }}">{{ article.title }}</a>
+                        </h2>
+
+                        <div aria-label="Article metadata"
+                             class="recipe-card__meta-line recipe-card__meta-line--article">
+                            {% if article.published %}
+                            <span class="recipe-card__meta-item">{{ article.published|date:"j F Y" }}</span>
+                            {% endif %}
+
+                            {% if article.author %}
+                            <span class="recipe-card__meta-divider">•</span>
+                            <span class="recipe-card__meta-item">
+                                By:
+                                <a class="recipe-card__meta-link"
+                                   href="{% url 'recipes:author_detail' article.author.slug %}">
+                                    {{ article.author.name }}
+                                </a>
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        {% if article.excerpt %}
+                        <p class="recipe-card__excerpt recipe-card__excerpt--article">
+                            {{ article.excerpt }}
+                        </p>
+                        {% endif %}
+                    </div>
+
+                    <div class="recipe-card__footer recipe-card__footer--article">
+                        <a class="btn" href="{{ article.get_absolute_url }}">Read article</a>
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h2>No articles yet</h2>
+            <p>The articles section is ready and will be filled soon.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,92 @@
+/* ===== Variables ===== */
+:root {
+    --slate-black: #1F3D32;
+    --limestone:   #F3F2EE;
+    --atlantic:    #1F3D32;
+    --sea-fog:     #9FAFB0;
+    --brass:       #A67C3A;
+
+    --radius: 8px;
+}
+
+/* ===== Reset / base ===== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+    font-family: "Inter", sans-serif;
+    background: var(--limestone);
+    color: var(--atlantic);
+    line-height: 1.6;
+    font-size: 16px;
+}
+
+/* ===== Layout helpers ===== */
+.wrap {
+    width: 90%;
+    max-width: 1200px;
+    margin-inline: auto;
+}
+
+/* ===== Header ===== */
+.site-header{
+    background: var(--slate-black);
+    padding-block: 1.2rem;
+}
+.site-header .logo{
+    display: inline-block;
+}
+.site-header .main-nav{
+    float: right;
+    display: flex;
+    gap: 1.8rem;
+    align-items: center;
+}
+.site-header .main-nav a{
+    color: #fff;
+    text-decoration: none;
+    font-weight: 500;
+}
+.site-header .main-nav a:hover{ text-decoration: underline; }
+
+/* ===== Footer ===== */
+.site-footer{
+    padding-block: 2rem;
+    background: var(--slate-black);
+    color: #fff;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+/* ===== Headings ===== */
+h1, h2, h3, h4, h5{
+    font-family: "Playfair Display", serif;
+    color: var(--atlantic);
+}
+h1{ font-size: clamp(2.4rem, 2vw + 1.5rem, 3.2rem); }
+h2{ font-size: clamp(2rem, 1.6vw + 1.2rem, 2.4rem); }
+h3{ font-size: clamp(1.8rem, 1.3vw + 1rem, 2rem); }
+
+/* ===== Buttons ===== */
+.btn-primary {
+    display: inline-block;
+    background: var(--slate-black);
+    color: #fff;
+    padding: 0.7rem 1.6rem;
+    border-radius: var(--radius);
+    text-decoration: none;
+    font-weight: 500;
+    transition: background .2s;
+}
+.btn-primary:hover { background: var(--brass); }
+
+/* ===== Misc ===== */
+img{ max-width:100%; height:auto; }
+
+/* ---------- CULINEIRE logo fix ---------- */
+img.site-logo{
+    height: 48px;      /* подберите нужную высоту */
+    width:  auto;
+    display:block;
+    /* делаем логотип светлым, чтобы он был заметен на тёмной шапке */
+    filter: invert(1) brightness(2);
+}

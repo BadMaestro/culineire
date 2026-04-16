@@ -1,0 +1,527 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ recipe.title }} | CulinEire{% endblock %}
+{% block meta_description %}{% if recipe.short_description %}{{ recipe.short_description }}{% else %}Recipe detail page for {{ recipe.title }} on CulinEire.{% endif %}{% endblock %}
+
+{% block extra_head %}
+<link href="{% static 'css/detail_page.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <article class="detail-page">
+            <header class="detail-page__header detail-page__header--recipe">
+                <div class="detail-page__header-inner">
+                    <div class="detail-page__topbar">
+                        <div aria-label="Recipe category and difficulty" class="detail-page__taxonomy">
+                            <span class="detail-page__taxonomy-chip">
+                                {{ recipe.get_category_display|default:"Recipe" }}
+                            </span>
+
+                            {% if recipe.get_difficulty_display %}
+                            <span class="detail-page__taxonomy-divider">•</span>
+                            <span class="detail-page__taxonomy-chip detail-page__taxonomy-chip--muted">
+                                    {{ recipe.get_difficulty_display }}
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <div aria-label="Recipe timing" class="detail-page__timing-pill">
+                            <span class="detail-page__timing-item">
+                                <span class="detail-page__timing-label">Prep</span>
+                                <span class="detail-page__timing-value">{{ recipe.prep_time_minutes|default:0 }} min</span>
+                            </span>
+
+                            <span class="detail-page__timing-dot">•</span>
+
+                            <span class="detail-page__timing-item">
+                                <span class="detail-page__timing-label">Cook</span>
+                                <span class="detail-page__timing-value">{{ recipe.cook_time_minutes|default:0 }} min</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="detail-page__hero-copy">
+                        <h1>{{ recipe.title }}</h1>
+
+                        {% if recipe.short_description %}
+                        <p class="detail-page__intro">{{ recipe.short_description }}</p>
+                        {% endif %}
+
+                        {% if recipe.author %}
+                        <p class="detail-page__author">
+                            <span class="detail-page__author-label">By:</span>
+                            <a href="{% url 'recipes:author_detail' recipe.author.slug %}">{{ recipe.author.name }}</a>
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </header>
+
+            {% if gallery_items %}
+            <section
+                    aria-label="Recipe media gallery"
+                    class="recipe-gallery{% if gallery_items|length == 1 %} recipe-gallery--single{% endif %}"
+                    data-gallery
+            >
+                <div class="recipe-gallery__viewport">
+                    <button
+                            aria-label="Previous media"
+                            class="recipe-gallery__arrow recipe-gallery__arrow--prev"
+                            data-gallery-prev
+                            type="button"
+                    >
+                        &#8249;
+                    </button>
+
+                    <div class="recipe-gallery__stage" data-gallery-stage>
+                        {% for item in gallery_items %}
+                        <figure
+                                class="recipe-gallery__item"
+                                data-gallery-index="{{ forloop.counter0 }}"
+                                data-gallery-item
+                                data-gallery-type="{{ item.media_type|default:'image' }}"
+                        >
+                            <div class="recipe-gallery__image-shell">
+                                {% if item.media_type == "video" %}
+                                <video
+                                        %} %}poster="{{ item.poster }}" class="recipe-gallery__media" endif if item.poster muted
+                                        playsinline
+                                        preload="metadata"
+                                        {%
+                                        {%
+                                >
+                                    <source src="{{ item.src }}">
+                                    Your browser does not support the video tag.
+                                </video>
+                                {% else %}
+                                <img
+                                        alt="{{ item.alt }}"
+                                        class="recipe-gallery__media"
+                                        src="{{ item.src }}"
+                                >
+                                {% endif %}
+                            </div>
+                        </figure>
+                        {% endfor %}
+                    </div>
+
+                    <button
+                            aria-label="Next media"
+                            class="recipe-gallery__arrow recipe-gallery__arrow--next"
+                            data-gallery-next
+                            type="button"
+                    >
+                        &#8250;
+                    </button>
+                </div>
+            </section>
+            {% endif %}
+
+            <div class="detail-page__grid">
+                <section class="detail-page__main">
+                    <section class="detail-page__section">
+                        <div class="recipe-summary">
+                            <div class="recipe-summary__grid">
+                                <div class="recipe-summary__item">
+                                    <span class="recipe-summary__label">Total time</span>
+                                    <span class="recipe-summary__value">{{ recipe.total_time_minutes }} min</span>
+                                </div>
+
+                                <div class="recipe-summary__item">
+                                    <span class="recipe-summary__label">Prep</span>
+                                    <span class="recipe-summary__value">{{ recipe.prep_time_minutes|default:0 }} min</span>
+                                </div>
+
+                                <div class="recipe-summary__item">
+                                    <span class="recipe-summary__label">Cook</span>
+                                    <span class="recipe-summary__value">{{ recipe.cook_time_minutes|default:0 }} min</span>
+                                </div>
+
+                                <div class="recipe-summary__item">
+                                    <span class="recipe-summary__label">Servings</span>
+                                    <span class="recipe-summary__value"
+                                          data-base-servings="{{ recipe.servings|default:1 }}">
+                                        {{ recipe.servings|default:1 }}
+                                    </span>
+                                </div>
+
+                                {% if recipe.calories %}
+                                <div class="recipe-summary__item">
+                                    <span class="recipe-summary__label">Calories</span>
+                                    <span class="recipe-summary__value">{{ recipe.calories }}</span>
+                                </div>
+                                {% endif %}
+
+                                <div class="recipe-summary__item recipe-summary__item--rating" id="rating">
+                                    <span class="recipe-summary__label">Rating</span>
+                                    <span class="recipe-summary__value">
+                                        {% if recipe.ratings_count %}
+                                            {{ recipe.average_rating|floatformat:1 }}/5
+                                        {% else %}
+                                            Not rated yet
+                                        {% endif %}
+                                    </span>
+                                    <div aria-label="Average recipe rating" class="rating-overview">
+                                        <div aria-hidden="true" class="rating-overview__stars">
+                                            <span class="rating-overview__stars-base">★★★★★</span>
+                                            <span class="rating-overview__stars-fill"
+                                                  style="width: {{ average_rating_percentage }}%;">★★★★★</span>
+                                        </div>
+                                        <span class="rating-overview__count">
+                                            {{ recipe.ratings_count }} rating{{ recipe.ratings_count|pluralize }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {% if ingredients_list %}
+                    <section class="detail-page__section" id="ingredients">
+                        <div class="detail-page__section-head">
+                            <h2>Ingredients</h2>
+                            <p class="detail-page__section-note">Scaling and interactive quantity adjustment will be
+                                added in the next stage.</p>
+                        </div>
+
+                        <div class="ingredients-panel" data-ingredients-panel>
+                            <ul class="ingredients-list">
+                                {% for ingredient in ingredients_list %}
+                                <li class="ingredients-list__item" data-ingredient-item>
+                                    <label class="ingredient-check">
+                                        <input class="ingredient-check__input" type="checkbox">
+                                        <span aria-hidden="true" class="ingredient-check__box"></span>
+                                        <span class="ingredient-check__text">{{ ingredient }}</span>
+                                    </label>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </section>
+                    {% endif %}
+
+                    {% if method_steps %}
+                    <section class="detail-page__section" id="method">
+                        <div class="detail-page__section-head">
+                            <h2>Method</h2>
+                        </div>
+
+                        <ol class="method-steps">
+                            {% for step in method_steps %}
+                            <li class="method-steps__item">
+                                <div class="method-steps__number">{{ step.number }}</div>
+                                <div class="method-steps__body">
+                                    <p>{{ step.text }}</p>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ol>
+                    </section>
+                    {% endif %}
+
+                    {% if recipe.tips %}
+                    <section class="detail-page__section">
+                        <h2>Tips</h2>
+                        <div class="rich-text">
+                            {{ recipe.tips|linebreaks }}
+                        </div>
+                    </section>
+                    {% endif %}
+
+                    <section class="detail-page__section" id="comments">
+                        <div class="detail-page__section-head">
+                            <h2>Comments</h2>
+                            <p class="detail-page__section-note">
+                                {{ approved_comments|length }} comment{{ approved_comments|length|pluralize }}
+                            </p>
+                        </div>
+
+                        <div class="comments-layout">
+                            <div class="comments-list-wrap">
+                                {% if approved_comments %}
+                                <div class="comments-list">
+                                    {% for comment in approved_comments %}
+                                    <article class="comment-card">
+                                        <div class="comment-card__head">
+                                            <strong class="comment-card__name">{{ comment.name }}</strong>
+                                            <time class="comment-card__date"
+                                                  datetime="{{ comment.created_at|date:'c' }}">
+                                                {{ comment.created_at|date:"j F Y" }}
+                                            </time>
+                                        </div>
+                                        <div class="comment-card__body">
+                                            {{ comment.content|linebreaks }}
+                                        </div>
+                                    </article>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <div class="empty-state-card">
+                                    <p>No comments yet. Be the first to leave one.</p>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="comments-forms">
+                                <section class="detail-page__card detail-page__card--form">
+                                    <h2>Rate this recipe</h2>
+                                    <form action="{% url 'recipes:submit_recipe_rating' recipe.slug %}"
+                                          class="recipe-form" method="post">
+                                        {% csrf_token %}
+                                        <div aria-label="Choose a rating from 1 to 5" class="rating-form"
+                                             role="radiogroup">
+                                            <label class="rating-form__option">
+                                                <input name="value" required type="radio" value="5">
+                                                <span>5</span>
+                                            </label>
+                                            <label class="rating-form__option">
+                                                <input name="value" type="radio" value="4">
+                                                <span>4</span>
+                                            </label>
+                                            <label class="rating-form__option">
+                                                <input name="value" type="radio" value="3">
+                                                <span>3</span>
+                                            </label>
+                                            <label class="rating-form__option">
+                                                <input name="value" type="radio" value="2">
+                                                <span>2</span>
+                                            </label>
+                                            <label class="rating-form__option">
+                                                <input name="value" type="radio" value="1">
+                                                <span>1</span>
+                                            </label>
+                                        </div>
+
+                                        <button class="detail-button" type="submit">Submit rating</button>
+                                    </form>
+                                </section>
+
+                                <section class="detail-page__card detail-page__card--form">
+                                    <h2>Leave a comment</h2>
+                                    <form action="{% url 'recipes:submit_recipe_comment' recipe.slug %}"
+                                          class="recipe-form" method="post">
+                                        {% csrf_token %}
+                                        <div class="recipe-form__field recipe-form__field--hidden">
+                                            <label for="id_website">Website</label>
+                                            <input autocomplete="off" id="id_website" name="website" tabindex="-1"
+                                                   type="text">
+                                        </div>
+
+                                        <div class="recipe-form__field">
+                                            <label for="id_name">Name</label>
+                                            <input id="id_name" maxlength="100" name="name" required type="text">
+                                        </div>
+
+                                        <div class="recipe-form__field">
+                                            <label for="id_content">Comment</label>
+                                            <textarea id="id_content" maxlength="3000" name="content" required
+                                                      rows="6"></textarea>
+                                        </div>
+
+                                        <button class="detail-button" type="submit">Post comment</button>
+                                    </form>
+                                </section>
+                            </div>
+                        </div>
+                    </section>
+                </section>
+
+                <aside class="detail-page__sidebar">
+                    {% if recipe.irish_context %}
+                    <section class="detail-page__card">
+                        <h2>Irish context</h2>
+                        <p>{{ recipe.irish_context }}</p>
+                    </section>
+                    {% endif %}
+
+                    {% if recipe.source_title or recipe.source_author %}
+                    <section class="detail-page__card">
+                        <h2>Credits &amp; source</h2>
+                        {% if recipe.source_title %}
+                        <p><strong>Source:</strong> {{ recipe.source_title }}</p>
+                        {% endif %}
+                        {% if recipe.source_author %}
+                        <p><strong>Author:</strong> {{ recipe.source_author }}</p>
+                        {% endif %}
+                        {% if recipe.source_url %}
+                        <p><strong>Link:</strong> <a href="{{ recipe.source_url }}" rel="noopener noreferrer"
+                                                     target="_blank">{{ recipe.source_url }}</a></p>
+                        {% endif %}
+                    </section>
+                    {% endif %}
+
+                    {% if recipe.allergens %}
+                    <section class="detail-page__card">
+                        <h2>Allergens</h2>
+                        <p>{{ recipe.allergens }}</p>
+                    </section>
+                    {% endif %}
+
+                    {% if recipe.created_at %}
+                    <section class="detail-page__card">
+                        <h2>Published</h2>
+                        <p>{{ recipe.created_at|date:"j F Y" }}</p>
+                    </section>
+                    {% endif %}
+                </aside>
+            </div>
+        </article>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        const gallery = document.querySelector("[data-gallery]");
+        if (!gallery) {
+            return;
+        }
+
+        const items = Array.from(gallery.querySelectorAll("[data-gallery-item]"));
+        const prevButton = gallery.querySelector("[data-gallery-prev]");
+        const nextButton = gallery.querySelector("[data-gallery-next]");
+
+        if (!items.length) {
+            return;
+        }
+
+        const totalItems = items.length;
+        let currentIndex = 0;
+        let isAnimating = false;
+        let animationTimer = null;
+
+        function clampIndex(index) {
+            if (index < 0) {
+                return 0;
+            }
+            if (index > totalItems - 1) {
+                return totalItems - 1;
+            }
+            return index;
+        }
+
+        function resetItemClasses(item) {
+            item.classList.remove(
+                "is-current",
+                "is-prev",
+                "is-next",
+                "is-hidden",
+                "is-far-prev",
+                "is-far-next"
+            );
+        }
+
+        function pauseAllVideos() {
+            items.forEach((item) => {
+                const video = item.querySelector("video");
+                if (video) {
+                    video.pause();
+                    video.controls = false;
+                }
+            });
+        }
+
+        function syncMediaState() {
+            items.forEach((item, index) => {
+                const video = item.querySelector("video");
+                if (!video) {
+                    return;
+                }
+
+                const isCurrent = index === currentIndex;
+
+                if (isCurrent) {
+                    video.controls = true;
+                    video.muted = false;
+                } else {
+                    video.pause();
+                    video.currentTime = 0;
+                    video.controls = false;
+                    video.muted = true;
+                }
+            });
+        }
+
+        function updateArrows() {
+            if (totalItems <= 1) {
+                prevButton.hidden = true;
+                nextButton.hidden = true;
+                return;
+            }
+
+            prevButton.hidden = currentIndex === 0;
+            nextButton.hidden = currentIndex === totalItems - 1;
+        }
+
+        function applyState() {
+            items.forEach((item, index) => {
+                resetItemClasses(item);
+
+                if (index === currentIndex) {
+                    item.classList.add("is-current");
+                    return;
+                }
+
+                if (index === currentIndex - 1) {
+                    item.classList.add("is-prev");
+                    return;
+                }
+
+                if (index === currentIndex + 1) {
+                    item.classList.add("is-next");
+                    return;
+                }
+
+                if (index < currentIndex - 1) {
+                    item.classList.add("is-far-prev");
+                    return;
+                }
+
+                if (index > currentIndex + 1) {
+                    item.classList.add("is-far-next");
+                    return;
+                }
+
+                item.classList.add("is-hidden");
+            });
+
+            updateArrows();
+            syncMediaState();
+        }
+
+        function goTo(index) {
+            const nextIndex = clampIndex(index);
+            if (nextIndex === currentIndex || isAnimating) {
+                return;
+            }
+
+            isAnimating = true;
+            currentIndex = nextIndex;
+            pauseAllVideos();
+            applyState();
+
+            window.clearTimeout(animationTimer);
+            animationTimer = window.setTimeout(() => {
+                isAnimating = false;
+            }, 540);
+        }
+
+        prevButton.addEventListener("click", () => goTo(currentIndex - 1));
+        nextButton.addEventListener("click", () => goTo(currentIndex + 1));
+
+        items.forEach((item, index) => {
+            item.addEventListener("click", () => {
+                if (index === currentIndex - 1 || index === currentIndex + 1) {
+                    goTo(index);
+                }
+            });
+        });
+
+        applyState();
+    })();
+</script>
+{% endblock %}

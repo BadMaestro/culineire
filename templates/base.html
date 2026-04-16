@@ -1,0 +1,85 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title>{% block title %}CulinEire{% endblock %}</title>
+
+    <meta content="{% block meta_description %}CulinEire is a modern Irish culinary platform for recipes, food stories, and classic dishes adapted for the home kitchen.{% endblock %}"
+          name="description">
+
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600&display=swap"
+          rel="stylesheet">
+
+    <link href="{% static 'css/base.css' %}" rel="stylesheet">
+    <link href="{% static 'css/header.css' %}" rel="stylesheet">
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+<header>
+    <div class="container header-inner">
+        <a aria-label="Go to homepage" class="logo" href="{% url 'home' %}">
+            <img alt="CulinEire" src="{% static 'images/logo_dark.png' %}">
+        </a>
+
+        <button
+                aria-controls="main-navigation"
+                aria-expanded="false"
+                aria-label="Toggle navigation"
+                class="nav-toggle"
+                type="button"
+        >
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <nav class="main-nav" id="main-navigation">
+            <a href="{% url 'home' %}">Home</a>
+            <a href="{% url 'recipes:recipe_list' %}">Recipes</a>
+            <a href="{% url 'articles:article_list' %}">Articles</a>
+        </nav>
+    </div>
+</header>
+
+<main>
+    {% if messages %}
+    <section aria-label="Notifications" class="site-messages">
+        <div class="container">
+            {% for message in messages %}
+            <div class="site-message site-message--{{ message.tags|default:'info' }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+</main>
+
+<footer>
+    <div class="container footer-inner">
+        <div>
+            © 2026 ·
+            <span class="brand-culineire">
+                <span class="ie-green">Culin</span><span class="ie-orange">Eire</span>
+            </span>
+            · Your Culinary Guide with an Irish Heart 💚
+        </div>
+        <div>
+            Designed and owned by <a href="https://bearcave.ie" rel="noopener noreferrer" target="_blank">Bearcave
+            Ltd.</a>
+        </div>
+        <div>All rights reserved.</div>
+    </div>
+</footer>
+
+<script src="{% static 'js/main.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

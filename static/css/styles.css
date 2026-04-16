@@ -1,0 +1,72 @@
+/*  Palette (“Modern Stone”)  */
+:root{
+  --slate:#1F3D32;
+  --limestone:#F3F2EE;
+  --atlantic:#1F3D32;
+  --sea-fog:#9FAFB0;
+  --brass:#A67C3A;
+  --radius:0.55rem;
+}
+
+/*  Base  */
+*{box-sizing:border-box;}
+html{font-size:100%;}
+body{
+  margin:0;
+  font-family:'Inter',system-ui,sans-serif;
+  color:var(--slate);
+  background:var(--limestone) url("../images/paper_texture.jpg");
+  background-size:480px 480px;
+  line-height:1.6;
+}
+h1,h2,h3{font-family:'Playfair Display',serif;font-weight:700;margin:0 0 .4em;}
+a{color:var(--atlantic);text-decoration:none;}
+a:hover{text-decoration:underline;}
+.wrapper{width:min(92%,1200px);margin-inline:auto;}
+
+/*  Header  */
+.site-header{background:var(--slate);color:#fff;}
+.header-inner{display:flex;align-items:center;justify-content:space-between;padding:.9rem 0;}
+.primary-nav ul{display:flex;gap:2rem;list-style:none;margin:0;padding:0;}
+.primary-nav a{color:#fff;font-weight:500;}
+
+/*  Hero  */
+.hero{
+  position:relative;
+  height:58vh;min-height:380px;
+  background:url("../images/hero.jpg") center/cover no-repeat;
+  display:flex;align-items:center;justify-content:center;
+  text-align:center;color:#fff;
+}
+.hero::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,.35);}
+.hero-overlay{position:relative;z-index:1;}
+.hero h1{font-size:clamp(2.1rem,6vw,3.8rem);letter-spacing:.02em;margin-bottom:.4rem;}
+.tagline{font-size:1.15rem;font-weight:400;max-width:32rem;margin-inline:auto;}
+
+/*  Grid  */
+.recipes-grid{display:grid;gap:2rem 1.5rem;padding-block:4rem;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
+.recipe-card{background:#fff;border-radius:var(--radius);overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.08);transition:transform .2s;}
+.recipe-card:hover{transform:translateY(-4px);}
+.recipe-card__image-wrapper img{display:block;width:100%;height:180px;object-fit:cover;}
+.recipe-card__body{padding:1.2rem;}
+.recipe-card__title{font-size:1.35rem;margin:0 0 .3em;}
+.recipe-card__excerpt{margin:.4rem 0 1rem;color:var(--sea-fog);}
+.recipe-card__meta{font-size:.85rem;color:var(--sea-fog);margin-bottom:.5rem;}
+.recipe-card-author{font-size:.85rem;margin:0;}
+.recipe-card-author__link{font-weight:600;}
+
+/*  Footer  */
+.site-footer{background:var(--slate);color:#fff;text-align:center;font-size:.85rem;padding:1rem 0;}
+
+/*  Mobile nav toggle  */
+.nav-toggle{display:none;}
+@media(max-width:768px){
+  .nav-toggle{display:inline-block;background:none;border:1px solid #fff;border-radius:var(--radius);padding:.3rem .7rem;color:#fff;}
+  .primary-nav ul{
+      position:absolute;top:100%;right:1rem;background:var(--slate);
+      flex-direction:column;gap:0;border-radius:var(--radius);
+      overflow:hidden;max-height:0;transition:max-height .25s ease;
+  }
+  .primary-nav[aria-expanded="true"] ul{max-height:640px;}
+}
