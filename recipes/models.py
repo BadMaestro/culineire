@@ -75,6 +75,11 @@ class RecipeAuthor(models.Model):
     name = models.CharField("Name / pen name", max_length=100)
     slug = models.SlugField("URL slug", unique=True)
     bio = models.TextField("Short author bio", blank=True)
+    avatar = models.ImageField(
+        upload_to="authors/",
+        blank=True,
+        null=True,
+    )
 
     class Meta:
         verbose_name = "Recipe author"

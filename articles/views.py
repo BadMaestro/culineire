@@ -11,10 +11,7 @@ class ArticleListView(ListView):
     paginate_by = 8
 
     def get_queryset(self):
-        return (
-            Article.objects.select_related("author", "related_recipe")
-            .order_by("-published")
-        )
+        return Article.objects.select_related("author").order_by("-published")
 
 
 class ArticleDetailView(DetailView):
@@ -22,40 +19,51 @@ class ArticleDetailView(DetailView):
     template_name = "articles/article_detail.html"
     context_object_name = "article"
 
+    _GALLERY_PREFETCH = Prefetch(
+        "gallery_images",
+        queryset=ArticleImage.objects.filter(is_active=True).order_by("sort_order", "id"),
+    )
+
     def get_queryset(self):
-        return (
-            Article.objects.select_related("author", "related_recipe").prefetch_related(
-                Prefetch(
-                    "gallery_images",
-                    queryset=ArticleImage.objects.filter(is_active=True).order_by("sort_order", "id"),
-                )
-            )
+        return Article.objects.select_related("author", "related_recipe").prefetch_related(
+            self._GALLERY_PREFETCH
         )
+
+    @staticmethod
+    def _image_to_gallery_item(image_field, alt, caption=""):
+        return {
+            "src": image_field.url,
+            "alt": alt,
+            "caption": caption or "",
+            "width": getattr(image_field, "width", None),
+            "height": getattr(image_field, "height", None),
+        }
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         article = self.object
 
-        gallery_items = []
         active_gallery_images = list(article.gallery_images.all())
 
         if active_gallery_images:
-            for image in active_gallery_images:
-                gallery_items.append(
-                    {
-                        "media_type": "image",
-                        "src": image.image.url,
-                        "alt": image.alt_text or article.title,
-                    }
+            gallery_items = [
+                self._image_to_gallery_item(
+                    image.image,
+                    alt=image.alt_text or article.title,
+                    caption=image.caption or "",
                 )
+                for image in active_gallery_images
+            ]
         elif article.hero_image:
-            gallery_items.append(
-                {
-                    "media_type": "image",
-                    "src": article.hero_image.url,
-                    "alt": article.title,
-                }
-            )
+            gallery_items = [
+                self._image_to_gallery_item(
+                    article.hero_image,
+                    alt=article.title,
+                )
+            ]
+        else:
+            gallery_items = []
 
         context["gallery_items"] = gallery_items
+        context["has_gallery"] = len(gallery_items) > 1
         return context
