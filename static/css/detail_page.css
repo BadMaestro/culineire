@@ -1337,7 +1337,7 @@
     .recipe-summary__item,
     .recipe-summary__item--rating {
       grid-column: span 1;
-      min-height: auto;
+      min-block-size: auto;
     }
 
     .rating-form {
