@@ -1,6 +1,8 @@
+import re
+
 from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
-from django.db.models import Prefetch
+from django.db.models import Avg, Count, Prefetch
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
@@ -10,6 +12,9 @@ from django.views.generic import CreateView
 from articles.models import Article
 from .forms import RecipeCommentForm, RecipeRatingForm
 from .models import Recipe, RecipeAuthor, RecipeComment, RecipeImage, RecipeRating
+
+
+METHOD_STEP_PREFIX_RE = re.compile(r"^\d+\.\s*")
 
 
 def _split_text_lines(value: str) -> list[str]:
@@ -29,8 +34,7 @@ def _build_method_steps(method_text: str) -> list[dict]:
     steps = []
     for index, line in enumerate(raw_lines, start=1):
         cleaned = line.strip()
-        if cleaned[:3].lower() in {"1. ", "2. ", "3. ", "4. ", "5. ", "6. ", "7. ", "8. ", "9. "}:
-            cleaned = cleaned[3:].strip()
+        cleaned = METHOD_STEP_PREFIX_RE.sub("", cleaned)
 
         steps.append(
             {
@@ -176,8 +180,13 @@ def recipe_detail(request, slug):
     ingredients_list = _split_text_lines(recipe.ingredients)
     method_steps = _build_method_steps(recipe.method)
     approved_comments = getattr(recipe, "approved_comments_prefetched", [])
-    average_rating = float(recipe.average_rating) if recipe.average_rating else 0
-    average_rating_percentage = min(max((average_rating / 5) * 100, 0), 100)
+    rating_summary = recipe.ratings.aggregate(
+        average=Avg("value"),
+        count=Count("id"),
+    )
+    average_rating_value = float(rating_summary["average"] or 0)
+    ratings_count = rating_summary["count"] or 0
+    average_rating_percentage = min(max((average_rating_value / 5) * 100, 0), 100)
 
     context = {
         "recipe": recipe,
@@ -185,8 +194,11 @@ def recipe_detail(request, slug):
         "ingredients_list": ingredients_list,
         "method_steps": method_steps,
         "approved_comments": approved_comments,
+        "comments_count": len(approved_comments),
         "rating_form": RecipeRatingForm(),
         "comment_form": RecipeCommentForm(),
+        "average_rating_value": average_rating_value,
+        "ratings_count": ratings_count,
         "average_rating_percentage": average_rating_percentage,
     }
     return render(request, "recipes/recipe_detail.html", context)

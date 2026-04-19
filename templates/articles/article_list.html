@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% load static %}
 
 {% block title %}Articles | CulinEire{% endblock %}
@@ -41,17 +41,6 @@
                             {% if article.published %}
                             <span class="recipe-card__meta-item">{{ article.published|date:"j F Y" }}</span>
                             {% endif %}
-
-                            {% if article.author %}
-                            <span class="recipe-card__meta-divider">•</span>
-                            <span class="recipe-card__meta-item">
-                                By:
-                                <a class="recipe-card__meta-link"
-                                   href="{% url 'recipes:author_detail' article.author.slug %}">
-                                    {{ article.author.name }}
-                                </a>
-                            </span>
-                            {% endif %}
                         </div>
 
                         {% if article.excerpt %}
@@ -62,6 +51,25 @@
                     </div>
 
                     <div class="recipe-card__footer recipe-card__footer--article">
+                        {% if article.author %}
+                        <p class="recipe-card-author">
+                            <span class="recipe-card-author__label">By:</span>
+                            <a
+                                aria-label="View articles by {{ article.author.name }}"
+                                class="recipe-card-author__brand-link"
+                                href="{% url 'recipes:author_detail' article.author.slug %}"
+                            >
+                                <img
+                                    alt="{{ article.author.name }}"
+                                    class="recipe-card-author__brand-logo"
+                                    src="{% static 'images/greenbear.png' %}"
+                                    width="40"
+                                    height="40"
+                                >
+                                <span class="recipe-card-author__name">{{ article.author.name }}</span>
+                            </a>
+                        </p>
+                        {% endif %}
                         <a class="btn" href="{{ article.get_absolute_url }}">Read article</a>
                     </div>
                 </div>

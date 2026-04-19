@@ -47,6 +47,31 @@ class RecipeAuthorAdmin(admin.ModelAdmin):
     list_display = ("name", "slug")
     search_fields = ("name", "bio")
     prepopulated_fields = {"slug": ("name",)}
+    readonly_fields = ("avatar_preview",)
+    fieldsets = (
+        (
+            "Author details",
+            {
+                "fields": (
+                    "name",
+                    "slug",
+                    "bio",
+                    "avatar",
+                    "avatar_preview",
+                ),
+            },
+        ),
+    )
+
+    def avatar_preview(self, obj):
+        if obj and obj.avatar:
+            return format_html(
+                '<img src="{}" style="max-width: 160px; max-height: 160px; border-radius: 999px;" alt="Author avatar preview" />',
+                obj.avatar.url,
+            )
+        return "No avatar uploaded yet."
+
+    avatar_preview.short_description = "Current avatar"
 
 
 @admin.register(Recipe)
