@@ -2,6 +2,7 @@ from django import forms
 from django.contrib import admin
 from django.utils.html import format_html
 
+from .allergens import EU_ALLERGEN_CHOICES, parse_selected_allergen_keys, serialize_allergen_keys
 from .models import (
     Recipe,
     RecipeAuthor,
@@ -12,16 +13,40 @@ from .models import (
 
 
 class RecipeAdminForm(forms.ModelForm):
+    selected_allergens = forms.MultipleChoiceField(
+        label="Allergens",
+        choices=EU_ALLERGEN_CHOICES,
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "allergen-checklist"}),
+        help_text="Tick any of the 14 allergens that are present in this recipe.",
+    )
+
     class Meta:
         model = Recipe
         fields = "__all__"
         labels = {
             "hero_image": "Preview image",
+            "author_commentary": "Author commentary",
         }
         help_texts = {
             "hero_image": "This is the main recipe image shown on cards and on the recipe page.",
             "calories": "Optional calories per serving.",
+            "author_commentary": "Optional note from the author. This block stays hidden on the site when left empty.",
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["selected_allergens"].initial = parse_selected_allergen_keys(
+            getattr(self.instance, "allergens", "")
+        )
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.allergens = serialize_allergen_keys(self.cleaned_data["selected_allergens"])
+        if commit:
+            instance.save()
+            self.save_m2m()
+        return instance
 
 
 class RecipeImageInline(admin.TabularInline):
@@ -122,7 +147,8 @@ class RecipeAdmin(admin.ModelAdmin):
                     "method",
                     "tips",
                     "irish_context",
-                    "allergens",
+                    "author_commentary",
+                    "selected_allergens",
                 )
             },
         ),
