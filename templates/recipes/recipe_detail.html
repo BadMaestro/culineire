@@ -11,6 +11,29 @@
 {% block content %}
 <section class="section">
     <div class="container">
+        <nav aria-label="Breadcrumb" class="detail-page__breadcrumb">
+            <ol class="detail-page__breadcrumb-list">
+                <li class="detail-page__breadcrumb-item">
+                    <a href="{% url 'recipes:recipe_list' %}">Recipes</a>
+                </li>
+                {% if recipe.category %}
+                <li class="detail-page__breadcrumb-item">
+                    <a href="{{ recipe.get_category_url }}">
+                        {{ recipe.get_category_display }}
+                    </a>
+                </li>
+                {% endif %}
+                <li class="detail-page__breadcrumb-item detail-page__breadcrumb-item--current" aria-current="page">
+                    {{ recipe.title }}
+                </li>
+            </ol>
+            {% if recipe.created_at %}
+            <time class="detail-page__breadcrumb-date" datetime="{{ recipe.created_at|date:'Y-m-d' }}">
+                {{ recipe.created_at|date:"j F Y" }}
+            </time>
+            {% endif %}
+        </nav>
+
         <article class="detail-page">
             <header class="detail-page__header detail-page__header--recipe">
                 <div class="detail-page__header-inner">
@@ -129,6 +152,60 @@
             </section>
             {% endif %}
 
+            <div class="detail-page__actions">
+                <button class="detail-page__action-btn" onclick="window.print()" type="button">
+                    <span aria-hidden="true">🖨</span>
+                    <span>Print</span>
+                </button>
+
+                <div class="detail-page__share">
+                    <a
+                        class="detail-page__action-btn"
+                        href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri|urlencode }}&text={{ recipe.title|urlencode }}"
+                        rel="noopener noreferrer"
+                        target="_blank"
+                    >
+                        <span aria-hidden="true">𝕏</span>
+                        <span>Twitter/X</span>
+                    </a>
+                    <a
+                        class="detail-page__action-btn"
+                        href="https://wa.me/?text={{ recipe.title|urlencode }}%20{{ request.build_absolute_uri|urlencode }}"
+                        rel="noopener noreferrer"
+                        target="_blank"
+                    >
+                        <span aria-hidden="true">✆</span>
+                        <span>WhatsApp</span>
+                    </a>
+                    <a
+                        class="detail-page__action-btn"
+                        href="https://t.me/share/url?url={{ request.build_absolute_uri|urlencode }}&text={{ recipe.title|urlencode }}"
+                        rel="noopener noreferrer"
+                        target="_blank"
+                    >
+                        <span aria-hidden="true">✈</span>
+                        <span>Telegram</span>
+                    </a>
+                    <a
+                        class="detail-page__action-btn"
+                        href="https://pinterest.com/pin/create/button/?url={{ request.build_absolute_uri|urlencode }}&description={{ recipe.title|urlencode }}"
+                        rel="noopener noreferrer"
+                        target="_blank"
+                    >
+                        <span aria-hidden="true">P</span>
+                        <span>Pinterest</span>
+                    </a>
+                    <button
+                        class="detail-page__copy-btn detail-page__action-btn"
+                        data-copy-url="{{ request.build_absolute_uri }}"
+                        type="button"
+                    >
+                        <span aria-hidden="true">🔗</span>
+                        <span>Copy link</span>
+                    </button>
+                </div>
+            </div>
+
             <div class="detail-page__grid">
                 <section class="detail-page__main">
                     <section class="detail-page__section">
@@ -186,7 +263,7 @@
                         </div>
                     </section>
 
-                    {% if ingredients_list %}
+                    {% if ingredient_items %}
                     <section class="detail-page__section" id="ingredients">
                         <div class="detail-page__section-head">
                             <h2>Ingredients</h2>
@@ -195,12 +272,17 @@
 
                         <div class="ingredients-panel" data-ingredients-panel>
                             <ul class="ingredients-list">
-                                {% for ingredient in ingredients_list %}
+                                {% for ingredient in ingredient_items %}
                                 <li class="ingredients-list__item" data-ingredient-item>
                                     <label class="ingredient-check">
                                         <input class="ingredient-check__input" type="checkbox">
                                         <span aria-hidden="true" class="ingredient-check__box"></span>
-                                        <span class="ingredient-check__text">{{ ingredient }}</span>
+                                        <span class="ingredient-check__text">
+                                            <span class="ingredient-check__name">{{ ingredient.name }}</span>
+                                            {% if ingredient.detail_display %}
+                                            <span class="ingredient-check__detail">{{ ingredient.detail_display }}</span>
+                                            {% endif %}
+                                        </span>
                                     </label>
                                 </li>
                                 {% endfor %}
@@ -215,26 +297,17 @@
                             <h2>Method</h2>
                         </div>
 
-                        <ol class="method-steps">
-                            {% for step in method_steps %}
-                            <li class="method-steps__item" aria-label="Step {{ step.number }}">
-                                <span aria-hidden="true" class="method-steps__number">{{ step.number }}</span>
-                                <div class="method-steps__body">
-                                    <p>{{ step.text }}</p>
-                                </div>
-                            </li>
-                            {% endfor %}
-                        </ol>
-                    </section>
-                    {% endif %}
-
-                    {% if recipe.tips %}
-                    <section class="detail-page__section">
-                        <div class="detail-page__section-head">
-                            <h2>Tips</h2>
-                        </div>
-                        <div class="rich-text">
-                            {{ recipe.tips|linebreaks }}
+                        <div class="method-panel">
+                            <ol class="method-steps">
+                                {% for step in method_steps %}
+                                <li class="method-steps__item" aria-label="Step {{ step.number }}">
+                                    <span aria-hidden="true" class="method-steps__number">{{ step.number }}</span>
+                                    <div class="method-steps__body">
+                                        <p>{{ step.text }}</p>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ol>
                         </div>
                     </section>
                     {% endif %}
@@ -247,7 +320,31 @@
                             </p>
                         </div>
 
-                        <div class="comments-layout">
+                        <div class="comments-panel">
+                            <section class="comments-panel__form">
+                                <h3>Leave a comment</h3>
+                                <form action="{% url 'recipes:submit_recipe_comment' recipe.slug %}" class="recipe-form" method="post">
+                                    {% csrf_token %}
+                                    <div class="recipe-form__field recipe-form__field--hidden">
+                                        <label for="id_website">Website</label>
+                                        <input autocomplete="off" id="id_website" name="website" tabindex="-1" type="text">
+                                    </div>
+
+                                    <div class="recipe-form__field">
+                                        <label for="id_name">Name</label>
+                                        <input id="id_name" maxlength="100" name="name" required type="text">
+                                    </div>
+
+                                    <div class="recipe-form__field">
+                                        <label for="id_content">Comment</label>
+                                        <textarea id="id_content" maxlength="3000" name="content" required rows="6" aria-describedby="id_content_help"></textarea>
+                                        <p class="recipe-form__help" id="id_content_help">Maximum 3000 characters.</p>
+                                    </div>
+
+                                    <button class="detail-button" type="submit">Post comment</button>
+                                </form>
+                            </section>
+
                             <div class="comments-list">
                                 {% if approved_comments %}
                                     {% for comment in approved_comments %}
@@ -269,103 +366,121 @@
                                 </div>
                                 {% endif %}
                             </div>
-
-                            <div class="comments-forms">
-                                <section class="detail-page__card detail-page__card--form">
-                                    <h2>Rate this recipe</h2>
-                                    <form action="{% url 'recipes:submit_recipe_rating' recipe.slug %}" class="recipe-form" method="post">
-                                        {% csrf_token %}
-                                        <div aria-label="Choose a rating from 1 to 5" class="rating-form" role="radiogroup">
-                                            <label class="rating-form__option">
-                                                <input name="value" required type="radio" value="5">
-                                                <span>5</span>
-                                            </label>
-                                            <label class="rating-form__option">
-                                                <input name="value" type="radio" value="4">
-                                                <span>4</span>
-                                            </label>
-                                            <label class="rating-form__option">
-                                                <input name="value" type="radio" value="3">
-                                                <span>3</span>
-                                            </label>
-                                            <label class="rating-form__option">
-                                                <input name="value" type="radio" value="2">
-                                                <span>2</span>
-                                            </label>
-                                            <label class="rating-form__option">
-                                                <input name="value" type="radio" value="1">
-                                                <span>1</span>
-                                            </label>
-                                        </div>
-
-                                        <button class="detail-button" type="submit">Submit rating</button>
-                                    </form>
-                                </section>
-
-                                <section class="detail-page__card detail-page__card--form">
-                                    <h2>Leave a comment</h2>
-                                    <form action="{% url 'recipes:submit_recipe_comment' recipe.slug %}" class="recipe-form" method="post">
-                                        {% csrf_token %}
-                                        <div class="recipe-form__field recipe-form__field--hidden">
-                                            <label for="id_website">Website</label>
-                                            <input autocomplete="off" id="id_website" name="website" tabindex="-1" type="text">
-                                        </div>
-
-                                        <div class="recipe-form__field">
-                                            <label for="id_name">Name</label>
-                                            <input id="id_name" maxlength="100" name="name" required type="text">
-                                        </div>
-
-                                        <div class="recipe-form__field">
-                                            <label for="id_content">Comment</label>
-                                            <textarea id="id_content" maxlength="3000" name="content" required rows="6" aria-describedby="id_content_help"></textarea>
-                                            <p class="recipe-form__help" id="id_content_help">Maximum 3000 characters.</p>
-                                        </div>
-
-                                        <button class="detail-button" type="submit">Post comment</button>
-                                    </form>
-                                </section>
-                            </div>
                         </div>
                     </section>
                 </section>
 
                 <aside class="detail-page__sidebar">
                     {% if recipe.irish_context %}
-                    <section class="detail-page__card">
+                    <section class="detail-page__card detail-page__card--context">
                         <h2>Irish context</h2>
-                        <p>{{ recipe.irish_context }}</p>
+                        <div class="detail-page__card-copy">
+                            {% for paragraph in irish_context_paragraphs %}
+                            <p>{{ paragraph }}</p>
+                            {% empty %}
+                            <p>{{ recipe.irish_context }}</p>
+                            {% endfor %}
+                        </div>
                     </section>
                     {% endif %}
 
-                    {% if recipe.source_title or recipe.source_author %}
-                    <section class="detail-page__card">
-                        <h2>Credits &amp; source</h2>
-                        {% if recipe.source_title %}
-                        <p><strong>Source:</strong> {{ recipe.source_title }}</p>
-                        {% endif %}
-                        {% if recipe.source_author %}
-                        <p><strong>Author:</strong> {{ recipe.source_author }}</p>
-                        {% endif %}
-                        {% if recipe.source_url %}
-                        <p><strong>Link:</strong> <a href="{{ recipe.source_url }}" rel="noopener noreferrer" target="_blank">{{ recipe.source_url }}</a></p>
-                        {% endif %}
+                    {% if recipe.tips %}
+                    <section class="detail-page__card detail-page__card--tips">
+                        <h2>Tips</h2>
+                        <div class="detail-page__card-copy">
+                            {% for paragraph in tips_paragraphs %}
+                            <p>{{ paragraph }}</p>
+                            {% empty %}
+                            <p>{{ recipe.tips }}</p>
+                            {% endfor %}
+                        </div>
                     </section>
                     {% endif %}
 
-                    {% if recipe.allergens %}
-                    <section class="detail-page__card">
+                    {% if recipe.author_commentary %}
+                    <section class="detail-page__card detail-page__card--author-commentary">
+                        <h2>Author Commentary</h2>
+                        <div class="detail-page__card-copy">
+                            {% for paragraph in author_commentary_paragraphs %}
+                            <p>{{ paragraph }}</p>
+                            {% empty %}
+                            <p>{{ recipe.author_commentary }}</p>
+                            {% endfor %}
+                        </div>
+                    </section>
+                    {% endif %}
+
+                    {% if recipe.category or recipe.source_url %}
+                    <section class="detail-page__card detail-page__card--source">
+                        <h2>Credits &amp; Source</h2>
+                        <div class="detail-page__source-list">
+                            {% if recipe.category %}
+                            <div class="detail-page__source-item">
+                                <span class="detail-page__source-label">Category</span>
+                                <a class="detail-page__source-link" href="{{ recipe.get_category_url }}">
+                                    {{ recipe.get_category_display }}
+                                </a>
+                            </div>
+                            {% endif %}
+                            {% if recipe.source_url %}
+                            <div class="detail-page__source-item">
+                                <span class="detail-page__source-label">Link</span>
+                                <a class="detail-page__source-link" href="{{ recipe.source_url }}" rel="noopener noreferrer" target="_blank">
+                                    View original source
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </section>
+                    {% endif %}
+
+                    {% if allergen_items %}
+                    <section class="detail-page__card detail-page__card--allergens">
                         <h2>Allergens</h2>
-                        <p>{{ recipe.allergens }}</p>
+                        <ul class="allergen-list" aria-label="Recipe allergen status">
+                            {% for allergen in allergen_items %}
+                            <li class="allergen-list__item">
+                                <span class="allergen-check allergen-check--present">
+                                    <span aria-hidden="true" class="allergen-check__box"></span>
+                                    <span class="allergen-check__text">{{ allergen.label }}</span>
+                                </span>
+                            </li>
+                            {% endfor %}
+                        </ul>
                     </section>
                     {% endif %}
 
-                    {% if recipe.created_at %}
-                    <section class="detail-page__card">
-                        <h2>Published</h2>
-                        <p>{{ recipe.created_at|date:"j F Y" }}</p>
+                    <section class="detail-page__card detail-page__card--form">
+                        <h2>Rate this recipe</h2>
+                        <form action="{% url 'recipes:submit_recipe_rating' recipe.slug %}" class="recipe-form" method="post">
+                            {% csrf_token %}
+                            <div aria-label="Choose a rating from 1 to 5" class="rating-form" role="radiogroup">
+                                <label class="rating-form__option">
+                                    <input name="value" required type="radio" value="1">
+                                    <span>1</span>
+                                </label>
+                                <label class="rating-form__option">
+                                    <input name="value" type="radio" value="2">
+                                    <span>2</span>
+                                </label>
+                                <label class="rating-form__option">
+                                    <input name="value" type="radio" value="3">
+                                    <span>3</span>
+                                </label>
+                                <label class="rating-form__option">
+                                    <input name="value" type="radio" value="4">
+                                    <span>4</span>
+                                </label>
+                                <label class="rating-form__option">
+                                    <input name="value" type="radio" value="5">
+                                    <span>5</span>
+                                </label>
+                            </div>
+
+                            <button class="detail-button" type="submit">Submit rating</button>
+                        </form>
                     </section>
-                    {% endif %}
+
                 </aside>
             </div>
         </article>

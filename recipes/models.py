@@ -182,6 +182,7 @@ class Recipe(models.Model):
     method = models.TextField(help_text="Step-by-step method.")
     tips = models.TextField(blank=True)
     irish_context = models.TextField(blank=True)
+    author_commentary = models.TextField(blank=True)
     allergens = models.TextField(blank=True)
 
     source_type = models.CharField(

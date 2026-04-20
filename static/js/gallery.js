@@ -1,4 +1,40 @@
 (function () {
+    const copyButton = document.querySelector("[data-copy-url]");
+
+    if (copyButton) {
+        const copyUrl = copyButton.dataset.copyUrl || "";
+        const copyLabel = copyButton.lastElementChild;
+        const defaultLabel = copyLabel ? copyLabel.textContent : copyButton.textContent.trim();
+        let copyTimer = null;
+
+        copyButton.addEventListener("click", async () => {
+            if (!copyUrl || !navigator.clipboard || typeof navigator.clipboard.writeText !== "function") {
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(copyUrl);
+
+                if (copyLabel) {
+                    copyLabel.textContent = "Copied";
+                } else {
+                    copyButton.textContent = "Copied";
+                }
+
+                window.clearTimeout(copyTimer);
+                copyTimer = window.setTimeout(() => {
+                    if (copyLabel) {
+                        copyLabel.textContent = defaultLabel;
+                    } else {
+                        copyButton.textContent = defaultLabel;
+                    }
+                }, 2000);
+            } catch (error) {
+                // Leave the button unchanged when clipboard access is unavailable.
+            }
+        });
+    }
+
     const gallery = document.querySelector("[data-gallery]");
 
     if (!gallery) {

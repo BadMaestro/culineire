@@ -1,9 +1,11 @@
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
+from .admin import RecipeAdminForm
+from .allergens import build_present_allergen_items, parse_selected_allergen_keys, serialize_allergen_keys
 from .forms import RecipeCommentForm
 from .models import Recipe, RecipeComment, RecipeRating
-from .views import _build_method_steps, _split_text_lines
+from .views import _build_context_paragraphs, _build_ingredient_items, _build_method_steps, _split_text_lines
 
 
 class RecipeTextHelperTests(SimpleTestCase):
@@ -22,6 +24,108 @@ class RecipeTextHelperTests(SimpleTestCase):
             [
                 {"number": 1, "text": "Prep the veg"},
                 {"number": 2, "text": "Finish the stew"},
+            ],
+        )
+
+    def test_build_method_steps_skips_empty_number_only_rows(self):
+        method = "1. Prep the veg\n2. Finish the stew\n10."
+
+        steps = _build_method_steps(method)
+
+        self.assertEqual(
+            steps,
+            [
+                {"number": 1, "text": "Prep the veg"},
+                {"number": 2, "text": "Finish the stew"},
+            ],
+        )
+
+    def test_build_context_paragraphs_keeps_explicit_paragraph_breaks(self):
+        context = "First note about the dish.\n\nSecond note about how it is served."
+
+        self.assertEqual(
+            _build_context_paragraphs(context),
+            [
+                "First note about the dish.",
+                "Second note about how it is served.",
+            ],
+        )
+
+    def test_build_context_paragraphs_groups_long_single_block_into_pairs(self):
+        context = (
+            "Shepherd's pie and cottage pie are traditional comfort dishes. "
+            "They are often served during colder months. "
+            "Originally the dish was a practical way to use leftover meat. "
+            "Today it remains a staple in Irish homes."
+        )
+
+        self.assertEqual(
+            _build_context_paragraphs(context),
+            [
+                (
+                    "Shepherd's pie and cottage pie are traditional comfort dishes. "
+                    "They are often served during colder months."
+                ),
+                (
+                    "Originally the dish was a practical way to use leftover meat. "
+                    "Today it remains a staple in Irish homes."
+                ),
+            ],
+        )
+
+    def test_build_ingredient_items_splits_name_and_detail(self):
+        ingredients = "Minced beef - 500g\nSalt - To taste"
+
+        self.assertEqual(
+            _build_ingredient_items(ingredients),
+            [
+                {
+                    "name": "Minced beef",
+                    "detail": "500g",
+                    "detail_display": "500g.",
+                },
+                {
+                    "name": "Salt",
+                    "detail": "To taste",
+                    "detail_display": "To taste.",
+                },
+            ],
+        )
+
+    def test_build_ingredient_items_keeps_single_value_without_detail(self):
+        ingredients = "Fresh parsley"
+
+        self.assertEqual(
+            _build_ingredient_items(ingredients),
+            [
+                {
+                    "name": "Fresh parsley",
+                    "detail": "",
+                    "detail_display": "",
+                },
+            ],
+        )
+
+    def test_parse_selected_allergen_keys_supports_legacy_text(self):
+        self.assertEqual(
+            parse_selected_allergen_keys("Milk Possible gluten depending on stock used"),
+            ["gluten", "milk"],
+        )
+
+    def test_serialize_allergen_keys_keeps_known_values_only(self):
+        self.assertEqual(
+            serialize_allergen_keys(["milk", "gluten", "milk", "unknown"]),
+            "milk\ngluten",
+        )
+
+    def test_build_present_allergen_items_returns_only_selected_items(self):
+        allergen_items = build_present_allergen_items("milk\ngluten")
+
+        self.assertEqual(
+            allergen_items,
+            [
+                {"key": "gluten", "label": "Cereals containing gluten", "is_present": True},
+                {"key": "milk", "label": "Milk", "is_present": True},
             ],
         )
 
@@ -49,6 +153,51 @@ class RecipeCommentFormTests(SimpleTestCase):
 
         self.assertFalse(form.is_valid())
         self.assertIn("website", form.errors)
+
+
+class RecipeAdminFormTests(SimpleTestCase):
+    def test_admin_form_populates_selected_allergens_from_instance(self):
+        recipe = Recipe(
+            title="Test pie",
+            ingredients="Potatoes",
+            method="Cook it",
+            allergens="milk\ngluten",
+        )
+
+        form = RecipeAdminForm(instance=recipe)
+
+        self.assertEqual(form.fields["selected_allergens"].initial, ["milk", "gluten"])
+
+    def test_admin_form_saves_selected_allergens_and_author_commentary(self):
+        form = RecipeAdminForm(
+            data={
+                "title": "Test pie",
+                "short_description": "",
+                "prep_time_minutes": 20,
+                "cook_time_minutes": 40,
+                "servings": 4,
+                "calories": "",
+                "difficulty": Recipe.Difficulty.EASY,
+                "category": Recipe.Category.EVERYDAY_IRISH_COOKING,
+                "ingredients": "Potatoes - 800g",
+                "method": "1. Boil potatoes",
+                "tips": "",
+                "irish_context": "",
+                "author_commentary": "Best served very hot.",
+                "selected_allergens": ["milk", "gluten"],
+                "source_type": Recipe.SourceType.ORIGINAL,
+                "source_title": "",
+                "source_author": "",
+                "source_url": "",
+                "source_note": "",
+            }
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        recipe = form.save(commit=False)
+
+        self.assertEqual(recipe.allergens, "milk\ngluten")
+        self.assertEqual(recipe.author_commentary, "Best served very hot.")
 
 
 class AuthenticationPageTests(TestCase):

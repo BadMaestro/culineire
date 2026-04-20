@@ -10,11 +10,88 @@ from django.views.decorators.http import require_POST
 from django.views.generic import CreateView
 
 from articles.models import Article
+from .allergens import build_present_allergen_items
 from .forms import RecipeCommentForm, RecipeRatingForm
 from .models import Recipe, RecipeAuthor, RecipeComment, RecipeImage, RecipeRating
 
 
 METHOD_STEP_PREFIX_RE = re.compile(r"^\d+\.\s*")
+INGREDIENT_DETAIL_SPLIT_RE = re.compile(r"\s*(?:-|–|—|:)\s*", re.UNICODE)
+CONTEXT_SENTENCE_SPLIT_RE = re.compile(r'(?<=[.!?])\s+(?=(?:["“‘]?[A-Z0-9]))')
+
+
+EU_ALLERGENS = [
+    {
+        "key": "gluten",
+        "label": "Cereals containing gluten",
+        "aliases": ["gluten", "wheat", "barley", "rye", "oats", "spelt", "semolina", "breadcrumbs", "pasta", "bread", "flour"],
+    },
+    {
+        "key": "crustaceans",
+        "label": "Crustaceans",
+        "aliases": ["crustacean", "crustaceans", "prawn", "prawns", "shrimp", "crab", "lobster", "langoustine", "scampi", "crayfish"],
+    },
+    {
+        "key": "eggs",
+        "label": "Eggs",
+        "aliases": ["egg", "eggs", "mayonnaise", "mayo"],
+    },
+    {
+        "key": "fish",
+        "label": "Fish",
+        "aliases": ["fish", "anchovy", "anchovies", "salmon", "tuna", "cod", "haddock", "sardine", "mackerel"],
+    },
+    {
+        "key": "peanuts",
+        "label": "Peanuts",
+        "aliases": ["peanut", "peanuts"],
+    },
+    {
+        "key": "soybeans",
+        "label": "Soybeans",
+        "aliases": ["soy", "soya", "soybean", "soybeans", "tofu", "miso", "tempeh", "edamame"],
+    },
+    {
+        "key": "milk",
+        "label": "Milk",
+        "aliases": ["milk", "butter", "cream", "cheese", "yogurt", "yoghurt", "whey", "buttermilk"],
+    },
+    {
+        "key": "tree_nuts",
+        "label": "Tree nuts",
+        "aliases": ["almond", "almonds", "hazelnut", "hazelnuts", "walnut", "walnuts", "cashew", "cashews", "pecan", "pecans", "pistachio", "pistachios", "macadamia", "brazil nut", "brazil nuts"],
+    },
+    {
+        "key": "celery",
+        "label": "Celery",
+        "aliases": ["celery", "celeriac"],
+    },
+    {
+        "key": "mustard",
+        "label": "Mustard",
+        "aliases": ["mustard", "mustards"],
+    },
+    {
+        "key": "sesame",
+        "label": "Sesame",
+        "aliases": ["sesame", "tahini"],
+    },
+    {
+        "key": "sulphites",
+        "label": "Sulphur dioxide / sulphites",
+        "aliases": ["sulphite", "sulphites", "sulfite", "sulfites", "sulphur dioxide", "sulfur dioxide"],
+    },
+    {
+        "key": "lupin",
+        "label": "Lupin",
+        "aliases": ["lupin", "lupine"],
+    },
+    {
+        "key": "molluscs",
+        "label": "Molluscs",
+        "aliases": ["mollusc", "molluscs", "mussel", "mussels", "oyster", "oysters", "clam", "clams", "scallop", "scallops", "squid", "octopus", "cuttlefish", "snail", "whelk"],
+    },
+]
 
 
 def _split_text_lines(value: str) -> list[str]:
@@ -32,18 +109,101 @@ def _build_method_steps(method_text: str) -> list[dict]:
     raw_lines = _split_text_lines(method_text)
 
     steps = []
-    for index, line in enumerate(raw_lines, start=1):
+    for line in raw_lines:
         cleaned = line.strip()
         cleaned = METHOD_STEP_PREFIX_RE.sub("", cleaned)
+        cleaned = cleaned.strip()
+
+        if not cleaned or cleaned.isdigit():
+            continue
 
         steps.append(
             {
-                "number": index,
+                "number": len(steps) + 1,
                 "text": cleaned,
             }
         )
 
     return steps
+
+
+def _ensure_sentence_punctuation(value: str) -> str:
+    cleaned = value.strip()
+    if not cleaned:
+        return ""
+    if cleaned[-1] in ".!?":
+        return cleaned
+    return f"{cleaned}."
+
+
+def _build_ingredient_items(ingredients_text: str) -> list[dict]:
+    items = []
+
+    for raw_line in _split_text_lines(ingredients_text):
+        parts = INGREDIENT_DETAIL_SPLIT_RE.split(raw_line, maxsplit=1)
+        name = parts[0].strip()
+        detail = parts[1].strip() if len(parts) > 1 else ""
+
+        items.append(
+            {
+                "name": name,
+                "detail": detail,
+                "detail_display": _ensure_sentence_punctuation(detail) if detail else "",
+            }
+        )
+
+    return items
+
+
+def _build_allergen_items(ingredients_text: str, allergens_text: str) -> list[dict]:
+    detection_source = " ".join(part for part in [ingredients_text, allergens_text] if part)
+    normalized_source = f" {re.sub(r'\s+', ' ', detection_source).lower()} "
+    items = []
+
+    for allergen in EU_ALLERGENS:
+        is_present = any(
+            re.search(rf"(?<![a-z0-9]){re.escape(alias.lower())}(?![a-z0-9])", normalized_source)
+            for alias in allergen["aliases"]
+        )
+        items.append(
+            {
+                "key": allergen["key"],
+                "label": allergen["label"],
+                "is_present": is_present,
+            }
+        )
+
+    return items
+
+
+def _build_context_paragraphs(context_text: str) -> list[str]:
+    if not context_text:
+        return []
+
+    explicit_paragraphs = [
+        re.sub(r"\s+", " ", chunk).strip()
+        for chunk in re.split(r"\n\s*\n+", context_text)
+        if chunk.strip()
+    ]
+    if len(explicit_paragraphs) > 1:
+        return explicit_paragraphs
+
+    normalized_text = re.sub(r"\s+", " ", context_text).strip()
+    if not normalized_text:
+        return []
+
+    sentences = [
+        sentence.strip()
+        for sentence in CONTEXT_SENTENCE_SPLIT_RE.split(normalized_text)
+        if sentence.strip()
+    ]
+    if len(sentences) <= 2:
+        return [normalized_text]
+
+    return [
+        " ".join(sentences[index:index + 2])
+        for index in range(0, len(sentences), 2)
+    ]
 
 
 def home(request):
@@ -177,8 +337,12 @@ def recipe_detail(request, slug):
             }
         )
 
-    ingredients_list = _split_text_lines(recipe.ingredients)
+    ingredient_items = _build_ingredient_items(recipe.ingredients)
+    allergen_items = build_present_allergen_items(recipe.allergens)
     method_steps = _build_method_steps(recipe.method)
+    irish_context_paragraphs = _build_context_paragraphs(recipe.irish_context)
+    tips_paragraphs = _build_context_paragraphs(recipe.tips)
+    author_commentary_paragraphs = _build_context_paragraphs(recipe.author_commentary)
     approved_comments = getattr(recipe, "approved_comments_prefetched", [])
     rating_summary = recipe.ratings.aggregate(
         average=Avg("value"),
@@ -191,8 +355,12 @@ def recipe_detail(request, slug):
     context = {
         "recipe": recipe,
         "gallery_items": gallery_items,
-        "ingredients_list": ingredients_list,
+        "ingredient_items": ingredient_items,
+        "allergen_items": allergen_items,
         "method_steps": method_steps,
+        "irish_context_paragraphs": irish_context_paragraphs,
+        "tips_paragraphs": tips_paragraphs,
+        "author_commentary_paragraphs": author_commentary_paragraphs,
         "approved_comments": approved_comments,
         "comments_count": len(approved_comments),
         "rating_form": RecipeRatingForm(),
