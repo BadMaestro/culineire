@@ -1,16 +1,16 @@
 /* ==== Footer layout & styles ==== */
 
 .site-footer {
-  padding: 0.9rem 1.5rem 0.85rem;
-  background: var(--brand);
+  padding: 0.9rem 1.5rem 0.95rem;
+  background: #4a4542;
   color: #f7f2ea;
   flex-shrink: 0;
 }
 
 .footer-inner {
-  max-width: 960px;
+  max-width: 560px;
   font-size: 0.72rem;
-  line-height: 1.35;
+  line-height: 1.18;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -27,7 +27,7 @@
 }
 
 .footer-inner__tagline--strong {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.62rem;
   font-weight: 600;
   color: rgb(247 242 234 / 1);
 }
@@ -39,7 +39,7 @@
 
 .footer-inner__meta {
   margin: 0;
-  color: rgb(247 242 234 / 0.52);
+  color: rgb(247 242 234 / 0.5);
 }
 
 .footer-socials {
@@ -47,35 +47,44 @@
   align-items: center;
   justify-content: center;
   gap: clamp(0.7rem, 3vw, 1.7rem);
-  margin: 0 0 0.35rem;
+  margin: 0 0 0.48rem;
   flex-wrap: wrap;
 }
 
 .footer-socials__link {
+  --social-accent: #f7f2ea;
   display: inline-flex;
+  position: relative;
   align-items: center;
   justify-content: center;
   width: 22px;
   height: 22px;
-  border-radius: 10px;
-  color: rgb(247 242 234 / 0.56);
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: rgb(247 242 234 / 0.68);
+  box-shadow: none;
+  isolation: isolate;
   text-decoration: none;
+  backdrop-filter: none;
   transition:
     color 0.18s ease,
-    background-color 0.18s ease,
+    filter 0.18s ease,
     transform 0.18s ease;
 }
 
 .footer-socials__link:hover,
 .footer-socials__link:focus-visible {
-  color: rgb(247 242 234 / 0.9);
-  background: transparent;
-  transform: none;
+  color: var(--social-accent);
+  filter: saturate(1.12) brightness(1.08);
+  transform: translateY(-1px);
 }
 
 .footer-socials__link svg {
-  width: 17px;
-  height: 17px;
+  position: relative;
+  width: 16.15px;
+  height: 16.15px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.6;
@@ -88,13 +97,36 @@
   stroke: none;
 }
 
-.footer-socials__link--dot::before {
-  content: "";
-  display: block;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: rgb(247 242 234 / 0.56);
+.footer-socials__link[aria-label="Instagram"] {
+  --social-accent: #e4405f;
+}
+
+.footer-socials__link[aria-label="Facebook"] {
+  --social-accent: #1877f2;
+}
+
+.footer-socials__link[aria-label="X"] {
+  --social-accent: #f7f2ea;
+}
+
+.footer-socials__link[aria-label="LinkedIn"] {
+  --social-accent: #0a66c2;
+}
+
+.footer-socials__link[aria-label="Telegram"] {
+  --social-accent: #229ed9;
+}
+
+.footer-socials__link[aria-label="WhatsApp"] {
+  --social-accent: #25d366;
+}
+
+.footer-socials__link[aria-label="Twitch"] {
+  --social-accent: #9146ff;
+}
+
+.footer-socials__link[aria-label="YouTube"] {
+  --social-accent: #ff0033;
 }
 
 .footer-inner .brand-culineire {

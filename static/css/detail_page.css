@@ -145,8 +145,7 @@
   .detail-page__breadcrumb-item a:hover,
   .detail-page__breadcrumb-item a:focus-visible {
     color: var(--brand);
-    text-decoration: underline;
-    text-underline-offset: 3px;
+    text-decoration: none;
   }
 
   .detail-page__breadcrumb-item--current {

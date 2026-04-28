@@ -126,6 +126,7 @@
     color: var(--ink);
     font-family: "Playfair Display", Georgia, serif;
     letter-spacing: -0.02em;
+    text-align: center;
   }
 
   h1 {
@@ -165,6 +166,10 @@
     padding-inline: 0;
   }
 
+  .hero--home + .page-section {
+    padding-block-end: 0;
+  }
+
   .grid {
     display: grid;
     gap: 1rem;
@@ -174,11 +179,49 @@
 
   .page-header,
   .section-heading {
+    position: relative;
     display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
+    justify-content: center;
+    align-items: center;
     gap: 1rem;
     margin-block-end: 0.9rem;
+    text-align: center;
+  }
+
+  .page-header > div,
+  .section-heading > div {
+    flex: 0 1 auto;
+    text-align: center;
+  }
+
+  .page-header > .text-link,
+  .section-heading > .text-link {
+    position: absolute;
+    inset-inline-end: 0;
+    inset-block-start: 50%;
+    transform: translateY(-50%);
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.68;
+    color: var(--ink-soft);
+    opacity: 0.5;
+    transition:
+      color 0.18s ease,
+      opacity 0.18s ease;
+  }
+
+  .page-header > .text-link::after,
+  .section-heading > .text-link::after {
+    content: "...";
+  }
+
+  .page-header > .text-link:hover,
+  .page-header > .text-link:focus-visible,
+  .section-heading > .text-link:hover,
+  .section-heading > .text-link:focus-visible {
+    color: var(--brand);
+    opacity: 1;
   }
 
   .page-header h1,
@@ -191,15 +234,17 @@
   .page-subtitle,
   .section-intro {
     margin: 0;
+    margin-inline: auto;
     margin-block-end: 1.35rem;
     max-width: 54ch;
     font-size: 1rem;
     line-height: 1.68;
     color: var(--ink-soft);
+    text-align: center;
   }
 
   .eyebrow {
-    display: inline-block;
+    display: block;
     margin: 0;
     margin-block-end: 0.38rem;
     font-size: 0.75rem;
@@ -207,6 +252,7 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--brand);
+    text-align: center;
   }
 
   /* ==== Recipe categories ==== */
@@ -350,7 +396,7 @@
   }
 
   .hero--home {
-    min-height: clamp(420px, 64vw, 760px);
+    min-height: clamp(250px, 38vw, 410px);
     padding: 0;
     display: flex;
     align-items: center;
@@ -386,16 +432,18 @@
     z-index: 3;
     width: min(100% - 2rem, var(--container));
     margin-inline: auto;
-    padding-block: clamp(3.25rem, 8vw, 6rem);
+    padding-block: clamp(1.35rem, 3.8vw, 2.5rem);
     padding-inline: 0;
   }
 
   .hero-copy {
     max-width: 100%;
     color: #f7f2ea;
+    text-align: center;
   }
 
   .hero-title {
+    margin-inline: auto;
     margin-block-end: 1rem;
     color: #fff;
     letter-spacing: -0.035em;
@@ -404,11 +452,12 @@
 
   .hero-subtitle {
     max-width: 95ch;
-    margin: 0;
+    margin: 0 auto;
     margin-block-end: 1.4rem;
     font-size: 1.06rem;
     line-height: 1.78;
     color: rgb(247 242 234 / 0.96);
+    text-align: center;
   }
 
   .hero__actions {
@@ -416,6 +465,7 @@
     flex-wrap: wrap;
     gap: 0.75rem;
     align-items: center;
+    justify-content: center;
   }
 
   .pill {
@@ -549,10 +599,8 @@
     font-weight: 700;
     color: var(--brand);
     text-decoration: none;
-    text-underline-offset: 3px;
     transition:
-      color 0.18s ease,
-      text-decoration-color 0.18s ease;
+      color 0.18s ease;
   }
 
   .text-link:hover,
@@ -616,7 +664,8 @@
 
   .article-list a:hover,
   .article-list a:focus-visible {
-    text-decoration: underline;
+    text-decoration: none;
+    color: var(--brand-dark);
   }
 
   .article-list small {
@@ -667,12 +716,17 @@
   @media (max-width: 960px) {
     .page-header,
     .section-heading {
-      align-items: flex-start;
+      align-items: center;
       flex-direction: column;
     }
 
+    .page-header > .text-link,
+    .section-heading > .text-link {
+      display: none;
+    }
+
     .hero--home {
-      min-height: clamp(380px, 72vw, 620px);
+      min-height: clamp(270px, 52vw, 420px);
     }
 
     .hero__overlay {
@@ -707,12 +761,12 @@
     }
 
     .hero--home {
-      min-height: 420px;
+      min-height: 300px;
     }
 
     .hero__inner {
       width: min(100% - 1.25rem, var(--container));
-      padding-block: 2.6rem 2.8rem;
+      padding-block: 1.35rem;
       padding-inline: 0;
     }
 

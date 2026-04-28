@@ -92,4 +92,81 @@ document.addEventListener("DOMContentLoaded", () => {
       }, 80);
     });
   });
+
+  const carousels = document.querySelectorAll("[data-card-carousel]");
+
+  carousels.forEach((carousel) => {
+    const track = carousel.querySelector("[data-carousel-track]");
+    const previousButton = carousel.querySelector("[data-carousel-prev]");
+    const nextButton = carousel.querySelector("[data-carousel-next]");
+
+    if (!track || !previousButton || !nextButton) {
+      return;
+    }
+
+    let scrollFrame = null;
+
+    const getScrollStep = () => {
+      const card = track.querySelector(".recipe-card");
+
+      if (!card) {
+        return Math.max(track.clientWidth * 0.85, 1);
+      }
+
+      const styles = window.getComputedStyle(track);
+      const gap = parseFloat(styles.columnGap || styles.gap || "0");
+      const cardWidth = card.getBoundingClientRect().width;
+
+      return Math.max(cardWidth + (Number.isNaN(gap) ? 0 : gap), 1);
+    };
+
+    const updateControls = () => {
+      const maxScrollLeft = Math.max(track.scrollWidth - track.clientWidth, 0);
+      const canScroll = maxScrollLeft > 2;
+      const atStart = track.scrollLeft <= 1;
+      const atEnd = track.scrollLeft >= maxScrollLeft - 1;
+
+      carousel.classList.toggle("content-showcase--scrollable", canScroll);
+      carousel.classList.toggle("content-showcase--at-start", !canScroll || atStart);
+      carousel.classList.toggle("content-showcase--at-end", !canScroll || atEnd);
+      previousButton.disabled = !canScroll || atStart;
+      nextButton.disabled = !canScroll || atEnd;
+    };
+
+    const scheduleUpdate = () => {
+      if (scrollFrame !== null) {
+        return;
+      }
+
+      scrollFrame = window.requestAnimationFrame(() => {
+        scrollFrame = null;
+        updateControls();
+      });
+    };
+
+    previousButton.addEventListener("click", () => {
+      track.scrollBy({
+        left: -getScrollStep(),
+        behavior: "smooth",
+      });
+    });
+
+    nextButton.addEventListener("click", () => {
+      track.scrollBy({
+        left: getScrollStep(),
+        behavior: "smooth",
+      });
+    });
+
+    track.addEventListener("scroll", scheduleUpdate, { passive: true });
+
+    requestAnimationFrame(updateControls);
+
+    if ("ResizeObserver" in window) {
+      const resizeObserver = new ResizeObserver(updateControls);
+      resizeObserver.observe(track);
+    } else {
+      window.addEventListener("resize", updateControls);
+    }
+  });
 });

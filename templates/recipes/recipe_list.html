@@ -94,7 +94,9 @@
                         </div>
 
                         {% if recipe.short_description %}
-                        <p class="recipe-card__excerpt">{{ recipe.short_description }}</p>
+                        <p class="recipe-card__excerpt">
+                            <a class="recipe-card__excerpt-link" href="{{ recipe.get_absolute_url }}">{{ recipe.short_description }}</a>
+                        </p>
                         {% endif %}
                     </div>
 
