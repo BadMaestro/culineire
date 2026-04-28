@@ -167,9 +167,9 @@
     color: #f7f2ea;
     border-radius: var(--detail-header-radius) var(--detail-header-radius) 0 0;
     background:
-      radial-gradient(circle at 12% 18%, rgb(89 178 123 / 0.24), transparent 28%),
-      radial-gradient(circle at 86% 12%, rgb(255 241 209 / 0.12), transparent 22%),
-      linear-gradient(135deg, var(--detail-green-1) 0%, var(--detail-green-2) 46%, var(--detail-green-3) 100%);
+      linear-gradient(90deg, rgb(11 24 18 / 0.72) 0%, rgb(11 24 18 / 0.48) 36%, rgb(11 24 18 / 0.24) 58%, rgb(11 24 18 / 0.44) 100%),
+      linear-gradient(180deg, rgb(11 24 18 / 0.24) 0%, rgb(11 24 18 / 0.42) 100%),
+      url("../images/hero.jpg") center / cover no-repeat;
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 0.08),
       0 22px 46px rgb(11 45 32 / 0.16);
@@ -181,7 +181,7 @@
     inset: 0;
     background:
       linear-gradient(180deg, rgb(255 255 255 / 0.04), transparent 24%),
-      linear-gradient(90deg, rgb(255 255 255 / 0.02), transparent 24%, transparent 76%, rgb(255 255 255 / 0.02));
+      linear-gradient(0deg, rgb(11 24 18 / 0.16), transparent 38%);
     pointer-events: none;
   }
 
@@ -218,8 +218,8 @@
     padding-block: var(--detail-topbar-pill-padding-block);
     padding-inline: 0.82rem;
     border-radius: var(--detail-radius-pill);
-    border: 1px solid rgb(247 242 234 / 0.16);
-    background: rgb(247 242 234 / 0.08);
+    border: 1px solid rgb(255 255 255 / 0.16);
+    background: rgb(247 242 234 / 0.03);
     color: rgb(255 250 245 / 0.97);
     font-size: 0.82rem;
     line-height: 1;
@@ -250,8 +250,8 @@
     padding-block: var(--detail-topbar-pill-padding-block);
     padding-inline: var(--detail-space-lg);
     border-radius: var(--detail-radius-pill);
-    border: 1px solid rgb(247 242 234 / 0.14);
-    background: rgb(247 242 234 / 0.11);
+    border: 1px solid rgb(255 255 255 / 0.16);
+    background: rgb(247 242 234 / 0.03);
     box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
     backdrop-filter: blur(8px);
     white-space: nowrap;
@@ -308,7 +308,7 @@
   .detail-page__action-pill:hover,
   .detail-page__action-pill:focus-visible {
     background: rgb(247 242 234 / 0.16);
-    border-color: rgb(247 242 234 / 0.22);
+    border-color: rgb(255 255 255 / 0.24);
     color: #ffffff;
     text-decoration: none;
   }
@@ -364,7 +364,7 @@
     margin-block-end: 0.9rem;
     padding-block: 0.55rem;
     padding-inline: 0.9rem;
-    background: rgb(247 242 234 / 0.1);
+    background: rgb(247 242 234 / 0.03);
     border: 1px solid rgb(247 242 234 / 0.14);
     border-radius: var(--detail-radius-pill);
     font-size: 0.95rem;
@@ -393,21 +393,20 @@
     align-items: center;
     gap: 0.48rem;
     min-height: 44px;
+    min-width: 0;
     max-width: 100%;
     margin: 0;
-    padding-block: 0.48rem;
-    padding-inline: 0.78rem;
+    padding: 0.18rem 0;
     border-radius: var(--detail-radius-pill);
-    border: 1px solid var(--line);
-    background: var(--surface);
-    box-shadow: var(--shadow-sm);
+    border: 0;
+    background: transparent;
+    box-shadow: none;
   }
 
   .detail-page__author-label {
-    color: var(--ink-soft);
     font-size: 0.86rem;
     line-height: 1;
-    font-weight: 500;
+    color: var(--ink-soft);
   }
 
   .detail-page__author-link {
@@ -429,6 +428,8 @@
 
   .detail-page__author-link:focus-visible {
     outline-color: rgb(22 102 69 / 0.32);
+    outline-offset: 3px;
+    border-radius: 999px;
   }
 
   .detail-page__author-avatar {
@@ -439,6 +440,7 @@
     height: 40px;
     flex-shrink: 0;
     object-fit: contain;
+    border-radius: 0;
   }
 
   .detail-page__author-avatar--fallback {
@@ -461,6 +463,37 @@
     line-height: 1.2;
     font-weight: 700;
     color: currentColor;
+  }
+
+  .detail-page__header .detail-page__author-label,
+  .detail-page__header .detail-page__author-link {
+    color: #fff8ee;
+  }
+
+  .detail-page__header .detail-page__author {
+    min-height: 36px;
+    padding: 0.42rem 0.82rem;
+    border: 1px solid rgb(255 255 255 / 0.16);
+    border-radius: 999px;
+    background: rgb(247 242 234 / 0.1);
+    box-shadow: 0 8px 18px rgb(0 0 0 / 0.1);
+    backdrop-filter: blur(6px);
+    transition:
+      background-color 0.32s ease,
+      color 0.32s ease,
+      box-shadow 0.32s ease;
+  }
+
+  .detail-page__header .detail-page__author:hover,
+  .detail-page__header .detail-page__author:focus-within {
+    background: rgb(247 242 234 / 0.26);
+    border-color: rgb(255 255 255 / 0.24);
+    box-shadow: 0 10px 22px rgb(0 0 0 / 0.12);
+  }
+
+  .detail-page__header .detail-page__author-link:hover,
+  .detail-page__header .detail-page__author-link:focus-visible {
+    color: #ffffff;
   }
 
   .recipe-gallery {

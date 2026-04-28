@@ -98,8 +98,8 @@
                         {% endif %}
                     </div>
 
-                    {% if recipe.author %}
                     <div class="recipe-card__footer">
+                        {% if recipe.author %}
                         <p class="recipe-card-author">
                             <span class="recipe-card-author__label">By:</span>
                             <a
@@ -117,8 +117,8 @@
                                 <span class="recipe-card-author__name">{{ recipe.author.name }}</span>
                             </a>
                         </p>
+                        {% endif %}
                     </div>
-                    {% endif %}
                 </div>
             </article>
             {% endfor %}

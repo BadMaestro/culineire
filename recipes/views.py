@@ -1,17 +1,18 @@
 import re
 
 from django.contrib import messages
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login
 from django.db.models import Avg, Count, Prefetch
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
+from django.contrib.auth.views import LoginView
 from django.views.generic import CreateView
 
 from articles.models import Article
 from .allergens import build_present_allergen_items
-from .forms import RecipeCommentForm, RecipeRatingForm
+from .forms import RecipeCommentForm, RecipeRatingForm, SignInForm, SignUpForm
 from .models import Recipe, RecipeAuthor, RecipeComment, RecipeImage, RecipeRating
 
 
@@ -460,7 +461,19 @@ def author_detail(request, slug):
     return render(request, "recipes/author_detail.html", context)
 
 
+class CulinEireLoginView(LoginView):
+    authentication_form = SignInForm
+    template_name = "registration/login.html"
+    redirect_authenticated_user = True
+
+
 class SignUpView(CreateView):
-    form_class = UserCreationForm
+    form_class = SignUpForm
     template_name = "registration/signup.html"
-    success_url = reverse_lazy("login")
+    success_url = reverse_lazy("home")
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        login(self.request, self.object)
+        messages.success(self.request, "Welcome to CulinEire. Your account is ready.")
+        return response

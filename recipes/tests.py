@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
@@ -201,6 +202,12 @@ class RecipeAdminFormTests(SimpleTestCase):
 
 
 class AuthenticationPageTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="ciaran",
+            password="StewPot123!",
+        )
+
     def test_signup_page_renders(self):
         response = self.client.get(reverse("signup"))
 
@@ -212,6 +219,50 @@ class AuthenticationPageTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "registration/login.html")
+
+    def test_login_authenticates_user_and_redirects_home(self):
+        response = self.client.post(
+            reverse("login"),
+            {
+                "username": "ciaran",
+                "password": "StewPot123!",
+            },
+        )
+
+        self.assertRedirects(response, reverse("home"))
+        self.assertEqual(int(self.client.session["_auth_user_id"]), self.user.pk)
+
+    def test_signup_creates_account_and_logs_user_in(self):
+        response = self.client.post(
+            reverse("signup"),
+            {
+                "username": "newcook",
+                "password1": "KitchenTable123!",
+                "password2": "KitchenTable123!",
+            },
+        )
+
+        self.assertRedirects(response, reverse("home"))
+        self.assertTrue(get_user_model().objects.filter(username="newcook").exists())
+        self.assertIn("_auth_user_id", self.client.session)
+
+    def test_anonymous_header_shows_sign_in_and_join_links(self):
+        response = self.client.get(reverse("home"))
+
+        self.assertContains(response, reverse("login"))
+        self.assertContains(response, reverse("signup"))
+        self.assertContains(response, "Sign in")
+        self.assertContains(response, "Join")
+
+    def test_authenticated_header_shows_username_and_sign_out(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("home"))
+
+        self.assertContains(response, "ciaran")
+        self.assertContains(response, "Sign out")
+        self.assertNotContains(response, "Hello, ciaran")
+        self.assertNotContains(response, "Join")
 
 
 class RecipeInteractionTests(TestCase):
