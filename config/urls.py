@@ -18,6 +18,7 @@ urlpatterns = [
     path("articles/", include("articles.urls", namespace="articles")),
 
     # Authentication
+    path("accounts/login/", recipes_views.CulinEireLoginView.as_view(), name="login"),
     path("accounts/signup/", recipes_views.SignUpView.as_view(), name="signup"),
     path("accounts/", include("django.contrib.auth.urls")),
 ]

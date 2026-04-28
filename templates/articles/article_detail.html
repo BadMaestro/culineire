@@ -5,7 +5,7 @@
 {% block meta_description %}{% if article.excerpt %}{{ article.excerpt|striptags|truncatechars:160 }}{% else %}Article detail page for {{ article.title }} on CulinEire.{% endif %}{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/detail_page.css' %}" rel="stylesheet">
+<link href="{% static 'css/detail_page.css' %}?v=20260428k" rel="stylesheet">
 {% endblock %}
 
 {% block content %}

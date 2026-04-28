@@ -5,7 +5,7 @@
 {% block meta_description %}Sign in to your CulinEire account to continue exploring recipes and food stories.{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/auth.css' %}" rel="stylesheet">
+<link href="{% static 'css/auth.css' %}?v=20260428a" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -31,15 +31,35 @@
                 </div>
                 {% endif %}
 
-                {% for field in form %}
                 <div class="auth-field">
-                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    {{ field }}
-                    {% for error in field.errors %}
+                    <label for="id_username">Email address</label>
+                    <input
+                        autocomplete="username"
+                        autofocus
+                        id="id_username"
+                        name="username"
+                        placeholder="you@example.com"
+                        type="text"
+                        value="{{ form.username.value|default:'' }}"
+                    >
+                    {% for error in form.username.errors %}
                     <p class="auth-error">{{ error }}</p>
                     {% endfor %}
                 </div>
-                {% endfor %}
+
+                <div class="auth-field">
+                    <label for="id_password">Password</label>
+                    <input
+                        autocomplete="current-password"
+                        id="id_password"
+                        name="password"
+                        placeholder="Password"
+                        type="password"
+                    >
+                    {% for error in form.password.errors %}
+                    <p class="auth-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
 
                 {% if next %}
                 <input name="next" type="hidden" value="{{ next }}">

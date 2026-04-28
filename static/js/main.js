@@ -1,10 +1,12 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const nav = document.querySelector(".main-nav");
-  const navButton = document.querySelector(".nav-toggle");
+  const nav = document.querySelector(".ce-nav") || document.querySelector(".main-nav");
+  const navButton = document.querySelector(".ce-nav__toggle") || document.querySelector(".nav-toggle");
 
   if (nav && navButton) {
+    const openClass = nav.classList.contains("ce-nav") ? "ce-nav--open" : "main-nav--open";
+
     navButton.addEventListener("click", () => {
-      const isOpen = nav.classList.toggle("main-nav--open");
+      const isOpen = nav.classList.toggle(openClass);
       navButton.setAttribute("aria-expanded", String(isOpen));
     });
   }
