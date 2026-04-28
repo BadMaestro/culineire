@@ -45,7 +45,7 @@
 
                         {% if article.excerpt %}
                         <p class="recipe-card__excerpt recipe-card__excerpt--article">
-                            {{ article.excerpt }}
+                            <a class="recipe-card__excerpt-link" href="{{ article.get_absolute_url }}">{{ article.excerpt }}</a>
                         </p>
                         {% endif %}
                     </div>

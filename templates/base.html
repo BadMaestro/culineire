@@ -11,20 +11,67 @@
 
     <link href="https://fonts.googleapis.com" rel="preconnect">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Libre+Bodoni:wght@400&family=Inter:wght@400;500;600&display=swap"
           rel="stylesheet">
 
-    <link href="{% static 'css/base.css' %}?v=20260428g" rel="stylesheet">
-    <link href="{% static 'css/header.css' %}?v=20260428f" rel="stylesheet">
+    <link href="{% static 'css/base.css' %}?v=20260429t" rel="stylesheet">
+    <link href="{% static 'css/header.css' %}?v=20260429a" rel="stylesheet">
 
     {% block extra_head %}{% endblock %}
 </head>
 <body>
 <header class="ce-header">
+    <div class="ce-header__social-strip">
+        <div class="container ce-header-socials" aria-label="Social links">
+            <a aria-label="Instagram" class="ce-header-socials__link" href="#">
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <rect x="2" y="2" width="20" height="20" rx="5"></rect>
+                    <circle cx="12" cy="12" r="4"></circle>
+                    <circle cx="17.5" cy="6.5" r="0.5"></circle>
+                </svg>
+            </a>
+            <a aria-label="Facebook" class="ce-header-socials__link" href="#">
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                </svg>
+            </a>
+            <a aria-label="X" class="ce-header-socials__link" href="#">
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
+                </svg>
+            </a>
+            <a aria-label="LinkedIn" class="ce-header-socials__link" href="#">
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M4.98 3.5C4.98 4.88 3.86 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5zM.4 8h4.2v13.5H.4V8zm7.4 0h4v1.84h.06c.56-1.06 1.94-2.18 3.99-2.18 4.27 0 5.06 2.81 5.06 6.46v7.38h-4.2v-6.54c0-1.56-.03-3.57-2.18-3.57-2.18 0-2.51 1.7-2.51 3.46v6.65h-4.2V8z"></path>
+                </svg>
+            </a>
+            <a aria-label="Telegram" class="ce-header-socials__link" href="#">
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M21.8 4.2 18.4 20c-.2 1-.8 1.2-1.6.8l-4.5-3.3-2.2 2.1c-.2.2-.4.4-.9.4l.3-4.7 8.6-7.8c.4-.3-.1-.5-.6-.2L6.9 14 2.3 12.6c-1-.3-1-1 .2-1.5L20.4 4.2c.8-.3 1.6.2 1.4 1z"></path>
+                </svg>
+            </a>
+            <a aria-label="WhatsApp" class="ce-header-socials__link" href="#">
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M20.5 3.5A11.8 11.8 0 0 0 2.2 17.7L1 23l5.4-1.4A11.8 11.8 0 0 0 20.5 3.5zm-8.7 16a9.6 9.6 0 0 1-4.9-1.3l-.4-.2-3.2.8.9-3.1-.2-.4a9.6 9.6 0 1 1 7.8 4.2zm5.3-7.2c-.3-.2-1.7-.8-2-.9-.3-.1-.5-.2-.7.2-.2.3-.8.9-.9 1.1-.2.2-.3.2-.6.1-.3-.2-1.2-.4-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6l.5-.6c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.6 0-.2-.7-1.7-1-2.3-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.1 1.1-1.1 2.6s1.1 3 1.3 3.2c.2.2 2.1 3.2 5.1 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.7-.7 1.9-1.3.2-.7.2-1.2.2-1.3-.1-.2-.3-.3-.6-.4z"></path>
+                </svg>
+            </a>
+            <a aria-label="Twitch" class="ce-header-socials__link" href="#">
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M4 3h17v11.4l-4.8 4.8h-3.7L10 22H7v-2.8H3V7l1-4zm2 2v12h4v2l2-2h4l3-3V5H6zm7 3h2v5h-2V8zm4 0h2v5h-2V8z"></path>
+                </svg>
+            </a>
+            <a aria-label="YouTube" class="ce-header-socials__link" href="#">
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.6 15.6V8.4L15.8 12l-6.2 3.6z"></path>
+                </svg>
+            </a>
+        </div>
+    </div>
     {% with url_name=request.resolver_match.url_name namespace=request.resolver_match.namespace %}
     <div class="container ce-header__inner">
         <a aria-label="Go to homepage" class="ce-header__logo" href="{% url 'home' %}">
-            <img alt="CulinEire" src="{% static 'images/logo-culineire-right.png' %}">
+            <img alt="" aria-hidden="true" src="{% static 'images/logo-culineire-header-round.png' %}">
+            <span class="ce-header__logo-text">CulinEire</span>
         </a>
 
         <button
@@ -71,9 +118,10 @@
                 <a class="ce-nav__text{% if url_name == 'login' %} ce-nav__text--active{% endif %}"
                    href="{% url 'login' %}"
                    {% if url_name == 'login' %}aria-current="page"{% endif %}>
-                    Sign in
+                    Sign In
                 </a>
-                <a class="ce-nav__button{% if url_name == 'signup' %} ce-nav__button--active{% endif %}"
+                <span aria-hidden="true" class="ce-nav__separator"></span>
+                <a class="ce-nav__text{% if url_name == 'signup' %} ce-nav__text--active{% endif %}"
                    href="{% url 'signup' %}"
                    {% if url_name == 'signup' %}aria-current="page"{% endif %}>
                     Join
@@ -149,23 +197,20 @@
                     <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.6 15.6V8.4L15.8 12l-6.2 3.6z"></path>
                 </svg>
             </a>
-            <a aria-label="More social links" class="footer-socials__link footer-socials__link--dot" href="#"></a>
         </div>
         <p class="footer-inner__meta">
-            &copy; 2026
-            <span class="brand-culineire">
-                <span class="ie-green">Culin</span><span class="ie-orange">Eire</span>
-            </span>
+            &copy;
         </p>
         <p class="footer-inner__meta">
-            Designed and owned by <a href="https://bearcave.ie" rel="noopener noreferrer" target="_blank">Bearcave
-            Ltd.</a>
+            Your culinary guide to Irish cooking
         </p>
-        <p class="footer-inner__meta">All rights reserved.</p>
+        <p class="footer-inner__meta">
+            Designed by <a href="https://bearcave.ie" rel="noopener noreferrer" target="_blank">Bearcave Ltd.</a>
+        </p>
     </div>
 </footer>
 
-<script src="{% static 'js/main.js' %}?v=20260425c"></script>
+<script src="{% static 'js/main.js' %}?v=20260429b"></script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>
