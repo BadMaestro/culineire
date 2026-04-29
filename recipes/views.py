@@ -8,11 +8,19 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
 from django.contrib.auth.views import LoginView
-from django.views.generic import CreateView
+from django.views.generic import CreateView, UpdateView
 
 from articles.models import Article
 from .allergens import build_present_allergen_items
-from .forms import RecipeCommentForm, RecipeRatingForm, SignInForm, SignUpForm
+from .authoring import AuthorRequiredMixin
+from .forms import (
+    RecipeAuthoringForm,
+    RecipeAuthorProfileForm,
+    RecipeCommentForm,
+    RecipeRatingForm,
+    SignInForm,
+    SignUpForm,
+)
 from .models import Recipe, RecipeAuthor, RecipeComment, RecipeImage, RecipeRating
 
 
@@ -459,6 +467,48 @@ def author_detail(request, slug):
         "is_god_author": is_god_author,
     }
     return render(request, "recipes/author_detail.html", context)
+
+
+class RecipeCreateView(AuthorRequiredMixin, CreateView):
+    model = Recipe
+    form_class = RecipeAuthoringForm
+    template_name = "authoring/recipe_form.html"
+
+    def form_valid(self, form):
+        recipe = form.save(commit=False)
+        recipe.author = self.author
+        recipe.save()
+
+        self.object = recipe
+        messages.success(self.request, "Recipe Created Successfully.")
+        return redirect(recipe.get_absolute_url())
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["author"] = self.author
+        return context
+
+
+class RecipeAuthorUpdateView(AuthorRequiredMixin, UpdateView):
+    model = RecipeAuthor
+    form_class = RecipeAuthorProfileForm
+    template_name = "authoring/profile_form.html"
+
+    def get_object(self, queryset=None):
+        return self.author
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, "Profile Updated Successfully.")
+        return response
+
+    def get_success_url(self):
+        return self.object.get_absolute_url()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["author"] = self.object
+        return context
 
 
 class CulinEireLoginView(LoginView):

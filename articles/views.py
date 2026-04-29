@@ -1,6 +1,10 @@
 from django.db.models import Prefetch
-from django.views.generic import DetailView, ListView
+from django.contrib import messages
+from django.shortcuts import redirect
+from django.views.generic import CreateView, DetailView, ListView
 
+from recipes.authoring import AuthorRequiredMixin
+from .forms import ArticleAuthoringForm
 from .models import Article, ArticleImage
 
 
@@ -12,6 +16,28 @@ class ArticleListView(ListView):
 
     def get_queryset(self):
         return Article.objects.select_related("author").order_by("-published")
+
+
+class ArticleCreateView(AuthorRequiredMixin, CreateView):
+    model = Article
+    form_class = ArticleAuthoringForm
+    template_name = "authoring/article_form.html"
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["author"] = self.author
+        return kwargs
+
+    def form_valid(self, form):
+        article = form.save()
+        self.object = article
+        messages.success(self.request, "Article Created Successfully.")
+        return redirect(article.get_absolute_url())
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["author"] = self.author
+        return context
 
 
 class ArticleDetailView(DetailView):

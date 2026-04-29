@@ -69,8 +69,9 @@ class RecipeImageInline(admin.TabularInline):
 
 @admin.register(RecipeAuthor)
 class RecipeAuthorAdmin(admin.ModelAdmin):
-    list_display = ("name", "slug")
-    search_fields = ("name", "bio")
+    list_display = ("name", "slug", "user")
+    search_fields = ("name", "bio", "user__username", "user__email")
+    autocomplete_fields = ("user",)
     prepopulated_fields = {"slug": ("name",)}
     readonly_fields = ("avatar_preview",)
     fieldsets = (
@@ -78,6 +79,7 @@ class RecipeAuthorAdmin(admin.ModelAdmin):
             "Author details",
             {
                 "fields": (
+                    "user",
                     "name",
                     "slug",
                     "bio",
