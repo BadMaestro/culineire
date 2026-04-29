@@ -2,7 +2,7 @@
 
 .ce-header {
   position: relative;
-  z-index: 40;
+  z-index: 120;
   background: #ebe2d5;
   border-bottom: 1px solid rgb(31 44 37 / 0.14);
   color: #1f2c25;
@@ -28,84 +28,8 @@
   padding-inline-end: 0.7rem;
 }
 
-.ce-header-socials__link {
-  --social-accent: #f7f2ea;
-  display: inline-flex;
-  position: relative;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  overflow: hidden;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: rgb(247 242 234 / 0.68);
-  box-shadow: none;
-  isolation: isolate;
-  text-decoration: none;
-  backdrop-filter: none;
-  transition:
-    color 0.18s ease,
-    filter 0.18s ease,
-    transform 0.18s ease;
-}
-
-.ce-header-socials__link:hover,
-.ce-header-socials__link:focus-visible {
-  color: var(--social-accent);
-  filter: saturate(1.12) brightness(1.08);
-  outline: 0;
-  transform: translateY(-1px);
-}
-
-.ce-header-socials__link svg {
-  position: relative;
-  width: 16.15px;
-  height: 16.15px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.ce-header-socials__link svg path {
-  fill: currentColor;
-  stroke: none;
-}
-
-.ce-header-socials__link[aria-label="Instagram"] {
-  --social-accent: #e4405f;
-}
-
-.ce-header-socials__link[aria-label="Facebook"] {
-  --social-accent: #1877f2;
-}
-
-.ce-header-socials__link[aria-label="X"] {
-  --social-accent: #f7f2ea;
-}
-
-.ce-header-socials__link[aria-label="LinkedIn"] {
-  --social-accent: #0a66c2;
-}
-
-.ce-header-socials__link[aria-label="Telegram"] {
-  --social-accent: #229ed9;
-}
-
-.ce-header-socials__link[aria-label="WhatsApp"] {
-  --social-accent: #25d366;
-}
-
-.ce-header-socials__link[aria-label="Twitch"] {
-  --social-accent: #9146ff;
-}
-
-.ce-header-socials__link[aria-label="YouTube"] {
-  --social-accent: #ff0033;
-}
+/* Стили .ce-header-socials__link живут в base.css вместе с .footer-socials__link
+   (общий компонент социальных иконок, см. секцию "Social link component"). */
 
 .ce-header__inner {
   display: grid;
@@ -137,7 +61,7 @@
 
 .ce-header__logo-text {
   color: #2f3534;
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-serif);
   font-size: clamp(1.7rem, 2.4vw, 2.5rem);
   font-weight: 700;
   line-height: 1.08;
@@ -234,7 +158,7 @@
   padding: 0.7rem 0.9rem;
   border-radius: 999px;
   border: 0;
-  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.96rem;
   font-weight: 400;
   line-height: 1.2;
@@ -337,6 +261,179 @@
   cursor: pointer;
 }
 
+.ce-author-panel {
+  position: relative;
+  width: 100%;
+}
+
+.ce-author-panel[open] {
+  z-index: 60;
+}
+
+.ce-author-panel__summary {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.68rem;
+  min-height: 58px;
+  width: 100%;
+  padding: 0.48rem 0.68rem;
+  border-radius: 999px;
+  background: rgb(58 44 30 / 0.14);
+  color: #2f3534;
+  cursor: pointer;
+  list-style: none;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.18s ease;
+}
+
+.ce-author-panel__summary::-webkit-details-marker {
+  display: none;
+}
+
+.ce-author-panel__summary:hover,
+.ce-author-panel__summary:focus-visible,
+.ce-author-panel[open] .ce-author-panel__summary {
+  background: rgb(58 44 30 / 0.21);
+  color: #3a2c1e;
+  outline: 0;
+}
+
+.ce-author-panel__summary:active {
+  transform: translateY(1px);
+}
+
+.ce-author-panel__avatar-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+}
+
+.ce-author-panel__avatar {
+  display: block;
+  width: 42px;
+  height: 42px;
+  max-width: none;
+  object-fit: contain;
+}
+
+.ce-author-panel__copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.06rem;
+  text-align: left;
+}
+
+.ce-author-panel__greeting {
+  overflow: hidden;
+  color: rgb(31 44 37 / 0.62);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.ce-author-panel__name {
+  overflow: hidden;
+  color: currentColor;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.12;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ce-author-panel__chevron {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  margin-left: auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  transition: transform 0.2s ease;
+}
+
+.ce-author-panel[open] .ce-author-panel__chevron {
+  transform: rotate(180deg);
+}
+
+.ce-author-panel__menu {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.55rem;
+  padding: 0.72rem;
+  border: 1px solid rgb(58 44 30 / 0.1);
+  border-radius: 18px;
+  background: rgb(247 242 234 / 0.92);
+  box-shadow: 0 18px 36px rgb(58 44 30 / 0.12);
+}
+
+.ce-author-panel__note {
+  margin: 0;
+  color: rgb(31 44 37 / 0.7);
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.ce-author-panel__actions {
+  display: grid;
+  gap: 0.28rem;
+}
+
+.ce-author-panel__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0.55rem 0.75rem;
+  border-radius: 999px;
+  color: rgb(31 44 37 / 0.76);
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.ce-author-panel__action:hover,
+.ce-author-panel__action:focus-visible {
+  background: rgb(58 44 30 / 0.12);
+  color: #3a2c1e;
+  outline: 0;
+  text-decoration: none;
+}
+
+.ce-author-panel__action--danger {
+  color: rgb(92 49 41 / 0.82);
+}
+
+.ce-author-panel__action--disabled {
+  opacity: 0.44;
+  cursor: not-allowed;
+}
+
+.ce-author-panel__action--disabled:hover {
+  background: transparent;
+  color: rgb(31 44 37 / 0.76);
+}
+
 @media (min-width: 840px) {
   .ce-header__inner {
     display: flex;
@@ -357,6 +454,7 @@
 
   .ce-nav {
     display: flex;
+    flex: 1 1 auto;
     align-items: center;
     justify-content: flex-end;
     gap: 0;
@@ -398,6 +496,12 @@
     border-left: 0;
   }
 
+  .ce-nav__auth--author {
+    position: relative;
+    z-index: 70;
+    transform: translateX(clamp(0rem, calc((100vw - var(--container)) / 2 - 2rem), 6rem));
+  }
+
   .ce-nav__auth::before {
     content: none;
   }
@@ -421,6 +525,53 @@
 
   .ce-nav__logout .ce-nav__button {
     width: auto;
+  }
+
+  .ce-author-panel {
+    width: auto;
+    min-width: 220px;
+  }
+
+  .ce-author-panel__summary {
+    min-height: 50px;
+    padding: 0.36rem 0.62rem;
+  }
+
+  .ce-author-panel__avatar-wrap,
+  .ce-author-panel__avatar {
+    width: 38px;
+    height: 38px;
+  }
+
+  .ce-author-panel__menu {
+    position: absolute;
+    top: calc(100% + 0.65rem);
+    right: 0;
+    width: 100%;
+    margin-top: 0;
+  }
+
+  .ce-author-panel__menu::before {
+    content: "";
+    position: absolute;
+    top: -0.42rem;
+    right: calc(50% - 0.42rem);
+    width: 0.84rem;
+    height: 0.84rem;
+    border-top: 1px solid rgb(58 44 30 / 0.1);
+    border-left: 1px solid rgb(58 44 30 / 0.1);
+    background: rgb(247 242 234 / 0.92);
+    transform: rotate(45deg);
+  }
+
+  .ce-author-panel__note,
+  .ce-author-panel__actions,
+  .ce-nav__logout {
+    position: relative;
+  }
+
+  .ce-author-panel .ce-nav__logout .ce-nav__button {
+    width: 100%;
   }
 
   .ce-nav__link--active,
@@ -487,5 +638,50 @@
   .ce-nav {
     padding: 0.75rem;
     border-radius: 20px;
+  }
+
+  .ce-author-panel__summary {
+    border-radius: 18px;
+  }
+}
+
+/* ==== Accessibility ==== */
+
+@media (prefers-reduced-motion: reduce) {
+  .ce-nav__toggle,
+  .ce-nav__toggle span,
+  .ce-nav__link,
+  .ce-nav__text,
+  .ce-nav__status,
+  .ce-nav__button,
+  .ce-author-panel__summary,
+  .ce-author-panel__chevron,
+  .ce-author-panel__action {
+    transition: none;
+  }
+
+  .ce-nav__toggle:active {
+    transform: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .ce-header {
+    border-bottom-color: CanvasText;
+  }
+
+  .ce-nav__toggle {
+    border-color: ButtonText;
+    color: ButtonText;
+  }
+
+  .ce-nav__link--active,
+  .ce-nav__text--active,
+  .ce-nav__button--active {
+    outline: 2px solid Highlight;
+  }
+
+  .ce-nav__separator {
+    background: CanvasText;
   }
 }

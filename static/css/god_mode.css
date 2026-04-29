@@ -1,9 +1,10 @@
 /* Режим бога.
    Можно вешать на любого автора через класс .author-name--god.
-   Сейчас используется только для GreenBear (у него в шаблоне этот класс). */
+   Сейчас используется только для GreenBear (у него в шаблоне этот класс).
 
-/* Рукописный шрифт для божественных имён */
-@import url("https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&display=swap");
+   ВАЖНО: шрифт Dancing Script подключается через <link> в templates/base.html
+   (был @import — это блокирующий анти-паттерн).
+*/
 
 /* Основной стиль:
    .author-name--god — общий “режим бога”
@@ -81,6 +82,16 @@
     background-position: 100% 0;
   }
   100% {
+    background-position: 0% 0;
+  }
+}
+
+/* Уважаем системную настройку «уменьшить движение» (WCAG 2.2 SC 2.2.2). */
+@media (prefers-reduced-motion: reduce) {
+  .author-name--god,
+  .author-name--greenbear {
+    animation: none;
+    /* фиксируем градиент в начальной точке, чтобы имя оставалось читаемым */
     background-position: 0% 0;
   }
 }

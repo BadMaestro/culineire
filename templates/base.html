@@ -11,11 +11,11 @@
 
     <link href="https://fonts.googleapis.com" rel="preconnect">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Libre+Bodoni:wght@400&family=Inter:wght@400;500;600&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Libre+Bodoni:wght@400&family=Inter:wght@400;500;600&family=Dancing+Script:wght@600;700&display=swap"
           rel="stylesheet">
 
-    <link href="{% static 'css/base.css' %}?v=20260429t" rel="stylesheet">
-    <link href="{% static 'css/header.css' %}?v=20260429a" rel="stylesheet">
+    <link href="{% static 'css/base.css' %}?v=20260429w" rel="stylesheet">
+    <link href="{% static 'css/header.css' %}?v=20260429j" rel="stylesheet">
 
     {% block extra_head %}{% endblock %}
 </head>
@@ -108,12 +108,48 @@
                 <span aria-hidden="true" class="ce-nav__separator"></span>
             </div>
 
-            <div class="ce-nav__auth">
+            <div class="ce-nav__auth{% if user.is_authenticated %} ce-nav__auth--author{% endif %}">
                 {% if user.is_authenticated %}
-                <form action="{% url 'logout' %}" class="ce-nav__logout" method="post">
-                    {% csrf_token %}
-                    <button class="ce-nav__button ce-nav__button--secondary" type="submit">Sign Out</button>
-                </form>
+                <details class="ce-author-panel">
+                    <summary class="ce-author-panel__summary">
+                        <span class="ce-author-panel__avatar-wrap" aria-hidden="true">
+                            {% if header_author and header_author.avatar %}
+                            <img alt="" class="ce-author-panel__avatar" src="{{ header_author.avatar.url }}">
+                            {% else %}
+                            <img alt="" class="ce-author-panel__avatar" src="{% static 'images/greenbear.png' %}">
+                            {% endif %}
+                        </span>
+                        <span class="ce-author-panel__copy">
+                            <span class="ce-author-panel__greeting">Welcome Back</span>
+                            <strong class="ce-author-panel__name">{{ header_author_name }}</strong>
+                        </span>
+                        <svg aria-hidden="true" class="ce-author-panel__chevron" viewBox="0 0 20 20">
+                            <path d="m5 7 5 5 5-5"></path>
+                        </svg>
+                    </summary>
+                    <div class="ce-author-panel__menu">
+                        <p class="ce-author-panel__note">Ready To Cook Today?</p>
+                        <nav aria-label="Author actions" class="ce-author-panel__actions">
+                            {% for action in header_author_actions %}
+                            {% if action.url %}
+                            <a class="ce-author-panel__action{% if action.is_danger %} ce-author-panel__action--danger{% endif %}"
+                               href="{{ action.url }}">
+                                {{ action.label }}
+                            </a>
+                            {% else %}
+                            <span aria-disabled="true"
+                                  class="ce-author-panel__action ce-author-panel__action--disabled{% if action.is_danger %} ce-author-panel__action--danger{% endif %}">
+                                {{ action.label }}
+                            </span>
+                            {% endif %}
+                            {% endfor %}
+                        </nav>
+                        <form action="{% url 'logout' %}" class="ce-nav__logout" method="post">
+                            {% csrf_token %}
+                            <button class="ce-nav__button ce-nav__button--secondary" type="submit">Sign Out</button>
+                        </form>
+                    </div>
+                </details>
                 {% else %}
                 <a class="ce-nav__text{% if url_name == 'login' %} ce-nav__text--active{% endif %}"
                    href="{% url 'login' %}"
@@ -210,7 +246,7 @@
     </div>
 </footer>
 
-<script src="{% static 'js/main.js' %}?v=20260429b"></script>
+<script src="{% static 'js/main.js' %}?v=20260429c"></script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

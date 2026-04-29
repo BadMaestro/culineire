@@ -1,4 +1,11 @@
-@layer base, components, special, footer;
+/* Единая очерёдность каскадных слоёв всего проекта.
+   Чем правее в списке — тем выше приоритет.
+   - base       — design tokens, типография, общие компоненты (этот файл)
+   - components — карточки, гриды (content_cards.css)
+   - special    — точечные эффекты (god_mode.css для greenbear)
+   - footer     — футер сайта (footer.css)
+   - detail-tokens / detail-page — стили страниц рецепта и статьи (detail_page.css) */
+@layer base, components, special, footer, detail-tokens, detail-page;
 
 /* Shared card and listing components used across recipe/article index pages. */
 @import "content_cards.css" layer(components);
@@ -48,6 +55,10 @@
 
     /* Layout */
     --container: 1120px;
+
+    /* Шрифтовые стеки (выносим из повторяющихся font-family) */
+    --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-serif: "Playfair Display", Georgia, serif;
   }
 
   /* ==== Base ==== */
@@ -69,14 +80,13 @@
 
   body {
     margin: 0;
-    font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: var(--font-sans);
     font-size: 16px;
     line-height: 1.6;
     background: var(--bg);
     color: var(--ink);
     display: flex;
     flex-direction: column;
-    text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
   }
 
@@ -124,7 +134,7 @@
   h4 {
     margin-block-start: 0;
     color: var(--ink);
-    font-family: "Playfair Display", Georgia, serif;
+    font-family: var(--font-serif);
     letter-spacing: -0.02em;
     text-align: center;
   }
@@ -229,6 +239,12 @@
   .section-heading h1,
   .section-heading h2 {
     margin: 0;
+  }
+
+  /* Дополнительный отступ сверху, когда заголовок раздела идёт после
+     предыдущей сетки карточек (например, "Articles" после "Recipes"). */
+  .page-header--with-gap {
+    margin-block-start: 2rem;
   }
 
   .page-subtitle,
@@ -516,6 +532,21 @@
     transform: none;
   }
 
+  @media (min-width: 960px) {
+    .hero-copy {
+      max-width: min(100%, calc(var(--container) - 18rem));
+      margin-inline: auto;
+    }
+
+    .hero-title {
+      max-width: 17ch;
+    }
+
+    .hero-subtitle {
+      max-width: 66ch;
+    }
+  }
+
   /* ==== Generic cards / surfaces ==== */
 
   .card,
@@ -678,6 +709,83 @@
 
   .author-name {
     font-weight: 600;
+  }
+
+  /* ==== Social link component (shared header/footer) ====
+     Раньше эти правила дублировались в header.css и footer.css
+     (~70 строк копипасты на каждый файл). Теперь живут в одном месте. */
+
+  :is(.ce-header-socials__link, .footer-socials__link) {
+    --social-accent: #f7f2ea;
+    display: inline-flex;
+    position: relative;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    overflow: hidden;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: rgb(247 242 234 / 0.68);
+    box-shadow: none;
+    isolation: isolate;
+    text-decoration: none;
+    backdrop-filter: none;
+    transition:
+      color 0.18s ease,
+      filter 0.18s ease,
+      transform 0.18s ease;
+  }
+
+  :is(.ce-header-socials__link, .footer-socials__link):hover,
+  :is(.ce-header-socials__link, .footer-socials__link):focus-visible {
+    color: var(--social-accent);
+    filter: saturate(1.12) brightness(1.08);
+    outline: 0;
+    transform: translateY(-1px);
+  }
+
+  :is(.ce-header-socials__link, .footer-socials__link) svg {
+    position: relative;
+    width: 16.15px;
+    height: 16.15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  :is(.ce-header-socials__link, .footer-socials__link) svg path {
+    fill: currentColor;
+    stroke: none;
+  }
+
+  :is(.ce-header-socials__link, .footer-socials__link)[aria-label="Instagram"] { --social-accent: #e4405f; }
+  :is(.ce-header-socials__link, .footer-socials__link)[aria-label="Facebook"]  { --social-accent: #1877f2; }
+  :is(.ce-header-socials__link, .footer-socials__link)[aria-label="X"]         { --social-accent: #f7f2ea; }
+  :is(.ce-header-socials__link, .footer-socials__link)[aria-label="LinkedIn"]  { --social-accent: #0a66c2; }
+  :is(.ce-header-socials__link, .footer-socials__link)[aria-label="Telegram"]  { --social-accent: #229ed9; }
+  :is(.ce-header-socials__link, .footer-socials__link)[aria-label="WhatsApp"]  { --social-accent: #25d366; }
+  :is(.ce-header-socials__link, .footer-socials__link)[aria-label="Twitch"]    { --social-accent: #9146ff; }
+  :is(.ce-header-socials__link, .footer-socials__link)[aria-label="YouTube"]   { --social-accent: #ff0033; }
+
+  @media (prefers-reduced-motion: reduce) {
+    :is(.ce-header-socials__link, .footer-socials__link) {
+      transition: none;
+    }
+
+    :is(.ce-header-socials__link, .footer-socials__link):hover,
+    :is(.ce-header-socials__link, .footer-socials__link):focus-visible {
+      transform: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    :is(.ce-header-socials__link, .footer-socials__link):focus-visible {
+      outline: 2px solid Highlight;
+    }
   }
 
   /* ==== Accessibility ==== */
