@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from django.conf import settings
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
@@ -72,6 +73,14 @@ def recipe_gallery_upload_to(instance, filename: str) -> str:
 
 
 class RecipeAuthor(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="recipe_author_profile",
+        verbose_name="Linked user account",
+    )
     name = models.CharField("Name / pen name", max_length=100)
     slug = models.SlugField("URL slug", unique=True)
     bio = models.TextField("Short author bio", blank=True)

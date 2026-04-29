@@ -6,6 +6,8 @@ app_name = "recipes"
 
 urlpatterns = [
     path("", views.recipe_list, name="recipe_list"),
+    path("create/", views.RecipeCreateView.as_view(), name="recipe_create"),
+    path("profile/edit/", views.RecipeAuthorUpdateView.as_view(), name="author_edit"),
     path("category/<slug:category_slug>/", views.category_detail, name="category_detail"),
     path("author/<slug:slug>/", views.author_detail, name="author_detail"),
     path("<slug:slug>/rate/", views.submit_recipe_rating, name="submit_recipe_rating"),

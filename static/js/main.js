@@ -11,6 +11,40 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  const authorPanels = document.querySelectorAll(".ce-author-panel");
+
+  if (authorPanels.length) {
+    const closeAuthorPanels = (exceptPanel = null) => {
+      authorPanels.forEach((panel) => {
+        if (panel !== exceptPanel) {
+          panel.open = false;
+        }
+      });
+    };
+
+    authorPanels.forEach((panel) => {
+      panel.addEventListener("toggle", () => {
+        if (panel.open) {
+          closeAuthorPanels(panel);
+        }
+      });
+    });
+
+    document.addEventListener("click", (event) => {
+      const clickedPanel = event.target.closest(".ce-author-panel");
+
+      if (!clickedPanel) {
+        closeAuthorPanels();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeAuthorPanels();
+      }
+    });
+  }
+
   const categoryBlocks = document.querySelectorAll("[data-category-toggle]");
 
   categoryBlocks.forEach((block) => {

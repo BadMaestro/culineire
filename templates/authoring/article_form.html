@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Create Article | CulinEire{% endblock %}
+{% block meta_description %}Create a new CulinEire article from the author studio.{% endblock %}
+
+{% block extra_head %}
+<link href="{% static 'css/authoring.css' %}?v=20260429b" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="page-section authoring-page">
+    <div class="container authoring-shell">
+        <header class="authoring-header">
+            <div class="authoring-header__copy">
+                <p class="eyebrow">Author Studio</p>
+                <h1>Create Article</h1>
+                <p class="authoring-intro">
+                    Shape a food note, kitchen technique or story for CulinEire, linked back to your recipes where it belongs.
+                </p>
+            </div>
+            <p class="authoring-author" aria-label="Current author">
+                <span class="authoring-author__label">By:</span>
+                {% if author.avatar %}
+                <img alt="" src="{{ author.avatar.url }}">
+                {% else %}
+                <img alt="" src="{% static 'images/greenbear.png' %}">
+                {% endif %}
+                <strong>{{ author.name }}</strong>
+            </p>
+        </header>
+
+        <form class="authoring-form" enctype="multipart/form-data" method="post">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="authoring-errors" role="alert">
+                {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <fieldset class="authoring-section">
+                <legend>Article Details</legend>
+                <div class="authoring-grid authoring-grid--two">
+                    {% for field in form %}
+                    {% if field.name == "title" or field.name == "excerpt" or field.name == "hero_image" or field.name == "published" or field.name == "related_recipe" %}
+                    <div class="authoring-field{% if field.field.widget.input_type == 'file' or field.name == 'excerpt' %} authoring-field--wide{% endif %}">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}<p class="authoring-help">{{ field.help_text }}</p>{% endif %}
+                        {% for error in field.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </fieldset>
+
+            <fieldset class="authoring-section">
+                <legend>Article Content</legend>
+                <div class="authoring-grid">
+                    {% for field in form %}
+                    {% if field.name == "body" %}
+                    <div class="authoring-field authoring-field--wide">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}<p class="authoring-help">{{ field.help_text }}</p>{% endif %}
+                        {% for error in field.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </fieldset>
+
+            <div class="authoring-actions">
+                <a class="authoring-link" href="{% url 'articles:article_list' %}">Cancel</a>
+                <button class="authoring-submit" type="submit">Save Article</button>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

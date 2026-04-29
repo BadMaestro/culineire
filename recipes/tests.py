@@ -2,10 +2,11 @@ from django.contrib.auth import get_user_model
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
+from articles.models import Article
 from .admin import RecipeAdminForm
 from .allergens import build_present_allergen_items, parse_selected_allergen_keys, serialize_allergen_keys
 from .forms import RecipeCommentForm
-from .models import Recipe, RecipeComment, RecipeRating
+from .models import Recipe, RecipeAuthor, RecipeComment, RecipeRating
 from .views import _build_context_paragraphs, _build_ingredient_items, _build_method_steps, _split_text_lines
 
 
@@ -251,7 +252,7 @@ class AuthenticationPageTests(TestCase):
 
         self.assertContains(response, reverse("login"))
         self.assertContains(response, reverse("signup"))
-        self.assertContains(response, "Sign in")
+        self.assertContains(response, "Sign In")
         self.assertContains(response, "Join")
 
     def test_authenticated_header_shows_username_and_sign_out(self):
@@ -260,9 +261,142 @@ class AuthenticationPageTests(TestCase):
         response = self.client.get(reverse("home"))
 
         self.assertContains(response, "ciaran")
-        self.assertContains(response, "Sign out")
+        self.assertContains(response, "Welcome Back")
+        self.assertContains(response, "Sign Out")
         self.assertNotContains(response, "Hello, ciaran")
         self.assertNotContains(response, "Join")
+
+    def test_authenticated_header_shows_staff_author_actions(self):
+        self.user.is_staff = True
+        self.user.save(update_fields=["is_staff"])
+        author = RecipeAuthor.objects.create(
+            user=self.user,
+            name="Ciaran",
+            slug="ciaran",
+            bio="Irish cooking notes.",
+        )
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("home"))
+
+        self.assertContains(response, "Ciaran")
+        self.assertContains(response, author.get_absolute_url())
+        self.assertContains(response, reverse("recipes:recipe_create"))
+        self.assertContains(response, reverse("articles:article_create"))
+        self.assertContains(response, reverse("recipes:author_edit"))
+
+    def test_authenticated_header_does_not_guess_author_by_slug(self):
+        RecipeAuthor.objects.create(
+            name="Ciaran",
+            slug="ciaran",
+            bio="Home kitchen notes.",
+        )
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("home"))
+
+        self.assertContains(response, "ciaran")
+        self.assertNotContains(response, reverse("recipes:author_detail", kwargs={"slug": "ciaran"}))
+        self.assertNotContains(response, reverse("recipes:recipe_create"))
+
+    def test_recipe_create_requires_linked_author_profile(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("recipes:recipe_create"))
+
+        self.assertRedirects(response, reverse("home"))
+
+    def test_author_edit_requires_linked_author_profile(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("recipes:author_edit"))
+
+        self.assertRedirects(response, reverse("home"))
+
+    def test_author_edit_updates_linked_author_profile(self):
+        author = RecipeAuthor.objects.create(
+            user=self.user,
+            name="Ciaran",
+            slug="ciaran",
+            bio="Old author note.",
+        )
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("recipes:author_edit"),
+            {
+                "name": "Ciaran O Kitchen",
+                "slug": "ciaran-o-kitchen",
+                "bio": "Modern Irish cooking notes.",
+                "avatar": "",
+            },
+        )
+
+        author.refresh_from_db()
+        self.assertRedirects(response, author.get_absolute_url())
+        self.assertEqual(author.name, "Ciaran O Kitchen")
+        self.assertEqual(author.slug, "ciaran-o-kitchen")
+        self.assertEqual(author.bio, "Modern Irish cooking notes.")
+        self.assertEqual(author.user, self.user)
+
+    def test_recipe_create_assigns_linked_author(self):
+        author = RecipeAuthor.objects.create(
+            user=self.user,
+            name="Ciaran",
+            slug="ciaran",
+        )
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("recipes:recipe_create"),
+            {
+                "title": "Test Kitchen Pie",
+                "short_description": "A practical pie for testing.",
+                "category": Recipe.Category.EVERYDAY_IRISH_COOKING,
+                "difficulty": Recipe.Difficulty.EASY,
+                "prep_time_minutes": 20,
+                "cook_time_minutes": 40,
+                "servings": 4,
+                "calories": "",
+                "ingredients": "Potatoes\nBeef",
+                "method": "Cook it slowly.",
+                "tips": "",
+                "irish_context": "",
+                "author_commentary": "",
+                "source_type": Recipe.SourceType.ORIGINAL,
+                "source_title": "",
+                "source_author": "",
+                "source_url": "",
+                "source_note": "",
+            },
+        )
+
+        recipe = Recipe.objects.get(title="Test Kitchen Pie")
+        self.assertRedirects(response, recipe.get_absolute_url())
+        self.assertEqual(recipe.author, author)
+
+    def test_article_create_assigns_linked_author(self):
+        author = RecipeAuthor.objects.create(
+            user=self.user,
+            name="Ciaran",
+            slug="ciaran",
+        )
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("articles:article_create"),
+            {
+                "title": "Kitchen Notes",
+                "excerpt": "Short notes from the kitchen.",
+                "published": "2026-04-29",
+                "related_recipe": "",
+                "body": "Useful notes for Irish cooking.",
+            },
+        )
+
+        article = Article.objects.get(title="Kitchen Notes")
+        self.assertRedirects(response, article.get_absolute_url())
+        self.assertEqual(article.author, author)
 
 
 class RecipeInteractionTests(TestCase):
