@@ -252,7 +252,7 @@
                                     <div aria-label="Average recipe rating" class="rating-overview">
                                         <div aria-hidden="true" class="rating-overview__stars">
                                             <span class="rating-overview__stars-base">★★★★★</span>
-                                            <span class="rating-overview__stars-fill" style="width: {{ average_rating_percentage }}%;">★★★★★</span>
+                                            <span class="rating-overview__stars-fill" style="--rating-fill: {{ average_rating_percentage }}%;">★★★★★</span>
                                         </div>
                                         <span class="rating-overview__count">
                                             {{ ratings_count }} rating{{ ratings_count|pluralize }}

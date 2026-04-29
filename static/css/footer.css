@@ -51,83 +51,8 @@
   flex-wrap: wrap;
 }
 
-.footer-socials__link {
-  --social-accent: #f7f2ea;
-  display: inline-flex;
-  position: relative;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  overflow: hidden;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: rgb(247 242 234 / 0.68);
-  box-shadow: none;
-  isolation: isolate;
-  text-decoration: none;
-  backdrop-filter: none;
-  transition:
-    color 0.18s ease,
-    filter 0.18s ease,
-    transform 0.18s ease;
-}
-
-.footer-socials__link:hover,
-.footer-socials__link:focus-visible {
-  color: var(--social-accent);
-  filter: saturate(1.12) brightness(1.08);
-  transform: translateY(-1px);
-}
-
-.footer-socials__link svg {
-  position: relative;
-  width: 16.15px;
-  height: 16.15px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.footer-socials__link svg path {
-  fill: currentColor;
-  stroke: none;
-}
-
-.footer-socials__link[aria-label="Instagram"] {
-  --social-accent: #e4405f;
-}
-
-.footer-socials__link[aria-label="Facebook"] {
-  --social-accent: #1877f2;
-}
-
-.footer-socials__link[aria-label="X"] {
-  --social-accent: #f7f2ea;
-}
-
-.footer-socials__link[aria-label="LinkedIn"] {
-  --social-accent: #0a66c2;
-}
-
-.footer-socials__link[aria-label="Telegram"] {
-  --social-accent: #229ed9;
-}
-
-.footer-socials__link[aria-label="WhatsApp"] {
-  --social-accent: #25d366;
-}
-
-.footer-socials__link[aria-label="Twitch"] {
-  --social-accent: #9146ff;
-}
-
-.footer-socials__link[aria-label="YouTube"] {
-  --social-accent: #ff0033;
-}
+/* Стили .footer-socials__link живут в base.css вместе с .ce-header-socials__link
+   (общий компонент социальных иконок, см. секцию "Social link component"). */
 
 .footer-inner .brand-culineire {
   font-weight: 700;

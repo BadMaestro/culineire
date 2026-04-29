@@ -1,6 +1,4 @@
-:root {
-  color-scheme: light;
-}
+/* color-scheme объявлена в base.css. Здесь не дублируем. */
 
 @layer detail-tokens {
   .detail-page {
@@ -915,6 +913,7 @@
   .rating-overview__stars-fill {
     position: absolute;
     inset: 0 auto 0 0;
+    width: var(--rating-fill, 0%);
     overflow: hidden;
     white-space: nowrap;
     color: #d89b2b;
