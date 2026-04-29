@@ -36,7 +36,7 @@
                     <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                     {{ field }}
                     {% if field.help_text %}
-                    <div class="auth-help">{{ field.help_text|safe }}</div>
+                    <div class="auth-help">{{ field.help_text|striptags }}</div>
                     {% endif %}
                     {% for error in field.errors %}
                     <p class="auth-error">{{ error }}</p>

@@ -206,3 +206,260 @@ INFO | 2026-04-29 13:27:31 | basehttp        | "GET /media/recipes/GreenBear/Far
 INFO | 2026-04-29 13:27:31 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/gallery/img1_86GNfZy.png HTTP/1.1" 304 0
 INFO | 2026-04-29 14:26:28 | autoreload      | /media/sf_CulinEire/config/settings.py changed, reloading.
 INFO | 2026-04-29 14:26:31 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 14:34:56 | autoreload      | /media/sf_CulinEire/recipes/models.py changed, reloading.
+INFO | 2026-04-29 14:34:57 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 14:35:05 | autoreload      | /media/sf_CulinEire/recipes/models.py changed, reloading.
+INFO | 2026-04-29 14:35:06 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 14:35:13 | autoreload      | /media/sf_CulinEire/articles/models.py changed, reloading.
+INFO | 2026-04-29 14:35:13 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 14:35:54 | autoreload      | /media/sf_CulinEire/config/settings.py changed, reloading.
+INFO | 2026-04-29 14:35:54 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 14:36:19 | autoreload      | /media/sf_CulinEire/recipes/forms.py changed, reloading.
+INFO | 2026-04-29 14:36:20 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 14:36:22 | autoreload      | /media/sf_CulinEire/articles/forms.py changed, reloading.
+INFO | 2026-04-29 14:36:23 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 14:36:41 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-04-29 14:36:41 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 14:45:38 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-04-29 14:45:39 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 14:53:15 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 14:53:56 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-04-29 14:53:57 | autoreload      | Watching for file changes with StatReloader
+WARNING | 2026-04-29 14:53:57 | ratelimit_compat | Rate limiting is disabled because neither 'django_ratelimit' nor 'ratelimit' is installed in the active environment.
+INFO | 2026-04-29 14:56:30 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-04-29 14:56:30 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 14:58:04 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 14:58:08 | basehttp        | "GET / HTTP/1.1" 301 0
+INFO | 2026-04-29 14:58:08 | basehttp        | code 400, message Bad request version ('pÐ®\x00\x825\x00')
+ERROR | 2026-04-29 14:58:08 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 14:58:08 | basehttp        | code 400, message Bad request version ('Ã¨¦Ñª\x81\x04j?\x8a8ÏË\x95Æ\x8c\x06þ2)')
+ERROR | 2026-04-29 14:58:08 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 14:58:55 | autoreload      | /media/sf_CulinEire/config/settings.py changed, reloading.
+INFO | 2026-04-29 14:58:56 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 14:59:50 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 14:59:53 | basehttp        | code 400, message Bad request version ('\x00\x02\x01\x00\x00+\x00\x07\x06')
+ERROR | 2026-04-29 14:59:53 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 14:59:53 | basehttp        | code 400, message Bad request version ('\x00\x02\x01\x00\x00\x1b\x00\x03\x02\x00\x02\x00\x05\x00\x05\x01\x00\x00\x00\x00\x00')
+ERROR | 2026-04-29 14:59:53 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 14:59:58 | basehttp        | code 400, message Bad request version ('\x95')
+INFO | 2026-04-29 14:59:58 | basehttp        | code 400, message Bad request version ('úEª\x9cD\x91<\x9d$|\x0e¹\\')
+ERROR | 2026-04-29 14:59:58 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR | 2026-04-29 14:59:58 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 14:59:58 | basehttp        | code 400, message Bad request version ("²'\x10¿#è°Ëj_á#Ê*âÄx0Js\x01>Åèj\x90±Í\x1by\x92*æ")
+ERROR | 2026-04-29 14:59:58 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 14:59:58 | basehttp        | code 400, message Bad request version ('\x99')
+ERROR | 2026-04-29 14:59:58 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:00:01 | basehttp        | code 400, message Bad request version ('\x00\x12\x00\x10\x04\x03\x08\x04\x04\x01\x05\x03\x08\x05\x05\x01\x08\x06\x06\x01\x00#\x00\x00\x00\x05\x00\x05\x01\x00\x00\x00\x00\x00')
+ERROR | 2026-04-29 15:00:01 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:00:01 | basehttp        | code 400, message Bad request version ('\x00\x12\x00\x10\x04\x03\x08\x04\x04\x01\x05\x03\x08\x05\x05\x01\x08\x06\x06\x01\x00\x05\x00\x05\x01\x00\x00\x00\x00\x00+\x00\x07\x06ZZ\x03\x04\x03\x03\x00')
+ERROR | 2026-04-29 15:00:01 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:00:01 | basehttp        | code 400, message Bad request version ('æ\x9b\x87')
+ERROR | 2026-04-29 15:00:01 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:00:01 | basehttp        | code 400, message Bad request version ('\x00\x12\x00\x10\x04\x03\x08\x04\x04\x01\x05\x03\x08\x05\x05\x01\x08\x06\x06\x01\x00')
+ERROR | 2026-04-29 15:00:01 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:01:12 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 15:01:16 | basehttp        | code 400, message Bad request version ('Dh\x8cv\x9f\x94À)¥\x8eàB')
+ERROR | 2026-04-29 15:01:16 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:01:16 | basehttp        | code 400, message Bad request version ('jj\x13\x01\x13\x02\x13\x03À+À/À,À0Ì©Ì¨À\x13À\x14\x00\x9c\x00\x9d\x00/\x005\x01\x00\x06\x93jj\x00\x00\x00\x1b\x00\x03\x02\x00\x02\x00#\x00\x00\x00')
+ERROR | 2026-04-29 15:01:16 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:02:27 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 15:02:29 | basehttp        | code 400, message Bad request version ('¾`j\x04\x9b!Rµ°`]¬{cÚ\x86ÒÙ')
+ERROR | 2026-04-29 15:02:29 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:02:29 | basehttp        | code 400, message Bad request version ('õÚ\x00\x92îfB\x00ð.f¡&')
+ERROR | 2026-04-29 15:02:29 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:03:34 | basehttp        | code 400, message Bad request version ('\x02h2\x08http/1.1\x00')
+ERROR | 2026-04-29 15:03:34 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:03:34 | basehttp        | code 400, message Bad request version ('SZ|±ùlQoÀ362hÌ{\x10êi\x7f\x90\x8dWËµ8ÿ\x01\x00\x01\x00\x00')
+ERROR | 2026-04-29 15:03:34 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:03:53 | basehttp        | code 400, message Bad request version ("]¤<¸ÚÇj\x87\x08M\x0fiT\x01ý'Ò\x08Î\x8bâê5ãÄi8¤\x00")
+ERROR | 2026-04-29 15:03:53 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:03:53 | basehttp        | code 400, message Bad request version ('Ø')
+ERROR | 2026-04-29 15:03:53 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:03:56 | basehttp        | code 400, message Bad request version ('^\x8b98Ó\x8a\x0eø/jEö\x82Þ\x83Æ£ãc`~ì)\x91\x88#\x0f)³B\x06\x83')
+ERROR | 2026-04-29 15:03:56 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:03:56 | basehttp        | code 400, message Bad request syntax ('\x16\x03\x01\x07\x00\x01\x00\x06ü\x03\x03;xîùá4ÀÁéÑ\x19Z\x9f')
+INFO | 2026-04-29 15:03:56 | basehttp        | code 400, message Bad request version ('9')
+ERROR | 2026-04-29 15:03:56 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR | 2026-04-29 15:03:56 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:03:56 | basehttp        | code 400, message Bad request version ('3vfáÚßÈa\x81¿¦Ý¼Y½GVà0Oè{\x86\x95ú4\x84q`ì\x03\x14_99ñ\x9dW\x10\x8dç\x98N\x00')
+ERROR | 2026-04-29 15:03:56 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:04:40 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 15:04:44 | basehttp        | code 400, message Bad request version ('2+\x818¶\x02¤<\x15RÛNà\x8dM\x00¿&\x8fUS\x003\x04ï\x04í\x1a\x1a\x00\x01\x00\x11ì\x04À')
+ERROR | 2026-04-29 15:04:44 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:04:44 | basehttp        | code 400, message Bad request version ('ÈdMS¿Ðô\x01\x00³\x0eçqF\x1bcG±¦y4°e%')
+ERROR | 2026-04-29 15:04:44 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:05:20 | basehttp        | code 400, message Bad request version ('\x1a\x1a\x13\x01\x13\x02\x13\x03À+À/À,À0Ì©Ì¨À\x13À\x14\x00\x9c\x00\x9d\x00/\x005\x01\x00\x063zz\x00\x00\x00\x1b\x00\x03\x02\x00\x02\x003\x04ï\x04í')
+ERROR | 2026-04-29 15:05:20 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:05:20 | basehttp        | code 400, message Bad request syntax ('\x16\x03\x01\x06à\x01\x00\x06Ü\x03\x03UËv')
+ERROR | 2026-04-29 15:05:20 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:06:14 | basehttp        | code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x07\x00\x01\x00\x06ü\x03\x03d')
+ERROR | 2026-04-29 15:06:14 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:06:14 | basehttp        | code 400, message Bad request version ('Xx\x0f\x8f')
+ERROR | 2026-04-29 15:06:14 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:06:40 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 15:06:45 | basehttp        | code 400, message Bad request version ('\x94¢u\x08âs\x8c÷RÝ4\x08ix^¡9')
+ERROR | 2026-04-29 15:06:45 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:06:45 | basehttp        | code 400, message Bad request version ('k¨OIê\x1b¿¤\x97\x18ö\x15¢ÆnB\x01Ï^¸|\xadë\x89\x06FF\x82z\x8dQ\x08³ei\x7fáã@¼É\x0f¸õ§\x80Æ*')
+ERROR | 2026-04-29 15:06:45 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:09:59 | autoreload      | /media/sf_CulinEire/config/settings.py changed, reloading.
+INFO | 2026-04-29 15:10:00 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 15:24:06 | autoreload      | /media/sf_CulinEire/config/settings.py changed, reloading.
+INFO | 2026-04-29 15:24:06 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 15:36:32 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 15:36:36 | basehttp        | code 400, message Bad request syntax ('\x16\x03\x01\x06À\x01\x00\x06¼\x03\x03\x13\x91\x12\x9c')
+ERROR | 2026-04-29 15:36:36 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:36:36 | basehttp        | code 400, message Bad request version ('úú\x13\x01\x13\x02\x13\x03À+À/À,À0Ì©Ì¨À\x13À\x14\x00\x9c\x00\x9d\x00/\x005\x01\x00\x063jj\x00\x00\x00\x12\x00\x00\x00#\x00\x00\x00\x17\x00\x00\x00\x05\x00\x05\x01\x00\x00\x00\x00DÍ\x00\x05\x00\x03\x02h2\x003\x04ï\x04íZZ\x00\x01\x00\x11ì\x04ÀÅÜÈc6\x12ë3\x03Pâ^\x7f21')
+ERROR | 2026-04-29 15:36:36 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:36:48 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 15:36:52 | basehttp        | code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x06')
+ERROR | 2026-04-29 15:36:52 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:36:52 | basehttp        | code 400, message Bad request version ('**\x13\x01\x13\x02\x13\x03À+À/À,À0Ì©Ì¨À\x13À\x14\x00\x9c\x00\x9d\x00/\x005\x01\x00\x063êê\x00\x00\x00#\x00\x00\x00')
+ERROR | 2026-04-29 15:36:52 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:38:45 | basehttp        | "GET / HTTP/1.1" 200 32904
+WARNING | 2026-04-29 15:38:45 | log             | Not Found: /static/images/hero.jpg
+WARNING | 2026-04-29 15:38:45 | log             | Not Found: /media/recipes/GreenBear/Classic Irish Boxty/cover.png
+WARNING | 2026-04-29 15:38:45 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:38:45 | log             | Not Found: /static/images/logo-culineire-header-round.png
+WARNING | 2026-04-29 15:38:45 | log             | Not Found: /static/css/header.css
+WARNING | 2026-04-29 15:38:45 | log             | Not Found: /media/recipes/GreenBear/Farmhouse Farls/cover.png
+WARNING | 2026-04-29 15:38:45 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:38:45 | log             | Not Found: /static/css/base.css
+WARNING | 2026-04-29 15:38:45 | basehttp        | "GET /static/css/base.css?v=20260429w HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:38:45 | basehttp        | "GET /static/css/header.css?v=20260429j HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:38:45 | basehttp        | "GET /static/images/hero.jpg HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:38:45 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:38:45 | log             | Not Found: /static/js/main.js
+WARNING | 2026-04-29 15:38:45 | log             | Not Found: /static/images/greenbear.png
+WARNING | 2026-04-29 15:38:45 | basehttp        | "GET /static/js/main.js?v=20260429c HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:38:45 | log             | Not Found: /media/articles/How to Make Perfect Irish Potato Soup/cover.png
+WARNING | 2026-04-29 15:38:45 | log             | Not Found: /media/recipes/GreenBear/Cottage Pie/cover.png
+WARNING | 2026-04-29 15:38:45 | log             | Not Found: /media/recipes/GreenBear/IRISH STEW/cover.png
+WARNING | 2026-04-29 15:38:45 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:38:45 | basehttp        | "GET /media/articles/How%20to%20Make%20Perfect%20Irish%20Potato%20Soup/cover.png HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:38:45 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/cover.png HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:38:45 | basehttp        | "GET /media/recipes/GreenBear/IRISH%20STEW/cover.png HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:38:46 | log             | Not Found: /favicon.ico
+WARNING | 2026-04-29 15:38:46 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-04-29 15:41:20 | basehttp        | code 400, message Bad request version ('shIr]ÜáÅ-cºsX&)')
+ERROR | 2026-04-29 15:41:20 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:41:20 | basehttp        | code 400, message Bad request version ('\x90\x97nà\x11â\x94')
+ERROR | 2026-04-29 15:41:20 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:44:21 | basehttp        | "GET / HTTP/1.1" 200 32904
+WARNING | 2026-04-29 15:44:21 | log             | Not Found: /static/css/base.css
+WARNING | 2026-04-29 15:44:21 | log             | Not Found: /static/css/header.css
+WARNING | 2026-04-29 15:44:21 | basehttp        | "GET /static/css/header.css?v=20260429j HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:44:21 | log             | Not Found: /static/images/logo-culineire-header-round.png
+WARNING | 2026-04-29 15:44:21 | log             | Not Found: /media/recipes/GreenBear/Farmhouse Farls/cover.png
+WARNING | 2026-04-29 15:44:21 | log             | Not Found: /static/images/hero.jpg
+WARNING | 2026-04-29 15:44:21 | basehttp        | "GET /static/css/base.css?v=20260429w HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:44:21 | log             | Not Found: /static/js/main.js
+WARNING | 2026-04-29 15:44:21 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:44:21 | log             | Not Found: /media/recipes/GreenBear/IRISH STEW/cover.png
+WARNING | 2026-04-29 15:44:21 | basehttp        | "GET /static/images/hero.jpg HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:44:21 | log             | Not Found: /media/recipes/GreenBear/Classic Irish Boxty/cover.png
+WARNING | 2026-04-29 15:44:21 | basehttp        | "GET /static/js/main.js?v=20260429c HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:44:21 | log             | Not Found: /static/images/greenbear.png
+WARNING | 2026-04-29 15:44:21 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:44:21 | basehttp        | "GET /media/recipes/GreenBear/IRISH%20STEW/cover.png HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:44:21 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:44:21 | log             | Not Found: /media/articles/How to Make Perfect Irish Potato Soup/cover.png
+WARNING | 2026-04-29 15:44:21 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:44:21 | log             | Not Found: /media/recipes/GreenBear/Cottage Pie/cover.png
+WARNING | 2026-04-29 15:44:21 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/cover.png HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:44:21 | basehttp        | "GET /media/articles/How%20to%20Make%20Perfect%20Irish%20Potato%20Soup/cover.png HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:44:21 | log             | Not Found: /favicon.ico
+WARNING | 2026-04-29 15:44:21 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:47:44 | log             | Not Found: /media/recipes/GreenBear/Farmhouse Farls/cover.png
+INFO | 2026-04-29 15:48:41 | autoreload      | /media/sf_CulinEire/config/urls.py changed, reloading.
+INFO | 2026-04-29 15:48:42 | autoreload      | Watching for file changes with StatReloader
+WARNING | 2026-04-29 15:48:53 | log             | Not Found: /media/recipes/GreenBear/Farmhouse Farls/cover.png
+WARNING | 2026-04-29 15:49:06 | log             | Not Found: /media/recipes/GreenBear/Farmhouse Farls/cover.png
+INFO | 2026-04-29 15:49:32 | autoreload      | /media/sf_CulinEire/config/urls.py changed, reloading.
+INFO | 2026-04-29 15:49:32 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 15:50:35 | basehttp        | "GET / HTTP/1.1" 200 32904
+WARNING | 2026-04-29 15:50:35 | log             | Not Found: /static/css/base.css
+WARNING | 2026-04-29 15:50:35 | log             | Not Found: /static/images/logo-culineire-header-round.png
+WARNING | 2026-04-29 15:50:35 | log             | Not Found: /static/css/header.css
+WARNING | 2026-04-29 15:50:35 | log             | Not Found: /static/images/hero.jpg
+WARNING | 2026-04-29 15:50:35 | basehttp        | "GET /static/css/base.css?v=20260429w HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:50:35 | log             | Not Found: /static/js/main.js
+WARNING | 2026-04-29 15:50:35 | basehttp        | "GET /static/css/header.css?v=20260429j HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:50:35 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:50:35 | basehttp        | "GET /static/images/hero.jpg HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:50:35 | basehttp        | "GET /static/js/main.js?v=20260429c HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:50:35 | log             | Not Found: /static/images/greenbear.png
+INFO | 2026-04-29 15:50:35 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 200 2316746
+INFO | 2026-04-29 15:50:35 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/cover.png HTTP/1.1" 200 697066
+INFO | 2026-04-29 15:50:35 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 200 2489208
+WARNING | 2026-04-29 15:50:35 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 404 179
+INFO | 2026-04-29 15:50:35 | basehttp        | "GET /media/articles/How%20to%20Make%20Perfect%20Irish%20Potato%20Soup/cover.png HTTP/1.1" 200 533390
+INFO | 2026-04-29 15:50:35 | basehttp        | "GET /media/recipes/GreenBear/IRISH%20STEW/cover.png HTTP/1.1" 200 1547642
+INFO | 2026-04-29 15:50:39 | basehttp        | "GET / HTTP/1.1" 200 32904
+WARNING | 2026-04-29 15:50:39 | log             | Not Found: /static/css/base.css
+WARNING | 2026-04-29 15:50:39 | log             | Not Found: /static/images/logo-culineire-header-round.png
+WARNING | 2026-04-29 15:50:39 | log             | Not Found: /static/images/hero.jpg
+WARNING | 2026-04-29 15:50:39 | log             | Not Found: /static/css/header.css
+WARNING | 2026-04-29 15:50:39 | basehttp        | "GET /static/css/base.css?v=20260429w HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:50:40 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:50:40 | basehttp        | "GET /static/images/hero.jpg HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:50:40 | basehttp        | "GET /static/css/header.css?v=20260429j HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:50:40 | log             | Not Found: /static/js/main.js
+INFO | 2026-04-29 15:50:40 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 200 2316746
+INFO | 2026-04-29 15:50:40 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 200 2489208
+WARNING | 2026-04-29 15:50:40 | basehttp        | "GET /static/js/main.js?v=20260429c HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:50:40 | log             | Not Found: /static/images/greenbear.png
+WARNING | 2026-04-29 15:50:40 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 404 179
+INFO | 2026-04-29 15:50:40 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/cover.png HTTP/1.1" 200 697066
+INFO | 2026-04-29 15:50:40 | basehttp        | "GET /media/recipes/GreenBear/IRISH%20STEW/cover.png HTTP/1.1" 200 1547642
+INFO | 2026-04-29 15:50:40 | basehttp        | "GET /media/articles/How%20to%20Make%20Perfect%20Irish%20Potato%20Soup/cover.png HTTP/1.1" 200 533390
+WARNING | 2026-04-29 15:50:40 | log             | Not Found: /favicon.ico
+WARNING | 2026-04-29 15:50:40 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-04-29 15:51:41 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 15:51:43 | basehttp        | code 400, message Bad request version ('RºÃ')
+ERROR | 2026-04-29 15:51:43 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:51:43 | basehttp        | code 400, message Bad request version ('\x86öE\x15\x9câ{«p\x00')
+ERROR | 2026-04-29 15:51:43 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:53:06 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 15:53:21 | basehttp        | code 400, message Bad request version ('\x96*\x00')
+ERROR | 2026-04-29 15:53:21 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:53:21 | basehttp        | code 400, message Bad request version ('::\x13\x01\x13\x02\x13\x03À+À/À,À0Ì©Ì¨À\x13À\x14\x00\x9c\x00\x9d\x00/\x005\x01\x00\x06sÚÚ\x00\x00\x00')
+ERROR | 2026-04-29 15:53:21 | basehttp        | You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO | 2026-04-29 15:55:20 | basehttp        | "GET / HTTP/1.1" 200 32904
+WARNING | 2026-04-29 15:55:20 | log             | Not Found: /static/js/main.js
+WARNING | 2026-04-29 15:55:20 | log             | Not Found: /static/css/base.css
+WARNING | 2026-04-29 15:55:20 | basehttp        | "GET /static/css/base.css?v=20260429w HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:55:20 | basehttp        | "GET /static/js/main.js?v=20260429c HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:55:20 | log             | Not Found: /static/css/header.css
+WARNING | 2026-04-29 15:55:20 | log             | Not Found: /static/images/hero.jpg
+WARNING | 2026-04-29 15:55:20 | log             | Not Found: /static/images/logo-culineire-header-round.png
+WARNING | 2026-04-29 15:55:20 | basehttp        | "GET /static/css/header.css?v=20260429j HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:55:20 | basehttp        | "GET /static/images/hero.jpg HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:55:20 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:55:20 | log             | Not Found: /static/images/greenbear.png
+WARNING | 2026-04-29 15:55:20 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 404 179
+WARNING | 2026-04-29 15:55:20 | log             | Not Found: /favicon.ico
+WARNING | 2026-04-29 15:55:20 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-04-29 15:57:15 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 16:04:56 | autoreload      | E:\CulinEire Project\CulinEire\CulinEire\config\settings.py changed, reloading.
+INFO | 2026-04-29 16:04:57 | autoreload      | /media/sf_CulinEire/config/settings.py changed, reloading.
+INFO | 2026-04-29 16:04:58 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 16:04:57 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 16:21:11 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 16:21:16 | basehttp        | "GET / HTTP/1.1" 200 32904
+INFO | 2026-04-29 16:21:16 | basehttp        | "GET /static/css/header.css?v=20260429j HTTP/1.1" 200 12636
+INFO | 2026-04-29 16:21:16 | basehttp        | "GET /static/js/main.js?v=20260429c HTTP/1.1" 200 6439
+INFO | 2026-04-29 16:21:16 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 304 0
+INFO | 2026-04-29 16:21:16 | basehttp        | "GET /static/css/base.css?v=20260429w HTTP/1.1" 200 19138
+INFO | 2026-04-29 16:21:16 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-04-29 16:21:16 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 3210
+INFO | 2026-04-29 16:21:16 | basehttp        | "GET /static/images/hero.jpg HTTP/1.1" 200 2758257
+INFO | 2026-04-29 16:21:16 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 15535
+INFO | 2026-04-29 16:21:16 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-04-29 16:21:16 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 304 0
+INFO | 2026-04-29 16:21:16 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1824
+INFO | 2026-04-29 16:30:57 | autoreload      | E:\CulinEire Project\CulinEire\CulinEire\recipes\migrations\0011_alter_recipe_hero_image_alter_recipeauthor_avatar_and_more.py changed, reloading.
+INFO | 2026-04-29 16:30:58 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 16:31:44 | autoreload      | E:\CulinEire Project\CulinEire\CulinEire\recipes\migrations\0011_alter_recipe_hero_image_alter_recipeauthor_avatar_and_more.py changed, reloading.
+INFO | 2026-04-29 16:31:45 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-29 16:31:55 | autoreload      | E:\CulinEire Project\CulinEire\CulinEire\recipes\validators.py changed, reloading.
+INFO | 2026-04-29 16:31:56 | autoreload      | Watching for file changes with StatReloader

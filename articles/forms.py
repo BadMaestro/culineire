@@ -74,6 +74,7 @@ class ArticleAuthoringForm(forms.ModelForm):
             "placeholder",
             "Write the article here.",
         )
+        self.fields["hero_image"].widget.attrs.setdefault("accept", ".jpg,.jpeg,.png,.webp")
 
     def save(self, commit=True):
         article = super().save(commit=False)

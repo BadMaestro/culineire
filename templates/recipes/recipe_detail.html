@@ -153,7 +153,7 @@
             {% endif %}
 
             <div class="detail-page__actions">
-                <button class="detail-page__action-btn" onclick="window.print()" type="button">
+                <button class="detail-page__action-btn" data-print-page type="button">
                     <span aria-hidden="true">🖨</span>
                     <span>Print</span>
                 </button>
@@ -490,4 +490,5 @@
 
 {% block extra_js %}
 <script src="{% static 'js/gallery.js' %}"></script>
+<script src="{% static 'js/recipe_detail.js' %}"></script>
 {% endblock %}
