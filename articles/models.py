@@ -4,17 +4,25 @@ from pathlib import Path
 
 from django.db import models
 from django.urls import reverse
+from django.utils.text import slugify
 
 from recipes.models import Recipe, RecipeAuthor
+from recipes.validators import validate_image_upload
+
+
+MAX_MEDIA_FOLDER_SEGMENT_LENGTH = 80
+
+
+def _slug_folder_segment(value: str, fallback: str, max_length: int = MAX_MEDIA_FOLDER_SEGMENT_LENGTH) -> str:
+    slug = slugify((value or "").strip())[:max_length].strip("-")
+    return slug or fallback
 
 
 def unique_media_folder_for_article(article) -> str:
     if getattr(article, "media_folder", None):
         return article.media_folder
 
-    base_name = (getattr(article, "title", "") or "Untitled Article").strip()
-    if not base_name:
-        base_name = "Untitled Article"
+    base_name = _slug_folder_segment(getattr(article, "title", ""), "article")
 
     existing_names = set(
         Article.objects.exclude(pk=article.pk)
@@ -69,6 +77,7 @@ class Article(models.Model):
         upload_to=article_cover_upload_to,
         blank=True,
         null=True,
+        validators=[validate_image_upload],
     )
 
     published = models.DateField("Published")
@@ -104,7 +113,10 @@ class ArticleImage(models.Model):
         on_delete=models.CASCADE,
         related_name="gallery_images",
     )
-    image = models.ImageField(upload_to=article_gallery_upload_to)
+    image = models.ImageField(
+        upload_to=article_gallery_upload_to,
+        validators=[validate_image_upload],
+    )
     alt_text = models.CharField(max_length=255, blank=True)
     caption = models.CharField(max_length=255, blank=True)
     sort_order = models.PositiveIntegerField(default=1)

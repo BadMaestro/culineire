@@ -1,5 +1,10 @@
+import importlib
+import os
+from unittest.mock import patch
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.test import SimpleTestCase, TestCase
+from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
 from articles.models import Article
@@ -157,7 +162,7 @@ class RecipeCommentFormTests(SimpleTestCase):
         self.assertIn("website", form.errors)
 
 
-class RecipeAdminFormTests(SimpleTestCase):
+class RecipeAdminFormTests(TestCase):
     def test_admin_form_populates_selected_allergens_from_instance(self):
         recipe = Recipe(
             title="Test pie",
@@ -432,3 +437,190 @@ class RecipeInteractionTests(TestCase):
         self.assertEqual(first_response.status_code, 302)
         self.assertEqual(second_response.status_code, 302)
         self.assertEqual(RecipeComment.objects.filter(recipe=self.recipe).count(), 1)
+
+
+class SecuritySettingsModuleTests(SimpleTestCase):
+    def tearDown(self):
+        importlib.reload(importlib.import_module("config.settings"))
+        super().tearDown()
+
+    def reload_project_settings(self, **env_overrides):
+        module = importlib.import_module("config.settings")
+        base_env = {
+            "DJANGO_SECRET_KEY": "x" * 64,
+        }
+        base_env.update(env_overrides)
+        with patch.dict(os.environ, base_env, clear=False):
+            managed_keys = {
+                "DJANGO_ENV",
+                "DJANGO_DEBUG",
+                "DJANGO_ALLOWED_HOSTS",
+                "DJANGO_CSRF_TRUSTED_ORIGINS",
+                "DJANGO_SERVE_STATIC_LOCALLY",
+                "DJANGO_SERVE_MEDIA_LOCALLY",
+                "DJANGO_SECURE_SSL_REDIRECT",
+                "DJANGO_SECURE_HSTS_SECONDS",
+                "DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS",
+                "DJANGO_SECURE_HSTS_PRELOAD",
+                "DJANGO_SESSION_COOKIE_SECURE",
+                "DJANGO_CSRF_COOKIE_SECURE",
+                "DJANGO_SECURE_PROXY_SSL_HEADER",
+            }
+            for key in managed_keys - set(base_env):
+                os.environ.pop(key, None)
+            with patch("dotenv.load_dotenv", return_value=False):
+                return importlib.reload(module)
+
+    def test_development_environment_defaults_to_http_friendly_security(self):
+        project_settings = self.reload_project_settings(
+            DJANGO_ENV="development",
+            DJANGO_DEBUG="True",
+            DJANGO_ALLOWED_HOSTS="127.0.0.1,localhost,::1,culineire.localhost",
+            DJANGO_CSRF_TRUSTED_ORIGINS=(
+                "http://127.0.0.1:8000,"
+                "http://localhost:8000,"
+                "http://culineire.localhost:8000"
+            ),
+        )
+
+        self.assertFalse(project_settings.SECURE_SSL_REDIRECT)
+        self.assertEqual(project_settings.SECURE_HSTS_SECONDS, 0)
+        self.assertFalse(project_settings.SECURE_HSTS_INCLUDE_SUBDOMAINS)
+        self.assertFalse(project_settings.SECURE_HSTS_PRELOAD)
+        self.assertFalse(project_settings.SESSION_COOKIE_SECURE)
+        self.assertFalse(project_settings.CSRF_COOKIE_SECURE)
+        self.assertTrue(project_settings.SERVE_STATIC_LOCALLY)
+        self.assertTrue(project_settings.SERVE_MEDIA_LOCALLY)
+
+    def test_production_environment_defaults_to_strict_https_security(self):
+        project_settings = self.reload_project_settings(
+            DJANGO_ENV="production",
+            DJANGO_DEBUG="False",
+            DJANGO_ALLOWED_HOSTS="culineire.ie,www.culineire.ie",
+            DJANGO_CSRF_TRUSTED_ORIGINS="https://culineire.ie,https://www.culineire.ie",
+        )
+
+        self.assertTrue(project_settings.SECURE_SSL_REDIRECT)
+        self.assertEqual(project_settings.SECURE_HSTS_SECONDS, 31536000)
+        self.assertTrue(project_settings.SECURE_HSTS_INCLUDE_SUBDOMAINS)
+        self.assertTrue(project_settings.SECURE_HSTS_PRELOAD)
+        self.assertTrue(project_settings.SESSION_COOKIE_SECURE)
+        self.assertTrue(project_settings.CSRF_COOKIE_SECURE)
+        self.assertFalse(project_settings.SERVE_STATIC_LOCALLY)
+        self.assertFalse(project_settings.SERVE_MEDIA_LOCALLY)
+
+    def test_standard_django_security_middleware_is_configured(self):
+        self.assertIn("django.middleware.security.SecurityMiddleware", settings.MIDDLEWARE)
+        self.assertNotIn("config.middleware.LocalhostAwareSecurityMiddleware", settings.MIDDLEWARE)
+
+
+class SecurityMiddlewareEnvironmentTests(TestCase):
+    @override_settings(
+        SECURE_SSL_REDIRECT=False,
+        SECURE_HSTS_SECONDS=0,
+        SECURE_HSTS_INCLUDE_SUBDOMAINS=False,
+        SECURE_HSTS_PRELOAD=False,
+        SESSION_COOKIE_SECURE=False,
+        CSRF_COOKIE_SECURE=False,
+        ALLOWED_HOSTS=["127.0.0.1", "localhost", "::1", "culineire.localhost", "culineire.ie"],
+    )
+    def test_development_localhost_does_not_redirect_to_https(self):
+        response = self.client.get("/", SERVER_NAME="localhost", SERVER_PORT=8000)
+
+        self.assertEqual(response.status_code, 200)
+
+    @override_settings(
+        SECURE_SSL_REDIRECT=False,
+        SECURE_HSTS_SECONDS=0,
+        SECURE_HSTS_INCLUDE_SUBDOMAINS=False,
+        SECURE_HSTS_PRELOAD=False,
+        SESSION_COOKIE_SECURE=False,
+        CSRF_COOKIE_SECURE=False,
+        ALLOWED_HOSTS=["127.0.0.1", "localhost", "::1", "culineire.localhost", "culineire.ie"],
+    )
+    def test_development_loopback_does_not_redirect_to_https(self):
+        response = self.client.get("/", SERVER_NAME="127.0.0.1", SERVER_PORT=8000)
+
+        self.assertEqual(response.status_code, 200)
+
+    @override_settings(
+        SECURE_SSL_REDIRECT=False,
+        SECURE_HSTS_SECONDS=0,
+        SECURE_HSTS_INCLUDE_SUBDOMAINS=False,
+        SECURE_HSTS_PRELOAD=False,
+        SESSION_COOKIE_SECURE=False,
+        CSRF_COOKIE_SECURE=False,
+        ALLOWED_HOSTS=["127.0.0.1", "localhost", "::1", "culineire.localhost", "culineire.ie"],
+    )
+    def test_development_culineire_localhost_does_not_redirect_to_https(self):
+        response = self.client.get("/", SERVER_NAME="culineire.localhost", SERVER_PORT=8000)
+
+        self.assertEqual(response.status_code, 200)
+
+    @override_settings(
+        SECURE_SSL_REDIRECT=True,
+        SECURE_HSTS_SECONDS=31536000,
+        SECURE_HSTS_INCLUDE_SUBDOMAINS=True,
+        SECURE_HSTS_PRELOAD=True,
+        SESSION_COOKIE_SECURE=True,
+        CSRF_COOKIE_SECURE=True,
+        ALLOWED_HOSTS=["127.0.0.1", "localhost", "::1", "culineire.localhost", "culineire.ie"],
+    )
+    def test_production_domain_redirects_to_https(self):
+        response = self.client.get("/", SERVER_NAME="culineire.ie", SERVER_PORT=80)
+
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(response.headers["Location"], "https://culineire.ie/")
+
+    @override_settings(
+        SECURE_SSL_REDIRECT=False,
+        SECURE_HSTS_SECONDS=0,
+        SECURE_HSTS_INCLUDE_SUBDOMAINS=False,
+        SECURE_HSTS_PRELOAD=False,
+        SESSION_COOKIE_SECURE=False,
+        CSRF_COOKIE_SECURE=False,
+        ALLOWED_HOSTS=["127.0.0.1", "localhost", "::1", "culineire.localhost", "culineire.ie"],
+    )
+    def test_hsts_is_disabled_in_development(self):
+        response = self.client.get("/", SERVER_NAME="localhost", SERVER_PORT=443, secure=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("Strict-Transport-Security", response.headers)
+
+    @override_settings(
+        SECURE_SSL_REDIRECT=True,
+        SECURE_HSTS_SECONDS=31536000,
+        SECURE_HSTS_INCLUDE_SUBDOMAINS=True,
+        SECURE_HSTS_PRELOAD=True,
+        SESSION_COOKIE_SECURE=True,
+        CSRF_COOKIE_SECURE=True,
+        ALLOWED_HOSTS=["127.0.0.1", "localhost", "::1", "culineire.localhost", "culineire.ie"],
+    )
+    def test_hsts_is_enabled_in_production(self):
+        response = self.client.get("/", SERVER_NAME="culineire.ie", SERVER_PORT=443, secure=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.headers["Strict-Transport-Security"],
+            "max-age=31536000; includeSubDomains; preload",
+        )
+
+
+class DevelopmentMediaServingTests(TestCase):
+    def test_development_static_is_served_locally(self):
+        response = self.client.get(
+            "/static/images/hero.jpg",
+            HTTP_HOST="culineire.localhost",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers["Content-Type"], "image/jpeg")
+
+    def test_development_homepage_media_is_served_locally(self):
+        response = self.client.get(
+            "/media/recipes/GreenBear/Farmhouse%20Farls/cover.png",
+            HTTP_HOST="culineire.localhost",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers["Content-Type"], "image/png")

@@ -126,6 +126,7 @@ class RecipeAuthoringForm(forms.ModelForm):
             "placeholder",
             "Write each step on a new line.",
         )
+        self.fields["hero_image"].widget.attrs.setdefault("accept", ".jpg,.jpeg,.png,.webp")
 
 
 class RecipeAuthorProfileForm(forms.ModelForm):
@@ -164,6 +165,7 @@ class RecipeAuthorProfileForm(forms.ModelForm):
             "placeholder",
             "A short note about your cooking style, background or kitchen focus.",
         )
+        self.fields["avatar"].widget.attrs.setdefault("accept", ".jpg,.jpeg,.png,.webp")
 
 
 class RecipeRatingForm(forms.Form):
