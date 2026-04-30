@@ -47,8 +47,9 @@
   align-items: center;
   justify-content: center;
   gap: clamp(0.7rem, 3vw, 1.7rem);
+  min-height: 32px;
   margin: 0 0 0.48rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 /* Стили .footer-socials__link живут в base.css вместе с .ce-header-socials__link
@@ -75,7 +76,7 @@
   font-weight: 600;
 }
 
-.footer-inner a {
+.footer-inner a:not(.footer-socials__link) {
   color: inherit;
   text-decoration: none;
   font-weight: 400;
@@ -84,8 +85,8 @@
   transition: text-shadow 0.18s ease, transform 0.18s ease;
 }
 
-.footer-inner a:hover,
-.footer-inner a:focus-visible {
+.footer-inner a:not(.footer-socials__link):hover,
+.footer-inner a:not(.footer-socials__link):focus-visible {
   text-shadow: 0 0 0.8px currentColor;
   transform: translateY(-0.5px);
 }

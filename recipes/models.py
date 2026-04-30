@@ -4,14 +4,28 @@ from pathlib import Path
 
 from django.conf import settings
 from django.db import models
+from django.db.models import Q
 from django.urls import reverse
 from django.utils.text import slugify
 
+from .validators import validate_image_upload
+
+
+MAX_MEDIA_SEGMENT_LENGTH = 60
+
+
+def safe_media_segment(value: str | None, fallback: str) -> str:
+    slug = slugify((value or "").strip())[:MAX_MEDIA_SEGMENT_LENGTH].strip("-")
+    return slug or fallback
+
 
 def safe_author_folder(author) -> str:
-    if author and getattr(author, "name", None):
-        return author.name.strip()
-    return "Unknown Author"
+    if author:
+        return safe_media_segment(
+            getattr(author, "slug", None) or getattr(author, "name", None),
+            "author",
+        )
+    return "author"
 
 
 def unique_media_folder_for_recipe(recipe) -> str:
@@ -27,9 +41,7 @@ def unique_media_folder_for_recipe(recipe) -> str:
     if getattr(recipe, "media_folder", None):
         return recipe.media_folder
 
-    base_name = (getattr(recipe, "title", "") or "Untitled Recipe").strip()
-    if not base_name:
-        base_name = "Untitled Recipe"
+    base_name = safe_media_segment(getattr(recipe, "title", ""), "recipe")
 
     author = getattr(recipe, "author", None)
 
@@ -72,6 +84,12 @@ def recipe_gallery_upload_to(instance, filename: str) -> str:
     return f"{recipe_base_folder(instance.recipe)}/gallery/img{sort_order}{extension}"
 
 
+def author_avatar_upload_to(instance, filename: str) -> str:
+    extension = Path(filename).suffix.lower() or ".jpg"
+    author_folder = safe_author_folder(instance)
+    return f"authors/{author_folder}/avatar{extension}"
+
+
 class RecipeAuthor(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
@@ -85,9 +103,10 @@ class RecipeAuthor(models.Model):
     slug = models.SlugField("URL slug", unique=True)
     bio = models.TextField("Short author bio", blank=True)
     avatar = models.ImageField(
-        upload_to="authors/",
+        upload_to=author_avatar_upload_to,
         blank=True,
         null=True,
+        validators=[validate_image_upload],
     )
 
     class Meta:
@@ -162,6 +181,7 @@ class Recipe(models.Model):
         upload_to=recipe_cover_upload_to,
         blank=True,
         null=True,
+        validators=[validate_image_upload],
         verbose_name="Preview image",
     )
 
@@ -264,14 +284,54 @@ class Recipe(models.Model):
 
         return items
 
+    @classmethod
+    def get_category_url_for_value(cls, category_value: str) -> str:
+        return reverse(
+            "recipes:category_detail",
+            kwargs={"category_slug": category_value.replace("_", "-")},
+        )
+
+    @classmethod
+    def filter_for_category(cls, queryset, category_value: str):
+        return queryset.filter(
+            Q(category=category_value) | Q(additional_category_links__category=category_value)
+        ).distinct()
+
     def get_category_url(self) -> str:
         if not self.category:
             return reverse("recipes:recipe_list")
 
-        return reverse(
-            "recipes:category_detail",
-            kwargs={"category_slug": self.category.replace("_", "-")},
+        return self.get_category_url_for_value(self.category)
+
+    def get_additional_category_values(self) -> list[str]:
+        if not self.pk:
+            return []
+
+        return list(
+            self.additional_category_links.order_by("id").values_list("category", flat=True)
         )
+
+    def get_all_category_values(self) -> list[str]:
+        values = []
+        if self.category:
+            values.append(self.category)
+
+        for value in self.get_additional_category_values():
+            if value and value not in values:
+                values.append(value)
+
+        return values
+
+    def get_all_category_items(self) -> list[dict]:
+        return [
+            {
+                "value": value,
+                "label": self.get_category_label(value),
+                "url": self.get_category_url_for_value(value),
+                "is_primary": value == self.category,
+            }
+            for value in self.get_all_category_values()
+        ]
 
     def generate_unique_slug(self) -> str:
         base_slug = slugify(self.title)[:200] or "recipe"
@@ -295,13 +355,42 @@ class Recipe(models.Model):
         super().save(*args, **kwargs)
 
 
+class RecipeAdditionalCategory(models.Model):
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name="additional_category_links",
+    )
+    category = models.CharField(
+        max_length=64,
+        choices=Recipe.Category.choices,
+    )
+
+    class Meta:
+        ordering = ["id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["recipe", "category"],
+                name="recipes_additional_category_unique_per_recipe",
+            ),
+        ]
+        verbose_name = "Additional recipe category"
+        verbose_name_plural = "Additional recipe categories"
+
+    def __str__(self) -> str:
+        return f"{self.recipe.title} â€” {self.get_category_display()}"
+
+
 class RecipeImage(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
         related_name="gallery_images",
     )
-    image = models.ImageField(upload_to=recipe_gallery_upload_to)
+    image = models.ImageField(
+        upload_to=recipe_gallery_upload_to,
+        validators=[validate_image_upload],
+    )
     alt_text = models.CharField(max_length=255, blank=True)
     caption = models.CharField(max_length=255, blank=True)
     sort_order = models.PositiveIntegerField(default=1)
@@ -349,7 +438,7 @@ class RecipeComment(models.Model):
     name = models.CharField(max_length=100)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    is_approved = models.BooleanField(default=True)
+    is_approved = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-created_at"]

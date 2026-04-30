@@ -271,9 +271,9 @@
 }
 
 .ce-author-panel__summary {
-  display: flex;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 42px;
   align-items: center;
-  justify-content: flex-start;
   gap: 0.68rem;
   min-height: 58px;
   width: 100%;
@@ -309,7 +309,6 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 auto;
   width: 42px;
   height: 42px;
 }
@@ -323,10 +322,16 @@
 }
 
 .ce-author-panel__copy {
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   min-width: 0;
-  gap: 0.06rem;
-  text-align: left;
+  width: max-content;
+  max-width: 100%;
+  gap: 0.02rem;
+  text-align: center;
+  justify-self: center;
 }
 
 .ce-author-panel__greeting {
@@ -346,16 +351,15 @@
   color: currentColor;
   font-size: 0.95rem;
   font-weight: 700;
-  line-height: 1.12;
+  line-height: 1.06;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .ce-author-panel__chevron {
-  flex: 0 0 auto;
+  justify-self: center;
   width: 16px;
   height: 16px;
-  margin-left: auto;
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;
@@ -370,11 +374,11 @@
 
 .ce-author-panel__menu {
   display: grid;
-  gap: 0.55rem;
+  gap: 0.2rem;
   margin-top: 0.55rem;
-  padding: 0.72rem;
-  border: 1px solid rgb(58 44 30 / 0.1);
-  border-radius: 18px;
+  padding: 0.72rem 0.62rem;
+  border: 1px solid rgb(58 44 30 / 0.12);
+  border-radius: 20px;
   background: rgb(247 242 234 / 0.92);
   box-shadow: 0 18px 36px rgb(58 44 30 / 0.12);
 }
@@ -382,29 +386,48 @@
 .ce-author-panel__note {
   margin: 0;
   color: rgb(31 44 37 / 0.7);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  line-height: 1.3;
+  line-height: 1.25;
+  padding-inline: 0.9rem;
   text-align: center;
 }
 
 .ce-author-panel__actions {
   display: grid;
-  gap: 0.28rem;
+  gap: 0.075rem;
+  padding-inline-start: 0;
+  width: max-content;
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+.ce-author-panel__action-row {
+  display: grid;
+  width: 100%;
+}
+
+.ce-author-panel__action-row--split {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 0.45rem;
 }
 
 .ce-author-panel__action {
-  display: inline-flex;
+  display: grid;
+  grid-template-columns: 0.36rem auto;
   align-items: center;
-  justify-content: center;
-  min-height: 40px;
-  padding: 0.55rem 0.75rem;
-  border-radius: 999px;
+  justify-content: start;
+  column-gap: 0.68rem;
+  min-height: 36px;
+  width: 100%;
+  padding: 0.5rem 0.9rem;
+  border-radius: 14px;
   color: rgb(31 44 37 / 0.76);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 500;
   line-height: 1.2;
-  text-align: center;
+  text-align: left;
   text-decoration: none;
   transition:
     background-color 0.2s ease,
@@ -412,10 +435,46 @@
     opacity 0.2s ease;
 }
 
+.ce-author-panel__action-secondary,
+.ce-author-panel__action-secondary:visited {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0.5rem 0.7rem;
+  border-radius: 14px;
+  color: rgb(24 76 58 / 0.88);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.ce-author-panel__action::before {
+  content: "";
+  width: 0.36rem;
+  height: 0.36rem;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.58;
+}
+
 .ce-author-panel__action:hover,
 .ce-author-panel__action:focus-visible {
-  background: rgb(58 44 30 / 0.12);
+  background: rgb(58 44 30 / 0.1);
   color: #3a2c1e;
+  outline: 0;
+  text-decoration: none;
+}
+
+.ce-author-panel__action-secondary:hover,
+.ce-author-panel__action-secondary:focus-visible {
+  background: rgb(24 76 58 / 0.08);
+  color: var(--brand);
   outline: 0;
   text-decoration: none;
 }
@@ -432,6 +491,14 @@
 .ce-author-panel__action--disabled:hover {
   background: transparent;
   color: rgb(31 44 37 / 0.76);
+}
+
+.ce-author-panel .ce-nav__logout {
+  margin-top: 0;
+}
+
+.ce-author-panel .ce-nav__logout .ce-nav__button {
+  justify-content: center;
 }
 
 @media (min-width: 840px) {
@@ -530,11 +597,13 @@
   .ce-author-panel {
     width: auto;
     min-width: 220px;
+    transform: translateX(6.5rem);
   }
 
   .ce-author-panel__summary {
     min-height: 50px;
     padding: 0.36rem 0.62rem;
+    grid-template-columns: 38px minmax(0, 1fr) 38px;
   }
 
   .ce-author-panel__avatar-wrap,

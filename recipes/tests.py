@@ -10,7 +10,7 @@ from django.urls import reverse
 from articles.models import Article
 from .admin import RecipeAdminForm
 from .allergens import build_present_allergen_items, parse_selected_allergen_keys, serialize_allergen_keys
-from .forms import RecipeCommentForm
+from .forms import RecipeAuthoringForm, RecipeCommentForm
 from .models import Recipe, RecipeAuthor, RecipeComment, RecipeRating
 from .views import _build_context_paragraphs, _build_ingredient_items, _build_method_steps, _split_text_lines
 
@@ -206,6 +206,45 @@ class RecipeAdminFormTests(TestCase):
         self.assertEqual(recipe.allergens, "milk\ngluten")
         self.assertEqual(recipe.author_commentary, "Best served very hot.")
 
+    def test_authoring_form_saves_additional_categories(self):
+        form = RecipeAuthoringForm(
+            data={
+                "title": "Heritage Stew",
+                "short_description": "Traditional but weeknight-friendly.",
+                "category": Recipe.Category.IRISH_CULINARY_HERITAGE,
+                "additional_categories": [
+                    Recipe.Category.EVERYDAY_IRISH_COOKING,
+                    Recipe.Category.SOUPS_AND_STEWS,
+                ],
+                "difficulty": Recipe.Difficulty.EASY,
+                "prep_time_minutes": 20,
+                "cook_time_minutes": 80,
+                "servings": 4,
+                "calories": "",
+                "ingredients": "Potatoes - 800g",
+                "method": "1. Simmer slowly",
+                "tips": "",
+                "irish_context": "",
+                "author_commentary": "",
+                "source_type": Recipe.SourceType.ORIGINAL,
+                "source_title": "",
+                "source_author": "",
+                "source_url": "",
+                "source_note": "",
+            }
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        recipe = form.save()
+
+        self.assertEqual(
+            recipe.get_additional_category_values(),
+            [
+                Recipe.Category.EVERYDAY_IRISH_COOKING,
+                Recipe.Category.SOUPS_AND_STEWS,
+            ],
+        )
+
 
 class AuthenticationPageTests(TestCase):
     def setUp(self):
@@ -288,6 +327,8 @@ class AuthenticationPageTests(TestCase):
         self.assertContains(response, author.get_absolute_url())
         self.assertContains(response, reverse("recipes:recipe_create"))
         self.assertContains(response, reverse("articles:article_create"))
+        self.assertContains(response, f'{reverse("recipes:recipe_list")}?author={author.slug}')
+        self.assertContains(response, f'{reverse("articles:article_list")}?author={author.slug}')
         self.assertContains(response, reverse("recipes:author_edit"))
 
     def test_authenticated_header_does_not_guess_author_by_slug(self):
@@ -358,6 +399,7 @@ class AuthenticationPageTests(TestCase):
                 "title": "Test Kitchen Pie",
                 "short_description": "A practical pie for testing.",
                 "category": Recipe.Category.EVERYDAY_IRISH_COOKING,
+                "additional_categories": [Recipe.Category.IRISH_CULINARY_HERITAGE],
                 "difficulty": Recipe.Difficulty.EASY,
                 "prep_time_minutes": 20,
                 "cook_time_minutes": 40,
@@ -379,6 +421,10 @@ class AuthenticationPageTests(TestCase):
         recipe = Recipe.objects.get(title="Test Kitchen Pie")
         self.assertRedirects(response, recipe.get_absolute_url())
         self.assertEqual(recipe.author, author)
+        self.assertEqual(
+            recipe.get_additional_category_values(),
+            [Recipe.Category.IRISH_CULINARY_HERITAGE],
+        )
 
     def test_article_create_assigns_linked_author(self):
         author = RecipeAuthor.objects.create(
@@ -437,6 +483,27 @@ class RecipeInteractionTests(TestCase):
         self.assertEqual(first_response.status_code, 302)
         self.assertEqual(second_response.status_code, 302)
         self.assertEqual(RecipeComment.objects.filter(recipe=self.recipe).count(), 1)
+
+
+class RecipeCategoryAssignmentTests(TestCase):
+    def test_category_page_includes_recipe_from_additional_category(self):
+        recipe = Recipe.objects.create(
+            title="Irish Stew",
+            category=Recipe.Category.EVERYDAY_IRISH_COOKING,
+            ingredients="2 potatoes\n1 onion",
+            method="1. Chop everything\n2. Cook slowly",
+        )
+        recipe.additional_category_links.create(category=Recipe.Category.IRISH_CULINARY_HERITAGE)
+
+        response = self.client.get(
+            reverse(
+                "recipes:category_detail",
+                kwargs={"category_slug": "irish-culinary-heritage"},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Irish Stew")
 
 
 class SecuritySettingsModuleTests(SimpleTestCase):
@@ -502,8 +569,8 @@ class SecuritySettingsModuleTests(SimpleTestCase):
 
         self.assertTrue(project_settings.SECURE_SSL_REDIRECT)
         self.assertEqual(project_settings.SECURE_HSTS_SECONDS, 31536000)
-        self.assertTrue(project_settings.SECURE_HSTS_INCLUDE_SUBDOMAINS)
-        self.assertTrue(project_settings.SECURE_HSTS_PRELOAD)
+        self.assertFalse(project_settings.SECURE_HSTS_INCLUDE_SUBDOMAINS)
+        self.assertFalse(project_settings.SECURE_HSTS_PRELOAD)
         self.assertTrue(project_settings.SESSION_COOKIE_SECURE)
         self.assertTrue(project_settings.CSRF_COOKIE_SECURE)
         self.assertFalse(project_settings.SERVE_STATIC_LOCALLY)

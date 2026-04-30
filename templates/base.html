@@ -14,8 +14,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Libre+Bodoni:wght@400&family=Inter:wght@400;500;600&family=Dancing+Script:wght@600;700&display=swap"
           rel="stylesheet">
 
-    <link href="{% static 'css/base.css' %}?v=20260429w" rel="stylesheet">
-    <link href="{% static 'css/header.css' %}?v=20260429j" rel="stylesheet">
+    <link href="{% static 'css/base.css' %}?v=20260430x" rel="stylesheet">
+    <link href="{% static 'css/header.css' %}?v=20260430l" rel="stylesheet">
 
     {% block extra_head %}{% endblock %}
 </head>
@@ -131,17 +131,25 @@
                         <p class="ce-author-panel__note">Ready To Cook Today?</p>
                         <nav aria-label="Author actions" class="ce-author-panel__actions">
                             {% for action in header_author_actions %}
-                            {% if action.url %}
-                            <a class="ce-author-panel__action{% if action.is_danger %} ce-author-panel__action--danger{% endif %}"
-                               href="{{ action.url }}">
-                                {{ action.label }}
-                            </a>
-                            {% else %}
-                            <span aria-disabled="true"
-                                  class="ce-author-panel__action ce-author-panel__action--disabled{% if action.is_danger %} ce-author-panel__action--danger{% endif %}">
-                                {{ action.label }}
-                            </span>
-                            {% endif %}
+                            <div class="ce-author-panel__action-row{% if action.secondary_url %} ce-author-panel__action-row--split{% endif %}">
+                                {% if action.url %}
+                                <a class="ce-author-panel__action{% if action.is_danger %} ce-author-panel__action--danger{% endif %}"
+                                   href="{{ action.url }}">
+                                    {{ action.label }}
+                                </a>
+                                {% else %}
+                                <span aria-disabled="true"
+                                      class="ce-author-panel__action ce-author-panel__action--disabled{% if action.is_danger %} ce-author-panel__action--danger{% endif %}">
+                                    {{ action.label }}
+                                </span>
+                                {% endif %}
+
+                                {% if action.secondary_url %}
+                                <a class="ce-author-panel__action-secondary" href="{{ action.secondary_url }}">
+                                    {{ action.secondary_label }}
+                                </a>
+                                {% endif %}
+                            </div>
                             {% endfor %}
                         </nav>
                         <form action="{% url 'logout' %}" class="ce-nav__logout" method="post">
@@ -246,7 +254,7 @@
     </div>
 </footer>
 
-<script src="{% static 'js/main.js' %}?v=20260429c"></script>
+<script src="{% static 'js/main.js' %}?v=20260430l"></script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>
