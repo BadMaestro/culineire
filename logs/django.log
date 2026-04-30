@@ -3848,3 +3848,5 @@ WARNING | 2026-04-30 15:18:32 | log             | Not Found: /favicon.ico
 WARNING | 2026-04-30 15:18:32 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
 INFO | 2026-04-30 15:21:59 | autoreload      | /media/sf_CulinEire/config/settings.py changed, reloading.
 INFO | 2026-04-30 15:22:00 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-04-30 15:22:56 | autoreload      | /media/sf_CulinEire/recipes/migrations/0012_recipeadditionalcategory.py changed, reloading.
+INFO | 2026-04-30 15:22:57 | autoreload      | Watching for file changes with StatReloader
