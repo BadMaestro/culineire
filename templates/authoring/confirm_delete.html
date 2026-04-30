@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ delete_title|default:"Delete Item" }} | CulinEire{% endblock %}
+{% block meta_description %}Confirmation page for deleting content on CulinEire.{% endblock %}
+
+{% block extra_head %}
+<link href="{% static 'css/authoring.css' %}?v=20260430a" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="page-section authoring-page">
+    <div class="container authoring-shell">
+        <header class="authoring-header">
+            <div class="authoring-header__copy">
+                <p class="eyebrow">Author Studio</p>
+                <h1>{{ delete_title|default:"Delete Item" }}</h1>
+                <p class="authoring-intro">
+                    {{ delete_intro|default:"Please confirm this destructive action." }}
+                </p>
+            </div>
+            <p aria-label="Current author" class="authoring-author">
+                <span class="authoring-author__label">By:</span>
+                {% if author.avatar %}
+                <img alt="" src="{{ author.avatar.url }}">
+                {% else %}
+                <img alt="" src="{% static 'images/greenbear.png' %}">
+                {% endif %}
+                <strong>{{ author.name }}</strong>
+            </p>
+        </header>
+
+        <form class="authoring-form" method="post">
+            {% csrf_token %}
+
+            {% if delete_warnings %}
+            <div class="authoring-errors" role="alert">
+                {% for warning in delete_warnings %}
+                {% if warning %}<p>{{ warning }}</p>{% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="authoring-actions">
+                <a class="authoring-link" href="{{ cancel_url|default:'/' }}">Cancel</a>
+                <button class="authoring-submit authoring-submit--danger" type="submit">
+                    {{ delete_label|default:"Delete" }}
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

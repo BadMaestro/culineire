@@ -1,0 +1,31 @@
+[
+  {
+    "model": "recipes.recipe",
+    "pk": null,
+    "fields": {
+      "title": "Barm Brack",
+      "slug": "barm-brack",
+      "media_folder": "",
+      "author": null,
+      "short_description": "Ireland's lightly spiced, fruit-studded yeast loaf — sweet enough for tea but firm enough to slice and butter. Traditionally baked at Halloween with charms hidden in the dough, each promising a year of love, wealth, marriage or wandering for whoever found them.",
+      "hero_image": null,
+      "prep_time_minutes": 90,
+      "cook_time_minutes": 65,
+      "servings": 16,
+      "calories": 240,
+      "difficulty": "medium",
+      "category": "bread_and_baking",
+      "ingredients": "20 g (¾ oz / 1¼ tbsp) fresh yeast — or 7 g (¼ oz / 2¼ tsp) instant dried yeast\n150 g (5 oz / ⅔ cup) caster (superfine) sugar\n300 ml (½ pint / 1¼ cups) milk, warmed to lukewarm (~38 °C / 100 °F)\n450 g (1 lb / 4 cups) plain (all-purpose) strong white flour\n1 tbsp caraway seeds\n1 tsp ground allspice\n¼ tsp salt\n50 g (2 oz / ¼ cup) butter, softened, plus more for greasing\n2 large eggs, lightly beaten\n225 g (8 oz / 1⅓ cups) sultanas (golden raisins)\n175 g (6 oz / 1 cup) currants\n50 g (2 oz / ⅓ cup) chopped mixed (candied) peel\nboiling water, for the sugar glaze",
+      "method": "1. Crumble the fresh yeast (or sprinkle the instant yeast) into the warm milk, add 1 teaspoon of the sugar, and stir to dissolve. Set in a warm draught-free spot for about 20 minutes — by the end the surface should be foamy and lively.\n\n2. While the yeast wakes up, sift the flour, caraway seeds, allspice and salt into a large mixing bowl. Rub in the softened butter with cold fingertips until the mixture resembles fine breadcrumbs. Make a deep well in the centre.\n\n3. Pour in the foaming yeast mixture and the beaten eggs. Stir with a wooden spoon to bring the dough together, then turn out onto a lightly floured surface and knead for 6 to 8 minutes, working in the sultanas, currants and candied peel until they are evenly distributed and the dough is soft, springy and barely tacky.\n\n4. Place the dough in a buttered bowl, turn it once to coat, cover with a damp tea towel, and leave in a warm place for about 1 hour, until doubled in size.\n\n5. Knock the dough back gently with your knuckles to deflate it. Divide in half and shape into two oval loaves to fit two greased 450 g (1 lb) loaf tins. Cover and rest for 5 minutes.\n\n6. Heat the oven to 200 °C / 400 °F / gas mark 6. Bake the loaves on the middle shelf for 1 hour, until risen, deeply golden, and hollow when tapped on the base.\n\n7. While the loaves bake, dissolve the remaining sugar in 2 tablespoons of boiling water to make a thin syrup. Brush the warm loaves generously with the syrup, then return to the oven for 3 more minutes — this gives the classic glossy, sticky top.\n\n8. Cool on a wire rack. Slice when fully cold and serve with cold salted butter and a strong cup of Irish breakfast tea.",
+      "tips": "• Soak the dried fruit overnight in cold tea (or whiskey) for the deepest flavour. Drain and pat dry before kneading in.\n• If you cannot find fresh yeast, instant dried yeast works perfectly — skip the 20-minute foaming step and add it directly to the dry flour instead.\n• At Halloween, traditional barm brack contains hidden charms wrapped in baking paper: a ring (marriage), a coin (wealth), a thimble (spinsterhood), a piece of cloth (poverty), a stick (a quarrelling partner). Insert before the second proof. Warn your guests.\n• Two loaves freeze brilliantly. Wrap tightly in foil while still slightly warm, then in a freezer bag.",
+      "irish_context": "Barm brack — bairín breac in Irish, literally \"speckled cake\" — was Ireland's celebration loaf long before it became a Halloween fixture. The name \"barm\" refers to the frothy yeast skimmed from the top of fermenting ale, which served as the leavening before commercial yeast was widely available. Traditionally baked for Samhain (Halloween) and Hallowmas, the bread was studded not just with dried fruit but also with hidden charms wrapped in paper, each predicting the finder's fortune for the year ahead — a custom that survives in some Irish bakeries to this day. Lighter and less rich than its English Christmas cousins, barm brack is a bread first and a cake second, meant to be sliced thick, slathered with butter, and eaten with strong tea by a turf fire.",
+      "author_commentary": "",
+      "allergens": "Contains gluten, eggs, and dairy (butter, milk). May contain sulphites in the dried fruit. The candied peel may include traces of citrus.",
+      "source_type": "cookbook",
+      "source_title": "Traditional Irish Cooking: The Fare of Old Ireland and its History",
+      "source_author": "Andy Gravette and Debbie Cook",
+      "source_url": "",
+      "source_note": "Garnet Publishing, 2008. ISBN 978-1-85964-155-2 (page 19). Adapted in CulinEire's voice."
+    }
+  }
+]
