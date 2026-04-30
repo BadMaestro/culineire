@@ -39,9 +39,14 @@
                 <div class="detail-page__header-inner">
                     <div class="detail-page__topbar">
                         <div aria-label="Recipe category and difficulty" class="detail-page__taxonomy">
-                            <span class="detail-page__taxonomy-chip">
-                                {{ recipe.get_category_display|default:"Recipe" }}
-                            </span>
+                            {% for category_item in recipe.get_all_category_items %}
+                            <a class="detail-page__taxonomy-chip" href="{{ category_item.url }}">
+                                {{ category_item.label }}
+                            </a>
+                            {% if not forloop.last %}
+                            <span class="detail-page__taxonomy-divider">•</span>
+                            {% endif %}
+                            {% endfor %}
 
                             {% if recipe.get_difficulty_display %}
                             <span class="detail-page__taxonomy-divider">•</span>
@@ -410,16 +415,18 @@
                     </section>
                     {% endif %}
 
-                    {% if recipe.category or recipe.source_url %}
+                    {% if recipe.get_all_category_items or recipe.source_url %}
                     <section class="detail-page__card detail-page__card--source">
                         <h2>Credits &amp; Source</h2>
                         <div class="detail-page__source-list">
-                            {% if recipe.category %}
+                            {% if recipe.get_all_category_items %}
                             <div class="detail-page__source-item">
-                                <span class="detail-page__source-label">Category</span>
-                                <a class="detail-page__source-link" href="{{ recipe.get_category_url }}">
-                                    {{ recipe.get_category_display }}
-                                </a>
+                                <span class="detail-page__source-label">Categories</span>
+                                {% for category_item in recipe.get_all_category_items %}
+                                <a class="detail-page__source-link" href="{{ category_item.url }}">
+                                    {{ category_item.label }}
+                                </a>{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
                             </div>
                             {% endif %}
                             {% if recipe.source_url %}

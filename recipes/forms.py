@@ -53,6 +53,14 @@ class SignUpForm(UserCreationForm):
 
 
 class RecipeAuthoringForm(forms.ModelForm):
+    additional_categories = forms.MultipleChoiceField(
+        label="Additional Categories",
+        choices=Recipe.Category.choices,
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "authoring-checkbox-list"}),
+        help_text="Choose any extra categories this recipe should also appear in.",
+    )
+
     class Meta:
         model = Recipe
         fields = (
@@ -60,6 +68,7 @@ class RecipeAuthoringForm(forms.ModelForm):
             "short_description",
             "hero_image",
             "category",
+            "additional_categories",
             "difficulty",
             "prep_time_minutes",
             "cook_time_minutes",
@@ -110,6 +119,8 @@ class RecipeAuthoringForm(forms.ModelForm):
         for field in self.fields.values():
             field.widget.attrs.setdefault("class", "authoring-control")
 
+        self.fields["additional_categories"].initial = self.instance.get_additional_category_values()
+
         for field_name in ("prep_time_minutes", "cook_time_minutes", "servings", "calories"):
             self.fields[field_name].widget.attrs.setdefault("min", "0")
 
@@ -127,6 +138,34 @@ class RecipeAuthoringForm(forms.ModelForm):
             "Write each step on a new line.",
         )
         self.fields["hero_image"].widget.attrs.setdefault("accept", ".jpg,.jpeg,.png,.webp")
+
+    def clean_additional_categories(self):
+        selected = []
+        primary_category = self.cleaned_data.get("category")
+
+        for value in self.cleaned_data.get("additional_categories", []):
+            if value == primary_category or value in selected:
+                continue
+            selected.append(value)
+
+        return selected
+
+    def save_additional_categories(self, recipe):
+        selected = self.cleaned_data.get("additional_categories", [])
+        recipe.additional_category_links.exclude(category__in=selected).delete()
+
+        existing = set(recipe.additional_category_links.values_list("category", flat=True))
+        for category_value in selected:
+            if category_value not in existing:
+                recipe.additional_category_links.create(category=category_value)
+
+    def save(self, commit=True):
+        instance = super().save(commit=commit)
+
+        if commit:
+            self.save_additional_categories(instance)
+
+        return instance
 
 
 class RecipeAuthorProfileForm(forms.ModelForm):

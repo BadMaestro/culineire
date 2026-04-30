@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Create Recipe | CulinEire{% endblock %}
-{% block meta_description %}Create a new CulinEire recipe from the author studio.{% endblock %}
+{% block title %}{% if form_mode == "edit" %}Edit Recipe{% else %}Create Recipe{% endif %} | CulinEire{% endblock %}
+{% block meta_description %}{% if form_mode == "edit" %}Edit your CulinEire recipe from the author studio.{% else %}Create a new CulinEire recipe from the author studio.{% endif %}{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/authoring.css' %}?v=20260429b" rel="stylesheet">
+<link href="{% static 'css/authoring.css' %}?v=20260429c" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -14,9 +14,9 @@
         <header class="authoring-header">
             <div class="authoring-header__copy">
                 <p class="eyebrow">Author Studio</p>
-                <h1>Create Recipe</h1>
+                <h1>{{ form_heading|default:"Create Recipe" }}</h1>
                 <p class="authoring-intro">
-                    Build a polished recipe page for the CulinEire collection, with a clean card image, structured timing and your author credit.
+                    {{ form_intro|default:"Build a polished recipe page for the CulinEire collection, with a clean card image, structured timing and your author credit." }}
                 </p>
             </div>
             <p class="authoring-author" aria-label="Current author">
@@ -45,8 +45,8 @@
                 <legend>Recipe Details</legend>
                 <div class="authoring-grid authoring-grid--two">
                     {% for field in form %}
-                    {% if field.name == "title" or field.name == "short_description" or field.name == "hero_image" or field.name == "category" or field.name == "difficulty" %}
-                    <div class="authoring-field{% if field.field.widget.input_type == 'file' or field.name == 'short_description' %} authoring-field--wide{% endif %}">
+                    {% if field.name == "title" or field.name == "short_description" or field.name == "hero_image" or field.name == "category" or field.name == "additional_categories" or field.name == "difficulty" %}
+                    <div class="authoring-field{% if field.field.widget.input_type == 'file' or field.name == 'short_description' or field.name == 'additional_categories' %} authoring-field--wide{% endif %}">
                         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                         {{ field }}
                         {% if field.help_text %}<p class="authoring-help">{{ field.help_text }}</p>{% endif %}
@@ -107,7 +107,7 @@
 
             <div class="authoring-actions">
                 <a class="authoring-link" href="{% url 'recipes:recipe_list' %}">Cancel</a>
-                <button class="authoring-submit" type="submit">Save Recipe</button>
+                <button class="authoring-submit" type="submit">{{ submit_label|default:"Save Recipe" }}</button>
             </div>
         </form>
     </div>

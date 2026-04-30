@@ -51,6 +51,12 @@
                     </div>
 
                     <div class="recipe-card__footer recipe-card__footer--article">
+                        {% if can_manage_selected_author %}
+                        <div class="recipe-card__management">
+                            <a class="recipe-card__cta btn" href="{% url 'articles:article_edit' article.slug %}">Edit Article</a>
+                            <a class="recipe-card__cta btn btn--danger" href="{% url 'articles:article_delete' article.slug %}">Delete Article</a>
+                        </div>
+                        {% endif %}
                         {% if article.author %}
                         <p class="recipe-card-author">
                             <span class="recipe-card-author__label">By:</span>

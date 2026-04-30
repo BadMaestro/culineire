@@ -19,6 +19,13 @@
         <p class="page-subtitle">{{ author.bio }}</p>
         {% endif %}
 
+        {% if can_manage_author_profile %}
+        <div class="author-profile-actions">
+            <a class="btn" href="{% url 'recipes:author_edit' %}">Edit Profile</a>
+            <a class="btn btn--danger" href="{% url 'recipes:author_delete' %}">Delete Profile</a>
+        </div>
+        {% endif %}
+
         {% if recipes %}
         <div class="recipe-grid">
             {% for recipe in recipes %}
@@ -66,8 +73,14 @@
                         {% endif %}
                     </div>
 
-                    {% if recipe.author %}
                     <div class="recipe-card__footer">
+                        {% if can_manage_author_profile %}
+                        <div class="recipe-card__management">
+                            <a class="recipe-card__cta btn" href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit Recipe</a>
+                            <a class="recipe-card__cta btn btn--danger" href="{% url 'recipes:recipe_delete' recipe.slug %}">Delete Recipe</a>
+                        </div>
+                        {% endif %}
+                        {% if recipe.author %}
                         <p class="recipe-card-author">
                             <span class="recipe-card-author__label">By:</span>
                             <a
@@ -85,8 +98,8 @@
                                 <span class="recipe-card-author__name">{{ recipe.author.name }}</span>
                             </a>
                         </p>
+                        {% endif %}
                     </div>
-                    {% endif %}
                 </div>
             </article>
             {% endfor %}
@@ -133,6 +146,12 @@
                     </div>
 
                     <div class="recipe-card__footer recipe-card__footer--article">
+                        {% if can_manage_author_profile %}
+                        <div class="recipe-card__management">
+                            <a class="recipe-card__cta btn" href="{% url 'articles:article_edit' article.slug %}">Edit Article</a>
+                            <a class="recipe-card__cta btn btn--danger" href="{% url 'articles:article_delete' article.slug %}">Delete Article</a>
+                        </div>
+                        {% endif %}
                         {% if article.author %}
                         <p class="recipe-card-author">
                             <span class="recipe-card-author__label">By:</span>
@@ -173,6 +192,13 @@
 
         {% if author.bio %}
         <p class="page-subtitle">{{ author.bio }}</p>
+        {% endif %}
+
+        {% if can_manage_author_profile %}
+        <div class="author-profile-actions">
+            <a class="btn" href="{% url 'recipes:author_edit' %}">Edit Profile</a>
+            <a class="btn btn--danger" href="{% url 'recipes:author_delete' %}">Delete Profile</a>
+        </div>
         {% endif %}
 
         {% if recipes %}
@@ -229,8 +255,14 @@
                         {% endif %}
                     </div>
 
-                    {% if recipe.author %}
                     <div class="recipe-card__footer">
+                        {% if can_manage_author_profile %}
+                        <div class="recipe-card__management">
+                            <a class="recipe-card__cta btn" href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit Recipe</a>
+                            <a class="recipe-card__cta btn btn--danger" href="{% url 'recipes:recipe_delete' recipe.slug %}">Delete Recipe</a>
+                        </div>
+                        {% endif %}
+                        {% if recipe.author %}
                         <p class="recipe-card-author">
                             <span class="recipe-card-author__label">By:</span>
                             <a
@@ -248,8 +280,8 @@
                                 <span class="recipe-card-author__name">{{ recipe.author.name }}</span>
                             </a>
                         </p>
+                        {% endif %}
                     </div>
-                    {% endif %}
                 </div>
             </article>
             {% endfor %}
@@ -296,6 +328,12 @@
                     </div>
 
                     <div class="recipe-card__footer recipe-card__footer--article">
+                        {% if can_manage_author_profile %}
+                        <div class="recipe-card__management">
+                            <a class="recipe-card__cta btn" href="{% url 'articles:article_edit' article.slug %}">Edit Article</a>
+                            <a class="recipe-card__cta btn btn--danger" href="{% url 'articles:article_delete' article.slug %}">Delete Article</a>
+                        </div>
+                        {% endif %}
                         {% if article.author %}
                         <p class="recipe-card-author">
                             <span class="recipe-card-author__label">By:</span>

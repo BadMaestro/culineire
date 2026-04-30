@@ -20,6 +20,13 @@ class RecipeAdminForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple(attrs={"class": "allergen-checklist"}),
         help_text="Tick any of the 14 allergens that are present in this recipe.",
     )
+    additional_categories = forms.MultipleChoiceField(
+        label="Additional categories",
+        choices=Recipe.Category.choices,
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "authoring-checkbox-list"}),
+        help_text="Optional extra categories this recipe should also appear in.",
+    )
 
     class Meta:
         model = Recipe
@@ -39,6 +46,27 @@ class RecipeAdminForm(forms.ModelForm):
         self.fields["selected_allergens"].initial = parse_selected_allergen_keys(
             getattr(self.instance, "allergens", "")
         )
+        self.fields["additional_categories"].initial = self.instance.get_additional_category_values()
+
+    def clean_additional_categories(self):
+        selected = []
+        primary_category = self.cleaned_data.get("category")
+
+        for value in self.cleaned_data.get("additional_categories", []):
+            if value == primary_category or value in selected:
+                continue
+            selected.append(value)
+
+        return selected
+
+    def save_additional_categories(self, instance):
+        selected = self.cleaned_data.get("additional_categories", [])
+        instance.additional_category_links.exclude(category__in=selected).delete()
+
+        existing = set(instance.additional_category_links.values_list("category", flat=True))
+        for category_value in selected:
+            if category_value not in existing:
+                instance.additional_category_links.create(category=category_value)
 
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -46,6 +74,7 @@ class RecipeAdminForm(forms.ModelForm):
         if commit:
             instance.save()
             self.save_m2m()
+            self.save_additional_categories(instance)
         return instance
 
 
@@ -138,6 +167,7 @@ class RecipeAdmin(admin.ModelAdmin):
                     "calories",
                     "difficulty",
                     "category",
+                    "additional_categories",
                 )
             },
         ),
@@ -177,6 +207,11 @@ class RecipeAdmin(admin.ModelAdmin):
         return "No preview image uploaded yet."
 
     hero_preview.short_description = "Current preview"
+
+    def save_related(self, request, form, formsets, change):
+        super().save_related(request, form, formsets, change)
+        if hasattr(form, "save_additional_categories"):
+            form.save_additional_categories(form.instance)
 
 
 @admin.register(RecipeImage)

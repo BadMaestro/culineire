@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Create Article | CulinEire{% endblock %}
-{% block meta_description %}Create a new CulinEire article from the author studio.{% endblock %}
+{% block title %}{% if form_mode == "edit" %}Edit Article{% else %}Create Article{% endif %} | CulinEire{% endblock %}
+{% block meta_description %}{% if form_mode == "edit" %}Edit your CulinEire article from the author studio.{% else %}Create a new CulinEire article from the author studio.{% endif %}{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/authoring.css' %}?v=20260429b" rel="stylesheet">
+<link href="{% static 'css/authoring.css' %}?v=20260430a" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -14,9 +14,9 @@
         <header class="authoring-header">
             <div class="authoring-header__copy">
                 <p class="eyebrow">Author Studio</p>
-                <h1>Create Article</h1>
+                <h1>{{ form_heading|default:"Create Article" }}</h1>
                 <p class="authoring-intro">
-                    Shape a food note, kitchen technique or story for CulinEire, linked back to your recipes where it belongs.
+                    {{ form_intro|default:"Shape a food note, kitchen technique or story for CulinEire, linked back to your recipes where it belongs." }}
                 </p>
             </div>
             <p class="authoring-author" aria-label="Current author">
@@ -75,7 +75,7 @@
 
             <div class="authoring-actions">
                 <a class="authoring-link" href="{% url 'articles:article_list' %}">Cancel</a>
-                <button class="authoring-submit" type="submit">Save Article</button>
+                <button class="authoring-submit" type="submit">{{ submit_label|default:"Save Article" }}</button>
             </div>
         </form>
     </div>

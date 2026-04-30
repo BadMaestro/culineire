@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from urllib.parse import urlencode
+
 from django.urls import NoReverseMatch, reverse
 
 from .authoring import get_author_for_user
@@ -16,6 +18,13 @@ def _find_author_for_user(user):
     return get_author_for_user(user)
 
 
+def _with_query(url: str, **params) -> str:
+    if not url:
+        return ""
+    query = urlencode({key: value for key, value in params.items() if value})
+    return f"{url}?{query}" if query else url
+
+
 def header_author(request):
     user = getattr(request, "user", None)
 
@@ -30,31 +39,27 @@ def header_author(request):
     )
 
     profile_url = author.get_absolute_url() if author else ""
-    can_manage_content = user.is_staff
 
     actions = [
         {
-            "label": "Create Recipe",
-            "url": _reverse_or_empty("recipes:recipe_create") if author else "",
+            "label": "My Recipes",
+            "url": _with_query(_reverse_or_empty("recipes:recipe_list"), author=author.slug)
+            if author
+            else "",
+            "secondary_label": "+ New",
+            "secondary_url": _reverse_or_empty("recipes:recipe_create") if author else "",
         },
         {
-            "label": "Create Article",
-            "url": _reverse_or_empty("articles:article_create") if author else "",
+            "label": "My Articles",
+            "url": _with_query(_reverse_or_empty("articles:article_list"), author=author.slug)
+            if author
+            else "",
+            "secondary_label": "+ New",
+            "secondary_url": _reverse_or_empty("articles:article_create") if author else "",
         },
         {
             "label": "Profile",
             "url": profile_url,
-        },
-        {
-            "label": "Edit Profile",
-            "url": _reverse_or_empty("recipes:author_edit") if author else "",
-        },
-        {
-            "label": "Delete Profile",
-            "url": _reverse_or_empty("admin:recipes_recipeauthor_delete", author.pk)
-            if can_manage_content and author
-            else "",
-            "is_danger": True,
         },
     ]
 

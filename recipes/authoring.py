@@ -11,6 +11,14 @@ def get_author_for_user(user):
     return RecipeAuthor.objects.filter(user=user).first()
 
 
+def user_can_manage_author(user, author) -> bool:
+    if not user or not user.is_authenticated or not author:
+        return False
+
+    linked_author = get_author_for_user(user)
+    return bool(linked_author and linked_author.pk == author.pk)
+
+
 class AuthorRequiredMixin(LoginRequiredMixin):
     author_required_message = (
         "Author Profile Required. Please Connect This Account To An Author Profile First."
