@@ -365,6 +365,8 @@ def recipe_list(request):
         )
 
     recent_recipes = list(recipes[:6]) if selected_author else None
+    default_recent_recipes = list(recipes[:6]) if not selected_author else None
+    all_recipes_grid = list(recipes[:50]) if not selected_author else None
 
     all_articles = None
     recent_articles = None
@@ -398,12 +400,12 @@ def recipe_list(request):
             )
         ),
         "page_heading": (
-            f"{selected_author.name}'s recipes"
+            f"{selected_author.name}'s Recipe Collection"
             if selected_author
             else "Explore The Recipe Collection"
         ),
         "page_subtitle": (
-            f"A curated view of recipes created by {selected_author.name}."
+            f"The complete recipe collection from {selected_author.name} — Irish classics, seasonal dishes and home-kitchen favourites from the CulinEire Kitchen."
             if selected_author
             else (
                 "Irish classics, treasured vintage recipes, and modern home-kitchen twists, "
@@ -412,6 +414,8 @@ def recipe_list(request):
             )
         ),
         "selected_category_label": "",
+        "default_recent_recipes": default_recent_recipes,
+        "all_recipes_grid": all_recipes_grid,
         "selected_author": selected_author,
         "can_manage_selected_author": user_can_manage_author(request.user, selected_author),
     }
