@@ -469,6 +469,7 @@
 
   .hero-copy .hero__actions {
     margin-block-start: auto;
+    padding-block-start: 1.4rem;
   }
 
   .hero-title {
@@ -509,7 +510,7 @@
     background: rgb(247 242 234 / 0.03);
     border: 1px solid rgb(255 255 255 / 0.16);
     color: #fff8ee;
-    margin-inline-end: 0.4rem;
+    margin-inline: 0;
     margin-block-end: 0.55rem;
   }
 
@@ -874,10 +875,6 @@
 
     .hero-copy {
       max-width: 720px;
-    }
-
-    .hero-title {
-      max-width: 15ch;
     }
 
     .hero-subtitle {
