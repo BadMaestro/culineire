@@ -30,7 +30,18 @@ class ArticleListView(ListView):
         selected_author = None
         if author_slug:
             selected_author = get_object_or_404(RecipeAuthor, slug=author_slug)
+
+        recent_articles = None
+        all_articles = None
+        if selected_author:
+            all_articles = Article.objects.select_related("author").filter(
+                author=selected_author
+            ).order_by("-published")
+            recent_articles = list(all_articles[:6])
+
         context["selected_author"] = selected_author
+        context["recent_articles"] = recent_articles
+        context["all_articles"] = all_articles
         context["can_manage_selected_author"] = user_can_manage_author(
             self.request.user, selected_author
         )

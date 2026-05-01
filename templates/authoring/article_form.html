@@ -20,7 +20,7 @@
             <h1 class="hero-title">{% if form_mode == "edit" %}Edit Article{% else %}Create Article{% endif %}</h1>
             <p class="hero-subtitle">Author Studio — shape a food note, technique or story for the CulinEire kitchen.</p>
             <div class="hero__actions">
-                <a class="btn-primary" href="{% url 'recipes:recipe_list' %}">Explore Recipes</a>
+                <a class="btn-primary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
                 <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
             </div>
         </div>
