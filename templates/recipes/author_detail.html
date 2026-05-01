@@ -13,12 +13,19 @@
     <div class="container hero__inner">
         <div class="hero-copy">
             <span class="pill">Author Profile</span>
+            <div class="hero-author-avatar-wrap">
+                {% if author.avatar %}
+                <img alt="{{ author.name }}" class="hero-author-avatar" src="{{ author.avatar.url }}">
+                {% else %}
+                <img alt="{{ author.name }}" class="hero-author-avatar" src="{% static 'images/greenbear.png' %}">
+                {% endif %}
+            </div>
             <h1 class="hero-title {% if is_god_author %}author-name--greenbear{% endif %}">{{ author.name }}</h1>
             {% if author.bio %}
             <p class="hero-subtitle">{{ author.bio }}</p>
             {% endif %}
             <div class="hero__actions">
-                <a class="btn-primary" href="{% url 'recipes:recipe_list' %}">Explore Recipes</a>
+                <a class="btn-primary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
                 <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
             </div>
         </div>
@@ -27,14 +34,6 @@
 
 <section class="page-section author-profile-page">
     <div class="container">
-
-        <div class="author-profile-avatar">
-            {% if author.avatar %}
-            <img alt="{{ author.name }}" class="author-profile-header__avatar" src="{{ author.avatar.url }}">
-            {% else %}
-            <img alt="{{ author.name }}" class="author-profile-header__avatar" src="{% static 'images/greenbear.png' %}">
-            {% endif %}
-        </div>
 
         <div class="author-profile-links">
             <a class="author-profile-links__card" href="{% url 'recipes:recipe_list' %}?author={{ author.slug }}">

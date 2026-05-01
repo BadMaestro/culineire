@@ -6514,3 +6514,1031 @@ INFO | 2026-05-01 10:22:47 | basehttp        | "GET /static/css/base.css?v=20260
 INFO | 2026-05-01 10:25:06 | basehttp        | "GET / HTTP/1.1" 200 35959
 INFO | 2026-05-01 10:25:06 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 304 0
 INFO | 2026-05-01 10:25:07 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-01 14:45:14 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-01 14:45:20 | basehttp        | "GET / HTTP/1.1" 200 35959
+INFO | 2026-05-01 14:45:21 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19849
+INFO | 2026-05-01 14:45:21 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-01 14:45:23 | basehttp        | "GET /recipes/ HTTP/1.1" 200 43319
+INFO | 2026-05-01 14:45:23 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 304 0
+INFO | 2026-05-01 14:45:23 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-01 14:45:27 | basehttp        | "GET /recipes/ HTTP/1.1" 200 43319
+INFO | 2026-05-01 14:45:27 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19849
+INFO | 2026-05-01 14:45:27 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-01 14:45:28 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-01 14:45:28 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-01 14:45:28 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 14:45:28 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 27772
+INFO | 2026-05-01 14:45:28 | basehttp        | "GET /static/images/hero-recipes.png HTTP/1.1" 200 2178565
+INFO | 2026-05-01 14:45:28 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-01 14:45:28 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-01 14:45:28 | basehttp        | "GET /static/images/categories/irish-culinary-heritage.png?v=20260429e HTTP/1.1" 200 2375821
+INFO | 2026-05-01 14:45:28 | basehttp        | "GET /static/images/categories/everyday-irish-cooking.png?v=20260429e HTTP/1.1" 200 2515999
+INFO | 2026-05-01 14:45:28 | basehttp        | "GET /static/images/categories/breakfast-and-brunch?v=20260429e HTTP/1.1" 200 2673952
+INFO | 2026-05-01 14:45:28 | basehttp        | "GET /static/images/categories/modern-irish-cooking.png?v=20260429e HTTP/1.1" 200 2190449
+INFO | 2026-05-01 14:45:28 | basehttp        | "GET /static/images/categories/dinner.png?v=20260429e HTTP/1.1" 200 2450260
+INFO | 2026-05-01 14:45:28 | basehttp        | "GET /static/images/categories/lunch.png?v=20260429e HTTP/1.1" 200 2473759
+INFO | 2026-05-01 14:45:28 | basehttp        | "GET /static/images/categories/grilling-and-barbecue.png?v=20260429e HTTP/1.1" 200 2497649
+INFO | 2026-05-01 14:45:28 | basehttp        | "GET /static/images/categories/soups-and-stews.png?v=20260429e HTTP/1.1" 200 2447019
+INFO | 2026-05-01 14:45:28 | basehttp        | "GET /static/images/categories/seasonal-and-festive?v=20260429e HTTP/1.1" 200 2475085
+INFO | 2026-05-01 14:45:28 | basehttp        | "GET /static/images/categories/salads.png?v=20260429e HTTP/1.1" 200 2657948
+INFO | 2026-05-01 14:45:29 | basehttp        | "GET /static/images/categories/healthy-eating.png?v=20260429e HTTP/1.1" 200 2362419
+INFO | 2026-05-01 14:45:29 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 200 2316746
+INFO | 2026-05-01 14:45:29 | basehttp        | "GET /static/images/categories/pasta-and-noodles.png?v=20260429e HTTP/1.1" 200 2410293
+INFO | 2026-05-01 14:45:29 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/cover.png HTTP/1.1" 200 697066
+INFO | 2026-05-01 14:45:29 | basehttp        | "GET /media/recipes/GreenBear/IRISH%20STEW/cover.png HTTP/1.1" 200 1547642
+INFO | 2026-05-01 14:45:29 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 14:45:29 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 200 2489208
+WARNING | 2026-05-01 14:45:29 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-01 14:45:29 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-01 14:45:30 | basehttp        | "GET / HTTP/1.1" 200 35959
+INFO | 2026-05-01 14:45:31 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-01 14:45:31 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19849
+INFO | 2026-05-01 14:45:31 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-01 14:45:31 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 14:45:31 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-01 14:45:31 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 200 2316746
+INFO | 2026-05-01 14:45:31 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-01 14:45:31 | basehttp        | "GET /static/images/hero.jpg HTTP/1.1" 200 2758257
+INFO | 2026-05-01 14:45:31 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 14:45:31 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 27772
+INFO | 2026-05-01 14:45:31 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-01 14:45:31 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 200 2489208
+INFO | 2026-05-01 14:45:31 | basehttp        | "GET /media/recipes/GreenBear/IRISH%20STEW/cover.png HTTP/1.1" 200 1547642
+INFO | 2026-05-01 14:45:31 | basehttp        | "GET /media/articles/How%20to%20Make%20Perfect%20Irish%20Potato%20Soup/cover.png HTTP/1.1" 200 533390
+INFO | 2026-05-01 14:45:31 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/cover.png HTTP/1.1" 200 697066
+WARNING | 2026-05-01 14:45:31 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-01 14:45:31 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-01 14:46:38 | basehttp        | "GET /articles/ HTTP/1.1" 200 17344
+WARNING | 2026-05-01 14:46:38 | log             | Not Found: /static/images/hero-articles.png
+WARNING | 2026-05-01 14:46:38 | basehttp        | "GET /static/images/hero-articles.png HTTP/1.1" 404 179
+INFO | 2026-05-01 14:46:38 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 304 0
+INFO | 2026-05-01 14:46:38 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-01 14:47:51 | basehttp        | "GET /recipes/ HTTP/1.1" 200 43319
+INFO | 2026-05-01 14:47:51 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-01 14:47:51 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-01 14:47:56 | basehttp        | "GET / HTTP/1.1" 200 35959
+INFO | 2026-05-01 14:47:59 | basehttp        | "GET /articles/ HTTP/1.1" 200 17344
+INFO | 2026-05-01 14:47:59 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 304 0
+WARNING | 2026-05-01 14:47:59 | log             | Not Found: /static/images/hero-articles.png
+WARNING | 2026-05-01 14:47:59 | basehttp        | "GET /static/images/hero-articles.png HTTP/1.1" 404 179
+INFO | 2026-05-01 14:49:06 | basehttp        | "GET /articles/ HTTP/1.1" 200 17344
+INFO | 2026-05-01 14:49:07 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 304 0
+INFO | 2026-05-01 14:49:07 | basehttp        | "GET /static/images/hero-articles.png HTTP/1.1" 200 1974740
+INFO | 2026-05-01 14:49:07 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-01 14:49:48 | basehttp        | "GET /recipes/ HTTP/1.1" 200 43319
+INFO | 2026-05-01 14:49:48 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 304 0
+INFO | 2026-05-01 14:49:50 | basehttp        | "GET /articles/ HTTP/1.1" 200 17359
+INFO | 2026-05-01 14:49:51 | basehttp        | "GET /static/images/hero-articles.png HTTP/1.1" 304 0
+INFO | 2026-05-01 14:49:53 | basehttp        | "GET /recipes/ HTTP/1.1" 200 43319
+INFO | 2026-05-01 14:49:55 | basehttp        | "GET /articles/ HTTP/1.1" 200 17359
+INFO | 2026-05-01 14:49:58 | basehttp        | "GET /recipes/ HTTP/1.1" 200 43319
+INFO | 2026-05-01 14:49:58 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 27921
+INFO | 2026-05-01 14:50:01 | basehttp        | "GET /articles/ HTTP/1.1" 200 17359
+INFO | 2026-05-01 14:50:01 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-01 14:50:07 | basehttp        | "GET /articles/ HTTP/1.1" 200 17359
+INFO | 2026-05-01 14:50:07 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-01 14:50:07 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-01 14:50:07 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-01 14:50:07 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 14:50:07 | basehttp        | "GET /media/articles/How%20to%20Make%20Perfect%20Irish%20Potato%20Soup/cover.png HTTP/1.1" 200 533390
+INFO | 2026-05-01 14:50:07 | basehttp        | "GET /static/images/hero-articles.png HTTP/1.1" 200 1974740
+INFO | 2026-05-01 14:50:07 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-01 14:50:07 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-01 14:50:07 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 27921
+INFO | 2026-05-01 14:50:07 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-01 14:50:07 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 200 1362255
+WARNING | 2026-05-01 14:50:07 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-01 14:50:07 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-01 14:50:52 | basehttp        | "GET /recipes/ HTTP/1.1" 200 43319
+INFO | 2026-05-01 14:50:52 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 304 0
+INFO | 2026-05-01 14:50:52 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-01 14:50:55 | basehttp        | "GET /articles/ HTTP/1.1" 200 17359
+INFO | 2026-05-01 14:50:55 | basehttp        | "GET /static/images/hero-articles.png HTTP/1.1" 304 0
+INFO | 2026-05-01 14:50:59 | basehttp        | "GET /articles/ HTTP/1.1" 200 17359
+INFO | 2026-05-01 14:50:59 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-01 14:50:59 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-01 14:50:59 | basehttp        | "GET /media/articles/How%20to%20Make%20Perfect%20Irish%20Potato%20Soup/cover.png HTTP/1.1" 200 533390
+INFO | 2026-05-01 14:50:59 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-01 14:51:00 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 14:51:00 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-01 14:51:00 | basehttp        | "GET /static/images/hero-articles.png HTTP/1.1" 200 1974740
+INFO | 2026-05-01 14:51:00 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-01 14:51:00 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 27909
+INFO | 2026-05-01 14:51:00 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-01 14:51:00 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 200 1362255
+WARNING | 2026-05-01 14:51:00 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-01 14:51:00 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-01 14:51:16 | basehttp        | "GET /articles/ HTTP/1.1" 200 17359
+INFO | 2026-05-01 14:51:17 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-01 14:51:17 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-01 14:51:17 | basehttp        | "GET /media/articles/How%20to%20Make%20Perfect%20Irish%20Potato%20Soup/cover.png HTTP/1.1" 200 533390
+INFO | 2026-05-01 14:51:17 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-01 14:51:17 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 27909
+INFO | 2026-05-01 14:51:17 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-01 14:51:17 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 14:51:17 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 14:51:17 | basehttp        | "GET /static/images/hero-articles.png HTTP/1.1" 200 1974740
+INFO | 2026-05-01 14:51:17 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-01 14:51:17 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-01 14:51:17 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-01 14:51:17 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-01 14:52:32 | basehttp        | "GET /articles/ HTTP/1.1" 200 17442
+INFO | 2026-05-01 14:52:32 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-01 14:52:32 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-01 14:52:32 | basehttp        | "GET /media/articles/How%20to%20Make%20Perfect%20Irish%20Potato%20Soup/cover.png HTTP/1.1" 200 533390
+INFO | 2026-05-01 14:52:32 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 14:52:32 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-01 14:52:32 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-01 14:52:32 | basehttp        | "GET /static/images/hero-articles.png HTTP/1.1" 200 1974740
+INFO | 2026-05-01 14:52:32 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 27909
+INFO | 2026-05-01 14:52:32 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 14:52:32 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-01 14:52:32 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-01 14:52:33 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-01 14:52:33 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-01 14:53:20 | basehttp        | "GET /articles/ HTTP/1.1" 200 17442
+INFO | 2026-05-01 14:53:20 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-01 14:53:20 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-01 14:53:21 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-01 14:53:21 | basehttp        | "GET /media/articles/How%20to%20Make%20Perfect%20Irish%20Potato%20Soup/cover.png HTTP/1.1" 200 533390
+INFO | 2026-05-01 14:53:21 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 14:53:21 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 27909
+INFO | 2026-05-01 14:53:21 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-01 14:53:21 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-01 14:53:21 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-01 14:53:21 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 14:53:21 | basehttp        | "GET /static/images/hero-articles.png HTTP/1.1" 200 1974740
+WARNING | 2026-05-01 14:53:21 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-01 14:53:21 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-01 14:53:28 | basehttp        | "GET /recipes/ HTTP/1.1" 200 43319
+INFO | 2026-05-01 14:56:09 | basehttp        | "GET /recipes/ HTTP/1.1" 200 43373
+INFO | 2026-05-01 14:56:09 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-01 14:56:09 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-01 14:56:09 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-01 14:56:09 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-01 14:56:09 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 14:56:09 | basehttp        | "GET /static/images/categories/everyday-irish-cooking.png?v=20260429e HTTP/1.1" 200 2515999
+INFO | 2026-05-01 14:56:09 | basehttp        | "GET /static/images/categories/irish-culinary-heritage.png?v=20260429e HTTP/1.1" 200 2375821
+INFO | 2026-05-01 14:56:09 | basehttp        | "GET /static/images/hero-recipes.png HTTP/1.1" 200 2178565
+INFO | 2026-05-01 14:56:09 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-01 14:56:09 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 27909
+INFO | 2026-05-01 14:56:09 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-01 14:56:09 | basehttp        | "GET /static/images/categories/dinner.png?v=20260429e HTTP/1.1" 200 2450260
+INFO | 2026-05-01 14:56:09 | basehttp        | "GET /static/images/categories/breakfast-and-brunch?v=20260429e HTTP/1.1" 200 2673952
+INFO | 2026-05-01 14:56:09 | basehttp        | "GET /static/images/categories/grilling-and-barbecue.png?v=20260429e HTTP/1.1" 200 2497649
+INFO | 2026-05-01 14:56:09 | basehttp        | "GET /static/images/categories/lunch.png?v=20260429e HTTP/1.1" 200 2473759
+INFO | 2026-05-01 14:56:09 | basehttp        | "GET /static/images/categories/soups-and-stews.png?v=20260429e HTTP/1.1" 200 2447019
+INFO | 2026-05-01 14:56:09 | basehttp        | "GET /static/images/categories/modern-irish-cooking.png?v=20260429e HTTP/1.1" 200 2190449
+INFO | 2026-05-01 14:56:10 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 200 2316746
+INFO | 2026-05-01 14:56:10 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/cover.png HTTP/1.1" 200 697066
+INFO | 2026-05-01 14:56:10 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 200 2489208
+INFO | 2026-05-01 14:56:10 | basehttp        | "GET /media/recipes/GreenBear/IRISH%20STEW/cover.png HTTP/1.1" 200 1547642
+INFO | 2026-05-01 14:56:10 | basehttp        | "GET /static/images/categories/seasonal-and-festive?v=20260429e HTTP/1.1" 200 2475085
+INFO | 2026-05-01 14:56:10 | basehttp        | "GET /static/images/categories/salads.png?v=20260429e HTTP/1.1" 200 2657948
+INFO | 2026-05-01 14:56:10 | basehttp        | "GET /static/images/categories/healthy-eating.png?v=20260429e HTTP/1.1" 200 2362419
+INFO | 2026-05-01 14:56:10 | basehttp        | "GET /static/images/categories/pasta-and-noodles.png?v=20260429e HTTP/1.1" 200 2410293
+INFO | 2026-05-01 14:56:10 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 200 1362255
+WARNING | 2026-05-01 14:56:10 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-01 14:56:10 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-01 14:57:49 | basehttp        | "GET /recipes/ HTTP/1.1" 200 43399
+INFO | 2026-05-01 14:57:49 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-01 14:57:49 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-01 14:57:49 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-01 14:57:49 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-01 14:57:49 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 27909
+INFO | 2026-05-01 14:57:49 | basehttp        | "GET /static/images/categories/irish-culinary-heritage.png?v=20260429e HTTP/1.1" 200 2375821
+INFO | 2026-05-01 14:57:49 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 14:57:49 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-01 14:57:49 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-01 14:57:49 | basehttp        | "GET /static/images/hero-recipes.png HTTP/1.1" 200 2178565
+INFO | 2026-05-01 14:57:49 | basehttp        | "GET /static/images/categories/everyday-irish-cooking.png?v=20260429e HTTP/1.1" 200 2515999
+INFO | 2026-05-01 14:57:49 | basehttp        | "GET /static/images/categories/lunch.png?v=20260429e HTTP/1.1" 200 2473759
+INFO | 2026-05-01 14:57:49 | basehttp        | "GET /static/images/categories/modern-irish-cooking.png?v=20260429e HTTP/1.1" 200 2190449
+INFO | 2026-05-01 14:57:49 | basehttp        | "GET /static/images/categories/breakfast-and-brunch?v=20260429e HTTP/1.1" 200 2673952
+INFO | 2026-05-01 14:57:49 | basehttp        | "GET /static/images/categories/dinner.png?v=20260429e HTTP/1.1" 200 2450260
+INFO | 2026-05-01 14:57:49 | basehttp        | "GET /media/recipes/GreenBear/IRISH%20STEW/cover.png HTTP/1.1" 200 1547642
+INFO | 2026-05-01 14:57:49 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/cover.png HTTP/1.1" 200 697066
+INFO | 2026-05-01 14:57:49 | basehttp        | "GET /static/images/categories/grilling-and-barbecue.png?v=20260429e HTTP/1.1" 200 2497649
+INFO | 2026-05-01 14:57:49 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 200 2316746
+INFO | 2026-05-01 14:57:49 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 200 2489208
+INFO | 2026-05-01 14:57:49 | basehttp        | "GET /static/images/categories/healthy-eating.png?v=20260429e HTTP/1.1" 200 2362419
+INFO | 2026-05-01 14:57:49 | basehttp        | "GET /static/images/categories/pasta-and-noodles.png?v=20260429e HTTP/1.1" 200 2410293
+INFO | 2026-05-01 14:57:49 | basehttp        | "GET /static/images/categories/salads.png?v=20260429e HTTP/1.1" 200 2657948
+INFO | 2026-05-01 14:57:49 | basehttp        | "GET /static/images/categories/soups-and-stews.png?v=20260429e HTTP/1.1" 200 2447019
+INFO | 2026-05-01 14:57:49 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 14:57:49 | basehttp        | "GET /static/images/categories/seasonal-and-festive?v=20260429e HTTP/1.1" 200 2475085
+WARNING | 2026-05-01 14:57:50 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-01 14:57:50 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-01 14:58:14 | basehttp        | "GET /recipes/ HTTP/1.1" 200 43395
+INFO | 2026-05-01 14:58:14 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-01 14:58:14 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-01 14:58:14 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-01 14:58:14 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 14:58:14 | basehttp        | "GET /static/images/hero-recipes.png HTTP/1.1" 200 2178565
+INFO | 2026-05-01 14:58:14 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-01 14:58:14 | basehttp        | "GET /static/images/categories/irish-culinary-heritage.png?v=20260429e HTTP/1.1" 200 2375821
+INFO | 2026-05-01 14:58:14 | basehttp        | "GET /static/images/categories/everyday-irish-cooking.png?v=20260429e HTTP/1.1" 200 2515999
+INFO | 2026-05-01 14:58:14 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 27909
+INFO | 2026-05-01 14:58:14 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-01 14:58:14 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-01 14:58:14 | basehttp        | "GET /static/images/categories/dinner.png?v=20260429e HTTP/1.1" 200 2450260
+INFO | 2026-05-01 14:58:14 | basehttp        | "GET /static/images/categories/modern-irish-cooking.png?v=20260429e HTTP/1.1" 200 2190449
+INFO | 2026-05-01 14:58:14 | basehttp        | "GET /static/images/categories/breakfast-and-brunch?v=20260429e HTTP/1.1" 200 2673952
+INFO | 2026-05-01 14:58:14 | basehttp        | "GET /static/images/categories/lunch.png?v=20260429e HTTP/1.1" 200 2473759
+INFO | 2026-05-01 14:58:14 | basehttp        | "GET /static/images/categories/grilling-and-barbecue.png?v=20260429e HTTP/1.1" 200 2497649
+INFO | 2026-05-01 14:58:14 | basehttp        | "GET /static/images/categories/soups-and-stews.png?v=20260429e HTTP/1.1" 200 2447019
+INFO | 2026-05-01 14:58:14 | basehttp        | "GET /media/recipes/GreenBear/IRISH%20STEW/cover.png HTTP/1.1" 200 1547642
+INFO | 2026-05-01 14:58:14 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/cover.png HTTP/1.1" 200 697066
+INFO | 2026-05-01 14:58:14 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 200 2489208
+INFO | 2026-05-01 14:58:14 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 200 2316746
+INFO | 2026-05-01 14:58:14 | basehttp        | "GET /static/images/categories/salads.png?v=20260429e HTTP/1.1" 200 2657948
+INFO | 2026-05-01 14:58:14 | basehttp        | "GET /static/images/categories/healthy-eating.png?v=20260429e HTTP/1.1" 200 2362419
+INFO | 2026-05-01 14:58:15 | basehttp        | "GET /static/images/categories/pasta-and-noodles.png?v=20260429e HTTP/1.1" 200 2410293
+INFO | 2026-05-01 14:58:15 | basehttp        | "GET /static/images/categories/seasonal-and-festive?v=20260429e HTTP/1.1" 200 2475085
+INFO | 2026-05-01 14:58:15 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 200 1362255
+WARNING | 2026-05-01 14:58:15 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-01 14:58:15 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-01 14:59:57 | basehttp        | "GET /recipes/ HTTP/1.1" 200 43467
+INFO | 2026-05-01 14:59:57 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-01 14:59:57 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-01 14:59:57 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 27909
+INFO | 2026-05-01 14:59:57 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-01 14:59:57 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-01 14:59:57 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 14:59:57 | basehttp        | "GET /static/images/hero-recipes.png HTTP/1.1" 200 2178565
+INFO | 2026-05-01 14:59:58 | basehttp        | "GET /static/images/categories/irish-culinary-heritage.png?v=20260429e HTTP/1.1" 200 2375821
+INFO | 2026-05-01 14:59:58 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-01 14:59:57 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-01 14:59:58 | basehttp        | "GET /static/images/categories/everyday-irish-cooking.png?v=20260429e HTTP/1.1" 200 2515999
+INFO | 2026-05-01 14:59:58 | basehttp        | "GET /static/images/categories/modern-irish-cooking.png?v=20260429e HTTP/1.1" 200 2190449
+INFO | 2026-05-01 14:59:58 | basehttp        | "GET /static/images/categories/lunch.png?v=20260429e HTTP/1.1" 200 2473759
+INFO | 2026-05-01 14:59:58 | basehttp        | "GET /static/images/categories/breakfast-and-brunch?v=20260429e HTTP/1.1" 200 2673952
+INFO | 2026-05-01 14:59:58 | basehttp        | "GET /static/images/categories/grilling-and-barbecue.png?v=20260429e HTTP/1.1" 200 2497649
+INFO | 2026-05-01 14:59:58 | basehttp        | "GET /static/images/categories/dinner.png?v=20260429e HTTP/1.1" 200 2450260
+INFO | 2026-05-01 14:59:58 | basehttp        | "GET /static/images/categories/soups-and-stews.png?v=20260429e HTTP/1.1" 200 2447019
+INFO | 2026-05-01 14:59:58 | basehttp        | "GET /static/images/categories/healthy-eating.png?v=20260429e HTTP/1.1" 200 2362419
+INFO | 2026-05-01 14:59:58 | basehttp        | "GET /static/images/categories/seasonal-and-festive?v=20260429e HTTP/1.1" 200 2475085
+INFO | 2026-05-01 14:59:58 | basehttp        | "GET /static/images/categories/salads.png?v=20260429e HTTP/1.1" 200 2657948
+INFO | 2026-05-01 14:59:58 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 200 2316746
+INFO | 2026-05-01 14:59:58 | basehttp        | "GET /static/images/categories/pasta-and-noodles.png?v=20260429e HTTP/1.1" 200 2410293
+INFO | 2026-05-01 14:59:58 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/cover.png HTTP/1.1" 200 697066
+INFO | 2026-05-01 14:59:58 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 14:59:58 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 200 2489208
+INFO | 2026-05-01 14:59:58 | basehttp        | "GET /media/recipes/GreenBear/IRISH%20STEW/cover.png HTTP/1.1" 200 1547642
+WARNING | 2026-05-01 14:59:59 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-01 14:59:59 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-01 15:05:40 | basehttp        | "GET /recipes/ HTTP/1.1" 200 43531
+INFO | 2026-05-01 15:05:40 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-01 15:05:40 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-01 15:05:40 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-01 15:05:41 | basehttp        | "GET /static/images/hero-recipes.png HTTP/1.1" 200 2178565
+INFO | 2026-05-01 15:05:41 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-01 15:05:41 | basehttp        | "GET /static/images/categories/irish-culinary-heritage.png?v=20260429e HTTP/1.1" 200 2375821
+INFO | 2026-05-01 15:05:41 | basehttp        | "GET /static/images/categories/everyday-irish-cooking.png?v=20260429e HTTP/1.1" 200 2515999
+INFO | 2026-05-01 15:05:41 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 15:05:41 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-01 15:05:41 | basehttp        | "GET /static/images/categories/modern-irish-cooking.png?v=20260429e HTTP/1.1" 200 2190449
+INFO | 2026-05-01 15:05:41 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 27909
+INFO | 2026-05-01 15:05:41 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-01 15:05:41 | basehttp        | "GET /static/images/categories/breakfast-and-brunch?v=20260429e HTTP/1.1" 200 2673952
+INFO | 2026-05-01 15:05:41 | basehttp        | "GET /static/images/categories/soups-and-stews.png?v=20260429e HTTP/1.1" 200 2447019
+INFO | 2026-05-01 15:05:41 | basehttp        | "GET /static/images/categories/seasonal-and-festive?v=20260429e HTTP/1.1" 200 2475085
+INFO | 2026-05-01 15:05:41 | basehttp        | "GET /static/images/categories/dinner.png?v=20260429e HTTP/1.1" 200 2450260
+INFO | 2026-05-01 15:05:41 | basehttp        | "GET /static/images/categories/grilling-and-barbecue.png?v=20260429e HTTP/1.1" 200 2497649
+INFO | 2026-05-01 15:05:41 | basehttp        | "GET /static/images/categories/salads.png?v=20260429e HTTP/1.1" 200 2657948
+INFO | 2026-05-01 15:05:41 | basehttp        | "GET /static/images/categories/lunch.png?v=20260429e HTTP/1.1" 200 2473759
+INFO | 2026-05-01 15:05:41 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/cover.png HTTP/1.1" 200 697066
+INFO | 2026-05-01 15:05:41 | basehttp        | "GET /media/recipes/GreenBear/IRISH%20STEW/cover.png HTTP/1.1" 200 1547642
+INFO | 2026-05-01 15:05:41 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 200 2489208
+INFO | 2026-05-01 15:05:41 | basehttp        | "GET /static/images/categories/healthy-eating.png?v=20260429e HTTP/1.1" 200 2362419
+INFO | 2026-05-01 15:05:41 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 200 2316746
+INFO | 2026-05-01 15:05:41 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 15:05:41 | basehttp        | "GET /static/images/categories/pasta-and-noodles.png?v=20260429e HTTP/1.1" 200 2410293
+WARNING | 2026-05-01 15:05:42 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-01 15:05:42 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-01 15:08:17 | basehttp        | "GET /recipes/author/greenbear/ HTTP/1.1" 200 16464
+WARNING | 2026-05-01 15:08:17 | log             | Not Found: /static/images/hero-author.png
+INFO | 2026-05-01 15:08:17 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 304 0
+WARNING | 2026-05-01 15:08:17 | basehttp        | "GET /static/images/hero-author.png HTTP/1.1" 404 179
+INFO | 2026-05-01 15:08:17 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-01 15:08:20 | basehttp        | "GET /recipes/?author=greenbear HTTP/1.1" 200 37808
+INFO | 2026-05-01 15:11:04 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-01 15:11:05 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-01 15:11:07 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-01 15:11:08 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-01 15:11:47 | basehttp        | "GET /recipes/ HTTP/1.1" 200 47974
+INFO | 2026-05-01 15:11:47 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 304 0
+INFO | 2026-05-01 15:11:47 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28547
+INFO | 2026-05-01 15:13:22 | basehttp        | "GET /articles/ HTTP/1.1" 200 17654
+INFO | 2026-05-01 15:13:22 | basehttp        | "GET /static/images/hero-articles.png HTTP/1.1" 304 0
+INFO | 2026-05-01 15:13:22 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-01 15:13:25 | basehttp        | "GET /recipes/ HTTP/1.1" 200 47974
+INFO | 2026-05-01 15:13:27 | basehttp        | "GET /articles/ HTTP/1.1" 200 17654
+INFO | 2026-05-01 15:13:35 | basehttp        | "GET /recipes/ HTTP/1.1" 200 47991
+INFO | 2026-05-01 15:13:35 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-01 15:13:53 | basehttp        | "GET /recipes/ HTTP/1.1" 200 48003
+INFO | 2026-05-01 15:13:53 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-01 15:13:53 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-01 15:13:53 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-01 15:13:53 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 15:13:53 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-01 15:13:53 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28547
+INFO | 2026-05-01 15:13:53 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-01 15:13:53 | basehttp        | "GET /static/images/categories/everyday-irish-cooking.png?v=20260429e HTTP/1.1" 200 2515999
+INFO | 2026-05-01 15:13:53 | basehttp        | "GET /static/images/categories/irish-culinary-heritage.png?v=20260429e HTTP/1.1" 200 2375821
+INFO | 2026-05-01 15:13:53 | basehttp        | "GET /static/images/hero-recipes.png HTTP/1.1" 200 2178565
+INFO | 2026-05-01 15:13:53 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-01 15:13:53 | basehttp        | "GET /static/images/categories/lunch.png?v=20260429e HTTP/1.1" 200 2473759
+INFO | 2026-05-01 15:13:53 | basehttp        | "GET /static/images/categories/grilling-and-barbecue.png?v=20260429e HTTP/1.1" 200 2497649
+INFO | 2026-05-01 15:13:53 | basehttp        | "GET /static/images/categories/breakfast-and-brunch?v=20260429e HTTP/1.1" 200 2673952
+INFO | 2026-05-01 15:13:53 | basehttp        | "GET /static/images/categories/dinner.png?v=20260429e HTTP/1.1" 200 2450260
+INFO | 2026-05-01 15:13:53 | basehttp        | "GET /static/images/categories/modern-irish-cooking.png?v=20260429e HTTP/1.1" 200 2190449
+INFO | 2026-05-01 15:13:53 | basehttp        | "GET /static/images/categories/soups-and-stews.png?v=20260429e HTTP/1.1" 200 2447019
+INFO | 2026-05-01 15:13:53 | basehttp        | "GET /static/images/categories/salads.png?v=20260429e HTTP/1.1" 200 2657948
+INFO | 2026-05-01 15:13:53 | basehttp        | "GET /static/images/categories/healthy-eating.png?v=20260429e HTTP/1.1" 200 2362419
+INFO | 2026-05-01 15:13:53 | basehttp        | "GET /static/images/categories/seasonal-and-festive?v=20260429e HTTP/1.1" 200 2475085
+INFO | 2026-05-01 15:13:53 | basehttp        | "GET /static/images/categories/pasta-and-noodles.png?v=20260429e HTTP/1.1" 200 2410293
+INFO | 2026-05-01 15:13:53 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 200 2316746
+INFO | 2026-05-01 15:13:53 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 15:13:54 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 200 2489208
+INFO | 2026-05-01 15:13:54 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/cover.png HTTP/1.1" 200 697066
+INFO | 2026-05-01 15:13:54 | basehttp        | "GET /media/recipes/GreenBear/IRISH%20STEW/cover.png HTTP/1.1" 200 1547642
+WARNING | 2026-05-01 15:13:54 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-01 15:13:54 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-01 15:14:36 | basehttp        | "GET /recipes/category/irish-culinary-heritage/ HTTP/1.1" 200 35422
+INFO | 2026-05-01 15:14:36 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-01 15:14:54 | basehttp        | "GET /recipes/classic-irish-boxty/ HTTP/1.1" 200 52909
+INFO | 2026-05-01 15:14:54 | basehttp        | "GET /static/css/detail_page.css?v=20260428k HTTP/1.1" 304 0
+INFO | 2026-05-01 15:14:54 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/gallery/img1.png HTTP/1.1" 304 0
+INFO | 2026-05-01 15:14:54 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/gallery/img1_0dqWzR9.png HTTP/1.1" 304 0
+INFO | 2026-05-01 15:14:54 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/gallery/img1_OVdMMtJ.png HTTP/1.1" 304 0
+INFO | 2026-05-01 15:14:54 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/gallery/img1_hgDJ3cm.png HTTP/1.1" 304 0
+INFO | 2026-05-01 15:14:54 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/gallery/img1_FlnL7lP.png HTTP/1.1" 304 0
+INFO | 2026-05-01 15:14:54 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/gallery/img1_hd6xPxp.png HTTP/1.1" 304 0
+INFO | 2026-05-01 15:14:54 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/gallery/img1_tVZsDNI.png HTTP/1.1" 304 0
+INFO | 2026-05-01 15:14:54 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/gallery/img1_LHDwCM9.png HTTP/1.1" 304 0
+INFO | 2026-05-01 15:14:54 | basehttp        | "GET /static/js/recipe_detail.js HTTP/1.1" 304 0
+INFO | 2026-05-01 15:15:04 | basehttp        | "GET /recipes/ HTTP/1.1" 200 48003
+INFO | 2026-05-01 15:15:04 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-01 15:15:29 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-01 15:15:29 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-01 15:15:31 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-01 15:15:31 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-01 15:16:01 | basehttp        | "GET /recipes/cottage-pie/ HTTP/1.1" 200 56090
+INFO | 2026-05-01 15:16:01 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-01 15:16:01 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/gallery/img2.png HTTP/1.1" 200 454624
+INFO | 2026-05-01 15:16:01 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/gallery/img1.png HTTP/1.1" 200 443483
+INFO | 2026-05-01 15:16:01 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/gallery/img3.png HTTP/1.1" 200 473973
+INFO | 2026-05-01 15:16:01 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/gallery/img4.png HTTP/1.1" 200 418479
+INFO | 2026-05-01 15:16:09 | basehttp        | "POST /recipes/cottage-pie/rate/ HTTP/1.1" 302 0
+INFO | 2026-05-01 15:16:09 | basehttp        | "GET /recipes/cottage-pie/ HTTP/1.1" 200 56382
+INFO | 2026-05-01 15:16:21 | basehttp        | "POST /recipes/cottage-pie/rate/ HTTP/1.1" 302 0
+INFO | 2026-05-01 15:16:21 | basehttp        | "GET /recipes/cottage-pie/ HTTP/1.1" 200 56405
+ERROR | 2026-05-01 15:16:31 | log             | Internal Server Error: /recipes/
+Traceback (most recent call last):
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 511, in parse
+    compile_func = self.tags[command]
+                   ~~~~~~~~~^^^^^^^^^
+KeyError: 'else'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/sf_CulinEire/recipes/views.py", line 422, in recipe_list
+    return render(request, "recipes/recipe_list.html", context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/backends/django.py", line 79, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/engine.py", line 177, in get_template
+    template, origin = self.find_template(template_name)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loaders/cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loaders/base.py", line 28, in get_template
+    return Template(
+           ^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 155, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 197, in compile_nodelist
+    nodelist = parser.parse()
+               ^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 519, in parse
+    raise self.error(token, e)
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 517, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loader_tags.py", line 299, in do_extends
+    nodelist = parser.parse()
+               ^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 519, in parse
+    raise self.error(token, e)
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 517, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loader_tags.py", line 234, in do_block
+    nodelist = parser.parse(("endblock",))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 519, in parse
+    raise self.error(token, e)
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 517, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/defaulttags.py", line 976, in do_if
+    nodelist = parser.parse(("endif",))
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 513, in parse
+    self.invalid_block_tag(token, command, parse_until)
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 568, in invalid_block_tag
+    raise self.error(
+django.template.exceptions.TemplateSyntaxError: Invalid block tag on line 322: 'else', expected 'endif'. Did you forget to register or load this tag?
+ERROR | 2026-05-01 15:16:31 | basehttp        | "GET /recipes/ HTTP/1.1" 500 145
+ERROR | 2026-05-01 15:16:34 | log             | Internal Server Error: /recipes/
+Traceback (most recent call last):
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 511, in parse
+    compile_func = self.tags[command]
+                   ~~~~~~~~~^^^^^^^^^
+KeyError: 'else'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/sf_CulinEire/recipes/views.py", line 422, in recipe_list
+    return render(request, "recipes/recipe_list.html", context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/backends/django.py", line 79, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/engine.py", line 177, in get_template
+    template, origin = self.find_template(template_name)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loaders/cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loaders/base.py", line 28, in get_template
+    return Template(
+           ^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 155, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 197, in compile_nodelist
+    nodelist = parser.parse()
+               ^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 519, in parse
+    raise self.error(token, e)
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 517, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loader_tags.py", line 299, in do_extends
+    nodelist = parser.parse()
+               ^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 519, in parse
+    raise self.error(token, e)
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 517, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loader_tags.py", line 234, in do_block
+    nodelist = parser.parse(("endblock",))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 519, in parse
+    raise self.error(token, e)
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 517, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/defaulttags.py", line 976, in do_if
+    nodelist = parser.parse(("endif",))
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 513, in parse
+    self.invalid_block_tag(token, command, parse_until)
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 568, in invalid_block_tag
+    raise self.error(
+django.template.exceptions.TemplateSyntaxError: Invalid block tag on line 322: 'else', expected 'endif'. Did you forget to register or load this tag?
+ERROR | 2026-05-01 15:16:34 | basehttp        | "GET /recipes/ HTTP/1.1" 500 145
+ERROR | 2026-05-01 15:16:35 | log             | Internal Server Error: /recipes/
+Traceback (most recent call last):
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 511, in parse
+    compile_func = self.tags[command]
+                   ~~~~~~~~~^^^^^^^^^
+KeyError: 'else'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/sf_CulinEire/recipes/views.py", line 422, in recipe_list
+    return render(request, "recipes/recipe_list.html", context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/backends/django.py", line 79, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/engine.py", line 177, in get_template
+    template, origin = self.find_template(template_name)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loaders/cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loaders/base.py", line 28, in get_template
+    return Template(
+           ^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 155, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 197, in compile_nodelist
+    nodelist = parser.parse()
+               ^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 519, in parse
+    raise self.error(token, e)
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 517, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loader_tags.py", line 299, in do_extends
+    nodelist = parser.parse()
+               ^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 519, in parse
+    raise self.error(token, e)
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 517, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loader_tags.py", line 234, in do_block
+    nodelist = parser.parse(("endblock",))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 519, in parse
+    raise self.error(token, e)
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 517, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/defaulttags.py", line 976, in do_if
+    nodelist = parser.parse(("endif",))
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 513, in parse
+    self.invalid_block_tag(token, command, parse_until)
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 568, in invalid_block_tag
+    raise self.error(
+django.template.exceptions.TemplateSyntaxError: Invalid block tag on line 322: 'else', expected 'endif'. Did you forget to register or load this tag?
+ERROR | 2026-05-01 15:16:35 | basehttp        | "GET /recipes/ HTTP/1.1" 500 145
+ERROR | 2026-05-01 15:16:41 | log             | Internal Server Error: /recipes/
+Traceback (most recent call last):
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 511, in parse
+    compile_func = self.tags[command]
+                   ~~~~~~~~~^^^^^^^^^
+KeyError: 'else'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/sf_CulinEire/recipes/views.py", line 422, in recipe_list
+    return render(request, "recipes/recipe_list.html", context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/backends/django.py", line 79, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/engine.py", line 177, in get_template
+    template, origin = self.find_template(template_name)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loaders/cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loaders/base.py", line 28, in get_template
+    return Template(
+           ^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 155, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 197, in compile_nodelist
+    nodelist = parser.parse()
+               ^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 519, in parse
+    raise self.error(token, e)
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 517, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loader_tags.py", line 299, in do_extends
+    nodelist = parser.parse()
+               ^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 519, in parse
+    raise self.error(token, e)
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 517, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loader_tags.py", line 234, in do_block
+    nodelist = parser.parse(("endblock",))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 519, in parse
+    raise self.error(token, e)
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 517, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/defaulttags.py", line 976, in do_if
+    nodelist = parser.parse(("endif",))
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 513, in parse
+    self.invalid_block_tag(token, command, parse_until)
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 568, in invalid_block_tag
+    raise self.error(
+django.template.exceptions.TemplateSyntaxError: Invalid block tag on line 322: 'else', expected 'endif'. Did you forget to register or load this tag?
+ERROR | 2026-05-01 15:16:41 | basehttp        | "GET /recipes/ HTTP/1.1" 500 145
+WARNING | 2026-05-01 15:16:41 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-01 15:16:41 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-01 15:16:48 | basehttp        | "GET /recipes/cottage-pie/ HTTP/1.1" 200 56091
+INFO | 2026-05-01 15:16:48 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 304 0
+INFO | 2026-05-01 15:16:48 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+ERROR | 2026-05-01 15:16:51 | log             | Internal Server Error: /recipes/
+Traceback (most recent call last):
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 511, in parse
+    compile_func = self.tags[command]
+                   ~~~~~~~~~^^^^^^^^^
+KeyError: 'else'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/sf_CulinEire/recipes/views.py", line 422, in recipe_list
+    return render(request, "recipes/recipe_list.html", context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/backends/django.py", line 79, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/engine.py", line 177, in get_template
+    template, origin = self.find_template(template_name)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loaders/cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loaders/base.py", line 28, in get_template
+    return Template(
+           ^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 155, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 197, in compile_nodelist
+    nodelist = parser.parse()
+               ^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 519, in parse
+    raise self.error(token, e)
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 517, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loader_tags.py", line 299, in do_extends
+    nodelist = parser.parse()
+               ^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 519, in parse
+    raise self.error(token, e)
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 517, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loader_tags.py", line 234, in do_block
+    nodelist = parser.parse(("endblock",))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 519, in parse
+    raise self.error(token, e)
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 517, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/defaulttags.py", line 976, in do_if
+    nodelist = parser.parse(("endif",))
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 513, in parse
+    self.invalid_block_tag(token, command, parse_until)
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 568, in invalid_block_tag
+    raise self.error(
+django.template.exceptions.TemplateSyntaxError: Invalid block tag on line 322: 'else', expected 'endif'. Did you forget to register or load this tag?
+ERROR | 2026-05-01 15:16:51 | basehttp        | "GET /recipes/ HTTP/1.1" 500 145
+INFO | 2026-05-01 15:17:59 | basehttp        | "GET /recipes/ HTTP/1.1" 200 48710
+INFO | 2026-05-01 15:17:59 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-01 15:19:19 | basehttp        | "GET /articles/ HTTP/1.1" 200 17666
+INFO | 2026-05-01 15:19:19 | basehttp        | "GET /static/images/hero-articles.png HTTP/1.1" 304 0
+INFO | 2026-05-01 15:19:20 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-01 15:19:40 | basehttp        | "GET /recipes/ HTTP/1.1" 200 48710
+INFO | 2026-05-01 15:19:43 | basehttp        | "GET /recipes/?author=greenbear HTTP/1.1" 200 37820
+INFO | 2026-05-01 15:19:49 | basehttp        | "GET /recipes/ HTTP/1.1" 200 48710
+INFO | 2026-05-01 15:19:50 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 304 0
+INFO | 2026-05-01 15:20:37 | basehttp        | "GET /recipes/ HTTP/1.1" 200 48710
+INFO | 2026-05-01 15:20:37 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-01 15:20:37 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-01 15:20:37 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 15:20:37 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28547
+INFO | 2026-05-01 15:20:37 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-01 15:20:37 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-01 15:20:37 | basehttp        | "GET /static/images/categories/irish-culinary-heritage.png?v=20260429e HTTP/1.1" 200 2375821
+INFO | 2026-05-01 15:20:37 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-01 15:20:37 | basehttp        | "GET /static/images/hero-recipes.png HTTP/1.1" 200 2254946
+INFO | 2026-05-01 15:20:37 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-01 15:20:37 | basehttp        | "GET /static/images/categories/everyday-irish-cooking.png?v=20260429e HTTP/1.1" 200 2515999
+INFO | 2026-05-01 15:20:37 | basehttp        | "GET /static/images/categories/modern-irish-cooking.png?v=20260429e HTTP/1.1" 200 2190449
+INFO | 2026-05-01 15:20:37 | basehttp        | "GET /static/images/categories/lunch.png?v=20260429e HTTP/1.1" 200 2473759
+INFO | 2026-05-01 15:20:37 | basehttp        | "GET /static/images/categories/breakfast-and-brunch?v=20260429e HTTP/1.1" 200 2673952
+INFO | 2026-05-01 15:20:37 | basehttp        | "GET /static/images/categories/grilling-and-barbecue.png?v=20260429e HTTP/1.1" 200 2497649
+INFO | 2026-05-01 15:20:37 | basehttp        | "GET /static/images/categories/dinner.png?v=20260429e HTTP/1.1" 200 2450260
+INFO | 2026-05-01 15:20:37 | basehttp        | "GET /static/images/categories/soups-and-stews.png?v=20260429e HTTP/1.1" 200 2447019
+INFO | 2026-05-01 15:20:37 | basehttp        | "GET /static/images/categories/salads.png?v=20260429e HTTP/1.1" 200 2657948
+INFO | 2026-05-01 15:20:38 | basehttp        | "GET /static/images/categories/healthy-eating.png?v=20260429e HTTP/1.1" 200 2362419
+INFO | 2026-05-01 15:20:38 | basehttp        | "GET /static/images/categories/seasonal-and-festive?v=20260429e HTTP/1.1" 200 2475085
+INFO | 2026-05-01 15:20:38 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 200 2316746
+INFO | 2026-05-01 15:20:38 | basehttp        | "GET /static/images/categories/pasta-and-noodles.png?v=20260429e HTTP/1.1" 200 2410293
+INFO | 2026-05-01 15:20:38 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 15:20:38 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/cover.png HTTP/1.1" 200 697066
+INFO | 2026-05-01 15:20:38 | basehttp        | "GET /media/recipes/GreenBear/IRISH%20STEW/cover.png HTTP/1.1" 200 1547642
+INFO | 2026-05-01 15:20:38 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 200 2489208
+WARNING | 2026-05-01 15:20:38 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-01 15:20:38 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-01 15:22:09 | basehttp        | "GET /articles/ HTTP/1.1" 200 17666
+INFO | 2026-05-01 15:22:10 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-01 15:22:12 | basehttp        | "GET /articles/ HTTP/1.1" 200 17666
+INFO | 2026-05-01 15:22:13 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-01 15:22:13 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-01 15:22:13 | basehttp        | "GET /media/articles/How%20to%20Make%20Perfect%20Irish%20Potato%20Soup/cover.png HTTP/1.1" 200 533390
+INFO | 2026-05-01 15:22:13 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-01 15:22:13 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 15:22:13 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-01 15:22:13 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-01 15:22:13 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28547
+INFO | 2026-05-01 15:22:13 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-01 15:22:13 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 15:22:13 | basehttp        | "GET /static/images/hero-articles.png HTTP/1.1" 200 2233540
+WARNING | 2026-05-01 15:22:13 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-01 15:22:13 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-01 15:22:20 | basehttp        | "GET /recipes/?author=greenbear HTTP/1.1" 200 37820
+INFO | 2026-05-01 15:22:20 | basehttp        | "GET /static/images/hero-recipes.png HTTP/1.1" 304 0
+INFO | 2026-05-01 15:22:48 | basehttp        | "GET /recipes/ HTTP/1.1" 200 48710
+INFO | 2026-05-01 15:22:59 | basehttp        | "GET /recipes/ HTTP/1.1" 200 48710
+INFO | 2026-05-01 15:22:59 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-01 15:22:59 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-01 15:22:59 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 15:22:59 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-01 15:23:00 | basehttp        | "GET /static/images/categories/irish-culinary-heritage.png?v=20260429e HTTP/1.1" 200 2375821
+INFO | 2026-05-01 15:23:00 | basehttp        | "GET /static/images/hero-recipes.png HTTP/1.1" 200 2254946
+INFO | 2026-05-01 15:23:00 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-01 15:23:00 | basehttp        | "GET /static/images/categories/everyday-irish-cooking.png?v=20260429e HTTP/1.1" 200 2515999
+INFO | 2026-05-01 15:23:00 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-01 15:23:00 | basehttp        | "GET /static/images/categories/modern-irish-cooking.png?v=20260429e HTTP/1.1" 200 2190449
+INFO | 2026-05-01 15:23:00 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28654
+INFO | 2026-05-01 15:23:00 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-01 15:23:00 | basehttp        | "GET /static/images/categories/breakfast-and-brunch?v=20260429e HTTP/1.1" 200 2673952
+INFO | 2026-05-01 15:23:00 | basehttp        | "GET /static/images/categories/grilling-and-barbecue.png?v=20260429e HTTP/1.1" 200 2497649
+INFO | 2026-05-01 15:23:00 | basehttp        | "GET /static/images/categories/dinner.png?v=20260429e HTTP/1.1" 200 2450260
+INFO | 2026-05-01 15:23:00 | basehttp        | "GET /static/images/categories/lunch.png?v=20260429e HTTP/1.1" 200 2473759
+INFO | 2026-05-01 15:23:00 | basehttp        | "GET /static/images/categories/seasonal-and-festive?v=20260429e HTTP/1.1" 200 2475085
+INFO | 2026-05-01 15:23:00 | basehttp        | "GET /static/images/categories/soups-and-stews.png?v=20260429e HTTP/1.1" 200 2447019
+INFO | 2026-05-01 15:23:00 | basehttp        | "GET /static/images/categories/salads.png?v=20260429e HTTP/1.1" 200 2657948
+INFO | 2026-05-01 15:23:00 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/cover.png HTTP/1.1" 200 697066
+INFO | 2026-05-01 15:23:00 | basehttp        | "GET /static/images/categories/pasta-and-noodles.png?v=20260429e HTTP/1.1" 200 2410293
+INFO | 2026-05-01 15:23:00 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 200 2489208
+INFO | 2026-05-01 15:23:00 | basehttp        | "GET /media/recipes/GreenBear/IRISH%20STEW/cover.png HTTP/1.1" 200 1547642
+INFO | 2026-05-01 15:23:00 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 200 2316746
+INFO | 2026-05-01 15:23:00 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 15:23:00 | basehttp        | "GET /static/images/categories/healthy-eating.png?v=20260429e HTTP/1.1" 200 2362419
+WARNING | 2026-05-01 15:23:01 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-01 15:23:01 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-01 15:23:44 | basehttp        | "GET /recipes/ HTTP/1.1" 200 48710
+INFO | 2026-05-01 15:23:44 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-01 15:23:44 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-01 15:23:44 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-01 15:23:44 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-01 15:23:44 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 15:23:44 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28666
+INFO | 2026-05-01 15:23:44 | basehttp        | "GET /static/images/categories/irish-culinary-heritage.png?v=20260429e HTTP/1.1" 200 2375821
+INFO | 2026-05-01 15:23:44 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-01 15:23:44 | basehttp        | "GET /static/images/hero-recipes.png HTTP/1.1" 200 2254946
+INFO | 2026-05-01 15:23:44 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-01 15:23:44 | basehttp        | "GET /static/images/categories/everyday-irish-cooking.png?v=20260429e HTTP/1.1" 200 2515999
+INFO | 2026-05-01 15:23:44 | basehttp        | "GET /static/images/categories/lunch.png?v=20260429e HTTP/1.1" 200 2473759
+INFO | 2026-05-01 15:23:45 | basehttp        | "GET /static/images/categories/modern-irish-cooking.png?v=20260429e HTTP/1.1" 200 2190449
+INFO | 2026-05-01 15:23:45 | basehttp        | "GET /static/images/categories/breakfast-and-brunch?v=20260429e HTTP/1.1" 200 2673952
+INFO | 2026-05-01 15:23:45 | basehttp        | "GET /static/images/categories/dinner.png?v=20260429e HTTP/1.1" 200 2450260
+INFO | 2026-05-01 15:23:45 | basehttp        | "GET /static/images/categories/soups-and-stews.png?v=20260429e HTTP/1.1" 200 2447019
+INFO | 2026-05-01 15:23:45 | basehttp        | "GET /static/images/categories/grilling-and-barbecue.png?v=20260429e HTTP/1.1" 200 2497649
+INFO | 2026-05-01 15:23:45 | basehttp        | "GET /static/images/categories/salads.png?v=20260429e HTTP/1.1" 200 2657948
+INFO | 2026-05-01 15:23:45 | basehttp        | "GET /static/images/categories/seasonal-and-festive?v=20260429e HTTP/1.1" 200 2475085
+INFO | 2026-05-01 15:23:45 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 200 2316746
+INFO | 2026-05-01 15:23:45 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 15:23:45 | basehttp        | "GET /static/images/categories/healthy-eating.png?v=20260429e HTTP/1.1" 200 2362419
+INFO | 2026-05-01 15:23:45 | basehttp        | "GET /static/images/categories/pasta-and-noodles.png?v=20260429e HTTP/1.1" 200 2410293
+INFO | 2026-05-01 15:23:45 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 200 2489208
+INFO | 2026-05-01 15:23:45 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/cover.png HTTP/1.1" 200 697066
+INFO | 2026-05-01 15:23:45 | basehttp        | "GET /media/recipes/GreenBear/IRISH%20STEW/cover.png HTTP/1.1" 200 1547642
+WARNING | 2026-05-01 15:23:46 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-01 15:23:46 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-01 15:24:03 | basehttp        | "GET /recipes/ HTTP/1.1" 200 48710
+INFO | 2026-05-01 15:24:03 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-01 15:24:03 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 15:24:03 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-01 15:24:03 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-01 15:24:03 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-01 15:24:03 | basehttp        | "GET /static/images/hero-recipes.png HTTP/1.1" 200 2254946
+INFO | 2026-05-01 15:24:03 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-01 15:24:03 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-01 15:24:03 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-01 15:24:03 | basehttp        | "GET /static/images/categories/irish-culinary-heritage.png?v=20260429e HTTP/1.1" 200 2375821
+INFO | 2026-05-01 15:24:03 | basehttp        | "GET /static/images/categories/modern-irish-cooking.png?v=20260429e HTTP/1.1" 200 2190449
+INFO | 2026-05-01 15:24:03 | basehttp        | "GET /static/images/categories/lunch.png?v=20260429e HTTP/1.1" 200 2473759
+INFO | 2026-05-01 15:24:03 | basehttp        | "GET /static/images/categories/everyday-irish-cooking.png?v=20260429e HTTP/1.1" 200 2515999
+INFO | 2026-05-01 15:24:03 | basehttp        | "GET /static/images/categories/dinner.png?v=20260429e HTTP/1.1" 200 2450260
+INFO | 2026-05-01 15:24:03 | basehttp        | "GET /static/images/categories/seasonal-and-festive?v=20260429e HTTP/1.1" 200 2475085
+INFO | 2026-05-01 15:24:03 | basehttp        | "GET /static/images/categories/grilling-and-barbecue.png?v=20260429e HTTP/1.1" 200 2497649
+INFO | 2026-05-01 15:24:03 | basehttp        | "GET /static/images/categories/salads.png?v=20260429e HTTP/1.1" 200 2657948
+INFO | 2026-05-01 15:24:03 | basehttp        | "GET /static/images/categories/soups-and-stews.png?v=20260429e HTTP/1.1" 200 2447019
+INFO | 2026-05-01 15:24:03 | basehttp        | "GET /static/images/categories/healthy-eating.png?v=20260429e HTTP/1.1" 200 2362419
+INFO | 2026-05-01 15:24:03 | basehttp        | "GET /static/images/categories/breakfast-and-brunch?v=20260429e HTTP/1.1" 200 2673952
+INFO | 2026-05-01 15:24:03 | basehttp        | "GET /static/images/categories/pasta-and-noodles.png?v=20260429e HTTP/1.1" 200 2410293
+INFO | 2026-05-01 15:24:04 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/cover.png HTTP/1.1" 200 697066
+INFO | 2026-05-01 15:24:04 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 200 2316746
+INFO | 2026-05-01 15:24:04 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 200 2489208
+INFO | 2026-05-01 15:24:04 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 15:24:04 | basehttp        | "GET /media/recipes/GreenBear/IRISH%20STEW/cover.png HTTP/1.1" 200 1547642
+WARNING | 2026-05-01 15:24:04 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-01 15:24:04 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-01 15:24:07 | basehttp        | "GET /articles/ HTTP/1.1" 200 17666
+INFO | 2026-05-01 15:24:07 | basehttp        | "GET /static/images/hero-articles.png HTTP/1.1" 304 0
+INFO | 2026-05-01 15:24:07 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-01 15:24:15 | basehttp        | "GET /recipes/?author=greenbear HTTP/1.1" 200 37820
+INFO | 2026-05-01 15:24:15 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-01 15:25:29 | basehttp        | "GET /recipes/?author=greenbear HTTP/1.1" 200 37832
+INFO | 2026-05-01 15:25:29 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-01 15:25:29 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-01 15:25:29 | basehttp        | "GET /static/images/my-hero-recipes.png HTTP/1.1" 200 2178565
+INFO | 2026-05-01 15:25:29 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 200 2316746
+INFO | 2026-05-01 15:25:29 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 15:25:29 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-01 15:25:29 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-01 15:25:29 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-01 15:25:29 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 200 2489208
+INFO | 2026-05-01 15:25:29 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-01 15:25:29 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-01 15:25:29 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/cover.png HTTP/1.1" 200 697066
+INFO | 2026-05-01 15:25:30 | basehttp        | "GET /media/recipes/GreenBear/IRISH%20STEW/cover.png HTTP/1.1" 200 1547642
+INFO | 2026-05-01 15:25:30 | basehttp        | "GET /media/articles/How%20to%20Make%20Perfect%20Irish%20Potato%20Soup/cover.png HTTP/1.1" 200 533390
+WARNING | 2026-05-01 15:25:30 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-01 15:25:30 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-01 15:25:34 | basehttp        | "GET /articles/?author=greenbear HTTP/1.1" 200 17171
+INFO | 2026-05-01 15:25:34 | basehttp        | "GET /static/images/hero-articles.png HTTP/1.1" 304 0
+INFO | 2026-05-01 15:26:50 | basehttp        | "GET /articles/?author=greenbear HTTP/1.1" 200 17183
+INFO | 2026-05-01 15:26:50 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-01 15:26:50 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-01 15:26:50 | basehttp        | "GET /static/images/my-hero-articles.png HTTP/1.1" 200 1974740
+INFO | 2026-05-01 15:26:50 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 15:26:50 | basehttp        | "GET /media/articles/How%20to%20Make%20Perfect%20Irish%20Potato%20Soup/cover.png HTTP/1.1" 200 533390
+INFO | 2026-05-01 15:26:50 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-01 15:26:50 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-01 15:26:50 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-01 15:26:50 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-01 15:26:50 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+WARNING | 2026-05-01 15:26:50 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-01 15:26:50 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-01 15:28:49 | basehttp        | "GET /articles/?author=greenbear HTTP/1.1" 200 17213
+INFO | 2026-05-01 15:28:49 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-01 15:28:49 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-01 15:28:49 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-01 15:28:49 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-01 15:28:49 | basehttp        | "GET /media/articles/How%20to%20Make%20Perfect%20Irish%20Potato%20Soup/cover.png HTTP/1.1" 200 533390
+INFO | 2026-05-01 15:28:49 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 15:28:49 | basehttp        | "GET /static/images/my-hero-articles.png HTTP/1.1" 200 1974740
+INFO | 2026-05-01 15:28:49 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-01 15:28:49 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-01 15:28:49 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-01 15:28:50 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-01 15:28:50 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-01 15:29:03 | basehttp        | "GET /recipes/?author=greenbear HTTP/1.1" 200 37832
+INFO | 2026-05-01 15:29:07 | basehttp        | "GET /articles/?author=greenbear HTTP/1.1" 200 17213
+INFO | 2026-05-01 15:31:31 | basehttp        | "GET /recipes/?author=greenbear HTTP/1.1" 200 37832
+INFO | 2026-05-01 15:31:31 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-01 15:31:40 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-01 15:31:41 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-01 15:32:03 | basehttp        | "GET /articles/?author=greenbear HTTP/1.1" 200 17210
+INFO | 2026-05-01 15:32:16 | basehttp        | "GET /articles/?author=greenbear HTTP/1.1" 200 17210
+INFO | 2026-05-01 15:32:16 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-01 15:32:17 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-01 15:32:17 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-01 15:32:17 | basehttp        | "GET /media/articles/How%20to%20Make%20Perfect%20Irish%20Potato%20Soup/cover.png HTTP/1.1" 200 533390
+INFO | 2026-05-01 15:32:17 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-01 15:32:17 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-01 15:32:17 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 15:32:17 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-01 15:32:17 | basehttp        | "GET /static/images/my-hero-articles.png HTTP/1.1" 200 1974740
+INFO | 2026-05-01 15:32:17 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-01 15:32:17 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-01 15:32:17 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-01 15:32:46 | basehttp        | "GET /recipes/?author=greenbear HTTP/1.1" 200 37932
+INFO | 2026-05-01 15:33:11 | basehttp        | "GET /recipes/?author=greenbear HTTP/1.1" 200 37932
+INFO | 2026-05-01 15:33:11 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-01 15:34:30 | basehttp        | "GET /articles/?author=greenbear HTTP/1.1" 200 17584
+INFO | 2026-05-01 15:34:30 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-01 15:34:35 | basehttp        | "GET /recipes/?author=greenbear HTTP/1.1" 200 33087
+INFO | 2026-05-01 15:34:42 | basehttp        | "GET /articles/?author=greenbear HTTP/1.1" 200 17584
+INFO | 2026-05-01 15:34:46 | basehttp        | "GET /recipes/?author=greenbear HTTP/1.1" 200 33087
+INFO | 2026-05-01 15:36:22 | autoreload      | /media/sf_CulinEire/articles/views.py changed, reloading.
+INFO | 2026-05-01 15:36:22 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-01 15:36:38 | basehttp        | "GET /articles/?author=greenbear HTTP/1.1" 200 17584
+INFO | 2026-05-01 15:36:38 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-01 15:36:46 | basehttp        | "GET /recipes/?author=greenbear HTTP/1.1" 200 33087
+INFO | 2026-05-01 15:36:50 | basehttp        | "GET /articles/?author=greenbear HTTP/1.1" 200 17584
+INFO | 2026-05-01 15:36:50 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 304 0
+INFO | 2026-05-01 15:36:50 | basehttp        | "GET /static/images/my-hero-articles.png HTTP/1.1" 304 0
+INFO | 2026-05-01 15:37:00 | basehttp        | "GET /articles/?author=greenbear HTTP/1.1" 200 20436
+INFO | 2026-05-01 15:37:00 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-01 15:37:00 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-01 15:37:00 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-01 15:37:00 | basehttp        | "GET /media/articles/How%20to%20Make%20Perfect%20Irish%20Potato%20Soup/cover.png HTTP/1.1" 200 533390
+INFO | 2026-05-01 15:37:00 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-01 15:37:00 | basehttp        | "GET /static/images/my-hero-articles.png HTTP/1.1" 200 1974740
+INFO | 2026-05-01 15:37:00 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-01 15:37:00 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-01 15:37:00 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-01 15:37:00 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+WARNING | 2026-05-01 15:37:01 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-01 15:37:01 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-01 15:37:25 | basehttp        | "GET / HTTP/1.1" 200 36183
+INFO | 2026-05-01 15:37:30 | basehttp        | "GET /recipes/ HTTP/1.1" 200 48710
+INFO | 2026-05-01 15:37:30 | basehttp        | "GET /static/images/hero-recipes.png HTTP/1.1" 304 0
+INFO | 2026-05-01 15:37:34 | basehttp        | "GET /articles/ HTTP/1.1" 200 17725
+INFO | 2026-05-01 15:37:34 | basehttp        | "GET /static/images/hero-articles.png HTTP/1.1" 304 0
