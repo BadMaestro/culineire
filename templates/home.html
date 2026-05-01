@@ -47,7 +47,7 @@
                         <path d="m15 18-6-6 6-6"></path>
                     </svg>
                 </button>
-                <div class="recipe-grid recipe-grid--carousel" data-carousel-track>
+                <div class="recipe-grid recipe-grid--carousel recipe-list-page" data-carousel-track>
                     {% for recipe in latest_recipes %}
                     <article class="recipe-card">
                         <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
@@ -155,7 +155,7 @@
                         <path d="m15 18-6-6 6-6"></path>
                     </svg>
                 </button>
-                <div class="recipe-grid recipe-grid--carousel" data-carousel-track>
+                <div class="recipe-grid recipe-grid--carousel recipe-list-page" data-carousel-track>
                     {% for article in latest_articles %}
                     <article class="recipe-card recipe-card--article">
                         <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">

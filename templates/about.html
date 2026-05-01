@@ -1,11 +1,31 @@
 {% extends "base.html" %}
-{% block title %}About • CulinEire{% endblock %}
+{% load static %}
+
+{% block title %}About | CulinEire{% endblock %}
+{% block meta_description %}CulinEire is a modern platform celebrating Irish food heritage, vintage recipes and home cooking creativity.{% endblock %}
 
 {% block content %}
+<section class="hero hero--home">
+    <div aria-hidden="true" class="hero__background">
+        <img alt="" src="{% static 'images/hero-about.png' %}">
+    </div>
+    <div aria-hidden="true" class="hero__overlay"></div>
+    <div class="container hero__inner">
+        <div class="hero-copy">
+            <span class="pill">Our Story</span>
+            <h1 class="hero-title">About CulinEire</h1>
+            <p class="hero-subtitle">A modern home for Irish food heritage — recipes, stories and the cooks behind them.</p>
+            <div class="hero__actions">
+                <a class="btn-primary" href="{% url 'recipes:recipe_list' %}">Explore Recipes</a>
+                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
+            </div>
+        </div>
+    </div>
+</section>
+
 <section class="page-section">
-    <div class="wrap">
-        <h1>About CulinEire</h1>
-        <p>CulinEire is a modern platform celebrating Irish food heritage and creativity.</p>
+    <div class="container">
+        <p class="page-subtitle">CulinEire is a modern platform celebrating Irish food heritage and creativity.</p>
     </div>
 </section>
 {% endblock %}
