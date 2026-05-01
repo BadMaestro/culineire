@@ -46,7 +46,7 @@ def header_author(request):
             "url": _with_query(_reverse_or_empty("recipes:recipe_list"), author=author.slug)
             if author
             else "",
-            "secondary_label": "+ New",
+            "secondary_label": "(+ New)",
             "secondary_url": _reverse_or_empty("recipes:recipe_create") if author else "",
         },
         {
@@ -54,7 +54,7 @@ def header_author(request):
             "url": _with_query(_reverse_or_empty("articles:article_list"), author=author.slug)
             if author
             else "",
-            "secondary_label": "+ New",
+            "secondary_label": "(+ New)",
             "secondary_url": _reverse_or_empty("articles:article_create") if author else "",
         },
         {

@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Sign In | CulinEire{% endblock %}
+{% block meta_description %}Sign in to your CulinEire account to continue exploring recipes and food stories.{% endblock %}
+
+{% block extra_head %}
+<link href="{% static 'css/auth.css' %}?v=20260428a" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="page-section">
+    <div class="container auth-shell">
+        <div class="auth-card">
+            <div class="auth-copy">
+                <p class="eyebrow">Welcome back</p>
+                <h1>Sign in</h1>
+                <p class="auth-intro">
+                    Log in to continue browsing the CulinEire collection and pick up where you left off.
+                </p>
+            </div>
+
+            <form class="auth-form" method="post">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="auth-errors" role="alert">
+                    {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="auth-field">
+                    <label for="id_username">Email address</label>
+                    <input
+                            autocomplete="username"
+                            autofocus
+                            id="id_username"
+                            name="username"
+                            placeholder="you@example.com"
+                            type="text"
+                            value="{{ form.username.value|default:'' }}"
+                    >
+                    {% for error in form.username.errors %}
+                    <p class="auth-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div class="auth-field">
+                    <label for="id_password">Password</label>
+                    <input
+                            autocomplete="current-password"
+                            id="id_password"
+                            name="password"
+                            placeholder="Password"
+                            type="password"
+                    >
+                    {% for error in form.password.errors %}
+                    <p class="auth-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                {% if next %}
+                <input name="next" type="hidden" value="{{ next }}">
+                {% endif %}
+
+                <button class="btn" type="submit">Sign in</button>
+            </form>
+
+            <p class="auth-note">
+                Need an account? <a href="{% url 'signup' %}">Create one here</a>.
+            </p>
+        </div>
+    </div>
+</section>
+{% endblock %}

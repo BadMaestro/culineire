@@ -9,6 +9,24 @@
 {% endblock %}
 
 {% block content %}
+<section class="hero hero--home">
+    <div aria-hidden="true" class="hero__background">
+        <img alt="" src="{% static 'images/hero-studio.png' %}">
+    </div>
+    <div aria-hidden="true" class="hero__overlay"></div>
+    <div class="container hero__inner">
+        <div class="hero-copy">
+            <span class="pill">Author Studio</span>
+            <h1 class="hero-title">{% if form_mode == "edit" %}Edit Article{% else %}Create Article{% endif %}</h1>
+            <p class="hero-subtitle">Author Studio — shape a food note, technique or story for the CulinEire kitchen.</p>
+            <div class="hero__actions">
+                <a class="btn-primary" href="{% url 'recipes:recipe_list' %}">Explore Recipes</a>
+                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
+            </div>
+        </div>
+    </div>
+</section>
+
 <section class="page-section authoring-page">
     <div class="container authoring-shell">
         <header class="authoring-header">

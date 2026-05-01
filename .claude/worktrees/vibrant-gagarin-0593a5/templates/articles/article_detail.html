@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ article.title }} | CulinEire{% endblock %}
+{% block meta_description %}{% if article.excerpt %}{{ article.excerpt|striptags|truncatechars:160 }}{% else %}Article detail page for {{ article.title }} on CulinEire.{% endif %}{% endblock %}
+
+{% block extra_head %}
+<link href="{% static 'css/detail_page.css' %}?v=20260428k" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <article class="detail-page detail-page--article">
+            <header class="detail-page__header">
+                <div class="detail-page__header-inner">
+                    <div class="detail-page__topbar">
+                        <div aria-label="Article information" class="detail-page__taxonomy">
+                            <span class="detail-page__taxonomy-chip">Article</span>
+                        </div>
+
+                        {% if article.related_recipe %}
+                        <a class="detail-page__action-pill" href="{{ article.related_recipe.get_absolute_url }}">
+                            <span class="detail-page__action-label">Linked recipe:</span>
+                            <span class="detail-page__action-value">{{ article.related_recipe.title }}</span>
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    <div class="detail-page__hero-copy">
+                        <h1>{{ article.title }}</h1>
+
+                        {% if article.excerpt %}
+                        <p class="detail-page__intro">{{ article.excerpt }}</p>
+                        {% endif %}
+
+                        {% if article.author %}
+                        <p class="detail-page__author">
+                            <span class="detail-page__author-label">By:</span>
+                            <a aria-label="View author profile for {{ article.author.name }}"
+                               class="detail-page__author-link"
+                               href="{% url 'recipes:author_detail' article.author.slug %}">
+                                <img
+                                        alt="{{ article.author.name }}"
+                                        class="detail-page__author-avatar"
+                                        height="40"
+                                        src="{% static 'images/greenbear.png' %}"
+                                        width="40"
+                                >
+                                <span class="detail-page__author-name">{{ article.author.name }}</span>
+                            </a>
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </header>
+
+            {% if gallery_items %}
+            <section
+                    aria-label="Article media gallery"
+                    class="recipe-gallery{% if not has_gallery %} recipe-gallery--single{% endif %}"
+                    data-gallery
+                    tabindex="0"
+            >
+                <div class="recipe-gallery__viewport">
+                    {% if has_gallery %}
+                    <button
+                            aria-label="Previous image"
+                            class="recipe-gallery__arrow recipe-gallery__arrow--prev"
+                            data-gallery-prev
+                            type="button"
+                    >
+                        &#8249;
+                    </button>
+                    {% endif %}
+
+                    <div class="recipe-gallery__stage" data-gallery-stage>
+                        {% for item in gallery_items %}
+                        <figure
+                                class="recipe-gallery__item{% if forloop.first %} is-current{% endif %}"
+                                data-gallery-item
+                        >
+                            <div class="recipe-gallery__image-shell">
+                                <img
+                                        %}
+                                        %}
+                                        %}
+                                        %} %} %}height="{{ item.height }}" %}width="{{ item.width }}" alt="{{ item.alt }}" class="recipe-gallery__media" else
+                                        endif endif endif fetchpriority="high" forloop.first if if
+                                        if item.height item.width loading="eager"
+                                        loading="lazy"
+                                        src="{{ item.src }}"
+                                        {% {% {%
+                                        {%
+                                        {% {% {%
+                                >
+                            </div>
+
+                            {% if item.caption %}
+                            <figcaption class="recipe-gallery__caption">{{ item.caption }}</figcaption>
+                            {% endif %}
+                        </figure>
+                        {% endfor %}
+                    </div>
+
+                    {% if has_gallery %}
+                    <button
+                            aria-label="Next image"
+                            class="recipe-gallery__arrow recipe-gallery__arrow--next"
+                            data-gallery-next
+                            type="button"
+                    >
+                        &#8250;
+                    </button>
+                    {% endif %}
+                </div>
+            </section>
+            {% endif %}
+
+            <div class="detail-page__grid detail-page__grid--article">
+                <section class="detail-page__main">
+                    <article class="detail-page__content-card">
+                        <div class="rich-text">
+                            {{ article.body|linebreaks }}
+                        </div>
+                    </article>
+                </section>
+
+                <aside class="detail-page__sidebar">
+                    <section class="detail-page__card detail-page__card--meta">
+                        <h3>Published</h3>
+                        <p>
+                            <time datetime="{{ article.published|date:'Y-m-d' }}">
+                                {{ article.published|date:"j F Y" }}
+                            </time>
+                        </p>
+                    </section>
+                </aside>
+            </div>
+        </article>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+{% if has_gallery %}
+<script src="{% static 'js/detail_gallery.js' %}"></script>
+{% endif %}
+{% endblock %}

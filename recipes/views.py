@@ -364,10 +364,25 @@ def recipe_list(request):
             }
         )
 
+    recent_recipes = list(recipes[:6]) if selected_author else None
+
+    all_articles = None
+    recent_articles = None
+    if selected_author:
+        all_articles = (
+            Article.objects.select_related("author")
+            .filter(author=selected_author)
+            .order_by("-published")
+        )
+        recent_articles = list(all_articles[:6])
+
     context = {
         "recipes": recipes,
-        "popular_categories": popular_categories,
-        "mood_categories": mood_categories,
+        "recent_recipes": recent_recipes,
+        "all_articles": all_articles,
+        "recent_articles": recent_articles,
+        "popular_categories": popular_categories if not selected_author else [],
+        "mood_categories": mood_categories if not selected_author else [],
         "categories": category_navigation,
         "page_title": (
             f"{selected_author.name} Recipes | CulinEire"
@@ -391,8 +406,9 @@ def recipe_list(request):
             f"A curated view of recipes created by {selected_author.name}."
             if selected_author
             else (
-                "Explore Irish classics, vintage recipes, and modern twists, all adapted "
-                "for the home kitchen."
+                "Irish classics, treasured vintage recipes, and modern home-kitchen twists, "
+                "bringing familiar flavours back to the table and opening Ireland's culinary "
+                "heritage to food lovers."
             )
         ),
         "selected_category_label": "",
@@ -603,29 +619,17 @@ def submit_recipe_comment(request, slug):
 def author_detail(request, slug):
     author = get_object_or_404(RecipeAuthor, slug=slug)
 
-    recipes = (
-        Recipe.objects.select_related("author")
-        .prefetch_related("additional_category_links")
-        .filter(author=author)
-        .order_by("-created_at")
-    )
-
-    related_articles = (
-        Article.objects.select_related("author", "related_recipe")
-        .filter(author=author)
-        .order_by("-published")
-    )
-
-    is_god_author = author.slug == "greenbear"
+    recipe_count = Recipe.objects.filter(author=author).count()
+    article_count = Article.objects.filter(author=author).count()
 
     context = {
         "author": author,
-        "recipes": recipes,
-        "related_articles": related_articles,
-        "is_god_author": is_god_author,
+        "recipe_count": recipe_count,
+        "article_count": article_count,
+        "is_god_author": author.slug == "greenbear",
         "can_manage_author_profile": user_can_manage_author(request.user, author),
-        "profile_delete_will_remove_articles": related_articles.exists(),
-        "profile_delete_will_orphan_recipes": recipes.exists(),
+        "profile_delete_will_remove_articles": article_count > 0,
+        "profile_delete_will_orphan_recipes": recipe_count > 0,
     }
     return render(request, "recipes/author_detail.html", context)
 

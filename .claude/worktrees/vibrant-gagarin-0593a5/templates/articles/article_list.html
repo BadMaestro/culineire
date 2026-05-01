@@ -1,0 +1,95 @@
+﻿{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Articles | CulinEire{% endblock %}
+{% block meta_description %}Explore food stories, cooking notes, practical ideas, and linked recipe articles from the CulinEire kitchen.{% endblock %}
+
+{% block content %}
+<section class="page-section">
+    <div class="container">
+        <div class="page-header">
+            <div>
+                <p class="eyebrow">Articles</p>
+                <h1>Food Writing &amp; Stories</h1>
+            </div>
+        </div>
+
+        <p class="page-subtitle">
+            Deep dives into Irish culinary culture, ingredients and traditions.
+        </p>
+
+        {% if articles %}
+        <div class="recipe-grid">
+            {% for article in articles %}
+            <article class="recipe-card recipe-card--article">
+                <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">
+                    {% if article.hero_image %}
+                    <img alt="{{ article.title }}" src="{{ article.hero_image.url }}">
+                    {% else %}
+                    <img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}">
+                    {% endif %}
+                </a>
+
+                <div class="recipe-card__body">
+                    <div class="recipe-card__content">
+                        <h2 class="recipe-card__title recipe-card__title--article">
+                            <a href="{{ article.get_absolute_url }}">{{ article.title }}</a>
+                        </h2>
+
+                        <div aria-label="Article metadata"
+                             class="recipe-card__meta-line recipe-card__meta-line--article">
+                            {% if article.published %}
+                            <span class="recipe-card__meta-item">{{ article.published|date:"j F Y" }}</span>
+                            {% endif %}
+                        </div>
+
+                        {% if article.excerpt %}
+                        <p class="recipe-card__excerpt recipe-card__excerpt--article">
+                            <a class="recipe-card__excerpt-link" href="{{ article.get_absolute_url }}">{{
+                                article.excerpt }}</a>
+                        </p>
+                        {% endif %}
+                    </div>
+
+                    <div class="recipe-card__footer recipe-card__footer--article">
+                        {% if can_manage_selected_author %}
+                        <div class="recipe-card__management">
+                            <a class="recipe-card__cta btn" href="{% url 'articles:article_edit' article.slug %}">Edit
+                                Article</a>
+                            <a class="recipe-card__cta btn btn--danger"
+                               href="{% url 'articles:article_delete' article.slug %}">Delete Article</a>
+                        </div>
+                        {% endif %}
+                        {% if article.author %}
+                        <p class="recipe-card-author">
+                            <span class="recipe-card-author__label">By:</span>
+                            <a
+                                    aria-label="View articles by {{ article.author.name }}"
+                                    class="recipe-card-author__brand-link"
+                                    href="{% url 'recipes:author_detail' article.author.slug %}"
+                            >
+                                <img
+                                        alt="{{ article.author.name }}"
+                                        class="recipe-card-author__brand-logo"
+                                        height="40"
+                                        src="{% static 'images/greenbear.png' %}"
+                                        width="40"
+                                >
+                                <span class="recipe-card-author__name">{{ article.author.name }}</span>
+                            </a>
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h2>No articles yet</h2>
+            <p>The articles section is ready and will be filled soon.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

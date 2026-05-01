@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Edit Profile | CulinEire{% endblock %}
+{% block meta_description %}Edit your CulinEire author profile from the author studio.{% endblock %}
+
+{% block extra_head %}
+<link href="{% static 'css/authoring.css' %}?v=20260429b" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="page-section authoring-page">
+    <div class="container authoring-shell">
+        <header class="authoring-header">
+            <div class="authoring-header__copy">
+                <p class="eyebrow">Author Studio</p>
+                <h1>Edit Profile</h1>
+                <p class="authoring-intro">
+                    Keep your public author page polished with a clear name, readable profile URL, short bio and avatar.
+                </p>
+            </div>
+            <p aria-label="Current author" class="authoring-author">
+                <span class="authoring-author__label">By:</span>
+                {% if author.avatar %}
+                <img alt="" src="{{ author.avatar.url }}">
+                {% else %}
+                <img alt="" src="{% static 'images/greenbear.png' %}">
+                {% endif %}
+                <strong>{{ author.name }}</strong>
+            </p>
+        </header>
+
+        <form class="authoring-form" enctype="multipart/form-data" method="post">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="authoring-errors" role="alert">
+                {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <fieldset class="authoring-section">
+                <legend>Profile Details</legend>
+                <div class="authoring-grid authoring-grid--two">
+                    {% for field in form %}
+                    <div class="authoring-field{% if field.name == 'bio' or field.name == 'avatar' %} authoring-field--wide{% endif %}">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}<p class="authoring-help">{{ field.help_text }}</p>{% endif %}
+                        {% for error in field.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </fieldset>
+
+            <div class="authoring-actions">
+                <a class="authoring-link" href="{{ author.get_absolute_url }}">Cancel</a>
+                <button class="authoring-submit" type="submit">Save Profile</button>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

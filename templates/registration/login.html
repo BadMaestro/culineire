@@ -9,6 +9,24 @@
 {% endblock %}
 
 {% block content %}
+<section class="hero hero--home">
+    <div aria-hidden="true" class="hero__background">
+        <img alt="" src="{% static 'images/hero-auth.png' %}">
+    </div>
+    <div aria-hidden="true" class="hero__overlay"></div>
+    <div class="container hero__inner">
+        <div class="hero-copy">
+            <span class="pill">Sign In</span>
+            <h1 class="hero-title">Welcome Back</h1>
+            <p class="hero-subtitle">Sign in to continue exploring Irish recipes and food stories.</p>
+            <div class="hero__actions">
+                <a class="btn-primary" href="{% url 'recipes:recipe_list' %}">Explore Recipes</a>
+                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
+            </div>
+        </div>
+    </div>
+</section>
+
 <section class="page-section">
     <div class="container auth-shell">
         <div class="auth-card">

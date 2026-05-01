@@ -17,7 +17,7 @@
 
   font-family: "Dancing Script", "Segoe Script", "Brush Script MT", cursive;
   font-weight: 600;
-  font-size: 1.5rem;
+  font-size: 3rem;
   letter-spacing: 0.06em;
   text-transform: none; /* нормальное написание GreenBear */
 
@@ -34,38 +34,34 @@
   color: transparent;
 
   /* перелив туда-обратно за 5 секунд, повторяется бесконечно */
-  animation: god-gold-flow 5s linear infinite;
+  animation: god-gold-flow 5s linear 1 forwards;
 }
 
-/* ОДНА звезда слева и ОДНА справа, зеркальные по отношению друг к другу */
+/* Лапы медведя слева и справа */
 .author-name--god::before,
 .author-name--greenbear::before,
 .author-name--god::after,
 .author-name--greenbear::after {
-  font-size: 0.9em;
+  font-size: 0.85em;
   display: inline-block;
-
-  /* отдельный стиль, чтобы не зависеть от gradient + color: transparent */
-  color: #f5e08a;
+  color: #888;
   background: none;
   -webkit-background-clip: initial;
   background-clip: border-box;
-  text-shadow: 0 0 4px rgba(245, 224, 138, 0.7);
+  filter: grayscale(1) opacity(0.55);
 }
 
-/* слева — звезда, отражённая по горизонтали */
 .author-name--god::before,
 .author-name--greenbear::before {
-  content: "✨";
-  margin-right: 0.25em;
-  transform: scaleX(-1); /* зеркалим */
+  content: "🐾";
+  margin-right: 0.3em;
+  transform: scaleX(-1);
 }
 
-/* справа — обычная звезда */
 .author-name--god::after,
 .author-name--greenbear::after {
-  content: "✨";
-  margin-left: 0.25em;
+  content: "🐾";
+  margin-left: 0.3em;
 }
 
 /* Анимация перелива:

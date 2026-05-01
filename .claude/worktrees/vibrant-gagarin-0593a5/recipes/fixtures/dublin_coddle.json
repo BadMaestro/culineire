@@ -1,0 +1,31 @@
+[
+  {
+    "model": "recipes.recipe",
+    "pk": null,
+    "fields": {
+      "title": "Dublin Coddle",
+      "slug": "dublin-coddle",
+      "media_folder": "",
+      "author": null,
+      "short_description": "A weekend supper from the streets of old Dublin — pork sausages and thick-cut ham layered with potatoes, onions and parsley, then \"coddled\" (gently simmered) in their own broth until tender. Famously beloved by Jonathan Swift and Sean O'Casey.",
+      "hero_image": null,
+      "prep_time_minutes": 15,
+      "cook_time_minutes": 70,
+      "servings": 4,
+      "calories": 720,
+      "difficulty": "easy",
+      "category": "soups_and_stews",
+      "ingredients": "8 thick slices of cured ham (about 450 g / 1 lb total), cut into bite-sized chunks\n16 thin pork sausages (good-quality breakfast or \"Irish-style\" pork sausages)\n900 g (2 lb) starchy potatoes, peeled and thickly sliced\n4 large onions, peeled and roughly chopped\n4 tbsp finely chopped fresh flat-leaf parsley\n¼ tsp salt, plus more to taste\n¼ tsp freshly ground black pepper\nwater (enough to cover when poaching the meats and to top up the layers)",
+      "method": "1. Place the ham chunks and sausages in a large heavy saucepan. Pour in enough cold water to cover by 2 cm and bring to the boil over high heat.\n\n2. Boil briskly for 5 minutes — this seasons the cooking liquid and pulls some salt and fat out of the meats. Pour the contents through a colander set over a bowl, reserving every drop of the broth.\n\n3. Return the ham and sausages to the empty saucepan. Spread half the potatoes on top in a flat layer, then half the onions, then half the parsley; season lightly with salt and pepper. Repeat with the remaining potatoes, onions and parsley, finishing with parsley on top.\n\n4. Pour in just enough of the reserved broth to come up to (but not over) the top layer of potatoes. The liquid should peek between the layers, not flood them.\n\n5. Cover with a tight-fitting lid, bring back to a gentle simmer, and cook for 45 minutes. The lid keeps everything tender and prevents the parsley from blackening.\n\n6. Remove the lid and continue to simmer for another 20 minutes or so, until the broth has reduced by half and clings to the potatoes as a glossy sauce. Taste, adjust the seasoning, and serve in deep bowls with thick slices of buttered soda bread to mop up.",
+      "tips": "• A \"coddle\" is named for its gentle cooking method — you are never aiming for a hard boil after step 1. Low and slow is the rule.\n• Use proper Irish or British-style pork sausages with a good fat content; lean Italian or German links will not render right.\n• Some Dublin families brown the sausages first in a dry pan for colour. It is not traditional but it is not heresy either — your call.\n• Coddle is a notorious \"next-day\" dish: refrigerate overnight, reheat very gently, and the flavour deepens noticeably.",
+      "irish_context": "Dublin Coddle is the working-class supper of the city's inner tenements, immortalised by Jonathan Swift in his 18th-century writings and by Sean O'Casey, who served it to his characters in Juno and the Paycock. The classic version is an unblushingly plain dish: sausages, bacon or ham, potatoes, onions, parsley, water — no browning, no roux, no wine. Because the meats were already cured and salted, the cook simply layered everything into the pot on Saturday afternoon and \"coddled\" it slowly over the embers, ready for the family when they came home from the pub. The name comes from the same root as \"molly-coddle\" — to treat gently. Modern Dublin pubs serve fancier versions with stout and root vegetables, but the original is austere and brilliant precisely because it asks for nothing more than what was already in the pantry.",
+      "author_commentary": "",
+      "allergens": "Contains pork and salt-cured meats. Contains gluten if served with the recommended soda bread. Naturally dairy-, nut-, egg- and shellfish-free in the dish itself. Check sausage casings and seasonings for hidden gluten if cooking for a coeliac guest.",
+      "source_type": "cookbook",
+      "source_title": "Traditional Irish Cooking: The Fare of Old Ireland and its History",
+      "source_author": "Andy Gravette and Debbie Cook",
+      "source_url": "",
+      "source_note": "Garnet Publishing, 2008. ISBN 978-1-85964-155-2 (page 42). Adapted in CulinEire's voice."
+    }
+  }
+]

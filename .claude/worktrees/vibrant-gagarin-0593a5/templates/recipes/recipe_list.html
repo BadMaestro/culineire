@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title|default:"Recipes | CulinEire" }}{% endblock %}
+{% block meta_description %}{{ meta_description|default:"Browse Irish-inspired recipes, vintage cookbook dishes, and modern home cooking ideas on CulinEire." }}{% endblock %}
+
+{% block content %}
+<section class="hero hero--home hero--recipe-list">
+    <div aria-hidden="true" class="hero__background">
+        <img alt="" src="{% static 'images/hero-recipes.png' %}">
+    </div>
+    <div aria-hidden="true" class="hero__overlay"></div>
+
+    <div class="container hero__inner">
+        <div class="hero-copy">
+            <h1 class="hero-title">{{ page_heading|default:"Explore The Recipe Collection" }}</h1>
+            <p class="hero-subtitle">
+                {% if page_subtitle %}
+                {{ page_subtitle }}
+                {% else %}
+                Explore Irish classics, vintage recipes, and modern twists, all adapted for the home kitchen.
+                {% endif %}
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="page-section recipe-list-page">
+    <div class="container recipe-list-stack">
+        {% if mood_categories %}
+        <section aria-label="Recipe mood categories" class="recipe-mood-panel">
+            <h2 class="recipe-mood-panel__title">What are you in the mood for today?</h2>
+
+            <div class="recipe-mood-panel__chips">
+                {% for mood_category in mood_categories %}
+                <a class="recipe-mood-chip" href="{{ mood_category.url }}">{{ mood_category.label }}</a>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        {% if categories %}
+        <div class="category-nav-block" data-category-toggle>
+            <div class="category-nav-wrap" data-category-wrap>
+                <nav aria-label="Recipe categories" class="category-nav" data-category-nav>
+                    {% for category in categories %}
+                    {% if category.is_active %}
+                    <span class="category-nav__item category-nav__item--active">{{ category.label }}</span>
+                    {% else %}
+                    <a class="category-nav__item category-nav__link" href="{{ category.url }}">{{ category.label }}</a>
+                    {% endif %}
+                    {% if not forloop.last %}
+                    <span aria-hidden="true" class="category-nav__separator">&middot;</span>
+                    {% endif %}
+                    {% endfor %}
+                </nav>
+            </div>
+
+            <button
+                    aria-expanded="false"
+                    aria-label="View all recipe categories"
+                    class="category-nav-toggle"
+                    data-category-button
+                    hidden
+                    type="button"
+            >
+                <span class="category-nav-toggle__label" data-category-button-label>View All</span>
+                <span aria-hidden="true" class="category-nav-toggle__icon">&#8964;</span>
+            </button>
+        </div>
+        {% endif %}
+
+        {% if popular_categories %}
+        <section aria-labelledby="popular-categories-title" class="recipe-list-section recipe-list-section--popular">
+            <div class="page-header page-header--with-gap">
+                <div>
+                    <h2 id="popular-categories-title">Popular Categories</h2>
+                </div>
+            </div>
+
+            <p class="page-subtitle">
+                Browse the highest-rated corners of the collection, guided by reader favourites and standout dishes.
+            </p>
+
+            <div class="category-tile-grid">
+                {% for category in popular_categories %}
+                <a class="category-tile" href="{{ category.url }}">
+                    <div class="category-tile__copy">
+                        <h3 class="category-tile__title">{{ category.label }}</h3>
+                    </div>
+
+                    <div class="category-tile__media">
+                        {% if category.image_url %}
+                        <img alt="{{ category.image_alt }}" src="{{ category.image_url }}">
+                        {% else %}
+                        <img alt="{{ category.image_alt }}" src="{% static 'images/hero.jpg' %}">
+                        {% endif %}
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        {% if recipes %}
+        <section aria-labelledby="recent-recipes-title" class="recipe-list-section recipe-list-section--recent">
+            <div class="page-header page-header--with-gap">
+                <div>
+                    <h2 id="recent-recipes-title">Recently Added Recipes</h2>
+                </div>
+            </div>
+
+            <p class="page-subtitle">
+                Freshly added to our collection - from comforting Irish classics to modern home-kitchen favourites.
+            </p>
+
+            <div class="recipe-grid recipe-grid--compact">
+                {% for recipe in recipes %}
+                <article class="recipe-card">
+                    <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
+                        {% if recipe.hero_image %}
+                        <img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}">
+                        {% else %}
+                        <img alt="{{ recipe.title }}" src="{% static 'images/hero.jpg' %}">
+                        {% endif %}
+                    </a>
+
+                    <div class="recipe-card__body">
+                        <div class="recipe-card__content">
+                            <h2 class="recipe-card__title">
+                                <a href="{{ recipe.get_absolute_url }}">{{ recipe.title }}</a>
+                            </h2>
+
+                            <div aria-label="Recipe category and difficulty" class="recipe-card__taxonomy">
+                                <a class="recipe-card__category-link" href="{{ recipe.get_category_url }}">
+                                    {{ recipe.get_category_display|default:"Recipe" }}
+                                </a>
+
+                                {% if recipe.get_difficulty_display %}
+                                <span class="recipe-card__difficulty">{{ recipe.get_difficulty_display }}</span>
+                                {% endif %}
+                            </div>
+
+                            <div aria-label="Recipe timing" class="recipe-card__timing">
+                                <span class="recipe-card__timing-item">
+                                    <span class="recipe-card__timing-label">Prep:</span>
+                                    <span class="recipe-card__timing-value">{{ recipe.prep_time_minutes|default:0 }} min</span>
+                                </span>
+
+                                <span aria-hidden="true" class="recipe-card__timing-divider">&bull;</span>
+
+                                <span class="recipe-card__timing-item">
+                                    <span class="recipe-card__timing-label">Cook:</span>
+                                    <span class="recipe-card__timing-value">{{ recipe.cook_time_minutes|default:0 }} min</span>
+                                </span>
+                            </div>
+
+                            {% if recipe.short_description %}
+                            <p class="recipe-card__excerpt">
+                                <a class="recipe-card__excerpt-link" href="{{ recipe.get_absolute_url }}">{{
+                                    recipe.short_description }}</a>
+                            </p>
+                            {% endif %}
+                        </div>
+
+                        <div class="recipe-card__footer">
+                            {% if can_manage_selected_author %}
+                            <div class="recipe-card__management">
+                                <a class="recipe-card__cta btn" href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit
+                                    Recipe</a>
+                                <a class="recipe-card__cta btn btn--danger"
+                                   href="{% url 'recipes:recipe_delete' recipe.slug %}">Delete Recipe</a>
+                            </div>
+                            {% endif %}
+                            {% if recipe.author %}
+                            <p class="recipe-card-author">
+                                <span class="recipe-card-author__label">By:</span>
+                                <a
+                                        aria-label="View recipes by {{ recipe.author.name }}"
+                                        class="recipe-card-author__brand-link"
+                                        href="{% url 'recipes:author_detail' recipe.author.slug %}"
+                                >
+                                    <img
+                                            alt="{{ recipe.author.name }}"
+                                            class="recipe-card-author__brand-logo"
+                                            height="40"
+                                            src="{% static 'images/greenbear.png' %}"
+                                            width="40"
+                                    >
+                                    <span class="recipe-card-author__name">{{ recipe.author.name }}</span>
+                                </a>
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+        {% else %}
+        <div class="empty-state">
+            <h2>No recipes yet</h2>
+            <p>The recipe section is ready and will be filled soon.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

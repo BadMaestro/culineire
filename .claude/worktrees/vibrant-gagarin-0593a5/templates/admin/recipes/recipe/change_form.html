@@ -1,0 +1,73 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    .field-selected_allergens .allergen-checklist {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(240px, 1fr));
+        gap: 0.55rem 0.9rem;
+        inline-size: min(100%, 48rem);
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .field-selected_allergens .allergen-checklist > div {
+        margin: 0 !important;
+        padding: 0.65rem 0.8rem !important;
+        border: 1px solid var(--hairline-color);
+        border-radius: 12px;
+        background: var(--darkened-bg);
+    }
+
+    .field-selected_allergens .allergen-checklist label {
+        display: grid !important;
+        grid-template-columns: 18px minmax(0, 1fr);
+        align-items: start;
+        gap: 0.6rem;
+        width: auto !important;
+        min-width: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        float: none !important;
+        line-height: 1.35;
+        white-space: normal;
+    }
+
+    .field-selected_allergens .allergen-checklist input[type="checkbox"] {
+        margin: 0.12rem 0 0 0 !important;
+        position: static !important;
+        inline-size: 16px;
+        block-size: 16px;
+    }
+
+    .field-selected_allergens .help {
+        margin-block-start: 0.7rem;
+        margin-inline-start: 0 !important;
+    }
+
+    @media (max-width: 900px) {
+        .field-selected_allergens .allergen-checklist {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block object-tools-items %}
+{% if change and not is_popup %}
+<li>
+    <a class="historylink" href="{% url opts|admin_urlname:'history' original.pk|admin_urlquote %}">
+        {% translate "History" %}
+    </a>
+</li>
+{% if has_absolute_url %}
+<li>
+    <a class="viewsitelink" href="{{ absolute_url }}" rel="noopener noreferrer" target="_blank">
+        {% translate "View on site" %}
+    </a>
+</li>
+{% endif %}
+{% endif %}
+{% endblock %}

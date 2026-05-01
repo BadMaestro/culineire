@@ -1,25 +1,33 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% load static %}
 
 {% block title %}Articles | CulinEire{% endblock %}
 {% block meta_description %}Explore food stories, cooking notes, practical ideas, and linked recipe articles from the CulinEire kitchen.{% endblock %}
 
 {% block content %}
-<section class="page-section">
-    <div class="container">
-        <div class="page-header">
-            <div>
-                <p class="eyebrow">Articles</p>
-                <h1>Food Writing &amp; Stories</h1>
+<section class="hero hero--home">
+    <div aria-hidden="true" class="hero__background">
+        <img alt="" src="{% static 'images/hero-articles.png' %}">
+    </div>
+    <div aria-hidden="true" class="hero__overlay"></div>
+    <div class="container hero__inner">
+        <div class="hero-copy">
+            <span class="pill">{% if selected_author %}{{ selected_author.name }}{% else %}Food Writing{% endif %}</span>
+            <h1 class="hero-title">Food Writing &amp; Stories</h1>
+            <p class="hero-subtitle">Deep dives into Irish culinary culture, ingredients and traditions.</p>
+            <div class="hero__actions">
+                <a class="btn-primary" href="{% url 'recipes:recipe_list' %}">Explore Recipes</a>
+                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
             </div>
         </div>
+    </div>
+</section>
 
-        <p class="page-subtitle">
-            Deep dives into Irish culinary culture, ingredients and traditions.
-        </p>
+<section class="page-section recipe-list-page">
+    <div class="container">
 
         {% if articles %}
-        <div class="recipe-grid">
+        <div class="recipe-grid recipe-grid--compact">
             {% for article in articles %}
             <article class="recipe-card recipe-card--article">
                 <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">
@@ -54,10 +62,9 @@
                         {% if can_manage_selected_author %}
                         <div class="recipe-card__management">
                             <a class="recipe-card__cta btn" href="{% url 'articles:article_edit' article.slug %}">Edit Article</a>
-                            <a class="recipe-card__cta btn btn--danger" href="{% url 'articles:article_delete' article.slug %}">Delete Article</a>
                         </div>
                         {% endif %}
-                        {% if article.author %}
+                        {% if article.author and not selected_author %}
                         <p class="recipe-card-author">
                             <span class="recipe-card-author__label">By:</span>
                             <a
@@ -75,6 +82,9 @@
                                 <span class="recipe-card-author__name">{{ article.author.name }}</span>
                             </a>
                         </p>
+                        {% endif %}
+                        {% if can_manage_selected_author %}
+                        <a class="recipe-card__cta btn btn--danger recipe-card__delete" href="{% url 'articles:article_delete' article.slug %}">Delete Article</a>
                         {% endif %}
                     </div>
                 </div>
