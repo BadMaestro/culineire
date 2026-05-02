@@ -2,6 +2,7 @@ import re
 
 from django.contrib import messages
 from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.db.models import Avg, Count, Prefetch
 from django.db.models.deletion import ProtectedError
@@ -527,6 +528,16 @@ def recipe_detail(request, slug):
     ratings_count = rating_summary["count"] or 0
     average_rating_percentage = min(max((average_rating_value / 5) * 100, 0), 100)
 
+    session_key = f"recipe_rating_submitted_{recipe.pk}"
+    has_rated = bool(request.session.get(session_key))
+
+    commenter_profile = None
+    if request.user.is_authenticated:
+        try:
+            commenter_profile = request.user.recipe_author_profile
+        except RecipeAuthor.DoesNotExist:
+            pass
+
     context = {
         "recipe": recipe,
         "gallery_items": gallery_items,
@@ -544,6 +555,8 @@ def recipe_detail(request, slug):
         "ratings_count": ratings_count,
         "average_rating_percentage": average_rating_percentage,
         "can_manage_recipe": user_can_manage_author(request.user, recipe.author),
+        "has_rated": has_rated,
+        "commenter_profile": commenter_profile,
     }
     return render(request, "recipes/recipe_detail.html", context)
 
@@ -581,10 +594,28 @@ def submit_recipe_rating(request, slug):
 
 
 @require_POST
+def reset_recipe_rating(request, slug):
+    recipe = get_object_or_404(Recipe, slug=slug)
+    session_key = f"recipe_rating_submitted_{recipe.pk}"
+    request.session.pop(session_key, None)
+    request.session.modified = True
+    return redirect(f"{recipe.get_absolute_url()}#rating")
+
+
+@require_POST
+@login_required
 @ratelimit(key="ip", rate="5/h", method="POST", block=False)
 def submit_recipe_comment(request, slug):
     recipe = get_object_or_404(Recipe, slug=slug)
-    form = RecipeCommentForm(request.POST)
+
+    try:
+        display_name = request.user.recipe_author_profile.name
+    except RecipeAuthor.DoesNotExist:
+        display_name = request.user.get_full_name() or request.user.username
+
+    post_data = request.POST.copy()
+    post_data["name"] = display_name
+    form = RecipeCommentForm(post_data)
 
     last_comment_payload_key = f"recipe_comment_payload_{recipe.pk}"
 

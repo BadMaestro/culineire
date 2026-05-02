@@ -33,15 +33,24 @@ class ArticleListView(ListView):
 
         recent_articles = None
         all_articles = None
+        default_recent_articles = None
+        all_articles_grid = None
+
         if selected_author:
             all_articles = Article.objects.select_related("author").filter(
                 author=selected_author
             ).order_by("-published")
             recent_articles = list(all_articles[:6])
+        else:
+            all_qs = Article.objects.select_related("author").order_by("-published")
+            default_recent_articles = list(all_qs[:6])
+            all_articles_grid = list(all_qs[:50])
 
         context["selected_author"] = selected_author
         context["recent_articles"] = recent_articles
         context["all_articles"] = all_articles
+        context["default_recent_articles"] = default_recent_articles
+        context["all_articles_grid"] = all_articles_grid
         context["can_manage_selected_author"] = user_can_manage_author(
             self.request.user, selected_author
         )

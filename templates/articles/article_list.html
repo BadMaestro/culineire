@@ -123,56 +123,79 @@
 
         {% else %}
 
-        {# ── Default view: latest articles compact grid ── #}
+        {# ── Default view: carousel + all articles mini grid ── #}
 
-        {% if articles %}
-        <section aria-labelledby="latest-articles-title" class="recipe-list-section">
-            <div class="page-header page-header--with-gap">
-                <div><h2 id="latest-articles-title">Latest Articles</h2></div>
-            </div>
-            <p class="page-subtitle">The latest food writing from the CulinEire Kitchen — stories, techniques and ideas from the table.</p>
-        </section>
-        <div class="recipe-grid recipe-grid--compact">
-            {% for article in articles %}
-            <article class="recipe-card recipe-card--article">
-                <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">
-                    {% if article.hero_image %}
-                    <img alt="{{ article.title }}" src="{{ article.hero_image.url }}">
-                    {% else %}
-                    <img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}">
-                    {% endif %}
-                </a>
-                <div class="recipe-card__body">
-                    <div class="recipe-card__content">
-                        <h2 class="recipe-card__title recipe-card__title--article">
-                            <a href="{{ article.get_absolute_url }}">{{ article.title }}</a>
-                        </h2>
-                        <div aria-label="Article metadata" class="recipe-card__meta-line recipe-card__meta-line--article">
-                            {% if article.published %}
-                            <span class="recipe-card__meta-item">{{ article.published|date:"j F Y" }}</span>
-                            {% endif %}
+        {% if default_recent_articles %}
+        <div class="content-showcase content-showcase--carousel" data-card-carousel>
+            <p class="content-showcase__eyebrow">Recently Added</p>
+            <div class="content-carousel">
+                <button aria-label="Scroll articles left" class="content-carousel__button content-carousel__button--prev" data-carousel-prev type="button">
+                    <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg>
+                </button>
+                <div class="recipe-grid recipe-grid--carousel recipe-list-page" data-carousel-track>
+                    {% for article in default_recent_articles %}
+                    <article class="recipe-card recipe-card--article">
+                        <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">
+                            {% if article.hero_image %}<img alt="{{ article.title }}" src="{{ article.hero_image.url }}">
+                            {% else %}<img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}">{% endif %}
+                        </a>
+                        <div class="recipe-card__body">
+                            <div class="recipe-card__content">
+                                <h2 class="recipe-card__title recipe-card__title--article"><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h2>
+                                <div aria-label="Article metadata" class="recipe-card__meta-line recipe-card__meta-line--article">
+                                    {% if article.published %}<span class="recipe-card__meta-item">{{ article.published|date:"j F Y" }}</span>{% endif %}
+                                </div>
+                                {% if article.excerpt %}<p class="recipe-card__excerpt recipe-card__excerpt--article"><a class="recipe-card__excerpt-link" href="{{ article.get_absolute_url }}">{{ article.excerpt }}</a></p>{% endif %}
+                            </div>
+                            <div class="recipe-card__footer recipe-card__footer--article">
+                                {% if article.author %}
+                                <p class="recipe-card-author">
+                                    <span class="recipe-card-author__label">By:</span>
+                                    <a aria-label="View articles by {{ article.author.name }}" class="recipe-card-author__brand-link" href="{% url 'recipes:author_detail' article.author.slug %}">
+                                        <img alt="{{ article.author.name }}" class="recipe-card-author__brand-logo" src="{% static 'images/greenbear.png' %}" width="40" height="40">
+                                        <span class="recipe-card-author__name">{{ article.author.name }}</span>
+                                    </a>
+                                </p>
+                                {% endif %}
+                            </div>
                         </div>
-                        {% if article.excerpt %}
-                        <p class="recipe-card__excerpt recipe-card__excerpt--article">
-                            <a class="recipe-card__excerpt-link" href="{{ article.get_absolute_url }}">{{ article.excerpt }}</a>
-                        </p>
-                        {% endif %}
-                    </div>
-                    <div class="recipe-card__footer recipe-card__footer--article">
-                        {% if article.author %}
-                        <p class="recipe-card-author">
-                            <span class="recipe-card-author__label">By:</span>
-                            <a aria-label="View articles by {{ article.author.name }}" class="recipe-card-author__brand-link" href="{% url 'recipes:author_detail' article.author.slug %}">
-                                <img alt="{{ article.author.name }}" class="recipe-card-author__brand-logo" src="{% static 'images/greenbear.png' %}" width="40" height="40">
-                                <span class="recipe-card-author__name">{{ article.author.name }}</span>
-                            </a>
-                        </p>
-                        {% endif %}
-                    </div>
+                    </article>
+                    {% endfor %}
                 </div>
-            </article>
-            {% endfor %}
+                <button aria-label="Scroll articles right" class="content-carousel__button content-carousel__button--next" data-carousel-next type="button">
+                    <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg>
+                </button>
+            </div>
         </div>
+        {% endif %}
+
+        {% if all_articles_grid %}
+        <section aria-labelledby="all-articles-grid-title" class="recipe-list-section" id="all-articles">
+            <div class="page-header page-header--with-gap">
+                <div><h2 id="all-articles-grid-title">All Articles</h2></div>
+            </div>
+            <p class="page-subtitle">Browse the complete collection — all food writing from the CulinEire Kitchen, sorted by publication date.</p>
+            <div class="recipe-vscroll">
+                <div class="recipe-grid recipe-grid--mini recipe-grid--6col">
+                    {% for article in all_articles_grid %}
+                    <article class="recipe-card recipe-card--article">
+                        <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">
+                            {% if article.hero_image %}<img alt="{{ article.title }}" src="{{ article.hero_image.url }}">
+                            {% else %}<img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}">{% endif %}
+                        </a>
+                        <div class="recipe-card__body">
+                            <div class="recipe-card__content">
+                                <h2 class="recipe-card__title recipe-card__title--article"><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h2>
+                                <div aria-label="Article metadata" class="recipe-card__meta-line recipe-card__meta-line--article">
+                                    {% if article.published %}<span class="recipe-card__meta-item">{{ article.published|date:"j F Y" }}</span>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
         {% else %}
         <div class="empty-state">
             <h2>No articles yet</h2>
