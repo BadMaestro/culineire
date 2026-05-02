@@ -1,95 +1,210 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% load static %}
 
 {% block title %}Articles | CulinEire{% endblock %}
 {% block meta_description %}Explore food stories, cooking notes, practical ideas, and linked recipe articles from the CulinEire kitchen.{% endblock %}
 
 {% block content %}
-<section class="page-section">
-    <div class="container">
-        <div class="page-header">
-            <div>
-                <p class="eyebrow">Articles</p>
-                <h1>Food Writing &amp; Stories</h1>
+<section class="hero hero--home hero--articles">
+    <div aria-hidden="true" class="hero__background">
+        {% if selected_author %}<img alt="" src="{% static 'images/my-hero-articles.png' %}">
+        {% else %}<img alt="" src="{% static 'images/hero-articles.png' %}">{% endif %}
+    </div>
+    <div aria-hidden="true" class="hero__overlay"></div>
+    <div class="container hero__inner">
+        <div class="hero-copy">
+            <span class="pill">{% if selected_author %}{{ selected_author.name }}{% else %}Food Writing{% endif %}</span>
+            {% if selected_author %}
+            <h1 class="hero-title">{{ selected_author.name }}'s Kitchen Writing</h1>
+            <p class="hero-subtitle">The complete food writing collection from {{ selected_author.name }} — Irish Culinary Culture, seasonal ingredients and the stories and traditions behind the dishes.</p>
+            {% else %}
+            <h1 class="hero-title">Food Writing &amp; Stories</h1>
+            <p class="hero-subtitle">Deep dives into Irish Culinary Culture, ingredients and traditions. Stories behind the dishes, the seasons, and the people who keep the kitchen alive.</p>
+            {% endif %}
+            <div class="hero__actions">
+                <a class="btn-primary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
+                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
             </div>
         </div>
+    </div>
+</section>
 
-        <p class="page-subtitle">
-            Deep dives into Irish culinary culture, ingredients and traditions.
-        </p>
+<section class="page-section recipe-list-page">
+    <div class="container recipe-list-stack">
 
-        {% if articles %}
-        <div class="recipe-grid">
-            {% for article in articles %}
-            <article class="recipe-card recipe-card--article">
-                <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">
-                    {% if article.hero_image %}
-                    <img alt="{{ article.title }}" src="{{ article.hero_image.url }}">
-                    {% else %}
-                    <img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}">
-                    {% endif %}
-                </a>
+        {% if selected_author %}
 
-                <div class="recipe-card__body">
-                    <div class="recipe-card__content">
-                        <h2 class="recipe-card__title recipe-card__title--article">
-                            <a href="{{ article.get_absolute_url }}">{{ article.title }}</a>
-                        </h2>
+        {# ── Author view: carousel of 6 latest + full mini grid ── #}
 
-                        <div aria-label="Article metadata"
-                             class="recipe-card__meta-line recipe-card__meta-line--article">
-                            {% if article.published %}
-                            <span class="recipe-card__meta-item">{{ article.published|date:"j F Y" }}</span>
+        {% if recent_articles %}
+        <div class="content-showcase content-showcase--carousel" data-card-carousel>
+            <p class="content-showcase__eyebrow">Recently Added</p>
+            <div class="content-carousel">
+                <button aria-label="Scroll articles left" class="content-carousel__button content-carousel__button--prev" data-carousel-prev type="button">
+                    <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg>
+                </button>
+                <div class="recipe-grid recipe-grid--carousel recipe-list-page" data-carousel-track>
+                    {% for article in recent_articles %}
+                    <article class="recipe-card recipe-card--article">
+                        <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">
+                            {% if article.hero_image %}<img alt="{{ article.title }}" src="{{ article.hero_image.url }}">
+                            {% else %}<img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}">{% endif %}
+                        </a>
+                        <div class="recipe-card__body">
+                            <div class="recipe-card__content">
+                                <h2 class="recipe-card__title recipe-card__title--article"><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h2>
+                                <div aria-label="Article metadata" class="recipe-card__meta-line recipe-card__meta-line--article">
+                                    {% if article.published %}<span class="recipe-card__meta-item">{{ article.published|date:"j F Y" }}</span>{% endif %}
+                                </div>
+                                {% if article.excerpt %}<p class="recipe-card__excerpt recipe-card__excerpt--article"><a class="recipe-card__excerpt-link" href="{{ article.get_absolute_url }}">{{ article.excerpt }}</a></p>{% endif %}
+                            </div>
+                            <div class="recipe-card__footer recipe-card__footer--article">
+                                {% if can_manage_selected_author %}
+                                <div class="recipe-card__management">
+                                    <a class="recipe-card__cta btn" href="{% url 'articles:article_edit' article.slug %}">Edit Article</a>
+                                </div>
+                                {% endif %}
+                                {% if can_manage_selected_author %}
+                                <a class="recipe-card__cta btn btn--danger recipe-card__delete" href="{% url 'articles:article_delete' article.slug %}">Delete Article</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+                <button aria-label="Scroll articles right" class="content-carousel__button content-carousel__button--next" data-carousel-next type="button">
+                    <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg>
+                </button>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if all_articles %}
+        <section aria-labelledby="all-articles-title" class="recipe-list-section">
+            <div class="page-header page-header--with-gap">
+                <div><h2 id="all-articles-title">All Articles</h2></div>
+            </div>
+            <p class="page-subtitle">All food writing by {{ selected_author.name }} — stories, techniques and ideas from the kitchen, sorted by publication date.</p>
+            <div class="recipe-grid recipe-grid--mini recipe-list-page">
+                {% for article in all_articles %}
+                <article class="recipe-card recipe-card--article">
+                    <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">
+                        {% if article.hero_image %}<img alt="{{ article.title }}" src="{{ article.hero_image.url }}">
+                        {% else %}<img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}">{% endif %}
+                    </a>
+                    <div class="recipe-card__body">
+                        <div class="recipe-card__content">
+                            <h2 class="recipe-card__title recipe-card__title--article"><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h2>
+                            <div aria-label="Article metadata" class="recipe-card__meta-line recipe-card__meta-line--article">
+                                {% if article.published %}<span class="recipe-card__meta-item">{{ article.published|date:"j F Y" }}</span>{% endif %}
+                            </div>
+                        </div>
+                        <div class="recipe-card__footer recipe-card__footer--article">
+                            {% if can_manage_selected_author %}
+                            <div class="recipe-card__management">
+                                <a class="recipe-card__cta btn" href="{% url 'articles:article_edit' article.slug %}">Edit Article</a>
+                            </div>
+                            {% endif %}
+                            {% if can_manage_selected_author %}
+                            <a class="recipe-card__cta btn btn--danger recipe-card__delete" href="{% url 'articles:article_delete' article.slug %}">Delete Article</a>
                             {% endif %}
                         </div>
-
-                        {% if article.excerpt %}
-                        <p class="recipe-card__excerpt recipe-card__excerpt--article">
-                            <a class="recipe-card__excerpt-link" href="{{ article.get_absolute_url }}">{{
-                                article.excerpt }}</a>
-                        </p>
-                        {% endif %}
                     </div>
+                </article>
+                {% endfor %}
+            </div>
+            {% if header_author and selected_author and header_author.slug == selected_author.slug %}
+            <div class="author-recipes-add">
+                <a class="btn-primary" href="{% url 'articles:article_create' %}">+ New Article</a>
+            </div>
+            {% endif %}
+        </section>
+        {% endif %}
 
-                    <div class="recipe-card__footer recipe-card__footer--article">
-                        {% if can_manage_selected_author %}
-                        <div class="recipe-card__management">
-                            <a class="recipe-card__cta btn" href="{% url 'articles:article_edit' article.slug %}">Edit
-                                Article</a>
-                            <a class="recipe-card__cta btn btn--danger"
-                               href="{% url 'articles:article_delete' article.slug %}">Delete Article</a>
+        {% else %}
+
+        {# ── Default view: carousel + all articles mini grid ── #}
+
+        {% if default_recent_articles %}
+        <div class="content-showcase content-showcase--carousel" data-card-carousel>
+            <p class="content-showcase__eyebrow">Recently Added</p>
+            <div class="content-carousel">
+                <button aria-label="Scroll articles left" class="content-carousel__button content-carousel__button--prev" data-carousel-prev type="button">
+                    <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg>
+                </button>
+                <div class="recipe-grid recipe-grid--carousel recipe-list-page" data-carousel-track>
+                    {% for article in default_recent_articles %}
+                    <article class="recipe-card recipe-card--article">
+                        <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">
+                            {% if article.hero_image %}<img alt="{{ article.title }}" src="{{ article.hero_image.url }}">
+                            {% else %}<img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}">{% endif %}
+                        </a>
+                        <div class="recipe-card__body">
+                            <div class="recipe-card__content">
+                                <h2 class="recipe-card__title recipe-card__title--article"><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h2>
+                                <div aria-label="Article metadata" class="recipe-card__meta-line recipe-card__meta-line--article">
+                                    {% if article.published %}<span class="recipe-card__meta-item">{{ article.published|date:"j F Y" }}</span>{% endif %}
+                                </div>
+                                {% if article.excerpt %}<p class="recipe-card__excerpt recipe-card__excerpt--article"><a class="recipe-card__excerpt-link" href="{{ article.get_absolute_url }}">{{ article.excerpt }}</a></p>{% endif %}
+                            </div>
+                            <div class="recipe-card__footer recipe-card__footer--article">
+                                {% if article.author %}
+                                <p class="recipe-card-author">
+                                    <span class="recipe-card-author__label">By:</span>
+                                    <a aria-label="View articles by {{ article.author.name }}" class="recipe-card-author__brand-link" href="{% url 'recipes:author_detail' article.author.slug %}">
+                                        <img alt="{{ article.author.name }}" class="recipe-card-author__brand-logo" src="{% static 'images/greenbear.png' %}" width="40" height="40">
+                                        <span class="recipe-card-author__name">{{ article.author.name }}</span>
+                                    </a>
+                                </p>
+                                {% endif %}
+                            </div>
                         </div>
-                        {% endif %}
-                        {% if article.author %}
-                        <p class="recipe-card-author">
-                            <span class="recipe-card-author__label">By:</span>
-                            <a
-                                    aria-label="View articles by {{ article.author.name }}"
-                                    class="recipe-card-author__brand-link"
-                                    href="{% url 'recipes:author_detail' article.author.slug %}"
-                            >
-                                <img
-                                        alt="{{ article.author.name }}"
-                                        class="recipe-card-author__brand-logo"
-                                        height="40"
-                                        src="{% static 'images/greenbear.png' %}"
-                                        width="40"
-                                >
-                                <span class="recipe-card-author__name">{{ article.author.name }}</span>
-                            </a>
-                        </p>
-                        {% endif %}
-                    </div>
+                    </article>
+                    {% endfor %}
                 </div>
-            </article>
-            {% endfor %}
+                <button aria-label="Scroll articles right" class="content-carousel__button content-carousel__button--next" data-carousel-next type="button">
+                    <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg>
+                </button>
+            </div>
         </div>
+        {% endif %}
+
+        {% if all_articles_grid %}
+        <section aria-labelledby="all-articles-grid-title" class="recipe-list-section" id="all-articles">
+            <div class="page-header page-header--with-gap">
+                <div><h2 id="all-articles-grid-title">All Articles</h2></div>
+            </div>
+            <p class="page-subtitle">Browse the complete collection — all food writing from the CulinEire Kitchen, sorted by publication date.</p>
+            <div class="recipe-vscroll">
+                <div class="recipe-grid recipe-grid--mini recipe-grid--6col">
+                    {% for article in all_articles_grid %}
+                    <article class="recipe-card recipe-card--article">
+                        <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">
+                            {% if article.hero_image %}<img alt="{{ article.title }}" src="{{ article.hero_image.url }}">
+                            {% else %}<img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}">{% endif %}
+                        </a>
+                        <div class="recipe-card__body">
+                            <div class="recipe-card__content">
+                                <h2 class="recipe-card__title recipe-card__title--article"><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h2>
+                                <div aria-label="Article metadata" class="recipe-card__meta-line recipe-card__meta-line--article">
+                                    {% if article.published %}<span class="recipe-card__meta-item">{{ article.published|date:"j F Y" }}</span>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
         {% else %}
         <div class="empty-state">
             <h2>No articles yet</h2>
             <p>The articles section is ready and will be filled soon.</p>
         </div>
         {% endif %}
+
+        {% endif %}
+
     </div>
 </section>
 {% endblock %}

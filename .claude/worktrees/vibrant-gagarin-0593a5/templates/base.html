@@ -10,7 +10,7 @@
           name="description">
 
     <link href="https://fonts.googleapis.com" rel="preconnect">
-    <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Libre+Bodoni:wght@400&family=Inter:wght@400;500;600&family=Dancing+Script:wght@600;700&display=swap"
           rel="stylesheet">
 
@@ -22,10 +22,10 @@
 <body>
 <header class="ce-header">
     <div class="ce-header__social-strip">
-        <div aria-label="Social links" class="container ce-header-socials">
+        <div class="container ce-header-socials" aria-label="Social links">
             <a aria-label="Instagram" class="ce-header-socials__link" href="#">
                 <svg aria-hidden="true" viewBox="0 0 24 24">
-                    <rect height="20" rx="5" width="20" x="2" y="2"></rect>
+                    <rect x="2" y="2" width="20" height="20" rx="5"></rect>
                     <circle cx="12" cy="12" r="4"></circle>
                     <circle cx="17.5" cy="6.5" r="0.5"></circle>
                 </svg>
@@ -90,20 +90,20 @@
             <div class="ce-nav__menu">
                 <a class="ce-nav__link{% if url_name == 'home' %} ce-nav__link--active{% endif %}"
                    href="{% url 'home' %}"
-                   if url_name== {% 'home' %}aria-current="page"{% endif %}>
-                Home
+                   {% if url_name == 'home' %}aria-current="page"{% endif %}>
+                    Home
                 </a>
                 <span aria-hidden="true" class="ce-nav__separator"></span>
                 <a class="ce-nav__link{% if namespace == 'recipes' %} ce-nav__link--active{% endif %}"
                    href="{% url 'recipes:recipe_list' %}"
-                   if namespace== {% 'recipes' %}aria-current="page"{% endif %}>
-                Recipes
+                   {% if namespace == 'recipes' %}aria-current="page"{% endif %}>
+                    Recipes
                 </a>
                 <span aria-hidden="true" class="ce-nav__separator"></span>
                 <a class="ce-nav__link{% if namespace == 'articles' %} ce-nav__link--active{% endif %}"
                    href="{% url 'articles:article_list' %}"
-                   if namespace== {% 'articles' %}aria-current="page"{% endif %}>
-                Articles
+                   {% if namespace == 'articles' %}aria-current="page"{% endif %}>
+                    Articles
                 </a>
                 <span aria-hidden="true" class="ce-nav__separator"></span>
             </div>
@@ -112,7 +112,7 @@
                 {% if user.is_authenticated %}
                 <details class="ce-author-panel">
                     <summary class="ce-author-panel__summary">
-                        <span aria-hidden="true" class="ce-author-panel__avatar-wrap">
+                        <span class="ce-author-panel__avatar-wrap" aria-hidden="true">
                             {% if header_author and header_author.avatar %}
                             <img alt="" class="ce-author-panel__avatar" src="{{ header_author.avatar.url }}">
                             {% else %}
@@ -161,14 +161,14 @@
                 {% else %}
                 <a class="ce-nav__text{% if url_name == 'login' %} ce-nav__text--active{% endif %}"
                    href="{% url 'login' %}"
-                   if url_name== {% 'login' %}aria-current="page"{% endif %}>
-                Sign In
+                   {% if url_name == 'login' %}aria-current="page"{% endif %}>
+                    Sign In
                 </a>
                 <span aria-hidden="true" class="ce-nav__separator"></span>
                 <a class="ce-nav__text{% if url_name == 'signup' %} ce-nav__text--active{% endif %}"
                    href="{% url 'signup' %}"
-                   if url_name== {% 'signup' %}aria-current="page"{% endif %}>
-                Join
+                   {% if url_name == 'signup' %}aria-current="page"{% endif %}>
+                    Join
                 </a>
                 {% endif %}
             </div>
@@ -198,10 +198,10 @@
         <p class="footer-inner__tagline footer-inner__tagline--strong">
             Follow <strong>CulinEire</strong> for Recipes &amp; Updates
         </p>
-        <div aria-label="Social links" class="footer-socials">
+        <div class="footer-socials" aria-label="Social links">
             <a aria-label="Instagram" class="footer-socials__link" href="#">
                 <svg aria-hidden="true" viewBox="0 0 24 24">
-                    <rect height="20" rx="5" width="20" x="2" y="2"></rect>
+                    <rect x="2" y="2" width="20" height="20" rx="5"></rect>
                     <circle cx="12" cy="12" r="4"></circle>
                     <circle cx="17.5" cy="6.5" r="0.5"></circle>
                 </svg>
@@ -243,14 +243,13 @@
             </a>
         </div>
         <p class="footer-inner__meta">
-            &copy;
-        </p>
-        <p class="footer-inner__meta">
             Your culinary guide to Irish cooking
         </p>
         <p class="footer-inner__meta">
-            Designed by <a href="https://bearcave.ie" rel="noopener noreferrer" target="_blank">Bearcave Ltd.</a>
+            &copy; 2026 Designed by <a href="https://bearcave.ie" rel="noopener noreferrer" target="_blank">Bearcave Ltd.</a>
         </p>
+        <p class="footer-inner__meta">CulinEire Pre-release Version 0.9</p>
+        <p class="footer-inner__meta">CulinEire&reg; is a registered trade mark of Bearcave Limited. CulinEire Kitchen is a registered business name of Bearcave Limited. All rights reserved.</p>
     </div>
 </footer>
 

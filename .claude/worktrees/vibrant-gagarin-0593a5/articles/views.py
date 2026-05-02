@@ -1,5 +1,5 @@
-from django.contrib import messages
 from django.db.models import Prefetch
+from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
@@ -30,7 +30,27 @@ class ArticleListView(ListView):
         selected_author = None
         if author_slug:
             selected_author = get_object_or_404(RecipeAuthor, slug=author_slug)
+
+        recent_articles = None
+        all_articles = None
+        default_recent_articles = None
+        all_articles_grid = None
+
+        if selected_author:
+            all_articles = Article.objects.select_related("author").filter(
+                author=selected_author
+            ).order_by("-published")
+            recent_articles = list(all_articles[:6])
+        else:
+            all_qs = Article.objects.select_related("author").order_by("-published")
+            default_recent_articles = list(all_qs[:6])
+            all_articles_grid = list(all_qs[:50])
+
         context["selected_author"] = selected_author
+        context["recent_articles"] = recent_articles
+        context["all_articles"] = all_articles
+        context["default_recent_articles"] = default_recent_articles
+        context["all_articles_grid"] = all_articles_grid
         context["can_manage_selected_author"] = user_can_manage_author(
             self.request.user, selected_author
         )

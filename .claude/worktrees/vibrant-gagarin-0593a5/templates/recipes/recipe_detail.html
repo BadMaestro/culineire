@@ -5,156 +5,60 @@
 {% block meta_description %}{% if recipe.short_description %}{{ recipe.short_description }}{% else %}Recipe detail page for {{ recipe.title }} on CulinEire.{% endif %}{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/detail_page.css' %}?v=20260428k" rel="stylesheet">
+<link href="{% static 'css/detail_page.css' %}?v=20260501" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
+<section class="hero hero--home hero--recipe-detail">
+    <div aria-hidden="true" class="hero__background">
+        {% if recipe.hero_image %}<img alt="" src="{{ recipe.hero_image.url }}">
+        {% else %}<img alt="" src="{% static 'images/hero.jpg' %}">{% endif %}
+    </div>
+    <div aria-hidden="true" class="hero__overlay"></div>
+    <div class="container hero__inner">
+        <div class="hero-copy">
+            <span class="pill">{{ recipe.get_category_display }}</span>
+            <h1 class="hero-title">{{ recipe.title }}</h1>
+            {% if recipe.short_description %}
+            <p class="hero-subtitle">{{ recipe.short_description }}</p>
+            {% endif %}
+            <div class="hero__actions">
+                <a class="btn-primary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
+                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
+            </div>
+        </div>
+    </div>
+</section>
+
 <section class="section">
     <div class="container">
-        <nav aria-label="Breadcrumb" class="detail-page__breadcrumb">
-            <ol class="detail-page__breadcrumb-list">
-                <li class="detail-page__breadcrumb-item">
-                    <a href="{% url 'recipes:recipe_list' %}">Recipes</a>
-                </li>
-                {% if recipe.category %}
-                <li class="detail-page__breadcrumb-item">
-                    <a href="{{ recipe.get_category_url }}">
-                        {{ recipe.get_category_display }}
-                    </a>
-                </li>
-                {% endif %}
-                <li aria-current="page" class="detail-page__breadcrumb-item detail-page__breadcrumb-item--current">
-                    {{ recipe.title }}
-                </li>
-            </ol>
-            {% if recipe.created_at %}
-            <time class="detail-page__breadcrumb-date" datetime="{{ recipe.created_at|date:'Y-m-d' }}">
-                {{ recipe.created_at|date:"j F Y" }}
-            </time>
-            {% endif %}
-        </nav>
-
         <article class="detail-page">
-            <header class="detail-page__header detail-page__header--recipe">
-                <div class="detail-page__header-inner">
-                    <div class="detail-page__topbar">
-                        <div aria-label="Recipe category and difficulty" class="detail-page__taxonomy">
-                            {% for category_item in recipe.get_all_category_items %}
-                            <a class="detail-page__taxonomy-chip" href="{{ category_item.url }}">
-                                {{ category_item.label }}
-                            </a>
-                            {% if not forloop.last %}
-                            <span class="detail-page__taxonomy-divider">•</span>
-                            {% endif %}
-                            {% endfor %}
-
-                            {% if recipe.get_difficulty_display %}
-                            <span class="detail-page__taxonomy-divider">•</span>
-                            <span class="detail-page__taxonomy-chip detail-page__taxonomy-chip--muted">
-                                {{ recipe.get_difficulty_display }}
-                            </span>
-                            {% endif %}
-                        </div>
-
-                        <div aria-label="Recipe timing" class="detail-page__timing-pill">
-                            <span class="detail-page__timing-item">
-                                <span class="detail-page__timing-label">Prep</span>
-                                <span class="detail-page__timing-value">{{ recipe.prep_time_minutes|default:0 }} min</span>
-                            </span>
-
-                            <span class="detail-page__timing-dot">•</span>
-
-                            <span class="detail-page__timing-item">
-                                <span class="detail-page__timing-label">Cook</span>
-                                <span class="detail-page__timing-value">{{ recipe.cook_time_minutes|default:0 }} min</span>
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="detail-page__hero-copy">
-                        <h1>{{ recipe.title }}</h1>
-
-                        {% if recipe.short_description %}
-                        <p class="detail-page__intro">{{ recipe.short_description }}</p>
-                        {% endif %}
-
-                        {% if recipe.author %}
-                        <p class="detail-page__author">
-                            <span class="detail-page__author-label">By:</span>
-                            <a aria-label="View author profile for {{ recipe.author.name }}"
-                               class="detail-page__author-link"
-                               href="{% url 'recipes:author_detail' recipe.author.slug %}">
-                                <img
-                                        alt="{{ recipe.author.name }}"
-                                        class="detail-page__author-avatar"
-                                        height="40"
-                                        src="{% static 'images/greenbear.png' %}"
-                                        width="40"
-                                >
-                                <span class="detail-page__author-name">{{ recipe.author.name }}</span>
-                            </a>
-                        </p>
-                        {% endif %}
-                    </div>
-                </div>
-            </header>
 
             {% if gallery_items %}
             <section
-                    aria-label="Recipe media gallery"
-                    class="recipe-gallery{% if gallery_items|length == 1 %} recipe-gallery--single{% endif %}"
-                    data-gallery
+                aria-label="Recipe media gallery"
+                class="recipe-gallery{% if gallery_items|length == 1 %} recipe-gallery--single{% endif %}"
+                data-gallery
             >
                 <div class="recipe-gallery__viewport">
-                    <button
-                            aria-label="Previous media"
-                            class="recipe-gallery__arrow recipe-gallery__arrow--prev"
-                            data-gallery-prev
-                            type="button"
-                    >
-                        &#8249;
-                    </button>
-
+                    <button aria-label="Previous media" class="recipe-gallery__arrow recipe-gallery__arrow--prev" data-gallery-prev type="button">&#8249;</button>
                     <div class="recipe-gallery__stage" data-gallery-stage>
                         {% for item in gallery_items %}
-                        <figure
-                                class="recipe-gallery__item"
-                                data-gallery-index="{{ forloop.counter0 }}"
-                                data-gallery-item
-                                data-gallery-type="{{ item.media_type|default:'image' }}"
-                        >
+                        <figure class="recipe-gallery__item" data-gallery-index="{{ forloop.counter0 }}" data-gallery-item data-gallery-type="{{ item.media_type|default:'image' }}">
                             <div class="recipe-gallery__image-shell">
                                 {% if item.media_type == "video" %}
-                                <video
-                                        %}
-                                        %}poster="{{ item.poster }}" class="recipe-gallery__media" endif if item.poster muted playsinline
-                                        preload="metadata"
-                                        {%
-                                        {%
-                                >
+                                <video class="recipe-gallery__media" {% if item.poster %}poster="{{ item.poster }}"{% endif %} muted playsinline preload="metadata">
                                     <source src="{{ item.src }}">
                                     Your browser does not support the video tag.
                                 </video>
                                 {% else %}
-                                <img
-                                        alt="{{ item.alt }}"
-                                        class="recipe-gallery__media"
-                                        src="{{ item.src }}"
-                                >
+                                <img alt="{{ item.alt }}" class="recipe-gallery__media" src="{{ item.src }}">
                                 {% endif %}
                             </div>
                         </figure>
                         {% endfor %}
                     </div>
-
-                    <button
-                            aria-label="Next media"
-                            class="recipe-gallery__arrow recipe-gallery__arrow--next"
-                            data-gallery-next
-                            type="button"
-                    >
-                        &#8250;
-                    </button>
+                    <button aria-label="Next media" class="recipe-gallery__arrow recipe-gallery__arrow--next" data-gallery-next type="button">&#8250;</button>
                 </div>
             </section>
             {% endif %}
@@ -164,342 +68,279 @@
                     <span aria-hidden="true">🖨</span>
                     <span>Print</span>
                 </button>
-
                 <div class="detail-page__share">
-                    <a
-                            class="detail-page__action-btn"
-                            href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri|urlencode }}&text={{ recipe.title|urlencode }}"
-                            rel="noopener noreferrer"
-                            target="_blank"
-                    >
+                    <a class="detail-page__action-btn" href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri|urlencode }}&text={{ recipe.title|urlencode }}" rel="noopener noreferrer" target="_blank">
                         <span aria-hidden="true">𝕏</span>
                         <span>Twitter/X</span>
                     </a>
-                    <a
-                            class="detail-page__action-btn"
-                            href="https://wa.me/?text={{ recipe.title|urlencode }}%20{{ request.build_absolute_uri|urlencode }}"
-                            rel="noopener noreferrer"
-                            target="_blank"
-                    >
+                    <a class="detail-page__action-btn" href="https://wa.me/?text={{ recipe.title|urlencode }}%20{{ request.build_absolute_uri|urlencode }}" rel="noopener noreferrer" target="_blank">
                         <span aria-hidden="true">✆</span>
                         <span>WhatsApp</span>
                     </a>
-                    <a
-                            class="detail-page__action-btn"
-                            href="https://t.me/share/url?url={{ request.build_absolute_uri|urlencode }}&text={{ recipe.title|urlencode }}"
-                            rel="noopener noreferrer"
-                            target="_blank"
-                    >
+                    <a class="detail-page__action-btn" href="https://t.me/share/url?url={{ request.build_absolute_uri|urlencode }}&text={{ recipe.title|urlencode }}" rel="noopener noreferrer" target="_blank">
                         <span aria-hidden="true">✈</span>
                         <span>Telegram</span>
                     </a>
-                    <a
-                            class="detail-page__action-btn"
-                            href="https://pinterest.com/pin/create/button/?url={{ request.build_absolute_uri|urlencode }}&description={{ recipe.title|urlencode }}"
-                            rel="noopener noreferrer"
-                            target="_blank"
-                    >
+                    <a class="detail-page__action-btn" href="https://pinterest.com/pin/create/button/?url={{ request.build_absolute_uri|urlencode }}&description={{ recipe.title|urlencode }}" rel="noopener noreferrer" target="_blank">
                         <span aria-hidden="true">P</span>
                         <span>Pinterest</span>
                     </a>
-                    <button
-                            class="detail-page__copy-btn detail-page__action-btn"
-                            data-copy-url="{{ request.build_absolute_uri }}"
-                            type="button"
-                    >
+                    <button class="detail-page__copy-btn detail-page__action-btn" data-copy-url="{{ request.build_absolute_uri }}" type="button">
                         <span aria-hidden="true">🔗</span>
                         <span>Copy link</span>
                     </button>
                 </div>
             </div>
 
-            <div class="detail-page__grid">
-                <section class="detail-page__main">
-                    <section class="detail-page__section">
-                        <div class="recipe-summary">
-                            <div class="recipe-summary__grid">
-                                <div class="recipe-summary__item">
-                                    <span class="recipe-summary__label">Total time</span>
-                                    <span class="recipe-summary__value">{{ recipe.total_time_minutes }} min</span>
-                                </div>
+            {# ── Stats bar ── #}
+            <div class="recipe-stats" id="rating">
+                <div class="recipe-stat">
+                    <span class="recipe-stat__label">Total time</span>
+                    <span class="recipe-stat__value">{{ recipe.total_time_minutes }} min</span>
+                </div>
+                <div class="recipe-stat">
+                    <span class="recipe-stat__label">Prep</span>
+                    <span class="recipe-stat__value">{{ recipe.prep_time_minutes|default:0 }} min</span>
+                </div>
+                <div class="recipe-stat">
+                    <span class="recipe-stat__label">Cook</span>
+                    <span class="recipe-stat__value">{{ recipe.cook_time_minutes|default:0 }} min</span>
+                </div>
+                <div class="recipe-stat">
+                    <span class="recipe-stat__label">Servings</span>
+                    <span class="recipe-stat__value" data-base-servings="{{ recipe.servings|default:1 }}">{{ recipe.servings|default:1 }}</span>
+                </div>
+                {% if recipe.calories %}
+                <div class="recipe-stat">
+                    <span class="recipe-stat__label">Calories</span>
+                    <span class="recipe-stat__value">{{ recipe.calories }}</span>
+                </div>
+                {% endif %}
+                <div class="recipe-stat recipe-stat--rating">
+                    <span class="recipe-stat__label">Rating: <span class="recipe-stat__value--inline">{% if ratings_count %}{{ average_rating_value|floatformat:1 }}/5{% else %}—{% endif %}</span></span>
+                    <div aria-label="Average recipe rating" class="rating-overview">
+                        <div aria-hidden="true" class="rating-overview__stars">
+                            <span class="rating-overview__stars-base">★★★★★</span>
+                            <span class="rating-overview__stars-fill" style="--rating-fill: {{ average_rating_percentage }}%;">★★★★★</span>
+                        </div>
+                        <span class="rating-overview__count">{{ ratings_count }} rating{{ ratings_count|pluralize }}</span>
+                    </div>
+                </div>
+            </div>
 
-                                <div class="recipe-summary__item">
-                                    <span class="recipe-summary__label">Prep</span>
-                                    <span class="recipe-summary__value">{{ recipe.prep_time_minutes|default:0 }} min</span>
-                                </div>
-
-                                <div class="recipe-summary__item">
-                                    <span class="recipe-summary__label">Cook</span>
-                                    <span class="recipe-summary__value">{{ recipe.cook_time_minutes|default:0 }} min</span>
-                                </div>
-
-                                <div class="recipe-summary__item">
-                                    <span class="recipe-summary__label">Servings</span>
-                                    <span class="recipe-summary__value"
-                                          data-base-servings="{{ recipe.servings|default:1 }}">
-                                        {{ recipe.servings|default:1 }}
-                                    </span>
-                                </div>
-
-                                {% if recipe.calories %}
-                                <div class="recipe-summary__item">
-                                    <span class="recipe-summary__label">Calories</span>
-                                    <span class="recipe-summary__value">{{ recipe.calories }}</span>
-                                </div>
-                                {% endif %}
-
-                                <div class="recipe-summary__item recipe-summary__item--rating" id="rating">
-                                    <span class="recipe-summary__label">Rating</span>
-                                    <span class="recipe-summary__value">
-                                        {% if ratings_count %}
-                                            {{ average_rating_value|floatformat:1 }}/5
-                                        {% else %}
-                                            Not rated yet
+            {# ── Ingredients + Method ── #}
+            {% if ingredient_items or method_steps %}
+            <div class="recipe-body">
+                {% if ingredient_items %}
+                <section class="recipe-body__col" id="ingredients">
+                    <div class="ingredients-panel" data-ingredients-panel>
+                        <div class="ingredients-panel__head"><h2>Ingredients</h2></div>
+                        <div class="ingredients-panel__scroll">
+                        <ul class="ingredients-list">
+                            {% for ingredient in ingredient_items %}
+                            <li class="ingredients-list__item" data-ingredient-item>
+                                <label class="ingredient-check">
+                                    <input class="ingredient-check__input" type="checkbox">
+                                    <span aria-hidden="true" class="ingredient-check__box"></span>
+                                    <span class="ingredient-check__text">
+                                        <span class="ingredient-check__name">{{ ingredient.name }}</span>
+                                        {% if ingredient.detail_display %}
+                                        <span class="ingredient-check__detail">{{ ingredient.detail_display }}</span>
                                         {% endif %}
                                     </span>
-                                    <div aria-label="Average recipe rating" class="rating-overview">
-                                        <div aria-hidden="true" class="rating-overview__stars">
-                                            <span class="rating-overview__stars-base">★★★★★</span>
-                                            <span class="rating-overview__stars-fill"
-                                                  style="--rating-fill: {{ average_rating_percentage }}%;">★★★★★</span>
-                                        </div>
-                                        <span class="rating-overview__count">
-                                            {{ ratings_count }} rating{{ ratings_count|pluralize }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    {% if ingredient_items %}
-                    <section class="detail-page__section" id="ingredients">
-                        <div class="detail-page__section-head">
-                            <h2>Ingredients</h2>
-                            <p class="detail-page__section-note">Scaling and interactive quantity adjustment will be
-                                added in the next stage.</p>
-                        </div>
-
-                        <div class="ingredients-panel" data-ingredients-panel>
-                            <ul class="ingredients-list">
-                                {% for ingredient in ingredient_items %}
-                                <li class="ingredients-list__item" data-ingredient-item>
-                                    <label class="ingredient-check">
-                                        <input class="ingredient-check__input" type="checkbox">
-                                        <span aria-hidden="true" class="ingredient-check__box"></span>
-                                        <span class="ingredient-check__text">
-                                            <span class="ingredient-check__name">{{ ingredient.name }}</span>
-                                            {% if ingredient.detail_display %}
-                                            <span class="ingredient-check__detail">{{ ingredient.detail_display }}</span>
-                                            {% endif %}
-                                        </span>
-                                    </label>
-                                </li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    </section>
-                    {% endif %}
-
-                    {% if method_steps %}
-                    <section class="detail-page__section" id="method">
-                        <div class="detail-page__section-head">
-                            <h2>Method</h2>
-                        </div>
-
-                        <div class="method-panel">
-                            <ol class="method-steps">
-                                {% for step in method_steps %}
-                                <li aria-label="Step {{ step.number }}" class="method-steps__item">
-                                    <span aria-hidden="true" class="method-steps__number">{{ step.number }}</span>
-                                    <div class="method-steps__body">
-                                        <p>{{ step.text }}</p>
-                                    </div>
-                                </li>
-                                {% endfor %}
-                            </ol>
-                        </div>
-                    </section>
-                    {% endif %}
-
-                    <section class="detail-page__section" id="comments">
-                        <div class="detail-page__section-head">
-                            <h2>Comments</h2>
-                            <p class="detail-page__section-note">
-                                {{ comments_count }} comment{{ comments_count|pluralize }}
-                            </p>
-                        </div>
-
-                        <div class="comments-panel">
-                            <section class="comments-panel__form">
-                                <h3>Leave a comment</h3>
-                                <form action="{% url 'recipes:submit_recipe_comment' recipe.slug %}" class="recipe-form"
-                                      method="post">
-                                    {% csrf_token %}
-                                    <div class="recipe-form__field recipe-form__field--hidden">
-                                        <label for="id_website">Website</label>
-                                        <input autocomplete="off" id="id_website" name="website" tabindex="-1"
-                                               type="text">
-                                    </div>
-
-                                    <div class="recipe-form__field">
-                                        <label for="id_name">Name</label>
-                                        <input id="id_name" maxlength="100" name="name" required type="text">
-                                    </div>
-
-                                    <div class="recipe-form__field">
-                                        <label for="id_content">Comment</label>
-                                        <textarea aria-describedby="id_content_help" id="id_content" maxlength="3000" name="content" required
-                                                  rows="6"></textarea>
-                                        <p class="recipe-form__help" id="id_content_help">Maximum 3000 characters.</p>
-                                    </div>
-
-                                    <button class="detail-button" type="submit">Post comment</button>
-                                </form>
-                            </section>
-
-                            <div class="comments-list">
-                                {% if approved_comments %}
-                                {% for comment in approved_comments %}
-                                <article class="comment-card">
-                                    <div class="comment-card__head">
-                                        <strong class="comment-card__name">{{ comment.name }}</strong>
-                                        <time class="comment-card__date" datetime="{{ comment.created_at|date:'c' }}">
-                                            {{ comment.created_at|date:"j F Y" }}
-                                        </time>
-                                    </div>
-                                    <div class="comment-card__body">
-                                        {{ comment.content|linebreaks }}
-                                    </div>
-                                </article>
-                                {% endfor %}
-                                {% else %}
-                                <div class="empty-state-card">
-                                    <p>No comments yet. Be the first to leave one.</p>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </section>
-                </section>
-
-                <aside class="detail-page__sidebar">
-                    {% if recipe.irish_context %}
-                    <section class="detail-page__card detail-page__card--context">
-                        <h2>Irish context</h2>
-                        <div class="detail-page__card-copy">
-                            {% for paragraph in irish_context_paragraphs %}
-                            <p>{{ paragraph }}</p>
-                            {% empty %}
-                            <p>{{ recipe.irish_context }}</p>
-                            {% endfor %}
-                        </div>
-                    </section>
-                    {% endif %}
-
-                    {% if recipe.tips %}
-                    <section class="detail-page__card detail-page__card--tips">
-                        <h2>Tips</h2>
-                        <div class="detail-page__card-copy">
-                            {% for paragraph in tips_paragraphs %}
-                            <p>{{ paragraph }}</p>
-                            {% empty %}
-                            <p>{{ recipe.tips }}</p>
-                            {% endfor %}
-                        </div>
-                    </section>
-                    {% endif %}
-
-                    {% if recipe.author_commentary %}
-                    <section class="detail-page__card detail-page__card--author-commentary">
-                        <h2>Author Commentary</h2>
-                        <div class="detail-page__card-copy">
-                            {% for paragraph in author_commentary_paragraphs %}
-                            <p>{{ paragraph }}</p>
-                            {% empty %}
-                            <p>{{ recipe.author_commentary }}</p>
-                            {% endfor %}
-                        </div>
-                    </section>
-                    {% endif %}
-
-                    {% if recipe.get_all_category_items or recipe.source_url %}
-                    <section class="detail-page__card detail-page__card--source">
-                        <h2>Credits &amp; Source</h2>
-                        <div class="detail-page__source-list">
-                            {% if recipe.get_all_category_items %}
-                            <div class="detail-page__source-item">
-                                <span class="detail-page__source-label">Categories</span>
-                                {% for category_item in recipe.get_all_category_items %}
-                                <a class="detail-page__source-link" href="{{ category_item.url }}">
-                                    {{ category_item.label }}
-                                </a>{% if not forloop.last %}, {% endif %}
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                            {% if recipe.source_url %}
-                            <div class="detail-page__source-item">
-                                <span class="detail-page__source-label">Link</span>
-                                <a class="detail-page__source-link" href="{{ recipe.source_url }}"
-                                   rel="noopener noreferrer" target="_blank">
-                                    View original source
-                                </a>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </section>
-                    {% endif %}
-
-                    {% if allergen_items %}
-                    <section class="detail-page__card detail-page__card--allergens">
-                        <h2>Allergens</h2>
-                        <ul aria-label="Recipe allergen status" class="allergen-list">
-                            {% for allergen in allergen_items %}
-                            <li class="allergen-list__item">
-                                <span class="allergen-check allergen-check--present">
-                                    <span aria-hidden="true" class="allergen-check__box"></span>
-                                    <span class="allergen-check__text">{{ allergen.label }}</span>
-                                </span>
+                                </label>
                             </li>
                             {% endfor %}
                         </ul>
-                    </section>
-                    {% endif %}
+                        </div>
+                    </div>
+                </section>
+                {% endif %}
 
-                    <section class="detail-page__card detail-page__card--form">
-                        <h2>Rate this recipe</h2>
-                        <form action="{% url 'recipes:submit_recipe_rating' recipe.slug %}" class="recipe-form"
-                              method="post">
-                            {% csrf_token %}
-                            <div aria-label="Choose a rating from 1 to 5" class="rating-form" role="radiogroup">
-                                <label class="rating-form__option">
-                                    <input name="value" required type="radio" value="1">
-                                    <span>1</span>
-                                </label>
-                                <label class="rating-form__option">
-                                    <input name="value" type="radio" value="2">
-                                    <span>2</span>
-                                </label>
-                                <label class="rating-form__option">
-                                    <input name="value" type="radio" value="3">
-                                    <span>3</span>
-                                </label>
-                                <label class="rating-form__option">
-                                    <input name="value" type="radio" value="4">
-                                    <span>4</span>
-                                </label>
-                                <label class="rating-form__option">
-                                    <input name="value" type="radio" value="5">
-                                    <span>5</span>
-                                </label>
-                            </div>
-
-                            <button class="detail-button" type="submit">Submit rating</button>
-                        </form>
-                    </section>
-
-                </aside>
+                {% if method_steps %}
+                <section class="recipe-body__col" id="method">
+                    <div class="method-panel">
+                        <div class="method-panel__head"><h2>Method</h2></div>
+                        <div class="method-panel__scroll">
+                        <ol class="method-steps">
+                            {% for step in method_steps %}
+                            <li class="method-steps__item" aria-label="Step {{ step.number }}">
+                                <span aria-hidden="true" class="method-steps__number">{{ step.number }}</span>
+                                <div class="method-steps__body">
+                                    <p>{{ step.text }}</p>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ol>
+                        </div>
+                    </div>
+                </section>
+                {% endif %}
             </div>
+            {% endif %}
+
+            {# ── Context cards: Irish context, Tips, Author Commentary ── #}
+            {% if recipe.irish_context or recipe.tips or recipe.author_commentary %}
+            <div class="recipe-extras">
+                {% if recipe.irish_context %}
+                <section class="detail-page__card detail-page__card--context">
+                    <h2>Irish context</h2>
+                    <div class="detail-page__card-copy">
+                        {% for paragraph in irish_context_paragraphs %}
+                        <p>{{ paragraph }}</p>
+                        {% empty %}
+                        <p>{{ recipe.irish_context }}</p>
+                        {% endfor %}
+                    </div>
+                </section>
+                {% endif %}
+
+                {% if recipe.tips %}
+                <section class="detail-page__card detail-page__card--tips">
+                    <h2>Tips</h2>
+                    <div class="detail-page__card-copy">
+                        {% for paragraph in tips_paragraphs %}
+                        <p>{{ paragraph }}</p>
+                        {% empty %}
+                        <p>{{ recipe.tips }}</p>
+                        {% endfor %}
+                    </div>
+                </section>
+                {% endif %}
+
+                {% if recipe.author_commentary %}
+                <section class="detail-page__card detail-page__card--author-commentary">
+                    <h2>Author Commentary</h2>
+                    <div class="detail-page__card-copy">
+                        {% for paragraph in author_commentary_paragraphs %}
+                        <p>{{ paragraph }}</p>
+                        {% empty %}
+                        <p>{{ recipe.author_commentary }}</p>
+                        {% endfor %}
+                    </div>
+                </section>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {# ── Footer row: Credits, Allergens, Rate this recipe ── #}
+            <div class="recipe-footer">
+                {% if recipe.get_all_category_items or recipe.source_url %}
+                <section class="detail-page__card detail-page__card--source">
+                    <h2>Credits &amp; Source</h2>
+                    <div class="detail-page__source-list">
+                        {% if recipe.get_all_category_items %}
+                        <div class="detail-page__source-item">
+                            <span class="detail-page__source-label">Categories</span>
+                            <div class="detail-page__source-links">
+                            {% for category_item in recipe.get_all_category_items %}
+                            <a class="detail-page__source-link" href="{{ category_item.url }}">{{ category_item.label }}</a>
+                            {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if recipe.source_url %}
+                        <div class="detail-page__source-item">
+                            <span class="detail-page__source-label">Link</span>
+                            <a class="detail-page__source-link" href="{{ recipe.source_url }}" rel="noopener noreferrer" target="_blank">View original source</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </section>
+                {% endif %}
+
+                {% if allergen_items %}
+                <section class="detail-page__card detail-page__card--allergens">
+                    <h2>Allergens</h2>
+                    <ul class="allergen-list" aria-label="Recipe allergen status">
+                        {% for allergen in allergen_items %}
+                        <li class="allergen-list__item">
+                            <span class="allergen-check allergen-check--present">
+                                <span aria-hidden="true" class="allergen-check__box"></span>
+                                <span class="allergen-check__text">{{ allergen.label }}</span>
+                            </span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </section>
+                {% endif %}
+
+                <section class="detail-page__card detail-page__card--form">
+                    <h2>Rate this recipe</h2>
+                    {% if has_rated %}
+                    <p class="rating-already-voted">Thank you — your rating has been saved.</p>
+                    <form action="{% url 'recipes:reset_recipe_rating' recipe.slug %}" method="post" style="margin-top:0.65rem;">
+                        {% csrf_token %}
+                        <button class="detail-button detail-button--secondary" type="submit">Change rating</button>
+                    </form>
+                    {% else %}
+                    <form action="{% url 'recipes:submit_recipe_rating' recipe.slug %}" class="recipe-form" method="post">
+                        {% csrf_token %}
+                        <div aria-label="Choose a rating from 1 to 5" class="rating-form" role="radiogroup">
+                            <label class="rating-form__option"><input name="value" required type="radio" value="1"><span>1</span></label>
+                            <label class="rating-form__option"><input name="value" type="radio" value="2"><span>2</span></label>
+                            <label class="rating-form__option"><input name="value" type="radio" value="3"><span>3</span></label>
+                            <label class="rating-form__option"><input name="value" type="radio" value="4"><span>4</span></label>
+                            <label class="rating-form__option"><input name="value" type="radio" value="5"><span>5</span></label>
+                        </div>
+                        <button class="detail-button" type="submit">Submit rating</button>
+                    </form>
+                    {% endif %}
+                </section>
+            </div>
+
+            {# ── Comments ── #}
+            <section class="recipe-comments" id="comments">
+                <div class="detail-page__section-head">
+                    <h2>Comments</h2>
+                    <p class="detail-page__section-note">{{ comments_count }} comment{{ comments_count|pluralize }}</p>
+                </div>
+                <div class="comments-panel">
+                    <section class="comments-panel__form">
+                        {% if request.user.is_authenticated %}
+                        <div class="comments-panel__commenter">
+                            {% if commenter_profile and commenter_profile.avatar %}
+                            <img alt="{{ commenter_profile.name }}" class="comments-panel__commenter-avatar" src="{{ commenter_profile.avatar.url }}">
+                            {% else %}
+                            <span aria-hidden="true" class="comments-panel__commenter-avatar comments-panel__commenter-avatar--fallback">{{ request.user.username|slice:":1"|upper }}</span>
+                            {% endif %}
+                            <span class="comments-panel__commenter-name">{% if commenter_profile %}{{ commenter_profile.name }}{% else %}{{ request.user.get_full_name|default:request.user.username }}{% endif %}</span>
+                        </div>
+                        <form action="{% url 'recipes:submit_recipe_comment' recipe.slug %}" class="recipe-form" method="post">
+                            {% csrf_token %}
+                            <input autocomplete="off" name="website" tabindex="-1" type="text" style="display:none;">
+                            <div class="recipe-form__field">
+                                <textarea id="id_content" maxlength="3000" name="content" required rows="5" aria-label="Your comment" placeholder="Write your comment here…"></textarea>
+                            </div>
+                            <button class="detail-button" type="submit">Post comment</button>
+                        </form>
+                        {% else %}
+                        <p class="comments-panel__login-prompt">
+                            <a href="{% url 'login' %}?next={{ request.path }}">Log in</a> to leave a comment.
+                        </p>
+                        {% endif %}
+                    </section>
+
+                    <div class="comments-list">
+                        {% if approved_comments %}
+                            {% for comment in approved_comments %}
+                            <article class="comment-card">
+                                <div class="comment-card__head">
+                                    <strong class="comment-card__name">{{ comment.name }}</strong>
+                                    <time class="comment-card__date" datetime="{{ comment.created_at|date:'c' }}">{{ comment.created_at|date:"j F Y" }}</time>
+                                </div>
+                                <div class="comment-card__body">{{ comment.content|linebreaks }}</div>
+                            </article>
+                            {% endfor %}
+                        {% else %}
+                        <div class="empty-state-card">
+                            <p>No comments yet. Be the first to leave one.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </section>
+
         </article>
     </div>
 </section>

@@ -2,6 +2,7 @@ import re
 
 from django.contrib import messages
 from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.db.models import Avg, Count, Prefetch
 from django.db.models.deletion import ProtectedError
@@ -27,6 +28,7 @@ from .forms import (
     SignUpForm,
 )
 from .models import Recipe, RecipeAuthor, RecipeComment, RecipeImage, RecipeRating
+
 
 POPULAR_CATEGORY_PRIORITY = [
     ("irish_culinary_heritage", "Irish Culinary Heritage"),
@@ -76,22 +78,22 @@ CATEGORY_IMAGE_MAP = {
     "pasta_and_noodles": "images/categories/pasta-and-noodles.png",
 }
 
+
 METHOD_STEP_PREFIX_RE = re.compile(r"^\d+\.\s*")
 INGREDIENT_DETAIL_SPLIT_RE = re.compile(r"\s*(?:-|–|—|:)\s*", re.UNICODE)
 CONTEXT_SENTENCE_SPLIT_RE = re.compile(r'(?<=[.!?])\s+(?=(?:["“‘]?[A-Z0-9]))')
+
 
 EU_ALLERGENS = [
     {
         "key": "gluten",
         "label": "Cereals containing gluten",
-        "aliases": ["gluten", "wheat", "barley", "rye", "oats", "spelt", "semolina", "breadcrumbs", "pasta", "bread",
-                    "flour"],
+        "aliases": ["gluten", "wheat", "barley", "rye", "oats", "spelt", "semolina", "breadcrumbs", "pasta", "bread", "flour"],
     },
     {
         "key": "crustaceans",
         "label": "Crustaceans",
-        "aliases": ["crustacean", "crustaceans", "prawn", "prawns", "shrimp", "crab", "lobster", "langoustine",
-                    "scampi", "crayfish"],
+        "aliases": ["crustacean", "crustaceans", "prawn", "prawns", "shrimp", "crab", "lobster", "langoustine", "scampi", "crayfish"],
     },
     {
         "key": "eggs",
@@ -121,8 +123,7 @@ EU_ALLERGENS = [
     {
         "key": "tree_nuts",
         "label": "Tree nuts",
-        "aliases": ["almond", "almonds", "hazelnut", "hazelnuts", "walnut", "walnuts", "cashew", "cashews", "pecan",
-                    "pecans", "pistachio", "pistachios", "macadamia", "brazil nut", "brazil nuts"],
+        "aliases": ["almond", "almonds", "hazelnut", "hazelnuts", "walnut", "walnuts", "cashew", "cashews", "pecan", "pecans", "pistachio", "pistachios", "macadamia", "brazil nut", "brazil nuts"],
     },
     {
         "key": "celery",
@@ -152,8 +153,7 @@ EU_ALLERGENS = [
     {
         "key": "molluscs",
         "label": "Molluscs",
-        "aliases": ["mollusc", "molluscs", "mussel", "mussels", "oyster", "oysters", "clam", "clams", "scallop",
-                    "scallops", "squid", "octopus", "cuttlefish", "snail", "whelk"],
+        "aliases": ["mollusc", "molluscs", "mussel", "mussels", "oyster", "oysters", "clam", "clams", "scallop", "scallops", "squid", "octopus", "cuttlefish", "snail", "whelk"],
     },
 ]
 
@@ -365,10 +365,27 @@ def recipe_list(request):
             }
         )
 
+    recent_recipes = list(recipes[:6]) if selected_author else None
+    default_recent_recipes = list(recipes[:6]) if not selected_author else None
+    all_recipes_grid = list(recipes[:50]) if not selected_author else None
+
+    all_articles = None
+    recent_articles = None
+    if selected_author:
+        all_articles = (
+            Article.objects.select_related("author")
+            .filter(author=selected_author)
+            .order_by("-published")
+        )
+        recent_articles = list(all_articles[:6])
+
     context = {
         "recipes": recipes,
-        "popular_categories": popular_categories,
-        "mood_categories": mood_categories,
+        "recent_recipes": recent_recipes,
+        "all_articles": all_articles,
+        "recent_articles": recent_articles,
+        "popular_categories": popular_categories if not selected_author else [],
+        "mood_categories": mood_categories if not selected_author else [],
         "categories": category_navigation,
         "page_title": (
             f"{selected_author.name} Recipes | CulinEire"
@@ -384,19 +401,22 @@ def recipe_list(request):
             )
         ),
         "page_heading": (
-            f"{selected_author.name}'s recipes"
+            f"{selected_author.name}'s Recipe Collection"
             if selected_author
             else "Explore The Recipe Collection"
         ),
         "page_subtitle": (
-            f"A curated view of recipes created by {selected_author.name}."
+            f"The complete recipe collection from {selected_author.name} — Irish classics, seasonal dishes and home-kitchen favourites from the CulinEire Kitchen."
             if selected_author
             else (
-                "Explore Irish classics, vintage recipes, and modern twists, all adapted "
-                "for the home kitchen."
+                "Irish classics, treasured vintage recipes, and modern home-kitchen twists, "
+                "bringing familiar flavours back to the table and opening Ireland's culinary "
+                "heritage to food lovers."
             )
         ),
         "selected_category_label": "",
+        "default_recent_recipes": default_recent_recipes,
+        "all_recipes_grid": all_recipes_grid,
         "selected_author": selected_author,
         "can_manage_selected_author": user_can_manage_author(request.user, selected_author),
     }
@@ -508,6 +528,16 @@ def recipe_detail(request, slug):
     ratings_count = rating_summary["count"] or 0
     average_rating_percentage = min(max((average_rating_value / 5) * 100, 0), 100)
 
+    session_key = f"recipe_rating_submitted_{recipe.pk}"
+    has_rated = bool(request.session.get(session_key))
+
+    commenter_profile = None
+    if request.user.is_authenticated:
+        try:
+            commenter_profile = request.user.recipe_author_profile
+        except RecipeAuthor.DoesNotExist:
+            pass
+
     context = {
         "recipe": recipe,
         "gallery_items": gallery_items,
@@ -525,6 +555,8 @@ def recipe_detail(request, slug):
         "ratings_count": ratings_count,
         "average_rating_percentage": average_rating_percentage,
         "can_manage_recipe": user_can_manage_author(request.user, recipe.author),
+        "has_rated": has_rated,
+        "commenter_profile": commenter_profile,
     }
     return render(request, "recipes/recipe_detail.html", context)
 
@@ -562,10 +594,28 @@ def submit_recipe_rating(request, slug):
 
 
 @require_POST
+def reset_recipe_rating(request, slug):
+    recipe = get_object_or_404(Recipe, slug=slug)
+    session_key = f"recipe_rating_submitted_{recipe.pk}"
+    request.session.pop(session_key, None)
+    request.session.modified = True
+    return redirect(f"{recipe.get_absolute_url()}#rating")
+
+
+@require_POST
+@login_required
 @ratelimit(key="ip", rate="5/h", method="POST", block=False)
 def submit_recipe_comment(request, slug):
     recipe = get_object_or_404(Recipe, slug=slug)
-    form = RecipeCommentForm(request.POST)
+
+    try:
+        display_name = request.user.recipe_author_profile.name
+    except RecipeAuthor.DoesNotExist:
+        display_name = request.user.get_full_name() or request.user.username
+
+    post_data = request.POST.copy()
+    post_data["name"] = display_name
+    form = RecipeCommentForm(post_data)
 
     last_comment_payload_key = f"recipe_comment_payload_{recipe.pk}"
 
@@ -604,29 +654,17 @@ def submit_recipe_comment(request, slug):
 def author_detail(request, slug):
     author = get_object_or_404(RecipeAuthor, slug=slug)
 
-    recipes = (
-        Recipe.objects.select_related("author")
-        .prefetch_related("additional_category_links")
-        .filter(author=author)
-        .order_by("-created_at")
-    )
-
-    related_articles = (
-        Article.objects.select_related("author", "related_recipe")
-        .filter(author=author)
-        .order_by("-published")
-    )
-
-    is_god_author = author.slug == "greenbear"
+    recipe_count = Recipe.objects.filter(author=author).count()
+    article_count = Article.objects.filter(author=author).count()
 
     context = {
         "author": author,
-        "recipes": recipes,
-        "related_articles": related_articles,
-        "is_god_author": is_god_author,
+        "recipe_count": recipe_count,
+        "article_count": article_count,
+        "is_god_author": author.slug == "greenbear",
         "can_manage_author_profile": user_can_manage_author(request.user, author),
-        "profile_delete_will_remove_articles": related_articles.exists(),
-        "profile_delete_will_orphan_recipes": recipes.exists(),
+        "profile_delete_will_remove_articles": article_count > 0,
+        "profile_delete_will_orphan_recipes": recipe_count > 0,
     }
     return render(request, "recipes/author_detail.html", context)
 
