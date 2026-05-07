@@ -18182,3 +18182,12 @@ INFO | 2026-05-08 00:51:52 | autoreload      | Watching for file changes with St
 INFO | 2026-05-08 00:51:54 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
 INFO | 2026-05-08 00:51:57 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
 INFO | 2026-05-08 00:52:00 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
+INFO | 2026-05-08 00:52:03 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
+INFO | 2026-05-08 00:52:06 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
+INFO | 2026-05-08 00:52:09 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
+INFO | 2026-05-08 00:52:12 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
+INFO | 2026-05-08 00:52:15 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
+INFO | 2026-05-08 00:52:18 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
+INFO | 2026-05-08 00:52:21 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
+INFO | 2026-05-08 00:52:24 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
+INFO | 2026-05-08 00:52:27 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
