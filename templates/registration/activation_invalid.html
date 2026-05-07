@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Invalid Link | CulinEire{% endblock %}
+{% block meta_description %}This activation link has expired or has already been used.{% endblock %}
+
+{% block extra_head %}
+<link href="{% static 'css/auth.css' %}?v=20260507b" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="hero hero--home hero--login">
+    <div aria-hidden="true" class="hero__background">
+        <img alt="" src="{% static 'images/hero-join.png' %}">
+    </div>
+    <div aria-hidden="true" class="hero__overlay"></div>
+    <div class="container hero__inner hero__inner--login">
+        <div class="hero-copy hero-copy--login">
+            <h1 class="hero-title">Link expired</h1>
+            <p class="hero-subtitle">This activation link is no longer valid.</p>
+        </div>
+        <div class="auth-card auth-card--hero">
+            <div class="auth-copy">
+                <p class="eyebrow">Something went wrong</p>
+                <h2>Invalid activation link</h2>
+            </div>
+            <p>This link has expired or has already been used. Please <a href="{% url 'signup' %}">create a new account</a> to receive a fresh confirmation email.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

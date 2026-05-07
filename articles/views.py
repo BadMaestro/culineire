@@ -1,8 +1,10 @@
-from django.db.models import Prefetch
+from django.conf import settings
 from django.contrib import messages
+from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
+from config.turnstile import verify_turnstile
 from recipes.authoring import AuthorRequiredMixin, user_can_manage_author
 from recipes.models import RecipeAuthor
 from .forms import ArticleAuthoringForm
@@ -62,6 +64,13 @@ class ArticleCreateView(AuthorRequiredMixin, CreateView):
     form_class = ArticleAuthoringForm
     template_name = "authoring/article_form.html"
 
+    def post(self, request, *args, **kwargs):
+        token = request.POST.get("cf-turnstile-response", "")
+        if not verify_turnstile(token, request.META.get("REMOTE_ADDR", "")):
+            messages.error(request, "Security check failed. Please try again.")
+            return redirect("articles:article_create")
+        return super().post(request, *args, **kwargs)
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs["author"] = self.author
@@ -76,6 +85,7 @@ class ArticleCreateView(AuthorRequiredMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["author"] = self.author
+        context["turnstile_site_key"] = settings.TURNSTILE_SITE_KEY
         return context
 
 

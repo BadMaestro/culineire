@@ -6,6 +6,7 @@
 
 {% block extra_head %}
 <link href="{% static 'css/authoring.css' %}?v=20260430a" rel="stylesheet">
+{% if turnstile_site_key %}<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -92,6 +93,9 @@
             </fieldset>
 
             <div class="authoring-actions">
+                {% if turnstile_site_key %}
+                <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="light"></div>
+                {% endif %}
                 <a class="authoring-link" href="{% url 'articles:article_list' %}">Cancel</a>
                 <button class="authoring-submit" type="submit">{{ submit_label|default:"Save Article" }}</button>
             </div>

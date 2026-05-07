@@ -55,6 +55,7 @@
                                     <a class="recipe-card__category-link" href="{{ recipe.get_category_url }}">{{ recipe.get_category_display|default:"Recipe" }}</a>
                                     {% if recipe.get_difficulty_display %}<span class="recipe-card__difficulty">{{ recipe.get_difficulty_display }}</span>{% endif %}
                                 </div>
+                                <div class="recipe-card__meta-line recipe-card__meta-line--article"><span class="recipe-card__meta-item">{{ recipe.created_at|date:"j F Y" }}</span></div>
                                 <div aria-label="Recipe timing" class="recipe-card__timing">
                                     <span class="recipe-card__timing-item"><span class="recipe-card__timing-label">Prep:</span> <span class="recipe-card__timing-value">{{ recipe.prep_time_minutes|default:0 }} min</span></span>
                                     <span aria-hidden="true" class="recipe-card__timing-divider">&bull;</span>
@@ -113,6 +114,7 @@
                             <div aria-label="Recipe category and difficulty" class="recipe-card__taxonomy">
                                 <a class="recipe-card__category-link" href="{{ recipe.get_category_url }}">{{ recipe.get_category_display|default:"Recipe" }}</a>
                             </div>
+                            <div class="recipe-card__meta-line recipe-card__meta-line--article"><span class="recipe-card__meta-item">{{ recipe.created_at|date:"j F Y" }}</span></div>
                         </div>
                         <div class="recipe-card__footer">
                             {% if can_manage_selected_author %}
@@ -216,6 +218,7 @@
                                     <a class="recipe-card__category-link" href="{{ recipe.get_category_url }}">{{ recipe.get_category_display|default:"Recipe" }}</a>
                                     {% if recipe.get_difficulty_display %}<span class="recipe-card__difficulty">{{ recipe.get_difficulty_display }}</span>{% endif %}
                                 </div>
+                                <div class="recipe-card__meta-line recipe-card__meta-line--article"><span class="recipe-card__meta-item">{{ recipe.created_at|date:"j F Y" }}</span></div>
                                 <div aria-label="Recipe timing" class="recipe-card__timing">
                                     <span class="recipe-card__timing-item"><span class="recipe-card__timing-label">Prep:</span> <span class="recipe-card__timing-value">{{ recipe.prep_time_minutes|default:0 }} min</span></span>
                                     <span aria-hidden="true" class="recipe-card__timing-divider">&bull;</span>
@@ -265,6 +268,7 @@
                                 <div aria-label="Recipe category" class="recipe-card__taxonomy">
                                     <a class="recipe-card__category-link" href="{{ recipe.get_category_url }}">{{ recipe.get_category_display|default:"Recipe" }}</a>
                                 </div>
+                                <div class="recipe-card__meta-line recipe-card__meta-line--article"><span class="recipe-card__meta-item">{{ recipe.created_at|date:"j F Y" }}</span></div>
                             </div>
                         </div>
                     </article>

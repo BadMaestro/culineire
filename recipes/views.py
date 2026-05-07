@@ -1,9 +1,12 @@
 import re
 
+from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import login
+from django.contrib.auth import get_user_model, login
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import LoginView
+from django.core.mail import send_mail
 from django.db.models import Avg, Count, Prefetch
 from django.db.models.deletion import ProtectedError
 from django.http import Http404
@@ -11,12 +14,15 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.templatetags.static import static
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DeleteView, UpdateView
 from django_ratelimit.decorators import ratelimit
 
 from articles.models import Article
+from config.turnstile import verify_turnstile
 from .allergens import build_present_allergen_items
 from .authoring import AuthorRequiredMixin, user_can_manage_author
 from .forms import (
@@ -674,6 +680,13 @@ class RecipeCreateView(AuthorRequiredMixin, CreateView):
     form_class = RecipeAuthoringForm
     template_name = "authoring/recipe_form.html"
 
+    def post(self, request, *args, **kwargs):
+        token = request.POST.get("cf-turnstile-response", "")
+        if not verify_turnstile(token, request.META.get("REMOTE_ADDR", "")):
+            messages.error(request, "Security check failed. Please try again.")
+            return redirect("recipes:recipe_create")
+        return super().post(request, *args, **kwargs)
+
     def form_valid(self, form):
         recipe = form.save(commit=False)
         recipe.author = self.author
@@ -687,6 +700,7 @@ class RecipeCreateView(AuthorRequiredMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["author"] = self.author
+        context["turnstile_site_key"] = settings.TURNSTILE_SITE_KEY
         return context
 
 
@@ -850,14 +864,63 @@ class SignUpView(CreateView):
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["turnstile_site_key"] = settings.TURNSTILE_SITE_KEY
+        return ctx
+
     def post(self, request, *args, **kwargs):
         if getattr(request, "limited", False):
             messages.error(request, "Too many account creation attempts. Please try again later.")
             return redirect("signup")
+        token = request.POST.get("cf-turnstile-response", "")
+        if not verify_turnstile(token, request.META.get("REMOTE_ADDR", "")):
+            messages.error(request, "Security check failed. Please try again.")
+            return redirect("signup")
         return super().post(request, *args, **kwargs)
 
     def form_valid(self, form):
-        response = super().form_valid(form)
-        login(self.request, self.object)
-        messages.success(self.request, "Welcome to CulinEire. Your account is ready.")
-        return response
+        user = form.save(commit=False)
+        user.is_active = False
+        user.save()
+
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+        domain = settings.SITE_DOMAIN
+        activation_url = f"http://{domain}/accounts/activate/{uid}/{token}/"
+
+        send_mail(
+            subject="Confirm your CulinEire account",
+            message=(
+                f"Welcome to CulinEire, {user.username}!\n\n"
+                f"Please confirm your email address by clicking the link below:\n\n"
+                f"{activation_url}\n\n"
+                f"This link expires in 24 hours.\n\n"
+                f"If you did not create an account, please ignore this email.\n\n"
+                f"— The CulinEire Team"
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            fail_silently=False,
+        )
+
+        return render(self.request, "registration/activation_pending.html", {"email": user.email})
+
+
+@ratelimit(key="ip", rate="20/h", method="GET", block=True)
+def activate_account(request, uidb64, token):
+    User = get_user_model()
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        login(request, user)
+        messages.success(request, "Your email is confirmed. Welcome to CulinEire!")
+        return redirect("home")
+
+    return render(request, "registration/activation_invalid.html", status=400)

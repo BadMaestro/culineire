@@ -14,7 +14,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Libre+Bodoni:wght@400&family=Inter:wght@400;500;600&family=Dancing+Script:wght@600;700&display=swap"
           rel="stylesheet">
 
-    <link href="{% static 'css/base.css' %}?v=20260430x" rel="stylesheet">
+    <link href="{% static 'css/base.css' %}?v=20260507c" rel="stylesheet">
     <link href="{% static 'css/header.css' %}?v=20260430l" rel="stylesheet">
 
     {% block extra_head %}{% endblock %}
@@ -116,7 +116,11 @@
                             {% if header_author and header_author.avatar %}
                             <img alt="" class="ce-author-panel__avatar" src="{{ header_author.avatar.url }}">
                             {% else %}
-                            <img alt="" class="ce-author-panel__avatar" src="{% static 'images/greenbear.png' %}">
+                            <svg aria-hidden="true" class="ce-author-panel__avatar ce-author-panel__avatar--placeholder" viewBox="0 0 40 40">
+                                <circle cx="20" cy="20" r="20" fill="#c8b89a"/>
+                                <circle cx="20" cy="16" r="8" fill="#f5ede0"/>
+                                <ellipse cx="20" cy="36" rx="13" ry="9" fill="#f5ede0"/>
+                            </svg>
                             {% endif %}
                         </span>
                         <span class="ce-author-panel__copy">
@@ -168,7 +172,7 @@
                 <a class="ce-nav__text{% if url_name == 'signup' %} ce-nav__text--active{% endif %}"
                    href="{% url 'signup' %}"
                    {% if url_name == 'signup' %}aria-current="page"{% endif %}>
-                    Join
+                    Join Us
                 </a>
                 {% endif %}
             </div>
@@ -254,6 +258,17 @@
 </footer>
 
 <script src="{% static 'js/main.js' %}?v=20260430l"></script>
+<script>
+(function () {
+  function dismissToast(el) {
+    el.classList.add('site-message--hiding');
+    el.addEventListener('animationend', function () { el.remove(); }, { once: true });
+  }
+  document.querySelectorAll('.site-message').forEach(function (el) {
+    setTimeout(function () { dismissToast(el); }, 5000);
+  });
+})();
+</script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

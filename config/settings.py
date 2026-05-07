@@ -133,6 +133,17 @@ DATABASES = {
     }
 }
 
+CACHE_DIR = Path(os.getenv("DJANGO_CACHE_DIR", str(BASE_DIR / "cache")))
+CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": str(CACHE_DIR),
+        "TIMEOUT": 3600,
+    }
+}
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -170,7 +181,26 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = MAX_UPLOAD_SIZE_BYTES
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
+# ── Email ──────────────────────────────────────────────────────────────────
+EMAIL_BACKEND = os.getenv(
+    "EMAIL_BACKEND",
+    "django.core.mail.backends.console.EmailBackend" if not IS_PRODUCTION
+    else "django.core.mail.backends.smtp.EmailBackend",
+)
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = env_int("EMAIL_PORT", 587)
+EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", default=True)
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "CulinEire <noreply@culineire.ie>")
+SITE_DOMAIN = os.getenv("SITE_DOMAIN", "127.0.0.1:8000")
+PASSWORD_RESET_TIMEOUT = 86400  # activation link expires in 24 hours
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# ── Cloudflare Turnstile ───────────────────────────────────────────────────
+TURNSTILE_SITE_KEY = os.getenv("TURNSTILE_SITE_KEY", "")
+TURNSTILE_SECRET_KEY = os.getenv("TURNSTILE_SECRET_KEY", "")
 
 
 SECURE_CONTENT_TYPE_NOSNIFF = True

@@ -8509,3 +8509,1068 @@ WARNING | 2026-05-02 10:07:07 | log             | Not Found: /favicon.ico
 WARNING | 2026-05-02 10:07:07 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
 WARNING | 2026-05-02 10:07:10 | log             | Not Found: /.well-known/appspecific/com.chrome.devtools.json
 WARNING | 2026-05-02 10:07:10 | basehttp        | "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 179
+INFO | 2026-05-02 11:41:46 | basehttp        | "GET /recipes/classic-irish-boxty/ HTTP/1.1" 200 38691
+INFO | 2026-05-02 11:41:46 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-02 11:41:46 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-02 11:41:46 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-02 11:41:46 | basehttp        | "GET /static/css/detail_page.css?v=20260501 HTTP/1.1" 200 51902
+INFO | 2026-05-02 11:41:46 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-02 11:41:46 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-02 11:41:46 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-02 11:41:46 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 200 2489208
+INFO | 2026-05-02 11:41:46 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/gallery/img1.png HTTP/1.1" 200 2489208
+INFO | 2026-05-02 11:41:47 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/gallery/img1_OVdMMtJ.png HTTP/1.1" 200 2473800
+INFO | 2026-05-02 11:41:47 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-02 11:41:47 | basehttp        | "GET /static/js/gallery.js HTTP/1.1" 200 5097
+INFO | 2026-05-02 11:41:47 | basehttp        | "GET /static/js/recipe_detail.js HTTP/1.1" 200 251
+INFO | 2026-05-02 11:41:47 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/gallery/img1_hgDJ3cm.png HTTP/1.1" 200 2481128
+INFO | 2026-05-02 11:41:47 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/gallery/img1_FlnL7lP.png HTTP/1.1" 200 2406545
+INFO | 2026-05-02 11:41:47 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/gallery/img1_hd6xPxp.png HTTP/1.1" 200 2430581
+INFO | 2026-05-02 11:41:47 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/gallery/img1_LHDwCM9.png HTTP/1.1" 200 2472563
+INFO | 2026-05-02 11:41:47 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/gallery/img1_tVZsDNI.png HTTP/1.1" 200 2439061
+INFO | 2026-05-02 11:41:47 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/gallery/img1_0dqWzR9.png HTTP/1.1" 200 2489208
+WARNING | 2026-05-02 11:41:47 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-02 11:41:47 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-02 11:41:55 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13352
+WARNING | 2026-05-02 11:41:55 | log             | Not Found: /static/images/hero-auth.png
+WARNING | 2026-05-02 11:41:55 | basehttp        | "GET /static/images/hero-auth.png HTTP/1.1" 404 179
+INFO | 2026-05-02 11:56:33 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 14219
+WARNING | 2026-05-02 11:56:33 | log             | Not Found: /static/images/hero-auth.png
+WARNING | 2026-05-02 11:56:33 | basehttp        | "GET /static/images/hero-auth.png HTTP/1.1" 404 179
+INFO | 2026-05-02 11:57:29 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 14227
+WARNING | 2026-05-02 11:57:29 | log             | Not Found: /static/images/hero-auth.png
+WARNING | 2026-05-02 11:57:29 | basehttp        | "GET /static/images/hero-auth.png HTTP/1.1" 404 179
+INFO | 2026-05-02 11:57:29 | basehttp        | "GET /static/css/auth.css?v=20260428a HTTP/1.1" 200 1675
+INFO | 2026-05-02 11:57:29 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-02 11:57:29 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-02 11:57:29 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-02 11:57:29 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-02 11:57:29 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-02 11:57:29 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-02 11:57:29 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-02 11:57:30 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-02 11:57:30 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-02 12:00:23 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 14230
+INFO | 2026-05-02 12:00:24 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-02 12:00:24 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-02 12:00:24 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-02 12:00:24 | basehttp        | "GET /static/css/auth.css?v=20260428a HTTP/1.1" 200 1675
+INFO | 2026-05-02 12:00:24 | basehttp        | "GET /static/images/hero-profile.png HTTP/1.1" 200 2322232
+INFO | 2026-05-02 12:00:24 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-02 12:00:24 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-02 12:00:24 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-02 12:00:24 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+WARNING | 2026-05-02 12:00:24 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-02 12:00:24 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-02 12:03:14 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 14234
+INFO | 2026-05-02 12:03:14 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-02 12:03:14 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-02 12:03:14 | basehttp        | "GET /static/css/auth.css?v=20260428a HTTP/1.1" 200 1675
+INFO | 2026-05-02 12:03:14 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-02 12:03:14 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-02 12:03:14 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 2251499
+INFO | 2026-05-02 12:03:14 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-02 12:03:14 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-02 12:03:14 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-02 12:03:14 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-02 12:03:14 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-02 12:04:56 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 14233
+INFO | 2026-05-02 12:04:56 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-02 12:04:56 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-02 12:04:56 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-02 12:04:56 | basehttp        | "GET /static/css/auth.css?v=20260428a HTTP/1.1" 200 1675
+INFO | 2026-05-02 12:04:56 | basehttp        | "GET /static/images/hero-join.png HTTP/1.1" 200 2355464
+INFO | 2026-05-02 12:04:56 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-02 12:04:56 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-02 12:04:56 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-02 12:04:56 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+WARNING | 2026-05-02 12:04:57 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-02 12:04:57 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-02 12:07:05 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 14805
+INFO | 2026-05-02 12:07:05 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-02 12:07:05 | basehttp        | "GET /static/css/auth.css?v=20260428a HTTP/1.1" 200 1675
+INFO | 2026-05-02 12:07:05 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-02 12:07:05 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-02 12:07:05 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-02 12:07:05 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-02 12:07:05 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 2251499
+INFO | 2026-05-02 12:07:05 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-02 12:07:05 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+WARNING | 2026-05-02 12:07:06 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-02 12:07:06 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-02 12:11:32 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 14805
+INFO | 2026-05-02 12:11:32 | basehttp        | "GET /static/css/auth.css?v=20260428a HTTP/1.1" 200 1675
+INFO | 2026-05-02 12:11:32 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-02 12:11:32 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-02 12:11:32 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-02 12:11:32 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-02 12:11:32 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-02 12:11:32 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-02 12:11:32 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-02 12:11:32 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 2251499
+WARNING | 2026-05-02 12:11:33 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-02 12:11:33 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-02 12:11:40 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13352
+WARNING | 2026-05-02 12:11:40 | log             | Not Found: /static/images/hero-auth.png
+WARNING | 2026-05-02 12:11:40 | basehttp        | "GET /static/images/hero-auth.png HTTP/1.1" 404 179
+INFO | 2026-05-02 12:11:42 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 14805
+INFO | 2026-05-02 12:11:50 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 14805
+INFO | 2026-05-02 12:11:50 | basehttp        | "GET /static/css/auth.css?v=20260428a HTTP/1.1" 200 1675
+INFO | 2026-05-02 12:11:50 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-02 12:11:50 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-02 12:11:50 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-02 12:11:50 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-02 12:11:50 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 2251499
+INFO | 2026-05-02 12:11:50 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-02 12:11:50 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-02 12:11:50 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-02 12:11:50 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-02 12:11:50 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-02 12:12:31 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 14804
+INFO | 2026-05-02 12:12:31 | basehttp        | "GET /static/css/auth.css?v=20260428a HTTP/1.1" 200 1675
+INFO | 2026-05-02 12:12:31 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-02 12:12:31 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-02 12:12:31 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-02 12:12:31 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-02 12:12:31 | basehttp        | "GET /static/images/hero-join.png HTTP/1.1" 200 2249170
+INFO | 2026-05-02 12:12:31 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-02 12:12:31 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-02 12:12:31 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+WARNING | 2026-05-02 12:12:32 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-02 12:12:32 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-02 13:13:58 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 15921
+INFO | 2026-05-02 13:13:58 | basehttp        | "GET /static/css/auth.css?v=20260428a HTTP/1.1" 200 1675
+INFO | 2026-05-02 13:13:58 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-02 13:13:58 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-02 13:13:58 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-02 13:13:58 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-02 13:13:58 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 2251499
+INFO | 2026-05-02 13:13:58 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-02 13:13:58 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-02 13:13:58 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-02 13:13:58 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-02 13:13:58 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-02 13:14:21 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 14804
+INFO | 2026-05-02 13:14:22 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-02 13:14:22 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-02 13:14:22 | basehttp        | "GET /static/css/auth.css?v=20260428a HTTP/1.1" 200 1675
+INFO | 2026-05-02 13:14:22 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-02 13:14:22 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-02 13:14:22 | basehttp        | "GET /static/images/hero-join.png HTTP/1.1" 200 2249170
+INFO | 2026-05-02 13:14:22 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-02 13:14:22 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-02 13:14:22 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+WARNING | 2026-05-02 13:14:22 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-02 13:14:22 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-02 13:14:30 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13352
+WARNING | 2026-05-02 13:14:30 | log             | Not Found: /static/images/hero-auth.png
+WARNING | 2026-05-02 13:14:30 | basehttp        | "GET /static/images/hero-auth.png HTTP/1.1" 404 179
+INFO | 2026-05-02 13:14:31 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 14804
+INFO | 2026-05-02 13:14:33 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13352
+WARNING | 2026-05-02 13:14:33 | log             | Not Found: /static/images/hero-auth.png
+WARNING | 2026-05-02 13:14:33 | basehttp        | "GET /static/images/hero-auth.png HTTP/1.1" 404 179
+INFO | 2026-05-02 13:14:34 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 14804
+INFO | 2026-05-02 13:14:36 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13352
+WARNING | 2026-05-02 13:14:36 | log             | Not Found: /static/images/hero-auth.png
+WARNING | 2026-05-02 13:14:36 | basehttp        | "GET /static/images/hero-auth.png HTTP/1.1" 404 179
+INFO | 2026-05-02 13:14:43 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13352
+WARNING | 2026-05-02 13:14:43 | log             | Not Found: /static/images/hero-auth.png
+WARNING | 2026-05-02 13:14:43 | basehttp        | "GET /static/images/hero-auth.png HTTP/1.1" 404 179
+INFO | 2026-05-02 13:15:16 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 14804
+INFO | 2026-05-02 13:15:35 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 14233
+INFO | 2026-05-02 13:16:27 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 14233
+INFO | 2026-05-02 13:16:30 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13352
+WARNING | 2026-05-02 13:16:30 | log             | Not Found: /static/images/hero-auth.png
+WARNING | 2026-05-02 13:16:30 | basehttp        | "GET /static/images/hero-auth.png HTTP/1.1" 404 179
+INFO | 2026-05-02 13:16:34 | basehttp        | "POST /accounts/login/ HTTP/1.1" 302 0
+INFO | 2026-05-02 13:16:34 | basehttp        | "GET / HTTP/1.1" 200 36183
+INFO | 2026-05-02 13:16:37 | basehttp        | "GET /recipes/author/greenbear/ HTTP/1.1" 200 16476
+WARNING | 2026-05-02 13:16:37 | log             | Not Found: /static/images/hero-author.png
+WARNING | 2026-05-02 13:16:37 | basehttp        | "GET /static/images/hero-author.png HTTP/1.1" 404 179
+INFO | 2026-05-02 13:17:58 | basehttp        | "GET /recipes/author/greenbear/ HTTP/1.1" 200 16477
+INFO | 2026-05-02 13:17:59 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-02 13:17:59 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-02 13:17:59 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-02 13:17:59 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-02 13:17:59 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-02 13:17:59 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-02 13:17:59 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-02 13:17:59 | basehttp        | "GET /static/images/hero-profile.png HTTP/1.1" 200 2322232
+INFO | 2026-05-02 13:17:59 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+WARNING | 2026-05-02 13:17:59 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-02 13:17:59 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-02 13:18:51 | basehttp        | "GET /recipes/?author=greenbear HTTP/1.1" 200 33087
+INFO | 2026-05-02 13:19:03 | basehttp        | "GET /articles/?author=greenbear HTTP/1.1" 200 20436
+INFO | 2026-05-02 13:19:03 | basehttp        | "GET /static/images/my-hero-articles.png HTTP/1.1" 304 0
+INFO | 2026-05-02 13:19:10 | basehttp        | "GET /recipes/author/greenbear/ HTTP/1.1" 200 16477
+INFO | 2026-05-02 13:20:47 | basehttp        | "POST /accounts/logout/ HTTP/1.1" 302 0
+INFO | 2026-05-02 13:20:47 | basehttp        | "GET / HTTP/1.1" 200 33050
+INFO | 2026-05-02 13:20:49 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 14233
+INFO | 2026-05-02 13:20:49 | basehttp        | "GET /static/images/hero-join.png HTTP/1.1" 304 0
+INFO | 2026-05-02 13:20:51 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13352
+WARNING | 2026-05-02 13:20:51 | log             | Not Found: /static/images/hero-auth.png
+WARNING | 2026-05-02 13:20:51 | basehttp        | "GET /static/images/hero-auth.png HTTP/1.1" 404 179
+INFO | 2026-05-02 13:25:19 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 14233
+INFO | 2026-05-02 13:25:24 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13352
+WARNING | 2026-05-02 13:25:24 | log             | Not Found: /static/images/hero-auth.png
+WARNING | 2026-05-02 13:25:24 | basehttp        | "GET /static/images/hero-auth.png HTTP/1.1" 404 179
+INFO | 2026-05-02 13:25:27 | basehttp        | "POST /accounts/login/ HTTP/1.1" 302 0
+INFO | 2026-05-02 13:25:27 | basehttp        | "GET / HTTP/1.1" 200 36183
+INFO | 2026-05-02 13:25:43 | basehttp        | "GET /recipes/ HTTP/1.1" 200 48710
+INFO | 2026-05-02 13:25:43 | basehttp        | "GET /static/images/hero-recipes.png HTTP/1.1" 304 0
+INFO | 2026-05-02 13:25:48 | basehttp        | "GET /articles/ HTTP/1.1" 200 19899
+INFO | 2026-05-02 13:25:48 | basehttp        | "GET /static/images/hero-articles.png HTTP/1.1" 304 0
+INFO | 2026-05-02 13:27:12 | basehttp        | "GET /recipes/?author=greenbear HTTP/1.1" 200 33087
+INFO | 2026-05-02 13:27:13 | basehttp        | "GET /recipes/farmhouse-farls/ HTTP/1.1" 200 40104
+INFO | 2026-05-02 13:27:13 | basehttp        | "GET /static/css/detail_page.css?v=20260501 HTTP/1.1" 304 0
+INFO | 2026-05-02 13:27:13 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/gallery/img1.png HTTP/1.1" 304 0
+INFO | 2026-05-02 13:27:13 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/gallery/img1_Z8ZGSml.png HTTP/1.1" 304 0
+INFO | 2026-05-02 13:27:13 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/gallery/img1_86GNfZy.png HTTP/1.1" 304 0
+INFO | 2026-05-02 13:27:14 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/gallery/img1_mEFnom6.png HTTP/1.1" 304 0
+INFO | 2026-05-02 13:27:30 | basehttp        | "POST /recipes/farmhouse-farls/rate/ HTTP/1.1" 302 0
+INFO | 2026-05-02 13:27:30 | basehttp        | "GET /recipes/farmhouse-farls/ HTTP/1.1" 200 39741
+INFO | 2026-05-02 13:28:07 | basehttp        | "POST /accounts/logout/ HTTP/1.1" 302 0
+INFO | 2026-05-02 13:28:07 | basehttp        | "GET / HTTP/1.1" 200 33050
+INFO | 2026-05-02 13:28:10 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13352
+WARNING | 2026-05-02 13:28:10 | log             | Not Found: /static/images/hero-auth.png
+WARNING | 2026-05-02 13:28:10 | basehttp        | "GET /static/images/hero-auth.png HTTP/1.1" 404 179
+INFO | 2026-05-02 13:28:34 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13353
+INFO | 2026-05-02 13:28:34 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-02 13:28:34 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-02 13:28:34 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-02 13:28:34 | basehttp        | "GET /static/css/auth.css?v=20260428a HTTP/1.1" 200 1675
+INFO | 2026-05-02 13:28:34 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-02 13:28:34 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-02 13:28:34 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-02 13:28:34 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 2241158
+INFO | 2026-05-02 13:28:34 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+WARNING | 2026-05-02 13:28:34 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-02 13:28:34 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-02 13:36:54 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13353
+INFO | 2026-05-02 13:36:55 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-02 13:36:55 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-02 13:36:55 | basehttp        | "GET /static/css/auth.css?v=20260428a HTTP/1.1" 200 1675
+INFO | 2026-05-02 13:36:55 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-02 13:36:55 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-02 13:36:55 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 1023102
+INFO | 2026-05-02 13:36:55 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-02 13:36:55 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-02 13:36:55 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-02 13:36:55 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-02 13:36:55 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-02 13:36:57 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13353
+INFO | 2026-05-02 13:36:57 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-02 13:36:57 | basehttp        | "GET /static/css/auth.css?v=20260428a HTTP/1.1" 200 1675
+INFO | 2026-05-02 13:36:57 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-02 13:36:57 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-02 13:36:57 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-02 13:36:57 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 1023102
+INFO | 2026-05-02 13:36:57 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-02 13:36:57 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-02 13:36:57 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+WARNING | 2026-05-02 13:36:58 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-02 13:36:58 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-02 19:06:24 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-02 19:06:40 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13353
+INFO | 2026-05-02 19:06:40 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 14233
+INFO | 2026-05-02 19:06:40 | basehttp        | "GET /recipes/ HTTP/1.1" 200 45577
+WARNING | 2026-05-02 19:06:44 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-02 19:06:44 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-02 19:06:52 | basehttp        | "GET / HTTP/1.1" 200 33050
+INFO | 2026-05-02 19:08:26 | basehttp        | "GET / HTTP/1.1" 200 36183
+INFO | 2026-05-02 19:08:27 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-02 19:08:27 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-02 19:08:27 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-02 19:08:27 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 200 2316746
+INFO | 2026-05-02 19:08:27 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-02 19:08:27 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-02 19:08:27 | basehttp        | "GET /static/images/hero.jpg HTTP/1.1" 200 2758257
+INFO | 2026-05-02 19:08:27 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-02 19:08:27 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-02 19:08:27 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-02 19:08:27 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 200 2489208
+INFO | 2026-05-02 19:08:27 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/cover.png HTTP/1.1" 200 697066
+INFO | 2026-05-02 19:08:27 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-02 19:08:27 | basehttp        | "GET /media/recipes/GreenBear/IRISH%20STEW/cover.png HTTP/1.1" 200 1547642
+INFO | 2026-05-02 19:08:27 | basehttp        | "GET /media/articles/How%20to%20Make%20Perfect%20Irish%20Potato%20Soup/cover.png HTTP/1.1" 200 533390
+WARNING | 2026-05-02 19:08:28 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-02 19:08:29 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-02 19:08:44 | basehttp        | "GET /recipes/ HTTP/1.1" 200 48710
+INFO | 2026-05-02 19:08:44 | basehttp        | "GET /static/images/categories/modern-irish-cooking.png?v=20260429e HTTP/1.1" 200 2190449
+INFO | 2026-05-02 19:08:44 | basehttp        | "GET /static/images/hero-recipes.png HTTP/1.1" 200 2254946
+INFO | 2026-05-02 19:08:44 | basehttp        | "GET /static/images/categories/breakfast-and-brunch?v=20260429e HTTP/1.1" 200 2673952
+INFO | 2026-05-02 19:08:44 | basehttp        | "GET /static/images/categories/dinner.png?v=20260429e HTTP/1.1" 200 2450260
+INFO | 2026-05-02 19:08:44 | basehttp        | "GET /static/images/categories/irish-culinary-heritage.png?v=20260429e HTTP/1.1" 200 2375821
+INFO | 2026-05-02 19:08:44 | basehttp        | "GET /static/images/categories/everyday-irish-cooking.png?v=20260429e HTTP/1.1" 200 2515999
+INFO | 2026-05-02 19:08:44 | basehttp        | "GET /static/images/categories/lunch.png?v=20260429e HTTP/1.1" 200 2473759
+INFO | 2026-05-02 19:08:45 | basehttp        | "GET /static/images/categories/salads.png?v=20260429e HTTP/1.1" 200 2657948
+INFO | 2026-05-02 19:08:45 | basehttp        | "GET /static/images/categories/grilling-and-barbecue.png?v=20260429e HTTP/1.1" 200 2497649
+INFO | 2026-05-02 19:08:45 | basehttp        | "GET /static/images/categories/seasonal-and-festive?v=20260429e HTTP/1.1" 200 2475085
+INFO | 2026-05-02 19:08:45 | basehttp        | "GET /static/images/categories/healthy-eating.png?v=20260429e HTTP/1.1" 200 2362419
+INFO | 2026-05-02 19:08:45 | basehttp        | "GET /static/images/categories/pasta-and-noodles.png?v=20260429e HTTP/1.1" 200 2410293
+INFO | 2026-05-02 19:08:45 | basehttp        | "GET /static/images/categories/soups-and-stews.png?v=20260429e HTTP/1.1" 200 2447019
+INFO | 2026-05-02 19:08:50 | basehttp        | "GET /articles/ HTTP/1.1" 200 19899
+INFO | 2026-05-02 19:08:50 | basehttp        | "GET /static/images/hero-articles.png HTTP/1.1" 200 2233540
+INFO | 2026-05-02 19:08:55 | basehttp        | "GET /recipes/?author=greenbear HTTP/1.1" 200 33087
+INFO | 2026-05-02 19:08:56 | basehttp        | "GET /static/images/my-hero-recipes.png HTTP/1.1" 200 2178565
+INFO | 2026-05-02 19:09:00 | basehttp        | "GET /articles/?author=greenbear HTTP/1.1" 200 20436
+INFO | 2026-05-02 19:09:00 | basehttp        | "GET /static/images/my-hero-articles.png HTTP/1.1" 200 1974740
+INFO | 2026-05-02 19:09:16 | basehttp        | "GET /recipes/author/greenbear/ HTTP/1.1" 200 16477
+INFO | 2026-05-02 19:09:17 | basehttp        | "GET /static/images/hero-profile.png HTTP/1.1" 200 2322232
+INFO | 2026-05-02 19:10:10 | basehttp        | "GET / HTTP/1.1" 200 36183
+INFO | 2026-05-02 19:10:11 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-02 19:10:11 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-02 19:10:11 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-02 19:10:11 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-02 19:10:11 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-02 19:10:11 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 200 2316746
+INFO | 2026-05-02 19:10:11 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-02 19:10:11 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-02 19:10:11 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-02 19:10:11 | basehttp        | "GET /static/images/hero.jpg HTTP/1.1" 200 2758257
+INFO | 2026-05-02 19:10:11 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 200 2489208
+INFO | 2026-05-02 19:10:11 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-02 19:10:11 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/cover.png HTTP/1.1" 200 697066
+INFO | 2026-05-02 19:10:11 | basehttp        | "GET /media/articles/How%20to%20Make%20Perfect%20Irish%20Potato%20Soup/cover.png HTTP/1.1" 200 533390
+INFO | 2026-05-02 19:10:11 | basehttp        | "GET /media/recipes/GreenBear/IRISH%20STEW/cover.png HTTP/1.1" 200 1547642
+WARNING | 2026-05-02 19:10:12 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-02 19:10:12 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-02 20:26:36 | basehttp        | "GET /recipes/ HTTP/1.1" 200 48710
+INFO | 2026-05-02 20:26:37 | basehttp        | "GET /static/images/hero-recipes.png HTTP/1.1" 200 2254946
+INFO | 2026-05-02 20:26:37 | basehttp        | "GET /static/images/categories/irish-culinary-heritage.png?v=20260429e HTTP/1.1" 200 2375821
+INFO | 2026-05-02 20:26:37 | basehttp        | "GET /static/images/categories/everyday-irish-cooking.png?v=20260429e HTTP/1.1" 200 2515999
+INFO | 2026-05-02 20:26:37 | basehttp        | "GET /static/images/categories/modern-irish-cooking.png?v=20260429e HTTP/1.1" 200 2190449
+INFO | 2026-05-02 20:26:37 | basehttp        | "GET /static/images/categories/lunch.png?v=20260429e HTTP/1.1" 200 2473759
+INFO | 2026-05-02 20:26:37 | basehttp        | "GET /static/images/categories/breakfast-and-brunch?v=20260429e HTTP/1.1" 200 2673952
+INFO | 2026-05-02 20:26:37 | basehttp        | "GET /static/images/categories/dinner.png?v=20260429e HTTP/1.1" 200 2450260
+INFO | 2026-05-02 20:26:37 | basehttp        | "GET /static/images/categories/grilling-and-barbecue.png?v=20260429e HTTP/1.1" 200 2497649
+INFO | 2026-05-02 20:26:37 | basehttp        | "GET /static/images/categories/soups-and-stews.png?v=20260429e HTTP/1.1" 200 2447019
+INFO | 2026-05-02 20:26:37 | basehttp        | "GET /static/images/categories/salads.png?v=20260429e HTTP/1.1" 200 2657948
+INFO | 2026-05-02 20:26:37 | basehttp        | "GET /static/images/categories/healthy-eating.png?v=20260429e HTTP/1.1" 200 2362419
+INFO | 2026-05-02 20:26:37 | basehttp        | "GET /static/images/categories/seasonal-and-festive?v=20260429e HTTP/1.1" 200 2475085
+INFO | 2026-05-02 20:26:37 | basehttp        | "GET /static/images/categories/pasta-and-noodles.png?v=20260429e HTTP/1.1" 200 2410293
+INFO | 2026-05-02 20:26:39 | basehttp        | "GET /articles/ HTTP/1.1" 200 19899
+INFO | 2026-05-02 20:26:39 | basehttp        | "GET /static/images/hero-articles.png HTTP/1.1" 200 2233540
+INFO | 2026-05-02 20:26:40 | basehttp        | "GET /recipes/ HTTP/1.1" 200 48710
+INFO | 2026-05-02 20:26:42 | basehttp        | "GET / HTTP/1.1" 200 36183
+INFO | 2026-05-02 20:26:47 | basehttp        | "GET /recipes/farmhouse-farls/ HTTP/1.1" 200 40057
+INFO | 2026-05-02 20:26:47 | basehttp        | "GET /static/js/gallery.js HTTP/1.1" 200 5097
+INFO | 2026-05-02 20:26:47 | basehttp        | "GET /static/js/recipe_detail.js HTTP/1.1" 200 251
+INFO | 2026-05-02 20:26:47 | basehttp        | "GET /static/css/detail_page.css?v=20260501 HTTP/1.1" 200 51902
+INFO | 2026-05-02 20:26:47 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/gallery/img1.png HTTP/1.1" 200 2316746
+INFO | 2026-05-02 20:26:47 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/gallery/img1_86GNfZy.png HTTP/1.1" 200 2385061
+INFO | 2026-05-02 20:26:47 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/gallery/img1_Z8ZGSml.png HTTP/1.1" 200 2448214
+INFO | 2026-05-02 20:26:47 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/gallery/img1_mEFnom6.png HTTP/1.1" 200 2324408
+INFO | 2026-05-02 20:45:27 | basehttp        | "GET /articles/ HTTP/1.1" 200 19899
+INFO | 2026-05-02 20:45:35 | basehttp        | "GET /articles/ HTTP/1.1" 200 19899
+INFO | 2026-05-02 20:45:43 | basehttp        | "GET /articles/how-to-make-perfect-irish-potato-soup/ HTTP/1.1" 200 22300
+INFO | 2026-05-02 20:45:43 | basehttp        | "GET /static/css/detail_page.css?v=20260428k HTTP/1.1" 200 51902
+INFO | 2026-05-02 20:45:43 | basehttp        | "GET /static/js/detail_gallery.js HTTP/1.1" 200 4184
+INFO | 2026-05-02 20:45:43 | basehttp        | "GET /media/articles/How%20to%20Make%20Perfect%20Irish%20Potato%20Soup/gallery/img1.png HTTP/1.1" 200 1547642
+INFO | 2026-05-02 20:45:43 | basehttp        | "GET /media/articles/How%20to%20Make%20Perfect%20Irish%20Potato%20Soup/gallery/img1_zAKycr0.png HTTP/1.1" 200 235963
+INFO | 2026-05-02 20:45:43 | basehttp        | "GET /media/articles/How%20to%20Make%20Perfect%20Irish%20Potato%20Soup/gallery/img1_xn7cMg6.png HTTP/1.1" 200 308324
+INFO | 2026-05-02 20:46:52 | basehttp        | "GET /recipes/ HTTP/1.1" 200 48710
+INFO | 2026-05-02 20:46:58 | basehttp        | "GET /recipes/category/breakfast-and-brunch/ HTTP/1.1" 200 24043
+INFO | 2026-05-02 20:47:17 | basehttp        | "GET /recipes/farmhouse-farls/ HTTP/1.1" 200 40057
+WARNING | 2026-05-02 20:48:06 | log             | Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING | 2026-05-02 20:48:06 | basehttp        | "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 179
+INFO | 2026-05-06 19:02:59 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-06 19:03:11 | basehttp        | "GET / HTTP/1.1" 200 36183
+INFO | 2026-05-06 19:03:12 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:12 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:12 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:12 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:12 | basehttp        | "GET /static/images/hero.jpg HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:12 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:13 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:13 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:13 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:13 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:13 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:13 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:14 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/cover.png HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:14 | basehttp        | "GET /media/recipes/GreenBear/IRISH%20STEW/cover.png HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:14 | basehttp        | "GET /media/articles/How%20to%20Make%20Perfect%20Irish%20Potato%20Soup/cover.png HTTP/1.1" 304 0
+WARNING | 2026-05-06 19:03:16 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-06 19:03:16 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-06 19:03:29 | basehttp        | "GET /recipes/ HTTP/1.1" 200 48710
+INFO | 2026-05-06 19:03:30 | basehttp        | "GET /static/images/hero-recipes.png HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:30 | basehttp        | "GET /static/images/categories/irish-culinary-heritage.png?v=20260429e HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:30 | basehttp        | "GET /static/images/categories/dinner.png?v=20260429e HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:30 | basehttp        | "GET /static/images/categories/everyday-irish-cooking.png?v=20260429e HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:30 | basehttp        | "GET /static/images/categories/modern-irish-cooking.png?v=20260429e HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:30 | basehttp        | "GET /static/images/categories/breakfast-and-brunch?v=20260429e HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:31 | basehttp        | "GET /static/images/categories/lunch.png?v=20260429e HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:31 | basehttp        | "GET /static/images/categories/grilling-and-barbecue.png?v=20260429e HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:31 | basehttp        | "GET /static/images/categories/soups-and-stews.png?v=20260429e HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:31 | basehttp        | "GET /static/images/categories/salads.png?v=20260429e HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:31 | basehttp        | "GET /static/images/categories/seasonal-and-festive?v=20260429e HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:32 | basehttp        | "GET /static/images/categories/healthy-eating.png?v=20260429e HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:33 | basehttp        | "GET /static/images/categories/pasta-and-noodles.png?v=20260429e HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:40 | basehttp        | "GET /articles/ HTTP/1.1" 200 19899
+INFO | 2026-05-06 19:03:40 | basehttp        | "GET /static/images/hero-articles.png HTTP/1.1" 304 0
+INFO | 2026-05-06 19:03:52 | basehttp        | "GET /recipes/ HTTP/1.1" 200 48710
+INFO | 2026-05-06 19:04:03 | basehttp        | "GET /articles/ HTTP/1.1" 200 19899
+INFO | 2026-05-06 19:04:09 | basehttp        | "GET /recipes/?author=greenbear HTTP/1.1" 200 33087
+INFO | 2026-05-06 19:04:09 | basehttp        | "GET /static/images/my-hero-recipes.png HTTP/1.1" 200 2178565
+INFO | 2026-05-06 19:04:29 | basehttp        | "GET /articles/?author=greenbear HTTP/1.1" 200 20436
+INFO | 2026-05-06 19:04:30 | basehttp        | "GET /static/images/my-hero-articles.png HTTP/1.1" 200 1974740
+INFO | 2026-05-06 19:04:42 | basehttp        | "GET /recipes/?author=greenbear HTTP/1.1" 200 33087
+INFO | 2026-05-06 19:06:42 | basehttp        | "GET /recipes/author/greenbear/ HTTP/1.1" 200 16477
+INFO | 2026-05-06 19:06:42 | basehttp        | "GET /static/images/hero-profile.png HTTP/1.1" 200 2322232
+INFO | 2026-05-06 19:07:42 | basehttp        | "GET /recipes/author/greenbear/ HTTP/1.1" 200 16477
+INFO | 2026-05-06 19:08:04 | basehttp        | "GET /recipes/profile/edit/ HTTP/1.1" 200 17573
+INFO | 2026-05-06 19:08:04 | basehttp        | "GET /static/css/authoring.css?v=20260429b HTTP/1.1" 200 5882
+INFO | 2026-05-06 19:08:33 | basehttp        | "GET /recipes/ HTTP/1.1" 200 48710
+INFO | 2026-05-06 19:08:40 | basehttp        | "GET /recipes/farmhouse-farls/ HTTP/1.1" 200 40057
+INFO | 2026-05-06 19:08:40 | basehttp        | "GET /static/css/detail_page.css?v=20260501 HTTP/1.1" 304 0
+INFO | 2026-05-06 19:08:40 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/gallery/img1.png HTTP/1.1" 304 0
+INFO | 2026-05-06 19:08:40 | basehttp        | "GET /static/js/gallery.js HTTP/1.1" 304 0
+INFO | 2026-05-06 19:08:40 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/gallery/img1_Z8ZGSml.png HTTP/1.1" 304 0
+INFO | 2026-05-06 19:08:40 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/gallery/img1_86GNfZy.png HTTP/1.1" 304 0
+INFO | 2026-05-06 19:08:40 | basehttp        | "GET /static/js/recipe_detail.js HTTP/1.1" 304 0
+INFO | 2026-05-06 19:08:41 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/gallery/img1_mEFnom6.png HTTP/1.1" 304 0
+WARNING | 2026-05-06 19:09:19 | log             | Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING | 2026-05-06 19:09:19 | basehttp        | "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 179
+INFO | 2026-05-07 07:55:59 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 07:56:06 | basehttp        | "GET /recipes/ HTTP/1.1" 200 48710
+INFO | 2026-05-07 07:56:09 | basehttp        | "GET /recipes/ HTTP/1.1" 200 48710
+INFO | 2026-05-07 07:56:09 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 07:56:09 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 07:56:09 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 07:56:09 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 07:56:09 | basehttp        | "GET /static/images/hero-recipes.png HTTP/1.1" 200 2254946
+INFO | 2026-05-07 07:56:09 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 07:56:09 | basehttp        | "GET /static/images/categories/irish-culinary-heritage.png?v=20260429e HTTP/1.1" 200 2375821
+INFO | 2026-05-07 07:56:09 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-07 07:56:09 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 07:56:09 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-07 07:56:09 | basehttp        | "GET /static/images/categories/everyday-irish-cooking.png?v=20260429e HTTP/1.1" 200 2515999
+INFO | 2026-05-07 07:56:10 | basehttp        | "GET /static/images/categories/dinner.png?v=20260429e HTTP/1.1" 200 2450260
+INFO | 2026-05-07 07:56:10 | basehttp        | "GET /static/images/categories/breakfast-and-brunch?v=20260429e HTTP/1.1" 200 2673952
+INFO | 2026-05-07 07:56:10 | basehttp        | "GET /static/images/categories/modern-irish-cooking.png?v=20260429e HTTP/1.1" 200 2190449
+INFO | 2026-05-07 07:56:10 | basehttp        | "GET /static/images/categories/grilling-and-barbecue.png?v=20260429e HTTP/1.1" 200 2497649
+INFO | 2026-05-07 07:56:10 | basehttp        | "GET /static/images/categories/lunch.png?v=20260429e HTTP/1.1" 200 2473759
+INFO | 2026-05-07 07:56:10 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 200 2316746
+INFO | 2026-05-07 07:56:10 | basehttp        | "GET /media/recipes/GreenBear/IRISH%20STEW/cover.png HTTP/1.1" 200 1547642
+INFO | 2026-05-07 07:56:10 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/cover.png HTTP/1.1" 200 697066
+INFO | 2026-05-07 07:56:10 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 200 2489208
+INFO | 2026-05-07 07:56:10 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 07:56:10 | basehttp        | "GET /static/images/categories/soups-and-stews.png?v=20260429e HTTP/1.1" 200 2447019
+INFO | 2026-05-07 07:56:10 | basehttp        | "GET /static/images/categories/salads.png?v=20260429e HTTP/1.1" 200 2657948
+INFO | 2026-05-07 07:56:10 | basehttp        | "GET /static/images/categories/healthy-eating.png?v=20260429e HTTP/1.1" 200 2362419
+INFO | 2026-05-07 07:56:10 | basehttp        | "GET /static/images/categories/seasonal-and-festive?v=20260429e HTTP/1.1" 200 2475085
+INFO | 2026-05-07 07:56:10 | basehttp        | "GET /static/images/categories/pasta-and-noodles.png?v=20260429e HTTP/1.1" 200 2410293
+WARNING | 2026-05-07 07:56:11 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 07:56:11 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 08:35:48 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 08:35:50 | basehttp        | "GET / HTTP/1.1" 200 36183
+WARNING | 2026-05-07 08:35:52 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 08:35:52 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 08:35:54 | basehttp        | "GET /recipes/ HTTP/1.1" 200 48710
+INFO | 2026-05-07 08:42:14 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 08:42:27 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 08:43:10 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 08:43:12 | basehttp        | "GET / HTTP/1.1" 200 36183
+WARNING | 2026-05-07 08:43:13 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 08:43:13 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 08:43:20 | basehttp        | "GET /recipes/ HTTP/1.1" 200 49766
+INFO | 2026-05-07 08:44:07 | basehttp        | "GET /recipes/ HTTP/1.1" 200 50022
+INFO | 2026-05-07 08:44:07 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 08:44:07 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 08:44:07 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 08:44:07 | basehttp        | "GET /static/images/hero-recipes.png HTTP/1.1" 200 2254946
+INFO | 2026-05-07 08:44:07 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 08:44:07 | basehttp        | "GET /static/images/categories/irish-culinary-heritage.png?v=20260429e HTTP/1.1" 200 2375821
+INFO | 2026-05-07 08:44:07 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 08:44:07 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2855
+INFO | 2026-05-07 08:44:07 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 08:44:07 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-07 08:44:07 | basehttp        | "GET /static/images/categories/everyday-irish-cooking.png?v=20260429e HTTP/1.1" 200 2515999
+INFO | 2026-05-07 08:44:08 | basehttp        | "GET /static/images/categories/breakfast-and-brunch?v=20260429e HTTP/1.1" 200 2673952
+INFO | 2026-05-07 08:44:08 | basehttp        | "GET /static/images/categories/dinner.png?v=20260429e HTTP/1.1" 200 2450260
+INFO | 2026-05-07 08:44:08 | basehttp        | "GET /static/images/categories/lunch.png?v=20260429e HTTP/1.1" 200 2473759
+INFO | 2026-05-07 08:44:08 | basehttp        | "GET /static/images/categories/modern-irish-cooking.png?v=20260429e HTTP/1.1" 200 2190449
+INFO | 2026-05-07 08:44:08 | basehttp        | "GET /static/images/categories/grilling-and-barbecue.png?v=20260429e HTTP/1.1" 200 2497649
+INFO | 2026-05-07 08:44:08 | basehttp        | "GET /static/images/categories/soups-and-stews.png?v=20260429e HTTP/1.1" 200 2447019
+INFO | 2026-05-07 08:44:08 | basehttp        | "GET /static/images/categories/salads.png?v=20260429e HTTP/1.1" 200 2657948
+INFO | 2026-05-07 08:44:08 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 200 2316746
+INFO | 2026-05-07 08:44:08 | basehttp        | "GET /media/recipes/GreenBear/IRISH%20STEW/cover.png HTTP/1.1" 200 1547642
+INFO | 2026-05-07 08:44:08 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/cover.png HTTP/1.1" 200 697066
+INFO | 2026-05-07 08:44:08 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 200 2489208
+INFO | 2026-05-07 08:44:08 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 08:44:08 | basehttp        | "GET /static/images/categories/seasonal-and-festive?v=20260429e HTTP/1.1" 200 2475085
+INFO | 2026-05-07 08:44:08 | basehttp        | "GET /static/images/categories/pasta-and-noodles.png?v=20260429e HTTP/1.1" 200 2410293
+INFO | 2026-05-07 08:44:08 | basehttp        | "GET /static/images/categories/healthy-eating.png?v=20260429e HTTP/1.1" 200 2362419
+WARNING | 2026-05-07 08:44:08 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 08:44:08 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 08:44:35 | basehttp        | "GET /recipes/author/greenbear/ HTTP/1.1" 200 16477
+INFO | 2026-05-07 08:44:35 | basehttp        | "GET /static/images/hero-profile.png HTTP/1.1" 304 0
+INFO | 2026-05-07 08:50:28 | basehttp        | "GET /recipes/author/greenbear/ HTTP/1.1" 200 16541
+INFO | 2026-05-07 08:50:28 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 08:50:28 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 08:50:28 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 08:50:29 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 08:50:29 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-07 08:50:29 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 3061
+INFO | 2026-05-07 08:50:29 | basehttp        | "GET /static/images/hero-profile.png HTTP/1.1" 200 2322232
+INFO | 2026-05-07 08:50:29 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 08:50:29 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-07 08:50:29 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 08:50:29 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 08:52:24 | basehttp        | "POST /accounts/logout/ HTTP/1.1" 302 0
+INFO | 2026-05-07 08:52:24 | basehttp        | "GET / HTTP/1.1" 200 33050
+INFO | 2026-05-07 08:52:24 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 3337
+INFO | 2026-05-07 08:52:30 | basehttp        | "GET /recipes/ HTTP/1.1" 200 46889
+INFO | 2026-05-07 08:52:30 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 304 0
+INFO | 2026-05-07 08:52:33 | basehttp        | "GET /recipes/author/greenbear/ HTTP/1.1" 200 13014
+INFO | 2026-05-07 08:53:21 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13353
+INFO | 2026-05-07 08:53:22 | basehttp        | "GET /static/css/auth.css?v=20260428a HTTP/1.1" 200 1675
+INFO | 2026-05-07 08:53:22 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 304 0
+INFO | 2026-05-07 08:53:22 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 1023102
+INFO | 2026-05-07 08:54:27 | basehttp        | "GET /recipes/ HTTP/1.1" 200 46889
+INFO | 2026-05-07 08:54:27 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 304 0
+INFO | 2026-05-07 08:54:27 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 304 0
+INFO | 2026-05-07 08:54:27 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-07 08:54:27 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 3429
+INFO | 2026-05-07 08:54:32 | basehttp        | "GET /recipes/author/greenbear/ HTTP/1.1" 200 13014
+INFO | 2026-05-07 08:56:34 | basehttp        | "GET /recipes/author/greenbear/ HTTP/1.1" 200 13014
+INFO | 2026-05-07 08:56:34 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 08:56:34 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 08:56:34 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 08:56:34 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 08:56:34 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 08:56:34 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 08:56:35 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 3553
+INFO | 2026-05-07 08:56:35 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-07 08:56:35 | basehttp        | "GET /static/images/hero-profile.png HTTP/1.1" 200 2322232
+WARNING | 2026-05-07 08:56:35 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 08:56:35 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:04:16 | basehttp        | "GET /recipes/author/greenbear/ HTTP/1.1" 200 12936
+INFO | 2026-05-07 09:04:16 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 09:04:17 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 09:04:17 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 09:04:17 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 09:04:17 | basehttp        | "GET /static/images/hero-profile.png HTTP/1.1" 200 2322232
+INFO | 2026-05-07 09:04:17 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 09:04:17 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 09:04:17 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 09:04:17 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+WARNING | 2026-05-07 09:04:17 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:04:17 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:04:55 | basehttp        | "GET /recipes/author/greenbear/ HTTP/1.1" 200 12936
+INFO | 2026-05-07 09:04:55 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 304 0
+INFO | 2026-05-07 09:05:10 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13353
+INFO | 2026-05-07 09:05:10 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 304 0
+INFO | 2026-05-07 09:06:28 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13362
+INFO | 2026-05-07 09:06:28 | basehttp        | "GET /static/css/auth.css?v=20260428a HTTP/1.1" 200 1744
+INFO | 2026-05-07 09:06:28 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 09:06:28 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 09:06:28 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 09:06:28 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 1023102
+INFO | 2026-05-07 09:06:28 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 09:06:28 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-07 09:06:28 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 09:06:28 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+WARNING | 2026-05-07 09:06:29 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:06:29 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:08:22 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13353
+INFO | 2026-05-07 09:08:22 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 09:08:22 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 09:08:22 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 09:08:22 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 09:08:22 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 1023102
+INFO | 2026-05-07 09:08:22 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-07 09:08:22 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 09:08:22 | basehttp        | "GET /static/css/auth.css?v=20260428a HTTP/1.1" 200 1675
+INFO | 2026-05-07 09:08:22 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-07 09:08:22 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:08:22 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:09:32 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13365
+INFO | 2026-05-07 09:09:32 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 09:09:32 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 09:09:32 | basehttp        | "GET /static/css/auth.css?v=20260428a HTTP/1.1" 200 1769
+INFO | 2026-05-07 09:09:32 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 09:09:32 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 1023102
+INFO | 2026-05-07 09:09:32 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 09:09:32 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 09:09:32 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 09:09:32 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+WARNING | 2026-05-07 09:09:33 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:09:33 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:10:31 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13365
+INFO | 2026-05-07 09:10:31 | basehttp        | "GET /static/css/auth.css?v=20260428a HTTP/1.1" 200 1771
+INFO | 2026-05-07 09:10:31 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 1023102
+INFO | 2026-05-07 09:10:31 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 09:10:31 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 09:10:31 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 09:10:31 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 09:10:31 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-07 09:10:31 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 09:10:31 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-07 09:10:32 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:10:32 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:10:55 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13365
+INFO | 2026-05-07 09:10:56 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 09:10:56 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 09:10:56 | basehttp        | "GET /static/css/auth.css?v=20260428a HTTP/1.1" 200 1768
+INFO | 2026-05-07 09:10:56 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 09:10:56 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 09:10:56 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 1023102
+INFO | 2026-05-07 09:10:56 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-07 09:10:56 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 09:10:56 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+WARNING | 2026-05-07 09:10:56 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:10:56 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:11:01 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13365
+INFO | 2026-05-07 09:11:01 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 09:11:01 | basehttp        | "GET /static/css/auth.css?v=20260428a HTTP/1.1" 200 1768
+INFO | 2026-05-07 09:11:01 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 09:11:01 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 09:11:01 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 1023102
+INFO | 2026-05-07 09:11:01 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 09:11:01 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-07 09:11:01 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 09:11:01 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+WARNING | 2026-05-07 09:11:02 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:11:02 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:11:33 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13365
+INFO | 2026-05-07 09:11:34 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 09:11:34 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 09:11:34 | basehttp        | "GET /static/css/auth.css?v=20260428a HTTP/1.1" 200 1769
+INFO | 2026-05-07 09:11:34 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 09:11:34 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 09:11:34 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 1023102
+INFO | 2026-05-07 09:11:34 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-07 09:11:34 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 09:11:34 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-07 09:11:34 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:11:34 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:11:38 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13365
+INFO | 2026-05-07 09:11:39 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 09:11:39 | basehttp        | "GET /static/css/auth.css?v=20260428a HTTP/1.1" 200 1769
+INFO | 2026-05-07 09:11:39 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 09:11:39 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 09:11:39 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 1023102
+INFO | 2026-05-07 09:11:39 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 09:11:39 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-07 09:11:39 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 09:11:39 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-07 09:11:39 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:11:39 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:11:47 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13365
+INFO | 2026-05-07 09:11:48 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 09:11:48 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 09:11:48 | basehttp        | "GET /static/css/auth.css?v=20260428a HTTP/1.1" 200 1769
+INFO | 2026-05-07 09:11:48 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 09:11:48 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 1023102
+INFO | 2026-05-07 09:11:48 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 09:11:48 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 09:11:48 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-07 09:11:48 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+WARNING | 2026-05-07 09:11:48 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:11:48 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:13:42 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13365
+INFO | 2026-05-07 09:13:42 | basehttp        | "GET /static/css/auth.css?v=20260507a HTTP/1.1" 200 1769
+INFO | 2026-05-07 09:13:42 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 09:13:42 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 09:13:42 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 1023102
+INFO | 2026-05-07 09:13:42 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 09:13:42 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 09:13:42 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 09:13:42 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 09:13:42 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+WARNING | 2026-05-07 09:13:42 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:13:42 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:14:05 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 09:14:13 | basehttp        | "GET / HTTP/1.1" 200 33050
+WARNING | 2026-05-07 09:14:16 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:14:16 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:14:20 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13365
+INFO | 2026-05-07 09:14:20 | basehttp        | "GET /static/css/auth.css?v=20260507a HTTP/1.1" 304 0
+INFO | 2026-05-07 09:14:55 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13365
+INFO | 2026-05-07 09:14:55 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 09:14:55 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 1023102
+INFO | 2026-05-07 09:14:55 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 09:14:55 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 09:14:55 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 09:14:55 | basehttp        | "GET /static/css/auth.css?v=20260507a HTTP/1.1" 200 1791
+INFO | 2026-05-07 09:14:55 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-07 09:14:55 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 09:14:56 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-07 09:14:56 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:14:56 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:16:07 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13365
+INFO | 2026-05-07 09:16:07 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 09:16:07 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 09:16:07 | basehttp        | "GET /static/css/auth.css?v=20260507a HTTP/1.1" 200 1857
+INFO | 2026-05-07 09:16:07 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 1023102
+INFO | 2026-05-07 09:16:07 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 09:16:07 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 09:16:07 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 09:16:07 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 09:16:07 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+WARNING | 2026-05-07 09:16:07 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:16:07 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:17:40 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13365
+INFO | 2026-05-07 09:17:40 | basehttp        | "GET /static/css/auth.css?v=20260507a HTTP/1.1" 200 1793
+INFO | 2026-05-07 09:17:40 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 09:17:40 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 09:17:40 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 09:17:40 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 1023102
+INFO | 2026-05-07 09:17:40 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 09:17:40 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 09:17:40 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-07 09:17:40 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+WARNING | 2026-05-07 09:17:40 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:17:40 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:21:32 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13365
+INFO | 2026-05-07 09:21:33 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 09:21:33 | basehttp        | "GET /static/css/auth.css?v=20260507a HTTP/1.1" 200 1865
+INFO | 2026-05-07 09:21:33 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 09:21:33 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 1023102
+INFO | 2026-05-07 09:21:33 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 09:21:33 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 09:21:33 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-07 09:21:33 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 09:21:33 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+WARNING | 2026-05-07 09:21:33 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:21:33 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:23:25 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 12935
+INFO | 2026-05-07 09:23:25 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 200 2721
+INFO | 2026-05-07 09:23:25 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 09:23:25 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 09:23:25 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 1023102
+INFO | 2026-05-07 09:23:25 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 09:23:25 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 09:23:25 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 09:23:25 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 09:23:25 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+WARNING | 2026-05-07 09:23:25 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:23:25 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:24:33 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 12935
+INFO | 2026-05-07 09:24:34 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 200 2311
+INFO | 2026-05-07 09:24:34 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 09:24:34 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 09:24:34 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 09:24:34 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 1023102
+INFO | 2026-05-07 09:24:34 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 09:24:34 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-07 09:24:34 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 09:24:34 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-07 09:24:34 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:24:34 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:26:17 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 12935
+INFO | 2026-05-07 09:26:17 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 09:26:17 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 09:26:17 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 09:26:17 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 09:26:17 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 200 2349
+INFO | 2026-05-07 09:26:17 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 1023102
+INFO | 2026-05-07 09:26:17 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 09:26:17 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-07 09:26:17 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-07 09:26:18 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:26:18 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:29:05 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 12937
+INFO | 2026-05-07 09:29:05 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 09:29:05 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 200 2373
+INFO | 2026-05-07 09:29:05 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 09:29:05 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 09:29:05 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 09:29:05 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 2512582
+INFO | 2026-05-07 09:29:05 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-07 09:29:05 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 09:29:05 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+WARNING | 2026-05-07 09:29:06 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:29:06 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:29:48 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 12891
+INFO | 2026-05-07 09:29:48 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 09:29:48 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 09:29:48 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 09:29:48 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 09:29:48 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 09:29:48 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 2512582
+INFO | 2026-05-07 09:29:48 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 200 2373
+INFO | 2026-05-07 09:29:48 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-07 09:29:48 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-07 09:29:49 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:29:49 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:30:57 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 12891
+INFO | 2026-05-07 09:30:57 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 09:30:57 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 09:30:57 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 200 2356
+INFO | 2026-05-07 09:30:57 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 09:30:57 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 09:30:57 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 2512582
+INFO | 2026-05-07 09:30:57 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 09:30:57 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 09:30:57 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+WARNING | 2026-05-07 09:30:57 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:30:57 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:31:13 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 14233
+INFO | 2026-05-07 09:31:13 | basehttp        | "GET /static/css/auth.css?v=20260428a HTTP/1.1" 200 2356
+INFO | 2026-05-07 09:31:13 | basehttp        | "GET /static/images/hero-join.png HTTP/1.1" 200 2249170
+INFO | 2026-05-07 09:33:49 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 13762
+INFO | 2026-05-07 09:33:49 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 09:33:49 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 200 2356
+INFO | 2026-05-07 09:33:49 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 09:33:49 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 09:33:49 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 09:33:49 | basehttp        | "GET /static/images/hero-join.png HTTP/1.1" 200 2249170
+INFO | 2026-05-07 09:33:49 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 09:33:49 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-07 09:33:49 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-07 09:33:50 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:33:50 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:37:04 | autoreload      | /media/sf_CulinEire/recipes/forms.py changed, reloading.
+INFO | 2026-05-07 09:37:05 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 09:37:16 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 13092
+INFO | 2026-05-07 09:37:16 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 09:37:16 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 09:37:16 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 200 2356
+INFO | 2026-05-07 09:37:16 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 09:37:16 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 09:37:16 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 28668
+INFO | 2026-05-07 09:37:16 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 09:37:16 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 09:37:16 | basehttp        | "GET /static/images/hero-join.png HTTP/1.1" 200 2450059
+WARNING | 2026-05-07 09:37:16 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:37:16 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:39:18 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 12891
+INFO | 2026-05-07 09:39:18 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 304 0
+INFO | 2026-05-07 09:39:18 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 304 0
+INFO | 2026-05-07 09:39:21 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 13092
+INFO | 2026-05-07 09:39:21 | basehttp        | "GET /static/images/hero-join.png HTTP/1.1" 304 0
+INFO | 2026-05-07 09:39:30 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 12891
+INFO | 2026-05-07 09:39:33 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 13092
+INFO | 2026-05-07 09:41:13 | autoreload      | /media/sf_CulinEire/recipes/forms.py changed, reloading.
+INFO | 2026-05-07 09:41:14 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 09:42:04 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 13418
+INFO | 2026-05-07 09:42:04 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 09:42:04 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 200 2356
+INFO | 2026-05-07 09:42:04 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 09:42:04 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 09:42:04 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 09:42:04 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 09:42:04 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 29257
+INFO | 2026-05-07 09:42:04 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 09:42:04 | basehttp        | "GET /static/images/hero-join.png HTTP/1.1" 200 2450059
+WARNING | 2026-05-07 09:42:05 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:42:05 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:42:59 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 12891
+INFO | 2026-05-07 09:42:59 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-07 09:42:59 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 304 0
+INFO | 2026-05-07 09:43:02 | basehttp        | "POST /accounts/login/ HTTP/1.1" 302 0
+INFO | 2026-05-07 09:43:02 | basehttp        | "GET / HTTP/1.1" 200 36183
+INFO | 2026-05-07 09:43:07 | basehttp        | "GET /recipes/author/greenbear/ HTTP/1.1" 200 17283
+INFO | 2026-05-07 09:43:07 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-07 09:43:16 | basehttp        | "GET /recipes/profile/edit/ HTTP/1.1" 200 17573
+INFO | 2026-05-07 09:43:16 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-07 09:43:52 | basehttp        | "GET /recipes/profile/edit/ HTTP/1.1" 200 17573
+INFO | 2026-05-07 09:43:52 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-07 09:44:30 | autoreload      | /media/sf_CulinEire/config/settings.py changed, reloading.
+INFO | 2026-05-07 09:44:31 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 09:45:15 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 09:45:15 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 09:45:24 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 09:45:25 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 09:45:33 | autoreload      | /media/sf_CulinEire/config/urls.py changed, reloading.
+INFO | 2026-05-07 09:45:33 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 09:46:45 | autoreload      | /media/sf_CulinEire/config/settings.py changed, reloading.
+INFO | 2026-05-07 09:46:45 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 09:47:27 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 09:51:08 | basehttp        | "GET / HTTP/1.1" 200 36183
+INFO | 2026-05-07 09:51:09 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 304 0
+INFO | 2026-05-07 09:51:09 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+WARNING | 2026-05-07 09:51:10 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:51:10 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:51:16 | basehttp        | "POST /accounts/logout/ HTTP/1.1" 302 0
+INFO | 2026-05-07 09:51:16 | basehttp        | "GET / HTTP/1.1" 200 33050
+INFO | 2026-05-07 09:52:25 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 12891
+INFO | 2026-05-07 09:52:25 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 304 0
+INFO | 2026-05-07 09:52:25 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 304 0
+INFO | 2026-05-07 09:52:25 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-07 09:52:59 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 13418
+INFO | 2026-05-07 09:52:59 | basehttp        | "GET /static/images/hero-join.png HTTP/1.1" 304 0
+INFO | 2026-05-07 09:53:05 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 12891
+INFO | 2026-05-07 09:56:03 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 12894
+INFO | 2026-05-07 09:56:03 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 09:56:03 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 200 2356
+INFO | 2026-05-07 09:56:03 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 09:56:03 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 09:56:03 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 09:56:03 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 2512582
+INFO | 2026-05-07 09:56:03 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 09:56:03 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 29257
+INFO | 2026-05-07 09:56:03 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-07 09:56:04 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:56:04 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:57:03 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 12886
+INFO | 2026-05-07 09:57:03 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 09:57:03 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 09:57:03 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 09:57:03 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 09:57:03 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 200 2356
+INFO | 2026-05-07 09:57:03 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 2512582
+INFO | 2026-05-07 09:57:03 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 09:57:03 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 29257
+INFO | 2026-05-07 09:57:03 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+WARNING | 2026-05-07 09:57:04 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 09:57:04 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 09:57:07 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 13421
+INFO | 2026-05-07 09:57:07 | basehttp        | "GET /static/images/hero-join.png HTTP/1.1" 304 0
+INFO | 2026-05-07 09:58:46 | autoreload      | /media/sf_CulinEire/recipes/forms.py changed, reloading.
+INFO | 2026-05-07 09:58:47 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 09:59:08 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 12886
+INFO | 2026-05-07 09:59:08 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-07 09:59:09 | basehttp        | "GET /articles/ HTTP/1.1" 200 16769
+INFO | 2026-05-07 09:59:11 | basehttp        | "GET /recipes/ HTTP/1.1" 200 46892
+INFO | 2026-05-07 09:59:13 | basehttp        | "GET / HTTP/1.1" 200 33053
+INFO | 2026-05-07 09:59:44 | autoreload      | /media/sf_CulinEire/recipes/forms.py changed, reloading.
+INFO | 2026-05-07 09:59:45 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 09:59:46 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 13421
+INFO | 2026-05-07 09:59:47 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 304 0
+INFO | 2026-05-07 09:59:47 | basehttp        | "GET /static/images/hero-join.png HTTP/1.1" 304 0
+INFO | 2026-05-07 10:00:06 | autoreload      | /media/sf_CulinEire/recipes/forms.py changed, reloading.
+INFO | 2026-05-07 10:00:06 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 10:00:09 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 12886
+INFO | 2026-05-07 10:00:09 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 304 0
+INFO | 2026-05-07 10:00:26 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 13424
+INFO | 2026-05-07 10:00:29 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 13424
+INFO | 2026-05-07 10:00:29 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 200 2356
+INFO | 2026-05-07 10:00:29 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 10:00:29 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 10:00:29 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 10:00:29 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 10:00:30 | basehttp        | "GET /static/images/hero-join.png HTTP/1.1" 200 2450059
+INFO | 2026-05-07 10:00:30 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 10:00:30 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 29257
+INFO | 2026-05-07 10:00:30 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-07 10:00:30 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 10:00:30 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 10:03:46 | basehttp        | "POST /accounts/signup/ HTTP/1.1" 200 11903
+INFO | 2026-05-07 10:03:46 | basehttp        | "GET /static/images/hero-join.png HTTP/1.1" 304 0
+INFO | 2026-05-07 10:03:46 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-07 10:04:56 | basehttp        | "GET /accounts/activate/Mg/d87daa-134bef375e40f3843d8f79c8db9cb78e/ HTTP/1.1" 302 0
+INFO | 2026-05-07 10:04:56 | basehttp        | "GET / HTTP/1.1" 200 36069
+WARNING | 2026-05-07 10:06:02 | log             | Forbidden (CSRF token from POST incorrect.): /accounts/signup/
+WARNING | 2026-05-07 10:06:02 | basehttp        | "POST /accounts/signup/ HTTP/1.1" 403 1004
+WARNING | 2026-05-07 10:06:02 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 10:06:02 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 10:07:59 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 16101
+INFO | 2026-05-07 10:07:59 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 304 0
+INFO | 2026-05-07 10:07:59 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 304 0
+INFO | 2026-05-07 10:07:59 | basehttp        | "GET /static/images/hero-join.png HTTP/1.1" 304 0
+INFO | 2026-05-07 10:07:59 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-07 10:09:04 | autoreload      | /media/sf_CulinEire/config/urls.py changed, reloading.
+INFO | 2026-05-07 10:09:05 | autoreload      | Watching for file changes with StatReloader
+WARNING | 2026-05-07 10:09:15 | log             | Not Found: /dev/preview/activation-pending/
+WARNING | 2026-05-07 10:09:15 | basehttp        | "GET /dev/preview/activation-pending/ HTTP/1.1" 404 179
+WARNING | 2026-05-07 10:09:23 | log             | Not Found: /dev/preview/activation-invalid/
+WARNING | 2026-05-07 10:09:23 | basehttp        | "GET /dev/preview/activation-invalid/ HTTP/1.1" 404 179
+INFO | 2026-05-07 10:10:12 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 10:10:15 | basehttp        | "GET / HTTP/1.1" 200 35770
+WARNING | 2026-05-07 10:10:27 | log             | Not Found: /dev/preview/activation-invalid/
+WARNING | 2026-05-07 10:10:27 | basehttp        | "GET /dev/preview/activation-invalid/ HTTP/1.1" 404 179
+WARNING | 2026-05-07 10:10:33 | log             | Not Found: /dev/preview/activation-invalid/
+WARNING | 2026-05-07 10:10:33 | basehttp        | "GET /dev/preview/activation-invalid/ HTTP/1.1" 404 179
+WARNING | 2026-05-07 10:10:33 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 10:10:33 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 10:11:09 | autoreload      | /media/sf_CulinEire/config/urls.py changed, reloading.
+INFO | 2026-05-07 10:11:09 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 10:11:14 | autoreload      | /media/sf_CulinEire/config/urls.py changed, reloading.
+INFO | 2026-05-07 10:11:14 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 10:12:23 | basehttp        | "GET /dev/preview/activation-invalid/ HTTP/1.1" 200 14360
+INFO | 2026-05-07 10:12:24 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 10:12:24 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 10:12:24 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 10:12:24 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 10:12:24 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 10:12:24 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 10:12:24 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 29257
+INFO | 2026-05-07 10:12:24 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 10:12:24 | basehttp        | "GET /static/images/hero-join.png HTTP/1.1" 200 2450059
+WARNING | 2026-05-07 10:12:24 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 10:12:24 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 10:13:06 | basehttp        | "GET /dev/preview/activation-pending/ HTTP/1.1" 200 14523
+INFO | 2026-05-07 10:13:06 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 304 0
+INFO | 2026-05-07 10:13:33 | basehttp        | "POST /accounts/logout/ HTTP/1.1" 302 0
+INFO | 2026-05-07 10:13:33 | basehttp        | "GET / HTTP/1.1" 200 33053
+INFO | 2026-05-07 10:13:36 | basehttp        | "GET /dev/preview/activation-pending/ HTTP/1.1" 200 11806
+INFO | 2026-05-07 10:14:28 | basehttp        | "GET /dev/preview/activation-invalid/ HTTP/1.1" 200 11645
+INFO | 2026-05-07 10:14:38 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 13424
+INFO | 2026-05-07 10:15:56 | basehttp        | "POST /accounts/signup/ HTTP/1.1" 200 13646
+INFO | 2026-05-07 10:15:56 | basehttp        | "GET /static/images/hero-join.png HTTP/1.1" 304 0
+INFO | 2026-05-07 10:15:56 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-07 10:18:14 | basehttp        | "POST /accounts/signup/ HTTP/1.1" 200 11856
+INFO | 2026-05-07 10:18:14 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 304 0
+INFO | 2026-05-07 10:18:26 | basehttp        | "GET /accounts/activate/Mw/d87dye-77b2d9496e3f87e6b094eb1cd47f3c5e/ HTTP/1.1" 302 0
+INFO | 2026-05-07 10:18:26 | basehttp        | "GET / HTTP/1.1" 200 36088
+INFO | 2026-05-07 10:18:33 | autoreload      | /media/sf_CulinEire/config/settings.py changed, reloading.
+INFO | 2026-05-07 10:18:33 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 10:18:37 | autoreload      | /media/sf_CulinEire/recipes/forms.py changed, reloading.
+INFO | 2026-05-07 10:18:37 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 10:18:41 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 10:18:42 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 10:24:59 | autoreload      | /media/sf_CulinEire/config/settings.py changed, reloading.
+INFO | 2026-05-07 10:24:59 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 10:25:07 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 10:25:07 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 10:25:16 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 10:25:17 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 10:25:25 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 10:25:26 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 10:28:15 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 10:28:15 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 10:28:20 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 10:28:20 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 10:28:24 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 10:28:24 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 10:28:28 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 10:28:29 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 10:28:36 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 10:28:36 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 10:28:40 | autoreload      | /media/sf_CulinEire/articles/views.py changed, reloading.
+INFO | 2026-05-07 10:28:41 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 10:28:46 | autoreload      | /media/sf_CulinEire/articles/views.py changed, reloading.
+INFO | 2026-05-07 10:28:46 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 10:31:29 | basehttp        | "GET / HTTP/1.1" 200 36106
+INFO | 2026-05-07 10:31:29 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 10:31:29 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 10:31:29 | basehttp        | "GET /static/css/base.css?v=20260430x HTTP/1.1" 200 19801
+INFO | 2026-05-07 10:31:29 | basehttp        | "GET /static/images/hero.jpg HTTP/1.1" 200 2758257
+INFO | 2026-05-07 10:31:29 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 29257
+INFO | 2026-05-07 10:31:29 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 200 2316746
+INFO | 2026-05-07 10:31:29 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 10:31:29 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/cover.png HTTP/1.1" 200 697066
+INFO | 2026-05-07 10:31:29 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 10:31:29 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 10:31:29 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 200 2489208
+INFO | 2026-05-07 10:31:29 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 10:31:29 | basehttp        | "GET /media/recipes/GreenBear/IRISH%20STEW/cover.png HTTP/1.1" 200 1547642
+INFO | 2026-05-07 10:31:29 | basehttp        | "GET /media/articles/How%20to%20Make%20Perfect%20Irish%20Potato%20Soup/cover.png HTTP/1.1" 200 533390
+WARNING | 2026-05-07 10:31:30 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 10:31:30 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 10:32:26 | basehttp        | "GET / HTTP/1.1" 200 36106
+INFO | 2026-05-07 10:32:45 | basehttp        | "POST /accounts/logout/ HTTP/1.1" 302 0
+INFO | 2026-05-07 10:32:45 | basehttp        | "GET / HTTP/1.1" 200 33053
+INFO | 2026-05-07 10:32:47 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 12886
+INFO | 2026-05-07 10:32:47 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 304 0
+INFO | 2026-05-07 10:32:47 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 304 0
+INFO | 2026-05-07 10:32:50 | basehttp        | "POST /accounts/login/ HTTP/1.1" 302 0
+INFO | 2026-05-07 10:32:50 | basehttp        | "GET / HTTP/1.1" 200 36106
+INFO | 2026-05-07 10:34:39 | autoreload      | /media/sf_CulinEire/config/urls.py changed, reloading.
+INFO | 2026-05-07 10:34:39 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 10:36:00 | basehttp        | "GET /dev/preview/toasts/ HTTP/1.1" 302 0
+INFO | 2026-05-07 10:36:00 | basehttp        | "GET / HTTP/1.1" 200 37031
+INFO | 2026-05-07 10:36:00 | basehttp        | "GET /static/css/base.css?v=20260507c HTTP/1.1" 200 21483
+INFO | 2026-05-07 10:36:00 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-07 10:36:00 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 304 0
+INFO | 2026-05-07 10:36:09 | basehttp        | "GET /dev/preview/toasts/ HTTP/1.1" 302 0
+INFO | 2026-05-07 10:36:09 | basehttp        | "GET / HTTP/1.1" 200 37031
+INFO | 2026-05-07 10:36:17 | basehttp        | "GET /dev/preview/toasts/ HTTP/1.1" 302 0
+INFO | 2026-05-07 10:36:17 | basehttp        | "GET / HTTP/1.1" 200 37031
+INFO | 2026-05-07 10:36:47 | basehttp        | "GET /dev/preview/toasts/ HTTP/1.1" 302 0
+INFO | 2026-05-07 10:36:47 | basehttp        | "GET / HTTP/1.1" 200 37031
+INFO | 2026-05-07 10:36:47 | basehttp        | "GET /static/css/base.css?v=20260507c HTTP/1.1" 304 0

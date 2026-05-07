@@ -2,40 +2,27 @@
 {% load static %}
 
 {% block title %}Sign In | CulinEire{% endblock %}
-{% block meta_description %}Sign in to your CulinEire account to continue exploring recipes and food stories.{% endblock %}
+{% block meta_description %}Sign In to your CulinEire account to continue exploring recipes and food stories.{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/auth.css' %}?v=20260428a" rel="stylesheet">
+<link href="{% static 'css/auth.css' %}?v=20260507b" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<section class="hero hero--home">
+<section class="hero hero--home hero--login">
     <div aria-hidden="true" class="hero__background">
-        <img alt="" src="{% static 'images/hero-auth.png' %}">
+        <img alt="" src="{% static 'images/hero-login.png' %}">
     </div>
     <div aria-hidden="true" class="hero__overlay"></div>
-    <div class="container hero__inner">
-        <div class="hero-copy">
-            <span class="pill">Sign In</span>
+    <div class="container hero__inner hero__inner--login">
+        <div class="hero-copy hero-copy--login">
             <h1 class="hero-title">Welcome Back</h1>
-            <p class="hero-subtitle">Sign in to continue exploring Irish recipes and food stories.</p>
-            <div class="hero__actions">
-                <a class="btn-primary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
-                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
-            </div>
+            <p class="hero-subtitle">Sign In to continue exploring Irish recipes and food stories.</p>
         </div>
-    </div>
-</section>
-
-<section class="page-section">
-    <div class="container auth-shell">
-        <div class="auth-card">
+        <div class="auth-card auth-card--hero">
             <div class="auth-copy">
                 <p class="eyebrow">Welcome back</p>
-                <h1>Sign in</h1>
-                <p class="auth-intro">
-                    Log in to continue browsing the CulinEire collection and pick up where you left off.
-                </p>
+                <h2>Sign In</h2>
             </div>
 
             <form class="auth-form" method="post">
@@ -50,7 +37,7 @@
                 {% endif %}
 
                 <div class="auth-field">
-                    <label for="id_username">Email address</label>
+                    <label for="id_username">Email Address:</label>
                     <input
                         autocomplete="username"
                         autofocus
@@ -66,7 +53,7 @@
                 </div>
 
                 <div class="auth-field">
-                    <label for="id_password">Password</label>
+                    <label for="id_password">Password:</label>
                     <input
                         autocomplete="current-password"
                         id="id_password"
@@ -83,11 +70,11 @@
                 <input name="next" type="hidden" value="{{ next }}">
                 {% endif %}
 
-                <button class="btn" type="submit">Sign in</button>
+                <button class="btn" type="submit">Sign In</button>
             </form>
 
             <p class="auth-note">
-                Need an account? <a href="{% url 'signup' %}">Create one here</a>.
+                New to CulinEire? <a href="{% url 'signup' %}">Join Us</a>
             </p>
         </div>
     </div>

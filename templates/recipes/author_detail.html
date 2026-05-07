@@ -5,14 +5,14 @@
 {% block meta_description %}Browse recipes and articles by {{ author.name }} on CulinEire.{% endblock %}
 
 {% block content %}
-<section class="hero hero--home">
+<section class="hero hero--home {% if is_god_author %}hero--greenbear{% endif %}">
     <div aria-hidden="true" class="hero__background">
-        <img alt="" src="{% static 'images/hero-author.png' %}">
+        <img alt="" src="{% static 'images/hero-profile.png' %}">
     </div>
     <div aria-hidden="true" class="hero__overlay"></div>
     <div class="container hero__inner">
         <div class="hero-copy">
-            <span class="pill">Author Profile</span>
+            <span class="pill">{% if is_god_author %}Creator & Chef{% else %}Author Profile{% endif %}</span>
             <div class="hero-author-avatar-wrap">
                 {% if author.avatar %}
                 <img alt="{{ author.name }}" class="hero-author-avatar" src="{{ author.avatar.url }}">
@@ -55,6 +55,17 @@
                 <a class="btn" href="{% url 'recipes:author_edit' %}">Edit Profile</a>
                 <a class="recipe-card__cta btn btn--danger recipe-card__delete" href="{% url 'recipes:author_delete' %}">Delete Profile</a>
             </div>
+        </div>
+
+        <div class="author-profile-gdpr">
+            <p class="author-profile-gdpr__title">Your Data &amp; Privacy</p>
+            <ul class="author-profile-gdpr__list">
+                <li>We store your <strong>username</strong> and <strong>email address</strong> solely to manage your account and enable password recovery.</li>
+                <li>Your data is never sold or shared with third parties.</li>
+                <li>You may <strong>edit</strong> your profile information at any time using the button above.</li>
+                <li>You have the right to <strong>delete</strong> your account and all associated data at any time.</li>
+                <li>This site complies with the General Data Protection Regulation (GDPR, EU 2016/679).</li>
+            </ul>
         </div>
         {% endif %}
 

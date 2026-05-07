@@ -6,88 +6,87 @@
    (был @import — это блокирующий анти-паттерн).
 */
 
-/* Основной стиль:
-   .author-name--god — общий “режим бога”
-   .author-name--greenbear — конкретно GreenBear, ведём их вместе.
-*/
+/* ── Усиленный оверлей для hero GreenBear ── */
+.hero--greenbear .hero__overlay {
+  background:
+    radial-gradient(ellipse 80% 90% at 50% 55%, rgb(0 0 0 / 0.55) 0%, rgb(0 0 0 / 0.05) 100%),
+    linear-gradient(180deg, rgb(11 24 18 / 0.15) 0%, rgb(11 24 18 / 0.75) 100%);
+}
+
+/* ── Аватар: увеличен, элегантная рамка ── */
+.hero--greenbear .hero-author-avatar {
+  width: 110px;
+  height: 110px;
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.15),
+    0 8px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Имя: светлый градиент — читается на тёмном фоне ── */
 .author-name--god,
 .author-name--greenbear {
   position: relative;
   display: inline-block;
 
   font-family: "Dancing Script", "Segoe Script", "Brush Script MT", cursive;
-  font-weight: 600;
-  font-size: 3rem;
-  letter-spacing: 0.06em;
-  text-transform: none; /* нормальное написание GreenBear */
+  font-weight: 700;
+  font-size: 3.2rem;
+  letter-spacing: 0.04em;
+  text-transform: none;
 
-  /* базовый зелёный + золотой перелив по буквам */
   background: linear-gradient(
     90deg,
-    #184c3a,
+    #c8f0d8,
     #f5e08a,
-    #184c3a
+    #c8f0d8
   );
   background-size: 200% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 
-  /* перелив туда-обратно за 5 секунд, повторяется бесконечно */
   animation: god-gold-flow 5s linear 1 forwards;
 }
 
-/* Лапы медведя слева и справа */
+/* ── Лапы медведя слева и справа ── */
 .author-name--god::before,
 .author-name--greenbear::before,
 .author-name--god::after,
 .author-name--greenbear::after {
-  font-size: 0.85em;
+  font-size: 0.75em;
   display: inline-block;
-  color: #888;
   background: none;
   -webkit-background-clip: initial;
   background-clip: border-box;
-  filter: grayscale(1) opacity(0.55);
+  filter: opacity(0.75);
 }
 
 .author-name--god::before,
 .author-name--greenbear::before {
   content: "🐾";
-  margin-right: 0.3em;
+  margin-right: 0.35em;
   transform: scaleX(-1);
 }
 
 .author-name--god::after,
 .author-name--greenbear::after {
   content: "🐾";
-  margin-left: 0.3em;
+  margin-left: 0.35em;
 }
 
-/* Анимация перелива:
-   0%   — градиент в начале (слева),
-   50%  — ушёл вправо,
-   100% — вернулся обратно влево.
-   Весь цикл 5s → туда-обратно за 5 секунд, потом сразу повтор.
-*/
+/* ── Анимация перелива ── */
 @keyframes god-gold-flow {
-  0% {
-    background-position: 0% 0;
-  }
-  50% {
-    background-position: 100% 0;
-  }
-  100% {
-    background-position: 0% 0;
-  }
+  0%   { background-position: 0% 0; }
+  50%  { background-position: 100% 0; }
+  100% { background-position: 0% 0; }
 }
 
-/* Уважаем системную настройку «уменьшить движение» (WCAG 2.2 SC 2.2.2). */
+/* ── Уважаем системную настройку «уменьшить движение» (WCAG 2.2 SC 2.2.2) ── */
 @media (prefers-reduced-motion: reduce) {
   .author-name--god,
   .author-name--greenbear {
     animation: none;
-    /* фиксируем градиент в начальной точке, чтобы имя оставалось читаемым */
     background-position: 0% 0;
   }
 }

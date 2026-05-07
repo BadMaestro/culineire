@@ -27,9 +27,17 @@ class SignInForm(AuthenticationForm):
 
 
 class SignUpForm(UserCreationForm):
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={
+            "autocomplete": "email",
+            "placeholder": "you@example.com",
+        }),
+    )
+
     class Meta(UserCreationForm.Meta):
         model = get_user_model()
-        fields = ("username",)
+        fields = ("username", "email")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -50,6 +58,32 @@ class SignUpForm(UserCreationForm):
             autocomplete="new-password",
             placeholder="Repeat your password",
         )
+
+        self.fields["username"].label = "Username"
+        self.fields["email"].label = "Email Address"
+        self.fields["password1"].label = "Password"
+        self.fields["password2"].label = "Confirm Password"
+
+        for field in self.fields.values():
+            field.help_text = ""
+
+    website = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput,
+    )
+
+    def clean_website(self):
+        value = self.cleaned_data.get("website", "").strip()
+        if value:
+            raise forms.ValidationError("Spam detected.")
+        return value
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data["email"]
+        if commit:
+            user.save()
+        return user
 
 
 class RecipeAuthoringForm(forms.ModelForm):

@@ -1,3 +1,5 @@
+import os
+
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.staticfiles.views import serve as staticfiles_serve
@@ -21,8 +23,32 @@ urlpatterns = [
     # Authentication
     path("accounts/login/", recipes_views.CulinEireLoginView.as_view(), name="login"),
     path("accounts/signup/", recipes_views.SignUpView.as_view(), name="signup"),
+    path("accounts/activate/<uidb64>/<token>/", recipes_views.activate_account, name="activate_account"),
     path("accounts/", include("django.contrib.auth.urls")),
 ]
+
+if os.getenv("DJANGO_ENV") == "development":
+    from django.contrib import messages as _messages
+    from django.shortcuts import redirect as _redirect
+    from django.shortcuts import render as _render
+
+    def _preview_activation(request):
+        return _render(request, "registration/activation_pending.html", {"email": "preview@example.com"})
+
+    def _preview_activation_invalid(request):
+        return _render(request, "registration/activation_invalid.html")
+
+    def _preview_toasts(request):
+        _messages.success(request, "Your email is confirmed. Welcome to CulinEire!")
+        _messages.warning(request, "Your session will expire soon.")
+        _messages.error(request, "Something went wrong. Please try again.")
+        return _redirect("home")
+
+    urlpatterns += [
+        path("dev/preview/activation-pending/", _preview_activation),
+        path("dev/preview/activation-invalid/", _preview_activation_invalid),
+        path("dev/preview/toasts/", _preview_toasts),
+    ]
 
 if settings.SERVE_STATIC_LOCALLY:
     urlpatterns += [

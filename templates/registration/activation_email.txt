@@ -1,0 +1,11 @@
+Welcome to CulinEire, {{ username }}!
+
+To complete your registration, please confirm your email address by clicking the link below:
+
+http://{{ domain }}/accounts/activate/{{ uid }}/{{ token }}/
+
+This link will expire in 24 hours.
+
+If you did not create an account, please ignore this email.
+
+— The CulinEire Team
