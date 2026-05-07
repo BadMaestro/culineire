@@ -9574,3 +9574,5 @@ INFO | 2026-05-07 10:36:17 | basehttp        | "GET / HTTP/1.1" 200 37031
 INFO | 2026-05-07 10:36:47 | basehttp        | "GET /dev/preview/toasts/ HTTP/1.1" 302 0
 INFO | 2026-05-07 10:36:47 | basehttp        | "GET / HTTP/1.1" 200 37031
 INFO | 2026-05-07 10:36:47 | basehttp        | "GET /static/css/base.css?v=20260507c HTTP/1.1" 304 0
+INFO | 2026-05-07 10:41:07 | autoreload      | /media/sf_CulinEire/config/turnstile.py changed, reloading.
+INFO | 2026-05-07 10:41:08 | autoreload      | Watching for file changes with StatReloader
