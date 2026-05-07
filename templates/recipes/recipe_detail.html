@@ -7,7 +7,7 @@
 {% block extra_head %}
 <link href="{% static 'css/detail_page.css' %}?v=20260501" rel="stylesheet">
 {% if can_moderate_bar %}
-<link href="{% static 'css/messaging.css' %}?v=20260507a" rel="stylesheet">{% endif %}
+<link href="{% static 'css/messaging.css' %}?v=20260507b" rel="stylesheet">{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -369,6 +369,12 @@
         <button class="mod-bar__btn mod-bar__btn--message" id="mod-bar-msg-toggle" type="button">
             Reject &amp; Message Author
         </button>
+        {% endif %}
+        {% if recipe.author.user and recipe.author.user != request.user and recipe.author.slug != "greenbear" %}
+        <form action="{% url 'recipes:block_author' recipe.author.slug %}" method="post">{% csrf_token %}
+            <input name="next" type="hidden" value="{{ request.get_full_path }}">
+            <button class="mod-bar__btn mod-bar__btn--block" name="action" onclick="return confirm('Block user {{ recipe.author.user.username }}?')" type="submit" value="block">Block Author</button>
+        </form>
         {% endif %}
 
         <a class="mod-bar__btn mod-bar__btn--back" href="{% url 'recipes:moderation_panel' %}">← Panel</a>

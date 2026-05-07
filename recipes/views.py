@@ -7,14 +7,14 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import LoginView
 from django.core.mail import send_mail
-from django.db.models import Avg, Count, Prefetch
+from django.db.models import Avg, Count, Prefetch, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.templatetags.static import static
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes, force_str
-from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.utils.http import url_has_allowed_host_and_scheme, urlsafe_base64_decode, urlsafe_base64_encode
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DeleteView, UpdateView
@@ -1003,12 +1003,26 @@ def _is_moderator(user):
     if user.is_staff or user.is_superuser:
         return True
     author = getattr(user, "recipe_author_profile", None)
+    return author is not None and (
+        author.slug == "greenbear"
+        or author.has_bearseeker_privileges
+    )
+
+
+def _can_grant_bearseeker_privileges(user):
+    if not user or not user.is_authenticated:
+        return False
+    if user.is_superuser:
+        return True
+    author = getattr(user, "recipe_author_profile", None)
     return author is not None and author.slug == "greenbear"
 
 
 def moderation_panel(request):
     if not _is_moderator(request.user):
         raise Http404
+
+    author_query = request.GET.get("author_q", "").strip()
 
     pending_recipes = (
         Recipe.objects.select_related("author", "author__user")
@@ -1030,12 +1044,25 @@ def moderation_panel(request):
         .filter(status=Article.Status.REJECTED)
         .order_by("-published")
     )
+    registered_authors = (
+        RecipeAuthor.objects.select_related("user")
+        .filter(user__isnull=False)
+        .order_by("name", "user__username")
+    )
+    if author_query:
+        registered_authors = registered_authors.filter(
+            Q(name__icontains=author_query)
+            | Q(user__username__icontains=author_query)
+        )
 
     return render(request, "moderation/panel.html", {
         "pending_recipes": pending_recipes,
         "rejected_recipes": rejected_recipes,
         "pending_articles": pending_articles,
         "rejected_articles": rejected_articles,
+        "registered_authors": registered_authors,
+        "author_query": author_query,
+        "can_grant_bearseeker_privileges": _can_grant_bearseeker_privileges(request.user),
     })
 
 
@@ -1119,9 +1146,31 @@ def block_author(request, slug):
         raise Http404
     user = author.user
     if user:
-        user.is_active = False
-        user.save(update_fields=["is_active"])
-        messages.warning(request, f'User "{user.username}" has been blocked.')
+        action = request.POST.get("action", "block")
+        if action == "grant_bearseeker":
+            if not _can_grant_bearseeker_privileges(request.user):
+                raise Http404
+            author.has_bearseeker_privileges = True
+            author.save(update_fields=["has_bearseeker_privileges"])
+            user.is_active = True
+            user.save(update_fields=["is_active"])
+            messages.success(request, f'Author "{author.name}" now has (Bear)seeker moderation privileges.')
+        elif action == "unblock":
+            user.is_active = True
+            user.save(update_fields=["is_active"])
+            messages.success(request, f'User "{user.username}" has been unblocked.')
+        else:
+            user.is_active = False
+            user.save(update_fields=["is_active"])
+            messages.warning(request, f'User "{user.username}" has been blocked.')
     else:
         messages.error(request, "No linked user account found.")
+
+    next_url = request.POST.get("next", "")
+    if next_url and url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return redirect(next_url)
     return redirect("recipes:author_detail", slug=slug)

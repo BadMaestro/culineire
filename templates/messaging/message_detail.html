@@ -10,12 +10,10 @@
         <a class="msg-back" href="{% url 'messaging:inbox' %}">← Back to Messages</a>
 
         {% if root_message.related_recipe %}
-        <p class="msg-ref-banner">Re: <a href="{{ root_message.related_recipe.get_absolute_url }}" target="_blank">{{
-            root_message.related_recipe.title }}</a></p>
+        <p class="msg-ref-banner">Re: <a href="{{ root_message.related_recipe.get_absolute_url }}" target="_blank">{{ root_message.related_recipe.title }}</a></p>
         {% endif %}
         {% if root_message.related_article %}
-        <p class="msg-ref-banner">Re: <a href="{{ root_message.related_article.get_absolute_url }}" target="_blank">{{
-            root_message.related_article.title }}</a></p>
+        <p class="msg-ref-banner">Re: <a href="{{ root_message.related_article.get_absolute_url }}" target="_blank">{{ root_message.related_article.title }}</a></p>
         {% endif %}
 
         <div class="msg-thread">

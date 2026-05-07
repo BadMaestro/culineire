@@ -242,6 +242,12 @@
   border-color: rgb(180 40 40 / 0.35);
 }
 
+.mod-bar__btn--block {
+  background: rgb(60 60 60 / 0.2);
+  color: rgb(235 235 235);
+  border-color: rgb(255 255 255 / 0.18);
+}
+
 .mod-bar__btn--message {
   background: rgb(80 120 200 / 0.15);
   color: rgb(140 180 255);

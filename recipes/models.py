@@ -107,6 +107,11 @@ class RecipeAuthor(models.Model):
         null=True,
         validators=[validate_image_upload],
     )
+    has_bearseeker_privileges = models.BooleanField(
+        "Can moderate site content",
+        default=False,
+        help_text="Allows this author to use CulinEire moderation tools without Django admin access.",
+    )
 
     class Meta:
         verbose_name = "Recipe author"
