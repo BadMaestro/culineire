@@ -9576,3 +9576,1410 @@ INFO | 2026-05-07 10:36:47 | basehttp        | "GET / HTTP/1.1" 200 37031
 INFO | 2026-05-07 10:36:47 | basehttp        | "GET /static/css/base.css?v=20260507c HTTP/1.1" 304 0
 INFO | 2026-05-07 10:41:07 | autoreload      | /media/sf_CulinEire/config/turnstile.py changed, reloading.
 INFO | 2026-05-07 10:41:08 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 10:47:23 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 10:47:25 | basehttp        | "GET / HTTP/1.1" 200 36445
+INFO | 2026-05-07 10:47:25 | basehttp        | "GET /static/css/base.css?v=20260507c HTTP/1.1" 304 0
+INFO | 2026-05-07 10:47:25 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 304 0
+INFO | 2026-05-07 10:47:25 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-07 10:48:42 | basehttp        | "POST /accounts/logout/ HTTP/1.1" 302 0
+INFO | 2026-05-07 10:48:42 | basehttp        | "GET / HTTP/1.1" 200 33392
+INFO | 2026-05-07 10:48:45 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 14255
+INFO | 2026-05-07 10:48:45 | basehttp        | "GET /static/images/hero-join.png HTTP/1.1" 304 0
+INFO | 2026-05-07 10:48:45 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 304 0
+INFO | 2026-05-07 10:51:48 | autoreload      | /media/sf_CulinEire/recipes/models.py changed, reloading.
+INFO | 2026-05-07 10:51:48 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 10:51:52 | autoreload      | /media/sf_CulinEire/recipes/models.py changed, reloading.
+INFO | 2026-05-07 10:51:52 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 10:51:55 | autoreload      | /media/sf_CulinEire/articles/models.py changed, reloading.
+INFO | 2026-05-07 10:51:55 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 10:51:59 | autoreload      | /media/sf_CulinEire/articles/models.py changed, reloading.
+INFO | 2026-05-07 10:52:00 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 14:32:16 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 14:32:17 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 14:32:50 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 14:32:51 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 14:32:54 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 14:32:55 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 14:33:03 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 14:33:03 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 14:33:09 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 14:33:10 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 14:33:14 | autoreload      | /media/sf_CulinEire/articles/views.py changed, reloading.
+INFO | 2026-05-07 14:33:14 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 14:33:20 | autoreload      | /media/sf_CulinEire/articles/views.py changed, reloading.
+INFO | 2026-05-07 14:33:20 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 14:33:23 | autoreload      | /media/sf_CulinEire/articles/views.py changed, reloading.
+INFO | 2026-05-07 14:33:23 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 14:33:33 | autoreload      | /media/sf_CulinEire/articles/admin.py changed, reloading.
+INFO | 2026-05-07 14:33:34 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 14:33:38 | autoreload      | /media/sf_CulinEire/articles/admin.py changed, reloading.
+INFO | 2026-05-07 14:33:39 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 14:33:48 | autoreload      | /media/sf_CulinEire/recipes/admin.py changed, reloading.
+INFO | 2026-05-07 14:33:49 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 14:33:52 | autoreload      | /media/sf_CulinEire/recipes/admin.py changed, reloading.
+INFO | 2026-05-07 14:33:53 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 14:35:17 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 14255
+INFO | 2026-05-07 14:35:17 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 304 0
+INFO | 2026-05-07 14:35:17 | basehttp        | "GET /static/images/hero-join.png HTTP/1.1" 304 0
+INFO | 2026-05-07 14:35:17 | basehttp        | "GET /static/css/base.css?v=20260507c HTTP/1.1" 304 0
+INFO | 2026-05-07 14:35:17 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-07 14:35:17 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 304 0
+INFO | 2026-05-07 14:35:28 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13225
+INFO | 2026-05-07 14:35:28 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 304 0
+INFO | 2026-05-07 14:35:31 | basehttp        | "POST /accounts/login/ HTTP/1.1" 302 0
+ERROR | 2026-05-07 14:35:31 | log             | Internal Server Error: /
+Traceback (most recent call last):
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/db/backends/sqlite3/base.py", line 360, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such column: recipes_recipe.status
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/sf_CulinEire/recipes/views.py", line 296, in home
+    return render(request, "home.html", context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/backends/django.py", line 107, in render
+    return self.template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 172, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 164, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 979, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 164, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 979, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/base.py", line 979, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/template/defaulttags.py", line 326, in render
+    if match:
+       ^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/db/models/query.py", line 400, in __bool__
+    self._fetch_all()
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/db/models/query.py", line 1954, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/db/models/query.py", line 93, in __iter__
+    results = compiler.execute_sql(
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/db/models/sql/compiler.py", line 1623, in execute_sql
+    cursor.execute(sql, params)
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/db/backends/sqlite3/base.py", line 360, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: no such column: recipes_recipe.status
+ERROR | 2026-05-07 14:35:31 | basehttp        | "GET / HTTP/1.1" 500 145
+INFO | 2026-05-07 14:36:20 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 14:36:23 | basehttp        | "GET / HTTP/1.1" 200 36445
+INFO | 2026-05-07 14:36:40 | basehttp        | "GET / HTTP/1.1" 200 36445
+INFO | 2026-05-07 14:36:40 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 14:36:40 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 14:36:40 | basehttp        | "GET /static/css/base.css?v=20260507c HTTP/1.1" 200 21483
+INFO | 2026-05-07 14:36:40 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 200 2316746
+INFO | 2026-05-07 14:36:40 | basehttp        | "GET /static/images/hero.jpg HTTP/1.1" 200 2758257
+INFO | 2026-05-07 14:36:40 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 14:36:40 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 200 2489208
+INFO | 2026-05-07 14:36:40 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/cover.png HTTP/1.1" 200 697066
+INFO | 2026-05-07 14:36:40 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 29257
+INFO | 2026-05-07 14:36:40 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 14:36:40 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 14:36:40 | basehttp        | "GET /static/images/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 14:36:40 | basehttp        | "GET /media/recipes/GreenBear/IRISH%20STEW/cover.png HTTP/1.1" 200 1547642
+INFO | 2026-05-07 14:36:40 | basehttp        | "GET /media/articles/How%20to%20Make%20Perfect%20Irish%20Potato%20Soup/cover.png HTTP/1.1" 200 533390
+WARNING | 2026-05-07 14:36:41 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 14:36:41 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 14:41:15 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 14:41:41 | basehttp        | "GET / HTTP/1.1" 200 36907
+INFO | 2026-05-07 14:41:46 | basehttp        | "GET /recipes/author/julijagolovinairlgmailcom/ HTTP/1.1" 200 17679
+INFO | 2026-05-07 14:42:19 | basehttp        | "GET /recipes/author/julijagolovinairlgmailcom/ HTTP/1.1" 200 17679
+INFO | 2026-05-07 14:43:30 | basehttp        | "GET /articles/ HTTP/1.1" 200 20623
+INFO | 2026-05-07 14:43:30 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 14:43:36 | basehttp        | "GET /articles/?author=julijagolovinairlgmailcom HTTP/1.1" 200 15761
+INFO | 2026-05-07 14:43:36 | basehttp        | "GET /static/images/my-hero-articles.png HTTP/1.1" 304 0
+INFO | 2026-05-07 14:45:57 | basehttp        | "GET /articles/?author=julijagolovinairlgmailcom HTTP/1.1" 200 15694
+INFO | 2026-05-07 14:45:57 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 304 0
+INFO | 2026-05-07 14:46:27 | basehttp        | "GET /recipes/author/julijagolovinairlgmailcom/ HTTP/1.1" 200 17802
+INFO | 2026-05-07 14:46:27 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 304 0
+INFO | 2026-05-07 14:46:35 | basehttp        | "GET /recipes/?author=julijagolovinairlgmailcom HTTP/1.1" 200 15751
+INFO | 2026-05-07 14:46:35 | basehttp        | "GET /static/images/my-hero-recipes.png HTTP/1.1" 304 0
+INFO | 2026-05-07 14:46:48 | basehttp        | "GET /recipes/ HTTP/1.1" 200 50746
+INFO | 2026-05-07 14:46:58 | basehttp        | "GET / HTTP/1.1" 200 35522
+INFO | 2026-05-07 14:46:58 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 304 0
+INFO | 2026-05-07 14:47:04 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 14:47:05 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 14:47:19 | basehttp        | "GET /recipes/?author=julijagolovinairlgmailcom HTTP/1.1" 200 15621
+INFO | 2026-05-07 14:47:25 | basehttp        | "GET /recipes/create/ HTTP/1.1" 200 36924
+INFO | 2026-05-07 14:47:25 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 304 0
+INFO | 2026-05-07 14:47:25 | basehttp        | "GET /static/css/authoring.css?v=20260429c HTTP/1.1" 200 5882
+WARNING | 2026-05-07 14:47:25 | log             | Not Found: /static/images/hero-studio.png
+WARNING | 2026-05-07 14:47:25 | basehttp        | "GET /static/images/hero-studio.png HTTP/1.1" 404 179
+INFO | 2026-05-07 14:47:42 | basehttp        | "GET /articles/ HTTP/1.1" 200 20623
+INFO | 2026-05-07 14:47:50 | basehttp        | "GET /recipes/author/julijagolovinairlgmailcom/ HTTP/1.1" 200 17802
+INFO | 2026-05-07 14:47:56 | basehttp        | "GET /articles/?author=julijagolovinairlgmailcom HTTP/1.1" 200 15694
+INFO | 2026-05-07 14:47:56 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 304 0
+INFO | 2026-05-07 14:47:59 | basehttp        | "GET /recipes/?author=julijagolovinairlgmailcom HTTP/1.1" 200 15621
+INFO | 2026-05-07 14:48:05 | basehttp        | "GET /articles/?author=julijagolovinairlgmailcom HTTP/1.1" 200 15694
+INFO | 2026-05-07 14:48:07 | basehttp        | "GET /recipes/author/julijagolovinairlgmailcom/ HTTP/1.1" 200 17802
+INFO | 2026-05-07 14:48:41 | basehttp        | "GET /recipes/profile/edit/ HTTP/1.1" 200 18218
+INFO | 2026-05-07 14:48:41 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 304 0
+INFO | 2026-05-07 14:48:41 | basehttp        | "GET /static/css/authoring.css?v=20260429b HTTP/1.1" 304 0
+INFO | 2026-05-07 14:49:59 | basehttp        | "GET /recipes/?author=julijagolovinairlgmailcom HTTP/1.1" 200 15621
+INFO | 2026-05-07 14:49:59 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 304 0
+INFO | 2026-05-07 14:50:02 | basehttp        | "GET /articles/?author=julijagolovinairlgmailcom HTTP/1.1" 200 15694
+INFO | 2026-05-07 14:50:07 | basehttp        | "POST /accounts/logout/ HTTP/1.1" 302 0
+INFO | 2026-05-07 14:50:07 | basehttp        | "GET / HTTP/1.1" 200 32007
+INFO | 2026-05-07 14:50:09 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 14255
+INFO | 2026-05-07 14:51:14 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13225
+INFO | 2026-05-07 14:51:14 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 304 0
+INFO | 2026-05-07 14:51:17 | basehttp        | "POST /accounts/login/ HTTP/1.1" 302 0
+INFO | 2026-05-07 14:51:17 | basehttp        | "GET / HTTP/1.1" 200 35522
+INFO | 2026-05-07 14:51:21 | basehttp        | "GET /recipes/author/julijagolovinairlgmailcom/ HTTP/1.1" 200 17789
+INFO | 2026-05-07 14:51:32 | basehttp        | "GET /recipes/author/julijagolovinairlgmailcom/ HTTP/1.1" 200 17789
+INFO | 2026-05-07 14:52:40 | basehttp        | "GET /recipes/author/julijagolovinairlgmailcom/ HTTP/1.1" 200 17804
+INFO | 2026-05-07 14:52:40 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 304 0
+INFO | 2026-05-07 14:52:47 | basehttp        | "GET /recipes/profile/edit/ HTTP/1.1" 200 17644
+INFO | 2026-05-07 14:54:55 | autoreload      | /media/sf_CulinEire/recipes/forms.py changed, reloading.
+INFO | 2026-05-07 14:54:56 | autoreload      | Watching for file changes with StatReloader
+ERROR | 2026-05-07 14:55:01 | log             | Internal Server Error: /recipes/profile/edit/
+Traceback (most recent call last):
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/sf_CulinEire/recipes/authoring.py", line 37, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/contrib/auth/mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/base.py", line 144, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/edit.py", line 202, in get
+    return super().get(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/edit.py", line 142, in get
+    return self.render_to_response(self.get_context_data())
+                                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/sf_CulinEire/recipes/views.py", line 789, in get_context_data
+    context = super().get_context_data(**kwargs)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/edit.py", line 72, in get_context_data
+    kwargs["form"] = self.get_form()
+                     ^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/edit.py", line 37, in get_form
+    return form_class(**self.get_form_kwargs())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/sf_CulinEire/recipes/forms.py", line 233, in __init__
+    self.fields["slug"].widget.attrs.setdefault("placeholder", "greenbear")
+    ~~~~~~~~~~~^^^^^^^^
+KeyError: 'slug'
+ERROR | 2026-05-07 14:55:01 | basehttp        | "GET /recipes/profile/edit/ HTTP/1.1" 500 145
+ERROR | 2026-05-07 14:55:09 | log             | Internal Server Error: /recipes/profile/edit/
+Traceback (most recent call last):
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/sf_CulinEire/recipes/authoring.py", line 37, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/contrib/auth/mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/base.py", line 144, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/edit.py", line 202, in get
+    return super().get(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/edit.py", line 142, in get
+    return self.render_to_response(self.get_context_data())
+                                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/sf_CulinEire/recipes/views.py", line 789, in get_context_data
+    context = super().get_context_data(**kwargs)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/edit.py", line 72, in get_context_data
+    kwargs["form"] = self.get_form()
+                     ^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/edit.py", line 37, in get_form
+    return form_class(**self.get_form_kwargs())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/sf_CulinEire/recipes/forms.py", line 233, in __init__
+    self.fields["slug"].widget.attrs.setdefault("placeholder", "greenbear")
+    ~~~~~~~~~~~^^^^^^^^
+KeyError: 'slug'
+ERROR | 2026-05-07 14:55:09 | basehttp        | "GET /recipes/profile/edit/ HTTP/1.1" 500 145
+ERROR | 2026-05-07 14:55:12 | log             | Internal Server Error: /recipes/profile/edit/
+Traceback (most recent call last):
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/sf_CulinEire/recipes/authoring.py", line 37, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/contrib/auth/mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/base.py", line 144, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/edit.py", line 202, in get
+    return super().get(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/edit.py", line 142, in get
+    return self.render_to_response(self.get_context_data())
+                                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/sf_CulinEire/recipes/views.py", line 789, in get_context_data
+    context = super().get_context_data(**kwargs)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/edit.py", line 72, in get_context_data
+    kwargs["form"] = self.get_form()
+                     ^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/edit.py", line 37, in get_form
+    return form_class(**self.get_form_kwargs())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/sf_CulinEire/recipes/forms.py", line 233, in __init__
+    self.fields["slug"].widget.attrs.setdefault("placeholder", "greenbear")
+    ~~~~~~~~~~~^^^^^^^^
+KeyError: 'slug'
+ERROR | 2026-05-07 14:55:12 | basehttp        | "GET /recipes/profile/edit/ HTTP/1.1" 500 145
+ERROR | 2026-05-07 14:55:34 | log             | Internal Server Error: /recipes/profile/edit/
+Traceback (most recent call last):
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/sf_CulinEire/recipes/authoring.py", line 37, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/contrib/auth/mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/base.py", line 144, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/edit.py", line 202, in get
+    return super().get(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/edit.py", line 142, in get
+    return self.render_to_response(self.get_context_data())
+                                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/sf_CulinEire/recipes/views.py", line 789, in get_context_data
+    context = super().get_context_data(**kwargs)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/edit.py", line 72, in get_context_data
+    kwargs["form"] = self.get_form()
+                     ^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/edit.py", line 37, in get_form
+    return form_class(**self.get_form_kwargs())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/sf_CulinEire/recipes/forms.py", line 233, in __init__
+    self.fields["slug"].widget.attrs.setdefault("placeholder", "greenbear")
+    ~~~~~~~~~~~^^^^^^^^
+KeyError: 'slug'
+ERROR | 2026-05-07 14:55:34 | basehttp        | "GET /recipes/profile/edit/ HTTP/1.1" 500 145
+ERROR | 2026-05-07 14:55:41 | log             | Internal Server Error: /recipes/profile/edit/
+Traceback (most recent call last):
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/sf_CulinEire/recipes/authoring.py", line 37, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/contrib/auth/mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/base.py", line 144, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/edit.py", line 202, in get
+    return super().get(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/edit.py", line 142, in get
+    return self.render_to_response(self.get_context_data())
+                                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/sf_CulinEire/recipes/views.py", line 789, in get_context_data
+    context = super().get_context_data(**kwargs)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/edit.py", line 72, in get_context_data
+    kwargs["form"] = self.get_form()
+                     ^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/views/generic/edit.py", line 37, in get_form
+    return form_class(**self.get_form_kwargs())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/sf_CulinEire/recipes/forms.py", line 233, in __init__
+    self.fields["slug"].widget.attrs.setdefault("placeholder", "greenbear")
+    ~~~~~~~~~~~^^^^^^^^
+KeyError: 'slug'
+ERROR | 2026-05-07 14:55:41 | basehttp        | "GET /recipes/profile/edit/ HTTP/1.1" 500 145
+INFO | 2026-05-07 14:55:43 | autoreload      | /media/sf_CulinEire/recipes/forms.py changed, reloading.
+INFO | 2026-05-07 14:55:44 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 14:55:48 | basehttp        | "GET /recipes/profile/edit/ HTTP/1.1" 200 17115
+INFO | 2026-05-07 14:55:48 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 304 0
+INFO | 2026-05-07 14:58:10 | basehttp        | "GET /recipes/profile/edit/ HTTP/1.1" 200 17141
+INFO | 2026-05-07 14:58:10 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 304 0
+INFO | 2026-05-07 15:22:58 | basehttp        | "POST /accounts/logout/ HTTP/1.1" 302 0
+INFO | 2026-05-07 15:22:58 | basehttp        | "GET / HTTP/1.1" 200 32007
+INFO | 2026-05-07 15:22:59 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 304 0
+INFO | 2026-05-07 15:22:59 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-07 15:22:59 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 304 0
+INFO | 2026-05-07 15:23:01 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 14255
+INFO | 2026-05-07 15:23:01 | basehttp        | "GET /static/images/hero-join.png HTTP/1.1" 304 0
+INFO | 2026-05-07 15:23:01 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 200 2649
+INFO | 2026-05-07 15:23:43 | basehttp        | "POST /accounts/signup/ HTTP/1.1" 200 12184
+ERROR | 2026-05-07 15:23:54 | log             | Internal Server Error: /accounts/activate/NA/d87s3j-629b772d8406404736ea3ab04ea8171b/
+Traceback (most recent call last):
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/db/backends/sqlite3/base.py", line 360, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.OperationalError: disk I/O error
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django_ratelimit/decorators.py", line 27, in _wrapped
+    return fn(request, *args, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/sf_CulinEire/recipes/views.py", line 948, in activate_account
+    login(request, user)
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/contrib/auth/__init__.py", line 197, in login
+    user_logged_in.send(sender=user.__class__, request=request, user=user)
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/dispatch/dispatcher.py", line 189, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/contrib/auth/models.py", line 24, in update_last_login
+    user.save(update_fields=["last_login"])
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/contrib/auth/base_user.py", line 65, in save
+    super().save(*args, **kwargs)
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/db/models/base.py", line 902, in save
+    self.save_base(
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/db/models/base.py", line 1008, in save_base
+    updated = self._save_table(
+              ^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/db/models/base.py", line 1138, in _save_table
+    updated = self._do_update(
+              ^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/db/models/base.py", line 1203, in _do_update
+    return filtered._update(values) > 0
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/db/models/query.py", line 1288, in _update
+    return query.get_compiler(self.db).execute_sql(ROW_COUNT)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/db/models/sql/compiler.py", line 2060, in execute_sql
+    row_count = super().execute_sql(result_type)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/db/models/sql/compiler.py", line 1623, in execute_sql
+    cursor.execute(sql, params)
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greenbear/Projects/CulinEire/venv/lib/python3.12/site-packages/django/db/backends/sqlite3/base.py", line 360, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: disk I/O error
+ERROR | 2026-05-07 15:23:54 | basehttp        | "GET /accounts/activate/NA/d87s3j-629b772d8406404736ea3ab04ea8171b/ HTTP/1.1" 500 145
+INFO | 2026-05-07 15:24:52 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 15:24:54 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 15:24:55 | basehttp        | "GET /recipes/ HTTP/1.1" 200 47231
+INFO | 2026-05-07 15:25:15 | basehttp        | "GET / HTTP/1.1" 200 32007
+INFO | 2026-05-07 15:25:18 | basehttp        | "GET /articles/ HTTP/1.1" 200 17108
+INFO | 2026-05-07 15:25:33 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13225
+INFO | 2026-05-07 15:25:33 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 304 0
+INFO | 2026-05-07 15:25:37 | basehttp        | "POST /accounts/login/ HTTP/1.1" 302 0
+INFO | 2026-05-07 15:25:37 | basehttp        | "GET / HTTP/1.1" 200 35450
+INFO | 2026-05-07 15:25:46 | basehttp        | "GET /recipes/create/ HTTP/1.1" 200 36831
+WARNING | 2026-05-07 15:25:46 | log             | Not Found: /static/images/hero-studio.png
+WARNING | 2026-05-07 15:25:46 | basehttp        | "GET /static/images/hero-studio.png HTTP/1.1" 404 179
+WARNING | 2026-05-07 15:27:14 | log             | Bad Request: /accounts/activate/NA/d87s3j-629b772d8406404736ea3ab04ea8171b/
+WARNING | 2026-05-07 15:27:14 | basehttp        | "GET /accounts/activate/NA/d87s3j-629b772d8406404736ea3ab04ea8171b/ HTTP/1.1" 400 15427
+INFO | 2026-05-07 15:27:14 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 304 0
+INFO | 2026-05-07 15:27:14 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 304 0
+INFO | 2026-05-07 15:39:25 | autoreload      | /media/sf_CulinEire/recipes/models.py changed, reloading.
+INFO | 2026-05-07 15:39:26 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 15:39:32 | autoreload      | /media/sf_CulinEire/recipes/forms.py changed, reloading.
+INFO | 2026-05-07 15:39:33 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 15:39:37 | autoreload      | /media/sf_CulinEire/recipes/forms.py changed, reloading.
+INFO | 2026-05-07 15:39:38 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 15:39:41 | autoreload      | /media/sf_CulinEire/recipes/forms.py changed, reloading.
+INFO | 2026-05-07 15:39:42 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 15:39:45 | autoreload      | /media/sf_CulinEire/recipes/forms.py changed, reloading.
+INFO | 2026-05-07 15:39:46 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 15:40:38 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 15:40:39 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 15:40:46 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 15:40:46 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 15:50:23 | basehttp        | "GET /recipes/create/ HTTP/1.1" 200 35051
+INFO | 2026-05-07 15:50:23 | basehttp        | "GET /static/css/authoring.css?v=20260507e HTTP/1.1" 200 6098
+INFO | 2026-05-07 15:50:23 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 15:50:23 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 15:50:23 | basehttp        | "GET /static/images/hero-recipes.png HTTP/1.1" 200 2254946
+INFO | 2026-05-07 15:50:23 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 15:50:23 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 15:50:23 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 15:50:23 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 15:50:23 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 29257
+WARNING | 2026-05-07 15:50:24 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 15:50:24 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 15:53:49 | basehttp        | "GET /static/css/authoring.css?v=20260507e HTTP/1.1" 200 6289
+WARNING | 2026-05-07 15:53:49 | log             | Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING | 2026-05-07 15:53:49 | basehttp        | "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 179
+WARNING | 2026-05-07 15:55:10 | log             | Bad Request: /accounts/activate/NA/d87s3j-629b772d8406404736ea3ab04ea8171b/
+WARNING | 2026-05-07 15:55:10 | basehttp        | "GET /accounts/activate/NA/d87s3j-629b772d8406404736ea3ab04ea8171b/ HTTP/1.1" 400 15427
+INFO | 2026-05-07 15:55:10 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 304 0
+INFO | 2026-05-07 15:55:13 | basehttp        | "GET / HTTP/1.1" 200 35450
+INFO | 2026-05-07 15:56:14 | basehttp        | "GET /recipes/create/ HTTP/1.1" 200 35097
+INFO | 2026-05-07 15:56:14 | basehttp        | "GET /static/css/authoring.css?v=20260507e HTTP/1.1" 200 6319
+INFO | 2026-05-07 15:56:18 | basehttp        | "GET /static/css/authoring.css?v=20260507e HTTP/1.1" 304 0
+WARNING | 2026-05-07 15:56:18 | log             | Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING | 2026-05-07 15:56:18 | basehttp        | "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 179
+INFO | 2026-05-07 15:56:33 | basehttp        | "GET /recipes/create/ HTTP/1.1" 200 35097
+INFO | 2026-05-07 15:56:33 | basehttp        | "GET /static/css/authoring.css?v=20260507e HTTP/1.1" 304 0
+WARNING | 2026-05-07 15:56:33 | log             | Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING | 2026-05-07 15:56:33 | basehttp        | "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 179
+INFO | 2026-05-07 15:56:55 | basehttp        | "GET /recipes/create/ HTTP/1.1" 200 35097
+INFO | 2026-05-07 15:56:55 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 15:56:55 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 15:56:55 | basehttp        | "GET /static/css/authoring.css?v=20260507e HTTP/1.1" 200 6319
+INFO | 2026-05-07 15:56:56 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 15:56:56 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 15:56:56 | basehttp        | "GET /static/images/hero-recipes.png HTTP/1.1" 200 2254946
+WARNING | 2026-05-07 15:56:56 | log             | Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING | 2026-05-07 15:56:56 | basehttp        | "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 179
+INFO | 2026-05-07 15:56:56 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 15:56:56 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 15:56:56 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 29257
+WARNING | 2026-05-07 15:56:57 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 15:56:57 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+WARNING | 2026-05-07 16:00:32 | log             | Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING | 2026-05-07 16:00:32 | basehttp        | "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 179
+INFO | 2026-05-07 16:00:32 | basehttp        | "GET /static/css/authoring.css?v=20260507e HTTP/1.1" 304 0
+WARNING | 2026-05-07 16:00:38 | log             | Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING | 2026-05-07 16:00:38 | basehttp        | "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 179
+INFO | 2026-05-07 16:02:11 | basehttp        | "GET /recipes/create/ HTTP/1.1" 200 35097
+INFO | 2026-05-07 16:02:11 | basehttp        | "GET /static/css/authoring.css?v=20260507e HTTP/1.1" 200 6319
+INFO | 2026-05-07 16:02:11 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 16:02:11 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 16:02:11 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 16:02:11 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 16:02:11 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 16:02:11 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 29257
+INFO | 2026-05-07 16:02:11 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 16:02:11 | basehttp        | "GET /static/images/hero-recipes.png HTTP/1.1" 200 2254946
+WARNING | 2026-05-07 16:02:11 | log             | Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING | 2026-05-07 16:02:11 | basehttp        | "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 179
+WARNING | 2026-05-07 16:02:12 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 16:02:12 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 16:02:37 | basehttp        | "GET /recipes/create/ HTTP/1.1" 200 35097
+INFO | 2026-05-07 16:02:37 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 16:02:37 | basehttp        | "GET /static/css/authoring.css?v=20260507e HTTP/1.1" 200 6319
+INFO | 2026-05-07 16:02:37 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 16:02:37 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 16:02:37 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 16:02:37 | basehttp        | "GET /static/images/hero-recipes.png HTTP/1.1" 200 2254946
+INFO | 2026-05-07 16:02:37 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 16:02:37 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 29257
+INFO | 2026-05-07 16:02:38 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+WARNING | 2026-05-07 16:02:38 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 16:02:38 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 16:05:59 | autoreload      | /media/sf_CulinEire/recipes/models.py changed, reloading.
+INFO | 2026-05-07 16:06:00 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 16:06:06 | autoreload      | /media/sf_CulinEire/recipes/forms.py changed, reloading.
+INFO | 2026-05-07 16:06:07 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 16:06:11 | autoreload      | /media/sf_CulinEire/recipes/forms.py changed, reloading.
+INFO | 2026-05-07 16:06:12 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 16:06:23 | basehttp        | "GET /recipes/create/ HTTP/1.1" 200 35388
+INFO | 2026-05-07 16:06:24 | basehttp        | "GET /static/css/authoring.css?v=20260507e HTTP/1.1" 200 6319
+INFO | 2026-05-07 16:06:24 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 16:06:24 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 16:06:24 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 16:06:24 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 16:06:24 | basehttp        | "GET /static/images/hero-recipes.png HTTP/1.1" 200 2254946
+INFO | 2026-05-07 16:06:24 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 16:06:24 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 29257
+INFO | 2026-05-07 16:06:24 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-07 16:06:24 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 16:06:24 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 16:07:10 | basehttp        | "GET /articles/create/ HTTP/1.1" 200 20347
+WARNING | 2026-05-07 16:07:10 | log             | Not Found: /static/images/hero-studio.png
+WARNING | 2026-05-07 16:07:10 | basehttp        | "GET /static/images/hero-studio.png HTTP/1.1" 404 179
+INFO | 2026-05-07 16:07:10 | basehttp        | "GET /static/css/authoring.css?v=20260430a HTTP/1.1" 200 6319
+INFO | 2026-05-07 16:09:11 | basehttp        | "GET /recipes/author/irl4ndec/ HTTP/1.1" 200 17635
+INFO | 2026-05-07 16:09:12 | basehttp        | "GET /static/images/hero-profile.png HTTP/1.1" 200 2322232
+INFO | 2026-05-07 16:09:18 | basehttp        | "GET /recipes/profile/delete/ HTTP/1.1" 200 16291
+INFO | 2026-05-07 16:09:18 | basehttp        | "GET /static/css/authoring.css?v=20260430a HTTP/1.1" 304 0
+INFO | 2026-05-07 16:09:19 | autoreload      | /media/sf_CulinEire/articles/views.py changed, reloading.
+INFO | 2026-05-07 16:09:19 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 16:09:23 | basehttp        | "POST /recipes/profile/delete/ HTTP/1.1" 302 0
+INFO | 2026-05-07 16:09:23 | basehttp        | "GET / HTTP/1.1" 200 35373
+INFO | 2026-05-07 16:09:23 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/cover.png HTTP/1.1" 200 697066
+INFO | 2026-05-07 16:09:23 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 200 2316746
+INFO | 2026-05-07 16:09:23 | basehttp        | "GET /media/recipes/GreenBear/IRISH%20STEW/cover.png HTTP/1.1" 200 1547642
+INFO | 2026-05-07 16:09:23 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 16:09:23 | basehttp        | "GET /static/images/hero.jpg HTTP/1.1" 200 2758257
+INFO | 2026-05-07 16:09:23 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 200 2489208
+INFO | 2026-05-07 16:09:23 | basehttp        | "GET /media/articles/How%20to%20Make%20Perfect%20Irish%20Potato%20Soup/cover.png HTTP/1.1" 200 533390
+INFO | 2026-05-07 16:09:27 | autoreload      | /media/sf_CulinEire/articles/views.py changed, reloading.
+INFO | 2026-05-07 16:09:27 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 16:10:31 | basehttp        | "GET /articles/ HTTP/1.1" 200 20140
+INFO | 2026-05-07 16:10:31 | basehttp        | "GET /static/images/hero-articles.png HTTP/1.1" 200 2233540
+INFO | 2026-05-07 16:12:25 | basehttp        | "GET /recipes/ HTTP/1.1" 200 50263
+INFO | 2026-05-07 16:12:25 | basehttp        | "GET /static/images/categories/irish-culinary-heritage.png?v=20260429e HTTP/1.1" 200 2375821
+INFO | 2026-05-07 16:12:25 | basehttp        | "GET /static/images/categories/dinner.png?v=20260429e HTTP/1.1" 200 2450260
+INFO | 2026-05-07 16:12:25 | basehttp        | "GET /static/images/categories/modern-irish-cooking.png?v=20260429e HTTP/1.1" 200 2190449
+INFO | 2026-05-07 16:12:25 | basehttp        | "GET /static/images/categories/lunch.png?v=20260429e HTTP/1.1" 200 2473759
+INFO | 2026-05-07 16:12:25 | basehttp        | "GET /static/images/categories/breakfast-and-brunch?v=20260429e HTTP/1.1" 200 2673952
+INFO | 2026-05-07 16:12:25 | basehttp        | "GET /static/images/categories/everyday-irish-cooking.png?v=20260429e HTTP/1.1" 200 2515999
+INFO | 2026-05-07 16:12:25 | basehttp        | "GET /static/images/categories/grilling-and-barbecue.png?v=20260429e HTTP/1.1" 200 2497649
+INFO | 2026-05-07 16:12:25 | basehttp        | "GET /static/images/categories/healthy-eating.png?v=20260429e HTTP/1.1" 200 2362419
+INFO | 2026-05-07 16:12:26 | basehttp        | "GET /static/images/categories/seasonal-and-festive?v=20260429e HTTP/1.1" 200 2475085
+INFO | 2026-05-07 16:12:26 | basehttp        | "GET /static/images/categories/salads.png?v=20260429e HTTP/1.1" 200 2657948
+INFO | 2026-05-07 16:12:26 | basehttp        | "GET /static/images/categories/pasta-and-noodles.png?v=20260429e HTTP/1.1" 200 2410293
+INFO | 2026-05-07 16:12:26 | basehttp        | "GET /static/images/categories/soups-and-stews.png?v=20260429e HTTP/1.1" 200 2447019
+INFO | 2026-05-07 16:12:27 | basehttp        | "GET /articles/ HTTP/1.1" 200 20140
+INFO | 2026-05-07 16:12:30 | basehttp        | "GET /recipes/ HTTP/1.1" 200 50263
+INFO | 2026-05-07 16:12:33 | basehttp        | "GET / HTTP/1.1" 200 35039
+INFO | 2026-05-07 16:14:26 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 16:14:27 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 16:14:31 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 16:14:32 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 16:14:38 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 16:14:38 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 16:14:50 | basehttp        | "GET /articles/ HTTP/1.1" 200 20140
+INFO | 2026-05-07 16:14:50 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 304 0
+INFO | 2026-05-07 16:14:52 | basehttp        | "POST /accounts/logout/ HTTP/1.1" 302 0
+INFO | 2026-05-07 16:14:52 | basehttp        | "GET / HTTP/1.1" 200 32007
+INFO | 2026-05-07 16:14:54 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13225
+INFO | 2026-05-07 16:14:54 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 200 2649
+INFO | 2026-05-07 16:14:55 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 200 2512582
+INFO | 2026-05-07 16:15:00 | basehttp        | "POST /accounts/login/ HTTP/1.1" 302 0
+INFO | 2026-05-07 16:15:00 | basehttp        | "GET / HTTP/1.1" 200 35039
+INFO | 2026-05-07 16:15:04 | basehttp        | "GET /accounts/login/ HTTP/1.1" 302 0
+INFO | 2026-05-07 16:15:07 | basehttp        | "POST /accounts/logout/ HTTP/1.1" 302 0
+INFO | 2026-05-07 16:15:07 | basehttp        | "GET / HTTP/1.1" 200 32007
+INFO | 2026-05-07 16:15:09 | basehttp        | "GET / HTTP/1.1" 200 32007
+INFO | 2026-05-07 16:15:09 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 16:15:10 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 16:15:10 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 16:15:10 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 29257
+INFO | 2026-05-07 16:15:10 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 16:15:10 | basehttp        | "GET /static/images/hero.jpg HTTP/1.1" 200 2758257
+INFO | 2026-05-07 16:15:10 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 16:15:10 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 200 2316746
+INFO | 2026-05-07 16:15:10 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 16:15:10 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/cover.png HTTP/1.1" 200 697066
+INFO | 2026-05-07 16:15:10 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 200 2489208
+INFO | 2026-05-07 16:15:10 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 16:15:10 | basehttp        | "GET /media/recipes/GreenBear/IRISH%20STEW/cover.png HTTP/1.1" 200 1547642
+INFO | 2026-05-07 16:15:10 | basehttp        | "GET /media/articles/How%20to%20Make%20Perfect%20Irish%20Potato%20Soup/cover.png HTTP/1.1" 200 533390
+WARNING | 2026-05-07 16:15:10 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 16:15:10 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 16:15:12 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 14255
+INFO | 2026-05-07 16:15:12 | basehttp        | "GET /static/images/hero-join.png HTTP/1.1" 200 2450059
+INFO | 2026-05-07 16:15:13 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13225
+INFO | 2026-05-07 16:15:14 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13225
+INFO | 2026-05-07 16:15:16 | basehttp        | "POST /accounts/login/ HTTP/1.1" 302 0
+INFO | 2026-05-07 16:15:16 | basehttp        | "GET / HTTP/1.1" 200 35039
+INFO | 2026-05-07 16:17:16 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 16:17:16 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 16:17:46 | basehttp        | "GET /admin/auth/user/ HTTP/1.1" 302 0
+INFO | 2026-05-07 16:17:46 | basehttp        | "GET /admin/login/?next=/admin/auth/user/ HTTP/1.1" 200 3713
+INFO | 2026-05-07 16:17:46 | basehttp        | "GET /static/admin/css/base.css HTTP/1.1" 200 22120
+INFO | 2026-05-07 16:17:46 | basehttp        | "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 200 2810
+INFO | 2026-05-07 16:17:46 | basehttp        | "GET /static/admin/css/dark_mode.css HTTP/1.1" 200 2808
+INFO | 2026-05-07 16:17:46 | basehttp        | "GET /static/admin/js/theme.js HTTP/1.1" 200 1653
+INFO | 2026-05-07 16:17:46 | basehttp        | "GET /static/admin/css/login.css HTTP/1.1" 200 951
+INFO | 2026-05-07 16:17:46 | basehttp        | "GET /static/admin/css/responsive.css HTTP/1.1" 200 16565
+INFO | 2026-05-07 16:17:46 | basehttp        | "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 200 3063
+INFO | 2026-05-07 16:17:54 | basehttp        | "POST /admin/login/?next=/admin/auth/user/ HTTP/1.1" 200 3884
+INFO | 2026-05-07 16:18:13 | basehttp        | "POST /admin/login/?next=/admin/auth/user/ HTTP/1.1" 200 3881
+INFO | 2026-05-07 16:18:28 | basehttp        | "POST /admin/login/?next=/admin/auth/user/ HTTP/1.1" 200 3881
+INFO | 2026-05-07 16:18:38 | basehttp        | "GET /admin/ HTTP/1.1" 302 0
+INFO | 2026-05-07 16:18:38 | basehttp        | "GET /admin/login/?next=/admin/ HTTP/1.1" 200 3693
+INFO | 2026-05-07 16:18:44 | basehttp        | "POST /admin/login/?next=/admin/ HTTP/1.1" 200 3861
+INFO | 2026-05-07 16:18:58 | basehttp        | "GET / HTTP/1.1" 200 35039
+INFO | 2026-05-07 16:19:02 | basehttp        | "POST /accounts/logout/ HTTP/1.1" 302 0
+INFO | 2026-05-07 16:19:02 | basehttp        | "GET / HTTP/1.1" 200 32007
+INFO | 2026-05-07 16:19:07 | basehttp        | "GET /admin HTTP/1.1" 301 0
+INFO | 2026-05-07 16:19:07 | basehttp        | "GET /admin/ HTTP/1.1" 302 0
+INFO | 2026-05-07 16:19:07 | basehttp        | "GET /admin/login/?next=/admin/ HTTP/1.1" 200 4176
+INFO | 2026-05-07 16:19:11 | basehttp        | "POST /admin/login/?next=/admin/ HTTP/1.1" 200 4344
+INFO | 2026-05-07 16:19:27 | basehttp        | "POST /admin/login/?next=/admin/ HTTP/1.1" 302 0
+INFO | 2026-05-07 16:19:27 | basehttp        | "GET /admin/ HTTP/1.1" 200 15136
+INFO | 2026-05-07 16:19:27 | basehttp        | "GET /static/admin/css/dashboard.css HTTP/1.1" 200 441
+INFO | 2026-05-07 16:19:27 | basehttp        | "GET /static/admin/img/icon-changelink.svg HTTP/1.1" 200 380
+INFO | 2026-05-07 16:19:27 | basehttp        | "GET /static/admin/img/icon-addlink.svg HTTP/1.1" 200 331
+INFO | 2026-05-07 16:19:32 | basehttp        | "GET /admin/recipes/recipeauthor/ HTTP/1.1" 200 14340
+INFO | 2026-05-07 16:19:33 | basehttp        | "GET /static/admin/js/core.js HTTP/1.1" 200 6208
+INFO | 2026-05-07 16:19:33 | basehttp        | "GET /static/admin/js/admin/RelatedObjectLookups.js HTTP/1.1" 200 9777
+INFO | 2026-05-07 16:19:33 | basehttp        | "GET /static/admin/css/changelists.css HTTP/1.1" 200 6878
+INFO | 2026-05-07 16:19:33 | basehttp        | "GET /static/admin/js/vendor/jquery/jquery.min.js HTTP/1.1" 200 87533
+INFO | 2026-05-07 16:19:33 | basehttp        | "GET /static/admin/js/jquery.init.js HTTP/1.1" 200 347
+INFO | 2026-05-07 16:19:33 | basehttp        | "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO | 2026-05-07 16:19:33 | basehttp        | "GET /static/admin/js/actions.js HTTP/1.1" 200 8076
+INFO | 2026-05-07 16:19:33 | basehttp        | "GET /static/admin/img/search.svg HTTP/1.1" 200 458
+INFO | 2026-05-07 16:19:33 | basehttp        | "GET /static/admin/js/urlify.js HTTP/1.1" 200 7887
+INFO | 2026-05-07 16:19:33 | basehttp        | "GET /static/admin/js/vendor/xregexp/xregexp.min.js HTTP/1.1" 200 163184
+INFO | 2026-05-07 16:19:33 | basehttp        | "GET /static/admin/js/prepopulate.js HTTP/1.1" 200 1531
+INFO | 2026-05-07 16:19:33 | basehttp        | "GET /static/admin/js/filters.js HTTP/1.1" 200 978
+INFO | 2026-05-07 16:19:33 | basehttp        | "GET /static/admin/img/tooltag-add.svg HTTP/1.1" 200 331
+INFO | 2026-05-07 16:19:49 | basehttp        | "POST /admin/recipes/recipeauthor/ HTTP/1.1" 200 11814
+INFO | 2026-05-07 16:19:49 | basehttp        | "GET /static/admin/js/cancel.js HTTP/1.1" 200 884
+INFO | 2026-05-07 16:19:51 | basehttp        | "POST /admin/recipes/recipeauthor/ HTTP/1.1" 302 0
+INFO | 2026-05-07 16:19:51 | basehttp        | "GET /admin/recipes/recipeauthor/ HTTP/1.1" 200 13699
+INFO | 2026-05-07 16:19:51 | basehttp        | "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO | 2026-05-07 16:19:51 | basehttp        | "GET /static/admin/img/icon-yes.svg HTTP/1.1" 200 436
+INFO | 2026-05-07 16:19:59 | basehttp        | "GET / HTTP/1.1" 200 35137
+INFO | 2026-05-07 16:20:03 | basehttp        | "POST /accounts/logout/ HTTP/1.1" 302 0
+INFO | 2026-05-07 16:20:03 | basehttp        | "GET / HTTP/1.1" 200 32007
+INFO | 2026-05-07 16:20:18 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13225
+INFO | 2026-05-07 16:20:20 | basehttp        | "POST /accounts/login/ HTTP/1.1" 302 0
+INFO | 2026-05-07 16:20:20 | basehttp        | "GET / HTTP/1.1" 200 35137
+INFO | 2026-05-07 16:20:24 | basehttp        | "GET /recipes/author/greenbear/ HTTP/1.1" 200 17622
+INFO | 2026-05-07 16:20:28 | basehttp        | "GET /recipes/profile/delete/ HTTP/1.1" 200 16064
+INFO | 2026-05-07 16:20:28 | basehttp        | "GET /static/css/authoring.css?v=20260430a HTTP/1.1" 304 0
+INFO | 2026-05-07 16:21:01 | basehttp        | "GET /recipes/profile/delete/ HTTP/1.1" 200 16064
+INFO | 2026-05-07 16:21:35 | basehttp        | "GET /recipes/author/greenbear/ HTTP/1.1" 200 17508
+INFO | 2026-05-07 16:21:35 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 16:21:35 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 16:21:35 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 16:21:35 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 16:21:35 | basehttp        | "GET /static/images/hero-profile.png HTTP/1.1" 200 2322232
+INFO | 2026-05-07 16:21:35 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 16:21:35 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 16:21:35 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 29257
+INFO | 2026-05-07 16:21:35 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+WARNING | 2026-05-07 16:21:36 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 16:21:36 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 16:22:28 | basehttp        | "POST /accounts/logout/ HTTP/1.1" 302 0
+INFO | 2026-05-07 16:22:28 | basehttp        | "GET / HTTP/1.1" 200 32007
+INFO | 2026-05-07 16:22:31 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 14255
+INFO | 2026-05-07 16:22:45 | basehttp        | "POST /accounts/signup/ HTTP/1.1" 200 12194
+INFO | 2026-05-07 16:22:45 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 304 0
+INFO | 2026-05-07 16:22:53 | basehttp        | "GET /accounts/activate/NQ/d87utx-245938c124ed17774b1e17206df8f265/ HTTP/1.1" 302 0
+INFO | 2026-05-07 16:22:53 | basehttp        | "GET / HTTP/1.1" 200 35817
+INFO | 2026-05-07 16:23:02 | basehttp        | "GET /recipes/create/ HTTP/1.1" 200 35456
+INFO | 2026-05-07 16:23:02 | basehttp        | "GET /static/css/authoring.css?v=20260507e HTTP/1.1" 304 0
+INFO | 2026-05-07 16:31:56 | basehttp        | "POST /recipes/create/ HTTP/1.1" 302 0
+INFO | 2026-05-07 16:31:56 | basehttp        | "GET /recipes/irish-guinness-beef-stew/ HTTP/1.1" 200 51561
+INFO | 2026-05-07 16:31:56 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 304 0
+INFO | 2026-05-07 16:31:56 | basehttp        | "GET /static/css/detail_page.css?v=20260501 HTTP/1.1" 200 51902
+INFO | 2026-05-07 16:31:56 | basehttp        | "GET /static/js/gallery.js HTTP/1.1" 200 5097
+INFO | 2026-05-07 16:31:56 | basehttp        | "GET /static/js/recipe_detail.js HTTP/1.1" 200 251
+WARNING | 2026-05-07 16:32:34 | log             | Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING | 2026-05-07 16:32:34 | basehttp        | "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 179
+INFO | 2026-05-07 16:34:22 | basehttp        | "GET /recipes/irish-guinness-beef-stew/ HTTP/1.1" 200 51280
+INFO | 2026-05-07 16:34:22 | basehttp        | "GET /static/css/detail_page.css?v=20260501 HTTP/1.1" 200 51900
+INFO | 2026-05-07 16:34:22 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 16:34:22 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 16:34:22 | basehttp        | "GET /static/js/gallery.js HTTP/1.1" 200 5097
+INFO | 2026-05-07 16:34:22 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 16:34:22 | basehttp        | "GET /static/js/recipe_detail.js HTTP/1.1" 200 251
+INFO | 2026-05-07 16:34:22 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 16:34:22 | basehttp        | "GET /static/images/hero.jpg HTTP/1.1" 200 2758257
+INFO | 2026-05-07 16:34:22 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 16:34:22 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 29257
+INFO | 2026-05-07 16:34:22 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-07 16:34:23 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 16:34:23 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 16:34:54 | basehttp        | "GET /recipes/?author=julijagolovinairgmailcom HTTP/1.1" 200 15615
+INFO | 2026-05-07 16:34:54 | basehttp        | "GET /static/images/my-hero-recipes.png HTTP/1.1" 200 2178565
+INFO | 2026-05-07 16:35:04 | basehttp        | "GET /articles/?author=julijagolovinairgmailcom HTTP/1.1" 200 15689
+INFO | 2026-05-07 16:35:04 | basehttp        | "GET /static/images/my-hero-articles.png HTTP/1.1" 200 1974740
+INFO | 2026-05-07 16:35:07 | basehttp        | "GET /recipes/?author=julijagolovinairgmailcom HTTP/1.1" 200 15615
+INFO | 2026-05-07 16:37:45 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 16:37:46 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 16:38:35 | basehttp        | "GET /recipes/?author=julijagolovinairgmailcom HTTP/1.1" 200 15615
+INFO | 2026-05-07 16:38:35 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 16:38:35 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 16:38:35 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 16:38:35 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 16:38:35 | basehttp        | "GET /static/images/my-hero-recipes.png HTTP/1.1" 200 2178565
+INFO | 2026-05-07 16:38:35 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 16:38:35 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 16:38:35 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 31286
+WARNING | 2026-05-07 16:38:35 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 16:38:35 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 16:38:41 | basehttp        | "GET /recipes/?author=julijagolovinairgmailcom HTTP/1.1" 200 15615
+INFO | 2026-05-07 16:38:41 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-07 16:38:46 | basehttp        | "GET /recipes/?author=julijagolovinairgmailcom HTTP/1.1" 200 15615
+INFO | 2026-05-07 16:38:46 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 16:38:46 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 16:38:46 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 16:38:46 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 16:38:46 | basehttp        | "GET /static/images/my-hero-recipes.png HTTP/1.1" 200 2178565
+INFO | 2026-05-07 16:38:46 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 16:38:46 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 31286
+INFO | 2026-05-07 16:38:46 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-07 16:38:47 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 16:38:47 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 16:39:57 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 16:39:58 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 16:40:38 | basehttp        | "GET /recipes/?author=julijagolovinairgmailcom HTTP/1.1" 200 21976
+INFO | 2026-05-07 16:40:38 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 16:40:38 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 16:40:38 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 16:40:38 | basehttp        | "GET /static/images/my-hero-recipes.png HTTP/1.1" 200 2178565
+INFO | 2026-05-07 16:40:38 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 16:40:38 | basehttp        | "GET /static/images/hero.jpg HTTP/1.1" 200 2758257
+INFO | 2026-05-07 16:40:38 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 16:40:38 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 31286
+INFO | 2026-05-07 16:40:38 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+WARNING | 2026-05-07 16:40:39 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 16:40:39 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 16:40:54 | basehttp        | "POST /accounts/logout/ HTTP/1.1" 302 0
+INFO | 2026-05-07 16:40:54 | basehttp        | "GET / HTTP/1.1" 200 32007
+INFO | 2026-05-07 16:40:54 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-07 16:40:56 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13225
+INFO | 2026-05-07 16:40:56 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 304 0
+INFO | 2026-05-07 16:41:02 | basehttp        | "POST /accounts/login/ HTTP/1.1" 302 0
+INFO | 2026-05-07 16:41:03 | basehttp        | "GET / HTTP/1.1" 200 35137
+INFO | 2026-05-07 16:42:24 | basehttp        | "GET /recipes/ HTTP/1.1" 200 50361
+INFO | 2026-05-07 16:42:24 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-07 16:46:06 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 16:46:06 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 16:46:23 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 16:46:24 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 16:47:25 | autoreload      | /media/sf_CulinEire/recipes/urls.py changed, reloading.
+INFO | 2026-05-07 16:47:25 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 16:47:54 | basehttp        | "GET /recipes/ HTTP/1.1" 200 50816
+INFO | 2026-05-07 16:47:54 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 16:47:54 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 16:47:54 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 16:47:54 | basehttp        | "GET /static/images/categories/irish-culinary-heritage.png?v=20260429e HTTP/1.1" 200 2375821
+INFO | 2026-05-07 16:47:54 | basehttp        | "GET /static/images/hero-recipes.png HTTP/1.1" 200 2254946
+INFO | 2026-05-07 16:47:54 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 16:47:54 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 16:47:54 | basehttp        | "GET /static/images/categories/everyday-irish-cooking.png?v=20260429e HTTP/1.1" 200 2515999
+INFO | 2026-05-07 16:47:54 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 31286
+INFO | 2026-05-07 16:47:54 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 16:47:54 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 16:47:54 | basehttp        | "GET /static/images/categories/dinner.png?v=20260429e HTTP/1.1" 200 2450260
+INFO | 2026-05-07 16:47:54 | basehttp        | "GET /static/images/categories/grilling-and-barbecue.png?v=20260429e HTTP/1.1" 200 2497649
+INFO | 2026-05-07 16:47:54 | basehttp        | "GET /static/images/categories/modern-irish-cooking.png?v=20260429e HTTP/1.1" 200 2190449
+INFO | 2026-05-07 16:47:54 | basehttp        | "GET /static/images/categories/lunch.png?v=20260429e HTTP/1.1" 200 2473759
+INFO | 2026-05-07 16:47:55 | basehttp        | "GET /static/images/categories/salads.png?v=20260429e HTTP/1.1" 200 2657948
+INFO | 2026-05-07 16:47:55 | basehttp        | "GET /static/images/categories/breakfast-and-brunch?v=20260429e HTTP/1.1" 200 2673952
+INFO | 2026-05-07 16:47:55 | basehttp        | "GET /static/images/categories/soups-and-stews.png?v=20260429e HTTP/1.1" 200 2447019
+INFO | 2026-05-07 16:47:55 | basehttp        | "GET /static/images/categories/healthy-eating.png?v=20260429e HTTP/1.1" 200 2362419
+INFO | 2026-05-07 16:47:55 | basehttp        | "GET /static/images/categories/seasonal-and-festive?v=20260429e HTTP/1.1" 200 2475085
+INFO | 2026-05-07 16:47:55 | basehttp        | "GET /static/images/categories/pasta-and-noodles.png?v=20260429e HTTP/1.1" 200 2410293
+INFO | 2026-05-07 16:47:55 | basehttp        | "GET /media/recipes/GreenBear/Farmhouse%20Farls/cover.png HTTP/1.1" 200 2316746
+INFO | 2026-05-07 16:47:55 | basehttp        | "GET /media/recipes/GreenBear/Cottage%20Pie/cover.png HTTP/1.1" 200 697066
+INFO | 2026-05-07 16:47:55 | basehttp        | "GET /media/recipes/GreenBear/Classic%20Irish%20Boxty/cover.png HTTP/1.1" 200 2489208
+INFO | 2026-05-07 16:47:55 | basehttp        | "GET /media/recipes/GreenBear/IRISH%20STEW/cover.png HTTP/1.1" 200 1547642
+WARNING | 2026-05-07 16:47:56 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 16:47:56 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+WARNING | 2026-05-07 16:48:00 | log             | Not Found: /recipes/moderation/
+WARNING | 2026-05-07 16:48:00 | basehttp        | "GET /recipes/moderation/ HTTP/1.1" 404 179
+INFO | 2026-05-07 16:48:43 | autoreload      | /media/sf_CulinEire/recipes/urls.py changed, reloading.
+INFO | 2026-05-07 16:48:44 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 16:48:50 | basehttp        | "GET /recipes/moderation/ HTTP/1.1" 200 18915
+INFO | 2026-05-07 16:48:50 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 16:48:50 | basehttp        | "GET /static/css/authoring.css?v=20260507e HTTP/1.1" 200 6319
+INFO | 2026-05-07 16:48:50 | basehttp        | "GET /static/css/moderation.css?v=20260507a HTTP/1.1" 200 3735
+INFO | 2026-05-07 16:48:50 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 16:48:50 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 31286
+INFO | 2026-05-07 16:48:50 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 16:48:50 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 16:48:50 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+WARNING | 2026-05-07 16:48:50 | log             | Not Found: /static/images/hero-studio.png
+INFO | 2026-05-07 16:48:50 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+WARNING | 2026-05-07 16:48:50 | basehttp        | "GET /static/images/hero-studio.png HTTP/1.1" 404 179
+INFO | 2026-05-07 16:48:50 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 16:48:50 | basehttp        | "GET /static/images/hero.jpg HTTP/1.1" 200 2758257
+WARNING | 2026-05-07 16:48:51 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 16:48:51 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 16:53:06 | basehttp        | "GET /recipes/moderation/ HTTP/1.1" 200 18915
+WARNING | 2026-05-07 16:53:06 | log             | Not Found: /static/images/hero-studio.png
+INFO | 2026-05-07 16:53:06 | basehttp        | "GET /static/css/moderation.css?v=20260507a HTTP/1.1" 304 0
+INFO | 2026-05-07 16:53:06 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+WARNING | 2026-05-07 16:53:06 | basehttp        | "GET /static/images/hero-studio.png HTTP/1.1" 404 179
+INFO | 2026-05-07 16:53:13 | basehttp        | "GET /recipes/moderation/ HTTP/1.1" 200 18915
+WARNING | 2026-05-07 16:53:13 | log             | Not Found: /static/images/hero-studio.png
+WARNING | 2026-05-07 16:53:13 | basehttp        | "GET /static/images/hero-studio.png HTTP/1.1" 404 179
+INFO | 2026-05-07 16:53:15 | basehttp        | "GET /recipes/moderation/ HTTP/1.1" 200 18915
+INFO | 2026-05-07 16:53:15 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 16:53:15 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 16:53:15 | basehttp        | "GET /static/css/moderation.css?v=20260507a HTTP/1.1" 200 3735
+INFO | 2026-05-07 16:53:15 | basehttp        | "GET /static/css/authoring.css?v=20260507e HTTP/1.1" 200 6319
+INFO | 2026-05-07 16:53:15 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 16:53:15 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 16:53:16 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 16:53:16 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 16:53:16 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 16:53:16 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 31286
+WARNING | 2026-05-07 16:53:16 | log             | Not Found: /static/images/hero-studio.png
+WARNING | 2026-05-07 16:53:16 | basehttp        | "GET /static/images/hero-studio.png HTTP/1.1" 404 179
+INFO | 2026-05-07 16:53:16 | basehttp        | "GET /static/images/hero.jpg HTTP/1.1" 200 2758257
+WARNING | 2026-05-07 16:53:16 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 16:53:16 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 16:55:36 | basehttp        | "GET /recipes/moderation/ HTTP/1.1" 200 18999
+INFO | 2026-05-07 16:55:36 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 16:55:36 | basehttp        | "GET /static/css/moderation.css?v=20260507a HTTP/1.1" 200 3735
+INFO | 2026-05-07 16:55:36 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 16:55:36 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 16:55:36 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 31286
+INFO | 2026-05-07 16:55:36 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 16:55:36 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 16:55:36 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 16:55:36 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 16:55:36 | basehttp        | "GET /static/images/hero-moderator.png HTTP/1.1" 200 2209199
+INFO | 2026-05-07 16:55:36 | basehttp        | "GET /static/images/hero.jpg HTTP/1.1" 200 2758257
+WARNING | 2026-05-07 16:55:37 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 16:55:37 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 17:01:11 | basehttp        | "GET /recipes/moderation/ HTTP/1.1" 200 18999
+INFO | 2026-05-07 17:01:11 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 17:01:11 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 17:01:11 | basehttp        | "GET /static/css/moderation.css?v=20260507a HTTP/1.1" 200 3735
+INFO | 2026-05-07 17:01:11 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 17:01:11 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 31286
+INFO | 2026-05-07 17:01:11 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 17:01:11 | basehttp        | "GET /static/images/hero.jpg HTTP/1.1" 200 2758257
+INFO | 2026-05-07 17:01:11 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 17:01:11 | basehttp        | "GET /static/images/hero-moderator.png HTTP/1.1" 200 2209199
+INFO | 2026-05-07 17:01:11 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 17:01:11 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-07 17:01:11 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 17:01:11 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 17:01:32 | basehttp        | "GET /recipes/moderation/ HTTP/1.1" 200 18999
+INFO | 2026-05-07 17:01:32 | basehttp        | "GET /static/css/moderation.css?v=20260507a HTTP/1.1" 200 3735
+INFO | 2026-05-07 17:01:32 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 17:01:32 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 17:01:32 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 17:01:32 | basehttp        | "GET /static/images/hero-moderator.png HTTP/1.1" 200 2243508
+INFO | 2026-05-07 17:01:32 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 17:01:33 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 31286
+INFO | 2026-05-07 17:01:32 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 17:01:33 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 17:01:33 | basehttp        | "GET /static/images/hero.jpg HTTP/1.1" 200 2758257
+INFO | 2026-05-07 17:01:33 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+WARNING | 2026-05-07 17:01:33 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 17:01:33 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 17:02:55 | basehttp        | "GET /recipes/moderation/ HTTP/1.1" 200 18999
+INFO | 2026-05-07 17:02:55 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 17:02:55 | basehttp        | "GET /static/css/moderation.css?v=20260507a HTTP/1.1" 200 3735
+INFO | 2026-05-07 17:02:55 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 17:02:55 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 17:02:55 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 17:02:55 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 17:02:55 | basehttp        | "GET /static/images/hero-moderator.png HTTP/1.1" 200 2176533
+INFO | 2026-05-07 17:02:55 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 17:02:55 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 31286
+INFO | 2026-05-07 17:02:55 | basehttp        | "GET /static/images/hero.jpg HTTP/1.1" 200 2758257
+INFO | 2026-05-07 17:02:55 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-07 17:02:56 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 17:02:56 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 17:08:56 | basehttp        | "GET /recipes/moderation/ HTTP/1.1" 200 18999
+INFO | 2026-05-07 17:08:56 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 17:08:56 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 17:08:56 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 17:08:56 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 17:08:56 | basehttp        | "GET /static/css/moderation.css?v=20260507a HTTP/1.1" 200 3735
+INFO | 2026-05-07 17:08:57 | basehttp        | "GET /static/images/hero.jpg HTTP/1.1" 200 2758257
+INFO | 2026-05-07 17:08:57 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 31286
+INFO | 2026-05-07 17:08:57 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 17:08:57 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 17:08:57 | basehttp        | "GET /static/images/hero-moderator.png HTTP/1.1" 200 2312353
+INFO | 2026-05-07 17:08:57 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+WARNING | 2026-05-07 17:08:57 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 17:08:57 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 17:09:49 | basehttp        | "GET /recipes/moderation/ HTTP/1.1" 200 19343
+INFO | 2026-05-07 17:09:49 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 17:09:49 | basehttp        | "GET /static/css/moderation.css?v=20260507a HTTP/1.1" 200 3735
+INFO | 2026-05-07 17:09:49 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 17:09:49 | basehttp        | "GET /static/images/hero-moderator.png HTTP/1.1" 200 2312353
+INFO | 2026-05-07 17:09:49 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 17:09:49 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 17:09:49 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 17:09:49 | basehttp        | "GET /static/images/hero.jpg HTTP/1.1" 200 2758257
+INFO | 2026-05-07 17:09:49 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 17:09:49 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 17:09:49 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 31286
+WARNING | 2026-05-07 17:09:49 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 17:09:49 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 17:13:24 | basehttp        | "GET /recipes/moderation/ HTTP/1.1" 200 19119
+INFO | 2026-05-07 17:13:24 | basehttp        | "GET /static/css/moderation.css?v=20260507a HTTP/1.1" 200 3735
+INFO | 2026-05-07 17:13:24 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 17:13:24 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 17:13:24 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 17:13:24 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 17:13:24 | basehttp        | "GET /static/images/hero-moderator.png HTTP/1.1" 200 2312353
+INFO | 2026-05-07 17:13:24 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 17:13:24 | basehttp        | "GET /static/images/hero.jpg HTTP/1.1" 200 2758257
+INFO | 2026-05-07 17:13:24 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 17:13:24 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 31286
+INFO | 2026-05-07 17:13:24 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-07 17:13:24 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 17:13:24 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 17:13:49 | basehttp        | "POST /accounts/logout/ HTTP/1.1" 302 0
+INFO | 2026-05-07 17:13:49 | basehttp        | "GET / HTTP/1.1" 200 32007
+INFO | 2026-05-07 17:13:51 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13225
+INFO | 2026-05-07 17:13:51 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 304 0
+INFO | 2026-05-07 17:13:51 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 304 0
+INFO | 2026-05-07 17:13:58 | basehttp        | "POST /accounts/login/ HTTP/1.1" 302 0
+INFO | 2026-05-07 17:13:58 | basehttp        | "GET / HTTP/1.1" 200 35518
+INFO | 2026-05-07 17:14:07 | basehttp        | "GET /recipes/?author=julijagolovinairgmailcom HTTP/1.1" 200 21976
+INFO | 2026-05-07 17:14:07 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 304 0
+INFO | 2026-05-07 17:14:08 | basehttp        | "GET /articles/?author=julijagolovinairgmailcom HTTP/1.1" 200 15689
+INFO | 2026-05-07 17:14:10 | basehttp        | "GET /recipes/author/julijagolovinairgmailcom/ HTTP/1.1" 200 18886
+INFO | 2026-05-07 17:14:11 | basehttp        | "GET /recipes/create/ HTTP/1.1" 200 35456
+INFO | 2026-05-07 17:14:12 | basehttp        | "GET /static/css/authoring.css?v=20260507e HTTP/1.1" 304 0
+INFO | 2026-05-07 17:14:13 | basehttp        | "GET /articles/create/ HTTP/1.1" 200 19383
+INFO | 2026-05-07 17:14:49 | basehttp        | "GET /recipes/profile/edit/ HTTP/1.1" 200 17135
+INFO | 2026-05-07 17:19:26 | basehttp        | "POST /recipes/profile/edit/ HTTP/1.1" 302 0
+INFO | 2026-05-07 17:19:26 | basehttp        | "GET /recipes/author/julijagolovinairgmailcom/ HTTP/1.1" 200 18771
+INFO | 2026-05-07 17:19:26 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 304 0
+INFO | 2026-05-07 17:19:26 | basehttp        | "GET /media/authors/julijagolovinairgmailcom/avatar.png HTTP/1.1" 200 1807844
+INFO | 2026-05-07 17:19:26 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-07 17:21:18 | basehttp        | "POST /accounts/logout/ HTTP/1.1" 302 0
+INFO | 2026-05-07 17:21:18 | basehttp        | "GET / HTTP/1.1" 200 32007
+INFO | 2026-05-07 17:21:18 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 304 0
+INFO | 2026-05-07 17:21:18 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-07 17:21:22 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13225
+INFO | 2026-05-07 17:21:31 | basehttp        | "POST /accounts/login/ HTTP/1.1" 302 0
+INFO | 2026-05-07 17:21:31 | basehttp        | "GET / HTTP/1.1" 200 35592
+INFO | 2026-05-07 17:21:34 | basehttp        | "GET /recipes/moderation/ HTTP/1.1" 200 18615
+INFO | 2026-05-07 17:21:34 | basehttp        | "GET /static/images/hero-moderator.png HTTP/1.1" 304 0
+INFO | 2026-05-07 17:21:34 | basehttp        | "GET /static/css/moderation.css?v=20260507b HTTP/1.1" 200 3506
+WARNING | 2026-05-07 17:21:41 | log             | Not Found: /recipes/irish-guinness-beef-stew/edit/
+WARNING | 2026-05-07 17:21:41 | basehttp        | "GET /recipes/irish-guinness-beef-stew/edit/ HTTP/1.1" 404 179
+WARNING | 2026-05-07 17:22:00 | log             | Not Found: /recipes/irish-guinness-beef-stew/edit/
+WARNING | 2026-05-07 17:22:00 | basehttp        | "GET /recipes/irish-guinness-beef-stew/edit/ HTTP/1.1" 404 179
+INFO | 2026-05-07 17:23:08 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 17:23:09 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 17:23:25 | autoreload      | /media/sf_CulinEire/articles/views.py changed, reloading.
+INFO | 2026-05-07 17:23:26 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 17:23:29 | autoreload      | /media/sf_CulinEire/articles/views.py changed, reloading.
+INFO | 2026-05-07 17:23:29 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 17:26:53 | basehttp        | "GET /recipes/irish-guinness-beef-stew/edit/ HTTP/1.1" 200 37858
+INFO | 2026-05-07 17:26:54 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 17:26:54 | basehttp        | "GET /static/css/authoring.css?v=20260507e HTTP/1.1" 200 6319
+INFO | 2026-05-07 17:26:54 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 17:26:54 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 17:26:54 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 17:26:54 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 17:26:54 | basehttp        | "GET /static/images/hero-recipes.png HTTP/1.1" 200 2254946
+INFO | 2026-05-07 17:26:54 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 17:26:54 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 31286
+INFO | 2026-05-07 17:26:54 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-07 17:26:54 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 17:26:54 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 17:27:07 | basehttp        | "POST /recipes/irish-guinness-beef-stew/edit/ HTTP/1.1" 302 0
+WARNING | 2026-05-07 17:27:07 | log             | Not Found: /recipes/irish-guinness-beef-stew/
+WARNING | 2026-05-07 17:27:07 | basehttp        | "GET /recipes/irish-guinness-beef-stew/ HTTP/1.1" 404 179
+INFO | 2026-05-07 17:27:48 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 17:27:48 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 17:29:03 | basehttp        | "GET /recipes/irish-guinness-beef-stew/ HTTP/1.1" 200 51596
+INFO | 2026-05-07 17:29:04 | basehttp        | "GET /static/css/detail_page.css?v=20260501 HTTP/1.1" 304 0
+INFO | 2026-05-07 17:29:04 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 304 0
+INFO | 2026-05-07 17:29:47 | autoreload      | /media/sf_CulinEire/articles/views.py changed, reloading.
+INFO | 2026-05-07 17:29:47 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 17:29:55 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 17:29:56 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 17:30:01 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 17:30:02 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 17:30:07 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 17:30:08 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 17:30:17 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 17:30:18 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 17:30:39 | basehttp        | "GET /recipes/irish-guinness-beef-stew/ HTTP/1.1" 200 51315
+INFO | 2026-05-07 17:30:40 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 17:30:40 | basehttp        | "GET /static/css/detail_page.css?v=20260501 HTTP/1.1" 200 51900
+INFO | 2026-05-07 17:30:40 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 17:30:40 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 17:30:40 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 17:30:40 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 17:30:40 | basehttp        | "GET /static/js/gallery.js HTTP/1.1" 200 5097
+INFO | 2026-05-07 17:30:40 | basehttp        | "GET /static/images/hero.jpg HTTP/1.1" 200 2758257
+INFO | 2026-05-07 17:30:40 | basehttp        | "GET /static/js/recipe_detail.js HTTP/1.1" 200 251
+INFO | 2026-05-07 17:30:40 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 17:30:40 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 17:30:40 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 31286
+WARNING | 2026-05-07 17:30:40 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 17:30:40 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 17:30:42 | basehttp        | "GET /recipes/moderation/ HTTP/1.1" 200 18615
+INFO | 2026-05-07 17:30:42 | basehttp        | "GET /static/images/hero-moderator.png HTTP/1.1" 304 0
+INFO | 2026-05-07 17:30:42 | basehttp        | "GET /static/css/moderation.css?v=20260507b HTTP/1.1" 304 0
+INFO | 2026-05-07 17:30:47 | basehttp        | "GET /recipes/irish-guinness-beef-stew/edit/ HTTP/1.1" 200 37829
+INFO | 2026-05-07 17:30:55 | basehttp        | "POST /recipes/irish-guinness-beef-stew/edit/ HTTP/1.1" 302 0
+INFO | 2026-05-07 17:30:55 | basehttp        | "GET /recipes/irish-guinness-beef-stew/ HTTP/1.1" 200 51417
+INFO | 2026-05-07 17:32:09 | basehttp        | "GET /recipes/author/julijagolovinairgmailcom/ HTTP/1.1" 200 16553
+INFO | 2026-05-07 17:32:09 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 17:32:09 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 17:32:09 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 17:32:10 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 17:32:10 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 17:32:10 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 31286
+INFO | 2026-05-07 17:32:10 | basehttp        | "GET /static/images/hero-profile.png HTTP/1.1" 200 2322232
+INFO | 2026-05-07 17:32:10 | basehttp        | "GET /media/authors/julijagolovinairgmailcom/avatar.png HTTP/1.1" 200 1807844
+INFO | 2026-05-07 17:32:10 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 17:32:10 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-07 17:32:11 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 17:32:11 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 17:32:12 | basehttp        | "GET /recipes/ HTTP/1.1" 200 50816
+INFO | 2026-05-07 17:32:25 | basehttp        | "POST /accounts/logout/ HTTP/1.1" 302 0
+INFO | 2026-05-07 17:32:25 | basehttp        | "GET / HTTP/1.1" 200 32007
+INFO | 2026-05-07 17:32:30 | basehttp        | "GET /recipes/create/ HTTP/1.1" 302 0
+INFO | 2026-05-07 17:32:30 | basehttp        | "GET /accounts/login/?next=/recipes/create/ HTTP/1.1" 200 13317
+INFO | 2026-05-07 17:32:30 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 304 0
+INFO | 2026-05-07 17:32:30 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-07 17:32:37 | basehttp        | "POST /accounts/login/?next=/recipes/create/ HTTP/1.1" 302 0
+INFO | 2026-05-07 17:32:37 | basehttp        | "GET /recipes/create/ HTTP/1.1" 200 35161
+INFO | 2026-05-07 17:32:43 | basehttp        | "GET / HTTP/1.1" 200 35223
+INFO | 2026-05-07 17:32:51 | basehttp        | "GET /recipes/?author=julijagolovinairgmailcom HTTP/1.1" 200 21681
+INFO | 2026-05-07 17:33:05 | basehttp        | "GET /articles/?author=julijagolovinairgmailcom HTTP/1.1" 200 15394
+INFO | 2026-05-07 17:33:11 | basehttp        | "GET /recipes/author/julijagolovinairgmailcom/ HTTP/1.1" 200 18489
+INFO | 2026-05-07 17:33:18 | basehttp        | "GET /recipes/profile/edit/ HTTP/1.1" 200 16840
+INFO | 2026-05-07 17:33:26 | basehttp        | "POST /recipes/profile/edit/ HTTP/1.1" 302 0
+INFO | 2026-05-07 17:33:26 | basehttp        | "GET /recipes/author/julijagolovinairgmailcom/ HTTP/1.1" 200 18787
+INFO | 2026-05-07 17:33:26 | basehttp        | "GET /media/authors/julijagolovinairgmailcom/avatar_0dYdjTy.png HTTP/1.1" 200 1626849
+INFO | 2026-05-07 17:33:59 | basehttp        | "GET /recipes/irish-guinness-beef-stew/ HTTP/1.1" 200 50843
+INFO | 2026-05-07 17:33:59 | basehttp        | "GET /media/authors/julijagolovinairgmailcom/avatar_0dYdjTy.png HTTP/1.1" 304 0
+INFO | 2026-05-07 17:36:17 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 17:36:18 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 17:36:21 | autoreload      | /media/sf_CulinEire/articles/views.py changed, reloading.
+INFO | 2026-05-07 17:36:22 | autoreload      | Watching for file changes with StatReloader
+WARNING | 2026-05-07 17:36:38 | log             | Not Found: /recipes/moderation/
+WARNING | 2026-05-07 17:36:38 | basehttp        | "GET /recipes/moderation/ HTTP/1.1" 404 179
+WARNING | 2026-05-07 17:36:41 | log             | Not Found: /recipes/moderation/
+WARNING | 2026-05-07 17:36:41 | basehttp        | "GET /recipes/moderation/ HTTP/1.1" 404 179
+INFO | 2026-05-07 17:36:53 | basehttp        | "GET / HTTP/1.1" 200 35231
+INFO | 2026-05-07 17:36:53 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 304 0
+INFO | 2026-05-07 17:36:53 | basehttp        | "GET /media/authors/julijagolovinairgmailcom/avatar_0dYdjTy.png HTTP/1.1" 304 0
+INFO | 2026-05-07 17:36:54 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-07 17:36:56 | basehttp        | "POST /accounts/logout/ HTTP/1.1" 302 0
+INFO | 2026-05-07 17:36:56 | basehttp        | "GET / HTTP/1.1" 200 32007
+INFO | 2026-05-07 17:36:58 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13225
+INFO | 2026-05-07 17:37:04 | basehttp        | "POST /accounts/login/ HTTP/1.1" 302 0
+INFO | 2026-05-07 17:37:04 | basehttp        | "GET / HTTP/1.1" 200 35592
+INFO | 2026-05-07 17:37:06 | basehttp        | "GET /recipes/moderation/ HTTP/1.1" 200 18615
+INFO | 2026-05-07 17:37:06 | basehttp        | "GET /static/css/moderation.css?v=20260507b HTTP/1.1" 304 0
+INFO | 2026-05-07 17:37:06 | basehttp        | "GET /static/images/hero-moderator.png HTTP/1.1" 304 0
+INFO | 2026-05-07 17:37:11 | basehttp        | "GET /recipes/irish-guinness-beef-stew/edit/ HTTP/1.1" 200 37821
+INFO | 2026-05-07 17:37:11 | basehttp        | "GET /static/css/authoring.css?v=20260507e HTTP/1.1" 304 0
+INFO | 2026-05-07 17:46:41 | basehttp        | "POST /recipes/irish-guinness-beef-stew/edit/ HTTP/1.1" 302 0
+INFO | 2026-05-07 17:46:41 | basehttp        | "GET /recipes/moderation/ HTTP/1.1" 200 18896
+INFO | 2026-05-07 17:46:41 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 304 0
+INFO | 2026-05-07 17:46:41 | basehttp        | "GET /static/css/moderation.css?v=20260507b HTTP/1.1" 304 0
+INFO | 2026-05-07 17:46:41 | basehttp        | "GET /static/images/hero-moderator.png HTTP/1.1" 304 0
+INFO | 2026-05-07 17:46:41 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-07 17:48:49 | basehttp        | "GET /recipes/moderation/ HTTP/1.1" 200 18735
+INFO | 2026-05-07 17:48:49 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 17:48:49 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 17:48:49 | basehttp        | "GET /static/css/moderation.css?v=20260507c HTTP/1.1" 200 3617
+INFO | 2026-05-07 17:48:49 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 17:48:49 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 17:48:49 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 17:48:49 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 31286
+INFO | 2026-05-07 17:48:49 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 17:48:49 | basehttp        | "GET /static/images/hero-moderator.png HTTP/1.1" 200 2312353
+INFO | 2026-05-07 17:48:49 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-07 17:48:49 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 17:48:49 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 17:48:56 | basehttp        | "GET /recipes/irish-guinness-beef-stew/ HTTP/1.1" 200 58462
+INFO | 2026-05-07 17:48:56 | basehttp        | "GET /static/css/detail_page.css?v=20260501 HTTP/1.1" 304 0
+INFO | 2026-05-07 17:48:56 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/cover.png HTTP/1.1" 200 2541547
+INFO | 2026-05-07 17:48:56 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img2.png HTTP/1.1" 200 162066
+INFO | 2026-05-07 17:48:56 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img1.png HTTP/1.1" 200 164737
+INFO | 2026-05-07 17:48:56 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img4.png HTTP/1.1" 200 145502
+INFO | 2026-05-07 17:48:56 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img3.png HTTP/1.1" 200 146765
+INFO | 2026-05-07 17:48:56 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img5.png HTTP/1.1" 200 148665
+INFO | 2026-05-07 17:48:56 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img8.png HTTP/1.1" 200 146474
+INFO | 2026-05-07 17:48:56 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img7.png HTTP/1.1" 200 145767
+INFO | 2026-05-07 17:48:56 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img10.png HTTP/1.1" 200 162402
+INFO | 2026-05-07 17:48:56 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img11.png HTTP/1.1" 200 151156
+INFO | 2026-05-07 17:48:56 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img9.png HTTP/1.1" 200 155585
+INFO | 2026-05-07 17:48:56 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img12.png HTTP/1.1" 200 159372
+INFO | 2026-05-07 17:48:56 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img6.png HTTP/1.1" 200 129547
+INFO | 2026-05-07 17:51:39 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 17:51:40 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 17:51:46 | autoreload      | /media/sf_CulinEire/articles/views.py changed, reloading.
+INFO | 2026-05-07 17:51:47 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 17:51:55 | basehttp        | "GET /recipes/irish-guinness-beef-stew/ HTTP/1.1" 200 58462
+INFO | 2026-05-07 17:51:55 | basehttp        | "GET /static/css/detail_page.css?v=20260501 HTTP/1.1" 200 51900
+INFO | 2026-05-07 17:51:55 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 17:51:55 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 17:51:55 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 17:51:55 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 17:51:55 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img12.png HTTP/1.1" 200 159372
+INFO | 2026-05-07 17:51:55 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img11.png HTTP/1.1" 200 151156
+INFO | 2026-05-07 17:51:55 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 17:51:55 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/cover.png HTTP/1.1" 200 2541547
+INFO | 2026-05-07 17:51:55 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 17:51:55 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 31286
+INFO | 2026-05-07 17:51:55 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 17:51:55 | basehttp        | "GET /static/js/gallery.js HTTP/1.1" 200 5097
+INFO | 2026-05-07 17:51:55 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img10.png HTTP/1.1" 200 162402
+INFO | 2026-05-07 17:51:55 | basehttp        | "GET /static/js/recipe_detail.js HTTP/1.1" 200 251
+INFO | 2026-05-07 17:51:55 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img7.png HTTP/1.1" 200 145767
+INFO | 2026-05-07 17:51:55 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img8.png HTTP/1.1" 200 146474
+INFO | 2026-05-07 17:51:55 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img9.png HTTP/1.1" 200 155585
+INFO | 2026-05-07 17:51:55 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img6.png HTTP/1.1" 200 129547
+INFO | 2026-05-07 17:51:55 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img5.png HTTP/1.1" 200 148665
+INFO | 2026-05-07 17:51:56 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img2.png HTTP/1.1" 200 162066
+INFO | 2026-05-07 17:51:56 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img4.png HTTP/1.1" 200 145502
+INFO | 2026-05-07 17:51:56 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img3.png HTTP/1.1" 200 146765
+INFO | 2026-05-07 17:51:56 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img1.png HTTP/1.1" 200 164737
+WARNING | 2026-05-07 17:51:56 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 17:51:56 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 17:58:27 | autoreload      | /media/sf_CulinEire/config/settings.py changed, reloading.
+INFO | 2026-05-07 17:58:28 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 17:58:35 | autoreload      | /media/sf_CulinEire/config/urls.py changed, reloading.
+INFO | 2026-05-07 17:58:35 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 17:59:58 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 17:59:58 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 18:00:06 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 18:00:07 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 18:00:46 | autoreload      | /media/sf_CulinEire/articles/views.py changed, reloading.
+INFO | 2026-05-07 18:00:46 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 18:00:55 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 18:00:56 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 18:02:23 | autoreload      | /media/sf_CulinEire/messaging/migrations/0001_initial.py changed, reloading.
+INFO | 2026-05-07 18:02:23 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 18:06:40 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 18:06:43 | basehttp        | "GET / HTTP/1.1" 200 36102
+INFO | 2026-05-07 18:06:43 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 304 0
+INFO | 2026-05-07 18:06:43 | basehttp        | "GET /static/css/messaging.css?v=20260507a HTTP/1.1" 200 6353
+INFO | 2026-05-07 18:06:43 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 304 0
+INFO | 2026-05-07 18:06:50 | basehttp        | "POST /accounts/logout/ HTTP/1.1" 302 0
+INFO | 2026-05-07 18:06:50 | basehttp        | "GET / HTTP/1.1" 200 32080
+INFO | 2026-05-07 18:06:56 | basehttp        | "GET /recipes/ HTTP/1.1" 200 47304
+INFO | 2026-05-07 18:07:00 | basehttp        | "GET /articles/ HTTP/1.1" 200 17181
+INFO | 2026-05-07 18:07:01 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13298
+INFO | 2026-05-07 18:07:02 | basehttp        | "GET /static/css/auth.css?v=20260507b HTTP/1.1" 304 0
+INFO | 2026-05-07 18:07:02 | basehttp        | "GET /static/images/hero-login.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:07:05 | basehttp        | "GET /accounts/signup/ HTTP/1.1" 200 14328
+INFO | 2026-05-07 18:07:05 | basehttp        | "GET /static/images/hero-join.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:07:12 | basehttp        | "GET /articles/ HTTP/1.1" 200 17181
+INFO | 2026-05-07 18:07:17 | basehttp        | "GET /recipes/ HTTP/1.1" 200 47304
+INFO | 2026-05-07 18:07:20 | basehttp        | "GET / HTTP/1.1" 200 32080
+INFO | 2026-05-07 18:07:24 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13298
+INFO | 2026-05-07 18:07:31 | basehttp        | "POST /accounts/login/ HTTP/1.1" 302 0
+INFO | 2026-05-07 18:07:31 | basehttp        | "GET / HTTP/1.1" 200 35741
+INFO | 2026-05-07 18:07:31 | basehttp        | "GET /static/css/messaging.css?v=20260507a HTTP/1.1" 304 0
+INFO | 2026-05-07 18:07:31 | basehttp        | "GET /media/authors/julijagolovinairgmailcom/avatar_0dYdjTy.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:07:37 | basehttp        | "GET /messages/ HTTP/1.1" 200 15074
+INFO | 2026-05-07 18:07:45 | basehttp        | "GET /recipes/author/julijagolovinairgmailcom/ HTTP/1.1" 200 19015
+INFO | 2026-05-07 18:07:54 | basehttp        | "GET /recipes/irish-guinness-beef-stew/edit/ HTTP/1.1" 200 38356
+INFO | 2026-05-07 18:07:54 | basehttp        | "GET /static/css/authoring.css?v=20260507e HTTP/1.1" 304 0
+INFO | 2026-05-07 18:07:54 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/cover.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:08:58 | basehttp        | "POST /recipes/irish-guinness-beef-stew/edit/ HTTP/1.1" 302 0
+INFO | 2026-05-07 18:08:58 | basehttp        | "GET /recipes/irish-guinness-beef-stew/ HTTP/1.1" 200 58914
+INFO | 2026-05-07 18:08:58 | basehttp        | "GET /static/css/messaging.css?v=20260507a HTTP/1.1" 304 0
+INFO | 2026-05-07 18:08:58 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img12.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:08:58 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img11.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:08:58 | basehttp        | "GET /static/css/detail_page.css?v=20260501 HTTP/1.1" 304 0
+INFO | 2026-05-07 18:08:58 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img10.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:08:58 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img8.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:08:58 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img6.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:08:58 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img9.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:08:58 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img5.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:08:58 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img7.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:08:58 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img4.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:08:58 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img2.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:08:58 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img1.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:08:58 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img3.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:09:28 | basehttp        | "GET /recipes/author/julijagolovinairgmailcom/ HTTP/1.1" 200 19015
+INFO | 2026-05-07 18:09:31 | basehttp        | "GET /recipes/profile/edit/ HTTP/1.1" 200 17358
+INFO | 2026-05-07 18:09:41 | basehttp        | "POST /recipes/profile/edit/ HTTP/1.1" 302 0
+INFO | 2026-05-07 18:09:41 | basehttp        | "GET /recipes/author/julijagolovinairgmailcom/ HTTP/1.1" 200 19302
+INFO | 2026-05-07 18:09:45 | basehttp        | "GET /recipes/author/julijagolovinairgmailcom/ HTTP/1.1" 200 19020
+INFO | 2026-05-07 18:09:53 | basehttp        | "GET /recipes/author/julijagolovinairgmailcom/ HTTP/1.1" 200 19020
+INFO | 2026-05-07 18:09:56 | basehttp        | "GET /recipes/profile/edit/ HTTP/1.1" 200 17360
+INFO | 2026-05-07 18:09:57 | basehttp        | "GET /static/css/messaging.css?v=20260507a HTTP/1.1" 304 0
+INFO | 2026-05-07 18:10:08 | basehttp        | "POST /recipes/profile/edit/ HTTP/1.1" 302 0
+INFO | 2026-05-07 18:10:08 | basehttp        | "GET /recipes/author/julijagolovinairgmailcom/ HTTP/1.1" 200 19232
+INFO | 2026-05-07 18:10:30 | basehttp        | "POST /accounts/logout/ HTTP/1.1" 302 0
+INFO | 2026-05-07 18:10:30 | basehttp        | "GET / HTTP/1.1" 200 32080
+INFO | 2026-05-07 18:10:33 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13298
+INFO | 2026-05-07 18:10:43 | basehttp        | "POST /accounts/login/ HTTP/1.1" 302 0
+INFO | 2026-05-07 18:10:43 | basehttp        | "GET / HTTP/1.1" 200 36102
+INFO | 2026-05-07 18:10:54 | basehttp        | "GET /recipes/moderation/ HTTP/1.1" 200 19232
+INFO | 2026-05-07 18:10:54 | basehttp        | "GET /static/css/moderation.css?v=20260507c HTTP/1.1" 304 0
+INFO | 2026-05-07 18:10:54 | basehttp        | "GET /static/images/hero-moderator.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:12:32 | autoreload      | /media/sf_CulinEire/recipes/context_processors.py changed, reloading.
+INFO | 2026-05-07 18:12:32 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 18:12:58 | basehttp        | "GET /recipes/moderation/ HTTP/1.1" 200 19264
+INFO | 2026-05-07 18:12:58 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 304 0
+INFO | 2026-05-07 18:12:58 | basehttp        | "GET /static/css/messaging.css?v=20260507a HTTP/1.1" 304 0
+INFO | 2026-05-07 18:13:02 | basehttp        | "GET /recipes/moderation/ HTTP/1.1" 200 19264
+INFO | 2026-05-07 18:15:14 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 18:15:15 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 18:15:45 | autoreload      | /media/sf_CulinEire/recipes/views.py changed, reloading.
+INFO | 2026-05-07 18:15:46 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 18:15:49 | autoreload      | /media/sf_CulinEire/recipes/urls.py changed, reloading.
+INFO | 2026-05-07 18:15:50 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 18:16:06 | basehttp        | "GET /recipes/moderation/ HTTP/1.1" 200 19307
+INFO | 2026-05-07 18:16:06 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 18:16:06 | basehttp        | "GET /static/css/moderation.css?v=20260507c HTTP/1.1" 200 3617
+INFO | 2026-05-07 18:16:06 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 18:16:06 | basehttp        | "GET /static/css/messaging.css?v=20260507a HTTP/1.1" 200 6353
+INFO | 2026-05-07 18:16:06 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 18:16:06 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 18:16:06 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 31286
+INFO | 2026-05-07 18:16:06 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 18:16:06 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+INFO | 2026-05-07 18:16:06 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 18:16:06 | basehttp        | "GET /static/images/hero-moderator.png HTTP/1.1" 200 2312353
+WARNING | 2026-05-07 18:16:07 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 18:16:07 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 18:16:08 | basehttp        | "GET /recipes/author/julijagolovinairgmailcom/ HTTP/1.1" 200 17051
+INFO | 2026-05-07 18:16:08 | basehttp        | "GET /media/authors/julijagolovinairgmailcom/avatar_0dYdjTy.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:16:23 | basehttp        | "GET /recipes/author/julijagolovinairgmailcom/ HTTP/1.1" 200 17051
+INFO | 2026-05-07 18:16:23 | basehttp        | "GET /static/css/base.css?v=20260507d HTTP/1.1" 200 21609
+INFO | 2026-05-07 18:16:23 | basehttp        | "GET /static/css/messaging.css?v=20260507a HTTP/1.1" 200 6353
+INFO | 2026-05-07 18:16:23 | basehttp        | "GET /static/css/header.css?v=20260430l HTTP/1.1" 200 14161
+INFO | 2026-05-07 18:16:23 | basehttp        | "GET /static/js/main.js?v=20260430l HTTP/1.1" 200 6651
+INFO | 2026-05-07 18:16:24 | basehttp        | "GET /static/images/logo-culineire-header-round.png HTTP/1.1" 200 931418
+INFO | 2026-05-07 18:16:24 | basehttp        | "GET /static/images/hero-profile.png HTTP/1.1" 200 2322232
+INFO | 2026-05-07 18:16:24 | basehttp        | "GET /static/css/content_cards.css HTTP/1.1" 200 31286
+INFO | 2026-05-07 18:16:24 | basehttp        | "GET /media/authors/greenbear.png HTTP/1.1" 200 1362255
+INFO | 2026-05-07 18:16:24 | basehttp        | "GET /static/css/god_mode.css HTTP/1.1" 200 2724
+INFO | 2026-05-07 18:16:24 | basehttp        | "GET /media/authors/julijagolovinairgmailcom/avatar_0dYdjTy.png HTTP/1.1" 200 1626849
+INFO | 2026-05-07 18:16:24 | basehttp        | "GET /static/css/footer.css HTTP/1.1" 200 1927
+WARNING | 2026-05-07 18:16:24 | log             | Not Found: /favicon.ico
+WARNING | 2026-05-07 18:16:24 | basehttp        | "GET /favicon.ico HTTP/1.1" 404 179
+INFO | 2026-05-07 18:17:44 | basehttp        | "GET /recipes/moderation/ HTTP/1.1" 200 19307
+INFO | 2026-05-07 18:17:51 | basehttp        | "GET /recipes/irish-guinness-beef-stew/ HTTP/1.1" 200 61939
+INFO | 2026-05-07 18:17:51 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/cover.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:17:51 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img12.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:17:51 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img11.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:17:51 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img8.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:17:51 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img9.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:17:51 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img10.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:17:51 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img7.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:17:51 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img6.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:17:51 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img4.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:17:51 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img5.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:17:51 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img3.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:17:51 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img1.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:17:51 | basehttp        | "GET /media/recipes/julijagolovinairgmailcom/irish-guinness-beef-stew/gallery/img2.png HTTP/1.1" 304 0
+INFO | 2026-05-07 18:18:39 | basehttp        | "GET /recipes/irish-guinness-beef-stew/ HTTP/1.1" 200 61939
+INFO | 2026-05-07 18:18:39 | basehttp        | "GET /static/css/messaging.css?v=20260507a HTTP/1.1" 304 0
+INFO | 2026-05-07 18:18:39 | basehttp        | "GET /static/css/detail_page.css?v=20260501 HTTP/1.1" 304 0
+INFO | 2026-05-07 18:19:22 | basehttp        | "POST /messages/send/ HTTP/1.1" 302 0
+INFO | 2026-05-07 18:19:22 | basehttp        | "GET /recipes/moderation/ HTTP/1.1" 200 19249
+INFO | 2026-05-07 18:19:22 | basehttp        | "GET /static/css/moderation.css?v=20260507c HTTP/1.1" 304 0
+INFO | 2026-05-07 18:19:38 | basehttp        | "POST /accounts/logout/ HTTP/1.1" 302 0
+INFO | 2026-05-07 18:19:38 | basehttp        | "GET / HTTP/1.1" 200 32080
+INFO | 2026-05-07 18:19:40 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13298
+INFO | 2026-05-07 18:19:46 | basehttp        | "POST /accounts/login/ HTTP/1.1" 302 0
+WARNING | 2026-05-07 18:19:46 | log             | Forbidden (CSRF token from POST incorrect.): /accounts/login/
+WARNING | 2026-05-07 18:19:46 | basehttp        | "POST /accounts/login/ HTTP/1.1" 403 1004
+INFO | 2026-05-07 18:19:52 | basehttp        | "GET /accounts/login/ HTTP/1.1" 302 0
+INFO | 2026-05-07 18:19:52 | basehttp        | "GET / HTTP/1.1" 200 35760
+INFO | 2026-05-07 18:19:56 | basehttp        | "GET /messages/ HTTP/1.1" 200 15551
+INFO | 2026-05-07 18:19:59 | basehttp        | "GET /messages/1/ HTTP/1.1" 200 16081
+INFO | 2026-05-07 18:20:13 | basehttp        | "POST /messages/1/reply/ HTTP/1.1" 302 0
+INFO | 2026-05-07 18:20:13 | basehttp        | "GET /messages/1/ HTTP/1.1" 200 16468
+INFO | 2026-05-07 18:20:22 | basehttp        | "POST /accounts/logout/ HTTP/1.1" 302 0
+INFO | 2026-05-07 18:20:23 | basehttp        | "GET / HTTP/1.1" 200 32080
+INFO | 2026-05-07 18:20:24 | basehttp        | "GET /accounts/login/ HTTP/1.1" 200 13298
+INFO | 2026-05-07 18:20:29 | basehttp        | "POST /accounts/login/ HTTP/1.1" 302 0
+INFO | 2026-05-07 18:20:29 | basehttp        | "GET / HTTP/1.1" 200 36134
+INFO | 2026-05-07 18:20:33 | basehttp        | "GET /messages/ HTTP/1.1" 200 15467
+INFO | 2026-05-07 18:20:38 | basehttp        | "GET /messages/ HTTP/1.1" 200 15467
+INFO | 2026-05-07 18:20:38 | basehttp        | "GET /static/css/messaging.css?v=20260507a HTTP/1.1" 304 0
+INFO | 2026-05-07 18:20:41 | basehttp        | "GET /messages/ HTTP/1.1" 200 15467
+INFO | 2026-05-07 18:26:23 | autoreload      | /media/sf_CulinEire/messaging/urls.py changed, reloading.
+INFO | 2026-05-07 18:26:24 | autoreload      | Watching for file changes with StatReloader

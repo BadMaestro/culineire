@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Message | CulinEire{% endblock %}
+
+{% block content %}
+<section class="page-section">
+    <div class="container" style="max-width: 760px; padding-block: clamp(2rem, 4vw, 3.5rem);">
+
+        <a class="msg-back" href="{% url 'messaging:inbox' %}">← Back to Messages</a>
+
+        {% if root_message.related_recipe %}
+        <p class="msg-ref-banner">Re: <a href="{{ root_message.related_recipe.get_absolute_url }}" target="_blank">{{
+            root_message.related_recipe.title }}</a></p>
+        {% endif %}
+        {% if root_message.related_article %}
+        <p class="msg-ref-banner">Re: <a href="{{ root_message.related_article.get_absolute_url }}" target="_blank">{{
+            root_message.related_article.title }}</a></p>
+        {% endif %}
+
+        <div class="msg-thread">
+            {% for msg in thread %}
+            <div class="msg-bubble {% if msg.sender == request.user %}msg-bubble--mine{% else %}msg-bubble--theirs{% endif %}">
+                <div class="msg-bubble__meta">
+                    <span class="msg-bubble__from">{{ msg.sender.get_full_name|default:msg.sender.get_username }}</span>
+                    <span class="msg-bubble__date">{{ msg.created_at|date:"j M Y, H:i" }}</span>
+                </div>
+                <div class="msg-bubble__body">{{ msg.body|linebreaksbr }}</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <form action="{% url 'messaging:reply_message' root_message.pk %}" class="msg-reply-form" method="post">
+            {% csrf_token %}
+            <textarea class="msg-reply-form__textarea" name="body" placeholder="Write a reply…" required
+                      rows="4"></textarea>
+            <button class="btn-primary" type="submit">Send Reply</button>
+        </form>
+
+    </div>
+</section>
+{% endblock %}

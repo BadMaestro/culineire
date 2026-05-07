@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Moderation Panel | CulinEire{% endblock %}
+{% block meta_description %}CulinEire content moderation panel.{% endblock %}
+
+{% block extra_head %}
+<link href="{% static 'css/moderation.css' %}?v=20260507c" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="hero hero--home">
+    <div aria-hidden="true" class="hero__background">
+        <img alt="" src="{% static 'images/hero-moderator.png' %}">
+    </div>
+    <div aria-hidden="true" class="hero__overlay"></div>
+    <div class="container hero__inner">
+        <div class="hero-copy">
+            <span class="pill">Author Studio</span>
+            <h1 class="hero-title">Moderation Panel</h1>
+            <p class="hero-subtitle">Review incoming recipes and articles before they go live on CulinEire.</p>
+        </div>
+    </div>
+</section>
+
+<section class="page-section moderation-page">
+    <div class="container moderation-shell">
+
+        {% if not pending_recipes and not rejected_recipes and not pending_articles and not rejected_articles %}
+        <div class="moderation-empty">All clear — no content awaiting moderation.</div>
+        {% endif %}
+
+        {% if pending_recipes or rejected_recipes %}
+        <div class="moderation-block">
+            <h2 class="moderation-block__title">
+                Recipes
+                {% if pending_recipes %}<span class="moderation-badge moderation-badge--pending">{{ pending_recipes|length }} pending</span>{% endif %}
+                {% if rejected_recipes %}<span class="moderation-badge moderation-badge--rejected">{{ rejected_recipes|length }} rejected</span>{% endif %}
+            </h2>
+
+            {% for recipe in pending_recipes %}
+            <div class="moderation-card">
+                <div class="moderation-card__body">
+                    <div class="moderation-card__meta">
+                        <span class="author-studio-status author-studio-status--pending">Pending</span>
+                        {% if recipe.author %}<a class="moderation-card__author" href="{{ recipe.author.get_absolute_url }}">{{ recipe.author.name|default:"Unknown" }}</a>{% else %}<span class="moderation-card__author">Unknown</span>{% endif %}
+                        <span class="moderation-card__date">{{ recipe.created_at|date:"j M Y" }}</span>
+                    </div>
+                    <h3 class="moderation-card__title">
+                        <a href="{{ recipe.get_absolute_url }}" target="_blank">{{ recipe.title }}</a>
+                    </h3>
+                </div>
+                <div class="moderation-card__actions">
+                    <a class="mod-btn mod-btn--view" href="{{ recipe.get_absolute_url }}" target="_blank">View</a>
+                    <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
+                        <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
+                    </form>
+                    <a class="mod-btn mod-btn--edit" href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit</a>
+                    <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
+                        <button class="mod-btn mod-btn--reject" name="action" type="submit" value="reject">Reject</button>
+                    </form>
+                    <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
+                        <button class="mod-btn mod-btn--delete" name="action" onclick="return confirm('Permanently delete this recipe?')" type="submit"
+                            value="delete">Delete</button>
+                    </form>
+                    {% if recipe.author.user %}
+                    <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
+                        <button class="mod-btn mod-btn--block" name="action" onclick="return confirm('Block user {{ recipe.author.user.username }}?')" type="submit"
+                            value="block">Block User</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+
+            {% for recipe in rejected_recipes %}
+            <div class="moderation-card moderation-card--rejected">
+                <div class="moderation-card__body">
+                    <div class="moderation-card__meta">
+                        <span class="author-studio-status author-studio-status--rejected">Rejected</span>
+                        {% if recipe.author %}<a class="moderation-card__author" href="{{ recipe.author.get_absolute_url }}">{{ recipe.author.name|default:"Unknown" }}</a>{% else %}<span class="moderation-card__author">Unknown</span>{% endif %}
+                        <span class="moderation-card__date">{{ recipe.created_at|date:"j M Y" }}</span>
+                    </div>
+                    <h3 class="moderation-card__title">
+                        <a href="{{ recipe.get_absolute_url }}" target="_blank">{{ recipe.title }}</a>
+                    </h3>
+                </div>
+                <div class="moderation-card__actions">
+                    <a class="mod-btn mod-btn--view" href="{{ recipe.get_absolute_url }}" target="_blank">View</a>
+                    <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
+                        <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
+                    </form>
+                    <a class="mod-btn mod-btn--edit" href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit</a>
+                    <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
+                        <button class="mod-btn mod-btn--delete" name="action" onclick="return confirm('Permanently delete this recipe?')" type="submit"
+                            value="delete">Delete</button>
+                    </form>
+                    {% if recipe.author.user %}
+                    <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
+                        <button class="mod-btn mod-btn--block" name="action" onclick="return confirm('Block user {{ recipe.author.user.username }}?')" type="submit"
+                            value="block">Block User</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="moderation-block">
+            <h2 class="moderation-block__title">
+                Articles
+                {% if pending_articles %}<span class="moderation-badge moderation-badge--pending">{{ pending_articles|length }} pending</span>{% endif %}
+                {% if rejected_articles %}<span class="moderation-badge moderation-badge--rejected">{{ rejected_articles|length }} rejected</span>{% endif %}
+            </h2>
+
+            {% if not pending_articles and not rejected_articles %}
+            <div class="moderation-empty">No articles awaiting moderation.</div>
+            {% endif %}
+
+            {% for article in pending_articles %}
+            <div class="moderation-card">
+                <div class="moderation-card__body">
+                    <div class="moderation-card__meta">
+                        <span class="author-studio-status author-studio-status--pending">Pending</span>
+                        {% if article.author %}<a class="moderation-card__author" href="{{ article.author.get_absolute_url }}">{{ article.author.name|default:"Unknown" }}</a>{% else %}<span class="moderation-card__author">Unknown</span>{% endif %}
+                        <span class="moderation-card__date">{{ article.published|date:"j M Y" }}</span>
+                    </div>
+                    <h3 class="moderation-card__title">
+                        <a href="{{ article.get_absolute_url }}" target="_blank">{{ article.title }}</a>
+                    </h3>
+                </div>
+                <div class="moderation-card__actions">
+                    <a class="mod-btn mod-btn--view" href="{{ article.get_absolute_url }}" target="_blank">View</a>
+                    <form action="{% url 'recipes:moderate_article' article.slug %}" method="post">{% csrf_token %}
+                        <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
+                    </form>
+                    <a class="mod-btn mod-btn--edit" href="{% url 'articles:article_edit' article.slug %}">Edit</a>
+                    <form action="{% url 'recipes:moderate_article' article.slug %}" method="post">{% csrf_token %}
+                        <button class="mod-btn mod-btn--reject" name="action" type="submit" value="reject">Reject</button>
+                    </form>
+                    <form action="{% url 'recipes:moderate_article' article.slug %}" method="post">{% csrf_token %}
+                        <button class="mod-btn mod-btn--delete" name="action" onclick="return confirm('Permanently delete this article?')" type="submit"
+                            value="delete">Delete</button>
+                    </form>
+                    {% if article.author.user %}
+                    <form action="{% url 'recipes:moderate_article' article.slug %}" method="post">{% csrf_token %}
+                        <button class="mod-btn mod-btn--block" name="action" onclick="return confirm('Block user {{ article.author.user.username }}?')" type="submit"
+                            value="block">Block User</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+
+            {% for article in rejected_articles %}
+            <div class="moderation-card moderation-card--rejected">
+                <div class="moderation-card__body">
+                    <div class="moderation-card__meta">
+                        <span class="author-studio-status author-studio-status--rejected">Rejected</span>
+                        {% if article.author %}<a class="moderation-card__author" href="{{ article.author.get_absolute_url }}">{{ article.author.name|default:"Unknown" }}</a>{% else %}<span class="moderation-card__author">Unknown</span>{% endif %}
+                        <span class="moderation-card__date">{{ article.published|date:"j M Y" }}</span>
+                    </div>
+                    <h3 class="moderation-card__title">
+                        <a href="{{ article.get_absolute_url }}" target="_blank">{{ article.title }}</a>
+                    </h3>
+                </div>
+                <div class="moderation-card__actions">
+                    <a class="mod-btn mod-btn--view" href="{{ article.get_absolute_url }}" target="_blank">View</a>
+                    <form action="{% url 'recipes:moderate_article' article.slug %}" method="post">{% csrf_token %}
+                        <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
+                    </form>
+                    <a class="mod-btn mod-btn--edit" href="{% url 'articles:article_edit' article.slug %}">Edit</a>
+                    <form action="{% url 'recipes:moderate_article' article.slug %}" method="post">{% csrf_token %}
+                        <button class="mod-btn mod-btn--delete" name="action" onclick="return confirm('Permanently delete this article?')" type="submit"
+                            value="delete">Delete</button>
+                    </form>
+                    {% if article.author.user %}
+                    <form action="{% url 'recipes:moderate_article' article.slug %}" method="post">{% csrf_token %}
+                        <button class="mod-btn mod-btn--block" name="action" onclick="return confirm('Block user {{ article.author.user.username }}?')" type="submit"
+                            value="block">Block User</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+</section>
+{% endblock %}
