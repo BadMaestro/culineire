@@ -5,14 +5,18 @@
 {% block meta_description %}{% if form_mode == "edit" %}Edit your CulinEire article from the author studio.{% else %}Create a new CulinEire article from the author studio.{% endif %}{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/authoring.css' %}?v=20260430a" rel="stylesheet">
+<link href="{% static 'css/authoring.css' %}?v=20260507e" rel="stylesheet">
 {% if turnstile_site_key %}<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>{% endif %}
 {% endblock %}
 
 {% block content %}
 <section class="hero hero--home">
     <div aria-hidden="true" class="hero__background">
-        <img alt="" src="{% static 'images/hero-studio.png' %}">
+        {% if form_mode == "edit" and article.hero_image %}
+        <img alt="" src="{{ article.hero_image.url }}">
+        {% else %}
+        <img alt="" src="{% static 'images/my-hero-articles.png' %}">
+        {% endif %}
     </div>
     <div aria-hidden="true" class="hero__overlay"></div>
     <div class="container hero__inner">
@@ -30,65 +34,68 @@
 
 <section class="page-section authoring-page">
     <div class="container authoring-shell">
-        <header class="authoring-header">
-            <div class="authoring-header__copy">
-                <p class="eyebrow">Author Studio</p>
-                <h1>{{ form_heading|default:"Create Article" }}</h1>
-                <p class="authoring-intro">
-                    {{ form_intro|default:"Shape a food note, kitchen technique or story for CulinEire, linked back to your recipes where it belongs." }}
-                </p>
-            </div>
-            <p class="authoring-author" aria-label="Current author">
-                <span class="authoring-author__label">By:</span>
-                {% if author.avatar %}
-                <img alt="" src="{{ author.avatar.url }}">
-                {% else %}
-                <img alt="" src="{% static 'images/greenbear.png' %}">
-                {% endif %}
-                <strong>{{ author.name }}</strong>
-            </p>
-        </header>
-
         <form class="authoring-form" enctype="multipart/form-data" method="post">
             {% csrf_token %}
 
             {% if form.non_field_errors %}
             <div class="authoring-errors" role="alert">
-                {% for error in form.non_field_errors %}
-                <p>{{ error }}</p>
-                {% endfor %}
+                {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
             </div>
             {% endif %}
 
             <fieldset class="authoring-section">
                 <legend>Article Details</legend>
                 <div class="authoring-grid authoring-grid--two">
-                    {% for field in form %}
-                    {% if field.name == "title" or field.name == "excerpt" or field.name == "hero_image" or field.name == "published" or field.name == "related_recipe" %}
-                    <div class="authoring-field{% if field.field.widget.input_type == 'file' or field.name == 'excerpt' %} authoring-field--wide{% endif %}">
-                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                        {{ field }}
-                        {% if field.help_text %}<p class="authoring-help">{{ field.help_text }}</p>{% endif %}
-                        {% for error in field.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    <div class="authoring-field authoring-field--wide">
+                        <label for="{{ form.title.id_for_label }}">{{ form.title.label }}:</label>
+                        {{ form.title }}
+                        {% for error in form.title.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
-                    {% endif %}
-                    {% endfor %}
+                    <div class="authoring-field authoring-field--wide">
+                        <label for="{{ form.excerpt.id_for_label }}">{{ form.excerpt.label }}:</label>
+                        {{ form.excerpt }}
+                        {% for error in form.excerpt.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field">
+                        <label for="{{ form.hero_image.id_for_label }}">{{ form.hero_image.label }}:</label>
+                        {{ form.hero_image }}
+                        {% if form.hero_image.help_text %}<p class="authoring-help">{{ form.hero_image.help_text }}</p>
+                        {% endif %}
+                        {% for error in form.hero_image.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field">
+                        <label for="id_gallery_images">Gallery Images:</label>
+                        <input accept=".jpg,.jpeg,.png,.webp" class="authoring-control" id="id_gallery_images" multiple
+                               name="gallery_images" type="file">
+                        <p class="authoring-help">Upload additional images for the article gallery (optional, multiple
+                            allowed).</p>
+                    </div>
+                    <div class="authoring-field">
+                        <label for="{{ form.published.id_for_label }}">{{ form.published.label }}:</label>
+                        {{ form.published }}
+                        {% for error in form.published.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field">
+                        <label for="{{ form.related_recipe.id_for_label }}">{{ form.related_recipe.label }}:</label>
+                        {{ form.related_recipe }}
+                        {% if form.related_recipe.help_text %}<p class="authoring-help">{{ form.related_recipe.help_text
+                        }}</p>{% endif %}
+                        {% for error in form.related_recipe.errors %}<p class="authoring-error">{{ error }}</p>{% endfor
+                        %}
+                    </div>
                 </div>
             </fieldset>
 
             <fieldset class="authoring-section">
                 <legend>Article Content</legend>
                 <div class="authoring-grid">
-                    {% for field in form %}
-                    {% if field.name == "body" %}
                     <div class="authoring-field authoring-field--wide">
-                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                        {{ field }}
-                        {% if field.help_text %}<p class="authoring-help">{{ field.help_text }}</p>{% endif %}
-                        {% for error in field.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                        <label for="{{ form.body.id_for_label }}">{{ form.body.label }}:</label>
+                        {{ form.body }}
+                        {% if form.body.help_text %}<p class="authoring-help authoring-help--center">{{
+                        form.body.help_text }}</p>{% endif %}
+                        {% for error in form.body.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
-                    {% endif %}
-                    {% endfor %}
                 </div>
             </fieldset>
 
@@ -96,8 +103,10 @@
                 {% if turnstile_site_key %}
                 <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="light"></div>
                 {% endif %}
-                <a class="authoring-link" href="{% url 'articles:article_list' %}">Cancel</a>
-                <button class="authoring-submit" type="submit">{{ submit_label|default:"Save Article" }}</button>
+                <div class="authoring-actions__buttons">
+                    <a class="authoring-link" href="{{ cancel_url }}">Cancel</a>
+                    <button class="authoring-submit" type="submit">{{ submit_label|default:"Save Article" }}</button>
+                </div>
             </div>
         </form>
     </div>

@@ -1375,6 +1375,108 @@
   padding-block-end: 3rem;
 }
 
+.author-studio-pending {
+  margin-block-start: 2.5rem;
+  padding: 1rem 1.2rem;
+  border: 1px solid rgb(180 130 20 / 0.22);
+  border-radius: 12px;
+  background: rgb(255 248 225 / 0.6);
+}
+
+.author-studio-pending__title {
+  margin: 0 0 0.3rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: rgb(140 90 10 / 0.8);
+  text-align: center;
+}
+
+.author-studio-pending__note {
+  margin: 0 0 1rem;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+.author-studio-pending__group {
+  margin-block-start: 0.75rem;
+}
+
+.author-studio-pending__group-label {
+  margin: 0 0 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+
+.author-studio-pending__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.author-studio-pending__item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  background: rgb(255 255 255 / 0.7);
+  border: 1px solid rgb(180 130 20 / 0.14);
+}
+
+.author-studio-pending__name {
+  flex: 1;
+  font-size: 0.88rem;
+  color: var(--ink);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.author-studio-pending__edit {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--brand);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.author-studio-pending__edit:hover {
+  text-decoration: underline;
+}
+
+.author-studio-status {
+  display: inline-block;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.author-studio-status--pending {
+  background: rgb(255 193 7 / 0.18);
+  color: rgb(120 80 0);
+  border: 1px solid rgb(255 193 7 / 0.4);
+}
+
+.author-studio-status--rejected {
+  background: rgb(180 40 40 / 0.08);
+  color: rgb(140 30 30);
+  border: 1px solid rgb(180 40 40 / 0.22);
+}
+
 .author-profile-manage {
   margin-block-start: 2.5rem;
   padding: 1rem 1.2rem;

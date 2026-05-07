@@ -2,13 +2,12 @@ import re
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import get_user_model, login
+from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import LoginView
 from django.core.mail import send_mail
 from django.db.models import Avg, Count, Prefetch
-from django.db.models.deletion import ProtectedError
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.templatetags.static import static
@@ -34,7 +33,6 @@ from .forms import (
     SignUpForm,
 )
 from .models import Recipe, RecipeAuthor, RecipeComment, RecipeImage, RecipeRating
-
 
 POPULAR_CATEGORY_PRIORITY = [
     ("irish_culinary_heritage", "Irish Culinary Heritage"),
@@ -279,11 +277,13 @@ def _build_context_paragraphs(context_text: str) -> list[str]:
 def home(request):
     latest_recipes = (
         Recipe.objects.select_related("author")
+        .filter(status=Recipe.Status.APPROVED)
         .order_by("-created_at")[:6]
     )
 
     latest_articles = (
         Article.objects.select_related("author", "related_recipe")
+        .filter(status="approved")
         .order_by("-published")[:6]
     )
 
@@ -299,6 +299,7 @@ def recipe_list(request):
     recipes = (
         Recipe.objects.select_related("author")
         .prefetch_related("additional_category_links")
+        .filter(status=Recipe.Status.APPROVED)
         .order_by("-created_at")
     )
     popular_recipe_candidates = (
@@ -316,6 +317,14 @@ def recipe_list(request):
         selected_author = get_object_or_404(RecipeAuthor, slug=author_slug)
         recipes = recipes.filter(author=selected_author)
         popular_recipe_candidates = popular_recipe_candidates.filter(author=selected_author)
+
+        if user_can_manage_author(request.user, selected_author) or _is_moderator(request.user):
+            recipes = (
+                Recipe.objects.select_related("author")
+                .prefetch_related("additional_category_links")
+                .filter(author=selected_author)
+                .order_by("-created_at")
+            )
 
     popular_recipe_by_category = {}
     popular_recipe_counts = {}
@@ -407,12 +416,12 @@ def recipe_list(request):
             )
         ),
         "page_heading": (
-            f"{selected_author.name}'s Recipe Collection"
+            "Recipe Collection"
             if selected_author
             else "Explore The Recipe Collection"
         ),
         "page_subtitle": (
-            f"The complete recipe collection from {selected_author.name} — Irish classics, seasonal dishes and home-kitchen favourites from the CulinEire Kitchen."
+            "Irish classics, seasonal dishes and home-kitchen favourites from the CulinEire Kitchen."
             if selected_author
             else (
                 "Irish classics, treasured vintage recipes, and modern home-kitchen twists, "
@@ -439,6 +448,7 @@ def category_detail(request, category_slug):
     recipes = (
         Recipe.objects.select_related("author")
         .prefetch_related("additional_category_links")
+        .filter(status=Recipe.Status.APPROVED)
     )
     recipes = Recipe.filter_for_category(recipes, category_value).order_by("-created_at")
 
@@ -466,7 +476,7 @@ def recipe_detail(request, slug):
             "additional_category_links",
             Prefetch(
                 "gallery_images",
-                queryset=RecipeImage.objects.filter(is_active=True).order_by("sort_order", "id"),
+                queryset=RecipeImage.objects.filter(is_active=True).order_by("-sort_order", "-id"),
             ),
             Prefetch(
                 "comments",
@@ -476,6 +486,12 @@ def recipe_detail(request, slug):
         ),
         slug=slug,
     )
+
+    if recipe.status != Recipe.Status.APPROVED:
+        if not _is_moderator(request.user):
+            viewer_author = getattr(request.user, "recipe_author_profile", None)
+            if not viewer_author or viewer_author != recipe.author:
+                raise Http404
 
     gallery_items = []
     active_gallery_items = list(recipe.gallery_images.all())
@@ -560,7 +576,8 @@ def recipe_detail(request, slug):
         "average_rating_value": average_rating_value,
         "ratings_count": ratings_count,
         "average_rating_percentage": average_rating_percentage,
-        "can_manage_recipe": user_can_manage_author(request.user, recipe.author),
+        "can_manage_recipe": _is_moderator(request.user) or user_can_manage_author(request.user, recipe.author),
+        "can_moderate_bar": _is_moderator(request.user) and recipe.status != Recipe.Status.APPROVED,
         "has_rated": has_rated,
         "commenter_profile": commenter_profile,
     }
@@ -659,18 +676,35 @@ def submit_recipe_comment(request, slug):
 
 def author_detail(request, slug):
     author = get_object_or_404(RecipeAuthor, slug=slug)
+    can_manage = user_can_manage_author(request.user, author)
+    moderator = _is_moderator(request.user)
 
-    recipe_count = Recipe.objects.filter(author=author).count()
-    article_count = Article.objects.filter(author=author).count()
+    recipe_count = Recipe.objects.filter(author=author, status=Recipe.Status.APPROVED).count()
+    article_count = Article.objects.filter(author=author, status=Article.Status.APPROVED).count()
+
+    pending_recipes = []
+    pending_articles = []
+    if can_manage or moderator:
+        pending_recipes = list(
+            Recipe.objects.filter(author=author)
+            .exclude(status=Recipe.Status.APPROVED)
+            .order_by("-created_at")
+        )
+        pending_articles = list(
+            Article.objects.filter(author=author)
+            .exclude(status=Article.Status.APPROVED)
+            .order_by("-published")
+        )
 
     context = {
         "author": author,
         "recipe_count": recipe_count,
         "article_count": article_count,
         "is_god_author": author.slug == "greenbear",
-        "can_manage_author_profile": user_can_manage_author(request.user, author),
-        "profile_delete_will_remove_articles": article_count > 0,
-        "profile_delete_will_orphan_recipes": recipe_count > 0,
+        "can_manage_author_profile": can_manage,
+        "is_moderator_viewer": moderator,
+        "pending_recipes": pending_recipes,
+        "pending_articles": pending_articles,
     }
     return render(request, "recipes/author_detail.html", context)
 
@@ -693,6 +727,9 @@ class RecipeCreateView(AuthorRequiredMixin, CreateView):
         recipe.save()
         form.save_additional_categories(recipe)
 
+        for i, img_file in enumerate(self.request.FILES.getlist("gallery_images"), start=1):
+            RecipeImage.objects.create(recipe=recipe, image=img_file, sort_order=i)
+
         self.object = recipe
         messages.success(self.request, "Recipe Created Successfully.")
         return redirect(recipe.get_absolute_url())
@@ -701,6 +738,7 @@ class RecipeCreateView(AuthorRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         context["author"] = self.author
         context["turnstile_site_key"] = settings.TURNSTILE_SITE_KEY
+        context["cancel_url"] = reverse_lazy("recipes:recipe_list")
         return context
 
 
@@ -711,16 +749,23 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
     context_object_name = "recipe"
 
     def get_queryset(self):
+        if _is_moderator(self.request.user):
+            return Recipe.objects.all()
         return Recipe.objects.filter(author=self.author)
 
     def form_valid(self, form):
-        response = super().form_valid(form)
-        form.save_additional_categories(self.object)
-        messages.success(self.request, "Recipe Updated Successfully.")
-        return response
+        recipe = form.save(commit=True)
+        form.save_additional_categories(recipe)
 
-    def get_success_url(self):
-        return self.object.get_absolute_url()
+        existing_count = recipe.gallery_images.count()
+        for i, img_file in enumerate(self.request.FILES.getlist("gallery_images"), start=existing_count + 1):
+            RecipeImage.objects.create(recipe=recipe, image=img_file, sort_order=i)
+
+        self.object = recipe
+        messages.success(self.request, "Recipe Updated Successfully.")
+        if _is_moderator(self.request.user):
+            return redirect(reverse_lazy("recipes:moderation_panel"))
+        return redirect(recipe.get_absolute_url())
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -731,6 +776,7 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
             "Refine your recipe, update categories and keep the CulinEire collection current."
         )
         context["submit_label"] = "Save Changes"
+        context["cancel_url"] = self.object.get_absolute_url() if self.object else reverse_lazy("recipes:recipe_list")
         return context
 
 
@@ -741,6 +787,8 @@ class RecipeDeleteView(AuthorRequiredMixin, DeleteView):
     success_url = reverse_lazy("recipes:recipe_list")
 
     def get_queryset(self):
+        if _is_moderator(self.request.user):
+            return Recipe.objects.all()
         return Recipe.objects.filter(author=self.author)
 
     def delete(self, request, *args, **kwargs):
@@ -799,21 +847,24 @@ class RecipeAuthorDeleteView(AuthorRequiredMixin, DeleteView):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        Article.objects.filter(author=self.object).delete()
-        try:
-            response = super().post(request, *args, **kwargs)
-        except ProtectedError:
-            messages.error(
-                request,
-                "Profile deletion was blocked because related content is still protected.",
-            )
+
+        if self.object.slug == "greenbear":
+            messages.error(request, "This account cannot be deleted.")
             return redirect(self.object.get_absolute_url())
 
-        messages.success(
-            request,
-            "Profile Deleted. Your articles were removed and recipe author links were cleared.",
-        )
-        return response
+        user = self.object.user
+
+        Article.objects.filter(author=self.object).delete()
+        Recipe.objects.filter(author=self.object).delete()
+        self.object.delete()
+
+        logout(request)
+
+        if user:
+            user.delete()
+
+        messages.success(request, "Your account and all associated content have been permanently deleted.")
+        return redirect("home")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -822,16 +873,16 @@ class RecipeAuthorDeleteView(AuthorRequiredMixin, DeleteView):
         context["author"] = self.author
         context["delete_title"] = "Delete Profile"
         context["delete_intro"] = (
-            "Deleting your profile will remove your author page, delete your articles and "
-            "remove your author link from existing recipes."
+            "This will permanently delete your account, your author profile, "
+            "all your recipes and all your articles. This action cannot be undone."
         )
-        context["delete_label"] = "Delete Profile"
+        context["delete_label"] = "Delete My Account"
         context["cancel_url"] = self.author.get_absolute_url()
         context["delete_warnings"] = [
-            f"{related_article_count} article(s) will be deleted." if related_article_count else "",
-            f"{related_recipe_count} recipe(s) will stay on the site but lose the author link."
-            if related_recipe_count
-            else "",
+            f"{related_recipe_count} recipe(s) will be permanently deleted." if related_recipe_count else "",
+            f"{related_article_count} article(s) will be permanently deleted." if related_article_count else "",
+            "Your user account and login credentials will be removed.",
+            "You will be logged out immediately.",
         ]
         return context
 
@@ -879,10 +930,27 @@ class SignUpView(CreateView):
             return redirect("signup")
         return super().post(request, *args, **kwargs)
 
+    @staticmethod
+    def _unique_author_slug(base):
+        from django.utils.text import slugify
+        slug = slugify(base) or "author"
+        if not RecipeAuthor.objects.filter(slug=slug).exists():
+            return slug
+        counter = 2
+        while RecipeAuthor.objects.filter(slug=f"{slug}-{counter}").exists():
+            counter += 1
+        return f"{slug}-{counter}"
+
     def form_valid(self, form):
         user = form.save(commit=False)
         user.is_active = False
         user.save()
+
+        RecipeAuthor.objects.create(
+            user=user,
+            name=user.username,
+            slug=self._unique_author_slug(user.username),
+        )
 
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
@@ -919,8 +987,141 @@ def activate_account(request, uidb64, token):
     if user is not None and default_token_generator.check_token(user, token):
         user.is_active = True
         user.save()
+        user.backend = "django.contrib.auth.backends.ModelBackend"
         login(request, user)
         messages.success(request, "Your email is confirmed. Welcome to CulinEire!")
         return redirect("home")
 
     return render(request, "registration/activation_invalid.html", status=400)
+
+
+# ── Moderation ────────────────────────────────────────────────────────────────
+
+def _is_moderator(user):
+    if not user or not user.is_authenticated:
+        return False
+    if user.is_staff or user.is_superuser:
+        return True
+    author = getattr(user, "recipe_author_profile", None)
+    return author is not None and author.slug == "greenbear"
+
+
+def moderation_panel(request):
+    if not _is_moderator(request.user):
+        raise Http404
+
+    pending_recipes = (
+        Recipe.objects.select_related("author", "author__user")
+        .filter(status=Recipe.Status.PENDING)
+        .order_by("-created_at")
+    )
+    rejected_recipes = (
+        Recipe.objects.select_related("author", "author__user")
+        .filter(status=Recipe.Status.REJECTED)
+        .order_by("-created_at")
+    )
+    pending_articles = (
+        Article.objects.select_related("author", "author__user")
+        .filter(status=Article.Status.PENDING)
+        .order_by("-published")
+    )
+    rejected_articles = (
+        Article.objects.select_related("author", "author__user")
+        .filter(status=Article.Status.REJECTED)
+        .order_by("-published")
+    )
+
+    return render(request, "moderation/panel.html", {
+        "pending_recipes": pending_recipes,
+        "rejected_recipes": rejected_recipes,
+        "pending_articles": pending_articles,
+        "rejected_articles": rejected_articles,
+    })
+
+
+@require_POST
+def moderate_recipe(request, slug):
+    if not _is_moderator(request.user):
+        raise Http404
+    recipe = get_object_or_404(Recipe, slug=slug)
+    action = request.POST.get("action")
+
+    if action == "approve":
+        recipe.status = Recipe.Status.APPROVED
+        recipe.save(update_fields=["status"])
+        messages.success(request, f'"{recipe.title}" approved and is now live.')
+    elif action == "reject":
+        recipe.status = Recipe.Status.REJECTED
+        recipe.save(update_fields=["status"])
+        messages.warning(request, f'"{recipe.title}" rejected.')
+    elif action == "delete":
+        title = recipe.title
+        recipe.delete()
+        messages.success(request, f'"{title}" permanently deleted.')
+    elif action == "block":
+        user = recipe.author.user if recipe.author else None
+        if user:
+            user.is_active = False
+            user.save(update_fields=["is_active"])
+            messages.warning(request, f'User "{user.username}" has been blocked.')
+        else:
+            messages.error(request, "No linked user account found.")
+
+    next_url = request.POST.get("next") or request.META.get("HTTP_REFERER", "")
+    if next_url and "/recipes/moderation" not in next_url and recipe.pk and action not in ("delete", "block"):
+        return redirect(recipe.get_absolute_url())
+    return redirect("recipes:moderation_panel")
+
+
+@require_POST
+def moderate_article(request, slug):
+    if not _is_moderator(request.user):
+        raise Http404
+    article = get_object_or_404(Article, slug=slug)
+    action = request.POST.get("action")
+
+    if action == "approve":
+        article.status = Article.Status.APPROVED
+        article.save(update_fields=["status"])
+        messages.success(request, f'"{article.title}" approved and is now live.')
+    elif action == "reject":
+        article.status = Article.Status.REJECTED
+        article.save(update_fields=["status"])
+        messages.warning(request, f'"{article.title}" rejected.')
+    elif action == "delete":
+        title = article.title
+        article.delete()
+        messages.success(request, f'"{title}" permanently deleted.')
+    elif action == "block":
+        user = article.author.user if article.author else None
+        if user:
+            user.is_active = False
+            user.save(update_fields=["is_active"])
+            messages.warning(request, f'User "{user.username}" has been blocked.')
+        else:
+            messages.error(request, "No linked user account found.")
+
+    next_url = request.POST.get("next") or request.META.get("HTTP_REFERER", "")
+    if next_url and "/recipes/moderation" not in next_url and action not in ("delete", "block"):
+        try:
+            return redirect(article.get_absolute_url())
+        except Exception:
+            pass
+    return redirect("recipes:moderation_panel")
+
+
+@require_POST
+def block_author(request, slug):
+    if not _is_moderator(request.user):
+        raise Http404
+    author = get_object_or_404(RecipeAuthor, slug=slug)
+    if author.slug == "greenbear":
+        raise Http404
+    user = author.user
+    if user:
+        user.is_active = False
+        user.save(update_fields=["is_active"])
+        messages.warning(request, f'User "{user.username}" has been blocked.')
+    else:
+        messages.error(request, "No linked user account found.")
+    return redirect("recipes:author_detail", slug=slug)

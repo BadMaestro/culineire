@@ -1,8 +1,9 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.utils.safestring import mark_safe
 
-from .models import Recipe, RecipeAuthor
+from .models import ALLERGEN_CHOICES, Recipe, RecipeAuthor
 
 
 def _set_auth_widget_attrs(field, **attrs):
@@ -95,6 +96,18 @@ class RecipeAuthoringForm(forms.ModelForm):
         help_text="Choose any extra categories this recipe should also appear in.",
     )
 
+    allergens = forms.MultipleChoiceField(
+        label="Allergens",
+        choices=ALLERGEN_CHOICES,
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "authoring-checkbox-list"}),
+        help_text=mark_safe(
+            'Tick all allergens present in this recipe — '
+            '<a href="https://www.fsai.ie/business-advice/starting-a-food-business/allergens" '
+            'target="_blank" rel="noopener">FSAI / EU FIC 14 major allergens</a>.'
+        ),
+    )
+
     class Meta:
         model = Recipe
         fields = (
@@ -155,6 +168,11 @@ class RecipeAuthoringForm(forms.ModelForm):
 
         self.fields["additional_categories"].initial = self.instance.get_additional_category_values()
 
+        if self.instance.pk and self.instance.allergens:
+            self.fields["allergens"].initial = [
+                a.strip() for a in self.instance.allergens.split(",") if a.strip()
+            ]
+
         for field_name in ("prep_time_minutes", "cook_time_minutes", "servings", "calories"):
             self.fields[field_name].widget.attrs.setdefault("min", "0")
 
@@ -194,9 +212,11 @@ class RecipeAuthoringForm(forms.ModelForm):
                 recipe.additional_category_links.create(category=category_value)
 
     def save(self, commit=True):
-        instance = super().save(commit=commit)
+        instance = super().save(commit=False)
+        instance.allergens = ",".join(self.cleaned_data.get("allergens", []))
 
         if commit:
+            instance.save()
             self.save_additional_categories(instance)
 
         return instance
@@ -207,18 +227,15 @@ class RecipeAuthorProfileForm(forms.ModelForm):
         model = RecipeAuthor
         fields = (
             "name",
-            "slug",
             "bio",
             "avatar",
         )
         labels = {
             "name": "Author Name",
-            "slug": "Profile URL Slug",
             "bio": "Short Bio",
             "avatar": "Author Avatar",
         }
         help_texts = {
-            "slug": "Used in the public profile URL. Keep it short and readable.",
             "avatar": "Upload a square PNG or JPG for the best result.",
         }
         widgets = {
@@ -233,7 +250,6 @@ class RecipeAuthorProfileForm(forms.ModelForm):
             field.widget.attrs.setdefault("class", "authoring-control")
 
         self.fields["name"].widget.attrs.setdefault("placeholder", "GreenBear")
-        self.fields["slug"].widget.attrs.setdefault("placeholder", "greenbear")
         self.fields["bio"].widget.attrs.setdefault(
             "placeholder",
             "A short note about your cooking style, background or kitchen focus.",

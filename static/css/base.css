@@ -930,6 +930,14 @@
   }
 }
 
+/* ==== Cloudflare Turnstile ==== */
+
+.cf-turnstile {
+  display: flex;
+  justify-content: center;
+  margin-block: 0.75rem;
+}
+
 /* ==== Toast notifications ==== */
 
 .site-messages {

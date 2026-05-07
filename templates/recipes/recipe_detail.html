@@ -6,6 +6,8 @@
 
 {% block extra_head %}
 <link href="{% static 'css/detail_page.css' %}?v=20260501" rel="stylesheet">
+{% if can_moderate_bar %}
+<link href="{% static 'css/messaging.css' %}?v=20260507a" rel="stylesheet">{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -344,6 +346,65 @@
         </article>
     </div>
 </section>
+
+{% if can_moderate_bar %}
+<div class="mod-bar" id="mod-bar">
+    <div class="mod-bar__inner">
+        <span class="mod-bar__label">Moderation</span>
+
+        <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
+            <button class="mod-bar__btn mod-bar__btn--approve" name="action" type="submit" value="approve">Approve
+            </button>
+        </form>
+        <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
+            <button class="mod-bar__btn mod-bar__btn--reject" name="action" type="submit" value="reject">Reject</button>
+        </form>
+        <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
+            <button class="mod-bar__btn mod-bar__btn--delete" name="action" onclick="return confirm('Permanently delete this recipe?')" type="submit"
+                    value="delete">Delete
+            </button>
+        </form>
+
+        {% if recipe.author.user %}
+        <button class="mod-bar__btn mod-bar__btn--message" id="mod-bar-msg-toggle" type="button">
+            Reject &amp; Message Author
+        </button>
+        {% endif %}
+
+        <a class="mod-bar__btn mod-bar__btn--back" href="{% url 'recipes:moderation_panel' %}">← Panel</a>
+    </div>
+
+    {% if recipe.author.user %}
+    <div class="mod-bar__inner">
+        <div class="mod-bar__message-panel" id="mod-bar-msg-panel">
+            <form action="{% url 'messaging:send_message' %}" method="post"
+                  style="display:flex;gap:0.5rem;flex:1;align-items:flex-start;">
+                {% csrf_token %}
+                <input name="action" type="hidden" value="reject_and_message">
+                <input name="recipient_id" type="hidden" value="{{ recipe.author.user.pk }}">
+                <input name="recipe_id" type="hidden" value="{{ recipe.pk }}">
+                <input name="subject" type="hidden" value="Your recipe: {{ recipe.title }}">
+                <textarea name="body" placeholder="Write a message to {{ recipe.author.name }}…" required
+                          rows="3"></textarea>
+                <button class="mod-bar__btn mod-bar__btn--message" type="submit">Send &amp; Reject</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+</div>
+<script>
+    (function(){
+        var toggle = document.getElementById('mod-bar-msg-toggle');
+        var panel = document.getElementById('mod-bar-msg-panel');
+        if (toggle && panel) {
+            toggle.addEventListener('click', function(){
+                panel.classList.toggle('is-open');
+                toggle.textContent = panel.classList.contains('is-open') ? 'Cancel' : 'Reject & Message Author';
+            });
+        }
+    })();
+</script>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}

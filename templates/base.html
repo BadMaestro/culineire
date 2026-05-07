@@ -14,8 +14,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Libre+Bodoni:wght@400&family=Inter:wght@400;500;600&family=Dancing+Script:wght@600;700&display=swap"
           rel="stylesheet">
 
-    <link href="{% static 'css/base.css' %}?v=20260507c" rel="stylesheet">
+    <link href="{% static 'css/base.css' %}?v=20260507d" rel="stylesheet">
     <link href="{% static 'css/header.css' %}?v=20260430l" rel="stylesheet">
+    <link href="{% static 'css/messaging.css' %}?v=20260507a" rel="stylesheet">
 
     {% block extra_head %}{% endblock %}
 </head>
@@ -139,7 +140,8 @@
                                 {% if action.url %}
                                 <a class="ce-author-panel__action{% if action.is_danger %} ce-author-panel__action--danger{% endif %}"
                                    href="{{ action.url }}">
-                                    {{ action.label }}
+                                    {{ action.label }}{% if action.badge %}<span
+                                        class="msg-badge">{{ action.badge }}</span>{% endif %}
                                 </a>
                                 {% else %}
                                 <span aria-disabled="true"

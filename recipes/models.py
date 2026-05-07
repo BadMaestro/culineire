@@ -10,7 +10,6 @@ from django.utils.text import slugify
 
 from .validators import validate_image_upload
 
-
 MAX_MEDIA_SEGMENT_LENGTH = 60
 
 
@@ -120,7 +119,30 @@ class RecipeAuthor(models.Model):
         return reverse("recipes:author_detail", kwargs={"slug": self.slug})
 
 
+ALLERGEN_CHOICES = [
+    ("gluten", "Cereals containing gluten — wheat (spelt, khorasan), rye, barley, oats"),
+    ("crustaceans", "Crustaceans — crabs, prawns, lobsters"),
+    ("eggs", "Eggs"),
+    ("fish", "Fish"),
+    ("peanuts", "Peanuts"),
+    ("soybeans", "Soybeans"),
+    ("milk", "Milk"),
+    ("nuts", "Nuts — almonds, hazelnuts, walnuts, cashews, pecans, brazil nuts, pistachios, macadamia"),
+    ("celery", "Celery"),
+    ("mustard", "Mustard"),
+    ("sesame", "Sesame seeds"),
+    ("sulphites", "Sulphur dioxide and sulphites (>10 mg/kg or 10 mg/L)"),
+    ("lupin", "Lupin"),
+    ("molluscs", "Molluscs — mussels, oysters, squid, snails"),
+]
+
+
 class Recipe(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending Review"
+        APPROVED = "approved", "Approved"
+        REJECTED = "rejected", "Rejected"
+
     class Difficulty(models.TextChoices):
         EASY = "easy", "Easy"
         MEDIUM = "medium", "Medium"
@@ -223,6 +245,13 @@ class Recipe(models.Model):
     source_author = models.CharField(max_length=255, blank=True)
     source_url = models.URLField(blank=True)
     source_note = models.CharField(max_length=255, blank=True)
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING,
+        db_index=True,
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -104,13 +104,17 @@
                                             class="recipe-card-author__brand-link"
                                             href="{% url 'recipes:author_detail' recipe.author.slug %}"
                                     >
-                                        <img
-                                                alt="{{ recipe.author.name }}"
-                                                class="recipe-card-author__brand-logo"
-                                                height="40"
-                                                src="{% static 'images/greenbear.png' %}"
-                                                width="40"
-                                        >
+                                        {% if recipe.author.avatar %}<img alt="{{ recipe.author.name }}"
+                                                                          class="recipe-card-author__brand-logo"
+                                                                          height="40"
+                                                                          src="{{ recipe.author.avatar.url }}" width="40">{% else %}
+                                        <svg aria-hidden="true" class="recipe-card-author__brand-logo"
+                                             height="40" viewBox="0 0 40 40" width="40">
+                                            <circle cx="20" cy="20" fill="#c8b89a" r="20"/>
+                                            <circle cx="20" cy="16" fill="#f5ede0" r="8"/>
+                                            <ellipse cx="20" cy="36" fill="#f5ede0" rx="13" ry="9"/>
+                                        </svg>
+                                        {% endif %}
                                         <span class="recipe-card-author__name">{{ recipe.author.name }}</span>
                                     </a>
                                 </p>
@@ -195,13 +199,17 @@
                                         class="recipe-card-author__brand-link"
                                         href="{% url 'recipes:author_detail' article.author.slug %}"
                                     >
-                                        <img
-                                            alt="{{ article.author.name }}"
-                                            class="recipe-card-author__brand-logo"
-                                            height="40"
-                                            src="{% static 'images/greenbear.png' %}"
-                                            width="40"
-                                        >
+                                        {% if article.author.avatar %}<img alt="{{ article.author.name }}"
+                                                                           class="recipe-card-author__brand-logo"
+                                                                           height="40"
+                                                                           src="{{ article.author.avatar.url }}" width="40">{% else %}
+                                        <svg aria-hidden="true" class="recipe-card-author__brand-logo"
+                                             height="40" viewBox="0 0 40 40" width="40">
+                                            <circle cx="20" cy="20" fill="#c8b89a" r="20"/>
+                                            <circle cx="20" cy="16" fill="#f5ede0" r="8"/>
+                                            <ellipse cx="20" cy="36" fill="#f5ede0" rx="13" ry="9"/>
+                                        </svg>
+                                        {% endif %}
                                         <span class="recipe-card-author__name">{{ article.author.name }}</span>
                                     </a>
                                 </p>

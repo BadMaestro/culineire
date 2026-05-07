@@ -119,6 +119,23 @@
     text-align: center;
 }
 
+.auth-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.btn--secondary {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--line-strong);
+    text-align: center;
+}
+
+.btn--secondary:hover {
+    background: rgb(0 0 0 / 0.04);
+}
+
 @media (max-width: 640px) {
     .auth-card {
         padding: 1.25rem;

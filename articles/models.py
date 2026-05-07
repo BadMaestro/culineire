@@ -9,7 +9,6 @@ from django.utils.text import slugify
 from recipes.models import Recipe, RecipeAuthor
 from recipes.validators import validate_image_upload
 
-
 MAX_MEDIA_FOLDER_SEGMENT_LENGTH = 80
 
 
@@ -58,6 +57,11 @@ def article_gallery_upload_to(instance, filename: str) -> str:
 
 
 class Article(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending Review"
+        APPROVED = "approved", "Approved"
+        REJECTED = "rejected", "Rejected"
+
     title = models.CharField("Title", max_length=200)
     slug = models.SlugField("Slug", unique=True)
     media_folder = models.CharField(max_length=255, blank=True, editable=False, db_index=True)
@@ -78,6 +82,14 @@ class Article(models.Model):
         blank=True,
         null=True,
         validators=[validate_image_upload],
+    )
+
+    status = models.CharField(
+        "Status",
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING,
+        db_index=True,
     )
 
     published = models.DateField("Published")

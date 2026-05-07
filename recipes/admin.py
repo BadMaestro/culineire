@@ -134,8 +134,9 @@ class RecipeAuthorAdmin(admin.ModelAdmin):
 class RecipeAdmin(admin.ModelAdmin):
     form = RecipeAdminForm
     change_form_template = "admin/recipes/recipe/change_form.html"
-    list_display = ("title", "category", "difficulty", "author", "created_at")
-    list_filter = ("category", "difficulty", "author", "source_type", "created_at")
+    list_display = ("title", "status", "category", "difficulty", "author", "created_at")
+    list_filter = ("status", "category", "difficulty", "author", "source_type", "created_at")
+    list_editable = ("status",)
     search_fields = ("title", "short_description", "ingredients", "method")
     date_hierarchy = "created_at"
     autocomplete_fields = ("author",)
@@ -151,6 +152,7 @@ class RecipeAdmin(admin.ModelAdmin):
                 "fields": (
                     "title",
                     "author",
+                    "status",
                     "short_description",
                     "hero_image",
                     "hero_preview",

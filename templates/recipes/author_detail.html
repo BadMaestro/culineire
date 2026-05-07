@@ -12,15 +12,20 @@
     <div aria-hidden="true" class="hero__overlay"></div>
     <div class="container hero__inner">
         <div class="hero-copy">
-            <span class="pill">{% if is_god_author %}Creator & Chef{% else %}Author Profile{% endif %}</span>
+            <span class="pill">{% if is_god_author %}Creator & Chef{% else %}{{ author.name }}{% endif %}</span>
             <div class="hero-author-avatar-wrap">
                 {% if author.avatar %}
                 <img alt="{{ author.name }}" class="hero-author-avatar" src="{{ author.avatar.url }}">
                 {% else %}
-                <img alt="{{ author.name }}" class="hero-author-avatar" src="{% static 'images/greenbear.png' %}">
+                <svg aria-hidden="true" class="hero-author-avatar" viewBox="0 0 40 40">
+                    <circle cx="20" cy="20" fill="#c8b89a" r="20"/>
+                    <circle cx="20" cy="16" fill="#f5ede0" r="8"/>
+                    <ellipse cx="20" cy="36" fill="#f5ede0" rx="13" ry="9"/>
+                </svg>
                 {% endif %}
             </div>
-            <h1 class="hero-title {% if is_god_author %}author-name--greenbear{% endif %}">{{ author.name }}</h1>
+            <h1 class="hero-title {% if is_god_author %}author-name--greenbear{% endif %}">{% if is_god_author %}{{
+                author.name }}{% else %}Author's Profile{% endif %}</h1>
             {% if author.bio %}
             <p class="hero-subtitle">{{ author.bio }}</p>
             {% endif %}
@@ -49,13 +54,70 @@
         </div>
 
         {% if can_manage_author_profile %}
+
+        {% if pending_recipes or pending_articles %}
+        <div class="author-studio-pending">
+            <p class="author-studio-pending__title">Awaiting Moderation</p>
+            <p class="author-studio-pending__note">The following items are not yet visible to the public. Once approved
+                by an admin they will appear in the main collection.</p>
+
+            {% if pending_recipes %}
+            <div class="author-studio-pending__group">
+                <p class="author-studio-pending__group-label">Recipes</p>
+                <ul class="author-studio-pending__list">
+                    {% for recipe in pending_recipes %}
+                    <li class="author-studio-pending__item">
+                        <span class="author-studio-status author-studio-status--{{ recipe.status }}">{{ recipe.get_status_display }}</span>
+                        <span class="author-studio-pending__name">{{ recipe.title }}</span>
+                        <a class="author-studio-pending__edit"
+                           href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            {% if pending_articles %}
+            <div class="author-studio-pending__group">
+                <p class="author-studio-pending__group-label">Articles</p>
+                <ul class="author-studio-pending__list">
+                    {% for article in pending_articles %}
+                    <li class="author-studio-pending__item">
+                        <span class="author-studio-status author-studio-status--{{ article.status }}">{{ article.get_status_display }}</span>
+                        <span class="author-studio-pending__name">{{ article.title }}</span>
+                        <a class="author-studio-pending__edit" href="{% url 'articles:article_edit' article.slug %}">Edit</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
         <div class="author-profile-manage">
             <p class="author-profile-manage__label">Manage Profile</p>
             <div class="author-profile-manage__actions">
                 <a class="btn" href="{% url 'recipes:author_edit' %}">Edit Profile</a>
+                {% if not is_god_author %}
                 <a class="recipe-card__cta btn btn--danger recipe-card__delete" href="{% url 'recipes:author_delete' %}">Delete Profile</a>
+                {% endif %}
             </div>
         </div>
+
+        {% if is_moderator_viewer and not is_god_author and author.user %}
+        <div class="author-profile-manage" style="margin-block-start: 1rem;">
+            <p class="author-profile-manage__label">Moderation</p>
+            <div class="author-profile-manage__actions">
+                <form action="{% url 'recipes:block_author' author.slug %}" method="post">
+                    {% csrf_token %}
+                    <button class="btn btn--danger" onclick="return confirm('Block user {{ author.user.username }}? They will no longer be able to log in.')"
+                            type="submit">
+                        Block User
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
 
         <div class="author-profile-gdpr">
             <p class="author-profile-gdpr__title">Your Data &amp; Privacy</p>

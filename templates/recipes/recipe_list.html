@@ -14,7 +14,7 @@
 
     <div class="container hero__inner">
         <div class="hero-copy">
-            <span class="pill">{% if selected_author %}{{ selected_author.name }}'s Kitchen{% else %}Irish Recipes{% endif %}</span>
+            <span class="pill">{% if selected_author %}Author's Kitchen{% else %}Irish Recipes{% endif %}</span>
             <h1 class="hero-title">{{ page_heading|default:"Explore The Recipe Collection" }}</h1>
             <p class="hero-subtitle">
                 {% if page_subtitle %}{{ page_subtitle }}{% else %}Irish classics, treasured vintage recipes, and modern home-kitchen twists, bringing familiar flavours back to the table and opening Ireland's culinary heritage to food lovers.{% endif %}
@@ -64,6 +64,9 @@
                                 {% if recipe.short_description %}<p class="recipe-card__excerpt"><a class="recipe-card__excerpt-link" href="{{ recipe.get_absolute_url }}">{{ recipe.short_description }}</a></p>{% endif %}
                             </div>
                             <div class="recipe-card__footer">
+                                {% if can_manage_selected_author and recipe.status != 'approved' %}
+                                <span class="author-studio-status author-studio-status--{{ recipe.status }}">{{ recipe.get_status_display }}</span>
+                                {% endif %}
                                 {% if can_manage_selected_author %}
                                 <div class="recipe-card__management">
                                     <a class="recipe-card__cta btn" href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit Recipe</a>
@@ -73,7 +76,17 @@
                                 <p class="recipe-card-author">
                                     <span class="recipe-card-author__label">By:</span>
                                     <a aria-label="View recipes by {{ recipe.author.name }}" class="recipe-card-author__brand-link" href="{% url 'recipes:author_detail' recipe.author.slug %}">
-                                        <img alt="{{ recipe.author.name }}" class="recipe-card-author__brand-logo" src="{% static 'images/greenbear.png' %}" width="40" height="40">
+                                        {% if recipe.author.avatar %}<img alt="{{ recipe.author.name }}"
+                                                                          class="recipe-card-author__brand-logo"
+                                                                          height="40"
+                                                                          src="{{ recipe.author.avatar.url }}" width="40">{% else %}
+                                        <svg aria-hidden="true" class="recipe-card-author__brand-logo"
+                                             height="40" viewBox="0 0 40 40" width="40">
+                                            <circle cx="20" cy="20" fill="#c8b89a" r="20"/>
+                                            <circle cx="20" cy="16" fill="#f5ede0" r="8"/>
+                                            <ellipse cx="20" cy="36" fill="#f5ede0" rx="13" ry="9"/>
+                                        </svg>
+                                        {% endif %}
                                         <span class="recipe-card-author__name">{{ recipe.author.name }}</span>
                                     </a>
                                 </p>
@@ -231,7 +244,17 @@
                                 <p class="recipe-card-author">
                                     <span class="recipe-card-author__label">By:</span>
                                     <a aria-label="View recipes by {{ recipe.author.name }}" class="recipe-card-author__brand-link" href="{% url 'recipes:author_detail' recipe.author.slug %}">
-                                        <img alt="{{ recipe.author.name }}" class="recipe-card-author__brand-logo" src="{% static 'images/greenbear.png' %}" width="40" height="40">
+                                        {% if recipe.author.avatar %}<img alt="{{ recipe.author.name }}"
+                                                                          class="recipe-card-author__brand-logo"
+                                                                          height="40"
+                                                                          src="{{ recipe.author.avatar.url }}" width="40">{% else %}
+                                        <svg aria-hidden="true" class="recipe-card-author__brand-logo"
+                                             height="40" viewBox="0 0 40 40" width="40">
+                                            <circle cx="20" cy="20" fill="#c8b89a" r="20"/>
+                                            <circle cx="20" cy="16" fill="#f5ede0" r="8"/>
+                                            <ellipse cx="20" cy="36" fill="#f5ede0" rx="13" ry="9"/>
+                                        </svg>
+                                        {% endif %}
                                         <span class="recipe-card-author__name">{{ recipe.author.name }}</span>
                                     </a>
                                 </p>

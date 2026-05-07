@@ -7,6 +7,7 @@ from django.views.generic import CreateView, DeleteView, DetailView, ListView, U
 from config.turnstile import verify_turnstile
 from recipes.authoring import AuthorRequiredMixin, user_can_manage_author
 from recipes.models import RecipeAuthor
+from recipes.views import _is_moderator
 from .forms import ArticleAuthoringForm
 from .models import Article, ArticleImage
 
@@ -18,12 +19,16 @@ class ArticleListView(ListView):
     paginate_by = 8
 
     def get_queryset(self):
-        queryset = Article.objects.select_related("author").order_by("-published")
         author_slug = (self.request.GET.get("author") or "").strip()
-        if author_slug:
-            queryset = queryset.filter(
-                author=get_object_or_404(RecipeAuthor, slug=author_slug)
-            )
+        selected_author = get_object_or_404(RecipeAuthor, slug=author_slug) if author_slug else None
+
+        show_all = selected_author and _is_moderator(self.request.user)
+
+        queryset = Article.objects.select_related("author").order_by("-published")
+        if not show_all:
+            queryset = queryset.filter(status=Article.Status.APPROVED)
+        if selected_author:
+            queryset = queryset.filter(author=selected_author)
         return queryset
 
     def get_context_data(self, **kwargs):
@@ -33,18 +38,25 @@ class ArticleListView(ListView):
         if author_slug:
             selected_author = get_object_or_404(RecipeAuthor, slug=author_slug)
 
+        show_all = selected_author and _is_moderator(self.request.user)
+
         recent_articles = None
         all_articles = None
         default_recent_articles = None
         all_articles_grid = None
 
         if selected_author:
-            all_articles = Article.objects.select_related("author").filter(
-                author=selected_author
-            ).order_by("-published")
-            recent_articles = list(all_articles[:6])
+            qs = Article.objects.select_related("author").filter(author=selected_author).order_by("-published")
+            if not show_all:
+                qs = qs.filter(status=Article.Status.APPROVED)
+            all_articles = qs
+            recent_articles = list(qs[:6])
         else:
-            all_qs = Article.objects.select_related("author").order_by("-published")
+            all_qs = (
+                Article.objects.select_related("author")
+                .filter(status=Article.Status.APPROVED)
+                .order_by("-published")
+            )
             default_recent_articles = list(all_qs[:6])
             all_articles_grid = list(all_qs[:50])
 
@@ -53,8 +65,9 @@ class ArticleListView(ListView):
         context["all_articles"] = all_articles
         context["default_recent_articles"] = default_recent_articles
         context["all_articles_grid"] = all_articles_grid
-        context["can_manage_selected_author"] = user_can_manage_author(
-            self.request.user, selected_author
+        context["can_manage_selected_author"] = (
+                _is_moderator(self.request.user) or
+                user_can_manage_author(self.request.user, selected_author)
         )
         return context
 
@@ -79,6 +92,10 @@ class ArticleCreateView(AuthorRequiredMixin, CreateView):
     def form_valid(self, form):
         article = form.save()
         self.object = article
+
+        for i, img_file in enumerate(self.request.FILES.getlist("gallery_images"), start=1):
+            ArticleImage.objects.create(article=article, image=img_file, sort_order=i)
+
         messages.success(self.request, "Article Created Successfully.")
         return redirect(article.get_absolute_url())
 
@@ -86,6 +103,7 @@ class ArticleCreateView(AuthorRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         context["author"] = self.author
         context["turnstile_site_key"] = settings.TURNSTILE_SITE_KEY
+        context["cancel_url"] = "/articles/"
         return context
 
 
@@ -96,13 +114,16 @@ class ArticleDetailView(DetailView):
 
     _GALLERY_PREFETCH = Prefetch(
         "gallery_images",
-        queryset=ArticleImage.objects.filter(is_active=True).order_by("sort_order", "id"),
+        queryset=ArticleImage.objects.filter(is_active=True).order_by("-sort_order", "-id"),
     )
 
     def get_queryset(self):
-        return Article.objects.select_related("author", "related_recipe").prefetch_related(
+        qs = Article.objects.select_related("author", "related_recipe").prefetch_related(
             self._GALLERY_PREFETCH
         )
+        if _is_moderator(self.request.user):
+            return qs
+        return qs.filter(status=Article.Status.APPROVED)
 
     @staticmethod
     def _image_to_gallery_item(image_field, alt, caption=""):
@@ -141,8 +162,13 @@ class ArticleDetailView(DetailView):
 
         context["gallery_items"] = gallery_items
         context["has_gallery"] = len(gallery_items) > 1
-        context["can_manage_article"] = user_can_manage_author(
-            self.request.user, article.author
+        context["can_manage_article"] = (
+                _is_moderator(self.request.user) or
+                user_can_manage_author(self.request.user, article.author)
+        )
+        context["can_moderate_bar"] = (
+                _is_moderator(self.request.user) and
+                article.status != Article.Status.APPROVED
         )
         return context
 
@@ -154,6 +180,8 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
     context_object_name = "article"
 
     def get_queryset(self):
+        if _is_moderator(self.request.user):
+            return Article.objects.all()
         return Article.objects.filter(author=self.author)
 
     def get_form_kwargs(self):
@@ -162,22 +190,26 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
         return kwargs
 
     def form_valid(self, form):
-        response = super().form_valid(form)
-        messages.success(self.request, "Article Updated Successfully.")
-        return response
+        article = form.save()
+        self.object = article
 
-    def get_success_url(self):
-        return self.object.get_absolute_url()
+        existing_count = article.gallery_images.count()
+        for i, img_file in enumerate(self.request.FILES.getlist("gallery_images"), start=existing_count + 1):
+            ArticleImage.objects.create(article=article, image=img_file, sort_order=i)
+
+        messages.success(self.request, "Article Updated Successfully.")
+        if _is_moderator(self.request.user):
+            from django.urls import reverse
+            return redirect(reverse("recipes:moderation_panel"))
+        return redirect(article.get_absolute_url())
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["author"] = self.author
         context["form_mode"] = "edit"
         context["form_heading"] = "Edit Article"
-        context["form_intro"] = (
-            "Tighten the story, update the linked recipe and keep your article polished."
-        )
         context["submit_label"] = "Save Changes"
+        context["cancel_url"] = self.object.get_absolute_url() if self.object else "/articles/"
         return context
 
 
@@ -188,6 +220,8 @@ class ArticleDeleteView(AuthorRequiredMixin, DeleteView):
     success_url = "/articles/"
 
     def get_queryset(self):
+        if _is_moderator(self.request.user):
+            return Article.objects.all()
         return Article.objects.filter(author=self.author)
 
     def delete(self, request, *args, **kwargs):

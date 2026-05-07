@@ -56,13 +56,16 @@ class ArticleAdmin(admin.ModelAdmin):
         "title",
         "article_preview_small",
         "author",
+        "status",
         "published",
         "related_recipe",
     )
     list_filter = (
+        "status",
         "published",
         "author",
     )
+    list_editable = ("status",)
     search_fields = (
         "title",
         "excerpt",
@@ -110,6 +113,7 @@ class ArticleAdmin(admin.ModelAdmin):
             "Publishing",
             {
                 "fields": (
+                    "status",
                     "published",
                 )
             },

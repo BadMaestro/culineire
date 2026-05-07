@@ -5,14 +5,18 @@
 {% block meta_description %}{% if form_mode == "edit" %}Edit your CulinEire recipe from the author studio.{% else %}Create a new CulinEire recipe from the author studio.{% endif %}{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/authoring.css' %}?v=20260429c" rel="stylesheet">
+<link href="{% static 'css/authoring.css' %}?v=20260507e" rel="stylesheet">
 {% if turnstile_site_key %}<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>{% endif %}
 {% endblock %}
 
 {% block content %}
 <section class="hero hero--home">
     <div aria-hidden="true" class="hero__background">
-        <img alt="" src="{% static 'images/hero-studio.png' %}">
+        {% if form_mode == "edit" and recipe.hero_image %}
+        <img alt="" src="{{ recipe.hero_image.url }}">
+        {% else %}
+        <img alt="" src="{% static 'images/hero-recipes.png' %}">
+        {% endif %}
     </div>
     <div aria-hidden="true" class="hero__overlay"></div>
     <div class="container hero__inner">
@@ -30,97 +34,170 @@
 
 <section class="page-section authoring-page">
     <div class="container authoring-shell">
-        <header class="authoring-header">
-            <div class="authoring-header__copy">
-                <p class="eyebrow">Author Studio</p>
-                <h1>{{ form_heading|default:"Create Recipe" }}</h1>
-                <p class="authoring-intro">
-                    {{ form_intro|default:"Build a polished recipe page for the CulinEire collection, with a clean card image, structured timing and your author credit." }}
-                </p>
-            </div>
-            <p class="authoring-author" aria-label="Current author">
-                <span class="authoring-author__label">By:</span>
-                {% if author.avatar %}
-                <img alt="" src="{{ author.avatar.url }}">
-                {% else %}
-                <img alt="" src="{% static 'images/greenbear.png' %}">
-                {% endif %}
-                <strong>{{ author.name }}</strong>
-            </p>
-        </header>
-
         <form class="authoring-form" enctype="multipart/form-data" method="post">
             {% csrf_token %}
 
             {% if form.non_field_errors %}
             <div class="authoring-errors" role="alert">
-                {% for error in form.non_field_errors %}
-                <p>{{ error }}</p>
-                {% endfor %}
+                {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
             </div>
             {% endif %}
 
             <fieldset class="authoring-section">
                 <legend>Recipe Details</legend>
                 <div class="authoring-grid authoring-grid--two">
-                    {% for field in form %}
-                    {% if field.name == "title" or field.name == "short_description" or field.name == "hero_image" or field.name == "category" or field.name == "additional_categories" or field.name == "difficulty" %}
-                    <div class="authoring-field{% if field.field.widget.input_type == 'file' or field.name == 'short_description' or field.name == 'additional_categories' %} authoring-field--wide{% endif %}">
-                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                        {{ field }}
-                        {% if field.help_text %}<p class="authoring-help">{{ field.help_text }}</p>{% endif %}
-                        {% for error in field.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    <div class="authoring-field authoring-field--wide">
+                        <label for="{{ form.title.id_for_label }}">{{ form.title.label }}:</label>
+                        {{ form.title }}
+                        {% for error in form.title.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
-                    {% endif %}
-                    {% endfor %}
+                    <div class="authoring-field authoring-field--wide">
+                        <label for="{{ form.short_description.id_for_label }}">{{ form.short_description.label
+                            }}:</label>
+                        {{ form.short_description }}
+                        {% for error in form.short_description.errors %}<p class="authoring-error">{{ error }}</p>{%
+                        endfor %}
+                    </div>
+                    <div class="authoring-field">
+                        <label for="{{ form.hero_image.id_for_label }}">{{ form.hero_image.label }}:</label>
+                        {{ form.hero_image }}
+                        {% if form.hero_image.help_text %}<p class="authoring-help">{{ form.hero_image.help_text }}</p>
+                        {% endif %}
+                        {% for error in form.hero_image.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field">
+                        <label for="id_gallery_images">Gallery Images:</label>
+                        <input accept=".jpg,.jpeg,.png,.webp" class="authoring-control" id="id_gallery_images" multiple
+                               name="gallery_images" type="file">
+                        <p class="authoring-help">Upload additional images for the gallery carousel (optional, multiple
+                            allowed).</p>
+                    </div>
+                    <div class="authoring-field">
+                        <label for="{{ form.category.id_for_label }}">{{ form.category.label }}:</label>
+                        {{ form.category }}
+                        {% for error in form.category.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field">
+                        <label for="{{ form.difficulty.id_for_label }}">{{ form.difficulty.label }}:</label>
+                        {{ form.difficulty }}
+                        {% for error in form.difficulty.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field authoring-field--wide">
+                        <label>{{ form.additional_categories.label }}:</label>
+                        {{ form.additional_categories }}
+                        {% if form.additional_categories.help_text %}<p class="authoring-help">{{
+                        form.additional_categories.help_text }}</p>{% endif %}
+                        {% for error in form.additional_categories.errors %}<p class="authoring-error">{{ error }}</p>{%
+                        endfor %}
+                    </div>
                 </div>
             </fieldset>
 
             <fieldset class="authoring-section">
-                <legend>Timing And Servings</legend>
+                <legend>Timing and Servings</legend>
                 <div class="authoring-grid authoring-grid--four">
-                    {% for field in form %}
-                    {% if field.name == "prep_time_minutes" or field.name == "cook_time_minutes" or field.name == "servings" or field.name == "calories" %}
                     <div class="authoring-field">
-                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                        {{ field }}
-                        {% if field.help_text %}<p class="authoring-help">{{ field.help_text }}</p>{% endif %}
-                        {% for error in field.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                        <label for="{{ form.prep_time_minutes.id_for_label }}">{{ form.prep_time_minutes.label
+                            }}:</label>
+                        {{ form.prep_time_minutes }}
+                        {% for error in form.prep_time_minutes.errors %}<p class="authoring-error">{{ error }}</p>{%
+                        endfor %}
                     </div>
-                    {% endif %}
-                    {% endfor %}
+                    <div class="authoring-field">
+                        <label for="{{ form.cook_time_minutes.id_for_label }}">{{ form.cook_time_minutes.label
+                            }}:</label>
+                        {{ form.cook_time_minutes }}
+                        {% for error in form.cook_time_minutes.errors %}<p class="authoring-error">{{ error }}</p>{%
+                        endfor %}
+                    </div>
+                    <div class="authoring-field">
+                        <label for="{{ form.servings.id_for_label }}">{{ form.servings.label }}:</label>
+                        {{ form.servings }}
+                        {% for error in form.servings.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field">
+                        <label for="{{ form.calories.id_for_label }}">{{ form.calories.label }}:</label>
+                        {{ form.calories }}
+                        {% for error in form.calories.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
                 </div>
             </fieldset>
 
             <fieldset class="authoring-section">
                 <legend>Recipe Content</legend>
                 <div class="authoring-grid">
-                    {% for field in form %}
-                    {% if field.name == "ingredients" or field.name == "method" or field.name == "tips" or field.name == "irish_context" or field.name == "author_commentary" %}
                     <div class="authoring-field authoring-field--wide">
-                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                        {{ field }}
-                        {% if field.help_text %}<p class="authoring-help">{{ field.help_text }}</p>{% endif %}
-                        {% for error in field.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                        <label for="{{ form.ingredients.id_for_label }}">{{ form.ingredients.label }}:</label>
+                        {{ form.ingredients }}
+                        {% if form.ingredients.help_text %}<p class="authoring-help">{{ form.ingredients.help_text
+                        }}</p>{% endif %}
+                        {% for error in form.ingredients.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
-                    {% endif %}
-                    {% endfor %}
+                    <div class="authoring-field authoring-field--wide">
+                        <label>{{ form.allergens.label }}:</label>
+                        {{ form.allergens }}
+                        {% if form.allergens.help_text %}<p class="authoring-help authoring-help--center">{{
+                        form.allergens.help_text }}</p>{% endif %}
+                        {% for error in form.allergens.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field authoring-field--wide">
+                        <label for="{{ form.method.id_for_label }}">{{ form.method.label }}:</label>
+                        {{ form.method }}
+                        {% if form.method.help_text %}<p class="authoring-help authoring-help--center">{{
+                        form.method.help_text }}</p>{% endif %}
+                        {% for error in form.method.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field authoring-field--wide">
+                        <label for="{{ form.tips.id_for_label }}">{{ form.tips.label }}:</label>
+                        {{ form.tips }}
+                        {% for error in form.tips.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field authoring-field--wide">
+                        <label for="{{ form.irish_context.id_for_label }}">{{ form.irish_context.label }}:</label>
+                        {{ form.irish_context }}
+                        {% for error in form.irish_context.errors %}<p class="authoring-error">{{ error }}</p>{% endfor
+                        %}
+                    </div>
+                    <div class="authoring-field authoring-field--wide">
+                        <label for="{{ form.author_commentary.id_for_label }}">{{ form.author_commentary.label
+                            }}:</label>
+                        {{ form.author_commentary }}
+                        {% for error in form.author_commentary.errors %}<p class="authoring-error">{{ error }}</p>{%
+                        endfor %}
+                    </div>
                 </div>
             </fieldset>
 
-            <fieldset class="authoring-section">
+            <fieldset class="authoring-section authoring-section--centered">
                 <legend>Source Notes</legend>
                 <div class="authoring-grid authoring-grid--two">
-                    {% for field in form %}
-                    {% if field.name == "source_type" or field.name == "source_title" or field.name == "source_author" or field.name == "source_url" or field.name == "source_note" %}
-                    <div class="authoring-field{% if field.name == 'source_note' %} authoring-field--wide{% endif %}">
-                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                        {{ field }}
-                        {% if field.help_text %}<p class="authoring-help">{{ field.help_text }}</p>{% endif %}
-                        {% for error in field.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    <div class="authoring-field">
+                        <label for="{{ form.source_type.id_for_label }}">{{ form.source_type.label }}:</label>
+                        {{ form.source_type }}
+                        {% for error in form.source_type.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
-                    {% endif %}
-                    {% endfor %}
+                    <div class="authoring-field">
+                        <label for="{{ form.source_title.id_for_label }}">{{ form.source_title.label }}:</label>
+                        {{ form.source_title }}
+                        {% for error in form.source_title.errors %}<p class="authoring-error">{{ error }}</p>{% endfor
+                        %}
+                    </div>
+                    <div class="authoring-field">
+                        <label for="{{ form.source_author.id_for_label }}">{{ form.source_author.label }}:</label>
+                        {{ form.source_author }}
+                        {% for error in form.source_author.errors %}<p class="authoring-error">{{ error }}</p>{% endfor
+                        %}
+                    </div>
+                    <div class="authoring-field">
+                        <label for="{{ form.source_url.id_for_label }}">{{ form.source_url.label }}:</label>
+                        {{ form.source_url }}
+                        {% for error in form.source_url.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field authoring-field--wide">
+                        <label for="{{ form.source_note.id_for_label }}">{{ form.source_note.label }}:</label>
+                        {{ form.source_note }}
+                        {% for error in form.source_note.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
                 </div>
             </fieldset>
 
@@ -128,8 +205,10 @@
                 {% if turnstile_site_key %}
                 <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="light"></div>
                 {% endif %}
-                <a class="authoring-link" href="{% url 'recipes:recipe_list' %}">Cancel</a>
-                <button class="authoring-submit" type="submit">{{ submit_label|default:"Save Recipe" }}</button>
+                <div class="authoring-actions__buttons">
+                    <a class="authoring-link" href="{{ cancel_url }}">Cancel</a>
+                    <button class="authoring-submit" type="submit">{{ submit_label|default:"Save Recipe" }}</button>
+                </div>
             </div>
         </form>
     </div>

@@ -20,6 +20,9 @@ urlpatterns = [
     # Articles
     path("articles/", include("articles.urls", namespace="articles")),
 
+    # Messaging
+    path("messages/", include("messaging.urls", namespace="messaging")),
+
     # Authentication
     path("accounts/login/", recipes_views.CulinEireLoginView.as_view(), name="login"),
     path("accounts/signup/", recipes_views.SignUpView.as_view(), name="signup"),

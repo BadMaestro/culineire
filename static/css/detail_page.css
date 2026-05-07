@@ -2074,7 +2074,7 @@
   background: var(--surface);
   border-inline: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
-  align-items: stretch;
+  align-items: start;
 }
 
 .recipe-comments {

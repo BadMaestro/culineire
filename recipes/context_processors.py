@@ -7,6 +7,25 @@ from django.urls import NoReverseMatch, reverse
 from .authoring import get_author_for_user
 
 
+def _unread_message_count(user):
+    try:
+        from messaging.models import Message
+        return Message.objects.filter(recipient=user, is_read=False).count()
+    except Exception:
+        return 0
+
+
+def _pending_moderation_count():
+    try:
+        from recipes.models import Recipe
+        from articles.models import Article
+        pending_recipes = Recipe.objects.filter(status=Recipe.Status.PENDING).count()
+        pending_articles = Article.objects.filter(status=Article.Status.PENDING).count()
+        return pending_recipes + pending_articles
+    except Exception:
+        return 0
+
+
 def _reverse_or_empty(viewname: str, *args) -> str:
     try:
         return reverse(viewname, args=args)
@@ -40,6 +59,14 @@ def header_author(request):
 
     profile_url = author.get_absolute_url() if author else ""
 
+    is_moderator = (
+            user.is_staff
+            or user.is_superuser
+            or (author is not None and author.slug == "greenbear")
+    )
+
+    unread_count = _unread_message_count(user)
+
     actions = [
         {
             "label": "My Recipes",
@@ -61,7 +88,20 @@ def header_author(request):
             "label": "Profile",
             "url": profile_url,
         },
+        {
+            "label": "Messages",
+            "url": _reverse_or_empty("messaging:inbox"),
+            "badge": unread_count if unread_count else None,
+        },
     ]
+
+    if is_moderator:
+        pending_count = _pending_moderation_count()
+        actions.insert(0, {
+            "label": "Moderation Panel",
+            "url": _reverse_or_empty("recipes:moderation_panel"),
+            "badge": pending_count if pending_count else None,
+        })
 
     return {
         "header_author": author,

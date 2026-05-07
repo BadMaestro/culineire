@@ -6,6 +6,8 @@
 
 {% block extra_head %}
 <link href="{% static 'css/detail_page.css' %}?v=20260428k" rel="stylesheet">
+{% if can_moderate_bar %}
+<link href="{% static 'css/messaging.css' %}?v=20260507a" rel="stylesheet">{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -38,13 +40,17 @@
                         <p class="detail-page__author">
                             <span class="detail-page__author-label">By:</span>
                             <a class="detail-page__author-link" href="{% url 'recipes:author_detail' article.author.slug %}" aria-label="View author profile for {{ article.author.name }}">
-                                <img
-                                    alt="{{ article.author.name }}"
-                                    class="detail-page__author-avatar"
-                                    src="{% static 'images/greenbear.png' %}"
-                                    width="40"
-                                    height="40"
-                                >
+                                {% if article.author.avatar %}<img alt="{{ article.author.name }}"
+                                                                   class="detail-page__author-avatar"
+                                                                   height="40" src="{{ article.author.avatar.url }}"
+                                                                   width="40">{% else %}
+                                <svg aria-hidden="true" class="detail-page__author-avatar" height="40"
+                                     viewBox="0 0 40 40" width="40">
+                                    <circle cx="20" cy="20" fill="#c8b89a" r="20"/>
+                                    <circle cx="20" cy="16" fill="#f5ede0" r="8"/>
+                                    <ellipse cx="20" cy="36" fill="#f5ede0" rx="13" ry="9"/>
+                                </svg>
+                                {% endif %}
                                 <span class="detail-page__author-name">{{ article.author.name }}</span>
                             </a>
                         </p>
@@ -138,6 +144,65 @@
         </article>
     </div>
 </section>
+
+{% if can_moderate_bar %}
+<div class="mod-bar" id="mod-bar">
+    <div class="mod-bar__inner">
+        <span class="mod-bar__label">Moderation</span>
+
+        <form action="{% url 'recipes:moderate_article' article.slug %}" method="post">{% csrf_token %}
+            <button class="mod-bar__btn mod-bar__btn--approve" name="action" type="submit" value="approve">Approve
+            </button>
+        </form>
+        <form action="{% url 'recipes:moderate_article' article.slug %}" method="post">{% csrf_token %}
+            <button class="mod-bar__btn mod-bar__btn--reject" name="action" type="submit" value="reject">Reject</button>
+        </form>
+        <form action="{% url 'recipes:moderate_article' article.slug %}" method="post">{% csrf_token %}
+            <button class="mod-bar__btn mod-bar__btn--delete" name="action" onclick="return confirm('Permanently delete this article?')" type="submit"
+                    value="delete">Delete
+            </button>
+        </form>
+
+        {% if article.author.user %}
+        <button class="mod-bar__btn mod-bar__btn--message" id="mod-bar-msg-toggle" type="button">
+            Reject &amp; Message Author
+        </button>
+        {% endif %}
+
+        <a class="mod-bar__btn mod-bar__btn--back" href="{% url 'recipes:moderation_panel' %}">← Panel</a>
+    </div>
+
+    {% if article.author.user %}
+    <div class="mod-bar__inner">
+        <div class="mod-bar__message-panel" id="mod-bar-msg-panel">
+            <form action="{% url 'messaging:send_message' %}" method="post"
+                  style="display:flex;gap:0.5rem;flex:1;align-items:flex-start;">
+                {% csrf_token %}
+                <input name="action" type="hidden" value="reject_and_message">
+                <input name="recipient_id" type="hidden" value="{{ article.author.user.pk }}">
+                <input name="article_id" type="hidden" value="{{ article.pk }}">
+                <input name="subject" type="hidden" value="Your article: {{ article.title }}">
+                <textarea name="body" placeholder="Write a message to {{ article.author.name }}…" required
+                          rows="3"></textarea>
+                <button class="mod-bar__btn mod-bar__btn--message" type="submit">Send &amp; Reject</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+</div>
+<script>
+    (function(){
+        var toggle = document.getElementById('mod-bar-msg-toggle');
+        var panel = document.getElementById('mod-bar-msg-panel');
+        if (toggle && panel) {
+            toggle.addEventListener('click', function(){
+                panel.classList.toggle('is-open');
+                toggle.textContent = panel.classList.contains('is-open') ? 'Cancel' : 'Reject & Message Author';
+            });
+        }
+    })();
+</script>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
