@@ -10983,3 +10983,9 @@ INFO | 2026-05-07 18:20:38 | basehttp        | "GET /static/css/messaging.css?v=
 INFO | 2026-05-07 18:20:41 | basehttp        | "GET /messages/ HTTP/1.1" 200 15467
 INFO | 2026-05-07 18:26:23 | autoreload      | /media/sf_CulinEire/messaging/urls.py changed, reloading.
 INFO | 2026-05-07 18:26:24 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 18:26:48 | autoreload      | /media/sf_CulinEire/articles/views.py changed, reloading.
+INFO | 2026-05-07 18:26:49 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 18:27:01 | autoreload      | /media/sf_CulinEire/articles/models.py changed, reloading.
+INFO | 2026-05-07 18:27:02 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-07 18:27:38 | autoreload      | /media/sf_CulinEire/articles/migrations/0007_article_status.py changed, reloading.
+INFO | 2026-05-07 18:27:39 | autoreload      | Watching for file changes with StatReloader
