@@ -1,0 +1,91 @@
+/* ── Presence Notification Toasts ───────────────────────────────────────────
+   Styled to match CulinEire brand: Playfair Display, warm cream, brand green.
+──────────────────────────────────────────────────────────────────────────── */
+
+.presence-tray {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 1900;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+  max-width: 300px;
+  width: calc(100vw - 3rem);
+}
+
+@media (max-width: 480px) {
+  .presence-tray {
+    bottom: 0.85rem;
+    right: 0.85rem;
+    left: 0.85rem;
+    width: auto;
+    max-width: none;
+  }
+}
+
+.presence-toast {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: rgba(16, 52, 38, 0.97);
+  border: 1px solid rgb(255 255 255 / 0.13);
+  border-left: 3px solid rgb(255 255 255 / 0.18);
+  border-radius: var(--radius-sm, 12px);
+  padding: 0.62rem 1rem;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow:
+    0 12px 32px rgb(10 28 18 / 0.28),
+    0 2px 8px rgb(10 28 18 / 0.16);
+
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.presence-toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.presence-toast.is-exiting {
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease;
+}
+
+/* Owner variant — warm gold accent */
+.presence-toast--owner {
+  border-left-color: rgba(210, 168, 48, 0.65);
+}
+
+.presence-toast__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.3);
+  flex-shrink: 0;
+}
+
+.presence-toast--owner .presence-toast__dot {
+  background: rgba(210, 168, 48, 0.7);
+}
+
+.presence-toast__text {
+  font-family: var(--font-serif, "Playfair Display", Georgia, serif);
+  font-size: 0.78rem;
+  font-weight: 400;
+  font-style: italic;
+  letter-spacing: 0.01em;
+  color: #fff8ee;
+  line-height: 1.4;
+  flex: 1;
+  min-width: 0;
+}

@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Contact | CulinEire{% endblock %}
+{% block meta_description %}Get in touch with the CulinEire team. Send us a message directly.{% endblock %}
+
+{% block extra_head %}
+<link href="{% static 'css/auth.css' %}?v=20260507c" rel="stylesheet">
+<script async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js"></script>
+{% endblock %}
+
+{% block content %}
+<section class="hero hero--home hero--login">
+    <div aria-hidden="true" class="hero__background">
+        <img alt="" src="{% static 'images/hero-contact.png' %}">
+    </div>
+    <div aria-hidden="true" class="hero__overlay"></div>
+    <div class="container hero__inner hero__inner--login">
+        <div class="hero-copy hero-copy--login">
+            <h1 class="hero-title">Get in Touch</h1>
+            <p class="hero-subtitle">Have a question, suggestion or just want to say hello? We'd love to hear from
+                you.</p>
+        </div>
+
+        <div class="auth-card auth-card--hero">
+            <div class="auth-copy">
+                <p class="eyebrow">CulinEire Kitchen</p>
+                <h2>Contact Us</h2>
+            </div>
+
+            {% if user.is_authenticated %}
+
+            {% if sent %}
+
+            <div class="contact-sent">
+                <p class="contact-sent__heading">Message sent ✓</p>
+                <p class="contact-sent__note">Thank you — we'll get back to you as soon as possible.</p>
+            </div>
+
+            {% if message_history %}
+            <div class="contact-history">
+                <p class="contact-history__label">Your messages to us</p>
+                <div class="contact-history__scroll">
+                    {% for msg in message_history %}
+                    <div class="contact-history__item {% if forloop.first %}contact-history__item--latest{% endif %}">
+                        <div class="contact-history__meta">
+                            <span class="contact-history__from">{{ sent_from }}</span>
+                            <span class="contact-history__date">{{ msg.created_at|date:"j M Y, H:i" }}</span>
+                        </div>
+                        {% if msg.subject %}<p class="contact-history__subject">{{ msg.subject }}</p>{% endif %}
+                        <p class="contact-history__body">{{ msg.body|linebreaksbr }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div style="text-align: center; margin-block-start: 1rem;">
+                <a class="btn" href="{% url 'messaging:contact' %}">Send Another Message</a>
+            </div>
+
+            {% elif greenbear_available %}
+            <form class="auth-form" method="post">
+                {% csrf_token %}
+
+                {% if error %}
+                <div class="auth-errors" role="alert"><p>{{ error }}</p></div>
+                {% endif %}
+
+                <div class="auth-field">
+                    <label for="id_subject">Subject:</label>
+                    <input
+                            autocomplete="off"
+                            class="authoring-control"
+                            id="id_subject"
+                            maxlength="200"
+                            name="subject"
+                            placeholder="What's on your mind? (Optional)"
+                            type="text"
+                            value="{{ subject|default:'' }}"
+                    >
+                </div>
+
+                <div class="auth-field">
+                    <label for="id_body">Message:</label>
+                    <textarea
+                            class="authoring-control"
+                            id="id_body"
+                            name="body"
+                            placeholder="Write your message here…"
+                            required
+                            rows="6"
+                    ></textarea>
+                </div>
+
+                {% if turnstile_site_key %}
+                <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="light"></div>
+                {% endif %}
+
+                <button class="btn" type="submit">Send Message</button>
+            </form>
+            {% else %}
+            <p class="auth-note">Contact is temporarily unavailable. Please try again later.</p>
+            {% endif %}
+
+            {% else %}
+
+            <p style="color: var(--ink-soft); font-size: 0.95rem; line-height: 1.6; margin-block-end: 1.25rem;">
+                To send us a message directly, please sign in or create a free account.
+                Your message will go straight to our team.
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+                <a class="btn" href="{% url 'login' %}?next={% url 'messaging:contact' %}">Sign In</a>
+                <a class="btn" href="{% url 'signup' %}"
+                   style="background: transparent; border: 1px solid var(--line-strong); color: var(--ink);">Create
+                    Account</a>
+            </div>
+            <p class="auth-note" style="margin-block-start: 1rem;">
+                Already have an account? Signing in takes seconds.
+            </p>
+
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

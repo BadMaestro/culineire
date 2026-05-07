@@ -18160,3 +18160,25 @@ INFO | 2026-05-08 00:50:54 | basehttp        | "GET /presence/events/?since=2026
 INFO | 2026-05-08 00:50:57 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
 INFO | 2026-05-08 00:51:00 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
 INFO | 2026-05-08 00:51:03 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
+INFO | 2026-05-08 00:51:06 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
+INFO | 2026-05-08 00:51:09 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
+INFO | 2026-05-08 00:51:12 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
+INFO | 2026-05-08 00:51:15 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
+INFO | 2026-05-08 00:51:18 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
+INFO | 2026-05-08 00:51:21 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
+INFO | 2026-05-08 00:51:24 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
+INFO | 2026-05-08 00:51:27 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
+INFO | 2026-05-08 00:51:30 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
+INFO | 2026-05-08 00:51:33 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
+INFO | 2026-05-08 00:51:36 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
+INFO | 2026-05-08 00:51:39 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
+INFO | 2026-05-08 00:51:42 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
+INFO | 2026-05-08 00:51:45 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
+INFO | 2026-05-08 00:51:48 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
+INFO | 2026-05-08 00:51:49 | autoreload      | E:\CulinEire Project\CulinEire\CulinEire\presence\migrations\0001_initial.py changed, reloading.
+INFO | 2026-05-08 00:51:50 | autoreload      | /media/sf_CulinEire/presence/migrations/0001_initial.py changed, reloading.
+INFO | 2026-05-08 00:51:50 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-08 00:51:52 | autoreload      | Watching for file changes with StatReloader
+INFO | 2026-05-08 00:51:54 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
+INFO | 2026-05-08 00:51:57 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
+INFO | 2026-05-08 00:52:00 | basehttp        | "GET /presence/events/?since=2026-05-07T23%3A48%3A50.162Z HTTP/1.1" 200 14
