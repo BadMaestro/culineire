@@ -4,34 +4,84 @@
 {% block title %}Messages | CulinEire{% endblock %}
 {% block meta_description %}Your CulinEire messages inbox.{% endblock %}
 
-{% block content %}
-<section class="page-section">
-    <div class="container" style="max-width: 760px; padding-block: clamp(2rem, 4vw, 3.5rem);">
-        <h1 class="section-title" style="margin-block-end: 1.5rem;">Messages</h1>
+{% block extra_head %}
+<link href="{% static 'css/auth.css' %}?v=20260507c" rel="stylesheet">
+{% endblock %}
 
-        {% if user_messages %}
-        <div class="msg-list">
-            {% for msg in user_messages %}
-            <a class="msg-row {% if msg.has_unread %}msg-row--unread{% endif %}"
-               href="{% url 'messaging:message_detail' msg.pk %}">
-                <div class="msg-row__from">{{ msg.latest_message.sender.get_full_name|default:msg.latest_message.sender.get_username }}</div>
-                <div class="msg-row__subject">
-                    {% if msg.subject %}{{ msg.subject }}{% else %}(no subject){% endif %}
-                    {% if msg.related_recipe %}
-                    <span class="msg-row__ref">re: {{ msg.related_recipe.title }}</span>
-                    {% endif %}
-                    {% if msg.related_article %}
-                    <span class="msg-row__ref">re: {{ msg.related_article.title }}</span>
-                    {% endif %}
-                </div>
-                <div class="msg-row__date">{{ msg.latest_message.created_at|date:"j M Y" }}</div>
-                {% if msg.has_unread %}<span class="msg-row__dot"></span>{% endif %}
-            </a>
-            {% endfor %}
+{% block content %}
+<section class="hero hero--home hero--login hero--inbox">
+    <div aria-hidden="true" class="hero__background">
+        <img alt="" src="{% static 'images/hero-messages.png' %}">
+    </div>
+    <div aria-hidden="true" class="hero__overlay"></div>
+    <div class="container hero__inner hero__inner--login">
+        <div class="hero-copy hero-copy--login">
+            <h1 class="hero-title">Messages</h1>
+            {% if is_moderator %}
+            <p class="hero-subtitle">Your conversations with CulinEire Authors.</p>
+            {% else %}
+            <p class="hero-subtitle">Your messages from the CulinEire Kitchen Team.</p>
+            {% endif %}
         </div>
-        {% else %}
-        <p style="color: var(--ink-soft); text-align: center; padding: 3rem 0;">No messages yet.</p>
-        {% endif %}
+
+        <div class="auth-card auth-card--hero msg-inbox-card">
+
+            <div class="msg-inbox-card__header">
+                <h2 class="msg-inbox-card__title">Inbox</h2>
+                {% if is_moderator %}
+                <a class="msg-inbox-card__archive-link" href="{% url 'messaging:archive' %}">
+                    <svg fill="none" height="14" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14"><path d="M21 8v13H3V8M1 3h22v5H1zM10 12h4"/></svg>
+                    Archive
+                </a>
+                {% endif %}
+            </div>
+
+            <div class="msg-inbox-scroll">
+                {% if user_messages %}
+                    {% for msg in user_messages %}
+                    <div class="msg-row-wrap {% if msg.has_unread %}msg-row-wrap--unread{% endif %}">
+                        <a class="msg-row__link" href="{% url 'messaging:message_detail' msg.pk %}">
+                            <div class="msg-row__from">
+                                {% if msg.sender == request.user %}
+                                <span class="msg-row__direction">To:</span> {{ msg.recipient.recipe_author_profile.name|default:msg.recipient.username }}
+                                {% else %}
+                                {{ msg.latest_message.sender.recipe_author_profile.name|default:msg.latest_message.sender.username }}
+                                {% endif %}
+                            </div>
+                            <div class="msg-row__subject">
+                                {% if msg.sender == request.user and is_moderator %}
+                                    Message from CulinEire Kitchen Author
+                                {% elif msg.subject %}{{ msg.subject }}{% else %}(no subject){% endif %}
+                                {% if msg.related_recipe %}<span class="msg-row__ref">re: {{ msg.related_recipe.title }}</span>{% endif %}
+                                {% if msg.related_article %}<span class="msg-row__ref">re: {{ msg.related_article.title }}</span>{% endif %}
+                            </div>
+                            <div class="msg-row__date">{{ msg.latest_message.created_at|date:"j M Y" }}</div>
+                            {% if msg.has_unread %}<span class="msg-row__dot"></span>{% endif %}
+                        </a>
+                        {% if is_moderator %}
+                        <div class="msg-row__actions">
+                            <form method="post" action="{% url 'messaging:archive_message' msg.pk %}">
+                                {% csrf_token %}
+                                <button class="msg-action-btn msg-action-btn--archive" title="Archive" type="submit">
+                                    <svg aria-hidden="true" fill="none" height="13" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13"><path d="M21 8v13H3V8M1 3h22v5H1zM10 12h4"/></svg>
+                                </button>
+                            </form>
+                            <form method="post" action="{% url 'messaging:delete_message' msg.pk %}">
+                                {% csrf_token %}
+                                <button class="msg-action-btn msg-action-btn--delete" title="Delete" type="submit">
+                                    <svg aria-hidden="true" fill="none" height="13" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/></svg>
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <p class="msg-inbox-empty">No messages yet.</p>
+                {% endif %}
+            </div>
+
+        </div>
     </div>
 </section>
 {% endblock %}

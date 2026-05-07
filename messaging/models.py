@@ -35,6 +35,8 @@ class Message(models.Model):
         related_name="+",
     )
     is_read = models.BooleanField(default=False)
+    is_archived = models.BooleanField(default=False)
+    archived_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

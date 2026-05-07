@@ -26,6 +26,20 @@
 <section class="page-section moderation-page">
     <div class="container moderation-shell">
 
+        <div class="moderation-block moderation-block--tools">
+            <h2 class="moderation-block__title">Tools</h2>
+            <div class="mod-tools-row">
+                <a class="mod-tool-link" href="{% url 'messaging:inbox' %}">
+                    <svg fill="none" height="18" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M4 4h16v13H4zM4 4l8 9 8-9"/></svg>
+                    Messages Inbox
+                </a>
+                <a class="mod-tool-link" href="{% url 'messaging:archive' %}">
+                    <svg fill="none" height="18" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M21 8v13H3V8M1 3h22v5H1zM10 12h4"/></svg>
+                    Message Archive
+                </a>
+            </div>
+        </div>
+
         <div class="moderation-block">
             <h2 class="moderation-block__title">
                 Recipes
@@ -184,6 +198,44 @@
             {% endfor %}
         </div>
 
+        {% if can_grant_bearseeker_privileges %}
+        <div class="moderation-block moderation-block--bearseekers">
+            <h2 class="moderation-block__title">
+                (Bear)seeker Admins
+                {% if bearseeker_authors %}<span class="moderation-badge moderation-badge--pending">{{ bearseeker_authors|length }} active</span>{% endif %}
+            </h2>
+
+            {% if not bearseeker_authors %}
+            <div class="moderation-empty">No (Bear)seeker admins granted yet.</div>
+            {% else %}
+            {% for author in bearseeker_authors %}
+            <div class="moderation-card">
+                <div class="moderation-card__body">
+                    <div class="moderation-card__meta">
+                        <span class="moderation-author-status moderation-author-status--active">Active</span>
+                        <span class="moderation-card__author">@{{ author.user.username }}</span>
+                    </div>
+                    <h3 class="moderation-card__title moderation-author-card__name">
+                        <a href="{{ author.get_absolute_url }}" target="_blank">{{ author.name }}</a>
+                    </h3>
+                </div>
+                <div class="moderation-card__actions">
+                    <a class="mod-btn mod-btn--view" href="{{ author.get_absolute_url }}" target="_blank">View</a>
+                    {% if can_grant_bearseeker_privileges %}
+                    <form action="{% url 'recipes:block_author' author.slug %}" method="post">{% csrf_token %}
+                        <input name="next" type="hidden" value="{{ request.get_full_path }}">
+                        <button class="mod-btn mod-btn--delete" name="action"
+                            onclick="return confirm('Revoke (Bear)seeker privileges from {{ author.user.username }}?')"
+                            type="submit" value="revoke_bearseeker">Revoke Privileges</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+        {% endif %}
+
         <div class="moderation-block moderation-block--authors">
             <h2 class="moderation-block__title">Authors</h2>
 
@@ -210,14 +262,19 @@
                         </div>
                         <h3 class="moderation-card__title moderation-author-card__name">
                             <a href="{{ author.get_absolute_url }}" target="_blank">{{ author.name }}</a>
-                            {% if author.user == request.user %}
+                            {% if author.slug == "greenbear" %}
                             <span class="moderation-author-self-note">IDDQD — (Bear)seeker Mode On</span>
+                            {% elif author.has_bearseeker_privileges %}
+                            <span class="moderation-author-self-note moderation-author-self-note--mod">(Bear)seeker Rights Granted</span>
                             {% endif %}
                         </h3>
                     </div>
                     {% if author.user != request.user %}
                     <div class="moderation-card__actions moderation-author-card__actions">
                         <a class="mod-btn mod-btn--view" href="{{ author.get_absolute_url }}" target="_blank">View</a>
+                        {% if author.slug != "greenbear" %}
+                        <a class="mod-btn mod-btn--edit" href="{% url 'recipes:moderation_author_edit' author.slug %}">Edit</a>
+                        {% endif %}
                         <details class="moderation-contact">
                             <summary class="mod-btn mod-btn--contact">Contact</summary>
                             <form action="{% url 'messaging:send_message' %}" class="moderation-contact__form" method="post">
@@ -225,12 +282,12 @@
                                 <input name="action" type="hidden" value="message">
                                 <input name="next" type="hidden" value="{{ request.get_full_path }}">
                                 <input name="recipient_id" type="hidden" value="{{ author.user.pk }}">
-                                <input name="subject" type="hidden" value="Message from CulinEire moderation">
+                                <input name="subject" type="hidden" value="">
                                 <textarea name="body" placeholder="Message to {{ author.name }}" required rows="3"></textarea>
                                 <button class="mod-btn mod-btn--approve" type="submit">Send</button>
                             </form>
                         </details>
-                        {% if author.slug != "greenbear" %}
+                        {% if author.slug != "greenbear" and not author.has_bearseeker_privileges and can_grant_bearseeker_privileges %}
                             <form action="{% url 'recipes:block_author' author.slug %}" method="post">{% csrf_token %}
                                 <input name="next" type="hidden" value="{{ request.get_full_path }}">
                                 {% if author.user.is_active %}
@@ -239,6 +296,9 @@
                                 <button class="mod-btn mod-btn--unblock" name="action" type="submit" value="unblock">Unblock</button>
                                 {% endif %}
                             </form>
+                        {% endif %}
+                        {% if author.slug != "greenbear" and not author.has_bearseeker_privileges and can_grant_bearseeker_privileges %}
+                        <a class="mod-btn mod-btn--delete" href="{% url 'recipes:moderation_author_delete' author.slug %}">Delete Author Profile</a>
                         {% endif %}
                         {% if can_grant_bearseeker_privileges and not author.has_bearseeker_privileges and not author.user.is_staff and not author.user.is_superuser %}
                             <form action="{% url 'recipes:block_author' author.slug %}" method="post">{% csrf_token %}

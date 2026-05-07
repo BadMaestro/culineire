@@ -76,17 +76,10 @@
                                 <p class="recipe-card-author">
                                     <span class="recipe-card-author__label">By:</span>
                                     <a aria-label="View recipes by {{ recipe.author.name }}" class="recipe-card-author__brand-link" href="{% url 'recipes:author_detail' recipe.author.slug %}">
-                                        {% if recipe.author.avatar %}<img alt="{{ recipe.author.name }}"
-                                                                          class="recipe-card-author__brand-logo"
-                                                                          height="40"
-                                                                          src="{{ recipe.author.avatar.url }}" width="40">{% else %}
-                                        <svg aria-hidden="true" class="recipe-card-author__brand-logo"
-                                             height="40" viewBox="0 0 40 40" width="40">
-                                            <circle cx="20" cy="20" fill="#c8b89a" r="20"/>
-                                            <circle cx="20" cy="16" fill="#f5ede0" r="8"/>
-                                            <ellipse cx="20" cy="36" fill="#f5ede0" rx="13" ry="9"/>
-                                        </svg>
-                                        {% endif %}
+                                        <img alt="{{ recipe.author.name }}"
+                                             class="recipe-card-author__brand-logo"
+                                             height="40"
+                                             src="{{ recipe.author.display_avatar_url }}" width="40">
                                         <span class="recipe-card-author__name">{{ recipe.author.name }}</span>
                                     </a>
                                 </p>
@@ -151,6 +144,68 @@
         </section>
         {% endif %}
 
+
+        {% else %}
+
+        {% if selected_category_label %}
+
+        {# ── Category filtered view ── #}
+
+        {% if categories %}
+        <div class="category-nav-block" data-category-toggle>
+            <div class="category-nav-wrap" data-category-wrap>
+                <nav aria-label="Recipe categories" class="category-nav" data-category-nav>
+                    {% for category in categories %}
+                    {% if category.is_active %}
+                    <span class="category-nav__item category-nav__item--active">{{ category.label }}</span>
+                    {% else %}
+                    <a class="category-nav__item category-nav__link" href="{{ category.url }}">{{ category.label }}</a>
+                    {% endif %}
+                    {% if not forloop.last %}
+                    <span aria-hidden="true" class="category-nav__separator">&middot;</span>
+                    {% endif %}
+                    {% endfor %}
+                </nav>
+            </div>
+            <button aria-expanded="false" aria-label="View all recipe categories" class="category-nav-toggle" data-category-button hidden type="button">
+                <span class="category-nav-toggle__label" data-category-button-label>View All</span>
+                <span aria-hidden="true" class="category-nav-toggle__icon">&#8964;</span>
+            </button>
+        </div>
+        {% endif %}
+
+        <section aria-labelledby="category-recipes-title" class="recipe-list-section" id="all-recipes">
+            <div class="page-header page-header--with-gap">
+                <div><h2 id="category-recipes-title">{{ selected_category_label }}</h2></div>
+            </div>
+            {% if recipes %}
+            <div class="recipe-vscroll">
+                <div class="recipe-grid recipe-grid--mini recipe-grid--6col">
+                    {% for recipe in recipes %}
+                    <article class="recipe-card">
+                        <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
+                            {% if recipe.hero_image %}<img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}">
+                            {% else %}<img alt="{{ recipe.title }}" src="{% static 'images/hero.jpg' %}">{% endif %}
+                        </a>
+                        <div class="recipe-card__body">
+                            <div class="recipe-card__content">
+                                <h2 class="recipe-card__title"><a href="{{ recipe.get_absolute_url }}">{{ recipe.title }}</a></h2>
+                                <div aria-label="Recipe category" class="recipe-card__taxonomy">
+                                    <a class="recipe-card__category-link" href="{{ recipe.get_category_url }}">{{ recipe.get_category_display|default:"Recipe" }}</a>
+                                </div>
+                                <div class="recipe-card__meta-line recipe-card__meta-line--article">
+                                    <span class="recipe-card__meta-item">{{ recipe.created_at|date:"j F Y" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <p class="page-subtitle">No recipes in this category yet — check back soon.</p>
+            {% endif %}
+        </section>
 
         {% else %}
 
@@ -244,17 +299,10 @@
                                 <p class="recipe-card-author">
                                     <span class="recipe-card-author__label">By:</span>
                                     <a aria-label="View recipes by {{ recipe.author.name }}" class="recipe-card-author__brand-link" href="{% url 'recipes:author_detail' recipe.author.slug %}">
-                                        {% if recipe.author.avatar %}<img alt="{{ recipe.author.name }}"
-                                                                          class="recipe-card-author__brand-logo"
-                                                                          height="40"
-                                                                          src="{{ recipe.author.avatar.url }}" width="40">{% else %}
-                                        <svg aria-hidden="true" class="recipe-card-author__brand-logo"
-                                             height="40" viewBox="0 0 40 40" width="40">
-                                            <circle cx="20" cy="20" fill="#c8b89a" r="20"/>
-                                            <circle cx="20" cy="16" fill="#f5ede0" r="8"/>
-                                            <ellipse cx="20" cy="36" fill="#f5ede0" rx="13" ry="9"/>
-                                        </svg>
-                                        {% endif %}
+                                        <img alt="{{ recipe.author.name }}"
+                                             class="recipe-card-author__brand-logo"
+                                             height="40"
+                                             src="{{ recipe.author.display_avatar_url }}" width="40">
                                         <span class="recipe-card-author__name">{{ recipe.author.name }}</span>
                                     </a>
                                 </p>
@@ -301,7 +349,9 @@
         </section>
         {% endif %}
 
-        {% endif %}
+        {% endif %}{# end selected_category_label #}
+
+        {% endif %}{# end selected_author #}
 
     </div>
 </section>

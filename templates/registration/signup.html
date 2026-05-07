@@ -5,7 +5,7 @@
 {% block meta_description %}Create a CulinEire account to save your place and join the kitchen community.{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/auth.css' %}?v=20260507b" rel="stylesheet">
+<link href="{% static 'css/auth.css' %}?v=20260507c" rel="stylesheet">
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 {% endblock %}
 
@@ -37,10 +37,32 @@
                 </div>
                 {% endif %}
 
-                {% for field in form %}
+                {% for field in form.hidden_fields %}
+                {{ field }}
+                {% endfor %}
+
+                {% for field in form.visible_fields %}
                 <div class="auth-field">
                     <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
+                    {% if field.name == "default_avatar" %}
+                    <div class="auth-avatar-picker">
+                        {% for radio in field %}
+                        <label class="auth-avatar-choice" for="{{ radio.id_for_label }}">
+                            {{ radio.tag }}
+                            {% if radio.data.value == "male" %}
+                            <img alt="" src="{% static 'images/male-avatar.png' %}">
+                            {% elif radio.data.value == "female" %}
+                            <img alt="" src="{% static 'images/female-avatar.png' %}">
+                            {% else %}
+                            <img alt="" src="{% static 'images/neutral-avatar.PNG' %}">
+                            {% endif %}
+                            <span>{{ radio.choice_label }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    {% else %}
                     {{ field }}
+                    {% endif %}
 
                     {% if field.help_text %}
                     <div class="auth-help">{{ field.help_text|striptags }}</div>

@@ -318,7 +318,8 @@
   width: 42px;
   height: 42px;
   max-width: none;
-  object-fit: contain;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .ce-author-panel__copy {

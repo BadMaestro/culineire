@@ -40,17 +40,10 @@
                         <p class="detail-page__author">
                             <span class="detail-page__author-label">By:</span>
                             <a class="detail-page__author-link" href="{% url 'recipes:author_detail' article.author.slug %}" aria-label="View author profile for {{ article.author.name }}">
-                                {% if article.author.avatar %}<img alt="{{ article.author.name }}"
-                                                                   class="detail-page__author-avatar"
-                                                                   height="40" src="{{ article.author.avatar.url }}"
-                                                                   width="40">{% else %}
-                                <svg aria-hidden="true" class="detail-page__author-avatar" height="40"
-                                     viewBox="0 0 40 40" width="40">
-                                    <circle cx="20" cy="20" fill="#c8b89a" r="20"/>
-                                    <circle cx="20" cy="16" fill="#f5ede0" r="8"/>
-                                    <ellipse cx="20" cy="36" fill="#f5ede0" rx="13" ry="9"/>
-                                </svg>
-                                {% endif %}
+                                <img alt="{{ article.author.name }}"
+                                     class="detail-page__author-avatar"
+                                     height="40" src="{{ article.author.display_avatar_url }}"
+                                     width="40">
                                 <span class="detail-page__author-name">{{ article.author.name }}</span>
                             </a>
                         </p>

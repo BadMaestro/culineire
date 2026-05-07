@@ -60,9 +60,10 @@ def header_author(request):
     profile_url = author.get_absolute_url() if author else ""
 
     is_moderator = (
-            user.is_staff
-            or user.is_superuser
-            or (author is not None and author.slug == "greenbear")
+        user.is_staff
+        or user.is_superuser
+        or (author is not None and author.slug == "greenbear")
+        or (author is not None and author.has_bearseeker_privileges)
     )
 
     unread_count = _unread_message_count(user)

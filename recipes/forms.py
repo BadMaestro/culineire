@@ -28,17 +28,39 @@ class SignInForm(AuthenticationForm):
 
 
 class SignUpForm(UserCreationForm):
+    first_name = forms.CharField(
+        required=False,
+        max_length=150,
+        widget=forms.TextInput(attrs={
+            "autocomplete": "given-name",
+            "placeholder": "First name (Optional)",
+        }),
+    )
+    last_name = forms.CharField(
+        required=False,
+        max_length=150,
+        widget=forms.TextInput(attrs={
+            "autocomplete": "family-name",
+            "placeholder": "Last name (Optional)",
+        }),
+    )
+    default_avatar = forms.ChoiceField(
+        required=True,
+        choices=RecipeAuthor.DefaultAvatar.choices,
+        initial=RecipeAuthor.DefaultAvatar.NEUTRAL,
+        widget=forms.RadioSelect,
+    )
     email = forms.EmailField(
         required=True,
         widget=forms.EmailInput(attrs={
             "autocomplete": "email",
-            "placeholder": "you@example.com",
+            "placeholder": "you@example.com (Mandatory)",
         }),
     )
 
     class Meta(UserCreationForm.Meta):
         model = get_user_model()
-        fields = ("username", "email")
+        fields = ("first_name", "last_name", "username", "default_avatar", "email")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -47,20 +69,23 @@ class SignUpForm(UserCreationForm):
             self.fields["username"],
             autocomplete="username",
             autofocus=True,
-            placeholder="Choose a username",
+            placeholder="Choose a username (Mandatory)",
         )
         _set_auth_widget_attrs(
             self.fields["password1"],
             autocomplete="new-password",
-            placeholder="Create a password",
+            placeholder="Create a password (Mandatory)",
         )
         _set_auth_widget_attrs(
             self.fields["password2"],
             autocomplete="new-password",
-            placeholder="Repeat your password",
+            placeholder="Repeat your password (Mandatory)",
         )
 
         self.fields["username"].label = "Username"
+        self.fields["first_name"].label = "First Name"
+        self.fields["last_name"].label = "Last Name"
+        self.fields["default_avatar"].label = "Choose Default Avatar"
         self.fields["email"].label = "Email Address"
         self.fields["password1"].label = "Password"
         self.fields["password2"].label = "Confirm Password"
@@ -81,6 +106,8 @@ class SignUpForm(UserCreationForm):
 
     def save(self, commit=True):
         user = super().save(commit=False)
+        user.first_name = self.cleaned_data["first_name"]
+        user.last_name = self.cleaned_data["last_name"]
         user.email = self.cleaned_data["email"]
         if commit:
             user.save()
@@ -168,6 +195,12 @@ class RecipeAuthoringForm(forms.ModelForm):
 
         self.fields["additional_categories"].initial = self.instance.get_additional_category_values()
 
+        # For new recipes: don't pre-select the model default — force explicit choice.
+        # For existing recipes: leave the saved value as-is.
+        if not self.instance.pk:
+            self.fields["category"].choices = [("", "— Select a category —")] + list(Recipe.Category.choices)
+            self.initial["category"] = ""
+
         if self.instance.pk and self.instance.allergens:
             self.fields["allergens"].initial = [
                 a.strip() for a in self.instance.allergens.split(",") if a.strip()
@@ -227,11 +260,13 @@ class RecipeAuthorProfileForm(forms.ModelForm):
         model = RecipeAuthor
         fields = (
             "name",
+            "default_avatar",
             "bio",
             "avatar",
         )
         labels = {
             "name": "Author Name",
+            "default_avatar": "Choose Default Avatar",
             "bio": "Short Bio",
             "avatar": "Author Avatar",
         }

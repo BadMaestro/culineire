@@ -4,8 +4,10 @@ from django.contrib import messages as django_messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.db import models
+from django.db.models import Exists, OuterRef
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
@@ -26,21 +28,29 @@ def _moderation_redirect(request):
 
 @login_required
 def inbox(request):
+    user_involved = Message.objects.filter(
+        models.Q(pk=OuterRef("pk")) | models.Q(parent=OuterRef("pk"))
+    ).filter(
+        models.Q(recipient=request.user) | models.Q(sender=request.user)
+    )
     thread_roots = list(
-        Message.objects.filter(parent=None)
-        .filter(
-            models.Q(recipient=request.user)
-            | models.Q(replies__recipient=request.user)
+        Message.objects.filter(parent=None, is_archived=False)
+        .filter(Exists(user_involved))
+        .select_related(
+            "sender", "sender__recipe_author_profile",
+            "recipient", "recipient__recipe_author_profile",
+            "related_recipe", "related_article",
         )
-        .select_related("sender", "recipient", "related_recipe", "related_article")
-        .distinct()
     )
 
     replies_by_parent = defaultdict(list)
     if thread_roots:
         replies = (
             Message.objects.filter(parent_id__in=[message.pk for message in thread_roots])
-            .select_related("sender", "recipient")
+            .select_related(
+                "sender", "sender__recipe_author_profile",
+                "recipient", "recipient__recipe_author_profile",
+            )
             .order_by("created_at")
         )
         for reply in replies:
@@ -60,7 +70,10 @@ def inbox(request):
         reverse=True,
     )
 
-    return render(request, "messaging/inbox.html", {"user_messages": user_messages})
+    return render(request, "messaging/inbox.html", {
+        "user_messages": user_messages,
+        "is_moderator": _is_moderator(request.user),
+    })
 
 
 @login_required
@@ -91,12 +104,18 @@ def message_detail(request, pk):
 
     thread = list(
         Message.objects.filter(thread_filter)
-        .select_related("sender", "recipient")
+        .select_related("sender", "sender__recipe_author_profile", "recipient")
         .order_by("created_at")
     )
+    if _is_moderator(request.user):
+        can_reply = thread[-1].sender_id != request.user.pk if thread else False
+    else:
+        can_reply = True
+
     return render(request, "messaging/message_detail.html", {
         "root_message": root,
         "thread": thread,
+        "can_reply": can_reply,
     })
 
 
@@ -131,18 +150,46 @@ def send_message(request):
     if article_id:
         article = Article.objects.filter(pk=article_id).first()
 
+    if not subject:
+        sender_profile = getattr(request.user, "recipe_author_profile", None)
+        is_owner = sender_profile and sender_profile.slug == "greenbear"
+        subject = (
+            "Message from CulinEire Kitchen Head Chef"
+            if is_owner
+            else "Message from CulinEire Kitchen Sous Chef"
+        )
+
+    # Group into existing thread if no specific content context
+    parent = None
+    if not recipe and not article:
+        existing = (
+            Message.objects.filter(
+                parent=None,
+                is_archived=False,
+            )
+            .filter(
+                models.Q(sender=request.user, recipient=recipient)
+                | models.Q(sender=recipient, recipient=request.user)
+            )
+            .order_by("-created_at")
+            .first()
+        )
+        if existing:
+            parent = existing
+
     Message.objects.create(
         sender=request.user,
         recipient=recipient,
-        subject=subject,
+        subject=subject if not parent else "",
         body=body,
+        parent=parent,
         related_recipe=recipe,
         related_article=article,
     )
 
     try:
         send_mail(
-            subject=subject or "Message from CulinEire moderation",
+            subject=subject,
             message=body,
             from_email=None,
             recipient_list=[recipient.email],
@@ -163,6 +210,93 @@ def send_message(request):
         django_messages.success(request, "Message sent.")
 
     return _moderation_redirect(request)
+
+
+def contact(request):
+    from django.conf import settings
+    from config.turnstile import verify_turnstile
+    from recipes.models import RecipeAuthor
+
+    try:
+        greenbear_user = RecipeAuthor.objects.select_related("user").get(slug="greenbear").user
+    except RecipeAuthor.DoesNotExist:
+        greenbear_user = None
+
+    ctx_base = {
+        "greenbear_available": greenbear_user is not None,
+        "turnstile_site_key": settings.TURNSTILE_SITE_KEY,
+    }
+
+    if request.method == "POST":
+        if not request.user.is_authenticated:
+            return redirect("login")
+
+        token = request.POST.get("cf-turnstile-response", "")
+        if not verify_turnstile(token, request.META.get("REMOTE_ADDR", "")):
+            return render(request, "messaging/contact.html", {
+                **ctx_base,
+                "error": "Security check failed. Please try again.",
+            })
+
+        subject = request.POST.get("subject", "").strip()
+        body = request.POST.get("body", "").strip()
+
+        if not body:
+            return render(request, "messaging/contact.html", {
+                **ctx_base,
+                "error": "Please enter a message.",
+                "subject": subject,
+            })
+
+        if greenbear_user:
+            existing = (
+                Message.objects.filter(
+                    parent=None,
+                    is_archived=False,
+                )
+                .filter(
+                    models.Q(sender=request.user, recipient=greenbear_user)
+                    | models.Q(sender=greenbear_user, recipient=request.user)
+                )
+                .order_by("-created_at")
+                .first()
+            )
+            parent = existing if existing else None
+            Message.objects.create(
+                sender=request.user,
+                recipient=greenbear_user,
+                subject=(subject or "Message from CulinEire Kitchen Author") if not parent else "",
+                body=body,
+                parent=parent,
+            )
+            return redirect(request.path + "?sent=1")
+
+        django_messages.error(request, "Contact is unavailable right now. Please try again later.")
+        return redirect("messaging:contact")
+
+    # GET — check for ?sent=1 to show history state
+    if request.GET.get("sent") == "1" and request.user.is_authenticated and greenbear_user:
+        history = list(
+            Message.objects.filter(
+                sender=request.user,
+                recipient=greenbear_user,
+                parent=None,
+            )
+            .order_by("-created_at")
+        )
+        sender_profile = getattr(request.user, "recipe_author_profile", None)
+        sender_name = (
+            sender_profile.name if sender_profile
+            else request.user.get_full_name() or request.user.username
+        )
+        return render(request, "messaging/contact.html", {
+            **ctx_base,
+            "sent": True,
+            "sent_from": sender_name,
+            "message_history": history,
+        })
+
+    return render(request, "messaging/contact.html", ctx_base)
 
 
 @require_POST
@@ -204,3 +338,73 @@ def reply_message(request, pk):
         pass
 
     return redirect("messaging:message_detail", pk=parent.pk)
+
+
+def _thread_root_for_user(pk, user):
+    msg = get_object_or_404(
+        Message.objects.select_related("sender", "recipient", "parent"),
+        pk=pk,
+    )
+    root = msg.parent or msg
+    thread_filter = models.Q(pk=root.pk) | models.Q(parent=root)
+    if not Message.objects.filter(thread_filter).filter(
+        models.Q(recipient=user) | models.Q(sender=user)
+    ).exists():
+        raise Http404
+    return root
+
+
+@require_POST
+@login_required
+def archive_message(request, pk):
+    if not _is_moderator(request.user):
+        raise Http404
+    root = _thread_root_for_user(pk, request.user)
+    Message.objects.filter(
+        models.Q(pk=root.pk) | models.Q(parent=root)
+    ).update(is_archived=True, archived_at=timezone.now())
+    django_messages.success(request, "Thread archived.")
+    return redirect("messaging:inbox")
+
+
+@require_POST
+@login_required
+def delete_message(request, pk):
+    if not _is_moderator(request.user):
+        raise Http404
+    root = _thread_root_for_user(pk, request.user)
+    Message.objects.filter(
+        models.Q(pk=root.pk) | models.Q(parent=root)
+    ).delete()
+    django_messages.success(request, "Thread deleted.")
+    return redirect("messaging:inbox")
+
+
+@require_POST
+@login_required
+def restore_message(request, pk):
+    root = _thread_root_for_user(pk, request.user)
+    Message.objects.filter(
+        models.Q(pk=root.pk) | models.Q(parent=root)
+    ).update(is_archived=False, archived_at=None)
+    django_messages.success(request, "Thread restored.")
+    return redirect("messaging:archive")
+
+
+@login_required
+def message_archive(request):
+    user_involved = Message.objects.filter(
+        models.Q(pk=OuterRef("pk")) | models.Q(parent=OuterRef("pk"))
+    ).filter(
+        models.Q(recipient=request.user) | models.Q(sender=request.user)
+    )
+    thread_roots = list(
+        Message.objects.filter(parent=None, is_archived=True)
+        .filter(Exists(user_involved))
+        .select_related(
+            "sender", "sender__recipe_author_profile",
+            "recipient", "related_recipe", "related_article",
+        )
+        .order_by("-archived_at")
+    )
+    return render(request, "messaging/archive.html", {"archived_threads": thread_roots})

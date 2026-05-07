@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block content %}
-<section class="hero hero--home">
+<section class="hero hero--home hero--recipe-form">
     <div aria-hidden="true" class="hero__background">
         {% if form_mode == "edit" and recipe.hero_image %}
         <img alt="" src="{{ recipe.hero_image.url }}">
@@ -52,25 +52,20 @@
                         {% for error in form.title.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
                     <div class="authoring-field authoring-field--wide">
-                        <label for="{{ form.short_description.id_for_label }}">{{ form.short_description.label
-                            }}:</label>
+                        <label for="{{ form.short_description.id_for_label }}">{{ form.short_description.label }}:</label>
                         {{ form.short_description }}
-                        {% for error in form.short_description.errors %}<p class="authoring-error">{{ error }}</p>{%
-                        endfor %}
+                        {% for error in form.short_description.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
                     <div class="authoring-field">
                         <label for="{{ form.hero_image.id_for_label }}">{{ form.hero_image.label }}:</label>
                         {{ form.hero_image }}
-                        {% if form.hero_image.help_text %}<p class="authoring-help">{{ form.hero_image.help_text }}</p>
-                        {% endif %}
+                        {% if form.hero_image.help_text %}<p class="authoring-help">{{ form.hero_image.help_text }}</p>{% endif %}
                         {% for error in form.hero_image.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
                     <div class="authoring-field">
                         <label for="id_gallery_images">Gallery Images:</label>
-                        <input accept=".jpg,.jpeg,.png,.webp" class="authoring-control" id="id_gallery_images" multiple
-                               name="gallery_images" type="file">
-                        <p class="authoring-help">Upload additional images for the gallery carousel (optional, multiple
-                            allowed).</p>
+                        <input accept=".jpg,.jpeg,.png,.webp" class="authoring-control" id="id_gallery_images" multiple name="gallery_images" type="file">
+                        <p class="authoring-help">Upload additional images for the gallery carousel (optional, multiple allowed).</p>
                     </div>
                     <div class="authoring-field">
                         <label for="{{ form.category.id_for_label }}">{{ form.category.label }}:</label>
@@ -85,10 +80,8 @@
                     <div class="authoring-field authoring-field--wide">
                         <label>{{ form.additional_categories.label }}:</label>
                         {{ form.additional_categories }}
-                        {% if form.additional_categories.help_text %}<p class="authoring-help">{{
-                        form.additional_categories.help_text }}</p>{% endif %}
-                        {% for error in form.additional_categories.errors %}<p class="authoring-error">{{ error }}</p>{%
-                        endfor %}
+                        {% if form.additional_categories.help_text %}<p class="authoring-help">{{ form.additional_categories.help_text }}</p>{% endif %}
+                        {% for error in form.additional_categories.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
                 </div>
             </fieldset>
@@ -97,18 +90,14 @@
                 <legend>Timing and Servings</legend>
                 <div class="authoring-grid authoring-grid--four">
                     <div class="authoring-field">
-                        <label for="{{ form.prep_time_minutes.id_for_label }}">{{ form.prep_time_minutes.label
-                            }}:</label>
+                        <label for="{{ form.prep_time_minutes.id_for_label }}">{{ form.prep_time_minutes.label }}:</label>
                         {{ form.prep_time_minutes }}
-                        {% for error in form.prep_time_minutes.errors %}<p class="authoring-error">{{ error }}</p>{%
-                        endfor %}
+                        {% for error in form.prep_time_minutes.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
                     <div class="authoring-field">
-                        <label for="{{ form.cook_time_minutes.id_for_label }}">{{ form.cook_time_minutes.label
-                            }}:</label>
+                        <label for="{{ form.cook_time_minutes.id_for_label }}">{{ form.cook_time_minutes.label }}:</label>
                         {{ form.cook_time_minutes }}
-                        {% for error in form.cook_time_minutes.errors %}<p class="authoring-error">{{ error }}</p>{%
-                        endfor %}
+                        {% for error in form.cook_time_minutes.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
                     <div class="authoring-field">
                         <label for="{{ form.servings.id_for_label }}">{{ form.servings.label }}:</label>
@@ -129,22 +118,19 @@
                     <div class="authoring-field authoring-field--wide">
                         <label for="{{ form.ingredients.id_for_label }}">{{ form.ingredients.label }}:</label>
                         {{ form.ingredients }}
-                        {% if form.ingredients.help_text %}<p class="authoring-help">{{ form.ingredients.help_text
-                        }}</p>{% endif %}
+                        {% if form.ingredients.help_text %}<p class="authoring-help">{{ form.ingredients.help_text }}</p>{% endif %}
                         {% for error in form.ingredients.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
                     <div class="authoring-field authoring-field--wide">
                         <label>{{ form.allergens.label }}:</label>
                         {{ form.allergens }}
-                        {% if form.allergens.help_text %}<p class="authoring-help authoring-help--center">{{
-                        form.allergens.help_text }}</p>{% endif %}
+                        {% if form.allergens.help_text %}<p class="authoring-help authoring-help--center">{{ form.allergens.help_text }}</p>{% endif %}
                         {% for error in form.allergens.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
                     <div class="authoring-field authoring-field--wide">
                         <label for="{{ form.method.id_for_label }}">{{ form.method.label }}:</label>
                         {{ form.method }}
-                        {% if form.method.help_text %}<p class="authoring-help authoring-help--center">{{
-                        form.method.help_text }}</p>{% endif %}
+                        {% if form.method.help_text %}<p class="authoring-help authoring-help--center">{{ form.method.help_text }}</p>{% endif %}
                         {% for error in form.method.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
                     <div class="authoring-field authoring-field--wide">
@@ -155,15 +141,12 @@
                     <div class="authoring-field authoring-field--wide">
                         <label for="{{ form.irish_context.id_for_label }}">{{ form.irish_context.label }}:</label>
                         {{ form.irish_context }}
-                        {% for error in form.irish_context.errors %}<p class="authoring-error">{{ error }}</p>{% endfor
-                        %}
+                        {% for error in form.irish_context.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
                     <div class="authoring-field authoring-field--wide">
-                        <label for="{{ form.author_commentary.id_for_label }}">{{ form.author_commentary.label
-                            }}:</label>
+                        <label for="{{ form.author_commentary.id_for_label }}">{{ form.author_commentary.label }}:</label>
                         {{ form.author_commentary }}
-                        {% for error in form.author_commentary.errors %}<p class="authoring-error">{{ error }}</p>{%
-                        endfor %}
+                        {% for error in form.author_commentary.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
                 </div>
             </fieldset>
@@ -179,14 +162,12 @@
                     <div class="authoring-field">
                         <label for="{{ form.source_title.id_for_label }}">{{ form.source_title.label }}:</label>
                         {{ form.source_title }}
-                        {% for error in form.source_title.errors %}<p class="authoring-error">{{ error }}</p>{% endfor
-                        %}
+                        {% for error in form.source_title.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
                     <div class="authoring-field">
                         <label for="{{ form.source_author.id_for_label }}">{{ form.source_author.label }}:</label>
                         {{ form.source_author }}
-                        {% for error in form.source_author.errors %}<p class="authoring-error">{{ error }}</p>{% endfor
-                        %}
+                        {% for error in form.source_author.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
                     <div class="authoring-field">
                         <label for="{{ form.source_url.id_for_label }}">{{ form.source_url.label }}:</label>

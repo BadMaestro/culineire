@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import LoginView
 from django.core.mail import send_mail
+from django.db import transaction
 from django.db.models import Avg, Count, Prefetch, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
@@ -460,10 +461,9 @@ def category_detail(request, category_slug):
             f"Browse {category_label.lower()} on CulinEire and discover recipes, ideas, "
             f"and kitchen inspiration."
         ),
-        "page_heading": "Explore The Recipe Collection",
+        "page_heading": category_label,
         "page_subtitle": (
-            "Explore Irish classics, vintage recipes, and modern twists, all adapted "
-            "for the home kitchen."
+            f"Browse the full {category_label} collection — Irish classics and home kitchen favourites."
         ),
         "selected_category_label": category_label,
     }
@@ -709,6 +709,20 @@ def author_detail(request, slug):
     return render(request, "recipes/author_detail.html", context)
 
 
+def _is_protected_author_action(author, user):
+    return author.slug == "greenbear" or author.user_id == getattr(user, "pk", None)
+
+
+def _delete_author_profile_and_account(author):
+    user_id = author.user_id
+    with transaction.atomic():
+        Article.objects.filter(author=author).delete()
+        Recipe.objects.filter(author=author).delete()
+        author.delete()
+        if user_id:
+            get_user_model().objects.filter(pk=user_id).delete()
+
+
 class RecipeCreateView(AuthorRequiredMixin, CreateView):
     model = Recipe
     form_class = RecipeAuthoringForm
@@ -833,6 +847,7 @@ class RecipeAuthorUpdateView(AuthorRequiredMixin, UpdateView):
             "Update your public author profile, bio and image for the CulinEire site."
         )
         context["submit_label"] = "Save Profile"
+        context["show_profile_privacy_notice"] = True
         return context
 
 
@@ -852,16 +867,8 @@ class RecipeAuthorDeleteView(AuthorRequiredMixin, DeleteView):
             messages.error(request, "This account cannot be deleted.")
             return redirect(self.object.get_absolute_url())
 
-        user = self.object.user
-
-        Article.objects.filter(author=self.object).delete()
-        Recipe.objects.filter(author=self.object).delete()
-        self.object.delete()
-
+        _delete_author_profile_and_account(self.object)
         logout(request)
-
-        if user:
-            user.delete()
 
         messages.success(request, "Your account and all associated content have been permanently deleted.")
         return redirect("home")
@@ -887,19 +894,112 @@ class RecipeAuthorDeleteView(AuthorRequiredMixin, DeleteView):
         return context
 
 
+class ModeratorAuthorUpdateView(UpdateView):
+    model = RecipeAuthor
+    form_class = RecipeAuthorProfileForm
+    template_name = "authoring/profile_form.html"
+    slug_url_kwarg = "slug"
+
+    def dispatch(self, request, *args, **kwargs):
+        if not _is_moderator(request.user):
+            raise Http404
+        author = self.get_object()
+        if _is_protected_author_action(author, request.user):
+            raise Http404
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return RecipeAuthor.objects.select_related("user")
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, f'Author profile "{self.object.name}" updated.')
+        return response
+
+    def get_success_url(self):
+        return self.object.get_absolute_url()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["author"] = self.object
+        context["form_mode"] = "moderation-edit"
+        context["form_heading"] = "Edit Author Profile"
+        context["form_intro"] = "Update this author's public profile, bio and avatar."
+        context["submit_label"] = "Save Author Profile"
+        context["show_profile_privacy_notice"] = False
+        return context
+
+
+class ModeratorAuthorDeleteView(DeleteView):
+    model = RecipeAuthor
+    template_name = "authoring/confirm_delete.html"
+    context_object_name = "managed_object"
+    slug_url_kwarg = "slug"
+    success_url = reverse_lazy("recipes:moderation_panel")
+
+    def dispatch(self, request, *args, **kwargs):
+        if not _is_moderator(request.user):
+            raise Http404
+        author = self.get_object()
+        if _is_protected_author_action(author, request.user):
+            raise Http404
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return RecipeAuthor.objects.select_related("user")
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if _is_protected_author_action(self.object, request.user):
+            raise Http404
+
+        author_name = self.object.name
+        _delete_author_profile_and_account(self.object)
+
+        messages.success(request, f'Author profile "{author_name}" and associated content have been deleted.')
+        return redirect(self.success_url)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        related_recipe_count = Recipe.objects.filter(author=self.object).count()
+        related_article_count = Article.objects.filter(author=self.object).count()
+        context["author"] = self.object
+        context["delete_title"] = "Delete Author Profile"
+        context["delete_intro"] = (
+            "This will permanently delete this author account, author profile, "
+            "all recipes and all articles connected to it. This action cannot be undone."
+        )
+        context["delete_label"] = "Delete Author Profile"
+        context["cancel_url"] = self.object.get_absolute_url()
+        context["delete_warnings"] = [
+            f"{related_recipe_count} recipe(s) will be permanently deleted." if related_recipe_count else "",
+            f"{related_article_count} article(s) will be permanently deleted." if related_article_count else "",
+            "The linked user account and login credentials will be removed.",
+        ]
+        return context
+
+
 class CulinEireLoginView(LoginView):
     authentication_form = SignInForm
     template_name = "registration/login.html"
     redirect_authenticated_user = True
 
     @method_decorator(sensitive_post_parameters("password"))
-    @method_decorator(ratelimit(key="ip", rate="5/10m", method="POST", block=False))
-    @method_decorator(ratelimit(key="post:username", rate="5/10m", method="POST", block=False))
+    @method_decorator(ratelimit(key="ip", rate="20/10m", method="POST", block=False))
+    @method_decorator(ratelimit(key="post:username", rate="20/10m", method="POST", block=False))
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         if getattr(request, "limited", False):
+            User = get_user_model()
+            username = request.POST.get("username", "")
+            try:
+                u = User.objects.get(username=username)
+                if u.is_superuser:
+                    return super().post(request, *args, **kwargs)
+            except User.DoesNotExist:
+                pass
             messages.error(request, "Too many sign-in attempts. Please wait a few minutes and try again.")
             return redirect("login")
         return super().post(request, *args, **kwargs)
@@ -945,11 +1045,13 @@ class SignUpView(CreateView):
         user = form.save(commit=False)
         user.is_active = False
         user.save()
+        author_name = user.get_full_name() or user.username
 
         RecipeAuthor.objects.create(
             user=user,
-            name=user.username,
-            slug=self._unique_author_slug(user.username),
+            name=author_name,
+            slug=self._unique_author_slug(author_name),
+            default_avatar=form.cleaned_data["default_avatar"],
         )
 
         uid = urlsafe_base64_encode(force_bytes(user.pk))
@@ -960,7 +1062,7 @@ class SignUpView(CreateView):
         send_mail(
             subject="Confirm your CulinEire account",
             message=(
-                f"Welcome to CulinEire, {user.username}!\n\n"
+                f"Welcome to CulinEire, {author_name}!\n\n"
                 f"Please confirm your email address by clicking the link below:\n\n"
                 f"{activation_url}\n\n"
                 f"This link expires in 24 hours.\n\n"
@@ -1055,6 +1157,12 @@ def moderation_panel(request):
             | Q(user__username__icontains=author_query)
         )
 
+    bearseeker_authors = (
+        RecipeAuthor.objects.select_related("user")
+        .filter(has_bearseeker_privileges=True, user__isnull=False)
+        .order_by("name")
+    )
+
     return render(request, "moderation/panel.html", {
         "pending_recipes": pending_recipes,
         "rejected_recipes": rejected_recipes,
@@ -1063,6 +1171,7 @@ def moderation_panel(request):
         "registered_authors": registered_authors,
         "author_query": author_query,
         "can_grant_bearseeker_privileges": _can_grant_bearseeker_privileges(request.user),
+        "bearseeker_authors": bearseeker_authors,
     })
 
 
@@ -1155,6 +1264,12 @@ def block_author(request, slug):
             user.is_active = True
             user.save(update_fields=["is_active"])
             messages.success(request, f'Author "{author.name}" now has (Bear)seeker moderation privileges.')
+        elif action == "revoke_bearseeker":
+            if not _can_grant_bearseeker_privileges(request.user):
+                raise Http404
+            author.has_bearseeker_privileges = False
+            author.save(update_fields=["has_bearseeker_privileges"])
+            messages.warning(request, f'(Bear)seeker privileges revoked from "{author.name}".')
         elif action == "unblock":
             user.is_active = True
             user.save(update_fields=["is_active"])

@@ -442,8 +442,8 @@
     width: 40px;
     height: 40px;
     flex-shrink: 0;
-    object-fit: contain;
-    border-radius: 0;
+    object-fit: cover;
+    border-radius: 50%;
   }
 
   .detail-page__author-avatar--fallback {

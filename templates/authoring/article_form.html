@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block content %}
-<section class="hero hero--home">
+<section class="hero hero--home hero--article-form">
     <div aria-hidden="true" class="hero__background">
         {% if form_mode == "edit" and article.hero_image %}
         <img alt="" src="{{ article.hero_image.url }}">
@@ -59,16 +59,13 @@
                     <div class="authoring-field">
                         <label for="{{ form.hero_image.id_for_label }}">{{ form.hero_image.label }}:</label>
                         {{ form.hero_image }}
-                        {% if form.hero_image.help_text %}<p class="authoring-help">{{ form.hero_image.help_text }}</p>
-                        {% endif %}
+                        {% if form.hero_image.help_text %}<p class="authoring-help">{{ form.hero_image.help_text }}</p>{% endif %}
                         {% for error in form.hero_image.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
                     <div class="authoring-field">
                         <label for="id_gallery_images">Gallery Images:</label>
-                        <input accept=".jpg,.jpeg,.png,.webp" class="authoring-control" id="id_gallery_images" multiple
-                               name="gallery_images" type="file">
-                        <p class="authoring-help">Upload additional images for the article gallery (optional, multiple
-                            allowed).</p>
+                        <input accept=".jpg,.jpeg,.png,.webp" class="authoring-control" id="id_gallery_images" multiple name="gallery_images" type="file">
+                        <p class="authoring-help">Upload additional images for the article gallery (optional, multiple allowed).</p>
                     </div>
                     <div class="authoring-field">
                         <label for="{{ form.published.id_for_label }}">{{ form.published.label }}:</label>
@@ -78,10 +75,8 @@
                     <div class="authoring-field">
                         <label for="{{ form.related_recipe.id_for_label }}">{{ form.related_recipe.label }}:</label>
                         {{ form.related_recipe }}
-                        {% if form.related_recipe.help_text %}<p class="authoring-help">{{ form.related_recipe.help_text
-                        }}</p>{% endif %}
-                        {% for error in form.related_recipe.errors %}<p class="authoring-error">{{ error }}</p>{% endfor
-                        %}
+                        {% if form.related_recipe.help_text %}<p class="authoring-help">{{ form.related_recipe.help_text }}</p>{% endif %}
+                        {% for error in form.related_recipe.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
                 </div>
             </fieldset>
@@ -92,8 +87,7 @@
                     <div class="authoring-field authoring-field--wide">
                         <label for="{{ form.body.id_for_label }}">{{ form.body.label }}:</label>
                         {{ form.body }}
-                        {% if form.body.help_text %}<p class="authoring-help authoring-help--center">{{
-                        form.body.help_text }}</p>{% endif %}
+                        {% if form.body.help_text %}<p class="authoring-help authoring-help--center">{{ form.body.help_text }}</p>{% endif %}
                         {% for error in form.body.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
                 </div>

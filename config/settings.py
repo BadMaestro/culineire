@@ -90,6 +90,7 @@ INSTALLED_APPS = [
     "recipes",
     "articles",
     "messaging",
+    "presence",
 ]
 
 MIDDLEWARE = [

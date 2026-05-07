@@ -5,7 +5,7 @@
 {% block meta_description %}Edit your CulinEire author profile from the author studio.{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/auth.css' %}?v=20260507b" rel="stylesheet">
+<link href="{% static 'css/auth.css' %}?v=20260507c" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -55,6 +55,19 @@
                     <button class="btn" type="submit">Save Profile</button>
                 </div>
             </form>
+
+            {% if show_profile_privacy_notice %}
+            <div class="author-profile-gdpr">
+                <p class="author-profile-gdpr__title">Your Data &amp; Privacy</p>
+                <ul class="author-profile-gdpr__list">
+                    <li>We store your <strong>username</strong>, <strong>email address</strong>, <strong>name</strong> and <strong>default avatar choice</strong> solely to manage your account and author profile.</li>
+                    <li>Your data is never sold or shared with third parties.</li>
+                    <li>You may <strong>edit</strong> your profile information at any time using the form above.</li>
+                    <li>You have the right to <strong>delete</strong> your account and all associated data at any time.</li>
+                    <li>This site complies with the General Data Protection Regulation (GDPR, EU 2016/679).</li>
+                </ul>
+            </div>
+            {% endif %}
         </div>
     </div>
 </section>

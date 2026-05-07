@@ -5,6 +5,7 @@ from pathlib import Path
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
+from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.text import slugify
 
@@ -90,6 +91,11 @@ def author_avatar_upload_to(instance, filename: str) -> str:
 
 
 class RecipeAuthor(models.Model):
+    class DefaultAvatar(models.TextChoices):
+        MALE = "male", "Male Avatar"
+        FEMALE = "female", "Female Avatar"
+        NEUTRAL = "neutral", "Neutral Avatar"
+
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -100,6 +106,12 @@ class RecipeAuthor(models.Model):
     )
     name = models.CharField("Name / pen name", max_length=100)
     slug = models.SlugField("URL slug", unique=True)
+    default_avatar = models.CharField(
+        "Default avatar",
+        max_length=24,
+        choices=DefaultAvatar.choices,
+        default=DefaultAvatar.NEUTRAL,
+    )
     bio = models.TextField("Short author bio", blank=True)
     avatar = models.ImageField(
         upload_to=author_avatar_upload_to,
@@ -122,6 +134,18 @@ class RecipeAuthor(models.Model):
 
     def get_absolute_url(self):
         return reverse("recipes:author_detail", kwargs={"slug": self.slug})
+
+    @property
+    def display_avatar_url(self):
+        if self.avatar:
+            return self.avatar.url
+        default_avatar_files = {
+            self.DefaultAvatar.MALE: "male-avatar.png",
+            self.DefaultAvatar.FEMALE: "female-avatar.png",
+            self.DefaultAvatar.NEUTRAL: "neutral-avatar.PNG",
+        }
+        filename = default_avatar_files.get(self.default_avatar, "neutral-avatar.PNG")
+        return static(f"images/{filename}")
 
 
 ALLERGEN_CHOICES = [

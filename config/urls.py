@@ -23,6 +23,9 @@ urlpatterns = [
     # Messaging
     path("messages/", include("messaging.urls", namespace="messaging")),
 
+    # Presence notifications
+    path("presence/", include("presence.urls", namespace="presence")),
+
     # Authentication
     path("accounts/login/", recipes_views.CulinEireLoginView.as_view(), name="login"),
     path("accounts/signup/", recipes_views.SignUpView.as_view(), name="signup"),

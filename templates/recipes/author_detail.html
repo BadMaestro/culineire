@@ -12,20 +12,11 @@
     <div aria-hidden="true" class="hero__overlay"></div>
     <div class="container hero__inner">
         <div class="hero-copy">
-            <span class="pill">{% if is_god_author %}Creator & Chef{% else %}{{ author.name }}{% endif %}</span>
+            <span class="pill">{% if is_god_author %}IDDQD — (Bear)seeker Mode On{% else %}{{ author.name }}{% endif %}</span>
             <div class="hero-author-avatar-wrap">
-                {% if author.avatar %}
-                <img alt="{{ author.name }}" class="hero-author-avatar" src="{{ author.avatar.url }}">
-                {% else %}
-                <svg aria-hidden="true" class="hero-author-avatar" viewBox="0 0 40 40">
-                    <circle cx="20" cy="20" fill="#c8b89a" r="20"/>
-                    <circle cx="20" cy="16" fill="#f5ede0" r="8"/>
-                    <ellipse cx="20" cy="36" fill="#f5ede0" rx="13" ry="9"/>
-                </svg>
-                {% endif %}
+                <img alt="{{ author.name }}" class="hero-author-avatar" src="{{ author.display_avatar_url }}">
             </div>
-            <h1 class="hero-title {% if is_god_author %}author-name--greenbear{% endif %}">{% if is_god_author %}{{
-                author.name }}{% else %}Author's Profile{% endif %}</h1>
+            <h1 class="hero-title {% if is_god_author %}author-name--greenbear{% endif %}">{% if is_god_author %}{{ author.name }}{% else %}Author's Profile{% endif %}</h1>
             {% if author.bio %}
             <p class="hero-subtitle">{{ author.bio }}</p>
             {% endif %}
@@ -104,30 +95,23 @@
             </div>
         </div>
 
-        {% if is_moderator_viewer and not is_god_author and author.user %}
+        {% endif %}
+
+        {% if is_moderator_viewer and not is_god_author and author.user and author.user != request.user %}
         <div class="author-profile-manage" style="margin-block-start: 1rem;">
             <p class="author-profile-manage__label">Moderation</p>
             <div class="author-profile-manage__actions">
+                <a class="btn" href="{% url 'recipes:moderation_author_edit' author.slug %}">Edit Author Profile</a>
+                <a class="recipe-card__cta btn btn--danger recipe-card__delete" href="{% url 'recipes:moderation_author_delete' author.slug %}">Delete Author Profile</a>
                 <form action="{% url 'recipes:block_author' author.slug %}" method="post">
                     {% csrf_token %}
-                    <button class="btn btn--danger" onclick="return confirm('Block user {{ author.user.username }}? They will no longer be able to log in.')"
-                            type="submit">
+                    <input name="next" type="hidden" value="{{ request.get_full_path }}">
+                    <button class="btn btn--danger" name="action" onclick="return confirm('Block user {{ author.user.username }}? They will no longer be able to log in.')"
+                            type="submit" value="block">
                         Block User
                     </button>
                 </form>
             </div>
-        </div>
-        {% endif %}
-
-        <div class="author-profile-gdpr">
-            <p class="author-profile-gdpr__title">Your Data &amp; Privacy</p>
-            <ul class="author-profile-gdpr__list">
-                <li>We store your <strong>username</strong> and <strong>email address</strong> solely to manage your account and enable password recovery.</li>
-                <li>Your data is never sold or shared with third parties.</li>
-                <li>You may <strong>edit</strong> your profile information at any time using the button above.</li>
-                <li>You have the right to <strong>delete</strong> your account and all associated data at any time.</li>
-                <li>This site complies with the General Data Protection Regulation (GDPR, EU 2016/679).</li>
-            </ul>
         </div>
         {% endif %}
 
