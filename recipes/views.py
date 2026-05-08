@@ -535,6 +535,12 @@ def recipe_detail(request, slug):
             }
         )
 
+    try:
+        from monitoring.tracker import track_event
+        track_event(request, "recipe_view", object_type="recipe", object_id=recipe.pk, object_title=recipe.title)
+    except Exception:
+        pass
+
     ingredient_items = _build_ingredient_items(recipe.ingredients)
     allergen_items = build_present_allergen_items(recipe.allergens)
     method_steps = _build_method_steps(recipe.method)

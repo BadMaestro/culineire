@@ -135,6 +135,20 @@ class ArticleDetailView(DetailView):
             "height": getattr(image_field, "height", None),
         }
 
+    def get(self, request, *args, **kwargs):
+        response = super().get(request, *args, **kwargs)
+        try:
+            from monitoring.tracker import track_event
+            track_event(
+                request, "article_view",
+                object_type="article",
+                object_id=self.object.pk,
+                object_title=self.object.title,
+            )
+        except Exception:
+            pass
+        return response
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         article = self.object

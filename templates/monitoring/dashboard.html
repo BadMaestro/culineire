@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Monitoring Dashboard | CulinEire{% endblock %}
+{% block meta_description %}CulinEire internal monitoring and analytics dashboard.{% endblock %}
+
+{% block extra_head %}
+<link href="{% static 'css/monitoring.css' %}?v=20260508b" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+
+<section class="hero hero--home hero--monitoring">
+    <div aria-hidden="true" class="hero__background">
+        <img alt="" src="{% static 'images/hero-monitoring.png' %}">
+    </div>
+    <div aria-hidden="true" class="hero__overlay"></div>
+    <div class="container hero__inner">
+        <div class="hero-copy hero-copy--center">
+            <span class="pill">Analytics</span>
+            <h1 class="hero-title">Monitoring Dashboard</h1>
+            <p class="hero-subtitle">{{ today|date:"l, j F Y" }} · Real-time site analytics</p>
+        </div>
+    </div>
+</section>
+
+<section class="page-section mon-page">
+  <div class="container mon-shell">
+
+    <div class="mon-back-row">
+      <a class="mon-back-link" href="{% url 'recipes:moderation_panel' %}">← Moderation Panel</a>
+    </div>
+
+    <!-- ── Summary cards ─────────────────────────────────────────────────── -->
+    <div class="mon-cards">
+      <div class="mon-card mon-card--green">
+        <span class="mon-card__value">{{ online_now }}</span>
+        <span class="mon-card__label">Online Now</span>
+        <span class="mon-card__sub">active sessions last 5 min</span>
+      </div>
+      <div class="mon-card">
+        <span class="mon-card__value">{{ visitors_today }}</span>
+        <span class="mon-card__label">Visitors Today</span>
+        <span class="mon-card__sub">unique sessions</span>
+      </div>
+      <div class="mon-card">
+        <span class="mon-card__value">{{ pageviews_today }}</span>
+        <span class="mon-card__label">Page Views Today</span>
+        <span class="mon-card__sub">total hits</span>
+      </div>
+      <div class="mon-card">
+        <span class="mon-card__value">{{ new_users_today }}</span>
+        <span class="mon-card__label">New Users Today</span>
+        <span class="mon-card__sub">registrations</span>
+      </div>
+      <div class="mon-card">
+        <span class="mon-card__value">{{ active_users_today }}</span>
+        <span class="mon-card__label">Active Users Today</span>
+        <span class="mon-card__sub">logged-in activity</span>
+      </div>
+      <div class="mon-card {% if count_404_today > 20 %}mon-card--warn{% endif %}">
+        <span class="mon-card__value">{{ count_404_today }}</span>
+        <span class="mon-card__label">404s Today</span>
+        <span class="mon-card__sub">not found</span>
+      </div>
+      <div class="mon-card {% if failed_logins_today > 5 %}mon-card--danger{% endif %}">
+        <span class="mon-card__value">{{ failed_logins_today }}</span>
+        <span class="mon-card__label">Failed Logins Today</span>
+        <span class="mon-card__sub">auth failures</span>
+      </div>
+      <div class="mon-card {% if suspicious_today > 0 %}mon-card--danger{% endif %}">
+        <span class="mon-card__value">{{ suspicious_today }}</span>
+        <span class="mon-card__label">Suspicious Today</span>
+        <span class="mon-card__sub">flagged requests</span>
+      </div>
+    </div>
+
+    <!-- ── Hourly chart ───────────────────────────────────────────────────── -->
+    {% if chart_hours %}
+    <div class="mon-section">
+      <h2 class="mon-section__title">Page Views Today (hourly)</h2>
+      <div class="mon-chart">
+        {% for bucket in chart_hours %}
+        <div class="mon-chart__col">
+          <div class="mon-chart__bar-wrap">
+            <div class="mon-chart__bar"
+                 style="height: {% if bucket.count %}{% widthratio bucket.count chart_max 100 %}%{% else %}0%{% endif %}"
+                 title="{{ bucket.hour }}:00 — {{ bucket.count }} views"></div>
+          </div>
+          <span class="mon-chart__label">{{ bucket.hour }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Two-column grid ───────────────────────────────────────────────── -->
+    <div class="mon-grid">
+
+      <!-- Top recipes -->
+      <div class="mon-section">
+        <h2 class="mon-section__title">Most Viewed Recipes</h2>
+        {% if top_recipes %}
+        <table class="mon-table">
+          <thead><tr><th>#</th><th>Recipe</th><th>Views</th></tr></thead>
+          <tbody>
+            {% for row in top_recipes %}
+            <tr>
+              <td class="mon-table__num">{{ forloop.counter }}</td>
+              <td>
+                {% if row.object_id %}
+                <a class="mon-table__link" href="{% url 'recipes:recipe_detail' slug=row.object_id %}" target="_blank">{{ row.object_title|default:"(untitled)" }}</a>
+                {% else %}
+                {{ row.object_title|default:"(untitled)" }}
+                {% endif %}
+              </td>
+              <td class="mon-table__count">{{ row.views }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="mon-empty">No recipe views recorded yet.</p>
+        {% endif %}
+      </div>
+
+      <!-- Top articles -->
+      <div class="mon-section">
+        <h2 class="mon-section__title">Most Viewed Articles</h2>
+        {% if top_articles %}
+        <table class="mon-table">
+          <thead><tr><th>#</th><th>Article</th><th>Views</th></tr></thead>
+          <tbody>
+            {% for row in top_articles %}
+            <tr>
+              <td class="mon-table__num">{{ forloop.counter }}</td>
+              <td>{{ row.object_title|default:"(untitled)" }}</td>
+              <td class="mon-table__count">{{ row.views }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="mon-empty">No article views recorded yet.</p>
+        {% endif %}
+      </div>
+
+      <!-- Top paths -->
+      <div class="mon-section">
+        <h2 class="mon-section__title">Top Pages (7 days)</h2>
+        {% if top_paths %}
+        <table class="mon-table">
+          <thead><tr><th>Path</th><th>Hits</th></tr></thead>
+          <tbody>
+            {% for row in top_paths %}
+            <tr>
+              <td class="mon-table__path">{{ row.path }}</td>
+              <td class="mon-table__count">{{ row.count }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="mon-empty">No page views recorded yet.</p>
+        {% endif %}
+      </div>
+
+      <!-- Top referrers -->
+      <div class="mon-section">
+        <h2 class="mon-section__title">Top Referrers (7 days)</h2>
+        {% if top_referrers %}
+        <table class="mon-table">
+          <thead><tr><th>Referrer</th><th>Hits</th></tr></thead>
+          <tbody>
+            {% for row in top_referrers %}
+            <tr>
+              <td class="mon-table__path">{{ row.referrer|truncatechars:60 }}</td>
+              <td class="mon-table__count">{{ row.count }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="mon-empty">No referrers recorded yet.</p>
+        {% endif %}
+      </div>
+
+    </div><!-- /mon-grid -->
+
+    <!-- ── Recent activity ───────────────────────────────────────────────── -->
+    <div class="mon-section">
+      <h2 class="mon-section__title">Recent User Activity</h2>
+      {% if latest_activities %}
+      <div class="mon-table-wrap">
+        <table class="mon-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Event</th>
+              <th>User</th>
+              <th>Object</th>
+              <th>Path</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for event in latest_activities %}
+            <tr>
+              <td class="mon-table__time">{{ event.created_at|date:"j M H:i" }}</td>
+              <td><span class="mon-badge mon-badge--{{ event.event_type }}">{{ event.get_event_type_display }}</span></td>
+              <td class="mon-table__user">{{ event.user.username|default:"—" }}</td>
+              <td>{% if event.object_title %}{{ event.object_title|truncatechars:40 }}{% else %}—{% endif %}</td>
+              <td class="mon-table__path">{{ event.path|truncatechars:50 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="mon-empty">No activity recorded yet.</p>
+      {% endif %}
+    </div>
+
+    <!-- ── Security events ───────────────────────────────────────────────── -->
+    <div class="mon-section">
+      <h2 class="mon-section__title">Recent Security Events</h2>
+      {% if latest_security %}
+      <div class="mon-table-wrap">
+        <table class="mon-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Event</th>
+              <th>User</th>
+              <th>Path</th>
+              <th>IP Hash</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for event in latest_security %}
+            <tr>
+              <td class="mon-table__time">{{ event.created_at|date:"j M H:i" }}</td>
+              <td><span class="mon-badge mon-badge--security mon-badge--{{ event.event_type }}">{{ event.get_event_type_display }}</span></td>
+              <td class="mon-table__user">{{ event.user.username|default:"—" }}</td>
+              <td class="mon-table__path">{{ event.path|truncatechars:50 }}</td>
+              <td class="mon-table__hash">{{ event.ip_hash|truncatechars:12 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="mon-empty">No security events recorded yet.</p>
+      {% endif %}
+    </div>
+
+  </div>
+</section>
+{% endblock %}

@@ -91,6 +91,7 @@ INSTALLED_APPS = [
     "articles",
     "messaging",
     "presence",
+    "monitoring",
 ]
 
 MIDDLEWARE = [
@@ -101,6 +102,20 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "monitoring.middleware.MonitoringMiddleware",
+]
+
+# ── Monitoring ─────────────────────────────────────────────────────────────
+MONITORING_ENABLED = env_bool("MONITORING_ENABLED", default=True)
+MONITORING_RETENTION_DAYS = env_int("MONITORING_RETENTION_DAYS", default=90)
+MONITORING_ANONYMIZE_IP = env_bool("MONITORING_ANONYMIZE_IP", default=True)
+MONITORING_EXCLUDED_PATH_PREFIXES = [
+    "/static/",
+    "/media/",
+    "/admin/jsi18n/",
+    "/favicon.ico",
+    "/robots.txt",
+    "/presence/",
 ]
 
 ROOT_URLCONF = "config.urls"

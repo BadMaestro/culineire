@@ -71,9 +71,8 @@
     </div>
     {% with url_name=request.resolver_match.url_name namespace=request.resolver_match.namespace %}
     <div class="container ce-header__inner">
-        <a aria-label="Go to homepage" class="ce-header__logo" href="{% url 'home' %}">
-            <img alt="" aria-hidden="true" src="{% static 'images/logo-culineire-header-round.png' %}">
-            <span class="ce-header__logo-text">CulinEire</span>
+        <a aria-label="Go to homepage" class="ce-header__logo ce-header__logo--full" href="{% url 'home' %}">
+            <img alt="CulinEire" src="{% static 'images/1.png' %}">
         </a>
 
         <button
