@@ -5,7 +5,7 @@
 {% block meta_description %}{% if article.excerpt %}{{ article.excerpt|striptags|truncatechars:160 }}{% else %}Article detail page for {{ article.title }} on CulinEire.{% endif %}{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/detail_page.css' %}?v=20260428k" rel="stylesheet">
+<link href="{% static 'css/detail_page.css' %}?v=20260508a" rel="stylesheet">
 {% if can_moderate_bar %}
 <link href="{% static 'css/messaging.css' %}?v=20260507b" rel="stylesheet">{% endif %}
 {% endblock %}
@@ -53,12 +53,21 @@
             </header>
 
             {% if gallery_items %}
+            {% if has_gallery %}
             <section
                 aria-label="Article media gallery"
-                class="recipe-gallery{% if not has_gallery %} recipe-gallery--single{% endif %}"
+                class="recipe-gallery"
                 data-gallery
                 tabindex="0"
             >
+            {% else %}
+            <section
+                aria-label="Article media gallery"
+                class="recipe-gallery recipe-gallery--single"
+                data-gallery
+                tabindex="0"
+            >
+            {% endif %}
                 <div class="recipe-gallery__viewport">
                     {% if has_gallery %}
                     <button
@@ -73,24 +82,25 @@
 
                     <div class="recipe-gallery__stage" data-gallery-stage>
                         {% for item in gallery_items %}
-                        <figure
-                            class="recipe-gallery__item{% if forloop.first %} is-current{% endif %}"
-                            data-gallery-item
-                        >
+                        {% if forloop.first %}
+                        <figure class="recipe-gallery__item is-current" data-gallery-item>
+                        {% else %}
+                        <figure class="recipe-gallery__item" data-gallery-item>
+                        {% endif %}
                             <div class="recipe-gallery__image-shell">
-                                <img
-                                    class="recipe-gallery__media"
-                                    src="{{ item.src }}"
-                                    alt="{{ item.alt }}"
-                                    {% if item.width %}width="{{ item.width }}"{% endif %}
-                                    {% if item.height %}height="{{ item.height }}"{% endif %}
-                                    {% if forloop.first %}
-                                    loading="eager"
-                                    fetchpriority="high"
+                                {% if forloop.first %}
+                                    {% if item.width and item.height %}
+                                <img class="recipe-gallery__media" src="{{ item.src }}" alt="{{ item.alt }}" width="{{ item.width }}" height="{{ item.height }}" loading="eager" fetchpriority="high">
                                     {% else %}
-                                    loading="lazy"
+                                <img class="recipe-gallery__media" src="{{ item.src }}" alt="{{ item.alt }}" loading="eager" fetchpriority="high">
                                     {% endif %}
-                                >
+                                {% else %}
+                                    {% if item.width and item.height %}
+                                <img class="recipe-gallery__media" src="{{ item.src }}" alt="{{ item.alt }}" width="{{ item.width }}" height="{{ item.height }}" loading="lazy">
+                                    {% else %}
+                                <img class="recipe-gallery__media" src="{{ item.src }}" alt="{{ item.alt }}" loading="lazy">
+                                    {% endif %}
+                                {% endif %}
                             </div>
 
                             {% if item.caption %}

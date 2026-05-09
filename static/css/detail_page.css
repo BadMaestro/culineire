@@ -1981,6 +1981,45 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+
+    .detail-page--article .detail-page__action-pill {
+      flex-wrap: wrap;
+      white-space: normal;
+      text-align: center;
+    }
+
+    .detail-page--article .detail-page__action-value {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .detail-page--article .recipe-gallery {
+      --gallery-stage-height: clamp(210px, 62vw, 280px);
+      --gallery-main-width: 100%;
+      --gallery-side-width: 0;
+      --gallery-side-shift: 0;
+      --gallery-arrow-size: 44px;
+      padding-inline: 0.65rem;
+    }
+
+    .detail-page--article .recipe-gallery__item.is-current {
+      width: 100%;
+    }
+
+    .detail-page--article .recipe-gallery__item.is-prev,
+    .detail-page--article .recipe-gallery__item.is-next {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .detail-page--article .recipe-gallery__arrow--prev {
+      inset-inline-start: 0.85rem;
+    }
+
+    .detail-page--article .recipe-gallery__arrow--next {
+      inset-inline-start: auto;
+      inset-inline-end: 0.85rem;
+    }
   }
 }
 

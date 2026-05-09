@@ -24,12 +24,12 @@ def hash_ip(ip: str) -> str:
 
 def track_event(
         request,
-        event_type: str,
-        object_type: str = "",
-        object_id: int | None = None,
-        object_title: str = "",
-        metadata: dict | None = None,
-) -> None:
+        event_type,
+        object_type="",
+        object_id=None,
+        object_title="",
+        metadata=None,
+):
     if not getattr(settings, "MONITORING_ENABLED", True):
         return
     try:

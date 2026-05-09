@@ -5,7 +5,7 @@
 {% block meta_description %}CulinEire internal monitoring and analytics dashboard.{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/monitoring.css' %}?v=20260508b" rel="stylesheet">
+<link href="{% static 'css/monitoring.css' %}?v=20260508d" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -101,6 +101,7 @@
       <div class="mon-section">
         <h2 class="mon-section__title">Most Viewed Recipes</h2>
         {% if top_recipes %}
+        <div class="mon-table-wrap">
         <table class="mon-table">
           <thead><tr><th>#</th><th>Recipe</th><th>Views</th></tr></thead>
           <tbody>
@@ -119,6 +120,7 @@
             {% endfor %}
           </tbody>
         </table>
+        </div>
         {% else %}
         <p class="mon-empty">No recipe views recorded yet.</p>
         {% endif %}
@@ -128,6 +130,7 @@
       <div class="mon-section">
         <h2 class="mon-section__title">Most Viewed Articles</h2>
         {% if top_articles %}
+        <div class="mon-table-wrap">
         <table class="mon-table">
           <thead><tr><th>#</th><th>Article</th><th>Views</th></tr></thead>
           <tbody>
@@ -140,6 +143,7 @@
             {% endfor %}
           </tbody>
         </table>
+        </div>
         {% else %}
         <p class="mon-empty">No article views recorded yet.</p>
         {% endif %}
@@ -149,6 +153,7 @@
       <div class="mon-section">
         <h2 class="mon-section__title">Top Pages (7 days)</h2>
         {% if top_paths %}
+        <div class="mon-table-wrap">
         <table class="mon-table">
           <thead><tr><th>Path</th><th>Hits</th></tr></thead>
           <tbody>
@@ -160,6 +165,7 @@
             {% endfor %}
           </tbody>
         </table>
+        </div>
         {% else %}
         <p class="mon-empty">No page views recorded yet.</p>
         {% endif %}
@@ -169,6 +175,7 @@
       <div class="mon-section">
         <h2 class="mon-section__title">Top Referrers (7 days)</h2>
         {% if top_referrers %}
+        <div class="mon-table-wrap">
         <table class="mon-table">
           <thead><tr><th>Referrer</th><th>Hits</th></tr></thead>
           <tbody>
@@ -180,6 +187,7 @@
             {% endfor %}
           </tbody>
         </table>
+        </div>
         {% else %}
         <p class="mon-empty">No referrers recorded yet.</p>
         {% endif %}

@@ -14,11 +14,26 @@
 /* ===== Monitoring Dashboard ===== */
 .mon-page {
   padding-block: clamp(1.5rem, 3vw, 2.5rem);
+  overflow-x: hidden;
 }
 
 .mon-shell {
   display: grid;
   gap: 1.75rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.mon-shell > *,
+.mon-cards,
+.mon-card,
+.mon-section,
+.mon-grid,
+.mon-chart,
+.mon-table-wrap,
+.mon-table {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .mon-back-row {
@@ -51,6 +66,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
+  overflow: hidden;
 }
 
 .mon-card--green {
@@ -85,11 +101,13 @@
   font-weight: 700;
   color: var(--ink);
   margin-top: 0.25rem;
+  overflow-wrap: anywhere;
 }
 
 .mon-card__sub {
   font-size: 0.68rem;
   color: var(--ink-soft);
+  overflow-wrap: anywhere;
 }
 
 /* ── Section ── */
@@ -98,6 +116,7 @@
   border: 1px solid rgb(58 44 30 / 0.1);
   border-radius: 16px;
   padding: 1.25rem 1.4rem;
+  overflow: hidden;
 }
 
 .mon-section__title {
@@ -122,8 +141,11 @@
   display: flex;
   align-items: flex-end;
   gap: 3px;
+  max-width: 100%;
   height: 100px;
   padding-top: 0.5rem;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
 }
 
 .mon-chart__col {
@@ -160,16 +182,43 @@
 
 /* ── Tables ── */
 .mon-table-wrap {
-  overflow-x: auto;
+  max-width: 100%;
+  max-block-size: min(440px, 62vh);
+  overflow: auto;
+  overscroll-behavior-inline: contain;
+  overscroll-behavior-block: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(11 76 58 / 0.35) transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mon-table-wrap::-webkit-scrollbar {
+  inline-size: 8px;
+  block-size: 8px;
+}
+
+.mon-table-wrap::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mon-table-wrap::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgb(11 76 58 / 0.28);
 }
 
 .mon-table {
   width: 100%;
+  min-width: 100%;
   border-collapse: collapse;
   font-size: 0.8rem;
 }
 
 .mon-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #fff;
   text-align: left;
   font-size: 0.68rem;
   font-weight: 700;
@@ -234,6 +283,7 @@
   color: #0b4c3a;
   text-decoration: none;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .mon-table__link:hover { text-decoration: underline; }
@@ -270,10 +320,119 @@
   font-style: italic;
   margin: 0;
   padding: 0.5rem 0;
+  overflow-wrap: anywhere;
 }
 
-@media (max-width: 600px) {
-  .mon-cards { grid-template-columns: repeat(2, 1fr); }
-  .mon-grid { grid-template-columns: 1fr; }
-  .mon-chart__label { display: none; }
+@media (max-width: 760px) {
+  .hero--monitoring {
+    min-height: 280px;
+  }
+
+  .hero--monitoring .hero-title {
+    font-size: clamp(2rem, 10vw, 3rem);
+    line-height: 1;
+    white-space: normal;
+  }
+
+  .hero--monitoring .hero-subtitle {
+    max-width: 32ch;
+    font-size: 0.94rem;
+    line-height: 1.5;
+  }
+
+  .mon-page {
+    padding-block: 1.25rem 1.6rem;
+  }
+
+  .mon-shell {
+    gap: 1rem;
+  }
+
+  .mon-back-row {
+    justify-content: center;
+    margin-block-start: 0;
+  }
+
+  .mon-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.62rem;
+  }
+
+  .mon-card {
+    align-items: center;
+    min-block-size: 112px;
+    padding: 0.82rem 0.68rem;
+    border-radius: 12px;
+    text-align: center;
+  }
+
+  .mon-card__value {
+    font-size: clamp(1.55rem, 8vw, 1.95rem);
+  }
+
+  .mon-card__label {
+    font-size: 0.72rem;
+    line-height: 1.22;
+  }
+
+  .mon-card__sub {
+    font-size: 0.64rem;
+    line-height: 1.28;
+  }
+
+  .mon-section {
+    padding: 0.9rem 0.72rem;
+    border-radius: 12px;
+  }
+
+  .mon-section__title {
+    margin-block-end: 0.75rem;
+    padding-bottom: 0.48rem;
+    font-size: 0.95rem;
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  .mon-grid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+
+  .mon-chart {
+    height: 94px;
+    padding-block-end: 0.2rem;
+  }
+
+  .mon-chart__col {
+    flex: 0 0 16px;
+  }
+
+  .mon-chart__label {
+    display: none;
+  }
+
+  .mon-table-wrap {
+    max-block-size: min(360px, 58vh);
+    margin-inline: -0.24rem;
+    padding-inline: 0.24rem;
+  }
+
+  .mon-table-wrap .mon-table {
+    min-width: 520px;
+  }
+
+  .mon-table th,
+  .mon-table td {
+    padding: 0.42rem 0.48rem;
+  }
+
+  .mon-table__path {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 340px) {
+  .mon-cards {
+    grid-template-columns: 1fr;
+  }
 }

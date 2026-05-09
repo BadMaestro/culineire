@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 490">
+
+  <!-- ═══ ARCH RING ═══ -->
+  <!-- outer r=196, inner r=158, center (240,308) -->
+  <path d="M 44,308 A 196,196 0 0 1 436,308 L 398,308 A 158,158 0 0 0 82,308 Z" fill="#3d2917"/>
+
+  <!-- Left pillar (same thickness as arch ring = 38px) -->
+  <rect x="44" y="308" width="38" height="90" fill="#3d2917"/>
+  <!-- Right pillar -->
+  <rect x="398" y="308" width="38" height="90" fill="#3d2917"/>
+  <!-- Base plate -->
+  <rect x="38" y="393" width="404" height="10" rx="2" fill="#3d2917"/>
+
+  <!-- Stone division lines — subtle radial mortar joints -->
+  <!-- θ=150°: inner (103,229) → outer (70,210) -->
+  <line x1="103" y1="229" x2="70"  y2="210" stroke="#f7f2ea" stroke-width="1.5" opacity="0.38"/>
+  <!-- θ=120°: inner (161,171) → outer (142,138) -->
+  <line x1="161" y1="171" x2="142" y2="138" stroke="#f7f2ea" stroke-width="1.5" opacity="0.38"/>
+  <!-- θ=90° keystone: inner (240,150) → outer (240,112) — slightly bolder -->
+  <line x1="240" y1="150" x2="240" y2="112" stroke="#f7f2ea" stroke-width="2"   opacity="0.42"/>
+  <!-- θ=60°: inner (319,171) → outer (338,138) -->
+  <line x1="319" y1="171" x2="338" y2="138" stroke="#f7f2ea" stroke-width="1.5" opacity="0.38"/>
+  <!-- θ=30°: inner (377,229) → outer (410,210) -->
+  <line x1="377" y1="229" x2="410" y2="210" stroke="#f7f2ea" stroke-width="1.5" opacity="0.38"/>
+
+  <!-- ═══ DUTCH OVEN / CASSEROLE POT ═══ -->
+  <!-- Flat-bottom, straight sides tapering gently to a flat opening — not a cauldron -->
+  <path d="M 168,307
+           L 170,258
+           Q 172,247 200,247
+           L 280,247
+           Q 308,247 310,258
+           L 312,307 Z"
+        fill="#3d2917"/>
+
+  <!-- Wide rim (wider than body, smooth rounded ends) -->
+  <rect x="158" y="231" width="164" height="16" rx="8" fill="#3d2917"/>
+
+  <!-- Left handle — small compact loop -->
+  <path d="M 170,269 Q 145,269 145,283 Q 145,297 170,297"
+        stroke="#3d2917" stroke-width="12" fill="none" stroke-linecap="round"/>
+  <!-- Right handle -->
+  <path d="M 310,269 Q 335,269 335,283 Q 335,297 310,297"
+        stroke="#3d2917" stroke-width="12" fill="none" stroke-linecap="round"/>
+
+  <!-- ═══ STEAM → DOTS  (history dissolving into modernity) ═══ -->
+  <!-- Three converging steam curves — elegant, not wavy -->
+  <path d="M 218,229 C 218,205 230,185 232,167"
+        stroke="#3d2917" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M 240,227 C 240,203 240,183 240,165"
+        stroke="#3d2917" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M 262,229 C 262,205 250,185 248,167"
+        stroke="#3d2917" stroke-width="4" fill="none" stroke-linecap="round"/>
+
+  <!-- Five dots in precise arc — the modern signal -->
+  <circle cx="199" cy="159" r="3.5" fill="#3d2917"/>
+  <circle cx="220" cy="153" r="3.5" fill="#3d2917"/>
+  <circle cx="240" cy="151" r="4"   fill="#3d2917"/>
+  <circle cx="260" cy="153" r="3.5" fill="#3d2917"/>
+  <circle cx="281" cy="159" r="3.5" fill="#3d2917"/>
+
+  <!-- ═══ WORDMARK ═══ -->
+  <line x1="88" y1="418" x2="392" y2="418" stroke="#3d2917" stroke-width="0.75" opacity="0.4"/>
+  <text x="240" y="443"
+        text-anchor="middle"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="25"
+        font-weight="700"
+        letter-spacing="6"
+        fill="#3d2917">CULIN&#201;IRE</text>
+  <text x="240" y="464"
+        text-anchor="middle"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="10"
+        letter-spacing="3.5"
+        fill="#3d2917"
+        opacity="0.58">IRISH CULINARY HERITAGE</text>
+
+</svg>

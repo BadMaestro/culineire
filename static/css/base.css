@@ -71,6 +71,7 @@
 
   html {
     scrollbar-gutter: stable;
+    overflow-x: hidden; /* prevent horizontal overflow on any screen size */
   }
 
   @media (prefers-reduced-motion: no-preference) {
@@ -81,6 +82,7 @@
 
   body {
     margin: 0;
+    overflow-x: hidden; /* belt-and-suspenders: also clip at body level */
     font-family: var(--font-sans);
     font-size: 16px;
     line-height: 1.6;
@@ -988,6 +990,30 @@
 
 .site-message--hiding {
   animation: toast-out 0.3s ease forwards;
+}
+
+.bmc-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #1a1a1a;
+  color: #ccc;
+  text-align: center;
+  padding: 0.6rem 1rem;
+  font-size: 0.85rem;
+  z-index: 9999;
+}
+
+.bmc-bar a {
+  color: #f5a623;
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 0.25rem;
+}
+
+.bmc-bar a:hover {
+  text-decoration: underline;
 }
 
 @keyframes toast-in {

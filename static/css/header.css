@@ -48,7 +48,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  min-width: 0;
+  flex-shrink: 0;
   color: #2f3534;
   text-decoration: none;
 }
@@ -65,14 +65,14 @@
 
 .ce-header__logo--full img {
   width: auto;
-  height: 170px;
+  height: clamp(100px, 15vw, 190px);
   aspect-ratio: unset;
 }
 
 .ce-header__logo-text {
-  color: #2f3534;
-  font-family: "Dancing Script", "Segoe Script", "Brush Script MT", cursive;
-  font-size: clamp(2.4rem, 3.8vw, 3.8rem);
+  color: #3d2917;
+  font-family: var(--font-serif);
+  font-size: clamp(1.5rem, 3.5vw, 2.8rem);
   font-weight: 700;
   line-height: 1.08;
   letter-spacing: -0.02em;
@@ -512,12 +512,12 @@
   justify-content: center;
 }
 
-@media (min-width: 840px) {
+@media (min-width: 1100px) {
   .ce-header__inner {
     display: flex;
     align-items: center;
     gap: 1rem;
-    min-height: 180px;
+    min-height: 0;
   }
 
   .ce-header__logo img {
@@ -528,7 +528,7 @@
 
   .ce-header__logo--full img {
     width: auto;
-    height: 170px;
+    height: clamp(100px, 15vw, 190px);
   }
 
   .ce-nav__toggle {
@@ -689,11 +689,8 @@
     max-width: none;
   }
 
-  .ce-header__logo--full img {
-    width: auto;
-    height: 115px;
-  }
 }
+
 
 @media (max-width: 520px) {
   .ce-header-socials {
@@ -717,11 +714,6 @@
     width: 78px;
     height: 78px;
     max-width: none;
-  }
-
-  .ce-header__logo--full img {
-    width: auto;
-    height: 90px;
   }
 
   .ce-nav__toggle {

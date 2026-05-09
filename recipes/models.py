@@ -14,7 +14,7 @@ from .validators import validate_image_upload
 MAX_MEDIA_SEGMENT_LENGTH = 60
 
 
-def safe_media_segment(value: str | None, fallback: str) -> str:
+def safe_media_segment(value, fallback):
     slug = slugify((value or "").strip())[:MAX_MEDIA_SEGMENT_LENGTH].strip("-")
     return slug or fallback
 
@@ -315,7 +315,7 @@ class Recipe(models.Model):
         return self.comments.filter(is_approved=True)
 
     @classmethod
-    def get_category_value_from_slug(cls, category_slug: str) -> str | None:
+    def get_category_value_from_slug(cls, category_slug):
         value = category_slug.replace("-", "_")
         valid_values = {choice.value for choice in cls.Category}
         return value if value in valid_values else None
@@ -325,7 +325,7 @@ class Recipe(models.Model):
         return cls.Category(category_value).label
 
     @classmethod
-    def get_category_navigation(cls, selected_value: str | None = None) -> list[dict]:
+    def get_category_navigation(cls, selected_value=None):
         items = []
 
         for choice in cls.Category:
@@ -403,7 +403,7 @@ class Recipe(models.Model):
 
         return slug
 
-    def save(self, *args, **kwargs) -> None:
+    def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = self.generate_unique_slug()
 

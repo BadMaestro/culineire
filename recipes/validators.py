@@ -21,7 +21,7 @@ class ImageUploadValidator:
     def __init__(self, max_size: int = 5 * 1024 * 1024):
         self.max_size = max_size
 
-    def __call__(self, uploaded_file) -> None:
+    def __call__(self, uploaded_file):
         if not uploaded_file:
             return
 

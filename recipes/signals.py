@@ -7,7 +7,7 @@ from django.dispatch import receiver
 from .models import Recipe, RecipeImage
 
 
-def _safe_delete_file(file_field) -> None:
+def _safe_delete_file(file_field):
     """
     Delete a file from storage if it exists.
     Works safely even if the file was already removed.
@@ -32,7 +32,7 @@ def _safe_delete_file(file_field) -> None:
         return
 
 
-def _cleanup_empty_parent_dirs(file_name: str) -> None:
+def _cleanup_empty_parent_dirs(file_name):
     """
     Remove empty directories upward from the file location,
     but never go above MEDIA_ROOT.
@@ -58,7 +58,7 @@ def _cleanup_empty_parent_dirs(file_name: str) -> None:
         current_dir = current_dir.parent
 
 
-def _delete_file_and_cleanup(file_field) -> None:
+def _delete_file_and_cleanup(file_field):
     file_name = getattr(file_field, "name", "")
     _safe_delete_file(file_field)
     if file_name:

@@ -1,4 +1,5 @@
 import re
+from typing import cast
 
 from django.conf import settings
 from django.contrib import messages
@@ -72,21 +73,21 @@ CATEGORY_IMAGE_MAP = {
     "irish_culinary_heritage": "images/categories/irish-culinary-heritage.png",
     "modern_irish_cooking": "images/categories/modern-irish-cooking.png",
     "everyday_irish_cooking": "images/categories/everyday-irish-cooking.png",
-    "breakfast_and_brunch": "images/categories/breakfast-and-brunch",
+    "breakfast_and_brunch": "images/categories/breakfast-and-brunch.png",
     "lunch": "images/categories/lunch.png",
     "dinner": "images/categories/dinner.png",
     "grilling_and_barbecue": "images/categories/grilling-and-barbecue.png",
     "soups_and_stews": "images/categories/soups-and-stews.png",
     "salads": "images/categories/salads.png",
-    "seasonal_and_festive_irish": "images/categories/seasonal-and-festive",
+    "seasonal_and_festive_irish": "images/categories/seasonal-and-festive.png",
     "healthy_eating": "images/categories/healthy-eating.png",
     "pasta_and_noodles": "images/categories/pasta-and-noodles.png",
 }
 
 
 METHOD_STEP_PREFIX_RE = re.compile(r"^\d+\.\s*")
-INGREDIENT_DETAIL_SPLIT_RE = re.compile(r"\s*(?:-|–|—|:)\s*", re.UNICODE)
-CONTEXT_SENTENCE_SPLIT_RE = re.compile(r'(?<=[.!?])\s+(?=(?:["“‘]?[A-Z0-9]))')
+INGREDIENT_DETAIL_SPLIT_RE = re.compile("\\s*[-\u2013\u2014:]\\s*", re.UNICODE)
+CONTEXT_SENTENCE_SPLIT_RE = re.compile("(?<=[.!?])\\s+(?=[\"\\u201c\\u2018]?[A-Z0-9])")
 
 
 EU_ALLERGENS = [
@@ -494,7 +495,7 @@ def recipe_detail(request, slug):
                 raise Http404
 
     gallery_items = []
-    active_gallery_items = list(recipe.gallery_images.all())
+    active_gallery_items = list(getattr(recipe, "gallery_images").all())
 
     if active_gallery_items:
         for item in active_gallery_items:
@@ -548,7 +549,7 @@ def recipe_detail(request, slug):
     tips_paragraphs = _build_context_paragraphs(recipe.tips)
     author_commentary_paragraphs = _build_context_paragraphs(recipe.author_commentary)
     approved_comments = getattr(recipe, "approved_comments_prefetched", [])
-    rating_summary = recipe.ratings.aggregate(
+    rating_summary = getattr(recipe, "ratings").aggregate(
         average=Avg("value"),
         count=Count("id"),
     )
@@ -745,7 +746,7 @@ class RecipeCreateView(AuthorRequiredMixin, CreateView):
         recipe = form.save(commit=False)
         recipe.author = self.author
         recipe.save()
-        form.save_additional_categories(recipe)
+        getattr(form, "save_additional_categories")(recipe)
 
         for i, img_file in enumerate(self.request.FILES.getlist("gallery_images"), start=1):
             RecipeImage.objects.create(recipe=recipe, image=img_file, sort_order=i)
@@ -775,9 +776,9 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
 
     def form_valid(self, form):
         recipe = form.save(commit=True)
-        form.save_additional_categories(recipe)
+        getattr(form, "save_additional_categories")(recipe)
 
-        existing_count = recipe.gallery_images.count()
+        existing_count = getattr(recipe, "gallery_images").count()
         for i, img_file in enumerate(self.request.FILES.getlist("gallery_images"), start=existing_count + 1):
             RecipeImage.objects.create(recipe=recipe, image=img_file, sort_order=i)
 
@@ -867,7 +868,7 @@ class RecipeAuthorDeleteView(AuthorRequiredMixin, DeleteView):
         return self.author
 
     def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
+        self.object = cast(RecipeAuthor, self.get_object())
 
         if self.object.slug == "greenbear":
             messages.error(request, "This account cannot be deleted.")
@@ -955,7 +956,7 @@ class ModeratorAuthorDeleteView(DeleteView):
         return RecipeAuthor.objects.select_related("user")
 
     def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
+        self.object = cast(RecipeAuthor, self.get_object())
         if _is_protected_author_action(self.object, request.user):
             raise Http404
 
@@ -1002,7 +1003,7 @@ class CulinEireLoginView(LoginView):
             username = request.POST.get("username", "")
             try:
                 u = User.objects.get(username=username)
-                if u.is_superuser:
+                if getattr(u, "is_superuser", False):
                     return super().post(request, *args, **kwargs)
             except User.DoesNotExist:
                 pass
@@ -1154,7 +1155,8 @@ def moderation_panel(request):
     )
     registered_authors = (
         RecipeAuthor.objects.select_related("user")
-        .filter(user__isnull=False)
+        .filter(user__isnull=False, has_bearseeker_privileges=False)
+        .exclude(slug="greenbear")
         .order_by("name", "user__username")
     )
     if author_query:
@@ -1168,6 +1170,11 @@ def moderation_panel(request):
         .filter(has_bearseeker_privileges=True, user__isnull=False)
         .order_by("name")
     )
+    bearseeker_super_user = (
+        RecipeAuthor.objects.select_related("user")
+        .filter(slug="greenbear", user__isnull=False)
+        .first()
+    )
 
     return render(request, "moderation/panel.html", {
         "pending_recipes": pending_recipes,
@@ -1177,6 +1184,7 @@ def moderation_panel(request):
         "registered_authors": registered_authors,
         "author_query": author_query,
         "can_grant_bearseeker_privileges": _can_grant_bearseeker_privileges(request.user),
+        "bearseeker_super_user": bearseeker_super_user,
         "bearseeker_authors": bearseeker_authors,
     })
 

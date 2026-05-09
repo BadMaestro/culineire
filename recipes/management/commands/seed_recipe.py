@@ -127,7 +127,7 @@ class Command(BaseCommand):
 
     # -- internals ---------------------------------------------------------
 
-    def _load_one(self, path: Path, options: dict) -> None:
+    def _load_one(self, path, options):
         Recipe = apps.get_model("recipes", "Recipe")
         RecipeAuthor = apps.get_model("recipes", "RecipeAuthor")
 

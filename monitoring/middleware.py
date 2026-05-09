@@ -45,7 +45,7 @@ class MonitoringMiddleware:
 
         return response
 
-    def _record_response(self, request, response, is_suspicious: bool) -> None:
+    def _record_response(self, request, response, is_suspicious):
         if is_suspicious:
             return
 
@@ -93,7 +93,7 @@ class MonitoringMiddleware:
                 status_code=status,
             )
 
-    def _record_security(self, request, event_type: str) -> None:
+    def _record_security(self, request, event_type):
         try:
             from monitoring.models import SecurityEvent
 
