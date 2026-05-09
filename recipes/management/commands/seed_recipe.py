@@ -128,8 +128,8 @@ class Command(BaseCommand):
     # -- internals ---------------------------------------------------------
 
     def _load_one(self, path, options):
-        Recipe = apps.get_model("recipes", "Recipe")
-        RecipeAuthor = apps.get_model("recipes", "RecipeAuthor")
+        recipe_model = apps.get_model("recipes", "Recipe")
+        author_model = apps.get_model("recipes", "RecipeAuthor")
 
         payload = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(payload, list) or len(payload) != 1:
@@ -151,8 +151,8 @@ class Command(BaseCommand):
         if not options["no_author"]:
             slug = options["author_slug"]
             try:
-                author = RecipeAuthor.objects.get(slug=slug)
-            except RecipeAuthor.DoesNotExist as exc:
+                author = author_model.objects.get(slug=slug)
+            except author_model.DoesNotExist as exc:
                 raise CommandError(
                     f'{path.name}: RecipeAuthor with slug="{slug}" not found. '
                     "Create it first or pass --no-author."
@@ -166,7 +166,7 @@ class Command(BaseCommand):
         if not fields.get("hero_image"):
             fields["hero_image"] = None
 
-        recipe, created = Recipe.objects.update_or_create(
+        recipe, created = recipe_model.objects.update_or_create(
             slug=recipe_slug,
             defaults=fields,
         )

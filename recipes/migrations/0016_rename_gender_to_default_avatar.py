@@ -1,9 +1,9 @@
 from django.db import migrations, models
 
 
-def prefer_not_to_say_to_neutral(apps, schema_editor):
-    RecipeAuthor = apps.get_model("recipes", "RecipeAuthor")
-    RecipeAuthor.objects.filter(default_avatar="prefer_not_to_say").update(default_avatar="neutral")
+def prefer_not_to_say_to_neutral(apps, _schema_editor):
+    author_model = apps.get_model("recipes", "RecipeAuthor")
+    author_model.objects.filter(default_avatar="prefer_not_to_say").update(default_avatar="neutral")
 
 
 class Migration(migrations.Migration):

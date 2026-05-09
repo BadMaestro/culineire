@@ -2,22 +2,22 @@ import django.db.models.deletion
 from django.db import migrations, models
 
 
-def assign_default_author(apps, schema_editor):
-    Article = apps.get_model("articles", "Article")
-    RecipeAuthor = apps.get_model("recipes", "RecipeAuthor")
+def assign_default_author(apps, _schema_editor):
+    article_model = apps.get_model("articles", "Article")
+    author_model = apps.get_model("recipes", "RecipeAuthor")
 
-    default_author = RecipeAuthor.objects.filter(slug="greenbear").first()
+    default_author = author_model.objects.filter(slug="greenbear").first()
     if default_author is None:
-        default_author = RecipeAuthor.objects.order_by("id").first()
+        default_author = author_model.objects.order_by("id").first()
 
     if default_author is None:
-        default_author = RecipeAuthor.objects.create(
+        default_author = author_model.objects.create(
             name="GreenBear",
             slug="greenbear",
             bio="Recipe author and founder of this kitchen.",
         )
 
-    Article.objects.filter(author__isnull=True).update(author=default_author)
+    article_model.objects.filter(author__isnull=True).update(author=default_author)
 
 
 class Migration(migrations.Migration):

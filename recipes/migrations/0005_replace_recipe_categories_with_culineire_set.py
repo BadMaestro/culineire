@@ -1,8 +1,8 @@
 from django.db import migrations, models
 
 
-def move_categories_to_culineire_set(apps, schema_editor):
-    Recipe = apps.get_model("recipes", "Recipe")
+def move_categories_to_culineire_set(apps, _schema_editor):
+    recipe_model = apps.get_model("recipes", "Recipe")
 
     mapping = {
         "dinner_recipes": "dinner",
@@ -36,10 +36,10 @@ def move_categories_to_culineire_set(apps, schema_editor):
     }
 
     for old_value, new_value in mapping.items():
-        Recipe.objects.filter(category=old_value).update(category=new_value)
+        recipe_model.objects.filter(category=old_value).update(category=new_value)
 
-    Recipe.objects.filter(category="").update(category="everyday_irish_cooking")
-    Recipe.objects.filter(category__isnull=True).update(category="everyday_irish_cooking")
+    recipe_model.objects.filter(category="").update(category="everyday_irish_cooking")
+    recipe_model.objects.filter(category__isnull=True).update(category="everyday_irish_cooking")
 
 
 class Migration(migrations.Migration):

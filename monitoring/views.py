@@ -1,22 +1,17 @@
 from __future__ import annotations
 
-from datetime import date, datetime, time
-
-from django.contrib.auth import get_user_model
 from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import render
 from django.utils import timezone
 
-from recipes.views import _is_moderator
+from recipes.views import is_moderator
 
 from .models import PageView, SecurityEvent, UserActivity
 
-User = get_user_model()
-
 
 def _require_moderator(request):
-    if not _is_moderator(request.user):
+    if not is_moderator(request.user):
         raise Http404
 
 

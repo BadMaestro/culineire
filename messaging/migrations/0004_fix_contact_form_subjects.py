@@ -1,9 +1,9 @@
 from django.db import migrations
 
 
-def fix_contact_subjects(apps, schema_editor):
-    Message = apps.get_model("messaging", "Message")
-    Message.objects.filter(
+def fix_contact_subjects(apps, _schema_editor):
+    message_model = apps.get_model("messaging", "Message")
+    message_model.objects.filter(
         parent=None,
         subject="Contact form message",
     ).update(subject="Message from CulinEire Kitchen Author")

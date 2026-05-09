@@ -22,9 +22,9 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        User = get_user_model()
+        user_model = get_user_model()
 
-        orphans = User.objects.filter(
+        orphans = user_model.objects.filter(
             recipe_author_profile__isnull=True,
             is_superuser=False,
             is_staff=False,

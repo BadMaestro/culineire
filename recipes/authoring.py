@@ -24,13 +24,18 @@ class AuthorRequiredMixin(LoginRequiredMixin):
         "Author Profile Required. Please Connect This Account To An Author Profile First."
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.author = None
+
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return self.handle_no_permission()
 
-        self.author = get_author_for_user(request.user)
+        author = get_author_for_user(request.user)
+        setattr(self, "author", author)
 
-        if not self.author:
+        if not author:
             messages.error(request, self.author_required_message)
             return redirect("home")
 

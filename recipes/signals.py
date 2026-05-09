@@ -18,7 +18,7 @@ def _safe_delete_file(file_field):
     try:
         storage = file_field.storage
         name = file_field.name
-    except Exception:
+    except (AttributeError, ValueError, OSError):
         return
 
     if not name:
@@ -27,7 +27,7 @@ def _safe_delete_file(file_field):
     try:
         if storage.exists(name):
             storage.delete(name)
-    except Exception:
+    except OSError:
         # Do not crash admin/site if filesystem cleanup fails.
         return
 
@@ -66,7 +66,7 @@ def _delete_file_and_cleanup(file_field):
 
 
 @receiver(pre_save, sender=Recipe)
-def delete_old_recipe_preview_on_change(sender, instance, **kwargs):
+def delete_old_recipe_preview_on_change(_sender, instance, **_kwargs):
     """
     If preview image is replaced, remove the old file.
     """
@@ -89,7 +89,7 @@ def delete_old_recipe_preview_on_change(sender, instance, **kwargs):
 
 
 @receiver(pre_save, sender=RecipeImage)
-def delete_old_gallery_image_on_change(sender, instance, **kwargs):
+def delete_old_gallery_image_on_change(_sender, instance, **_kwargs):
     """
     If a gallery image is replaced, remove the old file.
     """
@@ -112,7 +112,7 @@ def delete_old_gallery_image_on_change(sender, instance, **kwargs):
 
 
 @receiver(post_delete, sender=Recipe)
-def delete_recipe_preview_on_delete(sender, instance, **kwargs):
+def delete_recipe_preview_on_delete(_sender, instance, **_kwargs):
     """
     Delete preview image file when recipe is deleted.
     """
@@ -121,7 +121,7 @@ def delete_recipe_preview_on_delete(sender, instance, **kwargs):
 
 
 @receiver(post_delete, sender=RecipeImage)
-def delete_gallery_image_on_delete(sender, instance, **kwargs):
+def delete_gallery_image_on_delete(_sender, instance, **_kwargs):
     """
     Delete gallery image file when gallery item is deleted.
     """

@@ -1,8 +1,16 @@
 from django import forms
 from django.contrib import admin
-from django.utils.html import format_html
+from django.utils.html import format_html_join
 
 from .models import Article, ArticleImage
+
+
+def _preview_image(url, alt_text, style):
+    return format_html_join(
+        "",
+        '<img src="{}" alt="{}" style="{}" />',
+        ((url, alt_text, style),),
+    )
 
 
 class ArticleAdminForm(forms.ModelForm):
@@ -38,15 +46,16 @@ class ArticleImageInline(admin.TabularInline):
     verbose_name = "Gallery item"
     verbose_name_plural = "Gallery items"
 
-    def image_preview(self, obj):
+    @staticmethod
+    @admin.display(description="Preview")
+    def image_preview(obj):
         if obj and obj.image:
-            return format_html(
-                '<img src="{}" alt="Gallery preview" style="width: 120px; height: 90px; object-fit: cover; border-radius: 10px; border: 1px solid #d8d2c8;" />',
+            return _preview_image(
                 obj.image.url,
+                "Gallery preview",
+                "width: 120px; height: 90px; object-fit: cover; border-radius: 10px; border: 1px solid #d8d2c8;",
             )
         return "No image"
-
-    image_preview.short_description = "Preview"
 
 
 @admin.register(Article)
@@ -120,25 +129,28 @@ class ArticleAdmin(admin.ModelAdmin):
         ),
     )
 
-    def hero_preview(self, obj):
+    @staticmethod
+    @admin.display(description="Current preview")
+    def hero_preview(obj):
         if obj and obj.hero_image:
-            return format_html(
-                '<img src="{}" alt="Preview image" style="max-width: 320px; width: 100%; height: auto; border-radius: 14px; border: 1px solid #d8d2c8;" />',
+            return _preview_image(
                 obj.hero_image.url,
+                "Preview image",
+                "max-width: 320px; width: 100%; height: auto; border-radius: 14px; border: 1px solid #d8d2c8;",
             )
         return "No preview image uploaded yet."
 
-    hero_preview.short_description = "Current preview"
-
-    def article_preview_small(self, obj):
+    @staticmethod
+    @admin.display(description="Image")
+    def article_preview_small(obj):
         if obj and obj.hero_image:
-            return format_html(
-                '<img src="{}" alt="Preview" style="width: 72px; height: 52px; object-fit: cover; border-radius: 8px; border: 1px solid #d8d2c8;" />',
+            return _preview_image(
                 obj.hero_image.url,
+                "Preview",
+                "width: 72px; height: 52px; object-fit: cover; border-radius: 8px; border: 1px solid #d8d2c8;",
             )
         return "—"
 
-    article_preview_small.short_description = "Image"
 
 
 @admin.register(ArticleImage)
@@ -177,22 +189,24 @@ class ArticleImageAdmin(admin.ModelAdmin):
     )
     autocomplete_fields = ("article",)
 
-    def image_preview_small(self, obj):
+    @staticmethod
+    @admin.display(description="Image")
+    def image_preview_small(obj):
         if obj and obj.image:
-            return format_html(
-                '<img src="{}" alt="Gallery preview" style="width: 72px; height: 52px; object-fit: cover; border-radius: 8px; border: 1px solid #d8d2c8;" />',
+            return _preview_image(
                 obj.image.url,
+                "Gallery preview",
+                "width: 72px; height: 52px; object-fit: cover; border-radius: 8px; border: 1px solid #d8d2c8;",
             )
         return "—"
 
-    image_preview_small.short_description = "Image"
-
-    def image_preview_large(self, obj):
+    @staticmethod
+    @admin.display(description="Current preview")
+    def image_preview_large(obj):
         if obj and obj.image:
-            return format_html(
-                '<img src="{}" alt="Gallery preview" style="max-width: 320px; width: 100%; height: auto; border-radius: 14px; border: 1px solid #d8d2c8;" />',
+            return _preview_image(
                 obj.image.url,
+                "Gallery preview",
+                "max-width: 320px; width: 100%; height: auto; border-radius: 14px; border: 1px solid #d8d2c8;",
             )
         return "No image uploaded yet."
-
-    image_preview_large.short_description = "Current preview"

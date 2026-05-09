@@ -5,9 +5,10 @@ from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
 from config.turnstile import verify_turnstile
+from monitoring.tracker import track_event
 from recipes.authoring import AuthorRequiredMixin, user_can_manage_author
 from recipes.models import RecipeAuthor
-from recipes.views import _is_moderator
+from recipes.views import is_moderator
 from .forms import ArticleAuthoringForm
 from .models import Article, ArticleImage
 
@@ -22,7 +23,7 @@ class ArticleListView(ListView):
         author_slug = (self.request.GET.get("author") or "").strip()
         selected_author = get_object_or_404(RecipeAuthor, slug=author_slug) if author_slug else None
 
-        show_all = selected_author and _is_moderator(self.request.user)
+        show_all = selected_author and is_moderator(self.request.user)
 
         queryset = Article.objects.select_related("author").order_by("-published")
         if not show_all:
@@ -38,7 +39,7 @@ class ArticleListView(ListView):
         if author_slug:
             selected_author = get_object_or_404(RecipeAuthor, slug=author_slug)
 
-        show_all = selected_author and _is_moderator(self.request.user)
+        show_all = selected_author and is_moderator(self.request.user)
 
         recent_articles = None
         all_articles = None
@@ -66,7 +67,7 @@ class ArticleListView(ListView):
         context["default_recent_articles"] = default_recent_articles
         context["all_articles_grid"] = all_articles_grid
         context["can_manage_selected_author"] = (
-                _is_moderator(self.request.user) or
+                is_moderator(self.request.user) or
                 user_can_manage_author(self.request.user, selected_author)
         )
         return context
@@ -121,7 +122,7 @@ class ArticleDetailView(DetailView):
         qs = Article.objects.select_related("author", "related_recipe").prefetch_related(
             self._GALLERY_PREFETCH
         )
-        if _is_moderator(self.request.user):
+        if is_moderator(self.request.user):
             return qs
         return qs.filter(status=Article.Status.APPROVED)
 
@@ -137,16 +138,13 @@ class ArticleDetailView(DetailView):
 
     def get(self, request, *args, **kwargs):
         response = super().get(request, *args, **kwargs)
-        try:
-            from monitoring.tracker import track_event
-            track_event(
-                request, "article_view",
-                object_type="article",
-                object_id=self.object.pk,
-                object_title=self.object.title,
-            )
-        except Exception:
-            pass
+        track_event(
+            request,
+            "article_view",
+            object_type="article",
+            object_id=self.object.pk,
+            object_title=self.object.title,
+        )
         return response
 
     def get_context_data(self, **kwargs):
@@ -177,11 +175,11 @@ class ArticleDetailView(DetailView):
         context["gallery_items"] = gallery_items
         context["has_gallery"] = len(gallery_items) > 1
         context["can_manage_article"] = (
-                _is_moderator(self.request.user) or
+                is_moderator(self.request.user) or
                 user_can_manage_author(self.request.user, article.author)
         )
         context["can_moderate_bar"] = (
-                _is_moderator(self.request.user) and
+                is_moderator(self.request.user) and
                 article.status != Article.Status.APPROVED
         )
         return context
@@ -194,7 +192,7 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
     context_object_name = "article"
 
     def get_queryset(self):
-        if _is_moderator(self.request.user):
+        if is_moderator(self.request.user):
             return Article.objects.all()
         return Article.objects.filter(author=self.author)
 
@@ -212,7 +210,7 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
             ArticleImage.objects.create(article=article, image=img_file, sort_order=i)
 
         messages.success(self.request, "Article Updated Successfully.")
-        if _is_moderator(self.request.user):
+        if is_moderator(self.request.user):
             from django.urls import reverse
             return redirect(reverse("recipes:moderation_panel"))
         return redirect(article.get_absolute_url())
@@ -234,7 +232,7 @@ class ArticleDeleteView(AuthorRequiredMixin, DeleteView):
     success_url = "/articles/"
 
     def get_queryset(self):
-        if _is_moderator(self.request.user):
+        if is_moderator(self.request.user):
             return Article.objects.all()
         return Article.objects.filter(author=self.author)
 

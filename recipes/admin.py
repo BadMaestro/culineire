@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib import admin
-from django.utils.html import format_html
+from django.utils.html import format_html_join
 
 from .allergens import EU_ALLERGEN_CHOICES, parse_selected_allergen_keys, serialize_allergen_keys
 from .models import (
@@ -10,6 +10,14 @@ from .models import (
     RecipeImage,
     RecipeRating,
 )
+
+
+def _preview_image(url, alt_text, style):
+    return format_html_join(
+        "",
+        '<img src="{}" alt="{}" style="{}" />',
+        ((url, alt_text, style),),
+    )
 
 
 class RecipeAdminForm(forms.ModelForm):
@@ -85,15 +93,16 @@ class RecipeImageInline(admin.TabularInline):
     readonly_fields = ("image_preview",)
     ordering = ("sort_order", "id")
 
-    def image_preview(self, obj):
+    @staticmethod
+    @admin.display(description="Preview")
+    def image_preview(obj):
         if obj and obj.image:
-            return format_html(
-                '<img src="{}" style="max-width: 120px; max-height: 120px; border-radius: 8px;" alt="Gallery image preview" />',
+            return _preview_image(
                 obj.image.url,
+                "Gallery image preview",
+                "max-width: 120px; max-height: 120px; border-radius: 8px;",
             )
         return "No image"
-
-    image_preview.short_description = "Preview"
 
 
 @admin.register(RecipeAuthor)
@@ -119,15 +128,16 @@ class RecipeAuthorAdmin(admin.ModelAdmin):
         ),
     )
 
-    def avatar_preview(self, obj):
+    @staticmethod
+    @admin.display(description="Current avatar")
+    def avatar_preview(obj):
         if obj and obj.avatar:
-            return format_html(
-                '<img src="{}" style="max-width: 160px; max-height: 160px; border-radius: 999px;" alt="Author avatar preview" />',
+            return _preview_image(
                 obj.avatar.url,
+                "Author avatar preview",
+                "max-width: 160px; max-height: 160px; border-radius: 999px;",
             )
         return "No avatar uploaded yet."
-
-    avatar_preview.short_description = "Current avatar"
 
 
 @admin.register(Recipe)
@@ -200,15 +210,16 @@ class RecipeAdmin(admin.ModelAdmin):
         ),
     )
 
-    def hero_preview(self, obj):
+    @staticmethod
+    @admin.display(description="Current preview")
+    def hero_preview(obj):
         if obj and obj.hero_image:
-            return format_html(
-                '<img src="{}" style="max-width: 240px; border-radius: 10px;" alt="Preview image" />',
+            return _preview_image(
                 obj.hero_image.url,
+                "Preview image",
+                "max-width: 240px; border-radius: 10px;",
             )
         return "No preview image uploaded yet."
-
-    hero_preview.short_description = "Current preview"
 
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)

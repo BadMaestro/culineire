@@ -52,7 +52,8 @@ class ImageUploadValidator:
                 code="format_mismatch",
             )
 
-    def _detect_image_format(self, uploaded_file) -> str:
+    @staticmethod
+    def _detect_image_format(uploaded_file) -> str:
         original_position = 0
         if hasattr(uploaded_file, "tell"):
             try:

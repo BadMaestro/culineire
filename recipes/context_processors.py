@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from urllib.parse import urlencode
 
+from django.db import DatabaseError
 from django.urls import NoReverseMatch, reverse
 
 from .authoring import get_author_for_user
@@ -11,7 +12,7 @@ def _unread_message_count(user):
     try:
         from messaging.models import Message
         return Message.objects.filter(recipient=user, is_read=False).count()
-    except Exception:
+    except (DatabaseError, ImportError):
         return 0
 
 
@@ -22,7 +23,7 @@ def _pending_moderation_count():
         pending_recipes = Recipe.objects.filter(status=Recipe.Status.PENDING).count()
         pending_articles = Article.objects.filter(status=Article.Status.PENDING).count()
         return pending_recipes + pending_articles
-    except Exception:
+    except (DatabaseError, ImportError):
         return 0
 
 

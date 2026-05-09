@@ -1,8 +1,9 @@
 from collections import defaultdict
+from smtplib import SMTPException
 
 from django.contrib import messages as django_messages
 from django.contrib.auth.decorators import login_required
-from django.core.mail import send_mail
+from django.core.mail import BadHeaderError, send_mail
 from django.db import models
 from django.db.models import Exists, OuterRef
 from django.http import Http404
@@ -11,7 +12,7 @@ from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from recipes.views import _is_moderator
+from recipes.views import is_moderator
 from .models import Message
 
 
@@ -72,7 +73,7 @@ def inbox(request):
 
     return render(request, "messaging/inbox.html", {
         "user_messages": user_messages,
-        "is_moderator": _is_moderator(request.user),
+        "is_moderator": is_moderator(request.user),
     })
 
 
@@ -107,7 +108,7 @@ def message_detail(request, pk):
         .select_related("sender", "sender__recipe_author_profile", "recipient")
         .order_by("created_at")
     )
-    if _is_moderator(request.user):
+    if is_moderator(request.user):
         can_reply = thread[-1].sender_id != request.user.pk if thread else False
     else:
         can_reply = True
@@ -122,7 +123,7 @@ def message_detail(request, pk):
 @require_POST
 @login_required
 def send_message(request):
-    if not _is_moderator(request.user):
+    if not is_moderator(request.user):
         raise Http404
 
     from recipes.models import Recipe
@@ -140,8 +141,8 @@ def send_message(request):
         return _moderation_redirect(request)
 
     from django.contrib.auth import get_user_model
-    User = get_user_model()
-    recipient = get_object_or_404(User, pk=recipient_id)
+    user_model = get_user_model()
+    recipient = get_object_or_404(user_model, pk=recipient_id)
 
     recipe = None
     article = None
@@ -195,7 +196,7 @@ def send_message(request):
             recipient_list=[recipient.email],
             fail_silently=True,
         )
-    except Exception:
+    except (BadHeaderError, SMTPException):
         pass
 
     if action == "reject_and_message" and recipe:
@@ -334,7 +335,7 @@ def reply_message(request, pk):
             recipient_list=[other.email],
             fail_silently=True,
         )
-    except Exception:
+    except (BadHeaderError, SMTPException):
         pass
 
     return redirect("messaging:message_detail", pk=parent.pk)
@@ -357,7 +358,7 @@ def _thread_root_for_user(pk, user):
 @require_POST
 @login_required
 def archive_message(request, pk):
-    if not _is_moderator(request.user):
+    if not is_moderator(request.user):
         raise Http404
     root = _thread_root_for_user(pk, request.user)
     Message.objects.filter(
@@ -370,7 +371,7 @@ def archive_message(request, pk):
 @require_POST
 @login_required
 def delete_message(request, pk):
-    if not _is_moderator(request.user):
+    if not is_moderator(request.user):
         raise Http404
     root = _thread_root_for_user(pk, request.user)
     Message.objects.filter(

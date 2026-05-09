@@ -16,5 +16,6 @@ cache/
 .qodana/
 qodana-report/
 code-inspection.log
+qodana-local.sarif.json
 node_modules/
 .DS_Store

@@ -1,5 +1,6 @@
 import json
 import urllib.parse
+import urllib.error
 import urllib.request
 
 from django.conf import settings
@@ -22,5 +23,5 @@ def verify_turnstile(token, remote_ip):
         ) as resp:
             result = json.loads(resp.read())
         return result.get("success", False)
-    except Exception:
+    except (json.JSONDecodeError, TimeoutError, urllib.error.URLError):
         return False

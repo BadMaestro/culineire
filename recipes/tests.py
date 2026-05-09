@@ -511,7 +511,8 @@ class SecuritySettingsModuleTests(SimpleTestCase):
         importlib.reload(importlib.import_module("config.settings"))
         super().tearDown()
 
-    def reload_project_settings(self, **env_overrides):
+    @staticmethod
+    def reload_project_settings(**env_overrides):
         module = importlib.import_module("config.settings")
         base_env = {
             "DJANGO_SECRET_KEY": "x" * 64,

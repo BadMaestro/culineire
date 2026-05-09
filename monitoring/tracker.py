@@ -4,6 +4,7 @@ import hashlib
 import hmac
 
 from django.conf import settings
+from django.db import DatabaseError
 
 
 def get_client_ip(request) -> str:
@@ -51,5 +52,5 @@ def track_event(
             path=request.path[:500],
             metadata=metadata or {},
         )
-    except Exception:
+    except (AttributeError, DatabaseError, ImportError):
         pass

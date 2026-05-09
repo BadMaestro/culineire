@@ -4,16 +4,16 @@ from django.utils.text import slugify
 import django.db.models.deletion
 
 
-def link_existing_authors(apps, schema_editor):
+def link_existing_authors(apps, _schema_editor):
     user_app_label, user_model_name = settings.AUTH_USER_MODEL.split(".")
-    User = apps.get_model(user_app_label, user_model_name)
-    RecipeAuthor = apps.get_model("recipes", "RecipeAuthor")
+    user_model = apps.get_model(user_app_label, user_model_name)
+    author_model = apps.get_model("recipes", "RecipeAuthor")
 
     linked_user_ids = set(
-        RecipeAuthor.objects.exclude(user__isnull=True).values_list("user_id", flat=True)
+        author_model.objects.exclude(user__isnull=True).values_list("user_id", flat=True)
     )
 
-    for author in RecipeAuthor.objects.filter(user__isnull=True):
+    for author in author_model.objects.filter(user__isnull=True):
         candidates = []
         if author.slug:
             candidates.append(author.slug)
@@ -25,7 +25,7 @@ def link_existing_authors(apps, schema_editor):
         for candidate in candidates:
             if not candidate:
                 continue
-            user = User.objects.filter(username__iexact=candidate).first()
+            user = user_model.objects.filter(username__iexact=candidate).first()
             if user and user.pk not in linked_user_ids:
                 break
             user = None

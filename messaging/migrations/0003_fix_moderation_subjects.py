@@ -1,18 +1,18 @@
 from django.db import migrations
 
 
-def fix_subjects(apps, schema_editor):
-    Message = apps.get_model("messaging", "Message")
-    RecipeAuthor = apps.get_model("recipes", "RecipeAuthor")
+def fix_subjects(apps, _schema_editor):
+    message_model = apps.get_model("messaging", "Message")
+    author_model = apps.get_model("recipes", "RecipeAuthor")
 
     try:
-        greenbear_user = RecipeAuthor.objects.get(slug="greenbear").user
-    except RecipeAuthor.DoesNotExist:
+        greenbear_user = author_model.objects.get(slug="greenbear").user
+    except author_model.DoesNotExist:
         greenbear_user = None
 
     old_subject = "Message from CulinEire moderation"
 
-    qs = Message.objects.filter(subject=old_subject)
+    qs = message_model.objects.filter(subject=old_subject)
     for msg in qs:
         if greenbear_user and msg.sender_id == greenbear_user.pk:
             msg.subject = "Message from CulinEire Kitchen Head Chef"

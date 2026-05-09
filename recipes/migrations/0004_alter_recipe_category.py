@@ -1,8 +1,8 @@
 from django.db import migrations, models
 
 
-def move_old_category_values(apps, schema_editor):
-    Recipe = apps.get_model("recipes", "Recipe")
+def move_old_category_values(apps, _schema_editor):
+    recipe_model = apps.get_model("recipes", "Recipe")
 
     mapping = {
         "irish_classic": "cuisines",
@@ -13,7 +13,7 @@ def move_old_category_values(apps, schema_editor):
     }
 
     for old_value, new_value in mapping.items():
-        Recipe.objects.filter(category=old_value).update(category=new_value)
+        recipe_model.objects.filter(category=old_value).update(category=new_value)
 
 
 class Migration(migrations.Migration):

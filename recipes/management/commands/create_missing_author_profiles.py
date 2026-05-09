@@ -19,10 +19,10 @@ class Command(BaseCommand):
     help = "Create a RecipeAuthor profile for every user who does not have one."
 
     def handle(self, *args, **options):
-        User = get_user_model()
+        user_model = get_user_model()
         created = 0
 
-        for user in User.objects.filter(recipe_author_profile__isnull=True):
+        for user in user_model.objects.filter(recipe_author_profile__isnull=True):
             slug = _unique_slug(user.username)
             RecipeAuthor.objects.create(user=user, name=user.username, slug=slug)
             self.stdout.write(f"  Created profile for: {user.username} (slug: {slug})")

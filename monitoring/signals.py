@@ -3,12 +3,13 @@ from django.contrib.auth.signals import (
     user_logged_out,
     user_login_failed,
 )
+from django.db import DatabaseError
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 
 @receiver(user_logged_in)
-def on_login(sender, request, user, **kwargs):
+def on_login(_sender, request, user, **_kwargs):
     try:
         from monitoring.models import UserActivity
         from monitoring.tracker import get_client_ip, hash_ip
@@ -20,12 +21,12 @@ def on_login(sender, request, user, **kwargs):
             ip_hash=hash_ip(get_client_ip(request)),
             path=request.path[:500],
         )
-    except Exception:
+    except (AttributeError, DatabaseError, ImportError):
         pass
 
 
 @receiver(user_logged_out)
-def on_logout(sender, request, user, **kwargs):
+def on_logout(_sender, request, user, **_kwargs):
     try:
         from monitoring.models import UserActivity
         from monitoring.tracker import get_client_ip, hash_ip
@@ -37,12 +38,12 @@ def on_logout(sender, request, user, **kwargs):
             ip_hash=hash_ip(get_client_ip(request)),
             path=request.path[:500],
         )
-    except Exception:
+    except (AttributeError, DatabaseError, ImportError):
         pass
 
 
 @receiver(user_login_failed)
-def on_login_failed(sender, credentials, request, **kwargs):
+def on_login_failed(_sender, credentials, request, **_kwargs):
     try:
         from monitoring.models import SecurityEvent, UserActivity
         from monitoring.tracker import get_client_ip, hash_ip
@@ -64,7 +65,7 @@ def on_login_failed(sender, credentials, request, **kwargs):
             path=path,
             metadata={"username": credentials.get("username", "")[:100]},
         )
-    except Exception:
+    except (AttributeError, DatabaseError, ImportError):
         pass
 
 
@@ -73,7 +74,7 @@ def _connect_profile_update():
         from recipes.models import RecipeAuthor
 
         @receiver(post_save, sender=RecipeAuthor)
-        def on_profile_update(sender, instance, created, **kwargs):
+        def on_profile_update(_sender, instance, created, **_kwargs):
             if created:
                 return
             try:
@@ -88,7 +89,7 @@ def _connect_profile_update():
                         object_id=instance.pk,
                         object_title=instance.name[:255],
                     )
-            except Exception:
+            except (AttributeError, DatabaseError, ImportError):
                 pass
 
     except ImportError:
@@ -98,10 +99,10 @@ def _connect_profile_update():
 def _connect_registration():
     from django.contrib.auth import get_user_model
 
-    User = get_user_model()
+    user_model = get_user_model()
 
-    @receiver(post_save, sender=User)
-    def on_user_created(sender, instance, created, **kwargs):
+    @receiver(post_save, sender=user_model)
+    def on_user_created(_sender, instance, created, **_kwargs):
         if not created:
             return
         try:
@@ -114,7 +115,7 @@ def _connect_registration():
                 object_id=instance.pk,
                 object_title=instance.username,
             )
-        except Exception:
+        except (DatabaseError, ImportError):
             pass
 
 

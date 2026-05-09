@@ -4,9 +4,9 @@ import django.db.models.deletion
 from django.db import migrations, models
 
 
-def assign_heritage_recipes(apps, schema_editor):
-    Recipe = apps.get_model("recipes", "Recipe")
-    RecipeAdditionalCategory = apps.get_model("recipes", "RecipeAdditionalCategory")
+def assign_heritage_recipes(apps, _schema_editor):
+    recipe_model = apps.get_model("recipes", "Recipe")
+    additional_category_model = apps.get_model("recipes", "RecipeAdditionalCategory")
 
     heritage_titles = [
         "Farmhouse Farls",
@@ -15,8 +15,8 @@ def assign_heritage_recipes(apps, schema_editor):
         "Irish Stew",
     ]
 
-    for recipe in Recipe.objects.filter(title__in=heritage_titles):
-        RecipeAdditionalCategory.objects.get_or_create(
+    for recipe in recipe_model.objects.filter(title__in=heritage_titles):
+        additional_category_model.objects.get_or_create(
             recipe=recipe,
             category="everyday_irish_cooking",
         )
@@ -24,9 +24,9 @@ def assign_heritage_recipes(apps, schema_editor):
         recipe.save(update_fields=["category"])
 
 
-def unassign_heritage_recipes(apps, schema_editor):
-    Recipe = apps.get_model("recipes", "Recipe")
-    RecipeAdditionalCategory = apps.get_model("recipes", "RecipeAdditionalCategory")
+def unassign_heritage_recipes(apps, _schema_editor):
+    recipe_model = apps.get_model("recipes", "Recipe")
+    additional_category_model = apps.get_model("recipes", "RecipeAdditionalCategory")
 
     heritage_titles = [
         "Farmhouse Farls",
@@ -35,8 +35,8 @@ def unassign_heritage_recipes(apps, schema_editor):
         "Irish Stew",
     ]
 
-    for recipe in Recipe.objects.filter(title__in=heritage_titles):
-        RecipeAdditionalCategory.objects.filter(
+    for recipe in recipe_model.objects.filter(title__in=heritage_titles):
+        additional_category_model.objects.filter(
             recipe=recipe,
             category="everyday_irish_cooking",
         ).delete()

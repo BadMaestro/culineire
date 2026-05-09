@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from django.conf import settings
+from django.db import DatabaseError
 
 from .tracker import get_client_ip, hash_ip
 
@@ -40,12 +41,13 @@ class MonitoringMiddleware:
 
         try:
             self._record_response(request, response, is_suspicious)
-        except Exception:
+        except (AttributeError, DatabaseError):
             pass
 
         return response
 
-    def _record_response(self, request, response, is_suspicious):
+    @staticmethod
+    def _record_response(request, response, is_suspicious):
         if is_suspicious:
             return
 
@@ -93,7 +95,8 @@ class MonitoringMiddleware:
                 status_code=status,
             )
 
-    def _record_security(self, request, event_type):
+    @staticmethod
+    def _record_security(request, event_type):
         try:
             from monitoring.models import SecurityEvent
 
@@ -105,5 +108,5 @@ class MonitoringMiddleware:
                 path=request.path[:500],
                 user_agent=request.META.get("HTTP_USER_AGENT", "")[:300],
             )
-        except Exception:
+        except (AttributeError, DatabaseError):
             pass

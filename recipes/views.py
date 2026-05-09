@@ -20,10 +20,12 @@ from django.utils.http import url_has_allowed_host_and_scheme, urlsafe_base64_de
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DeleteView, UpdateView
+# noinspection PyPackageRequirements
 from django_ratelimit.decorators import ratelimit
 
 from articles.models import Article
 from config.turnstile import verify_turnstile
+from monitoring.tracker import track_event
 from .allergens import build_present_allergen_items
 from .authoring import AuthorRequiredMixin, user_can_manage_author
 from .forms import (
@@ -320,7 +322,7 @@ def recipe_list(request):
         recipes = recipes.filter(author=selected_author)
         popular_recipe_candidates = popular_recipe_candidates.filter(author=selected_author)
 
-        if user_can_manage_author(request.user, selected_author) or _is_moderator(request.user):
+        if user_can_manage_author(request.user, selected_author) or is_moderator(request.user):
             recipes = (
                 Recipe.objects.select_related("author")
                 .prefetch_related("additional_category_links")
@@ -489,7 +491,7 @@ def recipe_detail(request, slug):
     )
 
     if recipe.status != Recipe.Status.APPROVED:
-        if not _is_moderator(request.user):
+        if not is_moderator(request.user):
             viewer_author = getattr(request.user, "recipe_author_profile", None)
             if not viewer_author or viewer_author != recipe.author:
                 raise Http404
@@ -536,11 +538,13 @@ def recipe_detail(request, slug):
             }
         )
 
-    try:
-        from monitoring.tracker import track_event
-        track_event(request, "recipe_view", object_type="recipe", object_id=recipe.pk, object_title=recipe.title)
-    except Exception:
-        pass
+    track_event(
+        request,
+        "recipe_view",
+        object_type="recipe",
+        object_id=recipe.pk,
+        object_title=recipe.title,
+    )
 
     ingredient_items = _build_ingredient_items(recipe.ingredients)
     allergen_items = build_present_allergen_items(recipe.allergens)
@@ -583,8 +587,8 @@ def recipe_detail(request, slug):
         "average_rating_value": average_rating_value,
         "ratings_count": ratings_count,
         "average_rating_percentage": average_rating_percentage,
-        "can_manage_recipe": _is_moderator(request.user) or user_can_manage_author(request.user, recipe.author),
-        "can_moderate_bar": _is_moderator(request.user) and recipe.status != Recipe.Status.APPROVED,
+        "can_manage_recipe": is_moderator(request.user) or user_can_manage_author(request.user, recipe.author),
+        "can_moderate_bar": is_moderator(request.user) and recipe.status != Recipe.Status.APPROVED,
         "has_rated": has_rated,
         "commenter_profile": commenter_profile,
     }
@@ -684,7 +688,7 @@ def submit_recipe_comment(request, slug):
 def author_detail(request, slug):
     author = get_object_or_404(RecipeAuthor, slug=slug)
     can_manage = user_can_manage_author(request.user, author)
-    moderator = _is_moderator(request.user)
+    moderator = is_moderator(request.user)
 
     recipe_count = Recipe.objects.filter(author=author, status=Recipe.Status.APPROVED).count()
     article_count = Article.objects.filter(author=author, status=Article.Status.APPROVED).count()
@@ -770,7 +774,7 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
     context_object_name = "recipe"
 
     def get_queryset(self):
-        if _is_moderator(self.request.user):
+        if is_moderator(self.request.user):
             return Recipe.objects.all()
         return Recipe.objects.filter(author=self.author)
 
@@ -784,7 +788,7 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
 
         self.object = recipe
         messages.success(self.request, "Recipe Updated Successfully.")
-        if _is_moderator(self.request.user):
+        if is_moderator(self.request.user):
             return redirect(reverse_lazy("recipes:moderation_panel"))
         return redirect(recipe.get_absolute_url())
 
@@ -808,7 +812,7 @@ class RecipeDeleteView(AuthorRequiredMixin, DeleteView):
     success_url = reverse_lazy("recipes:recipe_list")
 
     def get_queryset(self):
-        if _is_moderator(self.request.user):
+        if is_moderator(self.request.user):
             return Recipe.objects.all()
         return Recipe.objects.filter(author=self.author)
 
@@ -908,7 +912,7 @@ class ModeratorAuthorUpdateView(UpdateView):
     slug_url_kwarg = "slug"
 
     def dispatch(self, request, *args, **kwargs):
-        if not _is_moderator(request.user):
+        if not is_moderator(request.user):
             raise Http404
         author = self.get_object()
         if _is_protected_author_action(author, request.user):
@@ -945,7 +949,7 @@ class ModeratorAuthorDeleteView(DeleteView):
     success_url = reverse_lazy("recipes:moderation_panel")
 
     def dispatch(self, request, *args, **kwargs):
-        if not _is_moderator(request.user):
+        if not is_moderator(request.user):
             raise Http404
         author = self.get_object()
         if _is_protected_author_action(author, request.user):
@@ -999,13 +1003,13 @@ class CulinEireLoginView(LoginView):
 
     def post(self, request, *args, **kwargs):
         if getattr(request, "limited", False):
-            User = get_user_model()
+            user_model = get_user_model()
             username = request.POST.get("username", "")
             try:
-                u = User.objects.get(username=username)
-                if getattr(u, "is_superuser", False):
+                user = user_model.objects.get(username=username)
+                if getattr(user, "is_superuser", False):
                     return super().post(request, *args, **kwargs)
-            except User.DoesNotExist:
+            except user_model.DoesNotExist:
                 pass
             messages.error(request, "Too many sign-in attempts. Please wait a few minutes and try again.")
             return redirect("login")
@@ -1086,11 +1090,11 @@ class SignUpView(CreateView):
 
 @ratelimit(key="ip", rate="20/h", method="GET", block=True)
 def activate_account(request, uidb64, token):
-    User = get_user_model()
+    user_model = get_user_model()
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = user_model.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, user_model.DoesNotExist):
         user = None
 
     if user is not None and default_token_generator.check_token(user, token):
@@ -1106,7 +1110,7 @@ def activate_account(request, uidb64, token):
 
 # ── Moderation ────────────────────────────────────────────────────────────────
 
-def _is_moderator(user):
+def is_moderator(user):
     if not user or not user.is_authenticated:
         return False
     if user.is_staff or user.is_superuser:
@@ -1128,7 +1132,7 @@ def _can_grant_bearseeker_privileges(user):
 
 
 def moderation_panel(request):
-    if not _is_moderator(request.user):
+    if not is_moderator(request.user):
         raise Http404
 
     author_query = request.GET.get("author_q", "").strip()
@@ -1191,7 +1195,7 @@ def moderation_panel(request):
 
 @require_POST
 def moderate_recipe(request, slug):
-    if not _is_moderator(request.user):
+    if not is_moderator(request.user):
         raise Http404
     recipe = get_object_or_404(Recipe, slug=slug)
     action = request.POST.get("action")
@@ -1225,7 +1229,7 @@ def moderate_recipe(request, slug):
 
 @require_POST
 def moderate_article(request, slug):
-    if not _is_moderator(request.user):
+    if not is_moderator(request.user):
         raise Http404
     article = get_object_or_404(Article, slug=slug)
     action = request.POST.get("action")
@@ -1255,14 +1259,14 @@ def moderate_article(request, slug):
     if next_url and "/recipes/moderation" not in next_url and action not in ("delete", "block"):
         try:
             return redirect(article.get_absolute_url())
-        except Exception:
+        except (AttributeError, TypeError, ValueError):
             pass
     return redirect("recipes:moderation_panel")
 
 
 @require_POST
 def block_author(request, slug):
-    if not _is_moderator(request.user):
+    if not is_moderator(request.user):
         raise Http404
     author = get_object_or_404(RecipeAuthor, slug=slug)
     if author.slug == "greenbear":

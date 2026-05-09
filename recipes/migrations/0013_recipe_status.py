@@ -1,9 +1,9 @@
 from django.db import migrations, models
 
 
-def approve_existing_recipes(apps, schema_editor):
-    Recipe = apps.get_model("recipes", "Recipe")
-    Recipe.objects.all().update(status="approved")
+def approve_existing_recipes(apps, _schema_editor):
+    recipe_model = apps.get_model("recipes", "Recipe")
+    recipe_model.objects.all().update(status="approved")
 
 
 class Migration(migrations.Migration):

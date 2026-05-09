@@ -1,9 +1,9 @@
 from django.db import migrations, models
 
 
-def approve_existing_articles(apps, schema_editor):
-    Article = apps.get_model("articles", "Article")
-    Article.objects.all().update(status="approved")
+def approve_existing_articles(apps, _schema_editor):
+    article_model = apps.get_model("articles", "Article")
+    article_model.objects.all().update(status="approved")
 
 
 class Migration(migrations.Migration):
