@@ -28,6 +28,13 @@ exclude:
   - name: PyAttributeOutsideInitInspection
   - name: PyProtectedMemberInspection
   - name: PyInconsistentReturnsInspection
+  # Qodana/PyCharm 2025.2 can keep reporting deprecated format_html()
+  # calls in Django admin preview helpers after the code has moved to
+  # format_html_join(). Keep the suppression scoped to these admin modules.
+  - name: PyDeprecationInspection
+    paths:
+      - articles/admin.py
+      - recipes/admin.py
 
 #Execute shell command before Qodana execution (Applied in CI/CD pipeline)
 #bootstrap: sh ./prepare-qodana.sh
