@@ -1,7 +1,7 @@
 /* ==== Footer layout & styles ==== */
 
 .site-footer {
-  padding: 0.9rem 1.5rem 0.95rem;
+  padding: 0.9rem 1.5rem calc(0.65rem + env(safe-area-inset-bottom));
   background: #4a4542;
   color: #f7f2ea;
   flex-shrink: 0;
@@ -40,6 +40,17 @@
 .footer-inner__meta {
   margin: 0;
   color: rgb(247 242 234 / 0.5);
+}
+
+.footer-inner__links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-block: 0.32rem 0.18rem;
+  color: rgb(247 242 234 / 0.68);
+  font-size: 0.72rem;
 }
 
 .footer-socials {

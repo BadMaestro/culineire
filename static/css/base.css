@@ -56,6 +56,7 @@
 
     /* Layout */
     --container: 1120px;
+    --bmc-bar-reserved-space: 2.85rem;
 
     /* Шрифтовые стеки (выносим из повторяющихся font-family) */
     --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -90,6 +91,7 @@
     color: var(--ink);
     display: flex;
     flex-direction: column;
+    padding-block-end: var(--bmc-bar-reserved-space);
     -webkit-font-smoothing: antialiased;
   }
 
@@ -256,6 +258,40 @@
     line-height: 1.68;
     color: var(--ink-soft);
     text-align: center;
+  }
+
+  .section-header {
+    margin-block: 0 0.85rem;
+    text-align: center;
+  }
+
+  .section-header + .section-header {
+    margin-block-start: 1.75rem;
+  }
+
+  .section-kicker {
+    display: block;
+    margin-block-end: 0.22rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .section-header h2 {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: clamp(1.5rem, 2.5vw, 2rem);
+    color: var(--brand);
+  }
+
+  .legal-list {
+    max-width: 64ch;
+    margin: 0 auto 1.8rem;
+    padding-inline-start: 1.2rem;
+    color: var(--ink-soft);
+    line-height: 1.7;
   }
 
   .eyebrow {
@@ -932,6 +968,12 @@
   }
 }
 
+@media (max-width: 480px) {
+  :root {
+    --bmc-bar-reserved-space: 4.35rem;
+  }
+}
+
 /* ==== Cloudflare Turnstile ==== */
 
 .cf-turnstile {
@@ -997,11 +1039,18 @@
   bottom: 0;
   left: 0;
   right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0 0.25rem;
+  min-block-size: var(--bmc-bar-reserved-space);
   background: #1a1a1a;
   color: #ccc;
   text-align: center;
-  padding: 0.6rem 1rem;
+  padding: 0.55rem 1rem calc(0.55rem + env(safe-area-inset-bottom));
   font-size: 0.85rem;
+  line-height: 1.35;
   z-index: 9999;
 }
 
@@ -1009,7 +1058,7 @@
   color: #f5a623;
   font-weight: 600;
   text-decoration: none;
-  margin-left: 0.25rem;
+  white-space: nowrap;
 }
 
 .bmc-bar a:hover {
@@ -1032,5 +1081,10 @@
     right: 1rem;
     left: 1rem;
     max-inline-size: none;
+  }
+
+  .bmc-bar {
+    font-size: 0.82rem;
+    padding-inline: 0.85rem;
   }
 }

@@ -7,6 +7,9 @@ from django.conf import settings
 
 
 def verify_turnstile(token, remote_ip):
+    if getattr(settings, "IS_TESTING", False):
+        return True
+
     secret = settings.TURNSTILE_SECRET_KEY
     if not secret:
         return True

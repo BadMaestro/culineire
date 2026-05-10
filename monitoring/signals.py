@@ -9,7 +9,8 @@ from django.dispatch import receiver
 
 
 @receiver(user_logged_in)
-def on_login(_sender, request, user, **_kwargs):
+def on_login(sender, request, user, **kwargs):
+    del sender, kwargs
     try:
         from monitoring.models import UserActivity
         from monitoring.tracker import get_client_ip, hash_ip
@@ -26,7 +27,8 @@ def on_login(_sender, request, user, **_kwargs):
 
 
 @receiver(user_logged_out)
-def on_logout(_sender, request, user, **_kwargs):
+def on_logout(sender, request, user, **kwargs):
+    del sender, kwargs
     try:
         from monitoring.models import UserActivity
         from monitoring.tracker import get_client_ip, hash_ip
@@ -43,7 +45,8 @@ def on_logout(_sender, request, user, **_kwargs):
 
 
 @receiver(user_login_failed)
-def on_login_failed(_sender, credentials, request, **_kwargs):
+def on_login_failed(sender, credentials, request, **kwargs):
+    del sender, kwargs
     try:
         from monitoring.models import SecurityEvent, UserActivity
         from monitoring.tracker import get_client_ip, hash_ip
@@ -74,7 +77,8 @@ def _connect_profile_update():
         from recipes.models import RecipeAuthor
 
         @receiver(post_save, sender=RecipeAuthor)
-        def on_profile_update(_sender, instance, created, **_kwargs):
+        def on_profile_update(sender, instance, created, **kwargs):
+            del sender, kwargs
             if created:
                 return
             try:
@@ -102,7 +106,8 @@ def _connect_registration():
     user_model = get_user_model()
 
     @receiver(post_save, sender=user_model)
-    def on_user_created(_sender, instance, created, **_kwargs):
+    def on_user_created(sender, instance, created, **kwargs):
+        del sender, kwargs
         if not created:
             return
         try:

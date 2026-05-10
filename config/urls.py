@@ -4,8 +4,10 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.staticfiles.views import serve as staticfiles_serve
 from django.urls import include, path, re_path
+from django.views.generic import TemplateView
 from django.views.static import serve
 
+from config import views as config_views
 from recipes import views as recipes_views
 
 urlpatterns = [
@@ -13,6 +15,10 @@ urlpatterns = [
 
     # Home page
     path("", recipes_views.home, name="home"),
+    path("about/", TemplateView.as_view(template_name="about.html"), name="about"),
+    path("privacy/", TemplateView.as_view(template_name="privacy.html"), name="privacy"),
+    path("robots.txt", config_views.robots_txt, name="robots_txt"),
+    path("sitemap.xml", config_views.sitemap_xml, name="sitemap_xml"),
 
     # Recipes
     path("recipes/", include("recipes.urls", namespace="recipes")),

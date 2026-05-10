@@ -1068,7 +1068,7 @@ class SignUpView(CreateView):
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
         domain = settings.SITE_DOMAIN
-        activation_url = f"http://{domain}/accounts/activate/{uid}/{token}/"
+        activation_url = f"{settings.SITE_SCHEME}://{domain}/accounts/activate/{uid}/{token}/"
 
         send_mail(
             subject="Confirm your CulinEire account",

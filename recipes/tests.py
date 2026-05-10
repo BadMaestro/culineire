@@ -197,6 +197,7 @@ class RecipeAdminFormTests(TestCase):
                 "source_author": "",
                 "source_url": "",
                 "source_note": "",
+                "status": Recipe.Status.PENDING,
             }
         )
 
@@ -282,14 +283,18 @@ class AuthenticationPageTests(TestCase):
             reverse("signup"),
             {
                 "username": "newcook",
+                "default_avatar": RecipeAuthor.DefaultAvatar.NEUTRAL,
+                "email": "newcook@example.com",
                 "password1": "KitchenTable123!",
                 "password2": "KitchenTable123!",
             },
         )
 
-        self.assertRedirects(response, reverse("home"))
-        self.assertTrue(get_user_model().objects.filter(username="newcook").exists())
-        self.assertIn("_auth_user_id", self.client.session)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "registration/activation_pending.html")
+        user = get_user_model().objects.get(username="newcook")
+        self.assertFalse(user.is_active)
+        self.assertNotIn("_auth_user_id", self.client.session)
 
     def test_anonymous_header_shows_sign_in_and_join_links(self):
         response = self.client.get(reverse("home"))
@@ -329,7 +334,6 @@ class AuthenticationPageTests(TestCase):
         self.assertContains(response, reverse("articles:article_create"))
         self.assertContains(response, f'{reverse("recipes:recipe_list")}?author={author.slug}')
         self.assertContains(response, f'{reverse("articles:article_list")}?author={author.slug}')
-        self.assertContains(response, reverse("recipes:author_edit"))
 
     def test_authenticated_header_does_not_guess_author_by_slug(self):
         RecipeAuthor.objects.create(
@@ -372,7 +376,7 @@ class AuthenticationPageTests(TestCase):
             reverse("recipes:author_edit"),
             {
                 "name": "Ciaran O Kitchen",
-                "slug": "ciaran-o-kitchen",
+                "default_avatar": RecipeAuthor.DefaultAvatar.NEUTRAL,
                 "bio": "Modern Irish cooking notes.",
                 "avatar": "",
             },
@@ -381,7 +385,7 @@ class AuthenticationPageTests(TestCase):
         author.refresh_from_db()
         self.assertRedirects(response, author.get_absolute_url())
         self.assertEqual(author.name, "Ciaran O Kitchen")
-        self.assertEqual(author.slug, "ciaran-o-kitchen")
+        self.assertEqual(author.slug, "ciaran")
         self.assertEqual(author.bio, "Modern Irish cooking notes.")
         self.assertEqual(author.user, self.user)
 
@@ -470,9 +474,11 @@ class RecipeInteractionTests(TestCase):
         self.assertEqual(RecipeRating.objects.get(recipe=self.recipe).value, 5)
 
     def test_submit_recipe_comment_blocks_duplicate_payloads_in_session(self):
+        user = get_user_model().objects.create_user(username="niamh", password="Kitchen123!")
+        self.client.force_login(user)
+
         url = reverse("recipes:submit_recipe_comment", args=[self.recipe.slug])
         payload = {
-            "name": "Niamh",
             "content": "This turned out beautifully.",
             "website": "",
         }
@@ -492,6 +498,7 @@ class RecipeCategoryAssignmentTests(TestCase):
             category=Recipe.Category.EVERYDAY_IRISH_COOKING,
             ingredients="2 potatoes\n1 onion",
             method="1. Chop everything\n2. Cook slowly",
+            status=Recipe.Status.APPROVED,
         )
         recipe.additional_category_links.create(category=Recipe.Category.IRISH_CULINARY_HERITAGE)
 

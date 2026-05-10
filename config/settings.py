@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
+from urllib.parse import parse_qs, unquote, urlparse
 
 from django.core.exceptions import ImproperlyConfigured
 # noinspection PyPackageRequirements
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BASE_DIR / ".env")
+ENV_FILE = Path(os.getenv("DJANGO_ENV_FILE", BASE_DIR / ".env"))
+load_dotenv(ENV_FILE)
 
 
 LOCAL_ALLOWED_HOSTS_DEFAULT = "127.0.0.1,localhost,::1,culineire.localhost"
@@ -32,6 +35,37 @@ def env_list(name: str, default: str = "") -> list[str]:
     return [item.strip() for item in raw_value.split(",") if item.strip()]
 
 
+def database_from_url(url: str) -> dict:
+    parsed = urlparse(url)
+
+    if parsed.scheme in {"postgres", "postgresql"}:
+        options = {}
+        query = parse_qs(parsed.query)
+        if "sslmode" in query and query["sslmode"]:
+            options["sslmode"] = query["sslmode"][0]
+
+        database = {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": unquote(parsed.path.lstrip("/")),
+            "USER": unquote(parsed.username or ""),
+            "PASSWORD": unquote(parsed.password or ""),
+            "HOST": parsed.hostname or "",
+            "PORT": str(parsed.port or ""),
+            "CONN_MAX_AGE": env_int("DJANGO_DB_CONN_MAX_AGE", 60 if IS_PRODUCTION else 0),
+        }
+        if options:
+            database["OPTIONS"] = options
+        return database
+
+    if parsed.scheme == "sqlite":
+        return {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": unquote(parsed.path),
+        }
+
+    raise ImproperlyConfigured("DATABASE_URL must start with postgres://, postgresql://, or sqlite:///")
+
+
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 if not SECRET_KEY:
     raise ImproperlyConfigured(
@@ -41,6 +75,7 @@ if not SECRET_KEY:
 
 DJANGO_ENV = os.getenv("DJANGO_ENV", "production").strip().lower()
 IS_PRODUCTION = DJANGO_ENV == "production"
+IS_TESTING = "test" in sys.argv
 
 DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() == "true"
 SERVE_STATIC_LOCALLY = env_bool(
@@ -144,23 +179,37 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 
 
-DATABASES = {
-    "default": {
+DATABASE_URL = os.getenv("DATABASE_URL", "")
+if DATABASE_URL:
+    DATABASES = {
+        "default": database_from_url(DATABASE_URL),
+    }
+else:
+    DATABASES = {
+        "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-}
 
-CACHE_DIR = Path(os.getenv("DJANGO_CACHE_DIR", str(BASE_DIR / "cache")))
-CACHE_DIR.mkdir(parents=True, exist_ok=True)
-
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
-        "LOCATION": str(CACHE_DIR),
-        "TIMEOUT": 3600,
+if IS_TESTING:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "culineire-tests",
+        }
     }
-}
+else:
+    CACHE_DIR = Path(os.getenv("DJANGO_CACHE_DIR", str(BASE_DIR / "cache")))
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+            "LOCATION": str(CACHE_DIR),
+            "TIMEOUT": 3600,
+        }
+    }
 
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -187,9 +236,10 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = Path(os.getenv("DJANGO_STATIC_ROOT", str(BASE_DIR / "staticfiles")))
 
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = Path(os.getenv("DJANGO_MEDIA_ROOT", str(BASE_DIR / "media")))
 
 MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024
 DATA_UPLOAD_MAX_MEMORY_SIZE = MAX_UPLOAD_SIZE_BYTES
@@ -212,6 +262,7 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "CulinEire <noreply@culineire.ie>")
 SITE_DOMAIN = os.getenv("SITE_DOMAIN", "127.0.0.1:8000")
+SITE_SCHEME = os.getenv("SITE_SCHEME", "https" if IS_PRODUCTION else "http")
 PASSWORD_RESET_TIMEOUT = 86400  # activation link expires in 24 hours
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

@@ -1,0 +1,38 @@
+{
+  "listeners": {
+    "127.0.0.1:8080": {
+      "pass": "routes",
+      "forwarded": {
+        "client_ip": "X-Forwarded-For",
+        "protocol": "X-Forwarded-Proto",
+        "source": [
+          "127.0.0.1"
+        ]
+      }
+    }
+  },
+  "routes": [
+    {
+      "action": {
+        "pass": "applications/culineire"
+      }
+    }
+  ],
+  "applications": {
+    "culineire": {
+      "type": "python 3.12",
+      "path": "/srv/culineire/current/",
+      "home": "/srv/culineire/venv/",
+      "module": "config.wsgi",
+      "processes": {
+        "max": 4,
+        "spare": 1,
+        "idle_timeout": 60
+      },
+      "environment": {
+        "DJANGO_SETTINGS_MODULE": "config.settings",
+        "DJANGO_ENV_FILE": "/srv/culineire/shared/.env"
+      }
+    }
+  }
+}

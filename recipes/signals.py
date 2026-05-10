@@ -66,10 +66,11 @@ def _delete_file_and_cleanup(file_field):
 
 
 @receiver(pre_save, sender=Recipe)
-def delete_old_recipe_preview_on_change(_sender, instance, **_kwargs):
+def delete_old_recipe_preview_on_change(sender, instance, **kwargs):
     """
     If preview image is replaced, remove the old file.
     """
+    del sender, kwargs
     if not instance.pk:
         return
 
@@ -89,10 +90,11 @@ def delete_old_recipe_preview_on_change(_sender, instance, **_kwargs):
 
 
 @receiver(pre_save, sender=RecipeImage)
-def delete_old_gallery_image_on_change(_sender, instance, **_kwargs):
+def delete_old_gallery_image_on_change(sender, instance, **kwargs):
     """
     If a gallery image is replaced, remove the old file.
     """
+    del sender, kwargs
     if not instance.pk:
         return
 
@@ -112,18 +114,20 @@ def delete_old_gallery_image_on_change(_sender, instance, **_kwargs):
 
 
 @receiver(post_delete, sender=Recipe)
-def delete_recipe_preview_on_delete(_sender, instance, **_kwargs):
+def delete_recipe_preview_on_delete(sender, instance, **kwargs):
     """
     Delete preview image file when recipe is deleted.
     """
+    del sender, kwargs
     if instance.hero_image:
         _delete_file_and_cleanup(instance.hero_image)
 
 
 @receiver(post_delete, sender=RecipeImage)
-def delete_gallery_image_on_delete(_sender, instance, **_kwargs):
+def delete_gallery_image_on_delete(sender, instance, **kwargs):
     """
     Delete gallery image file when gallery item is deleted.
     """
+    del sender, kwargs
     if instance.image:
         _delete_file_and_cleanup(instance.image)

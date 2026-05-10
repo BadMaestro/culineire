@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib import messages
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Q
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
@@ -124,6 +124,11 @@ class ArticleDetailView(DetailView):
         )
         if is_moderator(self.request.user):
             return qs
+
+        viewer_author = getattr(self.request.user, "recipe_author_profile", None)
+        if viewer_author:
+            return qs.filter(Q(status=Article.Status.APPROVED) | Q(author=viewer_author))
+
         return qs.filter(status=Article.Status.APPROVED)
 
     @staticmethod

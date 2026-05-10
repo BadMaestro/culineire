@@ -42,6 +42,11 @@ DJANGO_CSRF_COOKIE_SECURE=True
 DJANGO_SECURE_PROXY_SSL_HEADER=True
 DJANGO_LOG_LEVEL=INFO
 DJANGO_LOG_DIR=/srv/culineire/logs
+SITE_DOMAIN=culineire.ie
+SITE_SCHEME=https
+DJANGO_STATIC_ROOT=/srv/culineire/shared/staticfiles
+DJANGO_MEDIA_ROOT=/srv/culineire/shared/media
+DATABASE_URL=postgresql://culineire:replace-password@127.0.0.1:5432/culineire
 ```
 
 `DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS` and `DJANGO_SECURE_HSTS_PRELOAD` should only be enabled after HTTPS is confirmed
@@ -55,6 +60,9 @@ for the main domain, `www`, and every covered subdomain. Do not enable them auto
 - Forward `X-Forwarded-Proto: https` only from the trusted reverse proxy.
 - Enable `DJANGO_SECURE_PROXY_SSL_HEADER=True` only after the proxy forwarding is verified.
 - Verify static and media serving strategy before launch.
+- Run `collectstatic` into `DJANGO_STATIC_ROOT`; never serve raw source directories as production static roots.
+- Store user uploads under `DJANGO_MEDIA_ROOT` and back them up separately from the database.
+- Prefer PostgreSQL for public production; if SQLite is used temporarily, schedule file-level backups and avoid multi-writer deployments.
 - Confirm secure cookies are enabled in production.
 - Verify admin is reachable only over HTTPS.
 - Run Django deployment checks before switching traffic.

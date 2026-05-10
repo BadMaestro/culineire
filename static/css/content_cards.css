@@ -1239,27 +1239,28 @@
 
 .recipe-grid--6col,
 .recipe-list-page .recipe-grid--6col {
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), min(170px, calc((100% - 3rem) / 6))));
+  justify-content: center;
 }
 
 @media (max-width: 840px) {
   .recipe-grid--6col,
   .recipe-list-page .recipe-grid--6col {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 145px), min(170px, calc((100% - 1.8rem) / 4))));
   }
 }
 
 @media (max-width: 640px) {
   .recipe-grid--6col,
   .recipe-list-page .recipe-grid--6col {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), min(170px, calc((100% - 1.2rem) / 3))));
   }
 }
 
 @media (max-width: 400px) {
   .recipe-grid--6col,
   .recipe-list-page .recipe-grid--6col {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), min(170px, calc((100% - 0.6rem) / 2))));
   }
 }
 

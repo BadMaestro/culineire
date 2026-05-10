@@ -242,6 +242,11 @@
   flex-shrink: 0;
 }
 
+.moderation-block--bearseekers .moderation-card__actions {
+  margin-inline-start: auto;
+  justify-content: flex-end;
+}
+
 .moderation-card__actions form {
   margin: 0;
   min-width: 0;
@@ -402,7 +407,8 @@
 
 .moderation-authors-table-wrap {
   max-block-size: min(560px, 70vh);
-  max-width: 100%;
+  max-width: calc(100% + 1.27rem);
+  margin-inline-end: -1.27rem;
   overflow: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
