@@ -16,7 +16,7 @@
 
     <link href="{% static 'images/favicon.png' %}?v=20260510a" rel="icon" type="image/png">
 
-    <link href="{% static 'css/base.css' %}?v=20260510a" rel="stylesheet">
+    <link href="{% static 'css/base.css' %}?v=20260510b" rel="stylesheet">
     <link href="{% static 'css/header.css' %}?v=20260508b" rel="stylesheet">
     <link href="{% static 'css/messaging.css' %}?v=20260507a" rel="stylesheet">
     <link href="{% static 'css/presence.css' %}?v=20260507a" rel="stylesheet">
@@ -232,8 +232,11 @@
     <section aria-label="Notifications" class="site-messages">
         <div class="container">
             {% for message in messages %}
-            <div class="site-message site-message--{{ message.tags|default:'info' }}">
-                {{ message }}
+            <div class="site-message site-message--{{ message.tags|default:'info' }}{% if 'error' in message.tags or 'warning' in message.tags %} site-message--sticky{% endif %}"
+                 role="{% if 'error' in message.tags %}alert{% else %}status{% endif %}"
+                 aria-live="{% if 'error' in message.tags %}assertive{% else %}polite{% endif %}">
+                <span class="site-message__text">{{ message }}</span>
+                <button class="site-message__close" type="button" aria-label="Dismiss notification">&times;</button>
             </div>
             {% endfor %}
         </div>
@@ -324,7 +327,13 @@
     el.addEventListener('animationend', function () { el.remove(); }, { once: true });
   }
   document.querySelectorAll('.site-message').forEach(function (el) {
-    setTimeout(function () { dismissToast(el); }, 5000);
+    var closeButton = el.querySelector('.site-message__close');
+    if (closeButton) {
+      closeButton.addEventListener('click', function () { dismissToast(el); });
+    }
+    if (!el.classList.contains('site-message--sticky')) {
+      setTimeout(function () { dismissToast(el); }, 12000);
+    }
   });
 })();
 </script>
