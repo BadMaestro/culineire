@@ -27,6 +27,7 @@ Do not commit any of these values to Git.
 - Production `DJANGO_SECRET_KEY`.
 - Cloudflare Turnstile production site key and secret key for `culineire.ie`.
 - SMTP account/app password or SMTP token for outgoing email.
+  Linode may restrict outbound SMTP ports on new instances; if SMTP delivery fails, open a Linode support ticket or use a provider with an HTTP email API.
 - GitHub deploy key or fine-scoped token for pulling the private/public repository on the server.
 
 ## Linode setup checklist
@@ -43,6 +44,9 @@ Do not commit any of these values to Git.
    - `www.culineire.ie` -> A record to IPv4 or CNAME to root;
    - add AAAA records too if IPv6 is enabled and configured.
 5. Wait for DNS propagation before issuing Let's Encrypt certificates.
+
+Current first Linode IP from the setup screen: `80.85.84.156`.
+Use it for SSH and DNS only if it is still the active public IP in Linode Cloud Manager.
 
 ## Server deployment order
 

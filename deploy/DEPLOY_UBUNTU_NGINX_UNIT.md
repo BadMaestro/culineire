@@ -14,6 +14,7 @@ Target layout:
 - GitHub deploy access: use a deploy key or fine-scoped token; do not put it in `.env`.
 - Cloudflare Turnstile: create production site and secret keys for `culineire.ie`.
 - SMTP: create a provider account and app password or SMTP token.
+  Linode may restrict outbound SMTP ports on new instances; if SMTP delivery fails, open a Linode support ticket or use a provider with an HTTP email API.
 - Database password: generate on the server and store only in `/srv/culineire/shared/.env`.
 - Django secret: generate on the server:
 
