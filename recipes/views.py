@@ -1069,8 +1069,7 @@ class SignUpView(CreateView):
         if not require_confirmation:
             user.backend = "django.contrib.auth.backends.ModelBackend"
             login(self.request, user)
-            messages.success(self.request, "Account created. Welcome to CulinEire!")
-            return redirect("home")
+            return render(self.request, "registration/signup_success.html", {"email": user.email})
 
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)

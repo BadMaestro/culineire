@@ -986,7 +986,7 @@
 
 .site-messages {
   position: fixed;
-  bottom: 1.5rem;
+  bottom: calc(var(--bmc-bar-reserved-space) + 1rem);
   right: 1.5rem;
   z-index: 9000;
   display: flex;
@@ -1077,7 +1077,7 @@
 
 @media (max-width: 480px) {
   .site-messages {
-    bottom: 1rem;
+    bottom: calc(var(--bmc-bar-reserved-space) + 0.85rem);
     right: 1rem;
     left: 1rem;
     max-inline-size: none;

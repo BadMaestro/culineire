@@ -5,7 +5,7 @@
 {% block meta_description %}Please confirm your email address to complete your CulinEire registration.{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/auth.css' %}?v=20260507b" rel="stylesheet">
+<link href="{% static 'css/auth.css' %}?v=20260510a" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -19,15 +19,16 @@
             <h1 class="hero-title">Almost There!</h1>
             <p class="hero-subtitle">One last step before you join the CulinEire kitchen.</p>
         </div>
-        <div class="auth-card auth-card--hero">
+        <div class="auth-card auth-card--hero auth-status auth-status--pending" role="status" aria-live="polite">
+            <div class="auth-status__mark" aria-hidden="true">!</div>
             <div class="auth-copy">
-                <p class="eyebrow">Check Your Inbox</p>
-                <h2>Confirm Your Email</h2>
+                <p class="eyebrow">Account Created</p>
+                <h2>Confirm your email to activate your account</h2>
             </div>
-            <p>We've sent a confirmation link to <strong>{{ email }}</strong>.</p>
+            <p class="auth-status__text">We've sent a confirmation link to <strong>{{ email }}</strong>.</p>
             <p class="auth-note">
-                Click the link in the email to activate your account. The link expires in 24 hours.
-                If you don't see it, check your spam folder.
+                Open that email and click the activation link. The link expires in 24 hours.
+                If you do not see it, check your spam folder.
             </p>
         </div>
     </div>
