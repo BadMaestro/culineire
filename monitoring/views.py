@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from django.db.models import Count
+from django.db.models.functions import ExtractHour
 from django.http import Http404
 from django.shortcuts import render
 from django.utils import timezone
@@ -143,12 +144,16 @@ def dashboard(request):
     hourly_views = list(
         PageView.objects
         .filter(created_at__date=today)
-        .extra(select={"hour": "strftime('%%H', created_at)"})
+        .annotate(hour=ExtractHour("created_at"))
         .values("hour")
         .annotate(count=Count("id"))
         .order_by("hour")
     )
-    hourly_map = {row["hour"]: row["count"] for row in hourly_views}
+    hourly_map = {
+        f"{int(row['hour']):02d}": row["count"]
+        for row in hourly_views
+        if row["hour"] is not None
+    }
     current_hour = now.hour
     chart_hours = [
         {"hour": f"{h:02d}", "count": hourly_map.get(f"{h:02d}", 0)}
