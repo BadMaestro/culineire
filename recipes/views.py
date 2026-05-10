@@ -1053,8 +1053,9 @@ class SignUpView(CreateView):
         return f"{slug}-{counter}"
 
     def form_valid(self, form):
+        require_confirmation = getattr(settings, "SIGNUP_REQUIRE_EMAIL_CONFIRMATION", True)
         user = form.save(commit=False)
-        user.is_active = False
+        user.is_active = not require_confirmation
         user.save()
         author_name = user.get_full_name() or user.username
 
@@ -1064,6 +1065,12 @@ class SignUpView(CreateView):
             slug=self._unique_author_slug(author_name),
             default_avatar=form.cleaned_data["default_avatar"],
         )
+
+        if not require_confirmation:
+            user.backend = "django.contrib.auth.backends.ModelBackend"
+            login(self.request, user)
+            messages.success(self.request, "Account created. Welcome to CulinEire!")
+            return redirect("home")
 
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)

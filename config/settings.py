@@ -260,9 +260,14 @@ EMAIL_PORT = env_int("EMAIL_PORT", 587)
 EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", default=True)
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+EMAIL_TIMEOUT = env_int("EMAIL_TIMEOUT", 10)
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "CulinEire <noreply@culineire.ie>")
 SITE_DOMAIN = os.getenv("SITE_DOMAIN", "127.0.0.1:8000")
 SITE_SCHEME = os.getenv("SITE_SCHEME", "https" if IS_PRODUCTION else "http")
+SIGNUP_REQUIRE_EMAIL_CONFIRMATION = env_bool(
+    "SIGNUP_REQUIRE_EMAIL_CONFIRMATION",
+    default=IS_PRODUCTION,
+)
 PASSWORD_RESET_TIMEOUT = 86400  # activation link expires in 24 hours
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
