@@ -21,4 +21,5 @@ class CspNonceMiddleware:
             f"base-uri 'self'; "
             f"form-action 'self';"
         )
+        response["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         return response
