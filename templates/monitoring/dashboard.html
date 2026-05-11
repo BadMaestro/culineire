@@ -46,8 +46,8 @@
       </a>
       <a class="mon-card" href="{{ traffic_urls.human }}" target="_blank" rel="noopener noreferrer">
         <span class="mon-card__value">{{ human_pageviews_today }}</span>
-        <span class="mon-card__label">Human Views Today</span>
-        <span class="mon-card__sub">likely real people</span>
+        <span class="mon-card__label">Human/Guest Views</span>
+        <span class="mon-card__sub">logged-in and normal browser traffic</span>
         <span class="mon-card__open">Open details</span>
       </a>
       <a class="mon-card {% if bot_pageviews_today > 0 %}mon-card--warn{% endif %}" href="{{ traffic_urls.bots }}" target="_blank" rel="noopener noreferrer">

@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.test import Client, RequestFactory, TestCase
+from django.test import Client, RequestFactory, SimpleTestCase, TestCase
 from django.utils import timezone
 
 from recipes.models import RecipeAuthor
@@ -7,6 +7,7 @@ from recipes.models import RecipeAuthor
 from .middleware import MonitoringMiddleware
 from .models import PageView, SecurityEvent, UserActivity
 from .tracker import hash_ip, track_event
+from .views import _request_kind
 
 User = get_user_model()
 
@@ -91,6 +92,41 @@ class HashIpTest(TestCase):
 
     def test_different_ips_different_hashes(self):
         self.assertNotEqual(hash_ip("1.2.3.4"), hash_ip("5.6.7.8"))
+
+
+class RequestKindClassificationTest(SimpleTestCase):
+    def test_authenticated_user_is_human(self):
+        self.assertEqual(
+            _request_kind("Mozilla/5.0", "/recipes/moderation/", user=object()),
+            "Human",
+        )
+
+    def test_normal_anonymous_browser_is_guest_browser(self):
+        self.assertEqual(
+            _request_kind("Mozilla/5.0", "/", user=None),
+            "Guest/Browser",
+        )
+
+    def test_anonymous_protected_path_is_not_human(self):
+        self.assertEqual(
+            _request_kind("Mozilla/5.0", "/recipes/moderation/", user=None),
+            "Protected Area",
+        )
+
+    def test_browser_probe_for_private_files_is_scanner(self):
+        paths = [
+            "/bitbucket-pipelines.yml",
+            "/vite.config.js",
+            "/db.sql",
+            "/logs/error.log",
+        ]
+
+        for path in paths:
+            with self.subTest(path=path):
+                self.assertEqual(
+                    _request_kind("Mozilla/5.0", path, user=None),
+                    "Bot/Scanner",
+                )
 
 
 class DashboardPermissionTest(TestCase):

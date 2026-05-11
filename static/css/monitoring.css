@@ -451,9 +451,19 @@
   color: #0b4c3a;
 }
 
+.mon-kind--guest-browser {
+  background: rgb(30 130 180 / 0.1);
+  color: #0a5a80;
+}
+
 .mon-kind--bot-scanner {
   background: rgb(180 100 30 / 0.12);
   color: #8a4800;
+}
+
+.mon-kind--protected-area {
+  background: rgb(100 80 160 / 0.12);
+  color: #5040a0;
 }
 
 .mon-kind--unknown {

@@ -16,6 +16,7 @@ from .models import PageView, SecurityEvent, UserActivity
 
 DETAIL_PAGE_SIZE = 100
 DETAIL_ROW_LIMIT = 3000
+HUMAN_REQUEST_KINDS = {"Human", "Guest/Browser"}
 
 BOT_USER_AGENT_MARKERS = (
     "bot",
@@ -50,6 +51,12 @@ TECHNICAL_PATHS = (
 SUSPICIOUS_PATH_MARKERS = (
     ".env",
     ".git",
+    ".hg",
+    ".svn",
+    ".sql",
+    ".log",
+    ".bak",
+    ".swp",
     "wp-",
     "xmlrpc",
     "phpmy",
@@ -59,9 +66,33 @@ SUSPICIOUS_PATH_MARKERS = (
     "server-status",
     "server-info",
     "actuator",
+    "bitbucket-pipelines.yml",
+    "amplify.yml",
+    "serverless.yml",
+    "serverless.yaml",
+    "dockerfile",
+    "jenkinsfile",
+    "composer.json",
+    "package.json",
+    "vite.config",
+    "nuxt.config",
+    "next.config",
+    "webpack.config",
+    "firebase-debug",
+    "database",
+    "backup",
+    "dump",
+    "/logs/",
+    "/var/log/",
+    "/storage/logs/",
     "/%22/",
     '/"/',
     "/https:/",
+)
+
+PROTECTED_PATH_PREFIXES = (
+    "/admin/",
+    "/recipes/moderation/",
 )
 
 PERIOD_OPTIONS = {
@@ -90,13 +121,20 @@ def _is_suspicious_path(path: str) -> bool:
     return any(marker in normalized for marker in SUSPICIOUS_PATH_MARKERS)
 
 
+def _is_protected_path(path: str) -> bool:
+    normalized = path or ""
+    return any(normalized.startswith(prefix) for prefix in PROTECTED_PATH_PREFIXES)
+
+
 def _request_kind(user_agent: str, path: str, user=None) -> str:
-    if _is_bot_user_agent(user_agent) or _is_technical_path(path) or _is_suspicious_path(path):
-        return "Bot/Scanner"
     if user is not None:
         return "Human"
+    if _is_bot_user_agent(user_agent) or _is_technical_path(path) or _is_suspicious_path(path):
+        return "Bot/Scanner"
+    if _is_protected_path(path):
+        return "Protected Area"
     if user_agent:
-        return "Human"
+        return "Guest/Browser"
     return "Unknown"
 
 
@@ -185,7 +223,7 @@ def dashboard(request):
         .only("path", "user_agent", "user")
     )
     decorated_today_pageviews = _decorate_request_rows(today_pageviews)
-    human_pageviews_today = sum(1 for row in decorated_today_pageviews if row.request_kind == "Human")
+    human_pageviews_today = sum(1 for row in decorated_today_pageviews if row.request_kind in HUMAN_REQUEST_KINDS)
     bot_pageviews_today = sum(1 for row in decorated_today_pageviews if row.request_kind == "Bot/Scanner")
 
     online_now = (
@@ -395,8 +433,8 @@ def traffic_detail(request):
         title = "Visitors"
         subtitle = "Requests grouped by browser session signal."
     elif kind == "human":
-        title = "Human Page Views"
-        subtitle = "Successful page views that look like normal browser traffic."
+        title = "Human and Guest Page Views"
+        subtitle = "Logged-in users and normal anonymous browser traffic. Scanner-like paths are excluded."
     elif kind == "bots":
         title = "Bot and Crawler Page Views"
         subtitle = "Successful requests with bot-like user agents or technical paths."
@@ -410,7 +448,7 @@ def traffic_detail(request):
         rows = list(qs[:DETAIL_ROW_LIMIT])
         _decorate_request_rows(rows)
         if kind == "human":
-            rows = [row for row in rows if row.request_kind == "Human"]
+            rows = [row for row in rows if row.request_kind in HUMAN_REQUEST_KINDS]
         else:
             rows = [row for row in rows if row.request_kind == "Bot/Scanner"]
         page_obj = _paginate(request, rows)
