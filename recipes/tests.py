@@ -191,15 +191,33 @@ class ModerationPanelRoleTests(TestCase):
         )
         self.assertContains(response, "@catwithtail")
 
-    def test_panel_action_cannot_revoke_or_block_superuser_author(self):
+    def test_panel_can_revoke_other_superuser_privileges(self):
         self.client.login(username="greenbear", password="pass")
 
         response = self.client.post(
             reverse("recipes:block_author", kwargs={"slug": self.second_superuser_author.slug}),
-            {"action": "revoke_bearseeker"},
+            {"action": "revoke_superuser"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.second_superuser.refresh_from_db()
+        self.second_superuser_author.refresh_from_db()
+        self.assertFalse(self.second_superuser.is_superuser)
+        self.assertFalse(self.second_superuser.is_staff)
+        self.assertTrue(self.second_superuser.is_active)
+        self.assertFalse(self.second_superuser_author.has_bearseeker_privileges)
+
+    def test_panel_cannot_revoke_current_superuser(self):
+        self.client.login(username="greenbear", password="pass")
+
+        response = self.client.post(
+            reverse("recipes:block_author", kwargs={"slug": self.owner_author.slug}),
+            {"action": "revoke_superuser"},
         )
 
         self.assertEqual(response.status_code, 404)
+        self.owner.refresh_from_db()
+        self.assertTrue(self.owner.is_superuser)
 
 
 class RecipeCommentFormTests(SimpleTestCase):

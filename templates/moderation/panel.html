@@ -225,6 +225,16 @@
                         <a href="{{ author.get_absolute_url }}" target="_blank">{{ author.name }}</a>
                     </h3>
                 </div>
+                {% if author.user != request.user %}
+                <div class="moderation-card__actions">
+                    <form action="{% url 'recipes:block_author' author.slug %}" method="post">{% csrf_token %}
+                        <input name="next" type="hidden" value="{{ request.get_full_path }}">
+                        <button class="mod-btn mod-btn--delete" name="action"
+                            onclick="return confirm('Revoke Django superuser privileges from {{ author.user.username }}?')"
+                            type="submit" value="revoke_superuser">Revoke Superuser Privileges</button>
+                    </form>
+                </div>
+                {% endif %}
             </div>
             {% endfor %}
         </div>

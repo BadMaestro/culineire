@@ -1284,12 +1284,24 @@ def block_author(request, slug):
     if not is_moderator(request.user):
         raise Http404
     author = get_object_or_404(RecipeAuthor, slug=slug)
-    if author.slug == "greenbear" or (author.user and author.user.is_superuser):
-        raise Http404
     user = author.user
     if user:
         action = request.POST.get("action", "block")
-        if action == "grant_bearseeker":
+        if action == "revoke_superuser":
+            if not _can_grant_bearseeker_privileges(request.user):
+                raise Http404
+            if user.pk == request.user.pk:
+                raise Http404
+            author.has_bearseeker_privileges = False
+            author.save(update_fields=["has_bearseeker_privileges"])
+            user.is_superuser = False
+            user.is_staff = False
+            user.is_active = True
+            user.save(update_fields=["is_superuser", "is_staff", "is_active"])
+            messages.warning(request, f'Superuser privileges revoked from "{author.name}".')
+        elif author.slug == "greenbear" or user.is_superuser:
+            raise Http404
+        elif action == "grant_bearseeker":
             if not _can_grant_bearseeker_privileges(request.user):
                 raise Http404
             author.has_bearseeker_privileges = True
