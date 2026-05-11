@@ -12,7 +12,7 @@ from config import views as config_views
 from recipes import views as recipes_views
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    path("cave19850324/", admin.site.urls),
 
     # Home page
     path("", recipes_views.home, name="home"),
