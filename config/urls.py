@@ -20,7 +20,13 @@ urlpatterns = [
     path("privacy/", TemplateView.as_view(template_name="privacy.html"), name="privacy"),
     path("robots.txt", config_views.robots_txt, name="robots_txt"),
     path("sitemap.xml", config_views.sitemap_xml, name="sitemap_xml"),
-    path("favicon.ico", RedirectView.as_view(url=static("images/favicon.png"), permanent=True), name="favicon"),
+    path("favicon.ico", RedirectView.as_view(url=static("images/favicon.ico"), permanent=True), name="favicon"),
+    path("favicon.png", RedirectView.as_view(url=static("images/favicon.png"), permanent=True), name="favicon_png"),
+    path(
+        "apple-touch-icon.png",
+        RedirectView.as_view(url=static("images/apple-touch-icon.png"), permanent=True),
+        name="apple_touch_icon",
+    ),
 
     # Recipes
     path("recipes/", include("recipes.urls", namespace="recipes")),
