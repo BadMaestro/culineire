@@ -324,6 +324,11 @@ LOGGING = {
             "format": "{levelname} | {message}",
             "style": "{",
         },
+        "auth_failure": {
+            "format": "{asctime} {message}",
+            "style": "{",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
     },
     "handlers": {
         "console": {
@@ -341,6 +346,15 @@ LOGGING = {
             "formatter": "verbose",
             "encoding": "utf-8",
             "filters": ["redact_sensitive_data"],
+        },
+        "auth_failures_file": {
+            "level": "WARNING",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": LOG_DIR / "auth_failures.log",
+            "maxBytes": 5 * 1024 * 1024,
+            "backupCount": 3,
+            "formatter": "auth_failure",
+            "encoding": "utf-8",
         },
     },
     "loggers": {
@@ -362,6 +376,11 @@ LOGGING = {
         "articles": {
             "handlers": ["console", "file"],
             "level": LOG_LEVEL,
+            "propagate": False,
+        },
+        "auth.failures": {
+            "handlers": ["auth_failures_file"],
+            "level": "WARNING",
             "propagate": False,
         },
     },

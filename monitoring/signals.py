@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib.auth.signals import (
     user_logged_in,
     user_logged_out,
@@ -6,6 +8,8 @@ from django.contrib.auth.signals import (
 from django.db import DatabaseError
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+
+_auth_failure_log = logging.getLogger("auth.failures")
 
 
 @receiver(user_logged_in)
@@ -51,9 +55,13 @@ def on_login_failed(sender, credentials, request, **kwargs):
         from monitoring.models import SecurityEvent, UserActivity
         from monitoring.tracker import get_client_ip, hash_ip
 
-        ip_hash = hash_ip(get_client_ip(request))
+        real_ip = get_client_ip(request)
+        ip_hash = hash_ip(real_ip)
         path = request.path[:500] if request else ""
         ua = request.META.get("HTTP_USER_AGENT", "")[:300] if request else ""
+
+        if real_ip:
+            _auth_failure_log.warning("FAILED_LOGIN ip=%s", real_ip)
 
         from monitoring.middleware import _failed_login_severity
         SecurityEvent.objects.create(
