@@ -149,20 +149,20 @@ class RecipeAuthor(models.Model):
 
 
 ALLERGEN_CHOICES = [
-    ("gluten", "Cereals containing gluten — wheat (spelt, khorasan), rye, barley, oats"),
-    ("crustaceans", "Crustaceans — crabs, prawns, lobsters"),
+    ("gluten", "Gluten"),
+    ("crustaceans", "Crustaceans"),
     ("eggs", "Eggs"),
     ("fish", "Fish"),
     ("peanuts", "Peanuts"),
     ("soybeans", "Soybeans"),
     ("milk", "Milk"),
-    ("nuts", "Nuts — almonds, hazelnuts, walnuts, cashews, pecans, brazil nuts, pistachios, macadamia"),
+    ("nuts", "Tree Nuts"),
     ("celery", "Celery"),
     ("mustard", "Mustard"),
-    ("sesame", "Sesame seeds"),
-    ("sulphites", "Sulphur dioxide and sulphites (>10 mg/kg or 10 mg/L)"),
+    ("sesame", "Sesame"),
+    ("sulphites", "Sulphites"),
     ("lupin", "Lupin"),
-    ("molluscs", "Molluscs — mussels, oysters, squid, snails"),
+    ("molluscs", "Molluscs"),
 ]
 
 
