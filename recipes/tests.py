@@ -137,6 +137,71 @@ class RecipeTextHelperTests(SimpleTestCase):
         )
 
 
+class ModerationPanelRoleTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        self.owner = user_model.objects.create_superuser(
+            username="greenbear",
+            email="culineire@gmail.com",
+            password="pass",
+        )
+        self.owner_author, _ = RecipeAuthor.objects.update_or_create(
+            slug="greenbear",
+            defaults={
+                "user": self.owner,
+                "name": "GreenBear",
+            },
+        )
+        self.second_superuser = user_model.objects.create_superuser(
+            username="catwithtail",
+            email="catwithtail.as@gmail.com",
+            password="pass",
+        )
+        self.second_superuser_author = RecipeAuthor.objects.create(
+            user=self.second_superuser,
+            name="Alexey Senin",
+            slug="catwithtail",
+            has_bearseeker_privileges=True,
+        )
+        self.bearseeker_user = user_model.objects.create_user(
+            username="bear-admin",
+            email="bear-admin@example.com",
+            password="pass",
+        )
+        self.bearseeker_author = RecipeAuthor.objects.create(
+            user=self.bearseeker_user,
+            name="Bear Admin",
+            slug="bear-admin",
+            has_bearseeker_privileges=True,
+        )
+
+    def test_panel_groups_django_superusers_above_bearseeker_admins(self):
+        self.client.login(username="greenbear", password="pass")
+
+        response = self.client.get(reverse("recipes:moderation_panel"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            set(response.context["bearseeker_super_users"].values_list("pk", flat=True)),
+            {self.owner_author.pk, self.second_superuser_author.pk},
+        )
+        self.assertEqual(
+            list(response.context["bearseeker_authors"].values_list("pk", flat=True)),
+            [self.bearseeker_author.pk],
+        )
+        self.assertContains(response, "@catwithtail")
+
+    def test_panel_action_cannot_revoke_or_block_superuser_author(self):
+        self.client.login(username="greenbear", password="pass")
+
+        response = self.client.post(
+            reverse("recipes:block_author", kwargs={"slug": self.second_superuser_author.slug}),
+            {"action": "revoke_bearseeker"},
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+
 class RecipeCommentFormTests(SimpleTestCase):
     def test_valid_comment_form_passes_validation(self):
         form = RecipeCommentForm(

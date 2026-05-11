@@ -207,24 +207,26 @@
         </div>
 
         {% if can_grant_bearseeker_privileges %}
-        {% if bearseeker_super_user %}
+        {% if bearseeker_super_users %}
         <div class="moderation-block moderation-block--bearseeker-super-user">
             <h2 class="moderation-block__title">
                 (BEAR)SEEKER SUPER USER
-                <span class="moderation-badge moderation-badge--pending">1 active</span>
+                <span class="moderation-badge moderation-badge--pending">{{ bearseeker_super_users|length }} active</span>
             </h2>
 
+            {% for author in bearseeker_super_users %}
             <div class="moderation-card">
                 <div class="moderation-card__body">
                     <div class="moderation-card__meta">
                         <span class="moderation-author-status moderation-author-status--active">Active</span>
-                        <span class="moderation-card__author">@{{ bearseeker_super_user.user.username }}</span>
+                        <span class="moderation-card__author">@{{ author.user.username }}</span>
                     </div>
                     <h3 class="moderation-card__title moderation-author-card__name">
-                        <a href="{{ bearseeker_super_user.get_absolute_url }}" target="_blank">{{ bearseeker_super_user.name }}</a>
+                        <a href="{{ author.get_absolute_url }}" target="_blank">{{ author.name }}</a>
                     </h3>
                 </div>
             </div>
+            {% endfor %}
         </div>
         {% endif %}
 

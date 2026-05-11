@@ -721,7 +721,12 @@ def author_detail(request, slug):
 
 
 def _is_protected_author_action(author, user):
-    return author.slug == "greenbear" or author.user_id == getattr(user, "pk", None)
+    linked_user = getattr(author, "user", None)
+    return (
+        author.slug == "greenbear"
+        or author.user_id == getattr(user, "pk", None)
+        or bool(linked_user and linked_user.is_superuser)
+    )
 
 
 def _delete_author_profile_and_account(author):
@@ -1163,10 +1168,12 @@ def moderation_panel(request):
         .filter(status=Article.Status.REJECTED)
         .order_by("-published")
     )
+    protected_super_user_filter = Q(user__is_superuser=True) | Q(slug="greenbear")
+
     registered_authors = (
         RecipeAuthor.objects.select_related("user")
         .filter(user__isnull=False, has_bearseeker_privileges=False)
-        .exclude(slug="greenbear")
+        .exclude(protected_super_user_filter)
         .order_by("name", "user__username")
     )
     if author_query:
@@ -1178,12 +1185,14 @@ def moderation_panel(request):
     bearseeker_authors = (
         RecipeAuthor.objects.select_related("user")
         .filter(has_bearseeker_privileges=True, user__isnull=False)
+        .exclude(protected_super_user_filter)
         .order_by("name")
     )
-    bearseeker_super_user = (
+    bearseeker_super_users = (
         RecipeAuthor.objects.select_related("user")
-        .filter(slug="greenbear", user__isnull=False)
-        .first()
+        .filter(user__isnull=False)
+        .filter(protected_super_user_filter)
+        .order_by("name", "user__username")
     )
 
     return render(request, "moderation/panel.html", {
@@ -1194,7 +1203,7 @@ def moderation_panel(request):
         "registered_authors": registered_authors,
         "author_query": author_query,
         "can_grant_bearseeker_privileges": _can_grant_bearseeker_privileges(request.user),
-        "bearseeker_super_user": bearseeker_super_user,
+        "bearseeker_super_users": bearseeker_super_users,
         "bearseeker_authors": bearseeker_authors,
     })
 
@@ -1275,7 +1284,7 @@ def block_author(request, slug):
     if not is_moderator(request.user):
         raise Http404
     author = get_object_or_404(RecipeAuthor, slug=slug)
-    if author.slug == "greenbear":
+    if author.slug == "greenbear" or (author.user and author.user.is_superuser):
         raise Http404
     user = author.user
     if user:
