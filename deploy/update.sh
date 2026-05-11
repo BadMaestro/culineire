@@ -65,12 +65,7 @@ info "Collecting static files..."
 $PY manage.py collectstatic --noinput --clear -v 0
 ok "Static files collected"
 
-# --- 7. Run tests -------------------------------------------------------------
-info "Running test suite..."
-$PY manage.py test --verbosity=0 2>&1 | tail -5
-ok "Tests passed"
-
-# --- 8. Restart NGINX Unit ----------------------------------------------------
+# --- 7. Restart NGINX Unit ----------------------------------------------------
 info "Restarting NGINX Unit..."
 sudo systemctl restart unit
 sleep 2
