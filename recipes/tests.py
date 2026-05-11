@@ -186,6 +186,10 @@ class ModerationPanelRoleTests(TestCase):
             {self.owner_author.pk, self.second_superuser_author.pk},
         )
         self.assertEqual(
+            list(response.context["bearseeker_super_users"].values_list("slug", flat=True)),
+            ["greenbear", "catwithtail"],
+        )
+        self.assertEqual(
             list(response.context["bearseeker_authors"].values_list("pk", flat=True)),
             [self.bearseeker_author.pk],
         )

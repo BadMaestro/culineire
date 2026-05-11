@@ -9,7 +9,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import LoginView
 from django.core.mail import send_mail
 from django.db import transaction
-from django.db.models import Avg, Count, Prefetch, Q
+from django.db.models import Avg, Case, Count, IntegerField, Prefetch, Q, Value, When
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.templatetags.static import static
@@ -1199,7 +1199,14 @@ def moderation_panel(request):
         RecipeAuthor.objects.select_related("user")
         .filter(user__isnull=False)
         .filter(protected_super_user_filter)
-        .order_by("name", "user__username")
+        .annotate(
+            owner_priority=Case(
+                When(slug="greenbear", then=Value(0)),
+                default=Value(1),
+                output_field=IntegerField(),
+            )
+        )
+        .order_by("owner_priority", "name", "user__username")
     )
 
     return render(request, "moderation/panel.html", {
