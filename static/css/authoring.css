@@ -416,3 +416,54 @@ textarea.authoring-control {
     align-items: stretch;
   }
 }
+
+/* ── Image upload warning ── */
+.authoring-warning {
+  margin-top: 0.6rem;
+  padding: 0.75rem 1rem;
+  background: #fff8e6;
+  border-left: 4px solid #c97b00;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.875rem;
+  color: #5a3e00;
+  line-height: 1.5;
+}
+
+.authoring-warning a {
+  color: #c97b00;
+  text-decoration: underline;
+}
+
+/* ── Confirmation checkboxes ── */
+.authoring-section--confirmations {
+  background: #f0f7f0;
+  border-color: color-mix(in srgb, var(--brand, #0b4c3a) 20%, transparent);
+}
+
+.authoring-confirm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.authoring-confirm-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 0.65rem;
+  cursor: pointer;
+}
+
+.authoring-confirm-check {
+  margin-top: 0.2rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  flex-shrink: 0;
+  accent-color: var(--brand, #0b4c3a);
+}
+
+.authoring-confirm-label {
+  font-size: 0.9rem;
+  color: var(--text, #1a1a1a);
+  line-height: 1.5;
+}

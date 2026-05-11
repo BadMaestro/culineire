@@ -152,8 +152,8 @@ class RecipeAdmin(admin.ModelAdmin):
     autocomplete_fields = ("author",)
     ordering = ("-created_at",)
     inlines = [RecipeImageInline]
-    exclude = ("slug", "media_folder")
-    readonly_fields = ("hero_preview",)
+    exclude = ("slug", "media_folder", "confirmed_by")
+    readonly_fields = ("hero_preview", "confirmation_timestamp")
 
     fieldsets = (
         (
@@ -206,6 +206,27 @@ class RecipeAdmin(admin.ModelAdmin):
                     "source_url",
                     "source_note",
                 )
+            },
+        ),
+        (
+            "Image rights",
+            {
+                "fields": (
+                    "image_rights_status",
+                    "image_rights_note",
+                )
+            },
+        ),
+        (
+            "Author confirmations",
+            {
+                "classes": ("collapse",),
+                "fields": (
+                    "confirmed_own_work",
+                    "confirmed_image_rights",
+                    "confirmed_rules",
+                    "confirmation_timestamp",
+                ),
             },
         ),
     )

@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Copyright and Image Rights Guide | CulinEire{% endblock %}
+{% block meta_description %}A practical guide to using images legally on CulinEire. Learn about licences, watermarks, and Creative Commons.{% endblock %}
+
+{% block content %}
+<section class="hero hero--home">
+    <div aria-hidden="true" class="hero__background">
+        <img alt="" src="{% static 'images/hero-contact.png' %}">
+    </div>
+    <div aria-hidden="true" class="hero__overlay"></div>
+    <div class="container hero__inner">
+        <div class="hero-copy">
+            <span class="pill">Legal</span>
+            <h1 class="hero-title">Copyright and Image Rights Guide</h1>
+            <p class="hero-subtitle">A practical guide to images, licences, and your rights as a CulinEire author.</p>
+        </div>
+    </div>
+</section>
+
+<section class="page-section">
+    <div class="container">
+
+        <div class="section-header">
+            <span class="section-kicker">The Basics</span>
+            <h2>Why Image Rights Matter</h2>
+        </div>
+        <p class="page-subtitle">
+            Every photograph is automatically protected by copyright under Irish and EU law from the moment
+            it is created. Using a photograph without the copyright holder's permission is an infringement,
+            even if the image was found freely available online.
+        </p>
+        <p class="page-subtitle">
+            CulinEire takes image rights seriously. Publishing unlicensed images exposes both the author
+            and the platform to legal liability under the Copyright and Related Rights Act 2000 (Ireland)
+            and the EU Copyright Directive (2019/790).
+        </p>
+
+        <div class="section-header">
+            <span class="section-kicker">Watermarks</span>
+            <h2>Never Submit Watermarked Images</h2>
+        </div>
+        <p class="page-subtitle">
+            A watermark is a visible copyright notice. It means the image belongs to someone else.
+        </p>
+        <ul class="legal-list">
+            <li>Do not upload watermarked images, even if the watermark has been cropped out of the visible area. Cropping does not transfer rights.</li>
+            <li>Watermarks from services such as Getty Images, Shutterstock, Alamy, or similar indicate that the image is licensed commercial stock photography and requires a paid licence to use.</li>
+            <li>If you found an image on Google Images, Pinterest, or a recipe blog, this does not mean you have rights to use it.</li>
+            <li>Submitting a watermarked or unlicensed image may result in immediate content removal and account suspension.</li>
+        </ul>
+
+        <div class="section-header">
+            <span class="section-kicker">Your Own Photos</span>
+            <h2>Using Photos You Took Yourself</h2>
+        </div>
+        <p class="page-subtitle">
+            The safest choice is to use your own original photographs. As the photographer, you own the copyright automatically.
+        </p>
+        <ul class="legal-list">
+            <li>Select "My own photo" as the Image Rights option when submitting your recipe.</li>
+            <li>No additional credit is required for your own work.</li>
+        </ul>
+
+        <div class="section-header">
+            <span class="section-kicker">Creative Commons</span>
+            <h2>Using Licensed Images</h2>
+        </div>
+        <p class="page-subtitle">
+            Some photographers make their work available under Creative Commons or other open licences.
+            You can use these images if you comply with the licence terms.
+        </p>
+        <ul class="legal-list">
+            <li><strong>CC BY</strong> (Attribution): You may use the image if you credit the photographer and source. This is the most permissive licence.</li>
+            <li><strong>CC BY-SA</strong> (Attribution-ShareAlike): You may use the image with credit, and any derivatives must use the same licence.</li>
+            <li><strong>CC BY-NC</strong> (Attribution-NonCommercial): Use permitted for non-commercial purposes with credit.</li>
+            <li><strong>CC BY-ND</strong> (Attribution-NoDerivatives): Use permitted with credit, but no modifications.</li>
+            <li><strong>CC0</strong> (Public Domain Dedication): No restrictions; no credit required, though crediting is good practice.</li>
+        </ul>
+        <p class="page-subtitle">
+            When using a Creative Commons image, include the licence name and photographer credit in the
+            Image Credit / Licence field when submitting your recipe.
+        </p>
+
+        <div class="section-header">
+            <span class="section-kicker">Public Domain</span>
+            <h2>Public Domain Images</h2>
+        </div>
+        <p class="page-subtitle">
+            Works enter the public domain when their copyright expires (typically 70 years after the author's death
+            under Irish and EU law) or when the creator explicitly dedicates them to the public domain.
+        </p>
+        <ul class="legal-list">
+            <li>Public domain images may be used freely.</li>
+            <li>Check the source carefully. Some platforms claim images are public domain when they are not.</li>
+            <li>Reliable sources include Wikimedia Commons (CC0-marked images), the Library of Congress digital collections, and the National Library of Ireland digital collections.</li>
+        </ul>
+
+        <div class="section-header">
+            <span class="section-kicker">Stock Photography</span>
+            <h2>Stock Images</h2>
+        </div>
+        <ul class="legal-list">
+            <li>Stock images from Unsplash, Pexels, or Pixabay that are marked as free for commercial use may be used on CulinEire. Check the individual licence for each image.</li>
+            <li>Images from paid stock libraries (Getty, Shutterstock, iStock) may only be used if you hold an appropriate licence. Do not use watermarked preview versions.</li>
+        </ul>
+
+        <div class="section-header">
+            <span class="section-kicker">Reporting</span>
+            <h2>If You See an Infringement</h2>
+        </div>
+        <p class="page-subtitle">
+            If you believe content on CulinEire infringes your copyright or another person's rights,
+            please use the <a href="{% url 'legal:report_content' %}">Report Content</a> form.
+            CulinEire will investigate and act promptly on verified complaints.
+        </p>
+
+        <p class="page-subtitle" style="margin-top:2.5rem;">
+            Last updated: May 2026. This guide does not constitute legal advice.
+            For specific legal questions, consult a qualified Irish or EU intellectual property solicitor.
+        </p>
+
+        <p class="page-subtitle">
+            <a href="{% url 'legal:legal_hub' %}">&larr; Back to Legal</a>
+        </p>
+    </div>
+</section>
+{% endblock %}

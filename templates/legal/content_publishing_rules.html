@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Content Publishing Rules | CulinEire{% endblock %}
+{% block meta_description %}Rules for submitting recipes and articles to CulinEire. Read before publishing content.{% endblock %}
+
+{% block content %}
+<section class="hero hero--home">
+    <div aria-hidden="true" class="hero__background">
+        <img alt="" src="{% static 'images/hero-contact.png' %}">
+    </div>
+    <div aria-hidden="true" class="hero__overlay"></div>
+    <div class="container hero__inner">
+        <div class="hero-copy">
+            <span class="pill">Legal</span>
+            <h1 class="hero-title">Content Publishing Rules</h1>
+            <p class="hero-subtitle">What you may and may not submit to CulinEire.</p>
+        </div>
+    </div>
+</section>
+
+<section class="page-section">
+    <div class="container">
+
+        <div class="section-header">
+            <span class="section-kicker">General</span>
+            <h2>What We Accept</h2>
+        </div>
+        <p class="page-subtitle">
+            CulinEire publishes recipes and food articles that are original, family-based,
+            or properly credited adaptations. All content must be submitted in good faith
+            by the person whose name it will appear under.
+        </p>
+        <ul class="legal-list">
+            <li>Original recipes created by the submitting author.</li>
+            <li>Family or personal recipes that the author has the right to share publicly.</li>
+            <li>Adaptations of other recipes, provided the original source is clearly credited in the Source Notes field.</li>
+            <li>Food articles, food history pieces, and culinary commentary written by the submitting author.</li>
+        </ul>
+
+        <div class="section-header">
+            <span class="section-kicker">Prohibited Content</span>
+            <h2>What Is Not Permitted</h2>
+        </div>
+        <ul class="legal-list">
+            <li>Recipes or text copied verbatim from cookbooks, websites, magazines or other publications without explicit written permission from the rights holder.</li>
+            <li>Content submitted under a name that is not the author's own (impersonation).</li>
+            <li>Images you do not own, have not licensed, or for which you have not received written permission.</li>
+            <li>Watermarked images, even if the watermark is cropped out. The presence of a watermark indicates the image belongs to someone else.</li>
+            <li>AI-generated images claimed as original photography.</li>
+            <li>Content that is defamatory, obscene, or in breach of Irish law.</li>
+            <li>Spam, commercial promotions, or affiliate content submitted without prior agreement.</li>
+        </ul>
+
+        <div class="section-header">
+            <span class="section-kicker">Images</span>
+            <h2>Image Standards</h2>
+        </div>
+        <p class="page-subtitle">
+            Images on CulinEire must meet the following minimum standards.
+        </p>
+        <ul class="legal-list">
+            <li>The image must be your own photograph, a correctly licensed stock or Creative Commons image, or a public domain image.</li>
+            <li>You must be able to demonstrate ownership or licensing rights if asked.</li>
+            <li>Images must not contain visible watermarks, copyright notices from other services, or branding from third-party platforms.</li>
+            <li>Cropping out a watermark does not transfer rights. Do not submit watermarked images.</li>
+            <li>Where a licence applies (e.g. Creative Commons), include the licence name and credit in the Image Credit field when submitting.</li>
+        </ul>
+
+        <div class="section-header">
+            <span class="section-kicker">Enforcement</span>
+            <h2>Consequences of Rule Violations</h2>
+        </div>
+        <ul class="legal-list">
+            <li>Content found to be in breach of these rules will be removed without notice.</li>
+            <li>Repeated or serious violations may result in account suspension.</li>
+            <li>CulinEire will cooperate with rights holders and relevant authorities in the event of verified copyright infringement.</li>
+            <li>Reports of policy violations or copyright infringement can be submitted via the <a href="{% url 'legal:report_content' %}">Report Content</a> form.</li>
+        </ul>
+
+        <p class="page-subtitle" style="margin-top:2.5rem;">
+            Last updated: May 2026. These rules are governed by Irish law, including the
+            Copyright and Related Rights Act 2000 and applicable EU regulations.
+        </p>
+
+        <p class="page-subtitle">
+            <a href="{% url 'legal:legal_hub' %}">&larr; Back to Legal</a>
+        </p>
+    </div>
+</section>
+{% endblock %}

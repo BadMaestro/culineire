@@ -43,6 +43,9 @@ urlpatterns = [
     # Collection
     path("collection/", include("collection.urls", namespace="collection")),
 
+    # Legal
+    path("legal/", include("legal.urls", namespace="legal")),
+
     # Monitoring dashboard
     path("recipes/moderation/monitoring/", include("monitoring.urls", namespace="monitoring")),
 

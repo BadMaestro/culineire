@@ -5,6 +5,22 @@ from django.utils.safestring import mark_safe
 
 from .models import ALLERGEN_CHOICES, Recipe, RecipeAuthor
 
+_RULES_LABEL = mark_safe(
+    'I have read and agree to the '
+    '<a href="/legal/content-publishing-rules/" target="_blank" rel="noopener">Content Publishing Rules</a>.'
+)
+_OWN_WORK_LABEL = mark_safe(
+    'This recipe is my own original work, a properly credited adaptation, '
+    'or a family/personal recipe. I have not copied it from a book, '
+    'website, or any other source without permission and attribution.'
+)
+_IMAGE_RIGHTS_LABEL = mark_safe(
+    'All images I am uploading are either my own photos, '
+    'correctly licensed, or in the public domain. '
+    'I confirm I have <strong>not</strong> uploaded watermarked, '
+    'stolen, or unlicensed images.'
+)
+
 
 def _set_auth_widget_attrs(field, **attrs):
     field.widget.attrs.update(attrs)
@@ -135,6 +151,22 @@ class RecipeAuthoringForm(forms.ModelForm):
         ),
     )
 
+    confirm_own_work = forms.BooleanField(
+        label=_OWN_WORK_LABEL,
+        required=True,
+        widget=forms.CheckboxInput(attrs={"class": "authoring-confirm-check"}),
+    )
+    confirm_image_rights = forms.BooleanField(
+        label=_IMAGE_RIGHTS_LABEL,
+        required=True,
+        widget=forms.CheckboxInput(attrs={"class": "authoring-confirm-check"}),
+    )
+    confirm_rules = forms.BooleanField(
+        label=_RULES_LABEL,
+        required=True,
+        widget=forms.CheckboxInput(attrs={"class": "authoring-confirm-check"}),
+    )
+
     class Meta:
         model = Recipe
         fields = (
@@ -158,6 +190,8 @@ class RecipeAuthoringForm(forms.ModelForm):
             "source_author",
             "source_url",
             "source_note",
+            "image_rights_status",
+            "image_rights_note",
         )
         labels = {
             "title": "Recipe Title",
@@ -177,6 +211,8 @@ class RecipeAuthoringForm(forms.ModelForm):
             "source_author": "Source Author",
             "source_url": "Source URL",
             "source_note": "Source Note",
+            "image_rights_status": "Image Rights",
+            "image_rights_note": "Image Credit / Licence",
         }
         widgets = {
             "short_description": forms.Textarea(attrs={"rows": 3}),
@@ -190,8 +226,10 @@ class RecipeAuthoringForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        for field in self.fields.values():
-            field.widget.attrs.setdefault("class", "authoring-control")
+        for field_name, field in self.fields.items():
+            if field_name not in ("confirm_own_work", "confirm_image_rights", "confirm_rules",
+                                  "additional_categories", "allergens"):
+                field.widget.attrs.setdefault("class", "authoring-control")
 
         self.fields["additional_categories"].initial = self.instance.get_additional_category_values()
 
@@ -205,6 +243,15 @@ class RecipeAuthoringForm(forms.ModelForm):
             self.fields["allergens"].initial = [
                 a.strip() for a in self.instance.allergens.split(",") if a.strip()
             ]
+
+        # Pre-check confirmation boxes if author already agreed previously
+        if self.instance.pk:
+            if self.instance.confirmed_own_work:
+                self.fields["confirm_own_work"].initial = True
+            if self.instance.confirmed_image_rights:
+                self.fields["confirm_image_rights"].initial = True
+            if self.instance.confirmed_rules:
+                self.fields["confirm_rules"].initial = True
 
         for field_name in ("prep_time_minutes", "cook_time_minutes", "servings", "calories"):
             self.fields[field_name].widget.attrs.setdefault("min", "0")
@@ -223,6 +270,10 @@ class RecipeAuthoringForm(forms.ModelForm):
             "Write each step on a new line.",
         )
         self.fields["hero_image"].widget.attrs.setdefault("accept", ".jpg,.jpeg,.png,.webp")
+        self.fields["image_rights_note"].widget.attrs.setdefault(
+            "placeholder",
+            "e.g. CC BY 2.0, Unsplash licence, with permission from photographer",
+        )
 
     def clean_additional_categories(self):
         selected = []
@@ -244,9 +295,17 @@ class RecipeAuthoringForm(forms.ModelForm):
             if category_value not in existing:
                 recipe.additional_category_links.create(category=category_value)
 
-    def save(self, commit=True):
+    def save(self, commit=True, confirmed_by=None):
+        from django.utils import timezone
+
         instance = super().save(commit=False)
         instance.allergens = ",".join(self.cleaned_data.get("allergens", []))
+        instance.confirmed_own_work = bool(self.cleaned_data.get("confirm_own_work"))
+        instance.confirmed_image_rights = bool(self.cleaned_data.get("confirm_image_rights"))
+        instance.confirmed_rules = bool(self.cleaned_data.get("confirm_rules"))
+        instance.confirmation_timestamp = timezone.now()
+        if confirmed_by is not None:
+            instance.confirmed_by = confirmed_by
 
         if commit:
             instance.save()

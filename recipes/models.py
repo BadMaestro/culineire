@@ -213,6 +213,12 @@ class Recipe(models.Model):
         RESTAURANT = "restaurant", "Restaurant"
         OTHER = "other", "Other"
 
+    class ImageRightsStatus(models.TextChoices):
+        OWN = "own", "My own photo"
+        LICENSED = "licensed", "Licensed (CC, stock, written permission)"
+        PUBLIC_DOMAIN = "public_domain", "Public domain"
+        NOT_APPLICABLE = "not_applicable", "No image uploaded"
+
     title = models.CharField(max_length=200)
     slug = models.SlugField(max_length=220, unique=True, db_index=True, blank=True)
     media_folder = models.CharField(max_length=255, blank=True, editable=False, db_index=True)
@@ -280,6 +286,45 @@ class Recipe(models.Model):
         choices=Status.choices,
         default=Status.PENDING,
         db_index=True,
+    )
+
+    confirmed_own_work = models.BooleanField(
+        "Confirmed: original or properly credited work",
+        default=False,
+    )
+    confirmed_image_rights = models.BooleanField(
+        "Confirmed: image rights",
+        default=False,
+    )
+    confirmed_rules = models.BooleanField(
+        "Confirmed: content publishing rules",
+        default=False,
+    )
+    confirmation_timestamp = models.DateTimeField(
+        "Confirmed at",
+        null=True,
+        blank=True,
+    )
+    confirmed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="confirmed_recipes",
+        verbose_name="Confirmed by",
+        editable=False,
+    )
+    image_rights_status = models.CharField(
+        "Image rights",
+        max_length=20,
+        choices=ImageRightsStatus.choices,
+        default=ImageRightsStatus.NOT_APPLICABLE,
+    )
+    image_rights_note = models.CharField(
+        "Image rights note",
+        max_length=255,
+        blank=True,
+        help_text="Optional: licence name, credit line, or permission reference.",
     )
 
     created_at = models.DateTimeField(auto_now_add=True)

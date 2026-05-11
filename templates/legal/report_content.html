@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Report Content | CulinEire{% endblock %}
+{% block meta_description %}Report copyright infringement or content policy violations on CulinEire.{% endblock %}
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+<link href="{% static 'css/authoring.css' %}?v=20260511a" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="hero hero--home">
+    <div aria-hidden="true" class="hero__background">
+        <img alt="" src="{% static 'images/hero-contact.png' %}">
+    </div>
+    <div aria-hidden="true" class="hero__overlay"></div>
+    <div class="container hero__inner">
+        <div class="hero-copy">
+            <span class="pill">Legal</span>
+            <h1 class="hero-title">Report Content</h1>
+            <p class="hero-subtitle">Report copyright infringement or a content policy violation.</p>
+        </div>
+    </div>
+</section>
+
+<section class="page-section authoring-page">
+    <div class="container authoring-shell">
+
+        {% if submitted %}
+        <div class="authoring-section" style="text-align:center;padding:3rem 1rem;">
+            <p style="font-size:1.1rem;font-weight:600;color:var(--brand);">Your report has been received.</p>
+            <p style="margin-top:0.75rem;color:var(--text-muted);">
+                We will review it and take appropriate action. You may receive a follow-up email if we need more information.
+            </p>
+            <p style="margin-top:1.5rem;">
+                <a class="btn-primary" href="{% url 'legal:legal_hub' %}">Back to Legal</a>
+            </p>
+        </div>
+        {% else %}
+
+        <div class="section-header">
+            <span class="section-kicker">Copyright and Policy Issues</span>
+            <h2>Submit a Report</h2>
+        </div>
+        <p class="page-subtitle">
+            Use this form to report copyright infringement, watermarked or stolen images,
+            uncredited recipes, or other content that violates CulinEire's policies.
+            We treat all reports seriously and will investigate promptly.
+        </p>
+        <p class="page-subtitle">
+            If you are a rights holder submitting a formal takedown request, please include
+            your name, the original source of the work, and the URL of the infringing content.
+        </p>
+
+        <form class="authoring-form" method="post" style="margin-top:2rem;">
+            {% csrf_token %}
+            {{ form.website }}
+
+            {% if form.non_field_errors %}
+            <div class="authoring-errors" role="alert">
+                {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+            </div>
+            {% endif %}
+
+            <fieldset class="authoring-section">
+                <legend>Your Details</legend>
+                <div class="authoring-grid authoring-grid--two">
+                    <div class="authoring-field">
+                        <label for="{{ form.reporter_name.id_for_label }}">{{ form.reporter_name.label }}:</label>
+                        {{ form.reporter_name }}
+                        {% for error in form.reporter_name.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field">
+                        <label for="{{ form.reporter_email.id_for_label }}">{{ form.reporter_email.label }}:</label>
+                        {{ form.reporter_email }}
+                        {% for error in form.reporter_email.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="authoring-section">
+                <legend>The Issue</legend>
+                <div class="authoring-grid authoring-grid--two">
+                    <div class="authoring-field">
+                        <label for="{{ form.report_type.id_for_label }}">{{ form.report_type.label }}:</label>
+                        {{ form.report_type }}
+                        {% for error in form.report_type.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field">
+                        <label for="{{ form.reported_url.id_for_label }}">{{ form.reported_url.label }}:</label>
+                        {{ form.reported_url }}
+                        {% for error in form.reported_url.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field authoring-field--wide">
+                        <label for="{{ form.description.id_for_label }}">{{ form.description.label }}:</label>
+                        {{ form.description }}
+                        {% if form.description.help_text %}<p class="authoring-help">{{ form.description.help_text }}</p>{% endif %}
+                        {% for error in form.description.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                </div>
+            </fieldset>
+
+            <div class="authoring-actions">
+                <div class="authoring-actions__buttons">
+                    <a class="authoring-link" href="{% url 'legal:legal_hub' %}">Cancel</a>
+                    <button class="authoring-submit" type="submit">Submit Report</button>
+                </div>
+            </div>
+        </form>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

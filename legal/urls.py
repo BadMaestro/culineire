@@ -1,0 +1,13 @@
+from django.urls import path
+
+from . import views
+
+app_name = "legal"
+
+urlpatterns = [
+    path("", views.LegalHubView.as_view(), name="legal_hub"),
+    path("content-publishing-rules/", views.ContentPublishingRulesView.as_view(), name="content_publishing_rules"),
+    path("author-submission-agreement/", views.AuthorSubmissionAgreementView.as_view(), name="author_submission_agreement"),
+    path("copyright-image-rights-guide/", views.CopyrightImageRightsGuideView.as_view(), name="copyright_image_rights_guide"),
+    path("report-content/", views.report_content, name="report_content"),
+]

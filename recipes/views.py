@@ -799,7 +799,7 @@ class RecipeCreateView(AuthorRequiredMixin, CreateView):
         return super().post(request, *args, **kwargs)
 
     def form_valid(self, form):
-        recipe = form.save(commit=False)
+        recipe = form.save(commit=False, confirmed_by=self.request.user)
         recipe.author = self.author
         recipe.save()
         getattr(form, "save_additional_categories")(recipe)
@@ -833,7 +833,8 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
         return Recipe.objects.filter(author=self.author)
 
     def form_valid(self, form):
-        recipe = form.save(commit=True)
+        recipe = form.save(commit=False, confirmed_by=self.request.user)
+        recipe.save()
         getattr(form, "save_additional_categories")(recipe)
 
         for step in range(1, 21):
