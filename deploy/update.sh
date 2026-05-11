@@ -9,6 +9,13 @@ APP=/srv/culineire/current
 VENV=/srv/culineire/venv
 PY=$VENV/bin/python
 PIP=$VENV/bin/pip
+ENV_FILE=/srv/culineire/shared/.env
+
+export DJANGO_ENV_FILE="$ENV_FILE"
+
+if [ ! -f "$ENV_FILE" ]; then
+    fail "Production .env not found at $ENV_FILE"
+fi
 
 GREEN='\033[0;32m'; RED='\033[0;31m'; CYAN='\033[0;36m'; NC='\033[0m'
 ok()   { echo -e "${GREEN}[OK]${NC}  $*"; }
