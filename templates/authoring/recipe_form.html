@@ -58,6 +58,14 @@
                     </div>
                     <div class="authoring-field authoring-field--wide">
                         <label for="{{ form.hero_image.id_for_label }}">{{ form.hero_image.label }}:</label>
+                        {% if form_mode == "edit" and recipe.hero_image %}
+                        <div class="authoring-step-existing-list">
+                            <div class="authoring-step-existing-item">
+                                <span class="authoring-step-badge">Current</span>
+                                <img alt="Current recipe image" class="authoring-step-thumb" src="{{ recipe.hero_image.url }}">
+                            </div>
+                        </div>
+                        {% endif %}
                         {{ form.hero_image }}
                         {% if form.hero_image.help_text %}<p class="authoring-help">{{ form.hero_image.help_text }}</p>{% endif %}
                         {% for error in form.hero_image.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
