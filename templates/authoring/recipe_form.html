@@ -5,7 +5,7 @@
 {% block meta_description %}{% if form_mode == "edit" %}Edit your CulinEire recipe from the author studio.{% else %}Create a new CulinEire recipe from the author studio.{% endif %}{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/authoring.css' %}?v=20260511a" rel="stylesheet">
+<link href="{% static 'css/authoring.css' %}?v=20260511c" rel="stylesheet">
 {% if turnstile_site_key %}<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>{% endif %}
 {% endblock %}
 
@@ -59,11 +59,6 @@
                     <div class="authoring-field">
                         <label for="{{ form.hero_image.id_for_label }}">{{ form.hero_image.label }}:</label>
                         {{ form.hero_image }}
-                        <div class="authoring-warning" role="alert">
-                            <strong>Image rule:</strong> Do not upload watermarked images even with the watermark cropped out.
-                            Only submit photos you took yourself, correctly licensed stock images, or public domain images.
-                            See the <a href="{% url 'legal:copyright_image_rights_guide' %}" target="_blank" rel="noopener">Copyright and Image Rights Guide</a>.
-                        </div>
                         {% if form.hero_image.help_text %}<p class="authoring-help">{{ form.hero_image.help_text }}</p>{% endif %}
                         {% for error in form.hero_image.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
@@ -99,6 +94,15 @@
                         </div>
                         <button class="authoring-add-step-btn" id="add-step-btn" type="button">+ Add another step</button>
                     </div>
+
+                    <div class="authoring-field authoring-field--wide">
+                        <div class="authoring-warning" role="alert">
+                            <strong>Image rule:</strong> Do not upload watermarked images even with the watermark cropped out.
+                            Only submit photos you took yourself, correctly licensed stock images, or public domain images.
+                            See the <a href="{% url 'legal:copyright_image_rights_guide' %}" target="_blank" rel="noopener">Copyright and Image Rights Guide</a>.
+                        </div>
+                    </div>
+
                     <div class="authoring-field">
                         <label for="{{ form.category.id_for_label }}">{{ form.category.label }}:</label>
                         {{ form.category }}
@@ -114,6 +118,23 @@
                         {{ form.additional_categories }}
                         {% if form.additional_categories.help_text %}<p class="authoring-help">{{ form.additional_categories.help_text }}</p>{% endif %}
                         {% for error in form.additional_categories.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="authoring-section">
+                <legend>Image Rights</legend>
+                <div class="authoring-grid authoring-grid--two">
+                    <div class="authoring-field">
+                        <label for="{{ form.image_rights_status.id_for_label }}">{{ form.image_rights_status.label }}:</label>
+                        {{ form.image_rights_status }}
+                        {% for error in form.image_rights_status.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field">
+                        <label for="{{ form.image_rights_note.id_for_label }}">{{ form.image_rights_note.label }}:</label>
+                        {{ form.image_rights_note }}
+                        {% if form.image_rights_note.help_text %}<p class="authoring-help">{{ form.image_rights_note.help_text }}</p>{% endif %}
+                        {% for error in form.image_rights_note.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
                 </div>
             </fieldset>
@@ -183,23 +204,6 @@
                 </div>
             </fieldset>
 
-            <fieldset class="authoring-section">
-                <legend>Image Rights</legend>
-                <div class="authoring-grid authoring-grid--two">
-                    <div class="authoring-field">
-                        <label for="{{ form.image_rights_status.id_for_label }}">{{ form.image_rights_status.label }}:</label>
-                        {{ form.image_rights_status }}
-                        {% for error in form.image_rights_status.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
-                    </div>
-                    <div class="authoring-field">
-                        <label for="{{ form.image_rights_note.id_for_label }}">{{ form.image_rights_note.label }}:</label>
-                        {{ form.image_rights_note }}
-                        {% if form.image_rights_note.help_text %}<p class="authoring-help">{{ form.image_rights_note.help_text }}</p>{% endif %}
-                        {% for error in form.image_rights_note.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
-                    </div>
-                </div>
-            </fieldset>
-
             <fieldset class="authoring-section authoring-section--centered">
                 <legend>Source Notes</legend>
                 <div class="authoring-grid authoring-grid--two">
@@ -233,7 +237,7 @@
 
             <fieldset class="authoring-section authoring-section--confirmations">
                 <legend>Confirmations</legend>
-                <p class="authoring-help" style="margin-bottom:1.25rem;">
+                <p class="authoring-confirm-intro">
                     Please read and tick each statement before submitting.
                     You must agree to all three to save your recipe.
                 </p>
@@ -241,17 +245,17 @@
                     <label class="authoring-confirm-item">
                         {{ form.confirm_own_work }}
                         <span class="authoring-confirm-label">{{ form.confirm_own_work.label }}</span>
-                        {% for error in form.confirm_own_work.errors %}<span class="authoring-error">{{ error }}</span>{% endfor %}
+                        {% for error in form.confirm_own_work.errors %}<span class="authoring-error authoring-error--block">{{ error }}</span>{% endfor %}
                     </label>
                     <label class="authoring-confirm-item">
                         {{ form.confirm_image_rights }}
                         <span class="authoring-confirm-label">{{ form.confirm_image_rights.label }}</span>
-                        {% for error in form.confirm_image_rights.errors %}<span class="authoring-error">{{ error }}</span>{% endfor %}
+                        {% for error in form.confirm_image_rights.errors %}<span class="authoring-error authoring-error--block">{{ error }}</span>{% endfor %}
                     </label>
                     <label class="authoring-confirm-item">
                         {{ form.confirm_rules }}
                         <span class="authoring-confirm-label">{{ form.confirm_rules.label }}</span>
-                        {% for error in form.confirm_rules.errors %}<span class="authoring-error">{{ error }}</span>{% endfor %}
+                        {% for error in form.confirm_rules.errors %}<span class="authoring-error authoring-error--block">{{ error }}</span>{% endfor %}
                     </label>
                 </div>
             </fieldset>
