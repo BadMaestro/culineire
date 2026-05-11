@@ -42,23 +42,31 @@
         {% if active_tab == 'recipes' %}
 
         {% if saved_recipes %}
-        <div class="collection-grid">
+        <div class="recipe-grid recipe-grid--mini">
             {% for saved in saved_recipes %}
             {% with recipe=saved.recipe %}
-            <article class="collection-card">
-                <a class="collection-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
+            <article class="recipe-card">
+                <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
                     {% if recipe.hero_image %}<img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="lazy">
                     {% else %}<img alt="{{ recipe.title }}" src="{% static 'images/hero.jpg' %}" loading="lazy">{% endif %}
                 </a>
-                <div class="collection-card__body">
-                    <h2 class="collection-card__title"><a href="{{ recipe.get_absolute_url }}">{{ recipe.title }}</a></h2>
-                    <p class="collection-card__meta">{{ recipe.get_category_display|default:"Recipe" }}</p>
-                    <p class="collection-card__meta">{{ saved.saved_at|date:"j F Y" }}</p>
-                    <form action="{% url 'collection:remove_recipe' recipe.slug %}" method="post" class="collection-form">
-                        {% csrf_token %}
-                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                        <button class="collection-remove-btn" type="submit">♥ Remove</button>
-                    </form>
+                <div class="recipe-card__body">
+                    <div class="recipe-card__content">
+                        <h2 class="recipe-card__title"><a href="{{ recipe.get_absolute_url }}">{{ recipe.title }}</a></h2>
+                        <div class="recipe-card__taxonomy">
+                            <span class="recipe-card__category-link">{{ recipe.get_category_display|default:"Recipe" }}</span>
+                        </div>
+                        <div class="recipe-card__meta-line recipe-card__meta-line--article">
+                            <span class="recipe-card__meta-item">{{ saved.saved_at|date:"j F Y" }}</span>
+                        </div>
+                    </div>
+                    <div class="recipe-card__footer">
+                        <form action="{% url 'collection:remove_recipe' recipe.slug %}" method="post" class="collection-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                            <button class="collection-remove-btn" type="submit">♥ Remove</button>
+                        </form>
+                    </div>
                 </div>
             </article>
             {% endwith %}
@@ -74,23 +82,31 @@
         {% else %}
 
         {% if saved_articles %}
-        <div class="collection-grid">
+        <div class="recipe-grid recipe-grid--mini">
             {% for saved in saved_articles %}
             {% with article=saved.article %}
-            <article class="collection-card">
-                <a class="collection-card__image-wrapper" href="{{ article.get_absolute_url }}">
+            <article class="recipe-card">
+                <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">
                     {% if article.hero_image %}<img alt="{{ article.title }}" src="{{ article.hero_image.url }}" loading="lazy">
                     {% else %}<img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}" loading="lazy">{% endif %}
                 </a>
-                <div class="collection-card__body">
-                    <h2 class="collection-card__title"><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h2>
-                    <p class="collection-card__meta">Article</p>
-                    <p class="collection-card__meta">{{ saved.saved_at|date:"j F Y" }}</p>
-                    <form action="{% url 'collection:remove_article' article.slug %}" method="post" class="collection-form">
-                        {% csrf_token %}
-                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                        <button class="collection-remove-btn" type="submit">♥ Remove</button>
-                    </form>
+                <div class="recipe-card__body">
+                    <div class="recipe-card__content">
+                        <h2 class="recipe-card__title"><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h2>
+                        <div class="recipe-card__taxonomy">
+                            <span class="recipe-card__category-link">Article</span>
+                        </div>
+                        <div class="recipe-card__meta-line recipe-card__meta-line--article">
+                            <span class="recipe-card__meta-item">{{ saved.saved_at|date:"j F Y" }}</span>
+                        </div>
+                    </div>
+                    <div class="recipe-card__footer">
+                        <form action="{% url 'collection:remove_article' article.slug %}" method="post" class="collection-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                            <button class="collection-remove-btn" type="submit">♥ Remove</button>
+                        </form>
+                    </div>
                 </div>
             </article>
             {% endwith %}
