@@ -113,6 +113,20 @@ class DashboardPermissionTest(TestCase):
         response = self.client.get("/recipes/moderation/monitoring/")
         self.assertEqual(response.status_code, 200)
 
+    def test_superuser_can_open_detail_pages(self):
+        self.client.login(username="admin", password="pass")
+        paths = [
+            "/recipes/moderation/monitoring/traffic/",
+            "/recipes/moderation/monitoring/traffic/?kind=human",
+            "/recipes/moderation/monitoring/security/",
+            "/recipes/moderation/monitoring/activity/",
+        ]
+
+        for path in paths:
+            with self.subTest(path=path):
+                response = self.client.get(path)
+                self.assertEqual(response.status_code, 200)
+
     def test_greenbear_gets_200(self):
         gb_user = User.objects.create_user(username="greenbear_test", password="pass")
         author, _ = RecipeAuthor.objects.get_or_create(slug="greenbear", defaults={"name": "GreenBear"})

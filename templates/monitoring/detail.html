@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | Monitoring | CulinEire{% endblock %}
+{% block meta_description %}CulinEire internal monitoring detail view.{% endblock %}
+
+{% block extra_head %}
+<link href="{% static 'css/monitoring.css' %}?v=20260511a" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="page-section mon-page mon-page--detail">
+  <div class="container mon-shell">
+
+    <div class="mon-detail-head">
+      <div>
+        <a class="mon-back-link" href="{{ dashboard_url }}">Back to dashboard</a>
+        <h1 class="mon-detail-title">{{ title }}</h1>
+        <p class="mon-detail-subtitle">{{ subtitle }}</p>
+      </div>
+      <div class="mon-detail-count">
+        <span>{{ total_count }}</span>
+        <small>{{ period_label }}</small>
+      </div>
+    </div>
+
+    <div class="mon-toolbar">
+      <nav class="mon-tabs" aria-label="Monitoring period">
+        {% for item in period_links %}
+        <a class="mon-tab{% if item.active %} is-active{% endif %}" href="{{ item.url }}">{{ item.label }}</a>
+        {% endfor %}
+      </nav>
+      {% if path_filter or ip_hash_filter %}
+      <div class="mon-filter-note">
+        {% if path_filter %}<span>Path: <code>{{ path_filter }}</code></span>{% endif %}
+        {% if ip_hash_filter %}<span>IP hash: <code>{{ ip_hash_filter|truncatechars:18 }}</code></span>{% endif %}
+      </div>
+      {% endif %}
+    </div>
+
+    {% if detail_type == "traffic" %}
+    <div class="mon-grid">
+      <div class="mon-section">
+        <h2 class="mon-section__title">Top Paths</h2>
+        {% if top_paths %}
+        <div class="mon-table-wrap mon-table-wrap--compact">
+          <table class="mon-table">
+            <thead><tr><th>Path</th><th>Hits</th></tr></thead>
+            <tbody>
+              {% for row in top_paths %}
+              <tr>
+                <td class="mon-table__path">
+                  <a class="mon-link-subtle" href="{{ path_filter_url_base }}{{ row.path|urlencode }}">{{ row.path }}</a>
+                </td>
+                <td class="mon-table__count">{{ row.count }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="mon-empty">No paths found for this filter.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="mon-section">
+      <h2 class="mon-section__title">Requests</h2>
+      {% if page_obj.object_list %}
+      <div class="mon-table-wrap mon-table-wrap--detail">
+        <table class="mon-table mon-table--detail">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Kind</th>
+              <th>User</th>
+              <th>Path</th>
+              <th>Status</th>
+              <th>Referrer</th>
+              <th>IP Hash</th>
+              <th>User Agent</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in page_obj.object_list %}
+            <tr>
+              <td class="mon-table__time">{{ row.created_at|date:"j M H:i:s" }}</td>
+              <td><span class="mon-kind mon-kind--{{ row.request_kind_class }}">{{ row.request_kind }}</span></td>
+              <td class="mon-table__user">{{ row.user.username|default:"-" }}</td>
+              <td class="mon-table__path">
+                <a class="mon-link-subtle" href="{{ path_filter_url_base }}{{ row.path|urlencode }}">{{ row.path|truncatechars:90 }}</a>
+              </td>
+              <td class="mon-table__count">{{ row.status_code }}</td>
+              <td class="mon-table__path">{{ row.referrer|default:"-"|truncatechars:70 }}</td>
+              <td class="mon-table__hash">
+                {% if row.ip_hash %}
+                <a class="mon-link-subtle" href="{{ ip_filter_url_base }}{{ row.ip_hash }}">{{ row.ip_hash|truncatechars:14 }}</a>
+                {% else %}
+                -
+                {% endif %}
+              </td>
+              <td class="mon-table__path">{{ row.user_agent|default:"-"|truncatechars:120 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="mon-empty">No requests found.</p>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if detail_type == "security" %}
+    <div class="mon-section">
+      <h2 class="mon-section__title">Security Events</h2>
+      {% if page_obj.object_list %}
+      <div class="mon-table-wrap mon-table-wrap--detail">
+        <table class="mon-table mon-table--detail">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Event</th>
+              <th>Kind</th>
+              <th>User</th>
+              <th>Path</th>
+              <th>IP Hash</th>
+              <th>User Agent</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for event in page_obj.object_list %}
+            <tr>
+              <td class="mon-table__time">{{ event.created_at|date:"j M H:i:s" }}</td>
+              <td><span class="mon-badge mon-badge--security mon-badge--{{ event.event_type }}">{{ event.get_event_type_display }}</span></td>
+              <td><span class="mon-kind mon-kind--{{ event.request_kind_class }}">{{ event.request_kind }}</span></td>
+              <td class="mon-table__user">{{ event.user.username|default:"-" }}</td>
+              <td class="mon-table__path">
+                <a class="mon-link-subtle" href="{{ path_filter_url_base }}{{ event.path|urlencode }}">{{ event.path|truncatechars:90 }}</a>
+              </td>
+              <td class="mon-table__hash">
+                {% if event.ip_hash %}
+                <a class="mon-link-subtle" href="{{ ip_filter_url_base }}{{ event.ip_hash }}">{{ event.ip_hash|truncatechars:14 }}</a>
+                {% else %}
+                -
+                {% endif %}
+              </td>
+              <td class="mon-table__path">{{ event.user_agent|default:"-"|truncatechars:120 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="mon-empty">No security events found.</p>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if detail_type == "activity" %}
+    <div class="mon-section">
+      <h2 class="mon-section__title">User Activity</h2>
+      {% if page_obj.object_list %}
+      <div class="mon-table-wrap mon-table-wrap--detail">
+        <table class="mon-table mon-table--detail">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Event</th>
+              <th>User</th>
+              <th>Object</th>
+              <th>Path</th>
+              <th>Session</th>
+              <th>IP Hash</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for event in page_obj.object_list %}
+            <tr>
+              <td class="mon-table__time">{{ event.created_at|date:"j M H:i:s" }}</td>
+              <td><span class="mon-badge mon-badge--{{ event.event_type }}">{{ event.get_event_type_display }}</span></td>
+              <td class="mon-table__user">{{ event.user.username|default:"-" }}</td>
+              <td>{{ event.object_title|default:event.object_type|default:"-"|truncatechars:60 }}</td>
+              <td class="mon-table__path">{{ event.path|default:"-"|truncatechars:90 }}</td>
+              <td class="mon-table__hash">{{ event.session_key|default:"-"|truncatechars:12 }}</td>
+              <td class="mon-table__hash">{{ event.ip_hash|default:"-"|truncatechars:14 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="mon-empty">No user activity found.</p>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if page_obj.has_other_pages %}
+    <nav class="mon-pagination" aria-label="Pagination">
+      {% if page_obj.has_previous %}
+      <a href="?period={{ period }}{% if kind %}&kind={{ kind }}{% endif %}{% if event %}&event={{ event }}{% endif %}{% if path_filter %}&path={{ path_filter|urlencode }}{% endif %}{% if ip_hash_filter %}&ip_hash={{ ip_hash_filter }}{% endif %}&page={{ page_obj.previous_page_number }}">Previous</a>
+      {% endif %}
+      <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_next %}
+      <a href="?period={{ period }}{% if kind %}&kind={{ kind }}{% endif %}{% if event %}&event={{ event }}{% endif %}{% if path_filter %}&path={{ path_filter|urlencode }}{% endif %}{% if ip_hash_filter %}&ip_hash={{ ip_hash_filter }}{% endif %}&page={{ page_obj.next_page_number }}">Next</a>
+      {% endif %}
+    </nav>
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}

@@ -5,7 +5,7 @@
 {% block meta_description %}CulinEire internal monitoring and analytics dashboard.{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/monitoring.css' %}?v=20260508d" rel="stylesheet">
+<link href="{% static 'css/monitoring.css' %}?v=20260511a" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -19,7 +19,7 @@
         <div class="hero-copy hero-copy--center">
             <span class="pill">Analytics</span>
             <h1 class="hero-title">Monitoring Dashboard</h1>
-            <p class="hero-subtitle">{{ today|date:"l, j F Y" }} · Real-time site analytics</p>
+            <p class="hero-subtitle">{{ today|date:"l, j F Y" }} - Real-time site analytics</p>
         </div>
     </div>
 </section>
@@ -28,54 +28,72 @@
   <div class="container mon-shell">
 
     <div class="mon-back-row">
-      <a class="mon-back-link" href="{% url 'recipes:moderation_panel' %}">← Moderation Panel</a>
+      <a class="mon-back-link" href="{% url 'recipes:moderation_panel' %}">Back to Moderation Panel</a>
     </div>
 
-    <!-- ── Summary cards ─────────────────────────────────────────────────── -->
     <div class="mon-cards">
-      <div class="mon-card mon-card--green">
+      <a class="mon-card mon-card--green" href="{{ traffic_urls.online }}" target="_blank" rel="noopener noreferrer">
         <span class="mon-card__value">{{ online_now }}</span>
         <span class="mon-card__label">Online Now</span>
         <span class="mon-card__sub">active sessions last 5 min</span>
-      </div>
-      <div class="mon-card">
+        <span class="mon-card__open">Open details</span>
+      </a>
+      <a class="mon-card" href="{{ traffic_urls.visitors }}" target="_blank" rel="noopener noreferrer">
         <span class="mon-card__value">{{ visitors_today }}</span>
         <span class="mon-card__label">Visitors Today</span>
         <span class="mon-card__sub">unique sessions</span>
-      </div>
-      <div class="mon-card">
+        <span class="mon-card__open">Open details</span>
+      </a>
+      <a class="mon-card" href="{{ traffic_urls.human }}" target="_blank" rel="noopener noreferrer">
+        <span class="mon-card__value">{{ human_pageviews_today }}</span>
+        <span class="mon-card__label">Human Views Today</span>
+        <span class="mon-card__sub">likely real people</span>
+        <span class="mon-card__open">Open details</span>
+      </a>
+      <a class="mon-card {% if bot_pageviews_today > 0 %}mon-card--warn{% endif %}" href="{{ traffic_urls.bots }}" target="_blank" rel="noopener noreferrer">
+        <span class="mon-card__value">{{ bot_pageviews_today }}</span>
+        <span class="mon-card__label">Bot/Crawler Hits</span>
+        <span class="mon-card__sub">technical and scanner traffic</span>
+        <span class="mon-card__open">Open details</span>
+      </a>
+      <a class="mon-card" href="{{ traffic_urls.pageviews }}" target="_blank" rel="noopener noreferrer">
         <span class="mon-card__value">{{ pageviews_today }}</span>
         <span class="mon-card__label">Page Views Today</span>
         <span class="mon-card__sub">total hits</span>
-      </div>
-      <div class="mon-card">
+        <span class="mon-card__open">Open details</span>
+      </a>
+      <a class="mon-card" href="{{ activity_urls.new_users }}" target="_blank" rel="noopener noreferrer">
         <span class="mon-card__value">{{ new_users_today }}</span>
         <span class="mon-card__label">New Users Today</span>
         <span class="mon-card__sub">registrations</span>
-      </div>
-      <div class="mon-card">
+        <span class="mon-card__open">Open details</span>
+      </a>
+      <a class="mon-card" href="{{ activity_urls.active_users }}" target="_blank" rel="noopener noreferrer">
         <span class="mon-card__value">{{ active_users_today }}</span>
         <span class="mon-card__label">Active Users Today</span>
         <span class="mon-card__sub">logged-in activity</span>
-      </div>
-      <div class="mon-card {% if count_404_today > 20 %}mon-card--warn{% endif %}">
+        <span class="mon-card__open">Open details</span>
+      </a>
+      <a class="mon-card {% if count_404_today > 20 %}mon-card--warn{% endif %}" href="{{ security_urls.404 }}" target="_blank" rel="noopener noreferrer">
         <span class="mon-card__value">{{ count_404_today }}</span>
         <span class="mon-card__label">404s Today</span>
         <span class="mon-card__sub">not found</span>
-      </div>
-      <div class="mon-card {% if failed_logins_today > 5 %}mon-card--danger{% endif %}">
+        <span class="mon-card__open">Open details</span>
+      </a>
+      <a class="mon-card {% if failed_logins_today > 5 %}mon-card--danger{% endif %}" href="{{ security_urls.failed_login }}" target="_blank" rel="noopener noreferrer">
         <span class="mon-card__value">{{ failed_logins_today }}</span>
         <span class="mon-card__label">Failed Logins Today</span>
         <span class="mon-card__sub">auth failures</span>
-      </div>
-      <div class="mon-card {% if suspicious_today > 0 %}mon-card--danger{% endif %}">
+        <span class="mon-card__open">Open details</span>
+      </a>
+      <a class="mon-card {% if suspicious_today > 0 %}mon-card--danger{% endif %}" href="{{ security_urls.suspicious }}" target="_blank" rel="noopener noreferrer">
         <span class="mon-card__value">{{ suspicious_today }}</span>
         <span class="mon-card__label">Suspicious Today</span>
         <span class="mon-card__sub">flagged requests</span>
-      </div>
+        <span class="mon-card__open">Open details</span>
+      </a>
     </div>
 
-    <!-- ── Hourly chart ───────────────────────────────────────────────────── -->
     {% if chart_hours %}
     <div class="mon-section">
       <h2 class="mon-section__title">Page Views Today (hourly)</h2>
@@ -85,7 +103,7 @@
           <div class="mon-chart__bar-wrap">
             <div class="mon-chart__bar"
                  style="height: {% if bucket.count %}{% widthratio bucket.count chart_max 100 %}%{% else %}0%{% endif %}"
-                 title="{{ bucket.hour }}:00 — {{ bucket.count }} views"></div>
+                 title="{{ bucket.hour }}:00 - {{ bucket.count }} views"></div>
           </div>
           <span class="mon-chart__label">{{ bucket.hour }}</span>
         </div>
@@ -94,10 +112,8 @@
     </div>
     {% endif %}
 
-    <!-- ── Two-column grid ───────────────────────────────────────────────── -->
     <div class="mon-grid">
 
-      <!-- Top recipes -->
       <div class="mon-section">
         <h2 class="mon-section__title">Most Viewed Recipes</h2>
         {% if top_recipes %}
@@ -109,8 +125,8 @@
             <tr>
               <td class="mon-table__num">{{ forloop.counter }}</td>
               <td>
-                {% if row.object_id %}
-                <a class="mon-table__link" href="{% url 'recipes:recipe_detail' slug=row.object_id %}" target="_blank">{{ row.object_title|default:"(untitled)" }}</a>
+                {% if row.url %}
+                <a class="mon-table__link" href="{{ row.url }}" target="_blank" rel="noopener noreferrer">{{ row.object_title|default:"(untitled)" }}</a>
                 {% else %}
                 {{ row.object_title|default:"(untitled)" }}
                 {% endif %}
@@ -126,7 +142,6 @@
         {% endif %}
       </div>
 
-      <!-- Top articles -->
       <div class="mon-section">
         <h2 class="mon-section__title">Most Viewed Articles</h2>
         {% if top_articles %}
@@ -137,7 +152,13 @@
             {% for row in top_articles %}
             <tr>
               <td class="mon-table__num">{{ forloop.counter }}</td>
-              <td>{{ row.object_title|default:"(untitled)" }}</td>
+              <td>
+                {% if row.url %}
+                <a class="mon-table__link" href="{{ row.url }}" target="_blank" rel="noopener noreferrer">{{ row.object_title|default:"(untitled)" }}</a>
+                {% else %}
+                {{ row.object_title|default:"(untitled)" }}
+                {% endif %}
+              </td>
               <td class="mon-table__count">{{ row.views }}</td>
             </tr>
             {% endfor %}
@@ -149,7 +170,6 @@
         {% endif %}
       </div>
 
-      <!-- Top paths -->
       <div class="mon-section">
         <h2 class="mon-section__title">Top Pages (7 days)</h2>
         {% if top_paths %}
@@ -159,7 +179,9 @@
           <tbody>
             {% for row in top_paths %}
             <tr>
-              <td class="mon-table__path">{{ row.path }}</td>
+              <td class="mon-table__path">
+                <a class="mon-link-subtle" href="{% url 'monitoring:traffic_detail' %}?period=7d&kind=pageviews&path={{ row.path|urlencode }}" target="_blank" rel="noopener noreferrer">{{ row.path }}</a>
+              </td>
               <td class="mon-table__count">{{ row.count }}</td>
             </tr>
             {% endfor %}
@@ -171,7 +193,6 @@
         {% endif %}
       </div>
 
-      <!-- Top referrers -->
       <div class="mon-section">
         <h2 class="mon-section__title">Top Referrers (7 days)</h2>
         {% if top_referrers %}
@@ -193,9 +214,8 @@
         {% endif %}
       </div>
 
-    </div><!-- /mon-grid -->
+    </div>
 
-    <!-- ── Recent activity ───────────────────────────────────────────────── -->
     <div class="mon-section">
       <h2 class="mon-section__title">Recent User Activity</h2>
       {% if latest_activities %}
@@ -215,8 +235,8 @@
             <tr>
               <td class="mon-table__time">{{ event.created_at|date:"j M H:i" }}</td>
               <td><span class="mon-badge mon-badge--{{ event.event_type }}">{{ event.get_event_type_display }}</span></td>
-              <td class="mon-table__user">{{ event.user.username|default:"—" }}</td>
-              <td>{% if event.object_title %}{{ event.object_title|truncatechars:40 }}{% else %}—{% endif %}</td>
+              <td class="mon-table__user">{{ event.user.username|default:"-" }}</td>
+              <td>{% if event.object_title %}{{ event.object_title|truncatechars:40 }}{% else %}-{% endif %}</td>
               <td class="mon-table__path">{{ event.path|truncatechars:50 }}</td>
             </tr>
             {% endfor %}
@@ -228,7 +248,6 @@
       {% endif %}
     </div>
 
-    <!-- ── Security events ───────────────────────────────────────────────── -->
     <div class="mon-section">
       <h2 class="mon-section__title">Recent Security Events</h2>
       {% if latest_security %}
@@ -238,6 +257,7 @@
             <tr>
               <th>Time</th>
               <th>Event</th>
+              <th>Kind</th>
               <th>User</th>
               <th>Path</th>
               <th>IP Hash</th>
@@ -248,9 +268,18 @@
             <tr>
               <td class="mon-table__time">{{ event.created_at|date:"j M H:i" }}</td>
               <td><span class="mon-badge mon-badge--security mon-badge--{{ event.event_type }}">{{ event.get_event_type_display }}</span></td>
-              <td class="mon-table__user">{{ event.user.username|default:"—" }}</td>
-              <td class="mon-table__path">{{ event.path|truncatechars:50 }}</td>
-              <td class="mon-table__hash">{{ event.ip_hash|truncatechars:12 }}</td>
+              <td><span class="mon-kind mon-kind--{{ event.request_kind_class }}">{{ event.request_kind }}</span></td>
+              <td class="mon-table__user">{{ event.user.username|default:"-" }}</td>
+              <td class="mon-table__path">
+                <a class="mon-link-subtle" href="{% url 'monitoring:security_detail' %}?period=7d&path={{ event.path|urlencode }}" target="_blank" rel="noopener noreferrer">{{ event.path|truncatechars:50 }}</a>
+              </td>
+              <td class="mon-table__hash">
+                {% if event.ip_hash %}
+                <a class="mon-link-subtle" href="{% url 'monitoring:security_detail' %}?period=7d&ip_hash={{ event.ip_hash }}" target="_blank" rel="noopener noreferrer">{{ event.ip_hash|truncatechars:12 }}</a>
+                {% else %}
+                -
+                {% endif %}
+              </td>
             </tr>
             {% endfor %}
           </tbody>
