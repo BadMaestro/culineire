@@ -534,6 +534,79 @@
   overflow-wrap: anywhere;
 }
 
+/* ── Clear Statistics (superuser only) ── */
+.mon-section--danger-zone {
+  border-color: rgb(180 40 40 / 0.18);
+  background: rgb(180 40 40 / 0.025);
+}
+
+.mon-section--danger-zone .mon-section__title {
+  color: #b42828;
+  border-bottom-color: rgb(180 40 40 / 0.12);
+}
+
+.mon-clear-hint {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  margin: -0.4rem 0 1rem;
+}
+
+.mon-clear-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.mon-clear-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.mon-clear-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.mon-clear-select {
+  height: 36px;
+  padding: 0 0.7rem;
+  border: 1px solid rgb(58 44 30 / 0.18);
+  border-radius: 8px;
+  background: #fff;
+  font-size: 0.82rem;
+  color: var(--ink);
+  min-width: 180px;
+}
+
+.mon-clear-select:focus {
+  outline: 2px solid #b42828;
+  outline-offset: 1px;
+}
+
+.mon-clear-btn {
+  height: 36px;
+  padding: 0 1.2rem;
+  border: 1px solid rgb(180 40 40 / 0.4);
+  border-radius: 8px;
+  background: rgb(180 40 40 / 0.08);
+  color: #b42828;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.mon-clear-btn:hover {
+  background: rgb(180 40 40 / 0.16);
+  border-color: rgb(180 40 40 / 0.6);
+}
+
 @media (max-width: 760px) {
   .hero--monitoring {
     min-height: 280px;

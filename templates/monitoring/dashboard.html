@@ -290,6 +290,37 @@
       {% endif %}
     </div>
 
+    {% if request.user.is_superuser %}
+    <div class="mon-section mon-section--danger-zone">
+      <h2 class="mon-section__title">Clear Statistics</h2>
+      <p class="mon-clear-hint">Permanently deletes monitoring records from the database. This cannot be undone.</p>
+      <form class="mon-clear-form" method="post" action="{% url 'monitoring:clear_stats' %}"
+            onsubmit="return confirm('Delete ' + this.what.options[this.what.selectedIndex].text + ' — ' + this.period.options[this.period.selectedIndex].text + '?\n\nThis cannot be undone.');">
+        {% csrf_token %}
+        <div class="mon-clear-row">
+          <label class="mon-clear-label" for="clear-what">Data</label>
+          <select class="mon-clear-select" id="clear-what" name="what">
+            <option value="pageviews">Page Views</option>
+            <option value="activity">User Activity</option>
+            <option value="security">Security Events</option>
+            <option value="all">All monitoring data</option>
+          </select>
+        </div>
+        <div class="mon-clear-row">
+          <label class="mon-clear-label" for="clear-period">Period</label>
+          <select class="mon-clear-select" id="clear-period" name="period">
+            <option value="today">Today only</option>
+            <option value="7d">Last 7 days</option>
+            <option value="30d">Last 30 days</option>
+            <option value="older_90d">Older than 90 days</option>
+            <option value="all">All time</option>
+          </select>
+        </div>
+        <button class="mon-clear-btn" type="submit">Clear</button>
+      </form>
+    </div>
+    {% endif %}
+
   </div>
 </section>
 {% endblock %}

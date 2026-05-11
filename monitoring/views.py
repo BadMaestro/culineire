@@ -2,13 +2,15 @@ from __future__ import annotations
 
 from collections import Counter
 
+from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Count
 from django.db.models.functions import ExtractHour
 from django.http import Http404
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from recipes.views import is_moderator
 
@@ -598,3 +600,77 @@ def activity_detail(request):
         "dashboard_url": reverse("monitoring:dashboard"),
     }
     return render(request, "monitoring/detail.html", context)
+
+
+_CLEAR_TARGETS = {
+    "pageviews": (PageView,),
+    "activity": (UserActivity,),
+    "security": (SecurityEvent,),
+    "all": (PageView, UserActivity, SecurityEvent),
+}
+
+_CLEAR_PERIODS = {
+    "today": "today",
+    "7d": "7d",
+    "30d": "30d",
+    "older_90d": "older_90d",
+    "all": "all",
+}
+
+
+def _clear_period_filter(period: str, now) -> dict | None:
+    """Return a filter kwargs dict, or None meaning 'no filter' (delete all)."""
+    today = timezone.localdate()
+    if period == "today":
+        return {"created_at__date": today}
+    if period == "7d":
+        return {"created_at__gte": now - timezone.timedelta(days=7)}
+    if period == "30d":
+        return {"created_at__gte": now - timezone.timedelta(days=30)}
+    if period == "older_90d":
+        return {"created_at__lt": now - timezone.timedelta(days=90)}
+    return None  # "all"
+
+
+@require_POST
+def clear_stats(request):
+    if not request.user.is_superuser:
+        raise Http404
+
+    what = request.POST.get("what", "")
+    period = request.POST.get("period", "")
+
+    if what not in _CLEAR_TARGETS or period not in _CLEAR_PERIODS:
+        messages.error(request, "Invalid clear parameters.")
+        return redirect(reverse("monitoring:dashboard"))
+
+    now = timezone.now()
+    period_filter = _clear_period_filter(period, now)
+    total_deleted = 0
+
+    for Model in _CLEAR_TARGETS[what]:
+        qs = Model.objects.all()
+        if period_filter is not None:
+            qs = qs.filter(**period_filter)
+        count, _ = qs.delete()
+        total_deleted += count
+
+    period_labels = {
+        "today": "today",
+        "7d": "last 7 days",
+        "30d": "last 30 days",
+        "older_90d": "older than 90 days",
+        "all": "all time",
+    }
+    what_labels = {
+        "pageviews": "page views",
+        "activity": "user activity",
+        "security": "security events",
+        "all": "all monitoring data",
+    }
+    messages.success(
+        request,
+        f"Cleared {total_deleted:,} records"
+        f" ({what_labels[what]}, {period_labels[period]}).",
+    )
+    return redirect(reverse("monitoring:dashboard"))
