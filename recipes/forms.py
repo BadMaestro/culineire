@@ -272,7 +272,7 @@ class RecipeAuthoringForm(forms.ModelForm):
         self.fields["hero_image"].widget.attrs.setdefault("accept", ".jpg,.jpeg,.png,.webp")
         self.fields["image_rights_note"].widget.attrs.setdefault(
             "placeholder",
-            "e.g. CC BY 2.0, Unsplash licence, with permission from photographer",
+            "Licence name",
         )
 
     def clean_additional_categories(self):

@@ -324,7 +324,7 @@ class Recipe(models.Model):
         "Image rights note",
         max_length=255,
         blank=True,
-        help_text="Optional: licence name, credit line, or permission reference.",
+        help_text="Credit line or permission reference if any.",
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
