@@ -275,7 +275,16 @@
 {% block extra_js %}
 <script nonce="{{ request.csp_nonce }}">
 (function () {
-    var container = document.getElementById('authoring-steps');
+    function autoGrow(ta) {
+        ta.style.height = 'auto';
+        ta.style.height = ta.scrollHeight + 'px';
+    }
+    document.querySelectorAll('textarea.authoring-control').forEach(function (ta) {
+        autoGrow(ta);
+        ta.addEventListener('input', function () { autoGrow(this); });
+    });
+})();
+
     var btn = document.getElementById('add-step-btn');
     if (!container || !btn) return;
     var stepCount = container.querySelectorAll('.authoring-step-row').length;

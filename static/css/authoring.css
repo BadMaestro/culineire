@@ -177,8 +177,9 @@
 }
 
 textarea.authoring-control {
-  min-height: 120px;
-  resize: vertical;
+  min-height: 46px;
+  resize: none;
+  overflow-y: hidden;
 }
 
 .authoring-control:focus {

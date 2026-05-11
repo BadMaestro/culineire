@@ -106,3 +106,18 @@
     </div>
 </section>
 {% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+    function autoGrow(ta) {
+        ta.style.height = 'auto';
+        ta.style.height = ta.scrollHeight + 'px';
+    }
+    document.querySelectorAll('textarea.authoring-control').forEach(function (ta) {
+        autoGrow(ta);
+        ta.addEventListener('input', function () { autoGrow(this); });
+    });
+})();
+</script>
+{% endblock %}
