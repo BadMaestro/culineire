@@ -560,6 +560,7 @@
 .mon-clear-controls {
   display: flex;
   align-items: flex-end;
+  justify-content: center;
   gap: 0.85rem;
   flex-wrap: wrap;
 }
