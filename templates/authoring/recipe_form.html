@@ -285,6 +285,8 @@
     });
 })();
 
+(function () {
+    var container = document.getElementById('authoring-steps');
     var btn = document.getElementById('add-step-btn');
     if (!container || !btn) return;
     var stepCount = container.querySelectorAll('.authoring-step-row').length;
