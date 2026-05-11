@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from django.conf import settings
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
@@ -62,6 +63,17 @@ class Article(models.Model):
         APPROVED = "approved", "Approved"
         REJECTED = "rejected", "Rejected"
 
+    class ImageRightsStatus(models.TextChoices):
+        OWN = "own", "My own photo"
+        LICENSED = "licensed", "Licensed (CC, stock, written permission)"
+        PUBLIC_DOMAIN = "public_domain", "Public domain"
+        NOT_APPLICABLE = "not_applicable", "No image uploaded"
+
+    class SourceType(models.TextChoices):
+        ORIGINAL = "original", "Original writing"
+        ADAPTED = "adapted", "Adapted from a source"
+        INSPIRED = "inspired", "Inspired by a source"
+
     title = models.CharField("Title", max_length=200)
     slug = models.SlugField("Slug", unique=True)
     media_folder = models.CharField(max_length=255, blank=True, editable=False, db_index=True)
@@ -100,6 +112,42 @@ class Article(models.Model):
         blank=True,
         related_name="articles",
         verbose_name="Related recipe",
+    )
+
+    image_rights_status = models.CharField(
+        "Image rights",
+        max_length=20,
+        choices=ImageRightsStatus.choices,
+        default=ImageRightsStatus.OWN,
+    )
+    image_rights_note = models.CharField(
+        "Image rights note",
+        max_length=255,
+        blank=True,
+        help_text="Credit line or permission reference if any.",
+    )
+
+    source_type = models.CharField(
+        max_length=20,
+        choices=SourceType.choices,
+        default=SourceType.ORIGINAL,
+    )
+    source_title = models.CharField(max_length=255, blank=True)
+    source_author = models.CharField(max_length=255, blank=True)
+    source_url = models.URLField(blank=True)
+    source_note = models.CharField(max_length=255, blank=True)
+
+    confirmed_own_work = models.BooleanField(default=False)
+    confirmed_image_rights = models.BooleanField(default=False)
+    confirmed_rules = models.BooleanField(default=False)
+    confirmation_timestamp = models.DateTimeField(null=True, blank=True)
+    confirmed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="confirmed_articles",
+        editable=False,
     )
 
     class Meta:

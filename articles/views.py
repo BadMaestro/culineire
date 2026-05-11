@@ -96,7 +96,7 @@ class ArticleCreateView(AuthorRequiredMixin, CreateView):
         return kwargs
 
     def form_valid(self, form):
-        article = form.save()
+        article = form.save(confirmed_by=self.request.user)
         self.object = article
 
         for i, img_file in enumerate(self.request.FILES.getlist("gallery_images"), start=1):
@@ -233,7 +233,7 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
         return kwargs
 
     def form_valid(self, form):
-        article = form.save()
+        article = form.save(confirmed_by=self.request.user)
         self.object = article
 
         existing_count = article.gallery_images.count()
@@ -253,6 +253,11 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
         context["form_heading"] = "Edit Article"
         context["submit_label"] = "Save Changes"
         context["cancel_url"] = self.object.get_absolute_url() if self.object else "/articles/"
+        context["turnstile_site_key"] = settings.TURNSTILE_SITE_KEY
+        if self.object:
+            context["existing_gallery_images"] = list(
+                self.object.gallery_images.filter(is_active=True).order_by("sort_order", "id")
+            )
         return context
 
 

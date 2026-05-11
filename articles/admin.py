@@ -85,8 +85,8 @@ class ArticleAdmin(admin.ModelAdmin):
     autocomplete_fields = ("author", "related_recipe")
     inlines = [ArticleImageInline]
 
-    exclude = ("media_folder",)
-    readonly_fields = ("hero_preview",)
+    exclude = ("media_folder", "confirmed_by")
+    readonly_fields = ("hero_preview", "confirmation_timestamp")
 
     fieldsets = (
         (
@@ -111,10 +111,31 @@ class ArticleAdmin(admin.ModelAdmin):
             },
         ),
         (
+            "Image Rights",
+            {
+                "fields": (
+                    "image_rights_status",
+                    "image_rights_note",
+                )
+            },
+        ),
+        (
             "Article content",
             {
                 "fields": (
                     "body",
+                )
+            },
+        ),
+        (
+            "Source Notes",
+            {
+                "fields": (
+                    "source_type",
+                    "source_title",
+                    "source_author",
+                    "source_url",
+                    "source_note",
                 )
             },
         ),
@@ -125,6 +146,18 @@ class ArticleAdmin(admin.ModelAdmin):
                     "status",
                     "published",
                 )
+            },
+        ),
+        (
+            "Author Confirmations",
+            {
+                "classes": ("collapse",),
+                "fields": (
+                    "confirmed_own_work",
+                    "confirmed_image_rights",
+                    "confirmed_rules",
+                    "confirmation_timestamp",
+                ),
             },
         ),
     )
