@@ -81,6 +81,9 @@ class MonitoringMiddleware:
         if path.startswith(self._excluded):
             return self.get_response(request)
 
+        if "CulinEire-HealthCheck" in (request.META.get("HTTP_USER_AGENT") or ""):
+            return self.get_response(request)
+
         # Flag suspicious paths before even processing the request.
         path_lower = path.lower()
         is_suspicious = any(p in path_lower for p in _SUSPICIOUS_PATTERNS)

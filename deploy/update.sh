@@ -77,7 +77,7 @@ fi
 
 # --- 9. Smoke test ------------------------------------------------------------
 info "Smoke test: https://culineire.ie/ ..."
-HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://culineire.ie/)
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 -A "CulinEire-HealthCheck/1.0" https://culineire.ie/)
 if [ "$HTTP_CODE" = "200" ]; then
     ok "Site responded with HTTP $HTTP_CODE"
 else
