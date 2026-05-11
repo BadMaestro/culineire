@@ -5,7 +5,7 @@
 {% block meta_description %}{% if form_mode == "edit" %}Edit your CulinEire recipe from the author studio.{% else %}Create a new CulinEire recipe from the author studio.{% endif %}{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/authoring.css' %}?v=20260507e" rel="stylesheet">
+<link href="{% static 'css/authoring.css' %}?v=20260511a" rel="stylesheet">
 {% if turnstile_site_key %}<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>{% endif %}
 {% endblock %}
 
@@ -62,10 +62,37 @@
                         {% if form.hero_image.help_text %}<p class="authoring-help">{{ form.hero_image.help_text }}</p>{% endif %}
                         {% for error in form.hero_image.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
-                    <div class="authoring-field">
-                        <label for="id_gallery_images">Gallery Images:</label>
-                        <input accept=".jpg,.jpeg,.png,.webp" class="authoring-control" id="id_gallery_images" multiple name="gallery_images" type="file">
-                        <p class="authoring-help">Upload additional images for the gallery carousel (optional, multiple allowed).</p>
+                    <div class="authoring-field authoring-field--wide">
+                        <label>Step Photos:</label>
+                        <p class="authoring-help">Upload a photo for each cooking step. Photos appear in the gallery in step order.</p>
+
+                        {% if form_mode == "edit" and existing_gallery_images %}
+                        <div class="authoring-step-existing-list">
+                            {% for img in existing_gallery_images %}
+                            <div class="authoring-step-existing-item">
+                                <span class="authoring-step-badge">Step {{ img.sort_order }}</span>
+                                <img alt="Step {{ img.sort_order }}" class="authoring-step-thumb" src="{{ img.image.url }}">
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <p class="authoring-help">To replace a step photo, upload a new file for that step number below.</p>
+                        {% endif %}
+
+                        <div class="authoring-steps" id="authoring-steps">
+                            <div class="authoring-step-row">
+                                <label class="authoring-step-label" for="id_gallery_step_1">Step 1:</label>
+                                <input accept=".jpg,.jpeg,.png,.webp" class="authoring-control" id="id_gallery_step_1" name="gallery_step_1" type="file">
+                            </div>
+                            <div class="authoring-step-row">
+                                <label class="authoring-step-label" for="id_gallery_step_2">Step 2:</label>
+                                <input accept=".jpg,.jpeg,.png,.webp" class="authoring-control" id="id_gallery_step_2" name="gallery_step_2" type="file">
+                            </div>
+                            <div class="authoring-step-row">
+                                <label class="authoring-step-label" for="id_gallery_step_3">Step 3:</label>
+                                <input accept=".jpg,.jpeg,.png,.webp" class="authoring-control" id="id_gallery_step_3" name="gallery_step_3" type="file">
+                            </div>
+                        </div>
+                        <button class="authoring-add-step-btn" id="add-step-btn" type="button">+ Add another step</button>
                     </div>
                     <div class="authoring-field">
                         <label for="{{ form.category.id_for_label }}">{{ form.category.label }}:</label>
@@ -194,4 +221,27 @@
         </form>
     </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+    var container = document.getElementById('authoring-steps');
+    var btn = document.getElementById('add-step-btn');
+    if (!container || !btn) return;
+    var stepCount = container.querySelectorAll('.authoring-step-row').length;
+    var maxSteps = 20;
+    btn.addEventListener('click', function () {
+        if (stepCount >= maxSteps) return;
+        stepCount++;
+        var row = document.createElement('div');
+        row.className = 'authoring-step-row';
+        row.innerHTML =
+            '<label class="authoring-step-label" for="id_gallery_step_' + stepCount + '">Step ' + stepCount + ':</label>' +
+            '<input accept=".jpg,.jpeg,.png,.webp" class="authoring-control" id="id_gallery_step_' + stepCount + '" name="gallery_step_' + stepCount + '" type="file">';
+        container.appendChild(row);
+        if (stepCount >= maxSteps) btn.style.display = 'none';
+    });
+})();
+</script>
 {% endblock %}

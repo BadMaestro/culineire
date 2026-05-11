@@ -322,6 +322,72 @@ textarea.authoring-control {
   outline: 0;
 }
 
+.authoring-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.authoring-step-row {
+  display: grid;
+  grid-template-columns: 7rem 1fr;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.authoring-step-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1f2c25;
+  white-space: nowrap;
+}
+
+.authoring-add-step-btn {
+  background: none;
+  border: 1px dashed rgb(11 76 58 / 0.4);
+  border-radius: 6px;
+  color: #0b4c3a;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0.4rem 0.9rem;
+}
+
+.authoring-add-step-btn:hover {
+  background: rgb(11 76 58 / 0.05);
+  border-color: #0b4c3a;
+}
+
+.authoring-step-existing-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.authoring-step-existing-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.authoring-step-badge {
+  background: #0b4c3a;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+}
+
+.authoring-step-thumb {
+  border-radius: 6px;
+  height: 72px;
+  object-fit: cover;
+  width: 96px;
+}
+
 @media (max-width: 760px) {
   .authoring-header {
     grid-template-columns: 1fr;

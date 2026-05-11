@@ -479,7 +479,7 @@ def recipe_detail(request, slug):
             "additional_category_links",
             Prefetch(
                 "gallery_images",
-                queryset=RecipeImage.objects.filter(is_active=True).order_by("-sort_order", "-id"),
+                queryset=RecipeImage.objects.filter(is_active=True).order_by("sort_order", "id"),
             ),
             Prefetch(
                 "comments",
@@ -757,8 +757,10 @@ class RecipeCreateView(AuthorRequiredMixin, CreateView):
         recipe.save()
         getattr(form, "save_additional_categories")(recipe)
 
-        for i, img_file in enumerate(self.request.FILES.getlist("gallery_images"), start=1):
-            RecipeImage.objects.create(recipe=recipe, image=img_file, sort_order=i)
+        for step in range(1, 21):
+            img_file = self.request.FILES.get(f"gallery_step_{step}")
+            if img_file:
+                RecipeImage.objects.create(recipe=recipe, image=img_file, sort_order=step)
 
         self.object = recipe
         messages.success(self.request, "Recipe Created Successfully.")
@@ -787,9 +789,16 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
         recipe = form.save(commit=True)
         getattr(form, "save_additional_categories")(recipe)
 
-        existing_count = getattr(recipe, "gallery_images").count()
-        for i, img_file in enumerate(self.request.FILES.getlist("gallery_images"), start=existing_count + 1):
-            RecipeImage.objects.create(recipe=recipe, image=img_file, sort_order=i)
+        for step in range(1, 21):
+            img_file = self.request.FILES.get(f"gallery_step_{step}")
+            if img_file:
+                existing = recipe.gallery_images.filter(sort_order=step).first()
+                if existing:
+                    existing.image.delete(save=False)
+                    existing.image = img_file
+                    existing.save()
+                else:
+                    RecipeImage.objects.create(recipe=recipe, image=img_file, sort_order=step)
 
         self.object = recipe
         messages.success(self.request, "Recipe Updated Successfully.")
@@ -807,6 +816,9 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
         )
         context["submit_label"] = "Save Changes"
         context["cancel_url"] = self.object.get_absolute_url() if self.object else reverse_lazy("recipes:recipe_list")
+        context["existing_gallery_images"] = list(
+            self.object.gallery_images.filter(is_active=True).order_by("sort_order", "id")
+        ) if self.object else []
         return context
 
 
