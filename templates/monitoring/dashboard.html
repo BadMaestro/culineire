@@ -5,7 +5,7 @@
 {% block meta_description %}CulinEire internal monitoring and analytics dashboard.{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/monitoring.css' %}?v=20260511a" rel="stylesheet">
+<link href="{% static 'css/monitoring.css' %}?v=20260511b" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -292,31 +292,47 @@
 
     {% if request.user.is_superuser %}
     <div class="mon-section mon-section--danger-zone">
-      <h2 class="mon-section__title">Clear Statistics</h2>
-      <p class="mon-clear-hint">Permanently deletes monitoring records from the database. This cannot be undone.</p>
+      <h2 class="mon-section__title">
+        <svg class="mon-clear-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+          <path d="M10 11v6M14 11v6"></path>
+          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+        </svg>
+        Clear Statistics
+      </h2>
+      <p class="mon-clear-hint">Permanently removes monitoring records from the database — cannot be undone.</p>
       <form class="mon-clear-form" method="post" action="{% url 'monitoring:clear_stats' %}"
-            onsubmit="return confirm('Delete ' + this.what.options[this.what.selectedIndex].text + ' — ' + this.period.options[this.period.selectedIndex].text + '?\n\nThis cannot be undone.');">
+            onsubmit="return confirm('Delete «' + this.what.options[this.what.selectedIndex].text + '» for «' + this.period.options[this.period.selectedIndex].text + '»?\n\nThis cannot be undone.');">
         {% csrf_token %}
-        <div class="mon-clear-row">
-          <label class="mon-clear-label" for="clear-what">Data</label>
-          <select class="mon-clear-select" id="clear-what" name="what">
-            <option value="pageviews">Page Views</option>
-            <option value="activity">User Activity</option>
-            <option value="security">Security Events</option>
-            <option value="all">All monitoring data</option>
-          </select>
+        <div class="mon-clear-controls">
+          <div class="mon-clear-field">
+            <label class="mon-clear-label" for="clear-what">Data type</label>
+            <select class="mon-clear-select" id="clear-what" name="what">
+              <option value="pageviews">Page Views</option>
+              <option value="activity">User Activity</option>
+              <option value="security">Security Events</option>
+              <option value="all">All monitoring data</option>
+            </select>
+          </div>
+          <div class="mon-clear-field">
+            <label class="mon-clear-label" for="clear-period">Period</label>
+            <select class="mon-clear-select" id="clear-period" name="period">
+              <option value="today">Today only</option>
+              <option value="7d">Last 7 days</option>
+              <option value="30d">Last 30 days</option>
+              <option value="older_90d">Older than 90 days</option>
+              <option value="all">All time</option>
+            </select>
+          </div>
+          <button class="mon-clear-btn" type="submit">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+            </svg>
+            Clear
+          </button>
         </div>
-        <div class="mon-clear-row">
-          <label class="mon-clear-label" for="clear-period">Period</label>
-          <select class="mon-clear-select" id="clear-period" name="period">
-            <option value="today">Today only</option>
-            <option value="7d">Last 7 days</option>
-            <option value="30d">Last 30 days</option>
-            <option value="older_90d">Older than 90 days</option>
-            <option value="all">All time</option>
-          </select>
-        </div>
-        <button class="mon-clear-btn" type="submit">Clear</button>
       </form>
     </div>
     {% endif %}
