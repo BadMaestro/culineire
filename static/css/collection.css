@@ -85,6 +85,31 @@
   border-color: #a93226;
 }
 
+/* ── Mini card overrides on collection page ── */
+.hero--collection ~ .page-section .recipe-grid--mini .recipe-card__image-wrapper {
+  height: auto;
+  aspect-ratio: 4 / 3;
+}
+
+.hero--collection ~ .page-section .recipe-grid--mini .recipe-card__title {
+  display: -webkit-box;
+  min-height: auto;
+  overflow: hidden;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  font-size: 0.85rem;
+}
+
+.hero--collection ~ .page-section .recipe-grid--mini .recipe-card__taxonomy {
+  font-size: 0.72rem;
+}
+
+.hero--collection ~ .page-section .recipe-grid--mini {
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-block-end: 3rem;
+}
+
 /* ── Remove button inside collection grid cards ── */
 .collection-remove-btn {
   display: inline-flex;
