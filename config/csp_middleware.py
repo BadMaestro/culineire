@@ -22,4 +22,5 @@ class CspNonceMiddleware:
             f"form-action 'self';"
         )
         response["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+        response["X-XSS-Protection"] = "1; mode=block"
         return response
