@@ -535,24 +535,18 @@
 }
 
 /* ── Clear Statistics (superuser only) ── */
-.mon-section--danger-zone {
-  border-color: rgb(160 30 30 / 0.14);
-  background: linear-gradient(135deg, rgb(255 253 249 / 1) 0%, rgb(255 247 247 / 0.6) 100%);
-}
-
 .mon-section--danger-zone .mon-section__title {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  color: #9a2020;
-  border-bottom-color: rgb(160 30 30 / 0.1);
+  justify-content: center;
+  gap: 0.45rem;
 }
 
 .mon-clear-icon {
-  width: 1rem;
-  height: 1rem;
+  width: 0.95rem;
+  height: 0.95rem;
   flex-shrink: 0;
-  color: #9a2020;
+  color: var(--ink);
 }
 
 .mon-clear-hint {
@@ -560,6 +554,7 @@
   color: var(--ink-soft);
   margin: -0.5rem 0 1.25rem;
   line-height: 1.5;
+  text-align: center;
 }
 
 .mon-clear-controls {
