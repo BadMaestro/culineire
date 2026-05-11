@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
                 blank=True,
                 help_text="Credit line or permission reference if any.",
                 max_length=255,
-                verbose_name="Image Credit / Licence",
+                verbose_name="Image rights note",
             ),
         ),
     ]
