@@ -14,6 +14,7 @@
 
 {% block extra_head %}
 <link href="{% static 'css/detail_page.css' %}?v=20260511b" rel="stylesheet">
+<link href="{% static 'css/collection.css' %}?v=20260511a" rel="stylesheet">
 {% if can_moderate_bar %}
 <link href="{% static 'css/messaging.css' %}?v=20260507b" rel="stylesheet">{% endif %}
 <script type="application/ld+json">{{ article_json_ld }}</script>
@@ -142,6 +143,30 @@
                     {% endif %}
                 </div>
             </section>
+            {% endif %}
+
+            {% if user.is_authenticated %}
+            <div class="detail-page__actions">
+                {% if is_saved %}
+                <form action="{{ collection_remove_url }}" method="post" class="collection-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button class="detail-page__action-btn collection-btn collection-btn--saved" type="submit">
+                        <span aria-hidden="true">♥</span>
+                        <span>Saved</span>
+                    </button>
+                </form>
+                {% else %}
+                <form action="{{ collection_add_url }}" method="post" class="collection-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button class="detail-page__action-btn collection-btn" type="submit">
+                        <span aria-hidden="true">♡</span>
+                        <span>Save</span>
+                    </button>
+                </form>
+                {% endif %}
+            </div>
             {% endif %}
 
             <div class="detail-page__grid detail-page__grid--article">

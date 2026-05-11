@@ -40,6 +40,9 @@ urlpatterns = [
     # Presence notifications
     path("presence/", include("presence.urls", namespace="presence")),
 
+    # Collection
+    path("collection/", include("collection.urls", namespace="collection")),
+
     # Monitoring dashboard
     path("recipes/moderation/monitoring/", include("monitoring.urls", namespace="monitoring")),
 

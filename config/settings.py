@@ -128,6 +128,7 @@ INSTALLED_APPS = [
     "messaging",
     "presence",
     "monitoring",
+    "collection",
 ]
 
 MIDDLEWARE = [

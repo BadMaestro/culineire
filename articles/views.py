@@ -5,8 +5,10 @@ from django.utils.safestring import mark_safe
 from django.contrib import messages
 from django.db.models import Prefetch, Q
 from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
+from collection.models import SavedArticle
 from config.turnstile import verify_turnstile
 from monitoring.tracker import track_event
 from recipes.authoring import AuthorRequiredMixin, user_can_manage_author
@@ -208,6 +210,9 @@ class ArticleDetailView(DetailView):
         if gallery_items:
             _schema["image"] = self.request.build_absolute_uri(gallery_items[0]["src"])
         context["article_json_ld"] = mark_safe(json.dumps(_schema, ensure_ascii=False))
+        context["is_saved"] = self.request.user.is_authenticated and SavedArticle.objects.filter(user=self.request.user, article=article).exists()
+        context["collection_add_url"] = reverse("collection:add_article", kwargs={"slug": article.slug})
+        context["collection_remove_url"] = reverse("collection:remove_article", kwargs={"slug": article.slug})
         return context
 
 

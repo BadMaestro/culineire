@@ -1,0 +1,110 @@
+/* ── Collection tabs ── */
+.collection-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-block-end: 2rem;
+  border-bottom: 2px solid var(--border, #e5e7eb);
+  padding-block-end: 0;
+}
+
+.collection-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding-block: 0.6rem;
+  padding-inline: 1.1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted, #6b7280);
+  text-decoration: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.collection-tab:hover {
+  color: var(--brand, #0b4c3a);
+}
+
+.collection-tab--active {
+  color: var(--brand, #0b4c3a);
+  border-bottom-color: var(--brand, #0b4c3a);
+}
+
+.collection-tab__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.4rem;
+  height: 1.4rem;
+  padding-inline: 0.35rem;
+  border-radius: 999px;
+  background: var(--surface-alt, #f3f4f6);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted, #6b7280);
+}
+
+.collection-tab--active .collection-tab__count {
+  background: color-mix(in srgb, var(--brand, #0b4c3a) 12%, transparent);
+  color: var(--brand, #0b4c3a);
+}
+
+/* ── Empty state ── */
+.collection-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  padding-block: 3.5rem;
+  text-align: center;
+}
+
+.collection-empty__text {
+  font-size: 1.05rem;
+  color: var(--text-muted, #6b7280);
+}
+
+/* ── Collection button on detail pages ── */
+.collection-form {
+  display: contents;
+}
+
+.collection-btn {
+  color: var(--text-muted, #6b7280);
+}
+
+.collection-btn--saved {
+  color: #c0392b;
+  border-color: #c0392b;
+}
+
+.collection-btn--saved:hover,
+.collection-btn--saved:focus-visible {
+  color: #a93226;
+  border-color: #a93226;
+}
+
+/* ── Remove button inside collection grid cards ── */
+.collection-remove-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding-block: 0.35rem;
+  padding-inline: 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #c0392b;
+  background: transparent;
+  border: 1px solid #e5c5c0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.collection-remove-btn:hover,
+.collection-remove-btn:focus-visible {
+  color: #fff;
+  background: #c0392b;
+  border-color: #c0392b;
+}

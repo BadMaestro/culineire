@@ -14,7 +14,7 @@ from django.db.models import Avg, Case, Count, IntegerField, Prefetch, Q, Value,
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.templatetags.static import static
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes, force_str
 from django.utils.safestring import mark_safe
@@ -26,6 +26,7 @@ from django.views.generic import CreateView, DeleteView, UpdateView
 from django_ratelimit.decorators import ratelimit
 
 from articles.models import Article
+from collection.models import SavedRecipe
 from config.turnstile import verify_turnstile
 from monitoring.tracker import track_event
 from .allergens import build_present_allergen_items
@@ -634,6 +635,9 @@ def recipe_detail(request, slug):
         "has_rated": has_rated,
         "commenter_profile": commenter_profile,
         "recipe_json_ld": mark_safe(json.dumps(_schema, ensure_ascii=False)),
+        "is_saved": request.user.is_authenticated and SavedRecipe.objects.filter(user=request.user, recipe=recipe).exists(),
+        "collection_add_url": reverse("collection:add_recipe", kwargs={"slug": recipe.slug}),
+        "collection_remove_url": reverse("collection:remove_recipe", kwargs={"slug": recipe.slug}),
     }
     return render(request, "recipes/recipe_detail.html", context)
 

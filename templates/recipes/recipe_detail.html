@@ -14,6 +14,7 @@
 
 {% block extra_head %}
 <link href="{% static 'css/detail_page.css' %}?v=20260511b" rel="stylesheet">
+<link href="{% static 'css/collection.css' %}?v=20260511a" rel="stylesheet">
 {% if can_moderate_bar %}
 <link href="{% static 'css/messaging.css' %}?v=20260507b" rel="stylesheet">{% endif %}
 {% if gallery_items %}<link rel="preload" as="image" href="{{ gallery_items.0.src }}">{% elif recipe.hero_image %}<link rel="preload" as="image" href="{{ recipe.hero_image.url }}">{% endif %}
@@ -93,6 +94,27 @@
                     <span aria-hidden="true">🖨</span>
                     <span>Print</span>
                 </button>
+                {% if user.is_authenticated %}
+                {% if is_saved %}
+                <form action="{{ collection_remove_url }}" method="post" class="collection-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button class="detail-page__action-btn collection-btn collection-btn--saved" type="submit">
+                        <span aria-hidden="true">♥</span>
+                        <span>Saved</span>
+                    </button>
+                </form>
+                {% else %}
+                <form action="{{ collection_add_url }}" method="post" class="collection-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button class="detail-page__action-btn collection-btn" type="submit">
+                        <span aria-hidden="true">♡</span>
+                        <span>Save</span>
+                    </button>
+                </form>
+                {% endif %}
+                {% endif %}
                 <div class="detail-page__share">
                     <a class="detail-page__action-btn" href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri|urlencode }}&text={{ recipe.title|urlencode }}" rel="noopener noreferrer" target="_blank">
                         <span aria-hidden="true">𝕏</span>

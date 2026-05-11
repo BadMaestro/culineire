@@ -87,6 +87,10 @@ def header_author(request):
             "secondary_url": _reverse_or_empty("articles:article_create") if author else "",
         },
         {
+            "label": "My Collection",
+            "url": _reverse_or_empty("collection:my_collection"),
+        },
+        {
             "label": "Profile",
             "url": profile_url,
         },
