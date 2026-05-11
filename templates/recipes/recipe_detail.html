@@ -16,6 +16,7 @@
 <link href="{% static 'css/detail_page.css' %}?v=20260511b" rel="stylesheet">
 {% if can_moderate_bar %}
 <link href="{% static 'css/messaging.css' %}?v=20260507b" rel="stylesheet">{% endif %}
+{% if gallery_items %}<link rel="preload" as="image" href="{{ gallery_items.0.src }}">{% elif recipe.hero_image %}<link rel="preload" as="image" href="{{ recipe.hero_image.url }}">{% endif %}
 <script type="application/ld+json">{{ recipe_json_ld }}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"{{ request.scheme }}://{{ request.get_host }}{% url 'home' %}"},{"@type":"ListItem","position":2,"name":"Recipes","item":"{{ request.scheme }}://{{ request.get_host }}{% url 'recipes:recipe_list' %}"},{"@type":"ListItem","position":3,"name":"{{ recipe.title|escapejs }}"}]}</script>
 {% endblock %}
@@ -73,8 +74,10 @@
                                     <source src="{{ item.src }}">
                                     Your browser does not support the video tag.
                                 </video>
+                                {% elif forloop.first %}
+                                <img alt="{{ item.alt }}" class="recipe-gallery__media" src="{{ item.src }}" loading="eager" fetchpriority="high">
                                 {% else %}
-                                <img alt="{{ item.alt }}" class="recipe-gallery__media" src="{{ item.src }}">
+                                <img alt="{{ item.alt }}" class="recipe-gallery__media" src="{{ item.src }}" loading="lazy">
                                 {% endif %}
                             </div>
                         </figure>
