@@ -2,8 +2,8 @@ from django import forms
 
 
 class _NoCurrentlyWidget(forms.ClearableFileInput):
-    def format_value(self, value):
-        return None
+    def is_initial(self, value):
+        return False
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.utils.safestring import mark_safe

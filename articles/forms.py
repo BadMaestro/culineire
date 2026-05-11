@@ -2,8 +2,8 @@ from django import forms
 
 
 class _NoCurrentlyWidget(forms.ClearableFileInput):
-    def format_value(self, value):
-        return None
+    def is_initial(self, value):
+        return False
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
