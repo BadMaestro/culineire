@@ -114,7 +114,12 @@
                         {% if form.image_rights_note.help_text %}<p class="authoring-help">{{ form.image_rights_note.help_text }}</p>{% endif %}
                         {% for error in form.image_rights_note.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
+                </div>
+            </fieldset>
 
+            <fieldset class="authoring-section">
+                <legend>Recipe Info</legend>
+                <div class="authoring-grid authoring-grid--two">
                     <div class="authoring-field">
                         <label for="{{ form.category.id_for_label }}">{{ form.category.label }}:</label>
                         {{ form.category }}
@@ -132,10 +137,6 @@
                         {% for error in form.additional_categories.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
                 </div>
-            </fieldset>
-
-            <fieldset class="authoring-section">
-                <legend>Timing and Servings</legend>
                 <div class="authoring-grid authoring-grid--four">
                     <div class="authoring-field">
                         <label for="{{ form.prep_time_minutes.id_for_label }}">{{ form.prep_time_minutes.label }}:</label>
@@ -158,10 +159,6 @@
                         {% for error in form.calories.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
                 </div>
-            </fieldset>
-
-            <fieldset class="authoring-section">
-                <legend>Recipe Content</legend>
                 <div class="authoring-grid">
                     <div class="authoring-field authoring-field--wide">
                         <label for="{{ form.ingredients.id_for_label }}">{{ form.ingredients.label }}:</label>
@@ -176,15 +173,21 @@
                         {% for error in form.allergens.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
                     <div class="authoring-field authoring-field--wide">
+                        <label for="{{ form.tips.id_for_label }}">{{ form.tips.label }}:</label>
+                        {{ form.tips }}
+                        {% for error in form.tips.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="authoring-section">
+                <legend>Method &amp; Notes</legend>
+                <div class="authoring-grid">
+                    <div class="authoring-field authoring-field--wide">
                         <label for="{{ form.method.id_for_label }}">{{ form.method.label }}:</label>
                         {{ form.method }}
                         {% if form.method.help_text %}<p class="authoring-help authoring-help--center">{{ form.method.help_text }}</p>{% endif %}
                         {% for error in form.method.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
-                    </div>
-                    <div class="authoring-field authoring-field--wide">
-                        <label for="{{ form.tips.id_for_label }}">{{ form.tips.label }}:</label>
-                        {{ form.tips }}
-                        {% for error in form.tips.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
                     <div class="authoring-field authoring-field--wide">
                         <label for="{{ form.irish_context.id_for_label }}">{{ form.irish_context.label }}:</label>
