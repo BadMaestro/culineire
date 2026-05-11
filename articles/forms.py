@@ -1,4 +1,9 @@
 from django import forms
+
+
+class _NoCurrentlyWidget(forms.ClearableFileInput):
+    def format_value(self, value):
+        return None
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
@@ -90,6 +95,7 @@ class ArticleAuthoringForm(forms.ModelForm):
             "source_note": "Source Note",
         }
         widgets = {
+            "hero_image": _NoCurrentlyWidget(),
             "published": forms.DateInput(attrs={"type": "date"}),
             "excerpt": forms.Textarea(attrs={"rows": 3}),
             "body": forms.Textarea(attrs={"rows": 12}),

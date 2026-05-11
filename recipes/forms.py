@@ -1,4 +1,9 @@
 from django import forms
+
+
+class _NoCurrentlyWidget(forms.ClearableFileInput):
+    def format_value(self, value):
+        return None
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.utils.safestring import mark_safe
@@ -215,6 +220,7 @@ class RecipeAuthoringForm(forms.ModelForm):
             "image_rights_note": "Image Credit / Licence",
         }
         widgets = {
+            "hero_image": _NoCurrentlyWidget(),
             "short_description": forms.Textarea(attrs={"rows": 3}),
             "ingredients": forms.Textarea(attrs={"rows": 8}),
             "method": forms.Textarea(attrs={"rows": 10}),
