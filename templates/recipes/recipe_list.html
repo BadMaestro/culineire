@@ -4,6 +4,13 @@
 {% block title %}{{ page_title|default:"Recipes | CulinEire" }}{% endblock %}
 {% block meta_description %}{{ meta_description|default:"Browse Irish-inspired recipes, vintage cookbook dishes, and modern home cooking ideas on CulinEire." }}{% endblock %}
 
+{% block og_title %}{{ page_title|default:"Recipes | CulinEire" }}{% endblock %}
+{% block og_description %}{{ meta_description|default:"Browse Irish-inspired recipes, vintage cookbook dishes, and modern home cooking ideas on CulinEire." }}{% endblock %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-recipes.png' %}{% endblock %}
+{% block twitter_title %}{{ page_title|default:"Recipes | CulinEire" }}{% endblock %}
+{% block twitter_description %}{{ meta_description|default:"Browse Irish-inspired recipes, vintage cookbook dishes, and modern home cooking ideas on CulinEire." }}{% endblock %}
+{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-recipes.png' %}{% endblock %}
+
 {% block content %}
 <section class="hero hero--home hero--recipes">
     <div aria-hidden="true" class="hero__background">

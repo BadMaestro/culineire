@@ -4,6 +4,13 @@
 {% block title %}CulinEire | Modern Irish Recipes & Food Stories{% endblock %}
 {% block meta_description %}Explore modern Irish recipes, vintage cookbook finds, seasonal cooking ideas, and food stories from the CulinEire kitchen.{% endblock %}
 
+{% block og_title %}CulinEire | Modern Irish Recipes & Food Stories{% endblock %}
+{% block og_description %}Explore modern Irish recipes, vintage cookbook finds, seasonal cooking ideas, and food stories from the CulinEire kitchen.{% endblock %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero.jpg' %}{% endblock %}
+{% block twitter_title %}CulinEire | Modern Irish Recipes & Food Stories{% endblock %}
+{% block twitter_description %}Explore modern Irish recipes, vintage cookbook finds, seasonal cooking ideas, and food stories from the CulinEire kitchen.{% endblock %}
+{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero.jpg' %}{% endblock %}
+
 {% block content %}
 <section class="hero hero--home">
     <div aria-hidden="true" class="hero__background">
