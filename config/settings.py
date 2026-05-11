@@ -290,11 +290,11 @@ SECURE_HSTS_SECONDS = env_int(
 )
 SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool(
     "DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS",
-    default=False,
+    default=True,
 )
 SECURE_HSTS_PRELOAD = env_bool(
     "DJANGO_SECURE_HSTS_PRELOAD",
-    default=False,
+    default=True,
 )
 
 if env_bool("DJANGO_SECURE_PROXY_SSL_HEADER", default=False):
