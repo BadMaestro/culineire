@@ -178,7 +178,7 @@
 
 textarea.authoring-control {
   min-height: 46px;
-  resize: vertical;
+  resize: none;
   overflow-y: hidden;
 }
 
