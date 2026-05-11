@@ -1,10 +1,8 @@
-/* ── Presence Notification Toasts ───────────────────────────────────────────
-   Styled to match CulinEire brand: Playfair Display, warm cream, brand green.
-──────────────────────────────────────────────────────────────────────────── */
+/* ── Presence Notification Toasts ── */
 
 .presence-tray {
   position: fixed;
-  bottom: 1.5rem;
+  bottom: calc(var(--bmc-bar-reserved-space, 2.85rem) + 1rem);
   right: 1.5rem;
   z-index: 1900;
   display: flex;
@@ -17,7 +15,7 @@
 
 @media (max-width: 480px) {
   .presence-tray {
-    bottom: 0.85rem;
+    bottom: calc(var(--bmc-bar-reserved-space, 2.85rem) + 0.75rem);
     right: 0.85rem;
     left: 0.85rem;
     width: auto;
@@ -29,16 +27,16 @@
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  background: rgba(16, 52, 38, 0.97);
-  border: 1px solid rgb(255 255 255 / 0.13);
-  border-left: 3px solid rgb(255 255 255 / 0.18);
+  background: rgb(255 253 249 / 0.97);
+  border: 1px solid rgb(24 76 58 / 0.12);
+  border-left: 3px solid rgb(24 76 58 / 0.18);
   border-radius: var(--radius-sm, 12px);
-  padding: 0.62rem 1rem;
+  padding: 0.65rem 1rem;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   box-shadow:
-    0 12px 32px rgb(10 28 18 / 0.28),
-    0 2px 8px rgb(10 28 18 / 0.16);
+    0 8px 24px rgb(22 33 27 / 0.08),
+    0 2px 6px rgb(22 33 27 / 0.05);
 
   opacity: 0;
   transform: translateY(8px);
@@ -63,19 +61,20 @@
 
 /* Owner variant — warm gold accent */
 .presence-toast--owner {
-  border-left-color: rgba(210, 168, 48, 0.65);
+  border-left-color: rgb(180 140 40 / 0.45);
+  background: rgb(255 251 242 / 0.98);
 }
 
 .presence-toast__dot {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: rgb(255 255 255 / 0.3);
+  background: rgb(24 76 58 / 0.25);
   flex-shrink: 0;
 }
 
 .presence-toast--owner .presence-toast__dot {
-  background: rgba(210, 168, 48, 0.7);
+  background: rgb(180 140 40 / 0.55);
 }
 
 .presence-toast__text {
@@ -84,8 +83,12 @@
   font-weight: 400;
   font-style: italic;
   letter-spacing: 0.01em;
-  color: #fff8ee;
+  color: var(--ink, #1f2c25);
   line-height: 1.4;
   flex: 1;
   min-width: 0;
+}
+
+.presence-toast--owner .presence-toast__text {
+  color: #3a2c0a;
 }

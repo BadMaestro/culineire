@@ -278,6 +278,11 @@ def dashboard(request):
         created_at__date=today,
     ).count()
 
+    critical_today = SecurityEvent.objects.filter(
+        severity=SecurityEvent.Severity.CRITICAL,
+        created_at__date=today,
+    ).count()
+
     top_recipe_rows = list(
         UserActivity.objects
         .filter(event_type=UserActivity.EventType.RECIPE_VIEW, object_type="recipe")
@@ -375,6 +380,7 @@ def dashboard(request):
         "count_404_today": count_404_today,
         "failed_logins_today": failed_logins_today,
         "suspicious_today": suspicious_today,
+        "critical_today": critical_today,
         "top_recipes": top_recipes,
         "top_articles": top_articles,
         "top_paths": top_paths,
