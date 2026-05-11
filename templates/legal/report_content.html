@@ -6,6 +6,7 @@
 {% block extra_head %}
 <meta name="robots" content="noindex, nofollow">
 <link href="{% static 'css/authoring.css' %}?v=20260511a" rel="stylesheet">
+{% if turnstile_site_key %}<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -100,7 +101,16 @@
                 </div>
             </fieldset>
 
+            {% if turnstile_error %}
+            <div class="authoring-errors" role="alert">
+                <p>Security check failed. Please try again.</p>
+            </div>
+            {% endif %}
+
             <div class="authoring-actions">
+                {% if turnstile_site_key %}
+                <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="light"></div>
+                {% endif %}
                 <div class="authoring-actions__buttons">
                     <a class="authoring-link" href="{% url 'legal:legal_hub' %}">Cancel</a>
                     <button class="authoring-submit" type="submit">Submit Report</button>
