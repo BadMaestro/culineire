@@ -5,7 +5,7 @@
 {% block meta_description %}CulinEire internal monitoring detail view.{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/monitoring.css' %}?v=20260511a" rel="stylesheet">
+<link href="{% static 'css/monitoring.css' %}?v=20260511e" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -121,6 +121,7 @@
             <tr>
               <th>Time</th>
               <th>Event</th>
+              <th>Severity</th>
               <th>Kind</th>
               <th>User</th>
               <th>Path</th>
@@ -133,6 +134,7 @@
             <tr>
               <td class="mon-table__time">{{ event.created_at|date:"j M H:i:s" }}</td>
               <td><span class="mon-badge mon-badge--security mon-badge--{{ event.event_type }}">{{ event.get_event_type_display }}</span></td>
+              <td><span class="mon-severity mon-severity--{{ event.severity }}">{{ event.get_severity_display }}</span></td>
               <td><span class="mon-kind mon-kind--{{ event.request_kind_class }}">{{ event.request_kind }}</span></td>
               <td class="mon-table__user">{{ event.user.username|default:"-" }}</td>
               <td class="mon-table__path">

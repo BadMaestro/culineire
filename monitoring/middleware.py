@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from django.conf import settings
 from django.db import DatabaseError
+from django.utils import timezone
 
 from .tracker import get_client_ip, hash_ip
 
@@ -14,6 +15,55 @@ _DEFAULT_EXCLUDED = (
     "/static/", "/media/", "/admin/jsi18n/",
     "/favicon.ico", "/robots.txt",
 )
+
+_CRITICAL_PATH_MARKERS = (
+    ".env", ".git", ".sql", ".bak", "etc/passwd",
+    "union select", "<script", "../../",
+)
+
+_BOT_UA_MARKERS = (
+    "bot", "crawler", "spider", "crawl", "censys", "claudebot",
+    "bytespider", "semrush", "ahrefs", "mj12bot", "curl/",
+    "wget/", "python-requests", "go-http-client", "httpx", "okhttp",
+)
+
+
+def _is_bot_ua(user_agent: str) -> bool:
+    ua = (user_agent or "").lower()
+    return any(m in ua for m in _BOT_UA_MARKERS)
+
+
+def _suspicious_severity(path: str) -> str:
+    p = (path or "").lower()
+    if any(m in p for m in _CRITICAL_PATH_MARKERS):
+        return "critical"
+    return "medium"
+
+
+def _failed_login_severity(ip_hash: str) -> str:
+    if not ip_hash:
+        return "medium"
+    try:
+        from monitoring.models import SecurityEvent
+        cutoff = timezone.now() - timezone.timedelta(hours=1)
+        count = SecurityEvent.objects.filter(
+            event_type=SecurityEvent.EventType.FAILED_LOGIN,
+            ip_hash=ip_hash,
+            created_at__gte=cutoff,
+        ).count()
+        if count >= 5:
+            return "critical"
+        if count >= 2:
+            return "high"
+    except Exception:
+        pass
+    return "medium"
+
+
+def _404_severity(user_agent: str, path: str) -> str:
+    if _is_bot_ua(user_agent):
+        return "medium"
+    return "low"
 
 
 class MonitoringMiddleware:
@@ -66,6 +116,7 @@ class MonitoringMiddleware:
         if status == 404:
             SecurityEvent.objects.create(
                 event_type=SecurityEvent.EventType.NOT_FOUND,
+                severity=_404_severity(user_agent, path),
                 user=user,
                 ip_hash=ip_hash,
                 path=path,
@@ -76,6 +127,7 @@ class MonitoringMiddleware:
         if status == 403:
             SecurityEvent.objects.create(
                 event_type=SecurityEvent.EventType.FORBIDDEN,
+                severity="medium",
                 user=user,
                 ip_hash=ip_hash,
                 path=path,
@@ -101,12 +153,17 @@ class MonitoringMiddleware:
             from monitoring.models import SecurityEvent
 
             user = request.user if hasattr(request, "user") and request.user.is_authenticated else None
+            ip_hash = hash_ip(get_client_ip(request))
+            path = request.path[:500]
+            user_agent = request.META.get("HTTP_USER_AGENT", "")[:300]
+            severity = _suspicious_severity(path)
             SecurityEvent.objects.create(
                 event_type=event_type,
+                severity=severity,
                 user=user,
-                ip_hash=hash_ip(get_client_ip(request)),
-                path=request.path[:500],
-                user_agent=request.META.get("HTTP_USER_AGENT", "")[:300],
+                ip_hash=ip_hash,
+                path=path,
+                user_agent=user_agent,
             )
         except (AttributeError, DatabaseError):
             pass

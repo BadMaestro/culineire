@@ -55,8 +55,10 @@ def on_login_failed(sender, credentials, request, **kwargs):
         path = request.path[:500] if request else ""
         ua = request.META.get("HTTP_USER_AGENT", "")[:300] if request else ""
 
+        from monitoring.middleware import _failed_login_severity
         SecurityEvent.objects.create(
             event_type=SecurityEvent.EventType.FAILED_LOGIN,
+            severity=_failed_login_severity(ip_hash),
             ip_hash=ip_hash,
             path=path,
             user_agent=ua,

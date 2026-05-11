@@ -5,7 +5,7 @@
 {% block meta_description %}CulinEire internal monitoring and analytics dashboard.{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/monitoring.css' %}?v=20260511d" rel="stylesheet">
+<link href="{% static 'css/monitoring.css' %}?v=20260511e" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -90,6 +90,12 @@
         <span class="mon-card__value">{{ suspicious_today }}</span>
         <span class="mon-card__label">Suspicious Today</span>
         <span class="mon-card__sub">flagged requests</span>
+        <span class="mon-card__open">Open details</span>
+      </a>
+      <a class="mon-card {% if critical_today > 0 %}mon-card--critical{% endif %}" href="{{ security_urls.all }}" target="_blank" rel="noopener noreferrer">
+        <span class="mon-card__value">{{ critical_today }}</span>
+        <span class="mon-card__label">Critical Today</span>
+        <span class="mon-card__sub">brute force and targeted scans</span>
         <span class="mon-card__open">Open details</span>
       </a>
     </div>
@@ -257,6 +263,7 @@
             <tr>
               <th>Time</th>
               <th>Event</th>
+              <th>Severity</th>
               <th>Kind</th>
               <th>User</th>
               <th>Path</th>
@@ -268,6 +275,7 @@
             <tr>
               <td class="mon-table__time">{{ event.created_at|date:"j M H:i" }}</td>
               <td><span class="mon-badge mon-badge--security mon-badge--{{ event.event_type }}">{{ event.get_event_type_display }}</span></td>
+              <td><span class="mon-severity mon-severity--{{ event.severity }}">{{ event.get_severity_display }}</span></td>
               <td><span class="mon-kind mon-kind--{{ event.request_kind_class }}">{{ event.request_kind }}</span></td>
               <td class="mon-table__user">{{ event.user.username|default:"-" }}</td>
               <td class="mon-table__path">

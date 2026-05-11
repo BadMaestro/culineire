@@ -73,7 +73,19 @@ class SecurityEvent(models.Model):
         FORBIDDEN = "403", "403 Forbidden"
         RATE_LIMITED = "rate_limited", "Rate Limited"
 
+    class Severity(models.TextChoices):
+        LOW = "low", "Low"
+        MEDIUM = "medium", "Medium"
+        HIGH = "high", "High"
+        CRITICAL = "critical", "Critical"
+
     event_type = models.CharField(max_length=30, choices=EventType.choices, db_index=True)
+    severity = models.CharField(
+        max_length=10,
+        choices=Severity.choices,
+        default=Severity.MEDIUM,
+        db_index=True,
+    )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         null=True,

@@ -534,6 +534,47 @@
   overflow-wrap: anywhere;
 }
 
+/* ── Severity badges ── */
+.mon-severity {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.16rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.mon-severity--low {
+  background: rgb(58 44 30 / 0.07);
+  color: var(--ink-soft);
+}
+
+.mon-severity--medium {
+  background: rgb(30 100 200 / 0.1);
+  color: #1a4fa0;
+}
+
+.mon-severity--high {
+  background: rgb(200 120 0 / 0.12);
+  color: #8a5000;
+}
+
+.mon-severity--critical {
+  background: rgb(160 20 20 / 0.12);
+  color: #9a1010;
+}
+
+/* ── Critical card ── */
+.mon-card--critical {
+  background: rgb(160 20 20 / 0.06);
+  border-color: rgb(160 20 20 / 0.2);
+}
+
+.mon-card--critical .mon-card__value { color: #9a1010; }
+
 /* ── Clear Statistics (superuser only) ── */
 .mon-section--danger-zone .mon-section__title {
   display: flex;
