@@ -199,7 +199,7 @@
     </div>
     {% endif %}
 </div>
-<script>
+<script nonce="{{ request.csp_nonce }}">
     (function(){
         var toggle = document.getElementById('mod-bar-msg-toggle');
         var panel = document.getElementById('mod-bar-msg-panel');

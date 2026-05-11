@@ -323,7 +323,7 @@
 
 <script src="{% static 'js/main.js' %}?v=20260430l"></script>
 <script src="{% static 'js/presence.js' %}?v=20260507a"></script>
-<script>
+<script nonce="{{ request.csp_nonce }}">
 (function () {
   function dismissToast(el) {
     el.classList.add('site-message--hiding');

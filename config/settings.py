@@ -139,6 +139,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "monitoring.middleware.MonitoringMiddleware",
+    "config.csp_middleware.CspNonceMiddleware",
 ]
 
 # ── Monitoring ─────────────────────────────────────────────────────────────
