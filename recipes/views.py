@@ -1142,6 +1142,13 @@ def _can_grant_bearseeker_privileges(user):
     return author is not None and author.slug == "greenbear"
 
 
+def _can_revoke_superuser_privileges(user):
+    if not user or not user.is_authenticated:
+        return False
+    author = getattr(user, "recipe_author_profile", None)
+    return author is not None and author.slug == "greenbear"
+
+
 def moderation_panel(request):
     if not is_moderator(request.user):
         raise Http404
@@ -1203,6 +1210,7 @@ def moderation_panel(request):
         "registered_authors": registered_authors,
         "author_query": author_query,
         "can_grant_bearseeker_privileges": _can_grant_bearseeker_privileges(request.user),
+        "can_revoke_superuser_privileges": _can_revoke_superuser_privileges(request.user),
         "bearseeker_super_users": bearseeker_super_users,
         "bearseeker_authors": bearseeker_authors,
     })
@@ -1288,9 +1296,9 @@ def block_author(request, slug):
     if user:
         action = request.POST.get("action", "block")
         if action == "revoke_superuser":
-            if not _can_grant_bearseeker_privileges(request.user):
+            if not _can_revoke_superuser_privileges(request.user):
                 raise Http404
-            if user.pk == request.user.pk:
+            if user.pk == request.user.pk or author.slug == "greenbear" or not user.is_superuser:
                 raise Http404
             author.has_bearseeker_privileges = False
             author.save(update_fields=["has_bearseeker_privileges"])

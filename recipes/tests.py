@@ -189,7 +189,9 @@ class ModerationPanelRoleTests(TestCase):
             list(response.context["bearseeker_authors"].values_list("pk", flat=True)),
             [self.bearseeker_author.pk],
         )
+        self.assertTrue(response.context["can_revoke_superuser_privileges"])
         self.assertContains(response, "@catwithtail")
+        self.assertContains(response, "Revoke Superuser Privileges", count=1)
 
     def test_panel_can_revoke_other_superuser_privileges(self):
         self.client.login(username="greenbear", password="pass")
@@ -209,6 +211,24 @@ class ModerationPanelRoleTests(TestCase):
 
     def test_panel_cannot_revoke_current_superuser(self):
         self.client.login(username="greenbear", password="pass")
+
+        response = self.client.post(
+            reverse("recipes:block_author", kwargs={"slug": self.owner_author.slug}),
+            {"action": "revoke_superuser"},
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.owner.refresh_from_db()
+        self.assertTrue(self.owner.is_superuser)
+
+    def test_other_superuser_cannot_revoke_owner_superuser(self):
+        self.client.login(username="catwithtail", password="pass")
+
+        response = self.client.get(reverse("recipes:moderation_panel"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context["can_revoke_superuser_privileges"])
+        self.assertNotContains(response, "Revoke Superuser Privileges")
 
         response = self.client.post(
             reverse("recipes:block_author", kwargs={"slug": self.owner_author.slug}),

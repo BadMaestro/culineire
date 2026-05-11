@@ -225,7 +225,7 @@
                         <a href="{{ author.get_absolute_url }}" target="_blank">{{ author.name }}</a>
                     </h3>
                 </div>
-                {% if author.user != request.user %}
+                {% if can_revoke_superuser_privileges and author.user != request.user and author.slug != "greenbear" %}
                 <div class="moderation-card__actions">
                     <form action="{% url 'recipes:block_author' author.slug %}" method="post">{% csrf_token %}
                         <input name="next" type="hidden" value="{{ request.get_full_path }}">
