@@ -318,7 +318,7 @@ class Recipe(models.Model):
         "Image rights",
         max_length=20,
         choices=ImageRightsStatus.choices,
-        default=ImageRightsStatus.NOT_APPLICABLE,
+        default=ImageRightsStatus.OWN,
     )
     image_rights_note = models.CharField(
         "Image rights note",
