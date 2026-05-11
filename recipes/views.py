@@ -1,3 +1,4 @@
+import json
 import re
 from typing import cast
 
@@ -16,6 +17,7 @@ from django.templatetags.static import static
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes, force_str
+from django.utils.safestring import mark_safe
 from django.utils.http import url_has_allowed_host_and_scheme, urlsafe_base64_decode, urlsafe_base64_encode
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.http import require_POST
@@ -571,6 +573,46 @@ def recipe_detail(request, slug):
         except RecipeAuthor.DoesNotExist:
             pass
 
+    _schema: dict = {
+        "@context": "https://schema.org",
+        "@type": "Recipe",
+        "name": recipe.title,
+        "description": recipe.short_description or f"A recipe for {recipe.title}.",
+        "author": {"@type": "Person", "name": recipe.author.name} if recipe.author else {"@type": "Organization", "name": "CulinEire"},
+        "datePublished": recipe.created_at.strftime("%Y-%m-%d"),
+        "dateModified": recipe.updated_at.strftime("%Y-%m-%d"),
+        "recipeCategory": recipe.get_category_display(),
+        "url": request.build_absolute_uri(),
+    }
+    if recipe.hero_image:
+        _schema["image"] = request.build_absolute_uri(recipe.hero_image.url)
+    elif gallery_items:
+        _first_img = next((item for item in gallery_items if item.get("media_type") == "image"), None)
+        if _first_img:
+            _schema["image"] = request.build_absolute_uri(_first_img["src"])
+    if recipe.prep_time_minutes:
+        _schema["prepTime"] = f"PT{recipe.prep_time_minutes}M"
+    if recipe.cook_time_minutes:
+        _schema["cookTime"] = f"PT{recipe.cook_time_minutes}M"
+        _schema["totalTime"] = f"PT{(recipe.prep_time_minutes or 0) + recipe.cook_time_minutes}M"
+    if recipe.servings:
+        _schema["recipeYield"] = str(recipe.servings)
+    if recipe.ingredients:
+        _schema["recipeIngredient"] = [line.strip() for line in recipe.ingredients.split("\n") if line.strip()]
+    if method_steps:
+        _schema["recipeInstructions"] = [
+            {"@type": "HowToStep", "text": step["text"]}
+            for step in method_steps if step.get("text")
+        ]
+    if ratings_count > 0:
+        _schema["aggregateRating"] = {
+            "@type": "AggregateRating",
+            "ratingValue": round(average_rating_value, 1),
+            "ratingCount": ratings_count,
+            "bestRating": 5,
+            "worstRating": 1,
+        }
+
     context = {
         "recipe": recipe,
         "gallery_items": gallery_items,
@@ -591,6 +633,7 @@ def recipe_detail(request, slug):
         "can_moderate_bar": is_moderator(request.user) and recipe.status != Recipe.Status.APPROVED,
         "has_rated": has_rated,
         "commenter_profile": commenter_profile,
+        "recipe_json_ld": mark_safe(json.dumps(_schema, ensure_ascii=False)),
     }
     return render(request, "recipes/recipe_detail.html", context)
 

@@ -4,10 +4,19 @@
 {% block title %}{{ recipe.title }} | CulinEire{% endblock %}
 {% block meta_description %}{% if recipe.short_description %}{{ recipe.short_description }}{% else %}Recipe detail page for {{ recipe.title }} on CulinEire.{% endif %}{% endblock %}
 
+{% block og_type %}article{% endblock %}
+{% block og_title %}{{ recipe.title }} | CulinEire{% endblock %}
+{% block og_description %}{% if recipe.short_description %}{{ recipe.short_description }}{% else %}A recipe for {{ recipe.title }} on CulinEire.{% endif %}{% endblock %}
+{% block og_image %}{% if recipe.hero_image %}{{ request.scheme }}://{{ request.get_host }}{{ recipe.hero_image.url }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block twitter_title %}{{ recipe.title }} | CulinEire{% endblock %}
+{% block twitter_description %}{% if recipe.short_description %}{{ recipe.short_description }}{% else %}A recipe for {{ recipe.title }} on CulinEire.{% endif %}{% endblock %}
+{% block twitter_image %}{% if recipe.hero_image %}{{ request.scheme }}://{{ request.get_host }}{{ recipe.hero_image.url }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+
 {% block extra_head %}
 <link href="{% static 'css/detail_page.css' %}?v=20260501" rel="stylesheet">
 {% if can_moderate_bar %}
 <link href="{% static 'css/messaging.css' %}?v=20260507b" rel="stylesheet">{% endif %}
+<script type="application/ld+json">{{ recipe_json_ld }}</script>
 {% endblock %}
 
 {% block content %}

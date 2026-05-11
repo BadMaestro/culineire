@@ -9,6 +9,21 @@
     <meta content="{% block meta_description %}CulinEire is a modern Irish culinary platform for recipes, food stories, and classic dishes adapted for the home kitchen.{% endblock %}"
           name="description">
 
+    <link href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}" rel="canonical">
+
+    <meta content="CulinEire" property="og:site_name">
+    <meta content="{% block og_type %}website{% endblock %}" property="og:type">
+    <meta content="{% block og_title %}CulinEire - Irish Recipes and Food Stories{% endblock %}" property="og:title">
+    <meta content="{% block og_description %}CulinEire is a modern Irish culinary platform for recipes, food stories, and classic dishes adapted for the home kitchen.{% endblock %}" property="og:description">
+    <meta content="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}" property="og:url">
+    <meta content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero.jpg' %}{% endblock %}" property="og:image">
+
+    <meta content="summary_large_image" name="twitter:card">
+    <meta content="@culineire_ie" name="twitter:site">
+    <meta content="{% block twitter_title %}CulinEire - Irish Recipes and Food Stories{% endblock %}" name="twitter:title">
+    <meta content="{% block twitter_description %}CulinEire is a modern Irish culinary platform for recipes, food stories, and classic dishes adapted for the home kitchen.{% endblock %}" name="twitter:description">
+    <meta content="{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero.jpg' %}{% endblock %}" name="twitter:image">
+
     <link href="https://fonts.googleapis.com" rel="preconnect">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Libre+Bodoni:wght@400&family=Inter:wght@400;500;600&family=Dancing+Script:wght@600;700&display=swap"

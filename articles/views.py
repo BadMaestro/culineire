@@ -1,4 +1,7 @@
+import json
+
 from django.conf import settings
+from django.utils.safestring import mark_safe
 from django.contrib import messages
 from django.db.models import Prefetch, Q
 from django.shortcuts import get_object_or_404, redirect
@@ -115,7 +118,7 @@ class ArticleDetailView(DetailView):
 
     _GALLERY_PREFETCH = Prefetch(
         "gallery_images",
-        queryset=ArticleImage.objects.filter(is_active=True).order_by("-sort_order", "-id"),
+        queryset=ArticleImage.objects.filter(is_active=True).order_by("sort_order", "id"),
     )
 
     def get_queryset(self):
@@ -187,6 +190,24 @@ class ArticleDetailView(DetailView):
                 is_moderator(self.request.user) and
                 article.status != Article.Status.APPROVED
         )
+
+        _schema: dict = {
+            "@context": "https://schema.org",
+            "@type": "Article",
+            "headline": article.title,
+            "description": article.excerpt or f"An article about {article.title}.",
+            "author": {"@type": "Person", "name": article.author.name} if article.author else {"@type": "Organization", "name": "CulinEire"},
+            "datePublished": article.published.strftime("%Y-%m-%d") if article.published else "",
+            "url": self.request.build_absolute_uri(),
+            "publisher": {
+                "@type": "Organization",
+                "name": "CulinEire",
+                "logo": {"@type": "ImageObject", "url": self.request.build_absolute_uri("/static/images/logo.png")},
+            },
+        }
+        if gallery_items:
+            _schema["image"] = self.request.build_absolute_uri(gallery_items[0]["src"])
+        context["article_json_ld"] = mark_safe(json.dumps(_schema, ensure_ascii=False))
         return context
 
 
