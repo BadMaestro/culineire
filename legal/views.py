@@ -4,6 +4,7 @@ from django.conf import settings
 from django.core.mail import BadHeaderError, send_mail
 from django.shortcuts import render
 from django.views.generic import TemplateView
+from django_ratelimit.decorators import ratelimit
 
 from config.turnstile import verify_turnstile
 
@@ -52,12 +53,22 @@ def _send_report_notification(report):
         logger.warning("BadHeaderError sending report notification for report %s", report.pk)
 
 
+@ratelimit(key="ip", rate="10/h", method="POST", block=False)
 def report_content(request):
     submitted = False
     form = ContentReportForm()
     turnstile_error = False
 
     if request.method == "POST":
+        if getattr(request, "limited", False):
+            return render(request, "legal/report_content.html", {
+                "form": form,
+                "submitted": False,
+                "turnstile_error": False,
+                "turnstile_site_key": settings.TURNSTILE_SITE_KEY,
+                "rate_limited": True,
+            })
+
         form = ContentReportForm(request.POST)
         token = request.POST.get("cf-turnstile-response", "")
         if not verify_turnstile(token, request.META.get("REMOTE_ADDR", "")):
@@ -73,4 +84,5 @@ def report_content(request):
         "submitted": submitted,
         "turnstile_error": turnstile_error,
         "turnstile_site_key": settings.TURNSTILE_SITE_KEY,
+        "rate_limited": False,
     })

@@ -27,6 +27,12 @@
 <section class="page-section authoring-page">
     <div class="container authoring-shell">
 
+        {% if rate_limited %}
+        <div class="authoring-errors" role="alert" style="margin-bottom:2rem;">
+            <p>Too many submissions from your IP address. Please wait before trying again.</p>
+        </div>
+        {% endif %}
+
         {% if submitted %}
         <div class="authoring-section" style="text-align:center;padding:3rem 1rem;">
             <p style="font-size:1.1rem;font-weight:600;color:var(--brand);">Your report has been received.</p>
