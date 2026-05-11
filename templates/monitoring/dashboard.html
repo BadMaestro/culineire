@@ -301,7 +301,7 @@
         </svg>
         Clear Statistics
       </h2>
-      <p class="mon-clear-hint">Permanently removes monitoring records from the database — cannot be undone.</p>
+      <p class="mon-clear-hint">Permanently removes monitoring records from the database. This cannot be undone.</p>
       <form class="mon-clear-form" method="post" action="{% url 'monitoring:clear_stats' %}"
             onsubmit="return confirm('Delete «' + this.what.options[this.what.selectedIndex].text + '» for «' + this.period.options[this.period.selectedIndex].text + '»?\n\nThis cannot be undone.');">
         {% csrf_token %}
