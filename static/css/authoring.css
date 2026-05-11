@@ -261,6 +261,11 @@ textarea.authoring-control {
   text-align: left;
 }
 
+.authoring-section--centered .authoring-grid,
+.authoring-section--centered .authoring-grid--four {
+  text-align: left;
+}
+
 .authoring-actions {
   display: flex;
   flex-direction: column;
