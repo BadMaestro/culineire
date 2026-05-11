@@ -104,6 +104,18 @@
                     </div>
 
                     <div class="authoring-field">
+                        <label for="{{ form.image_rights_status.id_for_label }}">{{ form.image_rights_status.label }}:</label>
+                        {{ form.image_rights_status }}
+                        {% for error in form.image_rights_status.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field">
+                        <label for="{{ form.image_rights_note.id_for_label }}">{{ form.image_rights_note.label }}:</label>
+                        {{ form.image_rights_note }}
+                        {% if form.image_rights_note.help_text %}<p class="authoring-help">{{ form.image_rights_note.help_text }}</p>{% endif %}
+                        {% for error in form.image_rights_note.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+
+                    <div class="authoring-field">
                         <label for="{{ form.category.id_for_label }}">{{ form.category.label }}:</label>
                         {{ form.category }}
                         {% for error in form.category.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
@@ -118,23 +130,6 @@
                         {{ form.additional_categories }}
                         {% if form.additional_categories.help_text %}<p class="authoring-help">{{ form.additional_categories.help_text }}</p>{% endif %}
                         {% for error in form.additional_categories.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
-                    </div>
-                </div>
-            </fieldset>
-
-            <fieldset class="authoring-section">
-                <legend>Image Rights</legend>
-                <div class="authoring-grid authoring-grid--two">
-                    <div class="authoring-field">
-                        <label for="{{ form.image_rights_status.id_for_label }}">{{ form.image_rights_status.label }}:</label>
-                        {{ form.image_rights_status }}
-                        {% for error in form.image_rights_status.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
-                    </div>
-                    <div class="authoring-field">
-                        <label for="{{ form.image_rights_note.id_for_label }}">{{ form.image_rights_note.label }}:</label>
-                        {{ form.image_rights_note }}
-                        {% if form.image_rights_note.help_text %}<p class="authoring-help">{{ form.image_rights_note.help_text }}</p>{% endif %}
-                        {% for error in form.image_rights_note.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
                 </div>
             </fieldset>
