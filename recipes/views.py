@@ -801,6 +801,8 @@ class RecipeCreateView(AuthorRequiredMixin, CreateView):
     def form_valid(self, form):
         recipe = form.save(commit=False, confirmed_by=self.request.user)
         recipe.author = self.author
+        if is_moderator(self.request.user):
+            recipe.status = Recipe.Status.APPROVED
         recipe.save()
         getattr(form, "save_additional_categories")(recipe)
 

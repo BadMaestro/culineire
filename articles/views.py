@@ -99,6 +99,10 @@ class ArticleCreateView(AuthorRequiredMixin, CreateView):
         article = form.save(confirmed_by=self.request.user)
         self.object = article
 
+        if is_moderator(self.request.user):
+            article.status = Article.Status.APPROVED
+            article.save(update_fields=["status"])
+
         for i, img_file in enumerate(self.request.FILES.getlist("gallery_images"), start=1):
             ArticleImage.objects.create(article=article, image=img_file, sort_order=i)
 
