@@ -13,13 +13,24 @@
 {% block twitter_image %}{% if gallery_items %}{{ request.scheme }}://{{ request.get_host }}{{ gallery_items.0.src }}{% else %}{{ block.super }}{% endif %}{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/detail_page.css' %}?v=20260508a" rel="stylesheet">
+<link href="{% static 'css/detail_page.css' %}?v=20260511b" rel="stylesheet">
 {% if can_moderate_bar %}
 <link href="{% static 'css/messaging.css' %}?v=20260507b" rel="stylesheet">{% endif %}
 <script type="application/ld+json">{{ article_json_ld }}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"{{ request.scheme }}://{{ request.get_host }}{% url 'home' %}"},{"@type":"ListItem","position":2,"name":"Articles","item":"{{ request.scheme }}://{{ request.get_host }}{% url 'articles:article_list' %}"},{"@type":"ListItem","position":3,"name":"{{ article.title|escapejs }}"}]}</script>
 {% endblock %}
 
 {% block content %}
+<nav aria-label="Breadcrumb" class="breadcrumb">
+    <div class="container">
+        <ol class="breadcrumb__list">
+            <li class="breadcrumb__item"><a class="breadcrumb__link" href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb__item"><a class="breadcrumb__link" href="{% url 'articles:article_list' %}">Articles</a></li>
+            <li class="breadcrumb__item breadcrumb__item--current" aria-current="page">{{ article.title }}</li>
+        </ol>
+    </div>
+</nav>
+
 <section class="section">
     <div class="container">
         <article class="detail-page detail-page--article">

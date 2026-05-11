@@ -13,10 +13,11 @@
 {% block twitter_image %}{% if recipe.hero_image %}{{ request.scheme }}://{{ request.get_host }}{{ recipe.hero_image.url }}{% else %}{{ block.super }}{% endif %}{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/detail_page.css' %}?v=20260501" rel="stylesheet">
+<link href="{% static 'css/detail_page.css' %}?v=20260511b" rel="stylesheet">
 {% if can_moderate_bar %}
 <link href="{% static 'css/messaging.css' %}?v=20260507b" rel="stylesheet">{% endif %}
 <script type="application/ld+json">{{ recipe_json_ld }}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"{{ request.scheme }}://{{ request.get_host }}{% url 'home' %}"},{"@type":"ListItem","position":2,"name":"Recipes","item":"{{ request.scheme }}://{{ request.get_host }}{% url 'recipes:recipe_list' %}"},{"@type":"ListItem","position":3,"name":"{{ recipe.title|escapejs }}"}]}</script>
 {% endblock %}
 
 {% block content %}
@@ -40,6 +41,16 @@
         </div>
     </div>
 </section>
+
+<nav aria-label="Breadcrumb" class="breadcrumb">
+    <div class="container">
+        <ol class="breadcrumb__list">
+            <li class="breadcrumb__item"><a class="breadcrumb__link" href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb__item"><a class="breadcrumb__link" href="{% url 'recipes:recipe_list' %}">Recipes</a></li>
+            <li class="breadcrumb__item breadcrumb__item--current" aria-current="page">{{ recipe.title }}</li>
+        </ol>
+    </div>
+</nav>
 
 <section class="section">
     <div class="container">

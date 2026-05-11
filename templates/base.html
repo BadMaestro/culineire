@@ -39,6 +39,8 @@
     <link href="{% static 'css/messaging.css' %}?v=20260507a" rel="stylesheet">
     <link href="{% static 'css/presence.css' %}?v=20260511f" rel="stylesheet">
 
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"CulinEire","url":"{{ request.scheme }}://{{ request.get_host }}","logo":"{{ request.scheme }}://{{ request.get_host }}{% static 'images/logo.png' %}","sameAs":["https://www.instagram.com/culineire/","https://www.tiktok.com/@culineire.ie"]}</script>
+
     {% block extra_head %}{% endblock %}
 </head>
 <body>
