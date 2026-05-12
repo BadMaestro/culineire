@@ -1,12 +1,14 @@
 Welcome, {{ author_name }}!
 
-Thank you for joining CulinEire. Please confirm your email address to activate your account.
+We're delighted you've joined us! Before you start exploring, please take a moment to read our Community Rules:
+https://culineire.ie/legal/content-publishing-rules/
 
+To activate your account, confirm your email address:
 {{ activation_url }}
 
 This link expires in 24 hours.
 
 If you did not create a CulinEire account, you can safely ignore this email.
 
--- The CulinEire Team
+-- CulinEire Kitchen
 culineire.ie
