@@ -1379,6 +1379,17 @@ def block_author(request, slug):
             user.is_active = True
             user.save(update_fields=["is_active"])
             messages.success(request, f'Author "{author.name}" now has (Bear)seeker moderation privileges.')
+            if user.email:
+                try:
+                    send_template_mail(
+                        subject="Your CulinEire Kitchen moderator access",
+                        template="moderator_granted",
+                        context={"author_name": author.name or user.username},
+                        recipient_list=[user.email],
+                        fail_silently=True,
+                    )
+                except Exception:
+                    pass
         elif action == "revoke_bearseeker":
             if not _can_grant_bearseeker_privileges(request.user):
                 raise Http404

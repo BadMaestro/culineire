@@ -1,0 +1,11 @@
+Dear {{ author_name }},
+
+You have been granted moderator privileges on CulinEire Kitchen. You can now review and manage content submissions from our authors.
+
+Moderation panel: https://culineire.ie/recipes/moderation/
+
+If You believe this was assigned in error, please contact us at:
+https://culineire.ie/contact/
+
+-- CulinEire Kitchen
+culineire.ie
