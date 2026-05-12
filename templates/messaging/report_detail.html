@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Content Report #{{ report.pk }} | CulinEire{% endblock %}
+{% block meta_description %}Content report detail.{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+<link href="{% static 'css/moderation.css' %}?v=20260512a" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="hero hero--home">
+    <div aria-hidden="true" class="hero__background">
+        <img alt="" src="{% static 'images/hero-contact.png' %}">
+    </div>
+    <div aria-hidden="true" class="hero__overlay"></div>
+    <div class="container hero__inner">
+        <div class="hero-copy">
+            <span class="pill">Admin</span>
+            <h1 class="hero-title">Content Report #{{ report.pk }}</h1>
+            <p class="hero-subtitle">{{ report.get_report_type_display }}</p>
+        </div>
+    </div>
+</section>
+
+<section class="page-section">
+    <div class="container" style="max-width:760px;">
+
+        {% if messages %}
+        {% for msg in messages %}
+        <div class="mod-alert mod-alert--{% if msg.tags == 'success' %}ok{% else %}warn{% endif %}" role="alert" style="margin-bottom:1.5rem;">
+            <p>{{ msg }}</p>
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <div class="mod-detail-card">
+
+            <div class="mod-detail-row">
+                <span class="mod-detail-label">Status</span>
+                <span>
+                    {% if report.is_resolved %}
+                    <span class="mod-badge mod-badge--ok">Resolved</span>
+                    {% else %}
+                    <span class="mod-badge mod-badge--pending">Open</span>
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="mod-detail-row">
+                <span class="mod-detail-label">Date</span>
+                <span>{{ report.created_at|date:"j M Y, H:i" }}</span>
+            </div>
+
+            <div class="mod-detail-row">
+                <span class="mod-detail-label">Type</span>
+                <span>{{ report.get_report_type_display }}</span>
+            </div>
+
+            <div class="mod-detail-row">
+                <span class="mod-detail-label">Reporter</span>
+                <span>
+                    {% if report.reporter_user %}
+                        {{ report.reporter_user.get_full_name|default:report.reporter_user.username }}
+                        &lt;{{ report.reporter_user.email }}&gt;
+                    {% else %}
+                        {{ report.reporter_name }} &lt;{{ report.reporter_email }}&gt;
+                    {% endif %}
+                </span>
+            </div>
+
+            {% if report.reported_url %}
+            <div class="mod-detail-row">
+                <span class="mod-detail-label">Reported URL</span>
+                <a href="{{ report.reported_url }}" target="_blank" rel="noopener" class="mod-link">{{ report.reported_url }}</a>
+            </div>
+            {% endif %}
+
+            <div class="mod-detail-row mod-detail-row--block">
+                <span class="mod-detail-label">Description</span>
+                <div class="mod-detail-body">{{ report.description|linebreaksbr }}</div>
+            </div>
+
+            {% if report.is_resolved and report.resolved_note %}
+            <div class="mod-detail-row mod-detail-row--block">
+                <span class="mod-detail-label">Resolution Note</span>
+                <div class="mod-detail-body">{{ report.resolved_note }}</div>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <div class="mod-detail-actions">
+            {% if report.linked_message %}
+            <a class="btn" href="{% url 'messaging:message_detail' report.linked_message.pk %}">Reply to Reporter</a>
+            {% endif %}
+            {% if not report.is_resolved %}
+            <form method="post" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="resolve">
+                <input
+                    class="authoring-control"
+                    name="resolved_note"
+                    placeholder="Resolution note (optional)"
+                    style="width:260px;margin-right:0.5rem;"
+                    type="text"
+                >
+                <button class="btn btn--secondary" type="submit">Mark Resolved</button>
+            </form>
+            {% endif %}
+            <a class="mod-link" href="{% url 'messaging:reports_list' %}">Back to Reports</a>
+        </div>
+
+    </div>
+</section>
+{% endblock %}

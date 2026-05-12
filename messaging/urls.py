@@ -14,4 +14,6 @@ urlpatterns = [
     path("<int:pk>/archive/", views.archive_message, name="archive_message"),
     path("<int:pk>/delete/", views.delete_message, name="delete_message"),
     path("<int:pk>/restore/", views.restore_message, name="restore_message"),
+    path("reports/", views.reports_list, name="reports_list"),
+    path("reports/<int:pk>/", views.report_detail, name="report_detail"),
 ]

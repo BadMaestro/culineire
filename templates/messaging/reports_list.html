@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Content Reports | CulinEire{% endblock %}
+{% block meta_description %}Content reports management.{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+<link href="{% static 'css/moderation.css' %}?v=20260512a" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="hero hero--home">
+    <div aria-hidden="true" class="hero__background">
+        <img alt="" src="{% static 'images/hero-contact.png' %}">
+    </div>
+    <div aria-hidden="true" class="hero__overlay"></div>
+    <div class="container hero__inner">
+        <div class="hero-copy">
+            <span class="pill">Admin</span>
+            <h1 class="hero-title">Content Reports</h1>
+            <p class="hero-subtitle">Reports submitted by registered users.</p>
+        </div>
+    </div>
+</section>
+
+<section class="page-section">
+    <div class="container">
+
+        {% if messages %}
+        {% for msg in messages %}
+        <div class="mod-alert mod-alert--{% if msg.tags == 'success' %}ok{% else %}warn{% endif %}" role="alert">
+            <p>{{ msg }}</p>
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        {% if not reports %}
+        <div class="mod-empty">
+            <p>No reports yet.</p>
+        </div>
+        {% else %}
+        <table class="mod-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Reporter</th>
+                    <th>URL</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for report in reports %}
+                <tr class="{% if report.is_resolved %}mod-table__row--resolved{% endif %}">
+                    <td>{{ report.created_at|date:"j M Y" }}</td>
+                    <td>{{ report.get_report_type_display }}</td>
+                    <td>
+                        {% if report.reporter_user %}
+                            {{ report.reporter_user.get_full_name|default:report.reporter_user.username }}
+                        {% else %}
+                            {{ report.reporter_name|default:"—" }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if report.reported_url %}
+                        <a href="{{ report.reported_url }}" target="_blank" rel="noopener" class="mod-link">{{ report.reported_url|truncatechars:50 }}</a>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>
+                        {% if report.is_resolved %}
+                        <span class="mod-badge mod-badge--ok">Resolved</span>
+                        {% else %}
+                        <span class="mod-badge mod-badge--pending">Open</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a class="btn btn--small" href="{% url 'messaging:report_detail' report.pk %}">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+    </div>
+</section>
+{% endblock %}

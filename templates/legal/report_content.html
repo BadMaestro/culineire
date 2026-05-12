@@ -69,21 +69,10 @@
             </div>
             {% endif %}
 
-            <fieldset class="authoring-section">
-                <legend>Your Details</legend>
-                <div class="authoring-grid authoring-grid--two">
-                    <div class="authoring-field">
-                        <label for="{{ form.reporter_name.id_for_label }}">{{ form.reporter_name.label }}:</label>
-                        {{ form.reporter_name }}
-                        {% for error in form.reporter_name.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
-                    </div>
-                    <div class="authoring-field">
-                        <label for="{{ form.reporter_email.id_for_label }}">{{ form.reporter_email.label }}:</label>
-                        {{ form.reporter_email }}
-                        {% for error in form.reporter_email.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
-                    </div>
-                </div>
-            </fieldset>
+            <div class="authoring-section" style="padding:1rem 1.25rem;background:var(--surface,#f5eee4);border-radius:6px;margin-bottom:1.5rem;">
+                <p style="margin:0;font-size:0.9rem;color:var(--text-muted);">Submitting as</p>
+                <p style="margin:0.25rem 0 0;font-weight:600;">{{ request.user.get_full_name|default:request.user.username }} &lt;{{ request.user.email }}&gt;</p>
+            </div>
 
             <fieldset class="authoring-section">
                 <legend>The Issue</legend>

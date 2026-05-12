@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from django.conf import settings
 from django.db import models
 
 
@@ -26,6 +27,22 @@ class ContentReport(models.Model):
         blank=True,
         related_name="content_reports",
         verbose_name="Reported article",
+    )
+    reporter_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="content_reports",
+        verbose_name="Reporter",
+    )
+    linked_message = models.ForeignKey(
+        "messaging.Message",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name="Linked message",
     )
     reporter_name = models.CharField("Your name", max_length=100)
     reporter_email = models.EmailField("Your email")
@@ -55,4 +72,5 @@ class ContentReport(models.Model):
         verbose_name_plural = "Content reports"
 
     def __str__(self) -> str:
-        return f"{self.get_report_type_display()} from {self.reporter_name} ({self.created_at:%Y-%m-%d})"
+        name = self.reporter_name or (self.reporter_user.username if self.reporter_user else "unknown")
+        return f"{self.get_report_type_display()} from {name} ({self.created_at:%Y-%m-%d})"

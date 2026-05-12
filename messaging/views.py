@@ -419,3 +419,39 @@ def message_archive(request):
         .order_by("-archived_at")
     )
     return render(request, "messaging/archive.html", {"archived_threads": thread_roots})
+
+
+@login_required
+def reports_list(request):
+    if not request.user.is_superuser:
+        raise Http404
+
+    from legal.models import ContentReport
+    reports = (
+        ContentReport.objects
+        .select_related("reporter_user", "linked_message")
+        .order_by("-created_at")
+    )
+    return render(request, "messaging/reports_list.html", {"reports": reports})
+
+
+@login_required
+def report_detail(request, pk):
+    if not request.user.is_superuser:
+        raise Http404
+
+    from legal.models import ContentReport
+    report = get_object_or_404(
+        ContentReport.objects.select_related("reporter_user", "linked_message"),
+        pk=pk,
+    )
+
+    if request.method == "POST" and request.POST.get("action") == "resolve":
+        note = request.POST.get("resolved_note", "").strip()
+        report.is_resolved = True
+        report.resolved_note = note
+        report.save(update_fields=["is_resolved", "resolved_note"])
+        django_messages.success(request, "Report marked as resolved.")
+        return redirect("messaging:reports_list")
+
+    return render(request, "messaging/report_detail.html", {"report": report})
