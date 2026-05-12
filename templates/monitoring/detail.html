@@ -30,6 +30,7 @@
         <a class="mon-tab{% if item.active %} is-active{% endif %}" href="{{ item.url }}">{{ item.label }}</a>
         {% endfor %}
       </nav>
+      <a class="mon-export-btn" href="{% url 'monitoring:export_detail' %}?type={{ detail_type }}&period={{ period }}{% if kind %}&kind={{ kind }}{% endif %}{% if event %}&event={{ event }}{% endif %}{% if path_filter %}&path={{ path_filter|urlencode }}{% endif %}{% if ip_hash_filter %}&ip_hash={{ ip_hash_filter }}{% endif %}">Export as text</a>
       {% if path_filter or ip_hash_filter %}
       <div class="mon-filter-note">
         {% if path_filter %}<span>Path: <code>{{ path_filter }}</code></span>{% endif %}

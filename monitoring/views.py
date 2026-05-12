@@ -614,6 +614,107 @@ def activity_detail(request):
     return render(request, "monitoring/detail.html", context)
 
 
+def export_detail(request):
+    _require_moderator(request)
+
+    now = timezone.now()
+    period = _selected_period(request)
+    export_type = request.GET.get("type", "traffic")
+    kind = request.GET.get("kind", "pageviews")
+    event = request.GET.get("event", "all")
+    path_filter = request.GET.get("path", "")
+    ip_hash_filter = request.GET.get("ip_hash", "")
+
+    lines = []
+
+    if export_type == "traffic":
+        qs = (
+            PageView.objects
+            .select_related("user")
+            .filter(**_period_bounds(period, now))
+            .order_by("-created_at")[:DETAIL_ROW_LIMIT]
+        )
+        if path_filter:
+            qs = qs.filter(path=path_filter)
+        if ip_hash_filter:
+            qs = qs.filter(ip_hash=ip_hash_filter)
+        rows = list(qs)
+        _decorate_request_rows(rows)
+        if kind == "human":
+            rows = [r for r in rows if r.request_kind in HUMAN_REQUEST_KINDS]
+        elif kind == "bots":
+            rows = [r for r in rows if r.request_kind == "Bot/Scanner"]
+        lines.append("TIME\tKIND\tUSER\tPATH\tSTATUS\tIP_HASH\tUSER_AGENT")
+        for r in rows:
+            lines.append("\t".join([
+                r.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                r.request_kind,
+                r.user.username if r.user else "-",
+                r.path or "-",
+                str(r.status_code or "-"),
+                r.ip_hash or "-",
+                (r.user_agent or "-").replace("\t", " "),
+            ]))
+
+    elif export_type == "security":
+        qs = (
+            SecurityEvent.objects
+            .select_related("user")
+            .filter(**_period_bounds(period, now))
+            .order_by("-created_at")[:DETAIL_ROW_LIMIT]
+        )
+        valid_events = {choice[0] for choice in SecurityEvent.EventType.choices}
+        if event in valid_events:
+            qs = qs.filter(event_type=event)
+        if ip_hash_filter:
+            qs = qs.filter(ip_hash=ip_hash_filter)
+        if path_filter:
+            qs = qs.filter(path=path_filter)
+        rows = list(qs)
+        _decorate_request_rows(rows)
+        lines.append("TIME\tEVENT\tSEVERITY\tKIND\tUSER\tPATH\tIP_HASH\tUSER_AGENT")
+        for r in rows:
+            lines.append("\t".join([
+                r.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                r.get_event_type_display(),
+                r.get_severity_display(),
+                r.request_kind,
+                r.user.username if r.user else "-",
+                r.path or "-",
+                r.ip_hash or "-",
+                (r.user_agent or "-").replace("\t", " "),
+            ]))
+
+    elif export_type == "activity":
+        qs = (
+            UserActivity.objects
+            .select_related("user")
+            .filter(**_period_bounds(period, now))
+            .order_by("-created_at")[:DETAIL_ROW_LIMIT]
+        )
+        if kind == "new-users":
+            qs = qs.filter(event_type=UserActivity.EventType.REGISTER)
+        elif kind == "active-users":
+            qs = qs.exclude(user=None)
+        rows = list(qs)
+        lines.append("TIME\tEVENT\tUSER\tOBJECT\tPATH\tIP_HASH")
+        for r in rows:
+            lines.append("\t".join([
+                r.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                r.get_event_type_display(),
+                r.user.username if r.user else "-",
+                (r.object_title or r.object_type or "-").replace("\t", " "),
+                r.path or "-",
+                r.ip_hash or "-",
+            ]))
+
+    from django.http import HttpResponse
+    filename = f"culineire-{export_type}-{period}.txt"
+    response = HttpResponse("\n".join(lines), content_type="text/plain; charset=utf-8")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
+
+
 _CLEAR_TARGETS = {
     "pageviews": (PageView,),
     "activity": (UserActivity,),
