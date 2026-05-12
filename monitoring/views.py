@@ -632,13 +632,13 @@ def export_detail(request):
             PageView.objects
             .select_related("user")
             .filter(**_period_bounds(period, now))
-            .order_by("-created_at")[:DETAIL_ROW_LIMIT]
+            .order_by("-created_at")
         )
         if path_filter:
             qs = qs.filter(path=path_filter)
         if ip_hash_filter:
             qs = qs.filter(ip_hash=ip_hash_filter)
-        rows = list(qs)
+        rows = list(qs[:DETAIL_ROW_LIMIT])
         _decorate_request_rows(rows)
         if kind == "human":
             rows = [r for r in rows if r.request_kind in HUMAN_REQUEST_KINDS]
@@ -661,7 +661,7 @@ def export_detail(request):
             SecurityEvent.objects
             .select_related("user")
             .filter(**_period_bounds(period, now))
-            .order_by("-created_at")[:DETAIL_ROW_LIMIT]
+            .order_by("-created_at")
         )
         valid_events = {choice[0] for choice in SecurityEvent.EventType.choices}
         if event in valid_events:
@@ -670,7 +670,7 @@ def export_detail(request):
             qs = qs.filter(ip_hash=ip_hash_filter)
         if path_filter:
             qs = qs.filter(path=path_filter)
-        rows = list(qs)
+        rows = list(qs[:DETAIL_ROW_LIMIT])
         _decorate_request_rows(rows)
         lines.append("TIME\tEVENT\tSEVERITY\tKIND\tUSER\tPATH\tIP_HASH\tUSER_AGENT")
         for r in rows:
@@ -690,13 +690,13 @@ def export_detail(request):
             UserActivity.objects
             .select_related("user")
             .filter(**_period_bounds(period, now))
-            .order_by("-created_at")[:DETAIL_ROW_LIMIT]
+            .order_by("-created_at")
         )
         if kind == "new-users":
             qs = qs.filter(event_type=UserActivity.EventType.REGISTER)
         elif kind == "active-users":
             qs = qs.exclude(user=None)
-        rows = list(qs)
+        rows = list(qs[:DETAIL_ROW_LIMIT])
         lines.append("TIME\tEVENT\tUSER\tOBJECT\tPATH\tIP_HASH")
         for r in rows:
             lines.append("\t".join([
