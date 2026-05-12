@@ -11,11 +11,17 @@
 
 {% block content %}
 
-<section class="nf-hero">
-  <div class="container nf-hero__inner">
-    <span class="pill">Updates</span>
-    <h1 class="nf-hero__title">Add Feed Update</h1>
-    <p class="nf-hero__subtitle">Post a new entry to the public CulinEire Updates feed.</p>
+<section class="hero hero--home hero--news">
+  <div aria-hidden="true" class="hero__background">
+    <img alt="" src="{% static 'images/hero-news.png' %}">
+  </div>
+  <div aria-hidden="true" class="hero__overlay"></div>
+  <div class="container hero__inner">
+    <div class="hero-copy hero-copy--center">
+      <span class="pill">Updates</span>
+      <h1 class="hero-title">Add Feed Update</h1>
+      <p class="hero-subtitle">Post a new entry to the public CulinEire Updates feed.</p>
+    </div>
   </div>
 </section>
 
