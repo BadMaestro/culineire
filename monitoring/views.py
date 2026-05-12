@@ -412,7 +412,7 @@ def dashboard(request):
             "404": _dashboard_url("monitoring:security_detail", "event=404"),
             "failed_login": _dashboard_url("monitoring:security_detail", "event=failed_login"),
             "suspicious": _dashboard_url("monitoring:security_detail", "event=suspicious_request"),
-            "all": reverse("monitoring:security_detail"),
+            "critical": _dashboard_url("monitoring:security_detail", "severity=critical"),
         },
     }
     return render(request, "monitoring/dashboard.html", context)
@@ -513,6 +513,7 @@ def security_detail(request):
     now = timezone.now()
     period = _selected_period(request)
     event = request.GET.get("event", "all")
+    severity_filter = request.GET.get("severity", "")
     ip_hash_filter = request.GET.get("ip_hash", "")
     path_filter = request.GET.get("path", "")
 
@@ -527,6 +528,11 @@ def security_detail(request):
         qs = qs.filter(event_type=event)
     else:
         event = "all"
+    valid_severities = {choice[0] for choice in SecurityEvent.Severity.choices}
+    if severity_filter in valid_severities:
+        qs = qs.filter(severity=severity_filter)
+    else:
+        severity_filter = ""
     if ip_hash_filter:
         qs = qs.filter(ip_hash=ip_hash_filter)
     if path_filter:
@@ -536,28 +542,36 @@ def security_detail(request):
     page_obj.object_list = _decorate_request_rows(list(page_obj.object_list))
     event_counts = qs.values("event_type").annotate(count=Count("id")).order_by("-count")
 
+    if severity_filter:
+        title = f"{severity_filter.capitalize()} Security Events"
+        subtitle = f"Security events with {severity_filter} severity."
+    else:
+        title = "Security Events"
+        subtitle = "404s, forbidden requests, suspicious probes and failed login records."
+
     context = {
         "detail_type": "security",
-        "title": "Security Events",
-        "subtitle": "404s, forbidden requests, suspicious probes and failed login records.",
+        "title": title,
+        "subtitle": subtitle,
         "period": period,
         "period_label": PERIOD_OPTIONS[period],
         "period_links": _period_links(
             reverse("monitoring:security_detail"),
             period,
-            f"event={event}",
+            f"event={event}&severity={severity_filter}",
         ),
         "event": event,
+        "severity_filter": severity_filter,
         "ip_hash_filter": ip_hash_filter,
         "path_filter": path_filter,
         "total_count": qs.count(),
         "page_obj": page_obj,
         "event_counts": event_counts,
         "ip_filter_url_base": (
-            f"{reverse('monitoring:security_detail')}?period={period}&event={event}&ip_hash="
+            f"{reverse('monitoring:security_detail')}?period={period}&event={event}&severity={severity_filter}&ip_hash="
         ),
         "path_filter_url_base": (
-            f"{reverse('monitoring:security_detail')}?period={period}&event={event}&path="
+            f"{reverse('monitoring:security_detail')}?period={period}&event={event}&severity={severity_filter}&path="
         ),
         "dashboard_url": reverse("monitoring:dashboard"),
     }

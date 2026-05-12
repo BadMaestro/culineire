@@ -92,7 +92,7 @@
         <span class="mon-card__sub">flagged requests</span>
         <span class="mon-card__open">Open details</span>
       </a>
-      <a class="mon-card {% if critical_today > 0 %}mon-card--critical{% endif %}" href="{{ security_urls.all }}" target="_blank" rel="noopener noreferrer">
+      <a class="mon-card {% if critical_today > 0 %}mon-card--critical{% endif %}" href="{{ security_urls.critical }}" target="_blank" rel="noopener noreferrer">
         <span class="mon-card__value">{{ critical_today }}</span>
         <span class="mon-card__label">Critical Today</span>
         <span class="mon-card__sub">brute force and targeted scans</span>
