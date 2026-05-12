@@ -559,7 +559,8 @@
   }
 
   .ce-nav__menu {
-    margin: 0 auto;
+    flex: 1;
+    justify-content: center;
     padding-bottom: 0;
     border-bottom: 0;
   }
@@ -583,7 +584,6 @@
   .ce-nav__auth--author {
     position: relative;
     z-index: 70;
-    transform: translateX(clamp(0rem, calc((100vw - var(--container)) / 2 - 2rem), 6rem));
   }
 
   .ce-nav__auth::before {
@@ -614,7 +614,6 @@
   .ce-author-panel {
     width: auto;
     min-width: 220px;
-    transform: translateX(6.5rem);
   }
 
   .ce-author-panel__summary {
