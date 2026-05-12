@@ -3,32 +3,32 @@
 {% block subject %}Confirm your CulinEire account{% endblock %}
 
 {% block content %}
-<h1 style="margin:0 0 16px;font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:bold;color:#1f2c25;line-height:1.3;">Welcome, {{ author_name }}!</h1>
-<p style="margin:0 0 16px;font-family:Georgia,'Times New Roman',serif;font-size:15px;color:#42514a;line-height:1.7;">
-  We're delighted you've joined us! Before you start exploring, please take a moment to read our
-  <a href="https://culineire.ie/legal/content-publishing-rules/" style="color:#184c3a;">Community Rules</a>
-  and the
-  <a href="https://culineire.ie/legal/" style="color:#184c3a;">Legal section</a>.
+<h1 style="margin:0 0 16px;font-family:'Playfair Display',Georgia,serif;font-size:24px;font-weight:700;color:#1f2c25;line-height:1.3;text-align:center;">Welcome, {{ author_name }}!</h1>
+<p style="margin:0 0 6px;font-family:'Inter',system-ui,sans-serif;font-size:15px;color:#42514a;line-height:1.7;">
+  We're delighted You've joined us! Before You start exploring, please take a moment to read our:
 </p>
-<p style="margin:0 0 24px;font-family:Georgia,'Times New Roman',serif;font-size:15px;color:#42514a;line-height:1.7;">
+<p style="margin:0 0 24px;font-family:'Inter',system-ui,sans-serif;font-size:15px;color:#42514a;line-height:1.7;">
+  <a href="https://culineire.ie/legal/content-publishing-rules/" style="color:#184c3a;">Community Rules</a> and the <a href="https://culineire.ie/legal/" style="color:#184c3a;">Legal section</a>.
+</p>
+<p style="margin:0 0 24px;font-family:'Inter',system-ui,sans-serif;font-size:15px;color:#42514a;line-height:1.7;">
   To activate your account, please confirm your email address:
 </p>
 <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 24px;">
   <tr>
     <td style="text-align:center;">
-      <a href="{{ activation_url }}" style="display:inline-block;background-color:#184c3a;color:#faf6f0;font-family:Georgia,'Times New Roman',serif;font-size:15px;font-weight:bold;text-decoration:none;padding:14px 32px;border-radius:4px;">Confirm Email Address</a>
+      <a href="{{ activation_url }}" style="display:inline-block;background-color:#184c3a;color:#faf6f0;font-family:'Inter',system-ui,sans-serif;font-size:15px;font-weight:500;text-decoration:none;padding:14px 32px;border-radius:4px;">Confirm Email Address</a>
     </td>
   </tr>
 </table>
-<p style="margin:0 0 6px;font-family:Georgia,'Times New Roman',serif;font-size:13px;color:#7a8a82;line-height:1.6;text-align:center;">
+<p style="margin:0 0 6px;font-family:'Inter',system-ui,sans-serif;font-size:13px;color:#7a8a82;line-height:1.6;text-align:center;">
   This link expires in 24 hours.
 </p>
-<p style="margin:0 0 20px;font-family:Georgia,'Times New Roman',serif;font-size:13px;color:#7a8a82;line-height:1.6;text-align:center;">
+<p style="margin:0 0 20px;font-family:'Inter',system-ui,sans-serif;font-size:13px;color:#7a8a82;line-height:1.6;text-align:center;">
   If the button does not work, use this confirmation link:<br>
   <a href="{{ activation_url }}" style="color:#184c3a;text-decoration:none;">CulinEire Kitchen &rsaquo; Account &rsaquo; Email Confirmation</a>
 </p>
 <hr style="margin:20px 0;border:none;border-top:1px solid #e0d5c8;">
-<p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:12px;color:#7a8a82;line-height:1.5;">
-  If you did not create a CulinEire Kitchen account, you can safely ignore this email.
+<p style="margin:0;font-family:'Inter',system-ui,sans-serif;font-size:12px;color:#7a8a82;line-height:1.5;text-align:center;">
+  If You did not create a CulinEire Kitchen account, You can safely ignore this email.
 </p>
 {% endblock %}
