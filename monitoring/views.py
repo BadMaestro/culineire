@@ -90,6 +90,12 @@ SUSPICIOUS_PATH_MARKERS = (
     "/%22/",
     '/"/',
     "/https:/",
+    ".cgi",
+    "docker",
+    "/.well-known/stripe",
+    "config.js",
+    "constants.js",
+    "/iam",
 )
 
 PROTECTED_PATH_PREFIXES = (
