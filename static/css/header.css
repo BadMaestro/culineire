@@ -516,6 +516,7 @@
   .ce-header__inner {
     display: flex;
     align-items: center;
+    position: relative;
     gap: 1rem;
     min-height: 0;
   }
@@ -549,6 +550,7 @@
     border-radius: 0;
     box-shadow: none;
     backdrop-filter: none;
+    position: static;
   }
 
   .ce-nav__menu,
@@ -559,8 +561,11 @@
   }
 
   .ce-nav__menu {
-    flex: 1;
-    justify-content: center;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
     padding-bottom: 0;
     border-bottom: 0;
   }
