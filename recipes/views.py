@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import LoginView
-from django.core.mail import send_mail
+from config.email_utils import send_template_mail
 from django.db import transaction
 from django.db.models import Avg, Case, Count, IntegerField, Prefetch, Q, Value, When
 from django.http import Http404
@@ -1143,17 +1143,10 @@ class SignUpView(CreateView):
         domain = settings.SITE_DOMAIN
         activation_url = f"{settings.SITE_SCHEME}://{domain}/accounts/activate/{uid}/{token}/"
 
-        send_mail(
+        send_template_mail(
             subject="Confirm your CulinEire account",
-            message=(
-                f"Welcome to CulinEire, {author_name}!\n\n"
-                f"Please confirm your email address by clicking the link below:\n\n"
-                f"{activation_url}\n\n"
-                f"This link expires in 24 hours.\n\n"
-                f"If you did not create an account, please ignore this email.\n\n"
-                f"— The CulinEire Team"
-            ),
-            from_email=settings.DEFAULT_FROM_EMAIL,
+            template="activation",
+            context={"author_name": author_name, "activation_url": activation_url},
             recipient_list=[user.email],
             fail_silently=False,
         )

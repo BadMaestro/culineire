@@ -1,0 +1,12 @@
+Welcome, {{ author_name }}!
+
+Thank you for joining CulinEire. Please confirm your email address to activate your account.
+
+{{ activation_url }}
+
+This link expires in 24 hours.
+
+If you did not create a CulinEire account, you can safely ignore this email.
+
+-- The CulinEire Team
+culineire.ie

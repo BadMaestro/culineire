@@ -1,0 +1,40 @@
+{% extends "emails/base.html" %}
+
+{% block subject %}New content report{% endblock %}
+
+{% block content %}
+<h1 style="margin:0 0 16px;font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:bold;color:#1f2c25;line-height:1.3;">New Content Report</h1>
+<p style="margin:0 0 20px;font-family:Georgia,'Times New Roman',serif;font-size:15px;color:#42514a;line-height:1.7;">
+  A new content report has been submitted on CulinEire.
+</p>
+
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 24px;border-collapse:collapse;">
+  <tr>
+    <td style="padding:10px 14px;background-color:#f5eee4;border-bottom:1px solid #e0d5c8;font-family:Georgia,'Times New Roman',serif;font-size:13px;color:#42514a;font-weight:bold;width:36%;">Type</td>
+    <td style="padding:10px 14px;background-color:#f5eee4;border-bottom:1px solid #e0d5c8;font-family:Georgia,'Times New Roman',serif;font-size:13px;color:#1f2c25;">{{ report.get_report_type_display }}</td>
+  </tr>
+  <tr>
+    <td style="padding:10px 14px;border-bottom:1px solid #e0d5c8;font-family:Georgia,'Times New Roman',serif;font-size:13px;color:#42514a;font-weight:bold;">From</td>
+    <td style="padding:10px 14px;border-bottom:1px solid #e0d5c8;font-family:Georgia,'Times New Roman',serif;font-size:13px;color:#1f2c25;">{{ report.reporter_name }} &lt;{{ report.reporter_email }}&gt;</td>
+  </tr>
+  {% if report.reported_url %}
+  <tr>
+    <td style="padding:10px 14px;border-bottom:1px solid #e0d5c8;font-family:Georgia,'Times New Roman',serif;font-size:13px;color:#42514a;font-weight:bold;">URL</td>
+    <td style="padding:10px 14px;border-bottom:1px solid #e0d5c8;font-family:Georgia,'Times New Roman',serif;font-size:13px;color:#1f2c25;word-break:break-all;">{{ report.reported_url }}</td>
+  </tr>
+  {% endif %}
+</table>
+
+<p style="margin:0 0 8px;font-family:Georgia,'Times New Roman',serif;font-size:13px;color:#42514a;font-weight:bold;">Description:</p>
+<div style="margin:0 0 24px;padding:16px 20px;background-color:#f5eee4;border-left:3px solid #184c3a;border-radius:0 4px 4px 0;">
+  <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#1f2c25;line-height:1.7;white-space:pre-wrap;">{{ report.description }}</p>
+</div>
+
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 20px;">
+  <tr>
+    <td>
+      <a href="{{ admin_url }}" style="display:inline-block;background-color:#184c3a;color:#faf6f0;font-family:Georgia,'Times New Roman',serif;font-size:14px;font-weight:bold;text-decoration:none;padding:11px 24px;border-radius:4px;">View in Admin</a>
+    </td>
+  </tr>
+</table>
+{% endblock %}

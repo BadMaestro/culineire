@@ -1,0 +1,9 @@
+{{ subject }}
+
+{{ body }}
+{% if inbox_url %}
+View message: {{ inbox_url }}
+{% endif %}
+
+--
+culineire.ie/messages/

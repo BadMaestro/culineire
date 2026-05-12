@@ -1,9 +1,11 @@
 from collections import defaultdict
 from smtplib import SMTPException
 
+from django.conf import settings
 from django.contrib import messages as django_messages
 from django.contrib.auth.decorators import login_required
-from django.core.mail import BadHeaderError, send_mail
+from django.core.mail import BadHeaderError
+from config.email_utils import send_template_mail
 from django.db import models
 from django.db.models import Exists, OuterRef
 from django.http import Http404
@@ -189,10 +191,14 @@ def send_message(request):
     )
 
     try:
-        send_mail(
+        send_template_mail(
             subject=subject,
-            message=body,
-            from_email=None,
+            template="message_notification",
+            context={
+                "subject": subject,
+                "body": body,
+                "inbox_url": f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}/messages/",
+            },
             recipient_list=[recipient.email],
             fail_silently=True,
         )
@@ -328,10 +334,14 @@ def reply_message(request, pk):
     )
 
     try:
-        send_mail(
+        send_template_mail(
             subject=reply.subject or "Reply from CulinEire",
-            message=body,
-            from_email=None,
+            template="message_notification",
+            context={
+                "subject": reply.subject or "Reply from CulinEire",
+                "body": body,
+                "inbox_url": f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}/messages/{parent.pk}/",
+            },
             recipient_list=[other.email],
             fail_silently=True,
         )

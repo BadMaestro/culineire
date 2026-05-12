@@ -1,7 +1,8 @@
 import logging
 
 from django.conf import settings
-from django.core.mail import BadHeaderError, send_mail
+from django.core.mail import BadHeaderError
+from config.email_utils import send_template_mail
 from django.shortcuts import render
 from django.views.generic import TemplateView
 from django_ratelimit.decorators import ratelimit
@@ -48,7 +49,13 @@ def _send_report_notification(report):
         f"Admin: {admin_url}\n"
     )
     try:
-        send_mail(subject, message, from_email=None, recipient_list=[notify_email], fail_silently=True)
+        send_template_mail(
+            subject=subject,
+            template="content_report",
+            context={"report": report, "admin_url": admin_url},
+            recipient_list=[notify_email],
+            fail_silently=True,
+        )
     except BadHeaderError:
         logger.warning("BadHeaderError sending report notification for report %s", report.pk)
 

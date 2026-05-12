@@ -1,0 +1,10 @@
+New Content Report
+
+Type: {{ report.get_report_type_display }}
+From: {{ report.reporter_name }} <{{ report.reporter_email }}>
+{% if report.reported_url %}URL: {{ report.reported_url }}
+{% endif %}
+Description:
+{{ report.description }}
+
+Admin: {{ admin_url }}
