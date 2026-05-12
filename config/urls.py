@@ -46,6 +46,9 @@ urlpatterns = [
     # Legal
     path("legal/", include("legal.urls", namespace="legal")),
 
+    # News feed
+    path("news/", include("newsfeed.urls", namespace="newsfeed")),
+
     # Monitoring dashboard
     path("recipes/moderation/monitoring/", include("monitoring.urls", namespace="monitoring")),
 
