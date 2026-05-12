@@ -559,6 +559,8 @@
   }
 
   .ce-nav__menu {
+    flex: 1;
+    justify-content: center;
     padding-bottom: 0;
     border-bottom: 0;
   }
