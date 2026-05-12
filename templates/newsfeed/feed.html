@@ -3,44 +3,55 @@
 
 {% block title %}CulinEire Updates{% endblock %}
 {% block meta_description %}Updates, new recipes, new articles, site improvements and announcements from the CulinEire kitchen.{% endblock %}
+{% block og_title %}CulinEire Updates{% endblock %}
+{% block og_description %}Updates, new recipes, new articles, site improvements and announcements from the CulinEire kitchen.{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/newsfeed.css' %}?v=20260512a" rel="stylesheet">
+<link href="{% static 'css/newsfeed.css' %}?v=20260512c" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<section class="nf-page">
+
+<section class="nf-hero">
+  <div class="container nf-hero__inner">
+    <span class="pill">Live Updates</span>
+    <h1 class="nf-hero__title">CulinEire Updates</h1>
+    <p class="nf-hero__subtitle">New recipes, articles, site improvements and announcements from the kitchen.</p>
+  </div>
+</section>
+
+<section class="page-section nf-section">
   <div class="container nf-shell">
 
-    <header class="nf-header">
-      <p class="nf-header__eyebrow">Live Updates</p>
-      <h1 class="nf-header__title">CulinEire Updates</h1>
-      <p class="nf-header__subtitle">New recipes, articles, site improvements and announcements.</p>
-    </header>
-
     {% if page_obj.object_list %}
-    <ol class="nf-feed" reversed>
+
+    <ol class="nf-feed">
       {% for entry in page_obj.object_list %}
-      <li class="nf-entry nf-entry--{{ entry.entry_type }}">
-        <div class="nf-entry__meta">
-          <time class="nf-entry__time" datetime="{{ entry.published_at|date:'c' }}">
-            {{ entry.published_at|date:"j M Y, H:i" }}
+      <li class="nf-entry">
+
+        <div class="nf-entry__side">
+          <time class="nf-entry__date" datetime="{{ entry.published_at|date:'c' }}">
+            {{ entry.published_at|date:"j M Y" }}
           </time>
-          <span class="nf-entry__badge nf-entry__badge--{{ entry.entry_type }}">{{ entry.get_entry_type_display }}</span>
+          <span class="nf-entry__dot nf-entry__dot--{{ entry.entry_type }}"></span>
         </div>
-        <div class="nf-entry__body">
+
+        <div class="nf-entry__content">
+          <span class="nf-badge nf-badge--{{ entry.entry_type }}">{{ entry.get_entry_type_display }}</span>
           {% if entry.url %}
           <a class="nf-entry__title" href="{{ entry.url }}">{{ entry.title }}</a>
           {% else %}
-          <p class="nf-entry__title">{{ entry.title }}</p>
+          <p class="nf-entry__title nf-entry__title--plain">{{ entry.title }}</p>
           {% endif %}
           {% if entry.message and entry.message != entry.title %}
           <p class="nf-entry__message">{{ entry.message }}</p>
           {% endif %}
           {% if entry.version %}
-          <p class="nf-entry__version">v{{ entry.version }}</p>
+          <p class="nf-entry__version">Version {{ entry.version }}</p>
           {% endif %}
+          <p class="nf-entry__time">{{ entry.published_at|date:"H:i" }}</p>
         </div>
+
       </li>
       {% endfor %}
     </ol>
@@ -48,19 +59,22 @@
     {% if page_obj.has_other_pages %}
     <nav class="nf-pagination" aria-label="Feed pages">
       {% if page_obj.has_previous %}
-      <a class="nf-pagination__link" href="?page={{ page_obj.previous_page_number }}">Newer</a>
+      <a class="btn-secondary" href="?page={{ page_obj.previous_page_number }}">Newer</a>
       {% endif %}
       <span class="nf-pagination__info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
       {% if page_obj.has_next %}
-      <a class="nf-pagination__link" href="?page={{ page_obj.next_page_number }}">Older</a>
+      <a class="btn-secondary" href="?page={{ page_obj.next_page_number }}">Older</a>
       {% endif %}
     </nav>
     {% endif %}
 
     {% else %}
-    <p class="nf-empty">No updates yet. Check back soon.</p>
+    <div class="empty-state">
+      <p>No updates yet. Check back soon.</p>
+    </div>
     {% endif %}
 
   </div>
 </section>
+
 {% endblock %}
