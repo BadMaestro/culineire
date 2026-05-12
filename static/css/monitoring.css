@@ -411,20 +411,19 @@
   display: inline-flex;
   align-items: center;
   min-height: 34px;
-  padding: 0.45rem 0.72rem;
-  border: 1px solid rgb(58 44 30 / 0.14);
+  padding: 0.45rem 0.9rem;
+  border: 1px solid rgb(11 76 58 / 0.3);
   border-radius: 999px;
-  background: #fff;
-  color: var(--ink-soft);
+  background: rgb(11 76 58 / 0.06);
+  color: #0b4c3a;
   font-size: 0.74rem;
   font-weight: 700;
   text-decoration: none;
-  margin-left: auto;
 }
 
 .mon-export-btn:hover {
-  border-color: rgb(11 76 58 / 0.24);
-  background: rgb(11 76 58 / 0.08);
+  border-color: rgb(11 76 58 / 0.5);
+  background: rgb(11 76 58 / 0.12);
   color: #0b4c3a;
 }
 
