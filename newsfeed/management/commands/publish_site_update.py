@@ -22,7 +22,7 @@ class Command(BaseCommand):
             help="Entry type (default: site_update)",
         )
         parser.add_argument("--message", required=True, help="Short update message.")
-        parser.add_argument("--version", default="", help="Version string (e.g. 1.4.3).")
+        parser.add_argument("--ver", default="", help="Version string (e.g. 1.4.3).")
         parser.add_argument("--url", default="", help="Optional link URL.")
         parser.add_argument(
             "--private",
@@ -33,7 +33,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         entry_type = _VALID_TYPES[options["type"]]
         message = options["message"].strip()
-        version = options["version"].strip()
+        version = options["ver"].strip()
         url = options["url"].strip()
         is_public = not options["private"]
 
