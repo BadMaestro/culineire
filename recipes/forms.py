@@ -349,7 +349,7 @@ class RecipeAuthorProfileForm(forms.ModelForm):
         for field in self.fields.values():
             field.widget.attrs.setdefault("class", "authoring-control")
 
-        self.fields["name"].widget.attrs.setdefault("placeholder", "GreenBear")
+        self.fields["name"].widget.attrs.setdefault("placeholder", "e.g. CulinEire Kitchen")
         self.fields["bio"].widget.attrs.setdefault(
             "placeholder",
             "A short note about your cooking style, background or kitchen focus.",
