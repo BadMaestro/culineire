@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Add Feed Update | CulinEire{% endblock %}
+{% block meta_description %}Post a new update to the CulinEire news feed.{% endblock %}
+
+{% block extra_head %}
+<link href="{% static 'css/authoring.css' %}?v=20260512a" rel="stylesheet">
+<link href="{% static 'css/newsfeed.css' %}?v=20260512c" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+
+<section class="nf-hero">
+  <div class="container nf-hero__inner">
+    <span class="pill">Updates</span>
+    <h1 class="nf-hero__title">Add Feed Update</h1>
+    <p class="nf-hero__subtitle">Post a new entry to the public CulinEire Updates feed.</p>
+  </div>
+</section>
+
+<section class="page-section authoring-page">
+  <div class="container">
+    <div class="authoring-shell" style="max-width: 680px; margin-inline: auto;">
+
+      <form method="post" class="authoring-form" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="authoring-errors" role="alert">
+          {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+        {% endif %}
+
+        <fieldset class="authoring-section">
+          <legend>Entry Details</legend>
+
+          <div class="authoring-grid authoring-grid--two">
+
+            <div class="authoring-field">
+              <label for="{{ form.entry_type.id_for_label }}">Type</label>
+              {{ form.entry_type }}
+              {% for error in form.entry_type.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+            </div>
+
+            <div class="authoring-field">
+              <label for="{{ form.published_at.id_for_label }}">Published at</label>
+              {{ form.published_at }}
+              {% for error in form.published_at.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+            </div>
+
+            <div class="authoring-field authoring-field--wide">
+              <label for="{{ form.title.id_for_label }}">Title</label>
+              {{ form.title }}
+              {% for error in form.title.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+            </div>
+
+            <div class="authoring-field authoring-field--wide">
+              <label for="{{ form.message.id_for_label }}">Message <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+              {{ form.message }}
+              {% for error in form.message.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+            </div>
+
+          </div>
+        </fieldset>
+
+        <fieldset class="authoring-section">
+          <legend>Link and Version</legend>
+
+          <div class="authoring-grid authoring-grid--two">
+
+            <div class="authoring-field authoring-field--wide">
+              <label for="{{ form.url.id_for_label }}">URL <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+              {{ form.url }}
+              {% for error in form.url.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+            </div>
+
+            <div class="authoring-field">
+              <label for="{{ form.version.id_for_label }}">Version <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+              {{ form.version }}
+              {% for error in form.version.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+            </div>
+
+          </div>
+        </fieldset>
+
+        <fieldset class="authoring-section">
+          <legend>Visibility</legend>
+
+          <ul class="authoring-checkbox-list" style="grid-template-columns: 1fr;">
+            <li>
+              <label>
+                {{ form.is_public }}
+                <span>Visible to public</span>
+              </label>
+            </li>
+          </ul>
+
+        </fieldset>
+
+        <div class="authoring-actions">
+          <div class="authoring-actions__buttons">
+            <a class="authoring-link" href="{% url 'recipes:moderation_panel' %}">Cancel</a>
+            <button class="authoring-submit" type="submit">Post Update</button>
+          </div>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+</section>
+
+{% endblock %}

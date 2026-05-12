@@ -6,4 +6,5 @@ app_name = "newsfeed"
 
 urlpatterns = [
     path("", views.feed, name="feed"),
+    path("add/", views.add_entry, name="add_entry"),
 ]
