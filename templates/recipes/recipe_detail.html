@@ -312,27 +312,28 @@
                 </section>
                 {% endif %}
 
-                <section class="detail-page__card detail-page__card--form">
+                <section class="detail-page__card detail-page__card--form" data-rating-widget>
                     <h2>Rate this recipe</h2>
-                    {% if has_rated %}
-                    <p class="rating-already-voted">Thank you — your rating has been saved.</p>
-                    <form action="{% url 'recipes:reset_recipe_rating' recipe.slug %}" method="post" style="margin-top:0.65rem;">
-                        {% csrf_token %}
-                        <button class="detail-button detail-button--secondary" type="submit">Change rating</button>
-                    </form>
-                    {% else %}
-                    <form action="{% url 'recipes:submit_recipe_rating' recipe.slug %}" class="recipe-form" data-validate method="post">
-                        {% csrf_token %}
-                        <div aria-label="Choose a rating from 1 to 5" class="rating-form" role="radiogroup">
-                            <label class="rating-form__option"><input name="value" required type="radio" value="1"><span>1</span></label>
-                            <label class="rating-form__option"><input name="value" type="radio" value="2"><span>2</span></label>
-                            <label class="rating-form__option"><input name="value" type="radio" value="3"><span>3</span></label>
-                            <label class="rating-form__option"><input name="value" type="radio" value="4"><span>4</span></label>
-                            <label class="rating-form__option"><input name="value" type="radio" value="5"><span>5</span></label>
-                        </div>
-                        <button class="detail-button" type="submit">Submit rating</button>
-                    </form>
-                    {% endif %}
+                    <div data-rating-voted {% if not has_rated %}hidden{% endif %}>
+                        <p class="rating-already-voted">Thank you — your rating has been saved.</p>
+                        <form action="{% url 'recipes:reset_recipe_rating' recipe.slug %}" method="post" style="margin-top:0.65rem;">
+                            {% csrf_token %}
+                            <button class="detail-button detail-button--secondary" type="submit">Change rating</button>
+                        </form>
+                    </div>
+                    <div data-rating-form {% if has_rated %}hidden{% endif %}>
+                        <form action="{% url 'recipes:submit_recipe_rating' recipe.slug %}" class="recipe-form" data-validate method="post">
+                            {% csrf_token %}
+                            <div aria-label="Choose a rating from 1 to 5" class="rating-form" role="radiogroup">
+                                <label class="rating-form__option"><input name="value" required type="radio" value="1"><span>1</span></label>
+                                <label class="rating-form__option"><input name="value" type="radio" value="2"><span>2</span></label>
+                                <label class="rating-form__option"><input name="value" type="radio" value="3"><span>3</span></label>
+                                <label class="rating-form__option"><input name="value" type="radio" value="4"><span>4</span></label>
+                                <label class="rating-form__option"><input name="value" type="radio" value="5"><span>5</span></label>
+                            </div>
+                            <button class="detail-button" type="submit">Submit rating</button>
+                        </form>
+                    </div>
                 </section>
             </div>
 
@@ -461,4 +462,81 @@
 {% block extra_js %}
 <script src="{% static 'js/gallery.js' %}"></script>
 <script src="{% static 'js/recipe_detail.js' %}"></script>
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+  var widget = document.querySelector('[data-rating-widget]');
+  if (!widget) return;
+
+  var votedPanel = widget.querySelector('[data-rating-voted]');
+  var formPanel  = widget.querySelector('[data-rating-form]');
+
+  function showToast(msg, type) {
+    var section = document.querySelector('.site-messages');
+    if (!section) {
+      section = document.createElement('section');
+      section.className = 'site-messages';
+      section.setAttribute('aria-label', 'Notifications');
+      document.body.appendChild(section);
+    }
+    var el = document.createElement('div');
+    el.className = 'site-message site-message--' + (type || 'success');
+    el.setAttribute('role', 'status');
+    el.setAttribute('aria-live', 'polite');
+    el.innerHTML = '<span class="site-message__text">' + msg + '</span>' +
+      '<button class="site-message__close" type="button" aria-label="Dismiss notification">&times;</button>';
+    el.querySelector('.site-message__close').addEventListener('click', function () { dismiss(el); });
+    section.appendChild(el);
+    setTimeout(function () { dismiss(el); }, 4000);
+  }
+
+  function dismiss(el) {
+    el.classList.add('site-message--hiding');
+    el.addEventListener('animationend', function () { el.remove(); }, { once: true });
+  }
+
+  function ajaxForm(form, onSuccess) {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var data = new FormData(form);
+      fetch(form.action, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        body: data
+      })
+      .then(function (r) { return r.json(); })
+      .then(function (json) {
+        if (json.ok) {
+          onSuccess();
+        } else {
+          showToast(json.error || 'Something went wrong.', 'error');
+        }
+      })
+      .catch(function () {
+        showToast('Network error. Please try again.', 'error');
+      });
+    });
+  }
+
+  // Submit rating form
+  var submitForm = formPanel && formPanel.querySelector('form');
+  if (submitForm) {
+    ajaxForm(submitForm, function () {
+      formPanel.hidden = true;
+      votedPanel.hidden = false;
+      showToast('Rating saved. Thank you!', 'success');
+    });
+  }
+
+  // Change/reset rating form
+  var resetForm = votedPanel && votedPanel.querySelector('form');
+  if (resetForm) {
+    ajaxForm(resetForm, function () {
+      votedPanel.hidden = true;
+      formPanel.hidden = false;
+      // clear any previously selected radio
+      formPanel.querySelectorAll('input[type="radio"]').forEach(function (r) { r.checked = false; });
+    });
+  }
+})();
+</script>
 {% endblock %}

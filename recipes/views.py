@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Avg, Case, Count, IntegerField, Prefetch, Q, Value, When
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.templatetags.static import static
 from django.urls import reverse, reverse_lazy
@@ -539,18 +539,24 @@ def recipe_detail(request, slug):
 def submit_recipe_rating(request, slug):
     recipe = get_object_or_404(Recipe, slug=slug)
     form = RecipeRatingForm(request.POST)
-
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
     session_key = f"recipe_rating_submitted_{recipe.pk}"
 
     if getattr(request, "limited", False):
+        if is_ajax:
+            return JsonResponse({"ok": False, "error": "Too many ratings. Please try again later."})
         messages.error(request, "You have submitted too many ratings. Please try again later.")
         return redirect(recipe.get_absolute_url())
 
     if request.session.get(session_key):
+        if is_ajax:
+            return JsonResponse({"ok": False, "error": "You have already rated this recipe."})
         messages.warning(request, "You have already rated this recipe from this browser session.")
         return redirect(recipe.get_absolute_url())
 
     if not form.is_valid():
+        if is_ajax:
+            return JsonResponse({"ok": False, "error": "Please select a rating between 1 and 5."})
         messages.error(request, "Please submit a valid rating between 1 and 5.")
         return redirect(recipe.get_absolute_url())
 
@@ -562,6 +568,8 @@ def submit_recipe_rating(request, slug):
     request.session[session_key] = True
     request.session.modified = True
 
+    if is_ajax:
+        return JsonResponse({"ok": True})
     messages.success(request, "Thank you. Your rating has been saved.")
     return redirect(recipe.get_absolute_url())
 
@@ -573,6 +581,9 @@ def reset_recipe_rating(request, slug):
     session_key = f"recipe_rating_submitted_{recipe.pk}"
     request.session.pop(session_key, None)
     request.session.modified = True
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    if is_ajax:
+        return JsonResponse({"ok": True})
     return redirect(recipe.get_absolute_url())
 
 
