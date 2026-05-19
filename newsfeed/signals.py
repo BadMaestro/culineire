@@ -1,5 +1,9 @@
+import logging
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+
+logger = logging.getLogger(__name__)
 
 
 def _create_recipe_entry(recipe):
@@ -17,7 +21,7 @@ def _create_recipe_entry(recipe):
             },
         )
     except Exception:
-        pass
+        logger.exception("Failed to create newsfeed entry for recipe pk=%s", recipe.pk)
 
 
 def _create_article_entry(article):
@@ -35,7 +39,7 @@ def _create_article_entry(article):
             },
         )
     except Exception:
-        pass
+        logger.exception("Failed to create newsfeed entry for article pk=%s", article.pk)
 
 
 def _connect_recipe_signal():

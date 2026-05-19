@@ -17,8 +17,11 @@ To force a cache refresh after adding/deleting words call:
     invalidate_profanity_cache()
 """
 
+import logging
 import re
 import time as _time
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Built-in fallback list (used when the DB is unavailable, e.g. during tests
@@ -81,6 +84,7 @@ def _load_words() -> list[str]:
         words = list(ProfanityWord.objects.values_list("word", flat=True))
         return words if words else _BUILTIN_WORDS
     except Exception:
+        logger.warning("Profanity word list could not be loaded from DB, using built-in fallback", exc_info=True)
         return _BUILTIN_WORDS
 
 

@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import logging
+
 from django.conf import settings
 from django.db import DatabaseError
 from django.utils import timezone
+
+logger = logging.getLogger(__name__)
 
 from .tracker import (
     BOT_UA_MARKERS, SUSPICIOUS_TRIGGER_PATTERNS, CRITICAL_PATH_MARKERS,
@@ -61,7 +65,7 @@ class MonitoringMiddleware:
         try:
             self._record_response(request, response, is_suspicious)
         except (AttributeError, DatabaseError):
-            pass
+            logger.debug("MonitoringMiddleware: could not record response for %s", request.path, exc_info=True)
 
         return response
 
@@ -135,4 +139,4 @@ class MonitoringMiddleware:
                 user_agent=user_agent,
             )
         except (AttributeError, DatabaseError):
-            pass
+            logger.debug("MonitoringMiddleware: could not record security event for %s", request.path, exc_info=True)

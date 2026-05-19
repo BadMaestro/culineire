@@ -1,3 +1,4 @@
+import logging
 from collections import defaultdict
 from smtplib import SMTPException
 
@@ -18,6 +19,8 @@ from django_ratelimit.decorators import ratelimit
 
 from accounts.views import is_moderator
 from .models import Message
+
+logger = logging.getLogger(__name__)
 
 
 def _moderation_redirect(request):
@@ -205,7 +208,7 @@ def send_message(request):
             fail_silently=True,
         )
     except (BadHeaderError, SMTPException):
-        pass
+        logger.warning("Failed to send message_notification email to %s", recipient.email)
 
     if action == "reject_and_message" and recipe:
         recipe.status = Recipe.Status.REJECTED
@@ -380,7 +383,7 @@ def reply_message(request, pk):
             fail_silently=True,
         )
     except (BadHeaderError, SMTPException):
-        pass
+        logger.warning("Failed to send reply notification email to %s", other.email)
 
     return redirect("messaging:message_detail", pk=parent.pk)
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from urllib.parse import urlencode
 
 from django.db import DatabaseError
@@ -8,12 +9,17 @@ from django.urls import NoReverseMatch, reverse
 from accounts.views import is_moderator as _is_moderator
 from .authoring import get_author_for_user
 
+logger = logging.getLogger(__name__)
+
 
 def _unread_message_count(user):
     try:
         from messaging.models import Message
         return Message.objects.filter(recipient=user, is_read=False).count()
-    except (DatabaseError, ImportError):
+    except ImportError:
+        return 0
+    except DatabaseError:
+        logger.debug("Could not fetch unread message count for user %s", getattr(user, "pk", "?"), exc_info=True)
         return 0
 
 
@@ -24,7 +30,10 @@ def _pending_moderation_count():
         pending_recipes = Recipe.objects.filter(status=Recipe.Status.PENDING).count()
         pending_articles = Article.objects.filter(status=Article.Status.PENDING).count()
         return pending_recipes + pending_articles
-    except (DatabaseError, ImportError):
+    except ImportError:
+        return 0
+    except DatabaseError:
+        logger.debug("Could not fetch pending moderation count", exc_info=True)
         return 0
 
 
