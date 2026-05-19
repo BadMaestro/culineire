@@ -5,7 +5,7 @@
 {% block meta_description %}CulinEire content moderation panel.{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/moderation.css' %}?v=20260519a" rel="stylesheet">
+<link href="{% static 'css/moderation.css' %}?v=20260519b" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -280,8 +280,9 @@
         </div>
         {% endif %}
 
-        <div class="moderation-block moderation-block--authors">
+        <div class="moderation-block">
             <h2 class="moderation-block__title">Authors</h2>
+        <div class="moderation-block--authors">
 
             <form class="moderation-author-search" method="get">
                 <label class="moderation-author-search__label" for="author-search">Search author</label>
@@ -483,6 +484,7 @@
             <div class="moderation-empty">No authors found.</div>
             {% endif %}
             </div>
+        </div>
         </div>
 
     </div>

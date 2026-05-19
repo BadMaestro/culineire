@@ -47,6 +47,7 @@
 }
 
 .moderation-block--authors {
+  display: grid;
   gap: 0.75rem;
   padding: 1.25rem 1.4rem;
   border: 1px solid rgb(58 44 30 / 0.1);
