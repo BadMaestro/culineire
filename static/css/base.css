@@ -371,6 +371,25 @@
     color: rgb(31 44 37 / 0.76);
   }
 
+  /* Separator spans hidden — dot rendered via ::after so it stays
+     glued to its item and never orphans at the start of a wrapped line */
+  .category-nav__separator {
+    display: none;
+  }
+
+  .category-nav > .category-nav__item::after,
+  .category-nav > .category-nav__link::after {
+    content: " ·";
+    color: rgb(31 44 37 / 0.34);
+    font-weight: 400;
+  }
+
+  /* No trailing dot after the last nav item.
+     Last child is always the hidden separator span, so last item = :nth-last-child(2) */
+  .category-nav > :nth-last-child(2)::after {
+    display: none;
+  }
+
   .category-nav__link,
   .category-nav__link:visited,
   .category-nav__link:hover,
@@ -388,10 +407,6 @@
 
   .category-nav__item--active {
     color: rgb(31 44 37 / 0.94);
-  }
-
-  .category-nav__separator {
-    opacity: 0.34;
   }
 
   .category-nav-toggle {
