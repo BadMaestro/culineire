@@ -17,32 +17,11 @@ from django.http import JsonResponse
 from accounts.views import is_moderator
 
 from .models import PageView, ProfanityWord, SecurityEvent, UserActivity
+from .tracker import BOT_UA_MARKERS
 
 DETAIL_PAGE_SIZE = 100
 DETAIL_ROW_LIMIT = 3000
 HUMAN_REQUEST_KINDS = {"Human", "Guest/Browser"}
-
-BOT_USER_AGENT_MARKERS = (
-    "bot",
-    "crawler",
-    "spider",
-    "crawl",
-    "censys",
-    "claudebot",
-    "bytespider",
-    "semrush",
-    "ahrefs",
-    "mj12bot",
-    "bingpreview",
-    "facebookexternalhit",
-    "telegrambot",
-    "curl/",
-    "wget/",
-    "python-requests",
-    "go-http-client",
-    "httpx",
-    "okhttp",
-)
 
 TECHNICAL_PATHS = (
     "/sitemap.xml",
@@ -120,7 +99,7 @@ def _require_moderator(request):
 
 def _is_bot_user_agent(user_agent: str) -> bool:
     ua = (user_agent or "").lower()
-    return any(marker in ua for marker in BOT_USER_AGENT_MARKERS)
+    return any(marker in ua for marker in BOT_UA_MARKERS)
 
 
 def _is_technical_path(path: str) -> bool:

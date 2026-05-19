@@ -208,11 +208,11 @@ def send_message(request):
         pass
 
     if action == "reject_and_message" and recipe:
-        recipe.status = Recipe.Status.REJECTED if hasattr(Recipe.Status, "REJECTED") else "rejected"
+        recipe.status = Recipe.Status.REJECTED
         recipe.save(update_fields=["status"])
         django_messages.success(request, f'"{recipe.title}" rejected and author notified.')
     elif action == "reject_and_message" and article:
-        article.status = Article.Status.REJECTED if hasattr(Article.Status, "REJECTED") else "rejected"
+        article.status = Article.Status.REJECTED
         article.save(update_fields=["status"])
         django_messages.success(request, f'"{article.title}" rejected and author notified.')
     else:

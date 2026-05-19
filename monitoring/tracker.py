@@ -6,6 +6,17 @@ import hmac
 from django.conf import settings
 from django.db import DatabaseError
 
+# Single authoritative list of bot user-agent markers.
+# Imported by both middleware.py and views.py — edit here only.
+BOT_UA_MARKERS = (
+    "bot", "crawler", "spider", "crawl",
+    "censys", "claudebot", "bytespider",
+    "semrush", "ahrefs", "mj12bot",
+    "bingpreview", "facebookexternalhit", "telegrambot",
+    "curl/", "wget/", "python-requests",
+    "go-http-client", "httpx", "okhttp",
+)
+
 
 def get_client_ip(request) -> str:
     x_forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")

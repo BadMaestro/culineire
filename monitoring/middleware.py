@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db import DatabaseError
 from django.utils import timezone
 
-from .tracker import get_client_ip, hash_ip
+from .tracker import BOT_UA_MARKERS, get_client_ip, hash_ip
 
 _SUSPICIOUS_PATTERNS = (
     "<script", "union select", "../../", "etc/passwd",
@@ -21,16 +21,9 @@ _CRITICAL_PATH_MARKERS = (
     "union select", "<script", "../../",
 )
 
-_BOT_UA_MARKERS = (
-    "bot", "crawler", "spider", "crawl", "censys", "claudebot",
-    "bytespider", "semrush", "ahrefs", "mj12bot", "curl/",
-    "wget/", "python-requests", "go-http-client", "httpx", "okhttp",
-)
-
-
 def _is_bot_ua(user_agent: str) -> bool:
     ua = (user_agent or "").lower()
-    return any(m in ua for m in _BOT_UA_MARKERS)
+    return any(m in ua for m in BOT_UA_MARKERS)
 
 
 def _suspicious_severity(path: str) -> str:

@@ -5,6 +5,7 @@ from urllib.parse import urlencode
 from django.db import DatabaseError
 from django.urls import NoReverseMatch, reverse
 
+from accounts.views import is_moderator as _is_moderator
 from .authoring import get_author_for_user
 
 
@@ -60,12 +61,7 @@ def header_author(request):
 
     profile_url = author.get_absolute_url() if author else ""
 
-    is_moderator = (
-        user.is_staff
-        or user.is_superuser
-        or (author is not None and author.slug == "greenbear")
-        or (author is not None and author.has_bearseeker_privileges)
-    )
+    is_moderator = _is_moderator(user)
 
     unread_count = _unread_message_count(user)
 

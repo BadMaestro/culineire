@@ -92,78 +92,6 @@ INGREDIENT_DETAIL_SPLIT_RE = re.compile("\\s*[-\u2013\u2014:]\\s*", re.UNICODE)
 CONTEXT_SENTENCE_SPLIT_RE = re.compile("(?<=[.!?])\\s+(?=[\"\\u201c\\u2018]?[A-Z0-9])")
 
 
-EU_ALLERGENS = [
-    {
-        "key": "gluten",
-        "label": "Cereals containing gluten",
-        "aliases": ["gluten", "wheat", "barley", "rye", "oats", "spelt", "semolina", "breadcrumbs", "pasta", "bread", "flour"],
-    },
-    {
-        "key": "crustaceans",
-        "label": "Crustaceans",
-        "aliases": ["crustacean", "crustaceans", "prawn", "prawns", "shrimp", "crab", "lobster", "langoustine", "scampi", "crayfish"],
-    },
-    {
-        "key": "eggs",
-        "label": "Eggs",
-        "aliases": ["egg", "eggs", "mayonnaise", "mayo"],
-    },
-    {
-        "key": "fish",
-        "label": "Fish",
-        "aliases": ["fish", "anchovy", "anchovies", "salmon", "tuna", "cod", "haddock", "sardine", "mackerel"],
-    },
-    {
-        "key": "peanuts",
-        "label": "Peanuts",
-        "aliases": ["peanut", "peanuts"],
-    },
-    {
-        "key": "soybeans",
-        "label": "Soybeans",
-        "aliases": ["soy", "soya", "soybean", "soybeans", "tofu", "miso", "tempeh", "edamame"],
-    },
-    {
-        "key": "milk",
-        "label": "Milk",
-        "aliases": ["milk", "butter", "cream", "cheese", "yogurt", "yoghurt", "whey", "buttermilk"],
-    },
-    {
-        "key": "tree_nuts",
-        "label": "Tree nuts",
-        "aliases": ["almond", "almonds", "hazelnut", "hazelnuts", "walnut", "walnuts", "cashew", "cashews", "pecan", "pecans", "pistachio", "pistachios", "macadamia", "brazil nut", "brazil nuts"],
-    },
-    {
-        "key": "celery",
-        "label": "Celery",
-        "aliases": ["celery", "celeriac"],
-    },
-    {
-        "key": "mustard",
-        "label": "Mustard",
-        "aliases": ["mustard", "mustards"],
-    },
-    {
-        "key": "sesame",
-        "label": "Sesame",
-        "aliases": ["sesame", "tahini"],
-    },
-    {
-        "key": "sulphites",
-        "label": "Sulphur dioxide / sulphites",
-        "aliases": ["sulphite", "sulphites", "sulfite", "sulfites", "sulphur dioxide", "sulfur dioxide"],
-    },
-    {
-        "key": "lupin",
-        "label": "Lupin",
-        "aliases": ["lupin", "lupine"],
-    },
-    {
-        "key": "molluscs",
-        "label": "Molluscs",
-        "aliases": ["mollusc", "molluscs", "mussel", "mussels", "oyster", "oysters", "clam", "clams", "scallop", "scallops", "squid", "octopus", "cuttlefish", "snail", "whelk"],
-    },
-]
 
 
 def _split_text_lines(value: str) -> list[str]:
@@ -227,26 +155,6 @@ def _build_ingredient_items(ingredients_text: str) -> list[dict]:
     return items
 
 
-def _build_allergen_items(ingredients_text: str, allergens_text: str) -> list[dict]:
-    detection_source = " ".join(part for part in [ingredients_text, allergens_text] if part)
-    normalized_source = f" {re.sub(r'\s+', ' ', detection_source).lower()} "
-    items = []
-
-    for allergen in EU_ALLERGENS:
-        is_present = any(
-            re.search(rf"(?<![a-z0-9]){re.escape(alias.lower())}(?![a-z0-9])", normalized_source)
-            for alias in allergen["aliases"]
-        )
-        items.append(
-            {
-                "key": allergen["key"],
-                "label": allergen["label"],
-                "is_present": is_present,
-            }
-        )
-
-    return items
-
 
 def _build_context_paragraphs(context_text: str) -> list[str]:
     if not context_text:
@@ -287,7 +195,7 @@ def home(request):
 
     latest_articles = (
         Article.objects.select_related("author", "related_recipe")
-        .filter(status="approved")
+        .filter(status=Article.Status.APPROVED)
         .order_by("-published")[:6]
     )
 
