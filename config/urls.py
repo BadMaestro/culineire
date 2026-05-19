@@ -1,5 +1,3 @@
-import os
-
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.staticfiles.views import serve as staticfiles_serve
@@ -63,7 +61,7 @@ urlpatterns = [
     path("accounts/", include("django.contrib.auth.urls")),
 ]
 
-if os.getenv("DJANGO_ENV") == "development":
+if not settings.IS_PRODUCTION:
     from django.contrib import messages as _messages
     from django.shortcuts import redirect as _redirect
     from django.shortcuts import render as _render
