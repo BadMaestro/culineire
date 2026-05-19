@@ -187,6 +187,7 @@ def _send_moderator_granted_email(user, author_name):
     moderation_url = (
         f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}/recipes/moderation/"
     )
+    contact_url = f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}/messages/contact/"
     try:
         send_template_mail(
             subject="Your CulinEire Kitchen moderator access",
@@ -194,6 +195,7 @@ def _send_moderator_granted_email(user, author_name):
             context={
                 "author_name": author_name,
                 "moderation_url": moderation_url,
+                "contact_url": contact_url,
             },
             recipient_list=[user.email],
             fail_silently=True,
