@@ -892,21 +892,22 @@
 .profanity-add-input {
   flex: 1 1 220px;
   min-width: 0;
-  height: 42px;
-  padding: 0 0.85rem;
-  border: 1px solid rgb(31 44 37 / 0.18);
-  border-radius: 999px;
-  background: #fff;
+  min-height: 46px;
+  padding: 0.72rem 0.78rem;
+  border: 1px solid rgb(31 44 37 / 0.16);
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.68);
   color: var(--ink);
   font: inherit;
   font-size: 0.88rem;
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
 .profanity-add-input:focus {
-  border-color: rgb(11 76 58 / 0.45);
-  box-shadow: 0 0 0 3px rgb(11 76 58 / 0.1);
+  background: rgb(255 255 255 / 0.9);
+  border-color: rgb(11 76 58 / 0.5);
+  box-shadow: 0 0 0 4px rgb(11 76 58 / 0.1);
 }
 
 .profanity-add-btn {
@@ -961,21 +962,22 @@
 
 .profanity-search-input {
   width: 200px;
-  height: 36px;
-  padding: 0 0.75rem;
+  min-height: 46px;
+  padding: 0.72rem 0.78rem;
   border: 1px solid rgb(31 44 37 / 0.16);
-  border-radius: 999px;
-  background: #fff;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.68);
   color: var(--ink);
   font: inherit;
   font-size: 0.82rem;
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
 .profanity-search-input:focus {
-  border-color: rgb(11 76 58 / 0.4);
-  box-shadow: 0 0 0 3px rgb(11 76 58 / 0.08);
+  background: rgb(255 255 255 / 0.9);
+  border-color: rgb(11 76 58 / 0.5);
+  box-shadow: 0 0 0 4px rgb(11 76 58 / 0.1);
 }
 
 .profanity-search-btn {
