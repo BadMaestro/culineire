@@ -46,7 +46,12 @@ $PIP install --quiet --upgrade pip
 $PIP install --quiet -r "$APP/requirements.txt"
 ok "Requirements installed"
 
-# --- 4. Django safety checks -------------------------------------------------
+# --- 4. Collect static files (must run before check --deploy) ----------------
+info "Collecting static files..."
+$PY manage.py collectstatic --noinput --clear -v 0
+ok "Static files collected"
+
+# --- 5. Django safety checks -------------------------------------------------
 info "Running Django checks..."
 $PY manage.py check --deploy 2>&1 | grep -v "^System check" || true
 
@@ -55,15 +60,10 @@ $PY manage.py makemigrations --check --dry-run \
     && ok "No new migrations needed" \
     || fail "Unapplied migrations detected — run manually: $PY manage.py makemigrations"
 
-# --- 5. Apply migrations ------------------------------------------------------
+# --- 6. Apply migrations ------------------------------------------------------
 info "Applying migrations..."
 $PY manage.py migrate --noinput
 ok "Migrations applied"
-
-# --- 6. Collect static files --------------------------------------------------
-info "Collecting static files..."
-$PY manage.py collectstatic --noinput --clear -v 0
-ok "Static files collected"
 
 # --- 7. Restart NGINX Unit ----------------------------------------------------
 info "Restarting NGINX Unit..."
