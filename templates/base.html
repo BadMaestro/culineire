@@ -227,16 +227,14 @@
 <main>
     {% if messages %}
     <section aria-label="Notifications" class="site-messages">
-        <div class="container">
-            {% for message in messages %}
-            <div class="site-message site-message--{{ message.tags|default:'info' }}{% if 'error' in message.tags or 'warning' in message.tags %} site-message--sticky{% endif %}"
-                 role="{% if 'error' in message.tags %}alert{% else %}status{% endif %}"
-                 aria-live="{% if 'error' in message.tags %}assertive{% else %}polite{% endif %}">
-                <span class="site-message__text">{{ message }}</span>
-                <button class="site-message__close" type="button" aria-label="Dismiss notification">&times;</button>
-            </div>
-            {% endfor %}
+        {% for message in messages %}
+        <div class="site-message site-message--{{ message.tags|default:'info' }}{% if 'error' in message.tags or 'warning' in message.tags %} site-message--sticky{% endif %}"
+             role="{% if 'error' in message.tags %}alert{% else %}status{% endif %}"
+             aria-live="{% if 'error' in message.tags %}assertive{% else %}polite{% endif %}">
+            <span class="site-message__text">{{ message }}</span>
+            <button class="site-message__close" type="button" aria-label="Dismiss notification">&times;</button>
         </div>
+        {% endfor %}
     </section>
     {% endif %}
 
