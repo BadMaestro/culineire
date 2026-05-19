@@ -54,29 +54,27 @@
     </div>
 </nav>
 
-{% if recipe.get_all_category_items %}
-<div class="container">
-    <div class="category-nav-block category-nav-block--detail" data-category-toggle>
-        <div class="category-nav-wrap" data-category-wrap>
-            <nav aria-label="Recipe categories" class="category-nav" data-category-nav>
-                {% for category_item in recipe.get_all_category_items %}
-                <a class="category-nav__item category-nav__link" href="{{ category_item.url }}">{{ category_item.label }}</a>
-                <span aria-hidden="true" class="category-nav__separator">&middot;</span>
-                {% endfor %}
-            </nav>
-        </div>
-        <button aria-expanded="false" aria-label="View all recipe categories" class="category-nav-toggle" data-category-button hidden type="button">
-            <span aria-hidden="true" class="category-nav-toggle__icon category-nav-toggle__icon--left">&#8964;</span>
-            <span class="category-nav-toggle__label" data-category-button-label>View All</span>
-            <span aria-hidden="true" class="category-nav-toggle__icon">&#8964;</span>
-        </button>
-    </div>
-</div>
-{% endif %}
-
 <section class="section">
     <div class="container">
         <article class="detail-page">
+
+            {% if recipe.get_all_category_items %}
+            <div class="category-nav-block category-nav-block--detail" data-category-toggle>
+                <div class="category-nav-wrap" data-category-wrap>
+                    <nav aria-label="Recipe categories" class="category-nav" data-category-nav>
+                        {% for category_item in recipe.get_all_category_items %}
+                        <a class="category-nav__item category-nav__link" href="{{ category_item.url }}">{{ category_item.label }}</a>
+                        <span aria-hidden="true" class="category-nav__separator">&middot;</span>
+                        {% endfor %}
+                    </nav>
+                </div>
+                <button aria-expanded="false" aria-label="View all recipe categories" class="category-nav-toggle" data-category-button hidden type="button">
+                    <span aria-hidden="true" class="category-nav-toggle__icon category-nav-toggle__icon--left">&#8964;</span>
+                    <span class="category-nav-toggle__label" data-category-button-label>View All</span>
+                    <span aria-hidden="true" class="category-nav-toggle__icon">&#8964;</span>
+                </button>
+            </div>
+            {% endif %}
 
             {% if gallery_items %}
             <section
