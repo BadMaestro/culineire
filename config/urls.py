@@ -7,7 +7,6 @@ from django.templatetags.static import static
 from django.urls import include, path, re_path
 from django.views.generic import RedirectView, TemplateView
 from django.views.static import serve
-from django.http import HttpResponsePermanentRedirect
 
 from accounts import views as accounts_views
 from config import views as config_views
@@ -53,10 +52,6 @@ urlpatterns = [
 
     # Monitoring dashboard
     path("monitoring/", include("monitoring.urls", namespace="monitoring")),
-
-    # Permanent redirects from old monitoring URL (was under /recipes/moderation/monitoring/)
-    re_path(r"^recipes/moderation/monitoring/(?P<rest>.*)$",
-            lambda request, rest: HttpResponsePermanentRedirect(f"/monitoring/{rest}")),
 
     # Accounts (user management)
     path("accounts/", include("accounts.urls", namespace="accounts")),
