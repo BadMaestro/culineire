@@ -405,31 +405,18 @@ def recipe_detail(request, slug):
                 raise Http404
 
     gallery_items = []
-    active_gallery_items = list(getattr(recipe, "gallery_images").all())
+    active_gallery_items = list(recipe.gallery_images.all())
 
     if active_gallery_items:
         for item in active_gallery_items:
-            image_file = getattr(item, "image", None)
-            video_file = getattr(item, "video", None)
-            caption = getattr(item, "caption", "") or ""
-            alt_text = getattr(item, "alt_text", "") or recipe.title
-            poster_file = getattr(item, "poster", None)
+            caption = item.caption or ""
+            alt_text = item.alt_text or recipe.title
 
-            if video_file:
-                gallery_items.append(
-                    {
-                        "media_type": "video",
-                        "src": video_file.url,
-                        "alt": alt_text,
-                        "caption": caption,
-                        "poster": poster_file.url if poster_file else "",
-                    }
-                )
-            elif image_file:
+            if item.image:
                 gallery_items.append(
                     {
                         "media_type": "image",
-                        "src": image_file.url,
+                        "src": item.image.url,
                         "alt": alt_text,
                         "caption": caption,
                         "poster": "",
