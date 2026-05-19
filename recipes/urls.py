@@ -1,15 +1,10 @@
-from django.http import HttpResponsePermanentRedirect
-from django.urls import path, re_path
+from django.urls import path
 
 from . import views
 
 app_name = "recipes"
 
 urlpatterns = [
-    # Permanent redirect: old monitoring URLs moved to /monitoring/
-    re_path(r"^moderation/monitoring/(?P<rest>.*)$",
-            lambda request, rest: HttpResponsePermanentRedirect(f"/monitoring/{rest}")),
-
     path("", views.recipe_list, name="recipe_list"),
     path("create/", views.RecipeCreateView.as_view(), name="recipe_create"),
     path("profile/edit/", views.RecipeAuthorUpdateView.as_view(), name="author_edit"),
