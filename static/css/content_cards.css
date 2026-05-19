@@ -455,24 +455,26 @@
   inset-block-start: 50%;
   align-items: center;
   justify-content: center;
-  inline-size: 38px;
-  block-size: 38px;
+  inline-size: 46px;
+  block-size: 46px;
   padding: 0;
-  border: 1px solid rgb(31 44 37 / 0.1);
+  border: 1px solid rgb(255 255 255 / 0.55);
   border-radius: 999px;
-  background: rgb(58 44 30 / 0.12);
-  color: var(--content-card-action-ink, var(--ink, #1f2c25));
+  background: rgb(255 253 249 / 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #1f2c25;
   box-shadow:
-    0 10px 24px rgb(22 33 27 / 0.08),
-    0 1px 0 rgb(255 255 255 / 0.5) inset;
+    0 8px 28px rgb(22 33 27 / 0.16),
+    0 2px 6px rgb(22 33 27 / 0.08),
+    inset 0 1px 0 rgb(255 255 255 / 0.9);
   cursor: pointer;
-  transform: translateY(-50%);
+  transform: translateY(-50%) scale(1);
   transition:
-    background-color 0.18s ease,
-    border-color 0.18s ease,
-    color 0.18s ease,
-    opacity 0.18s ease,
-    box-shadow 0.18s ease;
+    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease;
 }
 
 .content-showcase--scrollable .content-carousel__button {
@@ -480,31 +482,31 @@
 }
 
 .content-carousel__button--prev {
-  inset-inline-start: 0.16rem;
+  inset-inline-start: -0.5rem;
 }
 
 .content-carousel__button--next {
-  inset-inline-end: 0.16rem;
+  inset-inline-end: -0.5rem;
 }
 
 .content-carousel__button svg {
-  width: 19px;
-  height: 19px;
+  width: 20px;
+  height: 20px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 2.15;
+  stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
 .content-carousel__button:hover,
 .content-carousel__button:focus-visible {
-  background: rgb(58 44 30 / 0.23);
-  border-color: rgb(58 44 30 / 0.16);
-  color: var(--content-card-action-ink, var(--ink, #1f2c25));
+  background: rgb(255 253 249 / 0.98);
+  transform: translateY(-50%) scale(1.1);
   box-shadow:
-    0 14px 28px rgb(22 33 27 / 0.11),
-    0 1px 0 rgb(255 255 255 / 0.56) inset;
+    0 12px 36px rgb(22 33 27 / 0.2),
+    0 4px 10px rgb(22 33 27 / 0.1),
+    inset 0 1px 0 rgb(255 255 255 / 1);
 }
 
 .content-carousel__button:focus-visible {
@@ -513,7 +515,7 @@
 }
 
 .content-carousel__button:disabled {
-  opacity: 0.26;
+  opacity: 0.22;
   box-shadow: none;
   cursor: default;
   pointer-events: none;
