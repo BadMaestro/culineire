@@ -157,7 +157,7 @@ def send_message(request):
 
     if not subject:
         sender_profile = getattr(request.user, "recipe_author_profile", None)
-        is_owner = sender_profile and sender_profile.slug == "greenbear"
+        is_owner = sender_profile and sender_profile.slug == settings.OWNER_SLUG
         subject = (
             "Message from CulinEire Kitchen Head Chef"
             if is_owner
@@ -228,7 +228,7 @@ def contact(request):
     from recipes.models import RecipeAuthor
 
     try:
-        greenbear_user = RecipeAuthor.objects.select_related("user").get(slug="greenbear").user
+        greenbear_user = RecipeAuthor.objects.select_related("user").get(slug=settings.OWNER_SLUG).user
     except RecipeAuthor.DoesNotExist:
         greenbear_user = None
 

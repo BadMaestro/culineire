@@ -269,6 +269,7 @@ EMAIL_TIMEOUT = env_int("EMAIL_TIMEOUT", 10)
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "CulinEire <noreply@culineire.ie>")
 SITE_DOMAIN = os.getenv("SITE_DOMAIN", "127.0.0.1:8000")
 SITE_SCHEME = os.getenv("SITE_SCHEME", "https" if IS_PRODUCTION else "http")
+OWNER_SLUG = "greenbear"
 SIGNUP_REQUIRE_EMAIL_CONFIRMATION = env_bool(
     "SIGNUP_REQUIRE_EMAIL_CONFIRMATION",
     default=IS_PRODUCTION,

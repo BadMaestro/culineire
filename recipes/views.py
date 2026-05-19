@@ -664,7 +664,7 @@ def author_detail(request, slug):
         "author": author,
         "recipe_count": recipe_count,
         "article_count": article_count,
-        "is_god_author": author.slug == "greenbear",
+        "is_god_author": author.slug == settings.OWNER_SLUG,
         "can_manage_author_profile": can_manage,
         "is_moderator_viewer": moderator,
         "pending_recipes": pending_recipes,
@@ -676,7 +676,7 @@ def author_detail(request, slug):
 def _is_protected_author_action(author, user):
     linked_user = getattr(author, "user", None)
     return (
-        author.slug == "greenbear"
+        author.slug == settings.OWNER_SLUG
         or author.user_id == getattr(user, "pk", None)
         or bool(linked_user and linked_user.is_superuser)
     )
@@ -847,7 +847,7 @@ class RecipeAuthorDeleteView(AuthorRequiredMixin, DeleteView):
     def post(self, request, *args, **kwargs):
         self.object = cast(RecipeAuthor, self.get_object())
 
-        if self.object.slug == "greenbear":
+        if self.object.slug == settings.OWNER_SLUG:
             messages.error(request, "This account cannot be deleted.")
             return redirect(self.object.get_absolute_url())
 
@@ -992,7 +992,7 @@ def moderation_panel(request):
         .filter(status=Article.Status.REJECTED)
         .order_by("-published")
     )
-    protected_super_user_filter = Q(user__is_superuser=True) | Q(slug="greenbear")
+    protected_super_user_filter = Q(user__is_superuser=True) | Q(slug=settings.OWNER_SLUG)
 
     registered_authors = (
         RecipeAuthor.objects.select_related("user")
@@ -1018,7 +1018,7 @@ def moderation_panel(request):
         .filter(protected_super_user_filter)
         .annotate(
             owner_priority=Case(
-                When(slug="greenbear", then=Value(0)),
+                When(slug=settings.OWNER_SLUG, then=Value(0)),
                 default=Value(1),
                 output_field=IntegerField(),
             )

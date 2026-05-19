@@ -59,7 +59,7 @@ def _create_report_message(report, sender):
     from recipes.models import RecipeAuthor
 
     try:
-        greenbear = RecipeAuthor.objects.select_related("user").get(slug="greenbear").user
+        greenbear = RecipeAuthor.objects.select_related("user").get(slug=settings.OWNER_SLUG).user
     except RecipeAuthor.DoesNotExist:
         return None
 

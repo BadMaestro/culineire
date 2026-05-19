@@ -33,7 +33,7 @@ class PresenceEvent(models.Model):
         if not user or not getattr(user, "is_authenticated", False):
             return None
         author = getattr(user, "recipe_author_profile", None)
-        if author and author.slug == "greenbear":
+        if author and author.slug == settings.OWNER_SLUG:
             return cls.OWNER
         if user.is_staff or user.is_superuser:
             return cls.ADMIN

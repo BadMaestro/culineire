@@ -36,7 +36,7 @@ def is_moderator(user):
         return True
     author = getattr(user, "recipe_author_profile", None)
     return author is not None and (
-        author.slug == "greenbear"
+        author.slug == settings.OWNER_SLUG
         or author.has_bearseeker_privileges
     )
 
@@ -47,14 +47,14 @@ def can_grant_bearseeker_privileges(user):
     if user.is_superuser:
         return True
     author = getattr(user, "recipe_author_profile", None)
-    return author is not None and author.slug == "greenbear"
+    return author is not None and author.slug == settings.OWNER_SLUG
 
 
 def can_revoke_superuser_privileges(user):
     if not user or not user.is_authenticated:
         return False
     author = getattr(user, "recipe_author_profile", None)
-    return author is not None and author.slug == "greenbear"
+    return author is not None and author.slug == settings.OWNER_SLUG
 
 
 # ── Login ─────────────────────────────────────────────────────────────────────
@@ -245,7 +245,7 @@ def manage_author(request, slug):
     if action == "revoke_superuser":
         if not can_revoke_superuser_privileges(request.user):
             raise Http404
-        if user.pk == request.user.pk or author.slug == "greenbear" or not user.is_superuser:
+        if user.pk == request.user.pk or author.slug == settings.OWNER_SLUG or not user.is_superuser:
             raise Http404
         author.has_bearseeker_privileges = False
         author.save(update_fields=["has_bearseeker_privileges"])
@@ -255,7 +255,7 @@ def manage_author(request, slug):
         user.save(update_fields=["is_superuser", "is_staff", "is_active"])
         messages.warning(request, f'Superuser privileges revoked from "{author.name}".')
 
-    elif author.slug == "greenbear" or user.is_superuser:
+    elif author.slug == settings.OWNER_SLUG or user.is_superuser:
         raise Http404
 
     elif action == "grant_bearseeker":
