@@ -6,4 +6,4 @@ If you have any questions, please contact us at:
 {{ contact_url }}
 
 -- CulinEire Kitchen
-culineire.ie
+{{ site_url }}

@@ -8,4 +8,4 @@ If You believe this was assigned in error, please contact us at:
 {{ contact_url }}
 
 -- CulinEire Kitchen
-culineire.ie
+{{ site_url }}

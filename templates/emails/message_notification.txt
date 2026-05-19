@@ -6,4 +6,4 @@ View message: {{ inbox_url }}
 {% endif %}
 
 --
-culineire.ie/messages/
+{{ site_url }}/messages/

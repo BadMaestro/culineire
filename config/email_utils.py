@@ -14,8 +14,9 @@ def sanitize_email_subject(subject: str, max_length: int = 200) -> str:
 
 
 def send_template_mail(subject, template, context, recipient_list, from_email=None, fail_silently=False):
-    html_body = render_to_string(f"emails/{template}.html", context)
-    text_body = render_to_string(f"emails/{template}.txt", context)
+    email_context = {"site_url": build_absolute_url(""), **context}
+    html_body = render_to_string(f"emails/{template}.html", email_context)
+    text_body = render_to_string(f"emails/{template}.txt", email_context)
     msg = EmailMultiAlternatives(
         subject=subject,
         body=text_body,
