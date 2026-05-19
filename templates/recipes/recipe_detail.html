@@ -307,17 +307,39 @@
 
             {# ── Footer row: Credits, Allergens, Rate this recipe ── #}
             <div class="recipe-footer">
-                {% if recipe.source_url %}
                 <section class="detail-page__card detail-page__card--source">
                     <h2>Credits &amp; Source</h2>
                     <div class="detail-page__source-list">
                         <div class="detail-page__source-item">
+                            <span class="detail-page__source-label">Source type</span>
+                            <p class="detail-page__source-value">{{ recipe.get_source_type_display }}</p>
+                        </div>
+                        {% if recipe.source_title %}
+                        <div class="detail-page__source-item">
+                            <span class="detail-page__source-label">Title</span>
+                            <p class="detail-page__source-value">{{ recipe.source_title }}</p>
+                        </div>
+                        {% endif %}
+                        {% if recipe.source_author %}
+                        <div class="detail-page__source-item">
+                            <span class="detail-page__source-label">Author</span>
+                            <p class="detail-page__source-value">{{ recipe.source_author }}</p>
+                        </div>
+                        {% endif %}
+                        {% if recipe.source_note %}
+                        <div class="detail-page__source-item">
+                            <span class="detail-page__source-label">Note</span>
+                            <p class="detail-page__source-value">{{ recipe.source_note }}</p>
+                        </div>
+                        {% endif %}
+                        {% if recipe.source_url %}
+                        <div class="detail-page__source-item">
                             <span class="detail-page__source-label">Link</span>
                             <a class="detail-page__source-link" href="{{ recipe.source_url }}" rel="noopener noreferrer" target="_blank">View original source</a>
                         </div>
+                        {% endif %}
                     </div>
                 </section>
-                {% endif %}
 
                 {% if allergen_items %}
                 <section class="detail-page__card detail-page__card--allergens">
