@@ -1405,23 +1405,10 @@
   }
 
   .detail-page__source-links {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.5rem 0.75rem;
-  }
-
-  .source-col {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 0.4rem;
-  }
-
-  .source-col--left {
-    align-items: flex-start;
-  }
-
-  .source-col--right {
-    align-items: flex-end;
   }
 
   .detail-page__source-value {

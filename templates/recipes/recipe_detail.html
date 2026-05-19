@@ -54,6 +54,23 @@
     </div>
 </nav>
 
+{% if recipe.get_all_category_items %}
+<div class="category-nav-block" data-category-toggle>
+    <div class="category-nav-wrap" data-category-wrap>
+        <nav aria-label="Recipe categories" class="category-nav" data-category-nav>
+            {% for category_item in recipe.get_all_category_items %}
+            <a class="category-nav__item category-nav__link" href="{{ category_item.url }}">{{ category_item.label }}</a>
+            <span aria-hidden="true" class="category-nav__separator">&middot;</span>
+            {% endfor %}
+        </nav>
+    </div>
+    <button aria-expanded="false" aria-label="View all recipe categories" class="category-nav-toggle" data-category-button hidden type="button">
+        <span class="category-nav-toggle__label" data-category-button-label>View All</span>
+        <span aria-hidden="true" class="category-nav-toggle__icon">&#8964;</span>
+    </button>
+</div>
+{% endif %}
+
 <section class="section">
     <div class="container">
         <article class="detail-page">
@@ -290,26 +307,14 @@
 
             {# ── Footer row: Credits, Allergens, Rate this recipe ── #}
             <div class="recipe-footer">
-                {% if recipe.get_all_category_items or recipe.source_url %}
+                {% if recipe.source_url %}
                 <section class="detail-page__card detail-page__card--source">
                     <h2>Credits &amp; Source</h2>
                     <div class="detail-page__source-list">
-                        {% if recipe.get_all_category_items %}
-                        <div class="detail-page__source-item">
-                            <span class="detail-page__source-label">Categories</span>
-                            <div class="detail-page__source-links" data-categories-pack>
-                            {% for category_item in recipe.get_all_category_items %}
-                            <a class="detail-page__source-link" href="{{ category_item.url }}">{{ category_item.label }}</a>
-                            {% endfor %}
-                            </div>
-                        </div>
-                        {% endif %}
-                        {% if recipe.source_url %}
                         <div class="detail-page__source-item">
                             <span class="detail-page__source-label">Link</span>
                             <a class="detail-page__source-link" href="{{ recipe.source_url }}" rel="noopener noreferrer" target="_blank">View original source</a>
                         </div>
-                        {% endif %}
                     </div>
                 </section>
                 {% endif %}
