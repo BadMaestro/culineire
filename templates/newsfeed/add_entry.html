@@ -29,7 +29,7 @@
   <div class="container">
     <div class="authoring-shell" style="max-width: 680px; margin-inline: auto;">
 
-      <form method="post" class="authoring-form" novalidate>
+      <form method="post" class="authoring-form" data-validate novalidate>
         {% csrf_token %}
 
         {% if form.non_field_errors %}

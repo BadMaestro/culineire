@@ -26,7 +26,7 @@
                 <h2>Edit Profile</h2>
             </div>
 
-            <form class="auth-form" enctype="multipart/form-data" method="post">
+            <form class="auth-form" data-validate enctype="multipart/form-data" method="post">
                 {% csrf_token %}
 
                 {% if form.non_field_errors %}

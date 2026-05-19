@@ -321,7 +321,7 @@
                         <button class="detail-button detail-button--secondary" type="submit">Change rating</button>
                     </form>
                     {% else %}
-                    <form action="{% url 'recipes:submit_recipe_rating' recipe.slug %}" class="recipe-form" method="post">
+                    <form action="{% url 'recipes:submit_recipe_rating' recipe.slug %}" class="recipe-form" data-validate method="post">
                         {% csrf_token %}
                         <div aria-label="Choose a rating from 1 to 5" class="rating-form" role="radiogroup">
                             <label class="rating-form__option"><input name="value" required type="radio" value="1"><span>1</span></label>
@@ -353,7 +353,7 @@
                             {% endif %}
                             <span class="comments-panel__commenter-name">{% if commenter_profile %}{{ commenter_profile.name }}{% else %}{{ request.user.get_full_name|default:request.user.username }}{% endif %}</span>
                         </div>
-                        <form action="{% url 'recipes:submit_recipe_comment' recipe.slug %}" class="recipe-form" method="post">
+                        <form action="{% url 'recipes:submit_recipe_comment' recipe.slug %}" class="recipe-form" data-validate method="post">
                             {% csrf_token %}
                             <input autocomplete="off" name="website" tabindex="-1" type="text" style="display:none;">
                             <div class="recipe-form__field">

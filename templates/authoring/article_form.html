@@ -34,7 +34,7 @@
 
 <section class="page-section authoring-page">
     <div class="container authoring-shell">
-        <form class="authoring-form" enctype="multipart/form-data" method="post">
+        <form class="authoring-form" data-validate enctype="multipart/form-data" method="post">
             {% csrf_token %}
 
             {% if form.non_field_errors %}

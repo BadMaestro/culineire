@@ -59,7 +59,7 @@
             your name, the original source of the work, and the URL of the infringing content.
         </p>
 
-        <form class="authoring-form" method="post" style="margin-top:2rem;">
+        <form class="authoring-form" data-validate method="post" style="margin-top:2rem;">
             {% csrf_token %}
             {{ form.website }}
 
