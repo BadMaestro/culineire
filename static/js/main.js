@@ -123,9 +123,13 @@ document.addEventListener("DOMContentLoaded", () => {
       applyState();
     });
 
-    requestAnimationFrame(() => {
-      expanded = false;
-      applyState();
+    // Wait for fonts so the initial measurement uses the real glyph widths,
+    // not the fallback font (which can cause false "wrap detected" readings).
+    document.fonts.ready.then(() => {
+      requestAnimationFrame(() => {
+        expanded = false;
+        applyState();
+      });
     });
 
     let resizeTimer = null;

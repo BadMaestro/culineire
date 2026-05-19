@@ -169,14 +169,6 @@
     margin: 0;
     gap: 0.6rem;
     padding-block: 0.6rem;
-    padding-inline: var(--detail-space-xl);
-    background: var(--surface);
-    border-inline: 1px solid var(--line);
-    border-block-start: 1px solid var(--line);
-  }
-
-  .category-nav-block--detail .category-nav-wrap::after {
-    background: linear-gradient(to bottom, transparent, var(--surface));
   }
 
   .detail-page__header {
