@@ -292,6 +292,9 @@
                 {% endif %}
             </form>
 
+            {% if not registered_authors %}
+            <div class="moderation-empty">No authors found.</div>
+            {% endif %}
             <div aria-label="Registered authors" class="moderation-authors-table-wrap">
                 {% if registered_authors %}
                 <table class="moderation-authors-table">
@@ -362,8 +365,6 @@
                     {% endfor %}
                     </tbody>
                 </table>
-                {% else %}
-                <div class="moderation-empty">No authors found.</div>
                 {% endif %}
             </div>
 
