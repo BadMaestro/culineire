@@ -74,22 +74,15 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const applyState = () => {
-      // Disable transition so height:"auto" takes effect synchronously
-      // before we measure positions — otherwise the in-flight animation
-      // biases getBoundingClientRect() readings.
-      wrap.style.transition = "none";
       wrap.style.height = "auto";
-      void wrap.offsetHeight; // force reflow
+      void wrap.offsetHeight; // force reflow before reading scrollHeight
 
-      const items = [
-        ...categoryNav.querySelectorAll(".category-nav__item, .category-nav__link"),
-      ];
-      const firstTop = items.length ? items[0].getBoundingClientRect().top : 0;
-      const needsToggle =
-        items.length > 1 &&
-        items.some((item) => item.getBoundingClientRect().top > firstTop + 4);
-
-      wrap.style.transition = ""; // restore transition
+      const firstItem = categoryNav.querySelector(".category-nav__item, .category-nav__link");
+      const singleH = firstItem
+        ? Math.ceil(firstItem.getBoundingClientRect().height)
+        : getSingleRowHeight();
+      const fullHeight = Math.ceil(categoryNav.scrollHeight);
+      const needsToggle = fullHeight > singleH + 4;
 
       if (!needsToggle) {
         wrap.classList.remove("category-nav-wrap--collapsed", "category-nav-wrap--expanded");
@@ -101,9 +94,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       button.hidden = false;
 
-      const collapsedHeight = getSingleRowHeight();
-      const fullHeight = Math.ceil(categoryNav.scrollHeight);
-
       if (expanded) {
         wrap.style.height = `${fullHeight}px`;
         wrap.classList.remove("category-nav-wrap--collapsed");
@@ -112,7 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
         button.setAttribute("aria-label", "Collapse recipe categories");
         buttonLabel.textContent = "View Less";
       } else {
-        wrap.style.height = `${collapsedHeight}px`;
+        wrap.style.height = `${singleH}px`;
         wrap.classList.remove("category-nav-wrap--expanded");
         wrap.classList.add("category-nav-wrap--collapsed");
         button.setAttribute("aria-expanded", "false");
