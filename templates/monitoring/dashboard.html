@@ -5,7 +5,7 @@
 {% block meta_description %}CulinEire internal monitoring and analytics dashboard.{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/monitoring.css' %}?v=20260511e" rel="stylesheet">
+<link href="{% static 'css/monitoring.css' %}?v=20260519d" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -296,6 +296,18 @@
       {% else %}
       <p class="mon-empty">No security events recorded yet.</p>
       {% endif %}
+    </div>
+
+    <div class="mon-section">
+      <h2 class="mon-section__title">Content Safety</h2>
+      <div class="mon-cards mon-cards--profanity">
+        <a class="mon-card" href="{% url 'monitoring:profanity_list' %}">
+          <span class="mon-card__value">{{ profanity_word_count }}</span>
+          <span class="mon-card__label">Blocked Words</span>
+          <span class="mon-card__sub">profanity and forbidden word filter</span>
+          <span class="mon-card__open">Manage list</span>
+        </a>
+      </div>
     </div>
 
     {% if request.user.is_superuser %}

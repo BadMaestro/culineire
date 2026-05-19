@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Profanity Filter | CulinEire Monitoring{% endblock %}
+{% block meta_description %}Manage the CulinEire profanity and forbidden word list.{% endblock %}
+
+{% block extra_head %}
+<link href="{% static 'css/monitoring.css' %}?v=20260519d" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+
+<section class="hero hero--home hero--monitoring">
+    <div aria-hidden="true" class="hero__background">
+        <img alt="" src="{% static 'images/hero-monitoring.png' %}">
+    </div>
+    <div aria-hidden="true" class="hero__overlay"></div>
+    <div class="container hero__inner">
+        <div class="hero-copy hero-copy--center">
+            <span class="pill">Content Safety</span>
+            <h1 class="hero-title">Profanity Filter</h1>
+            <p class="hero-subtitle">Manage the list of words blocked from being published on CulinEire.</p>
+        </div>
+    </div>
+</section>
+
+<section class="page-section mon-page">
+  <div class="container mon-shell">
+
+    <div class="mon-back-row">
+      <a class="mon-back-link" href="{{ dashboard_url }}">Back to Monitoring Dashboard</a>
+    </div>
+
+    {# ── Stats summary ── #}
+    <div class="mon-cards mon-cards--profanity">
+      <div class="mon-card">
+        <span class="mon-card__value">{{ total_count }}</span>
+        <span class="mon-card__label">Total Blocked Words</span>
+        <span class="mon-card__sub">in the filter list</span>
+      </div>
+      <div class="mon-card">
+        <span class="mon-card__value">{{ builtin_count }}</span>
+        <span class="mon-card__label">Built-in Words</span>
+        <span class="mon-card__sub">seeded from the system default list</span>
+      </div>
+      <div class="mon-card {% if custom_count > 0 %}mon-card--green{% endif %}">
+        <span class="mon-card__value">{{ custom_count }}</span>
+        <span class="mon-card__label">Custom Words</span>
+        <span class="mon-card__sub">added manually by moderators</span>
+      </div>
+    </div>
+
+    {# ── Add new word ── #}
+    <div class="mon-section">
+      <h2 class="mon-section__title">Add New Word</h2>
+      <form class="profanity-add-form" method="post" action="{% url 'monitoring:profanity_list' %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add">
+        <div class="profanity-add-row">
+          <input
+            class="profanity-add-input"
+            type="text"
+            name="word"
+            placeholder="Enter a word to block..."
+            maxlength="100"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="none"
+            spellcheck="false"
+            aria-label="New word to block"
+          >
+          <button class="btn-primary profanity-add-btn" type="submit">Add Word</button>
+        </div>
+        {% if error %}
+        <p class="profanity-add-error" role="alert">{{ error }}</p>
+        {% endif %}
+      </form>
+    </div>
+
+    {# ── Search + word list ── #}
+    <div class="mon-section">
+      <div class="profanity-list-header">
+        <h2 class="mon-section__title">
+          Blocked Words
+          {% if q %}<span class="profanity-list-header__filter">filtered: "{{ q }}"</span>{% endif %}
+        </h2>
+        <form class="profanity-search-form" method="get" action="{% url 'monitoring:profanity_list' %}">
+          <div class="profanity-search-row">
+            <input
+              class="profanity-search-input"
+              type="search"
+              name="q"
+              value="{{ q }}"
+              placeholder="Search words..."
+              aria-label="Search blocked words"
+              autocomplete="off"
+            >
+            <button class="profanity-search-btn" type="submit" aria-label="Search">
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </button>
+            {% if q %}
+            <a class="profanity-search-clear" href="{% url 'monitoring:profanity_list' %}">Clear</a>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+
+      {% if page_obj.object_list %}
+      <div class="profanity-word-grid">
+        {% for word_obj in page_obj %}
+        <div class="profanity-word-item {% if word_obj.is_builtin %}profanity-word-item--builtin{% endif %}">
+          <span class="profanity-word-item__word">{{ word_obj.word }}</span>
+          <span class="profanity-word-item__meta">
+            {% if word_obj.is_builtin %}
+            <span class="profanity-badge profanity-badge--builtin" title="Part of the system default list">built-in</span>
+            {% else %}
+            <span class="profanity-badge profanity-badge--custom" title="Added manually">custom</span>
+            {% endif %}
+          </span>
+          <form class="profanity-word-item__delete" method="post" action="{% url 'monitoring:profanity_list' %}{% if q %}?q={{ q }}{% endif %}"
+                onsubmit="return confirm('Remove &quot;{{ word_obj.word }}&quot; from the blocked list?');">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="word_id" value="{{ word_obj.pk }}">
+            <button
+              aria-label="Remove {{ word_obj.word }}"
+              class="profanity-word-item__del-btn"
+              type="submit"
+              title="Remove this word"
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+
+      {# ── Pagination ── #}
+      {% if page_obj.has_other_pages %}
+      <nav aria-label="Profanity list pages" class="mon-pagination">
+        {% if page_obj.has_previous %}
+        <a class="mon-pagination__link" href="?{% if q %}q={{ q }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+        {% endif %}
+        <span class="mon-pagination__info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a class="mon-pagination__link" href="?{% if q %}q={{ q }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+        {% endif %}
+      </nav>
+      {% endif %}
+
+      {% else %}
+        {% if q %}
+        <p class="mon-empty">No words matching "{{ q }}".</p>
+        {% else %}
+        <p class="mon-empty">No words in the list yet. Add the first one above.</p>
+        {% endif %}
+      {% endif %}
+    </div>
+
+  </div>
+</section>
+{% endblock %}

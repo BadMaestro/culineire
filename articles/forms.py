@@ -1,14 +1,15 @@
 from django import forms
+from django.utils import timezone
+from django.utils.safestring import mark_safe
+from django.utils.text import slugify
+
+from config.profanity import find_profanity
+from .models import Article
 
 
 class _NoCurrentlyWidget(forms.ClearableFileInput):
     def is_initial(self, value):
         return False
-from django.utils import timezone
-from django.utils.safestring import mark_safe
-from django.utils.text import slugify
-
-from .models import Article
 
 _RULES_LABEL = mark_safe(
     'I have read and agree to the '
@@ -97,8 +98,8 @@ class ArticleAuthoringForm(forms.ModelForm):
         widgets = {
             "hero_image": _NoCurrentlyWidget(),
             "published": forms.DateInput(attrs={"type": "date"}),
-            "excerpt": forms.Textarea(attrs={"rows": 3}),
-            "body": forms.Textarea(attrs={"rows": 12}),
+            "excerpt": forms.Textarea(attrs={"rows": 3, "data-profanity": ""}),
+            "body": forms.Textarea(attrs={"rows": 12, "data-profanity": ""}),
         }
 
     def __init__(self, *args, author=None, **kwargs):
@@ -139,6 +140,49 @@ class ArticleAuthoringForm(forms.ModelForm):
                 self.fields["confirm_image_rights"].initial = True
             if self.instance.confirmed_rules:
                 self.fields["confirm_rules"].initial = True
+
+    # ── Profanity validation ──────────────────────────────────────────────
+
+    def _profanity_error(self, field_name: str, label: str) -> None:
+        text = self.cleaned_data.get(field_name, "")
+        bad = find_profanity(text)
+        if bad:
+            quoted = ", ".join(f'"{w}"' for w in bad)
+            raise forms.ValidationError(
+                f"{label} contains forbidden words: {quoted}. "
+                "Please remove them before publishing."
+            )
+
+    def clean_title(self):
+        text = self.cleaned_data.get("title", "")
+        bad = find_profanity(text)
+        if bad:
+            quoted = ", ".join(f'"{w}"' for w in bad)
+            raise forms.ValidationError(
+                f"Title contains forbidden words: {quoted}."
+            )
+        return text
+
+    def clean_excerpt(self):
+        text = self.cleaned_data.get("excerpt", "")
+        bad = find_profanity(text)
+        if bad:
+            quoted = ", ".join(f'"{w}"' for w in bad)
+            raise forms.ValidationError(
+                f"Short description contains forbidden words: {quoted}."
+            )
+        return text
+
+    def clean_body(self):
+        text = self.cleaned_data.get("body", "")
+        bad = find_profanity(text)
+        if bad:
+            quoted = ", ".join(f'"{w}"' for w in bad)
+            raise forms.ValidationError(
+                f"Article body contains forbidden words: {quoted}. "
+                "Please remove them before publishing."
+            )
+        return text
 
     def save(self, commit=True, confirmed_by=None):
         article = super().save(commit=False)

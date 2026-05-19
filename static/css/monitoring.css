@@ -858,3 +858,252 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ── Profanity filter page ───────────────────────────────────────────────── */
+
+.mon-cards--profanity {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* ── Add form ── */
+.profanity-add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.profanity-add-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.profanity-add-input {
+  flex: 1 1 220px;
+  min-width: 0;
+  height: 42px;
+  padding: 0 0.85rem;
+  border: 1px solid rgb(31 44 37 / 0.18);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.88rem;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.profanity-add-input:focus {
+  border-color: rgb(11 76 58 / 0.45);
+  box-shadow: 0 0 0 3px rgb(11 76 58 / 0.1);
+}
+
+.profanity-add-btn {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.profanity-add-error {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #b42828;
+  font-weight: 600;
+}
+
+/* ── List header ── */
+.profanity-list-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.1rem;
+}
+
+.profanity-list-header .mon-section__title {
+  margin: 0;
+  padding: 0;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.profanity-list-header__filter {
+  font-size: 0.74rem;
+  font-weight: 400;
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+/* ── Search form ── */
+.profanity-search-form {
+  flex-shrink: 0;
+}
+
+.profanity-search-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.profanity-search-input {
+  width: 200px;
+  height: 36px;
+  padding: 0 0.75rem;
+  border: 1px solid rgb(31 44 37 / 0.16);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.82rem;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.profanity-search-input:focus {
+  border-color: rgb(11 76 58 / 0.4);
+  box-shadow: 0 0 0 3px rgb(11 76 58 / 0.08);
+}
+
+.profanity-search-btn {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgb(11 76 58 / 0.22);
+  border-radius: 50%;
+  background: rgb(11 76 58 / 0.06);
+  color: #0b4c3a;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.profanity-search-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+.profanity-search-btn:hover {
+  background: rgb(11 76 58 / 0.13);
+}
+
+.profanity-search-clear {
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+.profanity-search-clear:hover {
+  color: var(--ink);
+}
+
+/* ── Word grid ── */
+.profanity-word-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+  gap: 0.45rem;
+}
+
+.profanity-word-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.42rem 0.6rem 0.42rem 0.75rem;
+  border: 1px solid rgb(58 44 30 / 0.1);
+  border-radius: 8px;
+  background: #fafaf8;
+  min-width: 0;
+}
+
+.profanity-word-item--builtin {
+  background: #f5f9f5;
+  border-color: rgb(11 76 58 / 0.1);
+}
+
+.profanity-word-item__word {
+  flex: 1 1 0;
+  min-width: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+  font-family: "Courier New", Courier, monospace;
+}
+
+.profanity-word-item__meta {
+  flex-shrink: 0;
+}
+
+.profanity-word-item__delete {
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.profanity-word-item__del-btn {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: rgb(180 40 40 / 0.55);
+  cursor: pointer;
+  transition: background 0.13s, color 0.13s;
+}
+
+.profanity-word-item__del-btn svg {
+  width: 13px;
+  height: 13px;
+}
+
+.profanity-word-item__del-btn:hover {
+  background: rgb(180 40 40 / 0.1);
+  color: #b42828;
+}
+
+/* ── Word badges ── */
+.profanity-badge {
+  display: inline-block;
+  padding: 0.1rem 0.38rem;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.profanity-badge--builtin {
+  background: rgb(11 76 58 / 0.1);
+  color: #0b4c3a;
+}
+
+.profanity-badge--custom {
+  background: rgb(30 100 200 / 0.1);
+  color: #1a4fa0;
+}
+
+@media (max-width: 760px) {
+  .mon-cards--profanity {
+    grid-template-columns: 1fr;
+  }
+
+  .profanity-search-input {
+    width: 140px;
+  }
+
+  .profanity-word-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 160px), 1fr));
+  }
+}

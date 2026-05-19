@@ -12,9 +12,11 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from django.http import JsonResponse
+
 from accounts.views import is_moderator
 
-from .models import PageView, SecurityEvent, UserActivity
+from .models import PageView, ProfanityWord, SecurityEvent, UserActivity
 
 DETAIL_PAGE_SIZE = 100
 DETAIL_ROW_LIMIT = 3000
@@ -414,6 +416,7 @@ def dashboard(request):
             "suspicious": _dashboard_url("monitoring:security_detail", "event=suspicious_request"),
             "critical": _dashboard_url("monitoring:security_detail", "severity=critical"),
         },
+        "profanity_word_count": ProfanityWord.objects.count(),
     }
     return render(request, "monitoring/dashboard.html", context)
 
@@ -801,3 +804,79 @@ def clear_stats(request):
         f" ({what_labels[what]}, {period_labels[period]}).",
     )
     return redirect(reverse("monitoring:dashboard"))
+
+
+# ---------------------------------------------------------------------------
+# Profanity word list management
+# ---------------------------------------------------------------------------
+
+def profanity_list(request):
+    """Display and manage the profanity / forbidden-word list."""
+    _require_moderator(request)
+
+    from config.profanity import invalidate_profanity_cache
+
+    error = None
+    q = request.GET.get("q", "").strip()
+
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+
+        if action == "add":
+            raw = request.POST.get("word", "").strip().lower()
+            if not raw:
+                error = "Please enter a word."
+            elif len(raw) > 100:
+                error = "Word is too long (max 100 characters)."
+            elif ProfanityWord.objects.filter(word=raw).exists():
+                error = f'"{raw}" is already in the list.'
+            else:
+                ProfanityWord.objects.create(word=raw, added_by=request.user)
+                invalidate_profanity_cache()
+                messages.success(request, f'Word "{raw}" added to the blocked list.')
+                return redirect(reverse("monitoring:profanity_list"))
+
+        elif action == "delete":
+            word_id = request.POST.get("word_id")
+            try:
+                word_obj = ProfanityWord.objects.get(pk=word_id)
+                deleted_word = word_obj.word
+                word_obj.delete()
+                invalidate_profanity_cache()
+                messages.success(request, f'Word "{deleted_word}" removed from the blocked list.')
+            except ProfanityWord.DoesNotExist:
+                messages.error(request, "Word not found.")
+            return redirect(
+                reverse("monitoring:profanity_list") + (f"?q={q}" if q else "")
+            )
+
+    qs = ProfanityWord.objects.all()
+    if q:
+        qs = qs.filter(word__icontains=q)
+
+    paginator = Paginator(qs.select_related("added_by"), 60)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    total_count = ProfanityWord.objects.count()
+    builtin_count = ProfanityWord.objects.filter(is_builtin=True).count()
+    custom_count = total_count - builtin_count
+
+    return render(request, "monitoring/profanity_list.html", {
+        "page_obj": page_obj,
+        "q": q,
+        "error": error,
+        "total_count": total_count,
+        "builtin_count": builtin_count,
+        "custom_count": custom_count,
+        "dashboard_url": reverse("monitoring:dashboard"),
+    })
+
+
+def profanity_words_api(request):
+    """Return the current word list as JSON for use by the client-side JS checker."""
+    if not request.user.is_authenticated:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden()
+    from config.profanity import get_word_list
+    return JsonResponse({"words": get_word_list()})
+

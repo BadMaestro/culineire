@@ -11,4 +11,6 @@ urlpatterns = [
     path("security/", views.security_detail, name="security_detail"),
     path("export/", views.export_detail, name="export_detail"),
     path("clear/", views.clear_stats, name="clear_stats"),
+    path("profanity/", views.profanity_list, name="profanity_list"),
+    path("profanity/words.json", views.profanity_words_api, name="profanity_words_api"),
 ]

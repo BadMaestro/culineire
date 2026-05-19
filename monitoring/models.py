@@ -2,6 +2,44 @@ from django.conf import settings
 from django.db import models
 
 
+class ProfanityWord(models.Model):
+    """A word that is blocked from being published anywhere on the site."""
+
+    word = models.CharField(
+        "Word",
+        max_length=100,
+        unique=True,
+        db_index=True,
+        help_text="Stored and matched in lowercase.",
+    )
+    is_builtin = models.BooleanField(
+        "Built-in",
+        default=False,
+        help_text="Words seeded automatically from the initial system list.",
+    )
+    added_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="profanity_words_added",
+        verbose_name="Added by",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["word"]
+        verbose_name = "Profanity word"
+        verbose_name_plural = "Profanity words"
+
+    def __str__(self) -> str:
+        return self.word
+
+    def save(self, *args, **kwargs):
+        self.word = self.word.strip().lower()
+        super().save(*args, **kwargs)
+
+
 class PageView(models.Model):
     path = models.CharField(max_length=500, db_index=True)
     referrer = models.CharField(max_length=500, blank=True)

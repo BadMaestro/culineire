@@ -1,6 +1,7 @@
 from django import forms
 from django.utils.safestring import mark_safe
 
+from config.profanity import find_profanity
 from .models import ALLERGEN_CHOICES, Recipe, RecipeAuthor
 
 
@@ -112,12 +113,12 @@ class RecipeAuthoringForm(forms.ModelForm):
         }
         widgets = {
             "hero_image": _NoCurrentlyWidget(),
-            "short_description": forms.Textarea(attrs={"rows": 3}),
-            "ingredients": forms.Textarea(attrs={"rows": 8}),
-            "method": forms.Textarea(attrs={"rows": 10}),
-            "tips": forms.Textarea(attrs={"rows": 4}),
-            "irish_context": forms.Textarea(attrs={"rows": 4}),
-            "author_commentary": forms.Textarea(attrs={"rows": 4}),
+            "short_description": forms.Textarea(attrs={"rows": 3, "data-profanity": ""}),
+            "ingredients": forms.Textarea(attrs={"rows": 8, "data-profanity": ""}),
+            "method": forms.Textarea(attrs={"rows": 10, "data-profanity": ""}),
+            "tips": forms.Textarea(attrs={"rows": 4, "data-profanity": ""}),
+            "irish_context": forms.Textarea(attrs={"rows": 4, "data-profanity": ""}),
+            "author_commentary": forms.Textarea(attrs={"rows": 4, "data-profanity": ""}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -171,6 +172,40 @@ class RecipeAuthoringForm(forms.ModelForm):
             "placeholder",
             "Licence name",
         )
+
+    # ── Profanity validation ──────────────────────────────────────────────
+
+    def _clean_profanity(self, field_name: str, label: str) -> str:
+        text = self.cleaned_data.get(field_name, "")
+        bad = find_profanity(text)
+        if bad:
+            quoted = ", ".join(f'"{w}"' for w in bad)
+            raise forms.ValidationError(
+                f"{label} contains forbidden words: {quoted}. "
+                "Please remove them before publishing."
+            )
+        return text
+
+    def clean_title(self):
+        return self._clean_profanity("title", "Title")
+
+    def clean_short_description(self):
+        return self._clean_profanity("short_description", "Short description")
+
+    def clean_ingredients(self):
+        return self._clean_profanity("ingredients", "Ingredients")
+
+    def clean_method(self):
+        return self._clean_profanity("method", "Method")
+
+    def clean_tips(self):
+        return self._clean_profanity("tips", "Kitchen tips")
+
+    def clean_irish_context(self):
+        return self._clean_profanity("irish_context", "Irish context")
+
+    def clean_author_commentary(self):
+        return self._clean_profanity("author_commentary", "Author note")
 
     def clean_additional_categories(self):
         selected = []

@@ -499,3 +499,95 @@ textarea.authoring-control {
   margin-top: 0.3rem;
   grid-column: 2;
 }
+
+/* ── Profanity overlay ─────────────────────────────────────────────────── */
+
+/*
+ * The wrapper sits in place of the textarea.
+ * The textarea and the backdrop div are stacked inside it.
+ */
+.profanity-wrapper {
+  display: block;
+  position: relative;
+  width: 100%;
+}
+
+/*
+ * The backdrop lives BEHIND the textarea.
+ * It clones the textarea's exact dimensions and typography so the
+ * highlight marks appear at the same position as the text.
+ */
+.profanity-backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;       /* clip to textarea bounds */
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 12px;
+}
+
+/*
+ * The highlights div mirrors every character of the textarea.
+ * Text colour is transparent so only the underline decoration shows.
+ */
+.profanity-highlights {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  color: transparent;
+  width: 100%;
+}
+
+/*
+ * The forbidden word itself: transparent text + red wavy underline.
+ * The underline shows through the transparent textarea background.
+ */
+.profanity-mark {
+  color: transparent;
+  background: transparent;
+  text-decoration: underline wavy rgb(200 30 30);
+  text-underline-offset: 3px;
+}
+
+/*
+ * The textarea sits above the backdrop.
+ * Its background must be transparent so the underlines show through.
+ * caret-color keeps the cursor visible.
+ */
+.profanity-wrapper textarea {
+  position: relative;
+  z-index: 1;
+  background: transparent !important;
+  caret-color: #1f2c25;
+}
+
+/*
+ * When a forbidden word is present: red border + subtle tint.
+ * The wrapper provides the visible background in this state.
+ */
+.profanity-wrapper:has(textarea.profanity-active) {
+  background: rgb(255 248 248 / 0.85);
+  border-radius: 12px;
+}
+
+.profanity-wrapper textarea.profanity-active {
+  border-color: rgb(200 30 30 / 0.55) !important;
+  box-shadow: 0 0 0 4px rgb(200 30 30 / 0.10) !important;
+}
+
+/* Normal (no profanity) state: wrapper just passes through */
+.profanity-wrapper:not(:has(textarea.profanity-active)) {
+  background: transparent;
+}
+
+/*
+ * Keep the textarea's own background visible when it has no bad words
+ * — set it to the control default so it doesn't look broken.
+ */
+.profanity-wrapper:not(:has(textarea.profanity-active)) textarea {
+  background: rgb(255 255 255 / 0.68) !important;
+}
+
+.profanity-wrapper:not(:has(textarea.profanity-active)) textarea:focus {
+  background: rgb(255 255 255 / 0.9) !important;
+}
