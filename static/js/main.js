@@ -59,30 +59,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let expanded = false;
 
-    const getSingleRowHeight = () => {
-      const firstItem = categoryNav.querySelector(".category-nav__item");
-      const referenceElement = firstItem || categoryNav;
-      const computed = window.getComputedStyle(referenceElement);
-      const lineHeight = parseFloat(computed.lineHeight);
-
-      if (!Number.isNaN(lineHeight) && lineHeight > 0) {
-        return Math.ceil(lineHeight);
-      }
-
-      const fontSize = parseFloat(computed.fontSize);
-      return Math.ceil((Number.isNaN(fontSize) ? 13 : fontSize) * 1.4);
+    const isWrapped = () => {
+      const items = categoryNav.querySelectorAll(".category-nav__item, .category-nav__link");
+      if (items.length < 2) return false;
+      return items[items.length - 1].offsetTop > items[0].offsetTop + 4;
     };
 
     const applyState = () => {
       wrap.style.height = "auto";
-      void wrap.offsetHeight; // force reflow before reading scrollHeight
+      void wrap.offsetHeight;
 
-      const firstItem = categoryNav.querySelector(".category-nav__item, .category-nav__link");
-      const singleH = firstItem
-        ? Math.ceil(firstItem.getBoundingClientRect().height)
-        : getSingleRowHeight();
-      const fullHeight = Math.ceil(categoryNav.scrollHeight);
-      const needsToggle = fullHeight > singleH + 4;
+      const needsToggle = isWrapped();
 
       if (!needsToggle) {
         wrap.classList.remove("category-nav-wrap--collapsed", "category-nav-wrap--expanded");
@@ -95,13 +82,15 @@ document.addEventListener("DOMContentLoaded", () => {
       button.hidden = false;
 
       if (expanded) {
-        wrap.style.height = `${fullHeight}px`;
+        wrap.style.height = `${Math.ceil(categoryNav.scrollHeight)}px`;
         wrap.classList.remove("category-nav-wrap--collapsed");
         wrap.classList.add("category-nav-wrap--expanded");
         button.setAttribute("aria-expanded", "true");
         button.setAttribute("aria-label", "Collapse recipe categories");
         buttonLabel.textContent = "View Less";
       } else {
+        const firstItem = categoryNav.querySelector(".category-nav__item, .category-nav__link");
+        const singleH = firstItem ? Math.ceil(firstItem.getBoundingClientRect().height) : 24;
         wrap.style.height = `${singleH}px`;
         wrap.classList.remove("category-nav-wrap--expanded");
         wrap.classList.add("category-nav-wrap--collapsed");
@@ -116,8 +105,6 @@ document.addEventListener("DOMContentLoaded", () => {
       applyState();
     });
 
-    // Wait for fonts so the initial measurement uses the real glyph widths,
-    // not the fallback font (which can cause false "wrap detected" readings).
     document.fonts.ready.then(() => {
       requestAnimationFrame(() => {
         expanded = false;
@@ -125,13 +112,18 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 
-    let resizeTimer = null;
-    window.addEventListener("resize", () => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => {
+    if ("ResizeObserver" in window) {
+      new ResizeObserver(() => {
+        expanded = false;
         applyState();
-      }, 80);
-    });
+      }).observe(categoryNav);
+    } else {
+      let resizeTimer = null;
+      window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => { applyState(); }, 80);
+      });
+    }
   });
 
   const carousels = document.querySelectorAll("[data-card-carousel]");
