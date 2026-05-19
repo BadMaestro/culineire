@@ -10,4 +10,6 @@ urlpatterns = [
     path("author-submission-agreement/", views.AuthorSubmissionAgreementView.as_view(), name="author_submission_agreement"),
     path("copyright-image-rights-guide/", views.CopyrightImageRightsGuideView.as_view(), name="copyright_image_rights_guide"),
     path("report-content/", views.report_content, name="report_content"),
+    path("reports/", views.reports_list, name="reports_list"),
+    path("reports/<int:pk>/", views.report_detail, name="report_detail"),
 ]

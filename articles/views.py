@@ -1,11 +1,13 @@
 import json
 
 from django.conf import settings
-from django.utils.safestring import mark_safe
 from django.contrib import messages
 from django.db.models import Prefetch, Q
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
+from django.utils.safestring import mark_safe
+from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
 from collection.models import SavedArticle
@@ -13,7 +15,7 @@ from config.turnstile import verify_turnstile
 from monitoring.tracker import track_event
 from recipes.authoring import AuthorRequiredMixin, user_can_manage_author
 from recipes.models import RecipeAuthor
-from recipes.views import is_moderator
+from accounts.views import is_moderator
 from .forms import ArticleAuthoringForm
 from .models import Article, ArticleImage
 
@@ -291,3 +293,41 @@ class ArticleDeleteView(AuthorRequiredMixin, DeleteView):
         context["delete_label"] = "Delete Article"
         context["cancel_url"] = self.object.get_absolute_url()
         return context
+
+
+# ── Moderation ────────────────────────────────────────────────────────────────
+
+@require_POST
+def moderate_article(request, slug):
+    if not is_moderator(request.user):
+        raise Http404
+    article = get_object_or_404(Article, slug=slug)
+    action = request.POST.get("action")
+
+    if action == "approve":
+        article.status = Article.Status.APPROVED
+        article.save(update_fields=["status"])
+        messages.success(request, f'"{article.title}" approved and is now live.')
+    elif action == "reject":
+        article.status = Article.Status.REJECTED
+        article.save(update_fields=["status"])
+        messages.warning(request, f'"{article.title}" rejected.')
+    elif action == "delete":
+        title = article.title
+        article.delete()
+        messages.success(request, f'"{title}" permanently deleted.')
+    elif action == "block":
+        user = article.author.user if article.author else None
+        if user:
+            user.is_active = False
+            user.save(update_fields=["is_active"])
+            messages.warning(request, f'User "{user.username}" has been blocked.')
+        else:
+            messages.error(request, "No linked user account found.")
+
+    if action not in ("delete", "block"):
+        try:
+            return redirect(article.get_absolute_url())
+        except (AttributeError, TypeError, ValueError):
+            pass
+    return redirect("recipes:moderation_panel")

@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib import messages as django_messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import BadHeaderError
-from config.email_utils import send_template_mail
+from config.email_utils import sanitize_email_subject, send_template_mail
 from django.db import models
 from django.db.models import Exists, OuterRef
 from django.http import Http404
@@ -14,7 +14,9 @@ from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from recipes.views import is_moderator
+from django_ratelimit.decorators import ratelimit
+
+from accounts.views import is_moderator
 from .models import Message
 
 
@@ -133,7 +135,7 @@ def send_message(request):
 
     recipient_id = request.POST.get("recipient_id")
     body = request.POST.get("body", "").strip()
-    subject = request.POST.get("subject", "").strip()
+    subject = sanitize_email_subject(request.POST.get("subject", ""))
     recipe_id = request.POST.get("recipe_id")
     article_id = request.POST.get("article_id")
     action = request.POST.get("action", "message")
@@ -219,6 +221,7 @@ def send_message(request):
     return _moderation_redirect(request)
 
 
+@ratelimit(key="ip", rate="10/h", method="POST", block=False)
 def contact(request):
     from django.conf import settings
     from config.turnstile import verify_turnstile
@@ -238,6 +241,16 @@ def contact(request):
         if not request.user.is_authenticated:
             return redirect("login")
 
+        if getattr(request, "limited", False):
+            return render(request, "messaging/contact.html", {
+                **ctx_base,
+                "error": "Too many messages. Please wait before trying again.",
+            })
+
+        # Honeypot — silent reject if bot fills hidden field
+        if request.POST.get("website", "").strip():
+            return redirect(request.path + "?sent=1")
+
         token = request.POST.get("cf-turnstile-response", "")
         if not verify_turnstile(token, request.META.get("REMOTE_ADDR", "")):
             return render(request, "messaging/contact.html", {
@@ -245,7 +258,7 @@ def contact(request):
                 "error": "Security check failed. Please try again.",
             })
 
-        subject = request.POST.get("subject", "").strip()
+        subject = sanitize_email_subject(request.POST.get("subject", ""))
         body = request.POST.get("body", "").strip()
 
         if not body:
@@ -420,38 +433,3 @@ def message_archive(request):
     )
     return render(request, "messaging/archive.html", {"archived_threads": thread_roots})
 
-
-@login_required
-def reports_list(request):
-    if not request.user.is_superuser:
-        raise Http404
-
-    from legal.models import ContentReport
-    reports = (
-        ContentReport.objects
-        .select_related("reporter_user", "linked_message")
-        .order_by("-created_at")
-    )
-    return render(request, "messaging/reports_list.html", {"reports": reports})
-
-
-@login_required
-def report_detail(request, pk):
-    if not request.user.is_superuser:
-        raise Http404
-
-    from legal.models import ContentReport
-    report = get_object_or_404(
-        ContentReport.objects.select_related("reporter_user", "linked_message"),
-        pk=pk,
-    )
-
-    if request.method == "POST" and request.POST.get("action") == "resolve":
-        note = request.POST.get("resolved_note", "").strip()
-        report.is_resolved = True
-        report.resolved_note = note
-        report.save(update_fields=["is_resolved", "resolved_note"])
-        django_messages.success(request, "Report marked as resolved.")
-        return redirect("messaging:reports_list")
-
-    return render(request, "messaging/report_detail.html", {"report": report})

@@ -62,6 +62,7 @@
             {% elif greenbear_available %}
             <form class="auth-form" method="post">
                 {% csrf_token %}
+                <input type="text" name="website" style="display:none;" tabindex="-1" autocomplete="off">
 
                 {% if error %}
                 <div class="auth-errors" role="alert"><p>{{ error }}</p></div>

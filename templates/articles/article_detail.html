@@ -198,14 +198,14 @@
     <div class="mod-bar__inner">
         <span class="mod-bar__label">Moderation</span>
 
-        <form action="{% url 'recipes:moderate_article' article.slug %}" method="post">{% csrf_token %}
+        <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
             <button class="mod-bar__btn mod-bar__btn--approve" name="action" type="submit" value="approve">Approve
             </button>
         </form>
-        <form action="{% url 'recipes:moderate_article' article.slug %}" method="post">{% csrf_token %}
+        <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
             <button class="mod-bar__btn mod-bar__btn--reject" name="action" type="submit" value="reject">Reject</button>
         </form>
-        <form action="{% url 'recipes:moderate_article' article.slug %}" method="post">{% csrf_token %}
+        <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
             <button class="mod-bar__btn mod-bar__btn--delete" name="action" onclick="return confirm('Permanently delete this article?')" type="submit"
                     value="delete">Delete
             </button>
@@ -217,7 +217,7 @@
         </button>
         {% endif %}
         {% if article.author.user and article.author.user != request.user and article.author.slug != "greenbear" %}
-        <form action="{% url 'recipes:block_author' article.author.slug %}" method="post">{% csrf_token %}
+        <form action="{% url 'accounts:manage_author' article.author.slug %}" method="post">{% csrf_token %}
             <input name="next" type="hidden" value="{{ request.get_full_path }}">
             <button class="mod-bar__btn mod-bar__btn--block" name="action" onclick="return confirm('Block user {{ article.author.user.username }}?')" type="submit" value="block">Block Author</button>
         </form>

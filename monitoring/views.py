@@ -12,7 +12,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from recipes.views import is_moderator
+from accounts.views import is_moderator
 
 from .models import PageView, SecurityEvent, UserActivity
 

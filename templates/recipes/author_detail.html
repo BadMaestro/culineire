@@ -110,7 +110,7 @@
             <div class="author-profile-manage__actions">
                 <a class="btn" href="{% url 'recipes:moderation_author_edit' author.slug %}">Edit Author Profile</a>
                 <a class="recipe-card__cta btn btn--danger recipe-card__delete" href="{% url 'recipes:moderation_author_delete' author.slug %}">Delete Author Profile</a>
-                <form action="{% url 'recipes:block_author' author.slug %}" method="post">
+                <form action="{% url 'accounts:manage_author' author.slug %}" method="post">
                     {% csrf_token %}
                     <input name="next" type="hidden" value="{{ request.get_full_path }}">
                     <button class="btn btn--danger" name="action" onclick="return confirm('Block user {{ author.user.username }}? They will no longer be able to log in.')"

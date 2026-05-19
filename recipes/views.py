@@ -6,9 +6,6 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.tokens import default_token_generator
-from django.contrib.auth.views import LoginView
-from config.email_utils import send_template_mail
 from django.db import transaction
 from django.db.models import Avg, Case, Count, IntegerField, Prefetch, Q, Value, When
 from django.http import Http404
@@ -16,15 +13,17 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.templatetags.static import static
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
-from django.utils.encoding import force_bytes, force_str
 from django.utils.safestring import mark_safe
-from django.utils.http import url_has_allowed_host_and_scheme, urlsafe_base64_decode, urlsafe_base64_encode
-from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DeleteView, UpdateView
 # noinspection PyPackageRequirements
 from django_ratelimit.decorators import ratelimit
 
+from accounts.views import (
+    can_grant_bearseeker_privileges as _can_grant_bearseeker_privileges,
+    can_revoke_superuser_privileges as _can_revoke_superuser_privileges,
+    is_moderator,
+)
 from articles.models import Article
 from collection.models import SavedRecipe
 from config.turnstile import verify_turnstile
@@ -36,8 +35,6 @@ from .forms import (
     RecipeAuthorProfileForm,
     RecipeCommentForm,
     RecipeRatingForm,
-    SignInForm,
-    SignUpForm,
 )
 from .models import Recipe, RecipeAuthor, RecipeComment, RecipeImage, RecipeRating
 
@@ -675,6 +672,7 @@ def submit_recipe_rating(request, slug):
 
 
 @require_POST
+@login_required
 def reset_recipe_rating(request, slug):
     recipe = get_object_or_404(Recipe, slug=slug)
     session_key = f"recipe_rating_submitted_{recipe.pk}"
@@ -1057,151 +1055,7 @@ class ModeratorAuthorDeleteView(DeleteView):
         return context
 
 
-class CulinEireLoginView(LoginView):
-    authentication_form = SignInForm
-    template_name = "registration/login.html"
-    redirect_authenticated_user = True
-
-    @method_decorator(sensitive_post_parameters("password"))
-    @method_decorator(ratelimit(key="ip", rate="20/10m", method="POST", block=False))
-    @method_decorator(ratelimit(key="post:username", rate="20/10m", method="POST", block=False))
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        if getattr(request, "limited", False):
-            user_model = get_user_model()
-            username = request.POST.get("username", "")
-            try:
-                user = user_model.objects.get(username=username)
-                if getattr(user, "is_superuser", False):
-                    return super().post(request, *args, **kwargs)
-            except user_model.DoesNotExist:
-                pass
-            messages.error(request, "Too many sign-in attempts. Please wait a few minutes and try again.")
-            return redirect("login")
-        return super().post(request, *args, **kwargs)
-
-
-class SignUpView(CreateView):
-    form_class = SignUpForm
-    template_name = "registration/signup.html"
-    success_url = reverse_lazy("home")
-
-    @method_decorator(sensitive_post_parameters("password1", "password2"))
-    @method_decorator(ratelimit(key="ip", rate="3/h", method="POST", block=False))
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["turnstile_site_key"] = settings.TURNSTILE_SITE_KEY
-        return ctx
-
-    def post(self, request, *args, **kwargs):
-        if getattr(request, "limited", False):
-            messages.error(request, "Too many account creation attempts. Please try again later.")
-            return redirect("signup")
-        token = request.POST.get("cf-turnstile-response", "")
-        if not verify_turnstile(token, request.META.get("REMOTE_ADDR", "")):
-            messages.error(request, "Security check failed. Please try again.")
-            return redirect("signup")
-        return super().post(request, *args, **kwargs)
-
-    @staticmethod
-    def _unique_author_slug(base):
-        from django.utils.text import slugify
-        slug = slugify(base) or "author"
-        if not RecipeAuthor.objects.filter(slug=slug).exists():
-            return slug
-        counter = 2
-        while RecipeAuthor.objects.filter(slug=f"{slug}-{counter}").exists():
-            counter += 1
-        return f"{slug}-{counter}"
-
-    def form_valid(self, form):
-        require_confirmation = getattr(settings, "SIGNUP_REQUIRE_EMAIL_CONFIRMATION", True)
-        user = form.save(commit=False)
-        user.is_active = not require_confirmation
-        user.save()
-        author_name = user.get_full_name() or user.username
-
-        RecipeAuthor.objects.create(
-            user=user,
-            name=author_name,
-            slug=self._unique_author_slug(author_name),
-            default_avatar=form.cleaned_data["default_avatar"],
-        )
-
-        if not require_confirmation:
-            user.backend = "django.contrib.auth.backends.ModelBackend"
-            login(self.request, user)
-            return render(self.request, "registration/signup_success.html", {"email": user.email})
-
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        token = default_token_generator.make_token(user)
-        domain = settings.SITE_DOMAIN
-        activation_url = f"{settings.SITE_SCHEME}://{domain}/accounts/activate/{uid}/{token}/"
-
-        send_template_mail(
-            subject="Confirm your CulinEire account",
-            template="activation",
-            context={"author_name": author_name, "activation_url": activation_url},
-            recipient_list=[user.email],
-            fail_silently=False,
-        )
-
-        return render(self.request, "registration/activation_pending.html", {"email": user.email})
-
-
-@ratelimit(key="ip", rate="20/h", method="GET", block=True)
-def activate_account(request, uidb64, token):
-    user_model = get_user_model()
-    try:
-        uid = force_str(urlsafe_base64_decode(uidb64))
-        user = user_model.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, user_model.DoesNotExist):
-        user = None
-
-    if user is not None and default_token_generator.check_token(user, token):
-        user.is_active = True
-        user.save()
-        user.backend = "django.contrib.auth.backends.ModelBackend"
-        login(request, user)
-        messages.success(request, "Your email is confirmed. Welcome to CulinEire!")
-        return redirect("home")
-
-    return render(request, "registration/activation_invalid.html", status=400)
-
-
 # ── Moderation ────────────────────────────────────────────────────────────────
-
-def is_moderator(user):
-    if not user or not user.is_authenticated:
-        return False
-    if user.is_staff or user.is_superuser:
-        return True
-    author = getattr(user, "recipe_author_profile", None)
-    return author is not None and (
-        author.slug == "greenbear"
-        or author.has_bearseeker_privileges
-    )
-
-
-def _can_grant_bearseeker_privileges(user):
-    if not user or not user.is_authenticated:
-        return False
-    if user.is_superuser:
-        return True
-    author = getattr(user, "recipe_author_profile", None)
-    return author is not None and author.slug == "greenbear"
-
-
-def _can_revoke_superuser_privileges(user):
-    if not user or not user.is_authenticated:
-        return False
-    author = getattr(user, "recipe_author_profile", None)
-    return author is not None and author.slug == "greenbear"
 
 
 def moderation_panel(request):
@@ -1306,112 +1160,10 @@ def moderate_recipe(request, slug):
         else:
             messages.error(request, "No linked user account found.")
 
-    next_url = request.POST.get("next") or request.META.get("HTTP_REFERER", "")
-    if next_url and "/recipes/moderation" not in next_url and recipe.pk and action not in ("delete", "block"):
+    if action not in ("delete", "block") and recipe.pk:
         return redirect(recipe.get_absolute_url())
     return redirect("recipes:moderation_panel")
 
 
-@require_POST
-def moderate_article(request, slug):
-    if not is_moderator(request.user):
-        raise Http404
-    article = get_object_or_404(Article, slug=slug)
-    action = request.POST.get("action")
-
-    if action == "approve":
-        article.status = Article.Status.APPROVED
-        article.save(update_fields=["status"])
-        messages.success(request, f'"{article.title}" approved and is now live.')
-    elif action == "reject":
-        article.status = Article.Status.REJECTED
-        article.save(update_fields=["status"])
-        messages.warning(request, f'"{article.title}" rejected.')
-    elif action == "delete":
-        title = article.title
-        article.delete()
-        messages.success(request, f'"{title}" permanently deleted.')
-    elif action == "block":
-        user = article.author.user if article.author else None
-        if user:
-            user.is_active = False
-            user.save(update_fields=["is_active"])
-            messages.warning(request, f'User "{user.username}" has been blocked.')
-        else:
-            messages.error(request, "No linked user account found.")
-
-    next_url = request.POST.get("next") or request.META.get("HTTP_REFERER", "")
-    if next_url and "/recipes/moderation" not in next_url and action not in ("delete", "block"):
-        try:
-            return redirect(article.get_absolute_url())
-        except (AttributeError, TypeError, ValueError):
-            pass
-    return redirect("recipes:moderation_panel")
 
 
-@require_POST
-def block_author(request, slug):
-    if not is_moderator(request.user):
-        raise Http404
-    author = get_object_or_404(RecipeAuthor, slug=slug)
-    user = author.user
-    if user:
-        action = request.POST.get("action", "block")
-        if action == "revoke_superuser":
-            if not _can_revoke_superuser_privileges(request.user):
-                raise Http404
-            if user.pk == request.user.pk or author.slug == "greenbear" or not user.is_superuser:
-                raise Http404
-            author.has_bearseeker_privileges = False
-            author.save(update_fields=["has_bearseeker_privileges"])
-            user.is_superuser = False
-            user.is_staff = False
-            user.is_active = True
-            user.save(update_fields=["is_superuser", "is_staff", "is_active"])
-            messages.warning(request, f'Superuser privileges revoked from "{author.name}".')
-        elif author.slug == "greenbear" or user.is_superuser:
-            raise Http404
-        elif action == "grant_bearseeker":
-            if not _can_grant_bearseeker_privileges(request.user):
-                raise Http404
-            author.has_bearseeker_privileges = True
-            author.save(update_fields=["has_bearseeker_privileges"])
-            user.is_active = True
-            user.save(update_fields=["is_active"])
-            messages.success(request, f'Author "{author.name}" now has (Bear)seeker moderation privileges.')
-            if user.email:
-                try:
-                    send_template_mail(
-                        subject="Your CulinEire Kitchen moderator access",
-                        template="moderator_granted",
-                        context={"author_name": author.name or user.username},
-                        recipient_list=[user.email],
-                        fail_silently=True,
-                    )
-                except Exception:
-                    pass
-        elif action == "revoke_bearseeker":
-            if not _can_grant_bearseeker_privileges(request.user):
-                raise Http404
-            author.has_bearseeker_privileges = False
-            author.save(update_fields=["has_bearseeker_privileges"])
-            messages.warning(request, f'(Bear)seeker privileges revoked from "{author.name}".')
-        elif action == "unblock":
-            user.is_active = True
-            user.save(update_fields=["is_active"])
-            messages.success(request, f'User "{user.username}" has been unblocked.')
-        else:
-            user.is_active = False
-            user.save(update_fields=["is_active"])
-            messages.warning(request, f'User "{user.username}" has been blocked.')
-    else:
-        messages.error(request, "No linked user account found.")
-
-    next_url = request.POST.get("next", "")
-    if next_url and url_has_allowed_host_and_scheme(
-        next_url,
-        allowed_hosts={request.get_host()},
-        require_https=request.is_secure(),
-    ):
-        return redirect(next_url)
-    return redirect("recipes:author_detail", slug=slug)

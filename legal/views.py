@@ -1,9 +1,11 @@
 import logging
 
 from django.conf import settings
+from django.contrib import messages as django_messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import BadHeaderError
-from django.shortcuts import redirect, render
+from django.http import Http404
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import TemplateView
 from django_ratelimit.decorators import ratelimit
 
@@ -37,7 +39,7 @@ def _send_report_notification(report):
         return
 
     report_url = (
-        f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}/messages/reports/{report.pk}/"
+        f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}/legal/reports/{report.pk}/"
     )
     subject = f"[CulinEire] New content report: {report.get_report_type_display()}"
     try:
@@ -119,3 +121,37 @@ def report_content(request):
         "turnstile_site_key": settings.TURNSTILE_SITE_KEY,
         "rate_limited": False,
     })
+
+
+# ── Reports admin ──────────────────────────────────────────────────────────────
+
+@login_required
+def reports_list(request):
+    if not request.user.is_superuser:
+        raise Http404
+    from .models import ContentReport
+    reports = (
+        ContentReport.objects
+        .select_related("reporter_user", "linked_message")
+        .order_by("-created_at")
+    )
+    return render(request, "legal/reports_list.html", {"reports": reports})
+
+
+@login_required
+def report_detail(request, pk):
+    if not request.user.is_superuser:
+        raise Http404
+    from .models import ContentReport
+    report = get_object_or_404(
+        ContentReport.objects.select_related("reporter_user", "linked_message"),
+        pk=pk,
+    )
+    if request.method == "POST" and request.POST.get("action") == "resolve":
+        note = request.POST.get("resolved_note", "").strip()
+        report.is_resolved = True
+        report.resolved_note = note
+        report.save(update_fields=["is_resolved", "resolved_note"])
+        django_messages.success(request, "Report marked as resolved.")
+        return redirect("legal:reports_list")
+    return render(request, "legal/report_detail.html", {"report": report})

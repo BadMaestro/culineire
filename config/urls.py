@@ -8,6 +8,7 @@ from django.urls import include, path, re_path
 from django.views.generic import RedirectView, TemplateView
 from django.views.static import serve
 
+from accounts import views as accounts_views
 from config import views as config_views
 from recipes import views as recipes_views
 
@@ -52,10 +53,13 @@ urlpatterns = [
     # Monitoring dashboard
     path("recipes/moderation/monitoring/", include("monitoring.urls", namespace="monitoring")),
 
+    # Accounts (user management)
+    path("accounts/", include("accounts.urls", namespace="accounts")),
+
     # Authentication
-    path("accounts/login/", recipes_views.CulinEireLoginView.as_view(), name="login"),
-    path("accounts/signup/", recipes_views.SignUpView.as_view(), name="signup"),
-    path("accounts/activate/<uidb64>/<token>/", recipes_views.activate_account, name="activate_account"),
+    path("accounts/login/", accounts_views.CulinEireLoginView.as_view(), name="login"),
+    path("accounts/signup/", accounts_views.SignUpView.as_view(), name="signup"),
+    path("accounts/activate/<uidb64>/<token>/", accounts_views.activate_account, name="activate_account"),
     path("accounts/", include("django.contrib.auth.urls")),
 ]
 

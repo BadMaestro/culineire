@@ -155,19 +155,19 @@
                 </div>
                 <div class="moderation-card__actions">
                     <a class="mod-btn mod-btn--view" href="{{ article.get_absolute_url }}" target="_blank">View</a>
-                    <form action="{% url 'recipes:moderate_article' article.slug %}" method="post">{% csrf_token %}
+                    <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
                         <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
                     </form>
                     <a class="mod-btn mod-btn--edit" href="{% url 'articles:article_edit' article.slug %}">Edit</a>
-                    <form action="{% url 'recipes:moderate_article' article.slug %}" method="post">{% csrf_token %}
+                    <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
                         <button class="mod-btn mod-btn--reject" name="action" type="submit" value="reject">Reject</button>
                     </form>
-                    <form action="{% url 'recipes:moderate_article' article.slug %}" method="post">{% csrf_token %}
+                    <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
                         <button class="mod-btn mod-btn--delete" name="action" onclick="return confirm('Permanently delete this article?')" type="submit"
                             value="delete">Delete</button>
                     </form>
                     {% if article.author.user %}
-                    <form action="{% url 'recipes:moderate_article' article.slug %}" method="post">{% csrf_token %}
+                    <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
                         <button class="mod-btn mod-btn--block" name="action" onclick="return confirm('Block user {{ article.author.user.username }}?')" type="submit"
                             value="block">Block User</button>
                     </form>
@@ -190,16 +190,16 @@
                 </div>
                 <div class="moderation-card__actions">
                     <a class="mod-btn mod-btn--view" href="{{ article.get_absolute_url }}" target="_blank">View</a>
-                    <form action="{% url 'recipes:moderate_article' article.slug %}" method="post">{% csrf_token %}
+                    <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
                         <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
                     </form>
                     <a class="mod-btn mod-btn--edit" href="{% url 'articles:article_edit' article.slug %}">Edit</a>
-                    <form action="{% url 'recipes:moderate_article' article.slug %}" method="post">{% csrf_token %}
+                    <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
                         <button class="mod-btn mod-btn--delete" name="action" onclick="return confirm('Permanently delete this article?')" type="submit"
                             value="delete">Delete</button>
                     </form>
                     {% if article.author.user %}
-                    <form action="{% url 'recipes:moderate_article' article.slug %}" method="post">{% csrf_token %}
+                    <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
                         <button class="mod-btn mod-btn--block" name="action" onclick="return confirm('Block user {{ article.author.user.username }}?')" type="submit"
                             value="block">Block User</button>
                     </form>
@@ -231,7 +231,7 @@
                 </div>
                 {% if can_revoke_superuser_privileges and author.user != request.user and author.slug != "greenbear" %}
                 <div class="moderation-card__actions">
-                    <form action="{% url 'recipes:block_author' author.slug %}" method="post">{% csrf_token %}
+                    <form action="{% url 'accounts:manage_author' author.slug %}" method="post">{% csrf_token %}
                         <input name="next" type="hidden" value="{{ request.get_full_path }}">
                         <button class="mod-btn mod-btn--delete" name="action"
                             onclick="return confirm('Revoke Django superuser privileges from {{ author.user.username }}?')"
@@ -266,7 +266,7 @@
                 </div>
                 <div class="moderation-card__actions">
                     {% if can_grant_bearseeker_privileges %}
-                    <form action="{% url 'recipes:block_author' author.slug %}" method="post">{% csrf_token %}
+                    <form action="{% url 'accounts:manage_author' author.slug %}" method="post">{% csrf_token %}
                         <input name="next" type="hidden" value="{{ request.get_full_path }}">
                         <button class="mod-btn mod-btn--delete" name="action"
                             onclick="return confirm('Revoke (Bear)seeker privileges from {{ author.user.username }}?')"
@@ -348,7 +348,7 @@
                                         </form>
                                     </details>
                                     {% if can_grant_bearseeker_privileges and not author.has_bearseeker_privileges and not author.user.is_staff and not author.user.is_superuser %}
-                                        <form action="{% url 'recipes:block_author' author.slug %}" class="moderation-author-table-actions__grant" method="post">{% csrf_token %}
+                                        <form action="{% url 'accounts:manage_author' author.slug %}" class="moderation-author-table-actions__grant" method="post">{% csrf_token %}
                                             <input name="next" type="hidden" value="{{ request.get_full_path }}">
                                             <button class="mod-btn mod-btn--grant" name="action" onclick="return confirm('Grant CulinEire moderation privileges to {{ author.user.username }}?')" type="submit" value="grant_bearseeker">Grant (Bear)seeker Privileges</button>
                                         </form>
@@ -413,7 +413,7 @@
                                     </form>
                                 </details>
                                 {% if not author.has_bearseeker_privileges and can_grant_bearseeker_privileges %}
-                                    <form action="{% url 'recipes:block_author' author.slug %}" method="post">{% csrf_token %}
+                                    <form action="{% url 'accounts:manage_author' author.slug %}" method="post">{% csrf_token %}
                                         <input name="next" type="hidden" value="{{ request.get_full_path }}">
                                         {% if author.user.is_active %}
                                         <button class="mod-btn mod-btn--block" name="action" onclick="return confirm('Block user {{ author.user.username }}?')" type="submit" value="block">Block</button>
@@ -424,7 +424,7 @@
                                     <a class="mod-btn mod-btn--delete" href="{% url 'recipes:moderation_author_delete' author.slug %}">Delete Author Profile</a>
                                 {% endif %}
                                 {% if can_grant_bearseeker_privileges and not author.has_bearseeker_privileges and not author.user.is_staff and not author.user.is_superuser %}
-                                    <form action="{% url 'recipes:block_author' author.slug %}" method="post">{% csrf_token %}
+                                    <form action="{% url 'accounts:manage_author' author.slug %}" method="post">{% csrf_token %}
                                         <input name="next" type="hidden" value="{{ request.get_full_path }}">
                                         <button class="mod-btn mod-btn--grant" name="action" onclick="return confirm('Grant CulinEire moderation privileges to {{ author.user.username }}?')" type="submit" value="grant_bearseeker">Grant (Bear)seeker Privileges</button>
                                     </form>
@@ -456,7 +456,7 @@
                             </form>
                         </details>
                         {% if author.slug != "greenbear" and not author.has_bearseeker_privileges and can_grant_bearseeker_privileges %}
-                            <form action="{% url 'recipes:block_author' author.slug %}" method="post">{% csrf_token %}
+                            <form action="{% url 'accounts:manage_author' author.slug %}" method="post">{% csrf_token %}
                                 <input name="next" type="hidden" value="{{ request.get_full_path }}">
                                 {% if author.user.is_active %}
                                 <button class="mod-btn mod-btn--block" name="action" onclick="return confirm('Block user {{ author.user.username }}?')" type="submit" value="block">Block</button>
@@ -469,7 +469,7 @@
                         <a class="mod-btn mod-btn--delete" href="{% url 'recipes:moderation_author_delete' author.slug %}">Delete Author Profile</a>
                         {% endif %}
                         {% if can_grant_bearseeker_privileges and not author.has_bearseeker_privileges and not author.user.is_staff and not author.user.is_superuser %}
-                            <form action="{% url 'recipes:block_author' author.slug %}" method="post">{% csrf_token %}
+                            <form action="{% url 'accounts:manage_author' author.slug %}" method="post">{% csrf_token %}
                                 <input name="next" type="hidden" value="{{ request.get_full_path }}">
                                 <button class="mod-btn mod-btn--grant" name="action" onclick="return confirm('Grant CulinEire moderation privileges to {{ author.user.username }}?')" type="submit" value="grant_bearseeker">Grant (Bear)seeker Privileges</button>
                             </form>
