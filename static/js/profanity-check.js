@@ -141,16 +141,19 @@
     }
 
     /* ------------------------------------------------------------------ */
-    /*  Init a single textarea                                              */
+    /*  Init a single field (textarea or input)                            */
     /* ------------------------------------------------------------------ */
-    function initTextarea(ta) {
+    function initField(el) {
         /* Avoid double-init */
-        if (ta.dataset.profanityInit) return;
-        ta.dataset.profanityInit = "1";
+        if (el.dataset.profanityInit) return;
+        el.dataset.profanityInit = "1";
+
+        var isTextarea = el.tagName.toLowerCase() === "textarea";
 
         /* -- wrapper -- */
         var wrapper = document.createElement("div");
         wrapper.className = "profanity-wrapper";
+        if (!isTextarea) wrapper.classList.add("profanity-wrapper--input");
 
         /* -- backdrop -- */
         var backdrop = document.createElement("div");
@@ -159,48 +162,62 @@
 
         var highlights = document.createElement("div");
         highlights.className = "profanity-highlights";
+        if (!isTextarea) highlights.classList.add("profanity-highlights--input");
         backdrop.appendChild(highlights);
 
-        /* Insert wrapper into DOM, move textarea inside it */
-        ta.parentNode.insertBefore(wrapper, ta);
+        /* Insert wrapper into DOM, move element inside it */
+        el.parentNode.insertBefore(wrapper, el);
         wrapper.appendChild(backdrop);
-        wrapper.appendChild(ta);
+        wrapper.appendChild(el);
 
         /* -- sync function -- */
         function sync() {
-            /* Copy layout styles so backdrop overlaps textarea exactly */
-            copyStyles(ta, highlights);
+            /* Copy layout styles so backdrop overlaps element exactly */
+            copyStyles(el, highlights);
 
-            /* Match wrapper and backdrop dimensions to textarea */
-            var w = ta.offsetWidth;
-            var h = ta.offsetHeight;
+            /* For single-line inputs: override wrapping */
+            if (!isTextarea) {
+                highlights.style.whiteSpace = "nowrap";
+                highlights.style.overflow   = "hidden";
+            }
+
+            /* Match backdrop dimensions to element */
+            var w = el.offsetWidth;
+            var h = el.offsetHeight;
             backdrop.style.width  = w + "px";
             backdrop.style.height = h + "px";
 
             /* Render highlighted text */
-            highlights.innerHTML = buildHighlightHtml(ta.value);
+            var text = isTextarea ? el.value : el.value;
+            highlights.innerHTML = buildHighlightHtml(text);
 
             /* Sync scroll position */
-            backdrop.scrollTop  = ta.scrollTop;
-            backdrop.scrollLeft = ta.scrollLeft;
+            if (isTextarea) {
+                backdrop.scrollTop  = el.scrollTop;
+                backdrop.scrollLeft = el.scrollLeft;
+            } else {
+                backdrop.scrollLeft = el.scrollLeft;
+            }
 
             /* Block / allow form submission */
-            var bad = hasProfanity(ta.value);
-            ta.setCustomValidity(bad ? "Text contains forbidden words — please remove them before publishing." : "");
+            var bad = hasProfanity(el.value);
+            el.setCustomValidity(bad ? "Text contains forbidden words — please remove them before publishing." : "");
 
-            /* Visual feedback on the textarea border */
-            ta.classList.toggle("profanity-active", bad);
+            /* Visual feedback */
+            el.classList.toggle("profanity-active", bad);
         }
 
-        ta.addEventListener("input",  sync);
-        ta.addEventListener("scroll", function () {
-            backdrop.scrollTop  = ta.scrollTop;
-            backdrop.scrollLeft = ta.scrollLeft;
+        el.addEventListener("input",  sync);
+        el.addEventListener("scroll", function () {
+            if (isTextarea) {
+                backdrop.scrollTop  = el.scrollTop;
+            }
+            backdrop.scrollLeft = el.scrollLeft;
         });
 
-        /* Re-sync when the textarea is resized by the user */
-        if (window.ResizeObserver) {
-            new ResizeObserver(sync).observe(ta);
+        /* Re-sync when element is resized (textarea only) */
+        if (isTextarea && window.ResizeObserver) {
+            new ResizeObserver(sync).observe(el);
         }
 
         sync();
@@ -210,7 +227,7 @@
     /*  Boot                                                                */
     /* ------------------------------------------------------------------ */
     function init() {
-        document.querySelectorAll("textarea[data-profanity]").forEach(initTextarea);
+        document.querySelectorAll("[data-profanity]").forEach(initField);
     }
 
     if (document.readyState === "loading") {

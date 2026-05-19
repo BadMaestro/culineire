@@ -98,8 +98,8 @@ class ArticleAuthoringForm(forms.ModelForm):
         widgets = {
             "hero_image": _NoCurrentlyWidget(),
             "published": forms.DateInput(attrs={"type": "date"}),
-            "excerpt": forms.Textarea(attrs={"rows": 3, "data-profanity": ""}),
-            "body": forms.Textarea(attrs={"rows": 12, "data-profanity": ""}),
+            "excerpt": forms.Textarea(attrs={"rows": 3}),
+            "body": forms.Textarea(attrs={"rows": 12}),
         }
 
     def __init__(self, *args, author=None, **kwargs):
@@ -114,9 +114,13 @@ class ArticleAuthoringForm(forms.ModelForm):
         self.fields["published"].initial = self.fields["published"].initial or timezone.localdate()
         self.fields["related_recipe"].required = False
 
+        _skip = {"confirm_own_work", "confirm_image_rights", "confirm_rules"}
+        _text_widgets = (forms.TextInput, forms.Textarea)
         for field_name, field in self.fields.items():
-            if field_name not in ("confirm_own_work", "confirm_image_rights", "confirm_rules"):
+            if field_name not in _skip:
                 field.widget.attrs.setdefault("class", "authoring-control")
+            if field_name not in _skip and isinstance(field.widget, _text_widgets):
+                field.widget.attrs.setdefault("data-profanity", "")
 
         self.fields["title"].widget.attrs.setdefault(
             "placeholder", "How To Make Perfect Irish Potato Soup",
@@ -141,48 +145,23 @@ class ArticleAuthoringForm(forms.ModelForm):
             if self.instance.confirmed_rules:
                 self.fields["confirm_rules"].initial = True
 
-    # ── Profanity validation ──────────────────────────────────────────────
+    # ── Profanity validation (all text fields in one pass) ────────────────
 
-    def _profanity_error(self, field_name: str, label: str) -> None:
-        text = self.cleaned_data.get(field_name, "")
-        bad = find_profanity(text)
-        if bad:
-            quoted = ", ".join(f'"{w}"' for w in bad)
-            raise forms.ValidationError(
-                f"{label} contains forbidden words: {quoted}. "
-                "Please remove them before publishing."
-            )
-
-    def clean_title(self):
-        text = self.cleaned_data.get("title", "")
-        bad = find_profanity(text)
-        if bad:
-            quoted = ", ".join(f'"{w}"' for w in bad)
-            raise forms.ValidationError(
-                f"Title contains forbidden words: {quoted}."
-            )
-        return text
-
-    def clean_excerpt(self):
-        text = self.cleaned_data.get("excerpt", "")
-        bad = find_profanity(text)
-        if bad:
-            quoted = ", ".join(f'"{w}"' for w in bad)
-            raise forms.ValidationError(
-                f"Short description contains forbidden words: {quoted}."
-            )
-        return text
-
-    def clean_body(self):
-        text = self.cleaned_data.get("body", "")
-        bad = find_profanity(text)
-        if bad:
-            quoted = ", ".join(f'"{w}"' for w in bad)
-            raise forms.ValidationError(
-                f"Article body contains forbidden words: {quoted}. "
-                "Please remove them before publishing."
-            )
-        return text
+    def clean(self):
+        cleaned_data = super().clean()
+        _text_widgets = (forms.TextInput, forms.Textarea)
+        for field_name, field in self.fields.items():
+            if not isinstance(field.widget, _text_widgets):
+                continue
+            text = cleaned_data.get(field_name, "") or ""
+            bad = find_profanity(text)
+            if bad:
+                quoted = ", ".join(f'"{w}"' for w in bad)
+                self.add_error(
+                    field_name,
+                    f"Contains forbidden words: {quoted}. Please remove them before publishing.",
+                )
+        return cleaned_data
 
     def save(self, commit=True, confirmed_by=None):
         article = super().save(commit=False)

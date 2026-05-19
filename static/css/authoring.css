@@ -576,18 +576,47 @@ textarea.authoring-control {
 }
 
 /* Normal (no profanity) state: wrapper just passes through */
-.profanity-wrapper:not(:has(textarea.profanity-active)) {
+.profanity-wrapper:not(:has(.profanity-active)) {
   background: transparent;
 }
 
 /*
- * Keep the textarea's own background visible when it has no bad words
- * — set it to the control default so it doesn't look broken.
+ * Keep the field's own background visible when it has no bad words.
  */
-.profanity-wrapper:not(:has(textarea.profanity-active)) textarea {
+.profanity-wrapper:not(:has(.profanity-active)) textarea,
+.profanity-wrapper:not(:has(.profanity-active)) input {
   background: rgb(255 255 255 / 0.68) !important;
 }
 
-.profanity-wrapper:not(:has(textarea.profanity-active)) textarea:focus {
+.profanity-wrapper:not(:has(.profanity-active)) textarea:focus,
+.profanity-wrapper:not(:has(.profanity-active)) input:focus {
   background: rgb(255 255 255 / 0.9) !important;
+}
+
+/* ── Input (single-line) variant ── */
+.profanity-wrapper--input {
+  display: inline-block;  /* match input's natural display */
+  width: 100%;
+}
+
+.profanity-highlights--input {
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.profanity-wrapper:has(input.profanity-active) {
+  background: rgb(255 248 248 / 0.85);
+  border-radius: 12px;
+}
+
+.profanity-wrapper input.profanity-active {
+  border-color: rgb(200 30 30 / 0.55) !important;
+  box-shadow: 0 0 0 4px rgb(200 30 30 / 0.10) !important;
+}
+
+.profanity-wrapper input {
+  position: relative;
+  z-index: 1;
+  background: transparent !important;
+  caret-color: #1f2c25;
 }

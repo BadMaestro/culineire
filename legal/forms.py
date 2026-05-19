@@ -1,5 +1,6 @@
 from django import forms
 
+from config.profanity import find_profanity
 from .models import ContentReport
 
 
@@ -17,7 +18,7 @@ class ContentReportForm(forms.ModelForm):
             "description": "Description",
         }
         widgets = {
-            "description": forms.Textarea(attrs={"rows": 6}),
+            "description": forms.Textarea(attrs={"rows": 6, "data-profanity": ""}),
         }
 
     website = forms.CharField(required=False, widget=forms.HiddenInput)
@@ -36,3 +37,11 @@ class ContentReportForm(forms.ModelForm):
         if value:
             raise forms.ValidationError("Spam detected.")
         return value
+
+    def clean_description(self):
+        text = self.cleaned_data.get("description", "") or ""
+        bad = find_profanity(text)
+        if bad:
+            quoted = ", ".join(f'"{w}"' for w in bad)
+            raise forms.ValidationError(f"Contains forbidden words: {quoted}.")
+        return text

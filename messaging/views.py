@@ -278,6 +278,17 @@ def contact(request):
                 "subject": subject,
             })
 
+        from config.profanity import find_profanity as _find_profanity
+        for _text in (subject, body):
+            _bad = _find_profanity(_text)
+            if _bad:
+                _quoted = ", ".join(f'"{w}"' for w in _bad)
+                return render(request, "messaging/contact.html", {
+                    **ctx_base,
+                    "error": f"Your message contains forbidden words: {_quoted}. Please remove them.",
+                    "subject": subject,
+                })
+
         if greenbear_user:
             existing = (
                 Message.objects.filter(
