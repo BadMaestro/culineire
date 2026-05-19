@@ -79,10 +79,10 @@
                     var newRegex = buildRegex(data.words);
                     if (newRegex) {
                         _regex = newRegex;
-                        /* Re-sync all already-initialised textareas */
-                        document.querySelectorAll("textarea[data-profanity-init]")
-                            .forEach(function (ta) {
-                                ta.dispatchEvent(new Event("input"));
+                        /* Re-sync all already-initialised fields */
+                        document.querySelectorAll("[data-profanity-init]")
+                            .forEach(function (el) {
+                                el.dispatchEvent(new Event("input"));
                             });
                     }
                 }

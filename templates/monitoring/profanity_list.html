@@ -5,7 +5,7 @@
 {% block meta_description %}Manage the CulinEire profanity and forbidden word list.{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/monitoring.css' %}?v=20260519d" rel="stylesheet">
+<link href="{% static 'css/monitoring.css' %}?v=20260519e" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -144,11 +144,11 @@
       {% if page_obj.has_other_pages %}
       <nav aria-label="Profanity list pages" class="mon-pagination">
         {% if page_obj.has_previous %}
-        <a class="mon-pagination__link" href="?{% if q %}q={{ q }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+        <a href="?{% if q %}q={{ q }}&{% endif %}page={{ page_obj.previous_page_number }}">&larr; Previous</a>
         {% endif %}
-        <span class="mon-pagination__info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
         {% if page_obj.has_next %}
-        <a class="mon-pagination__link" href="?{% if q %}q={{ q }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+        <a href="?{% if q %}q={{ q }}&{% endif %}page={{ page_obj.next_page_number }}">Next &rarr;</a>
         {% endif %}
       </nav>
       {% endif %}

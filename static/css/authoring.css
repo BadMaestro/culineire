@@ -503,31 +503,53 @@ textarea.authoring-control {
 /* ── Profanity overlay ─────────────────────────────────────────────────── */
 
 /*
- * The wrapper sits in place of the textarea.
- * The textarea and the backdrop div are stacked inside it.
+ * The wrapper takes over all visual responsibility from the field.
+ * It mirrors .authoring-control exactly so nothing looks different
+ * at rest — no border change, no background shift, no layout jump.
  */
 .profanity-wrapper {
   display: block;
   position: relative;
   width: 100%;
+  background: rgb(255 255 255 / 0.68);
+  border: 1px solid rgb(31 44 37 / 0.16);
+  border-radius: 12px;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* Focus ring on the wrapper (replaces the field's own :focus ring) */
+.profanity-wrapper:focus-within {
+  background: rgb(255 255 255 / 0.9);
+  border-color: rgb(11 76 58 / 0.5);
+  box-shadow: 0 0 0 4px rgb(11 76 58 / 0.1);
+}
+
+/* Error state: wrapper turns pinkish with a red border */
+.profanity-wrapper:has(.profanity-active) {
+  background: rgb(255 248 248 / 0.85);
+  border-color: rgb(200 30 30 / 0.55);
+  box-shadow: 0 0 0 4px rgb(200 30 30 / 0.10);
 }
 
 /*
- * The backdrop lives BEHIND the textarea.
- * It clones the textarea's exact dimensions and typography so the
- * highlight marks appear at the same position as the text.
+ * The backdrop lives BEHIND the field.
+ * It clones the field's exact dimensions and typography so the
+ * highlight marks appear at the same position as the typed text.
  */
 .profanity-backdrop {
   position: absolute;
   inset: 0;
-  overflow: hidden;       /* clip to textarea bounds */
+  overflow: hidden;
   pointer-events: none;
   z-index: 0;
   border-radius: 12px;
 }
 
 /*
- * The highlights div mirrors every character of the textarea.
+ * The highlights div mirrors every character of the field.
  * Text colour is transparent so only the underline decoration shows.
  */
 .profanity-highlights {
@@ -539,8 +561,8 @@ textarea.authoring-control {
 }
 
 /*
- * The forbidden word itself: transparent text + red wavy underline.
- * The underline shows through the transparent textarea background.
+ * The forbidden word: transparent text + red wavy underline.
+ * The underline shows through the transparent field background.
  */
 .profanity-mark {
   color: transparent;
@@ -550,73 +572,29 @@ textarea.authoring-control {
 }
 
 /*
- * The textarea sits above the backdrop.
- * Its background must be transparent so the underlines show through.
- * caret-color keeps the cursor visible.
+ * The field sits above the backdrop.
+ * Border, background, and box-shadow are stripped here — the wrapper
+ * provides them. Outline is also removed; :focus-within on the wrapper
+ * supplies the focus ring instead.
  */
-.profanity-wrapper textarea {
+.profanity-wrapper textarea,
+.profanity-wrapper input {
   position: relative;
   z-index: 1;
   background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
   caret-color: #1f2c25;
-}
-
-/*
- * When a forbidden word is present: red border + subtle tint.
- * The wrapper provides the visible background in this state.
- */
-.profanity-wrapper:has(textarea.profanity-active) {
-  background: rgb(255 248 248 / 0.85);
-  border-radius: 12px;
-}
-
-.profanity-wrapper textarea.profanity-active {
-  border-color: rgb(200 30 30 / 0.55) !important;
-  box-shadow: 0 0 0 4px rgb(200 30 30 / 0.10) !important;
-}
-
-/* Normal (no profanity) state: wrapper just passes through */
-.profanity-wrapper:not(:has(.profanity-active)) {
-  background: transparent;
-}
-
-/*
- * Keep the field's own background visible when it has no bad words.
- */
-.profanity-wrapper:not(:has(.profanity-active)) textarea,
-.profanity-wrapper:not(:has(.profanity-active)) input {
-  background: rgb(255 255 255 / 0.68) !important;
-}
-
-.profanity-wrapper:not(:has(.profanity-active)) textarea:focus,
-.profanity-wrapper:not(:has(.profanity-active)) input:focus {
-  background: rgb(255 255 255 / 0.9) !important;
 }
 
 /* ── Input (single-line) variant ── */
 .profanity-wrapper--input {
-  display: inline-block;  /* match input's natural display */
+  display: inline-block;
   width: 100%;
 }
 
 .profanity-highlights--input {
   white-space: nowrap;
   overflow: hidden;
-}
-
-.profanity-wrapper:has(input.profanity-active) {
-  background: rgb(255 248 248 / 0.85);
-  border-radius: 12px;
-}
-
-.profanity-wrapper input.profanity-active {
-  border-color: rgb(200 30 30 / 0.55) !important;
-  box-shadow: 0 0 0 4px rgb(200 30 30 / 0.10) !important;
-}
-
-.profanity-wrapper input {
-  position: relative;
-  z-index: 1;
-  background: transparent !important;
-  caret-color: #1f2c25;
 }
