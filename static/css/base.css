@@ -83,7 +83,6 @@
 
   body {
     margin: 0;
-    overflow-x: clip; /* clip without creating a scroll container — preserves position:fixed on Safari */
     font-family: var(--font-sans);
     font-size: 16px;
     line-height: 1.6;
