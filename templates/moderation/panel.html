@@ -5,7 +5,7 @@
 {% block meta_description %}CulinEire content moderation panel.{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/moderation.css' %}?v=20260519c" rel="stylesheet">
+<link href="{% static 'css/moderation.css' %}?v=20260519d" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -285,8 +285,7 @@
         <div class="moderation-block--authors">
 
             <form class="moderation-author-search" method="get">
-                <label class="moderation-author-search__label" for="author-search">Search author</label>
-                <input class="moderation-author-search__input" id="author-search" name="author_q" placeholder="Author name" type="search" value="{{ author_query }}">
+                <input aria-label="Search author" class="moderation-author-search__input" id="author-search" name="author_q" placeholder="Author name" type="search" value="{{ author_query }}">
                 <button class="mod-btn mod-btn--view" type="submit">Search</button>
                 {% if author_query %}
                 <a class="mod-btn mod-btn--edit" href="{% url 'recipes:moderation_panel' %}">Clear</a>
