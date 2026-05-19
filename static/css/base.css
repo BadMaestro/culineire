@@ -1057,21 +1057,21 @@
 }
 
 .site-message--success {
-  border-color: rgb(22 102 69 / 0.2);
-  border-inline-start: 4px solid rgb(22 102 69 / 0.55);
-  background: linear-gradient(135deg, rgb(22 102 69 / 0.08), rgb(22 102 69 / 0.04));
+  border-color: rgb(22 102 69 / 0.28);
+  border-inline-start: 4px solid #166245;
+  background: #eef7f2;
 }
 
 .site-message--error {
-  border-color: rgb(160 49 49 / 0.2);
-  border-inline-start: 4px solid rgb(160 49 49 / 0.55);
-  background: rgb(160 49 49 / 0.06);
+  border-color: rgb(160 49 49 / 0.28);
+  border-inline-start: 4px solid #a03131;
+  background: #fdf2f2;
 }
 
 .site-message--warning {
-  border-color: rgb(185 117 20 / 0.2);
-  border-inline-start: 4px solid rgb(185 117 20 / 0.55);
-  background: rgb(185 117 20 / 0.06);
+  border-color: rgb(185 117 20 / 0.28);
+  border-inline-start: 4px solid #b97514;
+  background: #fdf8ee;
 }
 
 .site-message--hiding {
