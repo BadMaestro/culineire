@@ -224,9 +224,9 @@
 }
 
 .auth-status--pending .auth-status__mark {
-    color: rgb(120 80 0);
-    border: 1px solid rgb(255 193 7 / 0.42);
-    background: rgb(255 193 7 / 0.18);
+    color: var(--brand);
+    border: 1px solid rgb(24 76 58 / 0.2);
+    background: rgb(24 76 58 / 0.08);
 }
 
 .auth-status__text {
