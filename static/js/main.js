@@ -74,19 +74,22 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const applyState = () => {
+      // Disable transition so height:"auto" takes effect synchronously
+      // before we measure positions — otherwise the in-flight animation
+      // biases getBoundingClientRect() readings.
+      wrap.style.transition = "none";
       wrap.style.height = "auto";
+      void wrap.offsetHeight; // force reflow
 
-      // Position-based wrap detection: reliable regardless of font metrics.
-      // If any item sits lower than the first item, the nav has wrapped.
       const items = [
         ...categoryNav.querySelectorAll(".category-nav__item, .category-nav__link"),
       ];
+      const firstTop = items.length ? items[0].getBoundingClientRect().top : 0;
       const needsToggle =
         items.length > 1 &&
-        (() => {
-          const firstTop = items[0].getBoundingClientRect().top;
-          return items.some((item) => item.getBoundingClientRect().top > firstTop + 4);
-        })();
+        items.some((item) => item.getBoundingClientRect().top > firstTop + 4);
+
+      wrap.style.transition = ""; // restore transition
 
       if (!needsToggle) {
         wrap.classList.remove("category-nav-wrap--collapsed", "category-nav-wrap--expanded");
