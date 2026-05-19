@@ -136,26 +136,26 @@ class DashboardPermissionTest(TestCase):
         self.superuser = User.objects.create_superuser(username="admin", password="pass", email="a@b.com")
 
     def test_anonymous_gets_404(self):
-        response = self.client.get("/recipes/moderation/monitoring/")
+        response = self.client.get("/monitoring/")
         self.assertEqual(response.status_code, 404)
 
     def test_regular_user_gets_404(self):
         self.client.login(username="regular", password="pass")
-        response = self.client.get("/recipes/moderation/monitoring/")
+        response = self.client.get("/monitoring/")
         self.assertEqual(response.status_code, 404)
 
     def test_superuser_gets_200(self):
         self.client.login(username="admin", password="pass")
-        response = self.client.get("/recipes/moderation/monitoring/")
+        response = self.client.get("/monitoring/")
         self.assertEqual(response.status_code, 200)
 
     def test_superuser_can_open_detail_pages(self):
         self.client.login(username="admin", password="pass")
         paths = [
-            "/recipes/moderation/monitoring/traffic/",
-            "/recipes/moderation/monitoring/traffic/?kind=human",
-            "/recipes/moderation/monitoring/security/",
-            "/recipes/moderation/monitoring/activity/",
+            "/monitoring/traffic/",
+            "/monitoring/traffic/?kind=human",
+            "/monitoring/security/",
+            "/monitoring/activity/",
         ]
 
         for path in paths:
@@ -169,7 +169,7 @@ class DashboardPermissionTest(TestCase):
         author.user = gb_user
         author.save()
         self.client.login(username="greenbear_test", password="pass")
-        response = self.client.get("/recipes/moderation/monitoring/")
+        response = self.client.get("/monitoring/")
         self.assertEqual(response.status_code, 200)
 
 

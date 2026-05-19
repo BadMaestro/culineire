@@ -67,7 +67,7 @@
 
     /* Fetch the live word list from the API and replace the regex */
     (function fetchWordList() {
-        var apiUrl = window.PROFANITY_WORDS_URL || "/monitoring/profanity/words.json";
+        var apiUrl = window.PROFANITY_WORDS_URL || "/monitoring/profanity/words.json";  /* PROFANITY_WORDS_URL injected by base.html via {% url %} */
         if (!window.fetch) return;  // IE11 fallback: just use FALLBACK_WORDS
         fetch(apiUrl, { credentials: "same-origin" })
             .then(function (res) {

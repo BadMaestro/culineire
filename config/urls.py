@@ -51,7 +51,7 @@ urlpatterns = [
     path("news/", include("newsfeed.urls", namespace="newsfeed")),
 
     # Monitoring dashboard
-    path("recipes/moderation/monitoring/", include("monitoring.urls", namespace="monitoring")),
+    path("monitoring/", include("monitoring.urls", namespace="monitoring")),
 
     # Accounts (user management)
     path("accounts/", include("accounts.urls", namespace="accounts")),
