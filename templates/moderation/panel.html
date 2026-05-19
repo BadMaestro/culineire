@@ -69,7 +69,7 @@
                         <span class="moderation-card__date">{{ recipe.created_at|date:"j M Y" }}</span>
                     </div>
                     <h3 class="moderation-card__title">
-                        <a href="{{ recipe.get_absolute_url }}" target="_blank">{{ recipe.title }}</a>
+                        <a href="{{ recipe.get_absolute_url }}">{{ recipe.title }}</a>
                     </h3>
                 </div>
                 <div class="moderation-card__actions">
@@ -104,7 +104,7 @@
                         <span class="moderation-card__date">{{ recipe.created_at|date:"j M Y" }}</span>
                     </div>
                     <h3 class="moderation-card__title">
-                        <a href="{{ recipe.get_absolute_url }}" target="_blank">{{ recipe.title }}</a>
+                        <a href="{{ recipe.get_absolute_url }}">{{ recipe.title }}</a>
                     </h3>
                 </div>
                 <div class="moderation-card__actions">
@@ -150,7 +150,7 @@
                         <span class="moderation-card__date">{{ article.published|date:"j M Y" }}</span>
                     </div>
                     <h3 class="moderation-card__title">
-                        <a href="{{ article.get_absolute_url }}" target="_blank">{{ article.title }}</a>
+                        <a href="{{ article.get_absolute_url }}">{{ article.title }}</a>
                     </h3>
                 </div>
                 <div class="moderation-card__actions">
@@ -185,7 +185,7 @@
                         <span class="moderation-card__date">{{ article.published|date:"j M Y" }}</span>
                     </div>
                     <h3 class="moderation-card__title">
-                        <a href="{{ article.get_absolute_url }}" target="_blank">{{ article.title }}</a>
+                        <a href="{{ article.get_absolute_url }}">{{ article.title }}</a>
                     </h3>
                 </div>
                 <div class="moderation-card__actions">
@@ -226,7 +226,7 @@
                         <span class="moderation-card__author">@{{ author.user.username }}</span>
                     </div>
                     <h3 class="moderation-card__title moderation-author-card__name">
-                        <a href="{{ author.get_absolute_url }}" target="_blank">{{ author.name }}</a>
+                        <a href="{{ author.get_absolute_url }}">{{ author.name }}</a>
                     </h3>
                 </div>
                 {% if can_revoke_superuser_privileges and author.user != request.user and author.slug != "greenbear" %}
@@ -261,7 +261,7 @@
                         <span class="moderation-card__author">@{{ author.user.username }}</span>
                     </div>
                     <h3 class="moderation-card__title moderation-author-card__name">
-                        <a href="{{ author.get_absolute_url }}" target="_blank">{{ author.name }}</a>
+                        <a href="{{ author.get_absolute_url }}">{{ author.name }}</a>
                     </h3>
                 </div>
                 <div class="moderation-card__actions">
@@ -318,7 +318,7 @@
                             </td>
                             <td class="moderation-authors-table__username">@{{ author.user.username }}</td>
                             <td class="moderation-authors-table__author">
-                                <a href="{{ author.get_absolute_url }}" target="_blank">{{ author.name }}</a>
+                                <a href="{{ author.get_absolute_url }}">{{ author.name }}</a>
                             </td>
                             <td class="moderation-authors-table__privileges">
                                 {% if author.slug == "greenbear" %}
@@ -384,7 +384,7 @@
                             <span class="moderation-card__author">@{{ author.user.username }}</span>
                         </div>
                         <h3 class="moderation-card__title moderation-author-card__name">
-                            <a href="{{ author.get_absolute_url }}" target="_blank">{{ author.name }}</a>
+                            <a href="{{ author.get_absolute_url }}">{{ author.name }}</a>
                             {% if author.slug == "greenbear" %}
                             <span class="moderation-author-self-note">IDDQD — (Bear)seeker Mode On</span>
                             {% elif author.has_bearseeker_privileges %}

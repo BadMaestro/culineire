@@ -32,67 +32,67 @@
     </div>
 
     <div class="mon-cards">
-      <a class="mon-card mon-card--green" href="{{ traffic_urls.online }}" target="_blank" rel="noopener noreferrer">
+      <a class="mon-card mon-card--green" href="{{ traffic_urls.online }}">
         <span class="mon-card__value">{{ online_now }}</span>
         <span class="mon-card__label">Online Now</span>
         <span class="mon-card__sub">active sessions last 5 min</span>
         <span class="mon-card__open">Open details</span>
       </a>
-      <a class="mon-card" href="{{ traffic_urls.visitors }}" target="_blank" rel="noopener noreferrer">
+      <a class="mon-card" href="{{ traffic_urls.visitors }}">
         <span class="mon-card__value">{{ visitors_today }}</span>
         <span class="mon-card__label">Visitors Today</span>
         <span class="mon-card__sub">unique sessions</span>
         <span class="mon-card__open">Open details</span>
       </a>
-      <a class="mon-card" href="{{ traffic_urls.human }}" target="_blank" rel="noopener noreferrer">
+      <a class="mon-card" href="{{ traffic_urls.human }}">
         <span class="mon-card__value">{{ human_pageviews_today }}</span>
         <span class="mon-card__label">Human/Guest Views</span>
         <span class="mon-card__sub">logged-in and normal browser traffic</span>
         <span class="mon-card__open">Open details</span>
       </a>
-      <a class="mon-card {% if bot_pageviews_today > 0 %}mon-card--warn{% endif %}" href="{{ traffic_urls.bots }}" target="_blank" rel="noopener noreferrer">
+      <a class="mon-card {% if bot_pageviews_today > 0 %}mon-card--warn{% endif %}" href="{{ traffic_urls.bots }}">
         <span class="mon-card__value">{{ bot_pageviews_today }}</span>
         <span class="mon-card__label">Bot/Crawler Hits</span>
         <span class="mon-card__sub">technical and scanner traffic</span>
         <span class="mon-card__open">Open details</span>
       </a>
-      <a class="mon-card" href="{{ traffic_urls.pageviews }}" target="_blank" rel="noopener noreferrer">
+      <a class="mon-card" href="{{ traffic_urls.pageviews }}">
         <span class="mon-card__value">{{ pageviews_today }}</span>
         <span class="mon-card__label">Page Views Today</span>
         <span class="mon-card__sub">total hits</span>
         <span class="mon-card__open">Open details</span>
       </a>
-      <a class="mon-card" href="{{ activity_urls.new_users }}" target="_blank" rel="noopener noreferrer">
+      <a class="mon-card" href="{{ activity_urls.new_users }}">
         <span class="mon-card__value">{{ new_users_today }}</span>
         <span class="mon-card__label">New Users Today</span>
         <span class="mon-card__sub">registrations</span>
         <span class="mon-card__open">Open details</span>
       </a>
-      <a class="mon-card" href="{{ activity_urls.active_users }}" target="_blank" rel="noopener noreferrer">
+      <a class="mon-card" href="{{ activity_urls.active_users }}">
         <span class="mon-card__value">{{ active_users_today }}</span>
         <span class="mon-card__label">Active Users Today</span>
         <span class="mon-card__sub">logged-in activity</span>
         <span class="mon-card__open">Open details</span>
       </a>
-      <a class="mon-card {% if count_404_today > 20 %}mon-card--warn{% endif %}" href="{{ security_urls.404 }}" target="_blank" rel="noopener noreferrer">
+      <a class="mon-card {% if count_404_today > 20 %}mon-card--warn{% endif %}" href="{{ security_urls.404 }}">
         <span class="mon-card__value">{{ count_404_today }}</span>
         <span class="mon-card__label">404s Today</span>
         <span class="mon-card__sub">not found</span>
         <span class="mon-card__open">Open details</span>
       </a>
-      <a class="mon-card {% if failed_logins_today > 5 %}mon-card--danger{% endif %}" href="{{ security_urls.failed_login }}" target="_blank" rel="noopener noreferrer">
+      <a class="mon-card {% if failed_logins_today > 5 %}mon-card--danger{% endif %}" href="{{ security_urls.failed_login }}">
         <span class="mon-card__value">{{ failed_logins_today }}</span>
         <span class="mon-card__label">Failed Logins Today</span>
         <span class="mon-card__sub">auth failures</span>
         <span class="mon-card__open">Open details</span>
       </a>
-      <a class="mon-card {% if suspicious_today > 0 %}mon-card--danger{% endif %}" href="{{ security_urls.suspicious }}" target="_blank" rel="noopener noreferrer">
+      <a class="mon-card {% if suspicious_today > 0 %}mon-card--danger{% endif %}" href="{{ security_urls.suspicious }}">
         <span class="mon-card__value">{{ suspicious_today }}</span>
         <span class="mon-card__label">Suspicious Today</span>
         <span class="mon-card__sub">flagged requests</span>
         <span class="mon-card__open">Open details</span>
       </a>
-      <a class="mon-card {% if critical_today > 0 %}mon-card--critical{% endif %}" href="{{ security_urls.critical }}" target="_blank" rel="noopener noreferrer">
+      <a class="mon-card {% if critical_today > 0 %}mon-card--critical{% endif %}" href="{{ security_urls.critical }}">
         <span class="mon-card__value">{{ critical_today }}</span>
         <span class="mon-card__label">Critical Today</span>
         <span class="mon-card__sub">brute force and targeted scans</span>
@@ -132,7 +132,7 @@
               <td class="mon-table__num">{{ forloop.counter }}</td>
               <td>
                 {% if row.url %}
-                <a class="mon-table__link" href="{{ row.url }}" target="_blank" rel="noopener noreferrer">{{ row.object_title|default:"(untitled)" }}</a>
+                <a class="mon-table__link" href="{{ row.url }}">{{ row.object_title|default:"(untitled)" }}</a>
                 {% else %}
                 {{ row.object_title|default:"(untitled)" }}
                 {% endif %}
@@ -160,7 +160,7 @@
               <td class="mon-table__num">{{ forloop.counter }}</td>
               <td>
                 {% if row.url %}
-                <a class="mon-table__link" href="{{ row.url }}" target="_blank" rel="noopener noreferrer">{{ row.object_title|default:"(untitled)" }}</a>
+                <a class="mon-table__link" href="{{ row.url }}">{{ row.object_title|default:"(untitled)" }}</a>
                 {% else %}
                 {{ row.object_title|default:"(untitled)" }}
                 {% endif %}
@@ -186,7 +186,7 @@
             {% for row in top_paths %}
             <tr>
               <td class="mon-table__path">
-                <a class="mon-link-subtle" href="{% url 'monitoring:traffic_detail' %}?period=7d&kind=pageviews&path={{ row.path|urlencode }}" target="_blank" rel="noopener noreferrer">{{ row.path }}</a>
+                <a class="mon-link-subtle" href="{% url 'monitoring:traffic_detail' %}?period=7d&kind=pageviews&path={{ row.path|urlencode }}">{{ row.path }}</a>
               </td>
               <td class="mon-table__count">{{ row.count }}</td>
             </tr>
@@ -279,11 +279,11 @@
               <td><span class="mon-kind mon-kind--{{ event.request_kind_class }}">{{ event.request_kind }}</span></td>
               <td class="mon-table__user">{{ event.user.username|default:"-" }}</td>
               <td class="mon-table__path">
-                <a class="mon-link-subtle" href="{% url 'monitoring:security_detail' %}?period=7d&path={{ event.path|urlencode }}" target="_blank" rel="noopener noreferrer">{{ event.path|truncatechars:50 }}</a>
+                <a class="mon-link-subtle" href="{% url 'monitoring:security_detail' %}?period=7d&path={{ event.path|urlencode }}">{{ event.path|truncatechars:50 }}</a>
               </td>
               <td class="mon-table__hash">
                 {% if event.ip_hash %}
-                <a class="mon-link-subtle" href="{% url 'monitoring:security_detail' %}?period=7d&ip_hash={{ event.ip_hash }}" target="_blank" rel="noopener noreferrer">{{ event.ip_hash|truncatechars:12 }}</a>
+                <a class="mon-link-subtle" href="{% url 'monitoring:security_detail' %}?period=7d&ip_hash={{ event.ip_hash }}">{{ event.ip_hash|truncatechars:12 }}</a>
                 {% else %}
                 -
                 {% endif %}
