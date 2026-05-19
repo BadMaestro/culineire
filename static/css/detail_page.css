@@ -1252,6 +1252,8 @@
     border-radius: var(--detail-radius-base);
     padding-inline: var(--detail-space-card-inline);
     box-shadow: var(--detail-shadow-soft);
+    overflow-wrap: break-word;
+    min-inline-size: 0;
   }
 
   .comment-card,
@@ -1419,8 +1421,6 @@
     align-items: center;
     justify-content: center;
     inline-size: fit-content;
-    min-inline-size: 0;
-    margin-inline: auto;
     padding-block: 0.45rem;
     padding-inline: 0.8rem;
     border: 1px solid var(--detail-border-soft);
