@@ -164,14 +164,20 @@
     white-space: nowrap;
   }
 
-  /* ── Category nav inside recipe detail ── */
+  /* ── Category nav bar between breadcrumb and content ── */
   .category-nav-block--detail {
     margin: 0;
+    padding-block: 0;
+    background: var(--surface);
+    border-bottom: 1px solid rgb(11 76 58 / 0.08);
+  }
+
+  .category-nav-block--detail > .container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     gap: 0.6rem;
     padding-block: 0.6rem;
-    background: var(--surface);
-    border-inline: 1px solid var(--line);
-    border-block-start: 1px solid var(--line);
   }
 
   .category-nav-block--detail .category-nav-wrap::after {
