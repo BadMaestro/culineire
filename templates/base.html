@@ -378,6 +378,7 @@
 </div>
 <script src="{% static 'js/buttons.js' %}?v=20260519a"></script>
 <script src="{% static 'js/form-validator.js' %}?v=20260519a"></script>
-<script src="{% static 'js/profanity-check.js' %}?v=20260519c"></script>
+<script nonce="{{ request.csp_nonce }}">window.PROFANITY_WORDS_URL = "{% url 'monitoring:profanity_words_api' %}";</script>
+<script src="{% static 'js/profanity-check.js' %}?v=20260519d"></script>
 </body>
 </html>
