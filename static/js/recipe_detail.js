@@ -8,36 +8,48 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    /* ── Category tag pairing ──
+    /* ── Category tag two-column split ──
      *
-     * Sorts tags by rendered width descending, then interleaves
-     * longest + shortest, 2nd longest + 2nd shortest, etc.
-     * Each pair sums to roughly the same total width → all rows
-     * are visually balanced, no orphan single-tag rows.
+     * Sorts tags by rendered width descending, splits in half:
+     * - Left column  → longer names, left-aligned
+     * - Right column → shorter names, right-aligned
+     * Re-runs on resize so columns stay correct at any viewport.
      */
     function packCategoryTags() {
         const container = document.querySelector("[data-categories-pack]");
-        if (!container || container.children.length < 2) return;
+        if (!container) return;
+
+        // Collect all tag links from wherever they currently are
+        const allTags = Array.from(
+            container.querySelectorAll("a.detail-page__source-link")
+        );
+        if (allTags.length < 2) return;
+
+        // Temporarily move all tags back to container for measurement
+        allTags.forEach(el => container.appendChild(el));
+        container.querySelectorAll(".source-col").forEach(el => el.remove());
 
         if (container.offsetWidth === 0) return;
 
-        // Measure actual rendered widths
-        const measured = Array.from(container.children)
+        // Sort by rendered width, longest first
+        const sorted = allTags
             .map(el => ({ el, w: el.offsetWidth }))
-            .sort((a, b) => b.w - a.w);   // longest first
+            .sort((a, b) => b.w - a.w);
 
-        // Interleave: longest + shortest, 2nd longest + 2nd shortest …
-        const ordered = [];
-        let lo = 0, hi = measured.length - 1;
-        while (lo <= hi) {
-            ordered.push(measured[lo].el);
-            if (lo !== hi) ordered.push(measured[hi].el);
-            lo++;
-            hi--;
-        }
+        const half = Math.ceil(sorted.length / 2);
 
-        // Re-insert in paired order
-        ordered.forEach(el => container.appendChild(el));
+        // Build two column divs
+        const leftCol  = document.createElement("div");
+        const rightCol = document.createElement("div");
+        leftCol.className  = "source-col source-col--left";
+        rightCol.className = "source-col source-col--right";
+
+        sorted.slice(0, half).forEach(item => leftCol.appendChild(item.el));
+        sorted.slice(half).forEach(item => rightCol.appendChild(item.el));
+
+        container.innerHTML = "";
+        container.appendChild(leftCol);
+        container.appendChild(rightCol);
     }
 
     packCategoryTags();
