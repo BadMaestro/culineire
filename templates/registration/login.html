@@ -5,7 +5,7 @@
 {% block meta_description %}Sign In to your CulinEire account to continue exploring recipes and food stories.{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/auth.css' %}?v=20260507b" rel="stylesheet">
+<link href="{% static 'css/auth.css' %}?v=20260519a" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -25,7 +25,7 @@
                 <h2>Sign In</h2>
             </div>
 
-            <form class="auth-form" method="post">
+            <form class="auth-form" data-validate method="post">
                 {% csrf_token %}
 
                 {% if form.non_field_errors %}

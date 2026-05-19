@@ -404,6 +404,29 @@
     margin: 0;
 }
 
+/* ── Smart submit button states ── */
+.btn--ready {
+    background: var(--brand) !important;
+    color: #fffdf9 !important;
+    box-shadow: 0 4px 16px rgb(24 76 58 / 0.28) !important;
+    transition: background 0.18s ease, box-shadow 0.18s ease !important;
+}
+
+.btn--ready:hover {
+    background: rgb(11 60 46 / 0.95) !important;
+}
+
+.btn--not-ready {
+    background: rgb(160 35 35 / 0.13) !important;
+    color: rgb(140 30 30 / 0.88) !important;
+    box-shadow: none !important;
+    transition: background 0.18s ease !important;
+}
+
+.btn--not-ready:hover {
+    background: rgb(160 35 35 / 0.2) !important;
+}
+
 @media (max-width: 640px) {
     .auth-card {
         padding: 1.25rem;

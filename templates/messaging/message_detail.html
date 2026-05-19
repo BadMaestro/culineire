@@ -46,7 +46,7 @@
             </div>
 
             {% if can_reply %}
-            <form action="{% url 'messaging:reply_message' root_message.pk %}" class="msg-reply-form msg-reply-form--card" method="post">
+            <form action="{% url 'messaging:reply_message' root_message.pk %}" class="msg-reply-form msg-reply-form--card" data-validate method="post">
                 {% csrf_token %}
                 <textarea class="msg-reply-form__textarea" name="body" placeholder="Write a reply…" required rows="3"></textarea>
                 <button class="btn" type="submit">Send Reply</button>
