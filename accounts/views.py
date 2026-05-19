@@ -204,6 +204,25 @@ def _send_moderator_granted_email(user, author_name):
         logger.exception("Failed to send moderator_granted email to %s", user.email)
 
 
+def _send_moderator_revoked_email(user, author_name):
+    if not user.email:
+        return
+    contact_url = f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}/messages/contact/"
+    try:
+        send_template_mail(
+            subject="Your CulinEire Kitchen moderator access has been removed",
+            template="moderator_revoked",
+            context={
+                "author_name": author_name,
+                "contact_url": contact_url,
+            },
+            recipient_list=[user.email],
+            fail_silently=True,
+        )
+    except Exception:
+        logger.exception("Failed to send moderator_revoked email to %s", user.email)
+
+
 @require_POST
 def manage_author(request, slug):
     if not is_moderator(request.user):
@@ -250,6 +269,7 @@ def manage_author(request, slug):
         author.has_bearseeker_privileges = False
         author.save(update_fields=["has_bearseeker_privileges"])
         messages.warning(request, f'(Bear)seeker privileges revoked from "{author.name}".')
+        _send_moderator_revoked_email(user, author.name or user.username)
 
     elif action == "unblock":
         user.is_active = True
