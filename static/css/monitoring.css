@@ -179,10 +179,21 @@
 }
 
 .mon-section-block > .mon-section__title,
-.mon-section-block > .profanity-list-header {
+.mon-section-block > .profanity-list-header .mon-section__title {
   margin: 0;
   padding-bottom: 0;
   border-bottom: none;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0b4c3a;
+  line-height: 1.25;
+}
+
+.mon-section-block > .profanity-list-header {
+  margin: 0;
 }
 
 /* ── Two-column grid ── */
