@@ -13,10 +13,10 @@
 {% block twitter_image %}{% if recipe.hero_image %}{{ request.scheme }}://{{ request.get_host }}{{ recipe.hero_image.url }}{% else %}{{ block.super }}{% endif %}{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/detail_page.css' %}?v=20260511b" rel="stylesheet">
-<link href="{% static 'css/collection.css' %}?v=20260511a" rel="stylesheet">
+<link href="{% static 'css/detail_page.css' %}" rel="stylesheet">
+<link href="{% static 'css/collection.css' %}" rel="stylesheet">
 {% if can_moderate_bar %}
-<link href="{% static 'css/messaging.css' %}?v=20260507b" rel="stylesheet">{% endif %}
+<link href="{% static 'css/messaging.css' %}" rel="stylesheet">{% endif %}
 {% if gallery_items %}<link rel="preload" as="image" href="{{ gallery_items.0.src }}">{% elif recipe.hero_image %}<link rel="preload" as="image" href="{{ recipe.hero_image.url }}">{% endif %}
 <script type="application/ld+json">{{ recipe_json_ld }}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"{{ request.scheme }}://{{ request.get_host }}{% url 'home' %}"},{"@type":"ListItem","position":2,"name":"Recipes","item":"{{ request.scheme }}://{{ request.get_host }}{% url 'recipes:recipe_list' %}"},{"@type":"ListItem","position":3,"name":"{{ recipe.title|escapejs }}"}]}</script>
