@@ -590,7 +590,7 @@ def reset_recipe_rating(request, slug):
 
 def recipe_ratings_api(request, slug):
     """Return rating breakdown + recent named raters as JSON."""
-    recipe = get_object_or_404(Recipe, slug=slug, status="published")
+    recipe = get_object_or_404(Recipe, slug=slug, status="approved")
     ratings_qs = recipe.ratings.select_related("user__recipe_author_profile").order_by("-created_at")
 
     total = ratings_qs.count()
