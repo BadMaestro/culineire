@@ -438,7 +438,7 @@ def traffic_detail(request):
     else:
         kind = "pageviews"
         title = "Page Views"
-        subtitle = "Successful page requests recorded by CulinEire monitoring."
+        subtitle = "Unique sessions with successful page requests recorded by CulinEire monitoring."
 
     needs_python_filter = kind in {"human", "bots"}
     if needs_python_filter:
@@ -458,10 +458,7 @@ def traffic_detail(request):
             for path, count in Counter(row.path for row in rows).most_common(10)
         ]
     else:
-        if kind in {"online", "visitors"}:
-            total_count = qs.values("session_key").distinct().count()
-        else:
-            total_count = qs.count()
+        total_count = qs.exclude(session_key="").values("session_key").distinct().count()
         page_obj = _paginate(request, qs)
         page_obj.object_list = _decorate_request_rows(list(page_obj.object_list))
         top_paths = list(
