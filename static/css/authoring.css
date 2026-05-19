@@ -288,6 +288,8 @@ textarea.authoring-control {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  overflow: hidden;
   min-height: 42px;
   padding: 0.66rem 1.05rem;
   border: 0;

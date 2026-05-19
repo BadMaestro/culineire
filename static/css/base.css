@@ -686,6 +686,14 @@
     outline-offset: 2px;
   }
 
+  /* ── Ripple click effect ── */
+  .btn,
+  .btn-primary,
+  .btn-secondary {
+    position: relative;
+    overflow: hidden;
+  }
+
   .text-link {
     display: inline-flex;
     align-items: center;
@@ -1122,5 +1130,23 @@
   .bmc-bar {
     font-size: 0.82rem;
     padding-inline: 0.85rem;
+  }
+}
+
+/* ── Ripple animation (global) ── */
+.btn-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.32);
+  transform: scale(0);
+  animation: btn-ripple-expand 0.52s ease-out forwards;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes btn-ripple-expand {
+  to {
+    transform: scale(1);
+    opacity: 0;
   }
 }

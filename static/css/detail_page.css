@@ -1593,6 +1593,8 @@
     align-self: flex-start;
     align-items: center;
     justify-content: center;
+    position: relative;
+    overflow: hidden;
     inline-size: fit-content;
     min-height: 46px;
     padding-block: 0.8rem;
