@@ -670,14 +670,14 @@
   }
 
   .recipe-gallery__arrow--prev {
-    inset-inline-start: calc(50% - var(--gallery-main-width) / 2 + 0.75rem);
+    inset-inline-start: calc(50% - var(--gallery-main-width) / 2 - var(--gallery-arrow-size) / 2);
     inset-inline-end: auto;
     transform: translateY(-50%);
   }
 
   .recipe-gallery__arrow--next {
     inset-inline-start: auto;
-    inset-inline-end: calc(50% - var(--gallery-main-width) / 2 + 0.75rem);
+    inset-inline-end: calc(50% - var(--gallery-main-width) / 2 - var(--gallery-arrow-size) / 2);
     transform: translateY(-50%);
   }
 
