@@ -5,7 +5,7 @@
 {% block meta_description %}CulinEire content moderation panel.{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/moderation.css' %}?v=20260519b" rel="stylesheet">
+<link href="{% static 'css/moderation.css' %}?v=20260519c" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -293,9 +293,7 @@
                 {% endif %}
             </form>
 
-            {% if not registered_authors %}
-            <div class="moderation-empty">No authors found.</div>
-            {% endif %}
+            {% if registered_authors %}
             <div aria-label="Registered authors" class="moderation-authors-table-wrap">
                 {% if registered_authors %}
                 <table class="moderation-authors-table">
@@ -368,6 +366,9 @@
                 </table>
                 {% endif %}
             </div>
+            {% else %}
+            <div class="moderation-empty">No authors found.</div>
+            {% endif %}
 
             <div class="moderation-scroll moderation-scroll--authors moderation-scroll--authors-mobile">
             {% if registered_authors %}
