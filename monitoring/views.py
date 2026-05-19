@@ -455,7 +455,10 @@ def traffic_detail(request):
             for path, count in Counter(row.path for row in rows).most_common(10)
         ]
     else:
-        total_count = qs.count()
+        if kind in {"online", "visitors"}:
+            total_count = qs.values("session_key").distinct().count()
+        else:
+            total_count = qs.count()
         page_obj = _paginate(request, qs)
         page_obj.object_list = _decorate_request_rows(list(page_obj.object_list))
         top_paths = list(
