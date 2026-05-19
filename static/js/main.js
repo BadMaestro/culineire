@@ -76,12 +76,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const applyState = () => {
       wrap.style.height = "auto";
 
-      const fullHeight = Math.ceil(categoryNav.scrollHeight);
-      const collapsedHeight = getSingleRowHeight();
-      const needsToggle = fullHeight > collapsedHeight + 4;
+      // Position-based wrap detection: reliable regardless of font metrics.
+      // If any item sits lower than the first item, the nav has wrapped.
+      const items = [
+        ...categoryNav.querySelectorAll(".category-nav__item, .category-nav__link"),
+      ];
+      const needsToggle =
+        items.length > 1 &&
+        (() => {
+          const firstTop = items[0].getBoundingClientRect().top;
+          return items.some((item) => item.getBoundingClientRect().top > firstTop + 4);
+        })();
 
       if (!needsToggle) {
-        wrap.style.height = "auto";
         wrap.classList.remove("category-nav-wrap--collapsed", "category-nav-wrap--expanded");
         button.hidden = true;
         button.setAttribute("aria-expanded", "false");
@@ -90,6 +97,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       button.hidden = false;
+
+      const collapsedHeight = getSingleRowHeight();
+      const fullHeight = Math.ceil(categoryNav.scrollHeight);
 
       if (expanded) {
         wrap.style.height = `${fullHeight}px`;

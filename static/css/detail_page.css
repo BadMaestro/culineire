@@ -167,8 +167,8 @@
   /* ── Category nav inside recipe detail ── */
   .category-nav-block--detail {
     margin: 0;
-    gap: 0.55rem;
-    padding-block: 0.65rem;
+    gap: 0.6rem;
+    padding-block: 0.6rem;
     padding-inline: var(--detail-space-xl);
     background: var(--surface);
     border-inline: 1px solid var(--line);
