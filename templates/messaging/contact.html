@@ -30,7 +30,13 @@
 
             {% if user.is_authenticated %}
 
-            {% if sent %}
+            {% if is_greenbear %}
+            <p class="auth-note" style="padding: 1rem 0;">This is the contact form for visitors to reach you. You cannot send a message to yourself.</p>
+            <div style="text-align: center; margin-block-start: 0.5rem;">
+                <a class="btn" href="{% url 'messaging:inbox' %}">Go to Inbox</a>
+            </div>
+
+            {% elif sent %}
 
             <div class="contact-sent">
                 <p class="contact-sent__heading">Message sent ✓</p>

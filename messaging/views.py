@@ -232,14 +232,24 @@ def contact(request):
     except RecipeAuthor.DoesNotExist:
         greenbear_user = None
 
+    is_greenbear = (
+        greenbear_user is not None
+        and request.user.is_authenticated
+        and request.user.pk == greenbear_user.pk
+    )
+
     ctx_base = {
-        "greenbear_available": greenbear_user is not None,
+        "greenbear_available": greenbear_user is not None and not is_greenbear,
         "turnstile_site_key": settings.TURNSTILE_SITE_KEY,
+        "is_greenbear": is_greenbear,
     }
 
     if request.method == "POST":
         if not request.user.is_authenticated:
             return redirect("login")
+
+        if is_greenbear:
+            return render(request, "messaging/contact.html", ctx_base)
 
         if getattr(request, "limited", False):
             return render(request, "messaging/contact.html", {
