@@ -225,19 +225,6 @@
 </header>
 
 <main>
-    {% if messages %}
-    <section aria-label="Notifications" class="site-messages">
-        {% for message in messages %}
-        <div class="site-message site-message--{{ message.tags|default:'info' }}{% if 'error' in message.tags or 'warning' in message.tags %} site-message--sticky{% endif %}"
-             role="{% if 'error' in message.tags %}alert{% else %}status{% endif %}"
-             aria-live="{% if 'error' in message.tags %}assertive{% else %}polite{% endif %}">
-            <span class="site-message__text">{{ message }}</span>
-            <button class="site-message__close" type="button" aria-label="Dismiss notification">&times;</button>
-        </div>
-        {% endfor %}
-    </section>
-    {% endif %}
-
     {% block content %}{% endblock %}
 </main>
 
@@ -282,6 +269,18 @@
 
 <script src="{% static 'js/main.js' %}"></script>
 <script src="{% static 'js/presence.js' %}"></script>
+{% block extra_js %}{% endblock %}
+{% if messages %}
+<section aria-label="Notifications" class="site-messages">
+    {% for message in messages %}
+    <div class="site-message site-message--{{ message.tags|default:'info' }}{% if 'error' in message.tags or 'warning' in message.tags %} site-message--sticky{% endif %}"
+         role="{% if 'error' in message.tags %}alert{% else %}status{% endif %}"
+         aria-live="{% if 'error' in message.tags %}assertive{% else %}polite{% endif %}">
+        <span class="site-message__text">{{ message }}</span>
+        <button class="site-message__close" type="button" aria-label="Dismiss notification">&times;</button>
+    </div>
+    {% endfor %}
+</section>
 <script nonce="{{ request.csp_nonce }}">
 (function () {
   function dismissToast(el) {
@@ -299,7 +298,7 @@
   });
 })();
 </script>
-{% block extra_js %}{% endblock %}
+{% endif %}
 <div class="bmc-bar">
     <span>Enjoying CulinEire? Help keep it running —</span>
     <a href="https://buymeacoffee.com/bearcave" rel="noopener noreferrer" target="_blank">Buy Me a Coffee</a>
