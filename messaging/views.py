@@ -6,11 +6,12 @@ from django.conf import settings
 from django.contrib import messages as django_messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import BadHeaderError
-from config.email_utils import sanitize_email_subject, send_template_mail
+from config.email_utils import build_absolute_url, sanitize_email_subject, send_template_mail
 from django.db import models
 from django.db.models import Exists, OuterRef
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
@@ -202,7 +203,7 @@ def send_message(request):
             context={
                 "subject": subject,
                 "body": body,
-                "inbox_url": f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}/messages/",
+                "inbox_url": build_absolute_url(reverse("messaging:inbox")),
             },
             recipient_list=[recipient.email],
             fail_silently=True,
@@ -377,7 +378,7 @@ def reply_message(request, pk):
             context={
                 "subject": reply.subject or "Reply from CulinEire",
                 "body": body,
-                "inbox_url": f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}/messages/{parent.pk}/",
+                "inbox_url": build_absolute_url(reverse("messaging:message_detail", args=[parent.pk])),
             },
             recipient_list=[other.email],
             fail_silently=True,

@@ -6,10 +6,11 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import BadHeaderError
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.generic import TemplateView
 from django_ratelimit.decorators import ratelimit
 
-from config.email_utils import send_template_mail
+from config.email_utils import build_absolute_url, send_template_mail
 from config.turnstile import verify_turnstile
 
 from .forms import ContentReportForm
@@ -38,9 +39,7 @@ def _send_report_notification(report):
     if not notify_email:
         return
 
-    report_url = (
-        f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}/legal/reports/{report.pk}/"
-    )
+    report_url = build_absolute_url(reverse("legal:report_detail", args=[report.pk]))
     subject = f"[CulinEire] New content report: {report.get_report_type_display()}"
     try:
         send_template_mail(

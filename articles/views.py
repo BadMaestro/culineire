@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.db.models import Prefetch, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.utils.safestring import mark_safe
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
@@ -115,7 +115,7 @@ class ArticleCreateView(AuthorRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         context["author"] = self.author
         context["turnstile_site_key"] = settings.TURNSTILE_SITE_KEY
-        context["cancel_url"] = "/articles/"
+        context["cancel_url"] = reverse("articles:article_list")
         return context
 
 
@@ -258,7 +258,7 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
         context["form_mode"] = "edit"
         context["form_heading"] = "Edit Article"
         context["submit_label"] = "Save Changes"
-        context["cancel_url"] = self.object.get_absolute_url() if self.object else "/articles/"
+        context["cancel_url"] = self.object.get_absolute_url() if self.object else reverse("articles:article_list")
         context["turnstile_site_key"] = settings.TURNSTILE_SITE_KEY
         if self.object:
             context["existing_gallery_images"] = list(
@@ -271,7 +271,7 @@ class ArticleDeleteView(AuthorRequiredMixin, DeleteView):
     model = Article
     template_name = "authoring/confirm_delete.html"
     context_object_name = "managed_object"
-    success_url = "/articles/"
+    success_url = reverse_lazy("articles:article_list")
 
     def get_queryset(self):
         if is_moderator(self.request.user):

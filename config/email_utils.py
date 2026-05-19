@@ -3,6 +3,11 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 
 
+def build_absolute_url(path: str) -> str:
+    """Build a full absolute URL from a relative path, for use in emails."""
+    return f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}{path}"
+
+
 def sanitize_email_subject(subject: str, max_length: int = 200) -> str:
     """Strip newlines and control characters from email subject to prevent header injection."""
     return subject.replace("\r", "").replace("\n", "").strip()[:max_length]

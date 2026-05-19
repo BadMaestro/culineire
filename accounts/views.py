@@ -7,7 +7,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import LoginView
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import url_has_allowed_host_and_scheme, urlsafe_base64_decode, urlsafe_base64_encode
@@ -18,7 +18,7 @@ from django.views.generic import CreateView
 
 from django_ratelimit.decorators import ratelimit
 
-from config.email_utils import send_template_mail
+from config.email_utils import build_absolute_url, send_template_mail
 from config.turnstile import verify_turnstile
 from recipes.models import RecipeAuthor
 
@@ -148,9 +148,8 @@ class SignUpView(CreateView):
 
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
-        activation_url = (
-            f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}"
-            f"/accounts/activate/{uid}/{token}/"
+        activation_url = build_absolute_url(
+            reverse("activate_account", args=[uid, token])
         )
         send_template_mail(
             subject="Confirm your CulinEire account",
@@ -189,10 +188,8 @@ def activate_account(request, uidb64, token):
 def _send_moderator_granted_email(user, author_name):
     if not user.email:
         return
-    moderation_url = (
-        f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}/recipes/moderation/"
-    )
-    contact_url = f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}/messages/contact/"
+    moderation_url = build_absolute_url(reverse("recipes:moderation_panel"))
+    contact_url = build_absolute_url(reverse("messaging:contact"))
     try:
         send_template_mail(
             subject="Your CulinEire Kitchen moderator access",
@@ -212,7 +209,7 @@ def _send_moderator_granted_email(user, author_name):
 def _send_moderator_revoked_email(user, author_name):
     if not user.email:
         return
-    contact_url = f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}/messages/contact/"
+    contact_url = build_absolute_url(reverse("messaging:contact"))
     try:
         send_template_mail(
             subject="Your CulinEire Kitchen moderator access has been removed",
