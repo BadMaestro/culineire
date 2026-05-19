@@ -6,8 +6,9 @@ import hmac
 from django.conf import settings
 from django.db import DatabaseError
 
-# Single authoritative list of bot user-agent markers.
-# Imported by both middleware.py and views.py — edit here only.
+# ── Single authoritative lists — import from here, never redefine ────────────
+
+# Bot user-agent markers (middleware + views)
 BOT_UA_MARKERS = (
     "bot", "crawler", "spider", "crawl",
     "censys", "claudebot", "bytespider",
@@ -15,6 +16,34 @@ BOT_UA_MARKERS = (
     "bingpreview", "facebookexternalhit", "telegrambot",
     "curl/", "wget/", "python-requests",
     "go-http-client", "httpx", "okhttp",
+)
+
+# Patterns that trigger a pre-request SecurityEvent in middleware
+SUSPICIOUS_TRIGGER_PATTERNS = (
+    "<script", "union select", "../../", "etc/passwd",
+    "wp-admin", "phpmy", ".env", "xmlrpc",
+)
+
+# Paths that elevate severity to "critical" in middleware
+CRITICAL_PATH_MARKERS = (
+    ".env", ".git", ".sql", ".bak", "etc/passwd",
+    "union select", "<script", "../../",
+)
+
+# Comprehensive path markers used in views for request classification
+SUSPICIOUS_PATH_MARKERS = (
+    ".env", ".git", ".hg", ".svn", ".sql", ".log", ".bak", ".swp",
+    "wp-", "xmlrpc", "phpmy", ".php", "graphql", "swagger",
+    "server-status", "server-info", "actuator",
+    "bitbucket-pipelines.yml", "amplify.yml", "serverless.yml",
+    "serverless.yaml", "dockerfile", "jenkinsfile",
+    "composer.json", "package.json",
+    "vite.config", "nuxt.config", "next.config", "webpack.config",
+    "firebase-debug", "database", "backup", "dump",
+    "/logs/", "/var/log/", "/storage/logs/",
+    "/%22/", '/"/', "/https:/",
+    ".cgi", "docker", "/.well-known/stripe",
+    "config.js", "constants.js", "/iam",
 )
 
 
@@ -62,6 +91,54 @@ def track_event(
             ip_hash=hash_ip(get_client_ip(request)),
             path=request.path[:500],
             metadata=metadata or {},
+        )
+    except (AttributeError, DatabaseError, ImportError):
+        pass
+
+
+def failed_login_severity(ip_hash: str) -> str:
+    """Return severity for a failed login based on recent attempts from same IP."""
+    if not ip_hash:
+        return "medium"
+    try:
+        from django.utils import timezone
+        from monitoring.models import SecurityEvent
+        cutoff = timezone.now() - timezone.timedelta(hours=1)
+        count = SecurityEvent.objects.filter(
+            event_type="failed_login",
+            ip_hash=ip_hash,
+            created_at__gte=cutoff,
+        ).count()
+        if count >= 5:
+            return "critical"
+        if count >= 2:
+            return "high"
+    except Exception:
+        pass
+    return "medium"
+
+
+def record_security_event(request, event_type: str, severity: str | None = None) -> None:
+    """Write a SecurityEvent row. severity=None means auto-compute for failed_login."""
+    if not getattr(settings, "MONITORING_ENABLED", True):
+        return
+    try:
+        from monitoring.models import SecurityEvent
+        ip_hash = hash_ip(get_client_ip(request))
+        if severity is None:
+            severity = (
+                failed_login_severity(ip_hash)
+                if event_type == "failed_login"
+                else "medium"
+            )
+        user = request.user if hasattr(request, "user") and request.user.is_authenticated else None
+        SecurityEvent.objects.create(
+            event_type=event_type,
+            severity=severity,
+            user=user,
+            ip_hash=ip_hash,
+            path=request.path[:500],
+            user_agent=request.META.get("HTTP_USER_AGENT", "")[:300],
         )
     except (AttributeError, DatabaseError, ImportError):
         pass

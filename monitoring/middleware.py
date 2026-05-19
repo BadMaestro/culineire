@@ -4,21 +4,14 @@ from django.conf import settings
 from django.db import DatabaseError
 from django.utils import timezone
 
-from .tracker import BOT_UA_MARKERS, get_client_ip, hash_ip
-
-_SUSPICIOUS_PATTERNS = (
-    "<script", "union select", "../../", "etc/passwd",
-    "wp-admin", "phpmy", ".env", "xmlrpc",
+from .tracker import (
+    BOT_UA_MARKERS, SUSPICIOUS_TRIGGER_PATTERNS, CRITICAL_PATH_MARKERS,
+    get_client_ip, hash_ip, failed_login_severity,
 )
 
 _DEFAULT_EXCLUDED = (
     "/static/", "/media/", "/admin/jsi18n/",
     "/favicon.ico", "/robots.txt",
-)
-
-_CRITICAL_PATH_MARKERS = (
-    ".env", ".git", ".sql", ".bak", "etc/passwd",
-    "union select", "<script", "../../",
 )
 
 def _is_bot_ua(user_agent: str) -> bool:
@@ -28,28 +21,8 @@ def _is_bot_ua(user_agent: str) -> bool:
 
 def _suspicious_severity(path: str) -> str:
     p = (path or "").lower()
-    if any(m in p for m in _CRITICAL_PATH_MARKERS):
+    if any(m in p for m in CRITICAL_PATH_MARKERS):
         return "critical"
-    return "medium"
-
-
-def _failed_login_severity(ip_hash: str) -> str:
-    if not ip_hash:
-        return "medium"
-    try:
-        from monitoring.models import SecurityEvent
-        cutoff = timezone.now() - timezone.timedelta(hours=1)
-        count = SecurityEvent.objects.filter(
-            event_type=SecurityEvent.EventType.FAILED_LOGIN,
-            ip_hash=ip_hash,
-            created_at__gte=cutoff,
-        ).count()
-        if count >= 5:
-            return "critical"
-        if count >= 2:
-            return "high"
-    except Exception:
-        pass
     return "medium"
 
 
@@ -79,7 +52,7 @@ class MonitoringMiddleware:
 
         # Flag suspicious paths before even processing the request.
         path_lower = path.lower()
-        is_suspicious = any(p in path_lower for p in _SUSPICIOUS_PATTERNS)
+        is_suspicious = any(p in path_lower for p in SUSPICIOUS_TRIGGER_PATTERNS)
         if is_suspicious:
             self._record_security(request, "suspicious_request")
 

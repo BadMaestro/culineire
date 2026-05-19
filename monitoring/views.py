@@ -17,7 +17,7 @@ from django.http import JsonResponse
 from accounts.views import is_moderator
 
 from .models import PageView, ProfanityWord, SecurityEvent, UserActivity
-from .tracker import BOT_UA_MARKERS
+from .tracker import BOT_UA_MARKERS, SUSPICIOUS_PATH_MARKERS
 
 DETAIL_PAGE_SIZE = 100
 DETAIL_ROW_LIMIT = 3000
@@ -31,53 +31,6 @@ TECHNICAL_PATHS = (
     "/apple-touch-icon.png",
 )
 
-SUSPICIOUS_PATH_MARKERS = (
-    ".env",
-    ".git",
-    ".hg",
-    ".svn",
-    ".sql",
-    ".log",
-    ".bak",
-    ".swp",
-    "wp-",
-    "xmlrpc",
-    "phpmy",
-    ".php",
-    "graphql",
-    "swagger",
-    "server-status",
-    "server-info",
-    "actuator",
-    "bitbucket-pipelines.yml",
-    "amplify.yml",
-    "serverless.yml",
-    "serverless.yaml",
-    "dockerfile",
-    "jenkinsfile",
-    "composer.json",
-    "package.json",
-    "vite.config",
-    "nuxt.config",
-    "next.config",
-    "webpack.config",
-    "firebase-debug",
-    "database",
-    "backup",
-    "dump",
-    "/logs/",
-    "/var/log/",
-    "/storage/logs/",
-    "/%22/",
-    '/"/',
-    "/https:/",
-    ".cgi",
-    "docker",
-    "/.well-known/stripe",
-    "config.js",
-    "constants.js",
-    "/iam",
-)
 
 PROTECTED_PATH_PREFIXES = (
     "/admin/",
@@ -213,7 +166,10 @@ def dashboard(request):
         .only("path", "user_agent", "user")
     )
     decorated_today_pageviews = _decorate_request_rows(today_pageviews)
-    human_pageviews_today = sum(1 for row in decorated_today_pageviews if row.request_kind in HUMAN_REQUEST_KINDS)
+    human_pageviews_today = len({
+        row.session_key for row in decorated_today_pageviews
+        if row.request_kind in HUMAN_REQUEST_KINDS and row.session_key
+    })
     bot_pageviews_today = sum(1 for row in decorated_today_pageviews if row.request_kind == "Bot/Scanner")
 
     online_now = (

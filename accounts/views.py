@@ -84,6 +84,11 @@ class CulinEireLoginView(LoginView):
             return redirect("login")
         return super().post(request, *args, **kwargs)
 
+    def form_invalid(self, form):
+        from monitoring.tracker import record_security_event
+        record_security_event(self.request, "failed_login")
+        return super().form_invalid(form)
+
 
 # ── Sign Up ───────────────────────────────────────────────────────────────────
 
