@@ -996,13 +996,15 @@
 
 .site-messages {
   position: fixed;
-  bottom: calc(var(--bmc-bar-reserved-space) + 1rem);
-  right: 1.5rem;
+  top: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 10050;
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  max-inline-size: min(22rem, calc(100vw - 2rem));
+  width: max-content;
+  max-inline-size: min(28rem, calc(100vw - 2rem));
   pointer-events: none;
 }
 
@@ -1111,23 +1113,16 @@
 }
 
 @keyframes toast-in {
-  from { opacity: 0; transform: translateY(0.5rem); }
+  from { opacity: 0; transform: translateY(-0.5rem); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes toast-out {
   from { opacity: 1; transform: translateY(0); max-block-size: 6rem; }
-  to   { opacity: 0; transform: translateY(0.5rem); max-block-size: 0; padding: 0; margin: 0; }
+  to   { opacity: 0; transform: translateY(-0.5rem); max-block-size: 0; padding: 0; margin: 0; }
 }
 
 @media (max-width: 480px) {
-  .site-messages {
-    bottom: calc(var(--bmc-bar-reserved-space) + 0.85rem);
-    right: 1rem;
-    left: 1rem;
-    max-inline-size: none;
-  }
-
   .bmc-bar {
     font-size: 0.82rem;
     padding-inline: 0.85rem;
