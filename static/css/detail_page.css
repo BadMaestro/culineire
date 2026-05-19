@@ -164,6 +164,20 @@
     white-space: nowrap;
   }
 
+  /* ── Category nav inside recipe detail ── */
+  .category-nav-block--detail {
+    margin: 0;
+    padding-block: 0.9rem 0.6rem;
+    padding-inline: var(--detail-space-xl);
+    background: var(--surface);
+    border-inline: 1px solid var(--line);
+    border-block-start: 1px solid var(--line);
+  }
+
+  .category-nav-block--detail .category-nav-wrap::after {
+    background: linear-gradient(to bottom, transparent, var(--surface));
+  }
+
   .detail-page__header {
     position: relative;
     overflow: hidden;
