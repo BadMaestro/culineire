@@ -103,6 +103,7 @@ SUSPICIOUS_PATH_MARKERS = (
 PROTECTED_PATH_PREFIXES = (
     "/admin/",
     "/recipes/moderation/",
+    "/monitoring/",
 )
 
 PERIOD_OPTIONS = {
