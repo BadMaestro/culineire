@@ -16,6 +16,9 @@
 (function () {
     "use strict";
 
+    /* Exit immediately if no profanity-checked fields exist on this page */
+    if (!document.querySelector("[data-profanity]")) return;
+
     /* ------------------------------------------------------------------ */
     /*  Fallback word list (used if API fetch fails)                       */
     /*  Keep in sync with config/profanity.py _BUILTIN_WORDS              */
