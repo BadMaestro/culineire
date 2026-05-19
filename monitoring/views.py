@@ -430,8 +430,8 @@ def traffic_detail(request):
         title = "Visitors"
         subtitle = "Requests grouped by browser session signal."
     elif kind == "human":
-        title = "Human and Guest Page Views"
-        subtitle = "Logged-in users and normal anonymous browser traffic. Scanner-like paths are excluded."
+        title = "Human and Guest Visitors"
+        subtitle = "Unique sessions from logged-in users and normal anonymous browser traffic. Scanner-like paths are excluded."
     elif kind == "bots":
         title = "Bot and Crawler Page Views"
         subtitle = "Successful requests with bot-like user agents or technical paths."
@@ -449,7 +449,10 @@ def traffic_detail(request):
         else:
             rows = [row for row in rows if row.request_kind == "Bot/Scanner"]
         page_obj = _paginate(request, rows)
-        total_count = len(rows)
+        if kind == "human":
+            total_count = len({r.session_key for r in rows if r.session_key})
+        else:
+            total_count = len(rows)
         top_paths = [
             {"path": path, "count": count}
             for path, count in Counter(row.path for row in rows).most_common(10)
