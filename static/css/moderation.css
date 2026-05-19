@@ -344,8 +344,8 @@
 }
 
 .moderation-author-search__input {
+  flex: 1 1 0;
   min-inline-size: 0;
-  inline-size: min(320px, 100%);
   min-block-size: 34px;
   padding: 0.36rem 0.7rem;
   border: 1px solid rgb(58 44 30 / 0.16);
@@ -354,6 +354,8 @@
   color: var(--ink);
   font: inherit;
   font-size: 0.78rem;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .moderation-author-search__input:focus-visible {
