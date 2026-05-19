@@ -507,7 +507,7 @@
     --gallery-side-shift: 28%;
     --gallery-side-scale: 0.92;
     --gallery-arrow-size: 56px;
-    --gallery-side-center-offset: var(--gallery-side-shift);
+    /* --gallery-side-center-offset removed; arrows are now edge-anchored */
 
     background: var(--surface);
     padding-block: var(--detail-space-lg) 0;
@@ -670,12 +670,13 @@
   }
 
   .recipe-gallery__arrow--prev {
-    inset-inline-start: calc(50% - var(--gallery-side-center-offset) - (var(--gallery-arrow-size) / 2));
+    inset-inline-start: 1rem;
     transform: translateY(-50%);
   }
 
   .recipe-gallery__arrow--next {
-    inset-inline-start: calc(50% + var(--gallery-side-center-offset) - (var(--gallery-arrow-size) / 2));
+    inset-inline-start: auto;
+    inset-inline-end: 1rem;
     transform: translateY(-50%);
   }
 
@@ -687,7 +688,7 @@
 
   .recipe-gallery__arrow--prev:hover,
   .recipe-gallery__arrow--next:hover {
-    transform: translateY(-50%) scale(1.04);
+    transform: translateY(-50%);
   }
 
   .recipe-gallery__arrow:focus-visible {
@@ -2018,14 +2019,7 @@
       pointer-events: none;
     }
 
-    .detail-page--article .recipe-gallery__arrow--prev {
-      inset-inline-start: 0.85rem;
-    }
-
-    .detail-page--article .recipe-gallery__arrow--next {
-      inset-inline-start: auto;
-      inset-inline-end: 0.85rem;
-    }
+    /* article arrow overrides removed — base is now edge-anchored for all galleries */
   }
 }
 
