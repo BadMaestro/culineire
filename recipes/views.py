@@ -544,15 +544,15 @@ def submit_recipe_rating(request, slug):
 
     if getattr(request, "limited", False):
         messages.error(request, "You have submitted too many ratings. Please try again later.")
-        return redirect(f"{recipe.get_absolute_url()}#rating")
+        return redirect(recipe.get_absolute_url())
 
     if request.session.get(session_key):
         messages.warning(request, "You have already rated this recipe from this browser session.")
-        return redirect(f"{recipe.get_absolute_url()}#rating")
+        return redirect(recipe.get_absolute_url())
 
     if not form.is_valid():
         messages.error(request, "Please submit a valid rating between 1 and 5.")
-        return redirect(f"{recipe.get_absolute_url()}#rating")
+        return redirect(recipe.get_absolute_url())
 
     RecipeRating.objects.create(
         recipe=recipe,
@@ -563,7 +563,7 @@ def submit_recipe_rating(request, slug):
     request.session.modified = True
 
     messages.success(request, "Thank you. Your rating has been saved.")
-    return redirect(f"{recipe.get_absolute_url()}#rating")
+    return redirect(recipe.get_absolute_url())
 
 
 @require_POST
@@ -573,7 +573,7 @@ def reset_recipe_rating(request, slug):
     session_key = f"recipe_rating_submitted_{recipe.pk}"
     request.session.pop(session_key, None)
     request.session.modified = True
-    return redirect(f"{recipe.get_absolute_url()}#rating")
+    return redirect(recipe.get_absolute_url())
 
 
 @require_POST
