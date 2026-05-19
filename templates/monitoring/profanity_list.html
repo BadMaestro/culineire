@@ -5,7 +5,7 @@
 {% block meta_description %}Manage the CulinEire profanity and forbidden word list.{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/monitoring.css' %}?v=20260519f" rel="stylesheet">
+<link href="{% static 'css/monitoring.css' %}?v=20260519g" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -51,8 +51,9 @@
     </div>
 
     {# ── Add new word ── #}
-    <div class="mon-section">
+    <div class="mon-section-block">
       <h2 class="mon-section__title">Add New Word</h2>
+      <div class="mon-section">
       <form class="profanity-add-form" method="post" action="{% url 'monitoring:profanity_list' %}">
         {% csrf_token %}
         <input type="hidden" name="action" value="add">
@@ -75,10 +76,11 @@
         <p class="profanity-add-error" role="alert">{{ error }}</p>
         {% endif %}
       </form>
+      </div>
     </div>
 
     {# ── Search + word list ── #}
-    <div class="mon-section">
+    <div class="mon-section-block">
       <div class="profanity-list-header">
         <h2 class="mon-section__title">
           Blocked Words
@@ -107,6 +109,7 @@
           </div>
         </form>
       </div>
+      <div class="mon-section">
 
       {% if page_obj.object_list %}
       <div class="profanity-word-grid">
@@ -160,6 +163,7 @@
         <p class="mon-empty">No words in the list yet. Add the first one above.</p>
         {% endif %}
       {% endif %}
+      </div>
     </div>
 
   </div>

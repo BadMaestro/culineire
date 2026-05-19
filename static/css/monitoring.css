@@ -172,6 +172,19 @@
   border-bottom: 1px solid rgb(58 44 30 / 0.08);
 }
 
+/* ── Section block: title outside the card ── */
+.mon-section-block {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.mon-section-block > .mon-section__title,
+.mon-section-block > .profanity-list-header {
+  margin: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
 /* ── Two-column grid ── */
 .mon-grid {
   display: grid;
@@ -929,7 +942,6 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin-bottom: 1.1rem;
 }
 
 .profanity-list-header .mon-section__title {
