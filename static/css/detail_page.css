@@ -1366,8 +1366,10 @@
   .detail-page__card--author-commentary .detail-page__card-copy {
     height: 180px;
     overflow-y: auto;
+    overflow-x: hidden;
     scrollbar-width: thin;
     scrollbar-color: var(--detail-border-strong) transparent;
+    padding-inline-end: 0.6rem;
   }
 
   .detail-page__card-copy p {
