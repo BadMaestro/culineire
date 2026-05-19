@@ -514,6 +514,14 @@ class RecipeRating(models.Model):
         on_delete=models.CASCADE,
         related_name="ratings",
     )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="recipe_ratings",
+        verbose_name="Rater",
+    )
     value = models.PositiveSmallIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
 

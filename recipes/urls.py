@@ -19,6 +19,7 @@ urlpatterns = [
     path("<slug:slug>/delete/", views.RecipeDeleteView.as_view(), name="recipe_delete"),
     path("<slug:slug>/rate/", views.submit_recipe_rating, name="submit_recipe_rating"),
     path("<slug:slug>/rate/reset/", views.reset_recipe_rating, name="reset_recipe_rating"),
+    path("<slug:slug>/ratings/", views.recipe_ratings_api, name="recipe_ratings_api"),
     path("<slug:slug>/comment/", views.submit_recipe_comment, name="submit_recipe_comment"),
     path("<slug:slug>/", views.recipe_detail, name="recipe_detail"),
 ]

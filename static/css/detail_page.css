@@ -670,13 +670,14 @@
   }
 
   .recipe-gallery__arrow--prev {
-    inset-inline-start: 1rem;
+    inset-inline-start: calc(50% - var(--gallery-main-width) / 2 + 0.75rem);
+    inset-inline-end: auto;
     transform: translateY(-50%);
   }
 
   .recipe-gallery__arrow--next {
     inset-inline-start: auto;
-    inset-inline-end: 1rem;
+    inset-inline-end: calc(50% - var(--gallery-main-width) / 2 + 0.75rem);
     transform: translateY(-50%);
   }
 
@@ -2275,4 +2276,184 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ── Rating panel popup ── */
+
+.rating-overview__count--btn {
+  all: unset;
+  cursor: pointer;
+  color: var(--ink-soft);
+  font-size: 0.7rem;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+  transition: color 160ms ease;
+}
+
+.rating-overview__count--btn:hover,
+.rating-overview__count--btn:focus-visible {
+  color: var(--brand);
+  outline: none;
+}
+
+.recipe-stat--rating {
+  position: relative;
+}
+
+.rating-panel {
+  position: absolute;
+  inset-block-start: calc(100% + 0.5rem);
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  min-inline-size: 240px;
+  max-inline-size: min(320px, calc(100vw - 2rem));
+  background: #ffffff;
+  border: 1px solid var(--detail-border-soft);
+  border-radius: var(--detail-radius-base);
+  box-shadow: 0 12px 32px rgb(20 33 43 / 0.14), 0 2px 8px rgb(20 33 43 / 0.06);
+  padding: 1rem;
+  animation: panel-in 160ms ease;
+}
+
+@keyframes panel-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(-4px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.rating-panel__loading,
+.rating-panel__error {
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+  padding-block: 0.5rem;
+}
+
+.rating-panel__summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.3rem;
+  margin-block-end: 0.85rem;
+}
+
+.rating-panel__avg {
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.rating-panel__avg-label {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+
+.rating-panel__bars {
+  display: grid;
+  gap: 0.3rem;
+  margin-block-end: 0.85rem;
+}
+
+.rating-panel__bar-row {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr 1.8rem;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.rating-panel__bar-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-align: right;
+}
+
+.rating-panel__bar-track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgb(20 33 43 / 0.08);
+  overflow: hidden;
+}
+
+.rating-panel__bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: #d89b2b;
+  transition: width 400ms ease;
+}
+
+.rating-panel__bar-count {
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  text-align: left;
+}
+
+.rating-panel__raters-heading {
+  margin: 0 0 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  border-block-start: 1px solid var(--detail-border-faint);
+  padding-block-start: 0.75rem;
+}
+
+.rating-panel__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+  max-block-size: 160px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.rating-panel__list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.rating-panel__author {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  text-decoration: none;
+  color: var(--ink);
+  flex: 1 1 0;
+}
+
+.rating-panel__author:hover .rating-panel__author-name {
+  color: var(--brand);
+  text-decoration: underline;
+}
+
+.rating-panel__avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--detail-border-faint);
+}
+
+.rating-panel__author-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rating-panel__stars {
+  font-size: 0.7rem;
+  color: #d89b2b;
+  flex-shrink: 0;
+  letter-spacing: 0.05em;
 }

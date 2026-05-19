@@ -563,6 +563,7 @@ def submit_recipe_rating(request, slug):
     RecipeRating.objects.create(
         recipe=recipe,
         value=form.cleaned_data["value"],
+        user=request.user if request.user.is_authenticated else None,
     )
 
     request.session[session_key] = True
@@ -585,6 +586,37 @@ def reset_recipe_rating(request, slug):
     if is_ajax:
         return JsonResponse({"ok": True})
     return redirect(recipe.get_absolute_url())
+
+
+def recipe_ratings_api(request, slug):
+    """Return rating breakdown + recent named raters as JSON."""
+    recipe = get_object_or_404(Recipe, slug=slug, status="published")
+    ratings_qs = recipe.ratings.select_related("user__recipe_author_profile").order_by("-created_at")
+
+    total = ratings_qs.count()
+    agg = ratings_qs.aggregate(avg=Avg("value"))
+    average = round(agg["avg"] or 0, 1)
+
+    breakdown = {str(v): 0 for v in range(5, 0, -1)}
+    for r in ratings_qs.values("value").annotate(cnt=Count("value")):
+        breakdown[str(r["value"])] = r["cnt"]
+
+    recent = []
+    for rating in ratings_qs[:20]:
+        entry = {"value": rating.value, "date": rating.created_at.strftime("%-d %b %Y")}
+        author = None
+        if rating.user:
+            try:
+                author = rating.user.recipe_author_profile
+            except Exception:
+                pass
+        if author:
+            entry["author_name"] = author.name
+            entry["author_slug"] = author.slug
+            entry["author_avatar"] = author.display_avatar_url
+        recent.append(entry)
+
+    return JsonResponse({"total": total, "average": average, "breakdown": breakdown, "recent": recent})
 
 
 @require_POST

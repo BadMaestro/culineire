@@ -170,8 +170,26 @@
                             <span class="rating-overview__stars-base">★★★★★</span>
                             <span class="rating-overview__stars-fill" style="--rating-fill: {{ average_rating_percentage }}%;">★★★★★</span>
                         </div>
-                        <span class="rating-overview__count">{{ ratings_count }} rating{{ ratings_count|pluralize }}</span>
+                        {% if ratings_count %}
+                        <button
+                            class="rating-overview__count rating-overview__count--btn"
+                            type="button"
+                            aria-expanded="false"
+                            aria-controls="rating-panel"
+                            data-rating-toggle
+                            data-ratings-url="{% url 'recipes:recipe_ratings_api' recipe.slug %}"
+                        >{{ ratings_count }} rating{{ ratings_count|pluralize }}</button>
+                        {% else %}
+                        <span class="rating-overview__count">0 ratings</span>
+                        {% endif %}
                     </div>
+                    {% if ratings_count %}
+                    <div class="rating-panel" id="rating-panel" hidden aria-label="Rating details">
+                        <div class="rating-panel__inner">
+                            <div class="rating-panel__loading" aria-live="polite">Loading…</div>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
 
@@ -462,6 +480,80 @@
 {% block extra_js %}
 <script src="{% static 'js/gallery.js' %}"></script>
 <script src="{% static 'js/recipe_detail.js' %}"></script>
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+  /* ── Rating panel ── */
+  var toggleBtn = document.querySelector('[data-rating-toggle]');
+  var panel = document.getElementById('rating-panel');
+  if (toggleBtn && panel) {
+    var loaded = false;
+    toggleBtn.addEventListener('click', function () {
+      var isOpen = panel.hidden === false;
+      if (isOpen) {
+        panel.hidden = true;
+        toggleBtn.setAttribute('aria-expanded', 'false');
+      } else {
+        panel.hidden = false;
+        toggleBtn.setAttribute('aria-expanded', 'true');
+        if (!loaded) {
+          loaded = true;
+          fetch(toggleBtn.dataset.ratingsUrl)
+            .then(function (r) { return r.json(); })
+            .then(function (data) { renderRatingPanel(panel, data); })
+            .catch(function () {
+              panel.querySelector('.rating-panel__inner').innerHTML =
+                '<p class="rating-panel__error">Could not load ratings.</p>';
+            });
+        }
+      }
+    });
+    document.addEventListener('click', function (e) {
+      if (!panel.hidden && !panel.contains(e.target) && e.target !== toggleBtn) {
+        panel.hidden = true;
+        toggleBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  function renderRatingPanel(panel, data) {
+    var max = Math.max.apply(null, [5,4,3,2,1].map(function(v){ return data.breakdown[v] || 0; })) || 1;
+    var barsHtml = [5,4,3,2,1].map(function (v) {
+      var cnt = data.breakdown[v] || 0;
+      var pct = Math.round(cnt / max * 100);
+      return '<div class="rating-panel__bar-row">' +
+        '<span class="rating-panel__bar-label">' + v + ' ★</span>' +
+        '<div class="rating-panel__bar-track"><div class="rating-panel__bar-fill" style="width:' + pct + '%"></div></div>' +
+        '<span class="rating-panel__bar-count">' + cnt + '</span>' +
+        '</div>';
+    }).join('');
+
+    var namedRatings = data.recent.filter(function (r) { return r.author_name; });
+    var listHtml = '';
+    if (namedRatings.length) {
+      listHtml = '<ul class="rating-panel__list">' +
+        namedRatings.map(function (r) {
+          var stars = '★'.repeat(r.value) + '☆'.repeat(5 - r.value);
+          return '<li class="rating-panel__list-item">' +
+            '<a class="rating-panel__author" href="/recipes/author/' + r.author_slug + '/">' +
+              '<img class="rating-panel__avatar" src="' + r.author_avatar + '" alt="' + r.author_name + '" width="28" height="28">' +
+              '<span class="rating-panel__author-name">' + r.author_name + '</span>' +
+            '</a>' +
+            '<span class="rating-panel__stars">' + stars + '</span>' +
+            '</li>';
+        }).join('') +
+        '</ul>';
+    }
+
+    panel.querySelector('.rating-panel__inner').innerHTML =
+      '<div class="rating-panel__summary">' +
+        '<span class="rating-panel__avg">' + data.average + '</span>' +
+        '<span class="rating-panel__avg-label">/ 5 &nbsp;(' + data.total + ' rating' + (data.total !== 1 ? 's' : '') + ')</span>' +
+      '</div>' +
+      '<div class="rating-panel__bars">' + barsHtml + '</div>' +
+      (listHtml ? '<div class="rating-panel__raters"><p class="rating-panel__raters-heading">Recent raters</p>' + listHtml + '</div>' : '');
+  }
+})();
+</script>
 <script nonce="{{ request.csp_nonce }}">
 (function () {
   var widget = document.querySelector('[data-rating-widget]');
