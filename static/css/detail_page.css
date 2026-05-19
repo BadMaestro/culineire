@@ -639,14 +639,16 @@
     inset-block-start: 50%;
     width: var(--gallery-arrow-size);
     height: var(--gallery-arrow-size);
-    border: 1px solid var(--line);
+    display: grid;
+    place-items: center;
+    border: 1px solid rgb(255 255 255 / 0.18);
     border-radius: var(--detail-radius-pill);
-    background: rgb(247 242 234 / 0.98);
-    color: var(--brand);
-    font-size: 1.9rem;
-    line-height: 1;
+    background: rgb(12 18 14 / 0.48);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #ffffff;
     cursor: pointer;
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 2px 16px rgb(0 0 0 / 0.22);
     z-index: 5;
     outline: var(--detail-focus-outline-width) solid transparent;
     outline-offset: var(--detail-focus-outline-offset);
@@ -678,9 +680,9 @@
   }
 
   .recipe-gallery__arrow:hover {
-    background: #ffffff;
-    border-color: var(--line-strong);
-    box-shadow: var(--detail-shadow-card-hover);
+    background: rgb(12 18 14 / 0.70);
+    border-color: rgb(255 255 255 / 0.30);
+    box-shadow: 0 4px 20px rgb(0 0 0 / 0.32);
   }
 
   .recipe-gallery__arrow--prev:hover,

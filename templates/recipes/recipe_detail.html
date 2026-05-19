@@ -65,7 +65,7 @@
                 data-gallery
             >
                 <div class="recipe-gallery__viewport">
-                    <button aria-label="Previous media" class="recipe-gallery__arrow recipe-gallery__arrow--prev" data-gallery-prev type="button">&#8249;</button>
+                    <button aria-label="Previous media" class="recipe-gallery__arrow recipe-gallery__arrow--prev" data-gallery-prev type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
                     <div class="recipe-gallery__stage" data-gallery-stage>
                         {% for item in gallery_items %}
                         <figure class="recipe-gallery__item" data-gallery-index="{{ forloop.counter0 }}" data-gallery-item data-gallery-type="{{ item.media_type|default:'image' }}">
@@ -84,7 +84,7 @@
                         </figure>
                         {% endfor %}
                     </div>
-                    <button aria-label="Next media" class="recipe-gallery__arrow recipe-gallery__arrow--next" data-gallery-next type="button">&#8250;</button>
+                    <button aria-label="Next media" class="recipe-gallery__arrow recipe-gallery__arrow--next" data-gallery-next type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
                 </div>
             </section>
             {% endif %}
