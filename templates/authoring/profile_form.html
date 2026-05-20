@@ -8,6 +8,26 @@
 <link href="{% static 'css/auth.css' %}" rel="stylesheet">
 {% endblock %}
 
+{% block extra_js %}
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+  var input = document.getElementById('id_avatar');
+  var label = document.getElementById('auth-avatar-filename');
+  var preview = document.querySelector('.auth-avatar-preview');
+  if (!input) return;
+  input.addEventListener('change', function () {
+    var file = input.files[0];
+    if (label) label.textContent = file ? file.name : 'No file chosen';
+    if (preview && file) {
+      var reader = new FileReader();
+      reader.onload = function (e) { preview.src = e.target.result; };
+      reader.readAsDataURL(file);
+    }
+  });
+})();
+</script>
+{% endblock %}
+
 {% block content %}
 <section class="hero hero--home hero--login">
     <div aria-hidden="true" class="hero__background">
@@ -38,6 +58,25 @@
                 {% endif %}
 
                 {% for field in form %}
+                {% if field.html_name == 'avatar' %}
+                <div class="auth-field">
+                    <span class="auth-field__label">{{ field.label }}</span>
+                    <div class="auth-avatar-upload">
+                        <img alt="Current avatar" class="auth-avatar-preview" src="{{ author.display_avatar_url }}">
+                        <div class="auth-avatar-upload__controls">
+                            <label class="auth-avatar-choose-btn" for="{{ field.id_for_label }}">Choose file</label>
+                            <span class="auth-avatar-filename" id="auth-avatar-filename">No file chosen</span>
+                        </div>
+                        <div class="auth-avatar-upload__input-wrap">{{ field }}</div>
+                        {% if field.help_text %}
+                        <div class="auth-help">{{ field.help_text }}</div>
+                        {% endif %}
+                        {% for error in field.errors %}
+                        <p class="auth-error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% else %}
                 <div class="auth-field">
                     <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
                     {{ field }}
@@ -48,6 +87,7 @@
                     <p class="auth-error">{{ error }}</p>
                     {% endfor %}
                 </div>
+                {% endif %}
                 {% endfor %}
 
                 <div class="auth-actions">

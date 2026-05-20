@@ -12,10 +12,15 @@
     object-position: center 40%;
 }
 
+.hero--login.hero--home {
+    min-height: 0;
+    height: auto;
+}
+
 .hero__inner--login {
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 1.5rem;
     padding-block: 2.5rem;
 }
@@ -102,6 +107,69 @@
     outline: 2px solid rgb(24 76 58 / 0.18);
     outline-offset: 2px;
     border-color: var(--brand);
+}
+
+.auth-field__label {
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.auth-avatar-upload {
+    display: grid;
+    justify-items: center;
+    gap: 0.75rem;
+    padding: 1.2rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: rgb(255 255 255 / 0.62);
+}
+
+.auth-avatar-preview {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgb(255 255 255 / 0.9);
+    box-shadow: 0 4px 16px rgb(31 44 37 / 0.14);
+}
+
+.auth-avatar-upload__controls {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.auth-avatar-choose-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 1.1rem;
+    border: 1px solid var(--brand);
+    border-radius: 999px;
+    background: rgb(24 76 58 / 0.07);
+    color: var(--brand);
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 140ms ease, border-color 140ms ease;
+}
+
+.auth-avatar-choose-btn:hover {
+    background: rgb(24 76 58 / 0.13);
+}
+
+.auth-avatar-filename {
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    max-width: 14rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.auth-avatar-upload__input-wrap {
+    display: none;
 }
 
 .auth-avatar-picker {
