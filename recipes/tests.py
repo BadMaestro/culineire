@@ -582,6 +582,152 @@ class AuthenticationPageTests(TestCase):
         self.assertRedirects(response, article.get_absolute_url())
         self.assertEqual(article.author, author)
 
+    def test_public_author_profile_counts_only_approved_content(self):
+        author = RecipeAuthor.objects.create(
+            user=self.user,
+            name="Ciaran",
+            slug="ciaran",
+        )
+        Recipe.objects.create(
+            title="Approved Recipe",
+            slug="approved-recipe",
+            author=author,
+            ingredients="Potatoes",
+            method="Boil",
+            status=Recipe.Status.APPROVED,
+        )
+        Recipe.objects.create(
+            title="Pending Recipe",
+            slug="pending-recipe",
+            author=author,
+            ingredients="Carrots",
+            method="Roast",
+            status=Recipe.Status.PENDING,
+        )
+        Article.objects.create(
+            title="Approved Article",
+            slug="approved-article",
+            author=author,
+            body="Approved body",
+            published="2026-05-20",
+            status=Article.Status.APPROVED,
+        )
+        Article.objects.create(
+            title="Pending Article",
+            slug="pending-article",
+            author=author,
+            body="Pending body",
+            published="2026-05-20",
+            status=Article.Status.PENDING,
+        )
+
+        response = self.client.get(author.get_absolute_url())
+
+        self.assertEqual(response.context["recipe_count"], 1)
+        self.assertEqual(response.context["article_count"], 1)
+        self.assertNotContains(response, "Awaiting Moderation")
+
+    def test_owner_author_profile_counts_all_managed_content(self):
+        author = RecipeAuthor.objects.create(
+            user=self.user,
+            name="Ciaran",
+            slug="ciaran",
+        )
+        Recipe.objects.create(
+            title="Approved Recipe",
+            slug="approved-recipe",
+            author=author,
+            ingredients="Potatoes",
+            method="Boil",
+            status=Recipe.Status.APPROVED,
+        )
+        Recipe.objects.create(
+            title="Rejected Recipe",
+            slug="rejected-recipe",
+            author=author,
+            ingredients="Carrots",
+            method="Roast",
+            status=Recipe.Status.REJECTED,
+        )
+        Article.objects.create(
+            title="Approved Article",
+            slug="approved-article",
+            author=author,
+            body="Approved body",
+            published="2026-05-20",
+            status=Article.Status.APPROVED,
+        )
+        Article.objects.create(
+            title="Pending Article",
+            slug="pending-article",
+            author=author,
+            body="Pending body",
+            published="2026-05-20",
+            status=Article.Status.PENDING,
+        )
+        self.client.force_login(self.user)
+
+        response = self.client.get(author.get_absolute_url())
+
+        self.assertEqual(response.context["recipe_count"], 2)
+        self.assertEqual(response.context["article_count"], 2)
+        self.assertContains(response, "Awaiting Moderation")
+        self.assertContains(response, "Rejected Recipe")
+        self.assertContains(response, "Pending Article")
+
+    def test_moderator_author_profile_counts_all_managed_content(self):
+        author = RecipeAuthor.objects.create(
+            user=self.user,
+            name="Ciaran",
+            slug="ciaran",
+        )
+        moderator = get_user_model().objects.create_user(
+            username="moderator",
+            password="pass",
+            is_staff=True,
+        )
+        Recipe.objects.create(
+            title="Approved Recipe",
+            slug="approved-recipe",
+            author=author,
+            ingredients="Potatoes",
+            method="Boil",
+            status=Recipe.Status.APPROVED,
+        )
+        Recipe.objects.create(
+            title="Pending Recipe",
+            slug="pending-recipe",
+            author=author,
+            ingredients="Carrots",
+            method="Roast",
+            status=Recipe.Status.PENDING,
+        )
+        Article.objects.create(
+            title="Approved Article",
+            slug="approved-article",
+            author=author,
+            body="Approved body",
+            published="2026-05-20",
+            status=Article.Status.APPROVED,
+        )
+        Article.objects.create(
+            title="Rejected Article",
+            slug="rejected-article",
+            author=author,
+            body="Rejected body",
+            published="2026-05-20",
+            status=Article.Status.REJECTED,
+        )
+        self.client.force_login(moderator)
+
+        response = self.client.get(author.get_absolute_url())
+
+        self.assertEqual(response.context["recipe_count"], 2)
+        self.assertEqual(response.context["article_count"], 2)
+        self.assertContains(response, "Awaiting Moderation")
+        self.assertContains(response, "Pending Recipe")
+        self.assertContains(response, "Rejected Article")
+
 
 class RecipeInteractionTests(TestCase):
     def setUp(self):

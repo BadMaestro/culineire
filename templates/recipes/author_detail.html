@@ -51,8 +51,7 @@
             </a>
         </div>
 
-        {% if can_manage_author_profile %}
-
+        {% if can_manage_author_profile or is_moderator_viewer %}
         {% if pending_recipes or pending_articles %}
         <div class="author-studio-pending">
             <p class="author-studio-pending__title">Awaiting Moderation</p>
@@ -91,7 +90,9 @@
             {% endif %}
         </div>
         {% endif %}
+        {% endif %}
 
+        {% if can_manage_author_profile %}
         <div class="author-profile-manage">
             <p class="author-profile-manage__label">Manage Profile</p>
             <div class="author-profile-manage__actions">

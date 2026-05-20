@@ -785,8 +785,14 @@ def author_detail(request, slug):
     can_manage = user_can_manage_author(request.user, author)
     moderator = is_moderator(request.user)
 
-    recipe_count = Recipe.objects.filter(author=author, status=Recipe.Status.APPROVED).count()
-    article_count = Article.objects.filter(author=author, status=Article.Status.APPROVED).count()
+    recipes_for_count = Recipe.objects.filter(author=author)
+    articles_for_count = Article.objects.filter(author=author)
+    if not (can_manage or moderator):
+        recipes_for_count = recipes_for_count.filter(status=Recipe.Status.APPROVED)
+        articles_for_count = articles_for_count.filter(status=Article.Status.APPROVED)
+
+    recipe_count = recipes_for_count.count()
+    article_count = articles_for_count.count()
 
     pending_recipes = []
     pending_articles = []
@@ -1213,7 +1219,6 @@ def moderate_recipe(request, slug):
     if action not in ("delete", "block") and recipe.pk:
         return redirect(recipe.get_absolute_url())
     return redirect("recipes:moderation_panel")
-
 
 
 
