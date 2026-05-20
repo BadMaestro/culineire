@@ -28,10 +28,12 @@ def my_collection(request):
     tab = request.GET.get("tab", "recipes")
     saved_recipes = (
         SavedRecipe.objects.filter(user=request.user)
+        .filter(recipe__status=Recipe.Status.APPROVED)
         .select_related("recipe", "recipe__author")
     )
     saved_articles = (
         SavedArticle.objects.filter(user=request.user)
+        .filter(article__status=Article.Status.APPROVED)
         .select_related("article", "article__author")
     )
     return render(request, "collection/my_collection.html", {
