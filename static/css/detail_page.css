@@ -1677,6 +1677,36 @@
     filter: none;
   }
 
+  .rating-reset-form {
+    display: inline-flex;
+    margin: 0;
+  }
+
+  .rating-reset-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--ink-soft);
+    opacity: 0.45;
+    transition: opacity 160ms ease, color 160ms ease;
+    vertical-align: middle;
+  }
+
+  .rating-reset-btn:hover {
+    opacity: 1;
+    color: #c0392b;
+  }
+
+  .detail-page__card--form h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
   .rating-form {
     display: flex;
     flex-wrap: nowrap;

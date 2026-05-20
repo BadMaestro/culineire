@@ -33,6 +33,7 @@
 
     <div class="mon-back-row">
       <a class="mon-back-link" href="{% url 'recipes:moderation_panel' %}">Back to Moderation Panel</a>
+      <a class="mon-back-link" href="#clear-stats">Clear Statistics ↓</a>
     </div>
 
     <div class="mon-cards">
@@ -315,7 +316,7 @@
     </div>
 
     {% if request.user.is_superuser %}
-    <div class="mon-section mon-section--danger-zone">
+    <div class="mon-section mon-section--danger-zone" id="clear-stats">
       <h2 class="mon-section__title">
         <svg class="mon-clear-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="3 6 5 6 21 6"></polyline>

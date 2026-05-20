@@ -523,6 +523,7 @@ def recipe_detail(request, slug):
         "ratings_count": ratings_count,
         "average_rating_percentage": average_rating_percentage,
         "can_manage_recipe": is_moderator(request.user) or user_can_manage_author(request.user, recipe.author),
+        "is_greenbear": request.user.is_authenticated and hasattr(request.user, "recipe_author_profile") and request.user.recipe_author_profile.slug == settings.OWNER_SLUG,
         "can_moderate_bar": is_moderator(request.user) and recipe.status != Recipe.Status.APPROVED,
         "has_rated": has_rated,
         "commenter_profile": commenter_profile,
@@ -586,6 +587,29 @@ def reset_recipe_rating(request, slug):
     if is_ajax:
         return JsonResponse({"ok": True})
     return redirect(recipe.get_absolute_url())
+
+
+@require_POST
+@login_required
+def reset_all_recipe_ratings(request, slug):
+    if not hasattr(request.user, "recipe_author_profile"):
+        return JsonResponse({"ok": False}, status=403)
+    if request.user.recipe_author_profile.slug != settings.OWNER_SLUG:
+        return JsonResponse({"ok": False}, status=403)
+    recipe = get_object_or_404(Recipe, slug=slug)
+    recipe.ratings.all().delete()
+    session_key = f"recipe_rating_submitted_{recipe.pk}"
+    from django.contrib.sessions.backends.db import SessionStore
+    from django.contrib.sessions.models import Session
+    for session_obj in Session.objects.all():
+        try:
+            store = SessionStore(session_key=session_obj.session_key)
+            if session_key in store:
+                del store[session_key]
+                store.save()
+        except Exception:
+            pass
+    return JsonResponse({"ok": True})
 
 
 def recipe_ratings_api(request, slug):

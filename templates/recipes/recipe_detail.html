@@ -365,7 +365,14 @@
                 {% endif %}
 
                 <section class="detail-page__card detail-page__card--form" data-rating-widget>
-                    <h2>Rate this recipe</h2>
+                    <h2>Rate this recipe{% if is_greenbear and ratings_count %}
+                        <form action="{% url 'recipes:reset_all_recipe_ratings' recipe.slug %}" method="post" class="rating-reset-form" onsubmit="return confirm('Reset all {{ ratings_count }} rating{{ ratings_count|pluralize }} for this recipe?')">
+                            {% csrf_token %}
+                            <button class="rating-reset-btn" type="submit" title="Reset all ratings">
+                                <svg aria-hidden="true" fill="none" height="14" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                            </button>
+                        </form>
+                    {% endif %}</h2>
                     <div data-rating-voted {% if not has_rated %}hidden{% endif %}>
                         <p class="rating-already-voted">Your rating has been saved. Thank you!</p>
                         <form action="{% url 'recipes:reset_recipe_rating' recipe.slug %}" method="post" style="margin-top:0.65rem;">
