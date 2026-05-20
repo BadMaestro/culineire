@@ -1255,7 +1255,6 @@
     border: 1px solid var(--detail-border-soft);
     border-radius: var(--detail-radius-base);
     background: var(--surface-soft);
-    overflow: hidden;
     padding-block-end: 0.65rem;
     padding-inline: 0.75rem;
   }
@@ -1278,6 +1277,7 @@
     background: transparent;
     resize: vertical;
     line-height: 1.6;
+    border-radius: calc(var(--detail-radius-base) - 2px) calc(var(--detail-radius-base) - 2px) 0 0;
   }
 
   .comment-compose__editor textarea::placeholder {
@@ -1437,6 +1437,12 @@
     font-size: 0.78rem;
     letter-spacing: 0.02em;
     color: var(--ink-soft);
+  }
+
+  .comment-compose__turnstile {
+    flex: 1 1 100%;
+    margin-block-start: 0.5rem;
+    min-inline-size: 0;
   }
 
   .detail-page__sidebar .detail-page__card--form .recipe-form {
@@ -1724,10 +1730,34 @@
     margin-block-start: 0.75rem;
   }
 
+  .comment-reply-form .recipe-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+
+  .comment-reply-form .recipe-form__field {
+    width: 100%;
+  }
+
+  .comment-reply-form .recipe-form__field textarea {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
   .comment-reply-form__actions {
     display: flex;
     gap: 0.5rem;
     margin-block-start: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .comment-reply-form__turnstile {
+    margin-block-start: 0.5rem;
+    display: flex;
+    justify-content: center;
   }
 
   .detail-page__card {
@@ -2548,6 +2578,10 @@
       gap: 0.4rem;
     }
 
+    .comment-compose__posting-as {
+      text-align: center;
+    }
+
     .comment-compose__submit {
       justify-content: center;
     }
@@ -2777,6 +2811,33 @@
   width: auto;
   min-height: unset;
   display: inline;
+}
+
+.comment-reply-form .recipe-form {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+}
+
+.comment-reply-form .recipe-form__field,
+.comment-reply-form .recipe-form__field textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.comment-reply-form__turnstile {
+  margin-block-start: 0.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.comment-reply-form__actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-block-start: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 

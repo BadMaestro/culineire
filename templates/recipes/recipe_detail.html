@@ -15,6 +15,7 @@
 {% block extra_head %}
 <link href="{% static 'css/detail_page.css' %}" rel="stylesheet">
 <link href="{% static 'css/collection.css' %}" rel="stylesheet">
+{% if request.user.is_authenticated and turnstile_site_key %}<script async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js"></script>{% endif %}
 {% if can_moderate_bar %}
 <link href="{% static 'css/messaging.css' %}" rel="stylesheet">{% endif %}
 {% if gallery_items %}<link rel="preload" as="image" href="{{ gallery_items.0.src }}">{% elif recipe.hero_image %}<link rel="preload" as="image" href="{{ recipe.hero_image.url }}">{% endif %}
@@ -493,6 +494,23 @@
                                     <span class="comment-compose__posting-as">Posting as <strong>{% if commenter_profile %}{{ commenter_profile.name }}{% else %}{{ request.user.get_full_name|default:request.user.username }}{% endif %}</strong></span>
                                     <button class="comment-compose__submit" type="submit">Post Comment</button>
                                 </div>
+                                {% if turnstile_site_key %}
+                                <div class="comment-compose__turnstile">
+                                    <div class="cf-turnstile" id="commentTurnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="light"></div>
+                                </div>
+                                <script nonce="{{ request.csp_nonce }}">
+                                  (function(){
+                                    var isMobile = window.innerWidth <= 520;
+                                    var w = document.getElementById('commentTurnstile');
+                                    if(w) w.setAttribute('data-size', isMobile ? 'compact' : 'normal');
+                                    document.addEventListener('DOMContentLoaded', function(){
+                                      document.querySelectorAll('.comment-reply-turnstile').forEach(function(el){
+                                        el.setAttribute('data-size', isMobile ? 'compact' : 'normal');
+                                      });
+                                    });
+                                  })();
+                                </script>
+                                {% endif %}
                             </div>
                         </form>
                         {% endif %}
@@ -537,6 +555,11 @@
                                                 <div class="recipe-form__field">
                                                     <textarea name="content" required rows="3" placeholder="Write a reply…" maxlength="3000" aria-label="Reply to {{ comment.name }}"></textarea>
                                                 </div>
+                                                {% if turnstile_site_key %}
+                                                <div class="comment-reply-form__turnstile">
+                                                    <div class="cf-turnstile comment-reply-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="light"></div>
+                                                </div>
+                                                {% endif %}
                                                 <div class="comment-reply-form__actions">
                                                     <button class="detail-button detail-button--secondary" type="button" data-reply-cancel="reply-form-{{ comment.pk }}">Cancel</button>
                                                     <button class="detail-button" type="submit">Post reply</button>
@@ -589,6 +612,11 @@
                                             <div class="recipe-form__field">
                                                 <textarea name="content" required rows="3" placeholder="Reply to {{ reply.name }}…" maxlength="3000" aria-label="Reply to {{ reply.name }}"></textarea>
                                             </div>
+                                            {% if turnstile_site_key %}
+                                            <div class="comment-reply-form__turnstile">
+                                                <div class="cf-turnstile comment-reply-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="light"></div>
+                                            </div>
+                                            {% endif %}
                                             <div class="comment-reply-form__actions">
                                                 <button class="detail-button detail-button--secondary" type="button" data-reply-cancel="reply-form-{{ reply.pk }}">Cancel</button>
                                                 <button class="detail-button" type="submit">Post reply</button>

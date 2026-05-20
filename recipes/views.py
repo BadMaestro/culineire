@@ -540,6 +540,7 @@ def recipe_detail(request, slug):
         "is_saved": request.user.is_authenticated and SavedRecipe.objects.filter(user=request.user, recipe=recipe).exists(),
         "collection_add_url": reverse("collection:add_recipe", kwargs={"slug": recipe.slug}),
         "collection_remove_url": reverse("collection:remove_recipe", kwargs={"slug": recipe.slug}),
+        "turnstile_site_key": settings.TURNSTILE_SITE_KEY,
     }
     return render(request, "recipes/recipe_detail.html", context)
 
@@ -673,6 +674,11 @@ def submit_recipe_comment(request, slug):
         messages.error(request, "You have submitted too many comments. Please try again later.")
         return redirect(f"{recipe.get_absolute_url()}#comments")
 
+    token = request.POST.get("cf-turnstile-response", "")
+    if not verify_turnstile(token, request.META.get("REMOTE_ADDR", "")):
+        messages.error(request, "Security check failed. Please try again.")
+        return redirect(f"{recipe.get_absolute_url()}#comments")
+
     if not form.is_valid():
         messages.error(request, "Please complete the comment form correctly.")
         return redirect(f"{recipe.get_absolute_url()}#comments")
@@ -752,6 +758,11 @@ def add_comment_reply(request, comment_id):
         author = request.user.recipe_author_profile
         display_name = author.name
     except RecipeAuthor.DoesNotExist:
+        return redirect(f"{recipe.get_absolute_url()}#comment-{root.pk}")
+
+    token = request.POST.get("cf-turnstile-response", "")
+    if not verify_turnstile(token, request.META.get("REMOTE_ADDR", "")):
+        messages.error(request, "Security check failed. Please try again.")
         return redirect(f"{recipe.get_absolute_url()}#comment-{root.pk}")
 
     content = request.POST.get("content", "").strip()
