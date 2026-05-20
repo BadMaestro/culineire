@@ -10,7 +10,7 @@ def _create_recipe_entry(recipe):
     try:
         from newsfeed.models import NewsFeedEntry
         event_key = f"recipe_published:{recipe.pk}"
-        NewsFeedEntry.objects.get_or_create(
+        NewsFeedEntry.objects.update_or_create(
             event_key=event_key,
             defaults={
                 "entry_type": NewsFeedEntry.EntryType.RECIPE_PUBLISHED,
@@ -28,7 +28,7 @@ def _create_article_entry(article):
     try:
         from newsfeed.models import NewsFeedEntry
         event_key = f"article_published:{article.pk}"
-        NewsFeedEntry.objects.get_or_create(
+        NewsFeedEntry.objects.update_or_create(
             event_key=event_key,
             defaults={
                 "entry_type": NewsFeedEntry.EntryType.ARTICLE_PUBLISHED,
@@ -42,6 +42,14 @@ def _create_article_entry(article):
         logger.exception("Failed to create newsfeed entry for article pk=%s", article.pk)
 
 
+def _hide_auto_entry(event_key):
+    try:
+        from newsfeed.models import NewsFeedEntry
+        NewsFeedEntry.objects.filter(event_key=event_key, is_auto=True).update(is_public=False)
+    except Exception:
+        logger.exception("Failed to hide newsfeed entry for event_key=%s", event_key)
+
+
 def _connect_recipe_signal():
     try:
         from recipes.models import Recipe
@@ -51,6 +59,8 @@ def _connect_recipe_signal():
             del sender, kwargs
             if instance.status == Recipe.Status.APPROVED:
                 _create_recipe_entry(instance)
+            else:
+                _hide_auto_entry(f"recipe_published:{instance.pk}")
 
     except ImportError:
         pass
@@ -65,6 +75,8 @@ def _connect_article_signal():
             del sender, kwargs
             if instance.status == Article.Status.APPROVED:
                 _create_article_entry(instance)
+            else:
+                _hide_auto_entry(f"article_published:{instance.pk}")
 
     except ImportError:
         pass

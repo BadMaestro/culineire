@@ -64,6 +64,26 @@ class RecipeFeedEntryTest(TestCase):
             1,
         )
 
+    def test_recipe_rejection_hides_auto_entry_and_reapproval_restores_it(self):
+        recipe = _make_recipe(self.author)
+        recipe.status = "approved"
+        recipe.save()
+        event_key = f"recipe_published:{recipe.pk}"
+
+        recipe.status = "rejected"
+        recipe.save()
+
+        entry = NewsFeedEntry.objects.get(event_key=event_key)
+        self.assertFalse(entry.is_public)
+
+        recipe.title = "Approved Again"
+        recipe.status = "approved"
+        recipe.save()
+
+        entry.refresh_from_db()
+        self.assertTrue(entry.is_public)
+        self.assertEqual(entry.title, "New recipe published: Approved Again")
+
     def test_pending_recipe_creates_no_entry(self):
         recipe = _make_recipe(self.author)
         self.assertEqual(
@@ -94,6 +114,33 @@ class ArticleFeedEntryTest(TestCase):
         self.assertEqual(
             NewsFeedEntry.objects.filter(event_key=f"article_published:{article.pk}").count(),
             1,
+        )
+
+    def test_article_rejection_hides_auto_entry_and_reapproval_restores_it(self):
+        article = _make_article(self.author)
+        article.status = "approved"
+        article.save()
+        event_key = f"article_published:{article.pk}"
+
+        article.status = "rejected"
+        article.save()
+
+        entry = NewsFeedEntry.objects.get(event_key=event_key)
+        self.assertFalse(entry.is_public)
+
+        article.title = "Approved Again"
+        article.status = "approved"
+        article.save()
+
+        entry.refresh_from_db()
+        self.assertTrue(entry.is_public)
+        self.assertEqual(entry.title, "New article published: Approved Again")
+
+    def test_pending_article_creates_no_entry(self):
+        article = _make_article(self.author)
+        self.assertEqual(
+            NewsFeedEntry.objects.filter(event_key=f"article_published:{article.pk}").count(),
+            0,
         )
 
 
