@@ -3,6 +3,7 @@ import logging
 
 from django.conf import settings
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.db.models import Max, Prefetch, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
@@ -16,11 +17,24 @@ from config.turnstile import verify_turnstile
 from monitoring.tracker import track_event
 from recipes.authoring import AuthorRequiredMixin, user_can_manage_author
 from recipes.models import RecipeAuthor
+from recipes.validators import validate_image_upload
 from accounts.views import is_moderator
 from .forms import ArticleAuthoringForm
 from .models import Article, ArticleImage
 
 logger = logging.getLogger(__name__)
+
+
+def _validate_gallery_uploads(form, uploaded_files):
+    is_valid = True
+    for uploaded_file in uploaded_files:
+        try:
+            validate_image_upload(uploaded_file)
+        except ValidationError as exc:
+            for message in exc.messages:
+                form.add_error(None, f"Gallery image {uploaded_file.name}: {message}")
+            is_valid = False
+    return is_valid
 
 
 class ArticleListView(ListView):
@@ -102,6 +116,10 @@ class ArticleCreateView(AuthorRequiredMixin, CreateView):
         return kwargs
 
     def form_valid(self, form):
+        gallery_images = self.request.FILES.getlist("gallery_images")
+        if not _validate_gallery_uploads(form, gallery_images):
+            return self.form_invalid(form)
+
         article = form.save(confirmed_by=self.request.user)
         self.object = article
 
@@ -109,7 +127,7 @@ class ArticleCreateView(AuthorRequiredMixin, CreateView):
             article.status = Article.Status.APPROVED
             article.save(update_fields=["status"])
 
-        for i, img_file in enumerate(self.request.FILES.getlist("gallery_images"), start=1):
+        for i, img_file in enumerate(gallery_images, start=1):
             ArticleImage.objects.create(article=article, image=img_file, sort_order=i)
 
         messages.success(self.request, "Article Created Successfully.")
@@ -251,11 +269,15 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
         return kwargs
 
     def form_valid(self, form):
+        gallery_images = self.request.FILES.getlist("gallery_images")
+        if not _validate_gallery_uploads(form, gallery_images):
+            return self.form_invalid(form)
+
         article = form.save(confirmed_by=self.request.user)
         self.object = article
 
         max_sort_order = article.gallery_images.aggregate(max_sort_order=Max("sort_order"))["max_sort_order"] or 0
-        for i, img_file in enumerate(self.request.FILES.getlist("gallery_images"), start=max_sort_order + 1):
+        for i, img_file in enumerate(gallery_images, start=max_sort_order + 1):
             ArticleImage.objects.create(article=article, image=img_file, sort_order=i)
 
         messages.success(self.request, "Article Updated Successfully.")

@@ -94,6 +94,10 @@ class ArticleAuthoringPermissionTests(TestCase):
         image_file.seek(0)
         return SimpleUploadedFile(name, image_file.read(), content_type="image/png")
 
+    @staticmethod
+    def uploaded_invalid_image(name="broken.png"):
+        return SimpleUploadedFile(name, b"not an image", content_type="image/png")
+
     def test_author_can_edit_own_article(self):
         self.client.force_login(self.owner_user)
 
@@ -180,6 +184,22 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertContains(response, "cf-turnstile")
         self.assertContains(response, "test-site-key")
 
+    def test_article_create_rejects_invalid_gallery_image_before_saving(self):
+        self.client.force_login(self.owner_user)
+
+        response = self.client.post(
+            reverse("articles:article_create"),
+            {
+                **self.article_payload(title="New Article"),
+                "gallery_images": self.uploaded_invalid_image(),
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Gallery image broken.png")
+        self.assertFalse(Article.objects.filter(title="New Article").exists())
+        self.assertFalse(ArticleImage.objects.exists())
+
     @override_settings(TURNSTILE_SITE_KEY="test-site-key")
     def test_article_edit_does_not_show_unverified_turnstile_widget(self):
         self.client.force_login(self.owner_user)
@@ -257,6 +277,23 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertRedirects(response, self.article.get_absolute_url())
         new_image = ArticleImage.objects.get(article=self.article, sort_order=8)
         self.assertEqual(new_image.sort_order, 8)
+
+    def test_article_edit_rejects_invalid_gallery_image_before_saving(self):
+        self.client.force_login(self.owner_user)
+
+        response = self.client.post(
+            reverse("articles:article_edit", kwargs={"slug": self.article.slug}),
+            {
+                **self.article_payload(title="Should Not Save"),
+                "gallery_images": self.uploaded_invalid_image(),
+            },
+        )
+
+        self.article.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Gallery image broken.png")
+        self.assertEqual(self.article.title, "Original Article")
+        self.assertFalse(ArticleImage.objects.filter(article=self.article).exists())
 
     def test_author_cannot_delete_another_authors_article(self):
         self.client.force_login(self.other_user)
