@@ -252,9 +252,6 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
             ArticleImage.objects.create(article=article, image=img_file, sort_order=i)
 
         messages.success(self.request, "Article Updated Successfully.")
-        if is_moderator(self.request.user):
-            from django.urls import reverse
-            return redirect(reverse("recipes:moderation_panel"))
         return redirect(article.get_absolute_url())
 
     def form_invalid(self, form):

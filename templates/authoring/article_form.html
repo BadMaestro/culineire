@@ -45,6 +45,11 @@
             {% if form.errors %}
             <div class="authoring-errors" role="alert">
                 <p>Please review the form errors below.</p>
+                {% for field in form %}
+                {% for error in field.errors %}
+                <p>{{ field.label }}: {{ error }}</p>
+                {% endfor %}
+                {% endfor %}
             </div>
             {% endif %}
 
@@ -64,6 +69,10 @@
                     <div class="authoring-field authoring-field--wide">
                         <label for="{{ form.hero_image.id_for_label }}">{{ form.hero_image.label }}:</label>
                         {{ form.hero_image }}
+                        {% if form_mode == "edit" and article.hero_image %}
+                        <p class="authoring-help">Current image:</p>
+                        <img src="{{ article.hero_image.url }}" alt="Current article image" class="authoring-step-thumb">
+                        {% endif %}
                         {% if form.hero_image.help_text %}<p class="authoring-help">{{ form.hero_image.help_text }}</p>{% endif %}
                         {% for error in form.hero_image.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
