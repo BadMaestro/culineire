@@ -4,6 +4,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
@@ -190,3 +191,19 @@ class ArticleImage(models.Model):
 
     def __str__(self):
         return f"{self.article.title} — image {self.id}"
+
+    def clean(self):
+        super().clean()
+        if (
+            self.article_id
+            and self.is_active
+            and self.article.image_rights_status == Article.ImageRightsStatus.NOT_APPLICABLE
+        ):
+            raise ValidationError(
+                {
+                    "image": (
+                        "Choose the correct image rights status before attaching "
+                        "active article gallery images."
+                    )
+                }
+            )

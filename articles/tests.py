@@ -2,6 +2,7 @@ from datetime import date
 from io import BytesIO
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms.models import inlineformset_factory
 from django.test import TestCase, override_settings
@@ -302,6 +303,31 @@ class ArticleAuthoringPermissionTests(TestCase):
 
         self.assertFalse(formset.is_valid())
         self.assertIn("Choose the correct image rights status", str(formset.non_form_errors()))
+
+    def test_active_article_image_rejects_not_applicable_rights(self):
+        article = self.create_article("Direct Gallery Article", Article.Status.PENDING)
+        article.image_rights_status = Article.ImageRightsStatus.NOT_APPLICABLE
+        gallery_image = ArticleImage(
+            article=article,
+            image=self.uploaded_image("direct-gallery.png"),
+            sort_order=1,
+            is_active=True,
+        )
+
+        with self.assertRaises(ValidationError):
+            gallery_image.full_clean()
+
+    def test_inactive_article_image_allows_not_applicable_rights(self):
+        article = self.create_article("Inactive Gallery Article", Article.Status.PENDING)
+        article.image_rights_status = Article.ImageRightsStatus.NOT_APPLICABLE
+        gallery_image = ArticleImage(
+            article=article,
+            image=self.uploaded_image("inactive-gallery.png"),
+            sort_order=1,
+            is_active=False,
+        )
+
+        gallery_image.full_clean()
 
     def test_author_can_edit_own_article(self):
         self.client.force_login(self.owner_user)
