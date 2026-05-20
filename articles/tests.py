@@ -185,6 +185,21 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertEqual(self.article.title, "Updated Article")
         self.assertEqual(self.article.author, self.owner_author)
 
+    def test_author_edit_of_approved_article_returns_to_pending_review(self):
+        self.article.status = Article.Status.APPROVED
+        self.article.save(update_fields=["status"])
+        self.client.force_login(self.owner_user)
+
+        response = self.client.post(
+            reverse("articles:article_edit", kwargs={"slug": self.article.slug}),
+            self.article_payload(),
+        )
+
+        self.article.refresh_from_db()
+        self.assertRedirects(response, self.article.get_absolute_url())
+        self.assertEqual(self.article.title, "Updated Article")
+        self.assertEqual(self.article.status, Article.Status.PENDING)
+
     def test_author_cannot_edit_another_authors_article(self):
         self.client.force_login(self.other_user)
 
@@ -223,6 +238,20 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.article.refresh_from_db()
         self.assertRedirects(response, self.article.get_absolute_url())
         self.assertEqual(self.article.status, Article.Status.PENDING)
+
+    def test_moderator_edit_preserves_approved_article_status(self):
+        self.article.status = Article.Status.APPROVED
+        self.article.save(update_fields=["status"])
+        self.client.force_login(self.moderator_user)
+
+        response = self.client.post(
+            reverse("articles:article_edit", kwargs={"slug": self.article.slug}),
+            self.article_payload(),
+        )
+
+        self.article.refresh_from_db()
+        self.assertRedirects(response, self.article.get_absolute_url())
+        self.assertEqual(self.article.status, Article.Status.APPROVED)
 
     def test_moderator_edit_uses_article_author_recipes_for_related_recipe_choices(self):
         owner_recipe = Recipe.objects.create(
