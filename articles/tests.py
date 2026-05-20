@@ -357,6 +357,43 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertEqual(self.article.title, "Updated Article")
         self.assertEqual(self.article.status, Article.Status.PENDING)
 
+    def test_author_edit_of_approved_article_mentions_review_in_message(self):
+        self.article.status = Article.Status.APPROVED
+        self.article.save(update_fields=["status"])
+        self.client.force_login(self.owner_user)
+
+        response = self.client.post(
+            reverse("articles:article_edit", kwargs={"slug": self.article.slug}),
+            self.article_payload(),
+            follow=True,
+        )
+
+        self.assertContains(response, "sent back to review")
+
+    def test_author_edit_form_warns_live_article_returns_to_review(self):
+        self.article.status = Article.Status.APPROVED
+        self.article.save(update_fields=["status"])
+        self.client.force_login(self.owner_user)
+
+        response = self.client.get(
+            reverse("articles:article_edit", kwargs={"slug": self.article.slug}),
+        )
+
+        self.assertTrue(response.context["will_return_to_review"])
+        self.assertContains(response, "Saving changes to a live article will move it back to Pending Review")
+
+    def test_moderator_edit_form_does_not_warn_live_article_returns_to_review(self):
+        self.article.status = Article.Status.APPROVED
+        self.article.save(update_fields=["status"])
+        self.client.force_login(self.moderator_user)
+
+        response = self.client.get(
+            reverse("articles:article_edit", kwargs={"slug": self.article.slug}),
+        )
+
+        self.assertFalse(response.context["will_return_to_review"])
+        self.assertNotContains(response, "Saving changes to a live article will move it back to Pending Review")
+
     def test_author_cannot_edit_another_authors_article(self):
         self.client.force_login(self.other_user)
 

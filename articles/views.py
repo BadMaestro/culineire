@@ -296,6 +296,7 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
         if not _validate_gallery_uploads(form, gallery_images):
             return self.form_invalid(form)
 
+        was_approved = self.object.status == Article.Status.APPROVED
         article = form.save(commit=False, confirmed_by=self.request.user)
         if not is_moderator(self.request.user):
             article.status = Article.Status.PENDING
@@ -307,7 +308,13 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
         for i, img_file in enumerate(gallery_images, start=max_sort_order + 1):
             ArticleImage.objects.create(article=article, image=img_file, sort_order=i)
 
-        messages.success(self.request, "Article Updated Successfully.")
+        if was_approved and not is_moderator(self.request.user):
+            messages.success(
+                self.request,
+                "Article updated and sent back to review before it goes live again.",
+            )
+        else:
+            messages.success(self.request, "Article Updated Successfully.")
         return redirect(article.get_absolute_url())
 
     def form_invalid(self, form):
@@ -328,6 +335,11 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
         context["submit_label"] = "Save Changes"
         context["cancel_url"] = self.object.get_absolute_url() if self.object else reverse("articles:article_list")
         context["turnstile_site_key"] = ""
+        context["will_return_to_review"] = (
+            bool(self.object)
+            and self.object.status == Article.Status.APPROVED
+            and not is_moderator(self.request.user)
+        )
         if self.object:
             context["existing_gallery_images"] = list(
                 self.object.gallery_images.filter(is_active=True).order_by("sort_order", "id")

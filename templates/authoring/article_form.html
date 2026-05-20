@@ -52,6 +52,11 @@
                 {% endfor %}
             </div>
             {% endif %}
+            {% if will_return_to_review %}
+            <div class="authoring-warning" role="status">
+                <strong>Review required:</strong> Saving changes to a live article will move it back to Pending Review until a moderator approves it again.
+            </div>
+            {% endif %}
 
             <fieldset class="authoring-section">
                 <legend>Article Details</legend>
