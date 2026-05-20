@@ -201,7 +201,7 @@ class ModerationPanelRoleTests(TestCase):
         self.client.login(username="greenbear", password="pass")
 
         response = self.client.post(
-            reverse("recipes:block_author", kwargs={"slug": self.second_superuser_author.slug}),
+            reverse("accounts:manage_author", kwargs={"slug": self.second_superuser_author.slug}),
             {"action": "revoke_superuser"},
         )
 
@@ -217,7 +217,7 @@ class ModerationPanelRoleTests(TestCase):
         self.client.login(username="greenbear", password="pass")
 
         response = self.client.post(
-            reverse("recipes:block_author", kwargs={"slug": self.owner_author.slug}),
+            reverse("accounts:manage_author", kwargs={"slug": self.owner_author.slug}),
             {"action": "revoke_superuser"},
         )
 
@@ -235,7 +235,7 @@ class ModerationPanelRoleTests(TestCase):
         self.assertNotContains(response, "Revoke Superuser Privileges")
 
         response = self.client.post(
-            reverse("recipes:block_author", kwargs={"slug": self.owner_author.slug}),
+            reverse("accounts:manage_author", kwargs={"slug": self.owner_author.slug}),
             {"action": "revoke_superuser"},
         )
 
@@ -304,6 +304,8 @@ class RecipeAdminFormTests(TestCase):
                 "source_author": "",
                 "source_url": "",
                 "source_note": "",
+                "image_rights_status": Recipe.ImageRightsStatus.OWN,
+                "image_rights_note": "",
                 "status": Recipe.Status.PENDING,
             }
         )
@@ -339,6 +341,11 @@ class RecipeAdminFormTests(TestCase):
                 "source_author": "",
                 "source_url": "",
                 "source_note": "",
+                "image_rights_status": Recipe.ImageRightsStatus.OWN,
+                "image_rights_note": "",
+                "confirm_own_work": "on",
+                "confirm_image_rights": "on",
+                "confirm_rules": "on",
             }
         )
 
@@ -398,10 +405,10 @@ class AuthenticationPageTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "registration/activation_pending.html")
+        self.assertTemplateUsed(response, "registration/signup_success.html")
         user = get_user_model().objects.get(username="newcook")
-        self.assertFalse(user.is_active)
-        self.assertNotIn("_auth_user_id", self.client.session)
+        self.assertTrue(user.is_active)
+        self.assertEqual(int(self.client.session["_auth_user_id"]), user.pk)
 
     def test_anonymous_header_shows_sign_in_and_join_links(self):
         response = self.client.get(reverse("home"))
@@ -526,6 +533,11 @@ class AuthenticationPageTests(TestCase):
                 "source_author": "",
                 "source_url": "",
                 "source_note": "",
+                "image_rights_status": Recipe.ImageRightsStatus.OWN,
+                "image_rights_note": "",
+                "confirm_own_work": "on",
+                "confirm_image_rights": "on",
+                "confirm_rules": "on",
             },
         )
 
@@ -553,6 +565,16 @@ class AuthenticationPageTests(TestCase):
                 "published": "2026-04-29",
                 "related_recipe": "",
                 "body": "Useful notes for Irish cooking.",
+                "image_rights_status": Article.ImageRightsStatus.NOT_APPLICABLE,
+                "image_rights_note": "",
+                "source_type": Article.SourceType.ORIGINAL,
+                "source_title": "",
+                "source_author": "",
+                "source_url": "",
+                "source_note": "",
+                "confirm_own_work": "on",
+                "confirm_image_rights": "on",
+                "confirm_rules": "on",
             },
         )
 
@@ -667,8 +689,8 @@ class SecuritySettingsModuleTests(SimpleTestCase):
 
         self.assertFalse(project_settings.SECURE_SSL_REDIRECT)
         self.assertEqual(project_settings.SECURE_HSTS_SECONDS, 0)
-        self.assertFalse(project_settings.SECURE_HSTS_INCLUDE_SUBDOMAINS)
-        self.assertFalse(project_settings.SECURE_HSTS_PRELOAD)
+        self.assertTrue(project_settings.SECURE_HSTS_INCLUDE_SUBDOMAINS)
+        self.assertTrue(project_settings.SECURE_HSTS_PRELOAD)
         self.assertFalse(project_settings.SESSION_COOKIE_SECURE)
         self.assertFalse(project_settings.CSRF_COOKIE_SECURE)
         self.assertTrue(project_settings.SERVE_STATIC_LOCALLY)
@@ -684,8 +706,8 @@ class SecuritySettingsModuleTests(SimpleTestCase):
 
         self.assertTrue(project_settings.SECURE_SSL_REDIRECT)
         self.assertEqual(project_settings.SECURE_HSTS_SECONDS, 31536000)
-        self.assertFalse(project_settings.SECURE_HSTS_INCLUDE_SUBDOMAINS)
-        self.assertFalse(project_settings.SECURE_HSTS_PRELOAD)
+        self.assertTrue(project_settings.SECURE_HSTS_INCLUDE_SUBDOMAINS)
+        self.assertTrue(project_settings.SECURE_HSTS_PRELOAD)
         self.assertTrue(project_settings.SESSION_COOKIE_SECURE)
         self.assertTrue(project_settings.CSRF_COOKIE_SECURE)
         self.assertFalse(project_settings.SERVE_STATIC_LOCALLY)
