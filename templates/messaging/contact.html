@@ -6,7 +6,7 @@
 
 {% block extra_head %}
 <link href="{% static 'css/auth.css' %}" rel="stylesheet">
-<script async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js"></script>
+<script async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js" nonce="{{ request.csp_nonce }}"></script>
 {% endblock %}
 
 {% block content %}

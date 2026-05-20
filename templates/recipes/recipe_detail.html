@@ -15,7 +15,7 @@
 {% block extra_head %}
 <link href="{% static 'css/detail_page.css' %}" rel="stylesheet">
 <link href="{% static 'css/collection.css' %}" rel="stylesheet">
-{% if request.user.is_authenticated and turnstile_site_key %}<script async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js"></script>{% endif %}
+{% if request.user.is_authenticated and turnstile_site_key %}<script async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js" nonce="{{ request.csp_nonce }}"></script>{% endif %}
 {% if can_moderate_bar %}
 <link href="{% static 'css/messaging.css' %}" rel="stylesheet">{% endif %}
 {% if gallery_items %}<link rel="preload" as="image" href="{{ gallery_items.0.src }}">{% elif recipe.hero_image %}<link rel="preload" as="image" href="{{ recipe.hero_image.url }}">{% endif %}
