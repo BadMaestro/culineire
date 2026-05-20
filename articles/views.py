@@ -88,8 +88,9 @@ class ArticleCreateView(AuthorRequiredMixin, CreateView):
     def post(self, request, *args, **kwargs):
         token = request.POST.get("cf-turnstile-response", "")
         if not verify_turnstile(token, request.META.get("REMOTE_ADDR", "")):
-            messages.error(request, "Security check failed. Please try again.")
-            return redirect("articles:article_create")
+            form = self.get_form()
+            form.add_error(None, "Security check failed. Please try again.")
+            return self.form_invalid(form)
         return super().post(request, *args, **kwargs)
 
     def get_form_kwargs(self):
@@ -110,6 +111,10 @@ class ArticleCreateView(AuthorRequiredMixin, CreateView):
 
         messages.success(self.request, "Article Created Successfully.")
         return redirect(article.get_absolute_url())
+
+    def form_invalid(self, form):
+        messages.error(self.request, "Please fix the highlighted fields and try again.")
+        return super().form_invalid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -251,6 +256,10 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
             from django.urls import reverse
             return redirect(reverse("recipes:moderation_panel"))
         return redirect(article.get_absolute_url())
+
+    def form_invalid(self, form):
+        messages.error(self.request, "Please fix the highlighted fields and try again.")
+        return super().form_invalid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

@@ -31,6 +31,18 @@
     document.querySelectorAll('form[data-validate]').forEach(function (form) {
         form.addEventListener('input', function () { onInteract(form); });
         form.addEventListener('change', function () { onInteract(form); });
+        form.addEventListener('submit', function (event) {
+            if (form.dataset.submitting === '1') {
+                event.preventDefault();
+                return;
+            }
+            form.dataset.submitting = '1';
+            var btn = form.querySelector('button[type="submit"]');
+            if (btn) {
+                btn.disabled = true;
+                btn.setAttribute('aria-busy', 'true');
+            }
+        });
 
         if (form.querySelector('.cf-turnstile')) {
             var poll = setInterval(function () {
