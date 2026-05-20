@@ -560,9 +560,7 @@
                                             <textarea name="content" required rows="3" placeholder="Write a reply…" maxlength="3000" aria-label="Reply to {{ comment.name }}"></textarea>
                                         </div>
                                         {% if turnstile_site_key %}
-                                        <div class="comment-reply-form__turnstile">
-                                            <div class="cf-turnstile comment-reply-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="light"></div>
-                                        </div>
+                                        <div class="comment-reply-form__turnstile"></div>
                                         {% endif %}
                                         <div class="comment-reply-form__actions">
                                             <button class="detail-button detail-button--secondary" type="button" data-reply-cancel="reply-form-{{ comment.pk }}">Cancel</button>
@@ -615,9 +613,7 @@
                                                 <textarea name="content" required rows="3" placeholder="Reply to {{ reply.name }}…" maxlength="3000" aria-label="Reply to {{ reply.name }}"></textarea>
                                             </div>
                                             {% if turnstile_site_key %}
-                                            <div class="comment-reply-form__turnstile">
-                                                <div class="cf-turnstile comment-reply-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="light"></div>
-                                            </div>
+                                            <div class="comment-reply-form__turnstile"></div>
                                             {% endif %}
                                             <div class="comment-reply-form__actions">
                                                 <button class="detail-button detail-button--secondary" type="button" data-reply-cancel="reply-form-{{ reply.pk }}">Cancel</button>
@@ -895,6 +891,17 @@
       if (isHidden) {
         var ta = form.querySelector('textarea');
         if (ta) ta.focus();
+        var tsWrap = form.querySelector('.comment-reply-form__turnstile');
+        if (tsWrap && !tsWrap.hasChildNodes() && window.turnstile) {
+          var widgetEl = document.createElement('div');
+          widgetEl.className = 'cf-turnstile comment-reply-turnstile';
+          tsWrap.appendChild(widgetEl);
+          window.turnstile.render(widgetEl, {
+            sitekey: '{{ turnstile_site_key }}',
+            theme: 'light',
+            size: window.innerWidth < 600 ? 'compact' : 'normal'
+          });
+        }
       }
     });
   });
