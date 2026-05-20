@@ -412,3 +412,11 @@ LOGGING = {
         "level": "WARNING",
     },
 }
+
+if IS_TESTING:
+    LOGGING["handlers"]["null"] = {
+        "class": "logging.NullHandler",
+    }
+    for logger_name in ("django", "django.request", "recipes", "articles"):
+        LOGGING["loggers"][logger_name]["handlers"] = ["null"]
+    LOGGING["loggers"]["auth.failures"]["handlers"] = ["null"]
