@@ -65,6 +65,10 @@
 
   /* ==== Base ==== */
 
+  [hidden] {
+    display: none !important;
+  }
+
   html {
     height: 100%;
   }
