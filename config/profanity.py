@@ -122,6 +122,8 @@ def find_profanity(text: str) -> list[str]:
     """Return a sorted list of unique forbidden words found in *text* (lowercase)."""
     if not text:
         return []
+    if not isinstance(text, str):
+        return []
     pattern = _get_pattern()
     return sorted({m.group(0).lower() for m in pattern.finditer(text)})
 
@@ -129,6 +131,8 @@ def find_profanity(text: str) -> list[str]:
 def contains_profanity(text: str) -> bool:
     """Return True if *text* contains at least one forbidden word."""
     if not text:
+        return False
+    if not isinstance(text, str):
         return False
     return bool(_get_pattern().search(text))
 

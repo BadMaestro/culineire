@@ -1,9 +1,12 @@
+import logging
 import json
 import urllib.parse
 import urllib.error
 import urllib.request
 
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 
 def verify_turnstile(token, remote_ip):
@@ -26,5 +29,8 @@ def verify_turnstile(token, remote_ip):
         ) as resp:
             result = json.loads(resp.read())
         return result.get("success", False)
-    except (json.JSONDecodeError, TimeoutError, urllib.error.URLError):
+    except (json.JSONDecodeError, TimeoutError, urllib.error.URLError, OSError):
+        return False
+    except Exception:
+        logger.exception("Unexpected Turnstile verification failure")
         return False

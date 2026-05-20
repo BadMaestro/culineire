@@ -153,7 +153,12 @@ class ArticleAuthoringForm(forms.ModelForm):
         for field_name, field in self.fields.items():
             if not isinstance(field.widget, _text_widgets):
                 continue
-            text = cleaned_data.get(field_name, "") or ""
+            value = cleaned_data.get(field_name, "")
+            if value in (None, ""):
+                continue
+            if not isinstance(value, str):
+                continue
+            text = value
             bad = find_profanity(text)
             if bad:
                 quoted = ", ".join(f'"{w}"' for w in bad)
