@@ -2822,6 +2822,10 @@
   margin-top: 0;
 }
 
+.comment-reply-form:not([hidden]) + .comment-replies {
+  margin-block-start: 0;
+}
+
 .comment-reply-form .recipe-form {
   display: flex;
   flex-direction: column;
