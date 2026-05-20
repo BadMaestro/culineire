@@ -3,7 +3,7 @@ import logging
 
 from django.conf import settings
 from django.contrib import messages
-from django.db.models import Prefetch, Q
+from django.db.models import Max, Prefetch, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
@@ -254,8 +254,8 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
         article = form.save(confirmed_by=self.request.user)
         self.object = article
 
-        existing_count = article.gallery_images.count()
-        for i, img_file in enumerate(self.request.FILES.getlist("gallery_images"), start=existing_count + 1):
+        max_sort_order = article.gallery_images.aggregate(max_sort_order=Max("sort_order"))["max_sort_order"] or 0
+        for i, img_file in enumerate(self.request.FILES.getlist("gallery_images"), start=max_sort_order + 1):
             ArticleImage.objects.create(article=article, image=img_file, sort_order=i)
 
         messages.success(self.request, "Article Updated Successfully.")

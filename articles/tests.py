@@ -1,14 +1,27 @@
 from datetime import date
+from io import BytesIO
 
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from PIL import Image
 
 from recipes.models import Recipe, RecipeAuthor
 
-from .models import Article
+from .models import Article, ArticleImage
 
 
+@override_settings(
+    STORAGES={
+        "default": {
+            "BACKEND": "django.core.files.storage.InMemoryStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    },
+)
 class ArticleAuthoringPermissionTests(TestCase):
     def setUp(self):
         user_model = get_user_model()
@@ -73,6 +86,13 @@ class ArticleAuthoringPermissionTests(TestCase):
         }
         payload.update(overrides)
         return payload
+
+    @staticmethod
+    def uploaded_image(name="article-image.png", color=(24, 76, 58)):
+        image_file = BytesIO()
+        Image.new("RGB", (24, 24), color).save(image_file, format="PNG")
+        image_file.seek(0)
+        return SimpleUploadedFile(name, image_file.read(), content_type="image/png")
 
     def test_author_can_edit_own_article(self):
         self.client.force_login(self.owner_user)
@@ -170,6 +190,73 @@ class ArticleAuthoringPermissionTests(TestCase):
 
         self.assertNotContains(response, "cf-turnstile")
         self.assertNotContains(response, "test-site-key")
+
+    def test_article_detail_uses_only_active_gallery_images_in_sort_order(self):
+        ArticleImage.objects.create(
+            article=self.article,
+            image=self.uploaded_image("inactive.png"),
+            sort_order=1,
+            is_active=False,
+        )
+        second = ArticleImage.objects.create(
+            article=self.article,
+            image=self.uploaded_image("second.png"),
+            sort_order=2,
+        )
+        first = ArticleImage.objects.create(
+            article=self.article,
+            image=self.uploaded_image("first.png"),
+            sort_order=1,
+        )
+        self.client.force_login(self.owner_user)
+
+        response = self.client.get(self.article.get_absolute_url())
+
+        gallery_sources = [item["src"] for item in response.context["gallery_items"]]
+        self.assertEqual(gallery_sources, [first.image.url, second.image.url])
+        self.assertTrue(response.context["has_gallery"])
+
+    def test_article_detail_falls_back_to_hero_when_gallery_has_no_active_images(self):
+        self.article.hero_image.save("cover.png", self.uploaded_image("cover.png"), save=True)
+        ArticleImage.objects.create(
+            article=self.article,
+            image=self.uploaded_image("inactive.png"),
+            sort_order=1,
+            is_active=False,
+        )
+        self.client.force_login(self.owner_user)
+
+        response = self.client.get(self.article.get_absolute_url())
+
+        self.assertEqual(len(response.context["gallery_items"]), 1)
+        self.assertEqual(response.context["gallery_items"][0]["src"], self.article.hero_image.url)
+        self.assertFalse(response.context["has_gallery"])
+
+    def test_article_edit_appends_gallery_images_after_highest_existing_sort_order(self):
+        ArticleImage.objects.create(
+            article=self.article,
+            image=self.uploaded_image("inactive.png"),
+            sort_order=7,
+            is_active=False,
+        )
+        ArticleImage.objects.create(
+            article=self.article,
+            image=self.uploaded_image("active.png"),
+            sort_order=2,
+        )
+        self.client.force_login(self.owner_user)
+
+        response = self.client.post(
+            reverse("articles:article_edit", kwargs={"slug": self.article.slug}),
+            {
+                **self.article_payload(),
+                "gallery_images": self.uploaded_image("new.png", color=(120, 40, 40)),
+            },
+        )
+
+        self.assertRedirects(response, self.article.get_absolute_url())
+        new_image = ArticleImage.objects.get(article=self.article, sort_order=8)
+        self.assertEqual(new_image.sort_order, 8)
 
     def test_author_cannot_delete_another_authors_article(self):
         self.client.force_login(self.other_user)
