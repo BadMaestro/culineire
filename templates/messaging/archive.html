@@ -24,6 +24,9 @@
 
             <div class="msg-inbox-card__header">
                 <h2 class="msg-inbox-card__title">Archived Messages</h2>
+                <a class="msg-inbox-card__archive-link" href="{% url 'recipes:moderation_panel' %}">
+                    ← Moderation Panel
+                </a>
                 <a class="msg-inbox-card__archive-link" href="{% url 'messaging:inbox' %}">
                     ← Inbox
                 </a>

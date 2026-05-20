@@ -717,6 +717,12 @@
     transform: translateY(-50%);
   }
 
+  .recipe-gallery__arrow:active {
+    transform: translateY(-50%) scale(0.92);
+    background-color: rgb(8 12 10 / 0.80);
+    transition-duration: 80ms;
+  }
+
   .recipe-gallery__arrow:focus-visible {
     outline-color: var(--detail-focus-outline-color);
     box-shadow:
@@ -1422,11 +1428,9 @@
 
   .detail-page__source-label {
     color: var(--ink-soft);
-    font-size: 0.76rem;
+    font-size: 0.82rem;
     line-height: 1.2;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-weight: 500;
   }
 
   .detail-page__source-links {

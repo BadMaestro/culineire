@@ -22,6 +22,10 @@
       <span class="pill">Live Updates</span>
       <h1 class="hero-title">CulinEire Updates</h1>
       <p class="hero-subtitle">New recipes, articles, site improvements and announcements from the kitchen.</p>
+      <div class="hero__actions">
+        <a class="btn-primary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
+        <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
+      </div>
     </div>
   </div>
 </section>

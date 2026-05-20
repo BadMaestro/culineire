@@ -29,6 +29,9 @@
             <div class="msg-inbox-card__header">
                 <h2 class="msg-inbox-card__title">Inbox</h2>
                 {% if is_moderator %}
+                <a class="msg-inbox-card__archive-link" href="{% url 'recipes:moderation_panel' %}">
+                    ← Moderation Panel
+                </a>
                 <a class="msg-inbox-card__archive-link" href="{% url 'messaging:archive' %}">
                     <svg fill="none" height="14" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14"><path d="M21 8v13H3V8M1 3h22v5H1zM10 12h4"/></svg>
                     Archive

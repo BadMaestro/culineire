@@ -367,7 +367,7 @@
                 <section class="detail-page__card detail-page__card--form" data-rating-widget>
                     <h2>Rate this recipe</h2>
                     <div data-rating-voted {% if not has_rated %}hidden{% endif %}>
-                        <p class="rating-already-voted">Thank you — your rating has been saved.</p>
+                        <p class="rating-already-voted">Your rating has been saved. Thank you!</p>
                         <form action="{% url 'recipes:reset_recipe_rating' recipe.slug %}" method="post" style="margin-top:0.65rem;">
                             {% csrf_token %}
                             <button class="detail-button detail-button--secondary" type="submit">Change rating</button>

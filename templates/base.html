@@ -250,7 +250,7 @@
         <p class="footer-inner__meta">&copy; 2026 Bearcave Limited. All rights reserved.</p>
         <p class="footer-inner__meta">CulinEire&trade; is a culinary platform and brand developed and operated by Bearcave Limited.</p>
         <p class="footer-inner__meta">CulinEire Kitchen is part of the Bearcave Limited culinary platform.</p>
-        <p class="footer-inner__meta">Version 1.4.67</p>
+        <p class="footer-inner__meta">Version 1.4.68</p>
         <nav aria-label="Footer" class="footer-inner__links">
             <a href="{% url 'about' %}">About</a>
             <span aria-hidden="true">/</span>
@@ -277,7 +277,7 @@
          role="{% if 'error' in message.tags %}alert{% else %}status{% endif %}"
          aria-live="{% if 'error' in message.tags %}assertive{% else %}polite{% endif %}">
         <span class="site-message__text">{{ message }}</span>
-        <button class="site-message__close" type="button" aria-label="Dismiss notification">&times;</button>
+        <button class="site-message__close" type="button" aria-label="Dismiss notification">OK</button>
     </div>
     {% endfor %}
 </section>
