@@ -700,6 +700,29 @@ def submit_recipe_comment(request, slug):
 
 @require_POST
 @login_required
+def delete_recipe_comment(request, comment_id):
+    comment = get_object_or_404(RecipeComment, pk=comment_id)
+    recipe = comment.recipe
+    if not (is_moderator(request.user) or user_can_manage_author(request.user, recipe.author)):
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied
+    comment.delete()
+    return redirect(f"{recipe.get_absolute_url()}#comments")
+
+
+@require_POST
+@login_required
+def delete_all_recipe_comments(request, slug):
+    recipe = get_object_or_404(Recipe, slug=slug)
+    if not is_moderator(request.user):
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied
+    recipe.comments.all().delete()
+    return redirect(f"{recipe.get_absolute_url()}#comments")
+
+
+@require_POST
+@login_required
 def add_comment_reply(request, comment_id):
     parent = get_object_or_404(RecipeComment, pk=comment_id, is_approved=True, parent__isnull=True)
     recipe = parent.recipe

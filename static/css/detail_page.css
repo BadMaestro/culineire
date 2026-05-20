@@ -1333,6 +1333,55 @@
     margin-block-end: 0;
   }
 
+  .detail-page__section-head__right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .comment-delete-all-btn {
+    border: 1px solid rgb(192 32 32 / 0.35);
+    border-radius: 999px;
+    background: transparent;
+    color: #b91c1c;
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding-block: 0.2rem;
+    padding-inline: 0.75rem;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 140ms ease, background 140ms ease;
+  }
+
+  .comment-delete-all-btn:hover {
+    opacity: 1;
+    background: rgb(185 28 28 / 0.07);
+  }
+
+  .comment-delete-form {
+    display: inline-flex;
+    margin: 0;
+  }
+
+  .comment-delete-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.2rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--ink-soft);
+    opacity: 0.35;
+    transition: opacity 140ms ease, color 140ms ease;
+  }
+
+  .comment-delete-btn:hover {
+    opacity: 1;
+    color: #b91c1c;
+  }
+
   .comment-card__actions {
     margin-block-start: 0.65rem;
   }
