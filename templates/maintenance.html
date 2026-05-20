@@ -17,11 +17,12 @@
             <span>CulinEire</span>
         </div>
 
-        <p class="maintenance-kicker">Kitchen temporarily closed</p>
+        <p class="maintenance-kicker">Kitchen closed for a deep clean</p>
         <h1 id="maintenance-title">Under Maintenance</h1>
         <p class="maintenance-copy">
-            We are washing the dishes, mopping the floors, wiping down the walls,
-            and making a careful backup before the next upgrade. CulinEire will be back shortly.
+            We are washing every dish, mopping the floor, wiping the walls,
+            polishing the good spoons, and making a careful backup before the next upgrade.
+            CulinEire will be back shortly.
         </p>
 
         <div class="maintenance-timer" data-maintenance-until="{{ maintenance_until|escape }}" data-retry-after="{{ retry_after_seconds|default:10800 }}">
@@ -40,13 +41,13 @@
         </div>
 
         <p class="maintenance-note">
-            Thanks for your patience. No action is needed from your side.
+            No need to do anything. We have the mop, the checklist, and a very serious backup.
         </p>
 
         <section id="maintenance-door" class="maintenance-door" aria-labelledby="door-title">
             <div class="door-heading">
-                <p class="maintenance-kicker">Notes on the door</p>
-                <h2 id="door-title">Leave a small hello</h2>
+                <p class="maintenance-kicker">Notes taped to the kitchen door</p>
+                <h2 id="door-title">Leave a small hello while we scrub</h2>
             </div>
 
             <form class="door-form" action="{% url 'maintenance_note_create' %}" method="post">
@@ -57,7 +58,7 @@
                 </label>
                 <label>
                     <span>Message</span>
-                    <textarea name="message" maxlength="240" rows="3" required placeholder="I was here, saw the kitchen lights on, and left a note."></textarea>
+                    <textarea name="message" maxlength="240" rows="3" required placeholder="I came by, saw the mop bucket, and left a note."></textarea>
                 </label>
                 <label class="door-honeypot" aria-hidden="true">
                     <span>Website</span>
@@ -99,7 +100,7 @@
                         </form>
                     </article>
                 {% empty %}
-                    <p class="door-empty">No notes yet. The first one gets the best spot.</p>
+                    <p class="door-empty">No notes yet. The first one gets the cleanest spot on the door.</p>
                 {% endfor %}
             </div>
         </section>
