@@ -164,20 +164,12 @@
     white-space: nowrap;
   }
 
-  /* ── Category nav bar between breadcrumb and content ── */
+  /* ── Category nav — first child inside detail-page article ── */
   .category-nav-block--detail {
     margin: 0;
-    padding-block: 0;
-    background: var(--surface);
-    border-bottom: 1px solid rgb(11 76 58 / 0.08);
-  }
-
-  .category-nav-block--detail > .container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.6rem;
-    padding-block: 0.6rem;
+    margin-block-end: 1rem;
+    padding-block: 0.5rem 0;
+    gap: 0.5rem;
   }
 
   .category-nav-block--detail .category-nav-wrap::after {
