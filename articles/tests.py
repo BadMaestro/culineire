@@ -10,6 +10,7 @@ from PIL import Image
 
 from recipes.models import Recipe, RecipeAuthor
 
+from .admin import ArticleAdmin, ArticleAdminForm
 from .models import Article, ArticleImage
 
 
@@ -113,6 +114,32 @@ class ArticleAuthoringPermissionTests(TestCase):
             confirmed_rules=True,
         )
 
+    def admin_payload(self, **overrides):
+        payload = {
+            "title": "Admin Article",
+            "slug": "admin-article",
+            "author": self.owner_author.pk,
+            "excerpt": "Admin excerpt",
+            "body": "Admin body",
+            "published": "2026-05-21",
+            "related_recipe": "",
+            "hero_image": "",
+            "status": Article.Status.PENDING,
+            "image_rights_status": Article.ImageRightsStatus.NOT_APPLICABLE,
+            "image_rights_note": "",
+            "source_type": Article.SourceType.ORIGINAL,
+            "source_title": "",
+            "source_author": "",
+            "source_url": "",
+            "source_note": "",
+            "confirmed_own_work": "on",
+            "confirmed_image_rights": "on",
+            "confirmed_rules": "on",
+            "confirmation_timestamp": "",
+        }
+        payload.update(overrides)
+        return payload
+
     def test_default_article_list_shows_only_approved_articles(self):
         self.article.title = "Pending Article"
         self.article.save(update_fields=["title"])
@@ -171,6 +198,59 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertContains(response, "Rejected Article")
         self.assertContains(response, "Edit Article")
         self.assertTrue(response.context["can_manage_selected_author"])
+
+    def test_article_admin_status_is_not_editable_from_changelist(self):
+        self.assertNotIn("status", ArticleAdmin.list_editable)
+
+    def test_article_admin_form_requires_credit_for_licensed_images(self):
+        form = ArticleAdminForm(
+            data=self.admin_payload(
+                image_rights_status=Article.ImageRightsStatus.LICENSED,
+                image_rights_note="",
+            )
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("image_rights_note", form.errors)
+
+    def test_article_admin_form_requires_source_title_for_adapted_articles(self):
+        form = ArticleAdminForm(
+            data=self.admin_payload(
+                source_type=Article.SourceType.ADAPTED,
+                source_title="",
+            )
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("source_title", form.errors)
+
+    def test_article_admin_form_requires_source_detail_for_inspired_articles(self):
+        form = ArticleAdminForm(
+            data=self.admin_payload(
+                source_type=Article.SourceType.INSPIRED,
+                source_title="",
+                source_author="",
+                source_url="",
+                source_note="",
+            )
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("source_note", form.errors)
+
+    def test_article_admin_form_rejects_not_applicable_rights_with_existing_image(self):
+        article = self.create_article("Hero Article", Article.Status.PENDING)
+        article.hero_image = self.uploaded_image()
+        form = ArticleAdminForm(
+            data=self.admin_payload(
+                slug=article.slug,
+                image_rights_status=Article.ImageRightsStatus.NOT_APPLICABLE,
+            ),
+            instance=article,
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("image_rights_status", form.errors)
 
     def test_author_can_edit_own_article(self):
         self.client.force_login(self.owner_user)

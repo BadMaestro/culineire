@@ -29,6 +29,52 @@ class ArticleAdminForm(forms.ModelForm):
             "related_recipe": "Optional. Link this article to a recipe if one exists.",
         }
 
+    def clean(self):
+        cleaned_data = super().clean()
+        image_rights_status = cleaned_data.get("image_rights_status")
+        image_rights_note = (cleaned_data.get("image_rights_note") or "").strip()
+        source_type = cleaned_data.get("source_type")
+        source_title = (cleaned_data.get("source_title") or "").strip()
+        source_author = (cleaned_data.get("source_author") or "").strip()
+        source_url = (cleaned_data.get("source_url") or "").strip()
+        source_note = (cleaned_data.get("source_note") or "").strip()
+        hero_image = cleaned_data.get("hero_image") or getattr(self.instance, "hero_image", None)
+
+        if (
+            image_rights_status in {
+                Article.ImageRightsStatus.LICENSED,
+                Article.ImageRightsStatus.PUBLIC_DOMAIN,
+            }
+            and not image_rights_note
+        ):
+            self.add_error(
+                "image_rights_note",
+                "Add the licence, credit line, or permission reference for this image status.",
+            )
+
+        if image_rights_status == Article.ImageRightsStatus.NOT_APPLICABLE and hero_image:
+            self.add_error(
+                "image_rights_status",
+                "Choose the correct image rights status when an article image is attached.",
+            )
+
+        if source_type == Article.SourceType.ADAPTED and not source_title:
+            self.add_error(
+                "source_title",
+                "Add the source title for adapted articles.",
+            )
+
+        if (
+            source_type == Article.SourceType.INSPIRED
+            and not any([source_title, source_author, source_url, source_note])
+        ):
+            self.add_error(
+                "source_note",
+                "Add at least one source detail for inspired articles.",
+            )
+
+        return cleaned_data
+
 
 class ArticleImageInline(admin.TabularInline):
     model = ArticleImage
@@ -74,7 +120,6 @@ class ArticleAdmin(admin.ModelAdmin):
         "published",
         "author",
     )
-    list_editable = ("status",)
     search_fields = (
         "title",
         "excerpt",
