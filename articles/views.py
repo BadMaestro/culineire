@@ -248,7 +248,6 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs["author"] = self.author
         return kwargs
 
     def form_valid(self, form):
@@ -274,7 +273,7 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["author"] = self.author
+        context["author"] = self.object.author if self.object else self.author
         context["form_mode"] = "edit"
         context["form_heading"] = "Edit Article"
         context["submit_label"] = "Save Changes"

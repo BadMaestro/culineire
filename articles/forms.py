@@ -105,9 +105,10 @@ class ArticleAuthoringForm(forms.ModelForm):
     def __init__(self, *args, author=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.author = author
+        effective_author = author or getattr(self.instance, "author", None)
 
-        if author:
-            self.fields["related_recipe"].queryset = author.recipes.order_by("-created_at")
+        if effective_author:
+            self.fields["related_recipe"].queryset = effective_author.recipes.order_by("-created_at")
         else:
             self.fields["related_recipe"].queryset = self.fields["related_recipe"].queryset.none()
 
@@ -171,7 +172,7 @@ class ArticleAuthoringForm(forms.ModelForm):
     def save(self, commit=True, confirmed_by=None):
         article = super().save(commit=False)
 
-        if self.author:
+        if self.author and not article.pk:
             article.author = self.author
 
         if not article.slug:
