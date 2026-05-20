@@ -682,6 +682,24 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertContains(response, "Choose the correct image rights status")
         self.assertEqual(self.article.title, "Original Article")
 
+    def test_article_edit_replacing_hero_image_changes_card_image_url(self):
+        self.article.hero_image.save("cover.png", self.uploaded_image("cover.png"), save=True)
+        original_url = self.article.hero_image.url
+        self.client.force_login(self.owner_user)
+
+        response = self.client.post(
+            reverse("articles:article_edit", kwargs={"slug": self.article.slug}),
+            {
+                **self.article_payload(image_rights_status=Article.ImageRightsStatus.OWN),
+                "hero_image": self.uploaded_image("cover.png", color=(120, 40, 40)),
+            },
+        )
+
+        self.article.refresh_from_db()
+        self.assertRedirects(response, self.article.get_absolute_url())
+        self.assertNotEqual(self.article.hero_image.url, original_url)
+        self.assertIn("/cover-", self.article.hero_image.url)
+
     def test_author_cannot_delete_another_authors_article(self):
         self.client.force_login(self.other_user)
 
