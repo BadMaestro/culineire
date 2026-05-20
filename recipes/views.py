@@ -688,13 +688,13 @@ def submit_recipe_comment(request, slug):
         recipe=recipe,
         name=name,
         content=content,
-        is_approved=False,
+        is_approved=True,
     )
 
     request.session[last_comment_payload_key] = normalized_payload
     request.session.modified = True
 
-    messages.success(request, "Your comment has been submitted and is awaiting moderation.")
+    messages.success(request, "Your comment has been posted.")
     return redirect(f"{recipe.get_absolute_url()}#comments")
 
 
