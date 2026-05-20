@@ -2859,7 +2859,8 @@
 }
 
 
-.detail-button:active {
+.detail-button:active,
+.comment-compose__submit:active {
   transform: translateY(1px) scale(0.97);
   box-shadow: none;
   filter: brightness(0.97);
