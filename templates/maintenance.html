@@ -1,0 +1,144 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>CulinEire Under Maintenance</title>
+    <link href="{% static 'images/favicon.ico' %}" rel="icon" sizes="any">
+    <link href="{% static 'css/maintenance.css' %}" rel="stylesheet">
+</head>
+<body>
+<main class="maintenance-page">
+    <section class="maintenance-card" aria-labelledby="maintenance-title">
+        <div class="maintenance-brand">
+            <img src="{% static 'images/logo.png' %}" alt="CulinEire" width="88" height="88">
+            <span>CulinEire</span>
+        </div>
+
+        <p class="maintenance-kicker">Kitchen temporarily closed</p>
+        <h1 id="maintenance-title">Under Maintenance</h1>
+        <p class="maintenance-copy">
+            We are polishing the site and making a careful backup before the next upgrade.
+            CulinEire will be back shortly.
+        </p>
+
+        <div class="maintenance-timer" data-maintenance-until="{{ maintenance_until|escape }}" data-retry-after="{{ retry_after_seconds|default:10800 }}">
+            <div class="maintenance-time-box">
+                <strong data-hours>03</strong>
+                <span>Hours</span>
+            </div>
+            <div class="maintenance-time-box">
+                <strong data-minutes>00</strong>
+                <span>Minutes</span>
+            </div>
+            <div class="maintenance-time-box">
+                <strong data-seconds>00</strong>
+                <span>Seconds</span>
+            </div>
+        </div>
+
+        <p class="maintenance-note">
+            Thanks for your patience. No action is needed from your side.
+        </p>
+
+        <section id="maintenance-door" class="maintenance-door" aria-labelledby="door-title">
+            <div class="door-heading">
+                <p class="maintenance-kicker">Notes on the door</p>
+                <h2 id="door-title">Leave a small hello</h2>
+            </div>
+
+            <form class="door-form" action="{% url 'maintenance_note_create' %}" method="post">
+                {% csrf_token %}
+                <label>
+                    <span>Name</span>
+                    <input name="display_name" maxlength="40" autocomplete="name" placeholder="Guest">
+                </label>
+                <label>
+                    <span>Message</span>
+                    <textarea name="message" maxlength="240" rows="3" required placeholder="I was here, saw the kitchen lights on, and left a note."></textarea>
+                </label>
+                <label class="door-honeypot" aria-hidden="true">
+                    <span>Website</span>
+                    <input name="website" tabindex="-1" autocomplete="off">
+                </label>
+                <button type="submit">Pin note</button>
+            </form>
+
+            <div class="door-notes" aria-live="polite">
+                {% for note in door_notes %}
+                    <article class="door-note">
+                        <header>
+                            <strong>{{ note.name_or_guest }}</strong>
+                            <time datetime="{{ note.created_at|date:'c' }}">{{ note.created_at|date:"M j, H:i" }}</time>
+                        </header>
+                        <p>{{ note.message }}</p>
+
+                        {% if note.visible_replies %}
+                            <div class="door-replies">
+                                {% for reply in note.visible_replies %}
+                                    <div class="door-reply">
+                                        <header>
+                                            <strong>{{ reply.name_or_guest }}</strong>
+                                            <time datetime="{{ reply.created_at|date:'c' }}">{{ reply.created_at|date:"H:i" }}</time>
+                                        </header>
+                                        <p>{{ reply.message }}</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <form class="door-reply-form" action="{% url 'maintenance_note_create' %}" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="parent_id" value="{{ note.id }}">
+                            <input name="display_name" maxlength="40" autocomplete="name" placeholder="Name">
+                            <input name="message" maxlength="180" required placeholder="Reply">
+                            <input class="door-honeypot-input" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+                            <button type="submit">Reply</button>
+                        </form>
+                    </article>
+                {% empty %}
+                    <p class="door-empty">No notes yet. The first one gets the best spot.</p>
+                {% endfor %}
+            </div>
+        </section>
+    </section>
+</main>
+
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+    var timer = document.querySelector("[data-maintenance-until]");
+    if (!timer) return;
+
+    var untilRaw = timer.getAttribute("data-maintenance-until");
+    var retryAfter = parseInt(timer.getAttribute("data-retry-after") || "10800", 10);
+    var endTime = untilRaw ? Date.parse(untilRaw) : Date.now() + (retryAfter * 1000);
+    if (!Number.isFinite(endTime)) endTime = Date.now() + (10800 * 1000);
+
+    var hours = timer.querySelector("[data-hours]");
+    var minutes = timer.querySelector("[data-minutes]");
+    var seconds = timer.querySelector("[data-seconds]");
+
+    function pad(value) {
+        return String(value).padStart(2, "0");
+    }
+
+    function render() {
+        var remaining = Math.max(0, endTime - Date.now());
+        var totalSeconds = Math.floor(remaining / 1000);
+        var h = Math.floor(totalSeconds / 3600);
+        var m = Math.floor((totalSeconds % 3600) / 60);
+        var s = totalSeconds % 60;
+
+        hours.textContent = pad(h);
+        minutes.textContent = pad(m);
+        seconds.textContent = pad(s);
+    }
+
+    render();
+    window.setInterval(render, 1000);
+})();
+</script>
+</body>
+</html>

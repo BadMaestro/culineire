@@ -1,9 +1,16 @@
+from datetime import timedelta
+
 from django.conf import settings
 from django.http import HttpResponse
+from django.shortcuts import redirect
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.html import escape
+from django.views.decorators.http import require_POST
 
 from articles.models import Article
+from monitoring.tracker import get_client_ip, hash_ip
+from presence.models import MaintenanceNote
 from recipes.models import Recipe
 
 
@@ -88,3 +95,41 @@ def sitemap_xml(_request):
     xml_lines.append("</urlset>")
 
     return HttpResponse("\n".join(xml_lines), content_type="application/xml; charset=utf-8")
+
+
+@require_POST
+def maintenance_note_create(request):
+    if not getattr(settings, "MAINTENANCE_MODE", False):
+        return redirect("home")
+
+    if request.POST.get("website"):
+        return redirect("/#maintenance-door")
+
+    display_name = request.POST.get("display_name", "").strip()[:40]
+    message = request.POST.get("message", "").strip()[:240]
+    if not message:
+        return redirect("/#maintenance-door")
+
+    parent = None
+    parent_id = request.POST.get("parent_id", "").strip()
+    if parent_id.isdigit():
+        try:
+            parent = MaintenanceNote.objects.get(id=parent_id, is_visible=True)
+            if parent.parent_id:
+                parent = parent.parent
+        except MaintenanceNote.DoesNotExist:
+            parent = None
+
+    ip_hash = hash_ip(get_client_ip(request))
+    recent_cutoff = timezone.now() - timedelta(minutes=5)
+    if ip_hash and MaintenanceNote.objects.filter(ip_hash=ip_hash, created_at__gte=recent_cutoff).count() >= 5:
+        return redirect("/#maintenance-door")
+
+    MaintenanceNote.objects.create(
+        display_name=display_name,
+        message=message,
+        parent=parent,
+        ip_hash=ip_hash,
+        user_agent=request.META.get("HTTP_USER_AGENT", "")[:180],
+    )
+    return redirect("/#maintenance-door")

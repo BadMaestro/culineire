@@ -58,3 +58,29 @@ class PresenceEvent(models.Model):
         if already_fired:
             return None
         return cls.objects.create(event_type=event_type, triggered_by=user)
+
+
+class MaintenanceNote(models.Model):
+    display_name = models.CharField(max_length=40, blank=True)
+    message = models.CharField(max_length=240)
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="replies",
+    )
+    ip_hash = models.CharField(max_length=64, blank=True, db_index=True)
+    user_agent = models.CharField(max_length=180, blank=True)
+    is_visible = models.BooleanField(default=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    @property
+    def name_or_guest(self):
+        return self.display_name or "Guest"
+
+    def __str__(self):
+        return f"{self.name_or_guest}: {self.message[:48]}"

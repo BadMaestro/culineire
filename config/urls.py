@@ -19,6 +19,7 @@ urlpatterns = [
     path("privacy/", TemplateView.as_view(template_name="privacy.html"), name="privacy"),
     path("robots.txt", config_views.robots_txt, name="robots_txt"),
     path("sitemap.xml", config_views.sitemap_xml, name="sitemap_xml"),
+    path("maintenance/notes/", config_views.maintenance_note_create, name="maintenance_note_create"),
     path("favicon.ico", RedirectView.as_view(url=static("images/favicon.ico"), permanent=True), name="favicon"),
     path("favicon.png", RedirectView.as_view(url=static("images/favicon.png"), permanent=True), name="favicon_png"),
     path(

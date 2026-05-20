@@ -144,9 +144,14 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "monitoring.middleware.MonitoringMiddleware",
     "config.csp_middleware.CspNonceMiddleware",
+    "config.maintenance.MaintenanceModeMiddleware",
 ]
 
 # ── Monitoring ─────────────────────────────────────────────────────────────
+MAINTENANCE_MODE = env_bool("DJANGO_MAINTENANCE_MODE", default=False)
+MAINTENANCE_UNTIL = os.getenv("DJANGO_MAINTENANCE_UNTIL", "")
+MAINTENANCE_RETRY_AFTER_SECONDS = env_int("DJANGO_MAINTENANCE_RETRY_AFTER_SECONDS", 10800)
+
 MONITORING_ENABLED = env_bool("MONITORING_ENABLED", default=True)
 MONITORING_RETENTION_DAYS = env_int("MONITORING_RETENTION_DAYS", default=90)
 MONITORING_ANONYMIZE_IP = env_bool("MONITORING_ANONYMIZE_IP", default=True)
