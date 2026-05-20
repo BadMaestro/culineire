@@ -164,11 +164,24 @@
     white-space: nowrap;
   }
 
-  /* ── Category nav — first child inside detail-page article ── */
+  /* ── Shared white container: category nav + gallery ── */
+  .detail-gallery-block {
+    background: var(--surface);
+    border-inline: 1px solid var(--line);
+    margin-block-end: 0;
+  }
+
+  /* Gallery inside the block inherits the container's bg/border */
+  .detail-gallery-block .recipe-gallery {
+    background: none;
+    border-inline: none;
+  }
+
+  /* Category nav sits above the gallery inside the white block */
   .category-nav-block--detail {
     margin: 0;
-    margin-block-end: 1rem;
-    padding-block: 0.5rem 0;
+    padding-block: 0.75rem 0;
+    padding-inline: var(--detail-space-lg);
     gap: 0.5rem;
   }
 

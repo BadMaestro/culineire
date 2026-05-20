@@ -58,53 +58,59 @@
     <div class="container">
         <article class="detail-page">
 
-            {% if recipe.get_all_category_items %}
-            <div class="category-nav-block category-nav-block--detail" data-category-toggle>
-                <div class="category-nav-wrap" data-category-wrap>
-                    <nav aria-label="Recipe categories" class="category-nav" data-category-nav>
-                        {% for category_item in recipe.get_all_category_items %}
-                        <a class="category-nav__item category-nav__link" href="{{ category_item.url }}">{{ category_item.label }}</a>
-                        <span aria-hidden="true" class="category-nav__separator">&middot;</span>
-                        {% endfor %}
-                    </nav>
-                </div>
-                <button aria-expanded="false" aria-label="View all recipe categories" class="category-nav-toggle" data-category-button hidden type="button">
-                    <span aria-hidden="true" class="category-nav-toggle__icon category-nav-toggle__icon--left">&#8964;</span>
-                    <span class="category-nav-toggle__label" data-category-button-label>View All</span>
-                    <span aria-hidden="true" class="category-nav-toggle__icon">&#8964;</span>
-                </button>
-            </div>
-            {% endif %}
+            {% if recipe.get_all_category_items or gallery_items %}
+            <div class="detail-gallery-block">
 
-            {% if gallery_items %}
-            <section
-                aria-label="Recipe media gallery"
-                class="recipe-gallery{% if gallery_items|length == 1 %} recipe-gallery--single{% endif %}"
-                data-gallery
-            >
-                <div class="recipe-gallery__viewport">
-                    <button aria-label="Previous media" class="recipe-gallery__arrow recipe-gallery__arrow--prev" data-gallery-prev type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
-                    <div class="recipe-gallery__stage" data-gallery-stage>
-                        {% for item in gallery_items %}
-                        <figure class="recipe-gallery__item" data-gallery-index="{{ forloop.counter0 }}" data-gallery-item data-gallery-type="{{ item.media_type|default:'image' }}">
-                            <div class="recipe-gallery__image-shell">
-                                {% if item.media_type == "video" %}
-                                <video class="recipe-gallery__media" {% if item.poster %}poster="{{ item.poster }}"{% endif %} muted playsinline preload="metadata">
-                                    <source src="{{ item.src }}">
-                                    Your browser does not support the video tag.
-                                </video>
-                                {% elif forloop.first %}
-                                <img alt="{{ item.alt }}" class="recipe-gallery__media" src="{{ item.src }}" loading="eager" fetchpriority="high">
-                                {% else %}
-                                <img alt="{{ item.alt }}" class="recipe-gallery__media" src="{{ item.src }}" loading="lazy">
-                                {% endif %}
-                            </div>
-                        </figure>
-                        {% endfor %}
+                {% if recipe.get_all_category_items %}
+                <div class="category-nav-block category-nav-block--detail" data-category-toggle>
+                    <div class="category-nav-wrap" data-category-wrap>
+                        <nav aria-label="Recipe categories" class="category-nav" data-category-nav>
+                            {% for category_item in recipe.get_all_category_items %}
+                            <a class="category-nav__item category-nav__link" href="{{ category_item.url }}">{{ category_item.label }}</a>
+                            <span aria-hidden="true" class="category-nav__separator">&middot;</span>
+                            {% endfor %}
+                        </nav>
                     </div>
-                    <button aria-label="Next media" class="recipe-gallery__arrow recipe-gallery__arrow--next" data-gallery-next type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+                    <button aria-expanded="false" aria-label="View all recipe categories" class="category-nav-toggle" data-category-button hidden type="button">
+                        <span aria-hidden="true" class="category-nav-toggle__icon category-nav-toggle__icon--left">&#8964;</span>
+                        <span class="category-nav-toggle__label" data-category-button-label>View All</span>
+                        <span aria-hidden="true" class="category-nav-toggle__icon">&#8964;</span>
+                    </button>
                 </div>
-            </section>
+                {% endif %}
+
+                {% if gallery_items %}
+                <section
+                    aria-label="Recipe media gallery"
+                    class="recipe-gallery{% if gallery_items|length == 1 %} recipe-gallery--single{% endif %}"
+                    data-gallery
+                >
+                    <div class="recipe-gallery__viewport">
+                        <button aria-label="Previous media" class="recipe-gallery__arrow recipe-gallery__arrow--prev" data-gallery-prev type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+                        <div class="recipe-gallery__stage" data-gallery-stage>
+                            {% for item in gallery_items %}
+                            <figure class="recipe-gallery__item" data-gallery-index="{{ forloop.counter0 }}" data-gallery-item data-gallery-type="{{ item.media_type|default:'image' }}">
+                                <div class="recipe-gallery__image-shell">
+                                    {% if item.media_type == "video" %}
+                                    <video class="recipe-gallery__media" {% if item.poster %}poster="{{ item.poster }}"{% endif %} muted playsinline preload="metadata">
+                                        <source src="{{ item.src }}">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                    {% elif forloop.first %}
+                                    <img alt="{{ item.alt }}" class="recipe-gallery__media" src="{{ item.src }}" loading="eager" fetchpriority="high">
+                                    {% else %}
+                                    <img alt="{{ item.alt }}" class="recipe-gallery__media" src="{{ item.src }}" loading="lazy">
+                                    {% endif %}
+                                </div>
+                            </figure>
+                            {% endfor %}
+                        </div>
+                        <button aria-label="Next media" class="recipe-gallery__arrow recipe-gallery__arrow--next" data-gallery-next type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+                    </div>
+                </section>
+                {% endif %}
+
+            </div>
             {% endif %}
 
             <div class="detail-page__actions">
