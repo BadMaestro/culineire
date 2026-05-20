@@ -40,6 +40,7 @@
                     <div class="detail-page__topbar">
                         <div class="detail-page__taxonomy" aria-label="Article information">
                             <span class="detail-page__taxonomy-chip">Article</span>
+                            {% if article.image_rights_status == 'ai_generated' %}<span aria-label="AI generated image" class="ai-image-badge ai-image-badge--inline">AI Generated</span>{% endif %}
                         </div>
 
                         {% if article.related_recipe %}

@@ -67,6 +67,7 @@ class Article(models.Model):
 
     class ImageRightsStatus(models.TextChoices):
         OWN = "own", "My own photo"
+        AI_GENERATED = "ai_generated", "AI generated image"
         LICENSED = "licensed", "Licensed (CC, stock, written permission)"
         PUBLIC_DOMAIN = "public_domain", "Public domain"
         NOT_APPLICABLE = "not_applicable", "No image uploaded"

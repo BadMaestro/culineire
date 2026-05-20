@@ -1816,3 +1816,9 @@
   user-select: none;
   white-space: nowrap;
 }
+
+.ai-image-badge--inline {
+  position: static;
+  inset: auto;
+  margin-inline-start: 0.35rem;
+}

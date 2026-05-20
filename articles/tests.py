@@ -155,6 +155,15 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertNotContains(response, "Rejected Article")
         self.assertFalse(response.context["can_manage_selected_author"])
 
+    def test_article_list_marks_ai_generated_article_images(self):
+        ai_article = self.create_article("AI Article", Article.Status.APPROVED)
+        ai_article.image_rights_status = Article.ImageRightsStatus.AI_GENERATED
+        ai_article.save(update_fields=["image_rights_status"])
+
+        response = self.client.get(reverse("articles:article_list"))
+
+        self.assertContains(response, 'aria-label="AI generated image"', html=False)
+
     def test_public_author_article_list_shows_only_approved_without_management(self):
         self.article.title = "Pending Article"
         self.article.save(update_fields=["title"])
@@ -271,6 +280,12 @@ class ArticleAuthoringPermissionTests(TestCase):
 
         self.assertFalse(form.is_valid())
         self.assertIn("image_rights_status", form.errors)
+
+    def test_article_image_rights_status_includes_ai_generated_choice(self):
+        self.assertIn(
+            (Article.ImageRightsStatus.AI_GENERATED, "AI generated image"),
+            Article.ImageRightsStatus.choices,
+        )
 
     def test_article_admin_gallery_inline_rejects_not_applicable_rights(self):
         article = self.create_article("Inline Gallery Article", Article.Status.PENDING)
@@ -650,6 +665,16 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertContains(response, "CulinEire Archive")
         self.assertContains(response, "https://example.com/source")
         self.assertContains(response, "Adapted for home cooks.")
+
+    def test_article_detail_marks_ai_generated_article_images(self):
+        self.article.status = Article.Status.APPROVED
+        self.article.image_rights_status = Article.ImageRightsStatus.AI_GENERATED
+        self.article.save(update_fields=["status", "image_rights_status"])
+
+        response = self.client.get(self.article.get_absolute_url())
+
+        self.assertContains(response, "AI Generated")
+        self.assertContains(response, 'aria-label="AI generated image"', html=False)
 
     def test_article_detail_escapes_json_ld_script_breakouts(self):
         self.article.status = Article.Status.APPROVED
