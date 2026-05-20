@@ -145,8 +145,18 @@
             </section>
             {% endif %}
 
-            {% if user.is_authenticated %}
+            {% if can_collect_article or can_manage_article %}
             <div class="detail-page__actions">
+                {% if can_manage_article %}
+                <a class="detail-page__action-btn" href="{% url 'articles:article_edit' article.slug %}">
+                    <span>Edit Article</span>
+                </a>
+                <a class="detail-page__action-btn" href="{% url 'articles:article_delete' article.slug %}">
+                    <span>Delete Article</span>
+                </a>
+                {% endif %}
+
+                {% if can_collect_article %}
                 {% if is_saved %}
                 <form action="{{ collection_remove_url }}" method="post" class="collection-form">
                     {% csrf_token %}
@@ -165,6 +175,7 @@
                         <span>Save</span>
                     </button>
                 </form>
+                {% endif %}
                 {% endif %}
             </div>
             {% endif %}
@@ -186,6 +197,40 @@
                                 {{ article.published|date:"j F Y" }}
                             </time>
                         </p>
+                    </section>
+
+                    <section class="detail-page__card detail-page__card--source">
+                        <h3>Credits &amp; Source</h3>
+                        <div class="detail-page__source-list">
+                            <div class="detail-page__source-item">
+                                <span class="detail-page__source-label">Source type</span>
+                                <p class="detail-page__source-value">{{ article.get_source_type_display }}</p>
+                            </div>
+                            {% if article.source_title %}
+                            <div class="detail-page__source-item">
+                                <span class="detail-page__source-label">Title</span>
+                                <p class="detail-page__source-value">{{ article.source_title }}</p>
+                            </div>
+                            {% endif %}
+                            {% if article.source_author %}
+                            <div class="detail-page__source-item">
+                                <span class="detail-page__source-label">Author</span>
+                                <p class="detail-page__source-value">{{ article.source_author }}</p>
+                            </div>
+                            {% endif %}
+                            {% if article.source_note %}
+                            <div class="detail-page__source-item">
+                                <span class="detail-page__source-label">Note</span>
+                                <p class="detail-page__source-value">{{ article.source_note }}</p>
+                            </div>
+                            {% endif %}
+                            {% if article.source_url %}
+                            <div class="detail-page__source-item">
+                                <span class="detail-page__source-label">Link</span>
+                                <a class="detail-page__source-link" href="{{ article.source_url }}" rel="noopener noreferrer" target="_blank">View original source</a>
+                            </div>
+                            {% endif %}
+                        </div>
                     </section>
                 </aside>
             </div>

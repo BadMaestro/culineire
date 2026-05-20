@@ -25,6 +25,12 @@ from .models import Article, ArticleImage
 logger = logging.getLogger(__name__)
 
 
+def _json_ld(data):
+    value = json.dumps(data, ensure_ascii=False)
+    value = value.replace("&", "\\u0026").replace("<", "\\u003C").replace(">", "\\u003E")
+    return mark_safe(value)
+
+
 def _validate_gallery_uploads(form, uploaded_files):
     is_valid = True
     if (
@@ -239,6 +245,10 @@ class ArticleDetailView(DetailView):
                 is_moderator(self.request.user) and
                 article.status != Article.Status.APPROVED
         )
+        context["can_collect_article"] = (
+                self.request.user.is_authenticated and
+                article.status == Article.Status.APPROVED
+        )
 
         _schema: dict = {
             "@context": "https://schema.org",
@@ -256,8 +266,8 @@ class ArticleDetailView(DetailView):
         }
         if gallery_items:
             _schema["image"] = self.request.build_absolute_uri(gallery_items[0]["src"])
-        context["article_json_ld"] = mark_safe(json.dumps(_schema, ensure_ascii=False))
-        context["is_saved"] = self.request.user.is_authenticated and SavedArticle.objects.filter(user=self.request.user, article=article).exists()
+        context["article_json_ld"] = _json_ld(_schema)
+        context["is_saved"] = context["can_collect_article"] and SavedArticle.objects.filter(user=self.request.user, article=article).exists()
         context["collection_add_url"] = reverse("collection:add_article", kwargs={"slug": article.slug})
         context["collection_remove_url"] = reverse("collection:remove_article", kwargs={"slug": article.slug})
         return context

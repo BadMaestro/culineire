@@ -306,6 +306,65 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertEqual(response.context["gallery_items"][0]["src"], self.article.hero_image.url)
         self.assertFalse(response.context["has_gallery"])
 
+    def test_article_detail_shows_management_actions_for_owner(self):
+        self.client.force_login(self.owner_user)
+
+        response = self.client.get(self.article.get_absolute_url())
+
+        self.assertContains(response, "Edit Article")
+        self.assertContains(response, "Delete Article")
+        self.assertNotContains(response, ">Save</span>")
+        self.assertFalse(response.context["can_collect_article"])
+
+    def test_article_detail_shows_collection_action_for_approved_article(self):
+        self.article.status = Article.Status.APPROVED
+        self.article.save(update_fields=["status"])
+        self.client.force_login(self.other_user)
+
+        response = self.client.get(self.article.get_absolute_url())
+
+        self.assertContains(response, ">Save</span>")
+        self.assertNotContains(response, "Edit Article")
+        self.assertTrue(response.context["can_collect_article"])
+
+    def test_article_detail_displays_source_metadata(self):
+        self.article.status = Article.Status.APPROVED
+        self.article.source_type = Article.SourceType.ADAPTED
+        self.article.source_title = "Irish Pantry Notes"
+        self.article.source_author = "CulinEire Archive"
+        self.article.source_url = "https://example.com/source"
+        self.article.source_note = "Adapted for home cooks."
+        self.article.save(
+            update_fields=[
+                "status",
+                "source_type",
+                "source_title",
+                "source_author",
+                "source_url",
+                "source_note",
+            ]
+        )
+
+        response = self.client.get(self.article.get_absolute_url())
+
+        self.assertContains(response, "Credits &amp; Source")
+        self.assertContains(response, "Adapted from a source")
+        self.assertContains(response, "Irish Pantry Notes")
+        self.assertContains(response, "CulinEire Archive")
+        self.assertContains(response, "https://example.com/source")
+        self.assertContains(response, "Adapted for home cooks.")
+
+    def test_article_detail_escapes_json_ld_script_breakouts(self):
+        self.article.status = Article.Status.APPROVED
+        self.article.title = 'Safe title </script><script>alert("x")</script>'
+        self.article.slug = "safe-title"
+        self.article.save(update_fields=["status", "title", "slug"])
+
+        response = self.client.get(self.article.get_absolute_url())
+
+        self.assertContains(response, "\\u003C/script\\u003E", html=False)
+        self.assertNotContains(response, '</script><script>alert("x")</script>', html=False)
+
     def test_article_edit_appends_gallery_images_after_highest_existing_sort_order(self):
         ArticleImage.objects.create(
             article=self.article,
