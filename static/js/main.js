@@ -61,10 +61,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const isWrapped = () => {
       categoryNav.style.flexWrap = "nowrap";
-      void categoryNav.offsetWidth;
-      const overflows = categoryNav.scrollWidth > categoryNav.offsetWidth + 1;
+      const singleRowH = categoryNav.scrollHeight;
       categoryNav.style.flexWrap = "";
-      return overflows;
+      const naturalH = categoryNav.scrollHeight;
+      return naturalH > singleRowH + 2;
     };
 
     const applyState = () => {
