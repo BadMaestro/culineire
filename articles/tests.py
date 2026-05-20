@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from messaging.models import Message
 from PIL import Image
 
 from recipes.models import Recipe, RecipeAuthor
@@ -467,3 +468,91 @@ class ArticleAuthoringPermissionTests(TestCase):
 
         self.assertRedirects(response, reverse("articles:article_list"))
         self.assertFalse(Article.objects.filter(pk=self.article.pk).exists())
+
+    def test_non_moderator_cannot_moderate_article(self):
+        self.client.force_login(self.owner_user)
+
+        response = self.client.post(
+            reverse("articles:moderate_article", kwargs={"slug": self.article.slug}),
+            {"action": "approve"},
+        )
+
+        self.article.refresh_from_db()
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(self.article.status, Article.Status.PENDING)
+
+    def test_moderator_can_approve_article(self):
+        self.client.force_login(self.moderator_user)
+
+        response = self.client.post(
+            reverse("articles:moderate_article", kwargs={"slug": self.article.slug}),
+            {"action": "approve"},
+        )
+
+        self.article.refresh_from_db()
+        self.assertRedirects(response, self.article.get_absolute_url())
+        self.assertEqual(self.article.status, Article.Status.APPROVED)
+
+    def test_moderator_can_reject_article(self):
+        self.client.force_login(self.moderator_user)
+
+        response = self.client.post(
+            reverse("articles:moderate_article", kwargs={"slug": self.article.slug}),
+            {"action": "reject"},
+        )
+
+        self.article.refresh_from_db()
+        self.assertRedirects(response, self.article.get_absolute_url())
+        self.assertEqual(self.article.status, Article.Status.REJECTED)
+
+    def test_moderator_can_delete_article_from_moderation_endpoint(self):
+        self.client.force_login(self.moderator_user)
+
+        response = self.client.post(
+            reverse("articles:moderate_article", kwargs={"slug": self.article.slug}),
+            {"action": "delete"},
+        )
+
+        self.assertRedirects(response, reverse("recipes:moderation_panel"))
+        self.assertFalse(Article.objects.filter(pk=self.article.pk).exists())
+
+    def test_article_moderation_rejects_unknown_actions(self):
+        self.client.force_login(self.moderator_user)
+
+        response = self.client.post(
+            reverse("articles:moderate_article", kwargs={"slug": self.article.slug}),
+            {"action": "block"},
+        )
+
+        self.article.refresh_from_db()
+        self.owner_user.refresh_from_db()
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(self.article.status, Article.Status.PENDING)
+        self.assertTrue(self.owner_user.is_active)
+
+    def test_moderator_can_reject_article_and_message_author(self):
+        self.client.force_login(self.moderator_user)
+
+        response = self.client.post(
+            reverse("messaging:send_message"),
+            {
+                "action": "reject_and_message",
+                "recipient_id": self.owner_user.pk,
+                "article_id": self.article.pk,
+                "subject": f"Your article: {self.article.title}",
+                "body": "Please revise this article.",
+                "next": self.article.get_absolute_url(),
+            },
+        )
+
+        self.article.refresh_from_db()
+        self.assertRedirects(response, self.article.get_absolute_url())
+        self.assertEqual(self.article.status, Article.Status.REJECTED)
+        self.assertTrue(
+            Message.objects.filter(
+                sender=self.moderator_user,
+                recipient=self.owner_user,
+                related_article=self.article,
+                body="Please revise this article.",
+            ).exists()
+        )

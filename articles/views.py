@@ -377,16 +377,10 @@ def moderate_article(request, slug):
         title = article.title
         article.delete()
         messages.success(request, f'"{title}" permanently deleted.')
-    elif action == "block":
-        user = article.author.user if article.author else None
-        if user:
-            user.is_active = False
-            user.save(update_fields=["is_active"])
-            messages.warning(request, f'User "{user.username}" has been blocked.')
-        else:
-            messages.error(request, "No linked user account found.")
+    else:
+        raise Http404
 
-    if action not in ("delete", "block"):
+    if action != "delete":
         try:
             return redirect(article.get_absolute_url())
         except (AttributeError, TypeError, ValueError):
