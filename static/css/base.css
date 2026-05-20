@@ -455,11 +455,11 @@
   }
 
   .category-nav-toggle[aria-expanded="true"] .category-nav-toggle__icon {
-    transform: rotate(179deg) translateY(1px);
+    transform: rotate(-179deg) translateY(1px);
   }
 
   .category-nav-toggle[aria-expanded="true"] .category-nav-toggle__icon--left {
-    transform: rotate(-179deg) translateY(1px);
+    transform: rotate(179deg) translateY(1px);
   }
 
   @media (max-width: 640px) {
