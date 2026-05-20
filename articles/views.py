@@ -1,4 +1,5 @@
 import json
+import logging
 
 from django.conf import settings
 from django.contrib import messages
@@ -18,6 +19,8 @@ from recipes.models import RecipeAuthor
 from accounts.views import is_moderator
 from .forms import ArticleAuthoringForm
 from .models import Article, ArticleImage
+
+logger = logging.getLogger(__name__)
 
 
 class ArticleListView(ListView):
@@ -113,6 +116,11 @@ class ArticleCreateView(AuthorRequiredMixin, CreateView):
         return redirect(article.get_absolute_url())
 
     def form_invalid(self, form):
+        logger.warning(
+            "Article create form invalid for user_id=%s errors=%s",
+            getattr(self.request.user, "id", None),
+            form.errors.as_json(),
+        )
         messages.error(self.request, "Please fix the highlighted fields and try again.")
         return super().form_invalid(form)
 
@@ -255,6 +263,12 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
         return redirect(article.get_absolute_url())
 
     def form_invalid(self, form):
+        logger.warning(
+            "Article update form invalid for article_id=%s user_id=%s errors=%s",
+            getattr(self.object, "id", None),
+            getattr(self.request.user, "id", None),
+            form.errors.as_json(),
+        )
         messages.error(self.request, "Please fix the highlighted fields and try again.")
         return super().form_invalid(form)
 
