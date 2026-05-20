@@ -307,7 +307,7 @@ class RecipeCommentForm(forms.Form):
 
     def clean_content(self):
         content = self.cleaned_data["content"].strip()
-        if len(content) < 5:
+        if len(content) < 2:
             raise forms.ValidationError("Comment is too short.")
         bad = find_profanity(content)
         if bad:

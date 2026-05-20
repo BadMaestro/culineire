@@ -56,6 +56,7 @@ urlpatterns = [
 
     # Authentication
     path("accounts/login/", accounts_views.CulinEireLoginView.as_view(), name="login"),
+    path("accounts/ajax-login/", accounts_views.ajax_login, name="ajax_login"),
     path("accounts/signup/", accounts_views.SignUpView.as_view(), name="signup"),
     path("accounts/activate/<uidb64>/<token>/", accounts_views.activate_account, name="activate_account"),
     path("accounts/", include("django.contrib.auth.urls")),

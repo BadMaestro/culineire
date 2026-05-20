@@ -400,18 +400,33 @@
             <section class="recipe-comments" id="comments">
                 <div class="detail-page__section-head">
                     <h2>Comments</h2>
+                    {% if can_manage_recipe and comments_count %}
                     <div class="detail-page__section-head__right">
-                        <p class="detail-page__section-note">{{ comments_count }} comment{{ comments_count|pluralize }}</p>
-                        {% if can_manage_recipe and comments_count %}
                         <form action="{% url 'recipes:delete_all_recipe_comments' recipe.slug %}" method="post" onsubmit="return confirm('Delete all {{ comments_count }} comment{{ comments_count|pluralize }}? This cannot be undone.')">
                             {% csrf_token %}
                             <button class="comment-delete-all-btn" type="submit">Delete all</button>
                         </form>
-                        {% endif %}
                     </div>
+                    {% endif %}
+                </div>
+                <div class="comments-panel__stats">
+                    {% if ratings_count %}<span class="comments-panel__rating-mini">
+                        <svg aria-hidden="true" fill="currentColor" height="11" viewBox="0 0 24 24" width="11"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        {{ average_rating_value|floatformat:1 }} &middot; {{ ratings_count }} vote{{ ratings_count|pluralize }}
+                    </span>{% endif %}
+                    <span class="comments-panel__count">{{ comments_count }} comment{{ comments_count|pluralize }}</span>
                 </div>
                 <div class="comments-panel">
                     <section class="comments-panel__form">
+                        {% if not request.user.is_authenticated %}
+                        <div class="comment-compose__guest">
+                            <span class="comments-panel__login-prompt">Log in to leave a comment.</span>
+                            <a class="comment-compose__login-link" href="{% url 'login' %}?next={{ request.path }}">
+                                <svg aria-hidden="true" fill="none" height="14" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                                Login
+                            </a>
+                        </div>
+                        {% endif %}
                         {% if request.user.is_authenticated %}
                         <form action="{% url 'recipes:submit_recipe_comment' recipe.slug %}" class="comment-compose" data-validate method="post">
                             {% csrf_token %}
@@ -423,18 +438,63 @@
                                 <span>{% if commenter_profile %}{{ commenter_profile.name|slice:":1"|upper }}{% else %}{{ request.user.username|slice:":1"|upper }}{% endif %}</span>
                                 {% endif %}
                             </div>
-                            <div class="comment-compose__field">
-                                <textarea id="id_content" maxlength="3000" name="content" required rows="5" aria-label="Your comment" placeholder="Be the first to comment!"></textarea>
-                            </div>
-                            <div class="comment-compose__footer">
-                                <span class="comment-compose__posting-as">Posting as <strong>{% if commenter_profile %}{{ commenter_profile.name }}{% else %}{{ request.user.get_full_name|default:request.user.username }}{% endif %}</strong></span>
-                                <button class="comment-compose__submit" type="submit">Post Comment</button>
+                            <div class="comment-compose__right">
+                                <div class="comment-compose__editor">
+                                    <textarea id="id_content" maxlength="3000" name="content" required rows="5" aria-label="Your comment" placeholder="Be the First to Comment!"></textarea>
+                                    <div class="comment-compose__toolbar" aria-label="Formatting">
+                                        <button class="comment-compose__toolbar-toggle" type="button" aria-label="Formatting options" aria-expanded="false">
+                                            <svg aria-hidden="true" fill="none" height="15" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="15"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                                            <span>Format</span>
+                                        </button>
+                                        <button class="comment-compose__tool" type="button" data-fmt="bold" title="Bold"><b>B</b></button>
+                                        <button class="comment-compose__tool" type="button" data-fmt="italic" title="Italic"><i>I</i></button>
+                                        <button class="comment-compose__tool" type="button" data-fmt="strike" title="Strikethrough"><s>S</s></button>
+                                        <span class="comment-compose__tool-sep"></span>
+                                        <button class="comment-compose__tool" type="button" data-fmt="ul" title="Bullet list">
+                                            <svg aria-hidden="true" fill="none" height="13" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1" fill="currentColor" stroke="none"/></svg>
+                                        </button>
+                                        <button class="comment-compose__tool" type="button" data-fmt="ol" title="Numbered list">
+                                            <svg aria-hidden="true" fill="none" height="13" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4" stroke-linecap="round"/><path d="M4 10h2" stroke-linecap="round"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1" stroke-linecap="round"/></svg>
+                                        </button>
+                                        <span class="comment-compose__tool-sep"></span>
+                                        <button class="comment-compose__tool" type="button" data-fmt="quote" title="Blockquote">
+                                            <svg aria-hidden="true" fill="currentColor" height="13" viewBox="0 0 24 24" width="13"><path d="M14.017 21v-7.391c0-5.704 3.748-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983z"/></svg>
+                                        </button>
+                                        <button class="comment-compose__tool" type="button" data-fmt="code" title="Code">
+                                            <svg aria-hidden="true" fill="none" height="13" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                                        </button>
+                                        <button class="comment-compose__tool" type="button" data-fmt="link" title="Link">
+                                            <svg aria-hidden="true" fill="none" height="13" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="comment-compose__rating">
+                                    <span class="comment-compose__rating-label">Recipe Rating</span>
+                                    {% if has_rated %}
+                                    <div class="comment-compose__stars comment-compose__stars--readonly" aria-label="Your rating: {{ user_rating_value }} out of 5">
+                                        {% for i in "12345" %}
+                                        <span class="comment-compose__star{% if forloop.counter <= user_rating_value %} is-active{% endif %}">
+                                            <svg aria-hidden="true" fill="{% if forloop.counter <= user_rating_value %}currentColor{% else %}none{% endif %}" height="20" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" width="20"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                        </span>
+                                        {% endfor %}
+                                    </div>
+                                    {% else %}
+                                    <div class="comment-compose__stars" role="radiogroup" aria-label="Optional recipe rating">
+                                        {% for i in "12345" %}
+                                        <label class="comment-compose__star">
+                                            <input name="rating_value" type="radio" value="{{ i }}">
+                                            <svg aria-hidden="true" fill="none" height="20" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" width="20"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                        </label>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="comment-compose__bottom">
+                                    <span class="comment-compose__posting-as">Posting as <strong>{% if commenter_profile %}{{ commenter_profile.name }}{% else %}{{ request.user.get_full_name|default:request.user.username }}{% endif %}</strong></span>
+                                    <button class="comment-compose__submit" type="submit">Post Comment</button>
+                                </div>
                             </div>
                         </form>
-                        {% else %}
-                        <p class="comments-panel__login-prompt">
-                            <a href="{% url 'login' %}?next={{ request.path }}">Log in</a> to leave a comment.
-                        </p>
                         {% endif %}
                     </section>
 
@@ -453,7 +513,7 @@
                                     <div class="comment-card__main">
                                         <div class="comment-card__head">
                                             <strong class="comment-card__name">{{ comment.name }}</strong>
-                                            <time class="comment-card__date" datetime="{{ comment.created_at|date:'c' }}">{{ comment.created_at|date:"j N Y" }}</time>
+                                            <time class="comment-card__date" datetime="{{ comment.created_at|date:'c' }}">{{ comment.created_at|date:"j N Y, H:i" }}</time>
                                             {% if can_manage_recipe %}
                                             <form action="{% url 'recipes:delete_recipe_comment' comment.pk %}" method="post" class="comment-delete-form" onsubmit="return confirm('Delete this comment?')">
                                                 {% csrf_token %}
@@ -489,21 +549,11 @@
                                 {% if comment.approved_replies %}
                                 <div class="comment-replies">
                                     {% for reply in comment.approved_replies %}
-                                    <div class="comment-reply" id="comment-{{ reply.pk }}">
-                                        <div class="comment-reply__meta">
-                                            <time class="comment-reply__date" datetime="{{ reply.created_at|date:'c' }}">{{ reply.created_at|date:"j N" }}</time>
-                                            <span class="comment-reply__year">{{ reply.created_at|date:"Y" }}</span>
-                                        </div>
-                                        <div class="comment-reply__body">
+                                    <div class="comment-reply-wrap" id="comment-{{ reply.pk }}">
+                                    <div class="comment-reply">
+                                        <div class="comment-reply__bubble">
                                             <div class="comment-reply__head">
-                                                <div class="comment-reply__avatar" aria-hidden="true">
-                                                    {% if reply.author and reply.author.avatar %}
-                                                    <img alt="" src="{{ reply.author.display_avatar_url }}">
-                                                    {% else %}
-                                                    <span>{{ reply.name|slice:":1"|upper }}</span>
-                                                    {% endif %}
-                                                </div>
-                                                <strong class="comment-reply__name">{{ reply.name }}</strong>
+                                                <time class="comment-reply__date" datetime="{{ reply.created_at|date:'c' }}">{{ reply.created_at|date:"j N Y, H:i" }}</time>
                                                 {% if can_manage_recipe %}
                                                 <form action="{% url 'recipes:delete_recipe_comment' reply.pk %}" method="post" class="comment-delete-form" onsubmit="return confirm('Delete this reply?')">
                                                     {% csrf_token %}
@@ -512,29 +562,40 @@
                                                     </button>
                                                 </form>
                                                 {% endif %}
+                                                <strong class="comment-reply__name">{{ reply.name }}</strong>
                                             </div>
                                             <div class="comment-reply__content">{{ reply.content|linebreaks }}</div>
                                             {% if request.user.is_authenticated and commenter_profile %}
-                                            <div class="comment-card__actions">
+                                            <div class="comment-reply__actions">
                                                 <button class="comment-reply-toggle" type="button" data-reply-target="reply-form-{{ reply.pk }}">
                                                     <svg aria-hidden="true" fill="none" height="12" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" width="12"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
                                                     Reply
                                                 </button>
                                             </div>
-                                            <div class="comment-reply-form" id="reply-form-{{ reply.pk }}" hidden>
-                                                <form action="{% url 'recipes:add_comment_reply' reply.pk %}" method="post" class="recipe-form">
-                                                    {% csrf_token %}
-                                                    <div class="recipe-form__field">
-                                                        <textarea name="content" required rows="3" placeholder="Reply to {{ reply.name }}…" maxlength="3000" aria-label="Reply to {{ reply.name }}"></textarea>
-                                                    </div>
-                                                    <div class="comment-reply-form__actions">
-                                                        <button class="detail-button detail-button--secondary" type="button" data-reply-cancel="reply-form-{{ reply.pk }}">Cancel</button>
-                                                        <button class="detail-button" type="submit">Post reply</button>
-                                                    </div>
-                                                </form>
-                                            </div>
                                             {% endif %}
                                         </div>
+                                        <div class="comment-reply__avatar" aria-hidden="true">
+                                            {% if reply.author and reply.author.avatar %}
+                                            <img alt="" src="{{ reply.author.display_avatar_url }}">
+                                            {% else %}
+                                            <span>{{ reply.name|slice:":1"|upper }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% if request.user.is_authenticated and commenter_profile %}
+                                    <div class="comment-reply-form" id="reply-form-{{ reply.pk }}" hidden>
+                                        <form action="{% url 'recipes:add_comment_reply' reply.pk %}" method="post" class="recipe-form">
+                                            {% csrf_token %}
+                                            <div class="recipe-form__field">
+                                                <textarea name="content" required rows="3" placeholder="Reply to {{ reply.name }}…" maxlength="3000" aria-label="Reply to {{ reply.name }}"></textarea>
+                                            </div>
+                                            <div class="comment-reply-form__actions">
+                                                <button class="detail-button detail-button--secondary" type="button" data-reply-cancel="reply-form-{{ reply.pk }}">Cancel</button>
+                                                <button class="detail-button" type="submit">Post reply</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    {% endif %}
                                     </div>
                                     {% endfor %}
                                 </div>
@@ -616,6 +677,101 @@
             });
         }
     })();
+</script>
+{% endif %}
+
+{% if not request.user.is_authenticated %}
+<div class="login-modal" id="loginModal" aria-modal="true" role="dialog" aria-labelledby="loginModalTitle" hidden>
+    <div class="login-modal__backdrop"></div>
+    <div class="login-modal__box">
+        <button class="login-modal__close" type="button" aria-label="Close">
+            <svg fill="none" height="18" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <h2 class="login-modal__title" id="loginModalTitle">Log in to CulinEire</h2>
+        <p class="login-modal__subtitle">Sign in to leave a comment or rate a recipe.</p>
+        <form class="login-modal__form" id="loginModalForm" novalidate>
+            {% csrf_token %}
+            <div class="login-modal__field">
+                <label class="login-modal__label" for="modalUsername">Username</label>
+                <input autocomplete="username" class="login-modal__input" id="modalUsername" name="username" placeholder="Enter your username" required type="text">
+            </div>
+            <div class="login-modal__field">
+                <label class="login-modal__label" for="modalPassword">Password</label>
+                <input autocomplete="current-password" class="login-modal__input" id="modalPassword" name="password" placeholder="Enter your password" required type="password">
+            </div>
+            <p class="login-modal__error" id="loginModalError" hidden></p>
+            <button class="login-modal__submit" type="submit">Log in</button>
+        </form>
+        <a class="login-modal__link" href="{% url 'login' %}?next={{ request.path }}">Go to full login page</a>
+    </div>
+</div>
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+    var modal = document.getElementById('loginModal');
+    var form  = document.getElementById('loginModalForm');
+    var errorEl = document.getElementById('loginModalError');
+    var loginUrl = '{% url "ajax_login" %}';
+
+    function openModal() {
+        modal.hidden = false;
+        document.body.style.overflow = 'hidden';
+        modal.querySelector('#modalUsername').focus();
+    }
+
+    function closeModal() {
+        modal.hidden = true;
+        document.body.style.overflow = '';
+        errorEl.hidden = true;
+        form.reset();
+    }
+
+    // Trigger on any login link inside comment section
+    document.querySelectorAll('.comment-compose__login-link').forEach(function (link) {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            openModal();
+        });
+    });
+
+    modal.querySelector('.login-modal__close').addEventListener('click', closeModal);
+    modal.querySelector('.login-modal__backdrop').addEventListener('click', closeModal);
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !modal.hidden) closeModal();
+    });
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        errorEl.hidden = true;
+        var submitBtn = form.querySelector('.login-modal__submit');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Signing in…';
+
+        var data = new FormData(form);
+        fetch(loginUrl, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': data.get('csrfmiddlewaretoken'), 'X-Requested-With': 'XMLHttpRequest' },
+            body: data,
+        })
+        .then(function (res) { return res.json().then(function (json) { return { ok: res.ok, json: json }; }); })
+        .then(function (r) {
+            if (r.json.ok) {
+                window.location.reload();
+            } else {
+                errorEl.textContent = r.json.error || 'Something went wrong.';
+                errorEl.hidden = false;
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Log in';
+            }
+        })
+        .catch(function () {
+            errorEl.textContent = 'Network error. Please try again.';
+            errorEl.hidden = false;
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Log in';
+        });
+    });
+})();
 </script>
 {% endif %}
 {% endblock %}
@@ -719,6 +875,81 @@
       if (form) form.setAttribute('hidden', '');
     });
   });
+
+  // Star rating in compose form
+  var starsContainer = document.querySelector('.comment-compose__stars');
+  if (starsContainer) {
+    var starLabels = Array.from(starsContainer.querySelectorAll('.comment-compose__star'));
+    function highlightStars(upToIndex) {
+      starLabels.forEach(function(l, i) {
+        l.classList.toggle('is-active', i <= upToIndex);
+      });
+    }
+    function restoreSelected() {
+      var selected = -1;
+      starLabels.forEach(function(l, i) {
+        if (l.querySelector('input:checked')) selected = i;
+      });
+      highlightStars(selected);
+    }
+    starLabels.forEach(function(label, index) {
+      label.addEventListener('mouseenter', function() { highlightStars(index); });
+      label.addEventListener('click', function() { highlightStars(index); });
+    });
+    starsContainer.addEventListener('mouseleave', restoreSelected);
+    restoreSelected();
+  }
+
+  // Toolbar burger toggle (mobile)
+  var toolbarToggle = document.querySelector('.comment-compose__toolbar-toggle');
+  if (toolbarToggle) {
+    toolbarToggle.addEventListener('click', function () {
+      var tb = this.closest('.comment-compose__toolbar');
+      var open = tb.classList.toggle('is-open');
+      this.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    // Close toolbar when clicking outside
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.comment-compose__toolbar')) {
+        var tb = document.querySelector('.comment-compose__toolbar');
+        if (tb) { tb.classList.remove('is-open'); toolbarToggle.setAttribute('aria-expanded', 'false'); }
+      }
+    });
+  }
+
+  // Toolbar formatting
+  var toolbar = document.querySelector('.comment-compose__toolbar');
+  var composeTA = document.getElementById('id_content');
+  if (toolbar && composeTA) {
+    toolbar.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-fmt]');
+      if (!btn) return;
+      e.preventDefault();
+      var fmt = btn.getAttribute('data-fmt');
+      var start = composeTA.selectionStart;
+      var end = composeTA.selectionEnd;
+      var sel = composeTA.value.substring(start, end);
+      var before = composeTA.value.substring(0, start);
+      var after = composeTA.value.substring(end);
+      var insert = sel, cursor = 0;
+      if (fmt === 'bold')   { insert = '**' + (sel || 'bold text') + '**'; cursor = sel ? insert.length : 2; }
+      if (fmt === 'italic') { insert = '*' + (sel || 'italic text') + '*'; cursor = sel ? insert.length : 1; }
+      if (fmt === 'strike') { insert = '~~' + (sel || 'text') + '~~'; cursor = sel ? insert.length : 2; }
+      if (fmt === 'quote')  { insert = '\n> ' + (sel || 'quote') + '\n'; cursor = insert.length; }
+      if (fmt === 'code')   { insert = '`' + (sel || 'code') + '`'; cursor = sel ? insert.length : 1; }
+      if (fmt === 'ul')     { insert = '\n- ' + (sel || 'item') + '\n'; cursor = insert.length; }
+      if (fmt === 'ol')     { insert = '\n1. ' + (sel || 'item') + '\n'; cursor = insert.length; }
+      if (fmt === 'link') {
+        var url = prompt('URL:');
+        if (!url) return;
+        insert = '[' + (sel || 'link text') + '](' + url + ')';
+        cursor = insert.length;
+      }
+      composeTA.value = before + insert + after;
+      composeTA.focus();
+      composeTA.setSelectionRange(start + cursor, start + cursor);
+    });
+  }
 })();
 </script>
 <script nonce="{{ request.csp_nonce }}">

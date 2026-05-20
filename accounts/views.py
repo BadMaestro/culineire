@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import LoginView
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -88,6 +88,18 @@ class CulinEireLoginView(LoginView):
         from monitoring.tracker import record_security_event
         record_security_event(self.request, "failed_login")
         return super().form_invalid(form)
+
+
+@require_POST
+@ratelimit(key="ip", rate="20/10m", method="POST", block=False)
+def ajax_login(request):
+    if getattr(request, "limited", False):
+        return JsonResponse({"ok": False, "error": "Too many sign-in attempts. Please wait a few minutes."}, status=429)
+    form = SignInForm(data=request.POST, request=request)
+    if form.is_valid():
+        login(request, form.get_user())
+        return JsonResponse({"ok": True})
+    return JsonResponse({"ok": False, "error": "Invalid username or password."}, status=400)
 
 
 # ── Sign Up ───────────────────────────────────────────────────────────────────

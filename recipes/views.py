@@ -463,7 +463,9 @@ def recipe_detail(request, slug):
     average_rating_percentage = min(max((average_rating_value / 5) * 100, 0), 100)
 
     session_key = f"recipe_rating_submitted_{recipe.pk}"
-    has_rated = bool(request.session.get(session_key))
+    _rating_session_val = request.session.get(session_key)
+    has_rated = bool(_rating_session_val)
+    user_rating_value = _rating_session_val if isinstance(_rating_session_val, int) else None
 
     commenter_profile = None
     if request.user.is_authenticated:
@@ -532,6 +534,7 @@ def recipe_detail(request, slug):
         "is_greenbear": request.user.is_authenticated and hasattr(request.user, "recipe_author_profile") and request.user.recipe_author_profile.slug == settings.OWNER_SLUG,
         "can_moderate_bar": is_moderator(request.user) and recipe.status != Recipe.Status.APPROVED,
         "has_rated": has_rated,
+        "user_rating_value": user_rating_value,
         "commenter_profile": commenter_profile,
         "recipe_json_ld": mark_safe(json.dumps(_schema, ensure_ascii=False)),
         "is_saved": request.user.is_authenticated and SavedRecipe.objects.filter(user=request.user, recipe=recipe).exists(),
@@ -573,7 +576,7 @@ def submit_recipe_rating(request, slug):
         user=request.user if request.user.is_authenticated else None,
     )
 
-    request.session[session_key] = True
+    request.session[session_key] = form.cleaned_data["value"]
     request.session.modified = True
 
     if is_ajax:
@@ -697,6 +700,16 @@ def submit_recipe_comment(request, slug):
         content=content,
         is_approved=True,
     )
+
+    # Optionally save rating submitted alongside the comment
+    rating_session_key = f"recipe_rating_submitted_{recipe.pk}"
+    rating_value = request.POST.get("rating_value", "").strip()
+    if rating_value and not request.session.get(rating_session_key):
+        rating_form = RecipeRatingForm({"value": rating_value})
+        if rating_form.is_valid():
+            RecipeRating.objects.create(recipe=recipe, value=rating_form.cleaned_data["value"])
+            request.session[rating_session_key] = rating_form.cleaned_data["value"]
+            request.session.modified = True
 
     request.session[last_comment_payload_key] = normalized_payload
     request.session.modified = True
