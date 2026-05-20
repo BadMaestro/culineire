@@ -1,5 +1,7 @@
 from django import forms
 from django.contrib import admin
+from django.core.exceptions import ValidationError
+from django.forms.models import BaseInlineFormSet
 from django.utils.html import format_html_join
 
 from .models import Article, ArticleImage
@@ -39,20 +41,24 @@ class ArticleAdminForm(forms.ModelForm):
         source_url = (cleaned_data.get("source_url") or "").strip()
         source_note = (cleaned_data.get("source_note") or "").strip()
         hero_image = cleaned_data.get("hero_image") or getattr(self.instance, "hero_image", None)
+        active_gallery_exists = (
+            self.instance.pk
+            and self.instance.gallery_images.filter(is_active=True).exists()
+        )
 
-        if (
-            image_rights_status in {
-                Article.ImageRightsStatus.LICENSED,
-                Article.ImageRightsStatus.PUBLIC_DOMAIN,
-            }
-            and not image_rights_note
-        ):
+        if image_rights_status in {
+            Article.ImageRightsStatus.LICENSED,
+            Article.ImageRightsStatus.PUBLIC_DOMAIN,
+        } and not image_rights_note:
             self.add_error(
                 "image_rights_note",
                 "Add the licence, credit line, or permission reference for this image status.",
             )
 
-        if image_rights_status == Article.ImageRightsStatus.NOT_APPLICABLE and hero_image:
+        if (
+            image_rights_status == Article.ImageRightsStatus.NOT_APPLICABLE
+            and (hero_image or active_gallery_exists)
+        ):
             self.add_error(
                 "image_rights_status",
                 "Choose the correct image rights status when an article image is attached.",
@@ -76,8 +82,31 @@ class ArticleAdminForm(forms.ModelForm):
         return cleaned_data
 
 
+class ArticleImageInlineFormSet(BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+        article = self.instance
+
+        if article.image_rights_status != Article.ImageRightsStatus.NOT_APPLICABLE:
+            return
+
+        for form in self.forms:
+            if not hasattr(form, "cleaned_data"):
+                continue
+            if form.cleaned_data.get("DELETE"):
+                continue
+
+            image = form.cleaned_data.get("image") or getattr(form.instance, "image", None)
+            is_active = form.cleaned_data.get("is_active", True)
+            if image and is_active:
+                raise ValidationError(
+                    "Choose the correct image rights status before attaching article gallery images."
+                )
+
+
 class ArticleImageInline(admin.TabularInline):
     model = ArticleImage
+    formset = ArticleImageInlineFormSet
     extra = 1
     fields = (
         "image_preview",

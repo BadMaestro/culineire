@@ -3,6 +3,7 @@ from io import BytesIO
 
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.forms.models import inlineformset_factory
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from messaging.models import Message
@@ -10,7 +11,7 @@ from PIL import Image
 
 from recipes.models import Recipe, RecipeAuthor
 
-from .admin import ArticleAdmin, ArticleAdminForm
+from .admin import ArticleAdmin, ArticleAdminForm, ArticleImageInlineFormSet
 from .models import Article, ArticleImage
 
 
@@ -251,6 +252,56 @@ class ArticleAuthoringPermissionTests(TestCase):
 
         self.assertFalse(form.is_valid())
         self.assertIn("image_rights_status", form.errors)
+
+    def test_article_admin_form_rejects_not_applicable_rights_with_existing_gallery(self):
+        article = self.create_article("Gallery Article", Article.Status.PENDING)
+        ArticleImage.objects.create(
+            article=article,
+            image=self.uploaded_image("gallery.png"),
+            sort_order=1,
+        )
+        form = ArticleAdminForm(
+            data=self.admin_payload(
+                slug=article.slug,
+                image_rights_status=Article.ImageRightsStatus.NOT_APPLICABLE,
+            ),
+            instance=article,
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("image_rights_status", form.errors)
+
+    def test_article_admin_gallery_inline_rejects_not_applicable_rights(self):
+        article = self.create_article("Inline Gallery Article", Article.Status.PENDING)
+        article.image_rights_status = Article.ImageRightsStatus.NOT_APPLICABLE
+        formset_class = inlineformset_factory(
+            Article,
+            ArticleImage,
+            fields=("image", "alt_text", "caption", "sort_order", "is_active"),
+            formset=ArticleImageInlineFormSet,
+            extra=1,
+            can_delete=True,
+        )
+        formset = formset_class(
+            data={
+                "gallery-TOTAL_FORMS": "1",
+                "gallery-INITIAL_FORMS": "0",
+                "gallery-MIN_NUM_FORMS": "0",
+                "gallery-MAX_NUM_FORMS": "1000",
+                "gallery-0-alt_text": "",
+                "gallery-0-caption": "",
+                "gallery-0-sort_order": "1",
+                "gallery-0-is_active": "on",
+            },
+            files={
+                "gallery-0-image": self.uploaded_image("inline-gallery.png"),
+            },
+            instance=article,
+            prefix="gallery",
+        )
+
+        self.assertFalse(formset.is_valid())
+        self.assertIn("Choose the correct image rights status", str(formset.non_form_errors()))
 
     def test_author_can_edit_own_article(self):
         self.client.force_login(self.owner_user)
