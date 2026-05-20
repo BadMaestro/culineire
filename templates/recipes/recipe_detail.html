@@ -549,26 +549,28 @@
                                                 Reply
                                             </button>
                                         </div>
-                                        <div class="comment-reply-form" id="reply-form-{{ comment.pk }}" hidden>
-                                            <form action="{% url 'recipes:add_comment_reply' comment.pk %}" method="post" class="recipe-form">
-                                                {% csrf_token %}
-                                                <div class="recipe-form__field">
-                                                    <textarea name="content" required rows="3" placeholder="Write a reply…" maxlength="3000" aria-label="Reply to {{ comment.name }}"></textarea>
-                                                </div>
-                                                {% if turnstile_site_key %}
-                                                <div class="comment-reply-form__turnstile">
-                                                    <div class="cf-turnstile comment-reply-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="light"></div>
-                                                </div>
-                                                {% endif %}
-                                                <div class="comment-reply-form__actions">
-                                                    <button class="detail-button detail-button--secondary" type="button" data-reply-cancel="reply-form-{{ comment.pk }}">Cancel</button>
-                                                    <button class="detail-button" type="submit">Post reply</button>
-                                                </div>
-                                            </form>
-                                        </div>
                                         {% endif %}
                                     </div>
                                 </div>
+                                {% if request.user.is_authenticated and commenter_profile %}
+                                <div class="comment-reply-form" id="reply-form-{{ comment.pk }}" hidden>
+                                    <form action="{% url 'recipes:add_comment_reply' comment.pk %}" method="post" class="recipe-form">
+                                        {% csrf_token %}
+                                        <div class="recipe-form__field">
+                                            <textarea name="content" required rows="3" placeholder="Write a reply…" maxlength="3000" aria-label="Reply to {{ comment.name }}"></textarea>
+                                        </div>
+                                        {% if turnstile_site_key %}
+                                        <div class="comment-reply-form__turnstile">
+                                            <div class="cf-turnstile comment-reply-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="light"></div>
+                                        </div>
+                                        {% endif %}
+                                        <div class="comment-reply-form__actions">
+                                            <button class="detail-button detail-button--secondary" type="button" data-reply-cancel="reply-form-{{ comment.pk }}">Cancel</button>
+                                            <button class="detail-button" type="submit">Post reply</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                {% endif %}
                                 {% if comment.approved_replies %}
                                 <div class="comment-replies">
                                     {% for reply in comment.approved_replies %}
