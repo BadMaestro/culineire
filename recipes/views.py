@@ -619,7 +619,11 @@ def reset_all_recipe_ratings(request, slug):
                 store.save()
         except Exception:
             pass
-    return JsonResponse({"ok": True})
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    if is_ajax:
+        return JsonResponse({"ok": True})
+    messages.success(request, "All ratings have been reset.")
+    return redirect(recipe.get_absolute_url())
 
 
 def recipe_ratings_api(request, slug):
