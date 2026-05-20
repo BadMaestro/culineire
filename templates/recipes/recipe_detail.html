@@ -1037,13 +1037,55 @@
     });
   }
 
+  function starSvg(filled) {
+    return '<svg aria-hidden="true" fill="' + (filled ? 'currentColor' : 'none') + '" height="20" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" width="20"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+  }
+
+  function syncBottomVoted(value) {
+    var wrap = document.querySelector('.comment-compose__stars');
+    if (!wrap) return;
+    wrap.className = 'comment-compose__stars comment-compose__stars--readonly';
+    wrap.setAttribute('aria-label', 'Your rating: ' + value + ' out of 5');
+    wrap.removeAttribute('role');
+    var html = '';
+    for (var i = 1; i <= 5; i++) {
+      var on = i <= value;
+      html += '<span class="comment-compose__star' + (on ? ' is-active' : '') + '">' + starSvg(on) + '</span>';
+    }
+    wrap.innerHTML = html;
+  }
+
+  function syncBottomInteractive() {
+    var wrap = document.querySelector('.comment-compose__stars');
+    if (!wrap) return;
+    wrap.className = 'comment-compose__stars';
+    wrap.setAttribute('role', 'radiogroup');
+    wrap.setAttribute('aria-label', 'Optional recipe rating');
+    var html = '';
+    for (var i = 1; i <= 5; i++) {
+      html += '<label class="comment-compose__star"><input name="rating_value" type="radio" value="' + i + '">' + starSvg(false) + '</label>';
+    }
+    wrap.innerHTML = html;
+    var labels = Array.from(wrap.querySelectorAll('.comment-compose__star'));
+    function hl(idx) { labels.forEach(function(l, i) { l.classList.toggle('is-active', i <= idx); }); }
+    function restore() { var s = -1; labels.forEach(function(l, i) { if (l.querySelector('input:checked')) s = i; }); hl(s); }
+    labels.forEach(function(l, idx) {
+      l.addEventListener('mouseenter', function() { hl(idx); });
+      l.addEventListener('click', function() { hl(idx); });
+    });
+    wrap.addEventListener('mouseleave', restore);
+  }
+
   // Submit rating form
   var submitForm = formPanel && formPanel.querySelector('form');
   if (submitForm) {
     ajaxForm(submitForm, function () {
+      var sel = submitForm.querySelector('input[name="value"]:checked');
+      var val = sel ? parseInt(sel.value, 10) : 0;
       formPanel.hidden = true;
       votedPanel.hidden = false;
       showToast('Rating saved. Thank you!', 'success');
+      syncBottomVoted(val);
     });
   }
 
@@ -1053,8 +1095,8 @@
     ajaxForm(resetForm, function () {
       votedPanel.hidden = true;
       formPanel.hidden = false;
-      // clear any previously selected radio
       formPanel.querySelectorAll('input[type="radio"]').forEach(function (r) { r.checked = false; });
+      syncBottomInteractive();
     });
   }
 })();
