@@ -62,7 +62,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const isWrapped = () => {
       const items = categoryNav.querySelectorAll(".category-nav__item, .category-nav__link");
       if (items.length < 2) return false;
-      return items[items.length - 1].offsetTop > items[0].offsetTop + 4;
+      const y0 = items[0].getBoundingClientRect().top;
+      const yn = items[items.length - 1].getBoundingClientRect().top;
+      return yn > y0 + 4;
     };
 
     const applyState = () => {

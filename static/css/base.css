@@ -968,6 +968,10 @@
       padding-inline: 0;
     }
 
+    .section--flush-top {
+      padding-block-start: 0;
+    }
+
     .hero--home {
       min-height: 300px;
     }
