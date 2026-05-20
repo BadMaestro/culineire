@@ -391,7 +391,13 @@ def recipe_detail(request, slug):
             ),
             Prefetch(
                 "comments",
-                queryset=RecipeComment.objects.filter(is_approved=True).order_by("-created_at"),
+                queryset=RecipeComment.objects.filter(is_approved=True, parent__isnull=True).select_related("author").prefetch_related(
+                    Prefetch(
+                        "replies",
+                        queryset=RecipeComment.objects.filter(is_approved=True).select_related("author").order_by("created_at"),
+                        to_attr="approved_replies",
+                    )
+                ).order_by("-created_at"),
                 to_attr="approved_comments_prefetched",
             ),
         ),
@@ -690,6 +696,33 @@ def submit_recipe_comment(request, slug):
 
     messages.success(request, "Your comment has been submitted and is awaiting moderation.")
     return redirect(f"{recipe.get_absolute_url()}#comments")
+
+
+@require_POST
+@login_required
+def add_comment_reply(request, comment_id):
+    parent = get_object_or_404(RecipeComment, pk=comment_id, is_approved=True, parent__isnull=True)
+    recipe = parent.recipe
+
+    try:
+        author = request.user.recipe_author_profile
+        display_name = author.name
+    except RecipeAuthor.DoesNotExist:
+        return redirect(f"{recipe.get_absolute_url()}#comment-{parent.pk}")
+
+    content = request.POST.get("content", "").strip()
+    if not content:
+        return redirect(f"{recipe.get_absolute_url()}#comment-{parent.pk}")
+
+    reply = RecipeComment.objects.create(
+        recipe=recipe,
+        parent=parent,
+        author=author,
+        name=display_name,
+        content=content,
+        is_approved=True,
+    )
+    return redirect(f"{recipe.get_absolute_url()}#comment-{reply.pk}")
 
 
 def author_detail(request, slug):

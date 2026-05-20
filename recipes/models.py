@@ -546,6 +546,20 @@ class RecipeComment(models.Model):
         on_delete=models.CASCADE,
         related_name="comments",
     )
+    parent = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="replies",
+    )
+    author = models.ForeignKey(
+        "RecipeAuthor",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="comment_replies",
+    )
     name = models.CharField(max_length=100)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)

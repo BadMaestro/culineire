@@ -431,12 +431,38 @@
                     <div class="comments-list">
                         {% if approved_comments %}
                             {% for comment in approved_comments %}
-                            <article class="comment-card">
+                            <article class="comment-card" id="comment-{{ comment.pk }}">
                                 <div class="comment-card__head">
                                     <strong class="comment-card__name">{{ comment.name }}</strong>
                                     <time class="comment-card__date" datetime="{{ comment.created_at|date:'c' }}">{{ comment.created_at|date:"j F Y" }}</time>
                                 </div>
                                 <div class="comment-card__body">{{ comment.content|linebreaks }}</div>
+                                {% if request.user.is_authenticated and commenter_profile %}
+                                <div class="comment-card__actions">
+                                    <button class="comment-reply-toggle" type="button" data-reply-target="reply-form-{{ comment.pk }}">Reply</button>
+                                </div>
+                                <div class="comment-reply-form" id="reply-form-{{ comment.pk }}" hidden>
+                                    <form action="{% url 'recipes:add_comment_reply' comment.pk %}" method="post" class="recipe-form">
+                                        {% csrf_token %}
+                                        <div class="recipe-form__field">
+                                            <textarea name="content" required rows="3" placeholder="Write a reply…" maxlength="3000" aria-label="Reply to {{ comment.name }}"></textarea>
+                                        </div>
+                                        <div class="comment-reply-form__actions">
+                                            <button class="detail-button detail-button--secondary" type="button" data-reply-cancel="reply-form-{{ comment.pk }}">Cancel</button>
+                                            <button class="detail-button" type="submit">Post reply</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                {% endif %}
+                                {% for reply in comment.approved_replies %}
+                                <article class="comment-card comment-card--reply" id="comment-{{ reply.pk }}">
+                                    <div class="comment-card__head">
+                                        <strong class="comment-card__name">{{ reply.name }}</strong>
+                                        <time class="comment-card__date" datetime="{{ reply.created_at|date:'c' }}">{{ reply.created_at|date:"j F Y" }}</time>
+                                    </div>
+                                    <div class="comment-card__body">{{ reply.content|linebreaks }}</div>
+                                </article>
+                                {% endfor %}
                             </article>
                             {% endfor %}
                         {% else %}
@@ -593,6 +619,30 @@
       '<div class="rating-panel__bars">' + barsHtml + '</div>' +
       (listHtml ? '<div class="rating-panel__raters"><p class="rating-panel__raters-heading">Recent raters</p>' + listHtml + '</div>' : '');
   }
+})();
+</script>
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+  document.querySelectorAll('.comment-reply-toggle').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var formId = btn.getAttribute('data-reply-target');
+      var form = document.getElementById(formId);
+      if (!form) return;
+      var isHidden = form.hasAttribute('hidden');
+      form.toggleAttribute('hidden', !isHidden);
+      if (isHidden) {
+        var ta = form.querySelector('textarea');
+        if (ta) ta.focus();
+      }
+    });
+  });
+  document.querySelectorAll('[data-reply-cancel]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var formId = btn.getAttribute('data-reply-cancel');
+      var form = document.getElementById(formId);
+      if (form) form.setAttribute('hidden', '');
+    });
+  });
 })();
 </script>
 <script nonce="{{ request.csp_nonce }}">

@@ -22,5 +22,6 @@ urlpatterns = [
     path("<slug:slug>/rate/reset-all/", views.reset_all_recipe_ratings, name="reset_all_recipe_ratings"),
     path("<slug:slug>/ratings/", views.recipe_ratings_api, name="recipe_ratings_api"),
     path("<slug:slug>/comment/", views.submit_recipe_comment, name="submit_recipe_comment"),
+    path("comment/<int:comment_id>/reply/", views.add_comment_reply, name="add_comment_reply"),
     path("<slug:slug>/", views.recipe_detail, name="recipe_detail"),
 ]
