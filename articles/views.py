@@ -59,11 +59,21 @@ class ArticleListView(ListView):
     context_object_name = "articles"
     paginate_by = 8
 
-    def get_queryset(self):
+    def _selected_author(self):
         author_slug = (self.request.GET.get("author") or "").strip()
-        selected_author = get_object_or_404(RecipeAuthor, slug=author_slug) if author_slug else None
+        return get_object_or_404(RecipeAuthor, slug=author_slug) if author_slug else None
 
-        show_all = selected_author and is_moderator(self.request.user)
+    def _can_manage_selected_author(self, selected_author):
+        return bool(
+            selected_author and (
+                is_moderator(self.request.user) or
+                user_can_manage_author(self.request.user, selected_author)
+            )
+        )
+
+    def get_queryset(self):
+        selected_author = self._selected_author()
+        show_all = self._can_manage_selected_author(selected_author)
 
         queryset = Article.objects.select_related("author").order_by("-published")
         if not show_all:
@@ -74,12 +84,8 @@ class ArticleListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        author_slug = (self.request.GET.get("author") or "").strip()
-        selected_author = None
-        if author_slug:
-            selected_author = get_object_or_404(RecipeAuthor, slug=author_slug)
-
-        show_all = selected_author and is_moderator(self.request.user)
+        selected_author = self._selected_author()
+        can_manage_selected_author = self._can_manage_selected_author(selected_author)
 
         recent_articles = None
         all_articles = None
@@ -88,7 +94,7 @@ class ArticleListView(ListView):
 
         if selected_author:
             qs = Article.objects.select_related("author").filter(author=selected_author).order_by("-published")
-            if not show_all:
+            if not can_manage_selected_author:
                 qs = qs.filter(status=Article.Status.APPROVED)
             all_articles = qs
             recent_articles = list(qs[:6])
@@ -106,10 +112,7 @@ class ArticleListView(ListView):
         context["all_articles"] = all_articles
         context["default_recent_articles"] = default_recent_articles
         context["all_articles_grid"] = all_articles_grid
-        context["can_manage_selected_author"] = (
-                is_moderator(self.request.user) or
-                user_can_manage_author(self.request.user, selected_author)
-        )
+        context["can_manage_selected_author"] = can_manage_selected_author
         return context
 
 

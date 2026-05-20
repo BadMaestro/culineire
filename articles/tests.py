@@ -99,6 +99,79 @@ class ArticleAuthoringPermissionTests(TestCase):
     def uploaded_invalid_image(name="broken.png"):
         return SimpleUploadedFile(name, b"not an image", content_type="image/png")
 
+    def create_article(self, title, status, author=None, slug=None):
+        return Article.objects.create(
+            title=title,
+            slug=slug or title.lower().replace(" ", "-"),
+            author=author or self.owner_author,
+            excerpt=f"{title} excerpt",
+            body=f"{title} body",
+            published=date(2026, 5, 20),
+            status=status,
+            confirmed_own_work=True,
+            confirmed_image_rights=True,
+            confirmed_rules=True,
+        )
+
+    def test_default_article_list_shows_only_approved_articles(self):
+        self.article.title = "Pending Article"
+        self.article.save(update_fields=["title"])
+        self.create_article("Approved Article", Article.Status.APPROVED)
+        self.create_article("Rejected Article", Article.Status.REJECTED)
+
+        response = self.client.get(reverse("articles:article_list"))
+
+        self.assertContains(response, "Approved Article")
+        self.assertNotContains(response, "Pending Article")
+        self.assertNotContains(response, "Rejected Article")
+        self.assertFalse(response.context["can_manage_selected_author"])
+
+    def test_public_author_article_list_shows_only_approved_without_management(self):
+        self.article.title = "Pending Article"
+        self.article.save(update_fields=["title"])
+        self.create_article("Approved Article", Article.Status.APPROVED)
+        self.create_article("Rejected Article", Article.Status.REJECTED)
+
+        response = self.client.get(f"{reverse('articles:article_list')}?author={self.owner_author.slug}")
+
+        self.assertContains(response, "Approved Article")
+        self.assertNotContains(response, "Pending Article")
+        self.assertNotContains(response, "Rejected Article")
+        self.assertNotContains(response, "Edit Article")
+        self.assertFalse(response.context["can_manage_selected_author"])
+
+    def test_owner_author_article_list_shows_all_statuses_with_management(self):
+        self.article.title = "Pending Article"
+        self.article.save(update_fields=["title"])
+        self.create_article("Approved Article", Article.Status.APPROVED)
+        self.create_article("Rejected Article", Article.Status.REJECTED)
+        self.client.force_login(self.owner_user)
+
+        response = self.client.get(f"{reverse('articles:article_list')}?author={self.owner_author.slug}")
+
+        self.assertContains(response, "Approved Article")
+        self.assertContains(response, "Pending Article")
+        self.assertContains(response, "Rejected Article")
+        self.assertContains(response, "Pending Review")
+        self.assertContains(response, "Rejected")
+        self.assertContains(response, "Edit Article")
+        self.assertTrue(response.context["can_manage_selected_author"])
+
+    def test_moderator_author_article_list_shows_all_statuses_with_management(self):
+        self.article.title = "Pending Article"
+        self.article.save(update_fields=["title"])
+        self.create_article("Approved Article", Article.Status.APPROVED)
+        self.create_article("Rejected Article", Article.Status.REJECTED)
+        self.client.force_login(self.moderator_user)
+
+        response = self.client.get(f"{reverse('articles:article_list')}?author={self.owner_author.slug}")
+
+        self.assertContains(response, "Approved Article")
+        self.assertContains(response, "Pending Article")
+        self.assertContains(response, "Rejected Article")
+        self.assertContains(response, "Edit Article")
+        self.assertTrue(response.context["can_manage_selected_author"])
+
     def test_author_can_edit_own_article(self):
         self.client.force_login(self.owner_user)
 
