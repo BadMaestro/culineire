@@ -500,7 +500,7 @@
                                 </div>
                                 <script nonce="{{ request.csp_nonce }}">
                                   (function(){
-                                    var isMobile = window.innerWidth <= 520;
+                                    var isMobile = window.innerWidth <= 300;
                                     var w = document.getElementById('commentTurnstile');
                                     if(w) w.setAttribute('data-size', isMobile ? 'compact' : 'normal');
                                     document.addEventListener('DOMContentLoaded', function(){
