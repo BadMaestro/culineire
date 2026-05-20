@@ -79,7 +79,7 @@ class MaintenanceModeTests(TestCase):
 
         self.assertEqual(response.status_code, 503)
         self.assertTemplateUsed(response, "maintenance.html")
-        self.assertContains(response, "Under Maintenance", status_code=503)
+        self.assertContains(response, "Kitchen Closed for a Deep Clean", status_code=503)
         self.assertEqual(response.headers["Retry-After"], "10800")
         self.assertIn("no-store", response.headers["Cache-Control"])
 
@@ -94,7 +94,7 @@ class MaintenanceModeTests(TestCase):
         response = self.client.get("/")
 
         self.assertEqual(response.status_code, 200)
-        self.assertNotContains(response, "Under Maintenance")
+        self.assertNotContains(response, "Kitchen Closed for a Deep Clean")
 
     @override_settings(MAINTENANCE_MODE=True)
     def test_visitors_can_leave_visible_maintenance_notes(self):
