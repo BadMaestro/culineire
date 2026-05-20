@@ -55,7 +55,7 @@ def article_cover_upload_to(instance, filename: str) -> str:
 def article_gallery_upload_to(instance, filename: str) -> str:
     extension = Path(filename).suffix.lower() or ".jpg"
     sort_order = instance.sort_order or 1
-    return f"{article_base_folder(instance.article)}/gallery/img{sort_order}{extension}"
+    return f"{article_base_folder(instance.article)}/gallery/img{sort_order}-{uuid4().hex[:12]}{extension}"
 
 
 class Article(models.Model):

@@ -625,6 +625,21 @@ class ArticleAuthoringPermissionTests(TestCase):
         new_image = ArticleImage.objects.get(article=self.article, sort_order=8)
         self.assertEqual(new_image.sort_order, 8)
 
+    def test_article_gallery_image_replacement_changes_image_url(self):
+        gallery_image = ArticleImage.objects.create(
+            article=self.article,
+            image=self.uploaded_image("gallery.png"),
+            sort_order=1,
+        )
+        original_url = gallery_image.image.url
+
+        gallery_image.image = self.uploaded_image("gallery.png", color=(120, 40, 40))
+        gallery_image.save()
+        gallery_image.refresh_from_db()
+
+        self.assertNotEqual(gallery_image.image.url, original_url)
+        self.assertIn("/img1-", gallery_image.image.url)
+
     def test_article_edit_rejects_invalid_gallery_image_before_saving(self):
         self.client.force_login(self.owner_user)
 
