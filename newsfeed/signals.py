@@ -1,6 +1,6 @@
 import logging
 
-from django.db.models.signals import post_save
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 logger = logging.getLogger(__name__)
@@ -62,6 +62,11 @@ def _connect_recipe_signal():
             else:
                 _hide_auto_entry(f"recipe_published:{instance.pk}")
 
+        @receiver(post_delete, sender=Recipe)
+        def on_recipe_delete(sender, instance, **kwargs):
+            del sender, kwargs
+            _hide_auto_entry(f"recipe_published:{instance.pk}")
+
     except ImportError:
         pass
 
@@ -77,6 +82,11 @@ def _connect_article_signal():
                 _create_article_entry(instance)
             else:
                 _hide_auto_entry(f"article_published:{instance.pk}")
+
+        @receiver(post_delete, sender=Article)
+        def on_article_delete(sender, instance, **kwargs):
+            del sender, kwargs
+            _hide_auto_entry(f"article_published:{instance.pk}")
 
     except ImportError:
         pass

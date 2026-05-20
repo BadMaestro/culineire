@@ -84,6 +84,17 @@ class RecipeFeedEntryTest(TestCase):
         self.assertTrue(entry.is_public)
         self.assertEqual(entry.title, "New recipe published: Approved Again")
 
+    def test_recipe_delete_hides_auto_entry(self):
+        recipe = _make_recipe(self.author)
+        recipe.status = "approved"
+        recipe.save()
+        event_key = f"recipe_published:{recipe.pk}"
+
+        recipe.delete()
+
+        entry = NewsFeedEntry.objects.get(event_key=event_key)
+        self.assertFalse(entry.is_public)
+
     def test_pending_recipe_creates_no_entry(self):
         recipe = _make_recipe(self.author)
         self.assertEqual(
@@ -135,6 +146,17 @@ class ArticleFeedEntryTest(TestCase):
         entry.refresh_from_db()
         self.assertTrue(entry.is_public)
         self.assertEqual(entry.title, "New article published: Approved Again")
+
+    def test_article_delete_hides_auto_entry(self):
+        article = _make_article(self.author)
+        article.status = "approved"
+        article.save()
+        event_key = f"article_published:{article.pk}"
+
+        article.delete()
+
+        entry = NewsFeedEntry.objects.get(event_key=event_key)
+        self.assertFalse(entry.is_public)
 
     def test_pending_article_creates_no_entry(self):
         article = _make_article(self.author)
