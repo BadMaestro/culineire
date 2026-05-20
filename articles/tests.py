@@ -1,10 +1,10 @@
 from datetime import date
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from recipes.models import RecipeAuthor
+from recipes.models import Recipe, RecipeAuthor
 
 from .models import Article
 
@@ -113,6 +113,63 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertEqual(self.article.title, "Updated Article")
         self.assertEqual(self.article.author, self.owner_author)
         self.assertNotEqual(self.article.author, self.moderator_author)
+
+    def test_moderator_edit_preserves_article_status(self):
+        self.client.force_login(self.moderator_user)
+
+        response = self.client.post(
+            reverse("articles:article_edit", kwargs={"slug": self.article.slug}),
+            self.article_payload(),
+        )
+
+        self.article.refresh_from_db()
+        self.assertRedirects(response, self.article.get_absolute_url())
+        self.assertEqual(self.article.status, Article.Status.PENDING)
+
+    def test_moderator_edit_uses_article_author_recipes_for_related_recipe_choices(self):
+        owner_recipe = Recipe.objects.create(
+            title="Owner Recipe",
+            slug="owner-recipe",
+            author=self.owner_author,
+            ingredients="Potatoes",
+            method="Boil",
+        )
+        moderator_recipe = Recipe.objects.create(
+            title="Moderator Recipe",
+            slug="moderator-recipe",
+            author=self.moderator_author,
+            ingredients="Carrots",
+            method="Roast",
+        )
+        self.client.force_login(self.moderator_user)
+
+        response = self.client.get(
+            reverse("articles:article_edit", kwargs={"slug": self.article.slug}),
+        )
+
+        related_recipe_ids = set(response.context["form"].fields["related_recipe"].queryset.values_list("pk", flat=True))
+        self.assertIn(owner_recipe.pk, related_recipe_ids)
+        self.assertNotIn(moderator_recipe.pk, related_recipe_ids)
+
+    @override_settings(TURNSTILE_SITE_KEY="test-site-key")
+    def test_article_create_shows_turnstile_when_configured(self):
+        self.client.force_login(self.owner_user)
+
+        response = self.client.get(reverse("articles:article_create"))
+
+        self.assertContains(response, "cf-turnstile")
+        self.assertContains(response, "test-site-key")
+
+    @override_settings(TURNSTILE_SITE_KEY="test-site-key")
+    def test_article_edit_does_not_show_unverified_turnstile_widget(self):
+        self.client.force_login(self.owner_user)
+
+        response = self.client.get(
+            reverse("articles:article_edit", kwargs={"slug": self.article.slug}),
+        )
+
+        self.assertNotContains(response, "cf-turnstile")
+        self.assertNotContains(response, "test-site-key")
 
     def test_author_cannot_delete_another_authors_article(self):
         self.client.force_login(self.other_user)

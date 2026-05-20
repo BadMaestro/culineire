@@ -278,7 +278,7 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
         context["form_heading"] = "Edit Article"
         context["submit_label"] = "Save Changes"
         context["cancel_url"] = self.object.get_absolute_url() if self.object else reverse("articles:article_list")
-        context["turnstile_site_key"] = settings.TURNSTILE_SITE_KEY
+        context["turnstile_site_key"] = ""
         if self.object:
             context["existing_gallery_images"] = list(
                 self.object.gallery_images.filter(is_active=True).order_by("sort_order", "id")
