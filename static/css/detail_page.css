@@ -2851,6 +2851,10 @@
   margin-block-start: 0;
 }
 
+.comment-reply-form .cf-turnstile {
+  margin: 0 !important;
+}
+
 .comment-reply-form__actions {
   display: flex;
   gap: 0.5rem;
