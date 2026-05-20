@@ -2584,6 +2584,7 @@
 
     .comment-compose__submit {
       justify-content: center;
+      align-self: center;
     }
 
     .comment-compose__rating {
