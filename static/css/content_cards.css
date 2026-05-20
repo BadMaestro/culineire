@@ -1791,3 +1791,28 @@
   color: var(--ink-soft);
   line-height: 1.5;
 }
+
+/* ── AI Image Badge ── */
+.ai-image-badge {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.22rem 0.55rem;
+  background: rgb(8 12 10 / 0.60);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgb(255 255 255 / 0.22);
+  border-radius: 20px;
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  pointer-events: none;
+  line-height: 1.2;
+  user-select: none;
+  white-space: nowrap;
+}

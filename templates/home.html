@@ -61,6 +61,7 @@
                             {% else %}
                             <img alt="{{ recipe.title }}" src="{% static 'images/hero.jpg' %}">
                             {% endif %}
+                            {% if recipe.image_rights_status == 'ai_generated' %}<span aria-label="AI generated image" class="ai-image-badge">AI</span>{% endif %}
                         </a>
 
                         <div class="recipe-card__body">
