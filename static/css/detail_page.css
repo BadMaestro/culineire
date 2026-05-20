@@ -2819,6 +2819,7 @@
   box-sizing: border-box;
   overflow: hidden;
   padding-block: 0.75rem;
+  margin-top: 0;
 }
 
 .comment-reply-form .recipe-form {
