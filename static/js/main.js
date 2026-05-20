@@ -60,11 +60,11 @@ document.addEventListener("DOMContentLoaded", () => {
     let expanded = false;
 
     const isWrapped = () => {
-      const items = categoryNav.querySelectorAll(".category-nav__item, .category-nav__link");
-      if (items.length < 2) return false;
-      const y0 = items[0].getBoundingClientRect().top;
-      const yn = items[items.length - 1].getBoundingClientRect().top;
-      return yn > y0 + 4;
+      const firstItem = categoryNav.querySelector(".category-nav__item, .category-nav__link");
+      if (!firstItem) return false;
+      const navH = categoryNav.getBoundingClientRect().height;
+      const itemH = firstItem.getBoundingClientRect().height;
+      return navH > itemH + 4;
     };
 
     const applyState = () => {
