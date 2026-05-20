@@ -844,6 +844,26 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertRedirects(response, reverse("articles:article_list"))
         self.assertFalse(Article.objects.filter(pk=self.article.pk).exists())
 
+    def test_article_delete_confirmation_uses_article_author_for_moderator(self):
+        self.client.force_login(self.moderator_user)
+
+        response = self.client.get(
+            reverse("articles:article_delete", kwargs={"slug": self.article.slug}),
+        )
+
+        self.assertEqual(response.context["author"], self.owner_author)
+        self.assertContains(response, self.owner_author.name)
+
+    def test_article_delete_shows_success_message(self):
+        self.client.force_login(self.owner_user)
+
+        response = self.client.post(
+            reverse("articles:article_delete", kwargs={"slug": self.article.slug}),
+            follow=True,
+        )
+
+        self.assertContains(response, "Article Deleted Successfully.")
+
     def test_non_moderator_cannot_moderate_article(self):
         self.client.force_login(self.owner_user)
 

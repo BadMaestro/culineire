@@ -358,14 +358,13 @@ class ArticleDeleteView(AuthorRequiredMixin, DeleteView):
             return Article.objects.all()
         return Article.objects.filter(author=self.author)
 
-    def delete(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        messages.success(request, "Article Deleted Successfully.")
-        return super().delete(request, *args, **kwargs)
+    def form_valid(self, form):
+        messages.success(self.request, "Article Deleted Successfully.")
+        return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["author"] = self.author
+        context["author"] = self.object.author
         context["delete_title"] = "Delete Article"
         context["delete_intro"] = (
             f'You are about to delete "{self.object.title}". This action cannot be undone.'
