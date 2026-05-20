@@ -158,6 +158,10 @@ class ArticleAuthoringForm(forms.ModelForm):
         source_url = (cleaned_data.get("source_url") or "").strip()
         source_note = (cleaned_data.get("source_note") or "").strip()
         hero_image = cleaned_data.get("hero_image") or getattr(self.instance, "hero_image", None)
+        active_gallery_exists = (
+            self.instance.pk
+            and self.instance.gallery_images.filter(is_active=True).exists()
+        )
 
         if (
             image_rights_status in {
@@ -171,7 +175,10 @@ class ArticleAuthoringForm(forms.ModelForm):
                 "Add the licence, credit line, or permission reference for this image status.",
             )
 
-        if image_rights_status == Article.ImageRightsStatus.NOT_APPLICABLE and hero_image:
+        if (
+            image_rights_status == Article.ImageRightsStatus.NOT_APPLICABLE
+            and (hero_image or active_gallery_exists)
+        ):
             self.add_error(
                 "image_rights_status",
                 "Choose the correct image rights status when an article image is attached.",

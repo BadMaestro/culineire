@@ -680,6 +680,27 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertEqual(self.article.title, "Original Article")
         self.assertFalse(ArticleImage.objects.filter(article=self.article).exists())
 
+    def test_article_edit_rejects_not_applicable_rights_with_existing_gallery(self):
+        ArticleImage.objects.create(
+            article=self.article,
+            image=self.uploaded_image("existing-gallery.png"),
+            sort_order=1,
+        )
+        self.client.force_login(self.owner_user)
+
+        response = self.client.post(
+            reverse("articles:article_edit", kwargs={"slug": self.article.slug}),
+            self.article_payload(
+                title="Should Not Save",
+                image_rights_status=Article.ImageRightsStatus.NOT_APPLICABLE,
+            ),
+        )
+
+        self.article.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Choose the correct image rights status")
+        self.assertEqual(self.article.title, "Original Article")
+
     def test_article_edit_rejects_not_applicable_rights_with_hero_image(self):
         self.article.hero_image.save("cover.png", self.uploaded_image("cover.png"), save=True)
         self.client.force_login(self.owner_user)
