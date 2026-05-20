@@ -27,6 +27,16 @@ logger = logging.getLogger(__name__)
 
 def _validate_gallery_uploads(form, uploaded_files):
     is_valid = True
+    if (
+        uploaded_files
+        and form.cleaned_data.get("image_rights_status") == Article.ImageRightsStatus.NOT_APPLICABLE
+    ):
+        form.add_error(
+            "image_rights_status",
+            "Choose the correct image rights status when gallery images are attached.",
+        )
+        is_valid = False
+
     for uploaded_file in uploaded_files:
         try:
             validate_image_upload(uploaded_file)

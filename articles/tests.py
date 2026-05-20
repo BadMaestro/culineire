@@ -190,7 +190,10 @@ class ArticleAuthoringPermissionTests(TestCase):
         response = self.client.post(
             reverse("articles:article_create"),
             {
-                **self.article_payload(title="New Article"),
+                **self.article_payload(
+                    title="New Article",
+                    image_rights_status=Article.ImageRightsStatus.OWN,
+                ),
                 "gallery_images": self.uploaded_invalid_image(),
             },
         )
@@ -199,6 +202,57 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertContains(response, "Gallery image broken.png")
         self.assertFalse(Article.objects.filter(title="New Article").exists())
         self.assertFalse(ArticleImage.objects.exists())
+
+    def test_article_create_requires_credit_for_licensed_image_rights(self):
+        self.client.force_login(self.owner_user)
+
+        response = self.client.post(
+            reverse("articles:article_create"),
+            self.article_payload(
+                title="Licensed Article",
+                image_rights_status=Article.ImageRightsStatus.LICENSED,
+                image_rights_note="",
+            ),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Add the licence, credit line")
+        self.assertFalse(Article.objects.filter(title="Licensed Article").exists())
+
+    def test_article_create_requires_source_title_for_adapted_article(self):
+        self.client.force_login(self.owner_user)
+
+        response = self.client.post(
+            reverse("articles:article_create"),
+            self.article_payload(
+                title="Adapted Article",
+                source_type=Article.SourceType.ADAPTED,
+                source_title="",
+            ),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Add the source title")
+        self.assertFalse(Article.objects.filter(title="Adapted Article").exists())
+
+    def test_article_create_requires_source_detail_for_inspired_article(self):
+        self.client.force_login(self.owner_user)
+
+        response = self.client.post(
+            reverse("articles:article_create"),
+            self.article_payload(
+                title="Inspired Article",
+                source_type=Article.SourceType.INSPIRED,
+                source_title="",
+                source_author="",
+                source_url="",
+                source_note="",
+            ),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Add at least one source detail")
+        self.assertFalse(Article.objects.filter(title="Inspired Article").exists())
 
     @override_settings(TURNSTILE_SITE_KEY="test-site-key")
     def test_article_edit_does_not_show_unverified_turnstile_widget(self):
@@ -269,7 +323,7 @@ class ArticleAuthoringPermissionTests(TestCase):
         response = self.client.post(
             reverse("articles:article_edit", kwargs={"slug": self.article.slug}),
             {
-                **self.article_payload(),
+                **self.article_payload(image_rights_status=Article.ImageRightsStatus.OWN),
                 "gallery_images": self.uploaded_image("new.png", color=(120, 40, 40)),
             },
         )
@@ -284,7 +338,10 @@ class ArticleAuthoringPermissionTests(TestCase):
         response = self.client.post(
             reverse("articles:article_edit", kwargs={"slug": self.article.slug}),
             {
-                **self.article_payload(title="Should Not Save"),
+                **self.article_payload(
+                    title="Should Not Save",
+                    image_rights_status=Article.ImageRightsStatus.OWN,
+                ),
                 "gallery_images": self.uploaded_invalid_image(),
             },
         )
@@ -294,6 +351,43 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertContains(response, "Gallery image broken.png")
         self.assertEqual(self.article.title, "Original Article")
         self.assertFalse(ArticleImage.objects.filter(article=self.article).exists())
+
+    def test_article_edit_rejects_not_applicable_rights_with_gallery_upload(self):
+        self.client.force_login(self.owner_user)
+
+        response = self.client.post(
+            reverse("articles:article_edit", kwargs={"slug": self.article.slug}),
+            {
+                **self.article_payload(
+                    title="Should Not Save",
+                    image_rights_status=Article.ImageRightsStatus.NOT_APPLICABLE,
+                ),
+                "gallery_images": self.uploaded_image("gallery.png"),
+            },
+        )
+
+        self.article.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Choose the correct image rights status")
+        self.assertEqual(self.article.title, "Original Article")
+        self.assertFalse(ArticleImage.objects.filter(article=self.article).exists())
+
+    def test_article_edit_rejects_not_applicable_rights_with_hero_image(self):
+        self.article.hero_image.save("cover.png", self.uploaded_image("cover.png"), save=True)
+        self.client.force_login(self.owner_user)
+
+        response = self.client.post(
+            reverse("articles:article_edit", kwargs={"slug": self.article.slug}),
+            self.article_payload(
+                title="Should Not Save",
+                image_rights_status=Article.ImageRightsStatus.NOT_APPLICABLE,
+            ),
+        )
+
+        self.article.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Choose the correct image rights status")
+        self.assertEqual(self.article.title, "Original Article")
 
     def test_author_cannot_delete_another_authors_article(self):
         self.client.force_login(self.other_user)
