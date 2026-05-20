@@ -684,8 +684,15 @@ def submit_recipe_comment(request, slug):
         messages.warning(request, "This comment looks like a duplicate and was not submitted again.")
         return redirect(f"{recipe.get_absolute_url()}#comments")
 
+    author_fk = None
+    try:
+        author_fk = request.user.recipe_author_profile
+    except RecipeAuthor.DoesNotExist:
+        pass
+
     RecipeComment.objects.create(
         recipe=recipe,
+        author=author_fk,
         name=name,
         content=content,
         is_approved=True,
@@ -724,22 +731,23 @@ def delete_all_recipe_comments(request, slug):
 @require_POST
 @login_required
 def add_comment_reply(request, comment_id):
-    parent = get_object_or_404(RecipeComment, pk=comment_id, is_approved=True, parent__isnull=True)
-    recipe = parent.recipe
+    target = get_object_or_404(RecipeComment, pk=comment_id, is_approved=True)
+    root = target if target.parent_id is None else target.parent
+    recipe = root.recipe
 
     try:
         author = request.user.recipe_author_profile
         display_name = author.name
     except RecipeAuthor.DoesNotExist:
-        return redirect(f"{recipe.get_absolute_url()}#comment-{parent.pk}")
+        return redirect(f"{recipe.get_absolute_url()}#comment-{root.pk}")
 
     content = request.POST.get("content", "").strip()
     if not content:
-        return redirect(f"{recipe.get_absolute_url()}#comment-{parent.pk}")
+        return redirect(f"{recipe.get_absolute_url()}#comment-{root.pk}")
 
     reply = RecipeComment.objects.create(
         recipe=recipe,
-        parent=parent,
+        parent=root,
         author=author,
         name=display_name,
         content=content,

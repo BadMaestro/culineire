@@ -440,45 +440,103 @@
                         {% if approved_comments %}
                             {% for comment in approved_comments %}
                             <article class="comment-card" id="comment-{{ comment.pk }}">
-                                <div class="comment-card__head">
-                                    <strong class="comment-card__name">{{ comment.name }}</strong>
-                                    <time class="comment-card__date" datetime="{{ comment.created_at|date:'c' }}">{{ comment.created_at|date:"j F Y" }}</time>
-                                    {% if can_manage_recipe %}
-                                    <form action="{% url 'recipes:delete_recipe_comment' comment.pk %}" method="post" class="comment-delete-form" onsubmit="return confirm('Delete this comment?')">
-                                        {% csrf_token %}
-                                        <button class="comment-delete-btn" type="submit" title="Delete comment">
-                                            <svg aria-hidden="true" fill="none" height="13" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                                        </button>
-                                    </form>
-                                    {% endif %}
-                                </div>
-                                <div class="comment-card__body">{{ comment.content|linebreaks }}</div>
-                                {% if request.user.is_authenticated and commenter_profile %}
-                                <div class="comment-card__actions">
-                                    <button class="comment-reply-toggle" type="button" data-reply-target="reply-form-{{ comment.pk }}">Reply</button>
-                                </div>
-                                <div class="comment-reply-form" id="reply-form-{{ comment.pk }}" hidden>
-                                    <form action="{% url 'recipes:add_comment_reply' comment.pk %}" method="post" class="recipe-form">
-                                        {% csrf_token %}
-                                        <div class="recipe-form__field">
-                                            <textarea name="content" required rows="3" placeholder="Write a reply…" maxlength="3000" aria-label="Reply to {{ comment.name }}"></textarea>
+                                <div class="comment-card__inner">
+                                    <div class="comment-card__avatar" aria-hidden="true">
+                                        {% if comment.author and comment.author.avatar %}
+                                        <img alt="" src="{{ comment.author.display_avatar_url }}">
+                                        {% else %}
+                                        <span>{{ comment.name|slice:":1"|upper }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="comment-card__main">
+                                        <div class="comment-card__head">
+                                            <strong class="comment-card__name">{{ comment.name }}</strong>
+                                            <time class="comment-card__date" datetime="{{ comment.created_at|date:'c' }}">{{ comment.created_at|date:"j N Y" }}</time>
+                                            {% if can_manage_recipe %}
+                                            <form action="{% url 'recipes:delete_recipe_comment' comment.pk %}" method="post" class="comment-delete-form" onsubmit="return confirm('Delete this comment?')">
+                                                {% csrf_token %}
+                                                <button class="comment-delete-btn" type="submit" title="Delete comment">
+                                                    <svg aria-hidden="true" fill="none" height="13" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                                                </button>
+                                            </form>
+                                            {% endif %}
                                         </div>
-                                        <div class="comment-reply-form__actions">
-                                            <button class="detail-button detail-button--secondary" type="button" data-reply-cancel="reply-form-{{ comment.pk }}">Cancel</button>
-                                            <button class="detail-button" type="submit">Post reply</button>
+                                        <div class="comment-card__body">{{ comment.content|linebreaks }}</div>
+                                        {% if request.user.is_authenticated and commenter_profile %}
+                                        <div class="comment-card__actions">
+                                            <button class="comment-reply-toggle" type="button" data-reply-target="reply-form-{{ comment.pk }}">
+                                                <svg aria-hidden="true" fill="none" height="12" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" width="12"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+                                                Reply
+                                            </button>
                                         </div>
-                                    </form>
+                                        <div class="comment-reply-form" id="reply-form-{{ comment.pk }}" hidden>
+                                            <form action="{% url 'recipes:add_comment_reply' comment.pk %}" method="post" class="recipe-form">
+                                                {% csrf_token %}
+                                                <div class="recipe-form__field">
+                                                    <textarea name="content" required rows="3" placeholder="Write a reply…" maxlength="3000" aria-label="Reply to {{ comment.name }}"></textarea>
+                                                </div>
+                                                <div class="comment-reply-form__actions">
+                                                    <button class="detail-button detail-button--secondary" type="button" data-reply-cancel="reply-form-{{ comment.pk }}">Cancel</button>
+                                                    <button class="detail-button" type="submit">Post reply</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% if comment.approved_replies %}
+                                <div class="comment-replies">
+                                    {% for reply in comment.approved_replies %}
+                                    <div class="comment-reply" id="comment-{{ reply.pk }}">
+                                        <div class="comment-reply__meta">
+                                            <time class="comment-reply__date" datetime="{{ reply.created_at|date:'c' }}">{{ reply.created_at|date:"j N" }}</time>
+                                            <span class="comment-reply__year">{{ reply.created_at|date:"Y" }}</span>
+                                        </div>
+                                        <div class="comment-reply__body">
+                                            <div class="comment-reply__head">
+                                                <div class="comment-reply__avatar" aria-hidden="true">
+                                                    {% if reply.author and reply.author.avatar %}
+                                                    <img alt="" src="{{ reply.author.display_avatar_url }}">
+                                                    {% else %}
+                                                    <span>{{ reply.name|slice:":1"|upper }}</span>
+                                                    {% endif %}
+                                                </div>
+                                                <strong class="comment-reply__name">{{ reply.name }}</strong>
+                                                {% if can_manage_recipe %}
+                                                <form action="{% url 'recipes:delete_recipe_comment' reply.pk %}" method="post" class="comment-delete-form" onsubmit="return confirm('Delete this reply?')">
+                                                    {% csrf_token %}
+                                                    <button class="comment-delete-btn" type="submit" title="Delete reply">
+                                                        <svg aria-hidden="true" fill="none" height="12" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="12"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                                                    </button>
+                                                </form>
+                                                {% endif %}
+                                            </div>
+                                            <div class="comment-reply__content">{{ reply.content|linebreaks }}</div>
+                                            {% if request.user.is_authenticated and commenter_profile %}
+                                            <div class="comment-card__actions">
+                                                <button class="comment-reply-toggle" type="button" data-reply-target="reply-form-{{ reply.pk }}">
+                                                    <svg aria-hidden="true" fill="none" height="12" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" width="12"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+                                                    Reply
+                                                </button>
+                                            </div>
+                                            <div class="comment-reply-form" id="reply-form-{{ reply.pk }}" hidden>
+                                                <form action="{% url 'recipes:add_comment_reply' reply.pk %}" method="post" class="recipe-form">
+                                                    {% csrf_token %}
+                                                    <div class="recipe-form__field">
+                                                        <textarea name="content" required rows="3" placeholder="Reply to {{ reply.name }}…" maxlength="3000" aria-label="Reply to {{ reply.name }}"></textarea>
+                                                    </div>
+                                                    <div class="comment-reply-form__actions">
+                                                        <button class="detail-button detail-button--secondary" type="button" data-reply-cancel="reply-form-{{ reply.pk }}">Cancel</button>
+                                                        <button class="detail-button" type="submit">Post reply</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endfor %}
                                 </div>
                                 {% endif %}
-                                {% for reply in comment.approved_replies %}
-                                <article class="comment-card comment-card--reply" id="comment-{{ reply.pk }}">
-                                    <div class="comment-card__head">
-                                        <strong class="comment-card__name">{{ reply.name }}</strong>
-                                        <time class="comment-card__date" datetime="{{ reply.created_at|date:'c' }}">{{ reply.created_at|date:"j F Y" }}</time>
-                                    </div>
-                                    <div class="comment-card__body">{{ reply.content|linebreaks }}</div>
-                                </article>
-                                {% endfor %}
                             </article>
                             {% endfor %}
                         {% else %}
