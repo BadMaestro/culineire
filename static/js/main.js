@@ -60,11 +60,11 @@ document.addEventListener("DOMContentLoaded", () => {
     let expanded = false;
 
     const isWrapped = () => {
-      const firstItem = categoryNav.querySelector(".category-nav__item, .category-nav__link");
-      if (!firstItem) return false;
-      const navH = categoryNav.getBoundingClientRect().height;
-      const itemH = firstItem.getBoundingClientRect().height;
-      return navH > itemH + 4;
+      categoryNav.style.flexWrap = "nowrap";
+      void categoryNav.offsetWidth;
+      const overflows = categoryNav.scrollWidth > categoryNav.offsetWidth + 1;
+      categoryNav.style.flexWrap = "";
+      return overflows;
     };
 
     const applyState = () => {
