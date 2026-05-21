@@ -159,6 +159,12 @@
   border: 1px solid rgb(180 40 40 / 0.22);
 }
 
+.moderation-badge--needs_changes {
+  background: rgb(146 64 14 / 0.12);
+  color: rgb(138 61 8);
+  border: 1px solid rgb(146 64 14 / 0.28);
+}
+
 /* Row layout */
 .moderation-card {
   display: flex;

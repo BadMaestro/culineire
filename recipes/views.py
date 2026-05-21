@@ -582,7 +582,7 @@ def recipe_detail(request, slug):
 @require_POST
 @ratelimit(key="ip", rate="10/h", method="POST", block=False)
 def submit_recipe_rating(request, slug):
-    recipe = get_object_or_404(Recipe, slug=slug)
+    recipe = get_object_or_404(Recipe, slug=slug, status=Recipe.Status.APPROVED)
     form = RecipeRatingForm(request.POST)
     is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
     session_key = f"recipe_rating_submitted_{recipe.pk}"
@@ -687,7 +687,7 @@ def recipe_ratings_api(request, slug):
 @login_required
 @ratelimit(key="ip", rate="5/h", method="POST", block=False)
 def submit_recipe_comment(request, slug):
-    recipe = get_object_or_404(Recipe, slug=slug)
+    recipe = get_object_or_404(Recipe, slug=slug, status=Recipe.Status.APPROVED)
 
     try:
         display_name = request.user.recipe_author_profile.name
@@ -783,6 +783,8 @@ def add_comment_reply(request, comment_id):
     target = get_object_or_404(RecipeComment, pk=comment_id, is_approved=True)
     root = target if target.parent_id is None else target.parent
     recipe = root.recipe
+    if recipe.status != Recipe.Status.APPROVED:
+        raise Http404
 
     try:
         author = request.user.recipe_author_profile
@@ -826,17 +828,23 @@ def author_detail(request, slug):
     article_count = articles_for_count.count()
 
     private_dashboard = can_manage or moderator
-    _VALID_STATUS_FILTERS = {"pending", "rejected", "approved"}
+    _VALID_STATUS_FILTERS = {
+        "pending": Recipe.Status.PENDING,
+        "needs_changes": Recipe.Status.NEEDS_CHANGES,
+        "rejected": Recipe.Status.REJECTED,
+        "approved": Recipe.Status.APPROVED,
+    }
     status_filter = request.GET.get("status", "").lower() if private_dashboard else ""
-    if status_filter not in _VALID_STATUS_FILTERS:
+    status_value = _VALID_STATUS_FILTERS.get(status_filter)
+    if not status_value:
         status_filter = ""
 
     recipe_qs = Recipe.objects.filter(author=author).order_by("-created_at")
     article_qs = Article.objects.filter(author=author).order_by("-published")
     if private_dashboard:
-        if status_filter:
-            recipe_qs = recipe_qs.filter(status=status_filter)
-            article_qs = article_qs.filter(status=status_filter)
+        if status_value:
+            recipe_qs = recipe_qs.filter(status=status_value)
+            article_qs = article_qs.filter(status=status_value)
     else:
         recipe_qs = recipe_qs.filter(status=Recipe.Status.APPROVED)
         article_qs = article_qs.filter(status=Article.Status.APPROVED)
@@ -1186,8 +1194,13 @@ def moderation_panel(request):
         .filter(status=Recipe.Status.PENDING)
         .order_by("-created_at")
     )
+    needs_changes_recipes = (
+        Recipe.objects.select_related("author", "author__user", "moderated_by")
+        .filter(status=Recipe.Status.NEEDS_CHANGES)
+        .order_by("-moderated_at", "-created_at")
+    )
     rejected_recipes = (
-        Recipe.objects.select_related("author", "author__user")
+        Recipe.objects.select_related("author", "author__user", "moderated_by")
         .filter(status=Recipe.Status.REJECTED)
         .order_by("-created_at")
     )
@@ -1196,8 +1209,13 @@ def moderation_panel(request):
         .filter(status=Article.Status.PENDING)
         .order_by("-published")
     )
+    needs_changes_articles = (
+        Article.objects.select_related("author", "author__user", "moderated_by")
+        .filter(status=Article.Status.NEEDS_CHANGES)
+        .order_by("-moderated_at", "-published")
+    )
     rejected_articles = (
-        Article.objects.select_related("author", "author__user")
+        Article.objects.select_related("author", "author__user", "moderated_by")
         .filter(status=Article.Status.REJECTED)
         .order_by("-published")
     )
@@ -1243,8 +1261,10 @@ def moderation_panel(request):
 
     return render(request, "moderation/panel.html", {
         "pending_recipes": pending_recipes,
+        "needs_changes_recipes": needs_changes_recipes,
         "rejected_recipes": rejected_recipes,
         "pending_articles": pending_articles,
+        "needs_changes_articles": needs_changes_articles,
         "rejected_articles": rejected_articles,
         "registered_authors": registered_authors,
         "author_query": author_query,
@@ -1272,6 +1292,17 @@ def moderate_recipe(request, slug):
         recipe.moderated_at = timezone.now()
         recipe.save(update_fields=["status", "moderation_note", "moderated_by", "moderated_at"])
         messages.success(request, f'"{recipe.title}" approved and is now live.')
+    elif action == "request_changes":
+        note = request.POST.get("moderation_note", "").strip()
+        if not note:
+            messages.error(request, "A moderation note is required. Please explain what needs to be changed.")
+            return redirect(recipe.get_absolute_url())
+        recipe.status = Recipe.Status.NEEDS_CHANGES
+        recipe.moderation_note = note
+        recipe.moderated_by = request.user
+        recipe.moderated_at = timezone.now()
+        recipe.save(update_fields=["status", "moderation_note", "moderated_by", "moderated_at"])
+        messages.warning(request, f'Changes requested for "{recipe.title}".')
     elif action == "reject":
         note = request.POST.get("moderation_note", "").strip()
         if not note:

@@ -1718,6 +1718,12 @@
   border: 1px solid rgb(180 40 40 / 0.22);
 }
 
+.author-studio-status--needs_changes {
+  background: rgb(146 64 14 / 0.12);
+  color: rgb(138 61 8);
+  border: 1px solid rgb(146 64 14 / 0.28);
+}
+
 .author-profile-manage {
   margin-block-start: 2.5rem;
   padding: 1rem 1.2rem;

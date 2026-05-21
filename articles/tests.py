@@ -1184,6 +1184,106 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertRedirects(response, self.article.get_absolute_url())
         self.assertEqual(self.article.status, Article.Status.REJECTED)
 
+    def test_article_status_includes_needs_changes(self):
+        self.assertIn(Article.Status.NEEDS_CHANGES, Article.Status.values)
+        self.assertEqual(Article.Status.NEEDS_CHANGES.label, "Needs changes")
+
+    def test_moderator_can_request_article_changes_with_note(self):
+        self.client.force_login(self.moderator_user)
+
+        response = self.client.post(
+            reverse("articles:moderate_article", kwargs={"slug": self.article.slug}),
+            {"action": "request_changes", "moderation_note": "Clarify the source attribution."},
+        )
+
+        self.article.refresh_from_db()
+        self.assertRedirects(response, self.article.get_absolute_url())
+        self.assertEqual(self.article.status, Article.Status.NEEDS_CHANGES)
+        self.assertEqual(self.article.moderation_note, "Clarify the source attribution.")
+        self.assertEqual(self.article.moderated_by, self.moderator_user)
+        self.assertIsNotNone(self.article.moderated_at)
+
+    def test_article_request_changes_without_note_is_blocked(self):
+        self.client.force_login(self.moderator_user)
+
+        response = self.client.post(
+            reverse("articles:moderate_article", kwargs={"slug": self.article.slug}),
+            {"action": "request_changes"},
+            follow=True,
+        )
+
+        self.article.refresh_from_db()
+        self.assertEqual(self.article.status, Article.Status.PENDING)
+        self.assertIsNone(self.article.moderated_by)
+        self.assertIsNone(self.article.moderated_at)
+        self.assertContains(response, "moderation note is required")
+
+    def test_needs_changes_article_is_hidden_from_public_list_and_direct_url(self):
+        article = self.create_article("Needs Changes Article", Article.Status.NEEDS_CHANGES)
+
+        list_response = self.client.get(reverse("articles:article_list"))
+        detail_response = self.client.get(article.get_absolute_url())
+
+        self.assertNotContains(list_response, "Needs Changes Article")
+        self.assertEqual(detail_response.status_code, 404)
+
+    def test_article_owner_and_moderator_can_view_needs_changes_article(self):
+        self.article.status = Article.Status.NEEDS_CHANGES
+        self.article.moderation_note = "Please add a clearer introduction."
+        self.article.moderated_by = self.moderator_user
+        self.article.save(update_fields=["status", "moderation_note", "moderated_by"])
+
+        self.client.force_login(self.owner_user)
+        owner_response = self.client.get(self.article.get_absolute_url())
+        self.assertEqual(owner_response.status_code, 200)
+        self.assertContains(owner_response, "Please add a clearer introduction.")
+        self.assertContains(owner_response, "Requested changes")
+
+        self.client.force_login(self.moderator_user)
+        moderator_response = self.client.get(self.article.get_absolute_url())
+        self.assertEqual(moderator_response.status_code, 200)
+        self.assertContains(moderator_response, "Please add a clearer introduction.")
+
+    def test_public_visitor_cannot_see_article_needs_changes_note(self):
+        self.article.status = Article.Status.NEEDS_CHANGES
+        self.article.moderation_note = "Private correction note."
+        self.article.save(update_fields=["status", "moderation_note"])
+
+        response = self.client.get(self.article.get_absolute_url())
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_author_edit_of_needs_changes_article_returns_to_pending_and_keeps_note(self):
+        self.article.status = Article.Status.NEEDS_CHANGES
+        self.article.moderation_note = "Clarify the source attribution."
+        self.article.save(update_fields=["status", "moderation_note"])
+        self.client.force_login(self.owner_user)
+
+        response = self.client.post(
+            reverse("articles:article_edit", kwargs={"slug": self.article.slug}),
+            self.article_payload(),
+        )
+
+        self.article.refresh_from_db()
+        self.assertRedirects(response, self.article.get_absolute_url())
+        self.assertEqual(self.article.status, Article.Status.PENDING)
+        self.assertEqual(self.article.moderation_note, "Clarify the source attribution.")
+
+    def test_article_approve_after_needs_changes_clears_note(self):
+        self.article.status = Article.Status.NEEDS_CHANGES
+        self.article.moderation_note = "Clarify the source attribution."
+        self.article.save(update_fields=["status", "moderation_note"])
+        self.client.force_login(self.moderator_user)
+
+        self.client.post(
+            reverse("articles:moderate_article", kwargs={"slug": self.article.slug}),
+            {"action": "approve"},
+        )
+
+        self.article.refresh_from_db()
+        self.assertEqual(self.article.status, Article.Status.APPROVED)
+        self.assertEqual(self.article.moderation_note, "")
+
     def test_moderator_can_delete_article_from_moderation_endpoint(self):
         self.client.force_login(self.moderator_user)
 

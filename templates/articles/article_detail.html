@@ -244,10 +244,10 @@
     </div>
 </section>
 
-{% if can_manage_article and article.status == 'rejected' and article.moderation_note %}
+{% if can_manage_article and article.moderation_note and article.status == 'rejected' or can_manage_article and article.moderation_note and article.status == 'NEEDS_CHANGES' %}
 <div class="mod-note-banner">
     <div class="container mod-note-banner__inner">
-        <span class="mod-note-banner__label">Rejection note</span>
+        <span class="mod-note-banner__label">{% if article.status == 'NEEDS_CHANGES' %}Requested changes{% else %}Rejection note{% endif %}</span>
         <p class="mod-note-banner__text">{{ article.moderation_note }}</p>
         {% if article.moderated_by and article.moderated_at %}
         <p class="mod-note-banner__meta">Reviewed by {{ article.moderated_by.get_full_name|default:article.moderated_by.username }} &middot; {{ article.moderated_at|date:"j M Y, H:i" }}</p>
@@ -266,6 +266,7 @@
             </button>
         </form>
         <button class="mod-bar__btn mod-bar__btn--reject" id="mod-bar-reject-toggle" type="button">Reject</button>
+        <button class="mod-bar__btn mod-bar__btn--message" id="mod-bar-changes-toggle" type="button">Request Changes</button>
         <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
             <button class="mod-bar__btn mod-bar__btn--delete" name="action" onclick="return confirm('Permanently delete this article?')" type="submit"
                     value="delete">Delete
@@ -285,6 +286,18 @@
         {% endif %}
 
         <a class="mod-bar__btn mod-bar__btn--back" href="{% url 'recipes:moderation_panel' %}">← Panel</a>
+    </div>
+
+    <div class="mod-bar__inner">
+        <div class="mod-bar__message-panel" id="mod-bar-changes-panel">
+            <form action="{% url 'articles:moderate_article' article.slug %}" method="post"
+                  style="display:flex;gap:0.5rem;flex:1;align-items:flex-start;">
+                {% csrf_token %}
+                <input name="action" type="hidden" value="request_changes">
+                <textarea name="moderation_note" placeholder="Note for the author — required. Explain what needs to be changed." required rows="3">{{ article.moderation_note }}</textarea>
+                <button class="mod-bar__btn mod-bar__btn--message" type="submit">Confirm Changes</button>
+            </form>
+        </div>
     </div>
 
     <div class="mod-bar__inner">
@@ -321,11 +334,15 @@
     (function(){
         var rejectToggle = document.getElementById('mod-bar-reject-toggle');
         var rejectPanel = document.getElementById('mod-bar-reject-panel');
+        var changesToggle = document.getElementById('mod-bar-changes-toggle');
+        var changesPanel = document.getElementById('mod-bar-changes-panel');
         var msgToggle = document.getElementById('mod-bar-msg-toggle');
         var msgPanel = document.getElementById('mod-bar-msg-panel');
         function closeAll() {
             if (rejectPanel) rejectPanel.classList.remove('is-open');
             if (rejectToggle) rejectToggle.textContent = 'Reject';
+            if (changesPanel) changesPanel.classList.remove('is-open');
+            if (changesToggle) changesToggle.textContent = 'Request Changes';
             if (msgPanel) msgPanel.classList.remove('is-open');
             if (msgToggle) msgToggle.textContent = 'Reject & Message Author';
         }
@@ -334,6 +351,13 @@
                 var opening = !rejectPanel.classList.contains('is-open');
                 closeAll();
                 if (opening) { rejectPanel.classList.add('is-open'); rejectToggle.textContent = 'Cancel'; }
+            });
+        }
+        if (changesToggle && changesPanel) {
+            changesToggle.addEventListener('click', function(){
+                var opening = !changesPanel.classList.contains('is-open');
+                closeAll();
+                if (opening) { changesPanel.classList.add('is-open'); changesToggle.textContent = 'Cancel'; }
             });
         }
         if (msgToggle && msgPanel) {

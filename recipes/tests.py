@@ -929,6 +929,7 @@ class RecipeInteractionTests(TestCase):
             title="Irish Stew",
             ingredients="2 potatoes\n1 onion",
             method="1. Chop everything\n2. Cook slowly",
+            status=Recipe.Status.APPROVED,
         )
 
     def test_submit_recipe_rating_is_limited_to_one_per_session(self):
@@ -1178,6 +1179,40 @@ class RecipeModerationTrackingTests(TestCase):
             status=Recipe.Status.PENDING,
         )
 
+    def recipe_payload(self, **overrides):
+        payload = {
+            "title": "Updated Recipe",
+            "short_description": "Updated description.",
+            "category": Recipe.Category.EVERYDAY_IRISH_COOKING,
+            "additional_categories": [],
+            "difficulty": Recipe.Difficulty.EASY,
+            "prep_time_minutes": 10,
+            "cook_time_minutes": 20,
+            "servings": 4,
+            "calories": "",
+            "ingredients": "Potatoes\nOnions",
+            "method": "Cook slowly.",
+            "tips": "",
+            "irish_context": "",
+            "author_commentary": "",
+            "source_type": Recipe.SourceType.ORIGINAL,
+            "source_title": "",
+            "source_author": "",
+            "source_url": "",
+            "source_note": "",
+            "image_rights_status": Recipe.ImageRightsStatus.NOT_APPLICABLE,
+            "image_rights_note": "",
+            "confirm_own_work": "on",
+            "confirm_image_rights": "on",
+            "confirm_rules": "on",
+        }
+        payload.update(overrides)
+        return payload
+
+    def test_recipe_status_includes_needs_changes(self):
+        self.assertIn(Recipe.Status.NEEDS_CHANGES, Recipe.Status.values)
+        self.assertEqual(Recipe.Status.NEEDS_CHANGES.label, "Needs changes")
+
     def test_recipe_reject_without_note_is_blocked(self):
         self.client.force_login(self.moderator_user)
 
@@ -1205,6 +1240,36 @@ class RecipeModerationTrackingTests(TestCase):
         self.assertEqual(self.recipe.moderated_by, self.moderator_user)
         self.assertIsNotNone(self.recipe.moderated_at)
 
+    def test_recipe_request_changes_saves_tracking_fields(self):
+        self.client.force_login(self.moderator_user)
+
+        response = self.client.post(
+            reverse("recipes:moderate_recipe", kwargs={"slug": self.recipe.slug}),
+            {"action": "request_changes", "moderation_note": "Add clearer method steps."},
+        )
+
+        self.recipe.refresh_from_db()
+        self.assertRedirects(response, self.recipe.get_absolute_url())
+        self.assertEqual(self.recipe.status, Recipe.Status.NEEDS_CHANGES)
+        self.assertEqual(self.recipe.moderation_note, "Add clearer method steps.")
+        self.assertEqual(self.recipe.moderated_by, self.moderator_user)
+        self.assertIsNotNone(self.recipe.moderated_at)
+
+    def test_recipe_request_changes_without_note_is_blocked(self):
+        self.client.force_login(self.moderator_user)
+
+        response = self.client.post(
+            reverse("recipes:moderate_recipe", kwargs={"slug": self.recipe.slug}),
+            {"action": "request_changes"},
+            follow=True,
+        )
+
+        self.recipe.refresh_from_db()
+        self.assertEqual(self.recipe.status, Recipe.Status.PENDING)
+        self.assertIsNone(self.recipe.moderated_by)
+        self.assertIsNone(self.recipe.moderated_at)
+        self.assertContains(response, "moderation note is required")
+
     def test_recipe_approve_clears_moderation_note(self):
         self.recipe.status = Recipe.Status.REJECTED
         self.recipe.moderation_note = "Old note."
@@ -1221,6 +1286,21 @@ class RecipeModerationTrackingTests(TestCase):
         self.assertEqual(self.recipe.moderation_note, "")
         self.assertEqual(self.recipe.moderated_by, self.moderator_user)
         self.assertIsNotNone(self.recipe.moderated_at)
+
+    def test_recipe_approve_after_needs_changes_clears_note(self):
+        self.recipe.status = Recipe.Status.NEEDS_CHANGES
+        self.recipe.moderation_note = "Add clearer method steps."
+        self.recipe.save(update_fields=["status", "moderation_note"])
+        self.client.force_login(self.moderator_user)
+
+        self.client.post(
+            reverse("recipes:moderate_recipe", kwargs={"slug": self.recipe.slug}),
+            {"action": "approve"},
+        )
+
+        self.recipe.refresh_from_db()
+        self.assertEqual(self.recipe.status, Recipe.Status.APPROVED)
+        self.assertEqual(self.recipe.moderation_note, "")
 
     def test_recipe_reject_and_message_saves_note(self):
         from messaging.models import Message
@@ -1265,6 +1345,67 @@ class RecipeModerationTrackingTests(TestCase):
         response = self.client.get(self.recipe.get_absolute_url())
 
         self.assertEqual(response.status_code, 404)
+
+    def test_needs_changes_recipe_is_hidden_from_public_list_and_direct_url(self):
+        self.recipe.status = Recipe.Status.NEEDS_CHANGES
+        self.recipe.save(update_fields=["status"])
+
+        list_response = self.client.get(reverse("recipes:recipe_list"))
+        detail_response = self.client.get(self.recipe.get_absolute_url())
+
+        self.assertNotContains(list_response, self.recipe.title)
+        self.assertEqual(detail_response.status_code, 404)
+
+    def test_recipe_owner_and_moderator_can_view_needs_changes_recipe(self):
+        self.recipe.status = Recipe.Status.NEEDS_CHANGES
+        self.recipe.moderation_note = "Add serving notes."
+        self.recipe.moderated_by = self.moderator_user
+        self.recipe.save(update_fields=["status", "moderation_note", "moderated_by"])
+
+        self.client.force_login(self.author_user)
+        owner_response = self.client.get(self.recipe.get_absolute_url())
+        self.assertEqual(owner_response.status_code, 200)
+        self.assertContains(owner_response, "Add serving notes.")
+        self.assertContains(owner_response, "Requested changes")
+
+        self.client.force_login(self.moderator_user)
+        moderator_response = self.client.get(self.recipe.get_absolute_url())
+        self.assertEqual(moderator_response.status_code, 200)
+        self.assertContains(moderator_response, "Add serving notes.")
+
+    def test_author_edit_of_needs_changes_recipe_returns_to_pending_and_keeps_note(self):
+        self.recipe.status = Recipe.Status.NEEDS_CHANGES
+        self.recipe.moderation_note = "Add clearer method steps."
+        self.recipe.save(update_fields=["status", "moderation_note"])
+        self.client.force_login(self.author_user)
+
+        response = self.client.post(
+            reverse("recipes:recipe_edit", kwargs={"slug": self.recipe.slug}),
+            self.recipe_payload(),
+        )
+
+        self.recipe.refresh_from_db()
+        self.assertRedirects(response, self.recipe.get_absolute_url())
+        self.assertEqual(self.recipe.status, Recipe.Status.PENDING)
+        self.assertEqual(self.recipe.moderation_note, "Add clearer method steps.")
+
+    def test_needs_changes_recipe_cannot_be_rated_or_commented_by_public(self):
+        self.recipe.status = Recipe.Status.NEEDS_CHANGES
+        self.recipe.save(update_fields=["status"])
+        reader = get_user_model().objects.create_user(username="reader", password="pass")
+
+        rating_response = self.client.post(
+            reverse("recipes:submit_recipe_rating", args=[self.recipe.slug]),
+            {"value": 5},
+        )
+        self.client.force_login(reader)
+        comment_response = self.client.post(
+            reverse("recipes:submit_recipe_comment", args=[self.recipe.slug]),
+            {"content": "Looks good.", "website": ""},
+        )
+
+        self.assertEqual(rating_response.status_code, 404)
+        self.assertEqual(comment_response.status_code, 404)
 
     def test_non_moderator_cannot_moderate_recipe(self):
         self.client.force_login(self.author_user)
@@ -1342,6 +1483,15 @@ class RecipePhase3AuthorDashboardTests(TestCase):
             status=Recipe.Status.REJECTED,
             moderation_note="Needs more detail in the method.",
         )
+        self.needs_changes_recipe = Recipe.objects.create(
+            title="Needs Changes Dish",
+            slug="needs-changes-dish",
+            author=self.author,
+            ingredients="Flour",
+            method="Fix.",
+            status=Recipe.Status.NEEDS_CHANGES,
+            moderation_note="Needs clearer method steps.",
+        )
         self.approved_article = Article.objects.create(
             title="Approved Story",
             slug="approved-story",
@@ -1367,6 +1517,15 @@ class RecipePhase3AuthorDashboardTests(TestCase):
             status=Article.Status.REJECTED,
             moderation_note="Article needs source attribution.",
         )
+        self.needs_changes_article = Article.objects.create(
+            title="Needs Changes Story",
+            slug="needs-changes-story",
+            author=self.author,
+            body="Needs changes article body.",
+            published=date(2026, 5, 21),
+            status=Article.Status.NEEDS_CHANGES,
+            moderation_note="Article needs clearer source attribution.",
+        )
         self.url = reverse("recipes:author_detail", kwargs={"slug": self.author.slug})
 
     def test_owner_sees_all_content_in_dashboard(self):
@@ -1377,9 +1536,11 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(self.approved_recipe, response.context["dashboard_recipes"])
         self.assertIn(self.pending_recipe, response.context["dashboard_recipes"])
+        self.assertIn(self.needs_changes_recipe, response.context["dashboard_recipes"])
         self.assertIn(self.rejected_recipe, response.context["dashboard_recipes"])
         self.assertIn(self.approved_article, response.context["dashboard_articles"])
         self.assertIn(self.pending_article, response.context["dashboard_articles"])
+        self.assertIn(self.needs_changes_article, response.context["dashboard_articles"])
         self.assertIn(self.rejected_article, response.context["dashboard_articles"])
 
     def test_public_visitor_sees_approved_content_only(self):
@@ -1388,15 +1549,19 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(self.approved_recipe, response.context["dashboard_recipes"])
         self.assertNotIn(self.pending_recipe, response.context["dashboard_recipes"])
+        self.assertNotIn(self.needs_changes_recipe, response.context["dashboard_recipes"])
         self.assertNotIn(self.rejected_recipe, response.context["dashboard_recipes"])
         self.assertIn(self.approved_article, response.context["dashboard_articles"])
         self.assertNotIn(self.pending_article, response.context["dashboard_articles"])
+        self.assertNotIn(self.needs_changes_article, response.context["dashboard_articles"])
         self.assertNotIn(self.rejected_article, response.context["dashboard_articles"])
         self.assertContains(response, "Approved Dish")
         self.assertContains(response, "Approved Story")
         self.assertNotContains(response, "Pending Dish")
+        self.assertNotContains(response, "Needs Changes Dish")
         self.assertNotContains(response, "Rejected Dish")
         self.assertNotContains(response, "Pending Story")
+        self.assertNotContains(response, "Needs Changes Story")
         self.assertNotContains(response, "Rejected Story")
         self.assertNotContains(response, "Content Dashboard")
         self.assertNotContains(response, "author-studio-filters")
@@ -1411,9 +1576,11 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(self.approved_recipe, response.context["dashboard_recipes"])
         self.assertIn(self.pending_recipe, response.context["dashboard_recipes"])
+        self.assertIn(self.needs_changes_recipe, response.context["dashboard_recipes"])
         self.assertIn(self.rejected_recipe, response.context["dashboard_recipes"])
         self.assertIn(self.approved_article, response.context["dashboard_articles"])
         self.assertIn(self.pending_article, response.context["dashboard_articles"])
+        self.assertIn(self.needs_changes_article, response.context["dashboard_articles"])
         self.assertIn(self.rejected_article, response.context["dashboard_articles"])
 
     def test_rejection_note_visible_to_owner_in_dashboard(self):
@@ -1422,13 +1589,17 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         response = self.client.get(self.url)
 
         self.assertContains(response, "Needs more detail in the method.")
+        self.assertContains(response, "Needs clearer method steps.")
         self.assertContains(response, "Article needs source attribution.")
+        self.assertContains(response, "Article needs clearer source attribution.")
 
     def test_rejection_note_not_visible_to_public(self):
         response = self.client.get(self.url)
 
         self.assertNotContains(response, "Needs more detail in the method.")
+        self.assertNotContains(response, "Needs clearer method steps.")
         self.assertNotContains(response, "Article needs source attribution.")
+        self.assertNotContains(response, "Article needs clearer source attribution.")
 
     def test_status_filter_pending_returns_only_pending(self):
         self.client.force_login(self.author_user)
@@ -1437,10 +1608,37 @@ class RecipePhase3AuthorDashboardTests(TestCase):
 
         self.assertIn(self.pending_recipe, response.context["dashboard_recipes"])
         self.assertNotIn(self.approved_recipe, response.context["dashboard_recipes"])
+        self.assertNotIn(self.needs_changes_recipe, response.context["dashboard_recipes"])
         self.assertNotIn(self.rejected_recipe, response.context["dashboard_recipes"])
         self.assertIn(self.pending_article, response.context["dashboard_articles"])
         self.assertNotIn(self.approved_article, response.context["dashboard_articles"])
+        self.assertNotIn(self.needs_changes_article, response.context["dashboard_articles"])
         self.assertNotIn(self.rejected_article, response.context["dashboard_articles"])
+
+    def test_status_filter_needs_changes_returns_only_needs_changes(self):
+        self.client.force_login(self.author_user)
+
+        response = self.client.get(self.url + "?status=needs_changes")
+
+        self.assertIn(self.needs_changes_recipe, response.context["dashboard_recipes"])
+        self.assertNotIn(self.approved_recipe, response.context["dashboard_recipes"])
+        self.assertNotIn(self.pending_recipe, response.context["dashboard_recipes"])
+        self.assertNotIn(self.rejected_recipe, response.context["dashboard_recipes"])
+        self.assertIn(self.needs_changes_article, response.context["dashboard_articles"])
+        self.assertNotIn(self.approved_article, response.context["dashboard_articles"])
+        self.assertNotIn(self.pending_article, response.context["dashboard_articles"])
+        self.assertNotIn(self.rejected_article, response.context["dashboard_articles"])
+
+    def test_public_status_filter_cannot_reveal_needs_changes_content(self):
+        response = self.client.get(self.url + "?status=needs_changes")
+
+        self.assertEqual(response.context["status_filter"], "")
+        self.assertIn(self.approved_recipe, response.context["dashboard_recipes"])
+        self.assertNotIn(self.needs_changes_recipe, response.context["dashboard_recipes"])
+        self.assertIn(self.approved_article, response.context["dashboard_articles"])
+        self.assertNotIn(self.needs_changes_article, response.context["dashboard_articles"])
+        self.assertNotContains(response, "Needs Changes Dish")
+        self.assertNotContains(response, "Needs Changes Story")
 
     def test_status_filter_approved_returns_only_approved(self):
         self.client.force_login(self.author_user)
@@ -1460,8 +1658,8 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         response = self.client.get(self.url + "?status=bogus")
 
         self.assertEqual(response.context["status_filter"], "")
-        self.assertEqual(len(response.context["dashboard_recipes"]), 3)
-        self.assertEqual(len(response.context["dashboard_articles"]), 3)
+        self.assertEqual(len(response.context["dashboard_recipes"]), 4)
+        self.assertEqual(len(response.context["dashboard_articles"]), 4)
 
 
 class RecipePhase3RelatedArticlesTests(TestCase):
@@ -1495,6 +1693,15 @@ class RecipePhase3RelatedArticlesTests(TestCase):
             related_recipe=self.recipe,
             status=Article.Status.PENDING,
         )
+        self.needs_changes_article = Article.objects.create(
+            title="Needs Changes Article",
+            slug="needs-changes-related-article",
+            author=self.author,
+            body="Needs changes content.",
+            published=date(2026, 5, 21),
+            related_recipe=self.recipe,
+            status=Article.Status.NEEDS_CHANGES,
+        )
 
     def test_approved_related_article_appears_in_context(self):
         response = self.client.get(self.recipe.get_absolute_url())
@@ -1506,6 +1713,7 @@ class RecipePhase3RelatedArticlesTests(TestCase):
         response = self.client.get(self.recipe.get_absolute_url())
 
         self.assertNotIn(self.pending_article, response.context["related_articles"])
+        self.assertNotIn(self.needs_changes_article, response.context["related_articles"])
 
     def test_related_articles_section_hidden_when_empty(self):
         self.approved_article.delete()

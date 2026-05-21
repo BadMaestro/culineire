@@ -63,6 +63,7 @@ class Article(models.Model):
     class Status(models.TextChoices):
         PENDING = "pending", "Pending Review"
         APPROVED = "approved", "Approved"
+        NEEDS_CHANGES = "NEEDS_CHANGES", "Needs changes"
         REJECTED = "rejected", "Rejected"
 
     class ImageRightsStatus(models.TextChoices):

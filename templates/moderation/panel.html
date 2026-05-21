@@ -85,11 +85,12 @@
             <h2 class="moderation-block__title">
                 Recipes
                 {% if pending_recipes %}<span class="moderation-badge moderation-badge--pending">{{ pending_recipes|length }} pending</span>{% endif %}
+                {% if needs_changes_recipes %}<span class="moderation-badge moderation-badge--needs_changes">{{ needs_changes_recipes|length }} needs changes</span>{% endif %}
                 {% if rejected_recipes %}<span class="moderation-badge moderation-badge--rejected">{{ rejected_recipes|length }} rejected</span>{% endif %}
             </h2>
 
             <div class="moderation-scroll moderation-scroll--recipes">
-            {% if not pending_recipes and not rejected_recipes %}
+            {% if not pending_recipes and not needs_changes_recipes and not rejected_recipes %}
             <div class="moderation-empty">All clear — no Recipes awaiting moderation.</div>
             {% endif %}
 
@@ -124,6 +125,38 @@
                             value="block">Block User</button>
                     </form>
                     {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+
+            {% for recipe in needs_changes_recipes %}
+            <div class="moderation-card">
+                <div class="moderation-card__body">
+                    <div class="moderation-card__meta">
+                        <span class="author-studio-status author-studio-status--needs_changes">Needs changes</span>
+                        {% if recipe.author %}<a class="moderation-card__author" href="{{ recipe.author.get_absolute_url }}">{{ recipe.author.name|default:"Unknown" }}</a>{% else %}<span class="moderation-card__author">Unknown</span>{% endif %}
+                        <span class="moderation-card__date">{{ recipe.created_at|date:"j M Y" }}</span>
+                    </div>
+                    <h3 class="moderation-card__title">
+                        <a href="{{ recipe.get_absolute_url }}">{{ recipe.title }}</a>
+                    </h3>
+                    {% if recipe.moderation_note %}
+                    <p class="moderation-card__note">{{ recipe.moderation_note }}</p>
+                    {% if recipe.moderated_by %}
+                    <p class="moderation-card__note-meta">by {{ recipe.moderated_by.get_full_name|default:recipe.moderated_by.username }}{% if recipe.moderated_at %} &middot; {{ recipe.moderated_at|date:"j M Y" }}{% endif %}</p>
+                    {% endif %}
+                    {% endif %}
+                </div>
+                <div class="moderation-card__actions">
+                    <a class="mod-btn mod-btn--view" href="{{ recipe.get_absolute_url }}" target="_blank">View</a>
+                    <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
+                        <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
+                    </form>
+                    <a class="mod-btn mod-btn--edit" href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit</a>
+                    <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
+                        <button class="mod-btn mod-btn--delete" name="action" onclick="return confirm('Permanently delete this recipe?')" type="submit"
+                            value="delete">Delete</button>
+                    </form>
                 </div>
             </div>
             {% endfor %}
@@ -172,11 +205,12 @@
             <h2 class="moderation-block__title">
                 Articles
                 {% if pending_articles %}<span class="moderation-badge moderation-badge--pending">{{ pending_articles|length }} pending</span>{% endif %}
+                {% if needs_changes_articles %}<span class="moderation-badge moderation-badge--needs_changes">{{ needs_changes_articles|length }} needs changes</span>{% endif %}
                 {% if rejected_articles %}<span class="moderation-badge moderation-badge--rejected">{{ rejected_articles|length }} rejected</span>{% endif %}
             </h2>
 
             <div class="moderation-scroll moderation-scroll--articles">
-            {% if not pending_articles and not rejected_articles %}
+            {% if not pending_articles and not needs_changes_articles and not rejected_articles %}
             <div class="moderation-empty">All clear — no Articles awaiting moderation.</div>
             {% endif %}
 
@@ -211,6 +245,38 @@
                             value="block">Block User</button>
                     </form>
                     {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+
+            {% for article in needs_changes_articles %}
+            <div class="moderation-card">
+                <div class="moderation-card__body">
+                    <div class="moderation-card__meta">
+                        <span class="author-studio-status author-studio-status--needs_changes">Needs changes</span>
+                        {% if article.author %}<a class="moderation-card__author" href="{{ article.author.get_absolute_url }}">{{ article.author.name|default:"Unknown" }}</a>{% else %}<span class="moderation-card__author">Unknown</span>{% endif %}
+                        <span class="moderation-card__date">{{ article.published|date:"j M Y" }}</span>
+                    </div>
+                    <h3 class="moderation-card__title">
+                        <a href="{{ article.get_absolute_url }}">{{ article.title }}</a>
+                    </h3>
+                    {% if article.moderation_note %}
+                    <p class="moderation-card__note">{{ article.moderation_note }}</p>
+                    {% if article.moderated_by %}
+                    <p class="moderation-card__note-meta">by {{ article.moderated_by.get_full_name|default:article.moderated_by.username }}{% if article.moderated_at %} &middot; {{ article.moderated_at|date:"j M Y" }}{% endif %}</p>
+                    {% endif %}
+                    {% endif %}
+                </div>
+                <div class="moderation-card__actions">
+                    <a class="mod-btn mod-btn--view" href="{{ article.get_absolute_url }}" target="_blank">View</a>
+                    <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
+                        <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
+                    </form>
+                    <a class="mod-btn mod-btn--edit" href="{% url 'articles:article_edit' article.slug %}">Edit</a>
+                    <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
+                        <button class="mod-btn mod-btn--delete" name="action" onclick="return confirm('Permanently delete this article?')" type="submit"
+                            value="delete">Delete</button>
+                    </form>
                 </div>
             </div>
             {% endfor %}

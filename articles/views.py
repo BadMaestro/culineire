@@ -493,6 +493,17 @@ def moderate_article(request, slug):
         article.moderated_at = timezone.now()
         article.save(update_fields=["status", "moderation_note", "moderated_by", "moderated_at"])
         messages.success(request, f'"{article.title}" approved and is now live.')
+    elif action == "request_changes":
+        note = request.POST.get("moderation_note", "").strip()
+        if not note:
+            messages.error(request, "A moderation note is required. Please explain what needs to be changed.")
+            return redirect(article.get_absolute_url())
+        article.status = Article.Status.NEEDS_CHANGES
+        article.moderation_note = note
+        article.moderated_by = request.user
+        article.moderated_at = timezone.now()
+        article.save(update_fields=["status", "moderation_note", "moderated_by", "moderated_at"])
+        messages.warning(request, f'Changes requested for "{article.title}".')
     elif action == "reject":
         note = request.POST.get("moderation_note", "").strip()
         if not note:
