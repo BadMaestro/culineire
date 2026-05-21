@@ -174,10 +174,6 @@ class RecipeAuthoringForm(forms.ModelForm):
             "Write each step on a new line.",
         )
         self.fields["hero_image"].widget.attrs.setdefault("accept", ".jpg,.jpeg,.png,.webp")
-        self.fields["hero_image_alt_text"].widget.attrs.setdefault(
-            "placeholder",
-            "Irish brown bread served with butter",
-        )
         self.fields["image_rights_note"].widget.attrs.setdefault(
             "placeholder",
             "Licence name",

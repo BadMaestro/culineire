@@ -113,7 +113,7 @@
                                 <label class="authoring-step-label" for="id_gallery_step_{{ row.step }}">Step {{ row.step }}:</label>
                                 <input accept=".jpg,.jpeg,.png,.webp" class="authoring-control" id="id_gallery_step_{{ row.step }}" name="gallery_step_{{ row.step }}" type="file">
                                 <label class="authoring-step-alt-label" for="id_gallery_step_{{ row.step }}_alt">Alt text</label>
-                                <input class="authoring-control authoring-control--compact" id="id_gallery_step_{{ row.step }}_alt" name="gallery_step_{{ row.step }}_alt" type="text" value="{% if row.image %}{{ row.image.alt_text }}{% endif %}" placeholder="Irish brown bread served with butter">
+                                <input class="authoring-control authoring-control--compact" id="id_gallery_step_{{ row.step }}_alt" name="gallery_step_{{ row.step }}_alt" type="text" value="{% if row.image %}{{ row.image.alt_text }}{% endif %}">
                             </div>
                             {% endfor %}
                         </div>
@@ -341,7 +341,7 @@
             '<label class="authoring-step-label" for="id_gallery_step_' + stepCount + '">Step ' + stepCount + ':</label>' +
             '<input accept=".jpg,.jpeg,.png,.webp" class="authoring-control" id="id_gallery_step_' + stepCount + '" name="gallery_step_' + stepCount + '" type="file">' +
             '<label class="authoring-step-alt-label" for="id_gallery_step_' + stepCount + '_alt">Alt text</label>' +
-            '<input class="authoring-control authoring-control--compact" id="id_gallery_step_' + stepCount + '_alt" name="gallery_step_' + stepCount + '_alt" type="text" placeholder="Irish brown bread served with butter">';
+            '<input class="authoring-control authoring-control--compact" id="id_gallery_step_' + stepCount + '_alt" name="gallery_step_' + stepCount + '_alt" type="text">';
         container.appendChild(row);
         if (stepCount >= maxSteps) btn.style.display = 'none';
     });

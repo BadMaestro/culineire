@@ -98,7 +98,7 @@
                         <input accept=".jpg,.jpeg,.png,.webp" class="authoring-control" id="id_gallery_images" multiple name="gallery_images" type="file">
                         <p class="authoring-help">Upload additional images for the article gallery (optional, multiple allowed).</p>
                         <label class="authoring-help" for="id_gallery_alt_texts">Alt text for new gallery images, one line per image:</label>
-                        <textarea class="authoring-control" id="id_gallery_alt_texts" name="gallery_alt_texts" rows="3" placeholder="Irish brown bread served with butter&#10;Bowl of Irish stew with soda bread"></textarea>
+                        <textarea class="authoring-control" id="id_gallery_alt_texts" name="gallery_alt_texts" rows="3"></textarea>
                         {% if form_mode == "edit" and existing_gallery_images %}
                         <div class="authoring-step-existing-list">
                             {% for img in existing_gallery_images %}
@@ -106,7 +106,7 @@
                                 <span class="authoring-step-badge">{{ forloop.counter }}</span>
                                 <img alt="{{ img.alt_text|default:'Gallery image' }}" class="authoring-step-thumb" src="{{ img.image.url }}">
                                 <label class="authoring-step-alt-label" for="id_gallery_alt_{{ img.pk }}">Alt text</label>
-                                <input class="authoring-control authoring-control--compact" id="id_gallery_alt_{{ img.pk }}" name="gallery_alt_{{ img.pk }}" type="text" value="{{ img.alt_text }}" placeholder="Irish brown bread served with butter">
+                                <input class="authoring-control authoring-control--compact" id="id_gallery_alt_{{ img.pk }}" name="gallery_alt_{{ img.pk }}" type="text" value="{{ img.alt_text }}">
                                 <button aria-label="Delete gallery image {{ forloop.counter }}" class="authoring-step-delete" form="delete-gallery-image-{{ img.pk }}" onclick="return confirm('Delete this gallery image?')" type="submit">&times;</button>
                             </div>
                             {% endfor %}

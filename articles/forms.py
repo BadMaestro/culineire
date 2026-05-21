@@ -138,11 +138,6 @@ class ArticleAuthoringForm(forms.ModelForm):
             "placeholder", "Licence name",
         )
         self.fields["hero_image"].widget.attrs.setdefault("accept", ".jpg,.jpeg,.png,.webp")
-        self.fields["hero_image_alt_text"].widget.attrs.setdefault(
-            "placeholder",
-            "Irish brown bread served with butter",
-        )
-
         # Pre-check confirmations on edit if already agreed
         if self.instance.pk:
             if self.instance.confirmed_own_work:
