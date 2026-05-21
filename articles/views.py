@@ -217,6 +217,10 @@ class ArticleDetailView(DetailView):
         return qs.filter(status=Article.Status.APPROVED)
 
     @staticmethod
+    def _image_alt_text(article, alt_text="", caption=""):
+        return alt_text.strip() or caption.strip() or f"{article.title} image"
+
+    @staticmethod
     def _image_to_gallery_item(image_field, alt, caption=""):
         return {
             "src": image_field.url,
@@ -247,7 +251,7 @@ class ArticleDetailView(DetailView):
             gallery_items = [
                 self._image_to_gallery_item(
                     image.image,
-                    alt=image.alt_text or article.title,
+                    alt=self._image_alt_text(article, image.alt_text, image.caption),
                     caption=image.caption or "",
                 )
                 for image in active_gallery_images
@@ -256,7 +260,7 @@ class ArticleDetailView(DetailView):
             gallery_items = [
                 self._image_to_gallery_item(
                     article.hero_image,
-                    alt=article.title,
+                    alt=self._image_alt_text(article),
                 )
             ]
         else:

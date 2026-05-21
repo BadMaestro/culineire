@@ -106,6 +106,10 @@ def _split_text_lines(value: str) -> list[str]:
     ]
 
 
+def _image_alt_text(title, alt_text="", caption=""):
+    return alt_text.strip() or caption.strip() or f"{title} image"
+
+
 def _build_method_steps(method_text: str) -> list[dict]:
     raw_lines = _split_text_lines(method_text)
 
@@ -423,7 +427,7 @@ def recipe_detail(request, slug):
     if active_gallery_items:
         for item in active_gallery_items:
             caption = item.caption or ""
-            alt_text = item.alt_text or recipe.title
+            alt_text = _image_alt_text(recipe.title, item.alt_text, caption)
 
             if item.image:
                 gallery_items.append(
@@ -440,7 +444,7 @@ def recipe_detail(request, slug):
             {
                 "media_type": "image",
                 "src": recipe.hero_image.url,
-                "alt": recipe.title,
+                "alt": _image_alt_text(recipe.title),
                 "caption": "",
                 "poster": "",
             }
@@ -1265,4 +1269,3 @@ def moderate_recipe(request, slug):
     if action not in ("delete", "block") and recipe.pk:
         return redirect(recipe.get_absolute_url())
     return redirect("recipes:moderation_panel")
-

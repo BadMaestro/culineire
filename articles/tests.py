@@ -652,6 +652,38 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertEqual(gallery_sources, [first.image.url, second.image.url])
         self.assertTrue(response.context["has_gallery"])
 
+    def test_article_detail_gallery_alt_text_prefers_explicit_alt(self):
+        ArticleImage.objects.create(
+            article=self.article,
+            image=self.uploaded_image("bread.png"),
+            alt_text="Irish brown bread served with butter",
+            caption="A sliced loaf on a board",
+            sort_order=1,
+        )
+        self.client.force_login(self.owner_user)
+
+        response = self.client.get(self.article.get_absolute_url())
+
+        self.assertEqual(
+            response.context["gallery_items"][0]["alt"],
+            "Irish brown bread served with butter",
+        )
+        self.assertContains(response, 'alt="Irish brown bread served with butter"', html=False)
+
+    def test_article_detail_gallery_alt_text_falls_back_to_caption(self):
+        ArticleImage.objects.create(
+            article=self.article,
+            image=self.uploaded_image("bread.png"),
+            caption="A sliced loaf on a board",
+            sort_order=1,
+        )
+        self.client.force_login(self.owner_user)
+
+        response = self.client.get(self.article.get_absolute_url())
+
+        self.assertEqual(response.context["gallery_items"][0]["alt"], "A sliced loaf on a board")
+        self.assertContains(response, 'alt="A sliced loaf on a board"', html=False)
+
     def test_article_detail_falls_back_to_hero_when_gallery_has_no_active_images(self):
         self.article.hero_image.save("cover.png", self.uploaded_image("cover.png"), save=True)
         ArticleImage.objects.create(

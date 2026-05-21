@@ -14,10 +14,21 @@ from .admin import RecipeAdmin, RecipeAdminForm
 from .allergens import build_present_allergen_items, parse_selected_allergen_keys, serialize_allergen_keys
 from .forms import RecipeAuthoringForm, RecipeCommentForm
 from .models import Recipe, RecipeAuthor, RecipeComment, RecipeRating
-from .views import _build_context_paragraphs, _build_ingredient_items, _build_method_steps, _split_text_lines
+from .views import _build_context_paragraphs, _build_ingredient_items, _build_method_steps, _image_alt_text, _split_text_lines
 
 
 class RecipeTextHelperTests(SimpleTestCase):
+    def test_image_alt_text_prefers_explicit_alt_then_caption_then_title(self):
+        self.assertEqual(
+            _image_alt_text("Irish Brown Bread", "Irish brown bread served with butter", "A sliced loaf"),
+            "Irish brown bread served with butter",
+        )
+        self.assertEqual(
+            _image_alt_text("Irish Brown Bread", "", "A sliced loaf served with butter"),
+            "A sliced loaf served with butter",
+        )
+        self.assertEqual(_image_alt_text("Irish Brown Bread"), "Irish Brown Bread image")
+
     def test_split_text_lines_drops_blank_rows(self):
         value = " Potatoes \n\nCarrots\n  \nOnions "
 
