@@ -183,6 +183,11 @@
         goTo(currentIndex + 1);
     });
 
+    gallery.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowLeft") { e.preventDefault(); goTo(currentIndex - 1); }
+        if (e.key === "ArrowRight") { e.preventDefault(); goTo(currentIndex + 1); }
+    });
+
     items.forEach((item, index) => {
         item.addEventListener("click", () => {
             if (index === currentIndex - 1 || index === currentIndex + 1) {

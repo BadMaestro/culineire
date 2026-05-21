@@ -69,11 +69,11 @@
     {% if page_obj.has_other_pages %}
     <nav class="nf-pagination" aria-label="Feed pages">
       {% if page_obj.has_previous %}
-      <a class="btn-secondary" href="?page={{ page_obj.previous_page_number }}">Newer</a>
+      <a class="btn-secondary" href="?page={{ page_obj.previous_page_number }}" aria-label="Newer updates, page {{ page_obj.previous_page_number }}">Newer</a>
       {% endif %}
       <span class="nf-pagination__info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
       {% if page_obj.has_next %}
-      <a class="btn-secondary" href="?page={{ page_obj.next_page_number }}">Older</a>
+      <a class="btn-secondary" href="?page={{ page_obj.next_page_number }}" aria-label="Older updates, page {{ page_obj.next_page_number }}">Older</a>
       {% endif %}
     </nav>
     {% endif %}

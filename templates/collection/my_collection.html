@@ -32,12 +32,12 @@
 
         <nav class="collection-tabs" aria-label="Collection tabs">
             <a class="collection-tab{% if active_tab == 'recipes' %} collection-tab--active{% endif %}"
-               href="?tab=recipes">
+               href="?tab=recipes"{% if active_tab == 'recipes' %} aria-current="page"{% endif %}>
                 Recipes
                 <span class="collection-tab__count">{{ saved_recipes|length }}</span>
             </a>
             <a class="collection-tab{% if active_tab == 'articles' %} collection-tab--active{% endif %}"
-               href="?tab=articles">
+               href="?tab=articles"{% if active_tab == 'articles' %} aria-current="page"{% endif %}>
                 Articles
                 <span class="collection-tab__count">{{ saved_articles|length }}</span>
             </a>

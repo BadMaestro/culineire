@@ -59,7 +59,7 @@
                                 {% if msg.related_article %}<span class="msg-row__ref">re: {{ msg.related_article.title }}</span>{% endif %}
                             </div>
                             <div class="msg-row__date">{{ msg.latest_message.created_at|date:"j M Y" }}</div>
-                            {% if msg.has_unread %}<span class="msg-row__dot"></span>{% endif %}
+                            {% if msg.has_unread %}<span class="msg-row__dot" aria-label="Unread" role="status"></span>{% endif %}
                         </a>
                         {% if is_moderator %}
                         <div class="msg-row__actions">

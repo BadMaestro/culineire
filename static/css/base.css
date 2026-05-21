@@ -1185,6 +1185,25 @@
   }
 }
 
+/* ── Skip link (WCAG 2.4.1) ── */
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  z-index: 99999;
+  padding: 0.5rem 1rem;
+  background: var(--color-primary, #2d6a4f);
+  color: #fff;
+  font-weight: 600;
+  border-radius: 0 0 6px 6px;
+  text-decoration: none;
+  transition: top 0.15s;
+}
+.skip-link:focus {
+  top: 0;
+}
+
 /* ── Login modal ── */
 
 .login-modal {
