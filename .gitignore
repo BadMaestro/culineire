@@ -20,3 +20,9 @@ code-inspection.log
 qodana-local.sarif.json
 node_modules/
 .DS_Store
+
+# Local/generated artifacts
+runlocal.sh
+staticfiles/
+static/images/kitchen-logo.png
+static/images/kitchen-logo2.png
