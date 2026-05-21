@@ -125,7 +125,7 @@
                                 <img class="recipe-gallery__media" src="{{ item.src }}" alt="{{ item.alt }}" loading="lazy">
                                     {% endif %}
                                 {% endif %}
-                                {% if article.image_rights_status == 'ai_generated' %}<span aria-label="AI generated image" class="ai-image-badge">AI</span>{% endif %}
+                                {% if article.image_rights_status == 'ai_generated' %}<span aria-label="AI generated image" class="ai-image-badge ai-image-badge--watermark">AI</span>{% endif %}
                             </div>
 
                             {% if item.caption %}
