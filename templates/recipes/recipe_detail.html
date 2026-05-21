@@ -44,7 +44,7 @@
             </div>
         </div>
     {% if recipe.image_rights_status == 'ai_generated' %}<span aria-label="AI generated image" class="ai-image-badge ai-image-badge--watermark">AI</span>{% endif %}
-    {% if recipe.image_rights_status == 'own' %}<span aria-hidden="true" class="culineire-watermark">culineire.ie</span>{% endif %}
+    {% if recipe.image_rights_status == 'own' or recipe.image_rights_status == 'ai_generated' %}<span aria-hidden="true" class="culineire-watermark">culineire.ie</span>{% endif %}
     </div>
 </section>
 
@@ -107,7 +107,7 @@
                                     <img alt="{{ item.alt }}" class="recipe-gallery__media" src="{{ item.src }}" loading="lazy">
                                     {% endif %}
                                     {% if recipe.image_rights_status == 'ai_generated' %}<span aria-label="AI generated image" class="ai-image-badge ai-image-badge--watermark">AI</span>{% endif %}
-                                    {% if recipe.image_rights_status == 'own' %}<span aria-hidden="true" class="culineire-watermark">culineire.ie</span>{% endif %}
+                                    {% if recipe.image_rights_status == 'own' or recipe.image_rights_status == 'ai_generated' %}<span aria-hidden="true" class="culineire-watermark">culineire.ie</span>{% endif %}
                                 </div>
                             </figure>
                             {% endfor %}

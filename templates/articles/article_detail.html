@@ -74,7 +74,7 @@
                     </div>
                 </div>
                 {% if article.image_rights_status == 'ai_generated' %}<span aria-label="AI generated image" class="ai-image-badge ai-image-badge--watermark">AI</span>{% endif %}
-                {% if article.image_rights_status == 'own' %}<span aria-hidden="true" class="culineire-watermark">culineire.ie</span>{% endif %}
+                {% if article.image_rights_status == 'own' or article.image_rights_status == 'ai_generated' %}<span aria-hidden="true" class="culineire-watermark">culineire.ie</span>{% endif %}
             </header>
 
             {% if gallery_items %}
@@ -127,7 +127,7 @@
                                     {% endif %}
                                 {% endif %}
                                 {% if article.image_rights_status == 'ai_generated' %}<span aria-label="AI generated image" class="ai-image-badge ai-image-badge--watermark">AI</span>{% endif %}
-                                {% if article.image_rights_status == 'own' %}<span aria-hidden="true" class="culineire-watermark">culineire.ie</span>{% endif %}
+                                {% if article.image_rights_status == 'own' or article.image_rights_status == 'ai_generated' %}<span aria-hidden="true" class="culineire-watermark">culineire.ie</span>{% endif %}
                             </div>
 
                             {% if item.caption %}
