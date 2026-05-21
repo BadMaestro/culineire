@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core import mail
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
@@ -552,8 +553,11 @@ class AuthenticationPageTests(TestCase):
         self.assertRedirects(response, reverse("home"))
         self.assertEqual(int(self.client.session["_auth_user_id"]), self.user.pk)
 
-    @override_settings(SIGNUP_REQUIRE_EMAIL_CONFIRMATION=False)
-    def test_signup_creates_account_and_shows_success(self):
+    @override_settings(
+        SIGNUP_REQUIRE_EMAIL_CONFIRMATION=True,
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    )
+    def test_signup_creates_inactive_account_and_shows_activation_pending(self):
         response = self.client.post(
             reverse("signup"),
             {
@@ -566,8 +570,12 @@ class AuthenticationPageTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "registration/signup_success.html")
-        self.assertTrue(get_user_model().objects.filter(username="newcook").exists())
+        self.assertTemplateUsed(response, "registration/activation_pending.html")
+        user = get_user_model().objects.get(username="newcook")
+        self.assertFalse(user.is_active)
+        self.assertTrue(RecipeAuthor.objects.filter(user=user).exists())
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("Confirm your CulinEire account", mail.outbox[0].subject)
 
     def test_anonymous_header_shows_sign_in_and_join_links(self):
         response = self.client.get(reverse("home"))
