@@ -358,6 +358,37 @@ textarea.authoring-control {
   padding-block: 0.45rem;
 }
 
+.authoring-new-gallery {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.75rem;
+}
+
+.authoring-new-gallery__item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 0.7rem;
+  padding: 0.75rem;
+  border: 1px solid rgba(104, 82, 51, 0.18);
+  border-radius: 10px;
+  background: rgba(255, 252, 246, 0.82);
+}
+
+.authoring-new-gallery__meta {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.authoring-new-gallery__filename {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.86rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .authoring-add-step-btn {
   background: none;
   border: 1px dashed rgb(11 76 58 / 0.4);

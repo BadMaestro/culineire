@@ -67,6 +67,15 @@ def _validate_gallery_uploads(form, uploaded_files):
 
 
 def _gallery_alt_lines(post_data):
+    if hasattr(post_data, "getlist"):
+        values = post_data.getlist("gallery_alt_texts")
+        if len(values) > 1:
+            return [value.strip() for value in values]
+    else:
+        value = post_data.get("gallery_alt_texts", "")
+        if isinstance(value, (list, tuple)):
+            return [item.strip() for item in value]
+
     return [
         line.strip()
         for line in (post_data.get("gallery_alt_texts") or "").splitlines()

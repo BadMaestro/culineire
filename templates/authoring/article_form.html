@@ -97,8 +97,7 @@
                         <label for="id_gallery_images">Gallery Images:</label>
                         <input accept=".jpg,.jpeg,.png,.webp" class="authoring-control" id="id_gallery_images" multiple name="gallery_images" type="file">
                         <p class="authoring-help">Upload additional images for the article gallery (optional, multiple allowed).</p>
-                        <label class="authoring-help" for="id_gallery_alt_texts">Alt text for new gallery images, one line per image:</label>
-                        <textarea class="authoring-control" id="id_gallery_alt_texts" name="gallery_alt_texts" rows="3"></textarea>
+                        <div class="authoring-new-gallery" id="new-gallery-alt-fields" aria-live="polite"></div>
                         {% if form_mode == "edit" and existing_gallery_images %}
                         <div class="authoring-step-existing-list">
                             {% for img in existing_gallery_images %}
@@ -272,6 +271,58 @@
         autoGrow(ta);
         ta.addEventListener('input', function () { autoGrow(this); });
     });
+})();
+</script>
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+    var fileInput = document.getElementById('id_gallery_images');
+    var altFields = document.getElementById('new-gallery-alt-fields');
+    if (!fileInput || !altFields) return;
+
+    function clearAltFields() {
+        while (altFields.firstChild) {
+            altFields.removeChild(altFields.firstChild);
+        }
+    }
+
+    function renderAltFields() {
+        clearAltFields();
+        Array.prototype.forEach.call(fileInput.files || [], function (file, index) {
+            var row = document.createElement('div');
+            row.className = 'authoring-new-gallery__item';
+
+            var badge = document.createElement('span');
+            badge.className = 'authoring-step-badge';
+            badge.textContent = String(index + 1);
+
+            var meta = document.createElement('div');
+            meta.className = 'authoring-new-gallery__meta';
+
+            var fileName = document.createElement('span');
+            fileName.className = 'authoring-new-gallery__filename';
+            fileName.textContent = file.name;
+
+            var label = document.createElement('label');
+            label.className = 'authoring-step-alt-label';
+            label.setAttribute('for', 'id_gallery_alt_texts_' + index);
+            label.textContent = 'Alt text';
+
+            var input = document.createElement('input');
+            input.className = 'authoring-control authoring-control--compact';
+            input.id = 'id_gallery_alt_texts_' + index;
+            input.name = 'gallery_alt_texts';
+            input.type = 'text';
+
+            meta.appendChild(fileName);
+            meta.appendChild(label);
+            meta.appendChild(input);
+            row.appendChild(badge);
+            row.appendChild(meta);
+            altFields.appendChild(row);
+        });
+    }
+
+    fileInput.addEventListener('change', renderAltFields);
 })();
 </script>
 {% endblock %}

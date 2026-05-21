@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms.models import inlineformset_factory
+from django.http import QueryDict
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from messaging.models import Message
@@ -1536,6 +1537,15 @@ class ArticlePhase32AltTextTests(TestCase):
 
     def test_gallery_alt_lines_splits_on_newlines(self):
         post_data = {"gallery_alt_texts": "First image alt\nSecond image alt\n"}
+
+        lines = _gallery_alt_lines(post_data)
+
+        self.assertEqual(lines, ["First image alt", "Second image alt"])
+
+    def test_gallery_alt_lines_reads_repeated_inputs(self):
+        post_data = QueryDict("", mutable=True)
+        post_data.update({"gallery_alt_texts": "First image alt"})
+        post_data.update({"gallery_alt_texts": "Second image alt"})
 
         lines = _gallery_alt_lines(post_data)
 
