@@ -42,7 +42,9 @@
     /* Brand */
     --brand: #184c3a;
     --brand-dark: #123c2d;
+    --brand-mid: #8b7355;
     --brand-soft: rgb(24 76 58 / 0.08);
+    --border: #e2d9cc;
 
     /* Elevation */
     --shadow-sm: 0 6px 18px rgb(22 33 27 / 0.05);
@@ -1193,7 +1195,7 @@
   left: 1rem;
   z-index: 99999;
   padding: 0.5rem 1rem;
-  background: var(--color-primary, #2d6a4f);
+  background: var(--brand);
   color: #fff;
   font-weight: 600;
   border-radius: 0 0 6px 6px;
