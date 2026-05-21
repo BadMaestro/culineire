@@ -1188,6 +1188,12 @@ def moderation_panel(request):
         .order_by("owner_priority", "name", "user__username")
     )
 
+    from config.maintenance import read_maintenance_flag
+
+    maintenance_flag = read_maintenance_flag()
+    maintenance_web_active = maintenance_flag is not None and maintenance_flag.get("active", False)
+    maintenance_until_str = maintenance_flag.get("until", "") if maintenance_flag else ""
+
     return render(request, "moderation/panel.html", {
         "pending_recipes": pending_recipes,
         "rejected_recipes": rejected_recipes,
@@ -1199,6 +1205,9 @@ def moderation_panel(request):
         "can_revoke_superuser_privileges": _can_revoke_superuser_privileges(request.user),
         "bearseeker_super_users": bearseeker_super_users,
         "bearseeker_authors": bearseeker_authors,
+        "maintenance_web_active": maintenance_web_active,
+        "maintenance_until_str": maintenance_until_str,
+        "maintenance_env_active": getattr(settings, "MAINTENANCE_MODE", False),
     })
 
 

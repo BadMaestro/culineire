@@ -98,8 +98,44 @@ def sitemap_xml(_request):
 
 
 @require_POST
+def maintenance_toggle(request):
+    from accounts.views import can_grant_bearseeker_privileges
+    from django.http import HttpResponseForbidden
+
+    if not can_grant_bearseeker_privileges(request.user):
+        return HttpResponseForbidden()
+
+    from datetime import datetime
+    from datetime import timezone as dt_timezone
+
+    from config.maintenance import clear_maintenance_flag, set_maintenance_flag
+
+    action = request.POST.get("action", "")
+    if action == "activate":
+        try:
+            hours = max(0, min(72, int(request.POST.get("hours") or 0)))
+            minutes = max(0, min(59, int(request.POST.get("minutes") or 0)))
+        except (ValueError, TypeError):
+            hours, minutes = 1, 0
+        total_minutes = hours * 60 + minutes
+        if total_minutes < 1:
+            total_minutes = 60
+        until_dt = datetime.now(dt_timezone.utc) + timedelta(minutes=total_minutes)
+        set_maintenance_flag(until_dt.strftime("%Y-%m-%dT%H:%M:%SZ"))
+    elif action == "deactivate":
+        clear_maintenance_flag()
+
+    return redirect(reverse("recipes:moderation_panel"))
+
+
+@require_POST
 def maintenance_note_create(request):
-    if not getattr(settings, "MAINTENANCE_MODE", False):
+    from config.maintenance import read_maintenance_flag
+
+    env_active = getattr(settings, "MAINTENANCE_MODE", False)
+    flag = read_maintenance_flag()
+    flag_active = flag is not None and flag.get("active", False)
+    if not env_active and not flag_active:
         return redirect("home")
 
     if request.POST.get("website"):

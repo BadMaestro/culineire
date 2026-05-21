@@ -1158,3 +1158,133 @@
     grid-column: 1 / -1;
   }
 }
+
+/* ── Maintenance widget ─────────────────────────────────────────────────── */
+
+.mod-maintenance-widget {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-block-start: 0.6rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid rgb(11 76 58 / 0.15);
+  border-radius: 8px;
+  background: rgb(11 76 58 / 0.03);
+  font-size: 0.8rem;
+}
+
+.mod-maintenance-widget--active {
+  border-color: rgb(185 28 28 / 0.35);
+  background: rgb(185 28 28 / 0.04);
+}
+
+.mod-maintenance-widget__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 700;
+  color: #0b4c3a;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.mod-maintenance-widget--active .mod-maintenance-widget__label {
+  color: #b91c1c;
+}
+
+.mod-maintenance-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #b91c1c;
+  box-shadow: 0 0 0 2px rgb(185 28 28 / 0.25);
+  animation: mod-pulse 1.4s ease-in-out infinite;
+}
+
+.mod-maintenance-indicator--env {
+  background: #b45309;
+  box-shadow: 0 0 0 2px rgb(180 83 9 / 0.25);
+}
+
+@keyframes mod-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
+
+.mod-maintenance-countdown {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #b91c1c;
+  min-width: 6ch;
+}
+
+.mod-maintenance-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.mod-maintenance-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #0b4c3a;
+}
+
+.mod-maintenance-input {
+  width: 3.2rem;
+  padding: 0.25rem 0.35rem;
+  border: 1px solid rgb(11 76 58 / 0.25);
+  border-radius: 5px;
+  background: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #0b4c3a;
+  text-align: center;
+  -moz-appearance: textfield;
+}
+
+.mod-maintenance-input::-webkit-outer-spin-button,
+.mod-maintenance-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.mod-maintenance-input:focus {
+  outline: 2px solid rgb(11 76 58 / 0.4);
+  outline-offset: 1px;
+}
+
+.mod-maintenance-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.28rem 0.7rem;
+  min-block-size: 30px;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.12s;
+}
+
+.mod-maintenance-btn:hover {
+  opacity: 0.85;
+}
+
+.mod-maintenance-btn--on {
+  background: #b91c1c;
+  color: #fff;
+}
+
+.mod-maintenance-btn--off {
+  background: #15803d;
+  color: #fff;
+}

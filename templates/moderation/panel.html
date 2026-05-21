@@ -50,6 +50,42 @@
                     Content Safety
                 </a>
             </div>
+
+            {% if can_grant_bearseeker_privileges %}
+            <div class="mod-maintenance-widget{% if maintenance_web_active %} mod-maintenance-widget--active{% endif %}">
+                <span class="mod-maintenance-widget__label">
+                    {% if maintenance_web_active %}
+                    <span class="mod-maintenance-indicator"></span> Maintenance ON
+                    {% elif maintenance_env_active %}
+                    <span class="mod-maintenance-indicator mod-maintenance-indicator--env"></span> Maintenance (env)
+                    {% else %}
+                    Maintenance
+                    {% endif %}
+                </span>
+                {% if maintenance_web_active %}
+                <span class="mod-maintenance-countdown" data-until="{{ maintenance_until_str }}"></span>
+                <form action="{% url 'maintenance_toggle' %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="deactivate">
+                    <button class="mod-maintenance-btn mod-maintenance-btn--off" type="submit">Deactivate</button>
+                </form>
+                {% elif not maintenance_env_active %}
+                <form action="{% url 'maintenance_toggle' %}" class="mod-maintenance-form" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="activate">
+                    <label class="mod-maintenance-field">
+                        <span>h</span>
+                        <input class="mod-maintenance-input" max="72" min="0" name="hours" type="number" value="3">
+                    </label>
+                    <label class="mod-maintenance-field">
+                        <span>m</span>
+                        <input class="mod-maintenance-input" max="59" min="0" name="minutes" type="number" value="0">
+                    </label>
+                    <button class="mod-maintenance-btn mod-maintenance-btn--on" type="submit">Activate</button>
+                </form>
+                {% endif %}
+            </div>
+            {% endif %}
         </div>
 
         <div class="moderation-block">
@@ -493,4 +529,24 @@
 
     </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var el = document.querySelector('.mod-maintenance-countdown');
+  if (!el) return;
+  var until = new Date(el.dataset.until);
+  function tick() {
+    var diff = Math.max(0, Math.floor((until - Date.now()) / 1000));
+    if (diff === 0) { el.textContent = 'ending soon'; return; }
+    var h = Math.floor(diff / 3600);
+    var m = Math.floor((diff % 3600) / 60);
+    var s = diff % 60;
+    el.textContent = (h ? h + 'h ' : '') + (m ? m + 'm ' : '') + s + 's';
+    setTimeout(tick, 1000);
+  }
+  tick();
+})();
+</script>
 {% endblock %}
