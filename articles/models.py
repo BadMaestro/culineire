@@ -78,7 +78,7 @@ class Article(models.Model):
         INSPIRED = "inspired", "Inspired by a source"
 
     title = models.CharField("Title", max_length=200)
-    slug = models.SlugField("Slug", unique=True)
+    slug = models.SlugField("Slug", max_length=220, unique=True, db_index=True)
     media_folder = models.CharField(max_length=255, blank=True, editable=False, db_index=True)
 
     author = models.ForeignKey(
