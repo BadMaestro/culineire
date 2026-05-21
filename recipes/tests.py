@@ -1589,7 +1589,8 @@ class RecipeModerationTrackingTests(TestCase):
         )
 
         self.assertRedirects(response, reverse("recipes:moderation_panel"))
-        self.assertFalse(Recipe.objects.filter(pk=self.recipe.pk).exists())
+        self.recipe.refresh_from_db()
+        self.assertTrue(self.recipe.is_deleted)
 
 
 class RecipePhase3AuthorDashboardTests(TestCase):

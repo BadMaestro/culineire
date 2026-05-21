@@ -1126,7 +1126,8 @@ class ArticleAuthoringPermissionTests(TestCase):
         )
 
         self.assertRedirects(response, reverse("articles:article_list"))
-        self.assertFalse(Article.objects.filter(pk=self.article.pk).exists())
+        self.article.refresh_from_db()
+        self.assertTrue(self.article.is_deleted)
 
     def test_article_delete_confirmation_uses_article_author_for_moderator(self):
         self.client.force_login(self.moderator_user)
@@ -1146,7 +1147,7 @@ class ArticleAuthoringPermissionTests(TestCase):
             follow=True,
         )
 
-        self.assertContains(response, "Article Deleted Successfully.")
+        self.assertContains(response, "Article deleted.")
 
     def test_non_moderator_cannot_moderate_article(self):
         self.client.force_login(self.owner_user)
@@ -1399,7 +1400,8 @@ class ArticleAuthoringPermissionTests(TestCase):
         )
 
         self.assertRedirects(response, reverse("recipes:moderation_panel"))
-        self.assertFalse(Article.objects.filter(pk=self.article.pk).exists())
+        self.article.refresh_from_db()
+        self.assertTrue(self.article.is_deleted)
 
     def test_article_moderation_rejects_unknown_actions(self):
         self.client.force_login(self.moderator_user)
