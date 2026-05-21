@@ -24,7 +24,7 @@ from accounts.views import (
     can_revoke_superuser_privileges as _can_revoke_superuser_privileges,
     is_moderator,
 )
-from articles.models import Article
+from articles.models import Article, ArticleImage
 from collection.models import SavedRecipe
 from config.turnstile import verify_turnstile
 from monitoring.tracker import track_event
@@ -187,6 +187,11 @@ def _build_context_paragraphs(context_text: str) -> list[str]:
 
 
 def home(request):
+    article_card_gallery_prefetch = Prefetch(
+        "gallery_images",
+        queryset=ArticleImage.objects.filter(is_active=True).order_by("sort_order", "id"),
+        to_attr="active_card_gallery_images",
+    )
     latest_recipes = (
         Recipe.objects.select_related("author")
         .filter(status=Recipe.Status.APPROVED)
@@ -195,6 +200,7 @@ def home(request):
 
     latest_articles = (
         Article.objects.select_related("author", "related_recipe")
+        .prefetch_related(article_card_gallery_prefetch)
         .filter(status=Article.Status.APPROVED)
         .order_by("-published")[:6]
     )
@@ -1216,6 +1222,5 @@ def moderate_recipe(request, slug):
     if action not in ("delete", "block") and recipe.pk:
         return redirect(recipe.get_absolute_url())
     return redirect("recipes:moderation_panel")
-
 
 

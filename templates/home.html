@@ -166,8 +166,8 @@
                     {% for article in latest_articles %}
                     <article class="recipe-card recipe-card--article">
                         <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">
-                            {% if article.hero_image %}
-                            <img alt="{{ article.title }}" src="{{ article.hero_image.url }}">
+                            {% if article.card_image %}
+                            <img alt="{{ article.title }}" src="{{ article.card_image.url }}">
                             {% else %}
                             <img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}">
                             {% endif %}

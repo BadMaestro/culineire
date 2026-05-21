@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
-from articles.models import Article
+from articles.models import Article, ArticleImage
 from recipes.models import Recipe, RecipeAuthor
 
 from .models import SavedArticle, SavedRecipe
@@ -66,6 +66,20 @@ class CollectionVisibilityTests(TestCase):
         self.assertContains(response, "Approved Article")
         self.assertNotContains(response, "Rejected Article")
         self.assertEqual(len(response.context["saved_articles"]), 1)
+
+    def test_collection_uses_article_gallery_image_when_article_image_is_missing(self):
+        approved_article = self.article("Gallery Saved Article", Article.Status.APPROVED)
+        gallery_image = ArticleImage.objects.create(
+            article=approved_article,
+            image="articles/gallery-saved/gallery/img1-test.png",
+            sort_order=1,
+        )
+        SavedArticle.objects.create(user=self.user, article=approved_article)
+        self.client.force_login(self.user)
+
+        response = self.client.get(f"{reverse('collection:my_collection')}?tab=articles")
+
+        self.assertContains(response, gallery_image.image.url, html=False)
 
     def test_cannot_add_unapproved_article_to_collection(self):
         article = self.article("Pending Article", Article.Status.PENDING)

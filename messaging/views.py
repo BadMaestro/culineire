@@ -7,7 +7,7 @@ from django.contrib import messages as django_messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import BadHeaderError
 from config.email_utils import build_absolute_url, sanitize_email_subject, send_template_mail
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Exists, OuterRef
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
@@ -144,20 +144,35 @@ def send_message(request):
     article_id = request.POST.get("article_id")
     action = request.POST.get("action", "message")
 
-    if not recipient_id or not body:
+    if not body:
         django_messages.error(request, "Message body is required.")
         return _moderation_redirect(request)
 
     from django.contrib.auth import get_user_model
     user_model = get_user_model()
-    recipient = get_object_or_404(user_model, pk=recipient_id)
-
     recipe = None
     article = None
     if recipe_id:
         recipe = Recipe.objects.filter(pk=recipe_id).first()
     if article_id:
         article = Article.objects.filter(pk=article_id).first()
+
+    if action == "reject_and_message" and bool(recipe) == bool(article):
+        django_messages.error(request, "Choose exactly one item to reject and message about.")
+        return _moderation_redirect(request)
+
+    if action == "reject_and_message" and article:
+        recipient = getattr(article.author, "user", None)
+    elif action == "reject_and_message" and recipe:
+        recipient = getattr(recipe.author, "user", None)
+    elif recipient_id:
+        recipient = get_object_or_404(user_model, pk=recipient_id)
+    else:
+        recipient = None
+
+    if recipient is None:
+        django_messages.error(request, "Message recipient is required.")
+        return _moderation_redirect(request)
 
     if not subject:
         sender_profile = getattr(request.user, "recipe_author_profile", None)
@@ -186,15 +201,27 @@ def send_message(request):
         if existing:
             parent = existing
 
-    Message.objects.create(
-        sender=request.user,
-        recipient=recipient,
-        subject=subject if not parent else "",
-        body=body,
-        parent=parent,
-        related_recipe=recipe,
-        related_article=article,
-    )
+    with transaction.atomic():
+        Message.objects.create(
+            sender=request.user,
+            recipient=recipient,
+            subject=subject if not parent else "",
+            body=body,
+            parent=parent,
+            related_recipe=recipe,
+            related_article=article,
+        )
+
+        if action == "reject_and_message" and recipe:
+            recipe.status = Recipe.Status.REJECTED
+            recipe.save(update_fields=["status"])
+            success_message = f'"{recipe.title}" rejected and author notified.'
+        elif action == "reject_and_message" and article:
+            article.status = Article.Status.REJECTED
+            article.save(update_fields=["status"])
+            success_message = f'"{article.title}" rejected and author notified.'
+        else:
+            success_message = "Message sent."
 
     try:
         send_template_mail(
@@ -211,16 +238,7 @@ def send_message(request):
     except (BadHeaderError, SMTPException):
         logger.warning("Failed to send message_notification email to %s", recipient.email)
 
-    if action == "reject_and_message" and recipe:
-        recipe.status = Recipe.Status.REJECTED
-        recipe.save(update_fields=["status"])
-        django_messages.success(request, f'"{recipe.title}" rejected and author notified.')
-    elif action == "reject_and_message" and article:
-        article.status = Article.Status.REJECTED
-        article.save(update_fields=["status"])
-        django_messages.success(request, f'"{article.title}" rejected and author notified.')
-    else:
-        django_messages.success(request, "Message sent.")
+    django_messages.success(request, success_message)
 
     return _moderation_redirect(request)
 
@@ -457,4 +475,3 @@ def message_archive(request):
         .order_by("-archived_at")
     )
     return render(request, "messaging/archive.html", {"archived_threads": thread_roots})
-

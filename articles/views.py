@@ -26,6 +26,13 @@ from .models import Article, ArticleImage
 logger = logging.getLogger(__name__)
 
 
+ARTICLE_CARD_GALLERY_PREFETCH = Prefetch(
+    "gallery_images",
+    queryset=ArticleImage.objects.filter(is_active=True).order_by("sort_order", "id"),
+    to_attr="active_card_gallery_images",
+)
+
+
 def _json_ld(data):
     value = json.dumps(data, ensure_ascii=False)
     value = value.replace("&", "\\u0026").replace("<", "\\u003C").replace(">", "\\u003E")
@@ -76,7 +83,11 @@ class ArticleListView(ListView):
         selected_author = self._selected_author()
         show_all = self._can_manage_selected_author(selected_author)
 
-        queryset = Article.objects.select_related("author").order_by("-published")
+        queryset = (
+            Article.objects.select_related("author")
+            .prefetch_related(ARTICLE_CARD_GALLERY_PREFETCH)
+            .order_by("-published")
+        )
         if not show_all:
             queryset = queryset.filter(status=Article.Status.APPROVED)
         if selected_author:
@@ -94,7 +105,12 @@ class ArticleListView(ListView):
         all_articles_grid = None
 
         if selected_author:
-            qs = Article.objects.select_related("author").filter(author=selected_author).order_by("-published")
+            qs = (
+                Article.objects.select_related("author")
+                .prefetch_related(ARTICLE_CARD_GALLERY_PREFETCH)
+                .filter(author=selected_author)
+                .order_by("-published")
+            )
             if not can_manage_selected_author:
                 qs = qs.filter(status=Article.Status.APPROVED)
             all_articles = qs
@@ -102,11 +118,12 @@ class ArticleListView(ListView):
         else:
             all_qs = (
                 Article.objects.select_related("author")
+                .prefetch_related(ARTICLE_CARD_GALLERY_PREFETCH)
                 .filter(status=Article.Status.APPROVED)
                 .order_by("-published")
             )
             default_recent_articles = list(all_qs[:6])
-            all_articles_grid = list(all_qs[:50])
+            all_articles_grid = list(all_qs)
 
         context["selected_author"] = selected_author
         context["recent_articles"] = recent_articles

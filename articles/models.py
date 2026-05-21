@@ -164,6 +164,18 @@ class Article(models.Model):
     def get_absolute_url(self):
         return reverse("articles:article_detail", args=[self.slug])
 
+    @property
+    def card_image(self):
+        if self.hero_image:
+            return self.hero_image
+
+        prefetched_gallery = getattr(self, "active_card_gallery_images", None)
+        if prefetched_gallery is not None:
+            return prefetched_gallery[0].image if prefetched_gallery else None
+
+        first_gallery_image = self.gallery_images.filter(is_active=True).order_by("sort_order", "id").first()
+        return first_gallery_image.image if first_gallery_image else None
+
     def save(self, *args, **kwargs):
         if not self.media_folder:
             self.media_folder = unique_media_folder_for_article(self)

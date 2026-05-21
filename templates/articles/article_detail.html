@@ -265,7 +265,7 @@
         {% if article.author.user and article.author.user != request.user and article.author.slug != "greenbear" %}
         <form action="{% url 'accounts:manage_author' article.author.slug %}" method="post">{% csrf_token %}
             <input name="next" type="hidden" value="{{ request.get_full_path }}">
-            <button class="mod-bar__btn mod-bar__btn--block" name="action" onclick="return confirm('Block user {{ article.author.user.username }}?')" type="submit" value="block">Block Author</button>
+            <button class="mod-bar__btn mod-bar__btn--block" name="action" onclick="return confirm('Block user {{ article.author.user.username|escapejs }}?')" type="submit" value="block">Block Author</button>
         </form>
         {% endif %}
 

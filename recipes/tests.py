@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
-from articles.models import Article
+from articles.models import Article, ArticleImage
 from .admin import RecipeAdminForm
 from .allergens import build_present_allergen_items, parse_selected_allergen_keys, serialize_allergen_keys
 from .forms import RecipeAuthoringForm, RecipeCommentForm
@@ -448,6 +448,33 @@ class AuthenticationPageTests(TestCase):
         self.assertContains(response, reverse("articles:article_create"))
         self.assertContains(response, f'{reverse("recipes:recipe_list")}?author={author.slug}')
         self.assertContains(response, f'{reverse("articles:article_list")}?author={author.slug}')
+
+    def test_home_uses_article_gallery_image_when_article_image_is_missing(self):
+        author = RecipeAuthor.objects.create(
+            user=self.user,
+            name="Ciaran",
+            slug="ciaran",
+        )
+        article = Article.objects.create(
+            title="Gallery Home Article",
+            slug="gallery-home-article",
+            author=author,
+            body="Gallery home body",
+            published="2026-05-21",
+            status=Article.Status.APPROVED,
+            confirmed_own_work=True,
+            confirmed_image_rights=True,
+            confirmed_rules=True,
+        )
+        gallery_image = ArticleImage.objects.create(
+            article=article,
+            image="articles/gallery-home/gallery/img1-test.png",
+            sort_order=1,
+        )
+
+        response = self.client.get(reverse("home"))
+
+        self.assertContains(response, gallery_image.image.url, html=False)
 
     def test_authenticated_header_does_not_guess_author_by_slug(self):
         RecipeAuthor.objects.create(

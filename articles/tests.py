@@ -156,6 +156,18 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertNotContains(response, "Rejected Article")
         self.assertFalse(response.context["can_manage_selected_author"])
 
+    def test_default_article_list_does_not_hide_articles_after_first_50(self):
+        for index in range(51):
+            self.create_article(
+                f"Approved Article {index:02d}",
+                Article.Status.APPROVED,
+                slug=f"approved-article-{index:02d}",
+            )
+
+        response = self.client.get(reverse("articles:article_list"))
+
+        self.assertContains(response, "Approved Article 50")
+
     def test_article_list_marks_ai_generated_article_images(self):
         ai_article = self.create_article("AI Article", Article.Status.APPROVED)
         ai_article.image_rights_status = Article.ImageRightsStatus.AI_GENERATED
@@ -164,6 +176,19 @@ class ArticleAuthoringPermissionTests(TestCase):
         response = self.client.get(reverse("articles:article_list"))
 
         self.assertContains(response, 'aria-label="AI generated image"', html=False)
+
+    def test_article_list_uses_first_gallery_image_when_article_image_is_missing(self):
+        article = self.create_article("Gallery Card Article", Article.Status.APPROVED)
+        gallery_image = ArticleImage.objects.create(
+            article=article,
+            image=self.uploaded_image("gallery-card.png"),
+            sort_order=1,
+        )
+
+        response = self.client.get(reverse("articles:article_list"))
+
+        self.assertContains(response, gallery_image.image.url, html=False)
+        self.assertNotContains(response, "/static/images/hero.jpg", html=False)
 
     def test_public_author_article_list_shows_only_approved_without_management(self):
         self.article.title = "Pending Article"
@@ -700,6 +725,16 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertContains(response, "AI Generated")
         self.assertContains(response, 'aria-label="AI generated image"', html=False)
 
+    def test_article_moderation_block_confirm_escapes_username_for_javascript(self):
+        self.owner_user.username = "o'brien"
+        self.owner_user.save(update_fields=["username"])
+        self.client.force_login(self.moderator_user)
+
+        response = self.client.get(self.article.get_absolute_url())
+
+        self.assertContains(response, "o\\u0027brien", html=False)
+        self.assertNotContains(response, "Block user o'brien?", html=False)
+
     def test_article_detail_escapes_json_ld_script_breakouts(self):
         self.article.status = Article.Status.APPROVED
         self.article.title = 'Safe title </script><script>alert("x")</script>'
@@ -999,3 +1034,118 @@ class ArticleAuthoringPermissionTests(TestCase):
                 body="Please revise this article.",
             ).exists()
         )
+
+    def test_article_reject_message_uses_article_author_as_recipient(self):
+        self.client.force_login(self.moderator_user)
+
+        response = self.client.post(
+            reverse("messaging:send_message"),
+            {
+                "action": "reject_and_message",
+                "recipient_id": self.other_user.pk,
+                "article_id": self.article.pk,
+                "subject": f"Your article: {self.article.title}",
+                "body": "Please revise this article.",
+                "next": self.article.get_absolute_url(),
+            },
+        )
+
+        self.article.refresh_from_db()
+        self.assertRedirects(response, self.article.get_absolute_url())
+        self.assertEqual(self.article.status, Article.Status.REJECTED)
+        self.assertTrue(
+            Message.objects.filter(
+                sender=self.moderator_user,
+                recipient=self.owner_user,
+                related_article=self.article,
+                body="Please revise this article.",
+            ).exists()
+        )
+        self.assertFalse(
+            Message.objects.filter(
+                sender=self.moderator_user,
+                recipient=self.other_user,
+                related_article=self.article,
+            ).exists()
+        )
+
+    def test_recipe_reject_message_uses_recipe_author_as_recipient(self):
+        recipe = Recipe.objects.create(
+            title="Original Recipe",
+            slug="original-recipe",
+            author=self.owner_author,
+            short_description="Original recipe",
+            ingredients="Potatoes",
+            method="Cook.",
+            status=Recipe.Status.PENDING,
+            confirmed_own_work=True,
+            confirmed_image_rights=True,
+            confirmed_rules=True,
+        )
+        self.client.force_login(self.moderator_user)
+
+        response = self.client.post(
+            reverse("messaging:send_message"),
+            {
+                "action": "reject_and_message",
+                "recipient_id": self.other_user.pk,
+                "recipe_id": recipe.pk,
+                "subject": f"Your recipe: {recipe.title}",
+                "body": "Please revise this recipe.",
+                "next": recipe.get_absolute_url(),
+            },
+        )
+
+        recipe.refresh_from_db()
+        self.assertRedirects(response, recipe.get_absolute_url())
+        self.assertEqual(recipe.status, Recipe.Status.REJECTED)
+        self.assertTrue(
+            Message.objects.filter(
+                sender=self.moderator_user,
+                recipient=self.owner_user,
+                related_recipe=recipe,
+                body="Please revise this recipe.",
+            ).exists()
+        )
+        self.assertFalse(
+            Message.objects.filter(
+                sender=self.moderator_user,
+                recipient=self.other_user,
+                related_recipe=recipe,
+            ).exists()
+        )
+
+    def test_reject_message_rejects_ambiguous_recipe_and_article_targets(self):
+        recipe = Recipe.objects.create(
+            title="Original Recipe",
+            slug="original-recipe",
+            author=self.owner_author,
+            short_description="Original recipe",
+            ingredients="Potatoes",
+            method="Cook.",
+            status=Recipe.Status.PENDING,
+            confirmed_own_work=True,
+            confirmed_image_rights=True,
+            confirmed_rules=True,
+        )
+        self.client.force_login(self.moderator_user)
+
+        response = self.client.post(
+            reverse("messaging:send_message"),
+            {
+                "action": "reject_and_message",
+                "recipient_id": self.owner_user.pk,
+                "recipe_id": recipe.pk,
+                "article_id": self.article.pk,
+                "subject": "Mixed target",
+                "body": "Please revise this content.",
+                "next": self.article.get_absolute_url(),
+            },
+        )
+
+        self.article.refresh_from_db()
+        recipe.refresh_from_db()
+        self.assertRedirects(response, self.article.get_absolute_url())
+        self.assertEqual(self.article.status, Article.Status.PENDING)
+        self.assertEqual(recipe.status, Recipe.Status.PENDING)
+        self.assertFalse(Message.objects.filter(body="Please revise this content.").exists())

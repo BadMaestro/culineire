@@ -1,11 +1,12 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 from django_ratelimit.decorators import ratelimit
 
-from articles.models import Article
+from articles.models import Article, ArticleImage
 from monitoring.tracker import track_event
 from recipes.models import Recipe
 
@@ -26,6 +27,11 @@ def _safe_next(request, fallback):
 @login_required
 def my_collection(request):
     tab = request.GET.get("tab", "recipes")
+    article_card_gallery_prefetch = Prefetch(
+        "article__gallery_images",
+        queryset=ArticleImage.objects.filter(is_active=True).order_by("sort_order", "id"),
+        to_attr="active_card_gallery_images",
+    )
     saved_recipes = (
         SavedRecipe.objects.filter(user=request.user)
         .filter(recipe__status=Recipe.Status.APPROVED)
@@ -35,6 +41,7 @@ def my_collection(request):
         SavedArticle.objects.filter(user=request.user)
         .filter(article__status=Article.Status.APPROVED)
         .select_related("article", "article__author")
+        .prefetch_related(article_card_gallery_prefetch)
     )
     return render(request, "collection/my_collection.html", {
         "saved_recipes": saved_recipes,
