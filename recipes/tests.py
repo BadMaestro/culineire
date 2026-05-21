@@ -552,6 +552,7 @@ class AuthenticationPageTests(TestCase):
         self.assertRedirects(response, reverse("home"))
         self.assertEqual(int(self.client.session["_auth_user_id"]), self.user.pk)
 
+    @override_settings(SIGNUP_REQUIRE_EMAIL_CONFIRMATION=False)
     def test_signup_creates_account_and_shows_success(self):
         response = self.client.post(
             reverse("signup"),

@@ -90,7 +90,11 @@ class PublicTechnicalPagesTests(TestCase):
 
 
 class MaintenanceModeTests(TestCase):
-    @override_settings(MAINTENANCE_MODE=True, MAINTENANCE_UNTIL="2026-05-20T18:00:00+01:00")
+    @override_settings(
+        MAINTENANCE_MODE=True,
+        MAINTENANCE_UNTIL="2026-05-20T18:00:00+01:00",
+        MAINTENANCE_RETRY_AFTER_SECONDS=10800,
+    )
     def test_public_pages_show_maintenance_response(self):
         response = self.client.get("/")
 

@@ -1509,6 +1509,7 @@ class ArticlePhase32AltTextTests(TestCase):
             slug="alt-text-article",
             author=self.author,
             body="Body text.",
+            published=date(2026, 5, 21),
             hero_image_alt_text="A bowl of Irish stew on a stone table",
             status=Article.Status.APPROVED,
         )
@@ -1522,6 +1523,7 @@ class ArticlePhase32AltTextTests(TestCase):
             slug="no-alt-article",
             author=self.author,
             body="Body text.",
+            published=date(2026, 5, 21),
             status=Article.Status.APPROVED,
         )
 
