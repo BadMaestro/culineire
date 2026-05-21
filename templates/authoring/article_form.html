@@ -91,10 +91,7 @@
                             <div class="authoring-step-existing-item">
                                 <span class="authoring-step-badge">{{ forloop.counter }}</span>
                                 <img alt="Gallery image {{ forloop.counter }}" class="authoring-step-thumb" src="{{ img.image.url }}">
-                                <form action="{% url 'articles:delete_gallery_image' img.pk %}" method="post">
-                                    {% csrf_token %}
-                                    <button aria-label="Delete gallery image {{ forloop.counter }}" class="authoring-step-delete" onclick="return confirm('Delete this gallery image?')" type="submit">&times;</button>
-                                </form>
+                                <button aria-label="Delete gallery image {{ forloop.counter }}" class="authoring-step-delete" form="delete-gallery-image-{{ img.pk }}" onclick="return confirm('Delete this gallery image?')" type="submit">&times;</button>
                             </div>
                             {% endfor %}
                         </div>
@@ -216,6 +213,13 @@
                 </div>
             </div>
         </form>
+        {% if form_mode == "edit" and existing_gallery_images %}
+            {% for img in existing_gallery_images %}
+            <form action="{% url 'articles:delete_gallery_image' img.pk %}" id="delete-gallery-image-{{ img.pk }}" method="post">
+                {% csrf_token %}
+            </form>
+            {% endfor %}
+        {% endif %}
     </div>
 </section>
 {% endblock %}

@@ -941,6 +941,8 @@ class ArticleAuthoringPermissionTests(TestCase):
             response,
             reverse("articles:delete_gallery_image", kwargs={"image_id": gallery_image.pk}),
         )
+        self.assertContains(response, f'id="delete-gallery-image-{gallery_image.pk}"', html=False)
+        self.assertContains(response, f'form="delete-gallery-image-{gallery_image.pk}"', html=False)
         self.assertContains(response, 'aria-label="Delete gallery image 1"', html=False)
 
     def test_author_can_delete_own_article_gallery_image(self):
