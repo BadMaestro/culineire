@@ -1,7 +1,6 @@
 import logging
 
 from django.db.models.signals import post_delete, post_save
-from django.dispatch import receiver
 
 logger = logging.getLogger(__name__)
 
@@ -50,47 +49,48 @@ def _hide_auto_entry(event_key):
         logger.exception("Failed to hide newsfeed entry for event_key=%s", event_key)
 
 
-def _connect_recipe_signal():
+def on_recipe_save(sender, instance, **kwargs):
+    del sender, kwargs
+    from recipes.models import Recipe
+    if instance.status == Recipe.Status.APPROVED:
+        _create_recipe_entry(instance)
+    else:
+        _hide_auto_entry(f"recipe_published:{instance.pk}")
+
+
+def on_recipe_delete(sender, instance, **kwargs):
+    del sender, kwargs
+    _hide_auto_entry(f"recipe_published:{instance.pk}")
+
+
+def on_article_save(sender, instance, **kwargs):
+    del sender, kwargs
+    from articles.models import Article
+    if instance.status == Article.Status.APPROVED:
+        _create_article_entry(instance)
+    else:
+        _hide_auto_entry(f"article_published:{instance.pk}")
+
+
+def on_article_delete(sender, instance, **kwargs):
+    del sender, kwargs
+    _hide_auto_entry(f"article_published:{instance.pk}")
+
+
+def _connect_signals():
     try:
         from recipes.models import Recipe
-
-        @receiver(post_save, sender=Recipe)
-        def on_recipe_save(sender, instance, **kwargs):
-            del sender, kwargs
-            if instance.status == Recipe.Status.APPROVED:
-                _create_recipe_entry(instance)
-            else:
-                _hide_auto_entry(f"recipe_published:{instance.pk}")
-
-        @receiver(post_delete, sender=Recipe)
-        def on_recipe_delete(sender, instance, **kwargs):
-            del sender, kwargs
-            _hide_auto_entry(f"recipe_published:{instance.pk}")
-
+        post_save.connect(on_recipe_save, sender=Recipe, weak=False)
+        post_delete.connect(on_recipe_delete, sender=Recipe, weak=False)
     except ImportError:
         pass
 
-
-def _connect_article_signal():
     try:
         from articles.models import Article
-
-        @receiver(post_save, sender=Article)
-        def on_article_save(sender, instance, **kwargs):
-            del sender, kwargs
-            if instance.status == Article.Status.APPROVED:
-                _create_article_entry(instance)
-            else:
-                _hide_auto_entry(f"article_published:{instance.pk}")
-
-        @receiver(post_delete, sender=Article)
-        def on_article_delete(sender, instance, **kwargs):
-            del sender, kwargs
-            _hide_auto_entry(f"article_published:{instance.pk}")
-
+        post_save.connect(on_article_save, sender=Article, weak=False)
+        post_delete.connect(on_article_delete, sender=Article, weak=False)
     except ImportError:
         pass
 
 
-_connect_recipe_signal()
-_connect_article_signal()
+_connect_signals()
