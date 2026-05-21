@@ -1,5 +1,6 @@
 from datetime import date
 from io import BytesIO
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -515,6 +516,29 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertFalse(Article.objects.filter(title="New Article").exists())
         self.assertFalse(ArticleImage.objects.exists())
 
+    def test_article_create_rolls_back_if_gallery_save_fails(self):
+        self.client.force_login(self.owner_user)
+        self.client.raise_request_exception = False
+
+        with patch(
+            "articles.views.ArticleImage.objects.create",
+            side_effect=RuntimeError("gallery save failed"),
+        ):
+            response = self.client.post(
+                reverse("articles:article_create"),
+                {
+                    **self.article_payload(
+                        title="Half Saved Article",
+                        image_rights_status=Article.ImageRightsStatus.OWN,
+                    ),
+                    "gallery_images": self.uploaded_image("gallery.png"),
+                },
+            )
+
+        self.assertEqual(response.status_code, 500)
+        self.assertFalse(Article.objects.filter(title="Half Saved Article").exists())
+        self.assertFalse(ArticleImage.objects.exists())
+
     def test_article_create_requires_credit_for_licensed_image_rights(self):
         self.client.force_login(self.owner_user)
 
@@ -745,6 +769,30 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.article.refresh_from_db()
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Gallery image broken.png")
+        self.assertEqual(self.article.title, "Original Article")
+        self.assertFalse(ArticleImage.objects.filter(article=self.article).exists())
+
+    def test_article_edit_rolls_back_if_gallery_save_fails(self):
+        self.client.force_login(self.owner_user)
+        self.client.raise_request_exception = False
+
+        with patch(
+            "articles.views.ArticleImage.objects.create",
+            side_effect=RuntimeError("gallery save failed"),
+        ):
+            response = self.client.post(
+                reverse("articles:article_edit", kwargs={"slug": self.article.slug}),
+                {
+                    **self.article_payload(
+                        title="Half Saved Edit",
+                        image_rights_status=Article.ImageRightsStatus.OWN,
+                    ),
+                    "gallery_images": self.uploaded_image("gallery.png"),
+                },
+            )
+
+        self.article.refresh_from_db()
+        self.assertEqual(response.status_code, 500)
         self.assertEqual(self.article.title, "Original Article")
         self.assertFalse(ArticleImage.objects.filter(article=self.article).exists())
 

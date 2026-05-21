@@ -4,6 +4,7 @@ import logging
 from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Max, Prefetch, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
@@ -139,15 +140,16 @@ class ArticleCreateView(AuthorRequiredMixin, CreateView):
         if not _validate_gallery_uploads(form, gallery_images):
             return self.form_invalid(form)
 
-        article = form.save(confirmed_by=self.request.user)
-        self.object = article
+        with transaction.atomic():
+            article = form.save(confirmed_by=self.request.user)
+            self.object = article
 
-        if is_moderator(self.request.user):
-            article.status = Article.Status.APPROVED
-            article.save(update_fields=["status"])
+            if is_moderator(self.request.user):
+                article.status = Article.Status.APPROVED
+                article.save(update_fields=["status"])
 
-        for i, img_file in enumerate(gallery_images, start=1):
-            ArticleImage.objects.create(article=article, image=img_file, sort_order=i)
+            for i, img_file in enumerate(gallery_images, start=1):
+                ArticleImage.objects.create(article=article, image=img_file, sort_order=i)
 
         messages.success(self.request, "Article Created Successfully.")
         return redirect(article.get_absolute_url())
@@ -296,17 +298,18 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
         if not _validate_gallery_uploads(form, gallery_images):
             return self.form_invalid(form)
 
-        was_approved = self.object.status == Article.Status.APPROVED
-        article = form.save(commit=False, confirmed_by=self.request.user)
-        if not is_moderator(self.request.user):
-            article.status = Article.Status.PENDING
-        article.save()
-        form.save_m2m()
-        self.object = article
+        with transaction.atomic():
+            was_approved = self.object.status == Article.Status.APPROVED
+            article = form.save(commit=False, confirmed_by=self.request.user)
+            if not is_moderator(self.request.user):
+                article.status = Article.Status.PENDING
+            article.save()
+            form.save_m2m()
+            self.object = article
 
-        max_sort_order = article.gallery_images.aggregate(max_sort_order=Max("sort_order"))["max_sort_order"] or 0
-        for i, img_file in enumerate(gallery_images, start=max_sort_order + 1):
-            ArticleImage.objects.create(article=article, image=img_file, sort_order=i)
+            max_sort_order = article.gallery_images.aggregate(max_sort_order=Max("sort_order"))["max_sort_order"] or 0
+            for i, img_file in enumerate(gallery_images, start=max_sort_order + 1):
+                ArticleImage.objects.create(article=article, image=img_file, sort_order=i)
 
         if was_approved and not is_moderator(self.request.user):
             messages.success(
