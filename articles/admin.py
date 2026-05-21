@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.forms.models import BaseInlineFormSet
 from django.utils.html import format_html_join
 
+from config.profanity import find_profanity
 from .models import Article, ArticleImage
 
 
@@ -78,6 +79,21 @@ class ArticleAdminForm(forms.ModelForm):
                 "source_note",
                 "Add at least one source detail for inspired articles.",
             )
+
+        _text_widgets = (forms.TextInput, forms.Textarea)
+        for field_name, field in self.fields.items():
+            if not isinstance(field.widget, _text_widgets):
+                continue
+            value = cleaned_data.get(field_name, "")
+            if not value or not isinstance(value, str):
+                continue
+            bad = find_profanity(value)
+            if bad:
+                quoted = ", ".join(f'"{w}"' for w in bad)
+                self.add_error(
+                    field_name,
+                    f"Contains forbidden words: {quoted}. Please remove them before publishing.",
+                )
 
         return cleaned_data
 

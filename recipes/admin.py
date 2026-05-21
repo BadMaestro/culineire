@@ -2,6 +2,7 @@ from django import forms
 from django.contrib import admin
 from django.utils.html import format_html_join
 
+from config.profanity import find_profanity
 from .allergens import EU_ALLERGEN_CHOICES, parse_selected_allergen_keys, serialize_allergen_keys
 from .models import (
     Recipe,
@@ -76,6 +77,53 @@ class RecipeAdminForm(forms.ModelForm):
             if category_value not in existing:
                 instance.additional_category_links.create(category=category_value)
 
+    def clean(self):
+        cleaned_data = super().clean()
+        image_rights_status = cleaned_data.get("image_rights_status")
+        image_rights_note = (cleaned_data.get("image_rights_note") or "").strip()
+        source_type = cleaned_data.get("source_type")
+        source_title = (cleaned_data.get("source_title") or "").strip()
+        source_author = (cleaned_data.get("source_author") or "").strip()
+        source_url = (cleaned_data.get("source_url") or "").strip()
+        source_note = (cleaned_data.get("source_note") or "").strip()
+
+        if (
+            image_rights_status in {
+                Recipe.ImageRightsStatus.LICENSED,
+                Recipe.ImageRightsStatus.PUBLIC_DOMAIN,
+            }
+            and not image_rights_note
+        ):
+            self.add_error(
+                "image_rights_note",
+                "Add the licence, credit line, or permission reference for this image status.",
+            )
+
+        if source_type != Recipe.SourceType.ORIGINAL and not any(
+            [source_title, source_author, source_url, source_note]
+        ):
+            self.add_error(
+                "source_note",
+                "Add at least one source detail for recipes based on an external source.",
+            )
+
+        _text_widgets = (forms.TextInput, forms.Textarea)
+        for field_name, field in self.fields.items():
+            if not isinstance(field.widget, _text_widgets):
+                continue
+            value = cleaned_data.get(field_name, "")
+            if not value or not isinstance(value, str):
+                continue
+            bad = find_profanity(value)
+            if bad:
+                quoted = ", ".join(f'"{w}"' for w in bad)
+                self.add_error(
+                    field_name,
+                    f"Contains forbidden words: {quoted}. Please remove them before publishing.",
+                )
+
+        return cleaned_data
+
     def save(self, commit=True):
         instance = super().save(commit=False)
         instance.allergens = serialize_allergen_keys(self.cleaned_data["selected_allergens"])
@@ -146,7 +194,6 @@ class RecipeAdmin(admin.ModelAdmin):
     change_form_template = "admin/recipes/recipe/change_form.html"
     list_display = ("title", "status", "category", "difficulty", "author", "created_at")
     list_filter = ("status", "category", "difficulty", "author", "source_type", "created_at")
-    list_editable = ("status",)
     search_fields = ("title", "short_description", "ingredients", "method")
     date_hierarchy = "created_at"
     autocomplete_fields = ("author",)

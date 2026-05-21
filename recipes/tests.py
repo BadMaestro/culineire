@@ -8,7 +8,7 @@ from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
 from articles.models import Article, ArticleImage
-from .admin import RecipeAdminForm
+from .admin import RecipeAdmin, RecipeAdminForm
 from .allergens import build_present_allergen_items, parse_selected_allergen_keys, serialize_allergen_keys
 from .forms import RecipeAuthoringForm, RecipeCommentForm
 from .models import Recipe, RecipeAuthor, RecipeComment, RecipeRating
@@ -425,6 +425,87 @@ class RecipeAdminFormTests(TestCase):
 
         self.assertFalse(form.is_valid())
         self.assertIn("source_note", form.errors)
+
+    def _recipe_admin_payload(self, **overrides):
+        payload = {
+            "title": "Test pie",
+            "short_description": "",
+            "prep_time_minutes": 20,
+            "cook_time_minutes": 40,
+            "servings": 4,
+            "calories": "",
+            "difficulty": Recipe.Difficulty.EASY,
+            "category": Recipe.Category.EVERYDAY_IRISH_COOKING,
+            "ingredients": "Potatoes - 800g",
+            "method": "1. Boil potatoes",
+            "tips": "",
+            "irish_context": "",
+            "author_commentary": "",
+            "selected_allergens": [],
+            "additional_categories": [],
+            "source_type": Recipe.SourceType.ORIGINAL,
+            "source_title": "",
+            "source_author": "",
+            "source_url": "",
+            "source_note": "",
+            "image_rights_status": Recipe.ImageRightsStatus.OWN,
+            "image_rights_note": "",
+            "status": Recipe.Status.PENDING,
+        }
+        payload.update(overrides)
+        return payload
+
+    def test_recipe_admin_does_not_have_status_in_list_editable(self):
+        self.assertNotIn("status", RecipeAdmin.list_editable)
+
+    def test_recipe_admin_form_rejects_profanity_in_title(self):
+        form = RecipeAdminForm(data=self._recipe_admin_payload(title="bastard pie"))
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("title", form.errors)
+        self.assertIn("bastard", str(form.errors["title"]))
+
+    def test_recipe_admin_form_rejects_profanity_in_method(self):
+        form = RecipeAdminForm(data=self._recipe_admin_payload(method="1. bastard step"))
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("method", form.errors)
+
+    def test_recipe_admin_form_rejects_non_original_source_without_source_fields(self):
+        form = RecipeAdminForm(
+            data=self._recipe_admin_payload(
+                source_type=Recipe.SourceType.COOKBOOK,
+                source_title="",
+                source_author="",
+                source_url="",
+                source_note="",
+            )
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("source_note", form.errors)
+
+    def test_recipe_admin_form_requires_image_rights_note_for_licensed(self):
+        form = RecipeAdminForm(
+            data=self._recipe_admin_payload(
+                image_rights_status=Recipe.ImageRightsStatus.LICENSED,
+                image_rights_note="",
+            )
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("image_rights_note", form.errors)
+
+    def test_recipe_admin_form_requires_image_rights_note_for_public_domain(self):
+        form = RecipeAdminForm(
+            data=self._recipe_admin_payload(
+                image_rights_status=Recipe.ImageRightsStatus.PUBLIC_DOMAIN,
+                image_rights_note="",
+            )
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("image_rights_note", form.errors)
 
 
 class AuthenticationPageTests(TestCase):

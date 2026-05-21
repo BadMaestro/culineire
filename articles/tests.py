@@ -1315,3 +1315,27 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertEqual(self.article.status, Article.Status.PENDING)
         self.assertEqual(recipe.status, Recipe.Status.PENDING)
         self.assertFalse(Message.objects.filter(body="Please revise this content.").exists())
+
+    def test_article_admin_form_rejects_profanity_in_title(self):
+        form = ArticleAdminForm(data=self.admin_payload(title="bastard article"))
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("title", form.errors)
+        self.assertIn("bastard", str(form.errors["title"]))
+
+    def test_article_admin_form_rejects_profanity_in_body(self):
+        form = ArticleAdminForm(data=self.admin_payload(body="This article is bastard content."))
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("body", form.errors)
+
+    def test_article_admin_form_requires_image_rights_note_for_public_domain(self):
+        form = ArticleAdminForm(
+            data=self.admin_payload(
+                image_rights_status=Article.ImageRightsStatus.PUBLIC_DOMAIN,
+                image_rights_note="",
+            )
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("image_rights_note", form.errors)
