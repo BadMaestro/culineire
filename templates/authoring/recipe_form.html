@@ -42,6 +42,21 @@
                 {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
             </div>
             {% endif %}
+            {% if form.errors %}
+            <div class="authoring-errors" role="alert">
+                <p>Please review the form errors below.</p>
+                {% for field in form %}
+                {% for error in field.errors %}
+                <p>{{ field.label }}: {{ error }}</p>
+                {% endfor %}
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% if will_return_to_review %}
+            <div class="authoring-warning" role="status">
+                <strong>Review required:</strong> Saving changes to a live recipe will move it back to Pending Review until a moderator approves it again.
+            </div>
+            {% endif %}
 
             <fieldset class="authoring-section">
                 <legend>Recipe Details</legend>

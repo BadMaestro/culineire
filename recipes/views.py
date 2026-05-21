@@ -892,7 +892,10 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
         return Recipe.objects.filter(author=self.author)
 
     def form_valid(self, form):
+        was_approved = self.object.status == Recipe.Status.APPROVED
         recipe = form.save(commit=False, confirmed_by=self.request.user)
+        if not is_moderator(self.request.user):
+            recipe.status = Recipe.Status.PENDING
         recipe.save()
         getattr(form, "save_additional_categories")(recipe)
 
@@ -908,7 +911,10 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
                     RecipeImage.objects.create(recipe=recipe, image=img_file, sort_order=step)
 
         self.object = recipe
-        messages.success(self.request, "Recipe Updated Successfully.")
+        if was_approved and not is_moderator(self.request.user):
+            messages.success(self.request, "Recipe updated and sent back to review before it goes live again.")
+        else:
+            messages.success(self.request, "Recipe Updated Successfully.")
         if is_moderator(self.request.user):
             return redirect(reverse_lazy("recipes:moderation_panel"))
         return redirect(recipe.get_absolute_url())
@@ -926,6 +932,11 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
         context["existing_gallery_images"] = list(
             self.object.gallery_images.filter(is_active=True).order_by("sort_order", "id")
         ) if self.object else []
+        context["will_return_to_review"] = (
+            bool(self.object)
+            and self.object.status == Recipe.Status.APPROVED
+            and not is_moderator(self.request.user)
+        )
         return context
 
 
