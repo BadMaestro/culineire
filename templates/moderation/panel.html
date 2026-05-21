@@ -527,6 +527,15 @@
 {% block extra_js %}
 <script>
 (function () {
+  var details = document.querySelector('.mod-maintenance-details');
+  if (details) {
+    document.addEventListener('click', function (e) {
+      if (details.open && !details.contains(e.target)) {
+        details.open = false;
+      }
+    });
+  }
+
   var el = document.querySelector('.mod-maintenance-countdown');
   if (!el) return;
   var until = new Date(el.dataset.until);
