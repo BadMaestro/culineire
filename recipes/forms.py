@@ -181,6 +181,34 @@ class RecipeAuthoringForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        image_rights_status = cleaned_data.get("image_rights_status")
+        image_rights_note = (cleaned_data.get("image_rights_note") or "").strip()
+        source_type = cleaned_data.get("source_type")
+        source_title = (cleaned_data.get("source_title") or "").strip()
+        source_author = (cleaned_data.get("source_author") or "").strip()
+        source_url = (cleaned_data.get("source_url") or "").strip()
+        source_note = (cleaned_data.get("source_note") or "").strip()
+
+        if (
+            image_rights_status in {
+                Recipe.ImageRightsStatus.LICENSED,
+                Recipe.ImageRightsStatus.PUBLIC_DOMAIN,
+            }
+            and not image_rights_note
+        ):
+            self.add_error(
+                "image_rights_note",
+                "Add the licence, credit line, or permission reference for this image status.",
+            )
+
+        if source_type != Recipe.SourceType.ORIGINAL and not any(
+            [source_title, source_author, source_url, source_note]
+        ):
+            self.add_error(
+                "source_note",
+                "Add at least one source detail for recipes based on an external source.",
+            )
+
         _text_widgets = (forms.TextInput, forms.Textarea)
         for field_name, field in self.fields.items():
             if not isinstance(field.widget, _text_widgets):

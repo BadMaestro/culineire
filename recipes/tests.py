@@ -360,6 +360,72 @@ class RecipeAdminFormTests(TestCase):
             ],
         )
 
+    def test_authoring_form_requires_credit_for_licensed_image_rights(self):
+        form = RecipeAuthoringForm(
+            data={
+                "title": "Licensed Stew",
+                "short_description": "Traditional but weeknight-friendly.",
+                "category": Recipe.Category.IRISH_CULINARY_HERITAGE,
+                "additional_categories": [],
+                "difficulty": Recipe.Difficulty.EASY,
+                "prep_time_minutes": 20,
+                "cook_time_minutes": 80,
+                "servings": 4,
+                "calories": "",
+                "ingredients": "Potatoes - 800g",
+                "method": "1. Simmer slowly",
+                "tips": "",
+                "irish_context": "",
+                "author_commentary": "",
+                "source_type": Recipe.SourceType.ORIGINAL,
+                "source_title": "",
+                "source_author": "",
+                "source_url": "",
+                "source_note": "",
+                "image_rights_status": Recipe.ImageRightsStatus.LICENSED,
+                "image_rights_note": "",
+                "confirm_own_work": "on",
+                "confirm_image_rights": "on",
+                "confirm_rules": "on",
+            }
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("image_rights_note", form.errors)
+
+    def test_authoring_form_requires_source_detail_for_external_recipe_source(self):
+        form = RecipeAuthoringForm(
+            data={
+                "title": "Cookbook Stew",
+                "short_description": "Traditional but weeknight-friendly.",
+                "category": Recipe.Category.IRISH_CULINARY_HERITAGE,
+                "additional_categories": [],
+                "difficulty": Recipe.Difficulty.EASY,
+                "prep_time_minutes": 20,
+                "cook_time_minutes": 80,
+                "servings": 4,
+                "calories": "",
+                "ingredients": "Potatoes - 800g",
+                "method": "1. Simmer slowly",
+                "tips": "",
+                "irish_context": "",
+                "author_commentary": "",
+                "source_type": Recipe.SourceType.COOKBOOK,
+                "source_title": "",
+                "source_author": "",
+                "source_url": "",
+                "source_note": "",
+                "image_rights_status": Recipe.ImageRightsStatus.OWN,
+                "image_rights_note": "",
+                "confirm_own_work": "on",
+                "confirm_image_rights": "on",
+                "confirm_rules": "on",
+            }
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("source_note", form.errors)
+
 
 class AuthenticationPageTests(TestCase):
     def setUp(self):
