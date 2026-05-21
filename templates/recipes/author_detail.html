@@ -59,6 +59,8 @@
             <nav class="author-studio-filters" aria-label="Filter by status">
                 <a class="author-studio-filters__tab{% if not status_filter %} author-studio-filters__tab--active{% endif %}"
                    href="?">All</a>
+                <a class="author-studio-filters__tab{% if status_filter == 'draft' %} author-studio-filters__tab--active{% endif %}"
+                   href="?status=draft">Draft</a>
                 <a class="author-studio-filters__tab{% if status_filter == 'pending' %} author-studio-filters__tab--active{% endif %}"
                    href="?status=pending">Pending</a>
                 <a class="author-studio-filters__tab{% if status_filter == 'needs_changes' %} author-studio-filters__tab--active{% endif %}"
@@ -75,7 +77,7 @@
                 <p class="author-studio-pending__group-label">Recipes</p>
                 <ul class="author-studio-pending__list">
                     {% for recipe in dashboard_recipes %}
-                    <li class="author-studio-pending__item{% if recipe.status == 'rejected' %} author-studio-pending__item--rejected{% endif %}">
+                    <li class="author-studio-pending__item{% if recipe.status == 'rejected' %} author-studio-pending__item--rejected{% endif %}{% if recipe.status == 'draft' %} author-studio-pending__item--draft{% endif %}">
                         {% if private_dashboard %}
                         <span class="author-studio-status author-studio-status--{{ recipe.status|lower }}">{{ recipe.get_status_display }}</span>
                         {% endif %}
@@ -104,7 +106,7 @@
                 <p class="author-studio-pending__group-label">Articles</p>
                 <ul class="author-studio-pending__list">
                     {% for article in dashboard_articles %}
-                    <li class="author-studio-pending__item{% if article.status == 'rejected' %} author-studio-pending__item--rejected{% endif %}">
+                    <li class="author-studio-pending__item{% if article.status == 'rejected' %} author-studio-pending__item--rejected{% endif %}{% if article.status == 'draft' %} author-studio-pending__item--draft{% endif %}">
                         {% if private_dashboard %}
                         <span class="author-studio-status author-studio-status--{{ article.status|lower }}">{{ article.get_status_display }}</span>
                         {% endif %}

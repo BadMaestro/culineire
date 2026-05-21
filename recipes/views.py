@@ -128,6 +128,10 @@ def _gallery_step_rows(recipe=None):
     ]
 
 
+def _authoring_action(request):
+    return request.POST.get("action") if request.POST.get("action") in {"save_draft", "submit_review"} else "submit_review"
+
+
 def _build_method_steps(method_text: str) -> list[dict]:
     raw_lines = _split_text_lines(method_text)
 
@@ -333,6 +337,8 @@ def recipe_list(request):
             .filter(author=selected_author)
             .order_by("-published")
         )
+        if not (user_can_manage_author(request.user, selected_author) or is_moderator(request.user)):
+            all_articles = all_articles.filter(status=Article.Status.APPROVED)
         recent_articles = list(all_articles[:6])
 
     context = {
@@ -829,6 +835,7 @@ def author_detail(request, slug):
 
     private_dashboard = can_manage or moderator
     _VALID_STATUS_FILTERS = {
+        "draft": Recipe.Status.DRAFT,
         "pending": Recipe.Status.PENDING,
         "needs_changes": Recipe.Status.NEEDS_CHANGES,
         "rejected": Recipe.Status.REJECTED,
@@ -899,10 +906,10 @@ class RecipeCreateView(AuthorRequiredMixin, CreateView):
         return super().post(request, *args, **kwargs)
 
     def form_valid(self, form):
+        action = _authoring_action(self.request)
         recipe = form.save(commit=False, confirmed_by=self.request.user)
         recipe.author = self.author
-        if is_moderator(self.request.user):
-            recipe.status = Recipe.Status.APPROVED
+        recipe.status = Recipe.Status.DRAFT if action == "save_draft" else Recipe.Status.PENDING
         recipe.save()
         getattr(form, "save_additional_categories")(recipe)
 
@@ -917,7 +924,10 @@ class RecipeCreateView(AuthorRequiredMixin, CreateView):
                 )
 
         self.object = recipe
-        messages.success(self.request, "Recipe Created Successfully.")
+        if recipe.status == Recipe.Status.DRAFT:
+            messages.success(self.request, "Recipe saved as a private draft.")
+        else:
+            messages.success(self.request, "Recipe submitted for review.")
         return redirect(recipe.get_absolute_url())
 
     def get_context_data(self, **kwargs):
@@ -926,6 +936,7 @@ class RecipeCreateView(AuthorRequiredMixin, CreateView):
         context["turnstile_site_key"] = settings.TURNSTILE_SITE_KEY
         context["cancel_url"] = reverse_lazy("recipes:recipe_list")
         context["gallery_step_rows"] = _gallery_step_rows()
+        context["can_save_draft"] = True
         return context
 
 
@@ -941,10 +952,17 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
         return Recipe.objects.filter(author=self.author)
 
     def form_valid(self, form):
+        action = _authoring_action(self.request)
         was_approved = self.object.status == Recipe.Status.APPROVED
+        previous_status = self.object.status
         recipe = form.save(commit=False, confirmed_by=self.request.user)
         if not is_moderator(self.request.user):
-            recipe.status = Recipe.Status.PENDING
+            if was_approved:
+                recipe.status = Recipe.Status.PENDING
+            elif action == "save_draft":
+                recipe.status = Recipe.Status.DRAFT
+            else:
+                recipe.status = Recipe.Status.PENDING
         recipe.save()
         getattr(form, "save_additional_categories")(recipe)
 
@@ -965,8 +983,12 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
                 existing.save(update_fields=["alt_text"])
 
         self.object = recipe
-        if was_approved and not is_moderator(self.request.user):
+        if recipe.status == Recipe.Status.DRAFT and not is_moderator(self.request.user):
+            messages.success(self.request, "Recipe saved as a private draft.")
+        elif was_approved and not is_moderator(self.request.user):
             messages.success(self.request, "Recipe updated and sent back to review before it goes live again.")
+        elif previous_status in {Recipe.Status.DRAFT, Recipe.Status.NEEDS_CHANGES, Recipe.Status.REJECTED} and recipe.status == Recipe.Status.PENDING:
+            messages.success(self.request, "Recipe submitted for review.")
         else:
             messages.success(self.request, "Recipe Updated Successfully.")
         if is_moderator(self.request.user):
@@ -992,6 +1014,7 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
             and self.object.status == Recipe.Status.APPROVED
             and not is_moderator(self.request.user)
         )
+        context["can_save_draft"] = bool(self.object) and self.object.status != Recipe.Status.APPROVED
         return context
 
 

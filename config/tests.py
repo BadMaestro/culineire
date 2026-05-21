@@ -45,6 +45,13 @@ class PublicTechnicalPagesTests(TestCase):
             status=Recipe.Status.PENDING,
         )
         Recipe.objects.create(
+            title="Draft Recipe",
+            author=author,
+            ingredients="Potatoes",
+            method="Draft",
+            status=Recipe.Status.DRAFT,
+        )
+        Recipe.objects.create(
             title="Rejected Recipe",
             author=author,
             ingredients="Potatoes",
@@ -75,6 +82,14 @@ class PublicTechnicalPagesTests(TestCase):
             status=Article.Status.PENDING,
         )
         Article.objects.create(
+            title="Draft Article",
+            slug="draft-article",
+            author=author,
+            body="Draft article body",
+            published=date(2026, 5, 10),
+            status=Article.Status.DRAFT,
+        )
+        Article.objects.create(
             title="Rejected Article",
             slug="rejected-article",
             author=author,
@@ -99,9 +114,11 @@ class PublicTechnicalPagesTests(TestCase):
         self.assertContains(response, f"https://culineire.test{approved_recipe.get_absolute_url()}")
         self.assertContains(response, f"https://culineire.test{approved_article.get_absolute_url()}")
         self.assertNotContains(response, "Pending Recipe")
+        self.assertNotContains(response, "Draft Recipe")
         self.assertNotContains(response, "Rejected Recipe")
         self.assertNotContains(response, "Needs Changes Recipe")
         self.assertNotContains(response, "pending-article")
+        self.assertNotContains(response, "draft-article")
         self.assertNotContains(response, "rejected-article")
         self.assertNotContains(response, "needs-changes-article")
 

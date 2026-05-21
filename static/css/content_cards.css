@@ -1712,6 +1712,12 @@
   border: 1px solid rgb(255 193 7 / 0.4);
 }
 
+.author-studio-status--draft {
+  background: rgb(96 82 65 / 0.12);
+  color: rgb(77 65 50);
+  border: 1px solid rgb(96 82 65 / 0.24);
+}
+
 .author-studio-status--rejected {
   background: rgb(180 40 40 / 0.08);
   color: rgb(140 30 30);

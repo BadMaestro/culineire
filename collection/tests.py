@@ -47,14 +47,18 @@ class CollectionVisibilityTests(TestCase):
     def test_my_collection_shows_only_approved_saved_content(self):
         approved_recipe = self.recipe("Approved Recipe", Recipe.Status.APPROVED)
         pending_recipe = self.recipe("Pending Recipe", Recipe.Status.PENDING)
+        draft_recipe = self.recipe("Draft Recipe", Recipe.Status.DRAFT)
         needs_changes_recipe = self.recipe("Needs Changes Recipe", Recipe.Status.NEEDS_CHANGES)
         approved_article = self.article("Approved Article", Article.Status.APPROVED)
+        draft_article = self.article("Draft Article", Article.Status.DRAFT)
         rejected_article = self.article("Rejected Article", Article.Status.REJECTED)
         needs_changes_article = self.article("Needs Changes Article", Article.Status.NEEDS_CHANGES)
         SavedRecipe.objects.create(user=self.user, recipe=approved_recipe)
         SavedRecipe.objects.create(user=self.user, recipe=pending_recipe)
+        SavedRecipe.objects.create(user=self.user, recipe=draft_recipe)
         SavedRecipe.objects.create(user=self.user, recipe=needs_changes_recipe)
         SavedArticle.objects.create(user=self.user, article=approved_article)
+        SavedArticle.objects.create(user=self.user, article=draft_article)
         SavedArticle.objects.create(user=self.user, article=rejected_article)
         SavedArticle.objects.create(user=self.user, article=needs_changes_article)
         self.client.force_login(self.user)
@@ -63,12 +67,14 @@ class CollectionVisibilityTests(TestCase):
 
         self.assertContains(response, "Approved Recipe")
         self.assertNotContains(response, "Pending Recipe")
+        self.assertNotContains(response, "Draft Recipe")
         self.assertNotContains(response, "Needs Changes Recipe")
         self.assertEqual(len(response.context["saved_recipes"]), 1)
 
         response = self.client.get(f"{reverse('collection:my_collection')}?tab=articles")
 
         self.assertContains(response, "Approved Article")
+        self.assertNotContains(response, "Draft Article")
         self.assertNotContains(response, "Rejected Article")
         self.assertNotContains(response, "Needs Changes Article")
         self.assertEqual(len(response.context["saved_articles"]), 1)
@@ -99,6 +105,19 @@ class CollectionVisibilityTests(TestCase):
     def test_cannot_add_needs_changes_recipe_or_article_to_collection(self):
         recipe = self.recipe("Needs Changes Recipe", Recipe.Status.NEEDS_CHANGES)
         article = self.article("Needs Changes Article", Article.Status.NEEDS_CHANGES)
+        self.client.force_login(self.user)
+
+        recipe_response = self.client.post(reverse("collection:add_recipe", kwargs={"slug": recipe.slug}))
+        article_response = self.client.post(reverse("collection:add_article", kwargs={"slug": article.slug}))
+
+        self.assertEqual(recipe_response.status_code, 404)
+        self.assertEqual(article_response.status_code, 404)
+        self.assertFalse(SavedRecipe.objects.filter(user=self.user, recipe=recipe).exists())
+        self.assertFalse(SavedArticle.objects.filter(user=self.user, article=article).exists())
+
+    def test_cannot_add_draft_recipe_or_article_to_collection(self):
+        recipe = self.recipe("Draft Recipe", Recipe.Status.DRAFT)
+        article = self.article("Draft Article", Article.Status.DRAFT)
         self.client.force_login(self.user)
 
         recipe_response = self.client.post(reverse("collection:add_recipe", kwargs={"slug": recipe.slug}))

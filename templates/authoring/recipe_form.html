@@ -57,6 +57,9 @@
                 <strong>Review required:</strong> Saving changes to a live recipe will move it back to Pending Review until a moderator approves it again.
             </div>
             {% endif %}
+            <div class="authoring-warning" role="status">
+                <strong>Drafts:</strong> Drafts are private to you and moderators, but the form still needs the required recipe details before it can be saved.
+            </div>
 
             <fieldset class="authoring-section">
                 <legend>Recipe Details</legend>
@@ -289,7 +292,10 @@
                 {% endif %}
                 <div class="authoring-actions__buttons">
                     <a class="authoring-link" href="{{ cancel_url }}">Cancel</a>
-                    <button class="authoring-submit" type="submit">{{ submit_label|default:"Save Recipe" }}</button>
+                    {% if can_save_draft %}
+                    <button class="authoring-submit authoring-submit--secondary" name="action" type="submit" value="save_draft">Save Draft</button>
+                    {% endif %}
+                    <button class="authoring-submit" name="action" type="submit" value="submit_review">Submit for Review</button>
                 </div>
             </div>
         </form>

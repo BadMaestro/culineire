@@ -61,6 +61,7 @@ def article_gallery_upload_to(instance, filename: str) -> str:
 
 class Article(models.Model):
     class Status(models.TextChoices):
+        DRAFT = "draft", "Draft"
         PENDING = "pending", "Pending Review"
         APPROVED = "approved", "Approved"
         NEEDS_CHANGES = "NEEDS_CHANGES", "Needs changes"

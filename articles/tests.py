@@ -1188,6 +1188,112 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertIn(Article.Status.NEEDS_CHANGES, Article.Status.values)
         self.assertEqual(Article.Status.NEEDS_CHANGES.label, "Needs changes")
 
+    def test_article_status_includes_draft(self):
+        self.assertIn(Article.Status.DRAFT, Article.Status.values)
+        self.assertEqual(Article.Status.DRAFT.label, "Draft")
+
+    def test_author_can_create_article_as_draft(self):
+        self.client.force_login(self.owner_user)
+
+        response = self.client.post(
+            reverse("articles:article_create"),
+            {**self.article_payload(title="Draft Article"), "action": "save_draft"},
+        )
+
+        article = Article.objects.get(title="Draft Article")
+        self.assertRedirects(response, article.get_absolute_url())
+        self.assertEqual(article.status, Article.Status.DRAFT)
+
+    def test_author_can_submit_new_article_for_review(self):
+        self.client.force_login(self.owner_user)
+
+        response = self.client.post(
+            reverse("articles:article_create"),
+            {**self.article_payload(title="Submitted Article"), "action": "submit_review"},
+        )
+
+        article = Article.objects.get(title="Submitted Article")
+        self.assertRedirects(response, article.get_absolute_url())
+        self.assertEqual(article.status, Article.Status.PENDING)
+
+    def test_draft_article_is_hidden_from_public_list_and_direct_url(self):
+        article = self.create_article("Draft Article", Article.Status.DRAFT)
+
+        list_response = self.client.get(reverse("articles:article_list"))
+        detail_response = self.client.get(article.get_absolute_url())
+
+        self.assertNotContains(list_response, "Draft Article")
+        self.assertEqual(detail_response.status_code, 404)
+
+    def test_article_owner_and_moderator_can_view_draft_article(self):
+        self.article.status = Article.Status.DRAFT
+        self.article.save(update_fields=["status"])
+
+        self.client.force_login(self.owner_user)
+        owner_response = self.client.get(self.article.get_absolute_url())
+        self.assertEqual(owner_response.status_code, 200)
+
+        self.client.force_login(self.moderator_user)
+        moderator_response = self.client.get(self.article.get_absolute_url())
+        self.assertEqual(moderator_response.status_code, 200)
+
+    def test_author_can_submit_draft_article_for_review(self):
+        self.article.status = Article.Status.DRAFT
+        self.article.save(update_fields=["status"])
+        self.client.force_login(self.owner_user)
+
+        response = self.client.post(
+            reverse("articles:article_edit", kwargs={"slug": self.article.slug}),
+            {**self.article_payload(), "action": "submit_review"},
+        )
+
+        self.article.refresh_from_db()
+        self.assertRedirects(response, self.article.get_absolute_url())
+        self.assertEqual(self.article.status, Article.Status.PENDING)
+
+    def test_author_can_save_needs_changes_article_as_draft_and_keep_note(self):
+        self.article.status = Article.Status.NEEDS_CHANGES
+        self.article.moderation_note = "Clarify source."
+        self.article.save(update_fields=["status", "moderation_note"])
+        self.client.force_login(self.owner_user)
+
+        self.client.post(
+            reverse("articles:article_edit", kwargs={"slug": self.article.slug}),
+            {**self.article_payload(), "action": "save_draft"},
+        )
+
+        self.article.refresh_from_db()
+        self.assertEqual(self.article.status, Article.Status.DRAFT)
+        self.assertEqual(self.article.moderation_note, "Clarify source.")
+
+    def test_author_can_submit_rejected_article_for_review_and_keep_note(self):
+        self.article.status = Article.Status.REJECTED
+        self.article.moderation_note = "Rejected note."
+        self.article.save(update_fields=["status", "moderation_note"])
+        self.client.force_login(self.owner_user)
+
+        self.client.post(
+            reverse("articles:article_edit", kwargs={"slug": self.article.slug}),
+            {**self.article_payload(), "action": "submit_review"},
+        )
+
+        self.article.refresh_from_db()
+        self.assertEqual(self.article.status, Article.Status.PENDING)
+        self.assertEqual(self.article.moderation_note, "Rejected note.")
+
+    def test_approved_article_cannot_be_saved_as_draft_by_author(self):
+        self.article.status = Article.Status.APPROVED
+        self.article.save(update_fields=["status"])
+        self.client.force_login(self.owner_user)
+
+        self.client.post(
+            reverse("articles:article_edit", kwargs={"slug": self.article.slug}),
+            {**self.article_payload(), "action": "save_draft"},
+        )
+
+        self.article.refresh_from_db()
+        self.assertEqual(self.article.status, Article.Status.PENDING)
+
     def test_moderator_can_request_article_changes_with_note(self):
         self.client.force_login(self.moderator_user)
 

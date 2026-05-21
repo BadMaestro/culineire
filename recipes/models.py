@@ -168,6 +168,7 @@ ALLERGEN_CHOICES = [
 
 class Recipe(models.Model):
     class Status(models.TextChoices):
+        DRAFT = "draft", "Draft"
         PENDING = "pending", "Pending Review"
         APPROVED = "approved", "Approved"
         NEEDS_CHANGES = "NEEDS_CHANGES", "Needs changes"

@@ -331,6 +331,18 @@ textarea.authoring-control {
   outline: 0;
 }
 
+.authoring-submit--secondary {
+  background: #f8f1e6;
+  color: #004f3f;
+  border: 1px solid rgb(0 79 63 / 0.22);
+}
+
+.authoring-submit--secondary:hover,
+.authoring-submit--secondary:focus-visible {
+  background: #efe3d2;
+  color: #003f33;
+}
+
 .authoring-steps {
   display: flex;
   flex-direction: column;

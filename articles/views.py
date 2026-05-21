@@ -91,6 +91,10 @@ def _update_article_gallery_alt_texts(article, post_data):
         image.save(update_fields=["alt_text"])
 
 
+def _authoring_action(request):
+    return request.POST.get("action") if request.POST.get("action") in {"save_draft", "submit_review"} else "submit_review"
+
+
 class ArticleListView(ListView):
     model = Article
     template_name = "articles/article_list.html"
@@ -187,14 +191,14 @@ class ArticleCreateView(AuthorRequiredMixin, CreateView):
         if not _validate_gallery_uploads(form, gallery_images):
             return self.form_invalid(form)
         gallery_alt_texts = _gallery_alt_lines(self.request.POST)
+        action = _authoring_action(self.request)
 
         with transaction.atomic():
             article = form.save(confirmed_by=self.request.user)
             self.object = article
 
-            if is_moderator(self.request.user):
-                article.status = Article.Status.APPROVED
-                article.save(update_fields=["status"])
+            article.status = Article.Status.DRAFT if action == "save_draft" else Article.Status.PENDING
+            article.save(update_fields=["status"])
 
             for i, img_file in enumerate(gallery_images, start=1):
                 ArticleImage.objects.create(
@@ -204,7 +208,10 @@ class ArticleCreateView(AuthorRequiredMixin, CreateView):
                     alt_text=gallery_alt_texts[i - 1] if i <= len(gallery_alt_texts) else "",
                 )
 
-        messages.success(self.request, "Article Created Successfully.")
+        if article.status == Article.Status.DRAFT:
+            messages.success(self.request, "Article saved as a private draft.")
+        else:
+            messages.success(self.request, "Article submitted for review.")
         return redirect(article.get_absolute_url())
 
     def form_invalid(self, form):
@@ -221,6 +228,7 @@ class ArticleCreateView(AuthorRequiredMixin, CreateView):
         context["author"] = self.author
         context["turnstile_site_key"] = settings.TURNSTILE_SITE_KEY
         context["cancel_url"] = reverse("articles:article_list")
+        context["can_save_draft"] = True
         return context
 
 
@@ -357,12 +365,19 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
         if not _validate_gallery_uploads(form, gallery_images):
             return self.form_invalid(form)
         gallery_alt_texts = _gallery_alt_lines(self.request.POST)
+        action = _authoring_action(self.request)
 
         with transaction.atomic():
             was_approved = self.object.status == Article.Status.APPROVED
+            previous_status = self.object.status
             article = form.save(commit=False, confirmed_by=self.request.user)
             if not is_moderator(self.request.user):
-                article.status = Article.Status.PENDING
+                if was_approved:
+                    article.status = Article.Status.PENDING
+                elif action == "save_draft":
+                    article.status = Article.Status.DRAFT
+                else:
+                    article.status = Article.Status.PENDING
             article.save()
             form.save_m2m()
             self.object = article
@@ -378,11 +393,15 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
                     alt_text=gallery_alt_texts[alt_index] if alt_index < len(gallery_alt_texts) else "",
                 )
 
-        if was_approved and not is_moderator(self.request.user):
+        if article.status == Article.Status.DRAFT and not is_moderator(self.request.user):
+            messages.success(self.request, "Article saved as a private draft.")
+        elif was_approved and not is_moderator(self.request.user):
             messages.success(
                 self.request,
                 "Article updated and sent back to review before it goes live again.",
             )
+        elif previous_status in {Article.Status.DRAFT, Article.Status.NEEDS_CHANGES, Article.Status.REJECTED} and article.status == Article.Status.PENDING:
+            messages.success(self.request, "Article submitted for review.")
         else:
             messages.success(self.request, "Article Updated Successfully.")
         return redirect(article.get_absolute_url())
@@ -405,6 +424,7 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
         context["submit_label"] = "Save Changes"
         context["cancel_url"] = self.object.get_absolute_url() if self.object else reverse("articles:article_list")
         context["turnstile_site_key"] = ""
+        context["can_save_draft"] = bool(self.object) and self.object.status != Article.Status.APPROVED
         context["will_return_to_review"] = (
             bool(self.object)
             and self.object.status == Article.Status.APPROVED
