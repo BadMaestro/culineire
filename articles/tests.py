@@ -667,6 +667,24 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertEqual(response.context["gallery_items"][0]["src"], self.article.hero_image.url)
         self.assertFalse(response.context["has_gallery"])
 
+    def test_article_detail_header_uses_article_image_as_hero_background(self):
+        self.article.hero_image.save("cover.png", self.uploaded_image("cover.png"), save=True)
+        ArticleImage.objects.create(
+            article=self.article,
+            image=self.uploaded_image("gallery.png"),
+            sort_order=1,
+        )
+        self.client.force_login(self.owner_user)
+
+        response = self.client.get(self.article.get_absolute_url())
+
+        self.assertEqual(response.context["article_hero_image"].url, self.article.hero_image.url)
+        self.assertContains(
+            response,
+            f"--detail-hero-image: url('{self.article.hero_image.url}');",
+            html=False,
+        )
+
     def test_article_detail_shows_management_actions_for_owner(self):
         self.client.force_login(self.owner_user)
 

@@ -257,6 +257,7 @@ class ArticleDetailView(DetailView):
         else:
             gallery_items = []
 
+        context["article_hero_image"] = article.card_image
         context["gallery_items"] = gallery_items
         context["has_gallery"] = len(gallery_items) > 1
         context["can_manage_article"] = (

@@ -35,7 +35,7 @@
 <section class="section">
     <div class="container">
         <article class="detail-page detail-page--article">
-            <header class="detail-page__header">
+            <header class="detail-page__header"{% if article_hero_image %} style="--detail-hero-image: url('{{ article_hero_image.url }}');"{% endif %}>
                 <div class="detail-page__header-inner">
                     <div class="detail-page__topbar">
                         <div class="detail-page__taxonomy" aria-label="Article information">
