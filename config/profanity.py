@@ -19,6 +19,7 @@ To force a cache refresh after adding/deleting words call:
 
 import logging
 import re
+import threading
 import time as _time
 
 logger = logging.getLogger(__name__)
@@ -70,17 +71,17 @@ _BUILTIN_WORDS: list[str] = [
 # In-process cache
 # ---------------------------------------------------------------------------
 
-_CACHE_TTL: float = 60.0          # seconds
+_CACHE_TTL: float = 60.0
 
+_lock = threading.Lock()
 _cached_words: list[str] | None = None
 _cached_pattern: re.Pattern | None = None
 _cache_ts: float = 0.0
 
 
 def _load_words() -> list[str]:
-    """Load words from the database, falling back to the built-in list."""
     try:
-        from monitoring.models import ProfanityWord  # lazy import to avoid circular deps
+        from monitoring.models import ProfanityWord
         words = list(ProfanityWord.objects.values_list("word", flat=True))
         return words if words else _BUILTIN_WORDS
     except Exception:
@@ -89,29 +90,31 @@ def _load_words() -> list[str]:
 
 
 def _get_pattern() -> re.Pattern:
-    """Return a compiled regex, rebuilding it when the cache expires."""
     global _cached_words, _cached_pattern, _cache_ts
 
     now = _time.monotonic()
     if _cached_pattern is not None and (now - _cache_ts) < _CACHE_TTL:
         return _cached_pattern
 
-    words = _load_words()
-    _cached_words = words
-    _cached_pattern = re.compile(
-        r"\b(" + "|".join(re.escape(w) for w in words) + r")\b",
-        re.IGNORECASE,
-    )
-    _cache_ts = now
+    with _lock:
+        if _cached_pattern is not None and (now - _cache_ts) < _CACHE_TTL:
+            return _cached_pattern
+        words = _load_words()
+        _cached_words = words
+        _cached_pattern = re.compile(
+            r"\b(" + "|".join(re.escape(w) for w in words) + r")\b",
+            re.IGNORECASE,
+        )
+        _cache_ts = now
     return _cached_pattern
 
 
 def invalidate_profanity_cache() -> None:
-    """Call this after adding or removing words so the next check reloads."""
     global _cached_words, _cached_pattern, _cache_ts
-    _cached_words = None
-    _cached_pattern = None
-    _cache_ts = 0.0
+    with _lock:
+        _cached_words = None
+        _cached_pattern = None
+        _cache_ts = 0.0
 
 
 # ---------------------------------------------------------------------------
