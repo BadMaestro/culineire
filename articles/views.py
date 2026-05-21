@@ -398,6 +398,22 @@ class ArticleDeleteView(AuthorRequiredMixin, DeleteView):
 # ── Moderation ────────────────────────────────────────────────────────────────
 
 @require_POST
+def delete_article_gallery_image(request, image_id):
+    image = get_object_or_404(
+        ArticleImage.objects.select_related("article", "article__author"),
+        pk=image_id,
+    )
+    article = image.article
+
+    if not (is_moderator(request.user) or user_can_manage_author(request.user, article.author)):
+        raise Http404
+
+    image.delete()
+    messages.success(request, "Gallery image deleted.")
+    return redirect(reverse("articles:article_edit", kwargs={"slug": article.slug}))
+
+
+@require_POST
 def moderate_article(request, slug):
     if not is_moderator(request.user):
         raise Http404

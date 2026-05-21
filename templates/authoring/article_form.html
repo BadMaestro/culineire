@@ -91,6 +91,10 @@
                             <div class="authoring-step-existing-item">
                                 <span class="authoring-step-badge">{{ forloop.counter }}</span>
                                 <img alt="Gallery image {{ forloop.counter }}" class="authoring-step-thumb" src="{{ img.image.url }}">
+                                <form action="{% url 'articles:delete_gallery_image' img.pk %}" method="post">
+                                    {% csrf_token %}
+                                    <button aria-label="Delete gallery image {{ forloop.counter }}" class="authoring-step-delete" onclick="return confirm('Delete this gallery image?')" type="submit">&times;</button>
+                                </form>
                             </div>
                             {% endfor %}
                         </div>

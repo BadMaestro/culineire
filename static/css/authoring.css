@@ -379,6 +379,7 @@ textarea.authoring-control {
   flex-direction: column;
   align-items: center;
   gap: 0.3rem;
+  position: relative;
 }
 
 .authoring-step-badge {
@@ -395,6 +396,32 @@ textarea.authoring-control {
   height: 72px;
   object-fit: cover;
   width: 96px;
+}
+
+.authoring-step-delete {
+  position: absolute;
+  inset-block-start: 1.6rem;
+  inset-inline-end: -0.35rem;
+  display: inline-grid;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border: 1px solid rgb(90 36 24 / 0.22);
+  border-radius: 50%;
+  background: rgb(255 253 248 / 0.96);
+  color: #7a2718;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 6px 16px rgb(31 44 37 / 0.16);
+}
+
+.authoring-step-delete:hover,
+.authoring-step-delete:focus-visible {
+  background: #7a2718;
+  color: #fffdf8;
+  outline: 0;
 }
 
 @media (max-width: 760px) {

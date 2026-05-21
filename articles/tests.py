@@ -925,6 +925,104 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertNotEqual(self.article.hero_image.url, original_url)
         self.assertIn("/cover-", self.article.hero_image.url)
 
+    def test_article_edit_shows_delete_button_for_existing_gallery_images(self):
+        gallery_image = ArticleImage.objects.create(
+            article=self.article,
+            image=self.uploaded_image("gallery.png"),
+            sort_order=1,
+        )
+        self.client.force_login(self.owner_user)
+
+        response = self.client.get(
+            reverse("articles:article_edit", kwargs={"slug": self.article.slug}),
+        )
+
+        self.assertContains(
+            response,
+            reverse("articles:delete_gallery_image", kwargs={"image_id": gallery_image.pk}),
+        )
+        self.assertContains(response, 'aria-label="Delete gallery image 1"', html=False)
+
+    def test_author_can_delete_own_article_gallery_image(self):
+        gallery_image = ArticleImage.objects.create(
+            article=self.article,
+            image=self.uploaded_image("gallery.png"),
+            sort_order=1,
+        )
+        image_name = gallery_image.image.name
+        storage = gallery_image.image.storage
+        self.client.force_login(self.owner_user)
+
+        response = self.client.post(
+            reverse("articles:delete_gallery_image", kwargs={"image_id": gallery_image.pk}),
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("articles:article_edit", kwargs={"slug": self.article.slug}),
+        )
+        self.assertFalse(ArticleImage.objects.filter(pk=gallery_image.pk).exists())
+        self.assertFalse(storage.exists(image_name))
+
+    def test_author_gallery_delete_keeps_live_article_approved(self):
+        self.article.status = Article.Status.APPROVED
+        self.article.save(update_fields=["status"])
+        gallery_image = ArticleImage.objects.create(
+            article=self.article,
+            image=self.uploaded_image("gallery.png"),
+            sort_order=1,
+        )
+        self.client.force_login(self.owner_user)
+
+        response = self.client.post(
+            reverse("articles:delete_gallery_image", kwargs={"image_id": gallery_image.pk}),
+        )
+
+        self.article.refresh_from_db()
+        self.assertRedirects(
+            response,
+            reverse("articles:article_edit", kwargs={"slug": self.article.slug}),
+        )
+        self.assertEqual(self.article.status, Article.Status.APPROVED)
+        self.assertFalse(ArticleImage.objects.filter(pk=gallery_image.pk).exists())
+
+    def test_author_cannot_delete_another_authors_gallery_image(self):
+        gallery_image = ArticleImage.objects.create(
+            article=self.article,
+            image=self.uploaded_image("gallery.png"),
+            sort_order=1,
+        )
+        self.client.force_login(self.other_user)
+
+        response = self.client.post(
+            reverse("articles:delete_gallery_image", kwargs={"image_id": gallery_image.pk}),
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertTrue(ArticleImage.objects.filter(pk=gallery_image.pk).exists())
+
+    def test_moderator_can_delete_gallery_image_without_returning_article_to_review(self):
+        self.article.status = Article.Status.APPROVED
+        self.article.save(update_fields=["status"])
+        gallery_image = ArticleImage.objects.create(
+            article=self.article,
+            image=self.uploaded_image("gallery.png"),
+            sort_order=1,
+        )
+        self.client.force_login(self.moderator_user)
+
+        response = self.client.post(
+            reverse("articles:delete_gallery_image", kwargs={"image_id": gallery_image.pk}),
+        )
+
+        self.article.refresh_from_db()
+        self.assertRedirects(
+            response,
+            reverse("articles:article_edit", kwargs={"slug": self.article.slug}),
+        )
+        self.assertEqual(self.article.status, Article.Status.APPROVED)
+        self.assertFalse(ArticleImage.objects.filter(pk=gallery_image.pk).exists())
+
     def test_author_cannot_delete_another_authors_article(self):
         self.client.force_login(self.other_user)
 
