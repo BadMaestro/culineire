@@ -84,7 +84,11 @@ def _load_words() -> list[str]:
         from monitoring.models import ProfanityWord
         words = list(ProfanityWord.objects.values_list("word", flat=True))
         return words if words else _BUILTIN_WORDS
-    except Exception:
+    except Exception as exc:
+        # DatabaseOperationForbidden is raised by SimpleTestCase when DB access
+        # is attempted without a transaction. This is expected — fall back silently.
+        if type(exc).__name__ == "DatabaseOperationForbidden":
+            return _BUILTIN_WORDS
         logger.warning("Profanity word list could not be loaded from DB, using built-in fallback", exc_info=True)
         return _BUILTIN_WORDS
 
