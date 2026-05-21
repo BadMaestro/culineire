@@ -589,6 +589,7 @@
   }
 
   .recipe-gallery__image-shell {
+    position: relative;
     overflow: hidden;
     border-radius: var(--detail-radius-lg);
     border: 1px solid var(--line);

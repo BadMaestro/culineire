@@ -741,7 +741,8 @@ class ArticleAuthoringPermissionTests(TestCase):
 
         response = self.client.get(self.article.get_absolute_url())
 
-        self.assertContains(response, "AI Generated")
+        self.assertContains(response, ">AI<", html=False)
+        self.assertNotContains(response, "AI Generated")
         self.assertContains(response, 'aria-label="AI generated image"', html=False)
 
     def test_article_moderation_block_confirm_escapes_username_for_javascript(self):

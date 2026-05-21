@@ -42,7 +42,6 @@
                         <div class="detail-page__taxonomy" aria-label="Article information">
                             <span class="detail-page__taxonomy-chip">Article</span>
                             <span class="detail-page__taxonomy-chip detail-page__taxonomy-chip--muted">{{ reading_time }} min read</span>
-                            {% if article.image_rights_status == 'ai_generated' %}<span aria-label="AI generated image" class="ai-image-badge ai-image-badge--inline">AI Generated</span>{% endif %}
                         </div>
 
                         {% if article.related_recipe %}
@@ -74,6 +73,7 @@
                         {% endif %}
                     </div>
                 </div>
+                {% if article.image_rights_status == 'ai_generated' %}<span aria-label="AI generated image" class="ai-image-badge">AI</span>{% endif %}
             </header>
 
             {% if gallery_items %}
@@ -125,6 +125,7 @@
                                 <img class="recipe-gallery__media" src="{{ item.src }}" alt="{{ item.alt }}" loading="lazy">
                                     {% endif %}
                                 {% endif %}
+                                {% if article.image_rights_status == 'ai_generated' %}<span aria-label="AI generated image" class="ai-image-badge">AI</span>{% endif %}
                             </div>
 
                             {% if item.caption %}
