@@ -1916,6 +1916,24 @@
   margin-inline-start: 0.35rem;
 }
 
+.culineire-watermark {
+  position: absolute;
+  bottom: 0.55rem;
+  right: 0.6rem;
+  z-index: 4;
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: #fff;
+  opacity: 0.5;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+  text-shadow: 0 1px 4px rgb(0 0 0 / 0.55);
+}
+
 .ai-image-badge--watermark {
   top: 0.6rem;
   left: 0.6rem;
