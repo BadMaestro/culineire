@@ -214,11 +214,17 @@ def send_message(request):
 
         if action == "reject_and_message" and recipe:
             recipe.status = Recipe.Status.REJECTED
-            recipe.save(update_fields=["status"])
+            recipe.moderation_note = body
+            recipe.moderated_by = request.user
+            recipe.moderated_at = timezone.now()
+            recipe.save(update_fields=["status", "moderation_note", "moderated_by", "moderated_at"])
             success_message = f'"{recipe.title}" rejected and author notified.'
         elif action == "reject_and_message" and article:
             article.status = Article.Status.REJECTED
-            article.save(update_fields=["status"])
+            article.moderation_note = body
+            article.moderated_by = request.user
+            article.moderated_at = timezone.now()
+            article.save(update_fields=["status", "moderation_note", "moderated_by", "moderated_at"])
             success_message = f'"{article.title}" rejected and author notified.'
         else:
             success_message = "Message sent."

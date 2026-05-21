@@ -315,6 +315,17 @@ class Recipe(models.Model):
         verbose_name="Confirmed by",
         editable=False,
     )
+
+    moderation_note = models.TextField(blank=True, default="")
+    moderated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="moderated_recipes",
+    )
+    moderated_at = models.DateTimeField(null=True, blank=True)
+
     image_rights_status = models.CharField(
         "Image rights",
         max_length=20,

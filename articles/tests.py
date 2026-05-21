@@ -1142,7 +1142,7 @@ class ArticleAuthoringPermissionTests(TestCase):
 
         response = self.client.post(
             reverse("articles:moderate_article", kwargs={"slug": self.article.slug}),
-            {"action": "reject"},
+            {"action": "reject", "moderation_note": "Please revise the body."},
         )
 
         self.article.refresh_from_db()
@@ -1339,3 +1339,92 @@ class ArticleAuthoringPermissionTests(TestCase):
 
         self.assertFalse(form.is_valid())
         self.assertIn("image_rights_note", form.errors)
+
+    # ── Phase 2: Moderation Tracking ─────────────────────────────────────────
+
+    def test_article_reject_without_note_is_blocked(self):
+        self.client.force_login(self.moderator_user)
+
+        response = self.client.post(
+            reverse("articles:moderate_article", kwargs={"slug": self.article.slug}),
+            {"action": "reject"},
+            follow=True,
+        )
+
+        self.article.refresh_from_db()
+        self.assertEqual(self.article.status, Article.Status.PENDING)
+        self.assertContains(response, "rejection note is required")
+
+    def test_article_reject_saves_tracking_fields(self):
+        self.client.force_login(self.moderator_user)
+
+        self.client.post(
+            reverse("articles:moderate_article", kwargs={"slug": self.article.slug}),
+            {"action": "reject", "moderation_note": "Needs more detail."},
+        )
+
+        self.article.refresh_from_db()
+        self.assertEqual(self.article.status, Article.Status.REJECTED)
+        self.assertEqual(self.article.moderation_note, "Needs more detail.")
+        self.assertEqual(self.article.moderated_by, self.moderator_user)
+        self.assertIsNotNone(self.article.moderated_at)
+
+    def test_article_approve_clears_moderation_note(self):
+        self.article.status = Article.Status.REJECTED
+        self.article.moderation_note = "Old note."
+        self.article.save(update_fields=["status", "moderation_note"])
+        self.client.force_login(self.moderator_user)
+
+        self.client.post(
+            reverse("articles:moderate_article", kwargs={"slug": self.article.slug}),
+            {"action": "approve"},
+        )
+
+        self.article.refresh_from_db()
+        self.assertEqual(self.article.status, Article.Status.APPROVED)
+        self.assertEqual(self.article.moderation_note, "")
+        self.assertEqual(self.article.moderated_by, self.moderator_user)
+        self.assertIsNotNone(self.article.moderated_at)
+
+    def test_article_reject_and_message_saves_note(self):
+        self.client.force_login(self.moderator_user)
+
+        self.client.post(
+            reverse("messaging:send_message"),
+            {
+                "action": "reject_and_message",
+                "recipient_id": self.owner_user.pk,
+                "article_id": self.article.pk,
+                "subject": f"Your article: {self.article.title}",
+                "body": "The images need proper rights documentation.",
+                "next": self.article.get_absolute_url(),
+            },
+        )
+
+        self.article.refresh_from_db()
+        self.assertEqual(self.article.status, Article.Status.REJECTED)
+        self.assertEqual(self.article.moderation_note, "The images need proper rights documentation.")
+        self.assertEqual(self.article.moderated_by, self.moderator_user)
+        self.assertIsNotNone(self.article.moderated_at)
+
+    def test_article_rejection_note_shown_to_author(self):
+        self.article.status = Article.Status.REJECTED
+        self.article.moderation_note = "Please expand the introduction."
+        self.article.moderated_by = self.moderator_user
+        self.article.save(update_fields=["status", "moderation_note", "moderated_by"])
+        self.client.force_login(self.owner_user)
+
+        response = self.client.get(self.article.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Please expand the introduction.")
+        self.assertContains(response, "Rejection note")
+
+    def test_article_rejection_note_hidden_from_public(self):
+        self.article.status = Article.Status.REJECTED
+        self.article.moderation_note = "Please expand the introduction."
+        self.article.save(update_fields=["status", "moderation_note"])
+
+        response = self.client.get(self.article.get_absolute_url())
+
+        self.assertEqual(response.status_code, 404)

@@ -200,7 +200,7 @@ class RecipeAdmin(admin.ModelAdmin):
     ordering = ("-created_at",)
     inlines = [RecipeImageInline]
     exclude = ("slug", "media_folder", "confirmed_by")
-    readonly_fields = ("hero_preview", "confirmation_timestamp")
+    readonly_fields = ("hero_preview", "confirmation_timestamp", "moderated_by", "moderated_at")
 
     fieldsets = (
         (
@@ -262,6 +262,17 @@ class RecipeAdmin(admin.ModelAdmin):
                     "image_rights_status",
                     "image_rights_note",
                 )
+            },
+        ),
+        (
+            "Moderation",
+            {
+                "classes": ("collapse",),
+                "fields": (
+                    "moderation_note",
+                    "moderated_by",
+                    "moderated_at",
+                ),
             },
         ),
         (

@@ -139,6 +139,12 @@
                     <h3 class="moderation-card__title">
                         <a href="{{ recipe.get_absolute_url }}">{{ recipe.title }}</a>
                     </h3>
+                    {% if recipe.moderation_note %}
+                    <p class="moderation-card__note">{{ recipe.moderation_note }}</p>
+                    {% if recipe.moderated_by %}
+                    <p class="moderation-card__note-meta">by {{ recipe.moderated_by.get_full_name|default:recipe.moderated_by.username }}{% if recipe.moderated_at %} &middot; {{ recipe.moderated_at|date:"j M Y" }}{% endif %}</p>
+                    {% endif %}
+                    {% endif %}
                 </div>
                 <div class="moderation-card__actions">
                     <a class="mod-btn mod-btn--view" href="{{ recipe.get_absolute_url }}" target="_blank">View</a>
@@ -220,6 +226,12 @@
                     <h3 class="moderation-card__title">
                         <a href="{{ article.get_absolute_url }}">{{ article.title }}</a>
                     </h3>
+                    {% if article.moderation_note %}
+                    <p class="moderation-card__note">{{ article.moderation_note }}</p>
+                    {% if article.moderated_by %}
+                    <p class="moderation-card__note-meta">by {{ article.moderated_by.get_full_name|default:article.moderated_by.username }}{% if article.moderated_at %} &middot; {{ article.moderated_at|date:"j M Y" }}{% endif %}</p>
+                    {% endif %}
+                    {% endif %}
                 </div>
                 <div class="moderation-card__actions">
                     <a class="mod-btn mod-btn--view" href="{{ article.get_absolute_url }}" target="_blank">View</a>

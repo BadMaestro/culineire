@@ -3127,3 +3127,38 @@
   flex-shrink: 0;
   letter-spacing: 0.05em;
 }
+
+/* Rejection note banner — visible to content owners and moderators */
+.mod-note-banner {
+  background: #fff7f0;
+  border-top: 3px solid #c04000;
+  padding: 1rem 0;
+}
+
+.mod-note-banner__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.mod-note-banner__label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #b03000;
+}
+
+.mod-note-banner__text {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #333;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.mod-note-banner__meta {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #777;
+}

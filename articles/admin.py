@@ -176,7 +176,7 @@ class ArticleAdmin(admin.ModelAdmin):
     inlines = [ArticleImageInline]
 
     exclude = ("media_folder", "confirmed_by")
-    readonly_fields = ("hero_preview", "confirmation_timestamp")
+    readonly_fields = ("hero_preview", "confirmation_timestamp", "moderated_by", "moderated_at")
 
     fieldsets = (
         (
@@ -236,6 +236,17 @@ class ArticleAdmin(admin.ModelAdmin):
                     "status",
                     "published",
                 )
+            },
+        ),
+        (
+            "Moderation",
+            {
+                "classes": ("collapse",),
+                "fields": (
+                    "moderation_note",
+                    "moderated_by",
+                    "moderated_at",
+                ),
             },
         ),
         (

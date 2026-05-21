@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Max, Prefetch, Q
 from django.http import Http404
+from django.utils import timezone
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils.safestring import mark_safe
@@ -439,11 +440,21 @@ def moderate_article(request, slug):
 
     if action == "approve":
         article.status = Article.Status.APPROVED
-        article.save(update_fields=["status"])
+        article.moderation_note = ""
+        article.moderated_by = request.user
+        article.moderated_at = timezone.now()
+        article.save(update_fields=["status", "moderation_note", "moderated_by", "moderated_at"])
         messages.success(request, f'"{article.title}" approved and is now live.')
     elif action == "reject":
+        note = request.POST.get("moderation_note", "").strip()
+        if not note:
+            messages.error(request, "A rejection note is required. Please explain what needs to be corrected.")
+            return redirect(article.get_absolute_url())
         article.status = Article.Status.REJECTED
-        article.save(update_fields=["status"])
+        article.moderation_note = note
+        article.moderated_by = request.user
+        article.moderated_at = timezone.now()
+        article.save(update_fields=["status", "moderation_note", "moderated_by", "moderated_at"])
         messages.warning(request, f'"{article.title}" rejected.')
     elif action == "delete":
         title = article.title

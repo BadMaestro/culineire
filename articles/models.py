@@ -153,6 +153,16 @@ class Article(models.Model):
         editable=False,
     )
 
+    moderation_note = models.TextField(blank=True, default="")
+    moderated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="moderated_articles",
+    )
+    moderated_at = models.DateTimeField(null=True, blank=True)
+
     class Meta:
         ordering = ["-published"]
         verbose_name = "Article"

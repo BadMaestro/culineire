@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.utils import timezone
 from django.db.models import Avg, Case, Count, IntegerField, Prefetch, Q, Value, When
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -1220,11 +1221,21 @@ def moderate_recipe(request, slug):
 
     if action == "approve":
         recipe.status = Recipe.Status.APPROVED
-        recipe.save(update_fields=["status"])
+        recipe.moderation_note = ""
+        recipe.moderated_by = request.user
+        recipe.moderated_at = timezone.now()
+        recipe.save(update_fields=["status", "moderation_note", "moderated_by", "moderated_at"])
         messages.success(request, f'"{recipe.title}" approved and is now live.')
     elif action == "reject":
+        note = request.POST.get("moderation_note", "").strip()
+        if not note:
+            messages.error(request, "A rejection note is required. Please explain what needs to be corrected.")
+            return redirect(recipe.get_absolute_url())
         recipe.status = Recipe.Status.REJECTED
-        recipe.save(update_fields=["status"])
+        recipe.moderation_note = note
+        recipe.moderated_by = request.user
+        recipe.moderated_at = timezone.now()
+        recipe.save(update_fields=["status", "moderation_note", "moderated_by", "moderated_at"])
         messages.warning(request, f'"{recipe.title}" rejected.')
     elif action == "delete":
         title = recipe.title

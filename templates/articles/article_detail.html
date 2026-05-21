@@ -239,6 +239,18 @@
     </div>
 </section>
 
+{% if can_manage_article and article.status == 'rejected' and article.moderation_note %}
+<div class="mod-note-banner">
+    <div class="container mod-note-banner__inner">
+        <span class="mod-note-banner__label">Rejection note</span>
+        <p class="mod-note-banner__text">{{ article.moderation_note }}</p>
+        {% if article.moderated_by and article.moderated_at %}
+        <p class="mod-note-banner__meta">Reviewed by {{ article.moderated_by.get_full_name|default:article.moderated_by.username }} &middot; {{ article.moderated_at|date:"j M Y, H:i" }}</p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
 {% if can_moderate_bar %}
 <div class="mod-bar" id="mod-bar">
     <div class="mod-bar__inner">
@@ -248,9 +260,7 @@
             <button class="mod-bar__btn mod-bar__btn--approve" name="action" type="submit" value="approve">Approve
             </button>
         </form>
-        <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
-            <button class="mod-bar__btn mod-bar__btn--reject" name="action" type="submit" value="reject">Reject</button>
-        </form>
+        <button class="mod-bar__btn mod-bar__btn--reject" id="mod-bar-reject-toggle" type="button">Reject</button>
         <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
             <button class="mod-bar__btn mod-bar__btn--delete" name="action" onclick="return confirm('Permanently delete this article?')" type="submit"
                     value="delete">Delete
@@ -270,6 +280,18 @@
         {% endif %}
 
         <a class="mod-bar__btn mod-bar__btn--back" href="{% url 'recipes:moderation_panel' %}">← Panel</a>
+    </div>
+
+    <div class="mod-bar__inner">
+        <div class="mod-bar__message-panel" id="mod-bar-reject-panel">
+            <form action="{% url 'articles:moderate_article' article.slug %}" method="post"
+                  style="display:flex;gap:0.5rem;flex:1;align-items:flex-start;">
+                {% csrf_token %}
+                <input name="action" type="hidden" value="reject">
+                <textarea name="moderation_note" placeholder="Note for the author — required. Explain what needs to be corrected." required rows="3">{{ article.moderation_note }}</textarea>
+                <button class="mod-bar__btn mod-bar__btn--reject" type="submit">Confirm Reject</button>
+            </form>
+        </div>
     </div>
 
     {% if article.author.user %}
@@ -292,12 +314,28 @@
 </div>
 <script nonce="{{ request.csp_nonce }}">
     (function(){
-        var toggle = document.getElementById('mod-bar-msg-toggle');
-        var panel = document.getElementById('mod-bar-msg-panel');
-        if (toggle && panel) {
-            toggle.addEventListener('click', function(){
-                panel.classList.toggle('is-open');
-                toggle.textContent = panel.classList.contains('is-open') ? 'Cancel' : 'Reject & Message Author';
+        var rejectToggle = document.getElementById('mod-bar-reject-toggle');
+        var rejectPanel = document.getElementById('mod-bar-reject-panel');
+        var msgToggle = document.getElementById('mod-bar-msg-toggle');
+        var msgPanel = document.getElementById('mod-bar-msg-panel');
+        function closeAll() {
+            if (rejectPanel) rejectPanel.classList.remove('is-open');
+            if (rejectToggle) rejectToggle.textContent = 'Reject';
+            if (msgPanel) msgPanel.classList.remove('is-open');
+            if (msgToggle) msgToggle.textContent = 'Reject & Message Author';
+        }
+        if (rejectToggle && rejectPanel) {
+            rejectToggle.addEventListener('click', function(){
+                var opening = !rejectPanel.classList.contains('is-open');
+                closeAll();
+                if (opening) { rejectPanel.classList.add('is-open'); rejectToggle.textContent = 'Cancel'; }
+            });
+        }
+        if (msgToggle && msgPanel) {
+            msgToggle.addEventListener('click', function(){
+                var opening = !msgPanel.classList.contains('is-open');
+                closeAll();
+                if (opening) { msgPanel.classList.add('is-open'); msgToggle.textContent = 'Cancel'; }
             });
         }
     })();

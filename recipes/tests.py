@@ -1129,6 +1129,158 @@ class SecurityMiddlewareEnvironmentTests(TestCase):
         )
 
 
+class RecipeModerationTrackingTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        self.author_user = user_model.objects.create_user(username="chef", password="pass")
+        self.author = RecipeAuthor.objects.create(
+            user=self.author_user,
+            name="Chef",
+            slug="chef",
+        )
+        self.moderator_user = user_model.objects.create_user(
+            username="mod",
+            password="pass",
+            is_staff=True,
+        )
+        RecipeAuthor.objects.create(
+            user=self.moderator_user,
+            name="Moderator",
+            slug="moderator",
+        )
+        self.recipe = Recipe.objects.create(
+            title="Test Recipe",
+            slug="test-recipe",
+            author=self.author,
+            ingredients="Potatoes",
+            method="Boil them.",
+            status=Recipe.Status.PENDING,
+        )
+
+    def test_recipe_reject_without_note_is_blocked(self):
+        self.client.force_login(self.moderator_user)
+
+        response = self.client.post(
+            reverse("recipes:moderate_recipe", kwargs={"slug": self.recipe.slug}),
+            {"action": "reject"},
+            follow=True,
+        )
+
+        self.recipe.refresh_from_db()
+        self.assertEqual(self.recipe.status, Recipe.Status.PENDING)
+        self.assertContains(response, "rejection note is required")
+
+    def test_recipe_reject_saves_tracking_fields(self):
+        self.client.force_login(self.moderator_user)
+
+        self.client.post(
+            reverse("recipes:moderate_recipe", kwargs={"slug": self.recipe.slug}),
+            {"action": "reject", "moderation_note": "Add more steps to the method."},
+        )
+
+        self.recipe.refresh_from_db()
+        self.assertEqual(self.recipe.status, Recipe.Status.REJECTED)
+        self.assertEqual(self.recipe.moderation_note, "Add more steps to the method.")
+        self.assertEqual(self.recipe.moderated_by, self.moderator_user)
+        self.assertIsNotNone(self.recipe.moderated_at)
+
+    def test_recipe_approve_clears_moderation_note(self):
+        self.recipe.status = Recipe.Status.REJECTED
+        self.recipe.moderation_note = "Old note."
+        self.recipe.save(update_fields=["status", "moderation_note"])
+        self.client.force_login(self.moderator_user)
+
+        self.client.post(
+            reverse("recipes:moderate_recipe", kwargs={"slug": self.recipe.slug}),
+            {"action": "approve"},
+        )
+
+        self.recipe.refresh_from_db()
+        self.assertEqual(self.recipe.status, Recipe.Status.APPROVED)
+        self.assertEqual(self.recipe.moderation_note, "")
+        self.assertEqual(self.recipe.moderated_by, self.moderator_user)
+        self.assertIsNotNone(self.recipe.moderated_at)
+
+    def test_recipe_reject_and_message_saves_note(self):
+        from messaging.models import Message
+        self.client.force_login(self.moderator_user)
+
+        self.client.post(
+            reverse("messaging:send_message"),
+            {
+                "action": "reject_and_message",
+                "recipient_id": self.author_user.pk,
+                "recipe_id": self.recipe.pk,
+                "subject": f"Your recipe: {self.recipe.title}",
+                "body": "The method needs clearer steps.",
+                "next": self.recipe.get_absolute_url(),
+            },
+        )
+
+        self.recipe.refresh_from_db()
+        self.assertEqual(self.recipe.status, Recipe.Status.REJECTED)
+        self.assertEqual(self.recipe.moderation_note, "The method needs clearer steps.")
+        self.assertEqual(self.recipe.moderated_by, self.moderator_user)
+        self.assertIsNotNone(self.recipe.moderated_at)
+
+    def test_recipe_rejection_note_shown_to_author(self):
+        self.recipe.status = Recipe.Status.REJECTED
+        self.recipe.moderation_note = "Please add serving suggestions."
+        self.recipe.moderated_by = self.moderator_user
+        self.recipe.save(update_fields=["status", "moderation_note", "moderated_by"])
+        self.client.force_login(self.author_user)
+
+        response = self.client.get(self.recipe.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Please add serving suggestions.")
+        self.assertContains(response, "Rejection note")
+
+    def test_recipe_rejection_note_hidden_from_public(self):
+        self.recipe.status = Recipe.Status.REJECTED
+        self.recipe.moderation_note = "Please add serving suggestions."
+        self.recipe.save(update_fields=["status", "moderation_note"])
+
+        response = self.client.get(self.recipe.get_absolute_url())
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_non_moderator_cannot_moderate_recipe(self):
+        self.client.force_login(self.author_user)
+
+        response = self.client.post(
+            reverse("recipes:moderate_recipe", kwargs={"slug": self.recipe.slug}),
+            {"action": "approve"},
+        )
+
+        self.recipe.refresh_from_db()
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(self.recipe.status, Recipe.Status.PENDING)
+
+    def test_moderator_can_approve_recipe(self):
+        self.client.force_login(self.moderator_user)
+
+        response = self.client.post(
+            reverse("recipes:moderate_recipe", kwargs={"slug": self.recipe.slug}),
+            {"action": "approve"},
+        )
+
+        self.recipe.refresh_from_db()
+        self.assertRedirects(response, self.recipe.get_absolute_url())
+        self.assertEqual(self.recipe.status, Recipe.Status.APPROVED)
+
+    def test_moderator_can_delete_recipe_from_moderation_endpoint(self):
+        self.client.force_login(self.moderator_user)
+
+        response = self.client.post(
+            reverse("recipes:moderate_recipe", kwargs={"slug": self.recipe.slug}),
+            {"action": "delete"},
+        )
+
+        self.assertRedirects(response, reverse("recipes:moderation_panel"))
+        self.assertFalse(Recipe.objects.filter(pk=self.recipe.pk).exists())
+
+
 @skip("Dev-only tests: static and media serving via culineire.localhost is not available on the production server")
 class DevelopmentMediaServingTests(TestCase):
     def test_development_static_is_served_locally(self):

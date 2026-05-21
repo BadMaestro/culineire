@@ -1328,3 +1328,22 @@
 .mod-maintenance-btn--off:hover {
   opacity: 0.82;
 }
+
+/* Rejection note display in moderation panel cards */
+.moderation-card__note {
+  font-size: 0.82rem;
+  color: #444;
+  margin: 0.3rem 0 0;
+  padding: 0.35rem 0.5rem;
+  background: #fdf5ef;
+  border-left: 3px solid #d06030;
+  border-radius: 0 4px 4px 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.moderation-card__note-meta {
+  font-size: 0.72rem;
+  color: #888;
+  margin: 0.15rem 0 0;
+}
