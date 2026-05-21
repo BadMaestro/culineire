@@ -7,6 +7,7 @@ from django.core.mail import BadHeaderError
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.db import transaction
 from django.views.generic import TemplateView
 from django_ratelimit.decorators import ratelimit
 
@@ -100,15 +101,16 @@ def report_content(request):
         if not verify_turnstile(token, request.META.get("REMOTE_ADDR", "")):
             turnstile_error = True
         elif form.is_valid():
-            report = form.save(commit=False)
-            report.reporter_user = request.user
-            report.reporter_name = request.user.get_full_name() or request.user.username
-            report.reporter_email = request.user.email
-            report.save()
-            message = _create_report_message(report, request.user)
-            if message:
-                report.linked_message = message
-                report.save(update_fields=["linked_message"])
+            with transaction.atomic():
+                report = form.save(commit=False)
+                report.reporter_user = request.user
+                report.reporter_name = request.user.get_full_name() or request.user.username
+                report.reporter_email = request.user.email
+                report.save()
+                message = _create_report_message(report, request.user)
+                if message:
+                    report.linked_message = message
+                    report.save(update_fields=["linked_message"])
             _send_report_notification(report)
             submitted = True
             form = ContentReportForm()
