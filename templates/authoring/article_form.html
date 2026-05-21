@@ -223,6 +223,22 @@
 {% block extra_js %}
 <script nonce="{{ request.csp_nonce }}">
 (function () {
+  document.querySelectorAll('.authoring-error').forEach(function (el, i) {
+    var field = el.closest('.authoring-field');
+    if (!field) return;
+    var input = field.querySelector('input,textarea,select');
+    if (!input) return;
+    var errId = (input.id || ('authoring-input-' + i)) + '-error';
+    el.id = errId;
+    el.setAttribute('role', 'alert');
+    input.setAttribute('aria-invalid', 'true');
+    var existing = input.getAttribute('aria-describedby');
+    input.setAttribute('aria-describedby', existing ? existing + ' ' + errId : errId);
+  });
+})();
+</script>
+<script nonce="{{ request.csp_nonce }}">
+(function () {
     function autoGrow(ta) {
         ta.style.height = 'auto';
         ta.style.height = ta.scrollHeight + 'px';
