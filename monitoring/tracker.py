@@ -43,7 +43,7 @@ SUSPICIOUS_PATH_MARKERS = (
     "/logs/", "/var/log/", "/storage/logs/",
     "/%22/", '/"/', "/https:/",
     ".cgi", "docker", "/.well-known/stripe",
-    "config.js", "constants.js", "/iam",
+    "/iam",
 )
 
 

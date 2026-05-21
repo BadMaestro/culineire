@@ -609,16 +609,8 @@ def reset_all_recipe_ratings(request, slug):
     recipe = get_object_or_404(Recipe, slug=slug)
     recipe.ratings.all().delete()
     session_key = f"recipe_rating_submitted_{recipe.pk}"
-    from django.contrib.sessions.backends.db import SessionStore
-    from django.contrib.sessions.models import Session
-    for session_obj in Session.objects.all():
-        try:
-            store = SessionStore(session_key=session_obj.session_key)
-            if session_key in store:
-                del store[session_key]
-                store.save()
-        except Exception:
-            pass
+    request.session.pop(session_key, None)
+    request.session.modified = True
     is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
     if is_ajax:
         return JsonResponse({"ok": True})
@@ -762,6 +754,7 @@ def add_comment_reply(request, comment_id):
         author = request.user.recipe_author_profile
         display_name = author.name
     except RecipeAuthor.DoesNotExist:
+        messages.error(request, "Only registered authors can reply to comments.")
         return redirect(f"{recipe.get_absolute_url()}#comment-{root.pk}")
 
     token = request.POST.get("cf-turnstile-response", "")
