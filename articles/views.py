@@ -38,6 +38,24 @@ def _reading_time_minutes(text):
     return max(1, round(len(text.split()) / 200))
 
 
+def _editorial_hints(article):
+    """
+    Return a dict of simple editorial quality flags for the author/moderator
+    checklist on the article detail page. All checks are lightweight string ops;
+    no DB queries. Only shown when can_manage_article is True.
+    """
+    body = article.body or ""
+    first_block = body.split("\n\n")[0].strip() if body else ""
+    return {
+        "has_excerpt": bool((article.excerpt or "").strip()),
+        "has_hero_image": bool(article.hero_image),
+        "has_hero_alt_text": bool((article.hero_image_alt_text or "").strip()),
+        "has_section_headings": "## " in body,
+        "has_adequate_length": _reading_time_minutes(body) >= 2,
+        "has_lead_para": len(first_block) >= 60,
+    }
+
+
 def _json_ld(data):
     value = json.dumps(data, ensure_ascii=False)
     value = value.replace("&", "\\u0026").replace("<", "\\u003C").replace(">", "\\u003E")
@@ -351,6 +369,7 @@ class ArticleDetailView(DetailView):
         context["collection_add_url"] = reverse("collection:add_article", kwargs={"slug": article.slug})
         context["collection_remove_url"] = reverse("collection:remove_article", kwargs={"slug": article.slug})
         context["reading_time"] = _reading_time_minutes(article.body or "")
+        context["editorial_hints"] = _editorial_hints(article)
         return context
 
 

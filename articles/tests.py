@@ -1914,3 +1914,236 @@ class ArticleSoftDeleteTests(TestCase):
     def test_approved_not_deleted_article_detail_accessible(self):
         response = self.client.get(self.article.get_absolute_url())
         self.assertEqual(response.status_code, 200)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Phase 5 — editorial_format filter unit tests
+# ══════════════════════════════════════════════════════════════════════════════
+
+class EditorialFormatFilterTests(TestCase):
+    """Unit tests for articles.templatetags.article_filters.editorial_format."""
+
+    def _render(self, text):
+        from articles.templatetags.article_filters import editorial_format
+        return editorial_format(text)
+
+    # ── Basic paragraph rendering ─────────────────────────────────────────────
+
+    def test_plain_text_renders_as_lead_paragraph(self):
+        result = self._render("A plain paragraph of text.")
+        self.assertIn('<p class="lead">', result)
+        self.assertIn("A plain paragraph of text.", result)
+
+    def test_two_paragraphs_first_is_lead(self):
+        result = self._render("First paragraph.\n\nSecond paragraph.")
+        self.assertIn('<p class="lead">First paragraph.</p>', result)
+        self.assertIn('<p>Second paragraph.</p>', result)
+
+    def test_empty_string_returns_empty(self):
+        result = self._render("")
+        self.assertEqual(result, "")
+
+    def test_none_returns_empty(self):
+        result = self._render(None)
+        self.assertEqual(result, "")
+
+    def test_single_newlines_within_para_become_br(self):
+        result = self._render("Line one\nLine two")
+        self.assertIn("<br>", result)
+        self.assertIn("Line one", result)
+        self.assertIn("Line two", result)
+
+    # ── Headings ──────────────────────────────────────────────────────────────
+
+    def test_h2_heading_rendered(self):
+        result = self._render("## My Section")
+        self.assertIn("<h2>My Section</h2>", result)
+        self.assertNotIn("<p", result)
+
+    def test_h3_heading_rendered(self):
+        result = self._render("### My Sub-Section")
+        self.assertIn("<h3>My Sub-Section</h3>", result)
+        self.assertNotIn("<p", result)
+
+    def test_h2_followed_by_paragraph(self):
+        result = self._render("## Intro\n\nSome text here.")
+        self.assertIn("<h2>Intro</h2>", result)
+        self.assertIn("<p", result)
+        self.assertIn("Some text here.", result)
+
+    def test_first_para_after_heading_is_lead(self):
+        result = self._render("## Section\n\nFirst real paragraph.")
+        self.assertIn('<p class="lead">First real paragraph.</p>', result)
+
+    # ── Blockquote ────────────────────────────────────────────────────────────
+
+    def test_blockquote_rendered(self):
+        result = self._render("> A wise observation.")
+        self.assertIn("<blockquote>", result)
+        self.assertIn("<p>A wise observation.</p>", result)
+
+    def test_multiline_blockquote(self):
+        result = self._render("> Line one\n> Line two")
+        self.assertIn("<blockquote>", result)
+        self.assertIn("Line one", result)
+        self.assertIn("Line two", result)
+
+    # ── Lists ─────────────────────────────────────────────────────────────────
+
+    def test_dash_list_rendered_as_ul(self):
+        result = self._render("- First item\n- Second item")
+        self.assertIn("<ul>", result)
+        self.assertIn("<li>First item</li>", result)
+        self.assertIn("<li>Second item</li>", result)
+
+    def test_asterisk_list_rendered_as_ul(self):
+        result = self._render("* Alpha\n* Beta")
+        self.assertIn("<ul>", result)
+        self.assertIn("<li>Alpha</li>", result)
+
+    # ── XSS safety ───────────────────────────────────────────────────────────
+
+    def test_script_tag_in_body_is_escaped(self):
+        result = self._render("<script>alert('xss')</script>")
+        self.assertNotIn("<script>", result)
+        self.assertIn("&lt;script&gt;", result)
+
+    def test_html_in_heading_is_escaped(self):
+        result = self._render("## <b>Bold</b> Title")
+        self.assertNotIn("<b>", result)
+        self.assertIn("&lt;b&gt;", result)
+
+    def test_html_in_list_item_is_escaped(self):
+        result = self._render('- <img src=x onerror="alert(1)">')
+        self.assertNotIn("<img", result)
+        self.assertIn("&lt;img", result)
+
+    def test_html_in_blockquote_is_escaped(self):
+        result = self._render('> <strong>Bold</strong>')
+        self.assertNotIn("<strong>", result)
+        self.assertIn("&lt;strong&gt;", result)
+
+    def test_ampersand_escaped(self):
+        result = self._render("Fish & chips.")
+        self.assertIn("Fish &amp; chips.", result)
+
+    # ── Output is mark_safe ───────────────────────────────────────────────────
+
+    def test_output_is_mark_safe(self):
+        from django.utils.safestring import SafeString
+        result = self._render("Some text.")
+        self.assertIsInstance(result, SafeString)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Phase 5 — article detail integration tests (editorial renderer + checklist)
+# ══════════════════════════════════════════════════════════════════════════════
+
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.InMemoryStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    },
+)
+class ArticleEditorialDetailTests(TestCase):
+    """Integration tests for editorial_format rendering on the article detail page."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.author_user = User.objects.create_user(username="ed_author", password="pass")
+        self.author = RecipeAuthor.objects.create(
+            user=self.author_user, name="Ed Author", slug="ed-author"
+        )
+        self.article = Article.objects.create(
+            title="Editorial Test Article",
+            slug="editorial-test-article",
+            author=self.author,
+            excerpt="Test excerpt",
+            body=(
+                "## Opening Section\n\n"
+                "First paragraph with enough text to be the lead.\n\n"
+                "> An editorial quote from someone.\n\n"
+                "- Bullet one\n"
+                "- Bullet two\n\n"
+                "### Sub-section\n\n"
+                "Another paragraph of body text."
+            ),
+            published=date(2026, 5, 1),
+            status=Article.Status.APPROVED,
+            confirmed_own_work=True,
+            confirmed_image_rights=True,
+            confirmed_rules=True,
+        )
+
+    def _get(self):
+        return self.client.get(self.article.get_absolute_url())
+
+    def test_article_detail_returns_200(self):
+        self.assertEqual(self._get().status_code, 200)
+
+    def test_h2_rendered_on_detail_page(self):
+        response = self._get()
+        self.assertContains(response, "<h2>Opening Section</h2>")
+
+    def test_h3_rendered_on_detail_page(self):
+        response = self._get()
+        self.assertContains(response, "<h3>Sub-section</h3>")
+
+    def test_blockquote_rendered_on_detail_page(self):
+        response = self._get()
+        self.assertContains(response, "<blockquote>")
+        self.assertContains(response, "An editorial quote from someone.")
+
+    def test_list_rendered_on_detail_page(self):
+        response = self._get()
+        self.assertContains(response, "<ul>")
+        self.assertContains(response, "<li>Bullet one</li>")
+
+    def test_lead_paragraph_class_present(self):
+        response = self._get()
+        self.assertContains(response, 'class="lead"')
+
+    def test_no_raw_linebreaks_filter_output(self):
+        # The old |linebreaks filter wraps every double-newline in </p><p>
+        # The new filter produces proper semantic elements.
+        # Verify the body block-level element order makes structural sense.
+        response = self._get()
+        content = response.content.decode()
+        # h2 should appear before the lead paragraph
+        self.assertLess(content.index("<h2>"), content.index('class="lead"'))
+
+    def test_xss_body_is_safe_on_detail_page(self):
+        self.article.body = "<script>alert('xss')</script>"
+        self.article.save(update_fields=["body"])
+        response = self._get()
+        self.assertNotContains(response, "<script>alert")
+        self.assertContains(response, "&lt;script&gt;")
+
+    def test_editorial_checklist_visible_to_author(self):
+        self.client.force_login(self.author_user)
+        response = self._get()
+        self.assertContains(response, "Editorial checklist")
+
+    def test_editorial_checklist_hidden_from_public(self):
+        response = self._get()
+        self.assertNotContains(response, "Editorial checklist")
+
+    def test_editorial_hints_in_context(self):
+        self.client.force_login(self.author_user)
+        response = self._get()
+        self.assertIn("editorial_hints", response.context)
+        hints = response.context["editorial_hints"]
+        self.assertIn("has_excerpt", hints)
+        self.assertIn("has_section_headings", hints)
+
+    def test_editorial_hints_detects_section_headings(self):
+        self.client.force_login(self.author_user)
+        response = self._get()
+        self.assertTrue(response.context["editorial_hints"]["has_section_headings"])
+
+    def test_editorial_hints_detects_missing_headings(self):
+        self.article.body = "Just a plain paragraph with no headings at all."
+        self.article.save(update_fields=["body"])
+        self.client.force_login(self.author_user)
+        response = self._get()
+        self.assertFalse(response.context["editorial_hints"]["has_section_headings"])

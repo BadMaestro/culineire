@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static article_filters %}
 
 {% block title %}{{ article.title }} | CulinEire{% endblock %}
 {% block meta_description %}{% if article.excerpt %}{{ article.excerpt|striptags|truncatechars:160 }}{% else %}Article detail page for {{ article.title }} on CulinEire.{% endif %}{% endblock %}
@@ -190,12 +190,46 @@
                 <section class="detail-page__main">
                     <article class="detail-page__content-card">
                         <div class="rich-text">
-                            {{ article.body|linebreaks }}
+                            {{ article.body|editorial_format }}
                         </div>
                     </article>
                 </section>
 
                 <aside class="detail-page__sidebar">
+                    {% if can_manage_article %}
+                    <section class="detail-page__card">
+                        <div class="editorial-checklist">
+                            <p class="editorial-checklist__title">Editorial checklist</p>
+                            <div class="editorial-checklist__item">
+                                {% if editorial_hints.has_excerpt %}<span class="editorial-checklist__icon editorial-checklist__icon--ok" aria-hidden="true">✓</span>{% else %}<span class="editorial-checklist__icon editorial-checklist__icon--warn" aria-hidden="true">!</span>{% endif %}
+                                Summary / excerpt
+                            </div>
+                            <div class="editorial-checklist__item">
+                                {% if editorial_hints.has_lead_para %}<span class="editorial-checklist__icon editorial-checklist__icon--ok" aria-hidden="true">✓</span>{% else %}<span class="editorial-checklist__icon editorial-checklist__icon--warn" aria-hidden="true">!</span>{% endif %}
+                                Opening paragraph
+                            </div>
+                            <div class="editorial-checklist__item">
+                                {% if editorial_hints.has_section_headings %}<span class="editorial-checklist__icon editorial-checklist__icon--ok" aria-hidden="true">✓</span>{% else %}<span class="editorial-checklist__icon editorial-checklist__icon--warn" aria-hidden="true">!</span>{% endif %}
+                                Section headings (##)
+                            </div>
+                            <div class="editorial-checklist__item">
+                                {% if editorial_hints.has_adequate_length %}<span class="editorial-checklist__icon editorial-checklist__icon--ok" aria-hidden="true">✓</span>{% else %}<span class="editorial-checklist__icon editorial-checklist__icon--warn" aria-hidden="true">!</span>{% endif %}
+                                Reading time ≥ 2 min
+                            </div>
+                            <div class="editorial-checklist__item">
+                                {% if editorial_hints.has_hero_image %}<span class="editorial-checklist__icon editorial-checklist__icon--ok" aria-hidden="true">✓</span>{% else %}<span class="editorial-checklist__icon editorial-checklist__icon--warn" aria-hidden="true">!</span>{% endif %}
+                                Hero image
+                            </div>
+                            {% if editorial_hints.has_hero_image %}
+                            <div class="editorial-checklist__item">
+                                {% if editorial_hints.has_hero_alt_text %}<span class="editorial-checklist__icon editorial-checklist__icon--ok" aria-hidden="true">✓</span>{% else %}<span class="editorial-checklist__icon editorial-checklist__icon--warn" aria-hidden="true">!</span>{% endif %}
+                                Image alt text
+                            </div>
+                            {% endif %}
+                        </div>
+                    </section>
+                    {% endif %}
+
                     <section class="detail-page__card detail-page__card--meta">
                         <h3>Published</h3>
                         <p>

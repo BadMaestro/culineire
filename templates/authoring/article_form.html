@@ -161,6 +161,17 @@
                         {{ form.body }}
                         {% if form.body.help_text %}<p class="authoring-help authoring-help--center">{{ form.body.help_text }}</p>{% endif %}
                         {% for error in form.body.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                        <div class="authoring-format-guide" aria-label="Formatting guide">
+                            <p class="authoring-format-guide__title">Formatting guide</p>
+                            <ul class="authoring-format-guide__list">
+                                <li><code>## Section title</code> &mdash; section heading</li>
+                                <li><code>### Sub-section</code> &mdash; sub-heading</li>
+                                <li><code>&gt; A short quote or pull-out.</code> &mdash; blockquote</li>
+                                <li><code>- First item</code> &mdash; bullet list (one item per line)</li>
+                                <li>Leave a blank line between paragraphs.</li>
+                                <li>Keep one idea per paragraph and aim for a clear opening sentence.</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </fieldset>

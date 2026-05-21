@@ -716,3 +716,47 @@ textarea.authoring-control {
   white-space: nowrap;
   overflow: hidden;
 }
+
+
+/* ── Article body formatting guide ── */
+.authoring-format-guide {
+  margin-block-start: 0.85rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgb(22 102 69 / 0.14);
+  border-inline-start: 3px solid rgb(22 102 69 / 0.35);
+  border-radius: 0 10px 10px 0;
+  background: rgb(22 102 69 / 0.03);
+}
+
+.authoring-format-guide__title {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.authoring-format-guide__list {
+  margin: 0;
+  padding-inline-start: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  list-style: disc;
+}
+
+.authoring-format-guide__list li {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.authoring-format-guide__list code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.84em;
+  background: rgb(20 33 43 / 0.06);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  color: var(--ink);
+}
