@@ -95,6 +95,14 @@ def _authoring_action(request):
     return request.POST.get("action") if request.POST.get("action") in {"save_draft", "submit_review"} else "submit_review"
 
 
+def _soft_delete_article(article, user):
+    """Mark an article as deleted without removing it from the database."""
+    article.is_deleted = True
+    article.deleted_at = timezone.now()
+    article.deleted_by = user
+    article.save(update_fields=["is_deleted", "deleted_at", "deleted_by"])
+
+
 class ArticleListView(ListView):
     model = Article
     template_name = "articles/article_list.html"
@@ -120,6 +128,7 @@ class ArticleListView(ListView):
         queryset = (
             Article.objects.select_related("author")
             .prefetch_related(ARTICLE_CARD_GALLERY_PREFETCH)
+            .filter(is_deleted=False)
             .order_by("-published")
         )
         if not show_all:
@@ -142,7 +151,7 @@ class ArticleListView(ListView):
             qs = (
                 Article.objects.select_related("author")
                 .prefetch_related(ARTICLE_CARD_GALLERY_PREFETCH)
-                .filter(author=selected_author)
+                .filter(author=selected_author, is_deleted=False)
                 .order_by("-published")
             )
             if not can_manage_selected_author:
@@ -153,7 +162,7 @@ class ArticleListView(ListView):
             all_qs = (
                 Article.objects.select_related("author")
                 .prefetch_related(ARTICLE_CARD_GALLERY_PREFETCH)
-                .filter(status=Article.Status.APPROVED)
+                .filter(status=Article.Status.APPROVED, is_deleted=False)
                 .order_by("-published")
             )
             default_recent_articles = list(all_qs[:6])
@@ -245,7 +254,7 @@ class ArticleDetailView(DetailView):
     def get_queryset(self):
         qs = Article.objects.select_related("author", "related_recipe").prefetch_related(
             self._GALLERY_PREFETCH
-        )
+        ).filter(is_deleted=False)
         if is_moderator(self.request.user):
             return qs
 
@@ -445,12 +454,14 @@ class ArticleDeleteView(AuthorRequiredMixin, DeleteView):
 
     def get_queryset(self):
         if is_moderator(self.request.user):
-            return Article.objects.all()
-        return Article.objects.filter(author=self.author)
+            return Article.objects.filter(is_deleted=False)
+        return Article.objects.filter(author=self.author, is_deleted=False)
 
     def form_valid(self, form):
-        messages.success(self.request, "Article Deleted Successfully.")
-        return super().form_valid(form)
+        self.object = self.get_object()
+        _soft_delete_article(self.object, self.request.user)
+        messages.success(self.request, "Article deleted.")
+        return redirect(self.success_url)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -537,8 +548,8 @@ def moderate_article(request, slug):
         messages.warning(request, f'"{article.title}" rejected.')
     elif action == "delete":
         title = article.title
-        article.delete()
-        messages.success(request, f'"{title}" permanently deleted.')
+        _soft_delete_article(article, request.user)
+        messages.success(request, f'"{title}" deleted.')
     else:
         raise Http404
 

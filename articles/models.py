@@ -171,6 +171,16 @@ class Article(models.Model):
     )
     moderated_at = models.DateTimeField(null=True, blank=True)
 
+    is_deleted = models.BooleanField(default=False, db_index=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+    deleted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="deleted_articles",
+    )
+
     class Meta:
         ordering = ["-published"]
         verbose_name = "Article"

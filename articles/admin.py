@@ -157,11 +157,13 @@ class ArticleAdmin(admin.ModelAdmin):
         "article_preview_small",
         "author",
         "status",
+        "is_deleted",
         "published",
         "related_recipe",
     )
     list_filter = (
         "status",
+        "is_deleted",
         "published",
         "author",
     )
@@ -176,7 +178,7 @@ class ArticleAdmin(admin.ModelAdmin):
     inlines = [ArticleImageInline]
 
     exclude = ("media_folder", "confirmed_by")
-    readonly_fields = ("hero_preview", "confirmation_timestamp", "moderated_by", "moderated_at")
+    readonly_fields = ("hero_preview", "confirmation_timestamp", "moderated_by", "moderated_at", "deleted_at", "deleted_by")
 
     fieldsets = (
         (
@@ -246,6 +248,17 @@ class ArticleAdmin(admin.ModelAdmin):
                     "moderation_note",
                     "moderated_by",
                     "moderated_at",
+                ),
+            },
+        ),
+        (
+            "Soft delete",
+            {
+                "classes": ("collapse",),
+                "fields": (
+                    "is_deleted",
+                    "deleted_at",
+                    "deleted_by",
                 ),
             },
         ),

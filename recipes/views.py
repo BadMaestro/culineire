@@ -132,6 +132,14 @@ def _authoring_action(request):
     return request.POST.get("action") if request.POST.get("action") in {"save_draft", "submit_review"} else "submit_review"
 
 
+def _soft_delete_recipe(recipe, user):
+    """Mark a recipe as deleted without removing it from the database."""
+    recipe.is_deleted = True
+    recipe.deleted_at = timezone.now()
+    recipe.deleted_by = user
+    recipe.save(update_fields=["is_deleted", "deleted_at", "deleted_by"])
+
+
 def _build_method_steps(method_text: str) -> list[dict]:
     raw_lines = _split_text_lines(method_text)
 
@@ -221,14 +229,14 @@ def home(request):
     )
     latest_recipes = (
         Recipe.objects.select_related("author")
-        .filter(status=Recipe.Status.APPROVED)
+        .filter(status=Recipe.Status.APPROVED, is_deleted=False)
         .order_by("-created_at")[:6]
     )
 
     latest_articles = (
         Article.objects.select_related("author", "related_recipe")
         .prefetch_related(article_card_gallery_prefetch)
-        .filter(status=Article.Status.APPROVED)
+        .filter(status=Article.Status.APPROVED, is_deleted=False)
         .order_by("-published")[:6]
     )
 
@@ -244,7 +252,7 @@ def recipe_list(request):
     recipes = (
         Recipe.objects.select_related("author")
         .prefetch_related("additional_category_links")
-        .filter(status=Recipe.Status.APPROVED)
+        .filter(status=Recipe.Status.APPROVED, is_deleted=False)
         .order_by("-created_at")
     )
     popular_recipe_candidates = (
@@ -254,7 +262,7 @@ def recipe_list(request):
             average_rating_value=Avg("ratings__value"),
             ratings_total=Count("ratings"),
         )
-        .filter(ratings_total__gt=0)
+        .filter(ratings_total__gt=0, is_deleted=False)
         .order_by("-average_rating_value", "-ratings_total", "-created_at")
     )
     selected_author = None
@@ -267,7 +275,7 @@ def recipe_list(request):
             recipes = (
                 Recipe.objects.select_related("author")
                 .prefetch_related("additional_category_links")
-                .filter(author=selected_author)
+                .filter(author=selected_author, is_deleted=False)
                 .order_by("-created_at")
             )
 
@@ -334,7 +342,7 @@ def recipe_list(request):
     if selected_author:
         all_articles = (
             Article.objects.select_related("author")
-            .filter(author=selected_author)
+            .filter(author=selected_author, is_deleted=False)
             .order_by("-published")
         )
         if not (user_can_manage_author(request.user, selected_author) or is_moderator(request.user)):
@@ -395,7 +403,7 @@ def category_detail(request, category_slug):
     recipes = (
         Recipe.objects.select_related("author")
         .prefetch_related("additional_category_links")
-        .filter(status=Recipe.Status.APPROVED)
+        .filter(status=Recipe.Status.APPROVED, is_deleted=False)
     )
     recipes = Recipe.filter_for_category(recipes, category_value).order_by("-created_at")
 
@@ -438,6 +446,9 @@ def recipe_detail(request, slug):
         ),
         slug=slug,
     )
+
+    if recipe.is_deleted:
+        raise Http404
 
     if recipe.status != Recipe.Status.APPROVED:
         if not is_moderator(request.user):
@@ -577,7 +588,7 @@ def recipe_detail(request, slug):
         "collection_remove_url": reverse("collection:remove_recipe", kwargs={"slug": recipe.slug}),
         "turnstile_site_key": settings.TURNSTILE_SITE_KEY,
         "related_articles": list(
-            Article.objects.filter(related_recipe=recipe, status=Article.Status.APPROVED)
+            Article.objects.filter(related_recipe=recipe, status=Article.Status.APPROVED, is_deleted=False)
             .select_related("author")
             .order_by("-published")[:5]
         ),
@@ -588,7 +599,7 @@ def recipe_detail(request, slug):
 @require_POST
 @ratelimit(key="ip", rate="10/h", method="POST", block=False)
 def submit_recipe_rating(request, slug):
-    recipe = get_object_or_404(Recipe, slug=slug, status=Recipe.Status.APPROVED)
+    recipe = get_object_or_404(Recipe, slug=slug, status=Recipe.Status.APPROVED, is_deleted=False)
     form = RecipeRatingForm(request.POST)
     is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
     session_key = f"recipe_rating_submitted_{recipe.pk}"
@@ -660,7 +671,7 @@ def reset_all_recipe_ratings(request, slug):
 
 def recipe_ratings_api(request, slug):
     """Return rating breakdown + recent named raters as JSON."""
-    recipe = get_object_or_404(Recipe, slug=slug, status="approved")
+    recipe = get_object_or_404(Recipe, slug=slug, status="approved", is_deleted=False)
     ratings_qs = recipe.ratings.select_related("user__recipe_author_profile").order_by("-created_at")
 
     total = ratings_qs.count()
@@ -693,7 +704,7 @@ def recipe_ratings_api(request, slug):
 @login_required
 @ratelimit(key="ip", rate="5/h", method="POST", block=False)
 def submit_recipe_comment(request, slug):
-    recipe = get_object_or_404(Recipe, slug=slug, status=Recipe.Status.APPROVED)
+    recipe = get_object_or_404(Recipe, slug=slug, status=Recipe.Status.APPROVED, is_deleted=False)
 
     try:
         display_name = request.user.recipe_author_profile.name
@@ -789,7 +800,7 @@ def add_comment_reply(request, comment_id):
     target = get_object_or_404(RecipeComment, pk=comment_id, is_approved=True)
     root = target if target.parent_id is None else target.parent
     recipe = root.recipe
-    if recipe.status != Recipe.Status.APPROVED:
+    if recipe.is_deleted or recipe.status != Recipe.Status.APPROVED:
         raise Http404
 
     try:
@@ -824,8 +835,8 @@ def author_detail(request, slug):
     can_manage = user_can_manage_author(request.user, author)
     moderator = is_moderator(request.user)
 
-    recipes_for_count = Recipe.objects.filter(author=author)
-    articles_for_count = Article.objects.filter(author=author)
+    recipes_for_count = Recipe.objects.filter(author=author, is_deleted=False)
+    articles_for_count = Article.objects.filter(author=author, is_deleted=False)
     if not (can_manage or moderator):
         recipes_for_count = recipes_for_count.filter(status=Recipe.Status.APPROVED)
         articles_for_count = articles_for_count.filter(status=Article.Status.APPROVED)
@@ -846,8 +857,8 @@ def author_detail(request, slug):
     if not status_value:
         status_filter = ""
 
-    recipe_qs = Recipe.objects.filter(author=author).order_by("-created_at")
-    article_qs = Article.objects.filter(author=author).order_by("-published")
+    recipe_qs = Recipe.objects.filter(author=author, is_deleted=False).order_by("-created_at")
+    article_qs = Article.objects.filter(author=author, is_deleted=False).order_by("-published")
     if private_dashboard:
         if status_value:
             recipe_qs = recipe_qs.filter(status=status_value)
@@ -1026,13 +1037,14 @@ class RecipeDeleteView(AuthorRequiredMixin, DeleteView):
 
     def get_queryset(self):
         if is_moderator(self.request.user):
-            return Recipe.objects.all()
-        return Recipe.objects.filter(author=self.author)
+            return Recipe.objects.filter(is_deleted=False)
+        return Recipe.objects.filter(author=self.author, is_deleted=False)
 
-    def delete(self, request, *args, **kwargs):
+    def form_valid(self, form):
         self.object = self.get_object()
-        messages.success(request, "Recipe Deleted Successfully.")
-        return super().delete(request, *args, **kwargs)
+        _soft_delete_recipe(self.object, self.request.user)
+        messages.success(self.request, "Recipe deleted.")
+        return redirect(self.success_url)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1339,8 +1351,8 @@ def moderate_recipe(request, slug):
         messages.warning(request, f'"{recipe.title}" rejected.')
     elif action == "delete":
         title = recipe.title
-        recipe.delete()
-        messages.success(request, f'"{title}" permanently deleted.')
+        _soft_delete_recipe(recipe, request.user)
+        messages.success(request, f'"{title}" deleted.')
     elif action == "block":
         user = recipe.author.user if recipe.author else None
         if user:

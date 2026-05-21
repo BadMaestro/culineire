@@ -34,12 +34,12 @@ def my_collection(request):
     )
     saved_recipes = (
         SavedRecipe.objects.filter(user=request.user)
-        .filter(recipe__status=Recipe.Status.APPROVED)
+        .filter(recipe__status=Recipe.Status.APPROVED, recipe__is_deleted=False)
         .select_related("recipe", "recipe__author")
     )
     saved_articles = (
         SavedArticle.objects.filter(user=request.user)
-        .filter(article__status=Article.Status.APPROVED)
+        .filter(article__status=Article.Status.APPROVED, article__is_deleted=False)
         .select_related("article", "article__author")
         .prefetch_related(article_card_gallery_prefetch)
     )
@@ -54,7 +54,7 @@ def my_collection(request):
 @login_required
 @ratelimit(key="user", rate="60/h", method="POST", block=False)
 def add_recipe(request, slug):
-    recipe = get_object_or_404(Recipe, slug=slug, status=Recipe.Status.APPROVED)
+    recipe = get_object_or_404(Recipe, slug=slug, status=Recipe.Status.APPROVED, is_deleted=False)
     if getattr(request, "limited", False):
         messages.error(request, "Too many requests. Please try again later.")
     else:
@@ -82,7 +82,7 @@ def remove_recipe(request, slug):
 @login_required
 @ratelimit(key="user", rate="60/h", method="POST", block=False)
 def add_article(request, slug):
-    article = get_object_or_404(Article, slug=slug, status=Article.Status.APPROVED)
+    article = get_object_or_404(Article, slug=slug, status=Article.Status.APPROVED, is_deleted=False)
     if getattr(request, "limited", False):
         messages.error(request, "Too many requests. Please try again later.")
     else:

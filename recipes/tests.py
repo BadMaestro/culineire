@@ -15,7 +15,7 @@ from .admin import RecipeAdmin, RecipeAdminForm
 from .allergens import build_present_allergen_items, parse_selected_allergen_keys, serialize_allergen_keys
 from .forms import RecipeAuthoringForm, RecipeCommentForm
 from .models import Recipe, RecipeAuthor, RecipeComment, RecipeRating
-from .views import _build_context_paragraphs, _build_ingredient_items, _build_method_steps, _gallery_step_alt, _gallery_step_rows, _image_alt_text, _split_text_lines
+from .views import _build_context_paragraphs, _build_ingredient_items, _build_method_steps, _gallery_step_alt, _gallery_step_rows, _image_alt_text, _soft_delete_recipe, _split_text_lines
 
 
 class RecipeTextHelperTests(SimpleTestCase):
@@ -2030,3 +2030,149 @@ class DevelopmentMediaServingTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers["Content-Type"], "image/png")
+
+
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.InMemoryStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    },
+)
+class RecipeSoftDeleteTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.owner_user = User.objects.create_user(username="rsd_owner", password="pass")
+        self.owner_author = RecipeAuthor.objects.create(
+            user=self.owner_user, name="RSD Owner", slug="rsd-owner"
+        )
+        self.other_user = User.objects.create_user(username="rsd_other", password="pass")
+        self.other_author = RecipeAuthor.objects.create(
+            user=self.other_user, name="RSD Other", slug="rsd-other"
+        )
+        self.moderator_user = User.objects.create_user(
+            username="rsd_mod", password="pass", is_staff=True
+        )
+        self.moderator_author = RecipeAuthor.objects.create(
+            user=self.moderator_user, name="RSD Mod", slug="rsd-mod"
+        )
+        self.recipe = Recipe.objects.create(
+            title="Soft Delete Recipe",
+            slug="soft-delete-recipe",
+            author=self.owner_author,
+            status=Recipe.Status.APPROVED,
+            ingredients="x",
+            method="y",
+            confirmed_own_work=True,
+            confirmed_image_rights=True,
+            confirmed_rules=True,
+        )
+
+    # ── Soft delete mechanics ────────────────────────────────────────────────
+
+    def test_author_delete_view_soft_deletes(self):
+        self.client.force_login(self.owner_user)
+        self.client.post(
+            reverse("recipes:recipe_delete", kwargs={"slug": self.recipe.slug})
+        )
+        self.recipe.refresh_from_db()
+        self.assertTrue(self.recipe.is_deleted)
+        self.assertIsNotNone(self.recipe.deleted_at)
+        self.assertEqual(self.recipe.deleted_by, self.owner_user)
+
+    def test_moderator_delete_view_soft_deletes(self):
+        self.client.force_login(self.moderator_user)
+        self.client.post(
+            reverse("recipes:recipe_delete", kwargs={"slug": self.recipe.slug})
+        )
+        self.recipe.refresh_from_db()
+        self.assertTrue(self.recipe.is_deleted)
+        self.assertEqual(self.recipe.deleted_by, self.moderator_user)
+
+    def test_soft_delete_helper_sets_all_fields(self):
+        _soft_delete_recipe(self.recipe, self.owner_user)
+        self.recipe.refresh_from_db()
+        self.assertTrue(self.recipe.is_deleted)
+        self.assertIsNotNone(self.recipe.deleted_at)
+        self.assertEqual(self.recipe.deleted_by, self.owner_user)
+
+    def test_non_owner_cannot_delete_others_recipe(self):
+        self.client.force_login(self.other_user)
+        self.client.post(
+            reverse("recipes:recipe_delete", kwargs={"slug": self.recipe.slug})
+        )
+        self.recipe.refresh_from_db()
+        self.assertFalse(self.recipe.is_deleted)
+
+    # ── Public visibility ────────────────────────────────────────────────────
+
+    def test_deleted_approved_recipe_hidden_from_list(self):
+        _soft_delete_recipe(self.recipe, self.owner_user)
+        response = self.client.get(reverse("recipes:recipe_list"))
+        recipe_slugs = [r.slug for r in response.context.get("default_recent_recipes", [])]
+        self.assertNotIn(self.recipe.slug, recipe_slugs)
+
+    def test_deleted_approved_recipe_direct_url_returns_404(self):
+        _soft_delete_recipe(self.recipe, self.owner_user)
+        response = self.client.get(self.recipe.get_absolute_url())
+        self.assertEqual(response.status_code, 404)
+
+    def test_deleted_recipe_hidden_from_category_page(self):
+        self.recipe.category = Recipe.Category.DINNER
+        self.recipe.save(update_fields=["category"])
+        _soft_delete_recipe(self.recipe, self.owner_user)
+        response = self.client.get(
+            reverse("recipes:category_detail", kwargs={"category_slug": "dinner"})
+        )
+        recipe_slugs = [r.slug for r in response.context.get("recipes", [])]
+        self.assertNotIn(self.recipe.slug, recipe_slugs)
+
+    def test_deleted_recipe_excluded_from_sitemap(self):
+        _soft_delete_recipe(self.recipe, self.owner_user)
+        response = self.client.get(reverse("sitemap_xml"))
+        self.assertNotIn(self.recipe.slug, response.content.decode())
+
+    def test_deleted_recipe_excluded_from_public_author_profile(self):
+        _soft_delete_recipe(self.recipe, self.owner_user)
+        response = self.client.get(
+            reverse("recipes:author_detail", kwargs={"slug": self.owner_author.slug})
+        )
+        dashboard_recipes = response.context.get("dashboard_recipes", [])
+        self.assertNotIn(self.recipe, dashboard_recipes)
+
+    def test_deleted_recipe_cannot_be_rated(self):
+        _soft_delete_recipe(self.recipe, self.owner_user)
+        self.client.force_login(self.owner_user)
+        response = self.client.post(
+            reverse("recipes:submit_recipe_rating", kwargs={"slug": self.recipe.slug}),
+            {"value": 5},
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_deleted_recipe_cannot_be_commented_on(self):
+        _soft_delete_recipe(self.recipe, self.owner_user)
+        self.client.force_login(self.owner_user)
+        response = self.client.post(
+            reverse("recipes:submit_recipe_comment", kwargs={"slug": self.recipe.slug}),
+            {"body": "Great recipe!"},
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_deleted_recipe_cannot_be_saved_to_collection(self):
+        _soft_delete_recipe(self.recipe, self.owner_user)
+        self.client.force_login(self.owner_user)
+        response = self.client.post(
+            reverse("collection:add_recipe", kwargs={"slug": self.recipe.slug}),
+            {"next": "/"},
+        )
+        self.assertEqual(response.status_code, 404)
+
+    # ── Non-deleted content unaffected ───────────────────────────────────────
+
+    def test_approved_not_deleted_recipe_still_public(self):
+        response = self.client.get(self.recipe.get_absolute_url())
+        self.assertEqual(response.status_code, 200)
+
+    def test_approved_not_deleted_recipe_in_list(self):
+        response = self.client.get(reverse("recipes:recipe_list"))
+        slugs = [r.slug for r in response.context.get("default_recent_recipes", [])]
+        self.assertIn(self.recipe.slug, slugs)

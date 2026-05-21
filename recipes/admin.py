@@ -192,15 +192,15 @@ class RecipeAuthorAdmin(admin.ModelAdmin):
 class RecipeAdmin(admin.ModelAdmin):
     form = RecipeAdminForm
     change_form_template = "admin/recipes/recipe/change_form.html"
-    list_display = ("title", "status", "category", "difficulty", "author", "created_at")
-    list_filter = ("status", "category", "difficulty", "author", "source_type", "created_at")
+    list_display = ("title", "status", "is_deleted", "category", "difficulty", "author", "created_at")
+    list_filter = ("status", "is_deleted", "category", "difficulty", "author", "source_type", "created_at")
     search_fields = ("title", "short_description", "ingredients", "method")
     date_hierarchy = "created_at"
     autocomplete_fields = ("author",)
     ordering = ("-created_at",)
     inlines = [RecipeImageInline]
     exclude = ("slug", "media_folder", "confirmed_by")
-    readonly_fields = ("hero_preview", "confirmation_timestamp", "moderated_by", "moderated_at")
+    readonly_fields = ("hero_preview", "confirmation_timestamp", "moderated_by", "moderated_at", "deleted_at", "deleted_by")
 
     fieldsets = (
         (
@@ -272,6 +272,17 @@ class RecipeAdmin(admin.ModelAdmin):
                     "moderation_note",
                     "moderated_by",
                     "moderated_at",
+                ),
+            },
+        ),
+        (
+            "Soft delete",
+            {
+                "classes": ("collapse",),
+                "fields": (
+                    "is_deleted",
+                    "deleted_at",
+                    "deleted_by",
                 ),
             },
         ),

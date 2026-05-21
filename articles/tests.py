@@ -16,7 +16,7 @@ from recipes.models import Recipe, RecipeAuthor
 
 from .admin import ArticleAdmin, ArticleAdminForm, ArticleImageInlineFormSet
 from .models import Article, ArticleImage
-from .views import ArticleDetailView, _gallery_alt_lines, _reading_time_minutes
+from .views import ArticleDetailView, _gallery_alt_lines, _reading_time_minutes, _soft_delete_article
 
 
 @override_settings(
@@ -1777,3 +1777,138 @@ class ArticlePhase32AltTextTests(TestCase):
             ArticleDetailView._image_alt_text(MockArticle()),
             "Mock Article image",
         )
+
+
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.InMemoryStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    },
+)
+class ArticleSoftDeleteTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.owner_user = User.objects.create_user(username="sd_owner", password="pass")
+        self.owner_author = RecipeAuthor.objects.create(
+            user=self.owner_user, name="SD Owner", slug="sd-owner"
+        )
+        self.other_user = User.objects.create_user(username="sd_other", password="pass")
+        self.other_author = RecipeAuthor.objects.create(
+            user=self.other_user, name="SD Other", slug="sd-other"
+        )
+        self.moderator_user = User.objects.create_user(
+            username="sd_mod", password="pass", is_staff=True
+        )
+        self.moderator_author = RecipeAuthor.objects.create(
+            user=self.moderator_user, name="SD Mod", slug="sd-mod"
+        )
+        self.article = Article.objects.create(
+            title="Soft Delete Article",
+            slug="soft-delete-article",
+            author=self.owner_author,
+            body="Body content.",
+            published=date(2026, 5, 20),
+            status=Article.Status.APPROVED,
+            confirmed_own_work=True,
+            confirmed_image_rights=True,
+            confirmed_rules=True,
+        )
+
+    # ── Soft delete mechanics ────────────────────────────────────────────────
+
+    def test_author_delete_view_soft_deletes(self):
+        self.client.force_login(self.owner_user)
+        response = self.client.post(
+            reverse("articles:article_delete", kwargs={"slug": self.article.slug})
+        )
+        self.article.refresh_from_db()
+        self.assertTrue(self.article.is_deleted)
+        self.assertIsNotNone(self.article.deleted_at)
+        self.assertEqual(self.article.deleted_by, self.owner_user)
+
+    def test_moderator_delete_view_soft_deletes(self):
+        self.client.force_login(self.moderator_user)
+        response = self.client.post(
+            reverse("articles:article_delete", kwargs={"slug": self.article.slug})
+        )
+        self.article.refresh_from_db()
+        self.assertTrue(self.article.is_deleted)
+        self.assertEqual(self.article.deleted_by, self.moderator_user)
+
+    def test_soft_delete_helper_sets_all_fields(self):
+        _soft_delete_article(self.article, self.owner_user)
+        self.article.refresh_from_db()
+        self.assertTrue(self.article.is_deleted)
+        self.assertIsNotNone(self.article.deleted_at)
+        self.assertEqual(self.article.deleted_by, self.owner_user)
+
+    def test_non_owner_cannot_delete_others_article(self):
+        self.client.force_login(self.other_user)
+        self.client.post(
+            reverse("articles:article_delete", kwargs={"slug": self.article.slug})
+        )
+        self.article.refresh_from_db()
+        self.assertFalse(self.article.is_deleted)
+
+    # ── Public visibility ────────────────────────────────────────────────────
+
+    def test_deleted_approved_article_hidden_from_list(self):
+        _soft_delete_article(self.article, self.owner_user)
+        response = self.client.get(reverse("articles:article_list"))
+        self.assertNotIn(self.article, response.context["object_list"])
+
+    def test_deleted_approved_article_direct_url_returns_404(self):
+        _soft_delete_article(self.article, self.owner_user)
+        response = self.client.get(self.article.get_absolute_url())
+        self.assertEqual(response.status_code, 404)
+
+    def test_deleted_article_excluded_from_sitemap(self):
+        _soft_delete_article(self.article, self.owner_user)
+        response = self.client.get(reverse("sitemap_xml"))
+        self.assertNotIn(self.article.slug, response.content.decode())
+
+    def test_deleted_article_excluded_from_public_author_profile(self):
+        _soft_delete_article(self.article, self.owner_user)
+        response = self.client.get(
+            reverse("recipes:author_detail", kwargs={"slug": self.owner_author.slug})
+        )
+        dashboard_articles = response.context.get("dashboard_articles", [])
+        self.assertNotIn(self.article, dashboard_articles)
+
+    def test_deleted_article_excluded_from_related_articles(self):
+        recipe = Recipe.objects.create(
+            title="Test Recipe",
+            slug="test-recipe-sd",
+            author=self.owner_author,
+            status=Recipe.Status.APPROVED,
+            ingredients="x",
+            method="y",
+            confirmed_own_work=True,
+            confirmed_image_rights=True,
+            confirmed_rules=True,
+        )
+        self.article.related_recipe = recipe
+        self.article.save(update_fields=["related_recipe"])
+        _soft_delete_article(self.article, self.owner_user)
+        response = self.client.get(recipe.get_absolute_url())
+        related = response.context.get("related_articles", [])
+        self.assertNotIn(self.article, related)
+
+    def test_deleted_article_cannot_be_saved_to_collection(self):
+        _soft_delete_article(self.article, self.owner_user)
+        self.client.force_login(self.owner_user)
+        response = self.client.post(
+            reverse("collection:add_article", kwargs={"slug": self.article.slug}),
+            {"next": "/"},
+        )
+        self.assertEqual(response.status_code, 404)
+
+    # ── Non-deleted content unaffected ───────────────────────────────────────
+
+    def test_approved_not_deleted_article_still_public(self):
+        response = self.client.get(reverse("articles:article_list"))
+        self.assertIn(self.article, response.context["object_list"])
+
+    def test_approved_not_deleted_article_detail_accessible(self):
+        response = self.client.get(self.article.get_absolute_url())
+        self.assertEqual(response.status_code, 200)

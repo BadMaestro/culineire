@@ -51,7 +51,7 @@ def sitemap_xml(_request):
     ]
 
     recipes = (
-        Recipe.objects.filter(status=Recipe.Status.APPROVED)
+        Recipe.objects.filter(status=Recipe.Status.APPROVED, is_deleted=False)
         .only("slug", "updated_at")
         .order_by("slug")
     )
@@ -66,7 +66,7 @@ def sitemap_xml(_request):
         )
 
     articles = (
-        Article.objects.filter(status=Article.Status.APPROVED)
+        Article.objects.filter(status=Article.Status.APPROVED, is_deleted=False)
         .only("slug", "published")
         .order_by("slug")
     )
