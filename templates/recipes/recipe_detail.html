@@ -18,6 +18,7 @@
 {% if request.user.is_authenticated and turnstile_site_key %}<script async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js" nonce="{{ request.csp_nonce }}"></script>{% endif %}
 {% if can_moderate_bar %}
 <link href="{% static 'css/messaging.css' %}" rel="stylesheet">{% endif %}
+<link href="{% static 'css/print.css' %}" rel="stylesheet" media="print">
 {% if gallery_items %}<link rel="preload" as="image" href="{{ gallery_items.0.src }}">{% elif recipe.hero_image %}<link rel="preload" as="image" href="{{ recipe.hero_image.url }}">{% endif %}
 <script type="application/ld+json">{{ recipe_json_ld }}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"{{ request.scheme }}://{{ request.get_host }}{% url 'home' %}"},{"@type":"ListItem","position":2,"name":"Recipes","item":"{{ request.scheme }}://{{ request.get_host }}{% url 'recipes:recipe_list' %}"},{"@type":"ListItem","position":3,"name":"{{ recipe.title|escapejs }}"}]}</script>
@@ -643,6 +644,26 @@
         </article>
     </div>
 </section>
+
+{% if related_articles %}
+<section class="page-section page-section--related" aria-labelledby="related-articles-heading">
+    <div class="container">
+        <h2 class="section-title" id="related-articles-heading">Related Articles</h2>
+        <ul class="related-articles-list">
+            {% for art in related_articles %}
+            <li class="related-articles-list__item">
+                <a class="related-articles-list__link" href="{{ art.get_absolute_url }}">
+                    <span class="related-articles-list__title">{{ art.title }}</span>
+                    {% if art.author %}
+                    <span class="related-articles-list__meta">By {{ art.author.name }}</span>
+                    {% endif %}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</section>
+{% endif %}
 
 {% if can_manage_recipe and recipe.status == 'rejected' and recipe.moderation_note %}
 <div class="mod-note-banner">

@@ -17,6 +17,7 @@
 <link href="{% static 'css/collection.css' %}" rel="stylesheet">
 {% if can_moderate_bar %}
 <link href="{% static 'css/messaging.css' %}" rel="stylesheet">{% endif %}
+<link href="{% static 'css/print.css' %}" rel="stylesheet" media="print">
 <script type="application/ld+json">{{ article_json_ld }}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"{{ request.scheme }}://{{ request.get_host }}{% url 'home' %}"},{"@type":"ListItem","position":2,"name":"Articles","item":"{{ request.scheme }}://{{ request.get_host }}{% url 'articles:article_list' %}"},{"@type":"ListItem","position":3,"name":"{{ article.title|escapejs }}"}]}</script>
 {% endblock %}
@@ -40,6 +41,7 @@
                     <div class="detail-page__topbar">
                         <div class="detail-page__taxonomy" aria-label="Article information">
                             <span class="detail-page__taxonomy-chip">Article</span>
+                            <span class="detail-page__taxonomy-chip detail-page__taxonomy-chip--muted">{{ reading_time }} min read</span>
                             {% if article.image_rights_status == 'ai_generated' %}<span aria-label="AI generated image" class="ai-image-badge ai-image-badge--inline">AI Generated</span>{% endif %}
                         </div>
 

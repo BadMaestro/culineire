@@ -51,45 +51,85 @@
             </a>
         </div>
 
-        {% if can_manage_author_profile or is_moderator_viewer %}
-        {% if pending_recipes or pending_articles %}
+        {% if private_dashboard or dashboard_recipes or dashboard_articles %}
         <div class="author-studio-pending">
-            <p class="author-studio-pending__title">Awaiting Moderation</p>
-            <p class="author-studio-pending__note">The following items are not yet visible to the public. Once approved
-                by an admin they will appear in the main collection.</p>
+            <p class="author-studio-pending__title">{% if private_dashboard %}Content Dashboard{% else %}Published Content{% endif %}</p>
 
-            {% if pending_recipes %}
+            {% if private_dashboard %}
+            <nav class="author-studio-filters" aria-label="Filter by status">
+                <a class="author-studio-filters__tab{% if not status_filter %} author-studio-filters__tab--active{% endif %}"
+                   href="?">All</a>
+                <a class="author-studio-filters__tab{% if status_filter == 'pending' %} author-studio-filters__tab--active{% endif %}"
+                   href="?status=pending">Pending</a>
+                <a class="author-studio-filters__tab{% if status_filter == 'rejected' %} author-studio-filters__tab--active{% endif %}"
+                   href="?status=rejected">Rejected</a>
+                <a class="author-studio-filters__tab{% if status_filter == 'approved' %} author-studio-filters__tab--active{% endif %}"
+                   href="?status=approved">Approved</a>
+            </nav>
+            {% endif %}
+
+            {% if dashboard_recipes %}
             <div class="author-studio-pending__group">
                 <p class="author-studio-pending__group-label">Recipes</p>
                 <ul class="author-studio-pending__list">
-                    {% for recipe in pending_recipes %}
-                    <li class="author-studio-pending__item">
+                    {% for recipe in dashboard_recipes %}
+                    <li class="author-studio-pending__item{% if recipe.status == 'rejected' %} author-studio-pending__item--rejected{% endif %}">
+                        {% if private_dashboard %}
                         <span class="author-studio-status author-studio-status--{{ recipe.status }}">{{ recipe.get_status_display }}</span>
-                        <span class="author-studio-pending__name">{{ recipe.title }}</span>
-                        <a class="author-studio-pending__edit"
-                           href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit</a>
+                        {% endif %}
+                        <span class="author-studio-pending__name" title="{{ recipe.title }}">{{ recipe.title }}</span>
+                        <span class="author-studio-pending__date">{{ recipe.created_at|date:"j M Y" }}</span>
+                        {% if recipe.status == 'approved' %}
+                        <a class="author-studio-pending__view" href="{{ recipe.get_absolute_url }}">View</a>
+                        {% endif %}
+                        {% if can_manage_author_profile %}
+                        <a class="author-studio-pending__edit" href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit</a>
+                        {% endif %}
                     </li>
+                    {% if private_dashboard and recipe.status == 'rejected' and recipe.moderation_note %}
+                    <li class="author-studio-pending__note-row" aria-label="Rejection note for {{ recipe.title }}">
+                        <span class="author-studio-pending__note-label">Note:</span>
+                        <span class="author-studio-pending__note-text">{{ recipe.moderation_note }}</span>
+                    </li>
+                    {% endif %}
                     {% endfor %}
                 </ul>
             </div>
             {% endif %}
 
-            {% if pending_articles %}
+            {% if dashboard_articles %}
             <div class="author-studio-pending__group">
                 <p class="author-studio-pending__group-label">Articles</p>
                 <ul class="author-studio-pending__list">
-                    {% for article in pending_articles %}
-                    <li class="author-studio-pending__item">
+                    {% for article in dashboard_articles %}
+                    <li class="author-studio-pending__item{% if article.status == 'rejected' %} author-studio-pending__item--rejected{% endif %}">
+                        {% if private_dashboard %}
                         <span class="author-studio-status author-studio-status--{{ article.status }}">{{ article.get_status_display }}</span>
-                        <span class="author-studio-pending__name">{{ article.title }}</span>
+                        {% endif %}
+                        <span class="author-studio-pending__name" title="{{ article.title }}">{{ article.title }}</span>
+                        <span class="author-studio-pending__date">{{ article.published|date:"j M Y" }}</span>
+                        {% if article.status == 'approved' %}
+                        <a class="author-studio-pending__view" href="{{ article.get_absolute_url }}">View</a>
+                        {% endif %}
+                        {% if can_manage_author_profile %}
                         <a class="author-studio-pending__edit" href="{% url 'articles:article_edit' article.slug %}">Edit</a>
+                        {% endif %}
                     </li>
+                    {% if private_dashboard and article.status == 'rejected' and article.moderation_note %}
+                    <li class="author-studio-pending__note-row" aria-label="Rejection note for {{ article.title }}">
+                        <span class="author-studio-pending__note-label">Note:</span>
+                        <span class="author-studio-pending__note-text">{{ article.moderation_note }}</span>
+                    </li>
+                    {% endif %}
                     {% endfor %}
                 </ul>
             </div>
             {% endif %}
+
+            {% if not dashboard_recipes and not dashboard_articles %}
+            <p class="author-studio-pending__note">{% if private_dashboard %}No content found{% if status_filter %} with status &ldquo;{{ status_filter }}&rdquo;{% endif %}.{% else %}No published content yet.{% endif %}</p>
+            {% endif %}
         </div>
-        {% endif %}
         {% endif %}
 
         {% if can_manage_author_profile %}

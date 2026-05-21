@@ -1817,6 +1817,99 @@
   white-space: nowrap;
 }
 
+/* ── Author dashboard additions ── */
+.author-studio-status--approved {
+  background: rgb(31 44 37 / 0.08);
+  color: rgb(20 80 40);
+  border: 1px solid rgb(31 44 37 / 0.2);
+}
+
+.author-studio-pending__date {
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.author-studio-pending__view {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.author-studio-pending__view:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+.author-studio-pending__item--rejected {
+  border-color: rgb(180 40 40 / 0.2);
+  background: rgb(255 248 248 / 0.7);
+}
+
+.author-studio-pending__note-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  padding: 0.4rem 0.75rem 0.6rem;
+  margin-block-start: -0.3rem;
+  background: rgb(255 240 240 / 0.6);
+  border: 1px solid rgb(180 40 40 / 0.15);
+  border-block-start: none;
+  border-radius: 0 0 8px 8px;
+  list-style: none;
+}
+
+.author-studio-pending__note-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgb(140 30 30);
+  white-space: nowrap;
+  padding-block-start: 0.05rem;
+}
+
+.author-studio-pending__note-text {
+  font-size: 0.8rem;
+  color: rgb(100 30 30);
+  line-height: 1.5;
+}
+
+.author-studio-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-block-end: 1.1rem;
+  justify-content: center;
+}
+
+.author-studio-filters__tab {
+  display: inline-block;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--ink-soft);
+  border: 1px solid rgb(31 44 37 / 0.14);
+  background: rgb(255 255 255 / 0.6);
+  transition: background 0.12s, color 0.12s;
+}
+
+.author-studio-filters__tab:hover {
+  background: rgb(31 44 37 / 0.06);
+  color: var(--ink);
+}
+
+.author-studio-filters__tab--active {
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+}
+
 .ai-image-badge--inline {
   position: static;
   inset: auto;

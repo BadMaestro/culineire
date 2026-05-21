@@ -34,6 +34,10 @@ ARTICLE_CARD_GALLERY_PREFETCH = Prefetch(
 )
 
 
+def _reading_time_minutes(text):
+    return max(1, round(len(text.split()) / 200))
+
+
 def _json_ld(data):
     value = json.dumps(data, ensure_ascii=False)
     value = value.replace("&", "\\u0026").replace("<", "\\u003C").replace(">", "\\u003E")
@@ -294,6 +298,7 @@ class ArticleDetailView(DetailView):
         context["is_saved"] = context["can_collect_article"] and SavedArticle.objects.filter(user=self.request.user, article=article).exists()
         context["collection_add_url"] = reverse("collection:add_article", kwargs={"slug": article.slug})
         context["collection_remove_url"] = reverse("collection:remove_article", kwargs={"slug": article.slug})
+        context["reading_time"] = _reading_time_minutes(article.body or "")
         return context
 
 

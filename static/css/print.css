@@ -1,0 +1,102 @@
+@media print {
+  /* ── Hide interactive / navigation elements ── */
+  .ce-header,
+  .ce-nav,
+  .site-footer,
+  .bmc-bar,
+  .breadcrumb,
+  .mod-bar,
+  .mod-note-banner,
+  .detail-page__actions,
+  .recipe-gallery__arrow,
+  .rating-form,
+  .comment-form,
+  .comment-compose,
+  .comment-reply-form,
+  .site-messages,
+  .page-section--related,
+  .detail-page__action-pill,
+  .collection-form,
+  .author-studio-pending,
+  .author-profile-manage {
+    display: none !important;
+  }
+
+  /* ── Reset colours and layout for print ── */
+  body {
+    background: #fff;
+    color: #111;
+    font-size: 11pt;
+    line-height: 1.6;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* ── Keep recipe/article content legible ── */
+  .detail-page {
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .detail-page__header {
+    background: none !important;
+    color: #111;
+    border: none;
+    padding: 0;
+  }
+
+  .detail-page__header h1 {
+    font-size: 22pt;
+    color: #111;
+    -webkit-text-fill-color: #111;
+  }
+
+  .detail-page__grid,
+  .detail-page__grid--article {
+    display: block;
+  }
+
+  .detail-page__sidebar {
+    display: none;
+  }
+
+  .detail-page__content-card,
+  .recipe-content-card {
+    box-shadow: none;
+    border: none;
+    padding: 0;
+  }
+
+  .rich-text p,
+  .method-steps__body p {
+    font-size: 11pt;
+    line-height: 1.6;
+  }
+
+  .recipe-stats,
+  .recipe-summary__grid {
+    break-inside: avoid;
+  }
+
+  .method-steps__item {
+    break-inside: avoid;
+  }
+
+  /* ── Section titles ── */
+  .section-title,
+  .recipe-section__title {
+    font-size: 14pt;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 0.25rem;
+    margin-bottom: 0.5rem;
+  }
+
+  /* ── Page breaks ── */
+  .recipe-ingredients,
+  .recipe-method {
+    break-before: auto;
+  }
+}

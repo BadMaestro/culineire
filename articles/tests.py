@@ -15,6 +15,7 @@ from recipes.models import Recipe, RecipeAuthor
 
 from .admin import ArticleAdmin, ArticleAdminForm, ArticleImageInlineFormSet
 from .models import Article, ArticleImage
+from .views import _reading_time_minutes
 
 
 @override_settings(
@@ -1428,3 +1429,36 @@ class ArticleAuthoringPermissionTests(TestCase):
         response = self.client.get(self.article.get_absolute_url())
 
         self.assertEqual(response.status_code, 404)
+
+
+class ArticlePhase3ReadingTimeTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        author_user = user_model.objects.create_user(username="rtauthor", password="pass")
+        self.author = RecipeAuthor.objects.create(user=author_user, name="RT Author", slug="rt-author")
+
+    def test_reading_time_helper_returns_one_for_short_text(self):
+        self.assertEqual(_reading_time_minutes("short text"), 1)
+
+    def test_reading_time_helper_calculates_correct_value(self):
+        body = " ".join(["word"] * 400)
+
+        self.assertEqual(_reading_time_minutes(body), 2)
+
+    def test_reading_time_in_article_detail_context(self):
+        article = Article.objects.create(
+            title="RT Test Article",
+            slug="rt-test-article",
+            author=self.author,
+            body=" ".join(["word"] * 600),
+            published=date(2026, 5, 21),
+            status=Article.Status.APPROVED,
+        )
+
+        response = self.client.get(article.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["reading_time"], 3)
+
+    def test_reading_time_is_at_least_one_for_empty_body(self):
+        self.assertEqual(_reading_time_minutes(""), 1)

@@ -548,6 +548,11 @@ def recipe_detail(request, slug):
         "collection_add_url": reverse("collection:add_recipe", kwargs={"slug": recipe.slug}),
         "collection_remove_url": reverse("collection:remove_recipe", kwargs={"slug": recipe.slug}),
         "turnstile_site_key": settings.TURNSTILE_SITE_KEY,
+        "related_articles": list(
+            Article.objects.filter(related_recipe=recipe, status=Article.Status.APPROVED)
+            .select_related("author")
+            .order_by("-published")[:5]
+        ),
     }
     return render(request, "recipes/recipe_detail.html", context)
 
@@ -798,19 +803,24 @@ def author_detail(request, slug):
     recipe_count = recipes_for_count.count()
     article_count = articles_for_count.count()
 
-    pending_recipes = []
-    pending_articles = []
-    if can_manage or moderator:
-        pending_recipes = list(
-            Recipe.objects.filter(author=author)
-            .exclude(status=Recipe.Status.APPROVED)
-            .order_by("-created_at")
-        )
-        pending_articles = list(
-            Article.objects.filter(author=author)
-            .exclude(status=Article.Status.APPROVED)
-            .order_by("-published")
-        )
+    private_dashboard = can_manage or moderator
+    _VALID_STATUS_FILTERS = {"pending", "rejected", "approved"}
+    status_filter = request.GET.get("status", "").lower() if private_dashboard else ""
+    if status_filter not in _VALID_STATUS_FILTERS:
+        status_filter = ""
+
+    recipe_qs = Recipe.objects.filter(author=author).order_by("-created_at")
+    article_qs = Article.objects.filter(author=author).order_by("-published")
+    if private_dashboard:
+        if status_filter:
+            recipe_qs = recipe_qs.filter(status=status_filter)
+            article_qs = article_qs.filter(status=status_filter)
+    else:
+        recipe_qs = recipe_qs.filter(status=Recipe.Status.APPROVED)
+        article_qs = article_qs.filter(status=Article.Status.APPROVED)
+
+    dashboard_recipes = list(recipe_qs)
+    dashboard_articles = list(article_qs)
 
     context = {
         "author": author,
@@ -819,8 +829,10 @@ def author_detail(request, slug):
         "is_god_author": author.slug == settings.OWNER_SLUG,
         "can_manage_author_profile": can_manage,
         "is_moderator_viewer": moderator,
-        "pending_recipes": pending_recipes,
-        "pending_articles": pending_articles,
+        "private_dashboard": private_dashboard,
+        "dashboard_recipes": dashboard_recipes,
+        "dashboard_articles": dashboard_articles,
+        "status_filter": status_filter,
     }
     return render(request, "recipes/author_detail.html", context)
 
@@ -1253,5 +1265,4 @@ def moderate_recipe(request, slug):
     if action not in ("delete", "block") and recipe.pk:
         return redirect(recipe.get_absolute_url())
     return redirect("recipes:moderation_panel")
-
 

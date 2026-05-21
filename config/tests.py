@@ -44,6 +44,13 @@ class PublicTechnicalPagesTests(TestCase):
             method="Wait",
             status=Recipe.Status.PENDING,
         )
+        Recipe.objects.create(
+            title="Rejected Recipe",
+            author=author,
+            ingredients="Potatoes",
+            method="Fix",
+            status=Recipe.Status.REJECTED,
+        )
         approved_article = Article.objects.create(
             title="Approved Article",
             slug="approved-article",
@@ -60,6 +67,14 @@ class PublicTechnicalPagesTests(TestCase):
             published=date(2026, 5, 10),
             status=Article.Status.PENDING,
         )
+        Article.objects.create(
+            title="Rejected Article",
+            slug="rejected-article",
+            author=author,
+            body="Rejected article body",
+            published=date(2026, 5, 10),
+            status=Article.Status.REJECTED,
+        )
 
         response = self.client.get(reverse("sitemap_xml"))
 
@@ -69,7 +84,9 @@ class PublicTechnicalPagesTests(TestCase):
         self.assertContains(response, f"https://culineire.test{approved_recipe.get_absolute_url()}")
         self.assertContains(response, f"https://culineire.test{approved_article.get_absolute_url()}")
         self.assertNotContains(response, "Pending Recipe")
+        self.assertNotContains(response, "Rejected Recipe")
         self.assertNotContains(response, "pending-article")
+        self.assertNotContains(response, "rejected-article")
 
 
 class MaintenanceModeTests(TestCase):

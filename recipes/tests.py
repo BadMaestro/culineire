@@ -1,5 +1,6 @@
 import importlib
 import os
+from datetime import date
 from unittest import skip
 from unittest.mock import patch
 
@@ -540,7 +541,7 @@ class AuthenticationPageTests(TestCase):
         self.assertRedirects(response, reverse("home"))
         self.assertEqual(int(self.client.session["_auth_user_id"]), self.user.pk)
 
-    def test_signup_creates_account_and_shows_activation_pending(self):
+    def test_signup_creates_account_and_shows_success(self):
         response = self.client.post(
             reverse("signup"),
             {
@@ -553,7 +554,7 @@ class AuthenticationPageTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "registration/activation_pending.html")
+        self.assertTemplateUsed(response, "registration/signup_success.html")
         self.assertTrue(get_user_model().objects.filter(username="newcook").exists())
 
     def test_anonymous_header_shows_sign_in_and_join_links(self):
@@ -844,7 +845,7 @@ class AuthenticationPageTests(TestCase):
 
         self.assertEqual(response.context["recipe_count"], 2)
         self.assertEqual(response.context["article_count"], 2)
-        self.assertContains(response, "Awaiting Moderation")
+        self.assertContains(response, "Content Dashboard")
         self.assertContains(response, "Rejected Recipe")
         self.assertContains(response, "Pending Article")
 
@@ -897,7 +898,7 @@ class AuthenticationPageTests(TestCase):
 
         self.assertEqual(response.context["recipe_count"], 2)
         self.assertEqual(response.context["article_count"], 2)
-        self.assertContains(response, "Awaiting Moderation")
+        self.assertContains(response, "Content Dashboard")
         self.assertContains(response, "Pending Recipe")
         self.assertContains(response, "Rejected Article")
 
@@ -1279,6 +1280,220 @@ class RecipeModerationTrackingTests(TestCase):
 
         self.assertRedirects(response, reverse("recipes:moderation_panel"))
         self.assertFalse(Recipe.objects.filter(pk=self.recipe.pk).exists())
+
+
+class RecipePhase3AuthorDashboardTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        self.author_user = user_model.objects.create_user(username="dashchef", password="pass")
+        self.author = RecipeAuthor.objects.create(
+            user=self.author_user,
+            name="Dash Chef",
+            slug="dash-chef",
+        )
+        self.moderator_user = user_model.objects.create_user(
+            username="dashmod",
+            password="pass",
+            is_staff=True,
+        )
+        RecipeAuthor.objects.create(user=self.moderator_user, name="Dash Mod", slug="dash-mod")
+        self.approved_recipe = Recipe.objects.create(
+            title="Approved Dish",
+            slug="approved-dish",
+            author=self.author,
+            ingredients="Flour",
+            method="Mix.",
+            status=Recipe.Status.APPROVED,
+        )
+        self.pending_recipe = Recipe.objects.create(
+            title="Pending Dish",
+            slug="pending-dish",
+            author=self.author,
+            ingredients="Flour",
+            method="Wait.",
+            status=Recipe.Status.PENDING,
+        )
+        self.rejected_recipe = Recipe.objects.create(
+            title="Rejected Dish",
+            slug="rejected-dish",
+            author=self.author,
+            ingredients="Flour",
+            method="Fix.",
+            status=Recipe.Status.REJECTED,
+            moderation_note="Needs more detail in the method.",
+        )
+        self.approved_article = Article.objects.create(
+            title="Approved Story",
+            slug="approved-story",
+            author=self.author,
+            body="Published article body.",
+            published=date(2026, 5, 21),
+            status=Article.Status.APPROVED,
+        )
+        self.pending_article = Article.objects.create(
+            title="Pending Story",
+            slug="pending-story",
+            author=self.author,
+            body="Pending article body.",
+            published=date(2026, 5, 21),
+            status=Article.Status.PENDING,
+        )
+        self.rejected_article = Article.objects.create(
+            title="Rejected Story",
+            slug="rejected-story",
+            author=self.author,
+            body="Rejected article body.",
+            published=date(2026, 5, 21),
+            status=Article.Status.REJECTED,
+            moderation_note="Article needs source attribution.",
+        )
+        self.url = reverse("recipes:author_detail", kwargs={"slug": self.author.slug})
+
+    def test_owner_sees_all_content_in_dashboard(self):
+        self.client.force_login(self.author_user)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(self.approved_recipe, response.context["dashboard_recipes"])
+        self.assertIn(self.pending_recipe, response.context["dashboard_recipes"])
+        self.assertIn(self.rejected_recipe, response.context["dashboard_recipes"])
+        self.assertIn(self.approved_article, response.context["dashboard_articles"])
+        self.assertIn(self.pending_article, response.context["dashboard_articles"])
+        self.assertIn(self.rejected_article, response.context["dashboard_articles"])
+
+    def test_public_visitor_sees_approved_content_only(self):
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(self.approved_recipe, response.context["dashboard_recipes"])
+        self.assertNotIn(self.pending_recipe, response.context["dashboard_recipes"])
+        self.assertNotIn(self.rejected_recipe, response.context["dashboard_recipes"])
+        self.assertIn(self.approved_article, response.context["dashboard_articles"])
+        self.assertNotIn(self.pending_article, response.context["dashboard_articles"])
+        self.assertNotIn(self.rejected_article, response.context["dashboard_articles"])
+        self.assertContains(response, "Approved Dish")
+        self.assertContains(response, "Approved Story")
+        self.assertNotContains(response, "Pending Dish")
+        self.assertNotContains(response, "Rejected Dish")
+        self.assertNotContains(response, "Pending Story")
+        self.assertNotContains(response, "Rejected Story")
+        self.assertNotContains(response, "Content Dashboard")
+        self.assertNotContains(response, "author-studio-filters")
+        self.assertNotContains(response, reverse("recipes:recipe_edit", kwargs={"slug": self.approved_recipe.slug}))
+        self.assertNotContains(response, reverse("articles:article_edit", kwargs={"slug": self.approved_article.slug}))
+
+    def test_moderator_sees_all_content_in_dashboard(self):
+        self.client.force_login(self.moderator_user)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(self.approved_recipe, response.context["dashboard_recipes"])
+        self.assertIn(self.pending_recipe, response.context["dashboard_recipes"])
+        self.assertIn(self.rejected_recipe, response.context["dashboard_recipes"])
+        self.assertIn(self.approved_article, response.context["dashboard_articles"])
+        self.assertIn(self.pending_article, response.context["dashboard_articles"])
+        self.assertIn(self.rejected_article, response.context["dashboard_articles"])
+
+    def test_rejection_note_visible_to_owner_in_dashboard(self):
+        self.client.force_login(self.author_user)
+
+        response = self.client.get(self.url)
+
+        self.assertContains(response, "Needs more detail in the method.")
+        self.assertContains(response, "Article needs source attribution.")
+
+    def test_rejection_note_not_visible_to_public(self):
+        response = self.client.get(self.url)
+
+        self.assertNotContains(response, "Needs more detail in the method.")
+        self.assertNotContains(response, "Article needs source attribution.")
+
+    def test_status_filter_pending_returns_only_pending(self):
+        self.client.force_login(self.author_user)
+
+        response = self.client.get(self.url + "?status=pending")
+
+        self.assertIn(self.pending_recipe, response.context["dashboard_recipes"])
+        self.assertNotIn(self.approved_recipe, response.context["dashboard_recipes"])
+        self.assertNotIn(self.rejected_recipe, response.context["dashboard_recipes"])
+        self.assertIn(self.pending_article, response.context["dashboard_articles"])
+        self.assertNotIn(self.approved_article, response.context["dashboard_articles"])
+        self.assertNotIn(self.rejected_article, response.context["dashboard_articles"])
+
+    def test_status_filter_approved_returns_only_approved(self):
+        self.client.force_login(self.author_user)
+
+        response = self.client.get(self.url + "?status=approved")
+
+        self.assertIn(self.approved_recipe, response.context["dashboard_recipes"])
+        self.assertNotIn(self.pending_recipe, response.context["dashboard_recipes"])
+        self.assertNotIn(self.rejected_recipe, response.context["dashboard_recipes"])
+        self.assertIn(self.approved_article, response.context["dashboard_articles"])
+        self.assertNotIn(self.pending_article, response.context["dashboard_articles"])
+        self.assertNotIn(self.rejected_article, response.context["dashboard_articles"])
+
+    def test_invalid_status_filter_is_ignored(self):
+        self.client.force_login(self.author_user)
+
+        response = self.client.get(self.url + "?status=bogus")
+
+        self.assertEqual(response.context["status_filter"], "")
+        self.assertEqual(len(response.context["dashboard_recipes"]), 3)
+        self.assertEqual(len(response.context["dashboard_articles"]), 3)
+
+
+class RecipePhase3RelatedArticlesTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        author_user = user_model.objects.create_user(username="artchef", password="pass")
+        self.author = RecipeAuthor.objects.create(user=author_user, name="Art Chef", slug="art-chef")
+        self.recipe = Recipe.objects.create(
+            title="Base Recipe",
+            slug="base-recipe",
+            author=self.author,
+            ingredients="Oats",
+            method="Cook.",
+            status=Recipe.Status.APPROVED,
+        )
+        self.approved_article = Article.objects.create(
+            title="Related Article",
+            slug="related-article",
+            author=self.author,
+            body="Some content.",
+            published=date(2026, 5, 21),
+            related_recipe=self.recipe,
+            status=Article.Status.APPROVED,
+        )
+        self.pending_article = Article.objects.create(
+            title="Pending Article",
+            slug="pending-related-article",
+            author=self.author,
+            body="Pending content.",
+            published=date(2026, 5, 21),
+            related_recipe=self.recipe,
+            status=Article.Status.PENDING,
+        )
+
+    def test_approved_related_article_appears_in_context(self):
+        response = self.client.get(self.recipe.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(self.approved_article, response.context["related_articles"])
+
+    def test_pending_related_article_excluded_from_context(self):
+        response = self.client.get(self.recipe.get_absolute_url())
+
+        self.assertNotIn(self.pending_article, response.context["related_articles"])
+
+    def test_related_articles_section_hidden_when_empty(self):
+        self.approved_article.delete()
+
+        response = self.client.get(self.recipe.get_absolute_url())
+
+        self.assertEqual(response.context["related_articles"], [])
+        self.assertNotContains(response, "Related Articles")
 
 
 @skip("Dev-only tests: static and media serving via culineire.localhost is not available on the production server")
