@@ -76,7 +76,10 @@
                         {{ form.hero_image }}
                         {% if form_mode == "edit" and article.hero_image %}
                         <p class="authoring-help">Current image:</p>
-                        <img src="{{ article.hero_image.url }}" alt="Current article image" class="authoring-step-thumb">
+                        <div class="authoring-current-image">
+                            <img src="{{ article.hero_image.url }}" alt="Current article image" class="authoring-step-thumb">
+                            <button aria-label="Delete current article image" class="authoring-step-delete authoring-step-delete--current" form="delete-article-hero-image" onclick="return confirm('Delete current article image?')" type="submit">&times;</button>
+                        </div>
                         {% endif %}
                         {% if form.hero_image.help_text %}<p class="authoring-help">{{ form.hero_image.help_text }}</p>{% endif %}
                         {% for error in form.hero_image.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
@@ -219,6 +222,11 @@
                 {% csrf_token %}
             </form>
             {% endfor %}
+        {% endif %}
+        {% if form_mode == "edit" and article.hero_image %}
+            <form action="{% url 'articles:delete_hero_image' article.slug %}" id="delete-article-hero-image" method="post">
+                {% csrf_token %}
+            </form>
         {% endif %}
     </div>
 </section>
