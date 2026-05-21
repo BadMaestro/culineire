@@ -1238,17 +1238,20 @@
 
 .mod-maintenance-form {
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 0.4rem;
+  line-height: 1;
 }
 
 .mod-maintenance-field {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 0.25rem;
   font-size: 0.78rem;
   font-weight: 600;
   color: #0b4c3a;
+  line-height: 1;
 }
 
 .mod-maintenance-input {
@@ -1276,11 +1279,13 @@
 }
 
 .mod-maintenance-btn {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
+  margin: 0;
   border: none;
   cursor: pointer;
+  vertical-align: middle;
 }
 
 .mod-maintenance-btn--on {
