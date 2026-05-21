@@ -204,6 +204,7 @@
                             aria-controls="rating-panel"
                             data-rating-toggle
                             data-ratings-url="{% url 'recipes:recipe_ratings_api' recipe.slug %}"
+                            data-author-url-prefix="{% url 'recipes:author_detail' '__slug__' %}"
                         >{{ ratings_count }} rating{{ ratings_count|pluralize }}</button>
                         {% else %}
                         <span class="rating-overview__count">0 ratings</span>
@@ -811,6 +812,7 @@
   /* ── Rating panel ── */
   var toggleBtn = document.querySelector('[data-rating-toggle]');
   var panel = document.getElementById('rating-panel');
+  var authorUrlPrefix = toggleBtn ? toggleBtn.dataset.authorUrlPrefix : '';
   if (toggleBtn && panel) {
     var loaded = false;
     toggleBtn.addEventListener('click', function () {
@@ -860,7 +862,7 @@
         namedRatings.map(function (r) {
           var stars = '★'.repeat(r.value) + '☆'.repeat(5 - r.value);
           return '<li class="rating-panel__list-item">' +
-            '<a class="rating-panel__author" href="/recipes/author/' + r.author_slug + '/">' +
+            '<a class="rating-panel__author" href="' + authorUrlPrefix.replace('__slug__', r.author_slug) + '">' +
               '<img class="rating-panel__avatar" src="' + r.author_avatar + '" alt="' + r.author_name + '" width="28" height="28">' +
               '<span class="rating-panel__author-name">' + r.author_name + '</span>' +
             '</a>' +

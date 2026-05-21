@@ -50,7 +50,9 @@ class PresenceEvent(models.Model):
         event_type = cls.resolve_event_type(user)
         if not event_type:
             return None
-        cooldown_cutoff = timezone.now() - datetime.timedelta(minutes=5)
+        cooldown_cutoff = timezone.now() - datetime.timedelta(
+            minutes=getattr(settings, "PRESENCE_EVENT_COOLDOWN_MINUTES", 5)
+        )
         already_fired = cls.objects.filter(
             event_type=event_type,
             created_at__gte=cooldown_cutoff,
