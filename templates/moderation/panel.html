@@ -70,7 +70,9 @@
                             <input type="hidden" name="action" value="activate">
                             <label class="mod-maintenance-field">h <input class="mod-maintenance-input" max="72" min="0" name="hours" type="number" value="3"></label>
                             <label class="mod-maintenance-field">m <input class="mod-maintenance-input" max="59" min="0" name="minutes" type="number" value="0"></label>
-                            <button class="mod-maintenance-btn mod-maintenance-btn--on" type="submit">Activate</button>
+                            <button class="mod-maintenance-btn mod-maintenance-btn--on" title="Activate maintenance" type="submit">
+                                <svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewBox="0 0 24 24" width="16"><path d="M12 3v9"/><path d="M19.07 5.93a9 9 0 1 1-14.14 0"/></svg>
+                            </button>
                         </form>
                         {% endif %}
                     </div>
