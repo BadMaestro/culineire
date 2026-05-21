@@ -49,43 +49,34 @@
                     <svg fill="none" height="18" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                     Content Safety
                 </a>
-            </div>
-
-            {% if can_grant_bearseeker_privileges %}
-            <div class="mod-maintenance-widget{% if maintenance_web_active %} mod-maintenance-widget--active{% endif %}">
-                <span class="mod-maintenance-widget__label">
-                    {% if maintenance_web_active %}
-                    <span class="mod-maintenance-indicator"></span> Maintenance ON
-                    {% elif maintenance_env_active %}
-                    <span class="mod-maintenance-indicator mod-maintenance-indicator--env"></span> Maintenance (env)
-                    {% else %}
-                    Maintenance
-                    {% endif %}
-                </span>
-                {% if maintenance_web_active %}
-                <span class="mod-maintenance-countdown" data-until="{{ maintenance_until_str }}"></span>
-                <form action="{% url 'maintenance_toggle' %}" method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="deactivate">
-                    <button class="mod-maintenance-btn mod-maintenance-btn--off" type="submit">Deactivate</button>
-                </form>
-                {% elif not maintenance_env_active %}
-                <form action="{% url 'maintenance_toggle' %}" class="mod-maintenance-form" method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="activate">
-                    <label class="mod-maintenance-field">
-                        <span>h</span>
-                        <input class="mod-maintenance-input" max="72" min="0" name="hours" type="number" value="3">
-                    </label>
-                    <label class="mod-maintenance-field">
-                        <span>m</span>
-                        <input class="mod-maintenance-input" max="59" min="0" name="minutes" type="number" value="0">
-                    </label>
-                    <button class="mod-maintenance-btn mod-maintenance-btn--on" type="submit">Activate</button>
-                </form>
+                {% if can_grant_bearseeker_privileges %}
+                <details class="mod-maintenance-details{% if maintenance_web_active %} mod-maintenance-details--active{% endif %}">
+                    <summary class="mod-tool-link mod-maintenance-summary">
+                        <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" viewBox="0 0 24 24" width="18"><path d="M5 10h8l-1.2 8H6.2L5 10z"/><line x1="4" y1="10" x2="14" y2="10"/><path d="M7.5 10V8a1.5 1.5 0 0 1 3 0v2"/><line x1="20" y1="3" x2="13" y2="15"/><path d="M11.5 17.5 Q13 16.5 15 16.5"/></svg>
+                        {% if maintenance_web_active %}<span class="mod-maintenance-dot"></span>{% endif %}
+                        Maintenance{% if maintenance_web_active %} ON{% endif %}
+                    </summary>
+                    <div class="mod-maintenance-panel">
+                        {% if maintenance_web_active %}
+                        <div class="mod-maintenance-active-row">
+                            <span class="mod-maintenance-countdown" data-until="{{ maintenance_until_str }}"></span>
+                            <form action="{% url 'maintenance_toggle' %}" method="post">{% csrf_token %}
+                                <input type="hidden" name="action" value="deactivate">
+                                <button class="mod-maintenance-btn mod-maintenance-btn--off" type="submit">Deactivate</button>
+                            </form>
+                        </div>
+                        {% else %}
+                        <form action="{% url 'maintenance_toggle' %}" class="mod-maintenance-form" method="post">{% csrf_token %}
+                            <input type="hidden" name="action" value="activate">
+                            <label class="mod-maintenance-field">h <input class="mod-maintenance-input" max="72" min="0" name="hours" type="number" value="3"></label>
+                            <label class="mod-maintenance-field">m <input class="mod-maintenance-input" max="59" min="0" name="minutes" type="number" value="0"></label>
+                            <button class="mod-maintenance-btn mod-maintenance-btn--on" type="submit">Activate</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </details>
                 {% endif %}
             </div>
-            {% endif %}
         </div>
 
         <div class="moderation-block">
