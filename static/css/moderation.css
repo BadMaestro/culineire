@@ -1225,8 +1225,10 @@
 .mod-maintenance-active-row {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.6rem;
   flex-wrap: wrap;
+  width: 100%;
 }
 
 .mod-maintenance-countdown {
