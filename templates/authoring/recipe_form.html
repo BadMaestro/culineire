@@ -86,6 +86,12 @@
                         {% for error in form.hero_image.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
                     <div class="authoring-field authoring-field--wide">
+                        <label for="{{ form.hero_image_alt_text.id_for_label }}">{{ form.hero_image_alt_text.label }}:</label>
+                        {{ form.hero_image_alt_text }}
+                        {% if form.hero_image_alt_text.help_text %}<p class="authoring-help">{{ form.hero_image_alt_text.help_text }}</p>{% endif %}
+                        {% for error in form.hero_image_alt_text.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field authoring-field--wide">
                         <label>Step Photos:</label>
                         <p class="authoring-help">Upload a photo for each cooking step. Photos appear in the gallery in step order.</p>
 
@@ -102,18 +108,14 @@
                         {% endif %}
 
                         <div class="authoring-steps" id="authoring-steps">
+                            {% for row in gallery_step_rows %}
                             <div class="authoring-step-row">
-                                <label class="authoring-step-label" for="id_gallery_step_1">Step 1:</label>
-                                <input accept=".jpg,.jpeg,.png,.webp" class="authoring-control" id="id_gallery_step_1" name="gallery_step_1" type="file">
+                                <label class="authoring-step-label" for="id_gallery_step_{{ row.step }}">Step {{ row.step }}:</label>
+                                <input accept=".jpg,.jpeg,.png,.webp" class="authoring-control" id="id_gallery_step_{{ row.step }}" name="gallery_step_{{ row.step }}" type="file">
+                                <label class="authoring-step-alt-label" for="id_gallery_step_{{ row.step }}_alt">Alt text</label>
+                                <input class="authoring-control authoring-control--compact" id="id_gallery_step_{{ row.step }}_alt" name="gallery_step_{{ row.step }}_alt" type="text" value="{% if row.image %}{{ row.image.alt_text }}{% endif %}" placeholder="Irish brown bread served with butter">
                             </div>
-                            <div class="authoring-step-row">
-                                <label class="authoring-step-label" for="id_gallery_step_2">Step 2:</label>
-                                <input accept=".jpg,.jpeg,.png,.webp" class="authoring-control" id="id_gallery_step_2" name="gallery_step_2" type="file">
-                            </div>
-                            <div class="authoring-step-row">
-                                <label class="authoring-step-label" for="id_gallery_step_3">Step 3:</label>
-                                <input accept=".jpg,.jpeg,.png,.webp" class="authoring-control" id="id_gallery_step_3" name="gallery_step_3" type="file">
-                            </div>
+                            {% endfor %}
                         </div>
                         <button class="authoring-add-step-btn" id="add-step-btn" type="button">+ Add another step</button>
                     </div>
@@ -337,7 +339,9 @@
         row.className = 'authoring-step-row';
         row.innerHTML =
             '<label class="authoring-step-label" for="id_gallery_step_' + stepCount + '">Step ' + stepCount + ':</label>' +
-            '<input accept=".jpg,.jpeg,.png,.webp" class="authoring-control" id="id_gallery_step_' + stepCount + '" name="gallery_step_' + stepCount + '" type="file">';
+            '<input accept=".jpg,.jpeg,.png,.webp" class="authoring-control" id="id_gallery_step_' + stepCount + '" name="gallery_step_' + stepCount + '" type="file">' +
+            '<label class="authoring-step-alt-label" for="id_gallery_step_' + stepCount + '_alt">Alt text</label>' +
+            '<input class="authoring-control authoring-control--compact" id="id_gallery_step_' + stepCount + '_alt" name="gallery_step_' + stepCount + '_alt" type="text" placeholder="Irish brown bread served with butter">';
         container.appendChild(row);
         if (stepCount >= maxSteps) btn.style.display = 'none';
     });

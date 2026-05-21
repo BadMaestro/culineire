@@ -14,7 +14,7 @@ from .admin import RecipeAdmin, RecipeAdminForm
 from .allergens import build_present_allergen_items, parse_selected_allergen_keys, serialize_allergen_keys
 from .forms import RecipeAuthoringForm, RecipeCommentForm
 from .models import Recipe, RecipeAuthor, RecipeComment, RecipeRating
-from .views import _build_context_paragraphs, _build_ingredient_items, _build_method_steps, _image_alt_text, _split_text_lines
+from .views import _build_context_paragraphs, _build_ingredient_items, _build_method_steps, _gallery_step_alt, _gallery_step_rows, _image_alt_text, _split_text_lines
 
 
 class RecipeTextHelperTests(SimpleTestCase):
@@ -1505,6 +1505,79 @@ class RecipePhase3RelatedArticlesTests(TestCase):
 
         self.assertEqual(response.context["related_articles"], [])
         self.assertNotContains(response, "Related Articles")
+
+
+class RecipePhase32AltTextTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        author_user = user_model.objects.create_user(username="altchef", password="pass")
+        self.author = RecipeAuthor.objects.create(user=author_user, name="Alt Chef", slug="alt-chef")
+
+    def test_hero_image_alt_text_field_saved_and_retrieved(self):
+        recipe = Recipe.objects.create(
+            title="Alt Text Recipe",
+            slug="alt-text-recipe",
+            author=self.author,
+            ingredients="Flour",
+            method="Mix.",
+            hero_image_alt_text="A freshly baked loaf on a wooden board",
+            status=Recipe.Status.APPROVED,
+        )
+
+        recipe.refresh_from_db()
+        self.assertEqual(recipe.hero_image_alt_text, "A freshly baked loaf on a wooden board")
+
+    def test_hero_image_alt_text_defaults_to_blank(self):
+        recipe = Recipe.objects.create(
+            title="No Alt Recipe",
+            slug="no-alt-recipe",
+            author=self.author,
+            ingredients="Flour",
+            method="Mix.",
+            status=Recipe.Status.APPROVED,
+        )
+
+        self.assertEqual(recipe.hero_image_alt_text, "")
+
+    def test_hero_image_alt_text_in_authoring_form_fields(self):
+        self.assertIn("hero_image_alt_text", RecipeAuthoringForm.Meta.fields)
+
+    def test_gallery_step_alt_returns_value_for_matching_step(self):
+        post_data = {"gallery_step_1_alt": "Step 1 alt", "gallery_step_2_alt": "Step 2 alt"}
+
+        self.assertEqual(_gallery_step_alt(post_data, 1), "Step 1 alt")
+        self.assertEqual(_gallery_step_alt(post_data, 2), "Step 2 alt")
+
+    def test_gallery_step_alt_returns_empty_for_missing_step(self):
+        self.assertEqual(_gallery_step_alt({}, 5), "")
+
+    def test_gallery_step_rows_returns_at_least_three_rows_with_no_recipe(self):
+        rows = _gallery_step_rows()
+
+        self.assertGreaterEqual(len(rows), 3)
+        self.assertEqual(rows[0]["step"], 1)
+        self.assertIsNone(rows[0]["image"])
+
+    def test_gallery_step_rows_includes_existing_images_at_correct_step(self):
+        recipe = Recipe.objects.create(
+            title="Gallery Recipe",
+            slug="gallery-recipe",
+            author=self.author,
+            ingredients="Oats",
+            method="Cook.",
+            status=Recipe.Status.APPROVED,
+        )
+        from .models import RecipeImage
+        img = RecipeImage.objects.create(
+            recipe=recipe,
+            sort_order=2,
+            alt_text="Step 2 photo",
+        )
+
+        rows = _gallery_step_rows(recipe)
+
+        step2 = next(r for r in rows if r["step"] == 2)
+        self.assertEqual(step2["image"].pk, img.pk)
 
 
 @skip("Dev-only tests: static and media serving via culineire.localhost is not available on the production server")

@@ -69,6 +69,7 @@ class ArticleAuthoringForm(forms.ModelForm):
             "title",
             "excerpt",
             "hero_image",
+            "hero_image_alt_text",
             "published",
             "related_recipe",
             "body",
@@ -84,6 +85,7 @@ class ArticleAuthoringForm(forms.ModelForm):
             "title": "Article Title",
             "excerpt": "Short Description",
             "hero_image": "Article Image",
+            "hero_image_alt_text": "Article Image Alt Text",
             "published": "Publishing Date",
             "related_recipe": "Related Recipe",
             "body": "Article Body",
@@ -136,6 +138,10 @@ class ArticleAuthoringForm(forms.ModelForm):
             "placeholder", "Licence name",
         )
         self.fields["hero_image"].widget.attrs.setdefault("accept", ".jpg,.jpeg,.png,.webp")
+        self.fields["hero_image_alt_text"].widget.attrs.setdefault(
+            "placeholder",
+            "Irish brown bread served with butter",
+        )
 
         # Pre-check confirmations on edit if already agreed
         if self.instance.pk:

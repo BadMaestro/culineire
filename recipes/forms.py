@@ -70,6 +70,7 @@ class RecipeAuthoringForm(forms.ModelForm):
             "title",
             "short_description",
             "hero_image",
+            "hero_image_alt_text",
             "category",
             "additional_categories",
             "difficulty",
@@ -94,6 +95,7 @@ class RecipeAuthoringForm(forms.ModelForm):
             "title": "Recipe Title",
             "short_description": "Short Description",
             "hero_image": "Recipe Image",
+            "hero_image_alt_text": "Recipe Image Alt Text",
             "prep_time_minutes": "Prep Time",
             "cook_time_minutes": "Cook Time",
             "servings": "Servings",
@@ -172,6 +174,10 @@ class RecipeAuthoringForm(forms.ModelForm):
             "Write each step on a new line.",
         )
         self.fields["hero_image"].widget.attrs.setdefault("accept", ".jpg,.jpeg,.png,.webp")
+        self.fields["hero_image_alt_text"].widget.attrs.setdefault(
+            "placeholder",
+            "Irish brown bread served with butter",
+        )
         self.fields["image_rights_note"].widget.attrs.setdefault(
             "placeholder",
             "Licence name",

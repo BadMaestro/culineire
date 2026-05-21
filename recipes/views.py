@@ -110,6 +110,24 @@ def _image_alt_text(title, alt_text="", caption=""):
     return alt_text.strip() or caption.strip() or f"{title} image"
 
 
+def _gallery_step_alt(post_data, step):
+    return (post_data.get(f"gallery_step_{step}_alt") or "").strip()
+
+
+def _gallery_step_rows(recipe=None):
+    existing = {}
+    if recipe:
+        existing = {
+            image.sort_order: image
+            for image in recipe.gallery_images.filter(is_active=True).order_by("sort_order", "id")
+        }
+    max_step = max(3, *(existing.keys() or [0]))
+    return [
+        {"step": step, "image": existing.get(step)}
+        for step in range(1, min(max_step, 20) + 1)
+    ]
+
+
 def _build_method_steps(method_text: str) -> list[dict]:
     raw_lines = _split_text_lines(method_text)
 
@@ -444,7 +462,7 @@ def recipe_detail(request, slug):
             {
                 "media_type": "image",
                 "src": recipe.hero_image.url,
-                "alt": _image_alt_text(recipe.title),
+                "alt": _image_alt_text(recipe.title, recipe.hero_image_alt_text),
                 "caption": "",
                 "poster": "",
             }
@@ -883,7 +901,12 @@ class RecipeCreateView(AuthorRequiredMixin, CreateView):
         for step in range(1, 21):
             img_file = self.request.FILES.get(f"gallery_step_{step}")
             if img_file:
-                RecipeImage.objects.create(recipe=recipe, image=img_file, sort_order=step)
+                RecipeImage.objects.create(
+                    recipe=recipe,
+                    image=img_file,
+                    sort_order=step,
+                    alt_text=_gallery_step_alt(self.request.POST, step),
+                )
 
         self.object = recipe
         messages.success(self.request, "Recipe Created Successfully.")
@@ -894,6 +917,7 @@ class RecipeCreateView(AuthorRequiredMixin, CreateView):
         context["author"] = self.author
         context["turnstile_site_key"] = settings.TURNSTILE_SITE_KEY
         context["cancel_url"] = reverse_lazy("recipes:recipe_list")
+        context["gallery_step_rows"] = _gallery_step_rows()
         return context
 
 
@@ -918,14 +942,19 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
 
         for step in range(1, 21):
             img_file = self.request.FILES.get(f"gallery_step_{step}")
+            alt_text = _gallery_step_alt(self.request.POST, step)
+            existing = recipe.gallery_images.filter(sort_order=step).first()
+            if existing:
+                existing.alt_text = alt_text
             if img_file:
-                existing = recipe.gallery_images.filter(sort_order=step).first()
                 if existing:
                     existing.image.delete(save=False)
                     existing.image = img_file
-                    existing.save()
+                    existing.save(update_fields=["image", "alt_text"])
                 else:
-                    RecipeImage.objects.create(recipe=recipe, image=img_file, sort_order=step)
+                    RecipeImage.objects.create(recipe=recipe, image=img_file, sort_order=step, alt_text=alt_text)
+            elif existing:
+                existing.save(update_fields=["alt_text"])
 
         self.object = recipe
         if was_approved and not is_moderator(self.request.user):
@@ -949,6 +978,7 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
         context["existing_gallery_images"] = list(
             self.object.gallery_images.filter(is_active=True).order_by("sort_order", "id")
         ) if self.object else []
+        context["gallery_step_rows"] = _gallery_step_rows(self.object)
         context["will_return_to_review"] = (
             bool(self.object)
             and self.object.status == Recipe.Status.APPROVED

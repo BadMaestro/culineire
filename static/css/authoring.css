@@ -340,16 +340,22 @@ textarea.authoring-control {
 
 .authoring-step-row {
   display: grid;
-  grid-template-columns: 7rem 1fr;
+  grid-template-columns: 7rem 1fr 5rem 1fr;
   align-items: center;
   gap: 0.75rem;
 }
 
-.authoring-step-label {
+.authoring-step-label,
+.authoring-step-alt-label {
   font-size: 0.85rem;
   font-weight: 600;
   color: #1f2c25;
   white-space: nowrap;
+}
+
+.authoring-control--compact {
+  min-height: 2.35rem;
+  padding-block: 0.45rem;
 }
 
 .authoring-add-step-btn {
@@ -365,6 +371,13 @@ textarea.authoring-control {
 .authoring-add-step-btn:hover {
   background: rgb(11 76 58 / 0.05);
   border-color: #0b4c3a;
+}
+
+@media (max-width: 720px) {
+  .authoring-step-row {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
 }
 
 .authoring-step-existing-list {
@@ -387,7 +400,7 @@ textarea.authoring-control {
   align-items: stretch;
   gap: 0.42rem;
   position: relative;
-  width: 108px;
+  width: min(220px, 100%);
   padding: 0.42rem;
   border: 1px solid rgb(58 44 30 / 0.12);
   border-radius: 8px;

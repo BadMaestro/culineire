@@ -98,6 +98,12 @@ class Article(models.Model):
         null=True,
         validators=[validate_image_upload],
     )
+    hero_image_alt_text = models.CharField(
+        "Article image alt text",
+        max_length=255,
+        blank=True,
+        help_text="Describe the article image for accessibility and search indexing.",
+    )
 
     status = models.CharField(
         "Status",

@@ -66,6 +66,22 @@ def _validate_gallery_uploads(form, uploaded_files):
     return is_valid
 
 
+def _gallery_alt_lines(post_data):
+    return [
+        line.strip()
+        for line in (post_data.get("gallery_alt_texts") or "").splitlines()
+    ]
+
+
+def _update_article_gallery_alt_texts(article, post_data):
+    for image in article.gallery_images.filter(is_active=True):
+        value = post_data.get(f"gallery_alt_{image.pk}")
+        if value is None:
+            continue
+        image.alt_text = value.strip()
+        image.save(update_fields=["alt_text"])
+
+
 class ArticleListView(ListView):
     model = Article
     template_name = "articles/article_list.html"
@@ -161,6 +177,7 @@ class ArticleCreateView(AuthorRequiredMixin, CreateView):
         gallery_images = self.request.FILES.getlist("gallery_images")
         if not _validate_gallery_uploads(form, gallery_images):
             return self.form_invalid(form)
+        gallery_alt_texts = _gallery_alt_lines(self.request.POST)
 
         with transaction.atomic():
             article = form.save(confirmed_by=self.request.user)
@@ -171,7 +188,12 @@ class ArticleCreateView(AuthorRequiredMixin, CreateView):
                 article.save(update_fields=["status"])
 
             for i, img_file in enumerate(gallery_images, start=1):
-                ArticleImage.objects.create(article=article, image=img_file, sort_order=i)
+                ArticleImage.objects.create(
+                    article=article,
+                    image=img_file,
+                    sort_order=i,
+                    alt_text=gallery_alt_texts[i - 1] if i <= len(gallery_alt_texts) else "",
+                )
 
         messages.success(self.request, "Article Created Successfully.")
         return redirect(article.get_absolute_url())
@@ -260,7 +282,7 @@ class ArticleDetailView(DetailView):
             gallery_items = [
                 self._image_to_gallery_item(
                     article.hero_image,
-                    alt=self._image_alt_text(article),
+                    alt=self._image_alt_text(article, article.hero_image_alt_text),
                 )
             ]
         else:
@@ -325,6 +347,7 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
         gallery_images = self.request.FILES.getlist("gallery_images")
         if not _validate_gallery_uploads(form, gallery_images):
             return self.form_invalid(form)
+        gallery_alt_texts = _gallery_alt_lines(self.request.POST)
 
         with transaction.atomic():
             was_approved = self.object.status == Article.Status.APPROVED
@@ -334,10 +357,17 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
             article.save()
             form.save_m2m()
             self.object = article
+            _update_article_gallery_alt_texts(article, self.request.POST)
 
             max_sort_order = article.gallery_images.aggregate(max_sort_order=Max("sort_order"))["max_sort_order"] or 0
             for i, img_file in enumerate(gallery_images, start=max_sort_order + 1):
-                ArticleImage.objects.create(article=article, image=img_file, sort_order=i)
+                alt_index = i - max_sort_order - 1
+                ArticleImage.objects.create(
+                    article=article,
+                    image=img_file,
+                    sort_order=i,
+                    alt_text=gallery_alt_texts[alt_index] if alt_index < len(gallery_alt_texts) else "",
+                )
 
         if was_approved and not is_moderator(self.request.user):
             messages.success(

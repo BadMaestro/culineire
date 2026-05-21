@@ -15,7 +15,7 @@ from recipes.models import Recipe, RecipeAuthor
 
 from .admin import ArticleAdmin, ArticleAdminForm, ArticleImageInlineFormSet
 from .models import Article, ArticleImage
-from .views import _reading_time_minutes
+from .views import ArticleDetailView, _gallery_alt_lines, _reading_time_minutes
 
 
 @override_settings(
@@ -1495,3 +1495,67 @@ class ArticlePhase3ReadingTimeTests(TestCase):
 
     def test_reading_time_is_at_least_one_for_empty_body(self):
         self.assertEqual(_reading_time_minutes(""), 1)
+
+
+class ArticlePhase32AltTextTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        author_user = user_model.objects.create_user(username="altwriter", password="pass")
+        self.author = RecipeAuthor.objects.create(user=author_user, name="Alt Writer", slug="alt-writer")
+
+    def test_hero_image_alt_text_field_saved_and_retrieved(self):
+        article = Article.objects.create(
+            title="Alt Text Article",
+            slug="alt-text-article",
+            author=self.author,
+            body="Body text.",
+            hero_image_alt_text="A bowl of Irish stew on a stone table",
+            status=Article.Status.APPROVED,
+        )
+
+        article.refresh_from_db()
+        self.assertEqual(article.hero_image_alt_text, "A bowl of Irish stew on a stone table")
+
+    def test_hero_image_alt_text_defaults_to_blank(self):
+        article = Article.objects.create(
+            title="No Alt Article",
+            slug="no-alt-article",
+            author=self.author,
+            body="Body text.",
+            status=Article.Status.APPROVED,
+        )
+
+        self.assertEqual(article.hero_image_alt_text, "")
+
+    def test_hero_image_alt_text_in_authoring_form_fields(self):
+        from .forms import ArticleAuthoringForm
+
+        self.assertIn("hero_image_alt_text", ArticleAuthoringForm.Meta.fields)
+
+    def test_gallery_alt_lines_splits_on_newlines(self):
+        post_data = {"gallery_alt_texts": "First image alt\nSecond image alt\n"}
+
+        lines = _gallery_alt_lines(post_data)
+
+        self.assertEqual(lines, ["First image alt", "Second image alt"])
+
+    def test_gallery_alt_lines_returns_empty_list_when_missing(self):
+        self.assertEqual(_gallery_alt_lines({}), [])
+
+    def test_image_alt_text_helper_prefers_explicit_alt(self):
+        class MockArticle:
+            title = "Mock Article"
+
+        self.assertEqual(
+            ArticleDetailView._image_alt_text(MockArticle(), "Custom descriptive text"),
+            "Custom descriptive text",
+        )
+
+    def test_image_alt_text_helper_falls_back_to_title(self):
+        class MockArticle:
+            title = "Mock Article"
+
+        self.assertEqual(
+            ArticleDetailView._image_alt_text(MockArticle()),
+            "Mock Article image",
+        )

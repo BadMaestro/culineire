@@ -242,6 +242,12 @@ class Recipe(models.Model):
         validators=[validate_image_upload],
         verbose_name="Preview image",
     )
+    hero_image_alt_text = models.CharField(
+        "Recipe image alt text",
+        max_length=255,
+        blank=True,
+        help_text="Describe the recipe image for accessibility and search indexing.",
+    )
 
     prep_time_minutes = models.PositiveSmallIntegerField(default=0)
     cook_time_minutes = models.PositiveSmallIntegerField(default=0)
