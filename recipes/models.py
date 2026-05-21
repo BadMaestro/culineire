@@ -482,7 +482,7 @@ class RecipeAdditionalCategory(models.Model):
         verbose_name_plural = "Additional recipe categories"
 
     def __str__(self) -> str:
-        return f"{self.recipe.title} â€” {self.get_category_display()}"
+        return f”{self.recipe.title} — {self.get_category_display()}”
 
 
 class RecipeImage(models.Model):
