@@ -370,8 +370,11 @@ textarea.authoring-control {
 .authoring-step-existing-list {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 0.85rem;
-  margin-block: 0.4rem 0.85rem;
+  max-width: 980px;
+  margin-block: 0.75rem 0.95rem;
+  margin-inline: auto;
 }
 
 .authoring-step-existing-item {
@@ -423,6 +426,8 @@ textarea.authoring-control {
   position: relative;
   display: inline-block;
   max-width: 100%;
+  margin-block-start: 0.35rem;
+  margin-inline: auto;
 }
 
 .authoring-step-delete {
