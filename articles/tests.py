@@ -2215,14 +2215,19 @@ class SuggestArticleBodyTests(TestCase):
         para = "This is a paragraph about Irish food culture. " * 15
         body = para + "\n\n- item one\n- item two\n\n" + para
         result = suggest_article_body("Title", "Excerpt", body)
-        # List items should not have headings prepended before them
-        lines = result.splitlines()
-        for i, line in enumerate(lines):
+        # List items must be preserved in output
+        self.assertIn("- item one", result)
+        self.assertIn("- item two", result)
+        # A ## heading must never appear immediately before a list item line
+        non_empty = [ln for ln in result.splitlines() if ln.strip()]
+        for i, line in enumerate(non_empty):
             if line.startswith("- "):
                 if i > 0:
-                    # The preceding non-empty line should not be a list item turned heading
-                    prev_line = lines[i - 1].strip()
-                    self.assertFalse(prev_line.startswith("- "), "List items should stay together")
+                    prev = non_empty[i - 1].strip()
+                    self.assertFalse(
+                        prev.startswith("## "),
+                        f"Heading was inserted directly before list item: {prev!r}",
+                    )
 
     def test_preserves_blockquotes(self):
         para = "This is a paragraph about Irish food culture. " * 15
@@ -2659,7 +2664,6 @@ class SuggestArticleEditorialFormatCommandTests(TestCase):
             published=date(2026, 1, 1),
             status=Article.Status.APPROVED,
             confirmed_own_work=True,
-            confirm_image_rights=True,
             confirmed_rules=True,
             source_type="original",
         )
