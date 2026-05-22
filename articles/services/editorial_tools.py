@@ -20,17 +20,59 @@ import re
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
-# Headings inserted when body has no ## headings and is long enough.
-_ARTICLE_AUTO_HEADINGS = [
-    "Introduction",
-    "Background",
-    "Food, Place and Tradition",
-    "Modern Revival",
+# ── Article heading tables ─────────────────────────────────────────────────────
+#
+# Contextual headings: (keyword_list, heading_text).
+# Matched against the full lowercased body text.  First match wins for each slot.
+# Order matters — more specific / distinctive Irish themes first.
+_CONTEXTUAL_HEADINGS = [
+    (
+        ["potato", "colcannon", "boxty", "champ", "spud"],
+        "The Potato and Its Place",
+    ),
+    (
+        ["butter", "cream", "stout", "whiskey", "whisky", "guinness"],
+        "Irish Food Beyond the Familiar Icons",
+    ),
+    (
+        ["baking", "bread", "oats", "griddle", "soda", "loaf", "scone"],
+        "Baking, Griddles and the Country Kitchen",
+    ),
+    (
+        ["mill", "grain", "flour", "milling"],
+        "Mills, Grain and Rural Memory",
+    ),
+    (
+        ["fishing", "fish", "seafood", "coast", "coastal", "atlantic", "harbour"],
+        "Coastal Traditions and the Sea",
+    ),
+    (
+        ["land", "season", "seasonal", "rural", "countryside", "farm", "harvest"],
+        "Food Rooted in the Land",
+    ),
+    (
+        ["revival", "modern", "restaurant", "bistro", "chef", "contemporary"],
+        "A Living Culinary Heritage",
+    ),
+    (
+        ["history", "century", "centuries", "ancient", "medieval", "historical"],
+        "Rooted in History",
+    ),
+]
+
+# Soft editorial fallbacks used when keyword matching is exhausted.
+# None of these should sound like a school report.
+_FALLBACK_HEADINGS = [
+    "Food Rooted in Place",
+    "A Tradition Built on Simple Ingredients",
+    "The Country Kitchen",
+    "From Everyday Cooking to Heritage",
     "Why It Still Matters",
-    "Final Thoughts",
 ]
 
 _MIN_WORDS_FOR_HEADING_INSERTION = 300
+# First N plain paragraphs remain as a lead section before any heading is inserted.
+_LEAD_PARAGRAPHS = 1
 
 _RE_BLOCK_SEP = re.compile(r'\n[ \t]*\n')
 _RE_H2 = re.compile(r'^##\s+')
@@ -47,11 +89,18 @@ def suggest_article_body(title: str, excerpt: str, body: str) -> str:
     """
     Return a suggested reformatted body string (deterministic, no AI).
 
-    Rules:
-    - If body already has ## headings → return normalised body unchanged.
-    - If body is short (< 300 words) → return normalised body unchanged.
-    - Otherwise → split into paragraph blocks and insert generic ## headings
-      from _ARTICLE_AUTO_HEADINGS at every second plain-paragraph block.
+    Rules
+    -----
+    - Body already has ## headings → return normalised body unchanged.
+    - Body is short (< 300 words) → return normalised body unchanged.
+    - Otherwise:
+        * Keep the first paragraph(s) as a lead section (no heading before them).
+        * Insert editorial headings chosen from the contextual / fallback tables,
+          once every two plain-paragraph blocks after the lead.
+        * Maximum headings: 2 for <500 words, 3 for <800 words,
+          4 for <1200 words, 5 for longer articles.
+        * Never output "Introduction", "Background" or other academic headings.
+        * List and blockquote blocks are never preceded by an inserted heading.
     """
     if not body or not body.strip():
         return body or ""
@@ -61,23 +110,40 @@ def suggest_article_body(title: str, excerpt: str, body: str) -> str:
     if _has_h2(cleaned):
         return cleaned
 
-    if len(cleaned.split()) < _MIN_WORDS_FOR_HEADING_INSERTION:
+    word_count = len(cleaned.split())
+    if word_count < _MIN_WORDS_FOR_HEADING_INSERTION:
         return cleaned
 
+    # Scale heading density to article length
+    if word_count < 500:
+        max_headings = 2
+    elif word_count < 800:
+        max_headings = 3
+    elif word_count < 1200:
+        max_headings = 4
+    else:
+        max_headings = 5
+
+    heading_pool = _build_heading_pool(cleaned.lower(), max_headings)
     blocks = [b.strip() for b in _RE_BLOCK_SEP.split(cleaned) if b.strip()]
 
-    heading_pool = list(_ARTICLE_AUTO_HEADINGS)
     result_blocks = []
-    para_count = 0
+    para_count = 0   # counts plain-paragraph blocks seen so far
     heading_index = 0
 
     for block in blocks:
         first_line = block.splitlines()[0] if block else ""
         is_heading = first_line.startswith("#")
         is_list = bool(_RE_BULLET.match(first_line))
+        is_plain = not is_heading and not is_list
 
-        if not is_heading and not is_list:
-            if para_count % 2 == 0 and heading_index < len(heading_pool):
+        if is_plain:
+            # Skip the lead paragraphs; after that insert a heading every 2nd block.
+            if (
+                para_count >= _LEAD_PARAGRAPHS
+                and heading_index < len(heading_pool)
+                and (para_count - _LEAD_PARAGRAPHS) % 2 == 0
+            ):
                 result_blocks.append("## " + heading_pool[heading_index])
                 heading_index += 1
             para_count += 1
@@ -85,6 +151,34 @@ def suggest_article_body(title: str, excerpt: str, body: str) -> str:
         result_blocks.append(block)
 
     return "\n\n".join(result_blocks)
+
+
+def _build_heading_pool(body_lower: str, max_count: int) -> list:
+    """
+    Return up to max_count editorial headings for the given body text.
+
+    Scans body_lower for keyword matches (contextual headings first),
+    then fills remaining slots from the soft fallback list.
+    No heading appears more than once.
+    """
+    pool = []
+    seen = set()
+
+    for keywords, heading in _CONTEXTUAL_HEADINGS:
+        if len(pool) >= max_count:
+            break
+        if heading not in seen and any(kw in body_lower for kw in keywords):
+            pool.append(heading)
+            seen.add(heading)
+
+    for heading in _FALLBACK_HEADINGS:
+        if len(pool) >= max_count:
+            break
+        if heading not in seen:
+            pool.append(heading)
+            seen.add(heading)
+
+    return pool[:max_count]
 
 
 def render_article_preview(body: str) -> str:

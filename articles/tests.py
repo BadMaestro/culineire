@@ -2154,10 +2154,14 @@ class ArticleEditorialDetailTests(TestCase):
 import json as _json
 
 from articles.services.editorial_tools import (
+    _build_heading_pool,
     _clean_list_field,
     _clean_method_field,
     _clean_plain_field,
+    _CONTEXTUAL_HEADINGS,
+    _FALLBACK_HEADINGS,
     _has_h2,
+    _LEAD_PARAGRAPHS,
     _normalize_body,
     render_article_preview,
     render_recipe_preview,
@@ -2192,15 +2196,114 @@ class SuggestArticleBodyTests(TestCase):
         self.assertIn("##", result)
 
     def test_inserted_headings_come_from_allowed_list(self):
-        from articles.services.editorial_tools import _ARTICLE_AUTO_HEADINGS
+        all_allowed = {h for _, h in _CONTEXTUAL_HEADINGS} | set(_FALLBACK_HEADINGS)
         para = "This is a paragraph about Irish food culture and tradition. " * 10
         body = "\n\n".join([para] * 6)
         result = suggest_article_body("Title", "Excerpt", body)
-        for heading in _ARTICLE_AUTO_HEADINGS:
-            if "## " + heading in result:
-                break
-        else:
-            self.fail("No allowed heading found in suggested body")
+        inserted = [ln[3:] for ln in result.splitlines() if ln.startswith("## ")]
+        self.assertTrue(inserted, "Expected at least one heading to be inserted")
+        for heading in inserted:
+            self.assertIn(heading, all_allowed, f"Unexpected heading in output: {heading!r}")
+
+    # ── Editorial quality tests (task spec) ──────────────────────────────────
+
+    def test_no_bare_introduction_heading(self):
+        para = "This is a paragraph about Irish food culture and tradition. " * 15
+        body = "\n\n".join([para] * 4)
+        result = suggest_article_body("Title", "Excerpt", body)
+        self.assertNotIn("## Introduction", result)
+
+    def test_no_background_heading(self):
+        para = "This is a paragraph about Irish food culture and tradition. " * 15
+        body = "\n\n".join([para] * 4)
+        result = suggest_article_body("Title", "Excerpt", body)
+        self.assertNotIn("## Background", result)
+
+    def test_no_modern_revival_heading(self):
+        para = "This is a paragraph about Irish food culture and tradition. " * 15
+        body = "\n\n".join([para] * 4)
+        result = suggest_article_body("Title", "Excerpt", body)
+        self.assertNotIn("## Modern Revival", result)
+
+    def test_first_paragraph_is_lead_before_first_heading(self):
+        para = "This is a paragraph about Irish food culture and tradition. " * 15
+        body = "\n\n".join([para] * 4)
+        result = suggest_article_body("Title", "Excerpt", body)
+        lines = result.splitlines()
+        first_para_idx = next(
+            (i for i, ln in enumerate(lines) if ln.strip() and not ln.startswith("#")),
+            None,
+        )
+        first_h2_idx = next(
+            (i for i, ln in enumerate(lines) if ln.startswith("## ")),
+            None,
+        )
+        if first_h2_idx is not None:
+            self.assertIsNotNone(first_para_idx)
+            self.assertLess(
+                first_para_idx,
+                first_h2_idx,
+                "First paragraph must appear before the first ## heading",
+            )
+
+    def test_blank_lines_around_headings(self):
+        para = "This is a paragraph about Irish food culture and tradition. " * 15
+        body = "\n\n".join([para] * 4)
+        result = suggest_article_body("Title", "Excerpt", body)
+        if "## " not in result:
+            return
+        lines = result.splitlines()
+        for i, line in enumerate(lines):
+            if line.startswith("## ") and i > 0:
+                self.assertEqual(
+                    lines[i - 1].strip(),
+                    "",
+                    f"Expected blank line before heading at line {i}: {line!r}",
+                )
+
+    def test_short_article_not_over_formatted(self):
+        # 300-400 words: max 2 headings
+        para = "This is a paragraph about Irish food culture and tradition. " * 10
+        body = "\n\n".join([para] * 4)  # 9*10*4 = 360 words
+        result = suggest_article_body("Title", "Excerpt", body)
+        heading_count = sum(1 for ln in result.splitlines() if ln.startswith("## "))
+        self.assertLessEqual(heading_count, 2, "300-400 word article should have at most 2 headings")
+
+    def test_contextual_heading_land_rural_season(self):
+        rural_para = (
+            "The rural landscape of Ireland, shaped by seasonal harvests and "
+            "countryside farming traditions, has defined food culture for centuries. " * 5
+        )
+        body = "\n\n".join([rural_para] * 4)
+        result = suggest_article_body("Title", "Excerpt", body)
+        self.assertIn("Food Rooted in the Land", result)
+
+    def test_contextual_heading_baking_griddle_oats(self):
+        baking_para = (
+            "Traditional Irish baking relied on oats, griddle bread, and soda loaves "
+            "made in the country kitchen and passed down through generations. " * 5
+        )
+        body = "\n\n".join([baking_para] * 4)
+        result = suggest_article_body("Title", "Excerpt", body)
+        self.assertIn("Baking, Griddles and the Country Kitchen", result)
+
+    def test_contextual_heading_mills_grain_flour(self):
+        mill_para = (
+            "The old mills along river valleys ground grain and produced the flour "
+            "that sustained rural communities throughout the centuries of Irish history. " * 5
+        )
+        body = "\n\n".join([mill_para] * 4)
+        result = suggest_article_body("Title", "Excerpt", body)
+        self.assertIn("Mills, Grain and Rural Memory", result)
+
+    def test_existing_headings_are_preserved(self):
+        body = "## A Custom Heading\n\nSome paragraph text here.\n\n## Another Heading\n\nMore paragraph text."
+        result = suggest_article_body("Title", "Excerpt", body)
+        self.assertIn("## A Custom Heading", result)
+        self.assertIn("## Another Heading", result)
+        # No extra headings should be injected
+        injected = [ln for ln in result.splitlines() if ln.startswith("## ") and ln not in ("## A Custom Heading", "## Another Heading")]
+        self.assertEqual(injected, [])
 
     def test_normalise_collapses_multiple_blank_lines(self):
         body = "Para one.\n\n\n\nPara two."
