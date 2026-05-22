@@ -109,7 +109,7 @@ def maintenance_login(request):
         login(request, user)
         return redirect(reverse("recipes:moderation_panel"))
     else:
-        error = "Access denied."
+        error = "Sorry, we are undergoing maintenance. Please come back later."
     from config.maintenance import read_maintenance_flag
 
     flag = read_maintenance_flag()
