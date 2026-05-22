@@ -259,7 +259,11 @@
                     {% if can_save_draft %}
                     <button class="authoring-submit authoring-submit--secondary" name="action" type="submit" value="save_draft">Save Draft</button>
                     {% endif %}
+                    {% if can_approve %}
+                    <button class="authoring-submit" name="action" type="submit" value="approve_publish">Approve and Publish</button>
+                    {% else %}
                     <button class="authoring-submit" name="action" type="submit" value="submit_review">Submit for Review</button>
+                    {% endif %}
                 </div>
             </div>
         </form>

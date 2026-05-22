@@ -130,7 +130,7 @@ def _gallery_step_rows(recipe=None):
 
 
 def _authoring_action(request):
-    return request.POST.get("action") if request.POST.get("action") in {"save_draft", "submit_review"} else "submit_review"
+    return request.POST.get("action") if request.POST.get("action") in {"save_draft", "submit_review", "approve_publish"} else "submit_review"
 
 
 def _soft_delete_recipe(recipe, user):
@@ -949,7 +949,12 @@ class RecipeCreateView(AuthorRequiredMixin, CreateView):
         action = _authoring_action(self.request)
         recipe = form.save(commit=False, confirmed_by=self.request.user)
         recipe.author = self.author
-        recipe.status = Recipe.Status.DRAFT if action == "save_draft" else Recipe.Status.PENDING
+        if is_moderator(self.request.user) and action == "approve_publish":
+            recipe.status = Recipe.Status.APPROVED
+        elif action == "save_draft":
+            recipe.status = Recipe.Status.DRAFT
+        else:
+            recipe.status = Recipe.Status.PENDING
         recipe.save()
         getattr(form, "save_additional_categories")(recipe)
 
@@ -964,7 +969,9 @@ class RecipeCreateView(AuthorRequiredMixin, CreateView):
                 )
 
         self.object = recipe
-        if recipe.status == Recipe.Status.DRAFT:
+        if recipe.status == Recipe.Status.APPROVED:
+            messages.success(self.request, "Recipe approved and published.")
+        elif recipe.status == Recipe.Status.DRAFT:
             messages.success(self.request, "Recipe saved as a private draft.")
         else:
             messages.success(self.request, "Recipe submitted for review.")
@@ -977,6 +984,7 @@ class RecipeCreateView(AuthorRequiredMixin, CreateView):
         context["cancel_url"] = reverse_lazy("recipes:recipe_list")
         context["gallery_step_rows"] = _gallery_step_rows()
         context["can_save_draft"] = True
+        context["can_approve"] = is_moderator(self.request.user)
         return context
 
 
@@ -996,7 +1004,9 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
         was_approved = self.object.status == Recipe.Status.APPROVED
         previous_status = self.object.status
         recipe = form.save(commit=False, confirmed_by=self.request.user)
-        if not is_moderator(self.request.user):
+        if is_moderator(self.request.user) and action == "approve_publish":
+            recipe.status = Recipe.Status.APPROVED
+        elif not is_moderator(self.request.user):
             if was_approved:
                 recipe.status = Recipe.Status.PENDING
             elif action == "save_draft":
@@ -1023,7 +1033,9 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
                 existing.save(update_fields=["alt_text"])
 
         self.object = recipe
-        if recipe.status == Recipe.Status.DRAFT and not is_moderator(self.request.user):
+        if is_moderator(self.request.user) and action == "approve_publish":
+            messages.success(self.request, "Recipe approved and published.")
+        elif recipe.status == Recipe.Status.DRAFT and not is_moderator(self.request.user):
             messages.success(self.request, "Recipe saved as a private draft.")
         elif was_approved and not is_moderator(self.request.user):
             messages.success(self.request, "Recipe updated and sent back to review before it goes live again.")
@@ -1063,6 +1075,7 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
             and not is_moderator(self.request.user)
         )
         context["can_save_draft"] = bool(self.object) and self.object.status != Recipe.Status.APPROVED
+        context["can_approve"] = is_moderator(self.request.user)
         return context
 
 

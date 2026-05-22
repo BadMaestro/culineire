@@ -113,7 +113,7 @@ def _update_article_gallery_alt_texts(article, post_data):
 
 
 def _authoring_action(request):
-    return request.POST.get("action") if request.POST.get("action") in {"save_draft", "submit_review"} else "submit_review"
+    return request.POST.get("action") if request.POST.get("action") in {"save_draft", "submit_review", "approve_publish"} else "submit_review"
 
 
 def _soft_delete_article(article, user):
@@ -227,7 +227,12 @@ class ArticleCreateView(AuthorRequiredMixin, CreateView):
             article = form.save(confirmed_by=self.request.user)
             self.object = article
 
-            article.status = Article.Status.DRAFT if action == "save_draft" else Article.Status.PENDING
+            if is_moderator(self.request.user) and action == "approve_publish":
+                article.status = Article.Status.APPROVED
+            elif action == "save_draft":
+                article.status = Article.Status.DRAFT
+            else:
+                article.status = Article.Status.PENDING
             article.save(update_fields=["status"])
 
             for i, img_file in enumerate(gallery_images, start=1):
@@ -238,7 +243,9 @@ class ArticleCreateView(AuthorRequiredMixin, CreateView):
                     alt_text=gallery_alt_texts[i - 1] if i <= len(gallery_alt_texts) else "",
                 )
 
-        if article.status == Article.Status.DRAFT:
+        if article.status == Article.Status.APPROVED:
+            messages.success(self.request, "Article approved and published.")
+        elif article.status == Article.Status.DRAFT:
             messages.success(self.request, "Article saved as a private draft.")
         else:
             messages.success(self.request, "Article submitted for review.")
@@ -259,6 +266,7 @@ class ArticleCreateView(AuthorRequiredMixin, CreateView):
         context["turnstile_site_key"] = settings.TURNSTILE_SITE_KEY
         context["cancel_url"] = reverse("articles:article_list")
         context["can_save_draft"] = True
+        context["can_approve"] = is_moderator(self.request.user)
         return context
 
 
@@ -410,7 +418,9 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
             was_approved = self.object.status == Article.Status.APPROVED
             previous_status = self.object.status
             article = form.save(commit=False, confirmed_by=self.request.user)
-            if not is_moderator(self.request.user):
+            if is_moderator(self.request.user) and action == "approve_publish":
+                article.status = Article.Status.APPROVED
+            elif not is_moderator(self.request.user):
                 if was_approved:
                     article.status = Article.Status.PENDING
                 elif action == "save_draft":
@@ -432,7 +442,9 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
                     alt_text=gallery_alt_texts[alt_index] if alt_index < len(gallery_alt_texts) else "",
                 )
 
-        if article.status == Article.Status.DRAFT and not is_moderator(self.request.user):
+        if is_moderator(self.request.user) and action == "approve_publish":
+            messages.success(self.request, "Article approved and published.")
+        elif article.status == Article.Status.DRAFT and not is_moderator(self.request.user):
             messages.success(self.request, "Article saved as a private draft.")
         elif was_approved and not is_moderator(self.request.user):
             messages.success(
@@ -472,6 +484,7 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
             context["cancel_url"] = self.object.get_absolute_url() if self.object else reverse("articles:article_list")
         context["turnstile_site_key"] = ""
         context["can_save_draft"] = bool(self.object) and self.object.status != Article.Status.APPROVED
+        context["can_approve"] = is_moderator(self.request.user)
         context["will_return_to_review"] = (
             bool(self.object)
             and self.object.status == Article.Status.APPROVED
