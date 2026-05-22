@@ -97,6 +97,9 @@ class MaintenanceModeMiddleware:
         path = request.path_info or request.path
         if path in self.allowed_paths or path.startswith(self.allowed_prefixes):
             return self.get_response(request)
+        admin_url = getattr(settings, "ADMIN_URL_PREFIX", "cave19850324")
+        if path.startswith(f"/{admin_url}/"):
+            return self.get_response(request)
 
         maintenance_until = ""
         if flag_active:
