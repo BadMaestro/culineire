@@ -1,8 +1,9 @@
 from datetime import timedelta
 
 from django.conf import settings
+from django.contrib.auth import authenticate, login
 from django.http import HttpResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import escape
@@ -95,6 +96,40 @@ def sitemap_xml(_request):
     xml_lines.append("</urlset>")
 
     return HttpResponse("\n".join(xml_lines), content_type="application/xml; charset=utf-8")
+
+
+@require_POST
+def maintenance_login(request):
+    """Staff-only login from the maintenance door page."""
+    username = request.POST.get("username", "").strip()
+    password = request.POST.get("password", "")
+    error = ""
+    user = authenticate(request, username=username, password=password)
+    if user is not None and (user.is_superuser or user.is_staff):
+        login(request, user)
+        return redirect(reverse("recipes:moderation_panel"))
+    else:
+        error = "Access denied."
+    from config.maintenance import read_maintenance_flag
+
+    flag = read_maintenance_flag()
+    maintenance_until = ""
+    if flag:
+        maintenance_until = flag.get("until", "")
+    if not maintenance_until:
+        maintenance_until = getattr(settings, "MAINTENANCE_UNTIL", "")
+    retry_after = getattr(settings, "MAINTENANCE_RETRY_AFTER_SECONDS", 10800)
+    return render(
+        request,
+        "maintenance.html",
+        {
+            "maintenance_until": maintenance_until,
+            "retry_after_seconds": retry_after,
+            "door_notes": [],
+            "login_error": error,
+        },
+        status=503,
+    )
 
 
 @require_POST

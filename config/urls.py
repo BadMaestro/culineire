@@ -20,6 +20,7 @@ urlpatterns = [
     path("robots.txt", config_views.robots_txt, name="robots_txt"),
     path("sitemap.xml", config_views.sitemap_xml, name="sitemap_xml"),
     path("maintenance/notes/", config_views.maintenance_note_create, name="maintenance_note_create"),
+    path("maintenance/login/", config_views.maintenance_login, name="maintenance_login"),
     path("maintenance/toggle/", config_views.maintenance_toggle, name="maintenance_toggle"),
     path("favicon.ico", RedirectView.as_view(url=static("images/favicon.ico"), permanent=True), name="favicon"),
     path("favicon.png", RedirectView.as_view(url=static("images/favicon.png"), permanent=True), name="favicon_png"),

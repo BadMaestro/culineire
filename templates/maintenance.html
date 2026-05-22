@@ -43,6 +43,25 @@
             No need to do anything. We have the mop, the checklist, and a very serious backup.
         </p>
 
+        <details class="maintenance-staff-login">
+            <summary class="maintenance-staff-toggle">Staff Access</summary>
+            <form class="maintenance-staff-form" action="{% url 'maintenance_login' %}" method="post">
+                {% csrf_token %}
+                {% if login_error %}
+                <p class="maintenance-staff-error">{{ login_error }}</p>
+                {% endif %}
+                <label>
+                    <span>Username</span>
+                    <input name="username" type="text" required autocomplete="username">
+                </label>
+                <label>
+                    <span>Password</span>
+                    <input name="password" type="password" required autocomplete="current-password">
+                </label>
+                <button type="submit">Sign In</button>
+            </form>
+        </details>
+
         <section id="maintenance-door" class="maintenance-door" aria-labelledby="door-title">
             <div class="door-heading">
                 <p class="maintenance-kicker">Notes taped to the kitchen door</p>

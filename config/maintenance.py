@@ -77,6 +77,7 @@ class MaintenanceModeMiddleware:
         "/robots.txt",
         "/sitemap.xml",
         "/maintenance/notes/",
+        "/maintenance/login/",
         "/maintenance/toggle/",
     )
 
