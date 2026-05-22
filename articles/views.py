@@ -19,11 +19,12 @@ from collection.models import SavedArticle
 from config.turnstile import verify_turnstile
 from monitoring.tracker import track_event
 from recipes.authoring import AuthorRequiredMixin, user_can_manage_author
-from recipes.models import RecipeAuthor
+from recipes.models import Recipe, RecipeAuthor
 from recipes.validators import validate_image_upload
 from accounts.views import is_moderator
 from .forms import ArticleAuthoringForm
 from .models import Article, ArticleImage
+from .templatetags.article_filters import add_internal_recipe_links, editorial_format
 
 logger = logging.getLogger(__name__)
 
@@ -366,6 +367,14 @@ class ArticleDetailView(DetailView):
         if gallery_items:
             _schema["image"] = self.request.build_absolute_uri(gallery_items[0]["src"])
         context["article_json_ld"] = _json_ld(_schema)
+        approved_recipes = Recipe.objects.filter(
+            status=Recipe.Status.APPROVED,
+            is_deleted=False,
+        ).only("title", "slug")
+        context["article_body_html"] = add_internal_recipe_links(
+            editorial_format(article.body or ""),
+            approved_recipes,
+        )
         context["is_saved"] = context["can_collect_article"] and SavedArticle.objects.filter(user=self.request.user, article=article).exists()
         context["collection_add_url"] = reverse("collection:add_article", kwargs={"slug": article.slug})
         context["collection_remove_url"] = reverse("collection:remove_article", kwargs={"slug": article.slug})

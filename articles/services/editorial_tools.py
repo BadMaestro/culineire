@@ -260,7 +260,11 @@ def _score_para_theme(text_lower: str):
     best_theme = None
     best_score = 0
     for theme in _SECTION_THEMES:
-        score = sum(1 for kw in theme["keywords"] if kw in text_lower)
+        score = sum(
+            1
+            for kw in theme["keywords"]
+            if re.search(rf'(?<![\w-]){re.escape(kw)}(?![\w-])', text_lower)
+        )
         if score > best_score:
             best_score = score
             best_theme = theme

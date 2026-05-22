@@ -3256,17 +3256,17 @@
 
 .detail-page--article .rich-text p {
   font-size: 1.06rem;
-  line-height: 1.9;
-  margin-block-end: 1.4rem;
+  line-height: 1.82;
+  margin-block-end: 1rem;
 }
 
 .detail-page--article .rich-text h2 {
   font-family: var(--font-serif);
-  font-size: clamp(1.35rem, 2.5vw, 1.7rem);
-  line-height: 1.18;
+  font-size: clamp(1.28rem, 1.7vw, 1.65rem);
+  line-height: 1.22;
   letter-spacing: -0.03em;
-  margin-block-start: 3.2rem;
-  margin-block-end: 0.75rem;
+  margin-block-start: 1.7rem;
+  margin-block-end: 0.7rem;
   color: var(--ink);
   text-align: left;
 }
@@ -3276,8 +3276,8 @@
   font-size: clamp(1.1rem, 1.8vw, 1.3rem);
   line-height: 1.25;
   letter-spacing: -0.02em;
-  margin-block-start: 2.2rem;
-  margin-block-end: 0.5rem;
+  margin-block-start: 1.35rem;
+  margin-block-end: 0.55rem;
   color: var(--ink);
   text-align: left;
 }
@@ -3291,6 +3291,19 @@
 
 .detail-page--article .rich-text a:hover {
   text-decoration-thickness: 2px;
+}
+
+.detail-page--article .rich-text .editorial-link {
+  color: #0f5f45;
+  text-decoration-color: rgb(15 95 69 / 0.34);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.detail-page--article .rich-text .editorial-link:hover,
+.detail-page--article .rich-text .editorial-link:focus-visible {
+  color: #0b4c3a;
+  text-decoration-color: currentColor;
 }
 
 .detail-page--article .rich-text li {
@@ -3389,17 +3402,27 @@
 
 /* ── 4b. Lead paragraph — first paragraph gets editorial weight ── */
 .detail-page--article .rich-text .lead {
-  font-size: clamp(1.16rem, 1.5vw, 1.32rem);
-  line-height: 1.9;
+  font-size: clamp(1.04rem, 1vw, 1.12rem);
+  line-height: 1.78;
   color: var(--ink);
-  font-weight: 500;
-  margin-block-end: 2.2rem;
+  font-weight: 400;
+  margin-block-end: 1.15rem;
 }
 
 /* Second paragraph — bridge between standfirst and first heading */
 .detail-page--article .rich-text .lead + p {
   color: var(--ink-soft);
-  margin-block-end: 2rem;
+  margin-block-end: 1rem;
+}
+
+.detail-page--article .rich-text p + p {
+  text-indent: 1.25em;
+}
+
+.detail-page--article .rich-text h2 + p,
+.detail-page--article .rich-text h3 + p,
+.detail-page--article .rich-text .lead + p {
+  text-indent: 0;
 }
 
 /* ── 5. Gallery caption — softer & italic ── */
@@ -3425,15 +3448,19 @@
   .detail-page--article .rich-text p {
     font-size: 1rem;
     line-height: 1.82;
-    margin-block-end: 1.15rem;
+    margin-block-end: 0.95rem;
   }
 
   .detail-page--article .rich-text h2 {
-    margin-block-start: 2.2rem;
+    margin-block-start: 1.45rem;
   }
 
   .detail-page--article .rich-text h3 {
-    margin-block-start: 1.6rem;
+    margin-block-start: 1.2rem;
+  }
+
+  .detail-page--article .rich-text p + p {
+    text-indent: 0.75em;
   }
 
   .detail-page--article .rich-text blockquote {

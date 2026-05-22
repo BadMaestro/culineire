@@ -2027,6 +2027,23 @@ class EditorialFormatFilterTests(TestCase):
         result = self._render("Fish & chips.")
         self.assertIn("Fish &amp; chips.", result)
 
+    def test_strong_markers_render_as_strong(self):
+        result = self._render("Irish **brown bread** matters.")
+        self.assertIn("<strong>brown bread</strong>", result)
+
+    def test_emphasis_markers_render_as_em(self):
+        result = self._render("This is *quietly important*.")
+        self.assertIn("<em>quietly important</em>", result)
+
+    def test_html_inside_inline_markers_is_escaped(self):
+        result = self._render("This is **<script>alert(1)</script>**.")
+        self.assertIn("<strong>&lt;script&gt;alert(1)&lt;/script&gt;</strong>", result)
+        self.assertNotIn("<script>", result)
+
+    def test_inline_emphasis_does_not_break_existing_heading_rendering(self):
+        result = self._render("## A **Strong** Section")
+        self.assertIn("<h2>A <strong>Strong</strong> Section</h2>", result)
+
     # ── Output is mark_safe ───────────────────────────────────────────────────
 
     def test_output_is_mark_safe(self):
@@ -2205,6 +2222,72 @@ class ArticleEditorialDetailTests(TestCase):
         response = self._get()
         self.assertContains(response, "<h2>Baking, Griddles and the Country Kitchen</h2>")
         self.assertNotContains(response, "## Baking")
+
+    def test_approved_recipe_title_gets_internal_linked_once(self):
+        recipe = Recipe.objects.create(
+            title="Colcannon",
+            slug="colcannon",
+            author=self.author,
+            ingredients="Potatoes",
+            method="Mash.",
+            status=Recipe.Status.APPROVED,
+            is_deleted=False,
+        )
+        self.article.body = "Colcannon is beloved.\n\nColcannon appears again."
+        self.article.save(update_fields=["body"])
+
+        response = self._get()
+
+        self.assertContains(response, f'<a class="editorial-link" href="{recipe.get_absolute_url()}">Colcannon</a>')
+        self.assertEqual(response.content.decode().count('class="editorial-link"'), 1)
+
+    def test_pending_and_deleted_recipes_are_not_internal_linked(self):
+        Recipe.objects.create(
+            title="Boxty",
+            slug="boxty",
+            author=self.author,
+            ingredients="Potatoes",
+            method="Fry.",
+            status=Recipe.Status.PENDING,
+        )
+        Recipe.objects.create(
+            title="Champ",
+            slug="champ",
+            author=self.author,
+            ingredients="Potatoes",
+            method="Mash.",
+            status=Recipe.Status.APPROVED,
+            is_deleted=True,
+        )
+        self.article.body = "Boxty and Champ are mentioned."
+        self.article.save(update_fields=["body"])
+
+        response = self._get()
+
+        self.assertNotContains(response, 'class="editorial-link"')
+
+    def test_internal_recipe_links_skip_headings_and_limit_to_three(self):
+        for title in ["Boxty", "Colcannon", "Champ", "Barmbrack"]:
+            Recipe.objects.create(
+                title=title,
+                slug=title.lower(),
+                author=self.author,
+                ingredients="Potatoes",
+                method="Cook.",
+                status=Recipe.Status.APPROVED,
+                is_deleted=False,
+            )
+        self.article.body = (
+            "## Boxty\n\n"
+            "Boxty, Colcannon, Champ and Barmbrack are all mentioned."
+        )
+        self.article.save(update_fields=["body"])
+
+        response = self._get()
+        content = response.content.decode()
+
+        self.assertContains(response, "<h2>Boxty</h2>")
+        self.assertEqual(content.count('class="editorial-link"'), 3)
 
 
 # ── Part H: Editorial Automation Toolkit Tests ────────────────────────────────
