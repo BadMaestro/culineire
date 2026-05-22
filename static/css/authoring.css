@@ -862,30 +862,34 @@ textarea.authoring-control {
 }
 
 .editorial-tools__preview-inner {
-  padding: 0.9rem 1rem;
-  font-size: 0.98rem;
-  line-height: 1.76;
+  padding: 1.2rem 1.4rem;
+  font-size: 1.06rem;
+  line-height: 1.82;
   color: var(--ink);
 }
 
 .editorial-tools__preview-inner h2 {
-  font-size: clamp(1.14rem, 1.5vw, 1.35rem);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.28rem, 1.7vw, 1.65rem);
   font-weight: 700;
-  line-height: 1.24;
-  letter-spacing: -0.02em;
-  margin-block-start: 1.35rem;
-  margin-block-end: 0.5rem;
+  line-height: 1.22;
+  letter-spacing: -0.03em;
+  margin-block-start: 1.7rem;
+  margin-block-end: 0.7rem;
   color: var(--ink);
+  text-align: left;
 }
 
 .editorial-tools__preview-inner h3 {
-  font-size: clamp(1rem, 1.2vw, 1.12rem);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.1rem, 1.8vw, 1.3rem);
   font-weight: 700;
   line-height: 1.25;
-  letter-spacing: -0.01em;
-  margin-block-start: 1.1rem;
-  margin-block-end: 0.4rem;
+  letter-spacing: -0.02em;
+  margin-block-start: 1.35rem;
+  margin-block-end: 0.55rem;
   color: var(--ink);
+  text-align: left;
 }
 
 .editorial-tools__preview-inner h2:first-child,
@@ -894,7 +898,17 @@ textarea.authoring-control {
 }
 
 .editorial-tools__preview-inner p {
-  margin: 0 0 0.65rem;
+  font-size: 1.06rem;
+  line-height: 1.82;
+  margin-block-end: 1rem;
+}
+
+.editorial-tools__preview-inner .lead {
+  font-size: clamp(1rem, 0.8vw, 1.06rem);
+  line-height: 1.82;
+  color: var(--ink);
+  font-weight: 400;
+  margin-block-end: 1rem;
 }
 
 .editorial-tools__preview-inner ul,
@@ -903,12 +917,29 @@ textarea.authoring-control {
   padding-inline-start: 1.3rem;
 }
 
+.editorial-tools__preview-inner li {
+  margin-block-end: 0.55rem;
+  line-height: 1.82;
+}
+
 .editorial-tools__preview-inner blockquote {
-  margin: 0.5rem 0;
-  padding: 0.4rem 0.8rem;
-  border-inline-start: 3px solid rgb(22 102 69 / 0.3);
+  border-inline-start: 4px solid rgb(22 102 69 / 0.3);
+  padding-block: 1rem;
+  padding-inline: 1.5rem;
+  margin-block: 2rem;
+  background: rgb(22 102 69 / 0.04);
+  border-radius: 0 10px 10px 0;
   color: var(--ink-soft);
   font-style: italic;
+}
+
+.editorial-tools__preview-inner blockquote p {
+  font-size: 1.06rem;
+  line-height: 1.78;
+}
+
+.editorial-tools__preview-inner p + p {
+  text-indent: 0;
 }
 
 .editorial-tools__staging {
