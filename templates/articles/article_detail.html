@@ -189,6 +189,10 @@
             <div class="detail-page__grid detail-page__grid--article">
                 <section class="detail-page__main">
                     <article class="detail-page__content-card">
+                        <div class="article-body-heading" aria-hidden="true">
+                            <div class="article-body-heading__label">Article</div>
+                            <div class="article-body-heading__title">{{ article.title }}</div>
+                        </div>
                         <div class="rich-text">
                             {{ article_body_html }}
                         </div>

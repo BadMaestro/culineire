@@ -2131,6 +2131,22 @@ class ArticleEditorialDetailTests(TestCase):
     def test_article_detail_returns_200(self):
         self.assertEqual(self._get().status_code, 200)
 
+    def test_article_detail_has_single_real_h1(self):
+        content = self._get().content.decode()
+        self.assertEqual(content.count("<h1"), 1)
+
+    def test_article_body_repeats_title_before_rich_text(self):
+        response = self._get()
+        content = response.content.decode()
+
+        self.assertContains(response, 'class="article-body-heading"')
+        self.assertContains(response, 'class="article-body-heading__title"')
+        self.assertContains(response, "Editorial Test Article")
+        self.assertLess(
+            content.index('class="article-body-heading"'),
+            content.index('class="rich-text"'),
+        )
+
     def test_h2_rendered_on_detail_page(self):
         response = self._get()
         self.assertContains(response, "<h2>Opening Section</h2>")
