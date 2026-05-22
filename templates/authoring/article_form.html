@@ -172,6 +172,23 @@
                                 <li>Keep one idea per paragraph and aim for a clear opening sentence.</li>
                             </ul>
                         </div>
+                        <div class="editorial-tools"
+                             id="editorial-tools-panel"
+                             data-suggest-url="{% url 'articles:editorial_suggest' %}"
+                             data-preview-url="{% url 'articles:editorial_preview' %}">
+                            <p class="editorial-tools__title">Editorial Tools</p>
+                            <div class="editorial-tools__actions">
+                                <button class="editorial-tools__btn" id="et-suggest-btn" type="button">Suggest Format</button>
+                                <button class="editorial-tools__btn editorial-tools__btn--secondary" id="et-preview-btn" type="button">Preview</button>
+                            </div>
+                            <div class="editorial-tools__preview" id="et-preview-pane" hidden>
+                                <p class="editorial-tools__preview-label">Preview</p>
+                                <div class="editorial-tools__preview-inner rich-text" id="et-preview-inner"></div>
+                            </div>
+                            <textarea class="editorial-tools__staging" id="et-staging" aria-label="Staged suggestion (read-only)" readonly hidden></textarea>
+                            <button class="editorial-tools__btn editorial-tools__btn--apply" id="et-apply-btn" type="button" hidden>Apply Suggested Text</button>
+                            <p class="editorial-tools__status" id="et-status" aria-live="polite"></p>
+                        </div>
                     </div>
                 </div>
             </fieldset>
@@ -262,6 +279,7 @@
 {% endblock %}
 
 {% block extra_js %}
+<script nonce="{{ request.csp_nonce }}" src="{% static 'js/article_editorial.js' %}"></script>
 <script nonce="{{ request.csp_nonce }}">
 (function () {
   document.querySelectorAll('.authoring-error').forEach(function (el, i) {

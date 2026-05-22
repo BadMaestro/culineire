@@ -3485,3 +3485,23 @@
   background: rgb(185 117 20 / 0.12);
   color: #835200;
 }
+
+/* ── Part F: Article body-first single-column layout ──────────────────────────
+   Collapse the article grid to single-column at a wider breakpoint than the
+   recipe grid (1200px vs 1100px).  This gives the article body full reading
+   width at intermediate screen sizes and keeps body-before-sidebar order. */
+
+@container detail-page (max-width: 1200px) {
+  .detail-page__grid--article {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Ensure article body comes first visually in all column modes. */
+.detail-page--article .detail-page__main {
+  order: 0;
+}
+
+.detail-page--article .detail-page__sidebar {
+  order: 1;
+}

@@ -6,7 +6,8 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Max, Prefetch, Q
-from django.http import Http404
+from django.contrib.auth.decorators import login_required
+from django.http import Http404, JsonResponse
 from django.utils import timezone
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
@@ -578,3 +579,43 @@ def moderate_article(request, slug):
         except (AttributeError, TypeError, ValueError):
             pass
     return redirect("recipes:moderation_panel")
+
+
+# ── Editorial automation endpoints ────────────────────────────────────────────
+
+@require_POST
+@login_required
+def editorial_suggest(request):
+    """
+    POST body: JSON {title, excerpt, body}
+    Returns JSON {suggested_body: str}
+    No DB writes.  Login required.
+    """
+    from articles.services.editorial_tools import suggest_article_body
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        data = request.POST
+    title = (data.get("title") or "").strip()
+    excerpt = (data.get("excerpt") or "").strip()
+    body = (data.get("body") or "").strip()
+    suggested = suggest_article_body(title, excerpt, body)
+    return JsonResponse({"suggested_body": suggested})
+
+
+@require_POST
+@login_required
+def editorial_preview(request):
+    """
+    POST body: JSON {body}
+    Returns JSON {preview_html: str}
+    No DB writes.  Login required.
+    """
+    from articles.services.editorial_tools import render_article_preview
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        data = request.POST
+    body = (data.get("body") or "").strip()
+    preview_html = render_article_preview(body)
+    return JsonResponse({"preview_html": preview_html})

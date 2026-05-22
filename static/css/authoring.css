@@ -760,3 +760,212 @@ textarea.authoring-control {
   border-radius: 4px;
   color: var(--ink);
 }
+
+/* ── Editorial / Recipe Formatting Tools panel ── */
+.editorial-tools {
+  margin-block-start: 1.1rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgb(22 102 69 / 0.18);
+  border-inline-start: 3px solid rgb(22 102 69 / 0.5);
+  border-radius: 0 10px 10px 0;
+  background: rgb(22 102 69 / 0.04);
+}
+
+.editorial-tools__title {
+  margin: 0 0 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.editorial-tools__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-block-end: 0.65rem;
+}
+
+.editorial-tools__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 0.4em 1em;
+  border: 1px solid rgb(22 102 69 / 0.45);
+  border-radius: 6px;
+  background: rgb(22 102 69 / 0.08);
+  color: #166645;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.editorial-tools__btn:hover:not(:disabled) {
+  background: rgb(22 102 69 / 0.15);
+  border-color: rgb(22 102 69 / 0.65);
+}
+
+.editorial-tools__btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.editorial-tools__btn--secondary {
+  background: transparent;
+  border-color: rgb(20 33 43 / 0.2);
+  color: var(--ink-soft);
+}
+
+.editorial-tools__btn--secondary:hover:not(:disabled) {
+  background: rgb(20 33 43 / 0.05);
+  border-color: rgb(20 33 43 / 0.35);
+}
+
+.editorial-tools__btn--apply {
+  margin-block-start: 0.65rem;
+  background: #166645;
+  border-color: #166645;
+  color: #fff;
+}
+
+.editorial-tools__btn--apply:hover:not(:disabled) {
+  background: #0f4d33;
+  border-color: #0f4d33;
+}
+
+.editorial-tools__preview {
+  margin-block-start: 0.75rem;
+  border: 1px solid rgb(20 33 43 / 0.1);
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.editorial-tools__preview-label {
+  margin: 0;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  background: rgb(20 33 43 / 0.04);
+  border-block-end: 1px solid rgb(20 33 43 / 0.08);
+}
+
+.editorial-tools__preview-inner {
+  padding: 0.9rem 1rem;
+  font-size: 0.93rem;
+  line-height: 1.65;
+  color: var(--ink);
+}
+
+.editorial-tools__preview-inner h2 {
+  margin: 0.5rem 0 0.4rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.editorial-tools__preview-inner h3 {
+  margin: 0.4rem 0 0.3rem;
+  font-size: 0.97rem;
+  font-weight: 700;
+}
+
+.editorial-tools__preview-inner p {
+  margin: 0 0 0.5rem;
+}
+
+.editorial-tools__preview-inner ul,
+.editorial-tools__preview-inner ol {
+  margin: 0 0 0.5rem;
+  padding-inline-start: 1.3rem;
+}
+
+.editorial-tools__preview-inner blockquote {
+  margin: 0.5rem 0;
+  padding: 0.4rem 0.8rem;
+  border-inline-start: 3px solid rgb(22 102 69 / 0.3);
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+.editorial-tools__staging {
+  display: none;
+}
+
+.editorial-tools__status {
+  margin-block-start: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  min-height: 1.2em;
+}
+
+.editorial-tools__status--error {
+  color: #b91c1c;
+}
+
+/* Recipe preview-specific */
+.recipe-preview__title {
+  margin: 0 0 0.3rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.recipe-preview__desc {
+  margin: 0 0 0.5rem;
+  color: var(--ink-soft);
+}
+
+.recipe-preview__meta {
+  margin: 0 0 0.65rem;
+  font-size: 0.83rem;
+  color: var(--ink-soft);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0;
+}
+
+.recipe-preview__section {
+  margin-block-start: 0.75rem;
+}
+
+.recipe-preview__section-title {
+  margin: 0 0 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.recipe-preview__list,
+.recipe-preview__steps {
+  margin: 0;
+  padding-inline-start: 1.2rem;
+}
+
+.recipe-preview__list li,
+.recipe-preview__steps li {
+  margin-block-end: 0.2rem;
+  line-height: 1.55;
+}
+
+.recipe-preview__step-num {
+  font-weight: 700;
+  margin-inline-end: 0.2em;
+}
+
+.recipe-preview__tips {
+  margin: 0;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.recipe-preview__empty {
+  margin: 0;
+  color: var(--ink-soft);
+  font-style: italic;
+}

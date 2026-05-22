@@ -1365,3 +1365,47 @@ def moderate_recipe(request, slug):
     if action not in ("delete", "block") and recipe.pk:
         return redirect(recipe.get_absolute_url())
     return redirect("recipes:moderation_panel")
+
+
+# ── Recipe format automation endpoints ────────────────────────────────────────
+
+@require_POST
+@login_required
+def recipe_format_suggest(request):
+    """
+    POST body: JSON {title, short_description, ingredients, method, tips,
+                     prep_time_minutes, cook_time_minutes, servings,
+                     difficulty, irish_context, author_commentary}
+    Returns JSON with normalised text fields.
+    No DB writes.  Login required.
+    """
+    from articles.services.editorial_tools import suggest_recipe_fields
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        data = request.POST.dict()
+    result = suggest_recipe_fields(data)
+    return JsonResponse({
+        "ingredients": result.get("ingredients", ""),
+        "method": result.get("method", ""),
+        "tips": result.get("tips", ""),
+        "irish_context": result.get("irish_context", ""),
+        "author_commentary": result.get("author_commentary", ""),
+    })
+
+
+@require_POST
+@login_required
+def recipe_format_preview(request):
+    """
+    POST body: JSON recipe fields.
+    Returns JSON {preview_html: str}
+    No DB writes.  Login required.
+    """
+    from articles.services.editorial_tools import render_recipe_preview
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        data = request.POST.dict()
+    preview_html = render_recipe_preview(data)
+    return JsonResponse({"preview_html": preview_html})

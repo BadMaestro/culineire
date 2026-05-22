@@ -230,6 +230,31 @@
                 </div>
             </fieldset>
 
+            <fieldset class="authoring-section">
+                <legend>Recipe Formatting Tools</legend>
+                <div class="authoring-grid">
+                    <div class="authoring-field authoring-field--wide">
+                        <p class="authoring-help">Use these tools to clean up and preview your recipe text before submitting.</p>
+                        <div class="editorial-tools editorial-tools--recipe"
+                             id="recipe-format-panel"
+                             data-suggest-url="{% url 'recipes:recipe_format_suggest' %}"
+                             data-preview-url="{% url 'recipes:recipe_format_preview' %}">
+                            <p class="editorial-tools__title">Recipe Formatting Tools</p>
+                            <div class="editorial-tools__actions">
+                                <button class="editorial-tools__btn" id="rf-clean-btn" type="button">Clean Recipe Text</button>
+                                <button class="editorial-tools__btn editorial-tools__btn--secondary" id="rf-preview-btn" type="button">Preview Recipe Structure</button>
+                            </div>
+                            <div class="editorial-tools__preview" id="rf-preview-pane" hidden>
+                                <p class="editorial-tools__preview-label">Preview</p>
+                                <div class="editorial-tools__preview-inner" id="rf-preview-inner"></div>
+                            </div>
+                            <button class="editorial-tools__btn editorial-tools__btn--apply" id="rf-apply-btn" type="button" hidden>Apply Cleaned Text</button>
+                            <p class="editorial-tools__status" id="rf-status" aria-live="polite"></p>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+
             <fieldset class="authoring-section authoring-section--centered">
                 <legend>Source Notes</legend>
                 <div class="authoring-grid authoring-grid--two">
@@ -304,6 +329,7 @@
 {% endblock %}
 
 {% block extra_js %}
+<script nonce="{{ request.csp_nonce }}" src="{% static 'js/recipe_format.js' %}"></script>
 <script nonce="{{ request.csp_nonce }}">
 (function () {
   document.querySelectorAll('.authoring-error').forEach(function (el, i) {

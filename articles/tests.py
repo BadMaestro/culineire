@@ -2147,3 +2147,570 @@ class ArticleEditorialDetailTests(TestCase):
         self.client.force_login(self.author_user)
         response = self._get()
         self.assertFalse(response.context["editorial_hints"]["has_section_headings"])
+
+
+# ── Part H: Editorial Automation Toolkit Tests ────────────────────────────────
+
+import json as _json
+
+from articles.services.editorial_tools import (
+    _clean_list_field,
+    _clean_method_field,
+    _clean_plain_field,
+    _has_h2,
+    _normalize_body,
+    render_article_preview,
+    render_recipe_preview,
+    suggest_article_body,
+    suggest_recipe_fields,
+)
+
+
+class SuggestArticleBodyTests(TestCase):
+    """Unit tests for articles.services.editorial_tools.suggest_article_body."""
+
+    def test_returns_empty_for_empty_body(self):
+        self.assertEqual(suggest_article_body("T", "E", ""), "")
+
+    def test_returns_body_unchanged_if_already_has_headings(self):
+        body = "## Intro\n\nSome text here that is already structured."
+        result = suggest_article_body("T", "E", body)
+        self.assertIn("## Intro", result)
+        # Should still be returned (cleaned/unchanged)
+        self.assertIn("Some text", result)
+
+    def test_short_body_returned_unchanged(self):
+        body = "Short text."
+        result = suggest_article_body("T", "E", body)
+        self.assertEqual(result, "Short text.")
+
+    def test_long_body_gets_headings_inserted(self):
+        # Build a body > 300 words with no ## headings
+        para = "This is a paragraph about Irish food culture and tradition. " * 10
+        body = "\n\n".join([para] * 6)
+        result = suggest_article_body("Title", "Excerpt", body)
+        self.assertIn("##", result)
+
+    def test_inserted_headings_come_from_allowed_list(self):
+        from articles.services.editorial_tools import _ARTICLE_AUTO_HEADINGS
+        para = "This is a paragraph about Irish food culture and tradition. " * 10
+        body = "\n\n".join([para] * 6)
+        result = suggest_article_body("Title", "Excerpt", body)
+        for heading in _ARTICLE_AUTO_HEADINGS:
+            if "## " + heading in result:
+                break
+        else:
+            self.fail("No allowed heading found in suggested body")
+
+    def test_normalise_collapses_multiple_blank_lines(self):
+        body = "Para one.\n\n\n\nPara two."
+        result = _normalize_body(body)
+        self.assertNotIn("\n\n\n", result)
+
+    def test_has_h2_detects_heading(self):
+        self.assertTrue(_has_h2("## Heading\n\nText."))
+        self.assertFalse(_has_h2("Just text."))
+
+    def test_body_with_list_blocks_not_broken(self):
+        para = "This is a paragraph about Irish food culture. " * 15
+        body = para + "\n\n- item one\n- item two\n\n" + para
+        result = suggest_article_body("Title", "Excerpt", body)
+        # List items should not have headings prepended before them
+        lines = result.splitlines()
+        for i, line in enumerate(lines):
+            if line.startswith("- "):
+                if i > 0:
+                    # The preceding non-empty line should not be a list item turned heading
+                    prev_line = lines[i - 1].strip()
+                    self.assertFalse(prev_line.startswith("- "), "List items should stay together")
+
+    def test_preserves_blockquotes(self):
+        para = "This is a paragraph about Irish food culture. " * 15
+        body = para + "\n\n> A blockquote line.\n\n" + para
+        result = suggest_article_body("Title", "Excerpt", body)
+        self.assertIn("> A blockquote line.", result)
+
+
+class RenderArticlePreviewTests(TestCase):
+    """Unit tests for render_article_preview."""
+
+    def test_empty_body_returns_empty_string(self):
+        result = render_article_preview("")
+        self.assertEqual(result, "")
+
+    def test_h2_rendered_as_h2_tag(self):
+        result = render_article_preview("## Section\n\nSome text.")
+        self.assertIn("<h2>", result)
+        self.assertIn("Section", result)
+
+    def test_plain_text_rendered_as_p(self):
+        result = render_article_preview("Hello world.")
+        self.assertIn("<p", result)
+        self.assertIn("Hello world.", result)
+
+    def test_xss_escaped(self):
+        result = render_article_preview("<script>alert(1)</script>")
+        self.assertNotIn("<script>", result)
+        self.assertIn("&lt;script&gt;", result)
+
+    def test_output_is_string(self):
+        result = render_article_preview("Simple text.")
+        self.assertIsInstance(result, str)
+
+
+class SuggestRecipeFieldsTests(TestCase):
+    """Unit tests for suggest_recipe_fields."""
+
+    def test_ingredients_removes_bullet_dashes(self):
+        data = {"ingredients": "- 200g flour\n- 1 egg\n- 100ml milk"}
+        result = suggest_recipe_fields(data)
+        self.assertNotIn("- ", result["ingredients"])
+        self.assertIn("200g flour", result["ingredients"])
+        self.assertIn("1 egg", result["ingredients"])
+
+    def test_ingredients_removes_bullet_stars(self):
+        data = {"ingredients": "* 200g flour\n* 1 egg"}
+        result = suggest_recipe_fields(data)
+        self.assertNotIn("* ", result["ingredients"])
+
+    def test_ingredients_removes_blank_lines(self):
+        data = {"ingredients": "200g flour\n\n1 egg\n\n100ml milk"}
+        result = suggest_recipe_fields(data)
+        self.assertNotIn("\n\n", result["ingredients"])
+
+    def test_method_removes_step_prefixes(self):
+        data = {"method": "1. Preheat oven\n2. Mix ingredients\n3. Bake for 20 minutes"}
+        result = suggest_recipe_fields(data)
+        method = result["method"]
+        self.assertNotIn("1.", method)
+        self.assertIn("Preheat oven", method)
+        self.assertIn("Mix ingredients", method)
+
+    def test_method_removes_step_word_prefix(self):
+        data = {"method": "Step 1: Preheat oven\nStep 2: Mix"}
+        result = suggest_recipe_fields(data)
+        self.assertNotIn("Step 1:", result["method"])
+        self.assertIn("Preheat oven", result["method"])
+
+    def test_method_removes_blank_lines(self):
+        data = {"method": "Preheat oven\n\nMix ingredients"}
+        result = suggest_recipe_fields(data)
+        self.assertNotIn("\n\n", result["method"])
+
+    def test_tips_cleaned(self):
+        data = {"tips": "  Use fresh eggs.  \n\n\nSeason well."}
+        result = suggest_recipe_fields(data)
+        self.assertIn("Use fresh eggs.", result["tips"])
+        self.assertNotIn("\n\n\n", result["tips"])
+
+    def test_other_fields_unchanged(self):
+        data = {
+            "title": "Colcannon",
+            "servings": "4",
+            "ingredients": "- 500g potatoes",
+        }
+        result = suggest_recipe_fields(data)
+        self.assertEqual(result["title"], "Colcannon")
+        self.assertEqual(result["servings"], "4")
+
+    def test_returns_copy_not_mutate(self):
+        data = {"ingredients": "- flour"}
+        original = data.copy()
+        suggest_recipe_fields(data)
+        self.assertEqual(data, original)
+
+    def test_empty_ingredients_unchanged(self):
+        data = {"ingredients": ""}
+        result = suggest_recipe_fields(data)
+        self.assertEqual(result["ingredients"], "")
+
+    def test_clean_list_helper_with_bullets(self):
+        text = "- flour\n* sugar\n• butter"
+        result = _clean_list_field(text)
+        self.assertIn("flour", result)
+        self.assertNotIn("-", result)
+        self.assertNotIn("*", result)
+        self.assertNotIn("•", result)
+
+    def test_clean_method_removes_numbered_prefix(self):
+        result = _clean_method_field("1. Preheat\n2. Mix\n3. Bake")
+        self.assertNotIn("1.", result)
+        self.assertIn("Preheat", result)
+
+    def test_clean_plain_field_strips_trailing_whitespace(self):
+        result = _clean_plain_field("Line one.   \nLine two.   ")
+        self.assertNotIn("   ", result)
+
+
+class RenderRecipePreviewTests(TestCase):
+    """Unit tests for render_recipe_preview."""
+
+    def test_empty_data_returns_placeholder(self):
+        result = render_recipe_preview({})
+        self.assertIn("Nothing to preview", result)
+
+    def test_title_rendered(self):
+        result = render_recipe_preview({"title": "Colcannon"})
+        self.assertIn("Colcannon", result)
+        self.assertIn("recipe-preview__title", result)
+
+    def test_ingredients_rendered_as_list(self):
+        result = render_recipe_preview({"ingredients": "500g potatoes\n100ml milk"})
+        self.assertIn("<ul", result)
+        self.assertIn("500g potatoes", result)
+        self.assertIn("100ml milk", result)
+
+    def test_method_rendered_as_ordered_list(self):
+        result = render_recipe_preview({"method": "Boil potatoes\nMash well"})
+        self.assertIn("<ol", result)
+        self.assertIn("Boil potatoes", result)
+
+    def test_xss_escaped_in_title(self):
+        result = render_recipe_preview({"title": "<script>alert(1)</script>"})
+        self.assertNotIn("<script>", result)
+        self.assertIn("&lt;script&gt;", result)
+
+    def test_xss_escaped_in_ingredients(self):
+        result = render_recipe_preview({"ingredients": '<b>not bold</b>'})
+        self.assertNotIn("<b>", result)
+
+    def test_output_is_string(self):
+        result = render_recipe_preview({"title": "Test"})
+        self.assertIsInstance(result, str)
+
+    def test_meta_row_rendered(self):
+        result = render_recipe_preview({
+            "prep_time_minutes": "15",
+            "cook_time_minutes": "30",
+            "servings": "4",
+        })
+        self.assertIn("recipe-preview__meta", result)
+        self.assertIn("Prep", result)
+        self.assertIn("Cook", result)
+        self.assertIn("Serves", result)
+
+
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.InMemoryStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    },
+)
+class EditorialSuggestEndpointTests(TestCase):
+    """Integration tests for the editorial_suggest JSON endpoint."""
+
+    def setUp(self):
+        user_model = get_user_model()
+        self.user = user_model.objects.create_user(username="edituser", password="pass")
+        self.url = reverse("articles:editorial_suggest")
+
+    def _post(self, data, as_json=True):
+        if as_json:
+            return self.client.post(
+                self.url,
+                data=_json.dumps(data),
+                content_type="application/json",
+            )
+        return self.client.post(self.url, data=data)
+
+    def test_login_required(self):
+        response = self._post({"body": "Some text."})
+        self.assertIn(response.status_code, [302, 403])
+
+    def test_get_not_allowed(self):
+        self.client.force_login(self.user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 405)
+
+    def test_returns_json_with_suggested_body(self):
+        self.client.force_login(self.user)
+        response = self._post({"title": "T", "excerpt": "E", "body": "Short body."})
+        self.assertEqual(response.status_code, 200)
+        data = _json.loads(response.content)
+        self.assertIn("suggested_body", data)
+
+    def test_suggested_body_is_string(self):
+        self.client.force_login(self.user)
+        response = self._post({"body": "Short text."})
+        data = _json.loads(response.content)
+        self.assertIsInstance(data["suggested_body"], str)
+
+    def test_empty_body_returns_empty_suggestion(self):
+        self.client.force_login(self.user)
+        response = self._post({"body": ""})
+        data = _json.loads(response.content)
+        self.assertEqual(data["suggested_body"], "")
+
+    def test_accepts_form_post_fallback(self):
+        self.client.force_login(self.user)
+        response = self._post({"body": "A test."}, as_json=False)
+        self.assertEqual(response.status_code, 200)
+        data = _json.loads(response.content)
+        self.assertIn("suggested_body", data)
+
+
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.InMemoryStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    },
+)
+class EditorialPreviewEndpointTests(TestCase):
+    """Integration tests for the editorial_preview JSON endpoint."""
+
+    def setUp(self):
+        user_model = get_user_model()
+        self.user = user_model.objects.create_user(username="prevuser", password="pass")
+        self.url = reverse("articles:editorial_preview")
+
+    def _post(self, data, as_json=True):
+        if as_json:
+            return self.client.post(
+                self.url,
+                data=_json.dumps(data),
+                content_type="application/json",
+            )
+        return self.client.post(self.url, data=data)
+
+    def test_login_required(self):
+        response = self._post({"body": "Text."})
+        self.assertIn(response.status_code, [302, 403])
+
+    def test_get_not_allowed(self):
+        self.client.force_login(self.user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 405)
+
+    def test_returns_preview_html(self):
+        self.client.force_login(self.user)
+        response = self._post({"body": "## Heading\n\nParagraph text."})
+        self.assertEqual(response.status_code, 200)
+        data = _json.loads(response.content)
+        self.assertIn("preview_html", data)
+        self.assertIn("<h2>", data["preview_html"])
+
+    def test_preview_html_escapes_xss(self):
+        self.client.force_login(self.user)
+        response = self._post({"body": "<script>alert(1)</script>"})
+        data = _json.loads(response.content)
+        self.assertNotIn("<script>", data["preview_html"])
+
+    def test_empty_body_returns_empty_html(self):
+        self.client.force_login(self.user)
+        response = self._post({"body": ""})
+        data = _json.loads(response.content)
+        self.assertEqual(data["preview_html"], "")
+
+
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.InMemoryStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    },
+)
+class RecipeFormatSuggestEndpointTests(TestCase):
+    """Integration tests for recipes:recipe_format_suggest."""
+
+    def setUp(self):
+        user_model = get_user_model()
+        self.user = user_model.objects.create_user(username="rfuser", password="pass")
+        self.url = reverse("recipes:recipe_format_suggest")
+
+    def _post(self, data, as_json=True):
+        if as_json:
+            return self.client.post(
+                self.url,
+                data=_json.dumps(data),
+                content_type="application/json",
+            )
+        return self.client.post(self.url, data=data)
+
+    def test_login_required(self):
+        response = self._post({"ingredients": "flour"})
+        self.assertIn(response.status_code, [302, 403])
+
+    def test_get_not_allowed(self):
+        self.client.force_login(self.user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 405)
+
+    def test_returns_cleaned_ingredients(self):
+        self.client.force_login(self.user)
+        response = self._post({"ingredients": "- 200g flour\n- 1 egg"})
+        self.assertEqual(response.status_code, 200)
+        data = _json.loads(response.content)
+        self.assertIn("ingredients", data)
+        self.assertNotIn("- ", data["ingredients"])
+        self.assertIn("200g flour", data["ingredients"])
+
+    def test_returns_cleaned_method(self):
+        self.client.force_login(self.user)
+        response = self._post({"method": "1. Preheat oven\n2. Bake"})
+        data = _json.loads(response.content)
+        self.assertIn("method", data)
+        self.assertNotIn("1.", data["method"])
+        self.assertIn("Preheat oven", data["method"])
+
+    def test_all_expected_keys_in_response(self):
+        self.client.force_login(self.user)
+        response = self._post({})
+        data = _json.loads(response.content)
+        for key in ("ingredients", "method", "tips", "irish_context", "author_commentary"):
+            self.assertIn(key, data)
+
+    def test_empty_inputs_return_empty_strings(self):
+        self.client.force_login(self.user)
+        response = self._post({
+            "ingredients": "",
+            "method": "",
+            "tips": "",
+        })
+        data = _json.loads(response.content)
+        self.assertEqual(data["ingredients"], "")
+        self.assertEqual(data["method"], "")
+        self.assertEqual(data["tips"], "")
+
+
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.InMemoryStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    },
+)
+class RecipeFormatPreviewEndpointTests(TestCase):
+    """Integration tests for recipes:recipe_format_preview."""
+
+    def setUp(self):
+        user_model = get_user_model()
+        self.user = user_model.objects.create_user(username="rfprev", password="pass")
+        self.url = reverse("recipes:recipe_format_preview")
+
+    def _post(self, data, as_json=True):
+        if as_json:
+            return self.client.post(
+                self.url,
+                data=_json.dumps(data),
+                content_type="application/json",
+            )
+        return self.client.post(self.url, data=data)
+
+    def test_login_required(self):
+        response = self._post({"title": "Test"})
+        self.assertIn(response.status_code, [302, 403])
+
+    def test_get_not_allowed(self):
+        self.client.force_login(self.user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 405)
+
+    def test_returns_preview_html(self):
+        self.client.force_login(self.user)
+        response = self._post({
+            "title": "Boxty",
+            "ingredients": "500g potatoes\n2 eggs",
+            "method": "Grate potatoes\nMix with eggs",
+        })
+        self.assertEqual(response.status_code, 200)
+        data = _json.loads(response.content)
+        self.assertIn("preview_html", data)
+        self.assertIn("Boxty", data["preview_html"])
+        self.assertIn("<ul", data["preview_html"])
+        self.assertIn("<ol", data["preview_html"])
+
+    def test_xss_escaped_in_preview(self):
+        self.client.force_login(self.user)
+        response = self._post({"title": "<script>xss()</script>"})
+        data = _json.loads(response.content)
+        self.assertNotIn("<script>", data["preview_html"])
+
+    def test_empty_data_returns_placeholder(self):
+        self.client.force_login(self.user)
+        response = self._post({})
+        data = _json.loads(response.content)
+        self.assertIn("preview_html", data)
+        self.assertIn("Nothing to preview", data["preview_html"])
+
+
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.InMemoryStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    },
+)
+class SuggestArticleEditorialFormatCommandTests(TestCase):
+    """Tests for the suggest_article_editorial_format management command."""
+
+    def setUp(self):
+        user_model = get_user_model()
+        self.owner_user = user_model.objects.create_user(
+            username="cmdowner", password="pass"
+        )
+        self.author = RecipeAuthor.objects.create(
+            user=self.owner_user,
+            name="CMD Author",
+            slug="cmd-author",
+        )
+        self.article = Article.objects.create(
+            title="Colcannon History",
+            slug="colcannon-history",
+            author=self.author,
+            excerpt="About colcannon.",
+            body="A short body.",
+            published=date(2026, 1, 1),
+            status=Article.Status.APPROVED,
+            confirmed_own_work=True,
+            confirm_image_rights=True,
+            confirmed_rules=True,
+            source_type="original",
+        )
+
+    def _call_command(self, *args, **kwargs):
+        from io import StringIO
+        from django.core.management import call_command
+        out = StringIO()
+        err = StringIO()
+        call_command(
+            "suggest_article_editorial_format",
+            *args,
+            stdout=out,
+            stderr=err,
+            **kwargs,
+        )
+        return out.getvalue(), err.getvalue()
+
+    def test_command_runs_without_error(self):
+        out, _ = self._call_command("--slug", "colcannon-history")
+        # Short body -> "already well-formatted" or dry-run output
+        self.assertIsInstance(out, str)
+
+    def test_command_reports_already_formatted(self):
+        # Short body without headings should report "already well-formatted"
+        out, _ = self._call_command("--slug", "colcannon-history")
+        self.assertIn("well-formatted", out)
+
+    def test_command_raises_for_unknown_slug(self):
+        from django.core.management.base import CommandError
+        with self.assertRaises(CommandError):
+            self._call_command("--slug", "does-not-exist-xyz")
+
+    def test_apply_flag_writes_to_db(self):
+        para = "This is a paragraph about Irish food culture and tradition. " * 15
+        long_body = "\n\n".join([para] * 6)
+        self.article.body = long_body
+        self.article.save(update_fields=["body"])
+
+        self._call_command("--slug", "colcannon-history", "--apply")
+        self.article.refresh_from_db()
+        # Headings should now be present
+        self.assertIn("##", self.article.body)
+
+    def test_dry_run_does_not_write_to_db(self):
+        para = "This is a paragraph about Irish food culture and tradition. " * 15
+        long_body = "\n\n".join([para] * 6)
+        self.article.body = long_body
+        self.article.save(update_fields=["body"])
+        original_body = self.article.body
+
+        self._call_command("--slug", "colcannon-history")  # no --apply
+        self.article.refresh_from_db()
+        self.assertEqual(self.article.body, original_body)
