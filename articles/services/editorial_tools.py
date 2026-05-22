@@ -94,13 +94,16 @@ _RE_STEP_PREFIX = re.compile(r'^\s*(?:step\s*)?\d+[\.\):\-]?\s*', re.IGNORECASE)
 
 # ── Article tools ─────────────────────────────────────────────────────────────
 
-def suggest_article_body(title: str, excerpt: str, body: str) -> str:
+def suggest_article_body(title: str, excerpt: str, body: str, force: bool = False) -> str:
     """
     Return a suggested reformatted body string (deterministic, no AI).
 
     Algorithm
     ---------
-    1. Normalise whitespace; return unchanged if body already has ## headings.
+    1. Normalise whitespace.
+       - If body already has ## headings AND force is False → return unchanged.
+       - If body already has ## headings AND force is True → strip those headings
+         and re-run the algorithm from scratch on the plain text.
     2. Return unchanged if body is short (< 300 words).
     3. Split body into paragraph blocks; split any plain paragraph over
        _PARA_SPLIT_THRESHOLD words at a sentence boundary (no rewrites).
@@ -134,7 +137,12 @@ def suggest_article_body(title: str, excerpt: str, body: str) -> str:
     cleaned = _normalize_body(body)
 
     if _has_h2(cleaned):
-        return cleaned
+        if not force:
+            return cleaned
+        # Strip existing ## headings so the algorithm runs on plain text
+        cleaned = _strip_inserted_headings(cleaned)
+        if not cleaned.strip():
+            return body or ""
 
     word_count = len(cleaned.split())
     if word_count < _MIN_WORDS_FOR_HEADING_INSERTION:
@@ -233,6 +241,15 @@ def suggest_article_body(title: str, excerpt: str, body: str) -> str:
         result_blocks.append(block)
 
     return "\n\n".join(result_blocks)
+
+
+def _strip_inserted_headings(body: str) -> str:
+    """
+    Remove all lines that start with '## ' (H2 headings inserted by this tool),
+    then re-normalise whitespace.  H3 and deeper headings are left intact.
+    """
+    lines = [ln for ln in body.splitlines() if not _RE_H2.match(ln)]
+    return _normalize_body("\n".join(lines))
 
 
 def _score_para_theme(text_lower: str):

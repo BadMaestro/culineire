@@ -599,7 +599,9 @@ def editorial_suggest(request):
     title = (data.get("title") or "").strip()
     excerpt = (data.get("excerpt") or "").strip()
     body = (data.get("body") or "").strip()
-    suggested = suggest_article_body(title, excerpt, body)
+    # force=True: always re-run even if body already contains ## headings,
+    # so re-editing a previously formatted article works correctly.
+    suggested = suggest_article_body(title, excerpt, body, force=True)
     return JsonResponse({"suggested_body": suggested})
 
 
