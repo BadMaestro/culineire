@@ -2446,8 +2446,8 @@ class SuggestArticleBodyTests(TestCase):
 
     def test_score_para_theme_article_order_wins_on_tie(self):
         """When two themes tie, the first theme in _SECTION_THEMES wins."""
-        # familiar_icons (index 0) and land_and_rural (index 1) each get 1 hit
-        text = "butter and seasonal farmhouse cooking"  # 'butter' → familiar_icons, 'seasonal' → land_and_rural
+        # familiar_icons (index 0) and land_and_rural (index 1) each get exactly 1 hit
+        text = "butter and seasonal cooking"  # 'butter' → familiar_icons(1), 'seasonal' → land_and_rural(1)
         theme = _score_para_theme(text)
         self.assertIsNotNone(theme)
         # familiar_icons appears at index 0, land_and_rural at index 1 → familiar_icons wins
@@ -2482,11 +2482,11 @@ class RenderArticlePreviewTests(TestCase):
 
     def test_suggested_body_renders_h2_not_raw_hash(self):
         """Full pipeline: suggest → preview produces <h2> tags, no raw ## markers."""
-        # Build a multi-theme body > 300 words
-        lead = "Irish food tells a rich story of place and community connected to land and season. " * 5
-        mills = "Watermills and windmills ground grain and flour for rural Irish communities. " * 5
-        baking = "Griddle breads and soda loaves were baked fresh using local oats and wheat flour. " * 5
-        land = "The rural countryside of Ireland and seasonal farming shaped local culinary traditions. " * 5
+        # Build a multi-theme body > 300 words (use * 8 to stay well above threshold)
+        lead = "Irish food tells a rich story of place and community connected to land and season. " * 8
+        mills = "Watermills and windmills ground grain and flour for rural Irish communities. " * 8
+        baking = "Griddle breads and soda loaves were baked fresh using local oats and wheat flour. " * 8
+        land = "The rural countryside of Ireland and seasonal farming shaped local culinary traditions. " * 8
         body = "\n\n".join([lead, mills, baking, land])
         suggested = suggest_article_body("Irish Food Heritage", "An introduction.", body)
         rendered = render_article_preview(suggested)
