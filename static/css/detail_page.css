@@ -3444,12 +3444,6 @@
 }
 
 .detail-page--article .rich-text p + p {
-  text-indent: 1.25em;
-}
-
-.detail-page--article .rich-text h2 + p,
-.detail-page--article .rich-text h3 + p,
-.detail-page--article .rich-text .lead + p {
   text-indent: 0;
 }
 
@@ -3485,10 +3479,6 @@
 
   .detail-page--article .rich-text h3 {
     margin-block-start: 1.2rem;
-  }
-
-  .detail-page--article .rich-text p + p {
-    text-indent: 0.75em;
   }
 
   .detail-page--article .rich-text blockquote {
