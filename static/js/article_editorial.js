@@ -78,13 +78,11 @@
               stagingTa.value = stagedBody;
             }
             if (applyBtn) {
-              applyBtn.hidden = (stagedBody === bodyTa.value.trim());
+              applyBtn.hidden = false;
             }
             if (previewPane) previewPane.hidden = true;
             setStatus(statusEl,
-              stagedBody === bodyTa.value.trim()
-                ? 'Body is already well-formatted.'
-                : 'Suggestion ready. Click Apply to use it, or Preview to review.',
+              'Suggestion ready. Click Apply to use it, or Preview to review.',
               false);
           })
           .catch(function () {
