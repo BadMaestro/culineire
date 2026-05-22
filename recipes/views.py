@@ -784,6 +784,23 @@ def submit_recipe_comment(request, slug):
 
 @require_POST
 @login_required
+def delete_recipe_gallery_image(request, image_id):
+    image = get_object_or_404(
+        RecipeImage.objects.select_related("recipe", "recipe__author"),
+        pk=image_id,
+    )
+    recipe = image.recipe
+
+    if not (is_moderator(request.user) or user_can_manage_author(request.user, recipe.author)):
+        raise Http404
+
+    image.delete()
+    messages.success(request, "Gallery image deleted.")
+    return redirect(reverse("recipes:recipe_edit", kwargs={"slug": recipe.slug}))
+
+
+@require_POST
+@login_required
 def delete_recipe_comment(request, comment_id):
     comment = get_object_or_404(RecipeComment, pk=comment_id)
     recipe = comment.recipe

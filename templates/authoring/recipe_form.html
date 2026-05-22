@@ -104,6 +104,7 @@
                             <div class="authoring-step-existing-item">
                                 <span class="authoring-step-badge">Step {{ img.sort_order }}</span>
                                 <img alt="Step {{ img.sort_order }}" class="authoring-step-thumb" src="{{ img.image.url }}">
+                                <button aria-label="Delete step {{ img.sort_order }} image" class="authoring-step-delete" form="delete-recipe-gallery-image-{{ img.pk }}" onclick="return confirm('Delete this gallery image?')" type="submit">&times;</button>
                             </div>
                             {% endfor %}
                         </div>
@@ -324,6 +325,13 @@
                 </div>
             </div>
         </form>
+        {% if form_mode == "edit" and existing_gallery_images %}
+            {% for img in existing_gallery_images %}
+            <form action="{% url 'recipes:delete_gallery_image' img.pk %}" id="delete-recipe-gallery-image-{{ img.pk }}" method="post">
+                {% csrf_token %}
+            </form>
+            {% endfor %}
+        {% endif %}
     </div>
 </section>
 {% endblock %}
