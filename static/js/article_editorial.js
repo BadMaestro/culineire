@@ -106,7 +106,17 @@
           .then(function (r) { return r.json(); })
           .then(function (data) {
             if (previewInner) {
-              previewInner.innerHTML = data.preview_html || '';
+              var titleEl = document.getElementById('id_title');
+              var titleVal = titleEl ? titleEl.value.trim() : '';
+              var headingHtml = '';
+              if (titleVal) {
+                var safe = titleVal.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                headingHtml = '<div class="article-body-heading" aria-hidden="true">'
+                  + '<div class="article-body-heading__label">Article</div>'
+                  + '<div class="article-body-heading__title">' + safe + '</div>'
+                  + '</div>';
+              }
+              previewInner.innerHTML = headingHtml + (data.preview_html || '');
             }
             if (previewPane) previewPane.hidden = false;
             setStatus(statusEl, '', false);
