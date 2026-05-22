@@ -36,6 +36,7 @@
     <div class="container authoring-shell">
         <form class="authoring-form" data-validate enctype="multipart/form-data" method="post">
             {% csrf_token %}
+            {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
 
             {% if form.non_field_errors %}
             <div class="authoring-errors" role="alert">

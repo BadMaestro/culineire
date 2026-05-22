@@ -36,6 +36,7 @@
     <div class="container authoring-shell">
         <form class="authoring-form" data-validate enctype="multipart/form-data" method="post">
             {% csrf_token %}
+            {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
 
             {% if form.non_field_errors %}
             <div class="authoring-errors" role="alert">
@@ -102,9 +103,9 @@
                         <div class="authoring-step-existing-list">
                             {% for img in existing_gallery_images %}
                             <div class="authoring-step-existing-item">
-                                <span class="authoring-step-badge">Step {{ img.sort_order }}</span>
-                                <img alt="Step {{ img.sort_order }}" class="authoring-step-thumb" src="{{ img.image.url }}">
-                                <button aria-label="Delete step {{ img.sort_order }} image" class="authoring-step-delete" form="delete-recipe-gallery-image-{{ img.pk }}" onclick="return confirm('Delete this gallery image?')" type="submit">&times;</button>
+                                <span class="authoring-step-badge">Step {{ forloop.counter }}</span>
+                                <img alt="Step {{ forloop.counter }}" class="authoring-step-thumb" src="{{ img.image.url }}">
+                                <button aria-label="Delete step {{ forloop.counter }} image" class="authoring-step-delete" form="delete-recipe-gallery-image-{{ img.pk }}" onclick="return confirm('Delete this gallery image?')" type="submit">&times;</button>
                             </div>
                             {% endfor %}
                         </div>
@@ -117,7 +118,7 @@
                                 <label class="authoring-step-label" for="id_gallery_step_{{ row.step }}">Step {{ row.step }}:</label>
                                 <input accept=".jpg,.jpeg,.png,.webp" class="authoring-control" id="id_gallery_step_{{ row.step }}" name="gallery_step_{{ row.step }}" type="file">
                                 <label class="authoring-step-alt-label" for="id_gallery_step_{{ row.step }}_alt">Alt text</label>
-                                <input class="authoring-control authoring-control--compact" id="id_gallery_step_{{ row.step }}_alt" name="gallery_step_{{ row.step }}_alt" type="text" value="{% if row.image %}{{ row.image.alt_text }}{% endif %}">
+                                <input class="authoring-control authoring-control--compact" id="id_gallery_step_{{ row.step }}_alt" name="gallery_step_{{ row.step }}_alt" placeholder="Describe this image" type="text" value="{% if row.image %}{{ row.image.alt_text }}{% endif %}">
                             </div>
                             {% endfor %}
                         </div>
@@ -381,7 +382,7 @@
             '<label class="authoring-step-label" for="id_gallery_step_' + stepCount + '">Step ' + stepCount + ':</label>' +
             '<input accept=".jpg,.jpeg,.png,.webp" class="authoring-control" id="id_gallery_step_' + stepCount + '" name="gallery_step_' + stepCount + '" type="file">' +
             '<label class="authoring-step-alt-label" for="id_gallery_step_' + stepCount + '_alt">Alt text</label>' +
-            '<input class="authoring-control authoring-control--compact" id="id_gallery_step_' + stepCount + '_alt" name="gallery_step_' + stepCount + '_alt" type="text">';
+            '<input class="authoring-control authoring-control--compact" id="id_gallery_step_' + stepCount + '_alt" name="gallery_step_' + stepCount + '_alt" placeholder="Describe this image" type="text">';
         container.appendChild(row);
         if (stepCount >= maxSteps) btn.style.display = 'none';
     });

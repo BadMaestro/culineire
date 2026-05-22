@@ -11,6 +11,7 @@ from django.http import Http404, JsonResponse
 from django.utils import timezone
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.safestring import mark_safe
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
@@ -442,6 +443,9 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
             messages.success(self.request, "Article submitted for review.")
         else:
             messages.success(self.request, "Article Updated Successfully.")
+        next_url = self.request.POST.get("next") or self.request.GET.get("next", "")
+        if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts=None):
+            return redirect(next_url)
         return redirect(article.get_absolute_url())
 
     def form_invalid(self, form):
@@ -460,7 +464,12 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
         context["form_mode"] = "edit"
         context["form_heading"] = "Edit Article"
         context["submit_label"] = "Save Changes"
-        context["cancel_url"] = self.object.get_absolute_url() if self.object else reverse("articles:article_list")
+        next_url = self.request.GET.get("next", "")
+        if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts=None):
+            context["cancel_url"] = next_url
+            context["next_url"] = next_url
+        else:
+            context["cancel_url"] = self.object.get_absolute_url() if self.object else reverse("articles:article_list")
         context["turnstile_site_key"] = ""
         context["can_save_draft"] = bool(self.object) and self.object.status != Article.Status.APPROVED
         context["will_return_to_review"] = (

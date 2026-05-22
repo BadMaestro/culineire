@@ -191,6 +191,12 @@ textarea.authoring-control {
   padding: 0.58rem 0.7rem;
 }
 
+.authoring-control--compact {
+  min-height: 36px;
+  padding: 0.42rem 0.62rem;
+  font-size: 0.88rem;
+}
+
 .authoring-checkbox-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

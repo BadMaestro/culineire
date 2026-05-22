@@ -14,6 +14,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.templatetags.static import static
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.safestring import mark_safe
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DeleteView, UpdateView
@@ -1030,6 +1031,9 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
             messages.success(self.request, "Recipe submitted for review.")
         else:
             messages.success(self.request, "Recipe Updated Successfully.")
+        next_url = self.request.POST.get("next") or self.request.GET.get("next", "")
+        if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts=None):
+            return redirect(next_url)
         if is_moderator(self.request.user):
             return redirect(reverse_lazy("recipes:moderation_panel"))
         return redirect(recipe.get_absolute_url())
@@ -1043,7 +1047,12 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
             "Refine your recipe, update categories and keep the CulinEire collection current."
         )
         context["submit_label"] = "Save Changes"
-        context["cancel_url"] = self.object.get_absolute_url() if self.object else reverse_lazy("recipes:recipe_list")
+        next_url = self.request.GET.get("next", "")
+        if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts=None):
+            context["cancel_url"] = next_url
+            context["next_url"] = next_url
+        else:
+            context["cancel_url"] = self.object.get_absolute_url() if self.object else reverse_lazy("recipes:recipe_list")
         context["existing_gallery_images"] = list(
             self.object.gallery_images.filter(is_active=True).order_by("sort_order", "id")
         ) if self.object else []

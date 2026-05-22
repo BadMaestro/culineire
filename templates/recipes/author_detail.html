@@ -77,20 +77,20 @@
                 <p class="author-studio-pending__group-label">Recipes</p>
                 <ul class="author-studio-pending__list">
                     {% for recipe in dashboard_recipes %}
-                    <li class="author-studio-pending__item{% if recipe.status == 'rejected' %} author-studio-pending__item--rejected{% endif %}{% if recipe.status == 'draft' %} author-studio-pending__item--draft{% endif %}">
+                    <li class="author-studio-pending__item{% if recipe.status == 'REJECTED' %} author-studio-pending__item--rejected{% endif %}{% if recipe.status == 'DRAFT' %} author-studio-pending__item--draft{% endif %}">
                         {% if private_dashboard %}
                         <span class="author-studio-status author-studio-status--{{ recipe.status|lower }}">{{ recipe.get_status_display }}</span>
                         {% endif %}
                         <span class="author-studio-pending__name" title="{{ recipe.title }}">{{ recipe.title }}</span>
                         <span class="author-studio-pending__date">{{ recipe.created_at|date:"j M Y" }}</span>
-                        {% if recipe.status == 'approved' %}
+                        {% if recipe.status == 'APPROVED' %}
                         <a class="author-studio-pending__view" href="{{ recipe.get_absolute_url }}">View</a>
                         {% endif %}
                         {% if can_manage_author_profile %}
-                        <a class="author-studio-pending__edit" href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit</a>
+                        <a class="author-studio-pending__edit" href="{% url 'recipes:recipe_edit' recipe.slug %}?next={{ request.path }}">Edit</a>
                         {% endif %}
                     </li>
-                    {% if private_dashboard and recipe.moderation_note and recipe.status == 'rejected' or private_dashboard and recipe.moderation_note and recipe.status == 'NEEDS_CHANGES' %}
+                    {% if private_dashboard and recipe.moderation_note and recipe.status == 'REJECTED' or private_dashboard and recipe.moderation_note and recipe.status == 'NEEDS_CHANGES' %}
                     <li class="author-studio-pending__note-row" aria-label="Moderation note for {{ recipe.title }}">
                         <span class="author-studio-pending__note-label">Note:</span>
                         <span class="author-studio-pending__note-text">{{ recipe.moderation_note }}</span>
@@ -106,20 +106,20 @@
                 <p class="author-studio-pending__group-label">Articles</p>
                 <ul class="author-studio-pending__list">
                     {% for article in dashboard_articles %}
-                    <li class="author-studio-pending__item{% if article.status == 'rejected' %} author-studio-pending__item--rejected{% endif %}{% if article.status == 'draft' %} author-studio-pending__item--draft{% endif %}">
+                    <li class="author-studio-pending__item{% if article.status == 'REJECTED' %} author-studio-pending__item--rejected{% endif %}{% if article.status == 'DRAFT' %} author-studio-pending__item--draft{% endif %}">
                         {% if private_dashboard %}
                         <span class="author-studio-status author-studio-status--{{ article.status|lower }}">{{ article.get_status_display }}</span>
                         {% endif %}
                         <span class="author-studio-pending__name" title="{{ article.title }}">{{ article.title }}</span>
                         <span class="author-studio-pending__date">{{ article.published|date:"j M Y" }}</span>
-                        {% if article.status == 'approved' %}
+                        {% if article.status == 'APPROVED' %}
                         <a class="author-studio-pending__view" href="{{ article.get_absolute_url }}">View</a>
                         {% endif %}
                         {% if can_manage_author_profile %}
-                        <a class="author-studio-pending__edit" href="{% url 'articles:article_edit' article.slug %}">Edit</a>
+                        <a class="author-studio-pending__edit" href="{% url 'articles:article_edit' article.slug %}?next={{ request.path }}">Edit</a>
                         {% endif %}
                     </li>
-                    {% if private_dashboard and article.moderation_note and article.status == 'rejected' or private_dashboard and article.moderation_note and article.status == 'NEEDS_CHANGES' %}
+                    {% if private_dashboard and article.moderation_note and article.status == 'REJECTED' or private_dashboard and article.moderation_note and article.status == 'NEEDS_CHANGES' %}
                     <li class="author-studio-pending__note-row" aria-label="Moderation note for {{ article.title }}">
                         <span class="author-studio-pending__note-label">Note:</span>
                         <span class="author-studio-pending__note-text">{{ article.moderation_note }}</span>
