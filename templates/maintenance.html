@@ -43,24 +43,21 @@
             No need to do anything. We have the mop, the checklist, and a very serious backup.
         </p>
 
-        <details class="maintenance-staff-login">
-            <summary class="maintenance-staff-toggle">Staff Access</summary>
-            <form class="maintenance-staff-form" action="{% url 'maintenance_login' %}" method="post">
-                {% csrf_token %}
-                {% if login_error %}
-                <p class="maintenance-staff-error">{{ login_error }}</p>
-                {% endif %}
+        <div class="maintenance-staff-login" id="staff-gate" hidden>
+            <form class="maintenance-staff-form" id="staff-gate-form">
+                <p class="maintenance-staff-hint">God mode activated</p>
                 <label>
                     <span>Username</span>
-                    <input name="username" type="text" required autocomplete="username">
+                    <input name="username" type="text" required autocomplete="username" id="staff-username">
                 </label>
                 <label>
                     <span>Password</span>
                     <input name="password" type="password" required autocomplete="current-password">
                 </label>
+                <p class="maintenance-staff-error" id="staff-error" hidden></p>
                 <button type="submit">Sign In</button>
             </form>
-        </details>
+        </div>
 
         <section id="maintenance-door" class="maintenance-door" aria-labelledby="door-title">
             <div class="door-heading">
@@ -157,6 +154,65 @@
 
     render();
     window.setInterval(render, 1000);
+})();
+</script>
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+    var code = "IDDQD";
+    var buffer = "";
+    var gate = document.getElementById("staff-gate");
+    var form = document.getElementById("staff-gate-form");
+    var errorEl = document.getElementById("staff-error");
+    var csrfToken = "{{ csrf_token }}";
+
+    document.addEventListener("keydown", function (e) {
+        if (gate && !gate.hidden) return;
+        if (e.key === "Enter") {
+            if (buffer.toUpperCase() === code) {
+                gate.hidden = false;
+                gate.scrollIntoView({ behavior: "smooth", block: "center" });
+                setTimeout(function () {
+                    document.getElementById("staff-username").focus();
+                }, 200);
+            }
+            buffer = "";
+        } else if (e.key.length === 1) {
+            buffer += e.key;
+            if (buffer.length > code.length) {
+                buffer = buffer.slice(-code.length);
+            }
+        }
+    });
+
+    if (form) {
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+            var fd = new FormData(form);
+            fd.append("csrfmiddlewaretoken", csrfToken);
+            var btn = form.querySelector("button");
+            btn.disabled = true;
+            btn.textContent = "Signing in...";
+            errorEl.hidden = true;
+            fetch("{% url 'maintenance_login' %}", { method: "POST", body: fd })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data.ok) {
+                        window.location.href = data.redirect;
+                    } else {
+                        errorEl.textContent = data.error;
+                        errorEl.hidden = false;
+                        btn.disabled = false;
+                        btn.textContent = "Sign In";
+                    }
+                })
+                .catch(function () {
+                    errorEl.textContent = "Connection error. Try again.";
+                    errorEl.hidden = false;
+                    btn.disabled = false;
+                    btn.textContent = "Sign In";
+                });
+        });
+    }
 })();
 </script>
 </body>

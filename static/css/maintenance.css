@@ -128,17 +128,13 @@ body {
   text-align: center;
 }
 
-.maintenance-staff-toggle {
-  display: inline-block;
-  color: var(--maintenance-muted);
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-  user-select: none;
-}
-
-.maintenance-staff-toggle:hover {
+.maintenance-staff-hint {
+  margin: 0 0 14px;
   color: var(--maintenance-brand);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .maintenance-staff-form {
