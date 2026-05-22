@@ -622,11 +622,18 @@ def submit_recipe_rating(request, slug):
         messages.error(request, "Please submit a valid rating between 1 and 5.")
         return redirect(recipe.get_absolute_url())
 
-    RecipeRating.objects.create(
-        recipe=recipe,
-        value=form.cleaned_data["value"],
-        user=request.user if request.user.is_authenticated else None,
-    )
+    if request.user.is_authenticated:
+        RecipeRating.objects.update_or_create(
+            recipe=recipe,
+            user=request.user,
+            defaults={"value": form.cleaned_data["value"]},
+        )
+    else:
+        RecipeRating.objects.create(
+            recipe=recipe,
+            value=form.cleaned_data["value"],
+            user=None,
+        )
 
     request.session[session_key] = form.cleaned_data["value"]
     request.session.modified = True
@@ -760,7 +767,11 @@ def submit_recipe_comment(request, slug):
     if rating_value and not request.session.get(rating_session_key):
         rating_form = RecipeRatingForm({"value": rating_value})
         if rating_form.is_valid():
-            RecipeRating.objects.create(recipe=recipe, value=rating_form.cleaned_data["value"])
+            RecipeRating.objects.update_or_create(
+                recipe=recipe,
+                user=request.user,
+                defaults={"value": rating_form.cleaned_data["value"]},
+            )
             request.session[rating_session_key] = rating_form.cleaned_data["value"]
             request.session.modified = True
 

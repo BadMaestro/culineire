@@ -562,6 +562,11 @@ class RecipeRating(models.Model):
                 check=models.Q(value__gte=1) & models.Q(value__lte=5),
                 name="recipe_rating_value_between_1_and_5",
             ),
+            models.UniqueConstraint(
+                fields=["recipe", "user"],
+                condition=models.Q(user__isnull=False),
+                name="one_rating_per_user_per_recipe",
+            ),
         ]
         verbose_name = "Recipe rating"
         verbose_name_plural = "Recipe ratings"
