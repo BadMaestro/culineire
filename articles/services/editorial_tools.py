@@ -22,42 +22,49 @@ from django.utils.safestring import mark_safe
 
 # ── Article heading tables ─────────────────────────────────────────────────────
 #
-# Contextual headings: (keyword_list, heading_text).
-# Matched against the full lowercased body text.  First match wins for each slot.
-# Order matters — more specific / distinctive Irish themes first.
-_CONTEXTUAL_HEADINGS = [
-    (
-        ["potato", "colcannon", "boxty", "champ", "spud"],
-        "The Potato and Its Place",
-    ),
-    (
-        ["butter", "cream", "stout", "whiskey", "whisky", "guinness"],
-        "Irish Food Beyond the Familiar Icons",
-    ),
-    (
-        ["baking", "bread", "oats", "griddle", "soda", "loaf", "scone"],
-        "Baking, Griddles and the Country Kitchen",
-    ),
-    (
-        ["mill", "grain", "flour", "milling"],
-        "Mills, Grain and Rural Memory",
-    ),
-    (
-        ["fishing", "fish", "seafood", "coast", "coastal", "atlantic", "harbour"],
-        "Coastal Traditions and the Sea",
-    ),
-    (
-        ["land", "season", "seasonal", "rural", "countryside", "farm", "harvest"],
-        "Food Rooted in the Land",
-    ),
-    (
-        ["revival", "modern", "restaurant", "bistro", "chef", "contemporary"],
-        "A Living Culinary Heritage",
-    ),
-    (
-        ["history", "century", "centuries", "ancient", "medieval", "historical"],
-        "Rooted in History",
-    ),
+# Theme table for content-aware section grouping.
+# Each paragraph is scored against every theme by counting keyword hits in the
+# lowercased paragraph text.  The theme with the highest count wins; the first
+# theme in this list wins on a tie.
+#
+# Headings are inserted in the order paragraphs appear in the article —
+# not the order entries appear here.  List order affects only tie-breaking.
+_SECTION_THEMES = [
+    {
+        "name": "familiar_icons",
+        "keywords": ["butter", "cream", "stout", "whiskey", "whisky", "dairy"],
+        "heading": "Irish Food Beyond the Familiar Icons",
+    },
+    {
+        "name": "land_and_rural",
+        "keywords": ["land", "season", "seasonal", "rural", "countryside", "farm", "farming", "harvest", "local"],
+        "heading": "Food Rooted in the Land",
+    },
+    {
+        "name": "history",
+        "keywords": ["history", "century", "centuries", "ancient", "medieval", "heritage", "generation", "generations", "tradition"],
+        "heading": "A Heritage Built Through Generations",
+    },
+    {
+        "name": "baking",
+        "keywords": ["baking", "bread", "oats", "griddle", "soda", "loaf", "farls", "bannocks"],
+        "heading": "Baking, Griddles and the Country Kitchen",
+    },
+    {
+        "name": "simple_ingredients",
+        "keywords": ["potato", "potatoes", "oats", "grain", "grains", "dairy", "herbs", "vegetables"],
+        "heading": "Simple Ingredients, Lasting Identity",
+    },
+    {
+        "name": "mills",
+        "keywords": ["mill", "mills", "milling", "grain", "flour", "watermills", "windmills"],
+        "heading": "Mills, Grain and Rural Memory",
+    },
+    {
+        "name": "modern",
+        "keywords": ["revival", "modern", "restaurant", "bistro", "chef", "contemporary", "dublin", "belfast"],
+        "heading": "A Living Culinary Heritage",
+    },
 ]
 
 # Soft editorial fallbacks used when keyword matching is exhausted.
@@ -71,12 +78,14 @@ _FALLBACK_HEADINGS = [
 ]
 
 _MIN_WORDS_FOR_HEADING_INSERTION = 300
-# First N plain paragraphs remain as a lead section before any heading is inserted.
-_LEAD_PARAGRAPHS = 1
+# Plain paragraphs longer than this word count are split at a sentence boundary.
+_PARA_SPLIT_THRESHOLD = 130
 
-_RE_BLOCK_SEP = re.compile(r'\n[ \t]*\n')
-_RE_H2 = re.compile(r'^##\s+')
-_RE_BULLET = re.compile(r'^[-*]\s+')
+_RE_BLOCK_SEP = re.compile(r"\n[ \t]*\n")
+_RE_H2 = re.compile(r"^##\s+")
+_RE_BULLET = re.compile(r"^[-*]\s+")
+# Splits after sentence-ending punctuation followed by whitespace + a capital letter.
+_RE_SENTENCE_END = re.compile(r"(?<=[.!?])\s+(?=[A-Z])")
 
 # Recipe-specific patterns
 _RE_BLANK_LINE = re.compile(r'[ \t]*\n[ \t]*\n')
@@ -89,18 +98,35 @@ def suggest_article_body(title: str, excerpt: str, body: str) -> str:
     """
     Return a suggested reformatted body string (deterministic, no AI).
 
+    Algorithm
+    ---------
+    1. Normalise whitespace; return unchanged if body already has ## headings.
+    2. Return unchanged if body is short (< 300 words).
+    3. Split body into paragraph blocks; split any plain paragraph over
+       _PARA_SPLIT_THRESHOLD words at a sentence boundary (no rewrites).
+    4. Keep the first 1 or 2 plain paragraphs as a lead section — no heading
+       appears above them.
+    5. Classify each remaining plain paragraph against _SECTION_THEMES by
+       counting keyword matches.  The theme with the highest count wins;
+       the first theme in _SECTION_THEMES breaks ties.
+    6. Group consecutive paragraphs that share the same best theme.
+    7. If there are more groups than max_headings, repeatedly merge the two
+       adjacent groups with the smallest combined paragraph count
+       (earlier pair wins on tie) until within budget.
+    8. Assign each group its theme heading, or the first unused fallback when
+       no theme matched.  Headings are emitted in paragraph order —
+       not dictionary order.
+    9. List and blockquote blocks never receive an injected heading.
+
+    Heading count ceiling
+    ---------------------
+    < 600 words  → 4   |   < 900 words  → 5
+    < 1200 words → 6   |   otherwise    → 7
+
     Rules
     -----
-    - Body already has ## headings → return normalised body unchanged.
-    - Body is short (< 300 words) → return normalised body unchanged.
-    - Otherwise:
-        * Keep the first paragraph(s) as a lead section (no heading before them).
-        * Insert editorial headings chosen from the contextual / fallback tables,
-          once every two plain-paragraph blocks after the lead.
-        * Maximum headings: 2 for <500 words, 3 for <800 words,
-          4 for <1200 words, 5 for longer articles.
-        * Never output "Introduction", "Background" or other academic headings.
-        * List and blockquote blocks are never preceded by an inserted heading.
+    - Never outputs "Introduction", "Background" or other academic headings.
+    - Original wording is never changed.
     """
     if not body or not body.strip():
         return body or ""
@@ -114,71 +140,147 @@ def suggest_article_body(title: str, excerpt: str, body: str) -> str:
     if word_count < _MIN_WORDS_FOR_HEADING_INSERTION:
         return cleaned
 
-    # Scale heading density to article length
-    if word_count < 500:
-        max_headings = 2
-    elif word_count < 800:
-        max_headings = 3
-    elif word_count < 1200:
+    # Max headings scaled to article length
+    if word_count < 600:
         max_headings = 4
-    else:
+    elif word_count < 900:
         max_headings = 5
+    elif word_count < 1200:
+        max_headings = 6
+    else:
+        max_headings = 7
 
-    heading_pool = _build_heading_pool(cleaned.lower(), max_headings)
-    blocks = [b.strip() for b in _RE_BLOCK_SEP.split(cleaned) if b.strip()]
+    # Lead count: two paragraphs for longer articles, one for shorter
+    lead_count = 2 if word_count >= 400 else 1
 
+    # Split into blocks; expand any overlong plain paragraph
+    raw_blocks = [b.strip() for b in _RE_BLOCK_SEP.split(cleaned) if b.strip()]
+    blocks = _split_long_blocks(raw_blocks)
+
+    # Identify plain block indices (not headings, not lists)
+    plain_indices = []
+    for i, block in enumerate(blocks):
+        fl = block.splitlines()[0] if block else ""
+        if not fl.startswith("#") and not _RE_BULLET.match(fl):
+            plain_indices.append(i)
+
+    # Post-lead plain indices
+    post_lead = plain_indices[lead_count:]
+
+    if not post_lead:
+        return "\n\n".join(blocks)
+
+    # Score each post-lead plain block against all themes
+    scored = [
+        (idx, _score_para_theme(blocks[idx].lower()))
+        for idx in post_lead
+    ]
+
+    # Build theme groups: consecutive blocks sharing the same best theme.
+    # Each entry: [theme_name_or_None, [block_indices], theme_dict_or_None]
+    groups = []
+    for block_idx, theme in scored:
+        theme_name = theme["name"] if theme else None
+        if groups and groups[-1][0] == theme_name:
+            groups[-1][1].append(block_idx)
+        else:
+            groups.append([theme_name, [block_idx], theme])
+
+    # Reduce groups to max_headings by merging the two adjacent groups
+    # with the smallest combined size (earlier pair wins on tie).
+    while len(groups) > max_headings:
+        merge_at = 0
+        min_size = len(groups[0][1]) + len(groups[1][1])
+        for i in range(1, len(groups) - 1):
+            combined = len(groups[i][1]) + len(groups[i + 1][1])
+            if combined < min_size:
+                min_size = combined
+                merge_at = i
+        # Keep the first group's theme (preserves article order priority)
+        merged_name = (
+            groups[merge_at][0]
+            if groups[merge_at][0] is not None
+            else groups[merge_at + 1][0]
+        )
+        merged_obj = (
+            groups[merge_at][2]
+            if groups[merge_at][2] is not None
+            else groups[merge_at + 1][2]
+        )
+        merged_indices = groups[merge_at][1] + groups[merge_at + 1][1]
+        groups[merge_at : merge_at + 2] = [[merged_name, merged_indices, merged_obj]]
+
+    # Assign headings — processed in group order = paragraph/article order.
+    used_headings: set = set()
+    heading_before: dict = {}  # block_index → heading text
+
+    for theme_name, indices, theme_obj in groups:
+        if theme_obj is not None and theme_obj["heading"] not in used_headings:
+            h = theme_obj["heading"]
+        else:
+            h = next(
+                (fb for fb in _FALLBACK_HEADINGS if fb not in used_headings),
+                "Irish Food Heritage",
+            )
+        used_headings.add(h)
+        heading_before[min(indices)] = h
+
+    # Assemble final output
     result_blocks = []
-    para_count = 0   # counts plain-paragraph blocks seen so far
-    heading_index = 0
-
-    for block in blocks:
-        first_line = block.splitlines()[0] if block else ""
-        is_heading = first_line.startswith("#")
-        is_list = bool(_RE_BULLET.match(first_line))
-        is_plain = not is_heading and not is_list
-
-        if is_plain:
-            # Skip the lead paragraphs; after that insert a heading every 2nd block.
-            if (
-                para_count >= _LEAD_PARAGRAPHS
-                and heading_index < len(heading_pool)
-                and (para_count - _LEAD_PARAGRAPHS) % 2 == 0
-            ):
-                result_blocks.append("## " + heading_pool[heading_index])
-                heading_index += 1
-            para_count += 1
-
+    for i, block in enumerate(blocks):
+        if i in heading_before:
+            result_blocks.append("## " + heading_before[i])
         result_blocks.append(block)
 
     return "\n\n".join(result_blocks)
 
 
-def _build_heading_pool(body_lower: str, max_count: int) -> list:
+def _score_para_theme(text_lower: str):
     """
-    Return up to max_count editorial headings for the given body text.
-
-    Scans body_lower for keyword matches (contextual headings first),
-    then fills remaining slots from the soft fallback list.
-    No heading appears more than once.
+    Return the best-matching theme dict from _SECTION_THEMES, or None if no
+    theme has any keyword match.  First theme in the list wins on equal scores.
     """
-    pool = []
-    seen = set()
+    best_theme = None
+    best_score = 0
+    for theme in _SECTION_THEMES:
+        score = sum(1 for kw in theme["keywords"] if kw in text_lower)
+        if score > best_score:
+            best_score = score
+            best_theme = theme
+    return best_theme  # None when best_score == 0
 
-    for keywords, heading in _CONTEXTUAL_HEADINGS:
-        if len(pool) >= max_count:
-            break
-        if heading not in seen and any(kw in body_lower for kw in keywords):
-            pool.append(heading)
-            seen.add(heading)
 
-    for heading in _FALLBACK_HEADINGS:
-        if len(pool) >= max_count:
-            break
-        if heading not in seen:
-            pool.append(heading)
-            seen.add(heading)
-
-    return pool[:max_count]
+def _split_long_blocks(blocks: list, threshold: int = _PARA_SPLIT_THRESHOLD) -> list:
+    """
+    Split plain paragraph blocks that exceed `threshold` words at a sentence
+    boundary near the midpoint.  Never modifies wording.
+    Heading and list blocks pass through unchanged.
+    """
+    result = []
+    for block in blocks:
+        fl = block.splitlines()[0] if block else ""
+        if fl.startswith("#") or _RE_BULLET.match(fl) or len(block.split()) <= threshold:
+            result.append(block)
+            continue
+        sentences = _RE_SENTENCE_END.split(block)
+        if len(sentences) < 2:
+            result.append(block)
+            continue
+        target = len(block.split()) // 2
+        words_so_far = 0
+        split_at = len(sentences) - 1  # fallback: split before last sentence
+        for idx, sent in enumerate(sentences[:-1]):
+            words_so_far += len(sent.split())
+            if words_so_far >= target:
+                split_at = idx + 1
+                break
+        first_half = " ".join(sentences[:split_at]).strip()
+        second_half = " ".join(sentences[split_at:]).strip()
+        if first_half and second_half:
+            result.extend([first_half, second_half])
+        else:
+            result.append(block)
+    return result
 
 
 def render_article_preview(body: str) -> str:

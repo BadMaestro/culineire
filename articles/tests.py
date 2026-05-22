@@ -2154,15 +2154,15 @@ class ArticleEditorialDetailTests(TestCase):
 import json as _json
 
 from articles.services.editorial_tools import (
-    _build_heading_pool,
     _clean_list_field,
     _clean_method_field,
     _clean_plain_field,
-    _CONTEXTUAL_HEADINGS,
     _FALLBACK_HEADINGS,
     _has_h2,
-    _LEAD_PARAGRAPHS,
     _normalize_body,
+    _score_para_theme,
+    _SECTION_THEMES,
+    _split_long_blocks,
     render_article_preview,
     render_recipe_preview,
     suggest_article_body,
@@ -2196,7 +2196,7 @@ class SuggestArticleBodyTests(TestCase):
         self.assertIn("##", result)
 
     def test_inserted_headings_come_from_allowed_list(self):
-        all_allowed = {h for _, h in _CONTEXTUAL_HEADINGS} | set(_FALLBACK_HEADINGS)
+        all_allowed = {t["heading"] for t in _SECTION_THEMES} | set(_FALLBACK_HEADINGS)
         para = "This is a paragraph about Irish food culture and tradition. " * 10
         body = "\n\n".join([para] * 6)
         result = suggest_article_body("Title", "Excerpt", body)
@@ -2262,12 +2262,13 @@ class SuggestArticleBodyTests(TestCase):
                 )
 
     def test_short_article_not_over_formatted(self):
-        # 300-400 words: max 2 headings
+        # ~400 words, single dominant theme: algorithm should produce only 1 heading
+        # (one theme group after the lead), well within the 4-heading ceiling.
         para = "This is a paragraph about Irish food culture and tradition. " * 10
-        body = "\n\n".join([para] * 4)  # 9*10*4 = 360 words
+        body = "\n\n".join([para] * 4)
         result = suggest_article_body("Title", "Excerpt", body)
         heading_count = sum(1 for ln in result.splitlines() if ln.startswith("## "))
-        self.assertLessEqual(heading_count, 2, "300-400 word article should have at most 2 headings")
+        self.assertLessEqual(heading_count, 4, "Single-theme article must not exceed heading ceiling")
 
     def test_contextual_heading_land_rural_season(self):
         rural_para = (
@@ -2338,6 +2339,120 @@ class SuggestArticleBodyTests(TestCase):
         result = suggest_article_body("Title", "Excerpt", body)
         self.assertIn("> A blockquote line.", result)
 
+    # ── New algorithm tests (content-aware grouping) ──────────────────────────
+
+    def test_generates_3_to_4_headings_for_multitheme_article(self):
+        """300-600 word article with multiple distinct themes gets 3-4 headings."""
+        # ~80 words each × 6 paragraphs = ~480 words
+        lead1 = "Irish food tells a rich story of place and community tied to the land and to its people. " * 5
+        lead2 = "The countryside shaped generations of cooks who relied on what the seasons and the soil provided. " * 5
+        mills = "Watermills and windmills once ground grain and flour for rural communities all across Ireland. " * 5
+        baking = "Traditional Irish baking relied on griddle bread and oats baked fresh over open fires each day. " * 5
+        land = "The rural countryside and seasonal farming harvest shaped local food traditions for many centuries. " * 5
+        modern = "Modern restaurants and bistros in Dublin and Belfast have revived Irish culinary traditions today. " * 5
+        body = "\n\n".join([lead1, lead2, mills, baking, land, modern])
+        result = suggest_article_body("Title", "Excerpt", body)
+        heading_count = sum(1 for ln in result.splitlines() if ln.startswith("## "))
+        self.assertGreaterEqual(heading_count, 3, "Multi-theme 300-600 word article should have at least 3 headings")
+        self.assertLessEqual(heading_count, 4, "Article should not exceed 4 headings for this word count")
+
+    def test_headings_follow_article_order_not_dictionary_order(self):
+        """Heading order matches paragraph order, not _SECTION_THEMES dict order.
+
+        In _SECTION_THEMES, 'baking' (index 4) appears before 'mills' (index 5).
+        If a mills paragraph comes first in the article, its heading must appear
+        before the baking heading in the output.
+        """
+        # ~100 words each × 3 paragraphs = ~300 words
+        filler = "Irish food has a long story connected to rural farming and seasonal traditions for many centuries. " * 8
+        mills = "Watermills and windmills ground grain and flour for communities across rural Ireland for generations. " * 8
+        baking = "Griddle bread and soda loaves were baked using local oats in Irish farmhouse kitchens every day. " * 8
+        body = "\n\n".join([filler, mills, baking])
+        result = suggest_article_body("Title", "Excerpt", body)
+        lines = [ln for ln in result.splitlines() if ln.startswith("## ")]
+        if len(lines) >= 2:
+            mills_pos = next((i for i, l in enumerate(lines) if "Mills" in l), None)
+            baking_pos = next((i for i, l in enumerate(lines) if "Baking" in l), None)
+            if mills_pos is not None and baking_pos is not None:
+                self.assertLess(
+                    mills_pos, baking_pos,
+                    "Mills heading must precede Baking heading because the mills "
+                    "paragraph appears first in the article",
+                )
+
+    def test_split_long_blocks_splits_at_sentence_boundary(self):
+        """_split_long_blocks splits a paragraph over the threshold into two parts."""
+        sentences = [
+            "Traditional Irish baking has always been tied to the rhythm of rural life.",
+            "Griddle breads were made over open fires in farmhouse kitchens across Ireland.",
+            "The soda bread tradition developed as a practical response to local available ingredients.",
+            "Oats were ground at local mills and used in both porridge and daily baked goods.",
+            "Buttermilk and bicarbonate of soda replaced yeast in many traditional Irish recipes.",
+            "These simple methods produced loaves that were nourishing and well suited to the climate.",
+            "The griddle remained central to Irish home baking for many subsequent generations.",
+            "Families passed their best recipes down through oral tradition and practical demonstration.",
+            "Simple ingredients combined with careful technique produced a lasting food heritage.",
+            "Today these baking traditions are celebrated in cookery schools and heritage centres.",
+            "The revival of traditional baking continues to inspire a new generation of Irish cooks.",
+        ]
+        long_para = " ".join(sentences)  # ~155 words — over threshold
+        result = _split_long_blocks([long_para])
+        self.assertEqual(len(result), 2, f"Expected 2 blocks after split, got {len(result)}")
+        self.assertTrue(result[0].strip(), "First half must not be empty")
+        self.assertTrue(result[1].strip(), "Second half must not be empty")
+        # Wording must be preserved (split only removes whitespace at the boundary)
+        combined_words = result[0].split() + result[1].split()
+        self.assertEqual(combined_words, long_para.split(), "Split must not alter any wording")
+
+    def test_split_long_blocks_does_not_split_short_blocks(self):
+        """Blocks under the threshold are returned unchanged."""
+        short = "A short paragraph about Irish food."
+        result = _split_long_blocks([short])
+        self.assertEqual(result, [short])
+
+    def test_split_long_blocks_does_not_split_list_blocks(self):
+        """List blocks are never split regardless of length."""
+        long_list = "- " + ("item " * 200)
+        result = _split_long_blocks([long_list])
+        self.assertEqual(result, [long_list])
+
+    def test_preserves_original_wording(self):
+        """suggest_article_body never changes the wording of any paragraph."""
+        p1 = "Irish food has a remarkable story rooted in simplicity and rural heritage. " * 10
+        p2 = "Butter and cream have long been central ingredients in traditional Irish cooking. " * 10
+        p3 = "The griddle was essential to Irish baking traditions across many generations. " * 10
+        p4 = "Rural milling provided grain and flour for communities throughout Ireland. " * 10
+        body = "\n\n".join([p1, p2, p3, p4])
+        result = suggest_article_body("Title", "Excerpt", body)
+        result_paras = [" ".join(b.split()) for b in result.split("\n\n") if not b.strip().startswith("## ")]
+        for original in [p1.strip(), p2.strip(), p3.strip(), p4.strip()]:
+            self.assertIn(
+                " ".join(original.split()),
+                result_paras,
+                f"Original paragraph wording was altered: {original[:50]!r}…",
+            )
+
+    def test_score_para_theme_returns_correct_theme(self):
+        """_score_para_theme picks the theme with the highest keyword count."""
+        baking_text = "baking griddle bread soda oats loaf bannocks — many baking references here"
+        theme = _score_para_theme(baking_text)
+        self.assertIsNotNone(theme)
+        self.assertEqual(theme["name"], "baking")
+
+    def test_score_para_theme_returns_none_for_unmatched_text(self):
+        """_score_para_theme returns None when no theme keywords appear."""
+        theme = _score_para_theme("the sky is blue and the weather is mild today")
+        self.assertIsNone(theme)
+
+    def test_score_para_theme_article_order_wins_on_tie(self):
+        """When two themes tie, the first theme in _SECTION_THEMES wins."""
+        # familiar_icons (index 0) and land_and_rural (index 1) each get 1 hit
+        text = "butter and seasonal farmhouse cooking"  # 'butter' → familiar_icons, 'seasonal' → land_and_rural
+        theme = _score_para_theme(text)
+        self.assertIsNotNone(theme)
+        # familiar_icons appears at index 0, land_and_rural at index 1 → familiar_icons wins
+        self.assertEqual(theme["name"], "familiar_icons", "First theme in list should win on tie")
+
 
 class RenderArticlePreviewTests(TestCase):
     """Unit tests for render_article_preview."""
@@ -2364,6 +2479,25 @@ class RenderArticlePreviewTests(TestCase):
     def test_output_is_string(self):
         result = render_article_preview("Simple text.")
         self.assertIsInstance(result, str)
+
+    def test_suggested_body_renders_h2_not_raw_hash(self):
+        """Full pipeline: suggest → preview produces <h2> tags, no raw ## markers."""
+        # Build a multi-theme body > 300 words
+        lead = "Irish food tells a rich story of place and community connected to land and season. " * 5
+        mills = "Watermills and windmills ground grain and flour for rural Irish communities. " * 5
+        baking = "Griddle breads and soda loaves were baked fresh using local oats and wheat flour. " * 5
+        land = "The rural countryside of Ireland and seasonal farming shaped local culinary traditions. " * 5
+        body = "\n\n".join([lead, mills, baking, land])
+        suggested = suggest_article_body("Irish Food Heritage", "An introduction.", body)
+        rendered = render_article_preview(suggested)
+        self.assertIn("<h2>", rendered, "Rendered HTML must contain <h2> tags")
+        self.assertNotIn("##", rendered, "Rendered HTML must not contain raw ## markers")
+
+    def test_preview_matches_editorial_format_filter(self):
+        """render_article_preview uses the identical filter as the article detail template."""
+        from articles.templatetags.article_filters import editorial_format
+        body = "## A Section\n\nA paragraph of editorial text about Irish food."
+        self.assertEqual(render_article_preview(body), editorial_format(body))
 
 
 class SuggestRecipeFieldsTests(TestCase):
