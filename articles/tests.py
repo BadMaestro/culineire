@@ -2034,6 +2034,39 @@ class EditorialFormatFilterTests(TestCase):
         result = self._render("Some text.")
         self.assertIsInstance(result, SafeString)
 
+    # ── CRLF line ending normalisation (BUG-001) ──────────────────────────────
+    # Browsers submit textarea content with \r\n line endings.  The block
+    # separator regex only matches \n\n, so without normalisation ## headings
+    # in the middle of the body would render as raw text.
+
+    def test_crlf_h2_in_body_renders_as_h2(self):
+        """## heading in middle of body with CRLF endings renders as <h2>, not raw ##."""
+        body = "Lead paragraph.\r\n\r\n## My Section\r\n\r\nBody paragraph."
+        result = self._render(body)
+        self.assertIn("<h2>My Section</h2>", result)
+        self.assertNotIn("## My Section", result)
+
+    def test_crlf_no_raw_hash_markers(self):
+        """No raw ## survives in the rendered output when body uses CRLF."""
+        body = (
+            "Intro text.\r\n\r\n"
+            "## First Heading\r\n\r\n"
+            "Middle text.\r\n\r\n"
+            "## Second Heading\r\n\r\n"
+            "End text."
+        )
+        result = self._render(body)
+        self.assertNotIn("## ", result)
+        self.assertIn("<h2>First Heading</h2>", result)
+        self.assertIn("<h2>Second Heading</h2>", result)
+
+    def test_crlf_mixed_with_lf_still_renders(self):
+        """Bodies that mix \\r\\n and \\n still produce correct headings."""
+        body = "Para one.\r\n\r\n## Heading\n\nPara two."
+        result = self._render(body)
+        self.assertIn("<h2>Heading</h2>", result)
+        self.assertNotIn("## Heading", result)
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Phase 5 — article detail integration tests (editorial renderer + checklist)
@@ -2147,6 +2180,31 @@ class ArticleEditorialDetailTests(TestCase):
         self.client.force_login(self.author_user)
         response = self._get()
         self.assertFalse(response.context["editorial_hints"]["has_section_headings"])
+
+    def test_crlf_body_h2_rendered_on_public_page(self):
+        """Article body stored with CRLF line endings renders <h2> on the public page."""
+        self.article.body = (
+            "Lead paragraph.\r\n\r\n"
+            "## Simple Ingredients, Lasting Identity\r\n\r\n"
+            "Body paragraph."
+        )
+        self.article.save(update_fields=["body"])
+        response = self._get()
+        self.assertContains(response, "<h2>Simple Ingredients, Lasting Identity</h2>")
+        self.assertNotContains(response, "## Simple Ingredients")
+
+    def test_anonymous_user_sees_rendered_h2(self):
+        """An unauthenticated visitor must see <h2>, not raw ##, on the public page."""
+        self.article.body = (
+            "Lead paragraph.\r\n\r\n"
+            "## Baking, Griddles and the Country Kitchen\r\n\r\n"
+            "Body paragraph."
+        )
+        self.article.save(update_fields=["body"])
+        self.client.logout()
+        response = self._get()
+        self.assertContains(response, "<h2>Baking, Griddles and the Country Kitchen</h2>")
+        self.assertNotContains(response, "## Baking")
 
 
 # ── Part H: Editorial Automation Toolkit Tests ────────────────────────────────
@@ -2955,3 +3013,27 @@ class SuggestArticleEditorialFormatCommandTests(TestCase):
         self._call_command("--slug", "colcannon-history")  # no --apply
         self.article.refresh_from_db()
         self.assertEqual(self.article.body, original_body)
+
+    def test_force_flag_passed_to_suggest_article_body(self):
+        """--force --apply reruns the algorithm even when body already has ## headings."""
+        para = (
+            "This is a paragraph about Irish food culture, tradition and heritage. "
+            "The potato has a long history in Ireland, and the land and farming "
+            "practices shaped the country kitchen and seasonal cooking. " * 5
+        )
+        long_body = "\n\n".join([para] * 5)
+        # Simulate an already-formatted article with old/generic headings
+        formatted_body = (
+            "## Introduction\n\n" + para + "\n\n"
+            "## Background\n\n" + para + "\n\n"
+            "## Modern Revival\n\n" + para
+        )
+        self.article.body = formatted_body
+        self.article.save(update_fields=["body"])
+
+        self._call_command("--slug", "colcannon-history", "--apply", "--force")
+        self.article.refresh_from_db()
+        # Old generic headings should be replaced by thematic ones
+        self.assertNotIn("## Introduction", self.article.body)
+        self.assertNotIn("## Background", self.article.body)
+        self.assertNotIn("## Modern Revival", self.article.body)

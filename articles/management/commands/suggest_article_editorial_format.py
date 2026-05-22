@@ -55,6 +55,7 @@ class Command(BaseCommand):
             title=article.title or "",
             excerpt=article.excerpt or "",
             body=current_body,
+            force=force,
         )
 
         if suggested == current_body.strip():

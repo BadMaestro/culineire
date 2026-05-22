@@ -62,6 +62,11 @@ def editorial_format(value):
     if not value:
         return ''
 
+    # Normalise line endings: browsers submit textarea content with CRLF (\r\n).
+    # _RE_BLOCK_SEP only matches LF-only blank lines, so CRLF bodies would not be
+    # split into blocks and ## headings in the middle would render as raw text.
+    value = value.replace('\r\n', '\n').replace('\r', '\n')
+
     raw_blocks = _RE_BLOCK_SEP.split(value.strip())
     output = []
     first_para = True  # True until the first <p> is emitted
