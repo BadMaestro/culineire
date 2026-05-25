@@ -61,13 +61,27 @@ document.addEventListener("DOMContentLoaded", () => {
     let lastLayoutWidth = 0;
 
     const isWrapped = () => {
-      const clone = categoryNav.cloneNode(true);
-      clone.style.cssText = "position:fixed;visibility:hidden;pointer-events:none;" +
-                            "flex-wrap:nowrap;width:" + categoryNav.offsetWidth + "px";
-      document.body.appendChild(clone);
-      const singleRowH = clone.scrollHeight;
-      document.body.removeChild(clone);
-      return categoryNav.scrollHeight > singleRowH + 2;
+      const items = Array.from(categoryNav.querySelectorAll(".category-nav__item, .category-nav__link"));
+      if (items.length < 2) return false;
+
+      const firstTop = Math.round(items[0].getBoundingClientRect().top);
+      return items.some((item) => Math.round(item.getBoundingClientRect().top) > firstTop + 2);
+    };
+
+    const getFirstRowHeight = () => {
+      const items = Array.from(categoryNav.querySelectorAll(".category-nav__item, .category-nav__link"));
+      if (!items.length) return 24;
+
+      const firstTop = Math.round(items[0].getBoundingClientRect().top);
+      const firstRowBottom = items.reduce((bottom, item) => {
+        const rect = item.getBoundingClientRect();
+        if (Math.round(rect.top) <= firstTop + 2) {
+          return Math.max(bottom, rect.bottom);
+        }
+        return bottom;
+      }, items[0].getBoundingClientRect().bottom);
+
+      return Math.max(24, Math.ceil(firstRowBottom - firstTop));
     };
 
     const getLayoutWidth = () => Math.round(wrap.getBoundingClientRect().width);
@@ -106,9 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
         button.setAttribute("aria-label", "Collapse recipe categories");
         buttonLabel.textContent = "View Less";
       } else {
-        const firstItem = categoryNav.querySelector(".category-nav__item, .category-nav__link");
-        const singleH = firstItem ? Math.ceil(firstItem.getBoundingClientRect().height) : 24;
-        wrap.style.height = `${singleH}px`;
+        wrap.style.height = `${getFirstRowHeight()}px`;
         wrap.classList.remove("category-nav-wrap--expanded");
         wrap.classList.add("category-nav-wrap--collapsed");
         button.setAttribute("aria-expanded", "false");
