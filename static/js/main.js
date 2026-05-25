@@ -60,11 +60,13 @@ document.addEventListener("DOMContentLoaded", () => {
     let expanded = false;
 
     const isWrapped = () => {
-      categoryNav.style.flexWrap = "nowrap";
-      const singleRowH = categoryNav.scrollHeight;
-      categoryNav.style.flexWrap = "";
-      const naturalH = categoryNav.scrollHeight;
-      return naturalH > singleRowH + 2;
+      const clone = categoryNav.cloneNode(true);
+      clone.style.cssText = "position:fixed;visibility:hidden;pointer-events:none;" +
+                            "flex-wrap:nowrap;width:" + categoryNav.offsetWidth + "px";
+      document.body.appendChild(clone);
+      const singleRowH = clone.scrollHeight;
+      document.body.removeChild(clone);
+      return categoryNav.scrollHeight > singleRowH + 2;
     };
 
     const applyState = () => {
@@ -115,13 +117,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     if ("ResizeObserver" in window) {
-      let lastViewportWidth = window.innerWidth;
       new ResizeObserver(() => {
-        const currentWidth = window.innerWidth;
-        if (currentWidth !== lastViewportWidth) {
-          expanded = false;
-          lastViewportWidth = currentWidth;
-        }
+        expanded = false;
         applyState();
       }).observe(categoryNav);
     } else {
