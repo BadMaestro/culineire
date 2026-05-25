@@ -952,6 +952,7 @@
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  min-height: calc(3 * 1.42em);
 }
 
 .recipe-card__footer--article {
