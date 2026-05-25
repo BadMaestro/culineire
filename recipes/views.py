@@ -511,8 +511,21 @@ def recipe_detail(request, slug):
 
     session_key = f"recipe_rating_submitted_{recipe.pk}"
     _rating_session_val = request.session.get(session_key)
-    has_rated = bool(_rating_session_val)
-    user_rating_value = _rating_session_val if isinstance(_rating_session_val, int) else None
+
+    # For authenticated users, check DB first (session may be lost)
+    _db_rating = None
+    if request.user.is_authenticated:
+        _db_rating = recipe.ratings.filter(user=request.user).first()
+
+    if _db_rating:
+        has_rated = True
+        user_rating_value = _db_rating.value
+    elif _rating_session_val:
+        has_rated = True
+        user_rating_value = _rating_session_val if isinstance(_rating_session_val, int) else None
+    else:
+        has_rated = False
+        user_rating_value = None
 
     commenter_profile = None
     if request.user.is_authenticated:
@@ -611,7 +624,7 @@ def submit_recipe_rating(request, slug):
         messages.error(request, "You have submitted too many ratings. Please try again later.")
         return redirect(recipe.get_absolute_url())
 
-    if request.session.get(session_key):
+    if not request.user.is_authenticated and request.session.get(session_key):
         if is_ajax:
             return JsonResponse({"ok": False, "error": "You have already rated this recipe."})
         messages.warning(request, "You have already rated this recipe from this browser session.")
@@ -652,6 +665,8 @@ def reset_recipe_rating(request, slug):
     session_key = f"recipe_rating_submitted_{recipe.pk}"
     request.session.pop(session_key, None)
     request.session.modified = True
+    # Also delete the DB rating for this authenticated user
+    recipe.ratings.filter(user=request.user).delete()
     is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
     if is_ajax:
         return JsonResponse({"ok": True})
@@ -679,7 +694,7 @@ def reset_all_recipe_ratings(request, slug):
 
 def recipe_ratings_api(request, slug):
     """Return rating breakdown + recent named raters as JSON."""
-    recipe = get_object_or_404(Recipe, slug=slug, status="approved", is_deleted=False)
+    recipe = get_object_or_404(Recipe, slug=slug, status=Recipe.Status.APPROVED, is_deleted=False)
     ratings_qs = recipe.ratings.select_related("user__recipe_author_profile").order_by("-created_at")
 
     total = ratings_qs.count()

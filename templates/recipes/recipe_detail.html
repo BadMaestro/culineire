@@ -382,7 +382,7 @@
                         </form>
                     {% endif %}</h2>
                     <div data-rating-voted {% if not has_rated %}hidden{% endif %}>
-                        <p class="rating-already-voted">Your rating has been saved. Thank you!</p>
+                        <p class="rating-already-voted">You rated this recipe{% if user_rating_value %} <strong>{{ user_rating_value }}/5</strong>{% endif %}. Thank you!</p>
                         <form action="{% url 'recipes:reset_recipe_rating' recipe.slug %}" method="post" style="margin-top:0.65rem;">
                             {% csrf_token %}
                             <button class="detail-button detail-button--secondary" type="submit">Change rating</button>
@@ -1185,6 +1185,8 @@
       var val = sel ? parseInt(sel.value, 10) : 0;
       formPanel.hidden = true;
       votedPanel.hidden = false;
+      var votedText = votedPanel.querySelector('.rating-already-voted');
+      if (votedText) votedText.innerHTML = 'You rated this recipe <strong>' + val + '/5</strong>. Thank you!';
       showToast('Rating saved. Thank you!', 'success');
       syncBottomVoted(val);
     });
