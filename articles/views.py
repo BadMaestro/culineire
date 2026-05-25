@@ -451,7 +451,7 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
                 self.request,
                 "Article updated and sent back to review before it goes live again.",
             )
-        elif previous_status in {Article.Status.DRAFT, Article.Status.NEEDS_CHANGES, Article.Status.REJECTED} and article.status == Article.Status.PENDING:
+        elif action == "submit_review" and article.status == Article.Status.PENDING:
             messages.success(self.request, "Article submitted for review.")
         else:
             messages.success(self.request, "Article Updated Successfully.")
