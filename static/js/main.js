@@ -115,15 +115,23 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     if ("ResizeObserver" in window) {
+      let lastViewportWidth = window.innerWidth;
       new ResizeObserver(() => {
-        expanded = false;
+        const currentWidth = window.innerWidth;
+        if (currentWidth !== lastViewportWidth) {
+          expanded = false;
+          lastViewportWidth = currentWidth;
+        }
         applyState();
       }).observe(categoryNav);
     } else {
       let resizeTimer = null;
       window.addEventListener("resize", () => {
         clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => { applyState(); }, 80);
+        resizeTimer = setTimeout(() => {
+          expanded = false;
+          applyState();
+        }, 80);
       });
     }
   });
