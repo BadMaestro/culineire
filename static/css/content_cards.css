@@ -924,6 +924,20 @@
   line-height: 1.02;
 }
 
+.recipe-grid--carousel .recipe-card--article .recipe-card__title {
+  min-height: 0;
+  height: 3.1em;
+  overflow: hidden;
+  align-items: flex-start;
+}
+
+.recipe-grid--carousel .recipe-card--article .recipe-card__title a {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .recipe-card--article .recipe-card__meta-line {
   align-items: center;
   min-block-size: 1.1rem;
