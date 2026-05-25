@@ -58,6 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     let expanded = false;
+    let lastLayoutWidth = 0;
 
     const isWrapped = () => {
       const clone = categoryNav.cloneNode(true);
@@ -67,6 +68,18 @@ document.addEventListener("DOMContentLoaded", () => {
       const singleRowH = clone.scrollHeight;
       document.body.removeChild(clone);
       return categoryNav.scrollHeight > singleRowH + 2;
+    };
+
+    const getLayoutWidth = () => Math.round(wrap.getBoundingClientRect().width);
+
+    const applyResponsiveState = () => {
+      const width = getLayoutWidth();
+      if (lastLayoutWidth && Math.abs(width - lastLayoutWidth) <= 1) {
+        return;
+      }
+      if (lastLayoutWidth) expanded = false;
+      lastLayoutWidth = width;
+      applyState();
     };
 
     const applyState = () => {
@@ -112,21 +125,22 @@ document.addEventListener("DOMContentLoaded", () => {
     document.fonts.ready.then(() => {
       requestAnimationFrame(() => {
         expanded = false;
+        lastLayoutWidth = getLayoutWidth();
         applyState();
       });
     });
 
     if ("ResizeObserver" in window) {
       new ResizeObserver(() => {
-        expanded = false;
-        applyState();
-      }).observe(categoryNav);
+        applyResponsiveState();
+      }).observe(wrap);
     } else {
       let resizeTimer = null;
       window.addEventListener("resize", () => {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => {
           expanded = false;
+          lastLayoutWidth = getLayoutWidth();
           applyState();
         }, 80);
       });
