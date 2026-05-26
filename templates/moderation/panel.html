@@ -81,6 +81,31 @@
             </div>
         </div>
 
+        <div class="moderation-block moderation-block--update">
+            <div class="update-progress__header">
+                <div>
+                    <h2 class="moderation-block__title">Month 1 Update Progress</h2>
+                    <p class="update-progress__summary">{{ month1_update_progress.done_count }}/{{ month1_update_progress.total_count }} auto-checked items complete</p>
+                </div>
+                <div class="update-progress__meter" aria-label="{{ month1_update_progress.percent }} percent complete">
+                    <span style="width: {{ month1_update_progress.percent }}%"></span>
+                </div>
+            </div>
+            <div class="update-progress__grid">
+                {% for item in month1_update_progress.items %}
+                <div class="update-progress__item update-progress__item--{{ item.status }}">
+                    <span class="update-progress__icon" aria-hidden="true">
+                        {% if item.status == "done" %}✓{% elif item.status == "manual" %}!{% elif item.status == "active" %}•{% else %}–{% endif %}
+                    </span>
+                    <div class="update-progress__copy">
+                        <span class="update-progress__label">{{ item.label }}</span>
+                        <span class="update-progress__detail">{{ item.detail }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
         <div class="moderation-block">
             <h2 class="moderation-block__title">
                 Recipes

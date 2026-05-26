@@ -46,6 +46,109 @@
   gap: 0.5rem;
 }
 
+.moderation-block--update {
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid rgb(58 44 30 / 0.1);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.update-progress__header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(140px, 240px);
+  gap: 0.9rem;
+  align-items: center;
+}
+
+.update-progress__summary {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.update-progress__meter {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(11 76 58 / 0.12);
+}
+
+.update-progress__meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #0b4c3a;
+}
+
+.update-progress__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0.55rem;
+}
+
+.update-progress__item {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 0.55rem;
+  align-items: start;
+  padding: 0.6rem 0.65rem;
+  border: 1px solid rgb(58 44 30 / 0.1);
+  border-radius: 8px;
+  background: rgb(255 252 246 / 0.9);
+}
+
+.update-progress__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.update-progress__item--done .update-progress__icon {
+  background: rgb(21 128 61 / 0.14);
+  color: #15803d;
+}
+
+.update-progress__item--active .update-progress__icon {
+  background: rgb(217 119 6 / 0.14);
+  color: #b45309;
+}
+
+.update-progress__item--pending .update-progress__icon {
+  background: rgb(100 116 139 / 0.13);
+  color: #475569;
+}
+
+.update-progress__item--manual .update-progress__icon {
+  background: rgb(11 76 58 / 0.1);
+  color: #0b4c3a;
+}
+
+.update-progress__copy {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 0;
+}
+
+.update-progress__label {
+  color: var(--ink);
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.update-progress__detail {
+  color: var(--ink-soft);
+  font-size: 0.76rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
 .moderation-block--authors {
   display: grid;
   gap: 0.75rem;
@@ -630,6 +733,18 @@
 
   .moderation-block {
     gap: 0.5rem;
+  }
+
+  .moderation-block--update {
+    padding: 0.85rem;
+  }
+
+  .update-progress__header {
+    grid-template-columns: 1fr;
+  }
+
+  .update-progress__grid {
+    grid-template-columns: 1fr;
   }
 
   .moderation-block--authors {

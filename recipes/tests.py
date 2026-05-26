@@ -212,6 +212,47 @@ class ModerationPanelRoleTests(TestCase):
         self.assertTrue(response.context["can_revoke_superuser_privileges"])
         self.assertContains(response, "@catwithtail")
         self.assertContains(response, "Revoke Superuser Privileges", count=1)
+        self.assertIn("month1_update_progress", response.context)
+        self.assertContains(response, "Month 1 Update Progress")
+
+    @override_settings(TELEGRAM_BOT_TOKEN="token", TELEGRAM_CHANNEL_ID="@culineire", ANTHROPIC_API_KEY="anthropic-key")
+    def test_month1_progress_marks_env_backed_steps_complete(self):
+        self.client.login(username="greenbear", password="pass")
+
+        response = self.client.get(reverse("recipes:moderation_panel"))
+
+        progress = response.context["month1_update_progress"]
+        statuses = {item["label"]: item["status"] for item in progress["items"]}
+        self.assertEqual(statuses["Telegram credentials"], "done")
+        self.assertEqual(statuses["Anthropic credentials"], "done")
+        self.assertGreater(progress["done_count"], 0)
+
+    def test_month1_progress_tracks_published_content_targets(self):
+        for index in range(20):
+            Recipe.objects.create(
+                title=f"Approved Recipe {index}",
+                slug=f"approved-recipe-{index}",
+                author=self.owner_author,
+                ingredients="Potatoes",
+                method="Cook.",
+                status=Recipe.Status.APPROVED,
+            )
+        for index in range(8):
+            Article.objects.create(
+                title=f"Approved Article {index}",
+                slug=f"approved-article-{index}",
+                author=self.owner_author,
+                body="Story.",
+                published=date(2026, 5, 26),
+                status=Article.Status.APPROVED,
+            )
+        self.client.login(username="greenbear", password="pass")
+
+        response = self.client.get(reverse("recipes:moderation_panel"))
+
+        statuses = {item["label"]: item["status"] for item in response.context["month1_update_progress"]["items"]}
+        self.assertEqual(statuses["Recipe publishing target"], "done")
+        self.assertEqual(statuses["Article publishing target"], "done")
 
     def test_panel_can_revoke_other_superuser_privileges(self):
         self.client.login(username="greenbear", password="pass")

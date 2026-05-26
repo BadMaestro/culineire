@@ -1,5 +1,6 @@
 import json
 import re
+from pathlib import Path
 from typing import cast
 
 from django.conf import settings
@@ -72,6 +73,86 @@ RECIPE_MOOD_CHIPS = [
     ("traditional_irish_dishes", "Irish Classics"),
     ("modern_irish_cooking", "Modern Irish"),
 ]
+
+
+def _build_month1_update_progress():
+    base_dir = Path(settings.BASE_DIR)
+    approved_recipe_count = Recipe.objects.filter(status=Recipe.Status.APPROVED, is_deleted=False).count()
+    approved_article_count = Article.objects.filter(status=Article.Status.APPROVED, is_deleted=False).count()
+    draft_pipeline_count = Recipe.objects.filter(status__in=[Recipe.Status.DRAFT, Recipe.Status.PENDING], is_deleted=False).count()
+    telegram_configured = bool(getattr(settings, "TELEGRAM_BOT_TOKEN", "") and getattr(settings, "TELEGRAM_CHANNEL_ID", ""))
+    anthropic_configured = bool(getattr(settings, "ANTHROPIC_API_KEY", ""))
+
+    items = [
+        {
+            "label": "SEO foundation",
+            "detail": "Recipe/article schema, breadcrumbs, robots.txt and sitemap.xml are implemented.",
+            "status": "done",
+        },
+        {
+            "label": "Internal recipe linking",
+            "detail": "Recipe detail pages now surface related approved recipes by shared category.",
+            "status": "done",
+        },
+        {
+            "label": "AI recipe draft command",
+            "detail": "generate_recipe.py exists and saves AI output only as draft/pending.",
+            "status": "done" if (base_dir / "recipes" / "management" / "commands" / "generate_recipe.py").exists() else "pending",
+        },
+        {
+            "label": "Project rules and prompt library",
+            "detail": "CLAUDE.md and content prompt templates are available for external tooling.",
+            "status": "done" if (base_dir / "CLAUDE.md").exists() and (base_dir / "content_prompts" / "README.md").exists() else "pending",
+        },
+        {
+            "label": "Telegram publish pipeline",
+            "detail": "Signal and duplicate-prevention log are in place; credentials still decide live posting.",
+            "status": "done",
+        },
+        {
+            "label": "Telegram credentials",
+            "detail": "TELEGRAM_BOT_TOKEN and TELEGRAM_CHANNEL_ID must be set in production env.",
+            "status": "done" if telegram_configured else "pending",
+        },
+        {
+            "label": "Anthropic credentials",
+            "detail": "ANTHROPIC_API_KEY is required before generating real recipe drafts.",
+            "status": "done" if anthropic_configured else "pending",
+        },
+        {
+            "label": "Recipe publishing target",
+            "detail": f"{approved_recipe_count}/20 approved recipes published.",
+            "status": "done" if approved_recipe_count >= 20 else "active" if approved_recipe_count else "pending",
+        },
+        {
+            "label": "Article publishing target",
+            "detail": f"{approved_article_count}/8 approved articles published.",
+            "status": "done" if approved_article_count >= 8 else "active" if approved_article_count else "pending",
+        },
+        {
+            "label": "Draft queue",
+            "detail": f"{draft_pipeline_count} recipe draft/pending item(s) currently in the pipeline.",
+            "status": "active" if draft_pipeline_count else "pending",
+        },
+        {
+            "label": "Search Console and Pinterest",
+            "detail": "Submit sitemap, verify Pinterest Business, then enable Rich Pins manually.",
+            "status": "manual",
+        },
+        {
+            "label": "Core Web Vitals check",
+            "detail": "Run PageSpeed/CrUX after deployment before adding ad scripts.",
+            "status": "manual",
+        },
+    ]
+    done_count = sum(1 for item in items if item["status"] == "done")
+
+    return {
+        "items": items,
+        "done_count": done_count,
+        "total_count": len(items),
+        "percent": round((done_count / len(items)) * 100) if items else 0,
+    }
 
 CATEGORY_IMAGE_MAP = {
     "irish_culinary_heritage": "images/categories/irish-culinary-heritage.png",
@@ -1347,6 +1428,7 @@ def moderation_panel(request):
         "can_revoke_superuser_privileges": _can_revoke_superuser_privileges(request.user),
         "bearseeker_super_users": bearseeker_super_users,
         "bearseeker_authors": bearseeker_authors,
+        "month1_update_progress": _build_month1_update_progress(),
         "maintenance_web_active": maintenance_web_active,
         "maintenance_until_str": maintenance_until_str,
         "maintenance_env_active": getattr(settings, "MAINTENANCE_MODE", False),
