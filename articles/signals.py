@@ -1,10 +1,13 @@
+import logging
 from pathlib import Path
 
 from django.conf import settings
-from django.db.models.signals import post_delete, pre_save
+from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 
 from .models import Article, ArticleImage
+
+logger = logging.getLogger(__name__)
 
 
 def _safe_delete_file(file_field):
@@ -55,6 +58,18 @@ def _delete_file_and_cleanup(file_field):
 
 
 @receiver(pre_save, sender=Article)
+def remember_previous_article_status(sender, instance, **kwargs):
+    del sender, kwargs
+    if not instance.pk:
+        instance._previous_status = None
+        return
+    try:
+        instance._previous_status = Article.objects.only("status").get(pk=instance.pk).status
+    except Article.DoesNotExist:
+        instance._previous_status = None
+
+
+@receiver(pre_save, sender=Article)
 def delete_old_article_preview_on_change(sender, instance, **kwargs):
     del sender, kwargs
     if not instance.pk:
@@ -73,6 +88,20 @@ def delete_old_article_preview_on_change(sender, instance, **kwargs):
 
     if old_name and old_name != new_name:
         _delete_file_and_cleanup(old_file)
+
+
+@receiver(post_save, sender=Article)
+def publish_article_to_telegram_on_approval(sender, instance, **kwargs):
+    del sender, kwargs
+    previous_status = getattr(instance, "_previous_status", None)
+    if instance.status != Article.Status.APPROVED or previous_status == Article.Status.APPROVED:
+        return
+    try:
+        from newsfeed.telegram import publish_article_to_telegram
+        publish_article_to_telegram(instance)
+    except Exception:
+        logger.exception("Failed to publish article pk=%s to Telegram", instance.pk)
+        return
 
 
 @receiver(pre_save, sender=ArticleImage)

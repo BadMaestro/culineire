@@ -156,6 +156,48 @@ class RecipeTelegramPublishTest(TestCase):
         self.assertFalse(SocialPostLog.objects.exists())
 
 
+class ArticleTelegramPublishTest(TestCase):
+    def setUp(self):
+        self.author = _make_author()
+
+    @override_settings(
+        TELEGRAM_BOT_TOKEN="test-token",
+        TELEGRAM_CHANNEL_ID="@culineire_test",
+        SITE_DOMAIN="culineire.test",
+        SITE_SCHEME="https",
+    )
+    @patch("newsfeed.telegram.send_telegram_message")
+    def test_article_approval_posts_to_telegram_once(self, send_telegram_message):
+        send_telegram_message.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
+        article = _make_article(self.author)
+
+        article.status = "approved"
+        article.save()
+        article.title = "Edited After Approval"
+        article.save()
+
+        self.assertEqual(send_telegram_message.call_count, 1)
+        self.assertEqual(
+            SocialPostLog.objects.filter(
+                platform=SocialPostLog.Platform.TELEGRAM,
+                event_key=f"article_published:{article.pk}",
+                status=SocialPostLog.Status.SENT,
+            ).count(),
+            1,
+        )
+
+    @override_settings(TELEGRAM_BOT_TOKEN="", TELEGRAM_CHANNEL_ID="")
+    @patch("newsfeed.telegram.send_telegram_message")
+    def test_missing_telegram_settings_create_no_article_log_or_request(self, send_telegram_message):
+        article = _make_article(self.author)
+
+        article.status = "approved"
+        article.save()
+
+        send_telegram_message.assert_not_called()
+        self.assertFalse(SocialPostLog.objects.exists())
+
+
 class ArticleFeedEntryTest(TestCase):
     def setUp(self):
         self.author = _make_author()

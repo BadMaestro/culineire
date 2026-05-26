@@ -32,6 +32,18 @@ def build_recipe_telegram_message(recipe) -> str:
     return "\n\n".join(parts)
 
 
+def build_article_telegram_message(article) -> str:
+    description = (article.excerpt or "").strip()
+    url = article.get_absolute_url()
+    site_url = f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}".rstrip("/")
+    absolute_url = f"{site_url}{url}"
+    parts = [f"New article on CulinEire: {article.title}"]
+    if description:
+        parts.append(description)
+    parts.append(absolute_url)
+    return "\n\n".join(parts)
+
+
 def send_telegram_message(text: str) -> TelegramResult:
     token = getattr(settings, "TELEGRAM_BOT_TOKEN", "")
     channel_id = getattr(settings, "TELEGRAM_CHANNEL_ID", "")
@@ -71,15 +83,11 @@ def send_telegram_message(text: str) -> TelegramResult:
     return TelegramResult(ok=False, status="failed", response=body)
 
 
-def publish_recipe_to_telegram(recipe) -> TelegramResult:
+def _publish_to_telegram(*, event_key: str, message: str, target_url: str) -> TelegramResult:
     if not getattr(settings, "TELEGRAM_BOT_TOKEN", "") or not getattr(settings, "TELEGRAM_CHANNEL_ID", ""):
         return TelegramResult(ok=False, status="skipped", response="Telegram settings are not configured.")
 
     from newsfeed.models import SocialPostLog
-
-    event_key = f"recipe_published:{recipe.pk}"
-    message = build_recipe_telegram_message(recipe)
-    target_url = recipe.get_absolute_url()
 
     try:
         with transaction.atomic():
@@ -109,3 +117,19 @@ def publish_recipe_to_telegram(recipe) -> TelegramResult:
     log.response = result.response[:2000]
     log.save(update_fields=["status", "target_url", "message", "response", "updated_at"])
     return result
+
+
+def publish_recipe_to_telegram(recipe) -> TelegramResult:
+    return _publish_to_telegram(
+        event_key=f"recipe_published:{recipe.pk}",
+        message=build_recipe_telegram_message(recipe),
+        target_url=recipe.get_absolute_url(),
+    )
+
+
+def publish_article_to_telegram(article) -> TelegramResult:
+    return _publish_to_telegram(
+        event_key=f"article_published:{article.pk}",
+        message=build_article_telegram_message(article),
+        target_url=article.get_absolute_url(),
+    )
