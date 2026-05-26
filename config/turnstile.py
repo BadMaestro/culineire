@@ -15,7 +15,8 @@ def verify_turnstile(token, remote_ip):
 
     secret = settings.TURNSTILE_SECRET_KEY
     if not secret:
-        return True
+        logger.error("TURNSTILE_SECRET_KEY is not set — Turnstile verification is blocked (fail-closed)")
+        return False
     try:
         data = urllib.parse.urlencode({
             "secret": secret,

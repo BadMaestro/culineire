@@ -7,7 +7,9 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import escape
+from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.http import require_POST
+from django_ratelimit.decorators import ratelimit
 
 from articles.models import Article
 from monitoring.tracker import get_client_ip, hash_ip
@@ -98,9 +100,14 @@ def sitemap_xml(_request):
     return HttpResponse("\n".join(xml_lines), content_type="application/xml; charset=utf-8")
 
 
+@sensitive_post_parameters("password")
+@ratelimit(key="ip", rate="10/h", method="POST", block=False)
+@ratelimit(key="post:username", rate="10/h", method="POST", block=False)
 @require_POST
 def maintenance_login(request):
     """Staff-only AJAX login from the maintenance door page."""
+    if getattr(request, "limited", False):
+        return JsonResponse({"ok": False, "error": "Too many attempts. Please try again later."}, status=429)
     username = request.POST.get("username", "").strip()
     password = request.POST.get("password", "")
     user = authenticate(request, username=username, password=password)

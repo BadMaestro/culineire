@@ -96,6 +96,12 @@ CONTEXT_SENTENCE_SPLIT_RE = re.compile("(?<=[.!?])\\s+(?=[\"\\u201c\\u2018]?[A-Z
 
 
 
+def _json_ld(data):
+    value = json.dumps(data, ensure_ascii=False)
+    value = value.replace("&", "\\u0026").replace("<", "\\u003C").replace(">", "\\u003E")
+    return mark_safe(value)
+
+
 def _split_text_lines(value: str) -> list[str]:
     if not value:
         return []
@@ -596,7 +602,7 @@ def recipe_detail(request, slug):
         "has_rated": has_rated,
         "user_rating_value": user_rating_value,
         "commenter_profile": commenter_profile,
-        "recipe_json_ld": mark_safe(json.dumps(_schema, ensure_ascii=False)),
+        "recipe_json_ld": _json_ld(_schema),
         "is_saved": request.user.is_authenticated and SavedRecipe.objects.filter(user=request.user, recipe=recipe).exists(),
         "collection_add_url": reverse("collection:add_recipe", kwargs={"slug": recipe.slug}),
         "collection_remove_url": reverse("collection:remove_recipe", kwargs={"slug": recipe.slug}),
