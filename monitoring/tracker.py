@@ -22,6 +22,9 @@ BOT_UA_MARKERS = (
 SUSPICIOUS_TRIGGER_PATTERNS = (
     "<script", "union select", "../../", "etc/passwd",
     "wp-admin", "phpmy", ".env", "xmlrpc",
+    "credentials.json", "client_secret", "client_secrets",
+    "service-account", "serviceaccount", "firebase", "gcp-",
+    "google-credentials", "google-service-account", "sa-key", "sa-private-key",
 )
 
 # Paths that elevate severity to "critical" in middleware
@@ -40,6 +43,9 @@ SUSPICIOUS_PATH_MARKERS = (
     "composer.json", "package.json",
     "vite.config", "nuxt.config", "next.config", "webpack.config",
     "firebase-debug", "database", "backup", "dump",
+    "credentials.json", "client_secret", "client_secrets",
+    "service-account", "serviceaccount", "firebase", "gcp-",
+    "google-credentials", "google-service-account", "sa-key", "sa-private-key",
     "/logs/", "/var/log/", "/storage/logs/",
     "/%22/", '/"/', "/https:/",
     ".cgi", "docker", "/.well-known/stripe",

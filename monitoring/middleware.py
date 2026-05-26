@@ -4,6 +4,7 @@ import logging
 
 from django.conf import settings
 from django.db import DatabaseError
+from django.middleware.common import CommonMiddleware
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
@@ -34,6 +35,14 @@ def _404_severity(user_agent: str, path: str) -> str:
     if _is_bot_ua(user_agent):
         return "medium"
     return "low"
+
+
+def _is_append_slash_redirect_candidate(request) -> bool:
+    if not getattr(settings, "APPEND_SLASH", True):
+        return False
+    if request.path_info.endswith("/"):
+        return False
+    return CommonMiddleware(lambda _request: None).should_redirect_with_slash(request)
 
 
 class MonitoringMiddleware:
@@ -87,6 +96,8 @@ class MonitoringMiddleware:
         referrer = request.META.get("HTTP_REFERER", "")[:500]
 
         if status == 404:
+            if _is_append_slash_redirect_candidate(request):
+                return
             SecurityEvent.objects.create(
                 event_type=SecurityEvent.EventType.NOT_FOUND,
                 severity=_404_severity(user_agent, path),

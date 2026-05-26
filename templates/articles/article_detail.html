@@ -77,6 +77,8 @@
                 {% if article.image_rights_status == 'own' or article.image_rights_status == 'ai_generated' %}<span aria-hidden="true" class="culineire-watermark">www.culineire.ie</span>{% endif %}
             </header>
 
+            <a class="detail-page__back-link" href="{% url 'articles:article_list' %}">Back to Articles</a>
+
             {% if gallery_items %}
             {% if has_gallery %}
             <section

@@ -49,6 +49,18 @@ class MiddlewareSkipTest(TestCase):
             SecurityEvent.objects.filter(event_type=SecurityEvent.EventType.NOT_FOUND).count(), 1
         )
 
+    def test_skips_append_slash_redirect_candidate_404(self):
+        middleware = MonitoringMiddleware(lambda r: _make_response(404))
+        request = self.factory.get("/about")
+        request.user = type("AnonUser", (), {"is_authenticated": False})()
+        request.session = type("Session", (), {"session_key": None})()
+
+        middleware(request)
+
+        self.assertFalse(
+            SecurityEvent.objects.filter(event_type=SecurityEvent.EventType.NOT_FOUND).exists()
+        )
+
     def test_flags_suspicious_path(self):
         request = self.factory.get("/<script>alert(1)</script>")
         request.user = type("AnonUser", (), {"is_authenticated": False})()
@@ -119,6 +131,10 @@ class RequestKindClassificationTest(SimpleTestCase):
             "/vite.config.js",
             "/db.sql",
             "/logs/error.log",
+            "/service-account.json",
+            "/firebase-adminsdk.json",
+            "/config/credentials.json",
+            "/api/client_secret.json",
         ]
 
         for path in paths:

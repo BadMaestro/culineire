@@ -61,6 +61,7 @@
 <section class="section section--flush-top">
     <div class="container">
         <article class="detail-page">
+            <a class="detail-page__back-link" href="{% url 'recipes:recipe_list' %}">Back to Recipes</a>
 
             {% if recipe.get_all_category_items or gallery_items %}
             <div class="detail-gallery-block">
