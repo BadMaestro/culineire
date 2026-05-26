@@ -54,6 +54,9 @@ urlpatterns = [
     # Monitoring dashboard
     path("monitoring/", include("monitoring.urls", namespace="monitoring")),
 
+    # Sandbox (superuser-only test area)
+    path("sandbox/", include("sandbox.urls", namespace="sandbox")),
+
     # Accounts (user management)
     path("accounts/", include("accounts.urls", namespace="accounts")),
 

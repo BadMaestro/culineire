@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Sandbox | CulinEire{% endblock %}
+{% block meta_description %}Developer sandbox for testing new UI and features.{% endblock %}
+
+{% block content %}
+<section class="page-section">
+    <div class="container" style="max-width:860px;padding-top:3rem;padding-bottom:4rem;">
+        <h1 style="font-family:var(--font-display);font-size:2rem;margin-bottom:0.4rem;">Sandbox</h1>
+        <p style="color:var(--color-muted);margin-bottom:2.5rem;">Superuser-only test area. None of the forms here save data.</p>
+
+        <div style="display:grid;gap:1rem;">
+            {% for page in pages %}
+            <a href="{% url page.url_name %}" style="display:block;padding:1.25rem 1.5rem;border:1px solid var(--color-border);border-radius:8px;text-decoration:none;color:inherit;transition:border-color .15s;">
+                <strong style="display:block;font-size:1rem;margin-bottom:0.25rem;">{{ page.title }}</strong>
+                <span style="font-size:0.875rem;color:var(--color-muted);">{{ page.description }}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "authoring/recipe_form.html" %}
+
+{% block title %}[Sandbox] Recipe Form | CulinEire{% endblock %}
+
+{% block content %}
+<div style="background:#f59e0b;color:#1c1917;padding:0.6rem 1.5rem;font-size:0.875rem;font-weight:600;text-align:center;letter-spacing:0.05em;">
+    SANDBOX &mdash; this form does not save data
+    {% if submitted %}&mdash; <span style="text-decoration:underline;">validation ran (check errors below)</span>{% endif %}
+</div>
+{{ block.super }}
+{% endblock %}

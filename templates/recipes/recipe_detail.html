@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static recipe_schema %}
 
 {% block title %}{{ recipe.title }} | CulinEire{% endblock %}
 {% block meta_description %}{% if recipe.short_description %}{{ recipe.short_description }}{% else %}Recipe detail page for {{ recipe.title }} on CulinEire.{% endif %}{% endblock %}
@@ -20,7 +20,7 @@
 <link href="{% static 'css/messaging.css' %}" rel="stylesheet">{% endif %}
 <link href="{% static 'css/print.css' %}" rel="stylesheet" media="print">
 {% if gallery_items %}<link rel="preload" as="image" href="{{ gallery_items.0.src }}">{% elif recipe.hero_image %}<link rel="preload" as="image" href="{{ recipe.hero_image.url }}">{% endif %}
-<script type="application/ld+json">{{ recipe_json_ld }}</script>
+{% recipe_schema_json recipe %}
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"{{ request.scheme }}://{{ request.get_host }}{% url 'home' %}"},{"@type":"ListItem","position":2,"name":"Recipes","item":"{{ request.scheme }}://{{ request.get_host }}{% url 'recipes:recipe_list' %}"},{"@type":"ListItem","position":3,"name":"{{ recipe.title|escapejs }}"}]}</script>
 {% endblock %}
 

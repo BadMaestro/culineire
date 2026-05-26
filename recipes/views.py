@@ -16,7 +16,6 @@ from django.templatetags.static import static
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.utils.safestring import mark_safe
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DeleteView, UpdateView
 # noinspection PyPackageRequirements
@@ -93,14 +92,6 @@ CATEGORY_IMAGE_MAP = {
 METHOD_STEP_PREFIX_RE = re.compile(r"^\d+\.\s*")
 INGREDIENT_DETAIL_SPLIT_RE = re.compile(r"\s*:\s*|\s+[-\u2013\u2014]\s+", re.UNICODE)
 CONTEXT_SENTENCE_SPLIT_RE = re.compile("(?<=[.!?])\\s+(?=[\"\\u201c\\u2018]?[A-Z0-9])")
-
-
-
-
-def _json_ld(data):
-    value = json.dumps(data, ensure_ascii=False)
-    value = value.replace("&", "\\u0026").replace("<", "\\u003C").replace(">", "\\u003E")
-    return mark_safe(value)
 
 
 def _split_text_lines(value: str) -> list[str]:
@@ -541,46 +532,6 @@ def recipe_detail(request, slug):
         except RecipeAuthor.DoesNotExist:
             pass
 
-    _schema: dict = {
-        "@context": "https://schema.org",
-        "@type": "Recipe",
-        "name": recipe.title,
-        "description": recipe.short_description or f"A recipe for {recipe.title}.",
-        "author": {"@type": "Person", "name": recipe.author.name} if recipe.author else {"@type": "Organization", "name": "CulinEire"},
-        "datePublished": recipe.created_at.strftime("%Y-%m-%d"),
-        "dateModified": recipe.updated_at.strftime("%Y-%m-%d"),
-        "recipeCategory": recipe.get_category_display(),
-        "url": request.build_absolute_uri(),
-    }
-    if recipe.hero_image:
-        _schema["image"] = request.build_absolute_uri(recipe.hero_image.url)
-    elif gallery_items:
-        _first_img = next((item for item in gallery_items if item.get("media_type") == "image"), None)
-        if _first_img:
-            _schema["image"] = request.build_absolute_uri(_first_img["src"])
-    if recipe.prep_time_minutes:
-        _schema["prepTime"] = f"PT{recipe.prep_time_minutes}M"
-    if recipe.cook_time_minutes:
-        _schema["cookTime"] = f"PT{recipe.cook_time_minutes}M"
-        _schema["totalTime"] = f"PT{(recipe.prep_time_minutes or 0) + recipe.cook_time_minutes}M"
-    if recipe.servings:
-        _schema["recipeYield"] = str(recipe.servings)
-    if recipe.ingredients:
-        _schema["recipeIngredient"] = [line.strip() for line in recipe.ingredients.split("\n") if line.strip()]
-    if method_steps:
-        _schema["recipeInstructions"] = [
-            {"@type": "HowToStep", "text": step["text"]}
-            for step in method_steps if step.get("text")
-        ]
-    if ratings_count > 0:
-        _schema["aggregateRating"] = {
-            "@type": "AggregateRating",
-            "ratingValue": round(average_rating_value, 1),
-            "ratingCount": ratings_count,
-            "bestRating": 5,
-            "worstRating": 1,
-        }
-
     context = {
         "recipe": recipe,
         "gallery_items": gallery_items,
@@ -603,7 +554,6 @@ def recipe_detail(request, slug):
         "has_rated": has_rated,
         "user_rating_value": user_rating_value,
         "commenter_profile": commenter_profile,
-        "recipe_json_ld": _json_ld(_schema),
         "is_saved": request.user.is_authenticated and SavedRecipe.objects.filter(user=request.user, recipe=recipe).exists(),
         "collection_add_url": reverse("collection:add_recipe", kwargs={"slug": recipe.slug}),
         "collection_remove_url": reverse("collection:remove_recipe", kwargs={"slug": recipe.slug}),

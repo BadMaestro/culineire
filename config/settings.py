@@ -132,6 +132,7 @@ INSTALLED_APPS = [
     "collection",
     "legal",
     "newsfeed",
+    "sandbox",
 ]
 
 MIDDLEWARE = [
