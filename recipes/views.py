@@ -1061,7 +1061,7 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
         next_url = self.request.POST.get("next") or self.request.GET.get("next", "")
         if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts=None):
             return redirect(next_url)
-        if is_moderator(self.request.user):
+        if is_moderator(self.request.user) and action != "approve_publish":
             return redirect(reverse_lazy("recipes:moderation_panel"))
         return redirect(recipe.get_absolute_url())
 
