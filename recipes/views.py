@@ -90,7 +90,7 @@ CATEGORY_IMAGE_MAP = {
 
 
 METHOD_STEP_PREFIX_RE = re.compile(r"^\d+\.\s*")
-INGREDIENT_DETAIL_SPLIT_RE = re.compile("\\s*[-\u2013\u2014:]\\s*", re.UNICODE)
+INGREDIENT_DETAIL_SPLIT_RE = re.compile(r"\s*:\s*|\s+[-\u2013\u2014]\s+", re.UNICODE)
 CONTEXT_SENTENCE_SPLIT_RE = re.compile("(?<=[.!?])\\s+(?=[\"\\u201c\\u2018]?[A-Z0-9])")
 
 
