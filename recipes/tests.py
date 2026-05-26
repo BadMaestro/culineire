@@ -1,5 +1,6 @@
 import importlib
 import os
+import tempfile
 from datetime import date
 from unittest import skip
 from unittest.mock import patch
@@ -7,6 +8,7 @@ from unittest.mock import patch
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core import mail
+from django.core.management import call_command
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
@@ -2177,3 +2179,76 @@ class RecipeSoftDeleteTests(TestCase):
         response = self.client.get(reverse("recipes:recipe_list"))
         slugs = [r.slug for r in response.context.get("default_recent_recipes", [])]
         self.assertIn(self.recipe.slug, slugs)
+
+
+class GenerateRecipeCommandTests(TestCase):
+    def setUp(self):
+        self.author_user = get_user_model().objects.create_user(username="ai-author", password="pass")
+        self.author = RecipeAuthor.objects.create(
+            user=self.author_user,
+            name="AI Author",
+            slug="ai-author",
+        )
+
+    @staticmethod
+    def generated_payload(**overrides):
+        payload = {
+            "title": "Irish Colcannon",
+            "short_description": "A buttery potato and cabbage draft.",
+            "category": "Traditional Irish Dishes",
+            "difficulty": "medium",
+            "prep_time_minutes": 15,
+            "cook_time_minutes": 25,
+            "servings": 4,
+            "calories": None,
+            "ingredients": ["500g potatoes", "Cabbage", "Butter"],
+            "method": ["Boil the potatoes.", "Fold in cabbage and butter."],
+            "tips": "Serve hot.",
+            "irish_context": "A home-style Irish potato dish.",
+            "author_commentary": "Draft for review.",
+            "allergens": ["milk", "unknown"],
+            "source_note": "",
+        }
+        payload.update(overrides)
+        return payload
+
+    @patch("recipes.management.commands.generate_recipe._call_anthropic")
+    def test_generate_recipe_creates_draft_only_with_safety_fields(self, call_anthropic):
+        call_anthropic.return_value = self.generated_payload()
+
+        call_command("generate_recipe", "Irish", "Colcannon", author_slug=self.author.slug)
+
+        recipe = Recipe.objects.get(title="Irish Colcannon")
+        self.assertEqual(recipe.status, Recipe.Status.DRAFT)
+        self.assertEqual(recipe.category, Recipe.Category.TRADITIONAL_IRISH_DISHES)
+        self.assertEqual(recipe.image_rights_status, Recipe.ImageRightsStatus.NOT_APPLICABLE)
+        self.assertFalse(recipe.confirmed_own_work)
+        self.assertEqual(recipe.allergens, "milk")
+        self.assertIn("500g potatoes", recipe.ingredients)
+        self.assertIn("Boil the potatoes.", recipe.method)
+
+    @patch("recipes.management.commands.generate_recipe._call_anthropic")
+    def test_generate_recipe_batch_respects_limit(self, call_anthropic):
+        call_anthropic.side_effect = [
+            self.generated_payload(title="First Draft"),
+            self.generated_payload(title="Second Draft"),
+        ]
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", delete=False) as batch_file:
+            batch_file.write("First Draft\nSecond Draft\nThird Draft\n")
+            batch_path = batch_file.name
+        try:
+            call_command("generate_recipe", batch=batch_path, limit=2, author_slug=self.author.slug)
+        finally:
+            os.unlink(batch_path)
+
+        self.assertEqual(Recipe.objects.filter(author=self.author).count(), 2)
+        self.assertEqual(call_anthropic.call_count, 2)
+
+    @patch("recipes.management.commands.generate_recipe._call_anthropic")
+    def test_generate_recipe_can_save_pending_but_never_approved(self, call_anthropic):
+        call_anthropic.return_value = self.generated_payload(title="Pending AI Draft")
+
+        call_command("generate_recipe", "Pending AI Draft", author_slug=self.author.slug, status=Recipe.Status.PENDING)
+
+        recipe = Recipe.objects.get(title="Pending AI Draft")
+        self.assertEqual(recipe.status, Recipe.Status.PENDING)

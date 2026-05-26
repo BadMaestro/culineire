@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import NewsFeedEntry
+from .models import NewsFeedEntry, SocialPostLog
 
 
 @admin.register(NewsFeedEntry)
@@ -32,3 +32,12 @@ class NewsFeedEntryAdmin(admin.ModelAdmin):
         if obj and obj.is_auto:
             return self.readonly_fields + ("entry_type", "title", "url")
         return self.readonly_fields
+
+
+@admin.register(SocialPostLog)
+class SocialPostLogAdmin(admin.ModelAdmin):
+    list_display = ("platform", "event_key", "status", "target_url", "created_at", "updated_at")
+    list_filter = ("platform", "status")
+    search_fields = ("event_key", "target_url", "message", "response")
+    readonly_fields = ("platform", "event_key", "status", "target_url", "message", "response", "created_at", "updated_at")
+    date_hierarchy = "created_at"

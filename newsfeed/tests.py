@@ -1,8 +1,11 @@
+from unittest.mock import patch
+
 from django.contrib.auth import get_user_model
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
-from newsfeed.models import NewsFeedEntry
+from newsfeed.models import NewsFeedEntry, SocialPostLog
+from newsfeed.telegram import TelegramResult
 
 User = get_user_model()
 
@@ -101,6 +104,56 @@ class RecipeFeedEntryTest(TestCase):
             NewsFeedEntry.objects.filter(event_key=f"recipe_published:{recipe.pk}").count(),
             0,
         )
+
+
+class RecipeTelegramPublishTest(TestCase):
+    def setUp(self):
+        self.author = _make_author()
+
+    @override_settings(
+        TELEGRAM_BOT_TOKEN="test-token",
+        TELEGRAM_CHANNEL_ID="@culineire_test",
+        SITE_DOMAIN="culineire.test",
+        SITE_SCHEME="https",
+    )
+    @patch("newsfeed.telegram.send_telegram_message")
+    def test_recipe_approval_posts_to_telegram_once(self, send_telegram_message):
+        send_telegram_message.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
+        recipe = _make_recipe(self.author)
+
+        recipe.status = "approved"
+        recipe.save()
+        recipe.title = "Edited After Approval"
+        recipe.save()
+
+        self.assertEqual(send_telegram_message.call_count, 1)
+        self.assertEqual(
+            SocialPostLog.objects.filter(
+                platform=SocialPostLog.Platform.TELEGRAM,
+                event_key=f"recipe_published:{recipe.pk}",
+                status=SocialPostLog.Status.SENT,
+            ).count(),
+            1,
+        )
+
+    @override_settings(TELEGRAM_BOT_TOKEN="", TELEGRAM_CHANNEL_ID="")
+    @patch("newsfeed.telegram.send_telegram_message")
+    def test_missing_telegram_settings_create_no_log_or_request(self, send_telegram_message):
+        recipe = _make_recipe(self.author)
+
+        recipe.status = "approved"
+        recipe.save()
+
+        send_telegram_message.assert_not_called()
+        self.assertFalse(SocialPostLog.objects.exists())
+
+    @override_settings(TELEGRAM_BOT_TOKEN="test-token", TELEGRAM_CHANNEL_ID="@culineire_test")
+    @patch("newsfeed.telegram.send_telegram_message")
+    def test_pending_recipe_does_not_post_to_telegram(self, send_telegram_message):
+        _make_recipe(self.author)
+
+        send_telegram_message.assert_not_called()
+        self.assertFalse(SocialPostLog.objects.exists())
 
 
 class ArticleFeedEntryTest(TestCase):
