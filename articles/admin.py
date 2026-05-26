@@ -156,12 +156,14 @@ class ArticleAdmin(admin.ModelAdmin):
         "title",
         "article_preview_small",
         "author",
+        "category",
         "status",
         "is_deleted",
         "published",
         "related_recipe",
     )
     list_filter = (
+        "category",
         "status",
         "is_deleted",
         "published",
@@ -188,6 +190,7 @@ class ArticleAdmin(admin.ModelAdmin):
                     "title",
                     "slug",
                     "author",
+                    "category",
                     "excerpt",
                     "related_recipe",
                 )

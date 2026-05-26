@@ -63,6 +63,7 @@
                             <div class="recipe-card__content">
                                 <h2 class="recipe-card__title recipe-card__title--article"><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h2>
                                 <div aria-label="Article metadata" class="recipe-card__meta-line recipe-card__meta-line--article">
+                                    <span class="recipe-card__meta-item">{{ article.get_category_display }}</span>
                                     {% if article.published %}<span class="recipe-card__meta-item">{{ article.published|date:"j F Y" }}</span>{% endif %}
                                     {% if can_manage_selected_author and article.status != "approved" %}
                                     <span class="recipe-card__meta-item author-studio-status author-studio-status--{{ article.status|lower }}">{{ article.get_status_display }}</span>
@@ -109,6 +110,7 @@
                         <div class="recipe-card__content">
                             <h2 class="recipe-card__title recipe-card__title--article"><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h2>
                             <div aria-label="Article metadata" class="recipe-card__meta-line recipe-card__meta-line--article">
+                                <span class="recipe-card__meta-item">{{ article.get_category_display }}</span>
                                 {% if article.published %}<span class="recipe-card__meta-item">{{ article.published|date:"j F Y" }}</span>{% endif %}
                                 {% if can_manage_selected_author and article.status != "approved" %}
                                 <span class="recipe-card__meta-item author-studio-status author-studio-status--{{ article.status|lower }}">{{ article.get_status_display }}</span>
@@ -160,6 +162,7 @@
                             <div class="recipe-card__content">
                                 <h2 class="recipe-card__title recipe-card__title--article"><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h2>
                                 <div aria-label="Article metadata" class="recipe-card__meta-line recipe-card__meta-line--article">
+                                    <span class="recipe-card__meta-item">{{ article.get_category_display }}</span>
                                     {% if article.published %}<span class="recipe-card__meta-item">{{ article.published|date:"j F Y" }}</span>{% endif %}
                                 </div>
                                 {% if article.excerpt %}<p class="recipe-card__excerpt recipe-card__excerpt--article"><a class="recipe-card__excerpt-link" href="{{ article.get_absolute_url }}">{{ article.excerpt }}</a></p>{% endif %}
@@ -208,6 +211,7 @@
                             <div class="recipe-card__content">
                                 <h2 class="recipe-card__title recipe-card__title--article"><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h2>
                                 <div aria-label="Article metadata" class="recipe-card__meta-line recipe-card__meta-line--article">
+                                    <span class="recipe-card__meta-item">{{ article.get_category_display }}</span>
                                     {% if article.published %}<span class="recipe-card__meta-item">{{ article.published|date:"j F Y" }}</span>{% endif %}
                                 </div>
                             </div>

@@ -50,6 +50,7 @@ The `Article` model uses:
 - `slug`
 - `author` - `ForeignKey(RecipeAuthor)`
 - `excerpt`
+- `category` - `CharField` with `Article.Category` choices
 - `body`
 - `hero_image`
 - `hero_image_alt_text`

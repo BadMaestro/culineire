@@ -68,6 +68,7 @@ class ArticleAuthoringForm(forms.ModelForm):
         fields = (
             "title",
             "excerpt",
+            "category",
             "hero_image",
             "hero_image_alt_text",
             "published",
@@ -84,6 +85,7 @@ class ArticleAuthoringForm(forms.ModelForm):
         labels = {
             "title": "Article Title",
             "excerpt": "Short Description",
+            "category": "Category",
             "hero_image": "Article Image",
             "hero_image_alt_text": "Article Image Alt Text",
             "published": "Publishing Date",

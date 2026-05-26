@@ -75,6 +75,11 @@
                         {{ form.excerpt }}
                         {% for error in form.excerpt.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                     </div>
+                    <div class="authoring-field">
+                        <label for="{{ form.category.id_for_label }}">{{ form.category.label }}:</label>
+                        {{ form.category }}
+                        {% for error in form.category.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
                     <div class="authoring-field authoring-field--wide">
                         <label for="{{ form.hero_image.id_for_label }}">{{ form.hero_image.label }}:</label>
                         {{ form.hero_image }}

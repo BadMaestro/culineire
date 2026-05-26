@@ -383,6 +383,7 @@ class ArticleDetailView(DetailView):
             "@type": "Article",
             "headline": article.title,
             "description": article.excerpt or f"An article about {article.title}.",
+            "articleSection": article.get_category_display(),
             "author": author_schema,
             "datePublished": _schema_datetime(article.published),
             "url": self.request.build_absolute_uri(),

@@ -79,6 +79,18 @@ class Article(models.Model):
         ADAPTED = "adapted", "Adapted from a source"
         INSPIRED = "inspired", "Inspired by a source"
 
+    class Category(models.TextChoices):
+        BAKING = "baking", "Baking"
+        SOUPS_AND_STEWS = "soups_and_stews", "Soups and Stews"
+        SEAFOOD = "seafood", "Seafood"
+        FISH = "fish", "Fish"
+        POTATOES = "potatoes", "Potatoes"
+        DAIRY_PRODUCTS = "dairy_products", "Dairy Products"
+        VEGETABLES = "vegetables", "Vegetables"
+        MEAT = "meat", "Meat"
+        POULTRY_AND_GAME = "poultry_and_game", "Poultry and Game"
+        DESSERTS_AND_DRINKS = "desserts_and_drinks", "Desserts and Drinks"
+
     title = models.CharField("Title", max_length=200)
     slug = models.SlugField("Slug", max_length=220, unique=True, db_index=True)
     media_folder = models.CharField(max_length=255, blank=True, editable=False, db_index=True)
@@ -91,6 +103,13 @@ class Article(models.Model):
     )
 
     excerpt = models.TextField("Excerpt", blank=True)
+    category = models.CharField(
+        "Category",
+        max_length=40,
+        choices=Category.choices,
+        default=Category.BAKING,
+        db_index=True,
+    )
     body = models.TextField("Body")
 
     hero_image = models.ImageField(

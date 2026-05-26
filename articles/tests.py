@@ -78,6 +78,7 @@ class ArticleAuthoringPermissionTests(TestCase):
         payload = {
             "title": "Updated Article",
             "excerpt": "Updated excerpt",
+            "category": Article.Category.BAKING,
             "published": "2026-05-21",
             "related_recipe": "",
             "body": "Updated body",
@@ -126,6 +127,7 @@ class ArticleAuthoringPermissionTests(TestCase):
             "slug": "admin-article",
             "author": self.owner_author.pk,
             "excerpt": "Admin excerpt",
+            "category": Article.Category.BAKING,
             "body": "Admin body",
             "published": "2026-05-21",
             "related_recipe": "",
@@ -809,6 +811,7 @@ class ArticleAuthoringPermissionTests(TestCase):
 
         schema = json.loads(str(response.context["article_json_ld"]))
         self.assertEqual(schema["datePublished"], "2026-05-20T00:00:00+00:00")
+        self.assertEqual(schema["articleSection"], "Baking")
         self.assertEqual(
             schema["author"]["url"],
             f"http://testserver{self.owner_author.get_absolute_url()}",
@@ -1207,6 +1210,23 @@ class ArticleAuthoringPermissionTests(TestCase):
     def test_article_status_includes_draft(self):
         self.assertIn(Article.Status.DRAFT, Article.Status.values)
         self.assertEqual(Article.Status.DRAFT.label, "Draft")
+
+    def test_article_category_choices_match_editorial_taxonomy(self):
+        self.assertEqual(
+            list(Article.Category.values),
+            [
+                "baking",
+                "soups_and_stews",
+                "seafood",
+                "fish",
+                "potatoes",
+                "dairy_products",
+                "vegetables",
+                "meat",
+                "poultry_and_game",
+                "desserts_and_drinks",
+            ],
+        )
 
     def test_author_can_create_article_as_draft(self):
         self.client.force_login(self.owner_user)
