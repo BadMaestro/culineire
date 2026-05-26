@@ -75,7 +75,7 @@ RECIPE_MOOD_CHIPS = [
 ]
 
 
-def _build_month1_update_progress():
+def _build_automation_roadmap_progress():
     base_dir = Path(settings.BASE_DIR)
     approved_recipe_count = Recipe.objects.filter(status=Recipe.Status.APPROVED, is_deleted=False).count()
     approved_article_count = Article.objects.filter(status=Article.Status.APPROVED, is_deleted=False).count()
@@ -83,75 +83,148 @@ def _build_month1_update_progress():
     telegram_configured = bool(getattr(settings, "TELEGRAM_BOT_TOKEN", "") and getattr(settings, "TELEGRAM_CHANNEL_ID", ""))
     anthropic_configured = bool(getattr(settings, "ANTHROPIC_API_KEY", ""))
 
-    items = [
+    phases = [
         {
-            "label": "SEO foundation",
-            "detail": "Recipe/article schema, breadcrumbs, robots.txt and sitemap.xml are implemented.",
-            "status": "done",
+            "title": "Month 1 - Foundation",
+            "items": [
+                {
+                    "label": "SEO foundation",
+                    "detail": "Recipe/article schema, breadcrumbs, robots.txt and sitemap.xml are implemented.",
+                    "status": "done",
+                },
+                {
+                    "label": "Internal recipe linking",
+                    "detail": "Recipe detail pages surface related approved recipes by shared category.",
+                    "status": "done",
+                },
+                {
+                    "label": "AI recipe draft command",
+                    "detail": "generate_recipe.py exists and saves AI output only as draft/pending.",
+                    "status": "done" if (base_dir / "recipes" / "management" / "commands" / "generate_recipe.py").exists() else "pending",
+                },
+                {
+                    "label": "Project rules and prompt library",
+                    "detail": "CLAUDE.md and content prompt templates are available for external tooling.",
+                    "status": "done" if (base_dir / "CLAUDE.md").exists() and (base_dir / "content_prompts" / "README.md").exists() else "pending",
+                },
+                {
+                    "label": "Telegram publish pipeline",
+                    "detail": "Signal and duplicate-prevention log are in place; credentials decide live posting.",
+                    "status": "done",
+                },
+                {
+                    "label": "Telegram credentials",
+                    "detail": "TELEGRAM_BOT_TOKEN and TELEGRAM_CHANNEL_ID must be set in production env.",
+                    "status": "done" if telegram_configured else "pending",
+                },
+                {
+                    "label": "Anthropic credentials",
+                    "detail": "ANTHROPIC_API_KEY is required before generating real recipe drafts.",
+                    "status": "done" if anthropic_configured else "pending",
+                },
+                {
+                    "label": "Recipe publishing target",
+                    "detail": f"{approved_recipe_count}/20 approved recipes published.",
+                    "status": "done" if approved_recipe_count >= 20 else "active" if approved_recipe_count else "pending",
+                },
+                {
+                    "label": "Article publishing target",
+                    "detail": f"{approved_article_count}/8 approved articles published.",
+                    "status": "done" if approved_article_count >= 8 else "active" if approved_article_count else "pending",
+                },
+                {
+                    "label": "Draft queue",
+                    "detail": f"{draft_pipeline_count} recipe draft/pending item(s) currently in the pipeline.",
+                    "status": "active" if draft_pipeline_count else "pending",
+                },
+                {
+                    "label": "Search Console and Pinterest",
+                    "detail": "Submit sitemap, verify Pinterest Business, then enable Rich Pins manually.",
+                    "status": "manual",
+                },
+                {
+                    "label": "Core Web Vitals check",
+                    "detail": "Run PageSpeed/CrUX after deployment before adding ad scripts.",
+                    "status": "manual",
+                },
+            ],
         },
         {
-            "label": "Internal recipe linking",
-            "detail": "Recipe detail pages now surface related approved recipes by shared category.",
-            "status": "done",
+            "title": "Month 2 - Content Engine",
+            "items": [
+                {"label": "Batch recipe generation workflow", "detail": "Use txt dish lists, draft-only generation, and moderator approval.", "status": "pending"},
+                {"label": "Article generation workflow", "detail": "Create a draft-only article command/pipeline with attribution checks.", "status": "pending"},
+                {"label": "Editorial calendar", "detail": "Maintain at least 30 planned topics across recipes, articles and social posts.", "status": "pending"},
+            ],
         },
         {
-            "label": "AI recipe draft command",
-            "detail": "generate_recipe.py exists and saves AI output only as draft/pending.",
-            "status": "done" if (base_dir / "recipes" / "management" / "commands" / "generate_recipe.py").exists() else "pending",
+            "title": "Month 3 - Social Distribution",
+            "items": [
+                {"label": "Telegram live autoposting", "detail": "Publish approved recipes to Telegram after production credentials are set.", "status": "pending"},
+                {"label": "Instagram/Facebook queue", "detail": "Choose Buffer or Meta Graph API and keep human approval before posting.", "status": "manual"},
+                {"label": "Reddit workflow", "detail": "Use manual approval only; avoid automated spam-like submissions.", "status": "manual"},
+            ],
         },
         {
-            "label": "Project rules and prompt library",
-            "detail": "CLAUDE.md and content prompt templates are available for external tooling.",
-            "status": "done" if (base_dir / "CLAUDE.md").exists() and (base_dir / "content_prompts" / "README.md").exists() else "pending",
+            "title": "Month 4 - Media Automation",
+            "items": [
+                {"label": "Image workflow", "detail": "Define rights-safe image generation/upload/alt-text review.", "status": "pending"},
+                {"label": "Short video queue", "detail": "Prepare TikTok, Reels and YouTube Shorts captions/storyboards.", "status": "pending"},
+                {"label": "WhatsApp approach", "detail": "Decide whether WhatsApp Business API is worth the setup cost.", "status": "manual"},
+            ],
         },
         {
-            "label": "Telegram publish pipeline",
-            "detail": "Signal and duplicate-prevention log are in place; credentials still decide live posting.",
-            "status": "done",
+            "title": "Month 5 - Analytics and Feedback",
+            "items": [
+                {"label": "Traffic feedback loop", "detail": "Use site analytics to choose next recipes/articles/social posts.", "status": "pending"},
+                {"label": "Social performance review", "detail": "Track channel-level wins and feed them back into prompts.", "status": "pending"},
+                {"label": "Monetisation decision", "detail": "Revisit Ezoic/ads/affiliate links after traffic and Core Web Vitals data.", "status": "manual"},
+            ],
         },
         {
-            "label": "Telegram credentials",
-            "detail": "TELEGRAM_BOT_TOKEN and TELEGRAM_CHANNEL_ID must be set in production env.",
-            "status": "done" if telegram_configured else "pending",
-        },
-        {
-            "label": "Anthropic credentials",
-            "detail": "ANTHROPIC_API_KEY is required before generating real recipe drafts.",
-            "status": "done" if anthropic_configured else "pending",
-        },
-        {
-            "label": "Recipe publishing target",
-            "detail": f"{approved_recipe_count}/20 approved recipes published.",
-            "status": "done" if approved_recipe_count >= 20 else "active" if approved_recipe_count else "pending",
-        },
-        {
-            "label": "Article publishing target",
-            "detail": f"{approved_article_count}/8 approved articles published.",
-            "status": "done" if approved_article_count >= 8 else "active" if approved_article_count else "pending",
-        },
-        {
-            "label": "Draft queue",
-            "detail": f"{draft_pipeline_count} recipe draft/pending item(s) currently in the pipeline.",
-            "status": "active" if draft_pipeline_count else "pending",
-        },
-        {
-            "label": "Search Console and Pinterest",
-            "detail": "Submit sitemap, verify Pinterest Business, then enable Rich Pins manually.",
-            "status": "manual",
-        },
-        {
-            "label": "Core Web Vitals check",
-            "detail": "Run PageSpeed/CrUX after deployment before adding ad scripts.",
-            "status": "manual",
+            "title": "Month 6 - Agent System",
+            "items": [
+                {"label": "Content agent", "detail": "Suggest, draft and queue recipes/articles without auto-publishing.", "status": "pending"},
+                {"label": "SEO/social agents", "detail": "Generate summaries, captions and distribution recommendations.", "status": "pending"},
+                {"label": "Weekly handoff report", "detail": "Produce copyable status for Codex and Claude Code every week.", "status": "pending"},
+            ],
         },
     ]
+    items = [item for phase in phases for item in phase["items"]]
     done_count = sum(1 for item in items if item["status"] == "done")
+    active_items = [item for item in items if item["status"] != "done"]
+    completed_items = [item for item in items if item["status"] == "done"]
+
+    text_lines = [
+        "CulinEire automation roadmap handoff",
+        f"Progress: {done_count}/{len(items)} auto-checked items complete ({round((done_count / len(items)) * 100) if items else 0}%).",
+        "Rules for Claude Code:",
+        "- Do not overwrite existing schema, sitemap, signals, moderation, Telegram or recipe generation work.",
+        "- Use real current field names from CLAUDE.md before changing models or commands.",
+        "- AI content must stay draft/pending until a human approves it.",
+        "",
+        "Open / in-progress / manual items:",
+    ]
+    for phase in phases:
+        open_items = [item for item in phase["items"] if item["status"] != "done"]
+        if open_items:
+            text_lines.append(f"{phase['title']}:")
+            for item in open_items:
+                text_lines.append(f"- [{item['status']}] {item['label']} - {item['detail']}")
+    text_lines.append("")
+    text_lines.append("Completed items:")
+    for item in completed_items:
+        text_lines.append(f"- [done] {item['label']} - {item['detail']}")
 
     return {
+        "phases": phases,
         "items": items,
+        "active_items": active_items,
+        "completed_items": completed_items,
         "done_count": done_count,
         "total_count": len(items),
         "percent": round((done_count / len(items)) * 100) if items else 0,
+        "copy_text": "\n".join(text_lines),
     }
 
 CATEGORY_IMAGE_MAP = {
@@ -1428,11 +1501,21 @@ def moderation_panel(request):
         "can_revoke_superuser_privileges": _can_revoke_superuser_privileges(request.user),
         "bearseeker_super_users": bearseeker_super_users,
         "bearseeker_authors": bearseeker_authors,
-        "month1_update_progress": _build_month1_update_progress(),
         "maintenance_web_active": maintenance_web_active,
         "maintenance_until_str": maintenance_until_str,
         "maintenance_env_active": getattr(settings, "MAINTENANCE_MODE", False),
     })
+
+
+def automation_progress(request):
+    if not is_moderator(request.user):
+        raise Http404
+
+    return render(
+        request,
+        "moderation/automation_progress.html",
+        {"automation_progress": _build_automation_roadmap_progress()},
+    )
 
 
 @require_POST

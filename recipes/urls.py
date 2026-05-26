@@ -10,6 +10,7 @@ urlpatterns = [
     path("profile/edit/", views.RecipeAuthorUpdateView.as_view(), name="author_edit"),
     path("profile/delete/", views.RecipeAuthorDeleteView.as_view(), name="author_delete"),
     path("moderation/", views.moderation_panel, name="moderation_panel"),
+    path("moderation/automation-progress/", views.automation_progress, name="automation_progress"),
     path("moderation/recipe/<slug:slug>/", views.moderate_recipe, name="moderate_recipe"),
     path("moderation/author/<slug:slug>/edit/", views.ModeratorAuthorUpdateView.as_view(), name="moderation_author_edit"),
     path("moderation/author/<slug:slug>/delete/", views.ModeratorAuthorDeleteView.as_view(), name="moderation_author_delete"),

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Automation Progress | CulinEire{% endblock %}
+{% block meta_description %}CulinEire automation roadmap progress for internal coordination.{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+<link href="{% static 'css/moderation.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="page-section moderation-page automation-page">
+    <div class="container moderation-shell">
+        <a class="mon-back-link" href="{% url 'recipes:moderation_panel' %}">Back to Moderation Panel</a>
+
+        <header class="automation-header">
+            <div>
+                <p class="automation-kicker">Internal roadmap</p>
+                <h1 class="automation-title">Automation Roadmap Progress</h1>
+                <p class="automation-summary">{{ automation_progress.done_count }}/{{ automation_progress.total_count }} auto-checked items complete</p>
+            </div>
+            <div class="automation-meter" aria-label="{{ automation_progress.percent }} percent complete">
+                <span style="width: {{ automation_progress.percent }}%"></span>
+            </div>
+        </header>
+
+        <section class="automation-copy" aria-labelledby="handoff-heading">
+            <div class="automation-copy__header">
+                <h2 class="moderation-block__title" id="handoff-heading">Copy for Claude Code</h2>
+                <span class="automation-copy__hint">Plain text handoff</span>
+            </div>
+            <textarea class="automation-copy__text" readonly rows="14">{{ automation_progress.copy_text }}</textarea>
+        </section>
+
+        <section class="automation-tree" aria-labelledby="open-progress-heading">
+            <h2 class="moderation-block__title" id="open-progress-heading">Current Process Tree</h2>
+            {% for phase in automation_progress.phases %}
+            <section class="automation-phase">
+                <h3 class="automation-phase__title">{{ phase.title }}</h3>
+                <ul class="automation-list">
+                    {% for item in phase.items %}
+                    {% if item.status != "done" %}
+                    <li class="automation-item automation-item--{{ item.status }}">
+                        <span class="automation-item__state">{{ item.status }}</span>
+                        <span class="automation-item__body">
+                            <strong>{{ item.label }}</strong>
+                            <span>{{ item.detail }}</span>
+                        </span>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                </ul>
+            </section>
+            {% endfor %}
+        </section>
+
+        <details class="automation-completed">
+            <summary>Show completed progress</summary>
+            <div class="automation-completed__grid">
+                {% for item in automation_progress.completed_items %}
+                <div class="automation-item automation-item--done">
+                    <span class="automation-item__state">done</span>
+                    <span class="automation-item__body">
+                        <strong>{{ item.label }}</strong>
+                        <span>{{ item.detail }}</span>
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        </details>
+    </div>
+</section>
+{% endblock %}

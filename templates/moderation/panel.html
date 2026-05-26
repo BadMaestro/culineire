@@ -78,9 +78,14 @@
                     </div>
                 </details>
                 {% endif %}
+                <a class="mod-tool-link" href="{% url 'recipes:automation_progress' %}">
+                    <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M4 19V5"/><path d="M4 7h8"/><path d="M12 7v5"/><path d="M12 12h8"/><path d="M20 12v5"/><path d="M16 17h4"/></svg>
+                    Automation Progress
+                </a>
             </div>
         </div>
 
+        {% comment %}
         <div class="moderation-block moderation-block--update">
             <div class="update-progress__header">
                 <div>
@@ -105,6 +110,7 @@
                 {% endfor %}
             </div>
         </div>
+        {% endcomment %}
 
         <div class="moderation-block">
             <h2 class="moderation-block__title">
