@@ -177,7 +177,7 @@ def _build_ingredient_items(ingredients_text: str) -> list[dict]:
 
     for raw_line in _split_text_lines(ingredients_text):
         parts = INGREDIENT_DETAIL_SPLIT_RE.split(raw_line, maxsplit=1)
-        name = parts[0].strip()
+        name = parts[0].strip().rstrip(".")
         detail = parts[1].strip() if len(parts) > 1 else ""
 
         items.append(
