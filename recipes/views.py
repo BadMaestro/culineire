@@ -3,6 +3,7 @@ import re
 from typing import cast
 
 from django.conf import settings
+from django.core.cache import cache
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
@@ -29,7 +30,7 @@ from accounts.views import (
 from articles.models import Article, ArticleImage
 from collection.models import SavedRecipe
 from config.turnstile import verify_turnstile
-from monitoring.tracker import track_event
+from monitoring.tracker import get_client_ip, hash_ip, track_event
 from .allergens import build_present_allergen_items
 from .authoring import AuthorRequiredMixin, user_can_manage_author
 from .forms import (
@@ -630,11 +631,14 @@ def submit_recipe_rating(request, slug):
         messages.error(request, "You have submitted too many ratings. Please try again later.")
         return redirect(recipe.get_absolute_url())
 
-    if not request.user.is_authenticated and request.session.get(session_key):
-        if is_ajax:
-            return JsonResponse({"ok": False, "error": "You have already rated this recipe."})
-        messages.warning(request, "You have already rated this recipe from this browser session.")
-        return redirect(recipe.get_absolute_url())
+    if not request.user.is_authenticated:
+        ip_hash = hash_ip(get_client_ip(request))
+        anon_cache_key = f"anon_rating:{recipe.pk}:{ip_hash}"
+        if request.session.get(session_key) or cache.get(anon_cache_key):
+            if is_ajax:
+                return JsonResponse({"ok": False, "error": "You have already rated this recipe."})
+            messages.warning(request, "You have already rated this recipe from this browser session.")
+            return redirect(recipe.get_absolute_url())
 
     if not form.is_valid():
         if is_ajax:
@@ -654,6 +658,7 @@ def submit_recipe_rating(request, slug):
             value=form.cleaned_data["value"],
             user=None,
         )
+        cache.set(anon_cache_key, 1, 60 * 60 * 24)
 
     request.session[session_key] = form.cleaned_data["value"]
     request.session.modified = True

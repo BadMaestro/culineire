@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from uuid import uuid4
 
 from django.conf import settings
 from django.db import models
@@ -75,13 +76,13 @@ def recipe_base_folder(recipe) -> str:
 
 def recipe_cover_upload_to(instance, filename: str) -> str:
     extension = Path(filename).suffix.lower() or ".jpg"
-    return f"{recipe_base_folder(instance)}/cover{extension}"
+    return f"{recipe_base_folder(instance)}/cover-{uuid4().hex[:12]}{extension}"
 
 
 def recipe_gallery_upload_to(instance, filename: str) -> str:
     extension = Path(filename).suffix.lower() or ".jpg"
     sort_order = instance.sort_order or 1
-    return f"{recipe_base_folder(instance.recipe)}/gallery/img{sort_order}{extension}"
+    return f"{recipe_base_folder(instance.recipe)}/gallery/img{sort_order}-{uuid4().hex[:12]}{extension}"
 
 
 def author_avatar_upload_to(instance, filename: str) -> str:

@@ -813,8 +813,11 @@ def profanity_list(request):
 
 def profanity_words_api(request):
     """Return the current word list as JSON for use by the client-side JS checker."""
+    from django.http import HttpResponseForbidden
     if not request.user.is_authenticated:
-        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden()
+    is_author = request.user.is_staff or hasattr(request.user, "recipe_author_profile")
+    if not is_author:
         return HttpResponseForbidden()
     from config.profanity import get_word_list
     return JsonResponse({"words": get_word_list()})
