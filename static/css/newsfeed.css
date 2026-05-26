@@ -12,6 +12,16 @@
   max-width: 740px;
 }
 
+.nf-toggle-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+
+.nf-toggle {
+  min-width: 180px;
+}
+
 /* ── Timeline list ─────────────────────────── */
 
 .nf-feed {

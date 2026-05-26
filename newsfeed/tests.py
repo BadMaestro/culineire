@@ -295,3 +295,17 @@ class FeedPageTest(TestCase):
         )
         response = self.client.get(self.url)
         self.assertContains(response, "Version 1.4.3 released")
+
+    def test_long_news_feed_collapses_extra_entries(self):
+        for index in range(6):
+            NewsFeedEntry.objects.create(
+                entry_type="admin_note",
+                title=f"Public note {index}",
+                is_public=True,
+            )
+
+        response = self.client.get(self.url)
+
+        self.assertContains(response, "View All News")
+        self.assertContains(response, "nf-entry--extra")
+        self.assertContains(response, "data-news-toggle")

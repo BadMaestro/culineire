@@ -35,9 +35,9 @@
 
     {% if page_obj.object_list %}
 
-    <ol class="nf-feed">
+    <ol class="nf-feed" data-news-feed>
       {% for entry in page_obj.object_list %}
-      <li class="nf-entry">
+      <li class="nf-entry{% if forloop.counter > 5 %} nf-entry--extra{% endif %}"{% if forloop.counter > 5 %} hidden{% endif %}>
 
         <div class="nf-entry__side">
           <time class="nf-entry__date" datetime="{{ entry.published_at|date:'c' }}">
@@ -66,6 +66,16 @@
       {% endfor %}
     </ol>
 
+    {% if page_obj.object_list|length > 5 %}
+    <div class="nf-toggle-wrap">
+      <button aria-expanded="false" class="category-nav-toggle nf-toggle" data-news-toggle type="button">
+        <span aria-hidden="true" class="category-nav-toggle__icon category-nav-toggle__icon--left">&#8964;</span>
+        <span class="category-nav-toggle__label" data-news-toggle-label>View All News</span>
+        <span aria-hidden="true" class="category-nav-toggle__icon">&#8964;</span>
+      </button>
+    </div>
+    {% endif %}
+
     {% if page_obj.has_other_pages %}
     <nav class="nf-pagination" aria-label="Feed pages">
       {% if page_obj.has_previous %}
@@ -87,4 +97,24 @@
   </div>
 </section>
 
+{% endblock %}
+
+{% block extra_scripts %}
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+  var toggle = document.querySelector("[data-news-toggle]");
+  var label = document.querySelector("[data-news-toggle-label]");
+  var entries = Array.prototype.slice.call(document.querySelectorAll(".nf-entry--extra"));
+  if (!toggle || !label || !entries.length) return;
+
+  toggle.addEventListener("click", function () {
+    var expanded = toggle.getAttribute("aria-expanded") === "true";
+    entries.forEach(function (entry) {
+      entry.hidden = expanded;
+    });
+    toggle.setAttribute("aria-expanded", String(!expanded));
+    label.textContent = expanded ? "View All News" : "Collapse News";
+  });
+})();
+</script>
 {% endblock %}

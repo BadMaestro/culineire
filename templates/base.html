@@ -308,5 +308,6 @@
 <script src="{% static 'js/form-validator.js' %}"></script>
 <script nonce="{{ request.csp_nonce }}">if(document.querySelector("[data-profanity]")){window.PROFANITY_WORDS_URL="{% url 'monitoring:profanity_words_api' %}";}</script>
 <script src="{% static 'js/profanity-check.js' %}"></script>
+{% block extra_scripts %}{% endblock %}
 </body>
 </html>
