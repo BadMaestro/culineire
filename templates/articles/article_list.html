@@ -141,7 +141,68 @@
 
         {% else %}
 
-        {# ── Default view: carousel + all articles mini grid ── #}
+        {% if selected_category_label %}
+
+        {# ── Category filtered view ── #}
+
+        {% if categories %}
+        <div class="category-nav-block" data-category-toggle>
+            <div class="category-nav-wrap" data-category-wrap>
+                <nav aria-label="Article categories" class="category-nav" data-category-nav>
+                    {% for category in categories %}
+                    {% if category.is_active %}
+                    <span class="category-nav__item category-nav__item--active">{{ category.label }}</span>
+                    {% else %}
+                    <a class="category-nav__item category-nav__link" href="{{ category.url }}">{{ category.label }}</a>
+                    {% endif %}
+                    {% if not forloop.last %}
+                    <span aria-hidden="true" class="category-nav__separator">&middot;</span>
+                    {% endif %}
+                    {% endfor %}
+                </nav>
+            </div>
+            <button aria-expanded="false" aria-label="View all article categories" class="category-nav-toggle" data-category-button hidden type="button">
+                <span aria-hidden="true" class="category-nav-toggle__icon category-nav-toggle__icon--left">&#8964;</span>
+                <span class="category-nav-toggle__label" data-category-button-label>View All</span>
+                <span aria-hidden="true" class="category-nav-toggle__icon">&#8964;</span>
+            </button>
+        </div>
+        {% endif %}
+
+        <section aria-labelledby="category-articles-title" class="recipe-list-section" id="all-articles">
+            <div class="page-header page-header--with-gap">
+                <div><h2 id="category-articles-title">{{ selected_category_label }}</h2></div>
+            </div>
+            {% if category_articles %}
+            <div class="recipe-vscroll">
+                <div class="recipe-grid recipe-grid--mini recipe-grid--6col">
+                    {% for article in category_articles %}
+                    <article class="recipe-card recipe-card--article">
+                        <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">
+                            {% if article.card_image %}<img alt="{{ article.title }}" src="{{ article.card_image.url }}">
+                            {% else %}<img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}">{% endif %}
+                            {% if article.image_rights_status == 'ai_generated' %}<span aria-label="AI generated image" class="ai-image-badge">AI</span>{% endif %}
+                        </a>
+                        <div class="recipe-card__body">
+                            <div class="recipe-card__content">
+                                <h2 class="recipe-card__title recipe-card__title--article"><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h2>
+                                <div aria-label="Article metadata" class="recipe-card__meta-line recipe-card__meta-line--article">
+                                    {% if article.published %}<span class="recipe-card__meta-item">{{ article.published|date:"j F Y" }}</span>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <p class="page-subtitle">No articles in this category yet — check back soon.</p>
+            {% endif %}
+        </section>
+
+        {% else %}
+
+        {# ── Default view: carousel + category nav + all articles mini grid ── #}
 
         {% if default_recent_articles %}
         <div class="content-showcase content-showcase--carousel" data-card-carousel>
@@ -192,6 +253,30 @@
         </div>
         {% endif %}
 
+        {% if categories %}
+        <div class="category-nav-block" data-category-toggle>
+            <div class="category-nav-wrap" data-category-wrap>
+                <nav aria-label="Article categories" class="category-nav" data-category-nav>
+                    {% for category in categories %}
+                    {% if category.is_active %}
+                    <span class="category-nav__item category-nav__item--active">{{ category.label }}</span>
+                    {% else %}
+                    <a class="category-nav__item category-nav__link" href="{{ category.url }}">{{ category.label }}</a>
+                    {% endif %}
+                    {% if not forloop.last %}
+                    <span aria-hidden="true" class="category-nav__separator">&middot;</span>
+                    {% endif %}
+                    {% endfor %}
+                </nav>
+            </div>
+            <button aria-expanded="false" aria-label="View all article categories" class="category-nav-toggle" data-category-button hidden type="button">
+                <span aria-hidden="true" class="category-nav-toggle__icon category-nav-toggle__icon--left">&#8964;</span>
+                <span class="category-nav-toggle__label" data-category-button-label>View All</span>
+                <span aria-hidden="true" class="category-nav-toggle__icon">&#8964;</span>
+            </button>
+        </div>
+        {% endif %}
+
         {% if all_articles_grid %}
         <section aria-labelledby="all-articles-grid-title" class="recipe-list-section" id="all-articles">
             <div class="page-header page-header--with-gap">
@@ -228,7 +313,9 @@
         </div>
         {% endif %}
 
-        {% endif %}
+        {% endif %}{# closes if selected_category_label #}
+
+        {% endif %}{# closes if selected_author #}
 
     </div>
 </section>

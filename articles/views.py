@@ -143,6 +143,10 @@ class ArticleListView(ListView):
         author_slug = (self.request.GET.get("author") or "").strip()
         return get_object_or_404(RecipeAuthor, slug=author_slug) if author_slug else None
 
+    def _selected_category_value(self):
+        slug = (self.request.GET.get("category") or "").strip()
+        return Article.get_category_value_from_slug(slug) if slug else None
+
     def _can_manage_selected_author(self, selected_author):
         return bool(
             selected_author and (
@@ -154,6 +158,7 @@ class ArticleListView(ListView):
     def get_queryset(self):
         selected_author = self._selected_author()
         show_all = self._can_manage_selected_author(selected_author)
+        category_value = self._selected_category_value()
 
         queryset = (
             Article.objects.select_related("author")
@@ -165,17 +170,22 @@ class ArticleListView(ListView):
             queryset = queryset.filter(status=Article.Status.APPROVED)
         if selected_author:
             queryset = queryset.filter(author=selected_author)
+        if category_value:
+            queryset = queryset.filter(category=category_value)
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         selected_author = self._selected_author()
         can_manage_selected_author = self._can_manage_selected_author(selected_author)
+        category_value = self._selected_category_value()
 
         recent_articles = None
         all_articles = None
         default_recent_articles = None
         all_articles_grid = None
+        category_articles = None
+        selected_category_label = ""
 
         if selected_author:
             qs = (
@@ -188,6 +198,14 @@ class ArticleListView(ListView):
                 qs = qs.filter(status=Article.Status.APPROVED)
             all_articles = qs
             recent_articles = list(qs[:6])
+        elif category_value:
+            selected_category_label = Article.Category(category_value).label
+            category_articles = list(
+                Article.objects.select_related("author")
+                .prefetch_related(ARTICLE_CARD_GALLERY_PREFETCH)
+                .filter(status=Article.Status.APPROVED, is_deleted=False, category=category_value)
+                .order_by("-published")
+            )
         else:
             all_qs = (
                 Article.objects.select_related("author")
@@ -203,6 +221,9 @@ class ArticleListView(ListView):
         context["all_articles"] = all_articles
         context["default_recent_articles"] = default_recent_articles
         context["all_articles_grid"] = all_articles_grid
+        context["category_articles"] = category_articles
+        context["selected_category_label"] = selected_category_label
+        context["categories"] = Article.get_category_navigation(selected_value=category_value)
         context["can_manage_selected_author"] = can_manage_selected_author
         return context
 

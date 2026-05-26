@@ -211,6 +211,32 @@ class Article(models.Model):
     def get_absolute_url(self):
         return reverse("articles:article_detail", args=[self.slug])
 
+    @classmethod
+    def get_category_value_from_slug(cls, category_slug):
+        value = category_slug.replace("-", "_")
+        valid_values = {choice.value for choice in cls.Category}
+        return value if value in valid_values else None
+
+    @classmethod
+    def get_category_navigation(cls, selected_value=None):
+        items = []
+        for choice in cls.Category:
+            slug = choice.value.replace("_", "-")
+            items.append({
+                "value": choice.value,
+                "label": choice.label,
+                "slug": slug,
+                "url": reverse("articles:article_list") + f"?category={slug}",
+                "is_active": choice.value == selected_value,
+            })
+        return items
+
+    def get_category_url(self):
+        if not self.category:
+            return reverse("articles:article_list")
+        slug = self.category.replace("_", "-")
+        return reverse("articles:article_list") + f"?category={slug}"
+
     @property
     def card_image(self):
         if self.hero_image:
