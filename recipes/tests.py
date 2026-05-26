@@ -16,7 +16,7 @@ from articles.models import Article, ArticleImage
 from .admin import RecipeAdmin, RecipeAdminForm
 from .allergens import build_present_allergen_items, parse_selected_allergen_keys, serialize_allergen_keys
 from .forms import RecipeAuthoringForm, RecipeCommentForm
-from .models import Recipe, RecipeAuthor, RecipeComment, RecipeRating
+from .models import Recipe, RecipeAdditionalCategory, RecipeAuthor, RecipeComment, RecipeRating
 from .views import _build_context_paragraphs, _build_ingredient_items, _build_method_steps, _gallery_step_alt, _gallery_step_rows, _image_alt_text, _soft_delete_recipe, _split_text_lines
 
 
@@ -1939,6 +1939,98 @@ class RecipePhase3RelatedArticlesTests(TestCase):
 
         self.assertEqual(response.context["related_articles"], [])
         self.assertNotContains(response, "Related Articles")
+
+
+class RecipeMonth1RelatedRecipesTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        author_user = user_model.objects.create_user(username="relatedchef", password="pass")
+        self.author = RecipeAuthor.objects.create(user=author_user, name="Related Chef", slug="related-chef")
+        self.recipe = Recipe.objects.create(
+            title="Base Boxty",
+            slug="base-boxty",
+            author=self.author,
+            ingredients="Potatoes",
+            method="Cook.",
+            category=Recipe.Category.TRADITIONAL_IRISH_DISHES,
+            status=Recipe.Status.APPROVED,
+        )
+
+    def test_related_recipes_include_shared_primary_category(self):
+        related = Recipe.objects.create(
+            title="Related Colcannon",
+            slug="related-colcannon",
+            author=self.author,
+            ingredients="Potatoes",
+            method="Mash.",
+            category=Recipe.Category.TRADITIONAL_IRISH_DISHES,
+            status=Recipe.Status.APPROVED,
+        )
+
+        response = self.client.get(self.recipe.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(related, response.context["related_recipes"])
+        self.assertContains(response, "Related Recipes")
+        self.assertContains(response, "Related Colcannon")
+
+    def test_related_recipes_include_shared_additional_category(self):
+        related = Recipe.objects.create(
+            title="Related Soda Bread",
+            slug="related-soda-bread",
+            author=self.author,
+            ingredients="Flour",
+            method="Bake.",
+            category=Recipe.Category.BREAD_AND_BAKING,
+            status=Recipe.Status.APPROVED,
+        )
+        RecipeAdditionalCategory.objects.create(
+            recipe=related,
+            category=Recipe.Category.TRADITIONAL_IRISH_DISHES,
+        )
+
+        response = self.client.get(self.recipe.get_absolute_url())
+
+        self.assertIn(related, response.context["related_recipes"])
+
+    def test_related_recipes_exclude_self_draft_pending_and_deleted(self):
+        draft = Recipe.objects.create(
+            title="Draft Match",
+            slug="draft-match",
+            author=self.author,
+            ingredients="Potatoes",
+            method="Cook.",
+            category=Recipe.Category.TRADITIONAL_IRISH_DISHES,
+            status=Recipe.Status.DRAFT,
+        )
+        pending = Recipe.objects.create(
+            title="Pending Match",
+            slug="pending-match",
+            author=self.author,
+            ingredients="Potatoes",
+            method="Cook.",
+            category=Recipe.Category.TRADITIONAL_IRISH_DISHES,
+            status=Recipe.Status.PENDING,
+        )
+        deleted = Recipe.objects.create(
+            title="Deleted Match",
+            slug="deleted-match",
+            author=self.author,
+            ingredients="Potatoes",
+            method="Cook.",
+            category=Recipe.Category.TRADITIONAL_IRISH_DISHES,
+            status=Recipe.Status.APPROVED,
+            is_deleted=True,
+        )
+
+        response = self.client.get(self.recipe.get_absolute_url())
+
+        related_recipes = response.context["related_recipes"]
+        self.assertNotIn(self.recipe, related_recipes)
+        self.assertNotIn(draft, related_recipes)
+        self.assertNotIn(pending, related_recipes)
+        self.assertNotIn(deleted, related_recipes)
+        self.assertNotContains(response, "Related Recipes")
 
 
 class RecipePhase32AltTextTests(TestCase):

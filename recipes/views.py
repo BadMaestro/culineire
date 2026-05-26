@@ -532,6 +532,19 @@ def recipe_detail(request, slug):
         except RecipeAuthor.DoesNotExist:
             pass
 
+    related_category_values = recipe.get_all_category_values()
+    related_recipes = []
+    if related_category_values:
+        related_recipes = list(
+            Recipe.objects.filter(status=Recipe.Status.APPROVED, is_deleted=False)
+            .exclude(pk=recipe.pk)
+            .filter(Q(category__in=related_category_values) | Q(additional_category_links__category__in=related_category_values))
+            .select_related("author")
+            .prefetch_related("additional_category_links")
+            .distinct()
+            .order_by("-created_at")[:4]
+        )
+
     context = {
         "recipe": recipe,
         "gallery_items": gallery_items,
@@ -558,6 +571,7 @@ def recipe_detail(request, slug):
         "collection_add_url": reverse("collection:add_recipe", kwargs={"slug": recipe.slug}),
         "collection_remove_url": reverse("collection:remove_recipe", kwargs={"slug": recipe.slug}),
         "turnstile_site_key": settings.TURNSTILE_SITE_KEY,
+        "related_recipes": related_recipes,
         "related_articles": list(
             Article.objects.filter(related_recipe=recipe, status=Article.Status.APPROVED, is_deleted=False)
             .select_related("author")

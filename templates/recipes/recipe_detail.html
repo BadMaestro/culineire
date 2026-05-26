@@ -649,6 +649,26 @@
     </div>
 </section>
 
+{% if related_recipes %}
+<section class="page-section page-section--related" aria-labelledby="related-recipes-heading">
+    <div class="container">
+        <h2 class="section-title" id="related-recipes-heading">Related Recipes</h2>
+        <ul class="related-articles-list">
+            {% for related_recipe in related_recipes %}
+            <li class="related-articles-list__item">
+                <a class="related-articles-list__link" href="{{ related_recipe.get_absolute_url }}">
+                    <span class="related-articles-list__title">{{ related_recipe.title }}</span>
+                    {% if related_recipe.author %}
+                    <span class="related-articles-list__meta">By {{ related_recipe.author.name }}</span>
+                    {% endif %}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</section>
+{% endif %}
+
 {% if related_articles %}
 <section class="page-section page-section--related" aria-labelledby="related-articles-heading">
     <div class="container">
