@@ -1,5 +1,6 @@
 import json
 import logging
+from datetime import datetime, time
 
 from django.conf import settings
 from django.contrib import messages
@@ -63,6 +64,14 @@ def _json_ld(data):
     value = json.dumps(data, ensure_ascii=False)
     value = value.replace("&", "\\u0026").replace("<", "\\u003C").replace(">", "\\u003E")
     return mark_safe(value)
+
+
+def _schema_datetime(value):
+    if not value:
+        return ""
+    published_at = datetime.combine(value, time.min)
+    published_at = timezone.make_aware(published_at, timezone.get_current_timezone())
+    return published_at.isoformat()
 
 
 def _validate_gallery_uploads(form, uploaded_files):
@@ -359,13 +368,23 @@ class ArticleDetailView(DetailView):
                 article.status == Article.Status.APPROVED
         )
 
+        author_schema = (
+            {
+                "@type": "Person",
+                "name": article.author.name,
+                "url": self.request.build_absolute_uri(article.author.get_absolute_url()),
+            }
+            if article.author
+            else {"@type": "Organization", "name": "CulinEire"}
+        )
+
         _schema: dict = {
             "@context": "https://schema.org",
             "@type": "Article",
             "headline": article.title,
             "description": article.excerpt or f"An article about {article.title}.",
-            "author": {"@type": "Person", "name": article.author.name} if article.author else {"@type": "Organization", "name": "CulinEire"},
-            "datePublished": article.published.strftime("%Y-%m-%d") if article.published else "",
+            "author": author_schema,
+            "datePublished": _schema_datetime(article.published),
             "url": self.request.build_absolute_uri(),
             "publisher": {
                 "@type": "Organization",

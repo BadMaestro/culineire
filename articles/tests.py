@@ -1,3 +1,4 @@
+import json
 from datetime import date
 from io import BytesIO
 from unittest.mock import patch
@@ -798,6 +799,20 @@ class ArticleAuthoringPermissionTests(TestCase):
 
         self.assertContains(response, "\\u003C/script\\u003E", html=False)
         self.assertNotContains(response, '</script><script>alert("x")</script>', html=False)
+
+    @override_settings(TIME_ZONE="UTC")
+    def test_article_json_ld_includes_author_url_and_timezone_datetime(self):
+        self.article.status = Article.Status.APPROVED
+        self.article.save(update_fields=["status"])
+
+        response = self.client.get(self.article.get_absolute_url())
+
+        schema = json.loads(str(response.context["article_json_ld"]))
+        self.assertEqual(schema["datePublished"], "2026-05-20T00:00:00+00:00")
+        self.assertEqual(
+            schema["author"]["url"],
+            f"http://testserver{self.owner_author.get_absolute_url()}",
+        )
 
     def test_article_edit_appends_gallery_images_after_highest_existing_sort_order(self):
         ArticleImage.objects.create(
