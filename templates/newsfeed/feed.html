@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}CulinEire Updates{% endblock %}
-{% block meta_description %}Updates, new recipes, new articles, site improvements and announcements from the CulinEire kitchen.{% endblock %}
-{% block og_title %}CulinEire Updates{% endblock %}
-{% block og_description %}Updates, new recipes, new articles, site improvements and announcements from the CulinEire kitchen.{% endblock %}
+{% block title %}CulinEire News{% endblock %}
+{% block meta_description %}News, new recipes, new articles, site improvements and announcements from the CulinEire kitchen.{% endblock %}
+{% block og_title %}CulinEire News{% endblock %}
+{% block og_description %}News, new recipes, new articles, site improvements and announcements from the CulinEire kitchen.{% endblock %}
 
 {% block extra_head %}
 <link href="{% static 'css/newsfeed.css' %}" rel="stylesheet">
@@ -19,8 +19,8 @@
   <div aria-hidden="true" class="hero__overlay"></div>
   <div class="container hero__inner">
     <div class="hero-copy hero-copy--center">
-      <span class="pill">Live Updates</span>
-      <h1 class="hero-title">CulinEire Updates</h1>
+      <span class="pill">Latest News</span>
+      <h1 class="hero-title">CulinEire News</h1>
       <p class="hero-subtitle">New recipes, articles, site improvements and announcements from the kitchen.</p>
       <div class="hero__actions">
         <a class="btn-primary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
@@ -69,18 +69,18 @@
     {% if page_obj.has_other_pages %}
     <nav class="nf-pagination" aria-label="Feed pages">
       {% if page_obj.has_previous %}
-      <a class="btn-secondary" href="?page={{ page_obj.previous_page_number }}" aria-label="Newer updates, page {{ page_obj.previous_page_number }}">Newer</a>
+      <a class="btn-secondary" href="?page={{ page_obj.previous_page_number }}" aria-label="Newer news, page {{ page_obj.previous_page_number }}">Newer</a>
       {% endif %}
       <span class="nf-pagination__info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
       {% if page_obj.has_next %}
-      <a class="btn-secondary" href="?page={{ page_obj.next_page_number }}" aria-label="Older updates, page {{ page_obj.next_page_number }}">Older</a>
+      <a class="btn-secondary" href="?page={{ page_obj.next_page_number }}" aria-label="Older news, page {{ page_obj.next_page_number }}">Older</a>
       {% endif %}
     </nav>
     {% endif %}
 
     {% else %}
     <div class="empty-state">
-      <p>No updates yet. Check back soon.</p>
+      <p>No news yet. Check back soon.</p>
     </div>
     {% endif %}
 

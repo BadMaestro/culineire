@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Add Feed Update | CulinEire{% endblock %}
-{% block meta_description %}Post a new update to the CulinEire news feed.{% endblock %}
+{% block title %}Add News Entry | CulinEire{% endblock %}
+{% block meta_description %}Post a new entry to CulinEire News.{% endblock %}
 
 {% block extra_head %}
 <link href="{% static 'css/authoring.css' %}" rel="stylesheet">
@@ -18,9 +18,9 @@
   <div aria-hidden="true" class="hero__overlay"></div>
   <div class="container hero__inner">
     <div class="hero-copy hero-copy--center">
-      <span class="pill">Updates</span>
-      <h1 class="hero-title">Add Feed Update</h1>
-      <p class="hero-subtitle">Post a new entry to the public CulinEire Updates feed.</p>
+      <span class="pill">News</span>
+      <h1 class="hero-title">Add News Entry</h1>
+      <p class="hero-subtitle">Post a new entry to public CulinEire News.</p>
       <div class="hero__actions">
         <a class="btn-primary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
         <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
@@ -111,7 +111,7 @@
         <div class="authoring-actions">
           <div class="authoring-actions__buttons">
             <a class="authoring-link" href="{% url 'recipes:moderation_panel' %}">Cancel</a>
-            <button class="authoring-submit" type="submit">Post Update</button>
+            <button class="authoring-submit" type="submit">Post News</button>
           </div>
         </div>
 
