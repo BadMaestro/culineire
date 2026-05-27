@@ -6,11 +6,12 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from django.conf import settings
+from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils.text import slugify
 
-from recipes.models import ALLERGEN_CHOICES, Recipe, RecipeAuthor
+from recipes.models import ALLERGEN_CHOICES, Recipe, RecipeAdditionalCategory, RecipeAuthor
 
 
 AI_SOURCE_NOTE = "AI-assisted draft generated for human review. Verify accuracy, attribution, allergens, and image rights before publishing."
@@ -66,6 +67,19 @@ def _map_difficulty(value: str) -> str:
     return raw if raw in valid else Recipe.Difficulty.EASY
 
 
+def _map_additional_categories(value, primary_category: str) -> list[str]:
+    valid = {choice.value for choice in Recipe.Category}
+    items = value if isinstance(value, list) else []
+    result = []
+    for item in items:
+        raw = str(item).strip().lower().replace("-", "_").replace(" ", "_")
+        labels = {choice.label.lower(): choice.value for choice in Recipe.Category}
+        mapped = raw if raw in valid else labels.get(str(item).strip().lower())
+        if mapped and mapped != primary_category and mapped not in result:
+            result.append(mapped)
+    return result
+
+
 def _map_allergens(value) -> str:
     valid = {key for key, _label in ALLERGEN_CHOICES}
     labels = {label.lower(): key for key, label in ALLERGEN_CHOICES}
@@ -115,13 +129,13 @@ def _normalise_recipe_payload(payload: dict, dish_name: str, status: str) -> dic
         "irish_context": str(payload.get("irish_context") or "").strip(),
         "author_commentary": str(payload.get("author_commentary") or "").strip(),
         "allergens": _map_allergens(payload.get("allergens")),
-        "source_type": Recipe.SourceType.OTHER,
-        "source_title": str(payload.get("source_title") or "AI-assisted draft").strip()[:255],
-        "source_author": str(payload.get("source_author") or "CulinEire editorial workflow").strip()[:255],
-        "source_url": str(payload.get("source_url") or "").strip(),
-        "source_note": str(payload.get("source_note") or AI_SOURCE_NOTE).strip()[:255],
+        "source_type": Recipe.SourceType.ORIGINAL,
+        "source_title": "CulinEire AI Recipe Draft",
+        "source_author": "CulinEire editorial team",
+        "source_url": "",
+        "source_note": AI_SOURCE_NOTE,
         "image_rights_status": Recipe.ImageRightsStatus.NOT_APPLICABLE,
-        "image_rights_note": "No image generated or uploaded by this command.",
+        "image_rights_note": "No image uploaded. Add a photo before publishing.",
         "status": status,
         "confirmed_own_work": False,
         "confirmed_image_rights": False,
@@ -131,17 +145,65 @@ def _normalise_recipe_payload(payload: dict, dish_name: str, status: str) -> dic
 
 def _prompt_for_recipe(dish_name: str) -> str:
     categories = ", ".join(choice.value for choice in Recipe.Category)
-    allergens = ", ".join(key for key, _label in ALLERGEN_CHOICES)
+    allergen_pairs = ", ".join(f"{key} ({label})" for key, label in ALLERGEN_CHOICES)
     return (
-        f'Create a CulinEire recipe draft for "{dish_name}". Return strict JSON only. '
-        "Use these keys: title, short_description, category, difficulty, prep_time_minutes, "
-        "cook_time_minutes, servings, calories, ingredients, method, tips, irish_context, "
-        "author_commentary, allergens, source_title, source_author, source_url, source_note. "
+        f'Create an original CulinEire recipe draft for "{dish_name}". '
+        "Return strict JSON only with these keys: "
+        "title, short_description, category, additional_categories, difficulty, prep_time_minutes, "
+        "cook_time_minutes, servings, calories, ingredients, method, tips, "
+        "irish_context, author_commentary, allergens. "
         f"category must be one of: {categories}. "
-        f"allergens must use these keys only: {allergens}. "
-        "ingredients and method must be arrays of strings. Do not include image URLs. "
-        "This is a draft for human review, not a published recipe."
+        "additional_categories must be an array of other relevant category values from the same list "
+        "(do not repeat the primary category, include 2-4 that genuinely apply). "
+        "difficulty must be one of: easy, medium, hard. "
+        f"allergens must be an array using only these exact keys: {allergen_pairs}. "
+        "List every allergen actually present in the recipe ingredients — do not leave it empty. "
+        "ingredients and method must be arrays of strings. "
+        "Do not reference any real cookbook authors, websites, or external sources. "
+        "Do not include image URLs. "
+        "This recipe is an original creation for human review before publishing."
     )
+
+
+def _generate_image(title: str, short_description: str) -> tuple[bytes, str]:
+    api_key = getattr(settings, "OPENAI_API_KEY", "")
+    if not api_key:
+        raise CommandError("OPENAI_API_KEY is not configured.")
+    prompt = (
+        f"Professional food photography of {title}. "
+        f"{short_description} "
+        "Irish cuisine, natural lighting, rustic wooden table, appetising presentation. "
+        "No text, no watermarks, no people."
+    )
+    payload = {
+        "model": "dall-e-3",
+        "prompt": prompt,
+        "n": 1,
+        "size": "1024x1024",
+        "response_format": "url",
+    }
+    request = Request(
+        "https://api.openai.com/v1/images/generations",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}",
+        },
+        method="POST",
+    )
+    try:
+        with urlopen(request, timeout=60) as response:
+            body = response.read().decode("utf-8")
+    except HTTPError as exc:
+        body = exc.read().decode("utf-8")
+        raise CommandError(f"OpenAI API returned HTTP {exc.code}: {body}") from exc
+    except URLError as exc:
+        raise CommandError(f"OpenAI image request failed: {exc}") from exc
+    image_url = json.loads(body)["data"][0]["url"]
+    with urlopen(image_url, timeout=30) as img_response:
+        image_bytes = img_response.read()
+    alt_text = f"{title} — traditional Irish recipe"
+    return image_bytes, alt_text
 
 
 def _call_anthropic(dish_name: str) -> dict:
@@ -186,6 +248,7 @@ class Command(BaseCommand):
         parser.add_argument("--author-slug", default="greenbear", help="RecipeAuthor slug to attach.")
         parser.add_argument("--status", choices=[Recipe.Status.DRAFT, Recipe.Status.PENDING], default=Recipe.Status.DRAFT)
         parser.add_argument("--dry-run", action="store_true", help="Call the generator and print normalized data without saving.")
+        parser.add_argument("--no-image", action="store_true", help="Skip image generation even if OPENAI_API_KEY is set.")
 
     def handle(self, *args, **options):
         dish_names = self._dish_names(options)
@@ -200,14 +263,37 @@ class Command(BaseCommand):
         for dish_name in dish_names:
             payload = _call_anthropic(dish_name)
             fields = _normalise_recipe_payload(payload, dish_name, options["status"])
+            additional_categories = _map_additional_categories(
+                payload.get("additional_categories"), fields["category"]
+            )
             if options["dry_run"]:
-                self.stdout.write(json.dumps(fields, indent=2, ensure_ascii=False))
+                self.stdout.write(json.dumps(
+                    {**fields, "additional_categories": additional_categories},
+                    indent=2, ensure_ascii=False,
+                ))
                 continue
             with transaction.atomic():
                 recipe = Recipe.objects.create(author=author, **fields)
+                for cat in additional_categories:
+                    RecipeAdditionalCategory.objects.create(recipe=recipe, category=cat)
+
+            generate_image = not options.get("no_image") and bool(getattr(settings, "OPENAI_API_KEY", ""))
+            if generate_image:
+                try:
+                    image_bytes, alt_text = _generate_image(recipe.title, recipe.short_description)
+                    recipe.hero_image.save(f"cover-{recipe.slug[:40]}.jpg", ContentFile(image_bytes), save=False)
+                    recipe.hero_image_alt_text = alt_text
+                    recipe.image_rights_status = Recipe.ImageRightsStatus.AI_GENERATED
+                    recipe.image_rights_note = "AI-generated image via DALL-E 3."
+                    recipe.save(update_fields=["hero_image", "hero_image_alt_text", "image_rights_status", "image_rights_note"])
+                    self.stdout.write(self.style.SUCCESS("  Image generated and saved."))
+                except CommandError as exc:
+                    self.stdout.write(self.style.WARNING(f"  Image generation failed: {exc}"))
+
             self.stdout.write(
                 self.style.SUCCESS(
-                    f'Created {recipe.get_status_display().lower()} recipe "{recipe.title}" ({recipe.slug}).'
+                    f'Created {recipe.get_status_display().lower()} recipe "{recipe.title}" ({recipe.slug})'
+                    + (f" with {len(additional_categories)} additional categories." if additional_categories else ".")
                 )
             )
 
