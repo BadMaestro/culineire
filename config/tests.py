@@ -1,5 +1,6 @@
 from datetime import date
 
+from django.conf import settings
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -10,6 +11,10 @@ from recipes.models import Recipe, RecipeAuthor
 
 @override_settings(SITE_DOMAIN="culineire.test", SITE_SCHEME="https")
 class PublicTechnicalPagesTests(TestCase):
+    def test_uploaded_media_uses_web_readable_permissions(self):
+        self.assertEqual(settings.FILE_UPLOAD_PERMISSIONS, 0o644)
+        self.assertEqual(settings.FILE_UPLOAD_DIRECTORY_PERMISSIONS, 0o755)
+
     def test_about_and_privacy_pages_are_public(self):
         for url_name in ("about", "privacy"):
             response = self.client.get(reverse(url_name))

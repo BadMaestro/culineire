@@ -527,6 +527,33 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertContains(response, "cf-turnstile")
         self.assertContains(response, "test-site-key")
 
+    def test_article_create_saves_hero_image_for_article_cards(self):
+        self.client.force_login(self.owner_user)
+
+        response = self.client.post(
+            reverse("articles:article_create"),
+            {
+                **self.article_payload(
+                    title="Article With Image",
+                    image_rights_status=Article.ImageRightsStatus.OWN,
+                ),
+                "hero_image": self.uploaded_image("article-card.png"),
+            },
+        )
+
+        article = Article.objects.get(title="Article With Image")
+        self.assertRedirects(response, article.get_absolute_url())
+        self.assertTrue(article.hero_image)
+        self.assertIn("/cover-", article.hero_image.url)
+
+        article.status = Article.Status.APPROVED
+        article.save(update_fields=["status"])
+        list_response = self.client.get(reverse("articles:article_list"))
+
+        self.assertEqual(article.card_image.url, article.hero_image.url)
+        self.assertContains(list_response, article.hero_image.url, html=False)
+        self.assertNotContains(list_response, "/static/images/hero.jpg", html=False)
+
     def test_article_create_rejects_invalid_gallery_image_before_saving(self):
         self.client.force_login(self.owner_user)
 
