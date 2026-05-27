@@ -11,7 +11,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils.text import slugify
 
-from recipes.models import ALLERGEN_CHOICES, Recipe, RecipeAdditionalCategory, RecipeAuthor
+from recipes.models import ALLERGEN_CHOICES, Recipe, RecipeAdditionalCategory, RecipeAuthor, RecipeImage
 
 
 AI_SOURCE_NOTE = "AI-assisted draft generated for human review. Verify accuracy, attribution, allergens, and image rights before publishing."
@@ -206,6 +206,63 @@ def _generate_image(title: str, short_description: str) -> tuple[bytes, str]:
     return image_bytes, alt_text
 
 
+def _pick_key_steps(method_text: str, max_steps: int = 3) -> list[tuple[int, str]]:
+    steps = [s.strip() for s in method_text.splitlines() if s.strip()]
+    if not steps:
+        return []
+    if len(steps) <= max_steps:
+        return list(enumerate(steps, start=1))
+    indices = [0, len(steps) // 2, len(steps) - 1]
+    seen = set()
+    result = []
+    for i in indices:
+        if i not in seen:
+            seen.add(i)
+            result.append((i + 1, steps[i]))
+    return result
+
+
+def _generate_step_photos(recipe: Recipe, method_text: str) -> list[RecipeImage]:
+    key_steps = _pick_key_steps(method_text)
+    created = []
+    for sort_order, step_text in key_steps:
+        prompt = (
+            f"Professional food photography showing the cooking step: {step_text[:200]}. "
+            f"For the recipe {recipe.title}. Irish cuisine, natural lighting, rustic setting. "
+            "No text, no watermarks, no people."
+        )
+        payload = {
+            "model": "dall-e-3",
+            "prompt": prompt,
+            "n": 1,
+            "size": "1024x1024",
+            "response_format": "url",
+        }
+        api_key = getattr(settings, "OPENAI_API_KEY", "")
+        request = Request(
+            "https://api.openai.com/v1/images/generations",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {api_key}",
+            },
+            method="POST",
+        )
+        try:
+            with urlopen(request, timeout=60) as response:
+                body = response.read().decode("utf-8")
+            image_url = json.loads(body)["data"][0]["url"]
+            with urlopen(image_url, timeout=30) as img_response:
+                image_bytes = img_response.read()
+        except (HTTPError, URLError):
+            continue
+        img = RecipeImage(recipe=recipe, sort_order=sort_order, alt_text=step_text[:255], caption=f"Step {sort_order}")
+        img.image.save(f"step{sort_order}-{recipe.slug[:30]}.jpg", ContentFile(image_bytes), save=False)
+        img.save()
+        created.append(img)
+    return created
+
+
 def _call_anthropic(dish_name: str) -> dict:
     api_key = getattr(settings, "ANTHROPIC_API_KEY", "")
     if not api_key:
@@ -286,9 +343,16 @@ class Command(BaseCommand):
                     recipe.image_rights_status = Recipe.ImageRightsStatus.AI_GENERATED
                     recipe.image_rights_note = "AI-generated image via DALL-E 3."
                     recipe.save(update_fields=["hero_image", "hero_image_alt_text", "image_rights_status", "image_rights_note"])
-                    self.stdout.write(self.style.SUCCESS("  Image generated and saved."))
+                    self.stdout.write(self.style.SUCCESS("  Hero image generated and saved."))
                 except CommandError as exc:
-                    self.stdout.write(self.style.WARNING(f"  Image generation failed: {exc}"))
+                    self.stdout.write(self.style.WARNING(f"  Hero image generation failed: {exc}"))
+
+                try:
+                    step_photos = _generate_step_photos(recipe, fields["method"])
+                    if step_photos:
+                        self.stdout.write(self.style.SUCCESS(f"  {len(step_photos)} step photo(s) generated and saved."))
+                except Exception as exc:
+                    self.stdout.write(self.style.WARNING(f"  Step photos generation failed: {exc}"))
 
             self.stdout.write(
                 self.style.SUCCESS(
