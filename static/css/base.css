@@ -398,9 +398,8 @@
     line-height: 1;
   }
 
-  /* No trailing dot after the last nav item.
-     Last child is always the hidden separator span, so last item = :nth-last-child(2) */
-  .category-nav > :nth-last-child(2)::after {
+  /* No trailing dot after the last nav item. */
+  .category-nav > :last-child::after {
     display: none;
   }
 
