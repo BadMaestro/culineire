@@ -202,7 +202,31 @@
 
         {% else %}
 
-        {# ── Default view: carousel + category nav + all articles mini grid ── #}
+        {# ── Default view: category nav + carousel + all articles mini grid ── #}
+
+        {% if categories %}
+        <div class="category-nav-block" data-category-toggle>
+            <div class="category-nav-wrap" data-category-wrap>
+                <nav aria-label="Article categories" class="category-nav" data-category-nav>
+                    {% for category in categories %}
+                    {% if category.is_active %}
+                    <span class="category-nav__item category-nav__item--active">{{ category.label }}</span>
+                    {% else %}
+                    <a class="category-nav__item category-nav__link" href="{{ category.url }}">{{ category.label }}</a>
+                    {% endif %}
+                    {% if not forloop.last %}
+                    <span aria-hidden="true" class="category-nav__separator">&middot;</span>
+                    {% endif %}
+                    {% endfor %}
+                </nav>
+            </div>
+            <button aria-expanded="false" aria-label="View all article categories" class="category-nav-toggle" data-category-button hidden type="button">
+                <span aria-hidden="true" class="category-nav-toggle__icon category-nav-toggle__icon--left">&#8964;</span>
+                <span class="category-nav-toggle__label" data-category-button-label>View All</span>
+                <span aria-hidden="true" class="category-nav-toggle__icon">&#8964;</span>
+            </button>
+        </div>
+        {% endif %}
 
         {% if default_recent_articles %}
         <div class="content-showcase content-showcase--carousel" data-card-carousel>
@@ -250,30 +274,6 @@
                     <svg aria-hidden="true" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>
                 </button>
             </div>
-        </div>
-        {% endif %}
-
-        {% if categories %}
-        <div class="category-nav-block" data-category-toggle>
-            <div class="category-nav-wrap" data-category-wrap>
-                <nav aria-label="Article categories" class="category-nav" data-category-nav>
-                    {% for category in categories %}
-                    {% if category.is_active %}
-                    <span class="category-nav__item category-nav__item--active">{{ category.label }}</span>
-                    {% else %}
-                    <a class="category-nav__item category-nav__link" href="{{ category.url }}">{{ category.label }}</a>
-                    {% endif %}
-                    {% if not forloop.last %}
-                    <span aria-hidden="true" class="category-nav__separator">&middot;</span>
-                    {% endif %}
-                    {% endfor %}
-                </nav>
-            </div>
-            <button aria-expanded="false" aria-label="View all article categories" class="category-nav-toggle" data-category-button hidden type="button">
-                <span aria-hidden="true" class="category-nav-toggle__icon category-nav-toggle__icon--left">&#8964;</span>
-                <span class="category-nav-toggle__label" data-category-button-label>View All</span>
-                <span aria-hidden="true" class="category-nav-toggle__icon">&#8964;</span>
-            </button>
         </div>
         {% endif %}
 
