@@ -540,6 +540,49 @@ class RecipeImage(models.Model):
         return f"{self.recipe.title} — image {self.id}"
 
 
+class RecipeGenerationTask(models.Model):
+    class Status(models.TextChoices):
+        RUNNING = "running", "Running"
+        DONE = "done", "Done"
+        FAILED = "failed", "Failed"
+
+    task_id = models.UUIDField(default=uuid4, unique=True, db_index=True)
+    dish_name = models.CharField(max_length=200)
+    author = models.ForeignKey(
+        RecipeAuthor,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="generation_tasks",
+    )
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="recipe_generation_tasks",
+    )
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.RUNNING)
+    error_message = models.TextField(blank=True)
+    result_recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="generation_tasks",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Recipe generation task"
+        verbose_name_plural = "Recipe generation tasks"
+
+    def __str__(self) -> str:
+        return f"{self.dish_name} - {self.status}"
+
+
 class RecipeRating(models.Model):
     recipe = models.ForeignKey(
         Recipe,

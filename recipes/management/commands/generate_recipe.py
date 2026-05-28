@@ -14,7 +14,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import IntegrityError, transaction
 from django.utils.text import slugify
 
-from recipes.models import ALLERGEN_CHOICES, Recipe, RecipeAdditionalCategory, RecipeAuthor, RecipeImage
+from recipes.models import ALLERGEN_CHOICES, Recipe, RecipeAdditionalCategory, RecipeAuthor, RecipeGenerationTask, RecipeImage
 
 logger = logging.getLogger("recipes")
 
@@ -612,6 +612,7 @@ class Command(BaseCommand):
         parser.add_argument("--status", choices=[Recipe.Status.DRAFT, Recipe.Status.PENDING], default=Recipe.Status.DRAFT)
         parser.add_argument("--dry-run", action="store_true", help="Call the generator and print normalized data without saving.")
         parser.add_argument("--no-image", action="store_true", help="Skip image generation even if OPENAI_API_KEY is set.")
+        parser.add_argument("--task-id", default="", help="Optional RecipeGenerationTask UUID to update on success.")
 
     def handle(self, *args, **options):
         dish_names = self._dish_names(options)
@@ -726,6 +727,13 @@ class Command(BaseCommand):
                     "generate_recipe: created %s recipe %r (%s) with %d additional categories",
                     recipe.get_status_display().lower(), recipe.title, recipe.slug, len(additional_categories),
                 )
+                task_id = options.get("task_id") or ""
+                if task_id:
+                    RecipeGenerationTask.objects.filter(task_id=task_id).update(
+                        status=RecipeGenerationTask.Status.DONE,
+                        result_recipe=recipe,
+                        error_message="",
+                    )
             except CommandError as exc:
                 logger.error("generate_recipe: failed for %r: %s", dish_name, exc)
                 if len(dish_names) > 1:

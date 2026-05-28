@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+from datetime import timedelta
 from pathlib import Path
 from typing import cast
 
@@ -42,7 +43,7 @@ from .forms import (
     RecipeCommentForm,
     RecipeRatingForm,
 )
-from .models import Recipe, RecipeAuthor, RecipeComment, RecipeImage, RecipeRating
+from .models import Recipe, RecipeAuthor, RecipeComment, RecipeGenerationTask, RecipeImage, RecipeRating
 from .validators import validate_image_upload
 from config.email_utils import build_absolute_url, send_template_mail
 
@@ -1615,34 +1616,47 @@ def generate_recipe_view(request):
             messages.error(request, "ANTHROPIC_API_KEY is not configured.")
             return redirect("recipes:generate_recipe")
 
-        if not RecipeAuthor.objects.filter(slug=author_slug).exists():
+        author = RecipeAuthor.objects.filter(slug=author_slug).first()
+        if not author:
             if request.headers.get("X-Requested-With") == "XMLHttpRequest":
                 return JsonResponse({"started": False, "error": f'Author "{author_slug}" not found.'}, status=400)
             messages.error(request, f'Author "{author_slug}" not found.')
             return redirect("recipes:generate_recipe")
 
+        task = RecipeGenerationTask.objects.create(
+            dish_name=dish_name,
+            author=author,
+            requested_by=request.user,
+            status=RecipeGenerationTask.Status.RUNNING,
+        )
+        task_id = str(task.task_id)
+
         import threading
         from django.core.management import call_command
         from django.db import close_old_connections
 
-        logger.info("generate_recipe: view spawning thread for %r", dish_name)
+        logger.info("generate_recipe: view spawning thread for %r (task=%s)", dish_name, task_id)
 
         def _run():
-            logger.info("generate_recipe: background thread started for %r", dish_name)
+            logger.info("generate_recipe: background thread started for %r (task=%s)", dish_name, task_id)
             close_old_connections()
 
             try:
-                kwargs = {"author_slug": author_slug, "status": status, "no_image": no_image, "dry_run": False, "limit": 0, "batch": None}
+                kwargs = {"author_slug": author_slug, "status": status, "no_image": no_image, "dry_run": False, "limit": 0, "batch": None, "task_id": task_id}
                 call_command("generate_recipe", dish_name, **kwargs)
             except Exception as exc:
                 logger.error("generate_recipe background thread failed for %r: %s", dish_name, exc, exc_info=True)
+                RecipeGenerationTask.objects.filter(task_id=task_id).update(
+                    status=RecipeGenerationTask.Status.FAILED,
+                    error_message=str(exc)[:1000],
+                )
             finally:
                 close_old_connections()
 
         threading.Thread(target=_run, daemon=True).start()
 
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-            return JsonResponse({"started": True, "dish_name": dish_name})
+            return JsonResponse({"started": True, "dish_name": dish_name, "task_id": task_id})
 
         messages.success(request, f'Generation started for "{dish_name}". Check the pending queue in a couple of minutes.')
         return redirect("recipes:moderation_panel")
@@ -1660,34 +1674,51 @@ def generate_recipe_view(request):
 
 @login_required
 def generate_recipe_poll(request):
-    """Poll for a recipe created after a given timestamp (used by the AJAX generation overlay)."""
+    """Poll a specific recipe generation task."""
     if not is_moderator(request.user):
         return JsonResponse({"ready": False}, status=403)
 
-    from django.utils.dateparse import parse_datetime
-    since_raw = request.GET.get("since", "").strip()
-    # JavaScript toISOString() produces "Z" suffix; Django's parse_datetime
-    # requires "+00:00" — normalise before parsing.
-    since_raw = since_raw.replace("Z", "+00:00")
-    since = parse_datetime(since_raw) if since_raw else None
-    if not since:
-        return JsonResponse({"ready": False, "error": "missing since"}, status=400)
-    # Make timezone-aware if naive (shouldn't happen with ISO strings, but be safe)
-    from django.utils import timezone as tz
-    if since.tzinfo is None:
-        since = tz.make_aware(since)
+    task_id = request.GET.get("task_id", "").strip()
+    if not task_id:
+        return JsonResponse({"ready": False, "error": "missing task_id"}, status=400)
 
-    author_slug = request.GET.get("author", "").strip()
-    qs = (
-        Recipe.objects.filter(created_at__gte=since, is_deleted=False)
-        .exclude(status=Recipe.Status.APPROVED)
-    )
-    if author_slug:
-        qs = qs.filter(author__slug=author_slug)
-    recipe = qs.order_by("-created_at").first()
-    if recipe:
-        return JsonResponse({"ready": True, "slug": recipe.slug, "title": recipe.title})
-    return JsonResponse({"ready": False})
+    try:
+        task = RecipeGenerationTask.objects.select_related("result_recipe").get(
+            task_id=task_id,
+            requested_by=request.user,
+        )
+    except (RecipeGenerationTask.DoesNotExist, ValueError):
+        return JsonResponse({"ready": False, "error": "task not found"}, status=404)
+
+    if task.status == RecipeGenerationTask.Status.DONE and task.result_recipe:
+        return JsonResponse({
+            "ready": True,
+            "status": task.status,
+            "slug": task.result_recipe.slug,
+            "title": task.result_recipe.title,
+        })
+
+    if task.status == RecipeGenerationTask.Status.FAILED:
+        return JsonResponse({
+            "ready": False,
+            "failed": True,
+            "status": task.status,
+            "error": task.error_message or "Recipe generation failed.",
+        })
+
+    stale_after = timezone.now() - timedelta(minutes=20)
+    if task.status == RecipeGenerationTask.Status.RUNNING and task.updated_at < stale_after:
+        task.status = RecipeGenerationTask.Status.FAILED
+        task.error_message = "Recipe generation stopped before it completed. Please start it again."
+        task.save(update_fields=["status", "error_message", "updated_at"])
+        return JsonResponse({
+            "ready": False,
+            "failed": True,
+            "status": task.status,
+            "error": task.error_message,
+        })
+
+    return JsonResponse({"ready": False, "status": task.status})
 
 
 def automation_progress(request):

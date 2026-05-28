@@ -1,7 +1,7 @@
 import importlib
 import os
 import tempfile
-from datetime import date
+from datetime import date, timedelta
 from unittest import skip
 from unittest.mock import patch
 
@@ -11,13 +11,14 @@ from django.core import mail
 from django.core.management import call_command
 from django.http import QueryDict
 from django.test import SimpleTestCase, TestCase, override_settings
+from django.utils import timezone
 from django.urls import reverse
 
 from articles.models import Article, ArticleImage
 from .admin import RecipeAdmin, RecipeAdminForm
 from .allergens import build_present_allergen_items, parse_selected_allergen_keys, serialize_allergen_keys
 from .forms import RecipeAuthoringForm, RecipeCommentForm
-from .models import Recipe, RecipeAdditionalCategory, RecipeAuthor, RecipeComment, RecipeRating
+from .models import Recipe, RecipeAdditionalCategory, RecipeAuthor, RecipeComment, RecipeGenerationTask, RecipeRating
 from .views import _build_context_paragraphs, _build_ingredient_items, _build_method_steps, _gallery_step_alt, _gallery_step_rows, _image_alt_text, _soft_delete_recipe, _split_text_lines, _update_recipe_gallery_order
 
 
@@ -2433,3 +2434,161 @@ class GenerateRecipeCommandTests(TestCase):
 
         recipe = Recipe.objects.get(title="Pending AI Draft")
         self.assertEqual(recipe.status, Recipe.Status.PENDING)
+
+    @patch("recipes.management.commands.generate_recipe._call_anthropic")
+    def test_generate_recipe_updates_task_with_created_recipe(self, call_anthropic):
+        call_anthropic.return_value = self.generated_payload(title="Task Linked Draft")
+        task = RecipeGenerationTask.objects.create(
+            dish_name="Task Linked Draft",
+            author=self.author,
+            requested_by=self.author_user,
+        )
+
+        call_command(
+            "generate_recipe",
+            "Task Linked Draft",
+            author_slug=self.author.slug,
+            task_id=str(task.task_id),
+        )
+
+        task.refresh_from_db()
+        self.assertEqual(task.status, RecipeGenerationTask.Status.DONE)
+        self.assertEqual(task.result_recipe.title, "Task Linked Draft")
+
+
+class RecipeGenerationTaskViewTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        self.moderator_user = user_model.objects.create_user(
+            username="task-mod",
+            password="pass",
+            is_staff=True,
+        )
+        self.author_user = user_model.objects.create_user(username="task-author", password="pass")
+        self.author = RecipeAuthor.objects.create(
+            user=self.author_user,
+            name="Task Author",
+            slug="task-author",
+        )
+        RecipeAuthor.objects.create(
+            user=self.moderator_user,
+            name="Task Moderator",
+            slug="task-mod",
+        )
+        self.client.force_login(self.moderator_user)
+
+    @override_settings(ANTHROPIC_API_KEY="test-key")
+    @patch("threading.Thread")
+    def test_generate_recipe_ajax_returns_task_id(self, thread_cls):
+        response = self.client.post(
+            reverse("recipes:generate_recipe"),
+            {
+                "dish_name": "Task Stew",
+                "author_slug": self.author.slug,
+                "status": Recipe.Status.PENDING,
+                "no_image": "1",
+            },
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["started"])
+        self.assertTrue(data["task_id"])
+        self.assertTrue(
+            RecipeGenerationTask.objects.filter(
+                task_id=data["task_id"],
+                dish_name="Task Stew",
+                author=self.author,
+                requested_by=self.moderator_user,
+                status=RecipeGenerationTask.Status.RUNNING,
+            ).exists()
+        )
+        thread_cls.assert_called_once()
+
+    def test_generate_recipe_poll_returns_done_task_result(self):
+        recipe = Recipe.objects.create(
+            title="Generated Stew",
+            slug="generated-stew",
+            author=self.author,
+            ingredients="Potatoes",
+            method="Simmer.",
+            status=Recipe.Status.PENDING,
+        )
+        task = RecipeGenerationTask.objects.create(
+            dish_name="Generated Stew",
+            author=self.author,
+            requested_by=self.moderator_user,
+            status=RecipeGenerationTask.Status.DONE,
+            result_recipe=recipe,
+        )
+
+        response = self.client.get(
+            reverse("recipes:generate_recipe_poll"),
+            {"task_id": str(task.task_id)},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["slug"], recipe.slug)
+        self.assertTrue(response.json()["ready"])
+
+    def test_generate_recipe_poll_returns_failed_task_error(self):
+        task = RecipeGenerationTask.objects.create(
+            dish_name="Broken Stew",
+            author=self.author,
+            requested_by=self.moderator_user,
+            status=RecipeGenerationTask.Status.FAILED,
+            error_message="Anthropic API request failed",
+        )
+
+        response = self.client.get(
+            reverse("recipes:generate_recipe_poll"),
+            {"task_id": str(task.task_id)},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertFalse(data["ready"])
+        self.assertTrue(data["failed"])
+        self.assertEqual(data["error"], "Anthropic API request failed")
+
+    def test_generate_recipe_poll_rejects_other_users_task(self):
+        other_user = get_user_model().objects.create_user(
+            username="other-mod",
+            password="pass",
+            is_staff=True,
+        )
+        task = RecipeGenerationTask.objects.create(
+            dish_name="Private Stew",
+            author=self.author,
+            requested_by=other_user,
+            status=RecipeGenerationTask.Status.RUNNING,
+        )
+
+        response = self.client.get(
+            reverse("recipes:generate_recipe_poll"),
+            {"task_id": str(task.task_id)},
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_generate_recipe_poll_marks_stale_running_task_failed(self):
+        task = RecipeGenerationTask.objects.create(
+            dish_name="Stale Stew",
+            author=self.author,
+            requested_by=self.moderator_user,
+            status=RecipeGenerationTask.Status.RUNNING,
+        )
+        RecipeGenerationTask.objects.filter(pk=task.pk).update(
+            updated_at=timezone.now() - timedelta(minutes=21)
+        )
+
+        response = self.client.get(
+            reverse("recipes:generate_recipe_poll"),
+            {"task_id": str(task.task_id)},
+        )
+
+        task.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["failed"])
+        self.assertEqual(task.status, RecipeGenerationTask.Status.FAILED)

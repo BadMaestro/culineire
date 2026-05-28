@@ -171,7 +171,7 @@
     var panelUrl   = '{% url "recipes:moderation_panel" %}';
 
     var startTime  = null;
-    var sinceParam = null;
+    var taskId     = null;
     var timerId    = null;
     var pollId     = null;
     var POLL_INTERVAL   = 5000;
@@ -203,11 +203,18 @@
     }
 
     function pollReady() {
-        var authorEl = document.getElementById('author_slug');
-        var authorParam = authorEl ? '&author=' + encodeURIComponent(authorEl.value) : '';
-        fetch(pollUrl + '?since=' + encodeURIComponent(sinceParam) + authorParam)
+        if (!taskId) return;
+        fetch(pollUrl + '?task_id=' + encodeURIComponent(taskId))
             .then(function (r) { return r.json(); })
             .then(function (data) {
+                if (data.failed) {
+                    clearInterval(timerId);
+                    clearInterval(pollId);
+                    hintEl.textContent = 'Generation failed: ' + (data.error || 'Unknown error');
+                    progressBar.style.background = '#c0392b';
+                    if (fallbackLink) fallbackLink.removeAttribute('hidden');
+                    return;
+                }
                 if (data.ready) {
                     clearInterval(timerId);
                     clearInterval(pollId);
@@ -235,7 +242,7 @@
         document.body.style.overflow = 'hidden';
 
         startTime  = Date.now();
-        sinceParam = new Date(startTime).toISOString();
+        taskId = null;
 
         // Start elapsed timer (tick every second)
         tickTimer();
@@ -250,6 +257,12 @@
         })
         .then(function (r) { return r.json(); })
         .then(function (data) {
+            if (data.started && data.task_id) {
+                taskId = data.task_id;
+                pollReady();
+                pollId = setInterval(pollReady, POLL_INTERVAL);
+                return;
+            }
             if (!data.started) {
                 clearInterval(timerId);
                 clearInterval(pollId);
@@ -268,8 +281,6 @@
             window.location.href = panelUrl;
         });
 
-        // Start polling for completion
-        pollId = setInterval(pollReady, POLL_INTERVAL);
     });
 }());
 </script>
