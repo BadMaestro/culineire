@@ -271,6 +271,32 @@ def _gallery_step_alt(post_data, step):
     return (post_data.get(f"gallery_step_{step}_alt") or "").strip()
 
 
+def _update_recipe_gallery_order(recipe, post_data):
+    if not hasattr(post_data, "getlist"):
+        return
+
+    ordered_ids = []
+    for raw_id in post_data.getlist("recipe_gallery_image_order"):
+        try:
+            ordered_ids.append(int(raw_id))
+        except (TypeError, ValueError):
+            continue
+
+    if not ordered_ids:
+        return
+
+    images_by_id = {
+        image.pk: image
+        for image in recipe.gallery_images.filter(is_active=True, pk__in=ordered_ids)
+    }
+    for position, image_id in enumerate(ordered_ids, start=1):
+        image = images_by_id.get(image_id)
+        if not image or image.sort_order == position:
+            continue
+        image.sort_order = position
+        image.save(update_fields=["sort_order"])
+
+
 def _gallery_step_rows(recipe=None):
     existing = {}
     if recipe:
@@ -1105,6 +1131,7 @@ class RecipeCreateView(AuthorRequiredMixin, CreateView):
             recipe.status = Recipe.Status.PENDING
         recipe.save()
         getattr(form, "save_additional_categories")(recipe)
+        _update_recipe_gallery_order(recipe, self.request.POST)
 
         for step in range(1, 21):
             img_file = self.request.FILES.get(f"gallery_step_{step}")
@@ -1164,6 +1191,7 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
                 recipe.status = Recipe.Status.PENDING
         recipe.save()
         getattr(form, "save_additional_categories")(recipe)
+        _update_recipe_gallery_order(recipe, self.request.POST)
 
         for step in range(1, 21):
             img_file = self.request.FILES.get(f"gallery_step_{step}")
@@ -1226,6 +1254,7 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
         )
         context["can_save_draft"] = bool(self.object) and self.object.status != Recipe.Status.APPROVED
         context["can_approve"] = is_moderator(self.request.user)
+        context["has_openai"] = bool(getattr(settings, "OPENAI_API_KEY", ""))
         return context
 
 
@@ -1663,6 +1692,59 @@ def moderate_recipe(request, slug):
     if action not in ("delete", "block") and recipe.pk:
         return redirect(recipe.get_absolute_url())
     return redirect("recipes:moderation_panel")
+
+
+@require_POST
+@login_required
+def recipe_regenerate_image(request, slug):
+    from django.core.files.base import ContentFile
+    from .management.commands.generate_recipe import fetch_image_bytes, _sanitise_image_subject
+
+    recipe = get_object_or_404(Recipe, slug=slug)
+    if not (is_moderator(request.user) or user_can_manage_author(request.user, recipe.author)):
+        return JsonResponse({"success": False, "error": "Not authorized"}, status=403)
+
+    image_type = request.POST.get("image_type")
+    image_id = request.POST.get("image_id", "")
+    feedback = request.POST.get("feedback", "").strip()
+
+    try:
+        if image_type == "hero":
+            subject = _sanitise_image_subject(recipe.title, recipe.hero_image_alt_text or "")
+            prompt = (
+                f"Professional food photography: {subject}. "
+                "Irish cuisine, natural light, rustic wooden surface, ceramic or white plate, "
+                "appetising close-up presentation. No text, no watermarks, no people, no brand names or logos."
+            )
+            if feedback:
+                prompt += f" Important: {feedback}."
+            image_bytes = fetch_image_bytes(prompt)
+            filename = f"cover-{recipe.slug[:40]}-regen.jpg"
+            if recipe.hero_image:
+                recipe.hero_image.delete(save=False)
+            recipe.hero_image.save(filename, ContentFile(image_bytes), save=True)
+            return JsonResponse({"success": True, "url": recipe.hero_image.url})
+
+        elif image_type == "step":
+            img = get_object_or_404(RecipeImage, pk=image_id, recipe=recipe)
+            prompt = (
+                f"Professional food photography for the dish {recipe.title}. "
+                "Irish cuisine, natural lighting, rustic kitchen setting. "
+                "No text, no watermarks, no people, no brand names or logos."
+            )
+            if feedback:
+                prompt += f" Important: {feedback}."
+            image_bytes = fetch_image_bytes(prompt)
+            filename = f"step{img.sort_order}-{recipe.slug[:30]}-regen.jpg"
+            img.image.delete(save=False)
+            img.image.save(filename, ContentFile(image_bytes), save=True)
+            return JsonResponse({"success": True, "url": img.image.url})
+
+        return JsonResponse({"success": False, "error": "Invalid image_type"})
+
+    except Exception as exc:
+        logger.error("recipe_regenerate_image failed for %r: %s", recipe.slug, exc, exc_info=True)
+        return JsonResponse({"success": False, "error": str(exc)}, status=500)
 
 
 # ── Recipe format automation endpoints ────────────────────────────────────────

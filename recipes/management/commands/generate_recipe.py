@@ -212,36 +212,22 @@ def _sanitise_image_subject(title: str, alt_text: str) -> str:
     return subject[:300]
 
 
-def _generate_image(title: str, short_description: str, alt_text: str = "") -> tuple[bytes, str]:
+def fetch_image_bytes(prompt: str) -> bytes:
+    """Call OpenAI image API with the given prompt and return raw image bytes."""
     api_key = getattr(settings, "OPENAI_API_KEY", "")
     if not api_key:
         raise CommandError("OPENAI_API_KEY is not configured.")
-    subject = _sanitise_image_subject(title, alt_text)
-    prompt = (
-        f"Professional food photography: {subject}. "
-        "Irish cuisine, natural light, rustic wooden surface, ceramic or white plate, "
-        "appetising close-up presentation. No text, no watermarks, no people, no brand names or logos."
-    )
     model = getattr(settings, "OPENAI_IMAGE_MODEL", "gpt-image-1")
     quality = getattr(settings, "OPENAI_IMAGE_QUALITY", "low")
-    payload = {
-        "model": model,
-        "prompt": prompt,
-        "n": 1,
-        "size": "1024x1024",
-        "quality": quality,
-    }
-    request = Request(
+    payload = {"model": model, "prompt": prompt, "n": 1, "size": "1024x1024", "quality": quality}
+    req = Request(
         "https://api.openai.com/v1/images/generations",
         data=json.dumps(payload).encode("utf-8"),
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}",
-        },
+        headers={"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"},
         method="POST",
     )
     try:
-        with urlopen(request, timeout=120) as response:
+        with urlopen(req, timeout=120) as response:
             body = response.read().decode("utf-8")
     except HTTPError as exc:
         body = exc.read().decode("utf-8")
@@ -251,13 +237,22 @@ def _generate_image(title: str, short_description: str, alt_text: str = "") -> t
     parsed = json.loads(body)
     image_entry = parsed["data"][0]
     if "b64_json" in image_entry:
-        image_bytes = base64.b64decode(image_entry["b64_json"])
-    else:
-        image_url = image_entry["url"]
-        with urlopen(image_url, timeout=30) as img_response:
-            image_bytes = img_response.read()
-    alt_text = f"{title}, served and photographed"
-    return image_bytes, alt_text
+        return base64.b64decode(image_entry["b64_json"])
+    image_url = image_entry["url"]
+    with urlopen(image_url, timeout=30) as img_response:
+        return img_response.read()
+
+
+def _generate_image(title: str, short_description: str, alt_text: str = "", feedback: str = "") -> tuple[bytes, str]:
+    subject = _sanitise_image_subject(title, alt_text)
+    prompt = (
+        f"Professional food photography: {subject}. "
+        "Irish cuisine, natural light, rustic wooden surface, ceramic or white plate, "
+        "appetising close-up presentation. No text, no watermarks, no people, no brand names or logos."
+    )
+    if feedback:
+        prompt += f" Important: {feedback}."
+    return fetch_image_bytes(prompt), f"{title}, served and photographed"
 
 
 def _pick_key_steps(method_text: str, max_steps: int = 3) -> list[tuple[int, str]]:
@@ -285,35 +280,9 @@ def _generate_step_photos(recipe: Recipe, method_text: str) -> list[RecipeImage]
             "Irish cuisine, natural lighting, rustic kitchen setting. "
             "No text, no watermarks, no people, no brand names or logos."
         )
-        payload = {
-            "model": getattr(settings, "OPENAI_IMAGE_MODEL", "gpt-image-1"),
-            "prompt": prompt,
-            "n": 1,
-            "size": "1024x1024",
-            "quality": getattr(settings, "OPENAI_IMAGE_QUALITY", "low"),
-        }
-        api_key = getattr(settings, "OPENAI_API_KEY", "")
-        request = Request(
-            "https://api.openai.com/v1/images/generations",
-            data=json.dumps(payload).encode("utf-8"),
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {api_key}",
-            },
-            method="POST",
-        )
         try:
-            with urlopen(request, timeout=120) as response:
-                body = response.read().decode("utf-8")
-            parsed = json.loads(body)
-            image_entry = parsed["data"][0]
-            if "b64_json" in image_entry:
-                image_bytes = base64.b64decode(image_entry["b64_json"])
-            else:
-                image_url = image_entry["url"]
-                with urlopen(image_url, timeout=30) as img_response:
-                    image_bytes = img_response.read()
-        except (HTTPError, URLError) as exc:
+            image_bytes = fetch_image_bytes(prompt)
+        except (CommandError, Exception) as exc:
             logger.warning("generate_recipe: step photo failed for step %d of %r: %s", step_num, recipe.title, exc)
             continue
         img = RecipeImage(recipe=recipe, sort_order=gallery_pos, alt_text="", caption=f"Step {step_num}")

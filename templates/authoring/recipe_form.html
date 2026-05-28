@@ -81,7 +81,14 @@
                         <div class="authoring-step-existing-list">
                             <div class="authoring-step-existing-item">
                                 <span class="authoring-step-badge">Current</span>
-                                <img alt="Current recipe image" class="authoring-step-thumb" src="{{ recipe.hero_image.url }}">
+                                <img alt="Current recipe image" class="authoring-step-thumb" id="regen-thumb-hero" src="{{ recipe.hero_image.url }}">
+                                {% if has_openai %}
+                                <button class="authoring-step-regen" type="button"
+                                        data-regen-url="{% url 'recipes:recipe_regenerate_image' recipe.slug %}"
+                                        data-image-type="hero"
+                                        data-thumb-id="regen-thumb-hero"
+                                        data-label="hero image">&#8635; Regenerate</button>
+                                {% endif %}
                             </div>
                         </div>
                         {% endif %}
@@ -102,10 +109,19 @@
                         {% if form_mode == "edit" and existing_gallery_images %}
                         <div class="authoring-step-existing-list">
                             {% for img in existing_gallery_images %}
-                            <div class="authoring-step-existing-item">
-                                <span class="authoring-step-badge">Step {{ forloop.counter }}</span>
-                                <img alt="Step {{ forloop.counter }}" class="authoring-step-thumb" src="{{ img.image.url }}">
+                            <div class="authoring-step-existing-item" data-gallery-card draggable="true">
+                                <input name="recipe_gallery_image_order" type="hidden" value="{{ img.pk }}">
+                                <span class="authoring-step-badge" data-gallery-badge>Step {{ forloop.counter }}</span>
+                                <img alt="Step {{ forloop.counter }}" class="authoring-step-thumb" id="regen-thumb-{{ img.pk }}" src="{{ img.image.url }}">
                                 <button aria-label="Delete step {{ forloop.counter }} image" class="authoring-step-delete" form="delete-recipe-gallery-image-{{ img.pk }}" onclick="return confirm('Delete this gallery image?')" type="submit">&times;</button>
+                                {% if has_openai %}
+                                <button class="authoring-step-regen" type="button"
+                                        data-regen-url="{% url 'recipes:recipe_regenerate_image' recipe.slug %}"
+                                        data-image-type="step"
+                                        data-image-id="{{ img.pk }}"
+                                        data-thumb-id="regen-thumb-{{ img.pk }}"
+                                        data-label="Step {{ forloop.counter }}">&#8635; Regenerate</button>
+                                {% endif %}
                             </div>
                             {% endfor %}
                         </div>
@@ -114,9 +130,10 @@
 
                         <div class="authoring-steps" id="authoring-steps">
                             {% for row in gallery_step_rows %}
-                            <div class="authoring-step-row">
+                            <div class="authoring-step-row" data-step-row draggable="true">
                                 <label class="authoring-step-label" for="id_gallery_step_{{ row.step }}">Step {{ row.step }}:</label>
                                 <input accept=".jpg,.jpeg,.png,.webp" class="authoring-control" id="id_gallery_step_{{ row.step }}" name="gallery_step_{{ row.step }}" type="file">
+                                <img alt="" class="authoring-step-upload-preview" data-step-preview hidden>
                                 <label class="authoring-step-alt-label" for="id_gallery_step_{{ row.step }}_alt">Alt text</label>
                                 <input class="authoring-control authoring-control--compact" id="id_gallery_step_{{ row.step }}_alt" name="gallery_step_{{ row.step }}_alt" placeholder="Describe this image" type="text" value="{% if row.image %}{{ row.image.alt_text }}{% endif %}">
                             </div>
@@ -339,6 +356,24 @@
         {% endif %}
     </div>
 </section>
+
+<div aria-modal="true" class="regen-modal" id="regen-modal" role="dialog" style="display:none">
+    <div class="regen-modal__backdrop"></div>
+    <div class="regen-modal__box">
+        <button aria-label="Close" class="regen-modal__close" id="regen-modal-close" type="button">&times;</button>
+        <h2 class="regen-modal__title">Regenerate <span id="regen-modal-label"></span></h2>
+        <p class="regen-modal__hint">Describe what you want changed. Leave blank to regenerate with the original prompt.</p>
+        <textarea class="regen-modal__feedback" id="regen-modal-feedback" maxlength="500" placeholder="e.g. Make it more rustic, warmer tones, overhead angle..."></textarea>
+        <div class="regen-modal__error" id="regen-modal-error" role="alert" style="display:none"></div>
+        <div class="regen-modal__actions">
+            <button class="authoring-link" id="regen-modal-cancel" type="button">Cancel</button>
+            <button class="authoring-submit" id="regen-modal-submit" type="button">Generate</button>
+        </div>
+        <div class="regen-modal__loading" id="regen-modal-loading" style="display:none">
+            <span class="regen-modal__spinner"></span> Generating image, please wait...
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -377,18 +412,226 @@
     if (!container || !btn) return;
     var stepCount = container.querySelectorAll('.authoring-step-row').length;
     var maxSteps = 20;
+
+    function updateStepRows() {
+        Array.prototype.forEach.call(container.querySelectorAll('[data-step-row]'), function (row, index) {
+            var step = index + 1;
+            var fileInput = row.querySelector('input[type="file"]');
+            var fileLabel = row.querySelector('.authoring-step-label');
+            var altInput = row.querySelector('input[type="text"]');
+            var altLabel = row.querySelector('.authoring-step-alt-label');
+
+            if (fileInput) {
+                fileInput.id = 'id_gallery_step_' + step;
+                fileInput.name = 'gallery_step_' + step;
+            }
+            if (fileLabel) {
+                fileLabel.setAttribute('for', 'id_gallery_step_' + step);
+                fileLabel.textContent = 'Step ' + step + ':';
+            }
+            if (altInput) {
+                altInput.id = 'id_gallery_step_' + step + '_alt';
+                altInput.name = 'gallery_step_' + step + '_alt';
+            }
+            if (altLabel) {
+                altLabel.setAttribute('for', 'id_gallery_step_' + step + '_alt');
+            }
+        });
+    }
+
+    function attachPreview(row) {
+        var fileInput = row.querySelector('input[type="file"]');
+        var preview = row.querySelector('[data-step-preview]');
+        if (!fileInput || !preview) return;
+        fileInput.addEventListener('change', function () {
+            var file = fileInput.files && fileInput.files[0];
+            if (!file || !file.type || file.type.indexOf('image/') !== 0) {
+                preview.hidden = true;
+                preview.removeAttribute('src');
+                return;
+            }
+            if (preview.dataset.objectUrl) {
+                URL.revokeObjectURL(preview.dataset.objectUrl);
+            }
+            var objectUrl = URL.createObjectURL(file);
+            preview.dataset.objectUrl = objectUrl;
+            preview.src = objectUrl;
+            preview.hidden = false;
+        });
+    }
+
+    function enableStepDrag(row) {
+        row.addEventListener('dragstart', function (event) {
+            row.classList.add('authoring-step-row--dragging');
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', '');
+        });
+        row.addEventListener('dragend', function () {
+            row.classList.remove('authoring-step-row--dragging');
+            updateStepRows();
+        });
+        row.addEventListener('dragover', function (event) {
+            var dragging = container.querySelector('.authoring-step-row--dragging');
+            if (!dragging || dragging === row) return;
+            event.preventDefault();
+            var rect = row.getBoundingClientRect();
+            var insertAfter = event.clientY > rect.top + rect.height / 2;
+            container.insertBefore(dragging, insertAfter ? row.nextSibling : row);
+        });
+        row.addEventListener('drop', function (event) {
+            event.preventDefault();
+            updateStepRows();
+        });
+    }
+
+    Array.prototype.forEach.call(container.querySelectorAll('[data-step-row]'), function (row) {
+        attachPreview(row);
+        enableStepDrag(row);
+    });
+
     btn.addEventListener('click', function () {
         if (stepCount >= maxSteps) return;
         stepCount++;
         var row = document.createElement('div');
         row.className = 'authoring-step-row';
+        row.draggable = true;
+        row.setAttribute('data-step-row', '');
         row.innerHTML =
             '<label class="authoring-step-label" for="id_gallery_step_' + stepCount + '">Step ' + stepCount + ':</label>' +
             '<input accept=".jpg,.jpeg,.png,.webp" class="authoring-control" id="id_gallery_step_' + stepCount + '" name="gallery_step_' + stepCount + '" type="file">' +
+            '<img alt="" class="authoring-step-upload-preview" data-step-preview hidden>' +
             '<label class="authoring-step-alt-label" for="id_gallery_step_' + stepCount + '_alt">Alt text</label>' +
             '<input class="authoring-control authoring-control--compact" id="id_gallery_step_' + stepCount + '_alt" name="gallery_step_' + stepCount + '_alt" placeholder="Describe this image" type="text">';
         container.appendChild(row);
+        attachPreview(row);
+        enableStepDrag(row);
+        updateStepRows();
         if (stepCount >= maxSteps) btn.style.display = 'none';
+    });
+})();
+</script>
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+    document.querySelectorAll('.authoring-step-existing-list').forEach(function (list) {
+        var cards = Array.prototype.slice.call(list.querySelectorAll('[data-gallery-card]'));
+        if (!cards.length) return;
+        var draggedCard = null;
+
+        function refreshBadges() {
+            Array.prototype.forEach.call(list.querySelectorAll('[data-gallery-badge]'), function (badge, index) {
+                badge.textContent = 'Step ' + (index + 1);
+            });
+        }
+
+        cards.forEach(function (card) {
+            card.addEventListener('dragstart', function (event) {
+                draggedCard = card;
+                card.classList.add('authoring-step-existing-item--dragging');
+                event.dataTransfer.effectAllowed = 'move';
+                event.dataTransfer.setData('text/plain', '');
+            });
+            card.addEventListener('dragend', function () {
+                card.classList.remove('authoring-step-existing-item--dragging');
+                draggedCard = null;
+                refreshBadges();
+            });
+            card.addEventListener('dragover', function (event) {
+                event.preventDefault();
+                if (!draggedCard || draggedCard === card) return;
+                var rect = card.getBoundingClientRect();
+                var insertAfter = event.clientX > rect.left + rect.width / 2;
+                list.insertBefore(draggedCard, insertAfter ? card.nextSibling : card);
+            });
+            card.addEventListener('drop', function (event) {
+                event.preventDefault();
+                refreshBadges();
+            });
+        });
+    });
+})();
+</script>
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+    var modal = document.getElementById('regen-modal');
+    if (!modal) return;
+
+    var labelEl   = document.getElementById('regen-modal-label');
+    var feedback  = document.getElementById('regen-modal-feedback');
+    var errorEl   = document.getElementById('regen-modal-error');
+    var loading   = document.getElementById('regen-modal-loading');
+    var submitBtn = document.getElementById('regen-modal-submit');
+    var activeBtn = null;
+
+    function openModal(btn) {
+        activeBtn = btn;
+        labelEl.textContent = btn.dataset.label || 'image';
+        feedback.value = '';
+        errorEl.style.display = 'none';
+        loading.style.display = 'none';
+        submitBtn.disabled = false;
+        modal.style.display = 'flex';
+        feedback.focus();
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+        activeBtn = null;
+    }
+
+    document.querySelectorAll('.authoring-step-regen').forEach(function (btn) {
+        btn.addEventListener('click', function () { openModal(btn); });
+    });
+
+    document.getElementById('regen-modal-close').addEventListener('click', closeModal);
+    document.getElementById('regen-modal-cancel').addEventListener('click', closeModal);
+    modal.querySelector('.regen-modal__backdrop').addEventListener('click', closeModal);
+
+    document.getElementById('regen-modal-submit').addEventListener('click', function () {
+        if (!activeBtn) return;
+        var url      = activeBtn.dataset.regenUrl;
+        var thumbId  = activeBtn.dataset.thumbId;
+        var imgType  = activeBtn.dataset.imageType;
+        var imgId    = activeBtn.dataset.imageId || '';
+        var fb       = feedback.value.trim();
+
+        errorEl.style.display = 'none';
+        loading.style.display = 'block';
+        submitBtn.disabled = true;
+
+        var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        var body = new URLSearchParams({ image_type: imgType, feedback: fb });
+        if (imgId) body.append('image_id', imgId);
+
+        fetch(url, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken, 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body.toString()
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            loading.style.display = 'none';
+            if (data.success) {
+                var thumb = document.getElementById(thumbId);
+                if (thumb) {
+                    thumb.src = data.url + '?t=' + Date.now();
+                }
+                closeModal();
+            } else {
+                errorEl.textContent = data.error || 'Generation failed. Please try again.';
+                errorEl.style.display = 'block';
+                submitBtn.disabled = false;
+            }
+        })
+        .catch(function () {
+            loading.style.display = 'none';
+            errorEl.textContent = 'Network error. Please try again.';
+            errorEl.style.display = 'block';
+            submitBtn.disabled = false;
+        });
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && modal.style.display !== 'none') closeModal();
     });
 })();
 </script>

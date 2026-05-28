@@ -1105,3 +1105,123 @@ textarea.authoring-control {
   color: rgb(31 44 37 / 0.62);
   font-size: 0.88rem;
 }
+
+/* ── Regenerate image button ── */
+.authoring-step-regen {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  margin-top: 0.4rem;
+  padding: 0.25rem 0.65rem;
+  background: transparent;
+  border: 1px solid var(--ink-soft, #6b7c6e);
+  border-radius: 4px;
+  color: var(--ink-soft, #6b7c6e);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.authoring-step-regen:hover {
+  background: var(--ink-soft, #6b7c6e);
+  color: #fff;
+  border-color: transparent;
+}
+
+/* ── Regenerate modal ── */
+.regen-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.regen-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 0.45);
+}
+.regen-modal__box {
+  position: relative;
+  z-index: 1;
+  width: min(480px, 92vw);
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.75rem 1.5rem 1.5rem;
+  box-shadow: 0 8px 32px rgb(0 0 0 / 0.18);
+}
+.regen-modal__close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.9rem;
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--ink-soft, #6b7c6e);
+}
+.regen-modal__close:hover { color: #000; }
+.regen-modal__title {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.regen-modal__hint {
+  margin: 0 0 0.9rem;
+  font-size: 0.85rem;
+  color: var(--ink-soft, #6b7c6e);
+}
+.regen-modal__feedback {
+  display: block;
+  width: 100%;
+  min-height: 80px;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid #c8d4ca;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  resize: vertical;
+  box-sizing: border-box;
+}
+.regen-modal__feedback:focus {
+  outline: none;
+  border-color: var(--accent, #3a6b4a);
+  box-shadow: 0 0 0 2px rgb(58 107 74 / 0.18);
+}
+.regen-modal__error {
+  margin-top: 0.6rem;
+  padding: 0.45rem 0.7rem;
+  background: #fdf2f2;
+  border: 1px solid #e8b4b4;
+  border-radius: 4px;
+  color: #7a332c;
+  font-size: 0.85rem;
+}
+.regen-modal__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.regen-modal__loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+  font-size: 0.88rem;
+  color: var(--ink-soft, #6b7c6e);
+}
+.regen-modal__spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: regen-spin 0.7s linear infinite;
+}
+@keyframes regen-spin {
+  to { transform: rotate(360deg); }
+}

@@ -28,6 +28,7 @@ urlpatterns = [
     path("<slug:slug>/comment/", views.submit_recipe_comment, name="submit_recipe_comment"),
     path("comment/<int:comment_id>/reply/", views.add_comment_reply, name="add_comment_reply"),
     path("gallery/<int:image_id>/delete/", views.delete_recipe_gallery_image, name="delete_gallery_image"),
+    path("<slug:slug>/regenerate-image/", views.recipe_regenerate_image, name="recipe_regenerate_image"),
     path("comment/<int:comment_id>/delete/", views.delete_recipe_comment, name="delete_recipe_comment"),
     path("<slug:slug>/comments/delete-all/", views.delete_all_recipe_comments, name="delete_all_recipe_comments"),
     path("<slug:slug>/", views.recipe_detail, name="recipe_detail"),
