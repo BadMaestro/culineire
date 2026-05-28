@@ -175,7 +175,7 @@
     var pollId     = null;
     var POLL_INTERVAL   = 5000;
     var ESTIMATED_MS    = 90000;  // 90s — progress bar fills over this
-    var MAX_WAIT_MS     = 720000; // 12 min — show fallback link after this
+    var MAX_WAIT_MS     = 300000; // 5 min — show fallback link after this
     var fallbackLink    = document.getElementById('gen-fallback-link');
 
     function pad(n) { return n < 10 ? '0' + n : '' + n; }
