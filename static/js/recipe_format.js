@@ -148,6 +148,27 @@
         setStatus(statusEl, 'Applied. Review the fields above before submitting.', false);
       });
     }
+
+    // ── Auto-clean on edit page load ────────────────────────────────────────
+    if (panel.dataset.autoClean === 'true' && cleanBtn) {
+      setStatus(statusEl, 'Auto-cleaning on load...', false);
+      cleanBtn.disabled = true;
+
+      postJson(suggestUrl, collectFields(), getCsrf())
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          staged = data;
+          if (applyBtn) applyBtn.hidden = false;
+          if (previewPane) previewPane.hidden = true;
+          setStatus(statusEl, 'Text cleaned automatically. Click Apply to use it, or Preview to review.', false);
+        })
+        .catch(function () {
+          setStatus(statusEl, 'Auto-clean failed. Use the button to retry.', true);
+        })
+        .finally(function () {
+          cleanBtn.disabled = false;
+        });
+    }
   }
 
   if (document.readyState === 'loading') {

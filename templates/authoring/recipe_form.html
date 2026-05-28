@@ -257,7 +257,8 @@
                         <div class="editorial-tools editorial-tools--recipe"
                              id="recipe-format-panel"
                              data-suggest-url="{% url 'recipes:recipe_format_suggest' %}"
-                             data-preview-url="{% url 'recipes:recipe_format_preview' %}">
+                             data-preview-url="{% url 'recipes:recipe_format_preview' %}"
+                             {% if form_mode == "edit" %}data-auto-clean="true"{% endif %}>
                             <p class="editorial-tools__title">Recipe Formatting Tools</p>
                             <div class="editorial-tools__actions">
                                 <button class="editorial-tools__btn" id="rf-clean-btn" type="button">Clean Recipe Text</button>
