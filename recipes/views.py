@@ -1420,17 +1420,17 @@ def moderation_panel(request):
 
     pending_recipes = (
         Recipe.objects.select_related("author", "author__user")
-        .filter(status=Recipe.Status.PENDING)
+        .filter(status=Recipe.Status.PENDING, is_deleted=False)
         .order_by("-created_at")
     )
     needs_changes_recipes = (
         Recipe.objects.select_related("author", "author__user", "moderated_by")
-        .filter(status=Recipe.Status.NEEDS_CHANGES)
+        .filter(status=Recipe.Status.NEEDS_CHANGES, is_deleted=False)
         .order_by("-moderated_at", "-created_at")
     )
     rejected_recipes = (
         Recipe.objects.select_related("author", "author__user", "moderated_by")
-        .filter(status=Recipe.Status.REJECTED)
+        .filter(status=Recipe.Status.REJECTED, is_deleted=False)
         .order_by("-created_at")
     )
     pending_articles = (
@@ -1504,6 +1504,48 @@ def moderation_panel(request):
         "maintenance_web_active": maintenance_web_active,
         "maintenance_until_str": maintenance_until_str,
         "maintenance_env_active": getattr(settings, "MAINTENANCE_MODE", False),
+    })
+
+
+def generate_recipe_view(request):
+    if not is_moderator(request.user):
+        raise Http404
+
+    if request.method == "POST":
+        dish_name = request.POST.get("dish_name", "").strip()
+        author_slug = request.POST.get("author_slug", "crestedten").strip()
+        status = request.POST.get("status", Recipe.Status.PENDING)
+        no_image = request.POST.get("no_image") == "1"
+
+        if not dish_name:
+            messages.error(request, "Dish name is required.")
+            return redirect("recipes:generate_recipe")
+
+        if status not in (Recipe.Status.DRAFT, Recipe.Status.PENDING):
+            status = Recipe.Status.PENDING
+
+        import threading
+        from django.core.management import call_command
+
+        def _run():
+            try:
+                kwargs = {"author_slug": author_slug, "status": status, "no_image": no_image, "dry_run": False, "limit": 0, "batch": None}
+                call_command("generate_recipe", dish_name, **kwargs)
+            except Exception:
+                pass
+
+        threading.Thread(target=_run, daemon=True).start()
+        messages.success(request, f'Generation started for "{dish_name}". Check the pending queue in a couple of minutes.')
+        return redirect("recipes:moderation_panel")
+
+    authors = RecipeAuthor.objects.filter(user__isnull=False).order_by("name")
+    return render(request, "moderation/generate_recipe.html", {
+        "authors": authors,
+        "default_author_slug": "crestedten",
+        "status_choices": [
+            (Recipe.Status.PENDING, "Pending — goes to moderation queue"),
+            (Recipe.Status.DRAFT, "Draft — saved privately, not visible"),
+        ],
     })
 
 

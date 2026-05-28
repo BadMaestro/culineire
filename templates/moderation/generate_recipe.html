@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Generate Recipe | CulinEire{% endblock %}
+{% block meta_description %}AI recipe generation settings.{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+<link href="{% static 'css/moderation.css' %}" rel="stylesheet">
+<link href="{% static 'css/authoring.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="page-section authoring-page">
+    <div class="container authoring-shell">
+        <a class="mon-back-link" href="{% url 'recipes:moderation_panel' %}">Back to Moderation Panel</a>
+
+        <div class="authoring-header">
+            <div class="authoring-header__copy">
+                <span class="eyebrow">AI Generation</span>
+                <h1>Generate Recipe</h1>
+                <p class="authoring-intro">Configure parameters and start AI recipe generation. The recipe will appear in the pending queue when ready.</p>
+            </div>
+        </div>
+
+        {% if messages %}
+        {% for message in messages %}
+        <div class="authoring-warning" role="status">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+
+        <form action="{% url 'recipes:generate_recipe' %}" class="authoring-form" method="post">
+            {% csrf_token %}
+
+            <fieldset class="authoring-section">
+                <legend class="authoring-section__legend">Dish</legend>
+                <div class="authoring-grid">
+                    <div class="authoring-field authoring-field--wide">
+                        <label for="dish_name">Dish name <span class="authoring-required">*</span></label>
+                        <input
+                            autofocus
+                            class="authoring-control"
+                            id="dish_name"
+                            maxlength="200"
+                            name="dish_name"
+                            placeholder="e.g. Irish Beef Stew"
+                            required
+                            type="text"
+                        >
+                        <small class="authoring-help">Use the full dish name as you want the AI to interpret it.</small>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="authoring-section">
+                <legend class="authoring-section__legend">Attribution</legend>
+                <div class="authoring-grid authoring-grid--two">
+                    <div class="authoring-field">
+                        <label for="author_slug">Author</label>
+                        <select class="authoring-control" id="author_slug" name="author_slug">
+                            {% for author in authors %}
+                            <option value="{{ author.slug }}"{% if author.slug == default_author_slug %} selected{% endif %}>
+                                {{ author.name }} ({{ author.slug }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="authoring-field">
+                        <label for="status">Initial status</label>
+                        <select class="authoring-control" id="status" name="status">
+                            {% for value, label in status_choices %}
+                            <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="authoring-section">
+                <legend class="authoring-section__legend">Images</legend>
+                <div class="authoring-grid">
+                    <div class="authoring-field authoring-field--wide">
+                        <ul class="authoring-checkbox-list authoring-checkbox-list--single">
+                            <li>
+                                <label>
+                                    <input name="no_image" type="checkbox" value="1">
+                                    Skip image generation
+                                </label>
+                            </li>
+                        </ul>
+                        <small class="authoring-help">When unchecked, DALL-E 3 generates a hero image and up to 3 step photos. Adds 1-2 minutes to generation time.</small>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="authoring-section authoring-section--actions">
+                <div class="authoring-generate-row">
+                    <button class="authoring-submit" type="submit">
+                        <svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="16" style="margin-right:0.45rem"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                        Generate Recipe
+                    </button>
+                    <p class="authoring-generate-note">Runs in the background. Check the pending queue in 1-2 minutes.</p>
+                </div>
+            </fieldset>
+
+        </form>
+    </div>
+</section>
+{% endblock %}

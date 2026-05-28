@@ -289,7 +289,7 @@ class Recipe(models.Model):
     source_title = models.CharField(max_length=255, blank=True)
     source_author = models.CharField(max_length=255, blank=True)
     source_url = models.URLField(blank=True)
-    source_note = models.CharField(max_length=255, blank=True)
+    source_note = models.TextField(blank=True)
 
     status = models.CharField(
         max_length=20,

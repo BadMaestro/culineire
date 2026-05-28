@@ -143,6 +143,42 @@ def _normalise_recipe_payload(payload: dict, dish_name: str, status: str) -> dic
     }
 
 
+WRITING_RULES = (
+    "VOICE AND AUTHENTICITY: Write as an experienced Irish home cook who has made this dish many times. "
+    "Include specific sensory details: exact taste, texture, smell, appearance. "
+    "Show real kitchen knowledge — techniques, timings, what can go wrong, what to look for. "
+    "Every sentence must earn its place. Cut anything that could apply to any other dish. "
+    "No generic heritage phrases. No unverified historical claims. No invented regional traditions. "
+    "No tourist-brochure tone. No food-blog enthusiasm. No SEO padding. "
+    "The reader must never suspect a machine wrote this. "
+
+    "FORBIDDEN WORDS: never use rich, vibrant, unique, authentic, iconic, beloved, hearty, comforting, "
+    "flavourful, timeless, delightful, wonderful, amazing, incredible, perfect, ultimate, essential. "
+    "FORBIDDEN PHRASES: never use 'culinary journey', 'perfect balance', 'passed down through generations', "
+    "'deeply rooted', 'cultural significance', 'a taste of tradition', 'more than just', "
+    "'not only... but also', 'in conclusion', 'moreover', 'furthermore', 'in addition', "
+    "'plays an important role', 'from past to present', 'this highlights', 'this demonstrates', "
+    "'overall', 'crowd-pleaser', 'comfort food classic', 'quick and easy', 'packed with flavour', "
+    "'bursting with flavour', 'weeknight dinner', 'you'll love this', 'family favourite'. "
+    "FORBIDDEN STRUCTURE: no generic opening sentence, no generic closing sentence, "
+    "no paragraphs that could swap places without loss of meaning. "
+    "FORBIDDEN PUNCTUATION: never use em dash (—), double dash (--), or excessive dashes of any kind. "
+    "Use commas, full stops, brackets, or semicolons instead. "
+
+    "BRITISH/IRISH ENGLISH ONLY: use flavour, colour, centre, organise, analyse, ageing, learnt. "
+    "IRISH/UK CULINARY TERMS ONLY: use coriander (not cilantro), spring onions (not scallions), "
+    "courgette (not zucchini), aubergine (not eggplant), rocket (not arugula), "
+    "beetroot (not beets), minced meat (not ground meat), double cream (not heavy cream), "
+    "plain flour (not all-purpose flour), icing sugar (not powdered sugar), "
+    "baking tray (not baking sheet), frying pan (not skillet), grill (not broil/broiler). "
+    "METRIC MEASUREMENTS ONLY: use grams, ml, Celsius. No cups, ounces, pounds, Fahrenheit. "
+    "No American food-blog tone. No American date format. No American holidays or occasions. "
+    "ALT TEXT: hero_image_alt_text must be short keyword-style tags under 100 characters, "
+    "comma-separated, no full sentences, no verbs, no adjectives like 'delicious' or 'hearty'. "
+    "Example: 'colcannon, Irish mashed potato, spring onions, butter, white bowl'."
+)
+
+
 def _prompt_for_recipe(dish_name: str) -> str:
     categories = ", ".join(choice.value for choice in Recipe.Category)
     allergen_pairs = ", ".join(f"{key} ({label})" for key, label in ALLERGEN_CHOICES)
@@ -151,17 +187,19 @@ def _prompt_for_recipe(dish_name: str) -> str:
         "Return strict JSON only with these keys: "
         "title, short_description, category, additional_categories, difficulty, prep_time_minutes, "
         "cook_time_minutes, servings, calories, ingredients, method, tips, "
-        "irish_context, author_commentary, allergens. "
+        "irish_context, author_commentary, allergens, hero_image_alt_text. "
         f"category must be one of: {categories}. "
         "additional_categories must be an array of other relevant category values from the same list "
         "(do not repeat the primary category, include 2-4 that genuinely apply). "
         "difficulty must be one of: easy, medium, hard. "
         f"allergens must be an array using only these exact keys: {allergen_pairs}. "
         "List every allergen actually present in the recipe ingredients — do not leave it empty. "
-        "ingredients and method must be arrays of strings. "
+        "ingredients must be an array of strings with exact gram/ml quantities. "
+        "method must be an array of strings with precise techniques, temperatures in Celsius, and timings. "
         "Do not reference any real cookbook authors, websites, or external sources. "
         "Do not include image URLs. "
-        "This recipe is an original creation for human review before publishing."
+        "This recipe is an original creation for human review before publishing. "
+        + WRITING_RULES
     )
 
 
@@ -202,7 +240,7 @@ def _generate_image(title: str, short_description: str) -> tuple[bytes, str]:
     image_url = json.loads(body)["data"][0]["url"]
     with urlopen(image_url, timeout=30) as img_response:
         image_bytes = img_response.read()
-    alt_text = f"{title} — traditional Irish recipe"
+    alt_text = f"{title}, served and photographed"
     return image_bytes, alt_text
 
 
@@ -269,7 +307,7 @@ def _call_anthropic(dish_name: str) -> dict:
         raise CommandError("ANTHROPIC_API_KEY is not configured.")
     payload = {
         "model": getattr(settings, "ANTHROPIC_MODEL", "claude-sonnet-4-6"),
-        "max_tokens": 2500,
+        "max_tokens": 4000,
         "messages": [{"role": "user", "content": _prompt_for_recipe(dish_name)}],
     }
     request = Request(
@@ -302,7 +340,7 @@ class Command(BaseCommand):
         parser.add_argument("dish_name", nargs="*", help='Dish name, e.g. "Irish Colcannon".')
         parser.add_argument("--batch", help="Path to a .txt file with one dish name per line.")
         parser.add_argument("--limit", type=int, default=0, help="Maximum batch items to process.")
-        parser.add_argument("--author-slug", default="greenbear", help="RecipeAuthor slug to attach.")
+        parser.add_argument("--author-slug", default="crestedten", help="RecipeAuthor slug to attach.")
         parser.add_argument("--status", choices=[Recipe.Status.DRAFT, Recipe.Status.PENDING], default=Recipe.Status.DRAFT)
         parser.add_argument("--dry-run", action="store_true", help="Call the generator and print normalized data without saving.")
         parser.add_argument("--no-image", action="store_true", help="Skip image generation even if OPENAI_API_KEY is set.")
@@ -320,6 +358,8 @@ class Command(BaseCommand):
         for dish_name in dish_names:
             payload = _call_anthropic(dish_name)
             fields = _normalise_recipe_payload(payload, dish_name, options["status"])
+            from articles.services.editorial_tools import suggest_recipe_fields
+            fields.update(suggest_recipe_fields(fields))
             additional_categories = _map_additional_categories(
                 payload.get("additional_categories"), fields["category"]
             )
@@ -337,9 +377,10 @@ class Command(BaseCommand):
             generate_image = not options.get("no_image") and bool(getattr(settings, "OPENAI_API_KEY", ""))
             if generate_image:
                 try:
-                    image_bytes, alt_text = _generate_image(recipe.title, recipe.short_description)
+                    ai_alt_text = str(payload.get("hero_image_alt_text") or "").strip()[:125]
+                    image_bytes, fallback_alt = _generate_image(recipe.title, recipe.short_description)
                     recipe.hero_image.save(f"cover-{recipe.slug[:40]}.jpg", ContentFile(image_bytes), save=False)
-                    recipe.hero_image_alt_text = alt_text
+                    recipe.hero_image_alt_text = ai_alt_text or fallback_alt
                     recipe.image_rights_status = Recipe.ImageRightsStatus.AI_GENERATED
                     recipe.image_rights_note = "AI-generated image via DALL-E 3."
                     recipe.save(update_fields=["hero_image", "hero_image_alt_text", "image_rights_status", "image_rights_note"])
