@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import json
 import logging
+import time
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -107,7 +108,8 @@ def _unique_slug(title: str) -> str:
     base = slugify(title)[:210].strip("-") or "recipe"
     slug = base
     counter = 2
-    while Recipe.objects.filter(slug=slug).exists():
+    # Exclude soft-deleted recipes so their slugs can be reused.
+    while Recipe.objects.filter(slug=slug, is_deleted=False).exists():
         suffix = f"-{counter}"
         slug = f"{base[:220 - len(suffix)]}{suffix}"
         counter += 1
@@ -287,19 +289,30 @@ def _call_visual_planner(fields: dict) -> dict:
         },
         method="POST",
     )
-    try:
-        with urlopen(request, timeout=45) as response:
-            body = response.read().decode("utf-8", errors="replace")
-        parsed = json.loads(body)
-        text = "\n".join(
-            block.get("text", "")
-            for block in parsed.get("content", [])
-            if block.get("type") == "text"
-        )
-        return _extract_json(text)
-    except Exception as exc:
-        logger.warning("generate_recipe: visual planner failed: %s — falling back to legacy prompts", exc)
-        return {}
+    last_exc: Exception | None = None
+    for attempt in range(1, 3):  # up to 2 attempts (planner is optional — fail fast)
+        try:
+            with urlopen(request, timeout=60) as response:
+                body = response.read().decode("utf-8", errors="replace")
+            parsed = json.loads(body)
+            text = "\n".join(
+                block.get("text", "")
+                for block in parsed.get("content", [])
+                if block.get("type") == "text"
+            )
+            return _extract_json(text)
+        except HTTPError:
+            raise  # re-raise HTTP errors immediately
+        except (URLError, OSError) as exc:
+            last_exc = exc
+            if attempt < 2:
+                logger.warning("generate_recipe: visual planner attempt %d timed out — retrying in 3s", attempt)
+                time.sleep(3)
+        except Exception as exc:
+            logger.warning("generate_recipe: visual planner failed: %s — falling back to legacy prompts", exc)
+            return {}
+    logger.warning("generate_recipe: visual planner failed after retries (%s) — falling back to legacy prompts", last_exc)
+    return {}
 
 
 def _build_hero_prompt(title: str, plan: dict, feedback: str = "") -> str:
@@ -409,15 +422,20 @@ def fetch_image_bytes(prompt: str) -> bytes:
     except HTTPError as exc:
         body = exc.read().decode("utf-8")
         raise CommandError(f"OpenAI API returned HTTP {exc.code}: {body}") from exc
-    except URLError as exc:
+    except (URLError, OSError) as exc:
+        # OSError covers TimeoutError/socket.timeout which Python 3.12 does not
+        # always wrap inside URLError when raised from the SSL layer.
         raise CommandError(f"OpenAI image request failed: {exc}") from exc
     parsed = json.loads(body)
     image_entry = parsed["data"][0]
     if "b64_json" in image_entry:
         return base64.b64decode(image_entry["b64_json"])
     image_url = image_entry["url"]
-    with urlopen(image_url, timeout=30) as img_response:
-        return img_response.read()
+    try:
+        with urlopen(image_url, timeout=30) as img_response:
+            return img_response.read()
+    except (URLError, OSError) as exc:
+        raise CommandError(f"OpenAI image download failed: {exc}") from exc
 
 
 def _generate_image(title: str, short_description: str, alt_text: str = "", feedback: str = "") -> tuple[bytes, str]:
@@ -477,7 +495,6 @@ def _generate_step_photos(recipe: Recipe, method_text: str) -> list[RecipeImage]
 
 
 def _call_anthropic(dish_name: str) -> dict:
-    import time as _time
     api_key = getattr(settings, "ANTHROPIC_API_KEY", "")
     if not api_key:
         raise CommandError("ANTHROPIC_API_KEY is not configured.")
@@ -513,7 +530,7 @@ def _call_anthropic(dish_name: str) -> dict:
                     "generate_recipe: _call_anthropic attempt %d failed (%s) — retrying in 5s",
                     attempt, exc,
                 )
-                _time.sleep(5)
+                time.sleep(5)
             else:
                 raise CommandError(
                     f"Anthropic API request failed after 3 attempts: {exc}"
@@ -541,6 +558,11 @@ class Command(BaseCommand):
             raise CommandError("Provide a dish name or --batch file.")
 
         try:
+            from articles.services.editorial_tools import suggest_recipe_fields
+        except ImportError:
+            suggest_recipe_fields = lambda f: {}  # noqa: E731
+
+        try:
             author = RecipeAuthor.objects.get(slug=options["author_slug"])
         except RecipeAuthor.DoesNotExist as exc:
             raise CommandError(f'RecipeAuthor with slug "{options["author_slug"]}" not found.') from exc
@@ -548,7 +570,6 @@ class Command(BaseCommand):
         for dish_name in dish_names:
             payload = _call_anthropic(dish_name)
             fields = _normalise_recipe_payload(payload, dish_name, options["status"])
-            from articles.services.editorial_tools import suggest_recipe_fields
             fields.update(suggest_recipe_fields(fields))
             additional_categories = _map_additional_categories(
                 payload.get("additional_categories"), fields["category"]
