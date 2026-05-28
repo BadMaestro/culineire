@@ -121,16 +121,19 @@
                 {% endif %}
                 <span aria-hidden="true" class="ce-nav__separator"></span>
                 {% if chef_battle_enabled %}
+                {% url 'chef_battle:home' as chef_battle_url %}
+                {% if chef_battle_url %}
+                <span aria-hidden="true" class="ce-nav__separator"></span>
                 {% if namespace == 'chef_battle' %}
-                <a class="ce-nav__link ce-nav__link--active" href="{% url 'chef_battle:home' %}" aria-current="page">
+                <a class="ce-nav__link ce-nav__link--active" href="{{ chef_battle_url }}" aria-current="page">
                     Chef Battle
                 </a>
                 {% else %}
-                <a class="ce-nav__link" href="{% url 'chef_battle:home' %}">
+                <a class="ce-nav__link" href="{{ chef_battle_url }}">
                     Chef Battle
                 </a>
                 {% endif %}
-                <span aria-hidden="true" class="ce-nav__separator"></span>
+                {% endif %}
                 {% endif %}
                 {% if namespace == 'newsfeed' %}
                 <a class="ce-nav__link ce-nav__link--active" href="{% url 'newsfeed:feed' %}" aria-current="page">
@@ -273,7 +276,7 @@
         <p class="footer-inner__meta">&copy; 2026 Bearcave Limited. All rights reserved.</p>
         <p class="footer-inner__meta">CulinEire&trade; is a culinary platform and brand developed and operated by Bearcave Limited.</p>
         <p class="footer-inner__meta">CulinEire Kitchen is part of the Bearcave Limited culinary platform.</p>
-        <p class="footer-inner__meta">Version 1.5.62</p>
+        <p class="footer-inner__meta">Version 1.5.63</p>
         <nav aria-label="Footer" class="footer-inner__links">
             <a href="{% url 'about' %}">About</a>
             <span aria-hidden="true">/</span>
