@@ -146,11 +146,11 @@
                     <a class="mod-btn mod-btn--edit" href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit</a>
                     <button class="mod-btn mod-btn--reject" data-reject-url="{% url 'recipes:moderate_recipe' recipe.slug %}" data-reject-title="{{ recipe.title|truncatechars:40 }}" type="button">Reject</button>
                     <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
-                        <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
+                        <input name="action" type="hidden" value="delete">
+                        <button class="mod-btn mod-btn--delete" data-delete-title="{{ recipe.title|truncatechars:40 }}" type="button">Delete</button>
                     </form>
                     <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
-                        <button class="mod-btn mod-btn--delete" name="action" onclick="return confirm('Permanently delete this recipe?')" type="submit"
-                            value="delete">Delete</button>
+                        <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
                     </form>
                 </div>
             </div>
@@ -178,11 +178,11 @@
                     <a class="mod-btn mod-btn--view" href="{{ recipe.get_absolute_url }}" target="_blank">View</a>
                     <a class="mod-btn mod-btn--edit" href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit</a>
                     <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
-                        <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
+                        <input name="action" type="hidden" value="delete">
+                        <button class="mod-btn mod-btn--delete" data-delete-title="{{ recipe.title|truncatechars:40 }}" type="button">Delete</button>
                     </form>
                     <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
-                        <button class="mod-btn mod-btn--delete" name="action" onclick="return confirm('Permanently delete this recipe?')" type="submit"
-                            value="delete">Delete</button>
+                        <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
                     </form>
                 </div>
             </div>
@@ -210,11 +210,11 @@
                     <a class="mod-btn mod-btn--view" href="{{ recipe.get_absolute_url }}" target="_blank">View</a>
                     <a class="mod-btn mod-btn--edit" href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit</a>
                     <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
-                        <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
+                        <input name="action" type="hidden" value="delete">
+                        <button class="mod-btn mod-btn--delete" data-delete-title="{{ recipe.title|truncatechars:40 }}" type="button">Delete</button>
                     </form>
                     <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
-                        <button class="mod-btn mod-btn--delete" name="action" onclick="return confirm('Permanently delete this recipe?')" type="submit"
-                            value="delete">Delete</button>
+                        <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
                     </form>
                 </div>
             </div>
@@ -252,11 +252,11 @@
                     <a class="mod-btn mod-btn--edit" href="{% url 'articles:article_edit' article.slug %}">Edit</a>
                     <button class="mod-btn mod-btn--reject" data-reject-url="{% url 'articles:moderate_article' article.slug %}" data-reject-title="{{ article.title|truncatechars:40 }}" type="button">Reject</button>
                     <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
-                        <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
+                        <input name="action" type="hidden" value="delete">
+                        <button class="mod-btn mod-btn--delete" data-delete-title="{{ article.title|truncatechars:40 }}" type="button">Delete</button>
                     </form>
                     <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
-                        <button class="mod-btn mod-btn--delete" name="action" onclick="return confirm('Permanently delete this article?')" type="submit"
-                            value="delete">Delete</button>
+                        <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
                     </form>
                 </div>
             </div>
@@ -284,11 +284,11 @@
                     <a class="mod-btn mod-btn--view" href="{{ article.get_absolute_url }}" target="_blank">View</a>
                     <a class="mod-btn mod-btn--edit" href="{% url 'articles:article_edit' article.slug %}">Edit</a>
                     <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
-                        <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
+                        <input name="action" type="hidden" value="delete">
+                        <button class="mod-btn mod-btn--delete" data-delete-title="{{ article.title|truncatechars:40 }}" type="button">Delete</button>
                     </form>
                     <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
-                        <button class="mod-btn mod-btn--delete" name="action" onclick="return confirm('Permanently delete this article?')" type="submit"
-                            value="delete">Delete</button>
+                        <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
                     </form>
                 </div>
             </div>
@@ -316,11 +316,11 @@
                     <a class="mod-btn mod-btn--view" href="{{ article.get_absolute_url }}" target="_blank">View</a>
                     <a class="mod-btn mod-btn--edit" href="{% url 'articles:article_edit' article.slug %}">Edit</a>
                     <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
-                        <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
+                        <input name="action" type="hidden" value="delete">
+                        <button class="mod-btn mod-btn--delete" data-delete-title="{{ article.title|truncatechars:40 }}" type="button">Delete</button>
                     </form>
                     <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
-                        <button class="mod-btn mod-btn--delete" name="action" onclick="return confirm('Permanently delete this article?')" type="submit"
-                            value="delete">Delete</button>
+                        <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
                     </form>
                 </div>
             </div>
@@ -612,6 +612,19 @@
 {% block extra_js %}
 <script src="{% static 'js/moderation.js' %}"></script>
 
+<div class="reject-modal" hidden id="delete-modal">
+    <div class="reject-modal__backdrop" id="delete-modal-backdrop"></div>
+    <div class="reject-modal__box" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
+        <button class="reject-modal__close" id="delete-modal-close" type="button" aria-label="Close">&times;</button>
+        <p class="reject-modal__title" id="delete-modal-title">Delete</p>
+        <p class="reject-modal__body" id="delete-modal-body">This will permanently delete the item. This action cannot be undone.</p>
+        <div class="reject-modal__actions">
+            <button class="mod-btn mod-btn--view" id="delete-modal-cancel" type="button">Cancel</button>
+            <button class="mod-btn mod-btn--delete" id="delete-modal-confirm" type="button">Yes, Delete</button>
+        </div>
+    </div>
+</div>
+
 <div class="reject-modal" hidden id="reject-modal">
     <div class="reject-modal__backdrop" id="reject-modal-backdrop"></div>
     <div class="reject-modal__box" role="dialog" aria-modal="true" aria-labelledby="reject-modal-title">
@@ -655,6 +668,40 @@
 
     document.getElementById('reject-modal-close').addEventListener('click', closeModal);
     document.getElementById('reject-modal-backdrop').addEventListener('click', closeModal);
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !modal.hidden) closeModal();
+    });
+}());
+</script>
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+    var modal      = document.getElementById('delete-modal');
+    var titleEl    = document.getElementById('delete-modal-title');
+    var activeForm = null;
+
+    function openModal(btn) {
+        activeForm = btn.closest('form');
+        titleEl.textContent = 'Delete: ' + (btn.dataset.deleteTitle || 'this item');
+        modal.removeAttribute('hidden');
+        document.getElementById('delete-modal-confirm').focus();
+    }
+
+    function closeModal() {
+        modal.setAttribute('hidden', '');
+        activeForm = null;
+    }
+
+    document.querySelectorAll('[data-delete-title]').forEach(function (btn) {
+        btn.addEventListener('click', function () { openModal(btn); });
+    });
+
+    document.getElementById('delete-modal-confirm').addEventListener('click', function () {
+        if (activeForm) activeForm.submit();
+        closeModal();
+    });
+
+    document.getElementById('delete-modal-cancel').addEventListener('click', closeModal);
+    document.getElementById('delete-modal-backdrop').addEventListener('click', closeModal);
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' && !modal.hidden) closeModal();
     });
