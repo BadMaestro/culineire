@@ -159,24 +159,59 @@
 }
 
 /* ── Responsive ── */
-@media (max-width: 680px) {
+@media (max-width: 720px) {
+  .footer-main {
+    padding: 2rem 0 1.5rem;
+  }
+
+  /* Brand spans full width, nav cols sit side-by-side below */
   .footer-main__grid {
     grid-template-columns: 1fr 1fr;
+    gap: 1.75rem 1.5rem;
   }
+
   .footer-brand {
     grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
   }
+
+  .footer-brand__logo {
+    justify-content: center;
+  }
+
   .footer-brand__tagline {
     max-width: none;
   }
-}
 
-@media (max-width: 420px) {
-  .footer-main__grid {
-    grid-template-columns: 1fr;
+  .footer-socials {
+    justify-content: center;
   }
+
+  /* Nav columns: centered headings + links */
+  .footer-col {
+    text-align: center;
+  }
+
+  .footer-col__nav {
+    align-items: center;
+  }
+
+  /* Base strip: stack and centre */
   .footer-base__inner {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
+    text-align: center;
+    gap: 0.4rem;
+  }
+
+  .footer-registration {
+    justify-content: center;
+  }
+
+  .footer-legal {
+    justify-content: center;
   }
 }
