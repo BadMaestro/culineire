@@ -120,7 +120,6 @@
                 </a>
                 {% endif %}
                 <span aria-hidden="true" class="ce-nav__separator"></span>
-                {% if chef_battle_enabled %}
                 {% if namespace == 'chef_battle' %}
                 <a class="ce-nav__link ce-nav__link--active" href="{% url 'chef_battle:home' %}" aria-current="page">
                     Chef Battle
@@ -131,7 +130,6 @@
                 </a>
                 {% endif %}
                 <span aria-hidden="true" class="ce-nav__separator"></span>
-                {% endif %}
                 {% if namespace == 'newsfeed' %}
                 <a class="ce-nav__link ce-nav__link--active" href="{% url 'newsfeed:feed' %}" aria-current="page">
                     News
