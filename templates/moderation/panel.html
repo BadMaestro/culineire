@@ -174,7 +174,7 @@
                         <a href="{{ recipe.get_absolute_url }}">{{ recipe.title }}</a>
                     </h3>
                     {% if recipe.moderation_note %}
-                    <p class="moderation-card__note">{{ recipe.moderation_note }}</p>
+                    <p class="moderation-card__note" title="{{ recipe.moderation_note }}">{{ recipe.moderation_note|truncatechars:120 }}</p>
                     {% if recipe.moderated_by %}
                     <p class="moderation-card__note-meta">by {{ recipe.moderated_by.get_full_name|default:recipe.moderated_by.username }}{% if recipe.moderated_at %} &middot; {{ recipe.moderated_at|date:"j M Y" }}{% endif %}</p>
                     {% endif %}
@@ -206,7 +206,7 @@
                         <a href="{{ recipe.get_absolute_url }}">{{ recipe.title }}</a>
                     </h3>
                     {% if recipe.moderation_note %}
-                    <p class="moderation-card__note">{{ recipe.moderation_note }}</p>
+                    <p class="moderation-card__note" title="{{ recipe.moderation_note }}">{{ recipe.moderation_note|truncatechars:120 }}</p>
                     {% if recipe.moderated_by %}
                     <p class="moderation-card__note-meta">by {{ recipe.moderated_by.get_full_name|default:recipe.moderated_by.username }}{% if recipe.moderated_at %} &middot; {{ recipe.moderated_at|date:"j M Y" }}{% endif %}</p>
                     {% endif %}

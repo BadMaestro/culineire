@@ -90,12 +90,12 @@
                         <a class="author-studio-pending__edit" href="{% url 'recipes:recipe_edit' recipe.slug %}?next={{ request.path }}">Edit</a>
                         {% endif %}
                     </li>
-                    {% if private_dashboard and recipe.moderation_note and recipe.status == 'REJECTED' or private_dashboard and recipe.moderation_note and recipe.status == 'NEEDS_CHANGES' %}
+                    {% if private_dashboard and recipe.moderation_note %}{% if recipe.status == 'rejected' or recipe.status == 'NEEDS_CHANGES' %}
                     <li class="author-studio-pending__note-row" aria-label="Moderation note for {{ recipe.title }}">
                         <span class="author-studio-pending__note-label">Note:</span>
                         <span class="author-studio-pending__note-text">{{ recipe.moderation_note }}</span>
                     </li>
-                    {% endif %}
+                    {% endif %}{% endif %}
                     {% endfor %}
                 </ul>
             </div>
@@ -119,12 +119,12 @@
                         <a class="author-studio-pending__edit" href="{% url 'articles:article_edit' article.slug %}?next={{ request.path }}">Edit</a>
                         {% endif %}
                     </li>
-                    {% if private_dashboard and article.moderation_note and article.status == 'REJECTED' or private_dashboard and article.moderation_note and article.status == 'NEEDS_CHANGES' %}
+                    {% if private_dashboard and article.moderation_note %}{% if article.status == 'rejected' or article.status == 'NEEDS_CHANGES' %}
                     <li class="author-studio-pending__note-row" aria-label="Moderation note for {{ article.title }}">
                         <span class="author-studio-pending__note-label">Note:</span>
                         <span class="author-studio-pending__note-text">{{ article.moderation_note }}</span>
                     </li>
-                    {% endif %}
+                    {% endif %}{% endif %}
                     {% endfor %}
                 </ul>
             </div>
