@@ -1,7 +1,10 @@
 import json
+import logging
 import re
 from pathlib import Path
 from typing import cast
+
+logger = logging.getLogger("recipes")
 
 from django.conf import settings
 from django.core.cache import cache
@@ -1526,13 +1529,17 @@ def generate_recipe_view(request):
 
         import threading
         from django.core.management import call_command
+        from django.db import close_old_connections
 
         def _run():
+            close_old_connections()
             try:
                 kwargs = {"author_slug": author_slug, "status": status, "no_image": no_image, "dry_run": False, "limit": 0, "batch": None}
                 call_command("generate_recipe", dish_name, **kwargs)
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.error("generate_recipe background thread failed for %r: %s", dish_name, exc, exc_info=True)
+            finally:
+                close_old_connections()
 
         threading.Thread(target=_run, daemon=True).start()
         messages.success(request, f'Generation started for "{dish_name}". Check the pending queue in a couple of minutes.')
