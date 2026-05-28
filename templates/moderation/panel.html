@@ -731,6 +731,9 @@
                         sessionStorage.removeItem(STORAGE_KEY);
                     }
                 } catch (e) {}
+                // Unhide the form before submitting — some browsers silently
+                // refuse to submit a display:none form programmatically.
+                form.style.display = '';
                 form.submit();
             }
         }, 1000);
