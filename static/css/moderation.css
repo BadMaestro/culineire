@@ -1668,10 +1668,36 @@
   margin: 0.15rem 0 0;
 }
 
+.mod-reject-details {
+  position: relative;
+}
+
+.mod-reject-details summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.mod-reject-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.mod-reject-details[open] .moderation-card__note-panel {
+  display: grid;
+}
+
 .moderation-card__note-panel {
-  width: 100%;
-  padding: 0.5rem 0 0.25rem;
-  border-top: 1px solid rgb(58 44 30 / 0.1);
+  display: none;
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  z-index: 10;
+  width: 320px;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid rgb(180 40 40 / 0.25);
+  border-radius: 10px;
+  background: #fff8f8;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
 }
 
 .moderation-card__note-panel form {
@@ -1685,7 +1711,7 @@
   padding: 0.55rem 0.72rem;
   border: 1px solid rgb(180 40 40 / 0.3);
   border-radius: 8px;
-  background: rgb(255 248 248 / 0.9);
+  background: #fff;
   color: #1f2c25;
   font: inherit;
   font-size: 0.88rem;
@@ -1701,10 +1727,4 @@
 .mod-note-actions {
   display: flex;
   gap: 0.4rem;
-}
-
-.mod-btn--cancel {
-  background: transparent;
-  color: rgb(31 44 37 / 0.55);
-  border: 1px solid rgb(31 44 37 / 0.15);
 }
