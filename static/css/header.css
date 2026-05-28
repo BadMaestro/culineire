@@ -69,6 +69,12 @@
   aspect-ratio: unset;
 }
 
+.ce-header__logo-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
 .ce-header__logo-text {
   color: #3d2917;
   font-family: var(--font-serif);
@@ -79,9 +85,24 @@
   white-space: nowrap;
 }
 
+.ce-header__logo-slogan {
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-size: clamp(0.58rem, 1.1vw, 0.78rem);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(61 41 23 / 0.5);
+  white-space: nowrap;
+}
+
 .ce-header__logo:hover .ce-header__logo-text,
 .ce-header__logo:focus-visible .ce-header__logo-text {
   color: #1f2c25;
+}
+
+.ce-header__logo:hover .ce-header__logo-slogan,
+.ce-header__logo:focus-visible .ce-header__logo-slogan {
+  color: rgba(61 41 23 / 0.7);
 }
 
 .ce-nav__toggle {

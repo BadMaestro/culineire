@@ -6,7 +6,7 @@
     <meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport">
     <title>{% block title %}CulinEire{% endblock %}</title>
 
-    <meta content="{% block meta_description %}CulinEire is a modern Irish culinary platform for recipes, food stories, and classic dishes adapted for the home kitchen.{% endblock %}"
+    <meta content="{% block meta_description %}Honouring Irish Culinary Heritage. CulinEire is a modern Irish culinary platform for recipes, food stories, and classic dishes adapted for the home kitchen.{% endblock %}"
           name="description">
 
     <meta name="p:domain_verify" content="888ccbb3393d1a0bed26b3f4b3da6246">
@@ -74,7 +74,10 @@
     <div class="container ce-header__inner">
         <a aria-label="Go to homepage" class="ce-header__logo ce-header__logo--full" href="{% url 'home' %}">
             <img alt="CulinEire" src="{% static 'images/logo.png' %}">
-            <span class="ce-header__logo-text">CulinÉire</span>
+            <span class="ce-header__logo-copy">
+                <span class="ce-header__logo-text">CulinÉire</span>
+                <span class="ce-header__logo-slogan">Honouring Irish Culinary Heritage</span>
+            </span>
         </a>
 
         <button
@@ -266,7 +269,7 @@
                     <img alt="" src="{% static 'images/logo.png' %}">
                     <span class="footer-brand__logo-text">CulinÉire</span>
                 </a>
-                <p class="footer-brand__tagline">Irish recipes and food stories, crafted for the home kitchen.</p>
+                <p class="footer-brand__tagline">Honouring Irish Culinary Heritage</p>
                 <div class="footer-socials" aria-label="Follow CulinEire">
                     <a aria-label="Instagram" class="footer-socials__link" href="https://www.instagram.com/culineire/" rel="noopener noreferrer" target="_blank">
                         <svg aria-hidden="true" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="0.5"></circle></svg>
@@ -313,7 +316,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v1.5.81</span>
+                <span class="footer-version">v1.5.82</span>
             </div>
         </div>
     </div>
