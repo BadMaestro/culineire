@@ -31,9 +31,12 @@ AI_SOURCE_NOTE = (
 def _extract_json(text: str) -> dict:
     cleaned = (text or "").strip()
     if cleaned.startswith("```"):
-        cleaned = cleaned.strip("`")
+        cleaned = cleaned[3:]  # remove exactly the opening triple-backtick
         if cleaned.lower().startswith("json"):
             cleaned = cleaned[4:].strip()
+        # remove closing fence (``` at the end, possibly preceded by whitespace)
+        if "```" in cleaned:
+            cleaned = cleaned[:cleaned.rfind("```")]
     start = cleaned.find("{")
     end = cleaned.rfind("}")
     if start == -1 or end == -1 or end < start:
@@ -108,8 +111,10 @@ def _unique_slug(title: str) -> str:
     base = slugify(title)[:210].strip("-") or "recipe"
     slug = base
     counter = 2
-    # Exclude soft-deleted recipes so their slugs can be reused.
-    while Recipe.objects.filter(slug=slug, is_deleted=False).exists():
+    # Include soft-deleted records: the DB has a global unique=True on slug,
+    # so even a deleted recipe blocks reuse. A partial unique index migration
+    # would be needed to safely reclaim deleted slugs.
+    while Recipe.objects.filter(slug=slug).exists():
         suffix = f"-{counter}"
         slug = f"{base[:220 - len(suffix)]}{suffix}"
         counter += 1
@@ -301,8 +306,16 @@ def _call_visual_planner(fields: dict) -> dict:
                 if block.get("type") == "text"
             )
             return _extract_json(text)
-        except HTTPError:
-            raise  # re-raise HTTP errors immediately
+        except HTTPError as exc:
+            if exc.code in (429, 500, 529) and attempt < 2:
+                logger.warning(
+                    "generate_recipe: visual planner HTTP %d on attempt %d — retrying in 10s",
+                    exc.code, attempt,
+                )
+                time.sleep(10)
+                continue
+            logger.warning("generate_recipe: visual planner HTTP %s — falling back to legacy prompts", exc.code)
+            return {}
         except (URLError, OSError) as exc:
             last_exc = exc
             if attempt < 2:
@@ -381,7 +394,7 @@ def _build_step_prompt(title: str, step: dict, feedback: str = "") -> str:
 def _generate_step_photos_from_plan(recipe: Recipe, steps: list[dict]) -> list[RecipeImage]:
     """Generate step photos using the structured visual plan from the planner."""
     created = []
-    for gallery_pos, step in enumerate(steps, start=1):
+    for gallery_pos, step in enumerate(steps[:3], start=1):
         prompt = _build_step_prompt(recipe.title, step)
         step_num = step.get("step_number", gallery_pos)
         step_text = (step.get("step_summary") or step.get("food_state") or "")[:200]
@@ -426,8 +439,11 @@ def fetch_image_bytes(prompt: str) -> bytes:
         # OSError covers TimeoutError/socket.timeout which Python 3.12 does not
         # always wrap inside URLError when raised from the SSL layer.
         raise CommandError(f"OpenAI image request failed: {exc}") from exc
-    parsed = json.loads(body)
-    image_entry = parsed["data"][0]
+    try:
+        parsed = json.loads(body)
+        image_entry = parsed["data"][0]
+    except (json.JSONDecodeError, KeyError, IndexError) as exc:
+        raise CommandError(f"OpenAI image API returned unexpected response: {exc} — body: {body[:200]}") from exc
     if "b64_json" in image_entry:
         return base64.b64decode(image_entry["b64_json"])
     image_url = image_entry["url"]
@@ -520,8 +536,15 @@ def _call_anthropic(dish_name: str) -> dict:
                 body = response.read().decode("utf-8", errors="replace")
             break  # success — exit retry loop
         except HTTPError as exc:
-            # HTTP errors (4xx/5xx) are not retryable
             body = exc.read().decode("utf-8", errors="replace")
+            # Retry on transient server errors and rate limits
+            if exc.code in (429, 500, 529) and attempt < 3:
+                logger.warning(
+                    "generate_recipe: Anthropic HTTP %d on attempt %d — retrying in 10s",
+                    exc.code, attempt,
+                )
+                time.sleep(10)
+                continue
             raise CommandError(f"Anthropic API returned HTTP {exc.code}: {body}") from exc
         except (URLError, OSError) as exc:
             last_exc = exc
@@ -535,7 +558,10 @@ def _call_anthropic(dish_name: str) -> dict:
                 raise CommandError(
                     f"Anthropic API request failed after 3 attempts: {exc}"
                 ) from exc
-    parsed = json.loads(body)
+    try:
+        parsed = json.loads(body)
+    except json.JSONDecodeError as exc:
+        raise CommandError(f"Anthropic API returned non-JSON response: {exc}") from exc
     text = "\n".join(block.get("text", "") for block in parsed.get("content", []) if block.get("type") == "text")
     return _extract_json(text)
 
@@ -597,7 +623,9 @@ class Command(BaseCommand):
                 logger.info("generate_recipe: calling visual planner for %r", recipe.title)
                 visual_plan = _call_visual_planner(fields)
                 hero_plan = visual_plan.get("hero_image", {}) if visual_plan else {}
-                steps_plan = visual_plan.get("steps", []) if visual_plan else []
+                raw_steps = visual_plan.get("steps", []) if visual_plan else []
+                # Validate: must be a list of dicts; cap at 3 to limit API spend
+                steps_plan = [s for s in (raw_steps if isinstance(raw_steps, list) else []) if isinstance(s, dict)][:3]
                 if visual_plan:
                     logger.info(
                         "generate_recipe: visual plan ready — %d step(s) planned for %r",
@@ -618,7 +646,7 @@ class Command(BaseCommand):
                     recipe.hero_image.save(f"cover-{recipe.slug[:40]}.jpg", ContentFile(image_bytes), save=False)
                     recipe.hero_image_alt_text = ai_alt_text or fallback_alt
                     recipe.image_rights_status = Recipe.ImageRightsStatus.AI_GENERATED
-                    recipe.image_rights_note = "AI-generated image via DALL-E 3."
+                    recipe.image_rights_note = f"AI-generated image via {getattr(settings, 'OPENAI_IMAGE_MODEL', 'gpt-image-1')}."
                     recipe.save(update_fields=["hero_image", "hero_image_alt_text", "image_rights_status", "image_rights_note"])
                     logger.info("generate_recipe: hero image generated and saved for %r", recipe.title)
                 except Exception as exc:
@@ -649,4 +677,5 @@ class Command(BaseCommand):
             names = [line.strip() for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
             limit = options.get("limit") or 0
             return names[:limit] if limit > 0 else names
-        return [" ".join(options.get("dish_name") or []).strip()]
+        name = " ".join(options.get("dish_name") or []).strip()
+        return [name] if name else []
