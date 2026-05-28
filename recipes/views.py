@@ -1534,9 +1534,12 @@ def generate_recipe_view(request):
         from django.core.management import call_command
         from django.db import close_old_connections
 
+        logger.info("generate_recipe: view spawning thread for %r", dish_name)
+
         def _run():
             logger.info("generate_recipe: background thread started for %r", dish_name)
             close_old_connections()
+
             try:
                 kwargs = {"author_slug": author_slug, "status": status, "no_image": no_image, "dry_run": False, "limit": 0, "batch": None}
                 call_command("generate_recipe", dish_name, **kwargs)
