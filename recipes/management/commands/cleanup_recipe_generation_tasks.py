@@ -16,7 +16,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         days = max(options["days"], 1)
         cutoff = timezone.now() - timedelta(days=days)
-        queryset = RecipeGenerationTask.objects.filter(created_at__lt=cutoff)
+        queryset = RecipeGenerationTask.objects.filter(
+            created_at__lt=cutoff,
+            status__in=[RecipeGenerationTask.Status.DONE, RecipeGenerationTask.Status.FAILED],
+        )
         count = queryset.count()
 
         if options["dry_run"]:

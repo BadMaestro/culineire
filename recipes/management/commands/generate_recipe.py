@@ -729,10 +729,12 @@ class Command(BaseCommand):
                 )
                 task_id = options.get("task_id") or ""
                 if task_id:
+                    from django.utils import timezone as _tz
                     RecipeGenerationTask.objects.filter(task_id=task_id).update(
                         status=RecipeGenerationTask.Status.DONE,
                         result_recipe=recipe,
                         error_message="",
+                        updated_at=_tz.now(),
                     )
             except CommandError as exc:
                 logger.error("generate_recipe: failed for %r: %s", dish_name, exc)

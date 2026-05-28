@@ -1592,6 +1592,7 @@ def moderation_panel(request):
     })
 
 
+@login_required
 def generate_recipe_view(request):
     if not is_moderator(request.user):
         raise Http404
@@ -1649,6 +1650,7 @@ def generate_recipe_view(request):
                 RecipeGenerationTask.objects.filter(task_id=task_id).update(
                     status=RecipeGenerationTask.Status.FAILED,
                     error_message=str(exc)[:1000],
+                    updated_at=timezone.now(),
                 )
             finally:
                 close_old_connections()
@@ -1690,12 +1692,20 @@ def generate_recipe_poll(request):
     except (RecipeGenerationTask.DoesNotExist, ValueError):
         return JsonResponse({"ready": False, "error": "task not found"}, status=404)
 
-    if task.status == RecipeGenerationTask.Status.DONE and task.result_recipe:
+    if task.status == RecipeGenerationTask.Status.DONE:
+        if task.result_recipe:
+            return JsonResponse({
+                "ready": True,
+                "status": task.status,
+                "slug": task.result_recipe.slug,
+                "title": task.result_recipe.title,
+            })
+        # Recipe was deleted after task completed (FK went NULL)
         return JsonResponse({
-            "ready": True,
+            "ready": False,
+            "failed": True,
             "status": task.status,
-            "slug": task.result_recipe.slug,
-            "title": task.result_recipe.title,
+            "error": "The generated recipe was deleted before it could be loaded.",
         })
 
     if task.status == RecipeGenerationTask.Status.FAILED:
