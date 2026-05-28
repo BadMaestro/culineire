@@ -676,13 +676,9 @@
 <script nonce="{{ request.csp_nonce }}">
 (function () {
     var UNDO_SECONDS = 30;
-    var STORAGE_KEY  = 'modPendingDeletes';
     var modal      = document.getElementById('delete-modal');
     var titleEl    = document.getElementById('delete-modal-title');
     var activeForm = null;
-
-    // Tracks remaining seconds for every active undo timer, keyed by form.action URL.
-    var pendingTimers = {};
 
     function openModal(btn) {
         activeForm = btn.closest('form');
@@ -696,10 +692,9 @@
         activeForm = null;
     }
 
-    function startUndo(form, initialCountdown) {
-        var countdown  = (initialCountdown !== undefined) ? initialCountdown : UNDO_SECONDS;
-        var actionUrl  = form.action;
-        pendingTimers[actionUrl] = countdown;
+    function startUndo(form) {
+        var countdown = UNDO_SECONDS;
+        var card      = form.closest('.moderation-card');
 
         // Build restore button
         var wrapper = document.createElement('span');
@@ -709,58 +704,39 @@
             'Restore <span class="mod-delete-undo__count">' + countdown + '</span>s' +
             '</button>';
 
-        // Hide the delete form, insert restore in its place
         form.style.display = 'none';
         form.parentNode.insertBefore(wrapper, form.nextSibling);
 
         var countEl = wrapper.querySelector('.mod-delete-undo__count');
         var timerId = setInterval(function () {
             countdown -= 1;
-            pendingTimers[actionUrl] = countdown;
             countEl.textContent = countdown;
             if (countdown <= 0) {
                 clearInterval(timerId);
-                delete pendingTimers[actionUrl];
                 wrapper.remove();
-                // Before navigating away, persist any other still-running timers
-                // so they can be restored on the next page load.
-                try {
-                    if (Object.keys(pendingTimers).length > 0) {
-                        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(pendingTimers));
-                    } else {
-                        sessionStorage.removeItem(STORAGE_KEY);
-                    }
-                } catch (e) {}
-                // Unhide the form before submitting — some browsers silently
-                // refuse to submit a display:none form programmatically.
-                form.style.display = '';
-                form.submit();
+                // navigator.sendBeacon() sends a POST with full cookie headers
+                // (including the session cookie) without navigating the page.
+                // This means other concurrent delete timers keep running normally.
+                var sent = (typeof navigator.sendBeacon === 'function') &&
+                           navigator.sendBeacon(form.action, new FormData(form));
+                if (sent) {
+                    // Beacon accepted by the browser — remove card optimistically.
+                    if (card) card.remove();
+                } else {
+                    // sendBeacon not available or quota exceeded — fall back to
+                    // a normal form submit (page will reload, but the deletion works).
+                    form.style.display = '';
+                    form.submit();
+                }
             }
         }, 1000);
 
         wrapper.querySelector('button').addEventListener('click', function () {
             clearInterval(timerId);
-            delete pendingTimers[actionUrl];
             wrapper.remove();
             form.style.display = '';
         });
     }
-
-    // On page load: restore any timers that were interrupted by a previous deletion.
-    try {
-        var saved = sessionStorage.getItem(STORAGE_KEY);
-        if (saved) {
-            sessionStorage.removeItem(STORAGE_KEY);
-            var pending = JSON.parse(saved);
-            document.querySelectorAll('form[method="post"]').forEach(function (f) {
-                if (!f.querySelector('[name=action][value=delete]')) return;
-                var remaining = pending[f.action];
-                if (remaining !== undefined) {
-                    startUndo(f, Math.max(remaining, 1));
-                }
-            });
-        }
-    } catch (e) {}
 
     document.querySelectorAll('[data-delete-title]').forEach(function (btn) {
         btn.addEventListener('click', function () { openModal(btn); });
