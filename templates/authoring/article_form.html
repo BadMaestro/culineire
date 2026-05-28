@@ -82,7 +82,14 @@
                     </div>
                     <div class="authoring-field authoring-field--wide">
                         <label for="{{ form.hero_image.id_for_label }}">{{ form.hero_image.label }}:</label>
-                        {{ form.hero_image }}
+                        <div class="authoring-upload-zone" data-upload-zone data-upload-mode="single" data-upload-input="id_hero_image" data-upload-preview="article-hero-preview" data-upload-storage="article:{{ request.path }}:hero">
+                            {{ form.hero_image }}
+                            <div class="authoring-upload-zone__surface">
+                                <strong>Drop Article Image here</strong>
+                                <span>or click to choose one image from your computer</span>
+                            </div>
+                        </div>
+                        <div class="authoring-new-gallery authoring-new-gallery--single" id="article-hero-preview" aria-live="polite"></div>
                         {% if form_mode == "edit" and article.hero_image %}
                         <p class="authoring-help">Current image:</p>
                         <div class="authoring-step-existing-list authoring-step-existing-list--single">
@@ -104,8 +111,14 @@
                     </div>
                     <div class="authoring-field authoring-field--wide">
                         <label for="id_gallery_images">Gallery Images:</label>
-                        <input accept=".jpg,.jpeg,.png,.webp" class="authoring-control" id="id_gallery_images" multiple name="gallery_images" type="file">
-                        <p class="authoring-help">Upload additional images for the article gallery (optional, multiple allowed).</p>
+                        <div class="authoring-upload-zone" data-upload-zone data-upload-mode="multiple" data-upload-input="id_gallery_images" data-upload-preview="new-gallery-alt-fields" data-upload-storage="article:{{ request.path }}:gallery">
+                            <input accept=".jpg,.jpeg,.png,.webp" class="authoring-control" id="id_gallery_images" multiple name="gallery_images" type="file">
+                            <div class="authoring-upload-zone__surface">
+                                <strong>Drop Gallery Images here</strong>
+                                <span>Add images one by one or as a group. They will appear below in numbered order.</span>
+                            </div>
+                        </div>
+                        <p class="authoring-help">Upload additional images for the article gallery. Drag cards below to reorder them before saving.</p>
                         <div class="authoring-new-gallery" id="new-gallery-alt-fields" aria-live="polite"></div>
                         {% if form_mode == "edit" and existing_gallery_images %}
                         <div class="authoring-step-existing-list">
@@ -321,25 +334,61 @@
 </script>
 <script nonce="{{ request.csp_nonce }}">
 (function () {
-    var fileInput = document.getElementById('id_gallery_images');
-    var altFields = document.getElementById('new-gallery-alt-fields');
-    if (!fileInput || !altFields) return;
-    var selectedItems = [];
-    var nextItemId = 1;
+    var DB_NAME = 'culineire-authoring-uploads';
+    var STORE_NAME = 'draft-files';
     var objectUrls = [];
+
+    function openUploadDb() {
+        return new Promise(function (resolve, reject) {
+            if (!('indexedDB' in window)) {
+                resolve(null);
+                return;
+            }
+            var request = indexedDB.open(DB_NAME, 1);
+            request.onupgradeneeded = function () {
+                request.result.createObjectStore(STORE_NAME, { keyPath: 'key' });
+            };
+            request.onsuccess = function () { resolve(request.result); };
+            request.onerror = function () { reject(request.error); };
+        });
+    }
+
+    function saveDraft(storageKey, items) {
+        openUploadDb().then(function (db) {
+            if (!db) return;
+            var tx = db.transaction(STORE_NAME, 'readwrite');
+            tx.objectStore(STORE_NAME).put({
+                key: storageKey,
+                items: items.map(function (item) {
+                    return {
+                        id: item.id,
+                        file: item.file,
+                        altText: item.altText || ''
+                    };
+                }),
+                updatedAt: Date.now()
+            });
+        }).catch(function () {});
+    }
+
+    function loadDraft(storageKey) {
+        return openUploadDb().then(function (db) {
+            if (!db) return null;
+            return new Promise(function (resolve) {
+                var tx = db.transaction(STORE_NAME, 'readonly');
+                var request = tx.objectStore(STORE_NAME).get(storageKey);
+                request.onsuccess = function () { resolve(request.result || null); };
+                request.onerror = function () { resolve(null); };
+            });
+        }).catch(function () { return null; });
+    }
 
     function revokeObjectUrls() {
         objectUrls.forEach(function (url) { URL.revokeObjectURL(url); });
         objectUrls = [];
     }
 
-    function clearAltFields() {
-        while (altFields.firstChild) {
-            altFields.removeChild(altFields.firstChild);
-        }
-    }
-
-    function setInputFiles() {
+    function setInputFiles(fileInput, selectedItems) {
         if (typeof DataTransfer === 'undefined') return;
         var transfer = new DataTransfer();
         selectedItems.forEach(function (item) {
@@ -348,27 +397,20 @@
         fileInput.files = transfer.files;
     }
 
-    function moveItem(fromIndex, toIndex) {
-        if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0) return;
-        var item = selectedItems.splice(fromIndex, 1)[0];
-        selectedItems.splice(toIndex, 0, item);
-        setInputFiles();
-        renderAltFields();
-    }
-
-    function renderAltFields() {
-        clearAltFields();
+    function renderUploader(zone, fileInput, previewArea, selectedItems, mode, storageKey) {
+        while (previewArea.firstChild) {
+            previewArea.removeChild(previewArea.firstChild);
+        }
         revokeObjectUrls();
         selectedItems.forEach(function (item, index) {
             var file = item.file;
             var row = document.createElement('div');
             row.className = 'authoring-new-gallery__item';
-            row.draggable = true;
-            row.dataset.galleryIndex = String(index);
+            row.draggable = mode === 'multiple';
 
             var badge = document.createElement('span');
             badge.className = 'authoring-step-badge';
-            badge.textContent = String(index + 1);
+            badge.textContent = mode === 'single' ? 'Main' : String(index + 1);
 
             var preview = document.createElement('img');
             preview.className = 'authoring-new-gallery__thumb';
@@ -379,65 +421,141 @@
                 preview.src = previewUrl;
             }
 
+            var removeBtn = document.createElement('button');
+            removeBtn.className = 'authoring-step-delete authoring-step-delete--draft';
+            removeBtn.type = 'button';
+            removeBtn.setAttribute('aria-label', 'Remove selected image');
+            removeBtn.textContent = '\u00d7';
+            removeBtn.addEventListener('click', function () {
+                selectedItems.splice(index, 1);
+                setInputFiles(fileInput, selectedItems);
+                saveDraft(storageKey, selectedItems);
+                renderUploader(zone, fileInput, previewArea, selectedItems, mode, storageKey);
+            });
+
             var meta = document.createElement('div');
             meta.className = 'authoring-new-gallery__meta';
 
             var fileName = document.createElement('span');
             fileName.className = 'authoring-new-gallery__filename';
             fileName.textContent = file.name;
-
-            var label = document.createElement('label');
-            label.className = 'authoring-step-alt-label';
-            label.setAttribute('for', 'id_gallery_alt_texts_' + index);
-            label.textContent = 'Alt text';
-
-            var input = document.createElement('input');
-            input.className = 'authoring-control authoring-control--compact';
-            input.id = 'id_gallery_alt_texts_' + index;
-            input.name = 'gallery_alt_texts';
-            input.type = 'text';
-            input.value = item.altText;
-            input.addEventListener('input', function () {
-                item.altText = input.value;
-            });
-
-            row.addEventListener('dragstart', function (event) {
-                row.classList.add('authoring-new-gallery__item--dragging');
-                event.dataTransfer.effectAllowed = 'move';
-                event.dataTransfer.setData('text/plain', String(index));
-            });
-            row.addEventListener('dragend', function () {
-                row.classList.remove('authoring-new-gallery__item--dragging');
-            });
-            row.addEventListener('dragover', function (event) {
-                event.preventDefault();
-                event.dataTransfer.dropEffect = 'move';
-            });
-            row.addEventListener('drop', function (event) {
-                event.preventDefault();
-                moveItem(Number(event.dataTransfer.getData('text/plain')), index);
-            });
-
             meta.appendChild(fileName);
-            meta.appendChild(label);
-            meta.appendChild(input);
+
+            if (mode === 'multiple') {
+                var label = document.createElement('label');
+                label.className = 'authoring-step-alt-label';
+                label.setAttribute('for', 'id_gallery_alt_texts_' + index);
+                label.textContent = 'Alt text';
+
+                var input = document.createElement('input');
+                input.className = 'authoring-control authoring-control--compact';
+                input.id = 'id_gallery_alt_texts_' + index;
+                input.name = 'gallery_alt_texts';
+                input.type = 'text';
+                input.value = item.altText || '';
+                input.addEventListener('input', function () {
+                    item.altText = input.value;
+                    saveDraft(storageKey, selectedItems);
+                });
+
+                row.addEventListener('dragstart', function (event) {
+                    row.classList.add('authoring-new-gallery__item--dragging');
+                    event.dataTransfer.effectAllowed = 'move';
+                    event.dataTransfer.setData('text/plain', String(index));
+                });
+                row.addEventListener('dragend', function () {
+                    row.classList.remove('authoring-new-gallery__item--dragging');
+                });
+                row.addEventListener('dragover', function (event) {
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = 'move';
+                });
+                row.addEventListener('drop', function (event) {
+                    event.preventDefault();
+                    var fromIndex = Number(event.dataTransfer.getData('text/plain'));
+                    if (fromIndex === index || fromIndex < 0) return;
+                    var moved = selectedItems.splice(fromIndex, 1)[0];
+                    selectedItems.splice(index, 0, moved);
+                    setInputFiles(fileInput, selectedItems);
+                    saveDraft(storageKey, selectedItems);
+                    renderUploader(zone, fileInput, previewArea, selectedItems, mode, storageKey);
+                });
+
+                meta.appendChild(label);
+                meta.appendChild(input);
+            }
+
             row.appendChild(badge);
             row.appendChild(preview);
+            row.appendChild(removeBtn);
             row.appendChild(meta);
-            altFields.appendChild(row);
+            previewArea.appendChild(row);
+        });
+        zone.classList.toggle('authoring-upload-zone--has-files', selectedItems.length > 0);
+    }
+
+    function filesToItems(files, nextId) {
+        return Array.prototype.map.call(files || [], function (file) {
+            return { id: nextId.value++, file: file, altText: '' };
         });
     }
 
-    fileInput.addEventListener('change', function () {
-        selectedItems = Array.prototype.map.call(fileInput.files || [], function (file) {
-            return {
-                id: nextItemId++,
-                file: file,
-                altText: ''
-            };
+    function initUploader(zone) {
+        var fileInput = document.getElementById(zone.dataset.uploadInput || '');
+        var previewArea = document.getElementById(zone.dataset.uploadPreview || '');
+        if (!fileInput || !previewArea) return;
+
+        var mode = zone.dataset.uploadMode || 'multiple';
+        var storageKey = zone.dataset.uploadStorage || zone.dataset.uploadInput || '';
+        var selectedItems = [];
+        var nextId = { value: 1 };
+
+        fileInput.classList.add('authoring-upload-zone__input');
+
+        function addFiles(files) {
+            var newItems = filesToItems(files, nextId).filter(function (item) {
+                return item.file && item.file.type && item.file.type.indexOf('image/') === 0;
+            });
+            if (!newItems.length) return;
+            selectedItems = mode === 'single' ? [newItems[0]] : selectedItems.concat(newItems);
+            setInputFiles(fileInput, selectedItems);
+            saveDraft(storageKey, selectedItems);
+            renderUploader(zone, fileInput, previewArea, selectedItems, mode, storageKey);
+        }
+
+        fileInput.addEventListener('change', function () {
+            addFiles(fileInput.files);
         });
-        renderAltFields();
-    });
+        zone.addEventListener('click', function (event) {
+            if (event.target === fileInput) return;
+            if (event.target.closest('.authoring-step-delete')) return;
+            fileInput.click();
+        });
+        zone.addEventListener('dragover', function (event) {
+            event.preventDefault();
+            zone.classList.add('authoring-upload-zone--dragover');
+        });
+        zone.addEventListener('dragleave', function () {
+            zone.classList.remove('authoring-upload-zone--dragover');
+        });
+        zone.addEventListener('drop', function (event) {
+            event.preventDefault();
+            zone.classList.remove('authoring-upload-zone--dragover');
+            addFiles(event.dataTransfer.files);
+        });
+
+        loadDraft(storageKey).then(function (draft) {
+            if (!draft || !draft.items || !draft.items.length) return;
+            selectedItems = draft.items.filter(function (item) { return item.file; });
+            nextId.value = selectedItems.reduce(function (maxId, item) {
+                return Math.max(maxId, Number(item.id || 0) + 1);
+            }, 1);
+            setInputFiles(fileInput, selectedItems);
+            renderUploader(zone, fileInput, previewArea, selectedItems, mode, storageKey);
+        });
+    }
+
+    document.querySelectorAll('[data-upload-zone]').forEach(initUploader);
 })();
 </script>
 <script nonce="{{ request.csp_nonce }}">

@@ -533,6 +533,18 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertContains(response, "cf-turnstile")
         self.assertContains(response, "test-site-key")
 
+    def test_article_create_form_uses_drop_zones_for_article_and_gallery_images(self):
+        self.client.force_login(self.owner_user)
+
+        response = self.client.get(reverse("articles:article_create"))
+
+        self.assertContains(response, 'data-upload-mode="single"', html=False)
+        self.assertContains(response, 'data-upload-input="id_hero_image"', html=False)
+        self.assertContains(response, "Drop Article Image here")
+        self.assertContains(response, 'data-upload-mode="multiple"', html=False)
+        self.assertContains(response, 'data-upload-input="id_gallery_images"', html=False)
+        self.assertContains(response, "Drop Gallery Images here")
+
     def test_article_create_saves_hero_image_for_article_cards(self):
         self.client.force_login(self.owner_user)
 

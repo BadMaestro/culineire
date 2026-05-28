@@ -1753,3 +1753,33 @@
   display: flex;
   gap: 0.5rem;
 }
+
+/* ── Delete undo (Restore with countdown) ── */
+.mod-btn--restore {
+  background: rgb(180 90 0 / 0.1);
+  color: rgb(140 60 0);
+  border-color: rgb(180 90 0 / 0.35);
+  gap: 0.35em;
+  animation: mod-restore-pulse 1s ease-in-out infinite alternate;
+}
+
+.mod-btn--restore:hover {
+  background: rgb(180 90 0 / 0.18);
+  opacity: 1;
+}
+
+.mod-delete-undo__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5em;
+  padding: 0.05em 0.3em;
+  border-radius: 999px;
+  background: rgb(180 90 0 / 0.18);
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes mod-restore-pulse {
+  from { border-color: rgb(180 90 0 / 0.25); }
+  to   { border-color: rgb(180 90 0 / 0.7); }
+}

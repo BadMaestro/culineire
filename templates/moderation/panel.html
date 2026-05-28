@@ -675,6 +675,7 @@
 </script>
 <script nonce="{{ request.csp_nonce }}">
 (function () {
+    var UNDO_SECONDS = 30;
     var modal      = document.getElementById('delete-modal');
     var titleEl    = document.getElementById('delete-modal-title');
     var activeForm = null;
@@ -691,13 +692,47 @@
         activeForm = null;
     }
 
+    function startUndo(form) {
+        var countdown = UNDO_SECONDS;
+
+        // Build restore button
+        var wrapper = document.createElement('span');
+        wrapper.className = 'mod-delete-undo';
+        wrapper.innerHTML =
+            '<button class="mod-btn mod-btn--restore" type="button">' +
+            'Restore <span class="mod-delete-undo__count">' + countdown + '</span>s' +
+            '</button>';
+
+        // Hide the delete form, insert restore in its place
+        form.style.display = 'none';
+        form.parentNode.insertBefore(wrapper, form.nextSibling);
+
+        var countEl = wrapper.querySelector('.mod-delete-undo__count');
+        var timerId = setInterval(function () {
+            countdown -= 1;
+            countEl.textContent = countdown;
+            if (countdown <= 0) {
+                clearInterval(timerId);
+                wrapper.remove();
+                form.submit();
+            }
+        }, 1000);
+
+        wrapper.querySelector('button').addEventListener('click', function () {
+            clearInterval(timerId);
+            wrapper.remove();
+            form.style.display = '';
+        });
+    }
+
     document.querySelectorAll('[data-delete-title]').forEach(function (btn) {
         btn.addEventListener('click', function () { openModal(btn); });
     });
 
     document.getElementById('delete-modal-confirm').addEventListener('click', function () {
-        if (activeForm) activeForm.submit();
+        var form = activeForm;
         closeModal();
+        if (form) startUndo(form);
     });
 
     document.getElementById('delete-modal-cancel').addEventListener('click', closeModal);
