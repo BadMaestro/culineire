@@ -1842,14 +1842,12 @@
 }
 
 .gen-spoon {
-  animation: gen-stir 1.6s ease-in-out infinite;
-  transform-box: fill-box;
+  animation: gen-stir 2s linear infinite;
 }
 
 @keyframes gen-stir {
-  0%   { transform: rotate(-25deg); }
-  50%  { transform: rotate(25deg); }
-  100% { transform: rotate(-25deg); }
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
 /* Steam lines */
