@@ -694,6 +694,7 @@
 
     function startUndo(form) {
         var countdown = UNDO_SECONDS;
+        var card = form.closest('.moderation-card');
 
         // Build restore button
         var wrapper = document.createElement('span');
@@ -714,7 +715,23 @@
             if (countdown <= 0) {
                 clearInterval(timerId);
                 wrapper.remove();
-                form.submit();
+                // Use fetch instead of form.submit() so the page does not reload
+                // and other simultaneous delete timers continue running.
+                fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    credentials: 'same-origin',
+                }).then(function (response) {
+                    if (response.ok) {
+                        if (card) card.remove();
+                    } else {
+                        form.style.display = '';
+                        alert('Delete failed (HTTP ' + response.status + '). Please try again.');
+                    }
+                }).catch(function () {
+                    form.style.display = '';
+                    alert('Delete failed (network error). Please try again.');
+                });
             }
         }, 1000);
 
