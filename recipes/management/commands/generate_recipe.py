@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import json
 import logging
 from pathlib import Path
@@ -222,7 +223,7 @@ def _generate_image(title: str, short_description: str, alt_text: str = "") -> t
         "appetising close-up presentation. No text, no watermarks, no people, no brand names or logos."
     )
     payload = {
-        "model": "dall-e-3",
+        "model": "gpt-image-1",
         "prompt": prompt,
         "n": 1,
         "size": "1024x1024",
@@ -237,16 +238,21 @@ def _generate_image(title: str, short_description: str, alt_text: str = "") -> t
         method="POST",
     )
     try:
-        with urlopen(request, timeout=60) as response:
+        with urlopen(request, timeout=120) as response:
             body = response.read().decode("utf-8")
     except HTTPError as exc:
         body = exc.read().decode("utf-8")
         raise CommandError(f"OpenAI API returned HTTP {exc.code}: {body}") from exc
     except URLError as exc:
         raise CommandError(f"OpenAI image request failed: {exc}") from exc
-    image_url = json.loads(body)["data"][0]["url"]
-    with urlopen(image_url, timeout=30) as img_response:
-        image_bytes = img_response.read()
+    parsed = json.loads(body)
+    image_entry = parsed["data"][0]
+    if "b64_json" in image_entry:
+        image_bytes = base64.b64decode(image_entry["b64_json"])
+    else:
+        image_url = image_entry["url"]
+        with urlopen(image_url, timeout=30) as img_response:
+            image_bytes = img_response.read()
     alt_text = f"{title}, served and photographed"
     return image_bytes, alt_text
 
@@ -277,7 +283,7 @@ def _generate_step_photos(recipe: Recipe, method_text: str) -> list[RecipeImage]
             "No text, no watermarks, no people, no brand names or logos."
         )
         payload = {
-            "model": "dall-e-3",
+            "model": "gpt-image-1",
             "prompt": prompt,
             "n": 1,
             "size": "1024x1024",
@@ -293,11 +299,16 @@ def _generate_step_photos(recipe: Recipe, method_text: str) -> list[RecipeImage]
             method="POST",
         )
         try:
-            with urlopen(request, timeout=60) as response:
+            with urlopen(request, timeout=120) as response:
                 body = response.read().decode("utf-8")
-            image_url = json.loads(body)["data"][0]["url"]
-            with urlopen(image_url, timeout=30) as img_response:
-                image_bytes = img_response.read()
+            parsed = json.loads(body)
+            image_entry = parsed["data"][0]
+            if "b64_json" in image_entry:
+                image_bytes = base64.b64decode(image_entry["b64_json"])
+            else:
+                image_url = image_entry["url"]
+                with urlopen(image_url, timeout=30) as img_response:
+                    image_bytes = img_response.read()
         except (HTTPError, URLError) as exc:
             logger.warning("generate_recipe: step photo failed for step %d of %r: %s", sort_order, recipe.title, exc)
             continue
