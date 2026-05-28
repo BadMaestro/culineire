@@ -277,7 +277,7 @@ def _pick_key_steps(method_text: str, max_steps: int = 3) -> list[tuple[int, str
 def _generate_step_photos(recipe: Recipe, method_text: str) -> list[RecipeImage]:
     key_steps = _pick_key_steps(method_text)
     created = []
-    for sort_order, step_text in key_steps:
+    for gallery_pos, (step_num, step_text) in enumerate(key_steps, start=1):
         prompt = (
             f"Professional food photography showing the cooking step: {step_text[:200]}. "
             "Irish cuisine, natural lighting, rustic kitchen setting. "
@@ -311,10 +311,11 @@ def _generate_step_photos(recipe: Recipe, method_text: str) -> list[RecipeImage]
                 with urlopen(image_url, timeout=30) as img_response:
                     image_bytes = img_response.read()
         except (HTTPError, URLError) as exc:
-            logger.warning("generate_recipe: step photo failed for step %d of %r: %s", sort_order, recipe.title, exc)
+            logger.warning("generate_recipe: step photo failed for step %d of %r: %s", step_num, recipe.title, exc)
             continue
-        img = RecipeImage(recipe=recipe, sort_order=sort_order, alt_text=step_text[:255], caption=f"Step {sort_order}")
-        img.image.save(f"step{sort_order}-{recipe.slug[:30]}.jpg", ContentFile(image_bytes), save=False)
+        alt_text = f"{recipe.title}, step {step_num}"
+        img = RecipeImage(recipe=recipe, sort_order=gallery_pos, alt_text=alt_text, caption=f"Step {step_num}")
+        img.image.save(f"step{gallery_pos}-{recipe.slug[:30]}.jpg", ContentFile(image_bytes), save=False)
         img.save()
         created.append(img)
     return created
