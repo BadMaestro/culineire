@@ -203,7 +203,9 @@
     }
 
     function pollReady() {
-        fetch(pollUrl + '?since=' + encodeURIComponent(sinceParam))
+        var authorEl = document.getElementById('author_slug');
+        var authorParam = authorEl ? '&author=' + encodeURIComponent(authorEl.value) : '';
+        fetch(pollUrl + '?since=' + encodeURIComponent(sinceParam) + authorParam)
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 if (data.ready) {

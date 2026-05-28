@@ -1217,7 +1217,7 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
                 existing.alt_text = alt_text
             if img_file:
                 if existing:
-                    existing.image.delete(save=False)
+                    # pre_save signal (delete_old_gallery_image_on_change) handles cleanup
                     existing.image = img_file
                     existing.save(update_fields=["image", "alt_text"])
                 else:
@@ -1575,6 +1575,19 @@ def generate_recipe_view(request):
         if status not in (Recipe.Status.DRAFT, Recipe.Status.PENDING):
             status = Recipe.Status.PENDING
 
+        # Pre-validate before spawning the thread so the user gets an immediate error
+        if not getattr(settings, "ANTHROPIC_API_KEY", ""):
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                return JsonResponse({"started": False, "error": "ANTHROPIC_API_KEY is not configured."}, status=500)
+            messages.error(request, "ANTHROPIC_API_KEY is not configured.")
+            return redirect("recipes:generate_recipe")
+
+        if not RecipeAuthor.objects.filter(slug=author_slug).exists():
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                return JsonResponse({"started": False, "error": f'Author "{author_slug}" not found.'}, status=400)
+            messages.error(request, f'Author "{author_slug}" not found.')
+            return redirect("recipes:generate_recipe")
+
         import threading
         from django.core.management import call_command
         from django.db import close_old_connections
@@ -1631,15 +1644,14 @@ def generate_recipe_poll(request):
     if since.tzinfo is None:
         since = tz.make_aware(since)
 
-    recipe = (
-        Recipe.objects.filter(
-            created_at__gte=since,
-            is_deleted=False,
-        )
+    author_slug = request.GET.get("author", "").strip()
+    qs = (
+        Recipe.objects.filter(created_at__gte=since, is_deleted=False)
         .exclude(status=Recipe.Status.APPROVED)
-        .order_by("-created_at")
-        .first()
     )
+    if author_slug:
+        qs = qs.filter(author__slug=author_slug)
+    recipe = qs.order_by("-created_at").first()
     if recipe:
         return JsonResponse({"ready": True, "slug": recipe.slug, "title": recipe.title})
     return JsonResponse({"ready": False})
@@ -1773,8 +1785,8 @@ def recipe_regenerate_image(request, slug):
                 prompt += f" Important: {feedback}."
             image_bytes = fetch_image_bytes(prompt)
             filename = f"cover-{recipe.slug[:40]}-regen.jpg"
-            if recipe.hero_image:
-                recipe.hero_image.delete(save=False)
+            # Do NOT manually delete the old file — the pre_save signal in signals.py
+            # detects the name change and cleans it up safely after the new file is confirmed.
             recipe.image_rights_status = Recipe.ImageRightsStatus.AI_GENERATED
             openai_model = getattr(settings, "OPENAI_IMAGE_MODEL", "gpt-image-1")
             recipe.image_rights_note = f"AI-generated image via {openai_model}."
@@ -1805,7 +1817,7 @@ def recipe_regenerate_image(request, slug):
                 prompt += f" Important: {feedback}."
             image_bytes = fetch_image_bytes(prompt)
             filename = f"step{img.sort_order}-{recipe.slug[:30]}-regen.jpg"
-            img.image.delete(save=False)
+            # pre_save signal handles old file cleanup when name changes
             img.image.save(filename, ContentFile(image_bytes), save=True)
             if recipe.image_rights_status != Recipe.ImageRightsStatus.AI_GENERATED:
                 openai_model = getattr(settings, "OPENAI_IMAGE_MODEL", "gpt-image-1")

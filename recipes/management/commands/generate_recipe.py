@@ -11,7 +11,7 @@ from urllib.request import Request, urlopen
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand, CommandError
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.utils.text import slugify
 
 from recipes.models import ALLERGEN_CHOICES, Recipe, RecipeAdditionalCategory, RecipeAuthor, RecipeImage
@@ -328,13 +328,20 @@ def _call_visual_planner(fields: dict) -> dict:
     return {}
 
 
+def _safe_str_list(value) -> list[str]:
+    """Return a list of strings from a planner field, ignoring non-list or non-string values."""
+    if not isinstance(value, list):
+        return []
+    return [str(x) for x in value if isinstance(x, str)]
+
+
 def _build_hero_prompt(title: str, plan: dict, feedback: str = "") -> str:
     food_state = (plan.get("food_state") or "").strip()
-    visible = ", ".join(plan.get("visible_ingredients") or [])
-    cookware = ", ".join(plan.get("cookware") or [])
+    visible = ", ".join(_safe_str_list(plan.get("visible_ingredients")))
+    cookware = ", ".join(_safe_str_list(plan.get("cookware")))
     camera = (plan.get("camera_angle") or "close-up, slightly overhead").strip()
     background = (plan.get("background_style") or "rustic wooden surface").strip()
-    must_not = ", ".join(plan.get("must_not_show") or [])
+    must_not = ", ".join(_safe_str_list(plan.get("must_not_show")))
 
     parts = [f"Realistic editorial food photograph of the finished dish: {title}."]
     if food_state:
@@ -359,11 +366,11 @@ def _build_step_prompt(title: str, step: dict, feedback: str = "") -> str:
     step_num = step.get("step_number", "")
     summary = (step.get("step_summary") or "").strip()
     food_state = (step.get("food_state") or "").strip()
-    visible = ", ".join(step.get("visible_ingredients") or [])
-    cookware = ", ".join(step.get("cookware") or [])
+    visible = ", ".join(_safe_str_list(step.get("visible_ingredients")))
+    cookware = ", ".join(_safe_str_list(step.get("cookware")))
     camera = (step.get("camera_angle") or "45-degree angle").strip()
     continuity = (step.get("continuity_notes") or "").strip()
-    must_not = ", ".join(step.get("must_not_show_yet") or [])
+    must_not = ", ".join(_safe_str_list(step.get("must_not_show_yet")))
 
     parts = [
         f"Realistic editorial cooking step photo for the recipe '{title}'.",
@@ -444,8 +451,13 @@ def fetch_image_bytes(prompt: str) -> bytes:
         image_entry = parsed["data"][0]
     except (json.JSONDecodeError, KeyError, IndexError) as exc:
         raise CommandError(f"OpenAI image API returned unexpected response: {exc} — body: {body[:200]}") from exc
+    if not isinstance(image_entry, dict):
+        raise CommandError(f"OpenAI image API data[0] is not a dict: {type(image_entry).__name__}")
     if "b64_json" in image_entry:
-        return base64.b64decode(image_entry["b64_json"])
+        try:
+            return base64.b64decode(image_entry["b64_json"])
+        except Exception as exc:
+            raise CommandError(f"OpenAI b64_json decode failed: {exc}") from exc
     image_url = image_entry.get("url")
     if not image_url:
         raise CommandError(f"OpenAI image API entry has neither b64_json nor url: {image_entry}")
@@ -621,10 +633,19 @@ class Command(BaseCommand):
                     indent=2, ensure_ascii=False,
                 ))
                 continue
-            with transaction.atomic():
-                recipe = Recipe.objects.create(author=author, **fields)
-                for cat in additional_categories:
-                    RecipeAdditionalCategory.objects.create(recipe=recipe, category=cat)
+            # Retry up to 3 times in case of slug race condition with concurrent generation
+            for _create_attempt in range(3):
+                try:
+                    with transaction.atomic():
+                        recipe = Recipe.objects.create(author=author, **fields)
+                        for cat in additional_categories:
+                            RecipeAdditionalCategory.objects.create(recipe=recipe, category=cat)
+                    break
+                except IntegrityError:
+                    if _create_attempt == 2:
+                        raise CommandError(f"Could not create recipe with a unique slug after 3 attempts (slug={fields['slug']!r}).")
+                    fields["slug"] = _unique_slug(fields["title"])
+                    logger.warning("generate_recipe: slug conflict on attempt %d — retrying with %r", _create_attempt + 1, fields["slug"])
 
             openai_key = getattr(settings, "OPENAI_API_KEY", "")
             generate_image = not options.get("no_image") and bool(openai_key)
