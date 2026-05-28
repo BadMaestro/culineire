@@ -11,7 +11,7 @@ from django.core.cache import cache
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
-from django.db import transaction
+from django.db import DatabaseError, transaction
 from django.utils import timezone
 from django.db.models import Avg, Case, Count, IntegerField, Prefetch, Q, Value, When
 from django.http import Http404, JsonResponse
@@ -1076,6 +1076,22 @@ def author_detail(request, slug):
     author = get_object_or_404(RecipeAuthor, slug=slug)
     can_manage = user_can_manage_author(request.user, author)
     moderator = is_moderator(request.user)
+    battle_profile = None
+    recent_battles = []
+    chef_battle_enabled = getattr(settings, "CHEF_BATTLE_ENABLED", False)
+
+    if chef_battle_enabled:
+        try:
+            from chef_battle.models import Battle, ChefBattleProfile
+
+            battle_profile = ChefBattleProfile.objects.filter(author=author).first()
+            recent_battles = list(
+                Battle.objects.select_related("challenger", "opponent", "winner")
+                .filter(Q(challenger=author) | Q(opponent=author))
+                .order_by("-created_at")[:6]
+            )
+        except (DatabaseError, AttributeError):
+            logger.exception("Chef Battle profile data is unavailable for author %s.", author.pk)
 
     recipes_for_count = Recipe.objects.filter(author=author, is_deleted=False)
     articles_for_count = Article.objects.filter(author=author, is_deleted=False)
@@ -1123,6 +1139,9 @@ def author_detail(request, slug):
         "dashboard_recipes": dashboard_recipes,
         "dashboard_articles": dashboard_articles,
         "status_filter": status_filter,
+        "battle_profile": battle_profile,
+        "recent_battles": recent_battles,
+        "chef_battle_enabled": chef_battle_enabled,
     }
     return render(request, "recipes/author_detail.html", context)
 

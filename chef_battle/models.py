@@ -199,7 +199,7 @@ class BattleVote(models.Model):
         super().clean()
         if self.battle_id and self.voted_for_id not in {self.battle.challenger_id, self.battle.opponent_id}:
             raise ValidationError("Vote must be for one of the battle participants.")
-        voter_author = getattr(self.voter, "recipe_author_profile", None)
+        voter_author = RecipeAuthor.objects.filter(user=self.voter).first() if self.voter_id else None
         if voter_author and voter_author.pk == self.voted_for_id:
             raise ValidationError("Chefs cannot vote for themselves.")
 

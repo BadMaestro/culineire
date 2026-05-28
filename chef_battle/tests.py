@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils import timezone
 
@@ -62,3 +63,16 @@ class ChefBattleServiceTests(TestCase):
         self.assertEqual(winner_profile.wins, 1)
         self.assertEqual(winner_profile.battle_moves, 3)
         self.assertEqual(loser_profile.losses, 1)
+
+    def test_vote_clean_allows_authenticated_user_without_author_profile(self):
+        battle = accept_challenge(self._challenge())
+        vote = BattleVote(battle=battle, voter=self.voter, voted_for=self.chef_a)
+
+        vote.full_clean()
+
+    def test_vote_clean_blocks_self_vote_for_linked_author(self):
+        battle = accept_challenge(self._challenge())
+        vote = BattleVote(battle=battle, voter=self.user_a, voted_for=self.chef_a)
+
+        with self.assertRaises(ValidationError):
+            vote.full_clean()

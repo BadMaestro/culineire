@@ -807,6 +807,85 @@
     font-style: normal;
   }
 
+  .author-battle-summary {
+    margin-block: 1.2rem;
+    padding: 1rem;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .author-battle-summary__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-block-end: 0.9rem;
+  }
+
+  .author-battle-summary__header h2 {
+    margin: 0;
+    text-align: left;
+  }
+
+  .author-battle-summary__stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+
+  .author-battle-summary__stats span {
+    display: grid;
+    gap: 0.1rem;
+    min-block-size: 4.6rem;
+    padding: 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface-soft);
+    color: var(--muted);
+    font-size: 0.84rem;
+  }
+
+  .author-battle-summary__stats strong {
+    color: var(--ink);
+    font-size: 1.05rem;
+    line-height: 1.25;
+  }
+
+  .author-battle-summary__empty {
+    margin: 0;
+    color: var(--ink-soft);
+    text-align: center;
+  }
+
+  .author-battle-summary__list {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+    margin-block-start: 0.85rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .author-battle-summary__list li {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-block: 0.55rem;
+    border-block-start: 1px solid var(--line);
+  }
+
+  .author-battle-summary__list a {
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .author-battle-summary__list span {
+    color: var(--muted);
+    font-size: 0.88rem;
+  }
+
   /* ==== Generic content / rich text ==== */
 
   .rich-text,
@@ -1009,6 +1088,10 @@
     .battle-home-strip {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+
+    .author-battle-summary__stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 
   @media (max-width: 640px) {
@@ -1062,6 +1145,21 @@
     }
 
     .battle-home-strip {
+      grid-template-columns: 1fr;
+    }
+
+    .author-battle-summary__header,
+    .author-battle-summary__list li {
+      align-items: stretch;
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .author-battle-summary__header h2 {
+      text-align: center;
+    }
+
+    .author-battle-summary__stats {
       grid-template-columns: 1fr;
     }
   }
