@@ -124,15 +124,16 @@
                 <path d="M98 55 Q106 55 106 48 Q106 41 98 41" fill="none" stroke-linecap="round" stroke-width="4"/>
                 {# Pot body #}
                 <rect height="38" rx="8" width="76" x="22" y="38"/>
-                {# Pot rim #}
-                <rect height="7" rx="3" width="82" x="19" y="33"/>
                 {# Liquid surface #}
                 <ellipse cx="60" cy="42" rx="33" ry="5" class="gen-pot__liquid"/>
-                {# Spoon — pivot at pot interior centre, handle above rim, bowl inside pot #}
-                <g class="gen-spoon" style="transform-origin: 60px 55px;">
-                    <rect class="gen-spoon__handle" height="26" rx="1.5" width="3" x="58.5" y="29"/>
-                    <ellipse class="gen-spoon__bowl" cx="60" cy="67" rx="4" ry="6"/>
+                {# Spoon — drawn BEFORE rim so rim sits on top, hiding the mid-handle at rim level.
+                   Pivot at liquid surface (60,42): handle rises above rim, bowl stirs inside. #}
+                <g class="gen-spoon" style="transform-origin: 60px 42px;">
+                    <rect class="gen-spoon__handle" height="20" rx="1.5" width="3" x="58.5" y="22"/>
+                    <ellipse class="gen-spoon__bowl" cx="60" cy="60" rx="4" ry="6"/>
                 </g>
+                {# Pot rim — drawn LAST so it covers the spoon where handle meets rim #}
+                <rect height="7" rx="3" width="82" x="19" y="33"/>
             </svg>
         </div>
 
