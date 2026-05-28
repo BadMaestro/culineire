@@ -676,9 +676,13 @@
 <script nonce="{{ request.csp_nonce }}">
 (function () {
     var UNDO_SECONDS = 30;
+    var STORAGE_KEY  = 'modPendingDeletes';
     var modal      = document.getElementById('delete-modal');
     var titleEl    = document.getElementById('delete-modal-title');
     var activeForm = null;
+
+    // Tracks remaining seconds for every active undo timer, keyed by form.action URL.
+    var pendingTimers = {};
 
     function openModal(btn) {
         activeForm = btn.closest('form');
@@ -692,9 +696,10 @@
         activeForm = null;
     }
 
-    function startUndo(form) {
-        var countdown = UNDO_SECONDS;
-        var card = form.closest('.moderation-card');
+    function startUndo(form, initialCountdown) {
+        var countdown  = (initialCountdown !== undefined) ? initialCountdown : UNDO_SECONDS;
+        var actionUrl  = form.action;
+        pendingTimers[actionUrl] = countdown;
 
         // Build restore button
         var wrapper = document.createElement('span');
@@ -711,43 +716,48 @@
         var countEl = wrapper.querySelector('.mod-delete-undo__count');
         var timerId = setInterval(function () {
             countdown -= 1;
+            pendingTimers[actionUrl] = countdown;
             countEl.textContent = countdown;
             if (countdown <= 0) {
                 clearInterval(timerId);
+                delete pendingTimers[actionUrl];
                 wrapper.remove();
-                // Submit the form into a hidden iframe so the page does not reload
-                // and other simultaneous delete timers continue running.
-                // Using a real browser form submit (not fetch) guarantees that
-                // session cookies and CSRF tokens are sent exactly as Django expects.
-                var iframeName = 'delete-frame-' + Date.now() + '-' + Math.random();
-                var iframe = document.createElement('iframe');
-                iframe.name = iframeName;
-                iframe.style.display = 'none';
-                document.body.appendChild(iframe);
-                form.target = iframeName;
-                iframe.addEventListener('load', function () {
-                    // The iframe fires an initial 'load' for about:blank before the
-                    // form submission completes. Ignore that first event and only
-                    // act when the server response has actually loaded.
-                    try {
-                        if (iframe.contentWindow.location.href === 'about:blank') return;
-                    } catch (e) {
-                        return; // safety: cross-origin error should not happen
+                // Before navigating away, persist any other still-running timers
+                // so they can be restored on the next page load.
+                try {
+                    if (Object.keys(pendingTimers).length > 0) {
+                        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(pendingTimers));
+                    } else {
+                        sessionStorage.removeItem(STORAGE_KEY);
                     }
-                    iframe.remove();
-                    form.target = '';
-                    if (card) card.remove();
-                });
+                } catch (e) {}
                 form.submit();
             }
         }, 1000);
 
         wrapper.querySelector('button').addEventListener('click', function () {
             clearInterval(timerId);
+            delete pendingTimers[actionUrl];
             wrapper.remove();
             form.style.display = '';
         });
     }
+
+    // On page load: restore any timers that were interrupted by a previous deletion.
+    try {
+        var saved = sessionStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            sessionStorage.removeItem(STORAGE_KEY);
+            var pending = JSON.parse(saved);
+            document.querySelectorAll('form[method="post"]').forEach(function (f) {
+                if (!f.querySelector('[name=action][value=delete]')) return;
+                var remaining = pending[f.action];
+                if (remaining !== undefined) {
+                    startUndo(f, Math.max(remaining, 1));
+                }
+            });
+        }
+    } catch (e) {}
 
     document.querySelectorAll('[data-delete-title]').forEach(function (btn) {
         btn.addEventListener('click', function () { openModal(btn); });
