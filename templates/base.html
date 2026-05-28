@@ -38,6 +38,7 @@
 
     <link href="{% static 'css/base.css' %}" rel="stylesheet">
     <link href="{% static 'css/header.css' %}" rel="stylesheet">
+    <link href="{% static 'css/footer.css' %}" rel="stylesheet">
     <link href="{% static 'css/messaging.css' %}" rel="stylesheet">
     <link href="{% static 'css/presence.css' %}" rel="stylesheet">
 
@@ -250,47 +251,73 @@
 </main>
 
 <footer class="site-footer">
-    <div class="container footer-inner">
-        <p class="footer-inner__tagline footer-inner__tagline--strong">
-            Follow <strong>CulinEire</strong> for Recipes &amp; News
-        </p>
-        <div class="footer-socials" aria-label="Social links">
-            <a aria-label="Instagram" class="footer-socials__link" href="https://www.instagram.com/culineire/" target="_blank" rel="noopener noreferrer">
-                <svg aria-hidden="true" viewBox="0 0 24 24">
-                    <rect x="2" y="2" width="20" height="20" rx="5"></rect>
-                    <circle cx="12" cy="12" r="4"></circle>
-                    <circle cx="17.5" cy="6.5" r="0.5"></circle>
-                </svg>
-            </a>
-            <a aria-label="TikTok" class="footer-socials__link" href="https://www.tiktok.com/@culineire.ie" target="_blank" rel="noopener noreferrer">
-                <svg aria-hidden="true" viewBox="0 0 24 24">
-                    <path d="M19.6 3a4.6 4.6 0 0 1-4.6-4.6h-3v14.6a2.6 2.6 0 1 1-2.6-2.6c.3 0 .5 0 .8.1V7.3a6.6 6.6 0 1 0 5.8 6.5V8.7a8.6 8.6 0 0 0 4.6 1.3V6.4A4.6 4.6 0 0 1 19.6 3z"></path>
-                </svg>
-            </a>
-            <a aria-label="Telegram" class="footer-socials__link" href="https://t.me/CULINEIRE" target="_blank" rel="noopener noreferrer">
-                <svg aria-hidden="true" viewBox="0 0 24 24">
-                    <path d="M21.7 4.2 18.4 20c-.2 1.1-.9 1.4-1.8.9l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5.2 9.5-8.6c.4-.4-.1-.6-.6-.2L5.7 13.4.6 11.8c-1.1-.3-1.1-1.1.2-1.6L20.8 2.5c.9-.3 1.7.2.9 1.7z"></path>
-                </svg>
-            </a>
-        </div>
-        <p class="footer-inner__meta">&copy; 2026 Bearcave Limited. All rights reserved.</p>
-        <p class="footer-inner__meta">CulinEire&trade; is a culinary platform and brand developed and operated by Bearcave Limited.</p>
-        <p class="footer-inner__meta">CulinEire Kitchen is part of the Bearcave Limited culinary platform.</p>
-        <p class="footer-inner__meta">Version 1.5.80</p>
-        <nav aria-label="Footer" class="footer-inner__links">
-            <a href="{% url 'about' %}">About</a>
-            <span aria-hidden="true">/</span>
-            <a href="{% url 'privacy' %}">Privacy</a>
-            <span aria-hidden="true">/</span>
-            <a href="{% url 'legal:legal_hub' %}">Legal</a>
-            <span aria-hidden="true">/</span>
-            <a href="{% url 'legal:content_publishing_rules' %}">Publishing Rules</a>
-            <span aria-hidden="true">/</span>
-            <a href="{% url 'legal:report_content' %}">Report Content</a>
-            <span aria-hidden="true">/</span>
-            <a href="{% url 'messaging:contact' %}">Contact</a>
-        </nav>
+
+    <div class="footer-stripe" aria-hidden="true">
+        <span class="footer-stripe__green"></span>
+        <span class="footer-stripe__white"></span>
+        <span class="footer-stripe__orange"></span>
     </div>
+
+    <div class="footer-main">
+        <div class="container footer-main__grid">
+
+            <div class="footer-brand">
+                <a aria-label="CulinEire home" class="footer-brand__logo" href="{% url 'home' %}">
+                    <img alt="" src="{% static 'images/logo.png' %}">
+                    <span class="footer-brand__logo-text">CulinÉire</span>
+                </a>
+                <p class="footer-brand__tagline">Irish recipes and food stories, crafted for the home kitchen.</p>
+                <div class="footer-socials" aria-label="Follow CulinEire">
+                    <a aria-label="Instagram" class="footer-socials__link" href="https://www.instagram.com/culineire/" rel="noopener noreferrer" target="_blank">
+                        <svg aria-hidden="true" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="0.5"></circle></svg>
+                    </a>
+                    <a aria-label="TikTok" class="footer-socials__link" href="https://www.tiktok.com/@culineire.ie" rel="noopener noreferrer" target="_blank">
+                        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M19.6 3a4.6 4.6 0 0 1-4.6-4.6h-3v14.6a2.6 2.6 0 1 1-2.6-2.6c.3 0 .5 0 .8.1V7.3a6.6 6.6 0 1 0 5.8 6.5V8.7a8.6 8.6 0 0 0 4.6 1.3V6.4A4.6 4.6 0 0 1 19.6 3z"></path></svg>
+                    </a>
+                    <a aria-label="Telegram" class="footer-socials__link" href="https://t.me/CULINEIRE" rel="noopener noreferrer" target="_blank">
+                        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M21.7 4.2 18.4 20c-.2 1.1-.9 1.4-1.8.9l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5.2 9.5-8.6c.4-.4-.1-.6-.6-.2L5.7 13.4.6 11.8c-1.1-.3-1.1-1.1.2-1.6L20.8 2.5c.9-.3 1.7.2.9 1.7z"></path></svg>
+                    </a>
+                </div>
+            </div>
+
+            <div class="footer-col">
+                <p class="footer-col__heading">Explore</p>
+                <nav aria-label="Footer explore" class="footer-col__nav">
+                    <a href="{% url 'recipes:recipe_list' %}">Recipes</a>
+                    <a href="{% url 'articles:article_list' %}">Articles</a>
+                    <a href="{% url 'newsfeed:feed' %}">News</a>
+                    <a href="{% url 'home' %}">Home</a>
+                </nav>
+            </div>
+
+            <div class="footer-col">
+                <p class="footer-col__heading">Company</p>
+                <nav aria-label="Footer company" class="footer-col__nav">
+                    <a href="{% url 'about' %}">About</a>
+                    <a href="{% url 'messaging:contact' %}">Contact</a>
+                    <a href="{% url 'legal:legal_hub' %}">Legal</a>
+                    <a href="{% url 'privacy' %}">Privacy</a>
+                    <a href="{% url 'legal:content_publishing_rules' %}">Publishing Rules</a>
+                    <a href="{% url 'legal:report_content' %}">Report Content</a>
+                </nav>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="footer-base">
+        <div class="container footer-base__inner">
+            <div class="footer-registration">
+                <span class="footer-reg__badge">CRO No. 786815</span>
+                <span class="footer-reg__text">CulinEire&trade; is a registered business name in Ireland &middot; Companies Registration Office &middot; Registered 28 May 2026</span>
+            </div>
+            <div class="footer-legal">
+                <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
+                <span class="footer-version">v1.5.81</span>
+            </div>
+        </div>
+    </div>
+
 </footer>
 
 <script src="{% static 'js/main.js' %}"></script>
