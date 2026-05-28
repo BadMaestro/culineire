@@ -316,7 +316,7 @@ def _generate_step_photos(recipe: Recipe, method_text: str) -> list[RecipeImage]
         except (HTTPError, URLError) as exc:
             logger.warning("generate_recipe: step photo failed for step %d of %r: %s", step_num, recipe.title, exc)
             continue
-        alt_text = f"{recipe.title}, step {step_num}"
+        alt_text = step_text[:125].rstrip(".,;").strip()
         img = RecipeImage(recipe=recipe, sort_order=gallery_pos, alt_text=alt_text, caption=f"Step {step_num}")
         img.image.save(f"step{gallery_pos}-{recipe.slug[:30]}.jpg", ContentFile(image_bytes), save=False)
         img.save()
