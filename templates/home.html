@@ -32,50 +32,6 @@
     </div>
 </section>
 
-{% if chef_battle_enabled %}
-<section class="page-section">
-    <div class="container">
-        <div class="page-header">
-            <div>
-                <h2>Chef Battle Arena</h2>
-            </div>
-            <a class="text-link" href="{% url 'chef_battle:home' %}">Enter Arena</a>
-        </div>
-
-        <p class="page-subtitle">
-            Public culinary duels where CulinEire chefs challenge rivals, submit real recipes or articles,
-            collect votes and build rank.
-        </p>
-
-        {% if active_battles or battle_events %}
-        <div class="battle-home-strip">
-            {% for battle in active_battles %}
-            <a class="battle-home-strip__item" href="{{ battle.get_absolute_url }}">
-                <span>{{ battle.get_status_display }}</span>
-                <strong>{{ battle.challenger.name }} vs {{ battle.opponent.name }}</strong>
-                <em>{{ battle.theme }}</em>
-            </a>
-            {% endfor %}
-            {% for event in battle_events %}
-            {% if not event.battle or not active_battles %}
-            <a class="battle-home-strip__item" href="{% if event.battle %}{{ event.battle.get_absolute_url }}{% else %}{% url 'chef_battle:home' %}{% endif %}">
-                <span>Battle News</span>
-                <strong>{{ event.message }}</strong>
-            </a>
-            {% endif %}
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="empty-state">
-            <h2>The Arena Is Ready</h2>
-            <p>The first Chef Battle will appear here as soon as a challenge is accepted.</p>
-            <p><a class="btn-primary" href="{% url 'chef_battle:challenge_create' %}">Create The First Challenge</a></p>
-        </div>
-        {% endif %}
-    </div>
-</section>
-{% endif %}
-
 <section class="page-section">
     <div class="container">
         <div class="page-header">
