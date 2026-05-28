@@ -715,23 +715,22 @@
             if (countdown <= 0) {
                 clearInterval(timerId);
                 wrapper.remove();
-                // Use fetch instead of form.submit() so the page does not reload
+                // Submit the form into a hidden iframe so the page does not reload
                 // and other simultaneous delete timers continue running.
-                fetch(form.action, {
-                    method: 'POST',
-                    body: new FormData(form),
-                    credentials: 'same-origin',
-                }).then(function (response) {
-                    if (response.ok) {
-                        if (card) card.remove();
-                    } else {
-                        form.style.display = '';
-                        alert('Delete failed (HTTP ' + response.status + '). Please try again.');
-                    }
-                }).catch(function () {
-                    form.style.display = '';
-                    alert('Delete failed (network error). Please try again.');
+                // Using a real browser form submit (not fetch) guarantees that
+                // session cookies and CSRF tokens are sent exactly as Django expects.
+                var iframeName = 'delete-frame-' + Date.now() + '-' + Math.random();
+                var iframe = document.createElement('iframe');
+                iframe.name = iframeName;
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
+                form.target = iframeName;
+                iframe.addEventListener('load', function () {
+                    iframe.remove();
+                    form.target = '';
+                    if (card) card.remove();
                 });
+                form.submit();
             }
         }, 1000);
 
