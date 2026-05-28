@@ -47,6 +47,23 @@ def _extract_json(text: str) -> dict:
         raise CommandError(f"Anthropic response was not valid JSON: {exc}") from exc
 
 
+def _sanitise_generated_text(text: str) -> str:
+    """Strip AI punctuation habits that are forbidden in CulinEire content.
+
+    The writing prompt forbids em dashes, en dashes, and double dashes,
+    but the model still produces them occasionally.  This post-processing
+    step replaces them with a comma+space so the meaning is preserved.
+    """
+    # Em dash (U+2014) and en dash (U+2013) → comma
+    text = text.replace("—", ", ").replace("–", ", ")
+    # Two or more consecutive hyphens → comma
+    text = re.sub(r"-{2,}", ", ", text)
+    # Tidy up any comma run-ons produced by the replacements above
+    text = re.sub(r",\s*,+", ",", text)
+    text = re.sub(r",\s{2,}", ", ", text)
+    return text.strip(", ").strip()
+
+
 def _to_text_lines(value) -> str:
     if isinstance(value, list):
         return "\n".join(str(item).strip() for item in value if str(item).strip())
@@ -130,21 +147,22 @@ def _normalise_recipe_payload(payload: dict, dish_name: str, status: str) -> dic
     if not ingredients or not method:
         raise CommandError(f'Generated recipe "{title}" must include ingredients and method.')
 
+    _s = _sanitise_generated_text
     return {
         "title": title,
         "slug": _unique_slug(title),
-        "short_description": str(payload.get("short_description") or "").strip(),
+        "short_description": _s(str(payload.get("short_description") or "")),
         "category": _map_category(payload.get("category")),
         "difficulty": _map_difficulty(payload.get("difficulty")),
         "prep_time_minutes": _to_int(payload.get("prep_time_minutes"), default=0),
         "cook_time_minutes": _to_int(payload.get("cook_time_minutes"), default=0),
         "servings": _to_int(payload.get("servings"), default=4, minimum=1),
         "calories": _to_optional_int(payload.get("calories")),
-        "ingredients": ingredients,
-        "method": method,
-        "tips": str(payload.get("tips") or "").strip(),
-        "irish_context": str(payload.get("irish_context") or "").strip(),
-        "author_commentary": str(payload.get("author_commentary") or "").strip(),
+        "ingredients": _s(ingredients),
+        "method": _s(method),
+        "tips": _s(str(payload.get("tips") or "")),
+        "irish_context": _s(str(payload.get("irish_context") or "")),
+        "author_commentary": _s(str(payload.get("author_commentary") or "")),
         "allergens": _map_allergens(payload.get("allergens")),
         "source_type": Recipe.SourceType.AI_ASSISTED,
         "source_title": AI_SOURCE_TITLE,
