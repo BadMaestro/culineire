@@ -121,6 +121,32 @@ def _update_article_gallery_alt_texts(article, post_data):
         image.save(update_fields=["alt_text"])
 
 
+def _update_article_gallery_order(article, post_data):
+    if not hasattr(post_data, "getlist"):
+        return
+
+    ordered_ids = []
+    for raw_id in post_data.getlist("gallery_image_order"):
+        try:
+            ordered_ids.append(int(raw_id))
+        except (TypeError, ValueError):
+            continue
+
+    if not ordered_ids:
+        return
+
+    images_by_id = {
+        image.pk: image
+        for image in article.gallery_images.filter(is_active=True, pk__in=ordered_ids)
+    }
+    for position, image_id in enumerate(ordered_ids, start=1):
+        image = images_by_id.get(image_id)
+        if not image or image.sort_order == position:
+            continue
+        image.sort_order = position
+        image.save(update_fields=["sort_order"])
+
+
 def _authoring_action(request):
     return request.POST.get("action") if request.POST.get("action") in {"save_draft", "submit_review", "approve_publish"} else "submit_review"
 
@@ -472,6 +498,7 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
             form.save_m2m()
             self.object = article
             _update_article_gallery_alt_texts(article, self.request.POST)
+            _update_article_gallery_order(article, self.request.POST)
 
             max_sort_order = article.gallery_images.aggregate(max_sort_order=Max("sort_order"))["max_sort_order"] or 0
             for i, img_file in enumerate(gallery_images, start=max_sort_order + 1):

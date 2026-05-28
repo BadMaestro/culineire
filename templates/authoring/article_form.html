@@ -110,8 +110,9 @@
                         {% if form_mode == "edit" and existing_gallery_images %}
                         <div class="authoring-step-existing-list">
                             {% for img in existing_gallery_images %}
-                            <div class="authoring-step-existing-item">
-                                <span class="authoring-step-badge">{{ forloop.counter }}</span>
+                            <div class="authoring-step-existing-item" data-gallery-card draggable="true">
+                                <input name="gallery_image_order" type="hidden" value="{{ img.pk }}">
+                                <span class="authoring-step-badge" data-gallery-badge>{{ forloop.counter }}</span>
                                 <img alt="{{ img.alt_text|default:'Gallery image' }}" class="authoring-step-thumb" src="{{ img.image.url }}">
                                 <label class="authoring-step-alt-label" for="id_gallery_alt_{{ img.pk }}">Alt text</label>
                                 <input class="authoring-control authoring-control--compact" id="id_gallery_alt_{{ img.pk }}" name="gallery_alt_{{ img.pk }}" type="text" value="{{ img.alt_text }}">
@@ -323,6 +324,14 @@
     var fileInput = document.getElementById('id_gallery_images');
     var altFields = document.getElementById('new-gallery-alt-fields');
     if (!fileInput || !altFields) return;
+    var selectedItems = [];
+    var nextItemId = 1;
+    var objectUrls = [];
+
+    function revokeObjectUrls() {
+        objectUrls.forEach(function (url) { URL.revokeObjectURL(url); });
+        objectUrls = [];
+    }
 
     function clearAltFields() {
         while (altFields.firstChild) {
@@ -330,15 +339,45 @@
         }
     }
 
+    function setInputFiles() {
+        if (typeof DataTransfer === 'undefined') return;
+        var transfer = new DataTransfer();
+        selectedItems.forEach(function (item) {
+            transfer.items.add(item.file);
+        });
+        fileInput.files = transfer.files;
+    }
+
+    function moveItem(fromIndex, toIndex) {
+        if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0) return;
+        var item = selectedItems.splice(fromIndex, 1)[0];
+        selectedItems.splice(toIndex, 0, item);
+        setInputFiles();
+        renderAltFields();
+    }
+
     function renderAltFields() {
         clearAltFields();
-        Array.prototype.forEach.call(fileInput.files || [], function (file, index) {
+        revokeObjectUrls();
+        selectedItems.forEach(function (item, index) {
+            var file = item.file;
             var row = document.createElement('div');
             row.className = 'authoring-new-gallery__item';
+            row.draggable = true;
+            row.dataset.galleryIndex = String(index);
 
             var badge = document.createElement('span');
             badge.className = 'authoring-step-badge';
             badge.textContent = String(index + 1);
+
+            var preview = document.createElement('img');
+            preview.className = 'authoring-new-gallery__thumb';
+            preview.alt = '';
+            if (file.type && file.type.indexOf('image/') === 0) {
+                var previewUrl = URL.createObjectURL(file);
+                objectUrls.push(previewUrl);
+                preview.src = previewUrl;
+            }
 
             var meta = document.createElement('div');
             meta.className = 'authoring-new-gallery__meta';
@@ -357,17 +396,88 @@
             input.id = 'id_gallery_alt_texts_' + index;
             input.name = 'gallery_alt_texts';
             input.type = 'text';
+            input.value = item.altText;
+            input.addEventListener('input', function () {
+                item.altText = input.value;
+            });
+
+            row.addEventListener('dragstart', function (event) {
+                row.classList.add('authoring-new-gallery__item--dragging');
+                event.dataTransfer.effectAllowed = 'move';
+                event.dataTransfer.setData('text/plain', String(index));
+            });
+            row.addEventListener('dragend', function () {
+                row.classList.remove('authoring-new-gallery__item--dragging');
+            });
+            row.addEventListener('dragover', function (event) {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'move';
+            });
+            row.addEventListener('drop', function (event) {
+                event.preventDefault();
+                moveItem(Number(event.dataTransfer.getData('text/plain')), index);
+            });
 
             meta.appendChild(fileName);
             meta.appendChild(label);
             meta.appendChild(input);
             row.appendChild(badge);
+            row.appendChild(preview);
             row.appendChild(meta);
             altFields.appendChild(row);
         });
     }
 
-    fileInput.addEventListener('change', renderAltFields);
+    fileInput.addEventListener('change', function () {
+        selectedItems = Array.prototype.map.call(fileInput.files || [], function (file) {
+            return {
+                id: nextItemId++,
+                file: file,
+                altText: ''
+            };
+        });
+        renderAltFields();
+    });
+})();
+</script>
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+    document.querySelectorAll('.authoring-step-existing-list').forEach(function (list) {
+        var cards = Array.prototype.slice.call(list.querySelectorAll('[data-gallery-card]'));
+        if (!cards.length) return;
+        var draggedCard = null;
+
+        function refreshBadges() {
+            Array.prototype.forEach.call(list.querySelectorAll('[data-gallery-badge]'), function (badge, index) {
+                badge.textContent = String(index + 1);
+            });
+        }
+
+        cards.forEach(function (card) {
+            card.addEventListener('dragstart', function (event) {
+                draggedCard = card;
+                card.classList.add('authoring-step-existing-item--dragging');
+                event.dataTransfer.effectAllowed = 'move';
+                event.dataTransfer.setData('text/plain', '');
+            });
+            card.addEventListener('dragend', function () {
+                card.classList.remove('authoring-step-existing-item--dragging');
+                draggedCard = null;
+                refreshBadges();
+            });
+            card.addEventListener('dragover', function (event) {
+                event.preventDefault();
+                if (!draggedCard || draggedCard === card) return;
+                var rect = card.getBoundingClientRect();
+                var insertAfter = event.clientX > rect.left + rect.width / 2;
+                list.insertBefore(draggedCard, insertAfter ? card.nextSibling : card);
+            });
+            card.addEventListener('drop', function (event) {
+                event.preventDefault();
+                refreshBadges();
+            });
+        });
+    });
 })();
 </script>
 {% endblock %}

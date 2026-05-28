@@ -17,7 +17,13 @@ from recipes.models import Recipe, RecipeAuthor
 
 from .admin import ArticleAdmin, ArticleAdminForm, ArticleImageInlineFormSet
 from .models import Article, ArticleImage
-from .views import ArticleDetailView, _gallery_alt_lines, _reading_time_minutes, _soft_delete_article
+from .views import (
+    ArticleDetailView,
+    _gallery_alt_lines,
+    _reading_time_minutes,
+    _soft_delete_article,
+    _update_article_gallery_order,
+)
 
 
 @override_settings(
@@ -1072,6 +1078,8 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertContains(response, f'id="delete-gallery-image-{gallery_image.pk}"', html=False)
         self.assertContains(response, f'form="delete-gallery-image-{gallery_image.pk}"', html=False)
         self.assertContains(response, 'aria-label="Delete gallery image 1"', html=False)
+        self.assertContains(response, 'name="gallery_image_order"', html=False)
+        self.assertContains(response, f'value="{gallery_image.pk}"', html=False)
 
     def test_author_can_delete_own_article_gallery_image(self):
         gallery_image = ArticleImage.objects.create(
@@ -1774,6 +1782,13 @@ class ArticlePhase32AltTextTests(TestCase):
         author_user = user_model.objects.create_user(username="altwriter", password="pass")
         self.author = RecipeAuthor.objects.create(user=author_user, name="Alt Writer", slug="alt-writer")
 
+    @staticmethod
+    def uploaded_image(name="article-image.png", color=(24, 76, 58)):
+        image_file = BytesIO()
+        Image.new("RGB", (24, 24), color).save(image_file, format="PNG")
+        image_file.seek(0)
+        return SimpleUploadedFile(name, image_file.read(), content_type="image/png")
+
     def test_hero_image_alt_text_field_saved_and_retrieved(self):
         article = Article.objects.create(
             title="Alt Text Article",
@@ -1823,6 +1838,42 @@ class ArticlePhase32AltTextTests(TestCase):
 
     def test_gallery_alt_lines_returns_empty_list_when_missing(self):
         self.assertEqual(_gallery_alt_lines({}), [])
+
+    def test_update_article_gallery_order_saves_dragged_order(self):
+        article = Article.objects.create(
+            title="Gallery Order Article",
+            slug="gallery-order-article",
+            author=self.author,
+            body="Body text.",
+            published=date(2026, 5, 21),
+            status=Article.Status.APPROVED,
+        )
+        first = ArticleImage.objects.create(
+            article=article,
+            image=self.uploaded_image("first.png"),
+            sort_order=1,
+        )
+        second = ArticleImage.objects.create(
+            article=article,
+            image=self.uploaded_image("second.png"),
+            sort_order=2,
+        )
+        third = ArticleImage.objects.create(
+            article=article,
+            image=self.uploaded_image("third.png"),
+            sort_order=3,
+        )
+        post_data = QueryDict("", mutable=True)
+        post_data.update({"gallery_image_order": str(third.pk)})
+        post_data.update({"gallery_image_order": str(first.pk)})
+        post_data.update({"gallery_image_order": str(second.pk)})
+
+        _update_article_gallery_order(article, post_data)
+
+        ordered_ids = list(
+            article.gallery_images.order_by("sort_order", "id").values_list("pk", flat=True)
+        )
+        self.assertEqual(ordered_ids, [third.pk, first.pk, second.pk])
 
     def test_image_alt_text_helper_prefers_explicit_alt(self):
         class MockArticle:
