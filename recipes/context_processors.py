@@ -27,8 +27,8 @@ def _pending_moderation_count():
     try:
         from recipes.models import Recipe
         from articles.models import Article
-        pending_recipes = Recipe.objects.filter(status=Recipe.Status.PENDING).count()
-        pending_articles = Article.objects.filter(status=Article.Status.PENDING).count()
+        pending_recipes = Recipe.objects.filter(status=Recipe.Status.PENDING, is_deleted=False).count()
+        pending_articles = Article.objects.filter(status=Article.Status.PENDING, is_deleted=False).count()
         return pending_recipes + pending_articles
     except ImportError:
         return 0
