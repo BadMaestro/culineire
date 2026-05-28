@@ -1946,6 +1946,13 @@
     line-height: 1.2;
     font-weight: 700;
     text-decoration: none;
+    align-self: center;
+  }
+
+  .detail-page__card--source {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   .detail-page__source-link:hover,
