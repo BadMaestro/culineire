@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -9,6 +10,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from accounts.views import is_moderator
 from monitoring.tracker import get_client_ip
 from recipes.authoring import get_author_for_user
 from recipes.models import RecipeAuthor
@@ -24,6 +26,144 @@ from .services import (
     refuse_challenge,
     reveal_entries_if_ready,
 )
+
+
+def _battlefield_status(count: int, *, target: int = 1) -> str:
+    if count >= target:
+        return "done"
+    if count > 0:
+        return "active"
+    return "pending"
+
+
+def _build_battlefield_progress():
+    challenge_count = BattleChallenge.objects.count()
+    pending_challenges = BattleChallenge.objects.filter(status=BattleChallenge.Status.PENDING).count()
+    refused_challenges = BattleChallenge.objects.filter(status=BattleChallenge.Status.REFUSED).count()
+    battle_count = Battle.objects.count()
+    active_battles = Battle.objects.filter(status__in=[Battle.Status.ACTIVE, Battle.Status.VOTING, Battle.Status.SCHEDULED]).count()
+    completed_battles = Battle.objects.filter(status=Battle.Status.COMPLETED).count()
+    entry_count = Battle.objects.filter(entries__isnull=False).distinct().count()
+    vote_count = BattleVote.objects.count()
+    event_count = BattleEvent.objects.filter(is_public=True).count()
+    profile_count = ChefBattleProfile.objects.count()
+    feature_enabled = getattr(settings, "CHEF_BATTLE_ENABLED", False)
+
+    phases = [
+        {
+            "title": "Phase 0 - Sandbox Gate And Branch Discipline",
+            "items": [
+                {"label": "Chef Battle isolated from production", "detail": "Work remains in feature/chef-battle and reaches main only through a reviewed pull request.", "status": "manual"},
+                {"label": "Feature flag defaults off", "detail": "CHEF_BATTLE_ENABLED defaults to False, so live production does not load battle URLs or homepage battle queries.", "status": "done"},
+                {"label": "Sandbox enablement", "detail": "Enable CHEF_BATTLE_ENABLED=True only in the production-hosted Sandbox after migrations are applied.", "status": "done" if feature_enabled else "manual"},
+                {"label": "Production release rule", "detail": "No Chef Battle deploy to live production until sandbox QA, PR review, and explicit merge to main.", "status": "manual"},
+            ],
+        },
+        {
+            "title": "Phase 1 - MVP Battle Loop",
+            "items": [
+                {"label": "Battle data model", "detail": "Profiles, challenges, battles, entries, votes, events, moves, artifacts and seasons have an initial schema.", "status": "done"},
+                {"label": "Challenge flow", "detail": f"{challenge_count} challenge(s) created; {pending_challenges} pending; {refused_challenges} refused.", "status": _battlefield_status(challenge_count)},
+                {"label": "Battle room", "detail": f"{battle_count} battle room(s) created; {active_battles} active/scheduled/voting; {completed_battles} completed.", "status": _battlefield_status(battle_count)},
+                {"label": "Recipe/article submissions", "detail": f"{entry_count} battle(s) currently have at least one submitted entry.", "status": _battlefield_status(entry_count)},
+                {"label": "Public voting", "detail": f"{vote_count} vote(s) recorded. MVP rule: one authenticated vote or protected anonymous session per battle.", "status": _battlefield_status(vote_count)},
+                {"label": "7-day MVP timer", "detail": "Concept 3.0 recommends 7 days for authors and audience; current implementation still needs timer adjustment.", "status": "pending"},
+                {"label": "Manual battle moderation", "detail": "First 20-30 battles should be manually checked for theme fit, spam, image rights, recipe quality and rule violations.", "status": "pending"},
+            ],
+        },
+        {
+            "title": "Phase 2 - Make Battles Sound Across The Site",
+            "items": [
+                {"label": "Battle event feed", "detail": f"{event_count} public battle event(s) available for the arena, profiles and news-style surfaces.", "status": _battlefield_status(event_count)},
+                {"label": "Chef profile battle record", "detail": f"{profile_count} chef battle profile(s) exist with rank, rating, wins, losses, refusals and moves.", "status": _battlefield_status(profile_count)},
+                {"label": "Homepage battle block", "detail": "Homepage battle visibility is implemented behind CHEF_BATTLE_ENABLED and should stay sandbox-only until PR approval.", "status": "done"},
+                {"label": "Newsfeed integration", "detail": "Challenge, refusal, battle start, submission and completion events can create site news entries.", "status": "done"},
+                {"label": "Live visitor notifications", "detail": "Optional later layer: surface challenge wins, new crowns and final-hour voting through live pop-ups.", "status": "pending"},
+            ],
+        },
+        {
+            "title": "Phase 3 - Sandbox Launch Preparation",
+            "items": [
+                {"label": "First 5-10 sandbox battles", "detail": f"{completed_battles}/5 completed sandbox-style battles. Public launch should not feel empty.", "status": _battlefield_status(completed_battles, target=5)},
+                {"label": "Founding Chef programme", "detail": "Define Founding Chef criteria, profile marker, invite copy and founder visibility rules.", "status": "pending"},
+                {"label": "Battle rules and moderation checklist", "detail": "Write public rules for challenges, refusals, image rights, vote abuse, spam and respectful rivalry.", "status": "pending"},
+                {"label": "Outreach list", "detail": "Prepare 30-50 Irish food creators, local chefs, students and bloggers for direct invite outreach.", "status": "pending"},
+                {"label": "AllFresh / sponsor pilot", "detail": "Draft one sponsor-ready battle concept, value proposition and sample landing copy.", "status": "pending"},
+            ],
+        },
+        {
+            "title": "Later Phases - Deliberately Not MVP",
+            "items": [
+                {"label": "Attacks, blocks and battle moves", "detail": "Keep this out of MVP until basic voting battles have real participation data.", "status": "manual"},
+                {"label": "Artifacts and cosmetics", "detail": "Artifacts should be earned through gameplay; cosmetics can become non-pay-to-win monetisation later.", "status": "manual"},
+                {"label": "Seasons and tournaments", "detail": "Add only after ordinary battles produce history, rivals, winners and audience interest.", "status": "manual"},
+            ],
+        },
+    ]
+
+    items = [item for phase in phases for item in phase["items"]]
+    completed_items = [item for item in items if item["status"] == "done"]
+    active_items = [item for item in items if item["status"] != "done"]
+    done_count = len(completed_items)
+    total_count = len(items)
+    percent = round((done_count / total_count) * 100) if total_count else 0
+
+    copy_lines = [
+        "CulinEire Chef Battle battlefield handoff",
+        f"Progress: {done_count}/{total_count} items complete ({percent}%).",
+        "Branch rule: Codex works only in feature/chef-battle; main is production-only and receives Chef Battle only through reviewed PR.",
+        "MVP rule: keep the first launch simple - chef profile, challenge, battle room, two submissions, 7-day timer, voting, result, events.",
+        "Do not add attacks, blocks, artifacts, paid energy, seasons or tournaments to MVP.",
+        "",
+        "Current metrics:",
+        f"- Chef profiles: {profile_count}",
+        f"- Challenges: {challenge_count} ({pending_challenges} pending, {refused_challenges} refused)",
+        f"- Battles: {battle_count} ({active_battles} active/scheduled/voting, {completed_battles} completed)",
+        f"- Battles with entries: {entry_count}",
+        f"- Votes: {vote_count}",
+        f"- Public events: {event_count}",
+        "",
+        "Open / manual work:",
+    ]
+    for phase in phases:
+        open_items = [item for item in phase["items"] if item["status"] != "done"]
+        if not open_items:
+            continue
+        copy_lines.append(f"{phase['title']}:")
+        for item in open_items:
+            copy_lines.append(f"- [{item['status']}] {item['label']} - {item['detail']}")
+
+    return {
+        "phases": phases,
+        "items": items,
+        "active_items": active_items,
+        "completed_items": completed_items,
+        "done_count": done_count,
+        "total_count": total_count,
+        "percent": percent,
+        "copy_text": "\n".join(copy_lines),
+        "metrics": {
+            "profile_count": profile_count,
+            "challenge_count": challenge_count,
+            "battle_count": battle_count,
+            "completed_battles": completed_battles,
+            "vote_count": vote_count,
+            "event_count": event_count,
+            "feature_enabled": feature_enabled,
+        },
+    }
+
+
+@login_required
+def battlefield_progress(request):
+    if not is_moderator(request.user):
+        raise PermissionDenied
+
+    return render(
+        request,
+        "chef_battle/battlefield_progress.html",
+        {"battlefield_progress": _build_battlefield_progress()},
+    )
 
 
 def battle_home(request):
