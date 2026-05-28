@@ -1,0 +1,12 @@
+Dear {{ author_name }},
+
+Unfortunately, your recipe "{{ recipe_title }}" was not approved at this time. Our moderation team has left the following note:
+
+{{ moderation_note }}
+
+You are welcome to revise your recipe and resubmit it at any time. If you have any questions, feel free to reach out to our team.
+
+View your profile: {{ profile_url }}
+
+-- CulinEire Kitchen
+{{ site_url }}

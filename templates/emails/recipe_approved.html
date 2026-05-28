@@ -1,0 +1,23 @@
+{% extends "emails/base.html" %}
+
+{% block subject %}Your recipe is now live on CulinEire!{% endblock %}
+
+{% block content %}
+<h1 style="margin:0 0 16px;font-family:'Playfair Display',Georgia,serif;font-size:22px;font-weight:700;color:#1f2c25;line-height:1.3;text-align:center;">Your Recipe is Live!</h1>
+<p style="margin:0 0 16px;font-family:'Inter',system-ui,sans-serif;font-size:15px;color:#42514a;line-height:1.7;">
+  Dear {{ author_name }},
+</p>
+<p style="margin:0 0 16px;font-family:'Inter',system-ui,sans-serif;font-size:15px;color:#42514a;line-height:1.7;">
+  Congratulations! Your recipe <strong>{{ recipe_title }}</strong> has been approved and is now live on CulinEire Kitchen for everyone to enjoy.
+</p>
+<p style="margin:0 0 24px;font-family:'Inter',system-ui,sans-serif;font-size:15px;color:#42514a;line-height:1.7;">
+  Thank you for sharing your culinary heritage with our community. We hope your recipe inspires many cooks!
+</p>
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 24px;">
+  <tr>
+    <td style="text-align:center;">
+      <a href="{{ recipe_url }}" style="display:inline-block;background-color:#184c3a;color:#faf6f0;font-family:'Inter',system-ui,sans-serif;font-size:14px;font-weight:500;text-decoration:none;padding:13px 28px;border-radius:4px;">View My Recipe</a>
+    </td>
+  </tr>
+</table>
+{% endblock %}

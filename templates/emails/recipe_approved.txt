@@ -1,0 +1,10 @@
+Dear {{ author_name }},
+
+Congratulations! Your recipe "{{ recipe_title }}" has been approved and is now live on CulinEire Kitchen for everyone to enjoy.
+
+Thank you for sharing your culinary heritage with our community. We hope your recipe inspires many cooks!
+
+View your recipe: {{ recipe_url }}
+
+-- CulinEire Kitchen
+{{ site_url }}

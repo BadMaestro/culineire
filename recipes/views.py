@@ -43,6 +43,7 @@ from .forms import (
     RecipeRatingForm,
 )
 from .models import Recipe, RecipeAuthor, RecipeComment, RecipeImage, RecipeRating
+from config.email_utils import build_absolute_url, send_template_mail
 
 POPULAR_CATEGORY_PRIORITY = [
     ("irish_culinary_heritage", "Irish Culinary Heritage"),
@@ -1122,6 +1123,7 @@ class RecipeCreateView(AuthorRequiredMixin, CreateView):
             messages.success(self.request, "Recipe saved as a private draft.")
         else:
             messages.success(self.request, "Recipe submitted for review.")
+            _send_recipe_notification(recipe, "pending")
         return redirect(recipe.get_absolute_url())
 
     def get_context_data(self, **kwargs):
@@ -1188,6 +1190,7 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
             messages.success(self.request, "Recipe updated and sent back to review before it goes live again.")
         elif previous_status in {Recipe.Status.DRAFT, Recipe.Status.NEEDS_CHANGES, Recipe.Status.REJECTED} and recipe.status == Recipe.Status.PENDING:
             messages.success(self.request, "Recipe submitted for review.")
+            _send_recipe_notification(recipe, "pending")
         else:
             messages.success(self.request, "Recipe Updated Successfully.")
         next_url = self.request.POST.get("next") or self.request.GET.get("next", "")
@@ -1567,6 +1570,41 @@ def automation_progress(request):
     )
 
 
+def _send_recipe_notification(recipe, event, moderation_note=""):
+    author = recipe.author
+    if not author or not author.user or not author.user.email:
+        return
+    email = author.user.email
+    author_name = author.name or author.user.get_username()
+    profile_url = build_absolute_url(author.get_absolute_url())
+    recipe_url = build_absolute_url(recipe.get_absolute_url())
+
+    if event == "pending":
+        send_template_mail(
+            subject=f'Your recipe "{recipe.title}" is awaiting moderation',
+            template="recipe_pending",
+            context={"author_name": author_name, "recipe_title": recipe.title, "profile_url": profile_url},
+            recipient_list=[email],
+            fail_silently=True,
+        )
+    elif event == "rejected":
+        send_template_mail(
+            subject=f'Your recipe "{recipe.title}" was not approved',
+            template="recipe_rejected",
+            context={"author_name": author_name, "recipe_title": recipe.title, "moderation_note": moderation_note, "profile_url": profile_url},
+            recipient_list=[email],
+            fail_silently=True,
+        )
+    elif event == "approved":
+        send_template_mail(
+            subject=f'Your recipe "{recipe.title}" is now live on CulinEire!',
+            template="recipe_approved",
+            context={"author_name": author_name, "recipe_title": recipe.title, "recipe_url": recipe_url},
+            recipient_list=[email],
+            fail_silently=True,
+        )
+
+
 @require_POST
 def moderate_recipe(request, slug):
     if not is_moderator(request.user):
@@ -1581,6 +1619,7 @@ def moderate_recipe(request, slug):
         recipe.moderated_at = timezone.now()
         recipe.save(update_fields=["status", "moderation_note", "moderated_by", "moderated_at"])
         messages.success(request, f'"{recipe.title}" approved and is now live.')
+        _send_recipe_notification(recipe, "approved")
     elif action == "request_changes":
         note = request.POST.get("moderation_note", "").strip()
         if not note:
@@ -1603,6 +1642,7 @@ def moderate_recipe(request, slug):
         recipe.moderated_at = timezone.now()
         recipe.save(update_fields=["status", "moderation_note", "moderated_by", "moderated_at"])
         messages.warning(request, f'"{recipe.title}" rejected.')
+        _send_recipe_notification(recipe, "rejected", moderation_note=note)
     elif action == "delete":
         title = recipe.title
         _soft_delete_recipe(recipe, request.user)

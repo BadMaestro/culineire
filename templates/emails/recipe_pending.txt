@@ -1,0 +1,10 @@
+Dear {{ author_name }},
+
+Thank you for submitting your recipe "{{ recipe_title }}" to CulinEire Kitchen. It has been received and is now awaiting review by our moderation team.
+
+You will receive an email once our team has reviewed your submission. We appreciate your contribution to Irish culinary heritage!
+
+View your profile: {{ profile_url }}
+
+-- CulinEire Kitchen
+{{ site_url }}

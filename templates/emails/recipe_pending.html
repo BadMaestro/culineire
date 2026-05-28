@@ -1,0 +1,23 @@
+{% extends "emails/base.html" %}
+
+{% block subject %}Your recipe is awaiting moderation{% endblock %}
+
+{% block content %}
+<h1 style="margin:0 0 16px;font-family:'Playfair Display',Georgia,serif;font-size:22px;font-weight:700;color:#1f2c25;line-height:1.3;text-align:center;">Recipe Submitted!</h1>
+<p style="margin:0 0 16px;font-family:'Inter',system-ui,sans-serif;font-size:15px;color:#42514a;line-height:1.7;">
+  Dear {{ author_name }},
+</p>
+<p style="margin:0 0 16px;font-family:'Inter',system-ui,sans-serif;font-size:15px;color:#42514a;line-height:1.7;">
+  Thank you for submitting your recipe <strong>{{ recipe_title }}</strong> to CulinEire Kitchen. It has been received and is now awaiting review by our moderation team.
+</p>
+<p style="margin:0 0 24px;font-family:'Inter',system-ui,sans-serif;font-size:15px;color:#42514a;line-height:1.7;">
+  You will receive an email once our team has reviewed your submission. We appreciate your contribution to Irish culinary heritage!
+</p>
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 24px;">
+  <tr>
+    <td style="text-align:center;">
+      <a href="{{ profile_url }}" style="display:inline-block;background-color:#184c3a;color:#faf6f0;font-family:'Inter',system-ui,sans-serif;font-size:14px;font-weight:500;text-decoration:none;padding:13px 28px;border-radius:4px;">View My Profile</a>
+    </td>
+  </tr>
+</table>
+{% endblock %}
