@@ -595,9 +595,11 @@ class Command(BaseCommand):
         try:
             from articles.services.editorial_tools import suggest_recipe_fields
         except ImportError as exc:
-            # Only swallow "module not found" for the editorial_tools path itself.
-            # Re-raise if a broken internal import inside the module caused the error.
-            if exc.name and not exc.name.startswith("articles"):
+            # Swallow only when the editorial_tools module (or its package) is absent.
+            # Re-raise if an internal dependency inside the module is broken
+            # — exc.name will be that dependency, not the editorial_tools path.
+            _allowed = ("articles", "articles.services", "articles.services.editorial_tools")
+            if exc.name is not None and exc.name not in _allowed:
                 raise
             suggest_recipe_fields = lambda f: {}  # noqa: E731
 

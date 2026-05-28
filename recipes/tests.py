@@ -2022,7 +2022,7 @@ class RecipeMonth1RelatedRecipesTests(TestCase):
         self.assertEqual(response.status_code, 200)
         related_recipe_objs = [item["recipe"] for item in response.context["related_recipes"]]
         self.assertIn(related, related_recipe_objs)
-        self.assertContains(response, "Related Recipes")
+        self.assertContains(response, "You Might Also Like")
         self.assertContains(response, "Related Colcannon")
 
     def test_related_recipes_include_shared_additional_category(self):
