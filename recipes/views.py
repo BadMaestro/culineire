@@ -1418,17 +1418,17 @@ def moderation_panel(request):
 
     author_query = request.GET.get("author_q", "").strip()
 
-    pending_recipes = (
+    pending_recipes = list(
         Recipe.objects.select_related("author", "author__user")
         .filter(status=Recipe.Status.PENDING, is_deleted=False)
         .order_by("-created_at")
     )
-    needs_changes_recipes = (
+    needs_changes_recipes = list(
         Recipe.objects.select_related("author", "author__user", "moderated_by")
         .filter(status=Recipe.Status.NEEDS_CHANGES, is_deleted=False)
         .order_by("-moderated_at", "-created_at")
     )
-    rejected_recipes = (
+    rejected_recipes = list(
         Recipe.objects.select_related("author", "author__user", "moderated_by")
         .filter(status=Recipe.Status.REJECTED, is_deleted=False)
         .order_by("-created_at")
