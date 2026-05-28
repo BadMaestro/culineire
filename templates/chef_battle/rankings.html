@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Chef Battle Rankings | CulinEire{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="page-section">
+  <div class="container battle-page">
+    <div class="battle-section-header">
+      <h1>Chef Battle Rankings</h1>
+      <a class="btn-primary" href="{% url 'chef_battle:challenge_create' %}">Challenge A Chef</a>
+    </div>
+
+    {% if profiles %}
+    <div class="battle-table">
+      <div class="battle-table__head">
+        <span>Chef</span>
+        <span>Rank</span>
+        <span>Rating</span>
+        <span>W-L</span>
+        <span>Moves</span>
+      </div>
+      {% for profile in profiles %}
+      <a class="battle-table__row" href="{{ profile.author.get_absolute_url }}">
+        <span>{% if profile.has_crown %}Crown · {% endif %}{{ profile.author.name }}</span>
+        <span>{{ profile.get_rank_display }}</span>
+        <strong>{{ profile.rating }}</strong>
+        <span>{{ profile.wins }}-{{ profile.losses }}</span>
+        <span>{{ profile.battle_moves }}</span>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state"><p>No rankings yet. Create the first challenge to wake the arena.</p></div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

@@ -132,6 +132,7 @@ INSTALLED_APPS = [
     "collection",
     "legal",
     "newsfeed",
+    "chef_battle",
     "sandbox",
 ]
 
@@ -296,6 +297,7 @@ OPENAI_IMAGE_QUALITY = os.getenv("OPENAI_IMAGE_QUALITY", "low")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHANNEL_ID = os.getenv("TELEGRAM_CHANNEL_ID", "")
 PRESENCE_EVENT_COOLDOWN_MINUTES = env_int("PRESENCE_EVENT_COOLDOWN_MINUTES", default=5)
+CHEF_BATTLE_ENABLED = env_bool("CHEF_BATTLE_ENABLED", default=False)
 SIGNUP_REQUIRE_EMAIL_CONFIRMATION = env_bool(
     "SIGNUP_REQUIRE_EMAIL_CONFIRMATION",
     default=IS_PRODUCTION,

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Submit Battle Entry | CulinEire{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="page-section">
+  <div class="container battle-form-shell">
+    <p class="battle-kicker">Battle Entry</p>
+    <h1>{{ battle.theme }}</h1>
+    <form class="battle-form" method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <div class="battle-actions">
+        <button class="btn-primary" type="submit">Submit Entry</button>
+        <a class="btn-secondary" href="{{ battle.get_absolute_url }}">Cancel</a>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}
