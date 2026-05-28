@@ -223,11 +223,13 @@ def _generate_image(title: str, short_description: str, alt_text: str = "") -> t
         "appetising close-up presentation. No text, no watermarks, no people, no brand names or logos."
     )
     model = getattr(settings, "OPENAI_IMAGE_MODEL", "gpt-image-1")
+    quality = getattr(settings, "OPENAI_IMAGE_QUALITY", "low")
     payload = {
         "model": model,
         "prompt": prompt,
         "n": 1,
         "size": "1024x1024",
+        "quality": quality,
     }
     request = Request(
         "https://api.openai.com/v1/images/generations",
@@ -288,6 +290,7 @@ def _generate_step_photos(recipe: Recipe, method_text: str) -> list[RecipeImage]
             "prompt": prompt,
             "n": 1,
             "size": "1024x1024",
+            "quality": getattr(settings, "OPENAI_IMAGE_QUALITY", "low"),
         }
         api_key = getattr(settings, "OPENAI_API_KEY", "")
         request = Request(
