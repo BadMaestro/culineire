@@ -4,6 +4,7 @@ from pathlib import Path
 
 from PIL import Image, UnidentifiedImageError
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import UploadedFile
 from django.utils.deconstruct import deconstructible
 
 
@@ -23,6 +24,12 @@ class ImageUploadValidator:
 
     def __call__(self, uploaded_file):
         if not uploaded_file:
+            return
+        # Only validate freshly uploaded files. FieldFile instances are already-stored
+        # files that went through validation when first saved — re-validating them
+        # during model clean_fields() would incorrectly reject AI-generated images
+        # whose bytes do not match the file extension saved on disk.
+        if not isinstance(uploaded_file, UploadedFile):
             return
 
         extension = Path(uploaded_file.name or "").suffix.lower()
