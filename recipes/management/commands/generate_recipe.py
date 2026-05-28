@@ -206,15 +206,20 @@ def _prompt_for_recipe(dish_name: str) -> str:
     )
 
 
-def _generate_image(title: str, short_description: str) -> tuple[bytes, str]:
+def _sanitise_image_subject(title: str, alt_text: str) -> str:
+    subject = alt_text.strip() if alt_text and alt_text.strip() else title
+    return subject[:300]
+
+
+def _generate_image(title: str, short_description: str, alt_text: str = "") -> tuple[bytes, str]:
     api_key = getattr(settings, "OPENAI_API_KEY", "")
     if not api_key:
         raise CommandError("OPENAI_API_KEY is not configured.")
+    subject = _sanitise_image_subject(title, alt_text)
     prompt = (
-        f"Professional food photography of {title}. "
-        f"{short_description} "
-        "Irish cuisine, natural lighting, rustic wooden table, appetising presentation. "
-        "No text, no watermarks, no people."
+        f"Professional food photography: {subject}. "
+        "Irish cuisine, natural light, rustic wooden surface, ceramic or white plate, "
+        "appetising close-up presentation. No text, no watermarks, no people, no brand names or logos."
     )
     payload = {
         "model": "dall-e-3",
@@ -269,8 +274,8 @@ def _generate_step_photos(recipe: Recipe, method_text: str) -> list[RecipeImage]
     for sort_order, step_text in key_steps:
         prompt = (
             f"Professional food photography showing the cooking step: {step_text[:200]}. "
-            f"For the recipe {recipe.title}. Irish cuisine, natural lighting, rustic setting. "
-            "No text, no watermarks, no people."
+            "Irish cuisine, natural lighting, rustic kitchen setting. "
+            "No text, no watermarks, no people, no brand names or logos."
         )
         payload = {
             "model": "dall-e-3",
@@ -388,7 +393,7 @@ class Command(BaseCommand):
             if generate_image:
                 try:
                     ai_alt_text = str(payload.get("hero_image_alt_text") or "").strip()[:125]
-                    image_bytes, fallback_alt = _generate_image(recipe.title, recipe.short_description)
+                    image_bytes, fallback_alt = _generate_image(recipe.title, recipe.short_description, ai_alt_text)
                     recipe.hero_image.save(f"cover-{recipe.slug[:40]}.jpg", ContentFile(image_bytes), save=False)
                     recipe.hero_image_alt_text = ai_alt_text or fallback_alt
                     recipe.image_rights_status = Recipe.ImageRightsStatus.AI_GENERATED
