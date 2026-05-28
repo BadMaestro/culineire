@@ -29,7 +29,7 @@
         {% endfor %}
         {% endif %}
 
-        <form action="{% url 'recipes:generate_recipe' %}" class="authoring-form" method="post">
+        <form action="{% url 'recipes:generate_recipe' %}" class="authoring-form" id="generate-form" method="post">
             {% csrf_token %}
 
             <fieldset class="authoring-section">
@@ -88,22 +88,167 @@
                                 </label>
                             </li>
                         </ul>
-                        <small class="authoring-help">When unchecked, DALL-E 3 generates a hero image and up to 3 step photos. Adds 1-2 minutes to generation time.</small>
+                        <small class="authoring-help">When unchecked, the AI generates a hero image and up to 3 step photos. Adds 1-2 minutes to generation time.</small>
                     </div>
                 </div>
             </fieldset>
 
             <fieldset class="authoring-section authoring-section--actions">
                 <div class="authoring-generate-row">
-                    <button class="authoring-submit" type="submit">
+                    <button class="authoring-submit" id="generate-btn" type="submit">
                         <svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="16" style="margin-right:0.45rem"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
                         Generate Recipe
                     </button>
-                    <p class="authoring-generate-note">Runs in the background. Check the pending queue in 1-2 minutes.</p>
                 </div>
             </fieldset>
 
         </form>
     </div>
 </section>
+
+{# ── Generation overlay ───────────────────────────────────────────────────── #}
+<div aria-modal="true" aria-label="Generating recipe" class="gen-overlay" id="gen-overlay" role="dialog" hidden>
+    <div class="gen-overlay__card">
+
+        {# Cooking pot SVG animation #}
+        <div class="gen-pot" aria-hidden="true">
+            <svg class="gen-pot__svg" viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+                {# Steam #}
+                <g class="gen-steam">
+                    <path class="gen-steam__line gen-steam__line--1" d="M42 28 Q38 22 42 16 Q46 10 42 4" fill="none" stroke-linecap="round" stroke-width="2.5"/>
+                    <path class="gen-steam__line gen-steam__line--2" d="M60 28 Q56 22 60 16 Q64 10 60 4" fill="none" stroke-linecap="round" stroke-width="2.5"/>
+                    <path class="gen-steam__line gen-steam__line--3" d="M78 28 Q74 22 78 16 Q82 10 78 4" fill="none" stroke-linecap="round" stroke-width="2.5"/>
+                </g>
+                {# Pot handles #}
+                <path d="M22 55 Q14 55 14 48 Q14 41 22 41" fill="none" stroke-linecap="round" stroke-width="4"/>
+                <path d="M98 55 Q106 55 106 48 Q106 41 98 41" fill="none" stroke-linecap="round" stroke-width="4"/>
+                {# Pot body #}
+                <rect height="38" rx="8" width="76" x="22" y="38"/>
+                {# Pot rim #}
+                <rect height="7" rx="3" width="82" x="19" y="33"/>
+                {# Liquid surface #}
+                <ellipse cx="60" cy="42" rx="33" ry="5" class="gen-pot__liquid"/>
+                {# Spoon — rotates around center #}
+                <g class="gen-spoon" style="transform-origin: 60px 56px;">
+                    <rect class="gen-spoon__handle" height="30" rx="2" width="4" x="58" y="36"/>
+                    <ellipse class="gen-spoon__bowl" cx="60" cy="68" rx="5" ry="7"/>
+                </g>
+            </svg>
+        </div>
+
+        <p class="gen-overlay__title">Cooking up <strong id="gen-dish-name">your recipe</strong>...</p>
+        <p class="gen-overlay__subtitle">The AI is writing ingredients, method, and generating images.</p>
+
+        <div class="gen-timer" aria-live="polite" aria-atomic="true">
+            <span id="gen-timer-display">0:00</span>
+        </div>
+
+        <p class="gen-overlay__hint" id="gen-status-hint">Estimated time: 1-2 minutes</p>
+
+        <div class="gen-progress">
+            <div class="gen-progress__bar" id="gen-progress-bar"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+    var form       = document.getElementById('generate-form');
+    var overlay    = document.getElementById('gen-overlay');
+    var dishNameEl = document.getElementById('gen-dish-name');
+    var timerEl    = document.getElementById('gen-timer-display');
+    var hintEl     = document.getElementById('gen-status-hint');
+    var progressBar= document.getElementById('gen-progress-bar');
+
+    var pollUrl    = '{% url "recipes:generate_recipe_poll" %}';
+    var panelUrl   = '{% url "recipes:moderation_panel" %}';
+
+    var startTime  = null;
+    var sinceParam = null;
+    var timerId    = null;
+    var pollId     = null;
+    var POLL_INTERVAL   = 5000;
+    var ESTIMATED_MS    = 90000; // 90s progress bar fills over this
+
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+    function tickTimer() {
+        var elapsed = Date.now() - startTime;
+        var secs    = Math.floor(elapsed / 1000);
+        var m       = Math.floor(secs / 60);
+        var s       = secs % 60;
+        timerEl.textContent = m + ':' + pad(s);
+
+        // Progress bar — fills to ~95% over ESTIMATED_MS, then holds
+        var pct = Math.min((elapsed / ESTIMATED_MS) * 95, 95);
+        progressBar.style.width = pct + '%';
+
+        if (secs === 30)  hintEl.textContent = 'Writing method steps and tips...';
+        if (secs === 60)  hintEl.textContent = 'Generating images...';
+        if (secs === 100) hintEl.textContent = 'Almost there — finishing up...';
+    }
+
+    function pollReady() {
+        fetch(pollUrl + '?since=' + encodeURIComponent(sinceParam))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.ready) {
+                    clearInterval(timerId);
+                    clearInterval(pollId);
+                    // Snap progress bar to 100%
+                    progressBar.style.transition = 'width 0.4s ease';
+                    progressBar.style.width = '100%';
+                    hintEl.textContent = 'Done! Redirecting to moderation panel...';
+                    timerEl.style.color = 'var(--color-green, #0b4c3a)';
+                    setTimeout(function () {
+                        window.location.href = panelUrl;
+                    }, 800);
+                }
+            })
+            .catch(function () { /* network hiccup — keep polling */ });
+    }
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        var dishInput = document.getElementById('dish_name');
+        if (!dishInput.value.trim()) { dishInput.focus(); return; }
+
+        dishNameEl.textContent = dishInput.value.trim();
+        overlay.removeAttribute('hidden');
+        document.body.style.overflow = 'hidden';
+
+        startTime  = Date.now();
+        sinceParam = new Date(startTime).toISOString();
+
+        // Start elapsed timer (tick every second)
+        tickTimer();
+        timerId = setInterval(tickTimer, 1000);
+
+        // Submit form via AJAX
+        var formData = new FormData(form);
+        fetch(form.action, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: formData,
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (!data.started) {
+                // Fallback: hard redirect if something went wrong
+                window.location.href = panelUrl;
+            }
+        })
+        .catch(function () {
+            // Network error — fallback to hard redirect
+            window.location.href = panelUrl;
+        });
+
+        // Start polling for completion
+        pollId = setInterval(pollReady, POLL_INTERVAL);
+    });
+}());
+</script>
 {% endblock %}

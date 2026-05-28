@@ -1783,3 +1783,142 @@
   from { border-color: rgb(180 90 0 / 0.25); }
   to   { border-color: rgb(180 90 0 / 0.7); }
 }
+
+/* ── Recipe generation overlay ── */
+.gen-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(15 25 20 / 0.72);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.gen-overlay__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: min(420px, 92vw);
+  padding: 2.5rem 2rem 2rem;
+  background: #fffdf8;
+  border-radius: 20px;
+  box-shadow: 0 24px 64px rgb(0 0 0 / 0.28);
+  text-align: center;
+}
+
+/* Cooking pot SVG */
+.gen-pot {
+  width: 120px;
+  height: 100px;
+  margin-bottom: 0.25rem;
+}
+
+.gen-pot__svg {
+  width: 100%;
+  height: 100%;
+  stroke: #0b4c3a;
+  fill: #0b4c3a;
+  overflow: visible;
+}
+
+.gen-pot__svg rect,
+.gen-pot__svg path:not(.gen-steam__line) {
+  fill: #0b4c3a;
+  stroke: none;
+}
+
+.gen-pot__liquid {
+  fill: rgb(11 76 58 / 0.35) !important;
+}
+
+.gen-spoon__handle,
+.gen-spoon__bowl {
+  fill: #c8a96e !important;
+  stroke: none;
+}
+
+.gen-spoon {
+  animation: gen-stir 1.6s ease-in-out infinite;
+  transform-box: fill-box;
+}
+
+@keyframes gen-stir {
+  0%   { transform: rotate(-25deg); }
+  50%  { transform: rotate(25deg); }
+  100% { transform: rotate(-25deg); }
+}
+
+/* Steam lines */
+.gen-steam__line {
+  fill: none;
+  stroke: rgb(11 76 58 / 0.5);
+  animation: gen-steam-rise 2s ease-in-out infinite;
+}
+.gen-steam__line--1 { animation-delay: 0s; }
+.gen-steam__line--2 { animation-delay: 0.5s; }
+.gen-steam__line--3 { animation-delay: 1s; }
+
+@keyframes gen-steam-rise {
+  0%   { opacity: 0;   transform: translateY(0); }
+  30%  { opacity: 0.8; }
+  80%  { opacity: 0.2; }
+  100% { opacity: 0;   transform: translateY(-8px); }
+}
+
+/* Text */
+.gen-overlay__title {
+  margin: 0;
+  font-size: 1.15rem;
+  color: #1f2c25;
+  line-height: 1.35;
+}
+
+.gen-overlay__subtitle {
+  margin: 0;
+  font-size: 0.88rem;
+  color: rgb(31 44 37 / 0.62);
+  line-height: 1.5;
+}
+
+/* Timer */
+.gen-timer {
+  font-size: 2.4rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: #0b4c3a;
+  line-height: 1;
+  margin: 0.25rem 0;
+  transition: color 0.4s;
+}
+
+/* Hint text */
+.gen-overlay__hint {
+  margin: 0;
+  font-size: 0.82rem;
+  color: rgb(31 44 37 / 0.5);
+  min-height: 1.3em;
+  transition: opacity 0.3s;
+}
+
+/* Progress bar */
+.gen-progress {
+  width: 100%;
+  height: 4px;
+  background: rgb(11 76 58 / 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+
+.gen-progress__bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #0b4c3a, #2d9b6e);
+  border-radius: 999px;
+  transition: width 1s linear;
+}

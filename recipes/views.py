@@ -1578,6 +1578,10 @@ def generate_recipe_view(request):
                 close_old_connections()
 
         threading.Thread(target=_run, daemon=True).start()
+
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return JsonResponse({"started": True, "dish_name": dish_name})
+
         messages.success(request, f'Generation started for "{dish_name}". Check the pending queue in a couple of minutes.')
         return redirect("recipes:moderation_panel")
 
@@ -1590,6 +1594,32 @@ def generate_recipe_view(request):
             (Recipe.Status.DRAFT, "Draft — saved privately, not visible"),
         ],
     })
+
+
+@login_required
+def generate_recipe_poll(request):
+    """Poll for a recipe created after a given timestamp (used by the AJAX generation overlay)."""
+    if not is_moderator(request.user):
+        return JsonResponse({"ready": False}, status=403)
+
+    from django.utils.dateparse import parse_datetime
+    since_raw = request.GET.get("since", "")
+    since = parse_datetime(since_raw) if since_raw else None
+    if not since:
+        return JsonResponse({"ready": False, "error": "missing since"}, status=400)
+
+    recipe = (
+        Recipe.objects.filter(
+            created_at__gte=since,
+            is_deleted=False,
+        )
+        .exclude(status=Recipe.Status.APPROVED)
+        .order_by("-created_at")
+        .first()
+    )
+    if recipe:
+        return JsonResponse({"ready": True, "slug": recipe.slug, "title": recipe.title})
+    return JsonResponse({"ready": False})
 
 
 def automation_progress(request):
