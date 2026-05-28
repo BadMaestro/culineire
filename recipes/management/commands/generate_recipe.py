@@ -218,6 +218,177 @@ def _sanitise_image_subject(title: str, alt_text: str) -> str:
     return subject[:300]
 
 
+# ── Visual planner ─────────────────────────────────────────────────────────────
+
+def _planner_prompt(fields: dict) -> str:
+    title = fields.get("title", "")
+    short_description = fields.get("short_description", "")
+    ingredients = fields.get("ingredients", "")
+    method = fields.get("method", "")
+    return (
+        "You are a recipe visual planning assistant.\n\n"
+        "Convert this cooking recipe into a strict visual generation plan "
+        "for one hero image and exactly 3 step images.\n\n"
+        "Rules:\n"
+        "1. Select 3 key steps: one early (e.g. raw/prep stage), one middle (active cooking), "
+        "one near-final (just before plating or baking finish).\n"
+        "2. For each step, describe the exact visual state of the food at that moment.\n"
+        "3. Do not invent ingredients, utensils, or stages not present in the recipe.\n"
+        "4. Do not show a later stage in an earlier step.\n"
+        "5. Maintain visual continuity: same cookware family, same kitchen style, same dish identity.\n"
+        "6. For each step, explicitly list must_not_show_yet to prevent showing final dish too early.\n\n"
+        "Return STRICT JSON only — no markdown, no explanation:\n"
+        "{\n"
+        '  "hero_image": {\n'
+        '    "food_state": "string",\n'
+        '    "visible_ingredients": ["string"],\n'
+        '    "cookware": ["string"],\n'
+        '    "background_style": "string",\n'
+        '    "camera_angle": "string",\n'
+        '    "must_not_show": ["string"]\n'
+        "  },\n"
+        '  "steps": [\n'
+        "    {\n"
+        '      "step_number": 1,\n'
+        '      "step_summary": "string",\n'
+        '      "food_state": "string",\n'
+        '      "visible_ingredients": ["string"],\n'
+        '      "cookware": ["string"],\n'
+        '      "camera_angle": "string",\n'
+        '      "continuity_notes": "string",\n'
+        '      "must_not_show_yet": ["string"]\n'
+        "    }\n"
+        "  ]\n"
+        "}\n\n"
+        f"Recipe title: {title}\n"
+        f"Short description: {short_description}\n\n"
+        f"Ingredients:\n{ingredients}\n\n"
+        f"Method:\n{method}"
+    )
+
+
+def _call_visual_planner(fields: dict) -> dict:
+    """Call Anthropic to build a structured visual plan for the recipe images."""
+    api_key = getattr(settings, "ANTHROPIC_API_KEY", "")
+    if not api_key:
+        return {}
+    payload = {
+        "model": getattr(settings, "ANTHROPIC_MODEL", "claude-sonnet-4-6"),
+        "max_tokens": 2000,
+        "messages": [{"role": "user", "content": _planner_prompt(fields)}],
+    }
+    request = Request(
+        "https://api.anthropic.com/v1/messages",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "content-type": "application/json",
+            "x-api-key": api_key,
+            "anthropic-version": "2023-06-01",
+        },
+        method="POST",
+    )
+    try:
+        with urlopen(request, timeout=45) as response:
+            body = response.read().decode("utf-8", errors="replace")
+        parsed = json.loads(body)
+        text = "\n".join(
+            block.get("text", "")
+            for block in parsed.get("content", [])
+            if block.get("type") == "text"
+        )
+        return _extract_json(text)
+    except Exception as exc:
+        logger.warning("generate_recipe: visual planner failed: %s — falling back to legacy prompts", exc)
+        return {}
+
+
+def _build_hero_prompt(title: str, plan: dict, feedback: str = "") -> str:
+    food_state = (plan.get("food_state") or "").strip()
+    visible = ", ".join(plan.get("visible_ingredients") or [])
+    cookware = ", ".join(plan.get("cookware") or [])
+    camera = (plan.get("camera_angle") or "close-up, slightly overhead").strip()
+    background = (plan.get("background_style") or "rustic wooden surface").strip()
+    must_not = ", ".join(plan.get("must_not_show") or [])
+
+    parts = [f"Realistic editorial food photograph of the finished dish: {title}."]
+    if food_state:
+        parts.append(f"Food state: {food_state}.")
+    if visible:
+        parts.append(f"Visible: {visible}.")
+    if cookware:
+        parts.append(f"Served in: {cookware}.")
+    if must_not:
+        parts.append(f"Must not show: {must_not}.")
+    parts.append(f"Camera: {camera}. Background: {background}.")
+    parts.append(
+        "Soft natural light. Irish cuisine. Professional recipe website quality. "
+        "No text, no watermarks, no people, no logos."
+    )
+    if feedback:
+        parts.append(f"Important: {feedback}.")
+    return " ".join(parts)
+
+
+def _build_step_prompt(title: str, step: dict, feedback: str = "") -> str:
+    step_num = step.get("step_number", "")
+    summary = (step.get("step_summary") or "").strip()
+    food_state = (step.get("food_state") or "").strip()
+    visible = ", ".join(step.get("visible_ingredients") or [])
+    cookware = ", ".join(step.get("cookware") or [])
+    camera = (step.get("camera_angle") or "45-degree angle").strip()
+    continuity = (step.get("continuity_notes") or "").strip()
+    must_not = ", ".join(step.get("must_not_show_yet") or [])
+
+    parts = [
+        f"Realistic editorial cooking step photo for the recipe '{title}'.",
+        f"Step {step_num}: {summary}." if summary else f"Step {step_num}.",
+        "Show this exact stage — not an earlier or later stage.",
+    ]
+    if food_state:
+        parts.append(f"Food state at this moment: {food_state}.")
+    if visible:
+        parts.append(f"Visible: {visible}.")
+    if cookware:
+        parts.append(f"Cookware: {cookware}.")
+    if must_not:
+        parts.append(f"Must not show yet: {must_not}.")
+    if continuity:
+        parts.append(f"Visual continuity: {continuity}.")
+    parts.append(f"Camera: {camera}.")
+    parts.append(
+        "Soft natural light, rustic kitchen setting. "
+        "This is an intermediate cooking stage unless it is the final step. "
+        "No text, no watermarks, no people, no logos."
+    )
+    if feedback:
+        parts.append(f"Important: {feedback}.")
+    return " ".join(parts)
+
+
+def _generate_step_photos_from_plan(recipe: Recipe, steps: list[dict]) -> list[RecipeImage]:
+    """Generate step photos using the structured visual plan from the planner."""
+    created = []
+    for gallery_pos, step in enumerate(steps, start=1):
+        prompt = _build_step_prompt(recipe.title, step)
+        step_num = step.get("step_number", gallery_pos)
+        step_text = (step.get("step_summary") or step.get("food_state") or "")[:200]
+        try:
+            image_bytes = fetch_image_bytes(prompt)
+        except (CommandError, Exception) as exc:
+            logger.warning("generate_recipe: step photo (plan) failed for step %s of %r: %s", step_num, recipe.title, exc)
+            continue
+        img = RecipeImage(
+            recipe=recipe,
+            sort_order=gallery_pos,
+            alt_text=step_text,
+            caption=f"Step {step_num}",
+        )
+        img.image.save(f"step{gallery_pos}-{recipe.slug[:30]}.jpg", ContentFile(image_bytes), save=False)
+        img.save()
+        created.append(img)
+    return created
+
+
 def fetch_image_bytes(prompt: str) -> bytes:
     """Call OpenAI image API with the given prompt and return raw image bytes."""
     api_key = getattr(settings, "OPENAI_API_KEY", "")
@@ -386,9 +557,28 @@ class Command(BaseCommand):
                 logger.info("generate_recipe: --no-image flag set — skipping image generation for %r", recipe.title)
 
             if generate_image:
+                # Build structured visual plan first (planner → image flow)
+                logger.info("generate_recipe: calling visual planner for %r", recipe.title)
+                visual_plan = _call_visual_planner(fields)
+                hero_plan = visual_plan.get("hero_image", {}) if visual_plan else {}
+                steps_plan = visual_plan.get("steps", []) if visual_plan else []
+                if visual_plan:
+                    logger.info(
+                        "generate_recipe: visual plan ready — %d step(s) planned for %r",
+                        len(steps_plan), recipe.title,
+                    )
+                else:
+                    logger.warning("generate_recipe: visual planner returned nothing — using legacy prompts for %r", recipe.title)
+
+                # Hero image
                 try:
                     ai_alt_text = str(payload.get("hero_image_alt_text") or "").strip()[:125]
-                    image_bytes, fallback_alt = _generate_image(recipe.title, recipe.short_description, ai_alt_text)
+                    if hero_plan:
+                        hero_prompt = _build_hero_prompt(recipe.title, hero_plan)
+                        image_bytes = fetch_image_bytes(hero_prompt)
+                        fallback_alt = f"{recipe.title}, served and photographed"
+                    else:
+                        image_bytes, fallback_alt = _generate_image(recipe.title, recipe.short_description, ai_alt_text)
                     recipe.hero_image.save(f"cover-{recipe.slug[:40]}.jpg", ContentFile(image_bytes), save=False)
                     recipe.hero_image_alt_text = ai_alt_text or fallback_alt
                     recipe.image_rights_status = Recipe.ImageRightsStatus.AI_GENERATED
@@ -398,8 +588,12 @@ class Command(BaseCommand):
                 except CommandError as exc:
                     logger.error("generate_recipe: hero image generation failed for %r: %s", recipe.title, exc)
 
+                # Step photos
                 try:
-                    step_photos = _generate_step_photos(recipe, fields["method"])
+                    if steps_plan:
+                        step_photos = _generate_step_photos_from_plan(recipe, steps_plan)
+                    else:
+                        step_photos = _generate_step_photos(recipe, fields["method"])
                     if step_photos:
                         logger.info("generate_recipe: %d step photo(s) generated for %r", len(step_photos), recipe.title)
                 except Exception as exc:
