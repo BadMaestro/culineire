@@ -477,6 +477,7 @@ def _generate_step_photos(recipe: Recipe, method_text: str) -> list[RecipeImage]
 
 
 def _call_anthropic(dish_name: str) -> dict:
+    import time as _time
     api_key = getattr(settings, "ANTHROPIC_API_KEY", "")
     if not api_key:
         raise CommandError("ANTHROPIC_API_KEY is not configured.")
@@ -485,24 +486,38 @@ def _call_anthropic(dish_name: str) -> dict:
         "max_tokens": 4000,
         "messages": [{"role": "user", "content": _prompt_for_recipe(dish_name)}],
     }
-    request = Request(
-        "https://api.anthropic.com/v1/messages",
-        data=json.dumps(payload).encode("utf-8"),
-        headers={
-            "content-type": "application/json",
-            "x-api-key": api_key,
-            "anthropic-version": "2023-06-01",
-        },
-        method="POST",
-    )
-    try:
-        with urlopen(request, timeout=45) as response:
-            body = response.read().decode("utf-8", errors="replace")
-    except HTTPError as exc:
-        body = exc.read().decode("utf-8", errors="replace")
-        raise CommandError(f"Anthropic API returned HTTP {exc.code}: {body}") from exc
-    except URLError as exc:
-        raise CommandError(f"Anthropic API request failed: {exc}") from exc
+    last_exc: Exception | None = None
+    for attempt in range(1, 4):  # up to 3 attempts
+        request = Request(
+            "https://api.anthropic.com/v1/messages",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "content-type": "application/json",
+                "x-api-key": api_key,
+                "anthropic-version": "2023-06-01",
+            },
+            method="POST",
+        )
+        try:
+            with urlopen(request, timeout=90) as response:
+                body = response.read().decode("utf-8", errors="replace")
+            break  # success — exit retry loop
+        except HTTPError as exc:
+            # HTTP errors (4xx/5xx) are not retryable
+            body = exc.read().decode("utf-8", errors="replace")
+            raise CommandError(f"Anthropic API returned HTTP {exc.code}: {body}") from exc
+        except (URLError, OSError) as exc:
+            last_exc = exc
+            if attempt < 3:
+                logger.warning(
+                    "generate_recipe: _call_anthropic attempt %d failed (%s) — retrying in 5s",
+                    attempt, exc,
+                )
+                _time.sleep(5)
+            else:
+                raise CommandError(
+                    f"Anthropic API request failed after 3 attempts: {exc}"
+                ) from exc
     parsed = json.loads(body)
     text = "\n".join(block.get("text", "") for block in parsed.get("content", []) if block.get("type") == "text")
     return _extract_json(text)
@@ -585,7 +600,7 @@ class Command(BaseCommand):
                     recipe.image_rights_note = "AI-generated image via DALL-E 3."
                     recipe.save(update_fields=["hero_image", "hero_image_alt_text", "image_rights_status", "image_rights_note"])
                     logger.info("generate_recipe: hero image generated and saved for %r", recipe.title)
-                except CommandError as exc:
+                except Exception as exc:
                     logger.error("generate_recipe: hero image generation failed for %r: %s", recipe.title, exc)
 
                 # Step photos
