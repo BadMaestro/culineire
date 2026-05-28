@@ -147,17 +147,7 @@
                         <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
                     </form>
                     <a class="mod-btn mod-btn--edit" href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit</a>
-                    <details class="mod-reject-details">
-                        <summary class="mod-btn mod-btn--reject">Reject</summary>
-                        <div class="moderation-card__note-panel">
-                            <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
-                                <textarea class="mod-note-input" name="moderation_note" placeholder="Explain what needs to be corrected..." required rows="2"></textarea>
-                                <div class="mod-note-actions">
-                                    <button class="mod-btn mod-btn--reject" name="action" type="submit" value="reject">Confirm Reject</button>
-                                </div>
-                            </form>
-                        </div>
-                    </details>
+                    <button class="mod-btn mod-btn--reject" data-reject-url="{% url 'recipes:moderate_recipe' recipe.slug %}" data-reject-title="{{ recipe.title|truncatechars:40 }}" type="button">Reject</button>
                     <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
                         <button class="mod-btn mod-btn--delete" name="action" onclick="return confirm('Permanently delete this recipe?')" type="submit"
                             value="delete">Delete</button>
@@ -275,17 +265,7 @@
                         <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
                     </form>
                     <a class="mod-btn mod-btn--edit" href="{% url 'articles:article_edit' article.slug %}">Edit</a>
-                    <details class="mod-reject-details">
-                        <summary class="mod-btn mod-btn--reject">Reject</summary>
-                        <div class="moderation-card__note-panel">
-                            <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
-                                <textarea class="mod-note-input" name="moderation_note" placeholder="Explain what needs to be corrected..." required rows="2"></textarea>
-                                <div class="mod-note-actions">
-                                    <button class="mod-btn mod-btn--reject" name="action" type="submit" value="reject">Confirm Reject</button>
-                                </div>
-                            </form>
-                        </div>
-                    </details>
+                    <button class="mod-btn mod-btn--reject" data-reject-url="{% url 'articles:moderate_article' article.slug %}" data-reject-title="{{ article.title|truncatechars:40 }}" type="button">Reject</button>
                     <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
                         <button class="mod-btn mod-btn--delete" name="action" onclick="return confirm('Permanently delete this article?')" type="submit"
                             value="delete">Delete</button>
@@ -655,4 +635,53 @@
 
 {% block extra_js %}
 <script src="{% static 'js/moderation.js' %}"></script>
+
+<div class="reject-modal" hidden id="reject-modal">
+    <div class="reject-modal__backdrop" id="reject-modal-backdrop"></div>
+    <div class="reject-modal__box" role="dialog" aria-modal="true" aria-labelledby="reject-modal-title">
+        <button class="reject-modal__close" id="reject-modal-close" type="button" aria-label="Close">&times;</button>
+        <p class="reject-modal__title" id="reject-modal-title">Reject recipe</p>
+        <form id="reject-modal-form" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="reject">
+            <textarea class="mod-note-input" id="reject-modal-note" name="moderation_note" placeholder="Explain what needs to be corrected..." required rows="4"></textarea>
+            <div class="reject-modal__actions">
+                <button class="mod-btn mod-btn--reject" type="submit">Confirm Reject</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+    var modal = document.getElementById('reject-modal');
+    var form = document.getElementById('reject-modal-form');
+    var title = document.getElementById('reject-modal-title');
+    var note = document.getElementById('reject-modal-note');
+
+    function openModal(url, recipeTitle) {
+        form.action = url;
+        title.textContent = 'Reject: ' + recipeTitle;
+        note.value = '';
+        modal.removeAttribute('hidden');
+        note.focus();
+    }
+
+    function closeModal() {
+        modal.setAttribute('hidden', '');
+    }
+
+    document.querySelectorAll('[data-reject-url]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            openModal(btn.dataset.rejectUrl, btn.dataset.rejectTitle || 'this item');
+        });
+    });
+
+    document.getElementById('reject-modal-close').addEventListener('click', closeModal);
+    document.getElementById('reject-modal-backdrop').addEventListener('click', closeModal);
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !modal.hidden) closeModal();
+    });
+}());
+</script>
 {% endblock %}
