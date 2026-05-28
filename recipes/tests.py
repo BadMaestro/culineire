@@ -2352,6 +2352,54 @@ class RecipeSoftDeleteTests(TestCase):
         self.assertIn(self.recipe.slug, slugs)
 
 
+class RecipeSourceDisplayTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        author_user = user_model.objects.create_user(username="sourcechef", password="pass")
+        self.author = RecipeAuthor.objects.create(user=author_user, name="Source Chef", slug="source-chef")
+
+    def test_ai_assisted_recipe_does_not_show_original_source_link(self):
+        recipe = Recipe.objects.create(
+            title="AI Stew",
+            slug="ai-stew",
+            author=self.author,
+            ingredients="Potatoes",
+            method="Simmer.",
+            status=Recipe.Status.APPROVED,
+            source_type=Recipe.SourceType.AI_ASSISTED,
+            source_title="Created specially for CulinEire",
+            source_author="CulinEire Creative Studio",
+            source_url="https://www.culineire.ie/",
+            source_note="An original CulinEire recipe.",
+        )
+
+        response = self.client.get(recipe.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Created specially for CulinEire")
+        self.assertNotContains(response, "View original source")
+
+    def test_external_recipe_source_still_shows_original_source_link(self):
+        recipe = Recipe.objects.create(
+            title="Cookbook Stew",
+            slug="cookbook-stew",
+            author=self.author,
+            ingredients="Potatoes",
+            method="Simmer.",
+            status=Recipe.Status.APPROVED,
+            source_type=Recipe.SourceType.WEBSITE,
+            source_title="Original Stew",
+            source_url="https://example.com/original-stew",
+            source_note="Adapted with credit.",
+        )
+
+        response = self.client.get(recipe.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "View original source")
+        self.assertContains(response, "https://example.com/original-stew")
+
+
 class GenerateRecipeCommandTests(TestCase):
     def setUp(self):
         self.author_user = get_user_model().objects.create_user(username="ai-author", password="pass")

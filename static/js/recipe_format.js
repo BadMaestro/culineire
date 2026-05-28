@@ -60,6 +60,7 @@
     var previewInner= document.getElementById('rf-preview-inner');
     var cleanBtn    = document.getElementById('rf-clean-btn');
     var previewBtn  = document.getElementById('rf-preview-btn');
+    var sanitizeBtn = document.getElementById('rf-sanitize-btn');
     var applyBtn    = document.getElementById('rf-apply-btn');
     var statusEl    = document.getElementById('rf-status');
 
@@ -146,6 +147,36 @@
         applyBtn.hidden = true;
         staged = null;
         setStatus(statusEl, 'Applied. Review the fields above before submitting.', false);
+      });
+    }
+
+    // ── Sanitize Text ───────────────────────────────────────────────────────
+    function sanitiseText(text) {
+      if (!text) return text;
+      text = text.replace(/—/g, ', ').replace(/–/g, ', '); // em dash, en dash
+      text = text.replace(/-{2,}/g, ', ');                            // double/multiple dashes
+      text = text.replace(/,\s*,+/g, ',');                            // consecutive commas
+      text = text.replace(/,\s{2,}/g, ', ');                         // comma + extra spaces
+      text = text.replace(/^[\s,]+|[\s,]+$/g, '');                   // leading/trailing
+      return text;
+    }
+
+    if (sanitizeBtn) {
+      sanitizeBtn.addEventListener('click', function () {
+        var fields = ['short_description', 'ingredients', 'method', 'tips', 'irish_context', 'author_commentary'];
+        var changed = 0;
+        fields.forEach(function (key) {
+          var el = document.getElementById('id_' + key);
+          if (!el) return;
+          var before = el.value;
+          var after  = sanitiseText(before);
+          if (after !== before) {
+            el.value = after;
+            el.dispatchEvent(new Event('input'));
+            changed++;
+          }
+        });
+        setStatus(statusEl, changed > 0 ? 'Sanitized ' + changed + ' field(s). Review before saving.' : 'Nothing to sanitize.', false);
       });
     }
 

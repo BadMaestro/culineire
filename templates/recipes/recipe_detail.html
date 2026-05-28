@@ -342,7 +342,7 @@
                     <blockquote class="source-note">{{ recipe.source_note }}</blockquote>
                     {% endif %}
 
-                    {% if recipe.source_url %}
+                    {% if recipe.source_url and recipe.source_type != 'ai_assisted' %}
                     <a class="detail-page__source-link" href="{{ recipe.source_url }}" rel="noopener noreferrer" target="_blank">View original source</a>
                     {% endif %}
                 </section>
