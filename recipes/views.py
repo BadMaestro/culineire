@@ -1807,6 +1807,11 @@ def recipe_regenerate_image(request, slug):
             filename = f"step{img.sort_order}-{recipe.slug[:30]}-regen.jpg"
             img.image.delete(save=False)
             img.image.save(filename, ContentFile(image_bytes), save=True)
+            if recipe.image_rights_status != Recipe.ImageRightsStatus.AI_GENERATED:
+                openai_model = getattr(settings, "OPENAI_IMAGE_MODEL", "gpt-image-1")
+                recipe.image_rights_status = Recipe.ImageRightsStatus.AI_GENERATED
+                recipe.image_rights_note = f"AI-generated image via {openai_model}."
+                recipe.save(update_fields=["image_rights_status", "image_rights_note"])
             return JsonResponse({"success": True, "url": img.image.url})
 
         return JsonResponse({"success": False, "error": "Invalid image_type"})

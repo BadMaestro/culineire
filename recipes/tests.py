@@ -807,6 +807,7 @@ class AuthenticationPageTests(TestCase):
             {
                 "title": "Kitchen Notes",
                 "excerpt": "Short notes from the kitchen.",
+                "category": "baking",
                 "published": "2026-04-29",
                 "related_recipe": "",
                 "body": "Useful notes for Irish cooking.",
@@ -2019,7 +2020,8 @@ class RecipeMonth1RelatedRecipesTests(TestCase):
         response = self.client.get(self.recipe.get_absolute_url())
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn(related, response.context["related_recipes"])
+        related_recipe_objs = [item["recipe"] for item in response.context["related_recipes"]]
+        self.assertIn(related, related_recipe_objs)
         self.assertContains(response, "Related Recipes")
         self.assertContains(response, "Related Colcannon")
 
@@ -2040,7 +2042,8 @@ class RecipeMonth1RelatedRecipesTests(TestCase):
 
         response = self.client.get(self.recipe.get_absolute_url())
 
-        self.assertIn(related, response.context["related_recipes"])
+        related_recipe_objs = [item["recipe"] for item in response.context["related_recipes"]]
+        self.assertIn(related, related_recipe_objs)
 
     def test_related_recipes_exclude_self_draft_pending_and_deleted(self):
         draft = Recipe.objects.create(

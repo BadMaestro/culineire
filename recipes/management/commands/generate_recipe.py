@@ -446,7 +446,9 @@ def fetch_image_bytes(prompt: str) -> bytes:
         raise CommandError(f"OpenAI image API returned unexpected response: {exc} — body: {body[:200]}") from exc
     if "b64_json" in image_entry:
         return base64.b64decode(image_entry["b64_json"])
-    image_url = image_entry["url"]
+    image_url = image_entry.get("url")
+    if not image_url:
+        raise CommandError(f"OpenAI image API entry has neither b64_json nor url: {image_entry}")
     try:
         with urlopen(image_url, timeout=30) as img_response:
             return img_response.read()
@@ -562,7 +564,14 @@ def _call_anthropic(dish_name: str) -> dict:
         parsed = json.loads(body)
     except json.JSONDecodeError as exc:
         raise CommandError(f"Anthropic API returned non-JSON response: {exc}") from exc
-    text = "\n".join(block.get("text", "") for block in parsed.get("content", []) if block.get("type") == "text")
+    if not isinstance(parsed, dict):
+        raise CommandError(f"Anthropic API returned unexpected top-level type: {type(parsed).__name__}")
+    content = parsed.get("content") or []
+    text = "\n".join(
+        block.get("text", "")
+        for block in content
+        if isinstance(block, dict) and block.get("type") == "text"
+    )
     return _extract_json(text)
 
 
@@ -585,7 +594,11 @@ class Command(BaseCommand):
 
         try:
             from articles.services.editorial_tools import suggest_recipe_fields
-        except ImportError:
+        except ImportError as exc:
+            # Only swallow "module not found" for the editorial_tools path itself.
+            # Re-raise if a broken internal import inside the module caused the error.
+            if exc.name and not exc.name.startswith("articles"):
+                raise
             suggest_recipe_fields = lambda f: {}  # noqa: E731
 
         try:
@@ -660,6 +673,11 @@ class Command(BaseCommand):
                         step_photos = _generate_step_photos(recipe, fields["method"])
                     if step_photos:
                         logger.info("generate_recipe: %d step photo(s) generated for %r", len(step_photos), recipe.title)
+                        # Hero may have failed — ensure recipe is marked AI_GENERATED if any image exists
+                        if recipe.image_rights_status != Recipe.ImageRightsStatus.AI_GENERATED:
+                            recipe.image_rights_status = Recipe.ImageRightsStatus.AI_GENERATED
+                            recipe.image_rights_note = f"AI-generated image via {getattr(settings, 'OPENAI_IMAGE_MODEL', 'gpt-image-1')}."
+                            recipe.save(update_fields=["image_rights_status", "image_rights_note"])
                 except Exception as exc:
                     logger.error("generate_recipe: step photos failed for %r: %s", recipe.title, exc, exc_info=True)
 
