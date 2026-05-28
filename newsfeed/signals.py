@@ -77,6 +77,31 @@ def on_article_delete(sender, instance, **kwargs):
     _hide_auto_entry(f"article_published:{instance.pk}")
 
 
+def on_newsfeed_entry_save(sender, instance, created, **kwargs):
+    del sender, kwargs
+    if not created:
+        return
+    if not instance.is_public or instance.is_auto:
+        return
+    try:
+        from newsfeed.telegram import _publish_to_telegram
+        parts = [instance.title]
+        if instance.message:
+            parts.append(instance.message)
+        if instance.url:
+            from django.conf import settings
+            site_url = f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}".rstrip("/")
+            parts.append(f"{site_url}{instance.url}" if instance.url.startswith("/") else instance.url)
+        message = "\n\n".join(parts)
+        _publish_to_telegram(
+            event_key=f"newsfeed_entry:{instance.pk}",
+            message=message,
+            target_url=instance.url or "",
+        )
+    except Exception:
+        logger.exception("Failed to publish newsfeed entry pk=%s to Telegram", instance.pk)
+
+
 def _connect_signals():
     try:
         from recipes.models import Recipe
@@ -89,6 +114,12 @@ def _connect_signals():
         from articles.models import Article
         post_save.connect(on_article_save, sender=Article, weak=False)
         post_delete.connect(on_article_delete, sender=Article, weak=False)
+    except ImportError:
+        pass
+
+    try:
+        from newsfeed.models import NewsFeedEntry
+        post_save.connect(on_newsfeed_entry_save, sender=NewsFeedEntry, weak=False)
     except ImportError:
         pass
 
