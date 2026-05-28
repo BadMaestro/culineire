@@ -372,6 +372,7 @@
                             </button>
                         </form>
                     {% endif %}</h2>
+                    {% if request.user.is_authenticated %}
                     <div data-rating-voted {% if not has_rated %}hidden{% endif %}>
                         <p class="rating-already-voted">You rated this recipe{% if user_rating_value %} <strong>{{ user_rating_value }}/5</strong>{% endif %}. Thank you!</p>
                         <form action="{% url 'recipes:reset_recipe_rating' recipe.slug %}" method="post" style="margin-top:0.65rem;">
@@ -392,6 +393,9 @@
                             <button class="detail-button" type="submit">Submit rating</button>
                         </form>
                     </div>
+                    {% else %}
+                    <p class="rating-signin-prompt"><a href="{% url 'login' %}?next={{ request.path }}">Sign in</a> to rate this recipe.</p>
+                    {% endif %}
                 </section>
             </div>
         </article>

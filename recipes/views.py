@@ -813,11 +813,16 @@ def recipe_detail(request, slug):
 
 @require_POST
 @ratelimit(key="ip", rate="10/h", method="POST", block=False)
+@require_POST
 def submit_recipe_rating(request, slug):
     recipe = get_object_or_404(Recipe, slug=slug, status=Recipe.Status.APPROVED, is_deleted=False)
-    form = RecipeRatingForm(request.POST)
     is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
-    session_key = f"recipe_rating_submitted_{recipe.pk}"
+
+    if not request.user.is_authenticated:
+        if is_ajax:
+            return JsonResponse({"ok": False, "error": "Please sign in to rate this recipe."}, status=401)
+        messages.warning(request, "Please sign in to rate this recipe.")
+        return redirect(f"{reverse('login')}?next={recipe.get_absolute_url()}")
 
     if getattr(request, "limited", False):
         if is_ajax:
@@ -825,35 +830,20 @@ def submit_recipe_rating(request, slug):
         messages.error(request, "You have submitted too many ratings. Please try again later.")
         return redirect(recipe.get_absolute_url())
 
-    if not request.user.is_authenticated:
-        ip_hash = hash_ip(get_client_ip(request))
-        anon_cache_key = f"anon_rating:{recipe.pk}:{ip_hash}"
-        if request.session.get(session_key) or cache.get(anon_cache_key):
-            if is_ajax:
-                return JsonResponse({"ok": False, "error": "You have already rated this recipe."})
-            messages.warning(request, "You have already rated this recipe from this browser session.")
-            return redirect(recipe.get_absolute_url())
-
+    form = RecipeRatingForm(request.POST)
     if not form.is_valid():
         if is_ajax:
             return JsonResponse({"ok": False, "error": "Please select a rating between 1 and 5."})
         messages.error(request, "Please submit a valid rating between 1 and 5.")
         return redirect(recipe.get_absolute_url())
 
-    if request.user.is_authenticated:
-        RecipeRating.objects.update_or_create(
-            recipe=recipe,
-            user=request.user,
-            defaults={"value": form.cleaned_data["value"]},
-        )
-    else:
-        RecipeRating.objects.create(
-            recipe=recipe,
-            value=form.cleaned_data["value"],
-            user=None,
-        )
-        cache.set(anon_cache_key, 1, 60 * 60 * 24)
+    RecipeRating.objects.update_or_create(
+        recipe=recipe,
+        user=request.user,
+        defaults={"value": form.cleaned_data["value"]},
+    )
 
+    session_key = f"recipe_rating_submitted_{recipe.pk}"
     request.session[session_key] = form.cleaned_data["value"]
     request.session.modified = True
 
