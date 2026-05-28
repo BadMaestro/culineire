@@ -18,7 +18,15 @@ from recipes.models import ALLERGEN_CHOICES, Recipe, RecipeAdditionalCategory, R
 logger = logging.getLogger("recipes")
 
 
-AI_SOURCE_NOTE = "AI-assisted draft generated for human review. Verify accuracy, attribution, allergens, and image rights before publishing."
+AI_SOURCE_TITLE = "Created specially for CulinEire"
+AI_SOURCE_AUTHOR = "CulinEire Creative Studio"
+AI_SOURCE_NOTE = (
+    "This recipe was commissioned by CulinEire and created specifically for the CulinEire website. "
+    "It is owned by CulinEire. Unauthorised copying, republication, or free reuse of this content is not permitted. "
+    "AI tools assisted the creation process; final responsibility rests with CulinEire Creative Studio. "
+    "If you would like to copy or print this recipe for personal use, the authors would appreciate a little support for the site: "
+    "please leave a rating, write a comment, or buy us a cup of coffee."
+)
 
 
 def _extract_json(text: str) -> dict:
@@ -133,10 +141,10 @@ def _normalise_recipe_payload(payload: dict, dish_name: str, status: str) -> dic
         "irish_context": str(payload.get("irish_context") or "").strip(),
         "author_commentary": str(payload.get("author_commentary") or "").strip(),
         "allergens": _map_allergens(payload.get("allergens")),
-        "source_type": Recipe.SourceType.ORIGINAL,
-        "source_title": "CulinEire AI Recipe Draft",
-        "source_author": "CulinEire editorial team",
-        "source_url": "",
+        "source_type": Recipe.SourceType.AI_ASSISTED,
+        "source_title": AI_SOURCE_TITLE,
+        "source_author": AI_SOURCE_AUTHOR,
+        "source_url": "https://www.culineire.ie/",
         "source_note": AI_SOURCE_NOTE,
         "image_rights_status": Recipe.ImageRightsStatus.NOT_APPLICABLE,
         "image_rights_note": "No image uploaded. Add a photo before publishing.",

@@ -210,6 +210,7 @@ class Recipe(models.Model):
 
     class SourceType(models.TextChoices):
         ORIGINAL = "original", "Original"
+        AI_ASSISTED = "ai_assisted", "AI assisted"
         FAMILY = "family", "Family recipe"
         COOKBOOK = "cookbook", "Cookbook"
         WEBSITE = "website", "Website"
