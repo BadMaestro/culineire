@@ -147,9 +147,7 @@
                         <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
                     </form>
                     <a class="mod-btn mod-btn--edit" href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit</a>
-                    <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
-                        <button class="mod-btn mod-btn--reject" name="action" type="submit" value="reject">Reject</button>
-                    </form>
+                    <button class="mod-btn mod-btn--reject" type="button" onclick="document.getElementById('reject-{{ recipe.pk }}').hidden=false;this.closest('.moderation-card__actions').querySelectorAll('button,a').forEach(function(el){el.disabled=true;el.style.opacity='0.4'});this.disabled=false;this.style.opacity='1'">Reject</button>
                     <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
                         <button class="mod-btn mod-btn--delete" name="action" onclick="return confirm('Permanently delete this recipe?')" type="submit"
                             value="delete">Delete</button>
@@ -160,6 +158,15 @@
                             value="block">Block User</button>
                     </form>
                     {% endif %}
+                </div>
+                <div class="moderation-card__note-panel" hidden id="reject-{{ recipe.pk }}">
+                    <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
+                        <textarea class="mod-note-input" name="moderation_note" placeholder="Explain what needs to be corrected..." required rows="2"></textarea>
+                        <div class="mod-note-actions">
+                            <button class="mod-btn mod-btn--reject" name="action" type="submit" value="reject">Confirm Reject</button>
+                            <button class="mod-btn mod-btn--cancel" type="button" onclick="document.getElementById('reject-{{ recipe.pk }}').hidden=true;this.closest('.moderation-card').querySelectorAll('button,a').forEach(function(el){el.disabled=false;el.style.opacity=''})">Cancel</button>
+                        </div>
+                    </form>
                 </div>
             </div>
             {% endfor %}
@@ -267,9 +274,7 @@
                         <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
                     </form>
                     <a class="mod-btn mod-btn--edit" href="{% url 'articles:article_edit' article.slug %}">Edit</a>
-                    <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
-                        <button class="mod-btn mod-btn--reject" name="action" type="submit" value="reject">Reject</button>
-                    </form>
+                    <button class="mod-btn mod-btn--reject" type="button" onclick="document.getElementById('reject-a-{{ article.pk }}').hidden=false;this.closest('.moderation-card__actions').querySelectorAll('button,a').forEach(function(el){el.disabled=true;el.style.opacity='0.4'});this.disabled=false;this.style.opacity='1'">Reject</button>
                     <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
                         <button class="mod-btn mod-btn--delete" name="action" onclick="return confirm('Permanently delete this article?')" type="submit"
                             value="delete">Delete</button>
@@ -280,6 +285,15 @@
                             value="block">Block User</button>
                     </form>
                     {% endif %}
+                </div>
+                <div class="moderation-card__note-panel" hidden id="reject-a-{{ article.pk }}">
+                    <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
+                        <textarea class="mod-note-input" name="moderation_note" placeholder="Explain what needs to be corrected..." required rows="2"></textarea>
+                        <div class="mod-note-actions">
+                            <button class="mod-btn mod-btn--reject" name="action" type="submit" value="reject">Confirm Reject</button>
+                            <button class="mod-btn mod-btn--cancel" type="button" onclick="document.getElementById('reject-a-{{ article.pk }}').hidden=true;this.closest('.moderation-card').querySelectorAll('button,a').forEach(function(el){el.disabled=false;el.style.opacity=''})">Cancel</button>
+                        </div>
+                    </form>
                 </div>
             </div>
             {% endfor %}
