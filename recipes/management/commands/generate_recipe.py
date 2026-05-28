@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import json
 import logging
+import re
 import time
 from pathlib import Path
 from urllib.error import HTTPError, URLError
@@ -23,8 +24,7 @@ AI_SOURCE_TITLE = "Created specially for CulinEire"
 AI_SOURCE_AUTHOR = "CulinEire Creative Studio"
 AI_SOURCE_NOTE = (
     "An original CulinEire recipe, crafted with AI and reviewed by our editorial team. "
-    "Free to cook and enjoy at home. "
-    "If you liked it, a rating or a kind comment is the best way to say thanks."
+    "Free to cook and enjoy at home."
 )
 
 

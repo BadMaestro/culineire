@@ -285,7 +285,10 @@
             <div class="recipe-extras">
                 {% if recipe.irish_context %}
                 <section class="detail-page__card detail-page__card--context">
-                    <h2>Irish context</h2>
+                    <h2>Irish Context</h2>
+                    <div class="source-header source-header--left">
+                        <span class="source-badge source-badge--slate">Irish Heritage</span>
+                    </div>
                     <div class="detail-page__card-copy">
                         {% for paragraph in irish_context_paragraphs %}
                         <p>{{ paragraph }}</p>
@@ -299,6 +302,9 @@
                 {% if recipe.tips %}
                 <section class="detail-page__card detail-page__card--tips">
                     <h2>Tips</h2>
+                    <div class="source-header source-header--left">
+                        <span class="source-badge">Kitchen Tips</span>
+                    </div>
                     <div class="detail-page__card-copy">
                         {% for paragraph in tips_paragraphs %}
                         <p>{{ paragraph }}</p>
@@ -312,12 +318,18 @@
                 {% if recipe.author_commentary %}
                 <section class="detail-page__card detail-page__card--author-commentary">
                     <h2>Author Commentary</h2>
+                    <div class="source-header source-header--left">
+                        <span class="source-badge source-badge--amber">Chef's Note</span>
+                        {% if recipe.author %}<span class="source-header__author">{{ recipe.author.name }}</span>{% endif %}
+                    </div>
                     <div class="detail-page__card-copy">
-                        {% for paragraph in author_commentary_paragraphs %}
-                        <p>{{ paragraph }}</p>
-                        {% empty %}
-                        <p>{{ recipe.author_commentary }}</p>
-                        {% endfor %}
+                        <blockquote class="source-note" style="margin-bottom:0;">
+                            {% for paragraph in author_commentary_paragraphs %}
+                            <p style="margin:{% if not forloop.last %}0 0 0.55rem{% else %}0{% endif %};">{{ paragraph }}</p>
+                            {% empty %}
+                            <p style="margin:0;">{{ recipe.author_commentary }}</p>
+                            {% endfor %}
+                        </blockquote>
                     </div>
                 </section>
                 {% endif %}
@@ -342,6 +354,15 @@
                     <blockquote class="source-note">{{ recipe.source_note }}</blockquote>
                     {% endif %}
 
+                    {% if recipe.source_type == 'ai_assisted' %}
+                    <div class="source-support" aria-label="Support CulinEire">
+                        <span>Enjoyed it?</span>
+                        <a href="#rating-section">Rate</a>
+                        <a href="#comments">Comment</a>
+                        <a href="https://buymeacoffee.com/bearcave" rel="noopener noreferrer" target="_blank">Buy a coffee</a>
+                    </div>
+                    {% endif %}
+
                     {% if recipe.source_url and recipe.source_type != 'ai_assisted' %}
                     <a class="detail-page__source-link" href="{{ recipe.source_url }}" rel="noopener noreferrer" target="_blank">View original source</a>
                     {% endif %}
@@ -350,6 +371,10 @@
                 {% if allergen_items %}
                 <section class="detail-page__card detail-page__card--allergens">
                     <h2>Allergens</h2>
+                    <div class="source-header source-header--left">
+                        <span class="source-badge source-badge--amber">Contains</span>
+                        <span class="source-header__author">{{ allergen_items|length }} allergen{{ allergen_items|length|pluralize }}</span>
+                    </div>
                     <ul class="allergen-list" aria-label="Recipe allergen status">
                         {% for allergen in allergen_items %}
                         <li class="allergen-list__item">
@@ -363,7 +388,7 @@
                 </section>
                 {% endif %}
 
-                <section class="detail-page__card detail-page__card--form" data-rating-widget>
+                <section class="detail-page__card detail-page__card--form" id="rating-section" data-rating-widget>
                     <h2>Rate this recipe{% if is_greenbear and ratings_count %}
                         <form action="{% url 'recipes:reset_all_recipe_ratings' recipe.slug %}" method="post" class="rating-reset-form" onsubmit="return confirm('Reset all {{ ratings_count }} rating{{ ratings_count|pluralize }} for this recipe?')">
                             {% csrf_token %}

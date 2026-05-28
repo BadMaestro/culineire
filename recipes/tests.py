@@ -2377,6 +2377,9 @@ class RecipeSourceDisplayTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Created specially for CulinEire")
+        self.assertContains(response, "Enjoyed it?")
+        self.assertContains(response, "Buy a coffee")
+        self.assertContains(response, "https://buymeacoffee.com/bearcave")
         self.assertNotContains(response, "View original source")
 
     def test_external_recipe_source_still_shows_original_source_link(self):
@@ -2398,6 +2401,7 @@ class RecipeSourceDisplayTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "View original source")
         self.assertContains(response, "https://example.com/original-stew")
+        self.assertNotContains(response, "Buy a coffee")
 
 
 class GenerateRecipeCommandTests(TestCase):
@@ -2449,7 +2453,7 @@ class GenerateRecipeCommandTests(TestCase):
         self.assertIn("crafted with AI", recipe.source_note)
         self.assertIn("reviewed by our editorial team", recipe.source_note)
         self.assertIn("Free to cook and enjoy at home", recipe.source_note)
-        self.assertIn("a rating or a kind comment", recipe.source_note)
+        self.assertNotIn("a rating or a kind comment", recipe.source_note)
         self.assertNotIn("Draft", recipe.source_title)
         self.assertNotIn("draft", recipe.source_note.lower())
         self.assertFalse(recipe.confirmed_own_work)

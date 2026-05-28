@@ -1882,6 +1882,22 @@
     text-transform: uppercase;
   }
 
+  .source-badge--amber {
+    background: rgb(160 90 0 / 0.09);
+    border-color: rgb(160 90 0 / 0.18);
+    color: #7a4200;
+  }
+
+  .source-badge--slate {
+    background: rgb(55 75 105 / 0.08);
+    border-color: rgb(55 75 105 / 0.16);
+    color: #3a4f6e;
+  }
+
+  .source-header--left {
+    justify-content: flex-start;
+  }
+
   .source-header__author {
     color: var(--ink-soft);
     font-size: 0.88rem;
@@ -1960,6 +1976,30 @@
     border-color: rgb(22 102 69 / 0.24);
     background: rgb(22 102 69 / 0.06);
     text-decoration: none;
+  }
+
+  .source-support {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.38rem;
+    margin-top: 0.15rem;
+    color: var(--ink-soft);
+    font-size: 0.82rem;
+    line-height: 1.35;
+  }
+
+  .source-support a {
+    color: var(--brand);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .source-support a:hover,
+  .source-support a:focus-visible {
+    text-decoration: underline;
+    text-underline-offset: 0.16em;
   }
 
   .allergen-list {
