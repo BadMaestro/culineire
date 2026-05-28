@@ -1103,6 +1103,7 @@
 
   var votedPanel = widget.querySelector('[data-rating-voted]');
   var formPanel  = widget.querySelector('[data-rating-form]');
+  var ratingsApiUrl = '{% url "recipes:recipe_ratings_api" recipe.slug %}';
 
   function showToast(msg, type) {
     var section = document.querySelector('.site-messages');
@@ -1169,6 +1170,42 @@
     wrap.innerHTML = html;
   }
 
+  function refreshRatingStats() {
+    fetch(ratingsApiUrl)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var total = data.total || 0;
+        var avg   = parseFloat(data.average) || 0;
+        var pct   = total > 0 ? Math.min(Math.max((avg / 5) * 100, 0), 100) : 0;
+
+        // Inline "X.X/5" or em-dash in the stat bar
+        var inlineEl = document.querySelector('.recipe-stat__value--inline');
+        if (inlineEl) inlineEl.textContent = total > 0 ? avg.toFixed(1) + '/5' : '—';
+
+        // Star fill width via CSS variable
+        var fillEl = document.querySelector('.rating-overview__stars-fill');
+        if (fillEl) fillEl.style.setProperty('--rating-fill', pct + '%');
+
+        // Rating count button or span
+        var countEl = document.querySelector('.rating-overview__count');
+        if (countEl) countEl.textContent = total + ' rating' + (total !== 1 ? 's' : '');
+
+        // Mini rating line in comments panel
+        var miniEl = document.querySelector('.comments-panel__rating-mini');
+        if (miniEl) {
+          if (total > 0) {
+            var svgEl = miniEl.querySelector('svg');
+            var svgHtml = svgEl ? svgEl.outerHTML : '';
+            miniEl.innerHTML = svgHtml + ' ' + avg.toFixed(1) + ' · ' + total + ' vote' + (total !== 1 ? 's' : '');
+            miniEl.hidden = false;
+          } else {
+            miniEl.hidden = true;
+          }
+        }
+      })
+      .catch(function() { /* ignore — stats refresh is best-effort */ });
+  }
+
   function syncBottomInteractive() {
     var wrap = document.querySelector('.comment-compose__stars');
     if (!wrap) return;
@@ -1202,6 +1239,7 @@
       if (votedText) votedText.innerHTML = 'You rated this recipe <strong>' + val + '/5</strong>. Thank you!';
       showToast('Rating saved. Thank you!', 'success');
       syncBottomVoted(val);
+      refreshRatingStats();
     });
   }
 
@@ -1213,6 +1251,7 @@
       formPanel.hidden = false;
       formPanel.querySelectorAll('input[type="radio"]').forEach(function (r) { r.checked = false; });
       syncBottomInteractive();
+      refreshRatingStats();
     });
   }
 })();
