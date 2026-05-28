@@ -143,21 +143,15 @@
                 </div>
                 <div class="moderation-card__actions">
                     <a class="mod-btn mod-btn--view" href="{{ recipe.get_absolute_url }}" target="_blank">View</a>
+                    <a class="mod-btn mod-btn--edit" href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit</a>
+                    <button class="mod-btn mod-btn--reject" data-reject-url="{% url 'recipes:moderate_recipe' recipe.slug %}" data-reject-title="{{ recipe.title|truncatechars:40 }}" type="button">Reject</button>
                     <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
                         <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
                     </form>
-                    <a class="mod-btn mod-btn--edit" href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit</a>
-                    <button class="mod-btn mod-btn--reject" data-reject-url="{% url 'recipes:moderate_recipe' recipe.slug %}" data-reject-title="{{ recipe.title|truncatechars:40 }}" type="button">Reject</button>
                     <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
                         <button class="mod-btn mod-btn--delete" name="action" onclick="return confirm('Permanently delete this recipe?')" type="submit"
                             value="delete">Delete</button>
                     </form>
-                    {% if recipe.author.user %}
-                    <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
-                        <button class="mod-btn mod-btn--block" name="action" onclick="return confirm('Block user {{ recipe.author.user.username }}?')" type="submit"
-                            value="block">Block User</button>
-                    </form>
-                    {% endif %}
                 </div>
             </div>
             {% endfor %}
@@ -182,10 +176,10 @@
                 </div>
                 <div class="moderation-card__actions">
                     <a class="mod-btn mod-btn--view" href="{{ recipe.get_absolute_url }}" target="_blank">View</a>
+                    <a class="mod-btn mod-btn--edit" href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit</a>
                     <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
                         <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
                     </form>
-                    <a class="mod-btn mod-btn--edit" href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit</a>
                     <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
                         <button class="mod-btn mod-btn--delete" name="action" onclick="return confirm('Permanently delete this recipe?')" type="submit"
                             value="delete">Delete</button>
@@ -214,20 +208,14 @@
                 </div>
                 <div class="moderation-card__actions">
                     <a class="mod-btn mod-btn--view" href="{{ recipe.get_absolute_url }}" target="_blank">View</a>
+                    <a class="mod-btn mod-btn--edit" href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit</a>
                     <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
                         <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
                     </form>
-                    <a class="mod-btn mod-btn--edit" href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit</a>
                     <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
                         <button class="mod-btn mod-btn--delete" name="action" onclick="return confirm('Permanently delete this recipe?')" type="submit"
                             value="delete">Delete</button>
                     </form>
-                    {% if recipe.author.user %}
-                    <form action="{% url 'recipes:moderate_recipe' recipe.slug %}" method="post">{% csrf_token %}
-                        <button class="mod-btn mod-btn--block" name="action" onclick="return confirm('Block user {{ recipe.author.user.username }}?')" type="submit"
-                            value="block">Block User</button>
-                    </form>
-                    {% endif %}
                 </div>
             </div>
             {% endfor %}
@@ -261,21 +249,15 @@
                 </div>
                 <div class="moderation-card__actions">
                     <a class="mod-btn mod-btn--view" href="{{ article.get_absolute_url }}" target="_blank">View</a>
+                    <a class="mod-btn mod-btn--edit" href="{% url 'articles:article_edit' article.slug %}">Edit</a>
+                    <button class="mod-btn mod-btn--reject" data-reject-url="{% url 'articles:moderate_article' article.slug %}" data-reject-title="{{ article.title|truncatechars:40 }}" type="button">Reject</button>
                     <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
                         <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
                     </form>
-                    <a class="mod-btn mod-btn--edit" href="{% url 'articles:article_edit' article.slug %}">Edit</a>
-                    <button class="mod-btn mod-btn--reject" data-reject-url="{% url 'articles:moderate_article' article.slug %}" data-reject-title="{{ article.title|truncatechars:40 }}" type="button">Reject</button>
                     <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
                         <button class="mod-btn mod-btn--delete" name="action" onclick="return confirm('Permanently delete this article?')" type="submit"
                             value="delete">Delete</button>
                     </form>
-                    {% if article.author.user %}
-                    <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
-                        <button class="mod-btn mod-btn--block" name="action" onclick="return confirm('Block user {{ article.author.user.username }}?')" type="submit"
-                            value="block">Block User</button>
-                    </form>
-                    {% endif %}
                 </div>
             </div>
             {% endfor %}
@@ -300,10 +282,10 @@
                 </div>
                 <div class="moderation-card__actions">
                     <a class="mod-btn mod-btn--view" href="{{ article.get_absolute_url }}" target="_blank">View</a>
+                    <a class="mod-btn mod-btn--edit" href="{% url 'articles:article_edit' article.slug %}">Edit</a>
                     <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
                         <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
                     </form>
-                    <a class="mod-btn mod-btn--edit" href="{% url 'articles:article_edit' article.slug %}">Edit</a>
                     <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
                         <button class="mod-btn mod-btn--delete" name="action" onclick="return confirm('Permanently delete this article?')" type="submit"
                             value="delete">Delete</button>
@@ -332,20 +314,14 @@
                 </div>
                 <div class="moderation-card__actions">
                     <a class="mod-btn mod-btn--view" href="{{ article.get_absolute_url }}" target="_blank">View</a>
+                    <a class="mod-btn mod-btn--edit" href="{% url 'articles:article_edit' article.slug %}">Edit</a>
                     <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
                         <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
                     </form>
-                    <a class="mod-btn mod-btn--edit" href="{% url 'articles:article_edit' article.slug %}">Edit</a>
                     <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
                         <button class="mod-btn mod-btn--delete" name="action" onclick="return confirm('Permanently delete this article?')" type="submit"
                             value="delete">Delete</button>
                     </form>
-                    {% if article.author.user %}
-                    <form action="{% url 'articles:moderate_article' article.slug %}" method="post">{% csrf_token %}
-                        <button class="mod-btn mod-btn--block" name="action" onclick="return confirm('Block user {{ article.author.user.username }}?')" type="submit"
-                            value="block">Block User</button>
-                    </form>
-                    {% endif %}
                 </div>
             </div>
             {% endfor %}
