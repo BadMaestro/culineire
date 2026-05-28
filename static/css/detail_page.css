@@ -3248,6 +3248,11 @@
   padding-block: 3rem;
 }
 
+/* ── Comments section ── */
+.page-section--comments {
+  padding-block: 2.5rem;
+}
+
 /* ── Related content grid (rcg) ── */
 .rcg-grid {
   display: grid;
