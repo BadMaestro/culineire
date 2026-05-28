@@ -726,6 +726,14 @@
                 document.body.appendChild(iframe);
                 form.target = iframeName;
                 iframe.addEventListener('load', function () {
+                    // The iframe fires an initial 'load' for about:blank before the
+                    // form submission completes. Ignore that first event and only
+                    // act when the server response has actually loaded.
+                    try {
+                        if (iframe.contentWindow.location.href === 'about:blank') return;
+                    } catch (e) {
+                        return; // safety: cross-origin error should not happen
+                    }
                     iframe.remove();
                     form.target = '';
                     if (card) card.remove();
