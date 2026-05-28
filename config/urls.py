@@ -68,6 +68,12 @@ urlpatterns = [
     path("accounts/", include("django.contrib.auth.urls")),
 ]
 
+if getattr(settings, "CHEF_BATTLE_ENABLED", False):
+    urlpatterns.insert(
+        10,
+        path("chef-battle/", include("chef_battle.urls", namespace="chef_battle")),
+    )
+
 if not settings.IS_PRODUCTION:
     from django.contrib import messages as _messages
     from django.shortcuts import redirect as _redirect

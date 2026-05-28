@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from urllib.parse import urlencode
 
+from django.conf import settings
 from django.db import DatabaseError
 from django.urls import NoReverseMatch, reverse
 
@@ -57,9 +58,10 @@ def _with_query(url: str, **params) -> str:
 
 def header_author(request):
     user = getattr(request, "user", None)
+    chef_battle_enabled = getattr(settings, "CHEF_BATTLE_ENABLED", False)
 
     if not user or not user.is_authenticated:
-        return {}
+        return {"chef_battle_enabled": chef_battle_enabled}
 
     author = _find_author_for_user(user)
     display_name = (
@@ -106,6 +108,12 @@ def header_author(request):
         },
     ]
 
+    if chef_battle_enabled:
+        actions.insert(3, {
+            "label": "Chef Battle",
+            "url": _reverse_or_empty("chef_battle:challenge_list"),
+        })
+
     if is_moderator:
         pending_count = _pending_moderation_count()
         actions.insert(0, {
@@ -118,4 +126,5 @@ def header_author(request):
         "header_author": author,
         "header_author_name": display_name,
         "header_author_actions": actions,
+        "chef_battle_enabled": chef_battle_enabled,
     }
