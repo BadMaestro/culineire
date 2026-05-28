@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -12,6 +13,8 @@ from django.db import transaction
 from django.utils.text import slugify
 
 from recipes.models import ALLERGEN_CHOICES, Recipe, RecipeAdditionalCategory, RecipeAuthor, RecipeImage
+
+logger = logging.getLogger("recipes")
 
 
 AI_SOURCE_NOTE = "AI-assisted draft generated for human review. Verify accuracy, attribution, allergens, and image rights before publishing."
@@ -292,7 +295,8 @@ def _generate_step_photos(recipe: Recipe, method_text: str) -> list[RecipeImage]
             image_url = json.loads(body)["data"][0]["url"]
             with urlopen(image_url, timeout=30) as img_response:
                 image_bytes = img_response.read()
-        except (HTTPError, URLError):
+        except (HTTPError, URLError) as exc:
+            logger.warning("generate_recipe: step photo failed for step %d of %r: %s", sort_order, recipe.title, exc)
             continue
         img = RecipeImage(recipe=recipe, sort_order=sort_order, alt_text=step_text[:255], caption=f"Step {sort_order}")
         img.image.save(f"step{sort_order}-{recipe.slug[:30]}.jpg", ContentFile(image_bytes), save=False)
@@ -374,7 +378,13 @@ class Command(BaseCommand):
                 for cat in additional_categories:
                     RecipeAdditionalCategory.objects.create(recipe=recipe, category=cat)
 
-            generate_image = not options.get("no_image") and bool(getattr(settings, "OPENAI_API_KEY", ""))
+            openai_key = getattr(settings, "OPENAI_API_KEY", "")
+            generate_image = not options.get("no_image") and bool(openai_key)
+            if not openai_key:
+                logger.warning("generate_recipe: OPENAI_API_KEY is not set — skipping image generation for %r", recipe.title)
+            elif options.get("no_image"):
+                logger.info("generate_recipe: --no-image flag set — skipping image generation for %r", recipe.title)
+
             if generate_image:
                 try:
                     ai_alt_text = str(payload.get("hero_image_alt_text") or "").strip()[:125]
@@ -384,22 +394,20 @@ class Command(BaseCommand):
                     recipe.image_rights_status = Recipe.ImageRightsStatus.AI_GENERATED
                     recipe.image_rights_note = "AI-generated image via DALL-E 3."
                     recipe.save(update_fields=["hero_image", "hero_image_alt_text", "image_rights_status", "image_rights_note"])
-                    self.stdout.write(self.style.SUCCESS("  Hero image generated and saved."))
+                    logger.info("generate_recipe: hero image generated and saved for %r", recipe.title)
                 except CommandError as exc:
-                    self.stdout.write(self.style.WARNING(f"  Hero image generation failed: {exc}"))
+                    logger.error("generate_recipe: hero image generation failed for %r: %s", recipe.title, exc)
 
                 try:
                     step_photos = _generate_step_photos(recipe, fields["method"])
                     if step_photos:
-                        self.stdout.write(self.style.SUCCESS(f"  {len(step_photos)} step photo(s) generated and saved."))
+                        logger.info("generate_recipe: %d step photo(s) generated for %r", len(step_photos), recipe.title)
                 except Exception as exc:
-                    self.stdout.write(self.style.WARNING(f"  Step photos generation failed: {exc}"))
+                    logger.error("generate_recipe: step photos failed for %r: %s", recipe.title, exc, exc_info=True)
 
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f'Created {recipe.get_status_display().lower()} recipe "{recipe.title}" ({recipe.slug})'
-                    + (f" with {len(additional_categories)} additional categories." if additional_categories else ".")
-                )
+            logger.info(
+                "generate_recipe: created %s recipe %r (%s) with %d additional categories",
+                recipe.get_status_display().lower(), recipe.title, recipe.slug, len(additional_categories),
             )
 
     @staticmethod
