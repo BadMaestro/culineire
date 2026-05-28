@@ -43,6 +43,7 @@ from .forms import (
     RecipeRatingForm,
 )
 from .models import Recipe, RecipeAuthor, RecipeComment, RecipeImage, RecipeRating
+from .validators import validate_image_upload
 from config.email_utils import build_absolute_url, send_template_mail
 
 POPULAR_CATEGORY_PRIORITY = [
@@ -269,6 +270,34 @@ def _image_alt_text(title, alt_text="", caption=""):
 
 def _gallery_step_alt(post_data, step):
     return (post_data.get(f"gallery_step_{step}_alt") or "").strip()
+
+
+def _validate_recipe_gallery_uploads(form, files):
+    """Validate all gallery_step_* uploads against the image validator.
+
+    Mirrors articles._validate_gallery_uploads. Returns True if valid,
+    adds form errors and returns False otherwise.
+    """
+    from django.core.exceptions import ValidationError as DjValidationError
+    is_valid = True
+    uploaded = [f for key, f in files.items() if key.startswith("gallery_step_")]
+    if (
+        uploaded
+        and form.cleaned_data.get("image_rights_status") == Recipe.ImageRightsStatus.NOT_APPLICABLE
+    ):
+        form.add_error(
+            "image_rights_status",
+            "Choose the correct image rights status when gallery images are attached.",
+        )
+        is_valid = False
+    for uploaded_file in uploaded:
+        try:
+            validate_image_upload(uploaded_file)
+        except DjValidationError as exc:
+            for message in exc.messages:
+                form.add_error(None, f"Gallery image {uploaded_file.name}: {message}")
+            is_valid = False
+    return is_valid
 
 
 def _update_recipe_gallery_order(recipe, post_data):
@@ -1136,6 +1165,8 @@ class RecipeCreateView(AuthorRequiredMixin, CreateView):
         return super().post(request, *args, **kwargs)
 
     def form_valid(self, form):
+        if not _validate_recipe_gallery_uploads(form, self.request.FILES):
+            return self.form_invalid(form)
         action = _authoring_action(self.request)
         recipe = form.save(commit=False, confirmed_by=self.request.user)
         recipe.author = self.author
@@ -1192,6 +1223,8 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
         return Recipe.objects.filter(author=self.author)
 
     def form_valid(self, form):
+        if not _validate_recipe_gallery_uploads(form, self.request.FILES):
+            return self.form_invalid(form)
         action = _authoring_action(self.request)
         was_approved = self.object.status == Recipe.Status.APPROVED
         previous_status = self.object.status

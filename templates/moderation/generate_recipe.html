@@ -251,8 +251,16 @@
         .then(function (r) { return r.json(); })
         .then(function (data) {
             if (!data.started) {
-                // Fallback: hard redirect if something went wrong
-                window.location.href = panelUrl;
+                clearInterval(timerId);
+                clearInterval(pollId);
+                var msg = (data.error) ? ('Error: ' + data.error) : 'Generation could not start.';
+                hintEl.textContent = msg;
+                progressBar.style.background = '#c0392b';
+                setTimeout(function () {
+                    overlay.setAttribute('hidden', '');
+                    document.body.style.overflow = '';
+                    window.location.href = panelUrl;
+                }, 4000);
             }
         })
         .catch(function () {

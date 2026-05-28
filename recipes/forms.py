@@ -203,6 +203,18 @@ class RecipeAuthoringForm(forms.ModelForm):
                 "Add the licence, credit line, or permission reference for this image status.",
             )
 
+        # NOT_APPLICABLE means "no image uploaded" — reject if hero image is present
+        if image_rights_status == Recipe.ImageRightsStatus.NOT_APPLICABLE:
+            has_hero = bool(
+                cleaned_data.get("hero_image")
+                or (self.instance and self.instance.pk and self.instance.hero_image)
+            )
+            if has_hero:
+                self.add_error(
+                    "image_rights_status",
+                    "Choose the correct image rights status — 'No image uploaded' cannot be used when a hero image is present.",
+                )
+
         if source_type != Recipe.SourceType.ORIGINAL and not any(
             [source_title, source_author, source_url, source_note]
         ):
