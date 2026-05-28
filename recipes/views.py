@@ -1837,7 +1837,7 @@ def moderate_recipe(request, slug):
 @login_required
 def recipe_regenerate_image(request, slug):
     from django.core.files.base import ContentFile
-    from .management.commands.generate_recipe import fetch_image_bytes, _sanitise_image_subject
+    from .management.commands.generate_recipe import fetch_image_bytes, _image_extension, _sanitise_image_subject
 
     recipe = get_object_or_404(Recipe, slug=slug)
     if not (is_moderator(request.user) or user_can_manage_author(request.user, recipe.author)):
@@ -1858,7 +1858,8 @@ def recipe_regenerate_image(request, slug):
             if feedback:
                 prompt += f" Important: {feedback}."
             image_bytes = fetch_image_bytes(prompt)
-            filename = f"cover-{recipe.slug[:40]}-regen.jpg"
+            ext = _image_extension(image_bytes)
+            filename = f"cover-{recipe.slug[:40]}-regen{ext}"
             # Do NOT manually delete the old file — the pre_save signal in signals.py
             # detects the name change and cleans it up safely after the new file is confirmed.
             recipe.image_rights_status = Recipe.ImageRightsStatus.AI_GENERATED
@@ -1890,7 +1891,8 @@ def recipe_regenerate_image(request, slug):
             if feedback:
                 prompt += f" Important: {feedback}."
             image_bytes = fetch_image_bytes(prompt)
-            filename = f"step{img.sort_order}-{recipe.slug[:30]}-regen.jpg"
+            ext = _image_extension(image_bytes)
+            filename = f"step{img.sort_order}-{recipe.slug[:30]}-regen{ext}"
             # pre_save signal handles old file cleanup when name changes
             img.image.save(filename, ContentFile(image_bytes), save=True)
             if recipe.image_rights_status != Recipe.ImageRightsStatus.AI_GENERATED:
