@@ -361,6 +361,37 @@ textarea.authoring-control {
   grid-template-columns: 7rem 1fr 5rem 1fr;
   align-items: center;
   gap: 0.75rem;
+  padding: 0.35rem;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.authoring-step-row[draggable="true"] {
+  cursor: grab;
+}
+
+.authoring-step-row[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.authoring-step-row--dragging {
+  border-color: rgb(11 76 58 / 0.24);
+  background: rgb(255 253 248 / 0.76);
+  opacity: 0.58;
+  transform: scale(0.99);
+}
+
+.authoring-step-upload-preview {
+  width: 92px;
+  height: 72px;
+  border: 1px solid rgb(58 44 30 / 0.10);
+  border-radius: 7px;
+  object-fit: cover;
 }
 
 .authoring-step-label,

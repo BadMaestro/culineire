@@ -9,6 +9,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core import mail
 from django.core.management import call_command
+from django.http import QueryDict
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
@@ -17,7 +18,7 @@ from .admin import RecipeAdmin, RecipeAdminForm
 from .allergens import build_present_allergen_items, parse_selected_allergen_keys, serialize_allergen_keys
 from .forms import RecipeAuthoringForm, RecipeCommentForm
 from .models import Recipe, RecipeAdditionalCategory, RecipeAuthor, RecipeComment, RecipeRating
-from .views import _build_context_paragraphs, _build_ingredient_items, _build_method_steps, _gallery_step_alt, _gallery_step_rows, _image_alt_text, _soft_delete_recipe, _split_text_lines
+from .views import _build_context_paragraphs, _build_ingredient_items, _build_method_steps, _gallery_step_alt, _gallery_step_rows, _image_alt_text, _soft_delete_recipe, _split_text_lines, _update_recipe_gallery_order
 
 
 class RecipeTextHelperTests(SimpleTestCase):
@@ -2152,6 +2153,32 @@ class RecipePhase32AltTextTests(TestCase):
 
         step2 = next(r for r in rows if r["step"] == 2)
         self.assertEqual(step2["image"].pk, img.pk)
+
+    def test_update_recipe_gallery_order_saves_dragged_order(self):
+        from .models import RecipeImage
+
+        recipe = Recipe.objects.create(
+            title="Dragged Gallery Recipe",
+            slug="dragged-gallery-recipe",
+            author=self.author,
+            ingredients="Oats",
+            method="Cook.",
+            status=Recipe.Status.APPROVED,
+        )
+        first = RecipeImage.objects.create(recipe=recipe, sort_order=1)
+        second = RecipeImage.objects.create(recipe=recipe, sort_order=2)
+        third = RecipeImage.objects.create(recipe=recipe, sort_order=3)
+        post_data = QueryDict("", mutable=True)
+        post_data.update({"recipe_gallery_image_order": str(third.pk)})
+        post_data.update({"recipe_gallery_image_order": str(first.pk)})
+        post_data.update({"recipe_gallery_image_order": str(second.pk)})
+
+        _update_recipe_gallery_order(recipe, post_data)
+
+        ordered_ids = list(
+            recipe.gallery_images.order_by("sort_order", "id").values_list("pk", flat=True)
+        )
+        self.assertEqual(ordered_ids, [third.pk, first.pk, second.pk])
 
 
 @skip("Dev-only tests: static and media serving via culineire.localhost is not available on the production server")
