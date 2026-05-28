@@ -405,6 +405,8 @@ def _build_context_paragraphs(context_text: str) -> list[str]:
 
 
 def home(request):
+    from chef_battle.models import Battle, BattleEvent
+
     article_card_gallery_prefetch = Prefetch(
         "gallery_images",
         queryset=ArticleImage.objects.filter(is_active=True).order_by("sort_order", "id"),
@@ -423,9 +425,22 @@ def home(request):
         .order_by("-published")[:6]
     )
 
+    battle_events = (
+        BattleEvent.objects.select_related("battle", "actor", "target")
+        .filter(is_public=True)
+        .order_by("-created_at")[:5]
+    )
+    active_battles = (
+        Battle.objects.select_related("challenger", "opponent", "winner")
+        .filter(status__in=[Battle.Status.ACTIVE, Battle.Status.VOTING, Battle.Status.SCHEDULED])
+        .order_by("end_time")[:4]
+    )
+
     context = {
         "latest_recipes": latest_recipes,
         "latest_articles": latest_articles,
+        "battle_events": battle_events,
+        "active_battles": active_battles,
     }
     return render(request, "home.html", context)
 
@@ -719,7 +734,8 @@ def recipe_detail(request, slug):
     related_category_values = recipe.get_all_category_values()
     related_recipes = []
     if related_category_values:
-        related_recipes = list(
+        current_cats = set(related_category_values)
+        raw_related = list(
             Recipe.objects.filter(status=Recipe.Status.APPROVED, is_deleted=False)
             .exclude(pk=recipe.pk)
             .filter(Q(category__in=related_category_values) | Q(additional_category_links__category__in=related_category_values))
@@ -728,6 +744,21 @@ def recipe_detail(request, slug):
             .distinct()
             .order_by("-created_at")[:4]
         )
+        for r in raw_related:
+            shared = current_cats & set(r.get_all_category_values())
+            related_recipes.append({
+                "recipe": r,
+                "shared_categories": sorted(
+                    [
+                        {
+                            "label": Recipe.get_category_label(v),
+                            "url": Recipe.get_category_url_for_value(v),
+                        }
+                        for v in shared
+                    ],
+                    key=lambda x: x["label"],
+                ),
+            })
 
     context = {
         "recipe": recipe,
