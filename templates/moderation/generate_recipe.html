@@ -148,6 +148,10 @@
         <div class="gen-progress">
             <div class="gen-progress__bar" id="gen-progress-bar"></div>
         </div>
+
+        <a class="gen-overlay__fallback" href="{% url 'recipes:moderation_panel' %}" id="gen-fallback-link" hidden>
+            Taking too long? Check the pending queue manually.
+        </a>
     </div>
 </div>
 {% endblock %}
@@ -170,7 +174,9 @@
     var timerId    = null;
     var pollId     = null;
     var POLL_INTERVAL   = 5000;
-    var ESTIMATED_MS    = 90000; // 90s progress bar fills over this
+    var ESTIMATED_MS    = 90000;  // 90s — progress bar fills over this
+    var MAX_WAIT_MS     = 720000; // 12 min — show fallback link after this
+    var fallbackLink    = document.getElementById('gen-fallback-link');
 
     function pad(n) { return n < 10 ? '0' + n : '' + n; }
 
@@ -188,6 +194,11 @@
         if (secs === 30)  hintEl.textContent = 'Writing method steps and tips...';
         if (secs === 60)  hintEl.textContent = 'Generating images...';
         if (secs === 100) hintEl.textContent = 'Almost there — finishing up...';
+
+        // After MAX_WAIT_MS show the manual fallback link
+        if (elapsed >= MAX_WAIT_MS && fallbackLink) {
+            fallbackLink.removeAttribute('hidden');
+        }
     }
 
     function pollReady() {

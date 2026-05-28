@@ -1754,6 +1754,18 @@
   gap: 0.5rem;
 }
 
+/* ── Generation overlay fallback link ── */
+.gen-overlay__fallback {
+  display: block;
+  margin-top: 0.5rem;
+  color: var(--ink-soft, #6b7c6e);
+  font-size: 0.8rem;
+  text-align: center;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.gen-overlay__fallback:hover { color: var(--ink, #1f2c25); }
+
 /* ── Delete undo (Restore with countdown) ── */
 .mod-btn--restore {
   background: rgb(180 90 0 / 0.1);

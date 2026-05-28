@@ -1603,10 +1603,17 @@ def generate_recipe_poll(request):
         return JsonResponse({"ready": False}, status=403)
 
     from django.utils.dateparse import parse_datetime
-    since_raw = request.GET.get("since", "")
+    since_raw = request.GET.get("since", "").strip()
+    # JavaScript toISOString() produces "Z" suffix; Django's parse_datetime
+    # requires "+00:00" — normalise before parsing.
+    since_raw = since_raw.replace("Z", "+00:00")
     since = parse_datetime(since_raw) if since_raw else None
     if not since:
         return JsonResponse({"ready": False, "error": "missing since"}, status=400)
+    # Make timezone-aware if naive (shouldn't happen with ISO strings, but be safe)
+    from django.utils import timezone as tz
+    if since.tzinfo is None:
+        since = tz.make_aware(since)
 
     recipe = (
         Recipe.objects.filter(
