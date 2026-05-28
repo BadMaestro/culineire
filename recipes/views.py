@@ -732,7 +732,8 @@ def recipe_detail(request, slug):
     if _db_rating:
         has_rated = True
         user_rating_value = _db_rating.value
-    elif _rating_session_val:
+    elif request.user.is_authenticated and _rating_session_val:
+        # Only trust session for authenticated users — anonymous users can no longer rate
         has_rated = True
         user_rating_value = _rating_session_val if isinstance(_rating_session_val, int) else None
     else:
@@ -854,15 +855,20 @@ def submit_recipe_rating(request, slug):
 
 
 @require_POST
-@login_required
 def reset_recipe_rating(request, slug):
     recipe = get_object_or_404(Recipe, slug=slug)
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+
+    if not request.user.is_authenticated:
+        if is_ajax:
+            return JsonResponse({"ok": False, "error": "Please sign in to change your rating."}, status=401)
+        messages.warning(request, "Please sign in to change your rating.")
+        return redirect(f"{reverse('login')}?next={recipe.get_absolute_url()}")
+
     session_key = f"recipe_rating_submitted_{recipe.pk}"
     request.session.pop(session_key, None)
     request.session.modified = True
-    # Also delete the DB rating for this authenticated user
     recipe.ratings.filter(user=request.user).delete()
-    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
     if is_ajax:
         return JsonResponse({"ok": True})
     return redirect(recipe.get_absolute_url())
