@@ -473,7 +473,7 @@ class Recipe(models.Model):
         slug = base_slug
         counter = 2
 
-        while Recipe.objects.exclude(pk=self.pk).filter(slug=slug).exists():
+        while Recipe.objects.exclude(pk=self.pk).filter(slug=slug, is_deleted=False).exists():
             suffix = f"-{counter}"
             slug = f"{base_slug[:220 - len(suffix)]}{suffix}"
             counter += 1
