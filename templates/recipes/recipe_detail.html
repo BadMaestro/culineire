@@ -639,46 +639,33 @@
     </div>
 </section>
 
-{% if related_recipes %}
-<section class="page-section page-section--related" aria-labelledby="related-recipes-heading">
+{% if related_recipes or related_articles %}
+<section class="page-section page-section--related" aria-label="You might also like">
     <div class="container">
-        <h2 class="section-title" id="related-recipes-heading">Related Recipes</h2>
-        <ul class="related-articles-list">
+        <h2 class="section-title">You Might Also Like</h2>
+        <ul class="rcg-grid">
             {% for item in related_recipes %}
-            <li class="related-articles-list__item">
-                <a class="related-articles-list__link" href="{{ item.recipe.get_absolute_url }}">
-                    <span class="related-articles-list__title">{{ item.recipe.title }}</span>
-                    {% if item.recipe.author %}
-                    <span class="related-articles-list__meta">By {{ item.recipe.author.name }}</span>
-                    {% endif %}
+            <li class="rcg-card rcg-card--recipe">
+                <span class="rcg-card__eyebrow">Recipe</span>
+                <a class="rcg-card__link" href="{{ item.recipe.get_absolute_url }}">
+                    <span class="rcg-card__title">{{ item.recipe.title }}</span>
+                    {% if item.recipe.author %}<span class="rcg-card__meta">By {{ item.recipe.author.name }}</span>{% endif %}
                 </a>
                 {% if item.shared_categories %}
-                <div class="related-articles-list__cats">
-                    <span class="related-articles-list__cats-label">Also in</span>
+                <div class="rcg-card__cats">
                     {% for cat in item.shared_categories %}
-                    <a class="related-articles-list__cat-tag" href="{{ cat.url }}">{{ cat.label }}</a>
+                    <a class="rcg-card__tag" href="{{ cat.url }}">{{ cat.label }}</a>
                     {% endfor %}
                 </div>
                 {% endif %}
             </li>
             {% endfor %}
-        </ul>
-    </div>
-</section>
-{% endif %}
-
-{% if related_articles %}
-<section class="page-section page-section--related" aria-labelledby="related-articles-heading">
-    <div class="container">
-        <h2 class="section-title" id="related-articles-heading">Related Articles</h2>
-        <ul class="related-articles-list">
             {% for art in related_articles %}
-            <li class="related-articles-list__item">
-                <a class="related-articles-list__link" href="{{ art.get_absolute_url }}">
-                    <span class="related-articles-list__title">{{ art.title }}</span>
-                    {% if art.author %}
-                    <span class="related-articles-list__meta">By {{ art.author.name }}</span>
-                    {% endif %}
+            <li class="rcg-card rcg-card--article">
+                <span class="rcg-card__eyebrow">Article</span>
+                <a class="rcg-card__link" href="{{ art.get_absolute_url }}">
+                    <span class="rcg-card__title">{{ art.title }}</span>
+                    {% if art.author %}<span class="rcg-card__meta">By {{ art.author.name }}</span>{% endif %}
                 </a>
             </li>
             {% endfor %}
