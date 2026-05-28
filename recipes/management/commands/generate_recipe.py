@@ -222,8 +222,9 @@ def _generate_image(title: str, short_description: str, alt_text: str = "") -> t
         "Irish cuisine, natural light, rustic wooden surface, ceramic or white plate, "
         "appetising close-up presentation. No text, no watermarks, no people, no brand names or logos."
     )
+    model = getattr(settings, "OPENAI_IMAGE_MODEL", "gpt-image-1")
     payload = {
-        "model": "gpt-image-1",
+        "model": model,
         "prompt": prompt,
         "n": 1,
         "size": "1024x1024",
@@ -283,7 +284,7 @@ def _generate_step_photos(recipe: Recipe, method_text: str) -> list[RecipeImage]
             "No text, no watermarks, no people, no brand names or logos."
         )
         payload = {
-            "model": "gpt-image-1",
+            "model": getattr(settings, "OPENAI_IMAGE_MODEL", "gpt-image-1"),
             "prompt": prompt,
             "n": 1,
             "size": "1024x1024",
