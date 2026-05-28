@@ -279,10 +279,12 @@ def _pick_key_steps(method_text: str, max_steps: int = 3) -> list[tuple[int, str
 
 def _generate_step_photos(recipe: Recipe, method_text: str) -> list[RecipeImage]:
     key_steps = _pick_key_steps(method_text)
+    total = len(key_steps)
     created = []
     for gallery_pos, (step_num, step_text) in enumerate(key_steps, start=1):
         prompt = (
-            f"Professional food photography showing the cooking step: {step_text[:200]}. "
+            f"Professional food photography for the dish '{recipe.title}'. "
+            f"Step {step_num} of {total}: {step_text[:250]}. "
             "Irish cuisine, natural lighting, rustic kitchen setting. "
             "No text, no watermarks, no people, no brand names or logos."
         )
@@ -291,7 +293,12 @@ def _generate_step_photos(recipe: Recipe, method_text: str) -> list[RecipeImage]
         except (CommandError, Exception) as exc:
             logger.warning("generate_recipe: step photo failed for step %d of %r: %s", step_num, recipe.title, exc)
             continue
-        img = RecipeImage(recipe=recipe, sort_order=gallery_pos, alt_text="", caption=f"Step {step_num}")
+        img = RecipeImage(
+            recipe=recipe,
+            sort_order=gallery_pos,
+            alt_text=step_text[:200],
+            caption=f"Step {step_num}",
+        )
         img.image.save(f"step{gallery_pos}-{recipe.slug[:30]}.jpg", ContentFile(image_bytes), save=False)
         img.save()
         created.append(img)

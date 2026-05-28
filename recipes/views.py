@@ -1780,8 +1780,20 @@ def recipe_regenerate_image(request, slug):
 
         elif image_type == "step":
             img = get_object_or_404(RecipeImage, pk=image_id, recipe=recipe)
+            # Use stored step text (alt_text) if available, otherwise derive from recipe method
+            step_text = (img.alt_text or "").strip()
+            if not step_text and recipe.method:
+                method_lines = [s.strip() for s in recipe.method.splitlines() if s.strip()]
+                if method_lines:
+                    idx = min((img.sort_order or 1) - 1, len(method_lines) - 1)
+                    step_text = method_lines[max(idx, 0)]
+            step_label = img.caption or f"Step {img.sort_order or 1}"
             prompt = (
-                f"Professional food photography for the dish {recipe.title}. "
+                f"Professional food photography for the dish '{recipe.title}'. "
+                f"{step_label}: {step_text[:250]}. " if step_text else
+                f"Professional food photography for the dish '{recipe.title}'. "
+            )
+            prompt += (
                 "Irish cuisine, natural lighting, rustic kitchen setting. "
                 "No text, no watermarks, no people, no brand names or logos."
             )
