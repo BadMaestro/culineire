@@ -325,36 +325,23 @@
             <div class="recipe-footer">
                 <section class="detail-page__card detail-page__card--source">
                     <h2>Credits &amp; Source</h2>
-                    <div class="detail-page__source-list">
-                        <div class="detail-page__source-item">
-                            <span class="detail-page__source-label">Source type</span>
-                            <p class="detail-page__source-value">{{ recipe.get_source_type_display }}</p>
-                        </div>
-                        {% if recipe.source_title %}
-                        <div class="detail-page__source-item">
-                            <span class="detail-page__source-label">Title</span>
-                            <p class="detail-page__source-value">{{ recipe.source_title }}</p>
-                        </div>
-                        {% endif %}
-                        {% if recipe.source_author %}
-                        <div class="detail-page__source-item">
-                            <span class="detail-page__source-label">Author</span>
-                            <p class="detail-page__source-value">{{ recipe.source_author }}</p>
-                        </div>
-                        {% endif %}
-                        {% if recipe.source_note %}
-                        <div class="detail-page__source-item">
-                            <span class="detail-page__source-label">Note</span>
-                            <p class="detail-page__source-value">{{ recipe.source_note }}</p>
-                        </div>
-                        {% endif %}
-                        {% if recipe.source_url %}
-                        <div class="detail-page__source-item">
-                            <span class="detail-page__source-label">Link</span>
-                            <a class="detail-page__source-link" href="{{ recipe.source_url }}" rel="noopener noreferrer" target="_blank">View original source</a>
-                        </div>
-                        {% endif %}
+
+                    <div class="source-header">
+                        <span class="source-badge">{{ recipe.get_source_type_display }}</span>
+                        {% if recipe.source_author %}<span class="source-header__author">{{ recipe.source_author }}</span>{% endif %}
                     </div>
+
+                    {% if recipe.source_title %}
+                    <p class="source-title">{{ recipe.source_title }}</p>
+                    {% endif %}
+
+                    {% if recipe.source_note %}
+                    <blockquote class="source-note">{{ recipe.source_note }}</blockquote>
+                    {% endif %}
+
+                    {% if recipe.source_url %}
+                    <a class="detail-page__source-link" href="{{ recipe.source_url }}" rel="noopener noreferrer" target="_blank">View original source</a>
+                    {% endif %}
                 </section>
 
                 {% if allergen_items %}

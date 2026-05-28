@@ -21,11 +21,9 @@ logger = logging.getLogger("recipes")
 AI_SOURCE_TITLE = "Created specially for CulinEire"
 AI_SOURCE_AUTHOR = "CulinEire Creative Studio"
 AI_SOURCE_NOTE = (
-    "This recipe was commissioned by CulinEire and created specifically for the CulinEire website. "
-    "It is owned by CulinEire. Unauthorised copying, republication, or free reuse of this content is not permitted. "
-    "AI tools assisted the creation process; final responsibility rests with CulinEire Creative Studio. "
-    "If you would like to copy or print this recipe for personal use, the authors would appreciate a little support for the site: "
-    "please leave a rating, write a comment, or buy us a cup of coffee."
+    "An original CulinEire recipe, crafted with AI and reviewed by our editorial team. "
+    "Free to cook and enjoy at home. "
+    "If you liked it, a rating or a kind comment is the best way to say thanks."
 )
 
 
