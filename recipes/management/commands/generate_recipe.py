@@ -226,7 +226,6 @@ def _generate_image(title: str, short_description: str, alt_text: str = "") -> t
         "prompt": prompt,
         "n": 1,
         "size": "1024x1024",
-        "response_format": "url",
     }
     request = Request(
         "https://api.openai.com/v1/images/generations",
@@ -282,7 +281,6 @@ def _generate_step_photos(recipe: Recipe, method_text: str) -> list[RecipeImage]
             "prompt": prompt,
             "n": 1,
             "size": "1024x1024",
-            "response_format": "url",
         }
         api_key = getattr(settings, "OPENAI_API_KEY", "")
         request = Request(
