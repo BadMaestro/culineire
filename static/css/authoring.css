@@ -1328,3 +1328,28 @@ textarea.authoring-control {
 @keyframes regen-spin {
   to { transform: rotate(360deg); }
 }
+
+/* ── AI hero image panel (create form) ── */
+.authoring-ai-image-panel {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.authoring-ai-preview {
+  border-radius: 8px;
+  max-width: 320px;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border: 1px solid rgb(58 44 30 / 0.14);
+}
+
+.authoring-ai-status {
+  color: var(--ink-soft, #6b7c6e);
+  font-size: 0.82rem;
+  margin: 0;
+}

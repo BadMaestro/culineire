@@ -95,6 +95,15 @@
                         {{ form.hero_image }}
                         {% if form.hero_image.help_text %}<p class="authoring-help">{{ form.hero_image.help_text }}</p>{% endif %}
                         {% for error in form.hero_image.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                        {% if has_openai and form_mode != "edit" %}
+                        <div class="authoring-ai-image-panel" id="ai-hero-panel">
+                            <button class="authoring-step-regen" id="ai-hero-btn" type="button"
+                                    data-generate-url="{% url 'recipes:recipe_ai_generate_hero' %}">&#10024; Generate AI Image</button>
+                            <img alt="AI generated preview" class="authoring-step-thumb authoring-ai-preview" id="ai-hero-preview" hidden>
+                            <p class="authoring-help authoring-ai-status" id="ai-hero-status" aria-live="polite"></p>
+                            <input id="ai_hero_image_path" name="ai_hero_image_path" type="hidden" value="">
+                        </div>
+                        {% endif %}
                     </div>
                     <div class="authoring-field authoring-field--wide">
                         <label for="{{ form.hero_image_alt_text.id_for_label }}">{{ form.hero_image_alt_text.label }}:</label>
@@ -634,6 +643,59 @@
 
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' && modal.style.display !== 'none') closeModal();
+    });
+})();
+</script>
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+    var btn = document.getElementById('ai-hero-btn');
+    if (!btn) return;
+
+    var preview   = document.getElementById('ai-hero-preview');
+    var status    = document.getElementById('ai-hero-status');
+    var pathInput = document.getElementById('ai_hero_image_path');
+    var generateUrl = btn.dataset.generateUrl;
+
+    function getCsrf() {
+        var el = document.querySelector('[name=csrfmiddlewaretoken]');
+        return el ? el.value : '';
+    }
+
+    btn.addEventListener('click', function () {
+        var title   = (document.getElementById('id_title') || {}).value || '';
+        var altText = (document.getElementById('id_hero_image_alt_text') || {}).value || '';
+
+        if (!title.trim()) {
+            status.textContent = 'Please fill in the recipe title first.';
+            return;
+        }
+
+        btn.disabled = true;
+        status.textContent = 'Generating image, please wait...';
+        preview.hidden = true;
+
+        var body = new URLSearchParams({ title: title, alt_text: altText });
+        fetch(generateUrl, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCsrf(), 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body.toString()
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            btn.disabled = false;
+            if (data.success) {
+                preview.src = data.url + '?t=' + Date.now();
+                preview.hidden = false;
+                pathInput.value = data.temp_filename;
+                status.textContent = 'Image generated. You can generate again or upload your own file above.';
+            } else {
+                status.textContent = 'Error: ' + (data.error || 'Generation failed. Please try again.');
+            }
+        })
+        .catch(function () {
+            btn.disabled = false;
+            status.textContent = 'Network error. Please try again.';
+        });
     });
 })();
 </script>

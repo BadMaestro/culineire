@@ -1180,6 +1180,27 @@ class RecipeCreateView(AuthorRequiredMixin, CreateView):
             recipe.status = Recipe.Status.DRAFT
         else:
             recipe.status = Recipe.Status.PENDING
+
+        # If the author generated an AI hero image before saving, attach it now.
+        temp_filename = self.request.POST.get("ai_hero_image_path", "").strip()
+        if temp_filename and not self.request.FILES.get("hero_image"):
+            from django.core.files.storage import default_storage
+            if default_storage.exists(temp_filename):
+                from django.core.files.base import ContentFile
+                image_bytes = default_storage.open(temp_filename).read()
+                import os
+                ext = os.path.splitext(temp_filename)[1] or ".jpg"
+                final_name = f"recipe_images/cover-draft{ext}"
+                recipe.image_rights_status = Recipe.ImageRightsStatus.AI_GENERATED
+                openai_model = getattr(settings, "OPENAI_IMAGE_MODEL", "gpt-image-1")
+                recipe.image_rights_note = f"AI-generated image via {openai_model}."
+                recipe.hero_image.save(final_name, ContentFile(image_bytes), save=False)
+                # Clean up the temp file
+                try:
+                    default_storage.delete(temp_filename)
+                except Exception:
+                    pass
+
         recipe.save()
         getattr(form, "save_additional_categories")(recipe)
         _update_recipe_gallery_order(recipe, self.request.POST)
@@ -1212,6 +1233,7 @@ class RecipeCreateView(AuthorRequiredMixin, CreateView):
         context["gallery_step_rows"] = _gallery_step_rows()
         context["can_save_draft"] = True
         context["can_approve"] = is_moderator(self.request.user)
+        context["has_openai"] = bool(getattr(settings, "OPENAI_API_KEY", ""))
         return context
 
 
@@ -1915,6 +1937,63 @@ def recipe_regenerate_image(request, slug):
 
     except Exception as exc:
         logger.error("recipe_regenerate_image failed for %r: %s", recipe.slug, exc, exc_info=True)
+        return JsonResponse({"success": False, "error": str(exc)}, status=500)
+
+
+# ── AI hero image generation for new (unsaved) recipes ────────────────────────
+
+@require_POST
+@login_required
+def recipe_ai_generate_hero(request):
+    """Generate a hero image for a recipe that hasn't been saved yet.
+
+    Accepts: title, alt_text, feedback (all POST).
+    Returns JSON: {success, url, temp_filename}
+    The temp_filename is a path relative to MEDIA_ROOT that the create-view
+    picks up on form submit and assigns to recipe.hero_image.
+    """
+    import uuid
+    from django.core.files.base import ContentFile
+    from .management.commands.generate_recipe import fetch_image_bytes, _image_extension, _sanitise_image_subject
+
+    if not bool(getattr(settings, "OPENAI_API_KEY", "")):
+        return JsonResponse({"success": False, "error": "Image generation is not configured."}, status=503)
+
+    from .authoring import get_author_for_user
+    from accounts.views import is_moderator
+    if not (is_moderator(request.user) or get_author_for_user(request.user)):
+        return JsonResponse({"success": False, "error": "Author profile required."}, status=403)
+
+    title = request.POST.get("title", "").strip()
+    alt_text = request.POST.get("alt_text", "").strip()
+    feedback = request.POST.get("feedback", "").strip()
+
+    if not title:
+        return JsonResponse({"success": False, "error": "Recipe title is required."}, status=400)
+
+    try:
+        subject = _sanitise_image_subject(title, alt_text)
+        prompt = (
+            f"Professional food photography: {subject}. "
+            "Irish cuisine, natural light, rustic wooden surface, ceramic or white plate, "
+            "appetising close-up presentation. No text, no watermarks, no people, no brand names or logos."
+        )
+        if feedback:
+            prompt += f" Important: {feedback}."
+
+        image_bytes = fetch_image_bytes(prompt)
+        ext = _image_extension(image_bytes)
+        uid = uuid.uuid4().hex[:12]
+        filename = f"recipe_images/temp_hero_{uid}{ext}"
+
+        from django.core.files.storage import default_storage
+        saved_path = default_storage.save(filename, ContentFile(image_bytes))
+        url = default_storage.url(saved_path)
+
+        return JsonResponse({"success": True, "url": url, "temp_filename": saved_path})
+
+    except Exception as exc:
+        logger.error("recipe_ai_generate_hero failed: %s", exc, exc_info=True)
         return JsonResponse({"success": False, "error": str(exc)}, status=500)
 
 

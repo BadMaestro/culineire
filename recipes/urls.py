@@ -20,6 +20,7 @@ urlpatterns = [
     path("author/<slug:slug>/", views.author_detail, name="author_detail"),
     path("format/suggest/", views.recipe_format_suggest, name="recipe_format_suggest"),
     path("format/preview/", views.recipe_format_preview, name="recipe_format_preview"),
+    path("generate-hero-image/", views.recipe_ai_generate_hero, name="recipe_ai_generate_hero"),
     path("<slug:slug>/edit/", views.RecipeUpdateView.as_view(), name="recipe_edit"),
     path("<slug:slug>/delete/", views.RecipeDeleteView.as_view(), name="recipe_delete"),
     path("<slug:slug>/rate/", views.submit_recipe_rating, name="submit_recipe_rating"),
