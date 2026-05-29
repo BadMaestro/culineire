@@ -204,6 +204,27 @@
           cleanBtn.disabled = false;
         });
     }
+
+    // ── Auto-sanitize on form submit (create mode) ──────────────────────────
+    // In edit mode the moderator already applied AI-clean.
+    // In create mode the author may not have clicked Sanitize, so we run it
+    // silently on submit to strip em-dashes, trailing colons, etc.
+    if (panel.dataset.autoClean !== 'true') {
+      var form = panel.closest('form');
+      if (form) {
+        form.addEventListener('submit', function () {
+          var fields = ['short_description', 'ingredients', 'method', 'tips', 'irish_context', 'author_commentary'];
+          fields.forEach(function (key) {
+            var el = document.getElementById('id_' + key);
+            if (!el) return;
+            var after = sanitiseText(el.value);
+            if (after !== el.value) {
+              el.value = after;
+            }
+          });
+        });
+      }
+    }
   }
 
   if (document.readyState === 'loading') {
