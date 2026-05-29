@@ -159,6 +159,20 @@
 
         {# ── Category filtered view ── #}
 
+        {% if mood_categories %}
+        <section aria-label="Recipe mood categories" class="recipe-mood-panel">
+            <div class="recipe-mood-panel__chips">
+                {% for mood_category in mood_categories %}
+                {% if mood_category.is_active %}
+                <span class="recipe-mood-chip recipe-mood-chip--active">{{ mood_category.label }}</span>
+                {% else %}
+                <a class="recipe-mood-chip" href="{{ mood_category.url }}">{{ mood_category.label }}</a>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
         {% if categories %}
         <div class="category-nav-block" data-category-toggle>
             <div class="category-nav-wrap" data-category-wrap>

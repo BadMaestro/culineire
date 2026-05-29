@@ -612,9 +612,24 @@ def category_detail(request, category_slug):
     )
     recipes = Recipe.filter_for_category(recipes, category_value).order_by("-created_at")
 
+    mood_chip_values = {value for value, _ in RECIPE_MOOD_CHIPS}
+    category_nav = Recipe.get_category_navigation(selected_value=category_value)
+    category_nav_by_value = {c["value"]: c for c in category_nav}
+    mood_categories = [
+        {
+            "label": chip_label,
+            "url": category_nav_by_value[value]["url"],
+            "value": value,
+            "is_active": value == category_value,
+        }
+        for value, chip_label in RECIPE_MOOD_CHIPS
+        if value in category_nav_by_value
+    ] if category_value in mood_chip_values else []
+
     context = {
         "recipes": recipes,
-        "categories": Recipe.get_category_navigation(selected_value=category_value),
+        "categories": category_nav,
+        "mood_categories": mood_categories,
         "page_title": f"{category_label} | Recipes | CulinEire",
         "meta_description": (
             f"Browse {category_label.lower()} on CulinEire and discover recipes, ideas, "
