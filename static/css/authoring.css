@@ -40,6 +40,15 @@
   text-align: left;
 }
 
+.authoring-header--centered .authoring-header__copy {
+  justify-items: center;
+  text-align: center;
+}
+
+.authoring-header--centered .authoring-intro {
+  margin-inline: auto;
+}
+
 .authoring-header .eyebrow {
   text-align: inherit;
 }
