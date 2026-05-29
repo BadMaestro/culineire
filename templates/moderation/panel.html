@@ -714,20 +714,24 @@
             if (countdown <= 0) {
                 clearInterval(timerId);
                 wrapper.remove();
-                // navigator.sendBeacon() sends a POST with full cookie headers
-                // (including the session cookie) without navigating the page.
-                // This means other concurrent delete timers keep running normally.
-                var sent = (typeof navigator.sendBeacon === 'function') &&
-                           navigator.sendBeacon(form.action, new FormData(form));
-                if (sent) {
-                    // Beacon accepted by the browser — remove card optimistically.
-                    if (card) card.remove();
-                } else {
-                    // sendBeacon not available or quota exceeded — fall back to
-                    // a normal form submit (page will reload, but the deletion works).
+                if (typeof fetch !== 'function') {
                     form.style.display = '';
                     form.submit();
+                    return;
                 }
+
+                fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                }).then(function (response) {
+                    if (!response.ok) throw new Error('Delete request failed');
+                    if (card) card.remove();
+                }).catch(function () {
+                    form.style.display = '';
+                    alert('Delete failed. Please try again.');
+                });
             }
         }, 1000);
 
