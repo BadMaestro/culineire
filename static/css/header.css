@@ -55,8 +55,8 @@
 
 .ce-header__logo img {
   display: block;
-  width: 136px;
-  height: 136px;
+  width: 52px;
+  height: 52px;
   max-width: none;
   flex: 0 0 auto;
   aspect-ratio: 1;
@@ -65,7 +65,7 @@
 
 .ce-header__logo--full img {
   width: auto;
-  height: clamp(100px, 15vw, 190px);
+  height: clamp(44px, 5vw, 56px);
   aspect-ratio: unset;
 }
 
@@ -542,14 +542,14 @@
   }
 
   .ce-header__logo img {
-    width: 140px;
-    height: 140px;
+    width: 52px;
+    height: 52px;
     max-width: none;
   }
 
   .ce-header__logo--full img {
     width: auto;
-    height: clamp(100px, 15vw, 190px);
+    height: clamp(44px, 5vw, 56px);
   }
 
   .ce-nav__toggle {
@@ -705,8 +705,8 @@
 
 @media (max-width: 839px) {
   .ce-header__logo img {
-    width: 96px;
-    height: 96px;
+    width: 44px;
+    height: 44px;
     max-width: none;
   }
 
@@ -732,8 +732,8 @@
   }
 
   .ce-header__logo img {
-    width: 78px;
-    height: 78px;
+    width: 40px;
+    height: 40px;
     max-width: none;
   }
 
