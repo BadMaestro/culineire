@@ -1108,7 +1108,8 @@
     font-weight: 700;
   }
 
-  .ingredient-check__name::after {
+  /* Colon separator only when a detail span follows */
+  .ingredient-check__text:has(.ingredient-check__detail) .ingredient-check__name::after {
     content: ":";
   }
 
