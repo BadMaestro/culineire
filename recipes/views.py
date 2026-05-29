@@ -435,7 +435,7 @@ def home(request):
     latest_recipes = (
         Recipe.objects.select_related("author")
         .filter(status=Recipe.Status.APPROVED, is_deleted=False)
-        .order_by("-created_at")[:6]
+        .order_by("-created_at")[:10]
     )
 
     latest_articles = (
