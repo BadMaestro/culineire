@@ -675,7 +675,7 @@
 </script>
 <script nonce="{{ request.csp_nonce }}">
 (function () {
-    var UNDO_SECONDS = 30;
+    var UNDO_SECONDS = 5;
     var modal      = document.getElementById('delete-modal');
     var titleEl    = document.getElementById('delete-modal-title');
     var activeForm = null;
@@ -714,24 +714,8 @@
             if (countdown <= 0) {
                 clearInterval(timerId);
                 wrapper.remove();
-                if (typeof fetch !== 'function') {
-                    form.style.display = '';
-                    form.submit();
-                    return;
-                }
-
-                fetch(form.action, {
-                    method: 'POST',
-                    body: new FormData(form),
-                    credentials: 'same-origin',
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                }).then(function (response) {
-                    if (!response.ok) throw new Error('Delete request failed');
-                    if (card) card.remove();
-                }).catch(function () {
-                    form.style.display = '';
-                    alert('Delete failed. Please try again.');
-                });
+                form.style.display = '';
+                form.submit();
             }
         }, 1000);
 
