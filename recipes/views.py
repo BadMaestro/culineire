@@ -435,7 +435,7 @@ def home(request):
     latest_recipes = (
         Recipe.objects.select_related("author")
         .filter(status=Recipe.Status.APPROVED, is_deleted=False)
-        .order_by("-created_at")[:10]
+        .order_by("-created_at")[:20]
     )
 
     latest_articles = (
@@ -538,8 +538,8 @@ def recipe_list(request):
             }
         )
 
-    recent_recipes = list(recipes[:6]) if selected_author else None
-    default_recent_recipes = list(recipes[:6]) if not selected_author else None
+    recent_recipes = list(recipes[:20]) if selected_author else None
+    default_recent_recipes = list(recipes[:20]) if not selected_author else None
     all_recipes_grid = list(recipes[:50]) if not selected_author else None
 
     all_articles = None
