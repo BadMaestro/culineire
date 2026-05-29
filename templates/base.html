@@ -31,10 +31,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Libre+Bodoni:wght@400&family=Inter:wght@400;500;600&family=Dancing+Script:wght@600;700&display=swap"
           rel="stylesheet">
 
-    <link href="{% static 'images/favicon.ico' %}" rel="icon" sizes="any">
-    <link href="{% static 'images/favicon.png' %}" rel="icon" type="image/png">
-    <link href="{% static 'images/favicon-192.png' %}" rel="icon" type="image/png" sizes="192x192">
-    <link href="{% static 'images/apple-touch-icon.png' %}" rel="apple-touch-icon" sizes="180x180">
+    <link href="{% static 'images/logo2.png' %}" rel="icon" type="image/png">
+    <link href="{% static 'images/logo2.png' %}" rel="apple-touch-icon" sizes="180x180">
 
     <link href="{% static 'css/base.css' %}" rel="stylesheet">
     <link href="{% static 'css/header.css' %}" rel="stylesheet">
@@ -73,7 +71,7 @@
     {% with url_name=request.resolver_match.url_name namespace=request.resolver_match.namespace %}
     <div class="container ce-header__inner">
         <a aria-label="Go to homepage" class="ce-header__logo ce-header__logo--full" href="{% url 'home' %}">
-            <img alt="CulinEire" src="{% static 'images/logo.png' %}">
+            <img alt="CulinEire" src="{% static 'images/logo2.png' %}">
             <span class="ce-header__logo-copy">
                 <span class="ce-header__logo-text">CulinÉire</span>
                 <span class="ce-header__logo-slogan">Honouring Irish Culinary Heritage</span>
@@ -266,7 +264,7 @@
 
             <div class="footer-brand">
                 <a aria-label="CulinEire home" class="footer-brand__logo" href="{% url 'home' %}">
-                    <img alt="" src="{% static 'images/logo.png' %}">
+                    <img alt="" src="{% static 'images/logo2.png' %}">
                     <span class="footer-brand__logo-text">CulinÉire</span>
                 </a>
                 <p class="footer-brand__tagline">Honouring Irish Culinary Heritage</p>
@@ -316,7 +314,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v1.5.86</span>
+                <span class="footer-version">v1.5.87</span>
             </div>
         </div>
     </div>
