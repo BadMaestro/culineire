@@ -63,21 +63,13 @@ POPULAR_CATEGORY_PRIORITY = [
 ]
 
 RECIPE_MOOD_CHIPS = [
+    ("bread_and_baking", "Baking"),
+    ("soups_and_stews", "Soups and Stews"),
+    ("fish_and_seafood", "Seafood"),
+    ("vegetables", "Vegetables"),
     ("meat_and_poultry", "Meat"),
-    ("fish_and_seafood", "Fish"),
-    ("salads", "Salads"),
-    ("soups_and_stews", "Soups"),
-    ("pasta_and_noodles", "Pasta"),
-    ("breakfast_and_brunch", "Breakfast"),
-    ("lunch", "Lunch"),
-    ("dinner", "Dinner"),
-    ("grilling_and_barbecue", "Grilling"),
-    ("healthy_eating", "Healthy"),
-    ("vegetables", "Veggie"),
     ("desserts", "Desserts"),
     ("drinks", "Drinks"),
-    ("traditional_irish_dishes", "Irish Classics"),
-    ("modern_irish_cooking", "Modern Irish"),
 ]
 
 
