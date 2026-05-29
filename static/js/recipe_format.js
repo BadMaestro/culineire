@@ -158,6 +158,10 @@
       text = text.replace(/,\s*,+/g, ',');                            // consecutive commas
       text = text.replace(/,\s{2,}/g, ', ');                         // comma + extra spaces
       text = text.replace(/^[\s,]+|[\s,]+$/g, '');                   // leading/trailing
+      // Strip trailing colons from each line (AI often adds "ingredient:" headers)
+      text = text.split('\n').map(function(line) {
+        return line.replace(/\s*:\s*$/, '');
+      }).join('\n');
       return text;
     }
 

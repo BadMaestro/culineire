@@ -65,9 +65,12 @@ def _sanitise_generated_text(text: str) -> str:
 
 
 def _to_text_lines(value) -> str:
+    def _clean(s: str) -> str:
+        return s.strip().rstrip(":").strip()
+
     if isinstance(value, list):
-        return "\n".join(str(item).strip() for item in value if str(item).strip())
-    return str(value or "").strip()
+        return "\n".join(_clean(str(item)) for item in value if _clean(str(item)))
+    return _clean(str(value or ""))
 
 
 def _to_int(value, default=0, minimum=0, maximum=32767) -> int:
