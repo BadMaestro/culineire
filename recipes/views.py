@@ -1595,9 +1595,14 @@ def generate_recipe_view(request):
 
     if request.method == "POST":
         dish_name = request.POST.get("dish_name", "").strip()
-        author_slug = request.POST.get("author_slug", "crestedten").strip()
+        author_slug = request.POST.get("author_slug", "greenbear").strip()
         status = request.POST.get("status", Recipe.Status.PENDING)
         no_image = request.POST.get("no_image") == "1"
+        category = request.POST.get("category", "").strip()
+
+        valid_categories = {c.value for c in Recipe.Category}
+        if category not in valid_categories:
+            category = ""
 
         if not dish_name:
             messages.error(request, "Dish name is required.")
@@ -1639,7 +1644,7 @@ def generate_recipe_view(request):
             close_old_connections()
 
             try:
-                kwargs = {"author_slug": author_slug, "status": status, "no_image": no_image, "dry_run": False, "limit": 0, "batch": None, "task_id": task_id}
+                kwargs = {"author_slug": author_slug, "status": status, "no_image": no_image, "dry_run": False, "limit": 0, "batch": None, "task_id": task_id, "category": category}
                 call_command("generate_recipe", dish_name, **kwargs)
             except Exception as exc:
                 logger.error("generate_recipe background thread failed for %r: %s", dish_name, exc, exc_info=True)
@@ -1662,10 +1667,11 @@ def generate_recipe_view(request):
     authors = RecipeAuthor.objects.filter(user__isnull=False).order_by("name")
     return render(request, "moderation/generate_recipe.html", {
         "authors": authors,
-        "default_author_slug": "crestedten",
+        "default_author_slug": "greenbear",
+        "category_choices": Recipe.Category.choices,
         "status_choices": [
-            (Recipe.Status.PENDING, "Pending — goes to moderation queue"),
-            (Recipe.Status.DRAFT, "Draft — saved privately, not visible"),
+            (Recipe.Status.PENDING, "Pending, goes to moderation queue"),
+            (Recipe.Status.DRAFT, "Draft, saved privately, not visible"),
         ],
     })
 

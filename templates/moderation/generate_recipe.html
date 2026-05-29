@@ -15,11 +15,11 @@
     <div class="container authoring-shell">
         <a class="mon-back-link" href="{% url 'recipes:moderation_panel' %}">Back to Moderation Panel</a>
 
-        <div class="authoring-header">
+        <div class="authoring-header" style="text-align:center;">
             <div class="authoring-header__copy">
                 <span class="eyebrow">AI Generation</span>
                 <h1>Generate AI Recipe</h1>
-                <p class="authoring-intro">Configure parameters and start AI recipe generation. The recipe will appear in the pending queue when ready.</p>
+                <p class="authoring-intro" style="margin-inline:auto;">Configure parameters and start AI recipe generation. The recipe will appear in the pending queue when ready.</p>
             </div>
         </div>
 
@@ -77,6 +77,22 @@
             </fieldset>
 
             <fieldset class="authoring-section">
+                <legend class="authoring-section__legend">Category</legend>
+                <div class="authoring-grid">
+                    <div class="authoring-field authoring-field--wide">
+                        <label for="category">Primary category</label>
+                        <select class="authoring-control" id="category" name="category">
+                            <option value="">Let AI decide</option>
+                            {% for value, label in category_choices %}
+                            <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="authoring-help">Selecting a category overrides the AI choice. Leave blank to let the AI pick.</small>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="authoring-section">
                 <legend class="authoring-section__legend">Images</legend>
                 <div class="authoring-grid">
                     <div class="authoring-field authoring-field--wide">
@@ -94,7 +110,7 @@
             </fieldset>
 
             <fieldset class="authoring-section authoring-section--actions">
-                <div class="authoring-generate-row">
+                <div class="authoring-generate-row" style="justify-content:center;">
                     <button class="authoring-submit" id="generate-btn" type="submit">
                         <svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="16" style="margin-right:0.45rem"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
                         Generate AI Recipe

@@ -217,16 +217,17 @@ WRITING_RULES = (
 )
 
 
-def _prompt_for_recipe(dish_name: str) -> str:
+def _prompt_for_recipe(dish_name: str, hint_category: str = "") -> str:
     categories = ", ".join(choice.value for choice in Recipe.Category)
     allergen_pairs = ", ".join(f"{key} ({label})" for key, label in ALLERGEN_CHOICES)
+    category_hint = f' Use "{hint_category}" as the primary category.' if hint_category else ""
     return (
         f'Create an original CulinEire recipe draft for "{dish_name}". '
         "Return strict JSON only with these keys: "
         "title, short_description, category, additional_categories, difficulty, prep_time_minutes, "
         "cook_time_minutes, servings, calories, ingredients, method, tips, "
         "irish_context, author_commentary, allergens, hero_image_alt_text. "
-        f"category must be one of: {categories}. "
+        f"category must be one of: {categories}.{category_hint} "
         "additional_categories must be an array of other relevant category values from the same list "
         "(do not repeat the primary category, include 2-4 that genuinely apply). "
         "difficulty must be one of: easy, medium, hard. "
@@ -578,14 +579,14 @@ def _generate_step_photos(recipe: Recipe, method_text: str) -> list[RecipeImage]
     return created
 
 
-def _call_anthropic(dish_name: str) -> dict:
+def _call_anthropic(dish_name: str, hint_category: str = "") -> dict:
     api_key = getattr(settings, "ANTHROPIC_API_KEY", "")
     if not api_key:
         raise CommandError("ANTHROPIC_API_KEY is not configured.")
     payload = {
         "model": getattr(settings, "ANTHROPIC_MODEL", "claude-sonnet-4-6"),
         "max_tokens": 4000,
-        "messages": [{"role": "user", "content": _prompt_for_recipe(dish_name)}],
+        "messages": [{"role": "user", "content": _prompt_for_recipe(dish_name, hint_category=hint_category)}],
     }
     last_exc: Exception | None = None
     for attempt in range(1, 4):  # up to 3 attempts
@@ -653,6 +654,7 @@ class Command(BaseCommand):
         parser.add_argument("--dry-run", action="store_true", help="Call the generator and print normalized data without saving.")
         parser.add_argument("--no-image", action="store_true", help="Skip image generation even if OPENAI_API_KEY is set.")
         parser.add_argument("--task-id", default="", help="Optional RecipeGenerationTask UUID to update on success.")
+        parser.add_argument("--category", default="", help="Override/hint the primary category for the generated recipe.")
 
     def handle(self, *args, **options):
         dish_names = self._dish_names(options)
@@ -675,10 +677,17 @@ class Command(BaseCommand):
         except RecipeAuthor.DoesNotExist as exc:
             raise CommandError(f'RecipeAuthor with slug "{options["author_slug"]}" not found.') from exc
 
+        hint_category = options.get("category", "").strip()
+        valid_categories = {choice.value for choice in Recipe.Category}
+        if hint_category and hint_category not in valid_categories:
+            hint_category = ""
+
         for dish_name in dish_names:
             try:
-                payload = _call_anthropic(dish_name)
+                payload = _call_anthropic(dish_name, hint_category=hint_category)
                 fields = _normalise_recipe_payload(payload, dish_name, options["status"])
+                if hint_category:
+                    fields["category"] = hint_category
                 fields.update(suggest_recipe_fields(fields))
                 additional_categories = _map_additional_categories(
                     payload.get("additional_categories"), fields["category"]
