@@ -55,8 +55,8 @@
 
 .ce-header__logo img {
   display: block;
-  width: 72px;
-  height: 72px;
+  width: 80px;
+  height: 80px;
   max-width: none;
   flex: 0 0 auto;
   aspect-ratio: 1;
@@ -65,7 +65,7 @@
 
 .ce-header__logo--full img {
   width: auto;
-  height: clamp(60px, 7vw, 80px);
+  height: clamp(68px, 8vw, 88px);
   aspect-ratio: unset;
 }
 
@@ -542,14 +542,14 @@
   }
 
   .ce-header__logo img {
-    width: 72px;
-    height: 72px;
+    width: 80px;
+    height: 80px;
     max-width: none;
   }
 
   .ce-header__logo--full img {
     width: auto;
-    height: clamp(60px, 7vw, 80px);
+    height: clamp(68px, 8vw, 88px);
   }
 
   .ce-nav__toggle {
