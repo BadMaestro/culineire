@@ -164,6 +164,13 @@ def cell_enquire(request, cell_id):
 # AJAX: admin moderation (POST)
 # ---------------------------------------------------------------------------
 
+def _normalize_url(url):
+    """Ensure URL has a protocol prefix."""
+    if url and not url.lower().startswith(("http://", "https://")):
+        return "https://" + url
+    return url
+
+
 @require_POST
 def cell_moderate(request, cell_id):
     if not request.user.is_staff:
@@ -172,20 +179,34 @@ def cell_moderate(request, cell_id):
     cell = get_object_or_404(SponsorCell, pk=cell_id)
     action = request.POST.get("action", "")
 
+    # approve: publish the cell as sold
     if action == "approve":
         if cell.logo_pending:
-            # Promote pending logo to live
             cell.sponsor_logo = cell.logo_pending
             cell.logo_pending = None
-        if cell.enquiry_name and not cell.sponsor_name:
-            cell.sponsor_name = cell.enquiry_name
-        if cell.enquiry_website and not cell.sponsor_url:
-            cell.sponsor_url = cell.enquiry_website
+        # Admin-supplied name takes priority; fall back to company, then personal name
+        sponsor_name = request.POST.get("sponsor_name", "").strip()
+        cell.sponsor_name = sponsor_name or cell.enquiry_company or cell.enquiry_name
+        # Admin-supplied URL takes priority; fall back to enquiry website
+        sponsor_url = _normalize_url(request.POST.get("sponsor_url", "").strip())
+        cell.sponsor_url = sponsor_url or _normalize_url(cell.enquiry_website)
         cell.status = SponsorCell.Status.SOLD
         cell.purchased_at = timezone.now()
         cell.save()
         return JsonResponse({"ok": True, "status": "sold"})
 
+    # edit: update sponsor info on an already-sold cell without changing status
+    if action == "edit":
+        sponsor_name = request.POST.get("sponsor_name", "").strip()
+        if sponsor_name:
+            cell.sponsor_name = sponsor_name
+        sponsor_url = _normalize_url(request.POST.get("sponsor_url", "").strip())
+        if sponsor_url:
+            cell.sponsor_url = sponsor_url
+        cell.save()
+        return JsonResponse({"ok": True, "status": cell.status})
+
+    # reject: clear enquiry and reset to available
     if action == "reject":
         if cell.logo_pending:
             cell.logo_pending.delete(save=False)
@@ -200,4 +221,4 @@ def cell_moderate(request, cell_id):
         cell.save()
         return JsonResponse({"ok": True, "status": "available"})
 
-    return JsonResponse({"error": "Invalid action. Use approve or reject."}, status=400)
+    return JsonResponse({"error": "Invalid action."}, status=400)

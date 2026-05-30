@@ -129,7 +129,9 @@
       html += '<p class="spm-sponsor-tagline">' + esc(cell.sponsor_tagline) + '</p>';
     }
     if (cell.sponsor_url) {
-      html += '<a href="' + esc(cell.sponsor_url) + '" target="_blank" rel="noopener noreferrer" class="spm-visit-btn">Visit website &rarr;</a>';
+      var url = cell.sponsor_url;
+      if (!/^https?:\/\//i.test(url)) { url = 'https://' + url; }
+      html += '<a href="' + esc(url) + '" target="_blank" rel="noopener noreferrer" class="spm-visit-btn">Visit website &rarr;</a>';
     }
     html += '</div>';
     return html;
@@ -496,43 +498,78 @@
     var html = '<div class="spm-admin">';
     html += '<div class="spm-admin-title">Admin moderation</div>';
 
-    if (data.enquiry_submitted_at) {
-      html += '<div class="spm-admin-enquiry">';
-      html += row('From',      esc(data.enquiry_name) + ' &lt;' + esc(data.enquiry_email) + '&gt;');
-      if (data.enquiry_company) { html += row('Company', esc(data.enquiry_company)); }
-      if (data.enquiry_website) {
-        html += '<div class="spm-admin-row"><span class="spm-admin-lbl">Website</span>' +
-          '<a href="' + esc(data.enquiry_website) + '" target="_blank">' + esc(data.enquiry_website) + '</a></div>';
-      }
-      if (data.enquiry_message) { html += row('Message', esc(data.enquiry_message)); }
-      html += row('Submitted', fmtDate(data.enquiry_submitted_at));
+    if (data.status === 'sold') {
+      /* --- Edit mode for already-sold cells --- */
+      html += '<div class="spm-admin-edit">';
+      html += '<div class="spm-field" style="margin:0 0 0.5rem">';
+      html += '<label class="spm-admin-lbl">Display name</label>';
+      html += '<input type="text" id="spm-admin-display-name" class="spm-input" value="' + esc(data.sponsor_name || '') + '" style="margin-top:0.25rem;font-size:0.82rem">';
       html += '</div>';
-    } else {
-      html += '<p class="spm-admin-empty">No enquiry submitted yet.</p>';
-    }
-
-    if (data.logo_pending) {
-      html += '<div class="spm-admin-pending-logo">';
-      html += '<span class="spm-admin-lbl">Pending logo</span>';
-      html += '<img src="' + esc(data.logo_pending) + '" alt="Pending logo" class="spm-admin-logo-img">';
+      html += '<div class="spm-field" style="margin:0 0 0.5rem">';
+      html += '<label class="spm-admin-lbl">Website URL</label>';
+      html += '<input type="text" id="spm-admin-sponsor-url" class="spm-input" value="' + esc(data.sponsor_url || '') + '" style="margin-top:0.25rem;font-size:0.82rem" placeholder="https://">';
       html += '</div>';
-    }
-
-    if (data.status === 'reserved' || data.logo_pending) {
+      html += '</div>';
       html += '<div class="spm-admin-btns">';
-      html += '<button class="spm-admin-approve" data-id="' + data.id + '">Approve &amp; publish</button>';
-      html += '<button class="spm-admin-reject"  data-id="' + data.id + '">Reject &amp; reset</button>';
+      html += '<button class="spm-admin-approve" data-action="edit" data-id="' + data.id + '">Save changes</button>';
+      html += '<button class="spm-admin-reject"  data-action="reject" data-id="' + data.id + '">Reset to available</button>';
       html += '</div>';
+
+    } else {
+      /* --- Enquiry details for reserved cells --- */
+      if (data.enquiry_submitted_at) {
+        html += '<div class="spm-admin-enquiry">';
+        html += row('From', esc(data.enquiry_name) + ' &lt;' + esc(data.enquiry_email) + '&gt;');
+        if (data.enquiry_company) { html += row('Company', esc(data.enquiry_company)); }
+        if (data.enquiry_website) {
+          var wUrl = data.enquiry_website;
+          if (!/^https?:\/\//i.test(wUrl)) { wUrl = 'https://' + wUrl; }
+          html += '<div class="spm-admin-row"><span class="spm-admin-lbl">Website</span><a href="' + esc(wUrl) + '" target="_blank">' + esc(data.enquiry_website) + '</a></div>';
+        }
+        if (data.enquiry_message) { html += row('Message', esc(data.enquiry_message)); }
+        html += row('Submitted', fmtDate(data.enquiry_submitted_at));
+        html += '</div>';
+      } else {
+        html += '<p class="spm-admin-empty">No enquiry submitted yet.</p>';
+      }
+
+      if (data.logo_pending) {
+        html += '<div class="spm-admin-pending-logo">';
+        html += '<span class="spm-admin-lbl">Pending logo</span>';
+        html += '<img src="' + esc(data.logo_pending) + '" alt="Pending logo" class="spm-admin-logo-img">';
+        html += '</div>';
+      }
+
+      /* Editable name + URL before approving */
+      if (data.status === 'reserved' || data.logo_pending) {
+        var defName = data.enquiry_company || data.enquiry_name || '';
+        var defUrl  = data.enquiry_website || '';
+        html += '<div class="spm-admin-edit">';
+        html += '<div class="spm-field" style="margin:0.5rem 0 0.4rem">';
+        html += '<label class="spm-admin-lbl">Display name on puzzle</label>';
+        html += '<input type="text" id="spm-admin-display-name" class="spm-input" value="' + esc(defName) + '" style="margin-top:0.25rem;font-size:0.82rem">';
+        html += '</div>';
+        html += '<div class="spm-field" style="margin:0 0 0.5rem">';
+        html += '<label class="spm-admin-lbl">Sponsor URL</label>';
+        html += '<input type="text" id="spm-admin-sponsor-url" class="spm-input" value="' + esc(defUrl) + '" style="margin-top:0.25rem;font-size:0.82rem" placeholder="https://">';
+        html += '</div>';
+        html += '</div>';
+        html += '<div class="spm-admin-btns">';
+        html += '<button class="spm-admin-approve" data-action="approve" data-id="' + data.id + '">Approve &amp; publish</button>';
+        html += '<button class="spm-admin-reject"  data-action="reject"  data-id="' + data.id + '">Reject &amp; reset</button>';
+        html += '</div>';
+      }
     }
 
     html += '</div>';
     panel.innerHTML = html;
     panel.hidden    = false;
 
-    var appBtn = panel.querySelector('.spm-admin-approve');
-    var rejBtn = panel.querySelector('.spm-admin-reject');
-    if (appBtn) { appBtn.addEventListener('click', function () { moderateCell(data.id, 'approve'); }); }
-    if (rejBtn) { rejBtn.addEventListener('click', function () { moderateCell(data.id, 'reject');  }); }
+    panel.querySelectorAll('.spm-admin-approve, .spm-admin-reject').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        moderateCell(data.id, this.getAttribute('data-action'));
+      });
+    });
   }
 
   function row(label, value) {
@@ -542,6 +579,11 @@
   function moderateCell(cellId, action) {
     var fd = new FormData();
     fd.append('action', action);
+
+    var nameEl = document.getElementById('spm-admin-display-name');
+    if (nameEl && nameEl.value.trim()) { fd.append('sponsor_name', nameEl.value.trim()); }
+    var urlEl = document.getElementById('spm-admin-sponsor-url');
+    if (urlEl && urlEl.value.trim()) { fd.append('sponsor_url', urlEl.value.trim()); }
 
     fetch('/sponsors/cell/' + cellId + '/moderate/', {
       method:  'POST',
@@ -553,11 +595,11 @@
       if (data.ok) {
         var panel = document.getElementById('spm-admin-panel');
         if (panel) {
-          var msg = action === 'approve' ? 'Approved and published.' : 'Rejected — spot reset to available.';
-          panel.innerHTML = '<div class="spm-admin"><p class="spm-admin-done">' + msg + '</p></div>';
+          var msgs = { approve: 'Approved and published.', reject: 'Rejected — spot reset to available.', edit: 'Sponsor info updated.' };
+          panel.innerHTML = '<div class="spm-admin"><p class="spm-admin-done">' + (msgs[action] || 'Done.') + '</p></div>';
         }
-        // Reload to refresh puzzle state
-        setTimeout(function () { location.reload(); }, 1400);
+        // Reload to refresh puzzle state (edit just closes quietly)
+        setTimeout(function () { location.reload(); }, action === 'edit' ? 1000 : 1400);
       }
     })
     .catch(function () {
