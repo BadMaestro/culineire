@@ -1,5 +1,7 @@
 import json
 
+from django.conf import settings
+from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
@@ -108,6 +110,53 @@ def cell_enquire(request, cell_id):
             cell.logo_scale = 1.0
 
     cell.save()
+
+    # ---- Email notifications ----
+    ring_label = "Central Founding Partner" if cell.ring == 0 else f"Ring {cell.ring}"
+    subject = f"New Sponsor Enquiry — {ring_label} (Cell #{cell.cell_number})"
+
+    body = (
+        f"New sponsor enquiry received on CulinEire.\n\n"
+        f"Ring: {ring_label}\n"
+        f"Cell: #{cell.cell_number}\n"
+        f"Price: {cell.price_display}\n\n"
+        f"Name:    {name}\n"
+        f"Email:   {email}\n"
+        f"Company: {company or 'not provided'}\n"
+        f"Website: {website or 'not provided'}\n\n"
+        f"Message:\n{message or '(none)'}\n\n"
+        f"{'Logo uploaded — review pending.' if 'logo' in request.FILES else 'No logo uploaded.'}\n\n"
+        f"Review in admin:\nhttps://culineire.ie/cave19850324/sponsors/sponsorcell/{cell.pk}/change/\n"
+    )
+
+    # Notify Bearcave admin
+    send_mail(
+        subject=subject,
+        message=body,
+        from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@culineire.ie"),
+        recipient_list=["culineire@bearcave.ie"],
+        fail_silently=True,
+    )
+
+    # Confirmation to the enquirer
+    confirmation = (
+        f"Hi {name},\n\n"
+        f"Thank you for your interest in sponsoring CulinEire!\n\n"
+        f"We have received your enquiry for the {ring_label} spot "
+        f"(Cell #{cell.cell_number}, {cell.price_display}).\n\n"
+        f"Bearcave Ltd. will contact you at {email} within 24 hours "
+        f"to arrange the annual contract.\n\n"
+        f"Best regards,\nThe CulinEire Team\nculineire@bearcave.ie\n"
+    )
+
+    send_mail(
+        subject=f"Your CulinEire Sponsor Enquiry — {ring_label}",
+        message=confirmation,
+        from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@culineire.ie"),
+        recipient_list=[email],
+        fail_silently=True,
+    )
+
     return JsonResponse({"ok": True, "status": cell.status})
 
 

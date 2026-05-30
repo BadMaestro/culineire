@@ -452,9 +452,11 @@
       if (res.ok && res.data.ok) {
         if (form) { form.hidden = true; }
         if (sucEl) {
-          sucEl.innerHTML = '<strong>Enquiry submitted!</strong> Bearcave Ltd. will be in touch within 24 hours to arrange your annual contract.';
+          sucEl.innerHTML = '<strong>Enquiry submitted!</strong> Bearcave Ltd. will be in touch within 24 hours to arrange your annual contract. A confirmation has been sent to your email.';
           sucEl.hidden = false;
         }
+        // Reload page so puzzle colour updates to Reserved
+        setTimeout(function () { location.reload(); }, 2800);
       } else {
         showErr(errEl, res.data.error || 'Something went wrong. Please try again.');
         if (btn) { btn.disabled = false; btn.textContent = 'Reserve this spot'; }
