@@ -167,6 +167,8 @@ MONITORING_EXCLUDED_PATH_PREFIXES = [
     "/presence/",
 ]
 
+AMUSE_BOUCHE_PUBLIC = env_bool("AMUSE_BOUCHE_PUBLIC", default=False)
+
 ROOT_URLCONF = "config.urls"
 
 template_context_processors = [

@@ -49,11 +49,13 @@
                 <span class="author-profile-links__label">Articles</span>
                 <svg aria-hidden="true" class="author-profile-links__arrow" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
             </a>
+            {% if show_amuse_bouche_profile_links %}
             <a class="author-profile-links__card" href="{% url 'amuse_bouche:feed' %}?author={{ author.slug }}">
                 <span class="author-profile-links__count">{{ amuse_bouche_count }}</span>
                 <span class="author-profile-links__label">Amuse-Bouche</span>
                 <svg aria-hidden="true" class="author-profile-links__arrow" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
             </a>
+            {% endif %}
         </div>
 
         {% if private_dashboard or dashboard_recipes or dashboard_articles or dashboard_amuse_bouche %}

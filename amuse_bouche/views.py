@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count, F, Prefetch, Q
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
@@ -15,6 +16,12 @@ from monitoring.tracker import track_event
 from recipes.authoring import AuthorRequiredMixin, user_can_manage_author
 from .forms import AmuseBoucheAuthoringForm
 from .models import AmuseBouche, AmuseBoucheGalleryImage
+from .visibility import can_view_amuse_bouche_public_area
+
+
+def _require_public_area_access(request):
+    if not can_view_amuse_bouche_public_area(request.user):
+        raise Http404
 
 
 def _public_queryset():
@@ -55,6 +62,7 @@ def _user_state(queryset, user):
 
 
 def feed(request):
+    _require_public_area_access(request)
     content_type = request.GET.get("type", "")
     author = request.GET.get("author", "")
     queryset = _public_queryset()
@@ -73,6 +81,7 @@ def feed(request):
 
 
 def detail(request, slug):
+    _require_public_area_access(request)
     item = get_object_or_404(_public_queryset(), slug=slug)
     AmuseBouche.objects.filter(pk=item.pk).update(view_count=F("view_count") + 1)
     items, liked_ids, saved_ids = _user_state([item], request.user)
@@ -88,6 +97,10 @@ class AmuseBoucheCreateView(AuthorRequiredMixin, CreateView):
     form_class = AmuseBoucheAuthoringForm
     template_name = "amuse_bouche/form.html"
     success_url = reverse_lazy("amuse_bouche:feed")
+
+    def dispatch(self, request, *args, **kwargs):
+        _require_public_area_access(request)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -108,6 +121,10 @@ class AmuseBoucheUpdateView(AuthorRequiredMixin, UpdateView):
     model = AmuseBouche
     form_class = AmuseBoucheAuthoringForm
     template_name = "amuse_bouche/form.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        _require_public_area_access(request)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         return AmuseBouche.objects.filter(author=self.author)
@@ -143,6 +160,7 @@ def _safe_next(request, fallback):
 @login_required
 @ratelimit(key="user", rate="90/h", method="POST", block=False)
 def toggle_like(request, slug):
+    _require_public_area_access(request)
     item = get_object_or_404(AmuseBouche, slug=slug, status=AmuseBouche.Status.APPROVED)
     if getattr(request, "limited", False):
         messages.error(request, "Too many requests. Please try again later.")
@@ -167,6 +185,7 @@ def toggle_like(request, slug):
 @login_required
 @ratelimit(key="user", rate="90/h", method="POST", block=False)
 def toggle_save(request, slug):
+    _require_public_area_access(request)
     item = get_object_or_404(AmuseBouche, slug=slug, status=AmuseBouche.Status.APPROVED)
     if getattr(request, "limited", False):
         messages.error(request, "Too many requests. Please try again later.")

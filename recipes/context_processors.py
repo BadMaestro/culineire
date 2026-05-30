@@ -73,6 +73,11 @@ def header_author(request):
     profile_url = author.get_absolute_url() if author else ""
 
     is_moderator = _is_moderator(user)
+    try:
+        from amuse_bouche.visibility import can_view_amuse_bouche_public_area
+        can_view_amuse_bouche = can_view_amuse_bouche_public_area(user)
+    except Exception:
+        can_view_amuse_bouche = False
 
     unread_count = _unread_message_count(user)
 
@@ -94,14 +99,6 @@ def header_author(request):
             "secondary_url": _reverse_or_empty("articles:article_create") if author else "",
         },
         {
-            "label": "My Amuse-Bouche",
-            "url": _with_query(_reverse_or_empty("amuse_bouche:feed"), author=author.slug)
-            if author
-            else "",
-            "secondary_label": "(+ New)",
-            "secondary_url": _reverse_or_empty("amuse_bouche:create") if author else "",
-        },
-        {
             "label": "My Collection",
             "url": _reverse_or_empty("collection:my_collection"),
         },
@@ -116,6 +113,16 @@ def header_author(request):
         },
     ]
 
+    if can_view_amuse_bouche:
+        actions.insert(2, {
+            "label": "My Amuse-Bouche",
+            "url": _with_query(_reverse_or_empty("amuse_bouche:feed"), author=author.slug)
+            if author
+            else "",
+            "secondary_label": "(+ New)",
+            "secondary_url": _reverse_or_empty("amuse_bouche:create") if author else "",
+        })
+
     if is_moderator:
         pending_count = _pending_moderation_count()
         actions.insert(0, {
@@ -128,4 +135,5 @@ def header_author(request):
         "header_author": author,
         "header_author_name": display_name,
         "header_author_actions": actions,
+        "can_view_amuse_bouche_public_area": can_view_amuse_bouche,
     }

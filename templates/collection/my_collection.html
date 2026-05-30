@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}My Collection | CulinEire{% endblock %}
-{% block meta_description %}Your saved recipes, articles and Amuse-Bouche posts on CulinEire.{% endblock %}
+{% block meta_description %}Your saved recipes and articles on CulinEire.{% endblock %}
 {% block extra_head %}
 <meta name="robots" content="noindex, nofollow">
 <link href="{% static 'css/collection.css' %}" rel="stylesheet">
@@ -18,7 +18,7 @@
         <div class="hero-copy">
             <span class="pill">Personal</span>
             <h1 class="hero-title">My Collection</h1>
-            <p class="hero-subtitle">Your saved recipes, articles and Amuse-Bouche posts in one place.</p>
+            <p class="hero-subtitle">Your saved recipes and articles in one place.</p>
             <div class="hero__actions">
                 <a class="btn-primary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
                 <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
@@ -40,11 +40,13 @@
                 Articles
                 <span class="collection-tab__count">{{ saved_articles|length }}</span>
             </a>
+            {% if show_amuse_bouche %}
             <a class="collection-tab{% if active_tab == 'amuse-bouche' %} collection-tab--active{% endif %}"
                href="?tab=amuse-bouche"{% if active_tab == 'amuse-bouche' %} aria-current="page"{% endif %}>
                 Amuse-Bouche
                 <span class="collection-tab__count">{{ saved_amuse_bouche|length }}</span>
             </a>
+            {% endif %}
         </nav>
 
         {% if active_tab == 'recipes' %}

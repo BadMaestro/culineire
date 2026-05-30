@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from collection.models import ContentReaction, SavedContent
@@ -21,18 +21,36 @@ class AmuseBouchePublicTests(TestCase):
             status=status,
         )
 
-    def test_feed_shows_only_approved_items(self):
+    def test_feed_is_hidden_until_public_launch(self):
+        self.create_item("Approved Bite", AmuseBouche.Status.APPROVED)
+        response = self.client.get(reverse("amuse_bouche:feed"))
+        self.assertEqual(response.status_code, 404)
+
+    def test_staff_can_preview_feed_before_public_launch(self):
+        self.user.is_staff = True
+        self.user.save(update_fields=["is_staff"])
+        approved = self.create_item("Approved Bite", AmuseBouche.Status.APPROVED)
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("amuse_bouche:feed"))
+
+        self.assertContains(response, approved.title)
+
+    @override_settings(AMUSE_BOUCHE_PUBLIC=True)
+    def test_feed_shows_only_approved_items_when_public(self):
         approved = self.create_item("Approved Bite", AmuseBouche.Status.APPROVED)
         self.create_item("Pending Bite", AmuseBouche.Status.PENDING)
         response = self.client.get(reverse("amuse_bouche:feed"))
         self.assertContains(response, approved.title)
         self.assertNotContains(response, "Pending Bite")
 
+    @override_settings(AMUSE_BOUCHE_PUBLIC=True)
     def test_detail_hides_unapproved_item(self):
         pending = self.create_item("Pending Bite", AmuseBouche.Status.PENDING)
         response = self.client.get(reverse("amuse_bouche:detail", kwargs={"slug": pending.slug}))
         self.assertEqual(response.status_code, 404)
 
+    @override_settings(AMUSE_BOUCHE_PUBLIC=True)
     def test_authenticated_user_can_like_and_save(self):
         item = self.create_item("Approved Bite", AmuseBouche.Status.APPROVED)
         self.client.force_login(self.user)

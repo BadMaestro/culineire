@@ -627,12 +627,18 @@ def home(request):
         .order_by("-published")[:6]
     )
     try:
+        from amuse_bouche.visibility import can_view_amuse_bouche_public_area
+        can_show_amuse_bouche = can_view_amuse_bouche_public_area(request.user)
+    except Exception:
+        can_show_amuse_bouche = False
+
+    try:
         from amuse_bouche.models import AmuseBouche as _AmuseBouche
         latest_amuse_bouche = (
             _AmuseBouche.objects.select_related("author", "linked_recipe", "linked_article")
             .filter(status=_AmuseBouche.Status.APPROVED)
             .order_by("-is_featured", "-published_at", "-created_at")[:6]
-        )
+        ) if can_show_amuse_bouche else []
     except Exception:
         latest_amuse_bouche = []
 
@@ -1287,17 +1293,24 @@ def author_detail(request, slug):
 
     recipe_count = recipes_for_count.count()
     article_count = articles_for_count.count()
+    private_dashboard = can_manage or moderator
+    try:
+        from amuse_bouche.visibility import can_view_amuse_bouche_public_area
+        can_show_amuse_bouche = can_view_amuse_bouche_public_area(request.user)
+    except Exception:
+        can_show_amuse_bouche = False
+
     amuse_bouche_count = 0
     try:
         from amuse_bouche.models import AmuseBouche as _AmuseBouche
         ab_qs = _AmuseBouche.objects.filter(author=author)
-        if not (can_manage or moderator):
+        if not private_dashboard:
             ab_qs = ab_qs.filter(status=_AmuseBouche.Status.APPROVED)
-        amuse_bouche_count = ab_qs.count()
+        if can_show_amuse_bouche:
+            amuse_bouche_count = ab_qs.count()
     except Exception:
         pass
 
-    private_dashboard = can_manage or moderator
     _VALID_STATUS_FILTERS = {
         "draft": Recipe.Status.DRAFT,
         "pending": Recipe.Status.PENDING,
@@ -1331,7 +1344,7 @@ def author_detail(request, slug):
                 ab_qs2 = ab_qs2.filter(status=status_value)
         else:
             ab_qs2 = ab_qs2.filter(status=_AmuseBouche.Status.APPROVED)
-        dashboard_amuse_bouche = list(ab_qs2)
+        dashboard_amuse_bouche = list(ab_qs2) if can_show_amuse_bouche else []
     except Exception:
         pass
 
@@ -1340,6 +1353,7 @@ def author_detail(request, slug):
         "recipe_count": recipe_count,
         "article_count": article_count,
         "amuse_bouche_count": amuse_bouche_count,
+        "show_amuse_bouche_profile_links": can_show_amuse_bouche,
         "is_god_author": author.slug == settings.OWNER_SLUG,
         "can_manage_author_profile": can_manage,
         "is_moderator_viewer": moderator,
