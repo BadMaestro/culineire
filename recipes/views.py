@@ -1434,7 +1434,7 @@ class RecipeCreateView(AuthorRequiredMixin, CreateView):
         _author = self.author
         _can_ai = bool(getattr(settings, "OPENAI_API_KEY", "")) and (
             is_moderator(self.request.user)
-            or (_author and _author.slug == settings.OWNER_SLUG)
+            or (_author and _author.can_generate_ai_images)
         )
         context["has_openai"] = _can_ai
         return context
@@ -2174,7 +2174,7 @@ def recipe_ai_generate_hero(request):
         return JsonResponse({"success": False, "error": "Image generation is not configured."}, status=503)
 
     author = getattr(request.user, "recipe_author_profile", None)
-    if not (is_moderator(request.user) or (author and author.slug == settings.OWNER_SLUG)):
+    if not (is_moderator(request.user) or (author and author.can_generate_ai_images)):
         return JsonResponse({"success": False, "error": "Not authorized."}, status=403)
 
     title = request.POST.get("title", "").strip()

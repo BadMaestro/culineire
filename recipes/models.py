@@ -125,6 +125,11 @@ class RecipeAuthor(models.Model):
         default=False,
         help_text="Allows this author to use CulinEire moderation tools without Django admin access.",
     )
+    can_generate_ai_images = models.BooleanField(
+        "Can generate AI images",
+        default=False,
+        help_text="Grants access to AI image generation in the recipe creation form (paid feature).",
+    )
 
     class Meta:
         verbose_name = "Recipe author"
