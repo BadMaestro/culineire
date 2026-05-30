@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Sponsors — CulinEire{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/sponsors.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="sponsors-page">
+
+  <!-- Header -->
+  <div class="sponsors-header">
+    <h1 class="sponsors-title">Support CulinEire</h1>
+    <p class="sponsors-subtitle">
+      Be part of Ireland's first competitive culinary platform.
+      Secure your spot in the founding sponsor puzzle.
+      Every placement is a annual contract arranged with <strong>Bearcave</strong>.
+    </p>
+    <div class="sponsors-contract-note">
+      <span class="contract-badge">Annual contract</span>
+      <span class="contract-sep">&bull;</span>
+      <span>Managed by <strong>Bearcave</strong></span>
+      <span class="contract-sep">&bull;</span>
+      <span>Your logo, your link, your visibility</span>
+    </div>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="sponsors-progress-wrap">
+    <div class="sponsors-progress-labels">
+      <span><strong>{{ sold }}</strong> sold</span>
+      <span class="sponsors-progress-mid">{{ available }} available &bull; {{ reserved }} reserved</span>
+      <span><strong>{{ sellable_total }}</strong> total</span>
+    </div>
+    <div class="sponsors-progress-bar">
+      <div class="sponsors-progress-fill" style="width: {{ percent_sold }}%"></div>
+    </div>
+    <p class="sponsors-progress-note">
+      {{ percent_sold }}% of the puzzle is complete. Once all 100 spots are taken, the puzzle is closed forever.
+    </p>
+  </div>
+
+  <!-- Pricing tiers -->
+  <div class="sponsors-tiers">
+    <div class="sponsors-tier sponsors-tier--6">
+      <span class="tier-ring">Outer ring</span>
+      <span class="tier-count">60 spots</span>
+      <span class="tier-price">€25<span class="tier-mo">/yr</span></span>
+    </div>
+    <div class="sponsors-tier sponsors-tier--5">
+      <span class="tier-ring">Ring 5</span>
+      <span class="tier-count">50 spots</span>
+      <span class="tier-price">€50<span class="tier-mo">/yr</span></span>
+    </div>
+    <div class="sponsors-tier sponsors-tier--4">
+      <span class="tier-ring">Ring 4</span>
+      <span class="tier-count">40 spots</span>
+      <span class="tier-price">€100<span class="tier-mo">/yr</span></span>
+    </div>
+    <div class="sponsors-tier sponsors-tier--3">
+      <span class="tier-ring">Ring 3</span>
+      <span class="tier-count">30 spots</span>
+      <span class="tier-price">€200<span class="tier-mo">/yr</span></span>
+    </div>
+    <div class="sponsors-tier sponsors-tier--2">
+      <span class="tier-ring">Ring 2</span>
+      <span class="tier-count">20 spots</span>
+      <span class="tier-price">€400<span class="tier-mo">/yr</span></span>
+    </div>
+    <div class="sponsors-tier sponsors-tier--1">
+      <span class="tier-ring">Inner ring</span>
+      <span class="tier-count">10 spots</span>
+      <span class="tier-price">€800<span class="tier-mo">/yr</span></span>
+    </div>
+    <div class="sponsors-tier sponsors-tier--0">
+      <span class="tier-ring">Central Founding Partner</span>
+      <span class="tier-count">1 spot &bull; exclusive</span>
+      <span class="tier-price">€30,000<span class="tier-mo">/yr</span></span>
+    </div>
+  </div>
+
+  <!-- The Puzzle -->
+  <div class="sponsors-puzzle-container">
+    <svg id="sponsor-puzzle" viewBox="0 0 1100 1100" xmlns="http://www.w3.org/2000/svg"
+         role="img" aria-label="CulinEire sponsor puzzle">
+      <defs>
+        <filter id="cell-shadow" x="-5%" y="-5%" width="110%" height="110%">
+          <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="rgba(0,0,0,0.18)"/>
+        </filter>
+        <clipPath id="oct-clip">
+          <!-- Regular octagon clip -->
+          <polygon id="oct-poly"/>
+        </clipPath>
+      </defs>
+      <!-- Cells rendered by JS -->
+      <g id="puzzle-cells"></g>
+      <!-- Centre logo -->
+      <g id="puzzle-centre"></g>
+    </svg>
+  </div>
+
+  <!-- Tooltip -->
+  <div id="sponsor-tooltip" class="sponsor-tooltip" hidden>
+    <button class="sponsor-tooltip-close" id="tooltip-close" aria-label="Close">&times;</button>
+    <div id="tooltip-body"></div>
+  </div>
+
+  <!-- How it works -->
+  <div class="sponsors-how">
+    <h2 class="sponsors-how-title">How it works</h2>
+    <div class="sponsors-how-grid">
+      <div class="sponsors-how-step">
+        <span class="how-num">1</span>
+        <p>Choose a spot on the puzzle. Spots closer to the centre are more exclusive.</p>
+      </div>
+      <div class="sponsors-how-step">
+        <span class="how-num">2</span>
+        <p>Get in touch with us. We confirm your spot and upload your logo.</p>
+      </div>
+      <div class="sponsors-how-step">
+        <span class="how-num">3</span>
+        <p>Your logo lives on this page permanently, linked to your website.</p>
+      </div>
+    </div>
+    <div class="sponsors-cta">
+      <a href="mailto:hello@culineire.com?subject=Sponsor%20Puzzle%20Enquiry%20%E2%80%94%20Bearcave"
+         class="btn-primary sponsors-contact-btn">
+        Enquire about a spot
+      </a>
+      <p class="sponsors-cta-note">All sponsorships are annual contracts arranged with <strong>Bearcave</strong>.</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Cell data from Django -->
+<script>
+  window.SPONSOR_CELLS = {{ cells_json|safe }};
+</script>
+<script src="{% static 'js/sponsors_puzzle.js' %}"></script>
+{% endblock %}

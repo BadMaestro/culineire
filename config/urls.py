@@ -60,6 +60,9 @@ urlpatterns = [
     # Sandbox (superuser-only test area)
     path("sandbox/", include("sandbox.urls", namespace="sandbox")),
 
+    # Sponsors puzzle
+    path("sponsors/", include("sponsors.urls", namespace="sponsors")),
+
     # Accounts (user management)
     path("accounts/", include("accounts.urls", namespace="accounts")),
 
