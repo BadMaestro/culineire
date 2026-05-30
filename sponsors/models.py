@@ -38,6 +38,25 @@ class SponsorCell(models.Model):
     sponsor_url = models.URLField(blank=True)
     sponsor_tagline = models.CharField(max_length=200, blank=True)
 
+    # Pending logo (uploaded by enquirer, awaiting moderation)
+    logo_pending = models.ImageField(
+        upload_to="sponsors/pending/",
+        blank=True,
+        null=True,
+    )
+    # Logo positioning (percent offsets from cell centre, scale factor)
+    logo_offset_x = models.FloatField(default=0.0)
+    logo_offset_y = models.FloatField(default=0.0)
+    logo_scale    = models.FloatField(default=1.0)
+
+    # Enquiry / purchase request
+    enquiry_name     = models.CharField(max_length=200, blank=True)
+    enquiry_email    = models.EmailField(blank=True)
+    enquiry_company  = models.CharField(max_length=200, blank=True)
+    enquiry_website  = models.URLField(blank=True)
+    enquiry_message  = models.TextField(blank=True)
+    enquiry_submitted_at = models.DateTimeField(null=True, blank=True)
+
     # Admin
     purchased_at = models.DateTimeField(null=True, blank=True)
     admin_notes = models.TextField(blank=True)

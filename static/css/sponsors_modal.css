@@ -1,0 +1,493 @@
+/* ================================================================
+   CulinEire — Sponsor Cell Modal
+   ================================================================ */
+
+/* ---- Overlay ---- */
+.spm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 25, 16, 0.55);
+  backdrop-filter: blur(3px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: spm-fade-in 0.15s ease;
+}
+
+.spm-overlay[hidden] {
+  display: none !important;
+}
+
+@keyframes spm-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ---- Panel ---- */
+.spm-panel {
+  position: relative;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.22), 0 4px 16px rgba(0,0,0,0.10);
+  width: 100%;
+  max-width: 460px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: spm-slide-up 0.18s ease;
+}
+
+@keyframes spm-slide-up {
+  from { transform: translateY(16px); opacity: 0.6; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* ---- Close button ---- */
+.spm-close {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin: 1rem 1rem 0 0;
+  background: #f4f1ec;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 1.1rem;
+  color: #5a7060;
+  cursor: pointer;
+  line-height: 1;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s, color 0.12s;
+}
+.spm-close:hover { background: #e4ddd1; color: #1a2e1c; }
+
+/* ---- Body ---- */
+#sponsor-modal-body {
+  padding: 1.5rem 1.75rem 1.75rem;
+  clear: both;
+}
+
+/* ---- Header ---- */
+.spm-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1.1rem;
+  flex-wrap: wrap;
+}
+
+.spm-ring-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #2a5c34;
+}
+.spm-ring-label--sold     { color: #1e6e3e; }
+.spm-ring-label--reserved { color: #a06820; }
+.spm-ring-label--centre   { color: #8b6914; }
+
+.spm-status {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 3px 10px;
+  border-radius: 99px;
+}
+.spm-status--available { background: #eaf3ec; color: #2a5c34; }
+.spm-status--reserved  { background: #fef3e2; color: #a06820; }
+.spm-status--sold      { background: #e6f4ea; color: #1e6e3e; }
+
+/* ---- Price ---- */
+.spm-price {
+  font-size: 2rem;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  color: #1a2e1c;
+  margin: 0 0 0.4rem;
+  line-height: 1;
+}
+.spm-price--secret {
+  font-size: 1.1rem;
+  font-style: italic;
+  font-weight: 400;
+  font-family: sans-serif;
+  color: #8b7a3a;
+  margin: 0 0 0.4rem;
+}
+
+.spm-desc {
+  font-size: 0.85rem;
+  color: #7a8a7e;
+  line-height: 1.6;
+  margin: 0 0 1.25rem;
+}
+
+/* ---- Sold content ---- */
+.spm-sold-content {
+  text-align: center;
+  padding: 0.5rem 0;
+}
+.spm-sold-content img {
+  max-height: 72px;
+  max-width: 100%;
+  object-fit: contain;
+  border-radius: 6px;
+  margin-bottom: 0.6rem;
+}
+.spm-sponsor-name    { font-weight: 700; font-size: 1rem; color: #1a2e1c; margin: 0 0 0.3rem; }
+.spm-sponsor-tagline { font-size: 0.85rem; color: #7a8a7e; margin: 0 0 0.75rem; }
+.spm-visit-btn {
+  display: inline-block;
+  padding: 0.5rem 1.5rem;
+  background: #2a5c34;
+  color: #fff;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.spm-visit-btn:hover { background: #1e4226; color: #fff; }
+
+/* ---- Reserved ---- */
+.spm-reserved-msg {
+  text-align: center;
+  padding: 1rem 0;
+}
+.spm-reserved-msg p { color: #5a7060; margin: 0 0 0.4rem; font-size: 0.9rem; }
+.spm-reserved-note  { font-size: 0.8rem; color: #a0a89a; }
+
+/* ---- Form ---- */
+.spm-form { margin-top: 0; }
+
+.spm-form-section-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #a0a89a;
+  margin: 1.1rem 0 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.spm-form-section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e8e4dc;
+}
+
+.spm-optional {
+  font-size: 0.65rem;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: #c0b9ac;
+  font-style: italic;
+}
+
+.spm-field {
+  margin-bottom: 0.7rem;
+}
+
+.spm-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #3a4a3e;
+  margin-bottom: 0.3rem;
+}
+
+.spm-req { color: #c0392b; }
+
+.spm-input,
+.spm-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.55rem 0.75rem;
+  border: 1.5px solid #ddd9d0;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  color: #1a2e1c;
+  background: #fdfcf9;
+  transition: border-color 0.15s;
+  font-family: inherit;
+}
+.spm-input:focus,
+.spm-textarea:focus {
+  outline: none;
+  border-color: #2a5c34;
+  background: #fff;
+}
+.spm-textarea { resize: vertical; min-height: 70px; }
+
+/* ---- Logo upload drop zone ---- */
+.spm-logo-upload {
+  margin-top: 0.2rem;
+}
+
+.spm-logo-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 1rem;
+  border: 1.5px dashed #c8c2b5;
+  border-radius: 10px;
+  cursor: pointer;
+  color: #7a8a7e;
+  font-size: 0.82rem;
+  transition: border-color 0.15s, background 0.15s;
+  background: #fdfcf9;
+  text-align: center;
+}
+.spm-logo-drop:hover {
+  border-color: #2a5c34;
+  background: #f2f9f3;
+  color: #2a5c34;
+}
+.spm-upload-icon {
+  width: 24px;
+  height: 24px;
+  color: currentColor;
+  flex-shrink: 0;
+}
+
+/* ---- Canvas wrap ---- */
+.spm-canvas-wrap {
+  margin-top: 0.75rem;
+}
+
+.spm-canvas-label {
+  font-size: 0.75rem;
+  color: #a0a89a;
+  text-align: center;
+  margin: 0 0 0.4rem;
+}
+
+.spm-canvas-outer {
+  display: flex;
+  justify-content: center;
+}
+
+#spm-canvas {
+  border-radius: 12px;
+  cursor: grab;
+  display: block;
+  background: #f4f1ec;
+  border: 1.5px solid #e4ddd1;
+  max-width: 220px;
+  max-height: 220px;
+}
+#spm-canvas:active { cursor: grabbing; }
+
+.spm-scale-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+  padding: 0 0.25rem;
+}
+
+.spm-scale-label {
+  font-size: 0.75rem;
+  color: #7a8a7e;
+  font-weight: 600;
+  flex-shrink: 0;
+  width: 30px;
+}
+
+.spm-scale-input {
+  flex: 1;
+  accent-color: #2a5c34;
+  cursor: pointer;
+}
+
+.spm-scale-val {
+  font-size: 0.75rem;
+  color: #3a4a3e;
+  font-weight: 600;
+  width: 34px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ---- Error / success ---- */
+.spm-error {
+  margin-top: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  background: #fdf0f0;
+  border: 1px solid #f5c6c6;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  color: #c0392b;
+}
+
+.spm-success {
+  margin-top: 0.6rem;
+  padding: 0.75rem 1rem;
+  background: #eaf4ec;
+  border: 1px solid #b5deba;
+  border-radius: 7px;
+  font-size: 0.85rem;
+  color: #1e6e3e;
+  line-height: 1.55;
+}
+
+/* ---- Actions ---- */
+.spm-actions {
+  margin-top: 1.25rem;
+}
+
+.spm-buy-btn {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  background: #2a5c34;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.12s;
+  box-shadow: 0 4px 14px rgba(42,92,52,0.28);
+  font-family: inherit;
+}
+.spm-buy-btn:hover:not(:disabled) {
+  background: #1e4226;
+  transform: translateY(-1px);
+}
+.spm-buy-btn:disabled {
+  background: #a0b4a4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.spm-note {
+  font-size: 0.75rem;
+  color: #a0a89a;
+  text-align: center;
+  margin: 0.6rem 0 0;
+  line-height: 1.5;
+}
+
+/* ---- Admin panel ---- */
+.spm-admin {
+  margin-top: 1.5rem;
+  padding: 1.1rem 1.1rem 0.9rem;
+  background: #f4f1ec;
+  border: 1px solid #e4ddd1;
+  border-radius: 12px;
+}
+
+.spm-admin-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #a0a89a;
+  margin-bottom: 0.8rem;
+}
+
+.spm-admin-enquiry {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.8rem;
+}
+
+.spm-admin-row {
+  display: grid;
+  grid-template-columns: 70px 1fr;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  align-items: baseline;
+}
+
+.spm-admin-lbl {
+  font-weight: 600;
+  color: #5a7060;
+  font-size: 0.75rem;
+}
+
+.spm-admin-row a {
+  color: #2a5c34;
+  word-break: break-all;
+}
+
+.spm-admin-empty {
+  font-size: 0.82rem;
+  color: #a0a89a;
+  margin: 0 0 0.5rem;
+  font-style: italic;
+}
+
+.spm-admin-pending-logo {
+  margin: 0.75rem 0;
+}
+
+.spm-admin-logo-img {
+  display: block;
+  max-height: 60px;
+  max-width: 160px;
+  border-radius: 5px;
+  margin-top: 0.35rem;
+  border: 1px solid #ddd9d0;
+  background: #fff;
+  padding: 4px;
+}
+
+.spm-admin-btns {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+}
+
+.spm-admin-approve,
+.spm-admin-reject {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.12s;
+  font-family: inherit;
+}
+
+.spm-admin-approve {
+  background: #2a5c34;
+  color: #fff;
+}
+.spm-admin-approve:hover { background: #1e4226; }
+
+.spm-admin-reject {
+  background: #f4ede4;
+  color: #8b3a1e;
+  border: 1px solid #e4c9b5;
+}
+.spm-admin-reject:hover { background: #fbe5d6; }
+
+.spm-admin-done {
+  font-size: 0.85rem;
+  color: #2a5c34;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* ---- Mobile ---- */
+@media (max-width: 480px) {
+  .spm-panel         { border-radius: 14px; }
+  #sponsor-modal-body { padding: 1.25rem 1.25rem 1.5rem; }
+  .spm-price         { font-size: 1.6rem; }
+}

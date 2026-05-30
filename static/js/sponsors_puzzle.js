@@ -324,132 +324,20 @@
   }
 
   /* ------------------------------------------------------------------ */
-  /* Tooltip                                                              */
+  /* Cell events — open modal on click                                   */
   /* ------------------------------------------------------------------ */
-  var tooltip     = document.getElementById('sponsor-tooltip');
-  var tooltipBody = document.getElementById('tooltip-body');
-  var tooltipClose = document.getElementById('tooltip-close');
-
-  if (tooltipClose) {
-    tooltipClose.addEventListener('click', function () {
-      tooltip.hidden = true;
-    });
-  }
-
-  // Close on click outside puzzle
-  document.addEventListener('click', function (e) {
-    if (!tooltip.hidden &&
-        !tooltip.contains(e.target) &&
-        !e.target.classList.contains('puzzle-cell') &&
-        e.target.id !== 'sponsor-puzzle') {
-      tooltip.hidden = true;
-    }
-  });
-
   function attachCellEvents(el, cellData, ring, pos) {
-    el.addEventListener('click', function (e) {
-      showTooltip(cellData, ring, e);
+    el.addEventListener('click', function () {
+      if (window.SponsorModal) {
+        window.SponsorModal.open(cellData);
+      }
     });
     el.addEventListener('mouseenter', function () {
-      if (el.getAttribute('data-status') !== 'sold') {
-        el.setAttribute('opacity', '0.8');
-      }
+      el.setAttribute('opacity', '0.82');
     });
     el.addEventListener('mouseleave', function () {
       el.removeAttribute('opacity');
     });
-  }
-
-  function showTooltip(cellData, ring, event) {
-    var html = '';
-
-    if (ring === 0) {
-      // Centre
-      html += '<div class="tt-ring tt-ring--centre">Central Founding Partner</div>';
-      if (cellData && cellData.status === 'sold') {
-        html += sponsorHtml(cellData);
-      } else {
-        html += '<p class="tt-desc">The most prestigious and exclusive spot on the puzzle. Your brand at the heart of CulinEire. Annual contract with Bearcave Ltd..</p>';
-        html += '<p class="tt-price tt-price--secret">Price on request</p>';
-        html += contactBtn('Central Founding Partner inquiry');
-      }
-    } else if (!cellData || cellData.status === 'available') {
-      var ringLabel = ringName(ring);
-      var price     = cellData ? cellData.price_display : ringPrice(ring);
-      html += '<div class="tt-ring">Ring ' + ring + ' — ' + ringLabel + '</div>';
-      html += '<p class="tt-desc">Your logo appears here, linked to your website. Annual contract with Bearcave Ltd..</p>';
-      html += '<p class="tt-price">' + price + '</p>';
-      html += contactBtn('Enquire about Ring ' + ring + ' spot');
-    } else if (cellData.status === 'reserved') {
-      html += '<div class="tt-ring tt-ring--reserved">Ring ' + ring + ' — Reserved</div>';
-      html += '<p class="tt-desc">This spot is currently reserved.</p>';
-    } else if (cellData.status === 'sold') {
-      html += '<div class="tt-ring tt-ring--sold">Ring ' + ring + ' — Sponsor</div>';
-      html += sponsorHtml(cellData);
-    }
-
-    tooltipBody.innerHTML = html;
-    tooltip.hidden = false;
-
-    // Position near click
-    positionTooltip(event);
-  }
-
-  function sponsorHtml(cellData) {
-    var html = '';
-    if (cellData.sponsor_logo) {
-      html += '<div class="tt-logo-wrap"><img src="' + cellData.sponsor_logo + '" alt="' + (cellData.sponsor_name || '') + '" class="tt-logo"></div>';
-    }
-    if (cellData.sponsor_name) {
-      html += '<p class="tt-sponsor-name">' + cellData.sponsor_name + '</p>';
-    }
-    if (cellData.sponsor_tagline) {
-      html += '<p class="tt-tagline">' + cellData.sponsor_tagline + '</p>';
-    }
-    if (cellData.sponsor_url) {
-      html += '<a href="' + cellData.sponsor_url + '" target="_blank" rel="noopener noreferrer" class="tt-visit">Visit website &rarr;</a>';
-    }
-    return html;
-  }
-
-  function contactBtn(subject) {
-    var encodedSubject = encodeURIComponent(subject + ' — CulinEire Sponsor Puzzle');
-    return '<a href="mailto:culineire@bearcave.ie?subject=' + encodedSubject + '" class="tt-contact-btn">Get in touch</a>';
-  }
-
-  function ringName(ring) {
-    var names = { 1: 'Inner', 2: 'Ring 2', 3: 'Ring 3', 4: 'Outer' };
-    return names[ring] || '';
-  }
-
-  function ringPrice(ring) {
-    var prices = { 1: '€800/yr', 2: '€400/yr', 3: '€200/yr', 4: '€100/yr', 5: '€50/yr', 6: '€25/yr' };
-    return prices[ring] || '€25/yr';
-  }
-
-  function positionTooltip(event) {
-    var container     = document.querySelector('.sponsors-puzzle-container');
-    var containerRect = container.getBoundingClientRect();
-    var TW = 248;   // tooltip width
-    var TH = 220;   // estimated height
-
-    var x = event.clientX - containerRect.left + 14;
-    var y = event.clientY - containerRect.top  + 14;
-
-    // Flip left if too close to right edge
-    if (x + TW > containerRect.width - 8) {
-      x = event.clientX - containerRect.left - TW - 14;
-    }
-    // Flip up if too close to bottom
-    if (y + TH > containerRect.height - 8) {
-      y = event.clientY - containerRect.top - TH - 14;
-    }
-    // Hard clamp
-    if (x < 8) { x = 8; }
-    if (y < 8) { y = 8; }
-
-    tooltip.style.left = x + 'px';
-    tooltip.style.top  = y + 'px';
   }
 
   /* ------------------------------------------------------------------ */

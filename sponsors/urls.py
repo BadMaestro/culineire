@@ -6,4 +6,7 @@ app_name = "sponsors"
 
 urlpatterns = [
     path("", views.puzzle_page, name="puzzle"),
+    path("cell/<int:cell_id>/", views.cell_detail, name="cell_detail"),
+    path("cell/<int:cell_id>/enquire/", views.cell_enquire, name="cell_enquire"),
+    path("cell/<int:cell_id>/moderate/", views.cell_moderate, name="cell_moderate"),
 ]

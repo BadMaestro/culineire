@@ -5,6 +5,7 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/sponsors.css' %}">
+<link rel="stylesheet" href="{% static 'css/sponsors_modal.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -101,11 +102,6 @@
       <g id="puzzle-cells"></g>
       <g id="puzzle-centre"></g>
     </svg>
-    <!-- Tooltip inside puzzle container for correct positioning -->
-    <div id="sponsor-tooltip" class="sponsor-tooltip" hidden>
-      <button class="sponsor-tooltip-close" id="tooltip-close" aria-label="Close">&times;</button>
-      <div id="tooltip-body"></div>
-    </div>
   </div>
 
   <!-- How it works -->
@@ -137,8 +133,19 @@
 
 </div>
 
+<!-- Sponsor modal -->
+<div id="sponsor-modal" class="spm-overlay" hidden
+     role="dialog" aria-modal="true" aria-label="Sponsor cell details">
+  <div class="spm-panel">
+    <button id="sponsor-modal-close" class="spm-close" aria-label="Close">&times;</button>
+    <div id="sponsor-modal-body"></div>
+  </div>
+</div>
+
 <script>
   window.SPONSOR_CELLS = {{ cells_json|safe }};
+  window.IS_ADMIN = {{ request.user.is_staff|yesno:"true,false" }};
 </script>
+<script src="{% static 'js/sponsors_modal.js' %}"></script>
 <script src="{% static 'js/sponsors_puzzle.js' %}"></script>
 {% endblock %}
