@@ -203,11 +203,11 @@
 /* ---- Puzzle ---- */
 .sponsors-puzzle-container {
   position: relative;
-  max-width: 860px;
+  max-width: 960px;
   margin: 0 auto 3rem;
   background: #f7f4ee;
   border-radius: 20px;
-  padding: 1rem;
+  padding: 0.5rem;
   box-shadow: 0 8px 40px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06);
   border: 1px solid #ede9e0;
 }
