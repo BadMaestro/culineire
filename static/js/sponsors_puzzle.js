@@ -360,7 +360,7 @@
 
   function contactBtn(subject) {
     var encodedSubject = encodeURIComponent(subject + ' — CulinEire Sponsor Puzzle');
-    return '<a href="mailto:hello@culineire.com?subject=' + encodedSubject + '" class="tt-contact-btn">Get in touch</a>';
+    return '<a href="mailto:culineire@bearcave.ie?subject=' + encodedSubject + '" class="tt-contact-btn">Get in touch</a>';
   }
 
   function ringName(ring) {
