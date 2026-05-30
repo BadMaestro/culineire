@@ -316,7 +316,7 @@
         html += sponsorHtml(cellData);
       } else {
         html += '<p class="tt-desc">The most prestigious and exclusive spot on the puzzle. Your brand at the heart of CulinEire. Annual contract with Bearcave Ltd..</p>';
-        html += '<p class="tt-price">€30,000<span style="font-size:0.6em;font-weight:400">/yr</span></p>';
+        html += '<p class="tt-price tt-price--secret">Price on request</p>';
         html += contactBtn('Central Founding Partner inquiry');
       }
     } else if (!cellData || cellData.status === 'available') {
