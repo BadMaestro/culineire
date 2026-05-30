@@ -11,6 +11,14 @@
     justify-content: space-between;
 }
 
+.ab-hero .hero-title {
+    color: var(--color-heading, #1f1f1f);
+}
+
+.ab-hero .hero-subtitle {
+    color: var(--color-muted, #5f5a52);
+}
+
 .ab-layout {
     display: grid;
     gap: 1.25rem;
