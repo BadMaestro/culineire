@@ -32,7 +32,6 @@ from accounts.views import (
     is_moderator,
 )
 from articles.models import Article, ArticleImage
-from amuse_bouche.models import AmuseBouche
 from collection.models import SavedRecipe
 from config.turnstile import verify_turnstile
 from monitoring.tracker import get_client_ip, hash_ip, track_event
@@ -627,11 +626,15 @@ def home(request):
         .filter(status=Article.Status.APPROVED, is_deleted=False)
         .order_by("-published")[:6]
     )
-    latest_amuse_bouche = (
-        AmuseBouche.objects.select_related("author", "linked_recipe", "linked_article")
-        .filter(status=AmuseBouche.Status.APPROVED)
-        .order_by("-is_featured", "-published_at", "-created_at")[:6]
-    )
+    try:
+        from amuse_bouche.models import AmuseBouche as _AmuseBouche
+        latest_amuse_bouche = (
+            _AmuseBouche.objects.select_related("author", "linked_recipe", "linked_article")
+            .filter(status=_AmuseBouche.Status.APPROVED)
+            .order_by("-is_featured", "-published_at", "-created_at")[:6]
+        )
+    except Exception:
+        latest_amuse_bouche = []
 
     context = {
         "latest_recipes": latest_recipes,
@@ -1278,15 +1281,21 @@ def author_detail(request, slug):
 
     recipes_for_count = Recipe.objects.filter(author=author, is_deleted=False)
     articles_for_count = Article.objects.filter(author=author, is_deleted=False)
-    amuse_bouche_for_count = AmuseBouche.objects.filter(author=author)
     if not (can_manage or moderator):
         recipes_for_count = recipes_for_count.filter(status=Recipe.Status.APPROVED)
         articles_for_count = articles_for_count.filter(status=Article.Status.APPROVED)
-        amuse_bouche_for_count = amuse_bouche_for_count.filter(status=AmuseBouche.Status.APPROVED)
 
     recipe_count = recipes_for_count.count()
     article_count = articles_for_count.count()
-    amuse_bouche_count = amuse_bouche_for_count.count()
+    amuse_bouche_count = 0
+    try:
+        from amuse_bouche.models import AmuseBouche as _AmuseBouche
+        ab_qs = _AmuseBouche.objects.filter(author=author)
+        if not (can_manage or moderator):
+            ab_qs = ab_qs.filter(status=_AmuseBouche.Status.APPROVED)
+        amuse_bouche_count = ab_qs.count()
+    except Exception:
+        pass
 
     private_dashboard = can_manage or moderator
     _VALID_STATUS_FILTERS = {
@@ -1303,20 +1312,28 @@ def author_detail(request, slug):
 
     recipe_qs = Recipe.objects.filter(author=author, is_deleted=False).order_by("-created_at")
     article_qs = Article.objects.filter(author=author, is_deleted=False).order_by("-published")
-    amuse_bouche_qs = AmuseBouche.objects.filter(author=author).order_by("-published_at", "-created_at")
     if private_dashboard:
         if status_value:
             recipe_qs = recipe_qs.filter(status=status_value)
             article_qs = article_qs.filter(status=status_value)
-            amuse_bouche_qs = amuse_bouche_qs.filter(status=status_value)
     else:
         recipe_qs = recipe_qs.filter(status=Recipe.Status.APPROVED)
         article_qs = article_qs.filter(status=Article.Status.APPROVED)
-        amuse_bouche_qs = amuse_bouche_qs.filter(status=AmuseBouche.Status.APPROVED)
 
     dashboard_recipes = list(recipe_qs)
     dashboard_articles = list(article_qs)
-    dashboard_amuse_bouche = list(amuse_bouche_qs)
+    dashboard_amuse_bouche = []
+    try:
+        from amuse_bouche.models import AmuseBouche as _AmuseBouche
+        ab_qs2 = _AmuseBouche.objects.filter(author=author).order_by("-published_at", "-created_at")
+        if private_dashboard:
+            if status_value:
+                ab_qs2 = ab_qs2.filter(status=status_value)
+        else:
+            ab_qs2 = ab_qs2.filter(status=_AmuseBouche.Status.APPROVED)
+        dashboard_amuse_bouche = list(ab_qs2)
+    except Exception:
+        pass
 
     context = {
         "author": author,
