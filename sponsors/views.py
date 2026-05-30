@@ -15,7 +15,7 @@ from .models import SponsorCell
 def puzzle_page(request):
     cells = SponsorCell.objects.all().order_by("ring", "position_in_ring")
 
-    cells_json = json.dumps([c.as_dict() for c in cells])
+    cells_data = [c.as_dict() for c in cells]
 
     sold = cells.filter(status=SponsorCell.Status.SOLD).count()
     reserved = cells.filter(status=SponsorCell.Status.RESERVED).count()
@@ -27,7 +27,7 @@ def puzzle_page(request):
         request,
         "sponsors/puzzle.html",
         {
-            "cells_json": cells_json,
+            "cells_data": cells_data,
             "sold": sold,
             "reserved": reserved,
             "available": available,

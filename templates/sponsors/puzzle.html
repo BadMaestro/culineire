@@ -142,10 +142,8 @@
   </div>
 </div>
 
-<script>
-  window.SPONSOR_CELLS = {{ cells_json|safe }};
-  window.IS_ADMIN = {{ request.user.is_staff|yesno:"true,false" }};
-</script>
+{{ cells_data|json_script:"sponsor-cells-json" }}
+{{ request.user.is_staff|json_script:"sponsor-is-admin-json" }}
 <script src="{% static 'js/sponsors_modal.js' %}"></script>
 <script src="{% static 'js/sponsors_puzzle.js' %}"></script>
 {% endblock %}

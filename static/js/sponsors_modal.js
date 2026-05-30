@@ -68,7 +68,9 @@
     document.body.style.overflow = 'hidden';
 
     // If admin, fetch extra enquiry + pending-logo data
-    if (window.IS_ADMIN && cellData && cellData.id) {
+    var adminEl = document.getElementById('sponsor-is-admin-json');
+    var isAdmin = adminEl ? JSON.parse(adminEl.textContent) : false;
+    if (isAdmin && cellData && cellData.id) {
       loadAdminPanel(cellData.id);
     }
   }

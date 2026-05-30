@@ -344,7 +344,11 @@
   /* Init                                                                 */
   /* ------------------------------------------------------------------ */
   document.addEventListener('DOMContentLoaded', function () {
-    var cells = window.SPONSOR_CELLS || [];
+    var el = document.getElementById('sponsor-cells-json');
+    var cells = [];
+    if (el) {
+      try { cells = JSON.parse(el.textContent); } catch (e) {}
+    }
     if (cells.length > 0) {
       drawPuzzle(cells);
     } else {
