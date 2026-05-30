@@ -117,6 +117,14 @@ class AmuseBouche(models.Model):
     allow_comments = models.BooleanField(default=False)
     view_count = models.PositiveIntegerField(default=0)
     moderation_note = models.TextField(blank=True, default="")
+    moderated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="moderated_amuse_bouche_items",
+    )
+    moderated_at = models.DateTimeField(null=True, blank=True)
     seo_title = models.CharField(max_length=200, blank=True)
     seo_description = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

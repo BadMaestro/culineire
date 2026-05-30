@@ -5,6 +5,7 @@ from django.db.models import Count, F, Prefetch, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
@@ -14,6 +15,7 @@ from django_ratelimit.decorators import ratelimit
 from collection.models import ContentReaction, SavedContent
 from monitoring.tracker import track_event
 from recipes.authoring import AuthorRequiredMixin, user_can_manage_author
+from accounts.views import is_moderator
 from .forms import AmuseBoucheAuthoringForm
 from .models import AmuseBouche, AmuseBoucheGalleryImage
 from .visibility import can_view_amuse_bouche_public_area
@@ -24,9 +26,12 @@ def _require_public_area_access(request):
         raise Http404
 
 
-def _public_queryset():
+def _public_queryset(approved_only=True):
+    queryset = AmuseBouche.objects.all()
+    if approved_only:
+        queryset = queryset.filter(status=AmuseBouche.Status.APPROVED)
     return (
-        AmuseBouche.objects.filter(status=AmuseBouche.Status.APPROVED)
+        queryset
         .select_related("author", "linked_recipe", "linked_article")
         .prefetch_related(
             Prefetch(
@@ -82,7 +87,11 @@ def feed(request):
 
 def detail(request, slug):
     _require_public_area_access(request)
-    item = get_object_or_404(_public_queryset(), slug=slug)
+    if is_moderator(request.user):
+        queryset = _public_queryset(approved_only=False).exclude(status=AmuseBouche.Status.ARCHIVED)
+    else:
+        queryset = _public_queryset()
+    item = get_object_or_404(queryset, slug=slug)
     AmuseBouche.objects.filter(pk=item.pk).update(view_count=F("view_count") + 1)
     items, liked_ids, saved_ids = _user_state([item], request.user)
     return render(request, "amuse_bouche/detail.html", {
@@ -204,3 +213,56 @@ def toggle_save(request, slug):
         track_event(request, "collection_remove", object_type="amuse_bouche", object_id=item.pk, object_title=item.title)
         messages.success(request, "Removed from your collection.")
     return _safe_next(request, item.get_absolute_url())
+
+
+@require_POST
+@login_required
+def moderate(request, slug):
+    if not is_moderator(request.user):
+        raise Http404
+
+    item = get_object_or_404(AmuseBouche, slug=slug)
+    action = request.POST.get("action")
+
+    if action == "approve":
+        item.status = AmuseBouche.Status.APPROVED
+        item.moderation_note = ""
+        item.moderated_by = request.user
+        item.moderated_at = timezone.now()
+        item.save(update_fields=["status", "moderation_note", "moderated_by", "moderated_at", "published_at", "updated_at"])
+        messages.success(request, f'"{item.title}" approved and is now live.')
+    elif action == "request_changes":
+        note = request.POST.get("moderation_note", "").strip()
+        if not note:
+            messages.error(request, "A moderation note is required. Please explain what needs to be changed.")
+            return redirect(item.get_absolute_url())
+        item.status = AmuseBouche.Status.NEEDS_CHANGES
+        item.moderation_note = note
+        item.moderated_by = request.user
+        item.moderated_at = timezone.now()
+        item.save(update_fields=["status", "moderation_note", "moderated_by", "moderated_at", "updated_at"])
+        messages.warning(request, f'Changes requested for "{item.title}".')
+    elif action == "reject":
+        note = request.POST.get("moderation_note", "").strip()
+        if not note:
+            messages.error(request, "A rejection note is required. Please explain what needs to be corrected.")
+            return redirect(item.get_absolute_url())
+        item.status = AmuseBouche.Status.REJECTED
+        item.moderation_note = note
+        item.moderated_by = request.user
+        item.moderated_at = timezone.now()
+        item.save(update_fields=["status", "moderation_note", "moderated_by", "moderated_at", "updated_at"])
+        messages.warning(request, f'"{item.title}" rejected.')
+    elif action == "delete":
+        title = item.title
+        item.status = AmuseBouche.Status.ARCHIVED
+        item.moderation_note = ""
+        item.moderated_by = request.user
+        item.moderated_at = timezone.now()
+        item.save(update_fields=["status", "moderation_note", "moderated_by", "moderated_at", "updated_at"])
+        messages.success(request, f'"{title}" archived.')
+        return redirect("recipes:moderation_panel")
+    else:
+        raise Http404
+
+    return redirect(item.get_absolute_url())

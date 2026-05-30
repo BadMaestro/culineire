@@ -347,14 +347,14 @@ def _build_amuse_bouche_roadmap_status():
                 "Deployed staff/moderator preview behind the feature flag.",
                 "Fixed preview hero contrast and authoring form layout issues found during review.",
                 "Confirmed anonymous public access returns 404 while gated.",
+                "Added Amuse-Bouche moderation queue and approve/request changes/reject/archive actions.",
             ],
-            "current": ["Next active engineering block: moderation panel integration and internal test content."],
+            "current": ["Next active engineering block: internal test content and browser review."],
             "remaining": [
-                "Add moderation queue/actions for Amuse-Bouche.",
                 "Create 10-20 test posts.",
                 "Run browser checks on desktop and mobile.",
             ],
-            "files": ["templates/moderation/panel.html", "amuse_bouche/tests.py", "templates/amuse_bouche/form.html", "static/css/authoring.css"],
+            "files": ["templates/moderation/panel.html", "amuse_bouche/views.py", "amuse_bouche/tests.py", "templates/amuse_bouche/form.html", "static/css/authoring.css"],
         },
         {
             "id": "phase-8",
@@ -423,9 +423,9 @@ def _build_amuse_bouche_roadmap_status():
         "progress_scope": "MVP only; deferred Chef Battle and video phases remain tracked below.",
         "blocked_items": blocked_items,
         "next_steps": [
-            "Add Amuse-Bouche moderation queue and actions.",
-            "Add moderation tests.",
             "Create internal launch content and browser-check the feed.",
+            "Review authoring and moderation flows on desktop and mobile.",
+            "Prepare public launch by enabling AMUSE_BOUCHE_PUBLIC when content is ready.",
         ],
     }
 
@@ -1814,6 +1814,23 @@ def moderation_panel(request):
         .filter(status=Article.Status.REJECTED)
         .order_by("-published")
     )
+    from amuse_bouche.models import AmuseBouche
+
+    pending_amuse_bouche = (
+        AmuseBouche.objects.select_related("author", "author__user")
+        .filter(status=AmuseBouche.Status.PENDING)
+        .order_by("-created_at")
+    )
+    needs_changes_amuse_bouche = (
+        AmuseBouche.objects.select_related("author", "author__user", "moderated_by")
+        .filter(status=AmuseBouche.Status.NEEDS_CHANGES)
+        .order_by("-moderated_at", "-created_at")
+    )
+    rejected_amuse_bouche = (
+        AmuseBouche.objects.select_related("author", "author__user", "moderated_by")
+        .filter(status=AmuseBouche.Status.REJECTED)
+        .order_by("-created_at")
+    )
     protected_super_user_filter = Q(user__is_superuser=True) | Q(slug=settings.OWNER_SLUG)
 
     registered_authors = (
@@ -1861,6 +1878,9 @@ def moderation_panel(request):
         "pending_articles": pending_articles,
         "needs_changes_articles": needs_changes_articles,
         "rejected_articles": rejected_articles,
+        "pending_amuse_bouche": pending_amuse_bouche,
+        "needs_changes_amuse_bouche": needs_changes_amuse_bouche,
+        "rejected_amuse_bouche": rejected_amuse_bouche,
         "registered_authors": registered_authors,
         "author_query": author_query,
         "can_grant_bearseeker_privileges": _can_grant_bearseeker_privileges(request.user),

@@ -122,6 +122,115 @@
 
         <div class="moderation-block">
             <h2 class="moderation-block__title">
+                Amuse-Bouche
+                {% if pending_amuse_bouche %}<span class="moderation-badge moderation-badge--pending">{{ pending_amuse_bouche|length }} pending</span>{% endif %}
+                {% if needs_changes_amuse_bouche %}<span class="moderation-badge moderation-badge--needs_changes">{{ needs_changes_amuse_bouche|length }} needs changes</span>{% endif %}
+                {% if rejected_amuse_bouche %}<span class="moderation-badge moderation-badge--rejected">{{ rejected_amuse_bouche|length }} rejected</span>{% endif %}
+            </h2>
+
+            <div class="moderation-scroll moderation-scroll--amuse-bouche">
+            {% if not pending_amuse_bouche and not needs_changes_amuse_bouche and not rejected_amuse_bouche %}
+            <div class="moderation-empty">All clear &mdash; no Amuse-Bouche posts awaiting moderation.</div>
+            {% endif %}
+
+            {% for item in pending_amuse_bouche %}
+            <div class="moderation-card">
+                <div class="moderation-card__body">
+                    <div class="moderation-card__meta">
+                        <span class="author-studio-status author-studio-status--pending">Pending</span>
+                        {% if item.author %}<a class="moderation-card__author" href="{{ item.author.get_absolute_url }}">{{ item.author.name|default:"Unknown" }}</a>{% else %}<span class="moderation-card__author">Unknown</span>{% endif %}
+                        <span class="moderation-card__date">{{ item.created_at|date:"j M Y" }}</span>
+                    </div>
+                    <h3 class="moderation-card__title">
+                        <a href="{{ item.get_absolute_url }}">{{ item.title }}</a>
+                    </h3>
+                    {% if item.short_description %}
+                    <p class="moderation-card__note">{{ item.short_description|truncatechars:120 }}</p>
+                    {% endif %}
+                </div>
+                <div class="moderation-card__actions">
+                    <a class="mod-btn mod-btn--view" href="{{ item.get_absolute_url }}" target="_blank">View</a>
+                    <a class="mod-btn mod-btn--edit" href="{% url 'amuse_bouche:edit' item.slug %}">Edit</a>
+                    <button class="mod-btn mod-btn--reject" data-reject-url="{% url 'amuse_bouche:moderate' item.slug %}" data-reject-title="{{ item.title|truncatechars:40 }}" type="button">Reject</button>
+                    <form action="{% url 'amuse_bouche:moderate' item.slug %}" method="post">{% csrf_token %}
+                        <input name="action" type="hidden" value="delete">
+                        <button class="mod-btn mod-btn--delete" data-delete-title="{{ item.title|truncatechars:40 }}" type="button">Archive</button>
+                    </form>
+                    <form action="{% url 'amuse_bouche:moderate' item.slug %}" method="post">{% csrf_token %}
+                        <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% for item in needs_changes_amuse_bouche %}
+            <div class="moderation-card">
+                <div class="moderation-card__body">
+                    <div class="moderation-card__meta">
+                        <span class="author-studio-status author-studio-status--needs_changes">Needs changes</span>
+                        {% if item.author %}<a class="moderation-card__author" href="{{ item.author.get_absolute_url }}">{{ item.author.name|default:"Unknown" }}</a>{% else %}<span class="moderation-card__author">Unknown</span>{% endif %}
+                        <span class="moderation-card__date">{{ item.created_at|date:"j M Y" }}</span>
+                    </div>
+                    <h3 class="moderation-card__title">
+                        <a href="{{ item.get_absolute_url }}">{{ item.title }}</a>
+                    </h3>
+                    {% if item.moderation_note %}
+                    <p class="moderation-card__note" title="{{ item.moderation_note }}">{{ item.moderation_note|truncatechars:120 }}</p>
+                    {% if item.moderated_by %}
+                    <p class="moderation-card__note-meta">by {{ item.moderated_by.get_full_name|default:item.moderated_by.username }}{% if item.moderated_at %} &middot; {{ item.moderated_at|date:"j M Y" }}{% endif %}</p>
+                    {% endif %}
+                    {% endif %}
+                </div>
+                <div class="moderation-card__actions">
+                    <a class="mod-btn mod-btn--view" href="{{ item.get_absolute_url }}" target="_blank">View</a>
+                    <a class="mod-btn mod-btn--edit" href="{% url 'amuse_bouche:edit' item.slug %}">Edit</a>
+                    <form action="{% url 'amuse_bouche:moderate' item.slug %}" method="post">{% csrf_token %}
+                        <input name="action" type="hidden" value="delete">
+                        <button class="mod-btn mod-btn--delete" data-delete-title="{{ item.title|truncatechars:40 }}" type="button">Archive</button>
+                    </form>
+                    <form action="{% url 'amuse_bouche:moderate' item.slug %}" method="post">{% csrf_token %}
+                        <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% for item in rejected_amuse_bouche %}
+            <div class="moderation-card moderation-card--rejected">
+                <div class="moderation-card__body">
+                    <div class="moderation-card__meta">
+                        <span class="author-studio-status author-studio-status--rejected">Rejected</span>
+                        {% if item.author %}<a class="moderation-card__author" href="{{ item.author.get_absolute_url }}">{{ item.author.name|default:"Unknown" }}</a>{% else %}<span class="moderation-card__author">Unknown</span>{% endif %}
+                        <span class="moderation-card__date">{{ item.created_at|date:"j M Y" }}</span>
+                    </div>
+                    <h3 class="moderation-card__title">
+                        <a href="{{ item.get_absolute_url }}">{{ item.title }}</a>
+                    </h3>
+                    {% if item.moderation_note %}
+                    <p class="moderation-card__note" title="{{ item.moderation_note }}">{{ item.moderation_note|truncatechars:120 }}</p>
+                    {% if item.moderated_by %}
+                    <p class="moderation-card__note-meta">by {{ item.moderated_by.get_full_name|default:item.moderated_by.username }}{% if item.moderated_at %} &middot; {{ item.moderated_at|date:"j M Y" }}{% endif %}</p>
+                    {% endif %}
+                    {% endif %}
+                </div>
+                <div class="moderation-card__actions">
+                    <a class="mod-btn mod-btn--view" href="{{ item.get_absolute_url }}" target="_blank">View</a>
+                    <a class="mod-btn mod-btn--edit" href="{% url 'amuse_bouche:edit' item.slug %}">Edit</a>
+                    <form action="{% url 'amuse_bouche:moderate' item.slug %}" method="post">{% csrf_token %}
+                        <input name="action" type="hidden" value="delete">
+                        <button class="mod-btn mod-btn--delete" data-delete-title="{{ item.title|truncatechars:40 }}" type="button">Archive</button>
+                    </form>
+                    <form action="{% url 'amuse_bouche:moderate' item.slug %}" method="post">{% csrf_token %}
+                        <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+            </div>
+        </div>
+
+        <div class="moderation-block">
+            <h2 class="moderation-block__title">
                 Recipes
                 {% if pending_recipes %}<span class="moderation-badge moderation-badge--pending">{{ pending_recipes|length }} pending</span>{% endif %}
                 {% if needs_changes_recipes %}<span class="moderation-badge moderation-badge--needs_changes">{{ needs_changes_recipes|length }} needs changes</span>{% endif %}
