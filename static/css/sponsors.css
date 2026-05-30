@@ -45,8 +45,8 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #2a5c34;
-  background: #eaf3ec;
+  color: #5a5040;
+  background: #ede9e0;
   padding: 4px 14px;
   border-radius: 99px;
   margin-bottom: 1rem;
@@ -55,13 +55,13 @@
 .sponsors-title {
   font-size: 2.4rem;
   font-family: 'Playfair Display', Georgia, serif;
-  color: var(--ink, #1a2e1c);
+  color: #28221e;
   margin: 0 0 0.75rem;
   line-height: 1.2;
 }
 
 .sponsors-subtitle {
-  color: var(--ink-soft, #5a7060);
+  color: #7a6e5c;
   max-width: 580px;
   margin: 0 auto 1.25rem;
   line-height: 1.7;
@@ -75,7 +75,7 @@
   justify-content: center;
   gap: 0.4rem 0.6rem;
   font-size: 0.82rem;
-  color: var(--ink-soft, #5a7060);
+  color: #7a6e5c;
   background: #f4f1ec;
   padding: 0.5rem 1.25rem;
   border-radius: 99px;
@@ -83,7 +83,7 @@
 }
 
 .contract-badge {
-  background: #2a5c34;
+  background: #3a3028;
   color: #fff;
   padding: 2px 10px;
   border-radius: 99px;
@@ -104,7 +104,7 @@
   display: flex;
   justify-content: space-between;
   font-size: 0.82rem;
-  color: var(--ink-soft, #5a7060);
+  color: #7a6e5c;
   margin-bottom: 0.5rem;
 }
 
@@ -117,7 +117,7 @@
 
 .sponsors-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #2a5c34, #5aaa6a);
+  background: linear-gradient(90deg, #3a3028, #8a7a68);
   border-radius: 99px;
   transition: width 0.8s ease;
   min-width: 3px;
@@ -126,7 +126,7 @@
 .sponsors-progress-note {
   text-align: center;
   font-size: 0.78rem;
-  color: #a0a89a;
+  color: #9a9080;
   margin-top: 0.5rem;
 }
 
@@ -141,7 +141,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #a0a89a;
+  color: #9a9080;
   margin-bottom: 0.75rem;
 }
 
@@ -236,7 +236,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: #a0a89a;
+  color: #9a9080;
   margin-bottom: 1rem;
 }
 
@@ -290,16 +290,16 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  color: #2a5c34;
+  color: #3a3028;
   margin-bottom: 0.5rem;
 }
 .tt-ring--reserved { color: #a06820; }
-.tt-ring--sold     { color: #1e6e3e; }
+.tt-ring--sold     { color: #3a3028; }
 .tt-ring--centre   { color: #8b6914; }
 
 .tt-desc {
   font-size: 0.8rem;
-  color: #7a8a7e;
+  color: #7a6e5c;
   line-height: 1.5;
   margin: 0 0 0.6rem;
 }
@@ -308,7 +308,7 @@
   font-size: 1.5rem;
   font-weight: 700;
   font-family: 'Playfair Display', Georgia, serif;
-  color: #1a2e1c;
+  color: #28221e;
   margin: 0 0 0.75rem;
   line-height: 1;
 }
@@ -323,7 +323,7 @@
 .tt-contact-btn {
   display: block;
   text-align: center;
-  background: #2a5c34;
+  background: #3a3028;
   color: #fff;
   padding: 0.5rem 1rem;
   border-radius: 7px;
@@ -332,13 +332,13 @@
   text-decoration: none;
   transition: background 0.15s;
 }
-.tt-contact-btn:hover { background: #1e4226; color: #fff; }
+.tt-contact-btn:hover { background: #28201a; color: #fff; }
 
 .tt-logo-wrap { text-align: center; margin-bottom: 0.5rem; }
 .tt-logo { max-height: 52px; max-width: 100%; object-fit: contain; border-radius: 4px; }
-.tt-sponsor-name { font-weight: 700; font-size: 0.92rem; color: #1a2e1c; margin: 0 0 0.2rem; text-align: center; }
-.tt-tagline { font-size: 0.78rem; color: #7a8a7e; text-align: center; margin: 0 0 0.5rem; }
-.tt-visit { display: block; text-align: center; font-size: 0.8rem; color: #2a5c34; font-weight: 600; text-decoration: none; }
+.tt-sponsor-name { font-weight: 700; font-size: 0.92rem; color: #28221e; margin: 0 0 0.2rem; text-align: center; }
+.tt-tagline { font-size: 0.78rem; color: #7a6e5c; text-align: center; margin: 0 0 0.5rem; }
+.tt-visit { display: block; text-align: center; font-size: 0.8rem; color: #3a3028; font-weight: 600; text-decoration: none; }
 .tt-visit:hover { text-decoration: underline; }
 
 /* ---- How it works ---- */
@@ -353,13 +353,13 @@
 .sponsors-how-title {
   font-family: 'Playfair Display', Georgia, serif;
   font-size: 1.6rem;
-  color: #1a2e1c;
+  color: #28221e;
   margin: 0 0 0.4rem;
 }
 
 .sponsors-how-subtitle {
   font-size: 0.88rem;
-  color: #7a8a7e;
+  color: #7a6e5c;
   margin: 0 0 1.75rem;
 }
 
@@ -384,7 +384,7 @@
   justify-content: center;
   width: 36px;
   height: 36px;
-  background: #2a5c34;
+  background: #3a3028;
   color: #fff;
   border-radius: 50%;
   font-weight: 700;
@@ -394,7 +394,7 @@
 
 .sponsors-how-step p {
   font-size: 0.85rem;
-  color: #5a7060;
+  color: #7a6e5c;
   line-height: 1.6;
   margin: 0;
 }
@@ -404,25 +404,25 @@
 .sponsors-contact-btn {
   display: inline-block;
   padding: 0.8rem 2.5rem;
-  background: #2a5c34;
+  background: #3a3028;
   color: #fff;
   border-radius: 10px;
   font-weight: 700;
   font-size: 1rem;
   text-decoration: none;
   transition: background 0.15s, transform 0.15s;
-  box-shadow: 0 4px 14px rgba(42,92,52,0.30);
+  box-shadow: 0 4px 14px rgba(40,34,30,0.20);
 }
 .sponsors-contact-btn:hover {
-  background: #1e4226;
-  color: #fff;
+  background: #28201a;
+  color: #f0ebe0;
   transform: translateY(-1px);
 }
 
 .sponsors-cta-note {
   margin-top: 0.75rem;
   font-size: 0.78rem;
-  color: #a0a89a;
+  color: #9a9080;
 }
 
 /* ---- Mobile ---- */
