@@ -210,10 +210,11 @@
   transition: opacity 0.12s;
 }
 .puzzle-cell--available:hover,
-.puzzle-cell--reserved:hover {
-  opacity: 0.72 !important;
+.puzzle-cell--reserved:hover,
+.puzzle-cell--sold:hover {
+  opacity: 0.80 !important;
 }
-.puzzle-cell--sold { cursor: default !important; }
+.puzzle-cell--sold { cursor: pointer !important; }
 
 /* ---- Tooltip ---- */
 .sponsor-tooltip {

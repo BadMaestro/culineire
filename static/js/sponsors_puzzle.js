@@ -171,7 +171,7 @@
           stroke       : '#fff',
           'stroke-width': '1.5',
           'filter'     : 'url(#cell-shadow)',
-          'cursor'     : status === 'sold' ? 'default' : 'pointer',
+          'cursor'     : 'pointer',
           'class'      : 'puzzle-cell puzzle-cell--' + status + ' puzzle-cell--ring-' + ring,
           'data-ring'  : ring,
           'data-pos'   : pos,
@@ -179,14 +179,15 @@
         });
 
         if (cellData && cellData.sponsor_logo && status === 'sold') {
-          // For sold cells with logo: render as a pattern fill
-          // (we overlay logo image in a foreignObject)
           pathEl.setAttribute('fill', fill);
           pathEl.setAttribute('opacity', '0.85');
         }
 
         attachCellEvents(pathEl, cellData, ring, pos);
         group.appendChild(pathEl);
+
+        // Price label inside cell
+        addCellPriceLabel(group, ring, innerR, outerR, startAngle, endAngle, status, cellData);
 
         // Add sponsor logo for sold cells (rendered as SVG image)
         if (cellData && cellData.sponsor_logo && status === 'sold') {
@@ -259,6 +260,49 @@
     var midR     = (innerR + outerR) / 2;
     var r = octRadius(midAngle, midR);
     return [CX + r * Math.cos(midAngle), CY + r * Math.sin(midAngle)];
+  }
+
+  var RING_PRICE_LABEL = {1: '€800', 2: '€400', 3: '€200', 4: '€100', 5: '€50', 6: '€25'};
+  var RING_FONT_SIZE   = {1: 13, 2: 12, 3: 11, 4: 10, 5: 9, 6: 8};
+
+  function addCellPriceLabel(group, ring, innerR, outerR, startAngle, endAngle, status, cellData) {
+    // Don't show price label on sold cells that have a logo — logo replaces it
+    if (status === 'sold' && cellData && cellData.sponsor_logo) { return; }
+
+    var centroid  = segmentCentroid(innerR + GAP, outerR - GAP / 2, startAngle, endAngle);
+    var midAngle  = (startAngle + endAngle) / 2;
+    var fontSize  = RING_FONT_SIZE[ring] || 9;
+
+    // Rotate text to follow the ring radially (so it's readable outward)
+    var rotateDeg = (midAngle * 180 / Math.PI) + 90;
+    // Keep text upright for left-side cells
+    if (rotateDeg > 90 && rotateDeg < 270) { rotateDeg += 180; }
+
+    var label;
+    if (status === 'sold' && cellData && cellData.sponsor_name) {
+      // Show short sponsor name (first word, max 6 chars)
+      var name = cellData.sponsor_name.split(' ')[0];
+      label = name.length > 6 ? name.slice(0, 5) + '…' : name;
+    } else {
+      label = RING_PRICE_LABEL[ring] || '';
+    }
+
+    var textColour = (status === 'sold') ? 'rgba(255,255,255,0.9)' : 'rgba(60,55,45,0.65)';
+
+    var textEl = svgEl('text', {
+      x                  : centroid[0].toFixed(1),
+      y                  : centroid[1].toFixed(1),
+      'text-anchor'      : 'middle',
+      'dominant-baseline': 'middle',
+      fill               : textColour,
+      'font-family'      : 'Inter, sans-serif',
+      'font-size'        : fontSize,
+      'font-weight'      : '600',
+      'pointer-events'   : 'none',
+      transform          : 'rotate(' + rotateDeg.toFixed(1) + ',' + centroid[0].toFixed(1) + ',' + centroid[1].toFixed(1) + ')',
+    });
+    textEl.textContent = label;
+    group.appendChild(textEl);
   }
 
   function appendLogoToCell(group, cellData, ring, pos, innerR, outerR, offset, sweep, count) {
