@@ -186,18 +186,18 @@
   box-shadow: 0 6px 20px rgba(40,34,30,0.10);
 }
 
-/* Central founding partner — dark charcoal, confident */
+/* Central founding partner — warm stone, distinguished */
 .sponsors-tier--0 {
-  background: linear-gradient(160deg, #2a2420 0%, #3e3430 100%);
-  border: 1.5px solid #1e1a16;
-  border-top: 1.5px solid #524840;
+  background: linear-gradient(160deg, #6c6054 0%, #5c5248 100%);
+  border: 1.5px solid #4e4438;
+  border-top: 1.5px solid #7e7264;
   color: #f0ebe0;
   min-width: 130px;
-  box-shadow: 0 4px 24px rgba(40,34,30,0.32);
+  box-shadow: 0 4px 20px rgba(40,34,30,0.20);
 }
 .sponsors-tier--0:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 34px rgba(40,34,30,0.42);
+  box-shadow: 0 8px 28px rgba(40,34,30,0.28);
 }
 
 /* Tier labels */
@@ -213,8 +213,22 @@
 .tier-price { font-size: 1.05rem; font-weight: 700; font-family: 'Playfair Display', Georgia, serif; color: #28221e; }
 .tier-mo    { font-size: 0.6rem; font-weight: 400; opacity: 0.50; font-family: sans-serif; }
 
-.sponsors-tier--0 .tier-ring,
-.sponsors-tier--0 .tier-count { color: rgba(240,235,224,0.58); opacity: 1; }
+.sponsors-tier--0 .tier-ring {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: 0.01em;
+  font-size: 0.74rem;
+  color: rgba(240,235,224,0.80);
+  opacity: 1;
+}
+.sponsors-tier--0 .tier-count {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  color: rgba(240,235,224,0.72);
+  opacity: 1;
+}
 .sponsors-tier--0 .tier-price { color: #d4a84a; font-size: 1.15rem; letter-spacing: -0.01em; }
 .sponsors-tier--0 .tier-mo    { color: rgba(212,168,74,0.55); }
 
