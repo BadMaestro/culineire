@@ -169,36 +169,36 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.10);
 }
 
-.sponsors-tier--6 { background: #fafaf5; border-color: #edeae0; color: #5a4e30; }
-.sponsors-tier--5 { background: #f4edd0; border-color: #e0d0a0; color: #5a4e30; }
-.sponsors-tier--4 { background: #ead878; border-color: #d4bc40; color: #5a4e30; }
-.sponsors-tier--3 { background: #d8c038; border-color: #c0a418; color: #5a4e30; }
-.sponsors-tier--2 { background: #c8a010; border-color: #a07e04; color: #fff8e0; }
-.sponsors-tier--1 { background: #a07800; border-color: #7c5c00; color: #fff8e0; }
+.sponsors-tier--6 { background: #f8f4e8; border-color: #e4dcc8; color: #4a3b0a; }
+.sponsors-tier--5 { background: #eedfc0; border-color: #d8c898; color: #4a3b0a; }
+.sponsors-tier--4 { background: #e2c87a; border-color: #cdb04a; color: #4a3b0a; }
+.sponsors-tier--3 { background: #cdb447; border-color: #a89020; color: #3a2c08; }
+.sponsors-tier--2 { background: #b8960c; border-color: #9a7a00; color: #fff8e0; }
+.sponsors-tier--1 { background: #9a7a00; border-color: #7a5e00; color: #fff8e0; }
 .sponsors-tier--0 {
-  background: linear-gradient(135deg, #7a5800 0%, #a07400 55%, #c08c08 100%);
-  border-color: #604400;
+  background: linear-gradient(160deg, #6a5000 0%, #8c6c00 50%, #a87e08 100%);
+  border-color: #503c00;
   color: #fff8e0;
   min-width: 130px;
-  box-shadow: 0 4px 20px rgba(160,116,0,0.45);
+  box-shadow: 0 4px 20px rgba(140,108,0,0.50);
 }
 
 .tier-ring  {
   font-size: 0.68rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  opacity: 0.65;
+  opacity: 0.70;
   margin-bottom: 2px;
   text-align: center;
 }
-.tier-count { font-size: 0.75rem; font-weight: 600; margin-bottom: 3px; opacity: 0.8; }
+.tier-count { font-size: 0.75rem; font-weight: 600; margin-bottom: 3px; opacity: 0.85; }
 .tier-price { font-size: 1.05rem; font-weight: 700; font-family: 'Playfair Display', Georgia, serif; }
 .tier-mo    { font-size: 0.6rem; font-weight: 400; opacity: 0.6; font-family: sans-serif; }
 
 .sponsors-tier--0 .tier-ring,
-.sponsors-tier--0 .tier-count { color: rgba(255,248,220,0.70); }
-.sponsors-tier--0 .tier-price { color: #ffe060; font-size: 1.15rem; letter-spacing: -0.01em; }
-.sponsors-tier--0 .tier-mo    { color: rgba(255,224,96,0.6); }
+.sponsors-tier--0 .tier-count { color: rgba(255,248,220,0.72); }
+.sponsors-tier--0 .tier-price { color: #ffe878; font-size: 1.15rem; letter-spacing: -0.01em; }
+.sponsors-tier--0 .tier-mo    { color: rgba(255,232,120,0.6); }
 
 /* ---- Puzzle ---- */
 .sponsors-puzzle-container {
