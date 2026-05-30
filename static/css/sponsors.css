@@ -169,18 +169,18 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.10);
 }
 
-.sponsors-tier--6 { background: #f4f1ec; border-color: #ddd9d0; }
-.sponsors-tier--5 { background: #ede8df; border-color: #d4cdc1; }
-.sponsors-tier--4 { background: #e4ddd1; border-color: #ccc4b5; }
-.sponsors-tier--3 { background: #d8d0c0; border-color: #bfb8a4; }
-.sponsors-tier--2 { background: #ccc1aa; border-color: #b0a890; }
-.sponsors-tier--1 { background: #bfb49a; border-color: #a09878; }
+.sponsors-tier--6 { background: #fafaf5; border-color: #edeae0; color: #4a4432; }
+.sponsors-tier--5 { background: #f4edd0; border-color: #e0d0a0; color: #44380e; }
+.sponsors-tier--4 { background: #ead878; border-color: #d4bc40; color: #352c00; }
+.sponsors-tier--3 { background: #d8c038; border-color: #c0a418; color: #2a2200; }
+.sponsors-tier--2 { background: #c8a010; border-color: #a07e04; color: #180f00; }
+.sponsors-tier--1 { background: #a07800; border-color: #7c5c00; color: #fff8e0; }
 .sponsors-tier--0 {
-  background: linear-gradient(135deg, #1e4226 0%, #2a5c34 60%, #3a7a44 100%);
-  border-color: #1a3820;
-  color: #fff;
+  background: linear-gradient(135deg, #7a5800 0%, #a07400 55%, #c08c08 100%);
+  border-color: #604400;
+  color: #fff8e0;
   min-width: 130px;
-  box-shadow: 0 4px 16px rgba(42,92,52,0.35);
+  box-shadow: 0 4px 20px rgba(160,116,0,0.45);
 }
 
 .tier-ring  {
@@ -196,9 +196,9 @@
 .tier-mo    { font-size: 0.6rem; font-weight: 400; opacity: 0.6; font-family: sans-serif; }
 
 .sponsors-tier--0 .tier-ring,
-.sponsors-tier--0 .tier-count { color: rgba(255,255,255,0.65); }
-.sponsors-tier--0 .tier-price { color: #ffd700; font-size: 1.15rem; letter-spacing: -0.01em; }
-.sponsors-tier--0 .tier-mo    { color: rgba(255,215,0,0.6); }
+.sponsors-tier--0 .tier-count { color: rgba(255,248,220,0.70); }
+.sponsors-tier--0 .tier-price { color: #ffe060; font-size: 1.15rem; letter-spacing: -0.01em; }
+.sponsors-tier--0 .tier-mo    { color: rgba(255,224,96,0.6); }
 
 /* ---- Puzzle ---- */
 .sponsors-puzzle-container {
