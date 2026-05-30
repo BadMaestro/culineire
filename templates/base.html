@@ -124,6 +124,7 @@
                 </a>
                 {% endif %}
                 <span aria-hidden="true" class="ce-nav__separator"></span>
+                {# TODO: unhide when Amuse-Bouche is ready for public launch
                 {% if namespace == 'amuse_bouche' %}
                 <a class="ce-nav__link ce-nav__link--active" href="{% url 'amuse_bouche:feed' %}" aria-current="page">
                     Amuse-Bouche
@@ -133,6 +134,7 @@
                     Amuse-Bouche
                 </a>
                 {% endif %}
+                #}
                 <span aria-hidden="true" class="ce-nav__separator"></span>
                 {% if chef_battle_enabled %}
                 {% url 'chef_battle:home' as chef_battle_url %}
