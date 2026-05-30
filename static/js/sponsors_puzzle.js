@@ -336,6 +336,16 @@
     });
   }
 
+  // Close on click outside puzzle
+  document.addEventListener('click', function (e) {
+    if (!tooltip.hidden &&
+        !tooltip.contains(e.target) &&
+        !e.target.classList.contains('puzzle-cell') &&
+        e.target.id !== 'sponsor-puzzle') {
+      tooltip.hidden = true;
+    }
+  });
+
   function attachCellEvents(el, cellData, ring, pos) {
     el.addEventListener('click', function (e) {
       showTooltip(cellData, ring, e);
@@ -418,15 +428,25 @@
   }
 
   function positionTooltip(event) {
-    var rect = tooltip.getBoundingClientRect();
-    var svgRect = document.getElementById('sponsor-puzzle').getBoundingClientRect();
-    var x = event.clientX - svgRect.left + 16;
-    var y = event.clientY - svgRect.top + 16;
+    var container     = document.querySelector('.sponsors-puzzle-container');
+    var containerRect = container.getBoundingClientRect();
+    var TW = 248;   // tooltip width
+    var TH = 220;   // estimated height
 
-    // Clamp so tooltip stays inside puzzle container
-    var containerW = svgRect.width;
-    if (x + 260 > containerW) { x = event.clientX - svgRect.left - 270; }
-    if (x < 0) { x = 8; }
+    var x = event.clientX - containerRect.left + 14;
+    var y = event.clientY - containerRect.top  + 14;
+
+    // Flip left if too close to right edge
+    if (x + TW > containerRect.width - 8) {
+      x = event.clientX - containerRect.left - TW - 14;
+    }
+    // Flip up if too close to bottom
+    if (y + TH > containerRect.height - 8) {
+      y = event.clientY - containerRect.top - TH - 14;
+    }
+    // Hard clamp
+    if (x < 8) { x = 8; }
+    if (y < 8) { y = 8; }
 
     tooltip.style.left = x + 'px';
     tooltip.style.top  = y + 'px';
