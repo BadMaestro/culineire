@@ -268,12 +268,12 @@
       /* ---- Default: CulinEire branding ---- */
       var text1 = svgEl('text', {
         x                  : CX,
-        y                  : CY - 10,
+        y                  : CY - 8,
         'text-anchor'      : 'middle',
         'dominant-baseline': 'middle',
         fill               : '#fff',
         'font-family'      : 'Georgia, serif',
-        'font-size'        : '22',
+        'font-size'        : '18',
         'font-weight'      : 'bold',
         'pointer-events'   : 'none',
       });
@@ -281,12 +281,12 @@
 
       var text2 = svgEl('text', {
         x                  : CX,
-        y                  : CY + 13,
+        y                  : CY + 11,
         'text-anchor'      : 'middle',
         'dominant-baseline': 'middle',
         fill               : 'rgba(255,255,255,0.7)',
         'font-family'      : 'Georgia, serif',
-        'font-size'        : '11',
+        'font-size'        : '9',
         'pointer-events'   : 'none',
       });
       text2.textContent = '★ FOUNDING SPONSOR';
