@@ -246,15 +246,15 @@ def _build_amuse_bouche_roadmap_status():
             "id": "phase-1",
             "phase": "Phase 1",
             "title": "Shared Foundations",
-            "status": "mostly_done",
-            "summary": "Reusable saves/reactions are in place; status alignment is established.",
+            "status": "done",
+            "summary": "Reusable saves/reactions and status alignment are in place for the MVP.",
             "done": [
                 "Added generic SavedContent for cross-content saves.",
                 "Added generic ContentReaction for reusable likes.",
                 "Aligned Amuse-Bouche statuses with Recipe and Article moderation states.",
             ],
             "current": [],
-            "remaining": ["Consider migrating Recipe and Article saves to generic SavedContent later."],
+            "remaining": ["Later: consider migrating Recipe and Article saves to generic SavedContent."],
             "files": ["collection/models.py", "collection/migrations/0002_contentreaction_savedcontent.py"],
         },
         {
@@ -276,15 +276,16 @@ def _build_amuse_bouche_roadmap_status():
             "phase": "Phase 3",
             "title": "Public Pages",
             "status": "done",
-            "summary": "Feed, detail, submit/edit routes and templates are available.",
+            "summary": "Feed, detail, submit/edit routes and templates are available behind a launch gate.",
             "done": [
                 "Added /amuse-bouche/ feed and indexable detail pages.",
                 "Added author submit/edit views and templates.",
                 "Added mobile-first CSS for the feed cards.",
+                "Gated the public area behind AMUSE_BOUCHE_PUBLIC while allowing staff/moderator preview.",
             ],
             "current": [],
             "remaining": [],
-            "files": ["amuse_bouche/views.py", "amuse_bouche/urls.py", "templates/amuse_bouche/", "static/css/amuse_bouche.css"],
+            "files": ["amuse_bouche/views.py", "amuse_bouche/visibility.py", "templates/amuse_bouche/", "static/css/amuse_bouche.css"],
         },
         {
             "id": "phase-4",
@@ -321,34 +322,39 @@ def _build_amuse_bouche_roadmap_status():
             "id": "phase-6",
             "phase": "Phase 6",
             "title": "Homepage And Navigation",
-            "status": "partial",
-            "summary": "Navigation and homepage hooks exist; launch polish is still pending.",
+            "status": "mostly_done",
+            "summary": "Homepage, navigation and profile hooks exist and are hidden until launch.",
             "done": [
-                "Added main navigation link.",
-                "Added homepage block that appears when approved posts exist.",
-                "Added author profile counts and dashboard rows.",
+                "Added main navigation link and temporarily hid it before public launch.",
+                "Added homepage block and gated it behind Amuse-Bouche visibility.",
+                "Added author profile counts/dashboard rows and hid public links while gated.",
+                "Hid My Collection Amuse-Bouche tab while the public area is gated.",
             ],
-            "current": ["Next active engineering block: moderation panel integration."],
+            "current": [],
             "remaining": [
-                "Decide whether nav should stay hidden until real approved content exists.",
-                "Browser-check the homepage/feed layouts after test content is present.",
+                "Re-enable public navigation when AMUSE_BOUCHE_PUBLIC is turned on.",
+                "Browser-check homepage/feed layouts after real test content exists.",
             ],
-            "files": ["templates/base.html", "templates/home.html", "templates/recipes/author_detail.html", "recipes/views.py"],
+            "files": ["templates/base.html", "templates/home.html", "templates/recipes/author_detail.html", "templates/collection/my_collection.html", "recipes/views.py"],
         },
         {
             "id": "phase-7",
             "phase": "Phase 7",
             "title": "Internal Launch",
-            "status": "not_started",
-            "summary": "Needs moderation flow, seed content and UX review.",
-            "done": [],
-            "current": [],
+            "status": "partial",
+            "summary": "Staff preview is deployed; moderation flow, seed content and UX review remain.",
+            "done": [
+                "Deployed staff/moderator preview behind the feature flag.",
+                "Fixed preview hero contrast and authoring form layout issues found during review.",
+                "Confirmed anonymous public access returns 404 while gated.",
+            ],
+            "current": ["Next active engineering block: moderation panel integration and internal test content."],
             "remaining": [
                 "Add moderation queue/actions for Amuse-Bouche.",
                 "Create 10-20 test posts.",
                 "Run browser checks on desktop and mobile.",
             ],
-            "files": ["templates/moderation/panel.html", "amuse_bouche/tests.py"],
+            "files": ["templates/moderation/panel.html", "amuse_bouche/tests.py", "templates/amuse_bouche/form.html", "static/css/authoring.css"],
         },
         {
             "id": "phase-8",
@@ -384,19 +390,27 @@ def _build_amuse_bouche_roadmap_status():
             "files": [],
         },
     ]
-    done_count = sum(1 for phase in phases if phase["status"] == "done")
-    active_count = sum(1 for phase in phases if phase["status"] in {"mostly_done", "partial"})
+    mvp_phases = [phase for phase in phases if phase["status"] != "deferred"]
+    done_count = sum(1 for phase in mvp_phases if phase["status"] == "done")
+    active_count = sum(1 for phase in mvp_phases if phase["status"] in {"mostly_done", "partial"})
+    progress_weight = {
+        "done": 1,
+        "mostly_done": 0.8,
+        "partial": 0.45,
+        "not_started": 0,
+    }
     blocked_items = [
-        "Local sqlite migrate check currently hits disk I/O error before applying new migrations.",
         "Full test suite has an existing recipe rating failure unrelated to Amuse-Bouche.",
+        "Public launch is intentionally gated until moderation, seed content and browser review are complete.",
     ]
-    current_phase = next((phase for phase in phases if phase["current"]), phases[6])
-    percent = round((done_count / len(phases)) * 100)
+    current_phase = next((phase for phase in mvp_phases if phase["current"]), phases[7])
+    weighted_done = sum(progress_weight.get(phase["status"], 0) for phase in mvp_phases)
+    percent = round((weighted_done / len(mvp_phases)) * 100) if mvp_phases else 0
     return {
         "phases": phases,
         "done_count": done_count,
         "active_count": active_count,
-        "total_count": len(phases),
+        "total_count": len(mvp_phases),
         "percent": percent,
         "current_phase": current_phase,
         "blocked_items": blocked_items,
