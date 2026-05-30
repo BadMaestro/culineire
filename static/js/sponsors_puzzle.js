@@ -21,8 +21,8 @@
 
   // Radii of each ring boundary (inner edge, then outer edge per ring)
   var RING_RADII = {
-    centre : [0,   65],
-    1      : [65,  145],
+    centre : [0,   85],   // +30% vs original 65
+    1      : [85,  145],
     2      : [145, 235],
     3      : [235, 325],
     4      : [325, 400],
@@ -250,30 +250,30 @@
       clipGroup.appendChild(img);
       g.appendChild(clipGroup);
 
-      /* small "★ FOUNDING SPONSOR" label at bottom of cell */
+      /* small "★ FOUNDING SPONSOR" label — positioned above bottom vertices */
       var lbl = svgEl('text', {
         x                  : CX,
-        y                  : CY + R - 9,
+        y                  : CY + Math.round(R * 0.68),
         'text-anchor'      : 'middle',
         'dominant-baseline': 'middle',
         fill               : 'rgba(255,255,255,0.80)',
         'font-family'      : 'Georgia, serif',
-        'font-size'        : '9',
+        'font-size'        : '10',
         'pointer-events'   : 'none',
       });
-      lbl.textContent = '★ FOUNDING SPONSOR';
+      lbl.textContent = '★ FOUNDING SPONSOR ★';
       g.appendChild(lbl);
 
     } else {
       /* ---- Default: CulinEire branding ---- */
       var text1 = svgEl('text', {
         x                  : CX,
-        y                  : CY - 8,
+        y                  : CY - 11,
         'text-anchor'      : 'middle',
         'dominant-baseline': 'middle',
         fill               : '#fff',
         'font-family'      : 'Georgia, serif',
-        'font-size'        : '18',
+        'font-size'        : '23',
         'font-weight'      : 'bold',
         'pointer-events'   : 'none',
       });
@@ -281,12 +281,12 @@
 
       var text2 = svgEl('text', {
         x                  : CX,
-        y                  : CY + 11,
+        y                  : CY + 14,
         'text-anchor'      : 'middle',
         'dominant-baseline': 'middle',
         fill               : 'rgba(255,255,255,0.7)',
         'font-family'      : 'Georgia, serif',
-        'font-size'        : '8',
+        'font-size'        : '10',
         'pointer-events'   : 'none',
       });
       text2.textContent = '★ FOUNDING SPONSOR ★';
