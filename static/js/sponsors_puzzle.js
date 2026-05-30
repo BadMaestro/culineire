@@ -286,7 +286,7 @@
         'dominant-baseline': 'middle',
         fill               : 'rgba(255,255,255,0.7)',
         'font-family'      : 'Georgia, serif',
-        'font-size'        : '9',
+        'font-size'        : '8',
         'pointer-events'   : 'none',
       });
       text2.textContent = '★ FOUNDING SPONSOR ★';
