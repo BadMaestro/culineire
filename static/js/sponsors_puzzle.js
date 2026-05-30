@@ -95,11 +95,12 @@
    * Build the full octagon polygon points string (for clip-path or border).
    */
   function octagonPoints(cx, cy, R) {
+    // Vertices at 0°, 45°, 90°, … — matches octRadius() where R is the circumradius
+    // (octRadius(0°,R)=R, octRadius(45°,R)=R, etc.)
     var pts = [];
     for (var i = 0; i < 8; i++) {
-      var angle = Math.PI / 8 + i * Math.PI / 4;
-      var r     = octRadius(angle, R);
-      pts.push((cx + r * Math.cos(angle)).toFixed(2) + ',' + (cy + r * Math.sin(angle)).toFixed(2));
+      var angle = i * Math.PI / 4;
+      pts.push((cx + R * Math.cos(angle)).toFixed(2) + ',' + (cy + R * Math.sin(angle)).toFixed(2));
     }
     return pts.join(' ');
   }
