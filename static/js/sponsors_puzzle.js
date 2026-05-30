@@ -289,7 +289,7 @@
         'font-size'        : '9',
         'pointer-events'   : 'none',
       });
-      text2.textContent = '★ FOUNDING SPONSOR';
+      text2.textContent = '★ FOUNDING SPONSOR ★';
 
       g.appendChild(text1);
       g.appendChild(text2);
