@@ -20,11 +20,12 @@
                 <p class="automation-kicker">Amuse-Bouche Integration</p>
                 <h1 class="automation-title">Project State Navigation</h1>
                 <p class="automation-summary">
-                    {{ roadmap.done_count }}/{{ roadmap.total_count }} phases complete.
+                    {{ roadmap.done_count }}/{{ roadmap.total_count }} MVP phases complete.
                     Current focus: {{ roadmap.current_phase.phase }} - {{ roadmap.current_phase.title }}.
+                    {{ roadmap.progress_scope }}
                 </p>
             </div>
-            <div class="ab-roadmap-meter" aria-label="{{ roadmap.percent }} percent complete">
+            <div class="ab-roadmap-meter" aria-label="{{ roadmap.percent }} percent MVP complete">
                 <span style="width: {{ roadmap.percent }}%"></span>
                 <strong>{{ roadmap.percent }}%</strong>
             </div>

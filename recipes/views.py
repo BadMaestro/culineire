@@ -381,12 +381,19 @@ def _build_amuse_bouche_roadmap_status():
         {
             "id": "phase-10",
             "phase": "Phase 10",
-            "title": "Chef Battle Later",
+            "title": "Chef Battle Integration Hooks",
             "status": "deferred",
-            "summary": "Shared hooks avoid blocking future Chef Battle, but gamification is not implemented.",
-            "done": ["Kept reactions and activity foundations reusable."],
+            "summary": "Amuse-Bouche must stay compatible with the future Chef Battle concept, but game mechanics are outside this MVP.",
+            "done": [
+                "Kept reactions and activity foundations reusable.",
+                "Kept Amuse-Bouche as a compact content type that can later feed challenges, entries or battle prompts.",
+            ],
             "current": [],
-            "remaining": ["Add reputation and battle hooks after anti-farming rules exist."],
+            "remaining": [
+                "Define how Amuse-Bouche posts can become Chef Battle prompts, entries or references.",
+                "Add reputation, scoring and anti-farming rules before any competitive mechanics go live.",
+                "Connect battle activity to the shared newsfeed only after moderation rules are stable.",
+            ],
             "files": [],
         },
     ]
@@ -413,6 +420,7 @@ def _build_amuse_bouche_roadmap_status():
         "total_count": len(mvp_phases),
         "percent": percent,
         "current_phase": current_phase,
+        "progress_scope": "MVP only; deferred Chef Battle and video phases remain tracked below.",
         "blocked_items": blocked_items,
         "next_steps": [
             "Add Amuse-Bouche moderation queue and actions.",
