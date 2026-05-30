@@ -95,7 +95,7 @@
                         {{ form.hero_image }}
                         {% if form.hero_image.help_text %}<p class="authoring-help">{{ form.hero_image.help_text }}</p>{% endif %}
                         {% for error in form.hero_image.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
-                        {% if has_openai and form_mode != "edit" %}
+                        {% if has_openai and form_mode != "edit" and author.slug == "greenbear" %}
                         <div class="authoring-ai-image-panel" id="ai-hero-panel">
                             <button class="authoring-step-regen" id="ai-hero-btn" type="button"
                                     data-generate-url="{% url 'recipes:recipe_ai_generate_hero' %}">&#10024; Generate AI Image</button>
