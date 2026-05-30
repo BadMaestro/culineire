@@ -156,82 +156,70 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0.75rem 1rem;
-  border-radius: 12px;
-  min-width: 90px;
-  border: 1.5px solid transparent;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  min-width: 92px;
+  border: 1px solid;
   cursor: default;
+  background: #fffdf8;
+  color: #5a5040;
   transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
 }
 
-/* Rings 6–1: dark forest green base, gold border intensifies right→left */
-.sponsors-tier--6,
-.sponsors-tier--5,
-.sponsors-tier--4,
-.sponsors-tier--3,
-.sponsors-tier--2,
-.sponsors-tier--1 {
-  background: linear-gradient(150deg, #1e3422 0%, #152818 100%);
-  color: #c8bc8a;
-}
+/* Light gold border — intensifies ring 6→1 */
+.sponsors-tier--6 { border-color: #ddd4a8; }
+.sponsors-tier--5 { border-color: #d0bc80; }
+.sponsors-tier--4 { border-color: #c4a850; box-shadow: 0 1px 8px rgba(196,168,80,0.10); }
+.sponsors-tier--3 { border-color: #b89428; box-shadow: 0 2px 14px rgba(184,148,40,0.16); }
+.sponsors-tier--2 { border-color: #c8a818; box-shadow: 0 3px 20px rgba(200,168,24,0.20); }
+.sponsors-tier--1 { border-color: #d4af37; box-shadow: 0 4px 26px rgba(212,175,55,0.30); }
 
-.sponsors-tier--6 { border-color: #3e3818; }
-.sponsors-tier--5 { border-color: #5a5020; }
-.sponsors-tier--4 { border-color: #766428; }
-.sponsors-tier--3 { border-color: #967830; box-shadow: 0 2px 10px rgba(150,120,48,0.18); }
-.sponsors-tier--2 { border-color: #b89030; box-shadow: 0 3px 16px rgba(184,144,48,0.28); }
-.sponsors-tier--1 { border-color: #d4af37; box-shadow: 0 4px 22px rgba(212,175,55,0.38); }
+/* Hover: lift + golden glow */
+.sponsors-tier--6:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(196,168,80,0.18); }
+.sponsors-tier--5:hover { transform: translateY(-4px); box-shadow: 0 8px 26px rgba(196,168,80,0.20); }
+.sponsors-tier--4:hover { transform: translateY(-4px); box-shadow: 0 8px 28px rgba(196,168,80,0.24); }
+.sponsors-tier--3:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(184,148,40,0.28); border-color: #c8a828; }
+.sponsors-tier--2:hover { transform: translateY(-4px); box-shadow: 0 8px 32px rgba(200,168,24,0.34); border-color: #d4af37; }
+.sponsors-tier--1:hover { transform: translateY(-4px); box-shadow: 0 10px 36px rgba(212,175,55,0.44); border-color: #e0c040; }
 
-/* Hover: gold glow on all tiers */
-.sponsors-tier--6:hover,
-.sponsors-tier--5:hover,
-.sponsors-tier--4:hover,
-.sponsors-tier--3:hover,
-.sponsors-tier--2:hover,
-.sponsors-tier--1:hover {
-  transform: translateY(-3px);
-  border-color: #d4af37;
-  box-shadow: 0 8px 28px rgba(212,175,55,0.30);
-}
-
-/* Central founding partner */
+/* Central founding partner — literal gold card */
 .sponsors-tier--0 {
-  background: linear-gradient(150deg, #2e2000 0%, #4a3400 45%, #6a4e08 100%);
-  border-color: #d4af37;
-  color: #ffe878;
+  background: linear-gradient(140deg, #f6e896 0%, #e8ca44 50%, #c89c0c 100%);
+  border: 1.5px solid #a87808;
+  color: #2a1c00;
   min-width: 130px;
-  box-shadow: 0 4px 24px rgba(212,175,55,0.40);
+  box-shadow: 0 6px 32px rgba(200,156,12,0.38);
 }
 .sponsors-tier--0:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 36px rgba(212,175,55,0.58);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 44px rgba(200,156,12,0.52);
 }
 
 /* Tier labels */
 .tier-ring  {
   font-size: 0.68rem;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  opacity: 0.60;
+  letter-spacing: 0.07em;
+  opacity: 0.58;
   margin-bottom: 2px;
   text-align: center;
 }
-.tier-count { font-size: 0.75rem; font-weight: 600; margin-bottom: 4px; opacity: 0.75; }
+.tier-count { font-size: 0.75rem; font-weight: 600; margin-bottom: 4px; opacity: 0.78; }
 .tier-price { font-size: 1.05rem; font-weight: 700; font-family: 'Playfair Display', Georgia, serif; }
-.tier-mo    { font-size: 0.6rem; font-weight: 400; opacity: 0.6; font-family: sans-serif; }
+.tier-mo    { font-size: 0.6rem; font-weight: 400; opacity: 0.55; font-family: sans-serif; }
 
-/* Price gold — progressively brighter */
-.sponsors-tier--6 .tier-price { color: #907e40; }
-.sponsors-tier--5 .tier-price { color: #a89048; }
-.sponsors-tier--4 .tier-price { color: #bea050; }
-.sponsors-tier--3 .tier-price { color: #d4b040; }
-.sponsors-tier--2 .tier-price { color: #e8c828; }
-.sponsors-tier--1 .tier-price { color: #ffd700; text-shadow: 0 0 12px rgba(255,215,0,0.40); }
+/* Price: warm gold, intensifies ring 6→1 */
+.sponsors-tier--6 .tier-price { color: #9a8840; }
+.sponsors-tier--5 .tier-price { color: #aa9438; }
+.sponsors-tier--4 .tier-price { color: #ba9e2c; }
+.sponsors-tier--3 .tier-price { color: #c4a41e; }
+.sponsors-tier--2 .tier-price { color: #ccaa10; }
+.sponsors-tier--1 .tier-price { color: #d4af37; }
 
 .sponsors-tier--0 .tier-ring,
-.sponsors-tier--0 .tier-count { color: rgba(255,232,120,0.65); }
-.sponsors-tier--0 .tier-price { color: #ffd700; font-size: 1.15rem; letter-spacing: -0.01em; text-shadow: 0 0 18px rgba(255,215,0,0.55); }
-.sponsors-tier--0 .tier-mo    { color: rgba(255,215,0,0.55); }
+.sponsors-tier--0 .tier-count { color: rgba(42,28,0,0.58); }
+.sponsors-tier--0 .tier-price { color: #2a1c00; font-size: 1.2rem; letter-spacing: -0.01em; }
+.sponsors-tier--0 .tier-mo    { color: rgba(42,28,0,0.45); }
 
 /* ---- Puzzle ---- */
 .sponsors-puzzle-container {
