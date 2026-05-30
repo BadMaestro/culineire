@@ -32,6 +32,7 @@ from accounts.views import (
     is_moderator,
 )
 from articles.models import Article, ArticleImage
+from amuse_bouche.models import AmuseBouche
 from collection.models import SavedRecipe
 from config.turnstile import verify_turnstile
 from monitoring.tracker import get_client_ip, hash_ip, track_event
@@ -223,6 +224,188 @@ def _build_automation_roadmap_progress():
         "total_count": len(items),
         "percent": round((done_count / len(items)) * 100) if items else 0,
         "copy_text": "\n".join(text_lines),
+    }
+
+
+def _build_amuse_bouche_roadmap_status():
+    phases = [
+        {
+            "id": "phase-0",
+            "phase": "Phase 0",
+            "title": "Audit",
+            "status": "done",
+            "summary": "Project structure, shared systems and reuse points have been inspected.",
+            "done": [
+                "Audited Recipes, Articles, Collection, News Feed, author profiles, statuses and galleries.",
+                "Confirmed RecipeAuthor can be reused as the shared author identity.",
+            ],
+            "current": [],
+            "remaining": [],
+            "files": ["recipes/models.py", "articles/models.py", "collection/models.py", "newsfeed/models.py"],
+        },
+        {
+            "id": "phase-1",
+            "phase": "Phase 1",
+            "title": "Shared Foundations",
+            "status": "mostly_done",
+            "summary": "Reusable saves/reactions are in place; status alignment is established.",
+            "done": [
+                "Added generic SavedContent for cross-content saves.",
+                "Added generic ContentReaction for reusable likes.",
+                "Aligned Amuse-Bouche statuses with Recipe and Article moderation states.",
+            ],
+            "current": [],
+            "remaining": ["Consider migrating Recipe and Article saves to generic SavedContent later."],
+            "files": ["collection/models.py", "collection/migrations/0002_contentreaction_savedcontent.py"],
+        },
+        {
+            "id": "phase-2",
+            "phase": "Phase 2",
+            "title": "Backend",
+            "status": "done",
+            "summary": "The Amuse-Bouche app, models, admin, forms, migrations and tests exist.",
+            "done": [
+                "Created AmuseBouche and AmuseBoucheGalleryImage models.",
+                "Added admin registration, authoring form, migrations and public tests.",
+            ],
+            "current": [],
+            "remaining": [],
+            "files": ["amuse_bouche/models.py", "amuse_bouche/admin.py", "amuse_bouche/forms.py", "amuse_bouche/tests.py"],
+        },
+        {
+            "id": "phase-3",
+            "phase": "Phase 3",
+            "title": "Public Pages",
+            "status": "done",
+            "summary": "Feed, detail, submit/edit routes and templates are available.",
+            "done": [
+                "Added /amuse-bouche/ feed and indexable detail pages.",
+                "Added author submit/edit views and templates.",
+                "Added mobile-first CSS for the feed cards.",
+            ],
+            "current": [],
+            "remaining": [],
+            "files": ["amuse_bouche/views.py", "amuse_bouche/urls.py", "templates/amuse_bouche/", "static/css/amuse_bouche.css"],
+        },
+        {
+            "id": "phase-4",
+            "phase": "Phase 4",
+            "title": "Interactions",
+            "status": "done",
+            "summary": "Users can like and save approved Amuse-Bouche posts.",
+            "done": [
+                "Added like/save POST endpoints backed by generic models.",
+                "Added My Collection tab for saved Amuse-Bouche posts.",
+            ],
+            "current": [],
+            "remaining": [],
+            "files": ["amuse_bouche/views.py", "collection/views.py", "templates/collection/my_collection.html"],
+        },
+        {
+            "id": "phase-5",
+            "phase": "Phase 5",
+            "title": "Activity Feed",
+            "status": "partial",
+            "summary": "News feed event types and publish signal exist; fuller activity UX remains.",
+            "done": [
+                "Added Amuse-Bouche newsfeed event types.",
+                "Added signal to create/hide publication events.",
+            ],
+            "current": [],
+            "remaining": [
+                "Review event copy and homepage/newsfeed presentation.",
+                "Add featured-event behavior if needed.",
+            ],
+            "files": ["newsfeed/models.py", "amuse_bouche/signals.py"],
+        },
+        {
+            "id": "phase-6",
+            "phase": "Phase 6",
+            "title": "Homepage And Navigation",
+            "status": "partial",
+            "summary": "Navigation and homepage hooks exist; launch polish is still pending.",
+            "done": [
+                "Added main navigation link.",
+                "Added homepage block that appears when approved posts exist.",
+                "Added author profile counts and dashboard rows.",
+            ],
+            "current": ["Next active engineering block: moderation panel integration."],
+            "remaining": [
+                "Decide whether nav should stay hidden until real approved content exists.",
+                "Browser-check the homepage/feed layouts after test content is present.",
+            ],
+            "files": ["templates/base.html", "templates/home.html", "templates/recipes/author_detail.html", "recipes/views.py"],
+        },
+        {
+            "id": "phase-7",
+            "phase": "Phase 7",
+            "title": "Internal Launch",
+            "status": "not_started",
+            "summary": "Needs moderation flow, seed content and UX review.",
+            "done": [],
+            "current": [],
+            "remaining": [
+                "Add moderation queue/actions for Amuse-Bouche.",
+                "Create 10-20 test posts.",
+                "Run browser checks on desktop and mobile.",
+            ],
+            "files": ["templates/moderation/panel.html", "amuse_bouche/tests.py"],
+        },
+        {
+            "id": "phase-8",
+            "phase": "Phase 8",
+            "title": "Public Launch",
+            "status": "not_started",
+            "summary": "Launch work waits until internal content and UX are stable.",
+            "done": [],
+            "current": [],
+            "remaining": ["Prepare announcement and launch homepage activity."],
+            "files": [],
+        },
+        {
+            "id": "phase-9",
+            "phase": "Phase 9",
+            "title": "Video Later",
+            "status": "deferred",
+            "summary": "Video remains intentionally out of MVP.",
+            "done": [],
+            "current": [],
+            "remaining": ["Design video storage/compression/moderation when MVP is stable."],
+            "files": [],
+        },
+        {
+            "id": "phase-10",
+            "phase": "Phase 10",
+            "title": "Chef Battle Later",
+            "status": "deferred",
+            "summary": "Shared hooks avoid blocking future Chef Battle, but gamification is not implemented.",
+            "done": ["Kept reactions and activity foundations reusable."],
+            "current": [],
+            "remaining": ["Add reputation and battle hooks after anti-farming rules exist."],
+            "files": [],
+        },
+    ]
+    done_count = sum(1 for phase in phases if phase["status"] == "done")
+    active_count = sum(1 for phase in phases if phase["status"] in {"mostly_done", "partial"})
+    blocked_items = [
+        "Local sqlite migrate check currently hits disk I/O error before applying new migrations.",
+        "Full test suite has an existing recipe rating failure unrelated to Amuse-Bouche.",
+    ]
+    current_phase = next((phase for phase in phases if phase["current"]), phases[6])
+    percent = round((done_count / len(phases)) * 100)
+    return {
+        "phases": phases,
+        "done_count": done_count,
+        "active_count": active_count,
+        "total_count": len(phases),
+        "percent": percent,
+        "current_phase": current_phase,
+        "blocked_items": blocked_items,
+        "next_steps": [
+            "Add Amuse-Bouche moderation queue and actions.",
+            "Add moderation tests.",
+            "Create internal launch content and browser-check the feed.",
+        ],
     }
 
 CATEGORY_IMAGE_MAP = {
@@ -444,10 +627,16 @@ def home(request):
         .filter(status=Article.Status.APPROVED, is_deleted=False)
         .order_by("-published")[:6]
     )
+    latest_amuse_bouche = (
+        AmuseBouche.objects.select_related("author", "linked_recipe", "linked_article")
+        .filter(status=AmuseBouche.Status.APPROVED)
+        .order_by("-is_featured", "-published_at", "-created_at")[:6]
+    )
 
     context = {
         "latest_recipes": latest_recipes,
         "latest_articles": latest_articles,
+        "latest_amuse_bouche": latest_amuse_bouche,
     }
     return render(request, "home.html", context)
 
@@ -1089,12 +1278,15 @@ def author_detail(request, slug):
 
     recipes_for_count = Recipe.objects.filter(author=author, is_deleted=False)
     articles_for_count = Article.objects.filter(author=author, is_deleted=False)
+    amuse_bouche_for_count = AmuseBouche.objects.filter(author=author)
     if not (can_manage or moderator):
         recipes_for_count = recipes_for_count.filter(status=Recipe.Status.APPROVED)
         articles_for_count = articles_for_count.filter(status=Article.Status.APPROVED)
+        amuse_bouche_for_count = amuse_bouche_for_count.filter(status=AmuseBouche.Status.APPROVED)
 
     recipe_count = recipes_for_count.count()
     article_count = articles_for_count.count()
+    amuse_bouche_count = amuse_bouche_for_count.count()
 
     private_dashboard = can_manage or moderator
     _VALID_STATUS_FILTERS = {
@@ -1111,27 +1303,33 @@ def author_detail(request, slug):
 
     recipe_qs = Recipe.objects.filter(author=author, is_deleted=False).order_by("-created_at")
     article_qs = Article.objects.filter(author=author, is_deleted=False).order_by("-published")
+    amuse_bouche_qs = AmuseBouche.objects.filter(author=author).order_by("-published_at", "-created_at")
     if private_dashboard:
         if status_value:
             recipe_qs = recipe_qs.filter(status=status_value)
             article_qs = article_qs.filter(status=status_value)
+            amuse_bouche_qs = amuse_bouche_qs.filter(status=status_value)
     else:
         recipe_qs = recipe_qs.filter(status=Recipe.Status.APPROVED)
         article_qs = article_qs.filter(status=Article.Status.APPROVED)
+        amuse_bouche_qs = amuse_bouche_qs.filter(status=AmuseBouche.Status.APPROVED)
 
     dashboard_recipes = list(recipe_qs)
     dashboard_articles = list(article_qs)
+    dashboard_amuse_bouche = list(amuse_bouche_qs)
 
     context = {
         "author": author,
         "recipe_count": recipe_count,
         "article_count": article_count,
+        "amuse_bouche_count": amuse_bouche_count,
         "is_god_author": author.slug == settings.OWNER_SLUG,
         "can_manage_author_profile": can_manage,
         "is_moderator_viewer": moderator,
         "private_dashboard": private_dashboard,
         "dashboard_recipes": dashboard_recipes,
         "dashboard_articles": dashboard_articles,
+        "dashboard_amuse_bouche": dashboard_amuse_bouche,
         "status_filter": status_filter,
     }
     return render(request, "recipes/author_detail.html", context)
@@ -1233,7 +1431,12 @@ class RecipeCreateView(AuthorRequiredMixin, CreateView):
         context["gallery_step_rows"] = _gallery_step_rows()
         context["can_save_draft"] = True
         context["can_approve"] = is_moderator(self.request.user)
-        context["has_openai"] = bool(getattr(settings, "OPENAI_API_KEY", ""))
+        _author = self.author
+        _can_ai = bool(getattr(settings, "OPENAI_API_KEY", "")) and (
+            is_moderator(self.request.user)
+            or (_author and _author.slug == settings.OWNER_SLUG)
+        )
+        context["has_openai"] = _can_ai
         return context
 
 
@@ -1773,6 +1976,17 @@ def automation_progress(request):
     )
 
 
+def amuse_bouche_roadmap(request):
+    if not is_moderator(request.user):
+        raise Http404
+
+    return render(
+        request,
+        "moderation/amuse_bouche_roadmap.html",
+        {"roadmap": _build_amuse_bouche_roadmap_status()},
+    )
+
+
 def _send_recipe_notification(recipe, event, moderation_note=""):
     author = recipe.author
     if not author or not author.user or not author.user.email:
@@ -1959,10 +2173,9 @@ def recipe_ai_generate_hero(request):
     if not bool(getattr(settings, "OPENAI_API_KEY", "")):
         return JsonResponse({"success": False, "error": "Image generation is not configured."}, status=503)
 
-    from .authoring import get_author_for_user
-    from accounts.views import is_moderator
-    if not (is_moderator(request.user) or get_author_for_user(request.user)):
-        return JsonResponse({"success": False, "error": "Author profile required."}, status=403)
+    author = getattr(request.user, "recipe_author_profile", None)
+    if not (is_moderator(request.user) or (author and author.slug == settings.OWNER_SLUG)):
+        return JsonResponse({"success": False, "error": "Not authorized."}, status=403)
 
     title = request.POST.get("title", "").strip()
     alt_text = request.POST.get("alt_text", "").strip()
