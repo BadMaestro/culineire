@@ -218,15 +218,26 @@
     g.appendChild(poly);
 
     if (status === 'sold' && cellData && cellData.sponsor_logo) {
-      /* ---- Sold: show sponsor logo ---- */
-      var logoR = (R * 0.85).toFixed(1);
-      var img   = svgEl('image', {
+      /* ---- Sold: show sponsor logo clipped to octagon boundary ---- */
+
+      // Register a clipPath in <defs> matching exactly this cell's octagon
+      var svgDefs = document.querySelector('#sponsor-puzzle defs');
+      if (svgDefs) {
+        var centreClip     = svgEl('clipPath', { id: 'centre-cell-clip' });
+        var centreClipPoly = svgEl('polygon',  { points: pts });
+        centreClip.appendChild(centreClipPoly);
+        svgDefs.appendChild(centreClip);
+      }
+
+      // Fill the octagon bounding box (2R × 2R) and clip to the shape
+      var img = svgEl('image', {
         href                : cellData.sponsor_logo,
-        x                   : (CX - R * 0.85).toFixed(1),
-        y                   : (CY - R * 0.85).toFixed(1),
-        width               : (R * 1.7).toFixed(1),
-        height              : (R * 1.7).toFixed(1),
-        preserveAspectRatio : 'xMidYMid meet',
+        x                   : (CX - R).toFixed(1),
+        y                   : (CY - R).toFixed(1),
+        width               : (R * 2).toFixed(1),
+        height              : (R * 2).toFixed(1),
+        preserveAspectRatio : 'xMidYMid slice',
+        'clip-path'         : 'url(#centre-cell-clip)',
         'pointer-events'    : 'none',
       });
       g.appendChild(img);
@@ -237,7 +248,7 @@
         y                  : CY + R - 9,
         'text-anchor'      : 'middle',
         'dominant-baseline': 'middle',
-        fill               : 'rgba(255,255,255,0.75)',
+        fill               : 'rgba(255,255,255,0.80)',
         'font-family'      : 'Georgia, serif',
         'font-size'        : '9',
         'pointer-events'   : 'none',
