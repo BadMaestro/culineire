@@ -268,7 +268,7 @@
       /* ---- Default: CulinEire branding ---- */
       var text1 = svgEl('text', {
         x                  : CX,
-        y                  : CY - 8,
+        y                  : CY - 10,
         'text-anchor'      : 'middle',
         'dominant-baseline': 'middle',
         fill               : '#fff',
@@ -281,7 +281,7 @@
 
       var text2 = svgEl('text', {
         x                  : CX,
-        y                  : CY + 18,
+        y                  : CY + 13,
         'text-anchor'      : 'middle',
         'dominant-baseline': 'middle',
         fill               : 'rgba(255,255,255,0.7)',
