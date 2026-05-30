@@ -203,6 +203,19 @@ def cell_moderate(request, cell_id):
         sponsor_url = _normalize_url(request.POST.get("sponsor_url", "").strip())
         if sponsor_url:
             cell.sponsor_url = sponsor_url
+        # Allow admin to reposition the logo
+        try:
+            offset_x = request.POST.get("offset_x")
+            offset_y = request.POST.get("offset_y")
+            scale    = request.POST.get("scale")
+            if offset_x is not None:
+                cell.logo_offset_x = float(offset_x)
+            if offset_y is not None:
+                cell.logo_offset_y = float(offset_y)
+            if scale is not None:
+                cell.logo_scale = float(scale)
+        except (ValueError, TypeError):
+            pass
         cell.save()
         return JsonResponse({"ok": True, "status": cell.status})
 

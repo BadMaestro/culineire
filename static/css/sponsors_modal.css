@@ -132,29 +132,31 @@
 /* ---- Sold content ---- */
 .spm-sold-content {
   text-align: center;
-  padding: 0.5rem 0;
+  padding: 0.5rem 0 0.75rem;
 }
 .spm-sold-content img {
-  max-height: 72px;
-  max-width: 100%;
+  display: block;
+  margin: 0 auto 0.85rem;
+  max-height: 110px;
+  max-width: 70%;
   object-fit: contain;
-  border-radius: 6px;
-  margin-bottom: 0.6rem;
+  border-radius: 8px;
 }
-.spm-sponsor-name    { font-weight: 700; font-size: 1rem; color: #1a2e1c; margin: 0 0 0.3rem; }
-.spm-sponsor-tagline { font-size: 0.85rem; color: #7a8a7e; margin: 0 0 0.75rem; }
+.spm-sponsor-name    { font-weight: 700; font-size: 1.05rem; color: #1a2e1c; margin: 0 0 0.3rem; }
+.spm-sponsor-tagline { font-size: 0.85rem; color: #7a8a7e; margin: 0 0 0.85rem; }
 .spm-visit-btn {
   display: inline-block;
-  padding: 0.5rem 1.5rem;
+  padding: 0.65rem 2rem;
   background: #2a5c34;
   color: #fff;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  font-weight: 700;
   text-decoration: none;
-  transition: background 0.15s;
+  transition: background 0.15s, transform 0.12s;
+  box-shadow: 0 3px 10px rgba(42,92,52,0.25);
 }
-.spm-visit-btn:hover { background: #1e4226; color: #fff; }
+.spm-visit-btn:hover { background: #1e4226; color: #fff; transform: translateY(-1px); }
 
 /* ---- Reserved ---- */
 .spm-reserved-msg {
@@ -383,7 +385,7 @@
 /* ---- Admin panel ---- */
 .spm-admin {
   margin-top: 1.5rem;
-  padding: 1.1rem 1.1rem 0.9rem;
+  padding: 1rem 1rem 0.85rem;
   background: #f4f1ec;
   border: 1px solid #e4ddd1;
   border-radius: 12px;
@@ -395,19 +397,56 @@
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: #a0a89a;
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.9rem;
 }
 
+/* Canvas section inside admin panel */
+.spm-admin-canvas-section {
+  margin-bottom: 0.85rem;
+}
+
+#spm-admin-canvas {
+  border-radius: 12px;
+  cursor: grab;
+  display: block;
+  background: #e8e4dc;
+  border: 1.5px solid #ddd9d0;
+  max-width: 220px;
+  max-height: 220px;
+}
+#spm-admin-canvas:active { cursor: grabbing; }
+
+/* Edit fields inside admin panel */
+.spm-admin-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.spm-admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.spm-admin-input {
+  font-size: 0.84rem !important;
+}
+
+/* Enquiry data rows */
 .spm-admin-enquiry {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e4ddd1;
 }
 
 .spm-admin-row {
   display: grid;
-  grid-template-columns: 70px 1fr;
+  grid-template-columns: 72px 1fr;
   gap: 0.5rem;
   font-size: 0.82rem;
   align-items: baseline;
@@ -416,13 +455,12 @@
 .spm-admin-lbl {
   font-weight: 600;
   color: #5a7060;
-  font-size: 0.75rem;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-.spm-admin-row a {
-  color: #2a5c34;
-  word-break: break-all;
-}
+.spm-admin-row a { color: #2a5c34; word-break: break-all; }
 
 .spm-admin-empty {
   font-size: 0.82rem;
@@ -431,58 +469,61 @@
   font-style: italic;
 }
 
-.spm-admin-pending-logo {
-  margin: 0.75rem 0;
-}
+.spm-admin-pending-logo { margin: 0.6rem 0; }
 
 .spm-admin-logo-img {
   display: block;
-  max-height: 60px;
+  max-height: 64px;
   max-width: 160px;
-  border-radius: 5px;
+  border-radius: 6px;
   margin-top: 0.35rem;
   border: 1px solid #ddd9d0;
   background: #fff;
   padding: 4px;
+  object-fit: contain;
 }
 
 .spm-admin-btns {
   display: flex;
   gap: 0.5rem;
-  margin-top: 0.8rem;
+  margin-top: 0.75rem;
 }
 
 .spm-admin-approve,
 .spm-admin-reject {
   flex: 1;
-  padding: 0.5rem;
+  padding: 0.6rem 0.5rem;
   border: none;
-  border-radius: 7px;
-  font-size: 0.82rem;
+  border-radius: 8px;
+  font-size: 0.84rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.12s;
+  transition: background 0.12s, transform 0.1s;
   font-family: inherit;
+  line-height: 1.2;
 }
 
 .spm-admin-approve {
   background: #2a5c34;
   color: #fff;
+  box-shadow: 0 2px 8px rgba(42,92,52,0.22);
 }
-.spm-admin-approve:hover { background: #1e4226; }
+.spm-admin-approve:hover { background: #1e4226; transform: translateY(-1px); }
 
 .spm-admin-reject {
-  background: #f4ede4;
+  background: transparent;
   color: #8b3a1e;
-  border: 1px solid #e4c9b5;
+  border: 1.5px solid #e4c9b5;
 }
-.spm-admin-reject:hover { background: #fbe5d6; }
+.spm-admin-reject:hover { background: #fdf0e8; border-color: #d4a890; }
 
 .spm-admin-done {
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   color: #2a5c34;
   font-weight: 600;
   margin: 0;
+  text-align: center;
+  padding: 0.25rem 0;
 }
 
 /* ---- Mobile ---- */

@@ -218,7 +218,7 @@
     g.appendChild(poly);
 
     if (status === 'sold' && cellData && cellData.sponsor_logo) {
-      /* ---- Sold: show sponsor logo clipped to octagon boundary ---- */
+      /* ---- Sold: show sponsor logo clipped to octagon, with offset/scale ---- */
 
       // Register a clipPath in <defs> matching exactly this cell's octagon
       var svgDefs = document.querySelector('#sponsor-puzzle defs');
@@ -229,18 +229,25 @@
         svgDefs.appendChild(centreClip);
       }
 
-      // Fill the octagon bounding box (2R × 2R) and clip to the shape
+      // Apply admin-set offset and scale (stored as % of R, scale as raw factor)
+      var ox      = ((cellData.logo_offset_x || 0) / 100) * R;
+      var oy      = ((cellData.logo_offset_y || 0) / 100) * R;
+      var sc      = cellData.logo_scale || 1.0;
+      var imgSize = R * 2 * sc;
+
+      // Clip group contains the image so it can move within the octagon
+      var clipGroup = svgEl('g', { 'clip-path': 'url(#centre-cell-clip)' });
       var img = svgEl('image', {
         href                : cellData.sponsor_logo,
-        x                   : (CX - R).toFixed(1),
-        y                   : (CY - R).toFixed(1),
-        width               : (R * 2).toFixed(1),
-        height              : (R * 2).toFixed(1),
+        x                   : (CX + ox - imgSize / 2).toFixed(1),
+        y                   : (CY + oy - imgSize / 2).toFixed(1),
+        width               : imgSize.toFixed(1),
+        height              : imgSize.toFixed(1),
         preserveAspectRatio : 'xMidYMid slice',
-        'clip-path'         : 'url(#centre-cell-clip)',
         'pointer-events'    : 'none',
       });
-      g.appendChild(img);
+      clipGroup.appendChild(img);
+      g.appendChild(clipGroup);
 
       /* small "★ FOUNDING SPONSOR" label at bottom of cell */
       var lbl = svgEl('text', {

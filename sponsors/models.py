@@ -106,4 +106,7 @@ class SponsorCell(models.Model):
             "price_display": self.price_display,
             "is_centre": self.is_centre,
             "centre_label": self.centre_label,
+            "logo_offset_x": self.logo_offset_x,
+            "logo_offset_y": self.logo_offset_y,
+            "logo_scale": self.logo_scale,
         }

@@ -297,6 +297,17 @@
   var CANVAS_CX = 110;
   var CANVAS_CY = 110;
 
+  function drawOctagonPath(ctx) {
+    ctx.beginPath();
+    for (var i = 0; i < 8; i++) {
+      var a  = Math.PI / 8 + i * Math.PI / 4;
+      var px = CANVAS_CX + CANVAS_R * Math.cos(a);
+      var py = CANVAS_CY + CANVAS_R * Math.sin(a);
+      if (i === 0) { ctx.moveTo(px, py); } else { ctx.lineTo(px, py); }
+    }
+    ctx.closePath();
+  }
+
   function redrawCanvas() {
     var canvas = canvasEl || document.getElementById('spm-canvas');
     if (!canvas) { return; }
@@ -306,49 +317,46 @@
     var ring      = currentCell ? currentCell.ring : 1;
     var fillColor = cellFill(ring);
 
-    /* Draw octagonal cell shape */
-    ctx.beginPath();
-    for (var i = 0; i < 8; i++) {
-      var a = Math.PI / 8 + i * Math.PI / 4;
-      var px = CANVAS_CX + CANVAS_R * Math.cos(a);
-      var py = CANVAS_CY + CANVAS_R * Math.sin(a);
-      if (i === 0) { ctx.moveTo(px, py); }
-      else         { ctx.lineTo(px, py); }
-    }
-    ctx.closePath();
+    /* Draw octagonal background */
+    drawOctagonPath(ctx);
     ctx.fillStyle = fillColor;
     ctx.fill();
     ctx.strokeStyle = 'rgba(255,255,255,0.35)';
     ctx.lineWidth   = 2;
     ctx.stroke();
 
-    /* Guide crosshair */
+    /* Draw logo clipped to octagon */
+    if (logoImg) {
+      ctx.save();
+      drawOctagonPath(ctx);
+      ctx.clip();
+
+      /* scale=1.0 → logo fills the octagon (slice semantics, matching SVG) */
+      var baseSize = CANVAS_R * 2 * logoScale;
+      var lw, lh;
+      if (logoImg.width >= logoImg.height) {
+        lh = baseSize;
+        lw = baseSize * (logoImg.width / logoImg.height);
+      } else {
+        lw = baseSize;
+        lh = baseSize * (logoImg.height / logoImg.width);
+      }
+      ctx.drawImage(logoImg, CANVAS_CX + logoOffset.x - lw / 2,
+                             CANVAS_CY + logoOffset.y - lh / 2, lw, lh);
+      ctx.restore();
+    }
+
+    /* Guide crosshair on top */
     ctx.save();
-    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
     ctx.lineWidth   = 1;
     ctx.setLineDash([3, 3]);
     ctx.beginPath();
-    ctx.moveTo(CANVAS_CX - 18, CANVAS_CY); ctx.lineTo(CANVAS_CX + 18, CANVAS_CY);
-    ctx.moveTo(CANVAS_CX, CANVAS_CY - 18); ctx.lineTo(CANVAS_CX, CANVAS_CY + 18);
+    ctx.moveTo(CANVAS_CX - 16, CANVAS_CY); ctx.lineTo(CANVAS_CX + 16, CANVAS_CY);
+    ctx.moveTo(CANVAS_CX, CANVAS_CY - 16); ctx.lineTo(CANVAS_CX, CANVAS_CY + 16);
     ctx.stroke();
     ctx.setLineDash([]);
     ctx.restore();
-
-    /* Draw logo */
-    if (logoImg) {
-      var maxSize = CANVAS_R * 1.5 * logoScale;
-      var lw, lh;
-      if (logoImg.width >= logoImg.height) {
-        lw = maxSize;
-        lh = maxSize * (logoImg.height / logoImg.width);
-      } else {
-        lh = maxSize;
-        lw = maxSize * (logoImg.width / logoImg.height);
-      }
-      var lx = CANVAS_CX + logoOffset.x - lw / 2;
-      var ly = CANVAS_CY + logoOffset.y - lh / 2;
-      ctx.drawImage(logoImg, lx, ly, lw, lh);
-    }
   }
 
   var CELL_COLOURS = {
@@ -499,15 +507,30 @@
     html += '<div class="spm-admin-title">Admin moderation</div>';
 
     if (data.status === 'sold') {
-      /* --- Edit mode for already-sold cells --- */
+      /* --- Logo repositioning canvas --- */
+      if (data.sponsor_logo) {
+        var initScale = (data.logo_scale || 1.0).toFixed(2);
+        var initScaleLabel = parseFloat(initScale).toFixed(1);
+        html += '<div class="spm-admin-canvas-section">';
+        html += '<p class="spm-canvas-label">Drag to reposition logo inside the cell</p>';
+        html += '<div class="spm-canvas-outer"><canvas id="spm-admin-canvas" width="220" height="220"></canvas></div>';
+        html += '<div class="spm-scale-row">';
+        html += '<span class="spm-scale-label">Size</span>';
+        html += '<input type="range" id="spm-admin-scale" min="0.2" max="3.0" step="0.05" value="' + initScale + '" class="spm-scale-input">';
+        html += '<span id="spm-admin-scale-val" class="spm-scale-val">' + initScaleLabel + '&times;</span>';
+        html += '</div>';
+        html += '</div>';
+      }
+
+      /* --- Edit fields --- */
       html += '<div class="spm-admin-edit">';
-      html += '<div class="spm-field" style="margin:0 0 0.5rem">';
+      html += '<div class="spm-admin-field">';
       html += '<label class="spm-admin-lbl">Display name</label>';
-      html += '<input type="text" id="spm-admin-display-name" class="spm-input" value="' + esc(data.sponsor_name || '') + '" style="margin-top:0.25rem;font-size:0.82rem">';
+      html += '<input type="text" id="spm-admin-display-name" class="spm-input spm-admin-input" value="' + esc(data.sponsor_name || '') + '">';
       html += '</div>';
-      html += '<div class="spm-field" style="margin:0 0 0.5rem">';
+      html += '<div class="spm-admin-field">';
       html += '<label class="spm-admin-lbl">Website URL</label>';
-      html += '<input type="text" id="spm-admin-sponsor-url" class="spm-input" value="' + esc(data.sponsor_url || '') + '" style="margin-top:0.25rem;font-size:0.82rem" placeholder="https://">';
+      html += '<input type="text" id="spm-admin-sponsor-url" class="spm-input spm-admin-input" value="' + esc(data.sponsor_url || '') + '" placeholder="https://">';
       html += '</div>';
       html += '</div>';
       html += '<div class="spm-admin-btns">';
@@ -545,13 +568,13 @@
         var defName = data.enquiry_company || data.enquiry_name || '';
         var defUrl  = data.enquiry_website || '';
         html += '<div class="spm-admin-edit">';
-        html += '<div class="spm-field" style="margin:0.5rem 0 0.4rem">';
+        html += '<div class="spm-admin-field">';
         html += '<label class="spm-admin-lbl">Display name on puzzle</label>';
-        html += '<input type="text" id="spm-admin-display-name" class="spm-input" value="' + esc(defName) + '" style="margin-top:0.25rem;font-size:0.82rem">';
+        html += '<input type="text" id="spm-admin-display-name" class="spm-input spm-admin-input" value="' + esc(defName) + '">';
         html += '</div>';
-        html += '<div class="spm-field" style="margin:0 0 0.5rem">';
+        html += '<div class="spm-admin-field">';
         html += '<label class="spm-admin-lbl">Sponsor URL</label>';
-        html += '<input type="text" id="spm-admin-sponsor-url" class="spm-input" value="' + esc(defUrl) + '" style="margin-top:0.25rem;font-size:0.82rem" placeholder="https://">';
+        html += '<input type="text" id="spm-admin-sponsor-url" class="spm-input spm-admin-input" value="' + esc(defUrl) + '" placeholder="https://">';
         html += '</div>';
         html += '</div>';
         html += '<div class="spm-admin-btns">';
@@ -570,6 +593,44 @@
         moderateCell(data.id, this.getAttribute('data-action'));
       });
     });
+
+    // Init draggable canvas for sold cells with a logo
+    if (data.status === 'sold' && data.sponsor_logo) {
+      initAdminCanvas(data);
+    }
+  }
+
+  function initAdminCanvas(data) {
+    canvasEl = document.getElementById('spm-admin-canvas');
+    if (!canvasEl) { return; }
+
+    // Restore stored position/scale
+    logoOffset.x = ((data.logo_offset_x || 0) / 100) * CANVAS_R;
+    logoOffset.y = ((data.logo_offset_y || 0) / 100) * CANVAS_R;
+    logoScale    = data.logo_scale || 1.0;
+
+    // Bind canvas drag events
+    canvasEl.addEventListener('mousedown',  onCanvasMouseDown);
+    canvasEl.addEventListener('touchstart', onCanvasTouchStart, { passive: false });
+
+    // Bind scale slider
+    var slider = document.getElementById('spm-admin-scale');
+    if (slider) {
+      slider.addEventListener('input', function () {
+        logoScale = parseFloat(this.value);
+        var v = document.getElementById('spm-admin-scale-val');
+        if (v) { v.textContent = logoScale.toFixed(1) + '×'; }
+        redrawCanvas();
+      });
+    }
+
+    // Load existing sponsor logo into canvas
+    var img = new Image();
+    img.onload = function () {
+      logoImg = img;
+      redrawCanvas();
+    };
+    img.src = data.sponsor_logo;
   }
 
   function row(label, value) {
@@ -584,6 +645,13 @@
     if (nameEl && nameEl.value.trim()) { fd.append('sponsor_name', nameEl.value.trim()); }
     var urlEl = document.getElementById('spm-admin-sponsor-url');
     if (urlEl && urlEl.value.trim()) { fd.append('sponsor_url', urlEl.value.trim()); }
+
+    // Send logo position when admin canvas is active (edit or approve)
+    if (document.getElementById('spm-admin-canvas') && (action === 'edit' || action === 'approve')) {
+      fd.append('offset_x', (logoOffset.x / CANVAS_R * 100).toFixed(2));
+      fd.append('offset_y', (logoOffset.y / CANVAS_R * 100).toFixed(2));
+      fd.append('scale',    logoScale.toFixed(3));
+    }
 
     fetch('/sponsors/cell/' + cellId + '/moderate/', {
       method:  'POST',
