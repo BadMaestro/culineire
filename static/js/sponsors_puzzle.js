@@ -315,7 +315,7 @@
       if (cellData && cellData.status === 'sold') {
         html += sponsorHtml(cellData);
       } else {
-        html += '<p class="tt-desc">The most prestigious and exclusive spot on the puzzle. Your brand at the heart of CulinEire. Annual contract with Bearcave.</p>';
+        html += '<p class="tt-desc">The most prestigious and exclusive spot on the puzzle. Your brand at the heart of CulinEire. Annual contract with Bearcave Ltd..</p>';
         html += '<p class="tt-price">€30,000<span style="font-size:0.6em;font-weight:400">/yr</span></p>';
         html += contactBtn('Central Founding Partner inquiry');
       }
@@ -323,7 +323,7 @@
       var ringLabel = ringName(ring);
       var price     = cellData ? cellData.price_display : ringPrice(ring);
       html += '<div class="tt-ring">Ring ' + ring + ' — ' + ringLabel + '</div>';
-      html += '<p class="tt-desc">Your logo appears here, linked to your website. Annual contract with Bearcave.</p>';
+      html += '<p class="tt-desc">Your logo appears here, linked to your website. Annual contract with Bearcave Ltd..</p>';
       html += '<p class="tt-price">' + price + '</p>';
       html += contactBtn('Enquire about Ring ' + ring + ' spot');
     } else if (cellData.status === 'reserved') {

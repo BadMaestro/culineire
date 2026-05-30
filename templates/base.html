@@ -150,16 +150,6 @@
                 </a>
                 {% endif %}
                 <span aria-hidden="true" class="ce-nav__separator"></span>
-                {% if namespace == 'sponsors' %}
-                <a class="ce-nav__link ce-nav__link--active" href="{% url 'sponsors:puzzle' %}" aria-current="page">
-                    Sponsors
-                </a>
-                {% else %}
-                <a class="ce-nav__link" href="{% url 'sponsors:puzzle' %}">
-                    Sponsors
-                </a>
-                {% endif %}
-                <span aria-hidden="true" class="ce-nav__separator"></span>
                 {% if namespace == 'messaging' and url_name == 'contact' %}
                 <a class="ce-nav__link ce-nav__link--active" href="{% url 'messaging:contact' %}" aria-current="page">
                     Contact
@@ -167,6 +157,16 @@
                 {% else %}
                 <a class="ce-nav__link" href="{% url 'messaging:contact' %}">
                     Contact
+                </a>
+                {% endif %}
+                <span aria-hidden="true" class="ce-nav__separator"></span>
+                {% if namespace == 'sponsors' %}
+                <a class="ce-nav__link ce-nav__link--active" href="{% url 'sponsors:puzzle' %}" aria-current="page">
+                    Sponsors
+                </a>
+                {% else %}
+                <a class="ce-nav__link" href="{% url 'sponsors:puzzle' %}">
+                    Sponsors
                 </a>
                 {% endif %}
                 <span aria-hidden="true" class="ce-nav__separator"></span>
@@ -327,7 +327,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v1.5.96</span>
+                <span class="footer-version">v1.5.97</span>
             </div>
         </div>
     </div>
