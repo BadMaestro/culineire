@@ -201,54 +201,80 @@
   }
 
   function drawCentre(g, cellData) {
-    // Centre octagon
-    var R = RING_RADII.centre[1] - GAP;
-    var pts = octagonPoints(CX, CY, R);
-
-    var status = (cellData && cellData.status !== 'available') ? cellData.status : 'centre';
-    var fill   = '#2a5c34';  // CulinEire green
+    var R    = RING_RADII.centre[1] - GAP;
+    var pts  = octagonPoints(CX, CY, R);
+    var status = cellData ? cellData.status : 'available';
 
     var poly = svgEl('polygon', {
-      points       : pts,
-      fill         : fill,
-      stroke       : '#fff',
+      points        : pts,
+      fill          : '#2a5c34',
+      stroke        : '#fff',
       'stroke-width': '2',
-      'filter'     : 'url(#cell-shadow)',
-      'cursor'     : 'pointer',
-      'class'      : 'puzzle-cell puzzle-cell--centre',
+      'filter'      : 'url(#cell-shadow)',
+      'cursor'      : 'pointer',
+      'class'       : 'puzzle-cell puzzle-cell--centre',
     });
-
     attachCellEvents(poly, cellData, 0, 0);
     g.appendChild(poly);
 
-    // CulinEire text in centre
-    var text1 = svgEl('text', {
-      x           : CX,
-      y           : CY - 8,
-      'text-anchor': 'middle',
-      'dominant-baseline': 'middle',
-      fill        : '#fff',
-      'font-family': 'Georgia, serif',
-      'font-size' : '22',
-      'font-weight': 'bold',
-      'pointer-events': 'none',
-    });
-    text1.textContent = 'CulinEire';
+    if (status === 'sold' && cellData && cellData.sponsor_logo) {
+      /* ---- Sold: show sponsor logo ---- */
+      var logoR = (R * 0.85).toFixed(1);
+      var img   = svgEl('image', {
+        href                : cellData.sponsor_logo,
+        x                   : (CX - R * 0.85).toFixed(1),
+        y                   : (CY - R * 0.85).toFixed(1),
+        width               : (R * 1.7).toFixed(1),
+        height              : (R * 1.7).toFixed(1),
+        preserveAspectRatio : 'xMidYMid meet',
+        'pointer-events'    : 'none',
+      });
+      g.appendChild(img);
 
-    var text2 = svgEl('text', {
-      x           : CX,
-      y           : CY + 18,
-      'text-anchor': 'middle',
-      'dominant-baseline': 'middle',
-      fill        : 'rgba(255,255,255,0.7)',
-      'font-family': 'Georgia, serif',
-      'font-size' : '11',
-      'pointer-events': 'none',
-    });
-    text2.textContent = '★ FOUNDING SPONSOR';
+      /* small "★ FOUNDING SPONSOR" label at bottom of cell */
+      var lbl = svgEl('text', {
+        x                  : CX,
+        y                  : CY + R - 9,
+        'text-anchor'      : 'middle',
+        'dominant-baseline': 'middle',
+        fill               : 'rgba(255,255,255,0.75)',
+        'font-family'      : 'Georgia, serif',
+        'font-size'        : '9',
+        'pointer-events'   : 'none',
+      });
+      lbl.textContent = '★ FOUNDING SPONSOR';
+      g.appendChild(lbl);
 
-    g.appendChild(text1);
-    g.appendChild(text2);
+    } else {
+      /* ---- Default: CulinEire branding ---- */
+      var text1 = svgEl('text', {
+        x                  : CX,
+        y                  : CY - 8,
+        'text-anchor'      : 'middle',
+        'dominant-baseline': 'middle',
+        fill               : '#fff',
+        'font-family'      : 'Georgia, serif',
+        'font-size'        : '22',
+        'font-weight'      : 'bold',
+        'pointer-events'   : 'none',
+      });
+      text1.textContent = 'CulinEire';
+
+      var text2 = svgEl('text', {
+        x                  : CX,
+        y                  : CY + 18,
+        'text-anchor'      : 'middle',
+        'dominant-baseline': 'middle',
+        fill               : 'rgba(255,255,255,0.7)',
+        'font-family'      : 'Georgia, serif',
+        'font-size'        : '11',
+        'pointer-events'   : 'none',
+      });
+      text2.textContent = '★ FOUNDING SPONSOR';
+
+      g.appendChild(text1);
+      g.appendChild(text2);
+    }
   }
 
   /**

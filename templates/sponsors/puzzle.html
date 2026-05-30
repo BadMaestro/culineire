@@ -11,6 +11,14 @@
 {% block content %}
 <div class="sponsors-page">
 
+  {% if request.user.is_staff and reserved > 0 %}
+  <div class="sponsors-admin-notice">
+    <span class="sponsors-admin-notice__icon">&#9679;</span>
+    <strong>{{ reserved }} pending enquir{{ reserved|pluralize:"y,ies" }}</strong> waiting for review.
+    Click the amber cells on the puzzle to approve or reject.
+  </div>
+  {% endif %}
+
   <!-- Header -->
   <div class="sponsors-header">
     <span class="sponsors-eyebrow">Become a Founding Sponsor</span>
