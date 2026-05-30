@@ -32,6 +32,40 @@
     </div>
 </section>
 
+{% if latest_amuse_bouche %}
+<section class="page-section">
+    <div class="container">
+        <div class="page-header">
+            <div>
+                <span class="pill">Small bites, big ideas</span>
+                <h2>Today's Amuse-Bouche</h2>
+            </div>
+            <a class="btn-secondary" href="{% url 'amuse_bouche:feed' %}">View All</a>
+        </div>
+
+        <div class="recipe-grid recipe-grid--mini">
+            {% for item in latest_amuse_bouche %}
+            <article class="recipe-card">
+                <a class="recipe-card__image-wrapper" href="{{ item.get_absolute_url }}">
+                    {% if item.card_image %}<img alt="{{ item.title }}" src="{{ item.card_image.url }}" loading="lazy">
+                    {% else %}<img alt="{{ item.title }}" src="{% static 'images/hero.jpg' %}" loading="lazy">{% endif %}
+                </a>
+                <div class="recipe-card__body">
+                    <div class="recipe-card__content">
+                        <p class="recipe-card__meta-item">{{ item.get_content_type_display }}</p>
+                        <h3 class="recipe-card__title"><a href="{{ item.get_absolute_url }}">{{ item.title }}</a></h3>
+                        {% if item.short_description %}
+                        <p class="recipe-card__description">{{ item.short_description|truncatewords:18 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
 <section class="page-section">
     <div class="container">
         <div class="page-header">

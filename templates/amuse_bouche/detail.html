@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if item.seo_title %}{{ item.seo_title }}{% else %}{{ item.title }}{% endif %} | Amuse-Bouche{% endblock %}
+{% block meta_description %}{{ item.public_description }}{% endblock %}
+{% block og_title %}{{ item.title }} | Amuse-Bouche{% endblock %}
+{% block og_description %}{{ item.public_description }}{% endblock %}
+{% block og_image %}{% if item.card_image %}{{ request.scheme }}://{{ request.get_host }}{{ item.card_image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero.jpg' %}{% endif %}{% endblock %}
+{% block extra_head %}
+<link href="{% static 'css/amuse_bouche.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="page-section ab-detail-section">
+    <div class="container ab-detail">
+        {% include "amuse_bouche/item_card.html" with item=item liked_ids=liked_ids saved_ids=saved_ids detail=True %}
+    </div>
+</section>
+{% endblock %}

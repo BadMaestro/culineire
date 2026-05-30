@@ -1,0 +1,50 @@
+{% load static %}
+<article class="ab-card{% if detail %} ab-card--detail{% endif %}">
+    <a class="ab-card__media" href="{{ item.get_absolute_url }}">
+        {% if item.card_image %}
+        <img alt="{% if item.cover_image_alt %}{{ item.cover_image_alt }}{% else %}{{ item.title }}{% endif %}" src="{{ item.card_image.url }}" loading="lazy">
+        {% else %}
+        <img alt="" src="{% static 'images/hero.jpg' %}" loading="lazy">
+        {% endif %}
+    </a>
+    <div class="ab-card__body">
+        <div class="ab-card__meta">
+            <span class="ab-badge">{{ item.get_content_type_display }}</span>
+            {% if item.author %}
+            <a class="ab-author" href="{{ item.author.get_absolute_url }}">{{ item.author.name }}</a>
+            {% endif %}
+        </div>
+        <h2 class="ab-card__title"><a href="{{ item.get_absolute_url }}">{{ item.title }}</a></h2>
+        {% if item.short_description %}
+        <p class="ab-card__text">{{ item.short_description }}</p>
+        {% endif %}
+        <div class="ab-card__links">
+            {% if item.linked_recipe %}
+            <a href="{{ item.linked_recipe.get_absolute_url }}">Full recipe</a>
+            {% endif %}
+            {% if item.linked_article %}
+            <a href="{{ item.linked_article.get_absolute_url }}">Read the story</a>
+            {% endif %}
+        </div>
+        <div class="ab-actions">
+            {% if user.is_authenticated %}
+            <form action="{% url 'amuse_bouche:toggle_like' item.slug %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button class="ab-action{% if item.pk in liked_ids %} ab-action--active{% endif %}" type="submit">
+                    Like <span>{{ item.like_total|default:0 }}</span>
+                </button>
+            </form>
+            <form action="{% url 'amuse_bouche:toggle_save' item.slug %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button class="ab-action{% if item.pk in saved_ids %} ab-action--active{% endif %}" type="submit">
+                    {% if item.pk in saved_ids %}Saved{% else %}Save{% endif %}
+                </button>
+            </form>
+            {% else %}
+            <a class="ab-action" href="{% url 'login' %}?next={{ request.get_full_path }}">Sign in to like</a>
+            {% endif %}
+        </div>
+    </div>
+</article>

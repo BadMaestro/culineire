@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Amuse-Bouche | CulinEire{% endblock %}
+{% block meta_description %}Small bites, big ideas from the CulinEire kitchen.{% endblock %}
+{% block extra_head %}
+<link href="{% static 'css/amuse_bouche.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="ab-hero">
+    <div class="container ab-hero__inner">
+        <div>
+            <span class="pill">Small bites, big ideas</span>
+            <h1 class="hero-title">Amuse-Bouche</h1>
+            <p class="hero-subtitle">Quick culinary ideas, Irish bites and chef tricks from the CulinEire kitchen.</p>
+        </div>
+        {% if user.is_authenticated %}
+        <a class="btn-primary" href="{% url 'amuse_bouche:create' %}">Submit a Bite</a>
+        {% endif %}
+    </div>
+</section>
+
+<section class="page-section">
+    <div class="container ab-layout">
+        <nav class="ab-filters" aria-label="Amuse-Bouche filters">
+            <a class="ab-filter{% if not active_content_type %} ab-filter--active{% endif %}" href="{% url 'amuse_bouche:feed' %}">All</a>
+            {% for value,label in content_type_choices %}
+            <a class="ab-filter{% if active_content_type == value %} ab-filter--active{% endif %}" href="?type={{ value }}">{{ label }}</a>
+            {% endfor %}
+        </nav>
+
+        {% if items %}
+        <div class="ab-feed">
+            {% for item in items %}
+            {% include "amuse_bouche/item_card.html" with item=item liked_ids=liked_ids saved_ids=saved_ids %}
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="collection-empty">
+            <p class="collection-empty__text">No approved Amuse-Bouche posts yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

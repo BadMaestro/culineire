@@ -130,6 +130,7 @@ INSTALLED_APPS = [
     "presence",
     "monitoring",
     "collection",
+    "amuse_bouche",
     "legal",
     "newsfeed",
     "sandbox",

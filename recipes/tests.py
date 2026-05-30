@@ -1204,6 +1204,26 @@ class SecurityMiddlewareEnvironmentTests(TestCase):
         )
 
 
+class AmuseBoucheRoadmapViewTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        self.user = user_model.objects.create_user(username="reader", password="pass")
+        self.moderator = user_model.objects.create_user(username="mod", password="pass", is_staff=True)
+
+    def test_roadmap_requires_moderator(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("recipes:amuse_bouche_roadmap"))
+        self.assertEqual(response.status_code, 404)
+
+    def test_moderator_can_view_interactive_roadmap(self):
+        self.client.force_login(self.moderator)
+        response = self.client.get(reverse("recipes:amuse_bouche_roadmap"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Project State Navigation")
+        self.assertContains(response, "Amuse-Bouche Integration")
+        self.assertContains(response, "data-roadmap-filter")
+
+
 class RecipeModerationTrackingTests(TestCase):
     def setUp(self):
         user_model = get_user_model()

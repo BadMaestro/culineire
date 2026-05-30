@@ -27,9 +27,11 @@ def _pending_moderation_count():
     try:
         from recipes.models import Recipe
         from articles.models import Article
+        from amuse_bouche.models import AmuseBouche
         pending_recipes = Recipe.objects.filter(status=Recipe.Status.PENDING, is_deleted=False).count()
         pending_articles = Article.objects.filter(status=Article.Status.PENDING, is_deleted=False).count()
-        return pending_recipes + pending_articles
+        pending_bites = AmuseBouche.objects.filter(status=AmuseBouche.Status.PENDING).count()
+        return pending_recipes + pending_articles + pending_bites
     except ImportError:
         return 0
     except DatabaseError:
@@ -90,6 +92,14 @@ def header_author(request):
             else "",
             "secondary_label": "(+ New)",
             "secondary_url": _reverse_or_empty("articles:article_create") if author else "",
+        },
+        {
+            "label": "My Amuse-Bouche",
+            "url": _with_query(_reverse_or_empty("amuse_bouche:feed"), author=author.slug)
+            if author
+            else "",
+            "secondary_label": "(+ New)",
+            "secondary_url": _reverse_or_empty("amuse_bouche:create") if author else "",
         },
         {
             "label": "My Collection",

@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -7,10 +8,11 @@ from django.views.decorators.http import require_POST
 from django_ratelimit.decorators import ratelimit
 
 from articles.models import Article, ArticleImage
+from amuse_bouche.models import AmuseBouche
 from monitoring.tracker import track_event
 from recipes.models import Recipe
 
-from .models import SavedArticle, SavedRecipe
+from .models import SavedArticle, SavedContent, SavedRecipe
 
 
 def _safe_next(request, fallback):
@@ -43,9 +45,16 @@ def my_collection(request):
         .select_related("article", "article__author")
         .prefetch_related(article_card_gallery_prefetch)
     )
+    amuse_bouche_type = ContentType.objects.get_for_model(AmuseBouche)
+    saved_amuse_bouche = [
+        saved for saved in SavedContent.objects.filter(user=request.user, content_type=amuse_bouche_type)
+        .select_related("content_type")
+        if getattr(saved.content_object, "status", None) == AmuseBouche.Status.APPROVED
+    ]
     return render(request, "collection/my_collection.html", {
         "saved_recipes": saved_recipes,
         "saved_articles": saved_articles,
+        "saved_amuse_bouche": saved_amuse_bouche,
         "active_tab": tab,
     })
 

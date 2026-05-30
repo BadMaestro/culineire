@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Amuse-Bouche Roadmap | CulinEire{% endblock %}
+{% block meta_description %}Interactive Amuse-Bouche implementation roadmap for CulinEire moderators.{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+<link href="{% static 'css/moderation.css' %}" rel="stylesheet">
+<link href="{% static 'css/amuse_bouche_roadmap.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="page-section ab-roadmap-page">
+    <div class="container ab-roadmap-shell">
+        <a class="mon-back-link" href="{% url 'recipes:moderation_panel' %}">Back to Moderation Panel</a>
+
+        <header class="ab-roadmap-hero">
+            <div>
+                <p class="automation-kicker">Amuse-Bouche Integration</p>
+                <h1 class="automation-title">Project State Navigation</h1>
+                <p class="automation-summary">
+                    {{ roadmap.done_count }}/{{ roadmap.total_count }} phases complete.
+                    Current focus: {{ roadmap.current_phase.phase }} - {{ roadmap.current_phase.title }}.
+                </p>
+            </div>
+            <div class="ab-roadmap-meter" aria-label="{{ roadmap.percent }} percent complete">
+                <span style="width: {{ roadmap.percent }}%"></span>
+                <strong>{{ roadmap.percent }}%</strong>
+            </div>
+        </header>
+
+        <nav class="ab-roadmap-tabs" aria-label="Roadmap filters">
+            <button class="ab-roadmap-tab ab-roadmap-tab--active" data-roadmap-filter="all" type="button">All</button>
+            <button class="ab-roadmap-tab" data-roadmap-filter="done" type="button">Done</button>
+            <button class="ab-roadmap-tab" data-roadmap-filter="active" type="button">Current</button>
+            <button class="ab-roadmap-tab" data-roadmap-filter="remaining" type="button">Remaining</button>
+            <button class="ab-roadmap-tab" data-roadmap-filter="deferred" type="button">Deferred</button>
+        </nav>
+
+        <section class="ab-roadmap-now" aria-label="Current project focus">
+            <div>
+                <span class="ab-roadmap-status ab-roadmap-status--{{ roadmap.current_phase.status }}">{{ roadmap.current_phase.status|title }}</span>
+                <h2>Now Working On: {{ roadmap.current_phase.phase }} - {{ roadmap.current_phase.title }}</h2>
+                <p>{{ roadmap.current_phase.summary }}</p>
+            </div>
+            <div>
+                <h3>Next Steps</h3>
+                <ul>
+                    {% for step in roadmap.next_steps %}
+                    <li>{{ step }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </section>
+
+        <section class="ab-roadmap-grid" aria-label="Roadmap phases">
+            {% for phase in roadmap.phases %}
+            <details class="ab-roadmap-card" data-roadmap-status="{{ phase.status }}" {% if phase.current %}open{% endif %}>
+                <summary>
+                    <span class="ab-roadmap-card__phase">{{ phase.phase }}</span>
+                    <span class="ab-roadmap-card__title">{{ phase.title }}</span>
+                    <span class="ab-roadmap-status ab-roadmap-status--{{ phase.status }}">{{ phase.status|title }}</span>
+                </summary>
+                <div class="ab-roadmap-card__body">
+                    <p>{{ phase.summary }}</p>
+
+                    {% if phase.current %}
+                    <div class="ab-roadmap-list-block">
+                        <h3>Currently In Motion</h3>
+                        <ul>
+                            {% for item in phase.current %}
+                            <li>{{ item }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    {% if phase.done %}
+                    <div class="ab-roadmap-list-block">
+                        <h3>Done</h3>
+                        <ul>
+                            {% for item in phase.done %}
+                            <li>{{ item }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    {% if phase.remaining %}
+                    <div class="ab-roadmap-list-block">
+                        <h3>Remaining</h3>
+                        <ul>
+                            {% for item in phase.remaining %}
+                            <li>{{ item }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    {% if phase.files %}
+                    <div class="ab-roadmap-files">
+                        {% for file in phase.files %}
+                        <code>{{ file }}</code>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </details>
+            {% endfor %}
+        </section>
+
+        <section class="ab-roadmap-risks" aria-label="Risks and blockers">
+            <h2>Risks And Checks</h2>
+            <ul>
+                {% for item in roadmap.blocked_items %}
+                <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+        </section>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+    var tabs = Array.prototype.slice.call(document.querySelectorAll('[data-roadmap-filter]'));
+    var cards = Array.prototype.slice.call(document.querySelectorAll('[data-roadmap-status]'));
+
+    function matches(filter, status) {
+        if (filter === 'all') return true;
+        if (filter === 'active') return ['mostly_done', 'partial'].indexOf(status) !== -1;
+        if (filter === 'remaining') return ['not_started', 'partial', 'mostly_done'].indexOf(status) !== -1;
+        return status === filter;
+    }
+
+    tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+            var filter = tab.dataset.roadmapFilter;
+            tabs.forEach(function (item) { item.classList.remove('ab-roadmap-tab--active'); });
+            tab.classList.add('ab-roadmap-tab--active');
+            cards.forEach(function (card) {
+                var visible = matches(filter, card.dataset.roadmapStatus);
+                card.hidden = !visible;
+            });
+        });
+    });
+}());
+</script>
+{% endblock %}

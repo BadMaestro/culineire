@@ -124,6 +124,16 @@
                 </a>
                 {% endif %}
                 <span aria-hidden="true" class="ce-nav__separator"></span>
+                {% if namespace == 'amuse_bouche' %}
+                <a class="ce-nav__link ce-nav__link--active" href="{% url 'amuse_bouche:feed' %}" aria-current="page">
+                    Amuse-Bouche
+                </a>
+                {% else %}
+                <a class="ce-nav__link" href="{% url 'amuse_bouche:feed' %}">
+                    Amuse-Bouche
+                </a>
+                {% endif %}
+                <span aria-hidden="true" class="ce-nav__separator"></span>
                 {% if chef_battle_enabled %}
                 {% url 'chef_battle:home' as chef_battle_url %}
                 {% if chef_battle_url %}

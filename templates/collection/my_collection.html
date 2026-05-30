@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}My Collection | CulinEire{% endblock %}
-{% block meta_description %}Your saved recipes and articles on CulinEire.{% endblock %}
+{% block meta_description %}Your saved recipes, articles and Amuse-Bouche posts on CulinEire.{% endblock %}
 {% block extra_head %}
 <meta name="robots" content="noindex, nofollow">
 <link href="{% static 'css/collection.css' %}" rel="stylesheet">
@@ -18,7 +18,7 @@
         <div class="hero-copy">
             <span class="pill">Personal</span>
             <h1 class="hero-title">My Collection</h1>
-            <p class="hero-subtitle">Your saved recipes and articles in one place.</p>
+            <p class="hero-subtitle">Your saved recipes, articles and Amuse-Bouche posts in one place.</p>
             <div class="hero__actions">
                 <a class="btn-primary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
                 <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
@@ -29,7 +29,6 @@
 
 <section class="page-section">
     <div class="container">
-
         <nav class="collection-tabs" aria-label="Collection tabs">
             <a class="collection-tab{% if active_tab == 'recipes' %} collection-tab--active{% endif %}"
                href="?tab=recipes"{% if active_tab == 'recipes' %} aria-current="page"{% endif %}>
@@ -41,79 +40,111 @@
                 Articles
                 <span class="collection-tab__count">{{ saved_articles|length }}</span>
             </a>
+            <a class="collection-tab{% if active_tab == 'amuse-bouche' %} collection-tab--active{% endif %}"
+               href="?tab=amuse-bouche"{% if active_tab == 'amuse-bouche' %} aria-current="page"{% endif %}>
+                Amuse-Bouche
+                <span class="collection-tab__count">{{ saved_amuse_bouche|length }}</span>
+            </a>
         </nav>
 
         {% if active_tab == 'recipes' %}
-
-        {% if saved_recipes %}
-        <div class="recipe-grid recipe-grid--mini">
-            {% for saved in saved_recipes %}
-            {% with recipe=saved.recipe %}
-            <article class="recipe-card">
-                <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
-                    {% if recipe.hero_image %}<img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="lazy">
-                    {% else %}<img alt="{{ recipe.title }}" src="{% static 'images/hero.jpg' %}" loading="lazy">{% endif %}
-                </a>
-                <div class="recipe-card__body">
-                    <div class="recipe-card__content">
-                        <h2 class="recipe-card__title"><a href="{{ recipe.get_absolute_url }}">{{ recipe.title }}</a></h2>
+            {% if saved_recipes %}
+            <div class="recipe-grid recipe-grid--mini">
+                {% for saved in saved_recipes %}
+                {% with recipe=saved.recipe %}
+                <article class="recipe-card">
+                    <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
+                        {% if recipe.hero_image %}<img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="lazy">
+                        {% else %}<img alt="{{ recipe.title }}" src="{% static 'images/hero.jpg' %}" loading="lazy">{% endif %}
+                    </a>
+                    <div class="recipe-card__body">
+                        <div class="recipe-card__content">
+                            <h2 class="recipe-card__title"><a href="{{ recipe.get_absolute_url }}">{{ recipe.title }}</a></h2>
+                        </div>
+                        <div class="recipe-card__footer">
+                            <form action="{% url 'collection:remove_recipe' recipe.slug %}" method="post" class="collection-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <button class="collection-remove-btn" type="submit">Remove</button>
+                            </form>
+                        </div>
                     </div>
-                    <div class="recipe-card__footer">
-                        <form action="{% url 'collection:remove_recipe' recipe.slug %}" method="post" class="collection-form">
-                            {% csrf_token %}
-                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                            <button class="collection-remove-btn" type="submit">♥ Remove</button>
-                        </form>
+                </article>
+                {% endwith %}
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="collection-empty">
+                <p class="collection-empty__text">You have no saved recipes yet.</p>
+                <a class="btn-primary" href="{% url 'recipes:recipe_list' %}">Explore Recipes</a>
+            </div>
+            {% endif %}
+        {% elif active_tab == 'articles' %}
+            {% if saved_articles %}
+            <div class="recipe-grid recipe-grid--mini">
+                {% for saved in saved_articles %}
+                {% with article=saved.article %}
+                <article class="recipe-card">
+                    <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">
+                        {% if article.card_image %}<img alt="{{ article.title }}" src="{{ article.card_image.url }}" loading="lazy">
+                        {% else %}<img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}" loading="lazy">{% endif %}
+                        {% if article.image_rights_status == 'ai_generated' %}<span aria-label="AI generated image" class="ai-image-badge">AI</span>{% endif %}
+                    </a>
+                    <div class="recipe-card__body">
+                        <div class="recipe-card__content">
+                            <h2 class="recipe-card__title"><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h2>
+                        </div>
+                        <div class="recipe-card__footer">
+                            <form action="{% url 'collection:remove_article' article.slug %}" method="post" class="collection-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <button class="collection-remove-btn" type="submit">Remove</button>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            </article>
-            {% endwith %}
-            {% endfor %}
-        </div>
+                </article>
+                {% endwith %}
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="collection-empty">
+                <p class="collection-empty__text">You have no saved articles yet.</p>
+                <a class="btn-primary" href="{% url 'articles:article_list' %}">Explore Articles</a>
+            </div>
+            {% endif %}
         {% else %}
-        <div class="collection-empty">
-            <p class="collection-empty__text">You have no saved recipes yet.</p>
-            <a class="btn-primary" href="{% url 'recipes:recipe_list' %}">Explore Recipes</a>
-        </div>
-        {% endif %}
-
-        {% else %}
-
-        {% if saved_articles %}
-        <div class="recipe-grid recipe-grid--mini">
-            {% for saved in saved_articles %}
-            {% with article=saved.article %}
-            <article class="recipe-card">
-                <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">
-                    {% if article.card_image %}<img alt="{{ article.title }}" src="{{ article.card_image.url }}" loading="lazy">
-                    {% else %}<img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}" loading="lazy">{% endif %}
-                    {% if article.image_rights_status == 'ai_generated' %}<span aria-label="AI generated image" class="ai-image-badge">AI</span>{% endif %}
-                </a>
-                <div class="recipe-card__body">
-                    <div class="recipe-card__content">
-                        <h2 class="recipe-card__title"><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h2>
+            {% if saved_amuse_bouche %}
+            <div class="recipe-grid recipe-grid--mini">
+                {% for saved in saved_amuse_bouche %}
+                {% with item=saved.content_object %}
+                <article class="recipe-card">
+                    <a class="recipe-card__image-wrapper" href="{{ item.get_absolute_url }}">
+                        {% if item.card_image %}<img alt="{{ item.title }}" src="{{ item.card_image.url }}" loading="lazy">
+                        {% else %}<img alt="{{ item.title }}" src="{% static 'images/hero.jpg' %}" loading="lazy">{% endif %}
+                    </a>
+                    <div class="recipe-card__body">
+                        <div class="recipe-card__content">
+                            <h2 class="recipe-card__title"><a href="{{ item.get_absolute_url }}">{{ item.title }}</a></h2>
+                        </div>
+                        <div class="recipe-card__footer">
+                            <form action="{% url 'amuse_bouche:toggle_save' item.slug %}" method="post" class="collection-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <button class="collection-remove-btn" type="submit">Remove</button>
+                            </form>
+                        </div>
                     </div>
-                    <div class="recipe-card__footer">
-                        <form action="{% url 'collection:remove_article' article.slug %}" method="post" class="collection-form">
-                            {% csrf_token %}
-                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                            <button class="collection-remove-btn" type="submit">♥ Remove</button>
-                        </form>
-                    </div>
-                </div>
-            </article>
-            {% endwith %}
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="collection-empty">
-            <p class="collection-empty__text">You have no saved articles yet.</p>
-            <a class="btn-primary" href="{% url 'articles:article_list' %}">Explore Articles</a>
-        </div>
+                </article>
+                {% endwith %}
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="collection-empty">
+                <p class="collection-empty__text">You have no saved Amuse-Bouche posts yet.</p>
+                <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Explore Amuse-Bouche</a>
+            </div>
+            {% endif %}
         {% endif %}
-
-        {% endif %}
-
     </div>
 </section>
 {% endblock %}

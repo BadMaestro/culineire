@@ -36,6 +36,9 @@ urlpatterns = [
     # Articles
     path("articles/", include("articles.urls", namespace="articles")),
 
+    # Amuse-Bouche
+    path("amuse-bouche/", include("amuse_bouche.urls", namespace="amuse_bouche")),
+
     # Messaging
     path("messages/", include("messaging.urls", namespace="messaging")),
 

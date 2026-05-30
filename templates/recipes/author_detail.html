@@ -49,9 +49,14 @@
                 <span class="author-profile-links__label">Articles</span>
                 <svg aria-hidden="true" class="author-profile-links__arrow" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
             </a>
+            <a class="author-profile-links__card" href="{% url 'amuse_bouche:feed' %}?author={{ author.slug }}">
+                <span class="author-profile-links__count">{{ amuse_bouche_count }}</span>
+                <span class="author-profile-links__label">Amuse-Bouche</span>
+                <svg aria-hidden="true" class="author-profile-links__arrow" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+            </a>
         </div>
 
-        {% if private_dashboard or dashboard_recipes or dashboard_articles %}
+        {% if private_dashboard or dashboard_recipes or dashboard_articles or dashboard_amuse_bouche %}
         <div class="author-studio-pending">
             <p class="author-studio-pending__title">{% if private_dashboard %}Content Dashboard{% else %}Published Content{% endif %}</p>
 
@@ -130,7 +135,36 @@
             </div>
             {% endif %}
 
-            {% if not dashboard_recipes and not dashboard_articles %}
+            {% if dashboard_amuse_bouche %}
+            <div class="author-studio-pending__group">
+                <p class="author-studio-pending__group-label">Amuse-Bouche</p>
+                <ul class="author-studio-pending__list">
+                    {% for item in dashboard_amuse_bouche %}
+                    <li class="author-studio-pending__item">
+                        {% if private_dashboard %}
+                        <span class="author-studio-status author-studio-status--{{ item.status|lower }}">{{ item.get_status_display }}</span>
+                        {% endif %}
+                        <span class="author-studio-pending__name" title="{{ item.title }}">{{ item.title }}</span>
+                        <span class="author-studio-pending__date">{{ item.created_at|date:"j M Y" }}</span>
+                        {% if item.status == 'approved' %}
+                        <a class="author-studio-pending__view" href="{{ item.get_absolute_url }}">View</a>
+                        {% endif %}
+                        {% if can_manage_author_profile %}
+                        <a class="author-studio-pending__edit" href="{% url 'amuse_bouche:edit' item.slug %}?next={{ request.path }}">Edit</a>
+                        {% endif %}
+                    </li>
+                    {% if private_dashboard and item.moderation_note %}{% if item.status == 'rejected' or item.status == 'NEEDS_CHANGES' %}
+                    <li class="author-studio-pending__note-row" aria-label="Moderation note for {{ item.title }}">
+                        <span class="author-studio-pending__note-label">Note:</span>
+                        <span class="author-studio-pending__note-text">{{ item.moderation_note }}</span>
+                    </li>
+                    {% endif %}{% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            {% if not dashboard_recipes and not dashboard_articles and not dashboard_amuse_bouche %}
             <p class="author-studio-pending__note">{% if private_dashboard %}No content found{% if status_filter %} with status &ldquo;{{ status_filter }}&rdquo;{% endif %}.{% else %}No published content yet.{% endif %}</p>
             {% endif %}
         </div>
