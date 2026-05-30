@@ -94,16 +94,6 @@
 
         <nav aria-label="Primary" class="ce-nav" id="ce-primary-navigation">
             <div class="ce-nav__menu">
-                {% if url_name == 'home' %}
-                <a class="ce-nav__link ce-nav__link--active" href="{% url 'home' %}" aria-current="page">
-                    Home
-                </a>
-                {% else %}
-                <a class="ce-nav__link" href="{% url 'home' %}">
-                    Home
-                </a>
-                {% endif %}
-                <span aria-hidden="true" class="ce-nav__separator"></span>
                 {% if namespace == 'recipes' %}
                 <a class="ce-nav__link ce-nav__link--active" href="{% url 'recipes:recipe_list' %}" aria-current="page">
                     Recipes
@@ -135,7 +125,6 @@
                 </a>
                 {% endif %}
                 {% endcomment %}
-                <span aria-hidden="true" class="ce-nav__separator"></span>
                 {% if chef_battle_enabled %}
                 {% url 'chef_battle:home' as chef_battle_url %}
                 {% if chef_battle_url %}
