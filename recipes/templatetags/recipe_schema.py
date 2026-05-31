@@ -114,10 +114,27 @@ def recipe_schema_json(context, recipe) -> str:
     if instructions:
         schema["recipeInstructions"] = instructions
 
+    # Cuisine & keywords
+    schema["recipeCuisine"] = "Irish"
+    category_label = recipe.get_category_display()
+    if category_label:
+        schema["keywords"] = category_label
+
+    # Nutrition — calories from model field
+    try:
+        cal = int(recipe.calories) if recipe.calories else 0
+    except (TypeError, ValueError):
+        cal = 0
+    if cal > 0:
+        schema["nutrition"] = {
+            "@type": "NutritionInformation",
+            "calories": f"{cal} calories",
+        }
+
     # AggregateRating — data pre-computed by the view
     ratings_count = context.get("ratings_count") or 0
     average_rating_value = context.get("average_rating_value")
-    if ratings_count > 0 and average_rating_value:
+    if ratings_count >= 1 and average_rating_value:
         schema["aggregateRating"] = {
             "@type": "AggregateRating",
             "ratingValue": round(float(average_rating_value), 1),
@@ -125,5 +142,10 @@ def recipe_schema_json(context, recipe) -> str:
             "bestRating": 5,
             "worstRating": 1,
         }
+
+    # reviewCount from approved comments (supplements ratingCount)
+    comments_count = context.get("comments_count") or 0
+    if comments_count > 0 and "aggregateRating" in schema:
+        schema["aggregateRating"]["reviewCount"] = comments_count
 
     return mark_safe(f'<script type="application/ld+json">{_safe_json(schema)}</script>')
