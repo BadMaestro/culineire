@@ -160,16 +160,14 @@
         {# ── Search results view ── #}
 
         <section aria-labelledby="search-results-title" class="recipe-list-section" id="all-recipes">
-            <div class="page-header page-header--with-gap">
-                <div>
-                    <h2 id="search-results-title">
-                        {% if all_recipes_grid %}
-                            {{ all_recipes_grid|length }} result{% if all_recipes_grid|length != 1 %}s{% endif %} for &ldquo;{{ search_query }}&rdquo;
-                        {% else %}
-                            No results for &ldquo;{{ search_query }}&rdquo;
-                        {% endif %}
-                    </h2>
-                </div>
+            <div class="search-results-header">
+                <h2 id="search-results-title">
+                    {% if all_recipes_grid %}
+                        {{ all_recipes_grid|length }} result{% if all_recipes_grid|length != 1 %}s{% endif %} for &ldquo;{{ search_query }}&rdquo;
+                    {% else %}
+                        No results for &ldquo;{{ search_query }}&rdquo;
+                    {% endif %}
+                </h2>
                 <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}">Clear search</a>
             </div>
             {% if all_recipes_grid %}

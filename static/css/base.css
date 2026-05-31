@@ -261,6 +261,20 @@
     margin-block-start: 2rem;
   }
 
+  /* Search results heading: h2 centred, clear button centred below */
+  .search-results-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.9rem;
+    text-align: center;
+    margin-block-end: 1.75rem;
+  }
+
+  .search-results-header h2 {
+    margin: 0;
+  }
+
   .page-subtitle,
   .section-intro {
     margin: 0;
