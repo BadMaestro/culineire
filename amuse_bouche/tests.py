@@ -3,7 +3,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from collection.models import ContentReaction, SavedContent
-from recipes.models import RecipeAuthor
+from recipes.models import Recipe, RecipeAuthor
 from .models import AmuseBouche
 
 
@@ -238,3 +238,83 @@ class AmuseBoucheModerationTests(TestCase):
         response = self.client.post(reverse("amuse_bouche:moderate", kwargs={"slug": item.slug}), {"action": "approve"})
 
         self.assertEqual(response.status_code, 404)
+
+
+class AmuseBoucheGenerateFromRecipeTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        self.author_user = user_model.objects.create_user(username="chef", password="pass")
+        self.other_user = user_model.objects.create_user(username="other", password="pass")
+        self.author = RecipeAuthor.objects.create(
+            user=self.author_user,
+            name="Chef Author",
+            slug="chef-author",
+        )
+        self.recipe = Recipe.objects.create(
+            author=self.author,
+            title="Boxty Pancakes",
+            slug="boxty-pancakes",
+            short_description="A classic Irish potato pancake.",
+            hero_image_alt_text="Golden boxty on a plate",
+            category=Recipe.Category.IRISH_CULINARY_HERITAGE,
+            ingredients="500g potatoes",
+            method="Grate the potatoes.",
+            status=Recipe.Status.APPROVED,
+        )
+        self.url = reverse("amuse_bouche:generate_from_recipe", kwargs={"slug": self.recipe.slug})
+
+    def test_author_can_generate_bite_from_approved_recipe(self):
+        self.client.force_login(self.author_user)
+        response = self.client.post(self.url)
+
+        item = AmuseBouche.objects.get(linked_recipe=self.recipe)
+        self.assertRedirects(response, item.get_absolute_url())
+        self.assertEqual(item.title, self.recipe.title)
+        self.assertEqual(item.author, self.author)
+        self.assertEqual(item.status, AmuseBouche.Status.PENDING)
+        self.assertEqual(item.content_type, AmuseBouche.ContentType.BEHIND_THE_DISH)
+        self.assertEqual(item.linked_recipe, self.recipe)
+        self.assertEqual(item.cover_image_alt, self.recipe.hero_image_alt_text)
+
+    def test_duplicate_generation_redirects_to_existing_bite(self):
+        self.client.force_login(self.author_user)
+        self.client.post(self.url)
+        self.client.post(self.url)
+
+        self.assertEqual(AmuseBouche.objects.filter(linked_recipe=self.recipe).count(), 1)
+
+    def test_unauthenticated_user_cannot_generate(self):
+        response = self.client.post(self.url)
+        self.assertNotEqual(response.status_code, 200)
+        self.assertFalse(AmuseBouche.objects.filter(linked_recipe=self.recipe).exists())
+
+    def test_unrelated_user_cannot_generate(self):
+        self.client.force_login(self.other_user)
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_get_method_not_allowed(self):
+        self.client.force_login(self.author_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 405)
+
+    def test_draft_recipe_returns_404(self):
+        self.recipe.status = Recipe.Status.DRAFT
+        self.recipe.save(update_fields=["status"])
+        self.client.force_login(self.author_user)
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_archived_bite_does_not_block_new_generation(self):
+        AmuseBouche.objects.create(
+            author=self.author,
+            title=self.recipe.title,
+            linked_recipe=self.recipe,
+            status=AmuseBouche.Status.ARCHIVED,
+        )
+        self.client.force_login(self.author_user)
+        self.client.post(self.url)
+        self.assertEqual(
+            AmuseBouche.objects.filter(linked_recipe=self.recipe).exclude(status=AmuseBouche.Status.ARCHIVED).count(),
+            1,
+        )

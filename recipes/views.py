@@ -342,17 +342,20 @@ def _build_amuse_bouche_roadmap_status():
             "id": "phase-7",
             "phase": "Phase 7",
             "title": "Generate From Existing Content",
-            "status": "not_started",
-            "summary": "A recipe or article should be able to produce a short pending Amuse-Bouche entry with one action.",
-            "done": [],
-            "current": ["Next active engineering block: generate Amuse-Bouche from published recipes, then articles."],
-            "remaining": [
-                "Add Create Amuse-Bouche action on eligible recipe pages for author/moderator users.",
-                "Generate a short pending bite linked to the source recipe.",
-                "Reuse source image/alt text where appropriate and preserve the link back to full content.",
-                "Add the same pathway for articles after recipe generation is stable.",
+            "status": "partial",
+            "summary": "One-click generation from approved recipes is live. Article generation remains.",
+            "done": [
+                "Added generate_from_recipe POST endpoint in amuse_bouche/views.py.",
+                "Enforced one-bite-per-recipe-per-author deduplication (excluding archived).",
+                "Pre-fills title, short_description, cover_image_alt and linked_recipe from the source.",
+                "Added Generate Amuse-Bouche button to recipe detail hero (author/moderator only, approved recipes only).",
+                "Button switches to View Amuse-Bouche when a bite already exists for that recipe.",
             ],
-            "files": ["recipes/views.py", "templates/recipes/recipe_detail.html", "amuse_bouche/forms.py", "amuse_bouche/views.py"],
+            "current": [],
+            "remaining": [
+                "Add the same one-click pathway for approved articles.",
+            ],
+            "files": ["amuse_bouche/views.py", "amuse_bouche/urls.py", "recipes/views.py", "templates/recipes/recipe_detail.html"],
         },
         {
             "id": "phase-8",
@@ -1054,6 +1057,14 @@ def recipe_detail(request, slug):
         "ratings_count": ratings_count,
         "average_rating_percentage": average_rating_percentage,
         "can_manage_recipe": is_moderator(request.user) or user_can_manage_author(request.user, recipe.author),
+        "can_generate_ab": (
+            recipe.status == Recipe.Status.APPROVED
+            and (is_moderator(request.user) or user_can_manage_author(request.user, recipe.author))
+        ),
+        "recipe_ab_exists": (
+            recipe.status == Recipe.Status.APPROVED
+            and recipe.amuse_bouche_items.exclude(status="archived").exists()
+        ),
         "is_greenbear": request.user.is_authenticated and hasattr(request.user, "recipe_author_profile") and request.user.recipe_author_profile.slug == settings.OWNER_SLUG,
         "can_moderate_bar": is_moderator(request.user) and recipe.status != Recipe.Status.APPROVED,
         "has_rated": has_rated,
