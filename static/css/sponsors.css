@@ -2,6 +2,12 @@
    CulinEire — Sponsors Puzzle Page
    ================================================================ */
 
+/* Hide "Buy Me a Coffee" bar on the sponsorship page —
+   a commercial partnership page should not show a donations prompt. */
+.page--sponsors .bmc-bar {
+  display: none;
+}
+
 .sponsors-page {
   max-width: 1100px;
   margin: 0 auto;

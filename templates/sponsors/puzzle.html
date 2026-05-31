@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block body_attrs %} class="page--sponsors"{% endblock %}
+
 {% block title %}Sponsors — CulinEire{% endblock %}
 
 {% block extra_head %}
@@ -24,9 +26,8 @@
     <span class="sponsors-eyebrow">Become a Founding Sponsor</span>
     <h1 class="sponsors-title">Your brand at the heart of CulinEire</h1>
     <p class="sponsors-subtitle">
-      Ireland's first competitive culinary platform is growing.
-      Secure a permanent spot in the founding sponsor puzzle and put your brand
-      in front of a passionate food community.
+      CulinEire is building a home for Irish recipes, food stories and the cooks who create them.
+      Support the platform and keep your business visible to a growing Irish food community.
     </p>
     <div class="sponsors-contract-note">
       <span class="contract-badge">Annual contract</span>
@@ -40,7 +41,7 @@
   <!-- Progress bar -->
   <div class="sponsors-progress-wrap">
     <div class="sponsors-progress-labels">
-      <span><strong>{{ sold }}</strong> spots taken</span>
+      <span><strong>{{ sold }}</strong> spot{{ sold|pluralize }} taken</span>
       <span class="sponsors-progress-mid">{{ available }} still available</span>
       <span><strong>{{ sellable_total }}</strong> total</span>
     </div>
@@ -48,7 +49,8 @@
       <div class="sponsors-progress-fill" style="width: {{ percent_sold }}%"></div>
     </div>
     <p class="sponsors-progress-note">
-      {{ percent_sold }}% of the puzzle is complete. {{ available }} spots still open.
+      {% if sold > 0 %}{{ sold }} of {{ sellable_total }} founding spots reserved.{% else %}All {{ sellable_total }} founding spots are open.{% endif %}
+      {{ available }} still available.
     </p>
   </div>
 
@@ -127,7 +129,7 @@
       </div>
       <div class="sponsors-how-step">
         <div class="how-num">3</div>
-        <p>Your logo appears permanently on this page, linked to your website — visible to every CulinEire visitor.</p>
+        <p>Your logo appears on this page for the duration of your sponsorship, linked to your website — visible to every CulinEire visitor.</p>
       </div>
     </div>
     <div class="sponsors-cta">

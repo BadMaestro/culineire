@@ -54,7 +54,7 @@
 
     {% block extra_head %}{% endblock %}
 </head>
-<body>
+<body{% block body_attrs %}{% endblock %}>
 <a class="skip-link" href="#main-content">Skip to main content</a>
 <header class="ce-header">
     <div class="ce-header__social-strip">
@@ -333,7 +333,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v1.6.41</span>
+                <span class="footer-version">v1.6.42</span>
             </div>
         </div>
     </div>
