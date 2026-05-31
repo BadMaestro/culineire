@@ -37,6 +37,9 @@ def robots_txt(_request):
         "Disallow: /presence/",
         "Disallow: /recipes/moderation/",
         "Disallow: /monitoring/",
+        "Disallow: /amuse-bouche/",
+        "Disallow: /collection/",
+        "Disallow: /sandbox/",
         f"Sitemap: {_absolute_url(reverse('sitemap_xml'))}",
         "",
     ]

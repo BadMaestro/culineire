@@ -11,13 +11,13 @@
 
     <meta name="p:domain_verify" content="888ccbb3393d1a0bed26b3f4b3da6246">
 
-    <link href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}" rel="canonical">
+    <link href="{{ SITE_URL }}{{ request.path }}" rel="canonical">
 
     <meta content="CulinEire" property="og:site_name">
     <meta content="{% block og_type %}website{% endblock %}" property="og:type">
     <meta content="{% block og_title %}CulinEire - Irish Recipes and Food Stories{% endblock %}" property="og:title">
     <meta content="{% block og_description %}CulinEire is a modern Irish culinary platform for recipes, food stories, and classic dishes adapted for the home kitchen.{% endblock %}" property="og:description">
-    <meta content="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}" property="og:url">
+    <meta content="{{ SITE_URL }}{{ request.path }}" property="og:url">
     <meta content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero.jpg' %}{% endblock %}" property="og:image">
 
     <meta content="summary_large_image" name="twitter:card">
@@ -42,7 +42,7 @@
     <link href="{% static 'css/messaging.css' %}" rel="stylesheet">
     <link href="{% static 'css/presence.css' %}" rel="stylesheet">
 
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"CulinEire","url":"{{ request.scheme }}://{{ request.get_host }}","logo":"{{ request.scheme }}://{{ request.get_host }}{% static 'images/logo.png' %}","sameAs":["https://www.instagram.com/culineire/","https://www.tiktok.com/@culineire.ie","https://t.me/CULINEIRE"]}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"CulinEire","url":"{{ SITE_URL }}","logo":"{{ SITE_URL }}{% static 'images/logo.png' %}","sameAs":["https://www.instagram.com/culineire/","https://www.tiktok.com/@culineire.ie","https://t.me/CULINEIRE"]}</script>
 
     {% block extra_head %}{% endblock %}
 </head>
@@ -325,7 +325,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v1.6.38</span>
+                <span class="footer-version">v1.6.39</span>
             </div>
         </div>
     </div>

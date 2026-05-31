@@ -175,6 +175,7 @@ template_context_processors = [
     "django.template.context_processors.request",
     "django.contrib.auth.context_processors.auth",
     "django.contrib.messages.context_processors.messages",
+    "config.context_processors.site_url",
     "recipes.context_processors.header_author",
 ]
 if DEBUG:
