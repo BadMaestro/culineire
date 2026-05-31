@@ -33,9 +33,9 @@
   var RING_COUNTS = { 1: 10, 2: 20, 3: 30, 4: 40, 5: 50, 6: 60 };
 
   var RING_COLOURS = {
-    available : { 6: '#f4f1ec', 5: '#ede8df', 4: '#e4ddd1', 3: '#d8d0c0', 2: '#ccc1aa', 1: '#bfb49a', 0: '#b8af96' },
-    reserved  : { 6: '#faf0d8', 5: '#f5e6c8', 4: '#f2ddb2', 3: '#efd49c', 2: '#ebca86', 1: '#e6c070', 0: '#e0b85a' },
-    sold      : { 6: '#ddd8ce', 5: '#cdc7ba', 4: '#b8b0a0', 3: '#a49888', 2: '#907e6c', 1: '#786454', 0: '#5c4c3e' },
+    available : { 6: '#f4f1ec', 5: '#ede8df', 4: '#e4ddd1', 3: '#d8d0c0', 2: '#ccc1aa', 1: '#bfb49a', 0: '#6c6054' },
+    reserved  : { 6: '#faf0d8', 5: '#f5e6c8', 4: '#f2ddb2', 3: '#efd49c', 2: '#ebca86', 1: '#e6c070', 0: '#c8942a' },
+    sold      : { 6: '#ddd8ce', 5: '#cdc7ba', 4: '#b8b0a0', 3: '#a49888', 2: '#907e6c', 1: '#786454', 0: '#3a2e28' },
   };
 
   var STATUS_LABEL = { available: 'Available', reserved: 'Reserved', sold: 'Sold' };
