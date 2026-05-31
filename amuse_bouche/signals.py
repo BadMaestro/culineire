@@ -25,12 +25,18 @@ def create_newsfeed_entry_on_approval(sender, instance, **kwargs):
         return
     try:
         from newsfeed.models import NewsFeedEntry
+        author_name = getattr(instance.author, "name", "") if instance.author else ""
+        message = instance.short_description or ""
+        if author_name and message:
+            message = f"{author_name}: {message}"
+        elif author_name:
+            message = f"By {author_name}"
         NewsFeedEntry.objects.update_or_create(
             event_key=event_key,
             defaults={
                 "entry_type": NewsFeedEntry.EntryType.AMUSE_BOUCHE_PUBLISHED,
-                "title": f"New Amuse-Bouche: {instance.title}",
-                "message": instance.short_description,
+                "title": instance.title,
+                "message": message,
                 "url": instance.get_absolute_url(),
                 "is_auto": True,
                 "is_public": True,

@@ -113,8 +113,8 @@
                     Articles
                 </a>
                 {% endif %}
+                {% if can_view_amuse_bouche_public_area %}
                 <span aria-hidden="true" class="ce-nav__separator"></span>
-                {% comment %}TODO: unhide when Amuse-Bouche is ready for public launch
                 {% if namespace == 'amuse_bouche' %}
                 <a class="ce-nav__link ce-nav__link--active" href="{% url 'amuse_bouche:feed' %}" aria-current="page">
                     Amuse-Bouche
@@ -124,7 +124,7 @@
                     Amuse-Bouche
                 </a>
                 {% endif %}
-                {% endcomment %}
+                {% endif %}
                 {% if chef_battle_enabled %}
                 {% url 'chef_battle:home' as chef_battle_url %}
                 {% if chef_battle_url %}
@@ -328,7 +328,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v1.6.27</span>
+                <span class="footer-version">v1.6.28</span>
             </div>
         </div>
     </div>

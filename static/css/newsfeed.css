@@ -89,11 +89,13 @@
 
 /* Dot colours per entry type */
 .nf-entry__dot--recipe_published,
-.nf-entry__dot--article_published { background: var(--brand); }
-.nf-entry__dot--version_release   { background: #6b5233; }
-.nf-entry__dot--security_update   { background: #a01818; }
-.nf-entry__dot--site_update       { background: #1e46a0; }
-.nf-entry__dot--admin_note        { background: var(--muted); }
+.nf-entry__dot--article_published        { background: var(--brand); }
+.nf-entry__dot--amuse_bouche_published   { background: #a07828; }
+.nf-entry__dot--amuse_bouche_featured    { background: #c89030; }
+.nf-entry__dot--version_release          { background: #6b5233; }
+.nf-entry__dot--security_update          { background: #a01818; }
+.nf-entry__dot--site_update              { background: #1e46a0; }
+.nf-entry__dot--admin_note               { background: var(--muted); }
 
 /* ── Entry content ─────────────────────────── */
 
@@ -123,12 +125,14 @@
   margin-block-end: 0.1rem;
 }
 
-.nf-badge--recipe_published  { background: rgb(24 76 58 / 0.1);  color: #0c4a38; }
-.nf-badge--article_published { background: rgb(24 76 58 / 0.08); color: #184c3a; }
-.nf-badge--version_release   { background: rgb(107 82 51 / 0.1); color: #5a3f1e; }
-.nf-badge--security_update   { background: rgb(180 30 30 / 0.08); color: #9a1010; }
-.nf-badge--site_update       { background: rgb(30 70 160 / 0.08); color: #1c42a0; }
-.nf-badge--admin_note        { background: var(--surface-muted); color: var(--ink-soft); }
+.nf-badge--recipe_published        { background: rgb(24 76 58 / 0.1);   color: #0c4a38; }
+.nf-badge--article_published       { background: rgb(24 76 58 / 0.08);  color: #184c3a; }
+.nf-badge--amuse_bouche_published  { background: rgb(160 120 40 / 0.10); color: #7a5810; }
+.nf-badge--amuse_bouche_featured   { background: rgb(200 144 48 / 0.12); color: #8b6612; }
+.nf-badge--version_release         { background: rgb(107 82 51 / 0.1);  color: #5a3f1e; }
+.nf-badge--security_update         { background: rgb(180 30 30 / 0.08); color: #9a1010; }
+.nf-badge--site_update             { background: rgb(30 70 160 / 0.08); color: #1c42a0; }
+.nf-badge--admin_note              { background: var(--surface-muted);  color: var(--ink-soft); }
 
 /* ── Entry title ───────────────────────────── */
 
