@@ -719,7 +719,7 @@ def recipe_list(request):
         .order_by("-created_at")
     )
     if q:
-        recipes = recipes.filter(Q(title__icontains=q) | Q(short_description__icontains=q))
+        recipes = recipes.filter(Q(title__icontains=q) | Q(ingredients__icontains=q))
     popular_recipe_candidates = (
         Recipe.objects.select_related("author")
         .prefetch_related("additional_category_links")
