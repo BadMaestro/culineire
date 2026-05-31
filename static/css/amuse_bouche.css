@@ -1,6 +1,7 @@
 /* ================================================================
    CulinEire — Amuse-Bouche Feed
-   Uses site design tokens from base.css (--brand, --ink, etc.)
+   Warm charcoal/parchment palette — intentional design for this section.
+   Structural tokens (surfaces, borders, radii, shadows) from base.css.
    ================================================================ */
 
 /* ---- Layout ---- */
@@ -20,7 +21,7 @@
 .ab-filter {
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
-  color: var(--ink);
+  color: #3a3028;
   font-size: .82rem;
   font-weight: 600;
   padding: .4rem .85rem;
@@ -30,20 +31,19 @@
 
 .ab-filter:hover {
   background: var(--surface-soft);
-  border-color: var(--brand-mid);
-  color: var(--ink);
+  border-color: #bfb49a;
 }
 
 .ab-filter--active {
-  background: var(--brand);
-  border-color: var(--brand);
-  color: #fff;
+  background: #3a3028;
+  border-color: #3a3028;
+  color: var(--surface-soft);
 }
 
 .ab-filter--active:hover {
-  background: var(--brand-dark);
-  border-color: var(--brand-dark);
-  color: #fff;
+  background: #28201a;
+  border-color: #28201a;
+  color: var(--surface-soft);
 }
 
 /* ---- Feed ---- */
@@ -81,9 +81,8 @@
 }
 
 /* Full-cover transparent link — makes the image area clickable.
-   Sits below the gradient overlay (z-index 1); the title link
-   inside the overlay is on top (z-index 3) and handles keyboard
-   navigation. Screen readers see only the title link. */
+   Sits below the gradient overlay; the title link inside the
+   overlay handles keyboard navigation. Screen readers skip this. */
 .ab-card__cover-link {
   position: absolute;
   inset: 0;
@@ -107,8 +106,8 @@
 .ab-card__visual-overlay {
   background: linear-gradient(
     to top,
-    rgba(11, 24, 18, .82) 0%,
-    rgba(11, 24, 18, .28) 55%,
+    rgba(28, 22, 18, .82) 0%,
+    rgba(28, 22, 18, .28) 55%,
     transparent 100%
   );
   bottom: 0;
@@ -160,9 +159,9 @@
 }
 
 .ab-badge {
-  background: var(--brand-soft);
+  background: var(--surface-soft);
   border-radius: var(--radius-pill);
-  color: var(--brand);
+  color: #5a4a38;
   font-size: .72rem;
   font-weight: 700;
   letter-spacing: .04em;
@@ -171,19 +170,18 @@
 }
 
 .ab-author {
-  color: var(--ink);
+  color: #3a3028;
   font-size: .82rem;
   font-weight: 700;
   text-decoration: none;
 }
 
 .ab-author:hover {
-  color: var(--brand);
   text-decoration: underline;
 }
 
 .ab-card__text {
-  color: var(--ink-soft);
+  color: #7a6e5c;
   font-size: .88rem;
   line-height: 1.6;
   margin: 0;
@@ -201,7 +199,7 @@
   background: var(--surface-soft);
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
-  color: var(--ink);
+  color: #3a3028;
   font-size: .78rem;
   font-weight: 600;
   padding: .3rem .75rem;
@@ -211,8 +209,7 @@
 
 .ab-card__links a:hover {
   background: var(--surface-muted);
-  border-color: var(--brand-mid);
-  color: var(--ink);
+  border-color: #bfb49a;
 }
 
 /* ---- Actions row ---- */
@@ -231,7 +228,7 @@
   background: var(--surface);
   border: 1.5px solid var(--border);
   border-radius: var(--radius-pill);
-  color: var(--ink);
+  color: #3a3028;
   cursor: pointer;
   display: inline-flex;
   font: inherit;
@@ -245,21 +242,20 @@
 
 .ab-action:hover {
   background: var(--surface-soft);
-  border-color: var(--brand-mid);
-  color: var(--ink);
+  border-color: #bfb49a;
   transform: translateY(-1px);
 }
 
 .ab-action--active {
-  background: var(--brand);
-  border-color: var(--brand);
-  color: #fff;
+  background: #3a3028;
+  border-color: #3a3028;
+  color: var(--surface-soft);
 }
 
 .ab-action--active:hover {
-  background: var(--brand-dark);
-  border-color: var(--brand-dark);
-  color: #fff;
+  background: #28201a;
+  border-color: #28201a;
+  color: var(--surface-soft);
 }
 
 /* ---- Detail page ---- */
@@ -283,17 +279,17 @@
 
 /* ---- Empty state ---- */
 .ab-empty {
+  align-items: center;
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 1.25rem;
   padding-block: 3.5rem;
   text-align: center;
 }
 
 .ab-empty__text {
+  color: #7a6e5c;
   font-size: 1.05rem;
-  color: var(--muted);
 }
 
 /* ---- Mobile ---- */
