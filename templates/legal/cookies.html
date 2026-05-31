@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Cookie Policy | CulinEire{% endblock %}
+{% block meta_description %}Cookie Policy for CulinEire. Learn what cookies we use, why, and how to control them.{% endblock %}
+
+{% block content %}
+<section class="hero hero--home">
+    <div aria-hidden="true" class="hero__background">
+        <img alt="" src="{% static 'images/hero-contact.png' %}">
+    </div>
+    <div aria-hidden="true" class="hero__overlay"></div>
+    <div class="container hero__inner">
+        <div class="hero-copy">
+            <span class="pill">Legal</span>
+            <h1 class="hero-title">Cookie Policy</h1>
+            <p class="hero-subtitle">What cookies CulinEire uses and how to control them.</p>
+            <div class="hero__actions">
+                <a class="btn-primary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
+                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="page-section">
+    <div class="container">
+
+        <div class="section-header">
+            <span class="section-kicker">Effective date: 28 May 2026</span>
+            <h2>Cookie Policy</h2>
+        </div>
+        <p class="page-subtitle">
+            This policy explains what cookies CulinEire sets, why we set them, and how you can manage them.
+            CulinEire is operated by Bearcave Limited (Company No. 658124), registered in Ireland.
+        </p>
+
+        <div class="section-header">
+            <span class="section-kicker">What is a cookie?</span>
+            <h2>About Cookies</h2>
+        </div>
+        <p class="page-subtitle">
+            A cookie is a small text file stored on your device by your web browser when you visit a website.
+            Cookies help websites remember your preferences, keep you logged in, and protect forms from abuse.
+            They do not contain executable code and cannot access other files on your device.
+        </p>
+
+        <div class="section-header">
+            <span class="section-kicker">Essential cookies</span>
+            <h2>Cookies We Set</h2>
+        </div>
+        <p class="page-subtitle">
+            CulinEire sets only essential, functional cookies. We do not set advertising, tracking, or profiling cookies,
+            and we do not share cookie data with third parties for marketing purposes.
+        </p>
+
+        <table style="width:100%;border-collapse:collapse;font-size:0.9rem;margin:1.5rem 0 2rem;">
+            <thead>
+                <tr style="background:var(--surface,#f5eee4);text-align:left;">
+                    <th style="padding:0.6rem 0.8rem;border-bottom:2px solid var(--border,#e5ddd0);">Cookie name</th>
+                    <th style="padding:0.6rem 0.8rem;border-bottom:2px solid var(--border,#e5ddd0);">Purpose</th>
+                    <th style="padding:0.6rem 0.8rem;border-bottom:2px solid var(--border,#e5ddd0);">Duration</th>
+                    <th style="padding:0.6rem 0.8rem;border-bottom:2px solid var(--border,#e5ddd0);">Legal basis</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="padding:0.55rem 0.8rem;border-bottom:1px solid var(--border,#e5ddd0);font-family:monospace;">sessionid</td>
+                    <td style="padding:0.55rem 0.8rem;border-bottom:1px solid var(--border,#e5ddd0);">Maintains your login session so you stay signed in as you navigate the site.</td>
+                    <td style="padding:0.55rem 0.8rem;border-bottom:1px solid var(--border,#e5ddd0);">Session (cleared on browser close)</td>
+                    <td style="padding:0.55rem 0.8rem;border-bottom:1px solid var(--border,#e5ddd0);">Strictly necessary</td>
+                </tr>
+                <tr>
+                    <td style="padding:0.55rem 0.8rem;border-bottom:1px solid var(--border,#e5ddd0);font-family:monospace;">csrftoken</td>
+                    <td style="padding:0.55rem 0.8rem;border-bottom:1px solid var(--border,#e5ddd0);">Protects forms against cross-site request forgery (CSRF) attacks.</td>
+                    <td style="padding:0.55rem 0.8rem;border-bottom:1px solid var(--border,#e5ddd0);">1 year</td>
+                    <td style="padding:0.55rem 0.8rem;border-bottom:1px solid var(--border,#e5ddd0);">Strictly necessary</td>
+                </tr>
+                <tr>
+                    <td style="padding:0.55rem 0.8rem;border-bottom:1px solid var(--border,#e5ddd0);font-family:monospace;">ce_pwa_*</td>
+                    <td style="padding:0.55rem 0.8rem;border-bottom:1px solid var(--border,#e5ddd0);">Remembers whether you have dismissed the app install prompt so it is not shown repeatedly.</td>
+                    <td style="padding:0.55rem 0.8rem;border-bottom:1px solid var(--border,#e5ddd0);">7 days</td>
+                    <td style="padding:0.55rem 0.8rem;border-bottom:1px solid var(--border,#e5ddd0);">Strictly necessary (localStorage)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p class="page-subtitle" style="font-size:0.85rem;color:var(--text-muted);">
+            <strong>Note:</strong> <code>ce_pwa_*</code> values are stored in your browser's localStorage, not as HTTP cookies.
+            They serve the same functional purpose and are subject to the same controls.
+        </p>
+
+        <div class="section-header">
+            <span class="section-kicker">Third parties</span>
+            <h2>Third-Party Cookies</h2>
+        </div>
+        <p class="page-subtitle">
+            Certain third-party services used by CulinEire may set their own cookies:
+        </p>
+        <ul class="legal-list">
+            <li>
+                <strong>Cloudflare Turnstile</strong> (privacy-preserving CAPTCHA used on forms) may set cookies
+                to verify you are human. Turnstile is designed to minimise data collection.
+                See <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener noreferrer" target="_blank">Cloudflare's Privacy Policy</a>.
+            </li>
+            <li>
+                <strong>Google Fonts</strong> is loaded from Google's servers. Google may collect limited technical
+                information such as IP address. See <a href="https://policies.google.com/privacy" rel="noopener noreferrer" target="_blank">Google's Privacy Policy</a>.
+            </li>
+        </ul>
+        <p class="page-subtitle">
+            CulinEire does not use Google Analytics, Facebook Pixel, or any other behavioural tracking or advertising technology.
+        </p>
+
+        <div class="section-header">
+            <span class="section-kicker">Your rights</span>
+            <h2>Managing Cookies</h2>
+        </div>
+        <p class="page-subtitle">
+            You can control and delete cookies through your browser settings. The following links explain how to manage cookies in common browsers:
+        </p>
+        <ul class="legal-list">
+            <li><a href="https://support.google.com/chrome/answer/95647" rel="noopener noreferrer" target="_blank">Google Chrome</a></li>
+            <li><a href="https://support.mozilla.org/en-US/kb/enhanced-tracking-protection-firefox-desktop" rel="noopener noreferrer" target="_blank">Mozilla Firefox</a></li>
+            <li><a href="https://support.apple.com/en-ie/guide/safari/sfri11471/mac" rel="noopener noreferrer" target="_blank">Apple Safari</a></li>
+            <li><a href="https://support.microsoft.com/en-us/microsoft-edge/delete-cookies-in-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09" rel="noopener noreferrer" target="_blank">Microsoft Edge</a></li>
+        </ul>
+        <p class="page-subtitle">
+            Please note that blocking or deleting essential cookies (such as <code>sessionid</code> and <code>csrftoken</code>)
+            will prevent you from logging in or using interactive features on CulinEire.
+        </p>
+
+        <div class="section-header">
+            <span class="section-kicker">Contact</span>
+            <h2>Questions</h2>
+        </div>
+        <p class="page-subtitle">
+            If you have questions about this Cookie Policy, please contact us at
+            <a href="mailto:culineire@bearcave.ie">culineire@bearcave.ie</a>.
+        </p>
+
+        <p class="page-subtitle" style="margin-top:3rem;">
+            <a href="{% url 'legal:legal_hub' %}">Back to Legal</a> &middot;
+            <a href="{% url 'legal:terms' %}">Terms of Use</a> &middot;
+            <a href="{% url 'privacy' %}">Privacy Policy</a>
+        </p>
+
+    </div>
+</section>
+{% endblock %}

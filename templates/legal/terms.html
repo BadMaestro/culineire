@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Terms of Use | CulinEire{% endblock %}
+{% block meta_description %}Terms of Use for CulinEire, operated by Bearcave Limited. Read the rules governing use of the CulinEire platform.{% endblock %}
+
+{% block content %}
+<section class="hero hero--home">
+    <div aria-hidden="true" class="hero__background">
+        <img alt="" src="{% static 'images/hero-contact.png' %}">
+    </div>
+    <div aria-hidden="true" class="hero__overlay"></div>
+    <div class="container hero__inner">
+        <div class="hero-copy">
+            <span class="pill">Legal</span>
+            <h1 class="hero-title">Terms of Use</h1>
+            <p class="hero-subtitle">The rules that govern your use of CulinEire.</p>
+            <div class="hero__actions">
+                <a class="btn-primary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
+                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="page-section">
+    <div class="container">
+
+        <div class="section-header">
+            <span class="section-kicker">Effective date: 28 May 2026</span>
+            <h2>Terms of Use</h2>
+        </div>
+        <p class="page-subtitle">
+            CulinEire is operated by Bearcave Limited (Company No. 658124), registered in Ireland.
+            These Terms of Use govern your access to and use of the CulinEire website at
+            <a href="https://culineire.ie">culineire.ie</a>.
+            By using the site, you agree to these terms.
+            If you do not agree, please do not use the site.
+        </p>
+
+        <div class="section-header">
+            <span class="section-kicker">1</span>
+            <h2>Who May Use CulinEire</h2>
+        </div>
+        <p class="page-subtitle">
+            CulinEire is open to all visitors. You must be at least 16 years old to create an account or submit content.
+            If you are under 18, you must have the permission of a parent or guardian before registering.
+        </p>
+
+        <div class="section-header">
+            <span class="section-kicker">2</span>
+            <h2>Your Account</h2>
+        </div>
+        <ul class="legal-list">
+            <li>You are responsible for keeping your account credentials secure. Do not share your password.</li>
+            <li>You must provide accurate information when registering. False or misleading registration information may result in account suspension.</li>
+            <li>You may only hold one active account. Creating duplicate accounts to evade a ban or moderation action is prohibited.</li>
+            <li>You may request deletion of your account at any time by contacting us at <a href="mailto:culineire@bearcave.ie">culineire@bearcave.ie</a>.</li>
+        </ul>
+
+        <div class="section-header">
+            <span class="section-kicker">3</span>
+            <h2>Content You Submit</h2>
+        </div>
+        <p class="page-subtitle">
+            When you submit a recipe, article, or other content to CulinEire, you confirm that:
+        </p>
+        <ul class="legal-list">
+            <li>The content is your own original work, or you have the rights or permission to submit it.</li>
+            <li>The content does not infringe any third-party copyright, trademark, or intellectual property right.</li>
+            <li>You grant Bearcave Limited a non-exclusive, royalty-free licence to publish, display, and moderate your content on CulinEire for as long as it remains published.</li>
+            <li>You retain ownership of your original content subject to the licence above.</li>
+            <li>You will not submit content that is unlawful, defamatory, misleading, abusive, or harmful.</li>
+            <li>You will not submit spam, promotional material unrelated to food, or AI-generated content presented as original photography.</li>
+        </ul>
+        <p class="page-subtitle">
+            CulinEire reserves the right to approve, reject, edit, or remove any submitted content at its discretion and without notice.
+        </p>
+
+        <div class="section-header">
+            <span class="section-kicker">4</span>
+            <h2>Food Safety and Allergen Disclaimer</h2>
+        </div>
+        <p class="page-subtitle">
+            Recipes and food content on CulinEire are provided for general informational and inspirational purposes only.
+            They are not intended as professional dietary, nutritional, or medical advice.
+        </p>
+        <ul class="legal-list">
+            <li>Always check the allergen information for every ingredient you use, as formulations and labelling can change.</li>
+            <li>CulinEire cannot guarantee that allergen information displayed alongside recipes is complete or current. Authors are responsible for the accuracy of the content they submit.</li>
+            <li>If you have a food allergy, intolerance, or medical dietary requirement, consult a qualified healthcare professional before relying on any recipe published on this site.</li>
+            <li>Bearcave Limited accepts no liability for illness, injury, or allergic reaction arising from following a recipe published on CulinEire.</li>
+        </ul>
+
+        <div class="section-header">
+            <span class="section-kicker">5</span>
+            <h2>Intellectual Property</h2>
+        </div>
+        <p class="page-subtitle">
+            The CulinEire name, logo, site design, and platform code are the property of Bearcave Limited and are protected by copyright and trade mark law.
+            You may not reproduce, copy, or redistribute any part of the CulinEire platform without express written permission.
+        </p>
+        <p class="page-subtitle">
+            Individual recipes, articles, and photographs remain the property of their respective authors, subject to any licence granted to Bearcave Limited under these terms.
+        </p>
+
+        <div class="section-header">
+            <span class="section-kicker">6</span>
+            <h2>Prohibited Conduct</h2>
+        </div>
+        <p class="page-subtitle">You must not:</p>
+        <ul class="legal-list">
+            <li>Use the site in any way that violates applicable Irish, EU, or international law.</li>
+            <li>Attempt to gain unauthorised access to any part of the site or its infrastructure.</li>
+            <li>Scrape, crawl, or harvest data from the site in a manner that places excessive load on our servers or circumvents access controls.</li>
+            <li>Impersonate any person or organisation, or misrepresent your affiliation with any person or organisation.</li>
+            <li>Transmit unsolicited communications, spam, or malware through the site.</li>
+            <li>Engage in conduct designed to harass, intimidate, or harm other users or contributors.</li>
+        </ul>
+
+        <div class="section-header">
+            <span class="section-kicker">7</span>
+            <h2>Limitation of Liability</h2>
+        </div>
+        <p class="page-subtitle">
+            CulinEire and the content published on it are provided on an "as is" and "as available" basis.
+            To the fullest extent permitted by Irish and EU law, Bearcave Limited makes no warranties, express or implied,
+            regarding the accuracy, completeness, reliability, or fitness for a particular purpose of any content on the site.
+        </p>
+        <p class="page-subtitle">
+            Bearcave Limited shall not be liable for any direct, indirect, incidental, or consequential loss or damage arising
+            from your use of, or inability to use, CulinEire, including any loss arising from reliance on content published by third-party authors.
+            Nothing in these terms limits liability for fraud, death, or personal injury caused by negligence, or any other liability
+            that cannot be excluded under Irish or EU law.
+        </p>
+
+        <div class="section-header">
+            <span class="section-kicker">8</span>
+            <h2>Service Availability</h2>
+        </div>
+        <p class="page-subtitle">
+            We aim to keep CulinEire available at all times but cannot guarantee uninterrupted access.
+            The site may be taken offline for maintenance, updates, or for reasons beyond our control.
+            We will endeavour to provide notice of planned downtime where practicable.
+        </p>
+        <p class="page-subtitle">
+            CulinEire is hosted on third-party infrastructure. While we take reasonable precautions to protect data,
+            we cannot guarantee against data loss due to hardware failure, cyberattack, or other events outside our control.
+            Where possible, we maintain backups of content, but we do not accept liability for any loss of submitted data.
+        </p>
+
+        <div class="section-header">
+            <span class="section-kicker">9</span>
+            <h2>Changes to These Terms</h2>
+        </div>
+        <p class="page-subtitle">
+            Bearcave Limited may update these Terms of Use from time to time.
+            We will notify registered users of material changes where practicable.
+            Continued use of CulinEire after changes are published constitutes acceptance of the revised terms.
+        </p>
+
+        <div class="section-header">
+            <span class="section-kicker">10</span>
+            <h2>Governing Law</h2>
+        </div>
+        <p class="page-subtitle">
+            These Terms of Use are governed by the laws of Ireland.
+            Any disputes arising under these terms shall be subject to the exclusive jurisdiction of the Irish courts,
+            without prejudice to your rights as a consumer under applicable EU law.
+        </p>
+
+        <div class="section-header">
+            <span class="section-kicker">11</span>
+            <h2>Contact</h2>
+        </div>
+        <p class="page-subtitle">
+            Questions about these terms should be directed to
+            <a href="mailto:culineire@bearcave.ie">culineire@bearcave.ie</a>.
+            You may also write to Bearcave Limited, 2 The Fairways, Tir Cluain, Midleton, Co. Cork, P25 W8W3, Ireland.
+        </p>
+
+        <p class="page-subtitle" style="margin-top:3rem;">
+            <a href="{% url 'legal:legal_hub' %}">Back to Legal</a> &middot;
+            <a href="{% url 'legal:cookies' %}">Cookie Policy</a> &middot;
+            <a href="{% url 'privacy' %}">Privacy Policy</a>
+        </p>
+
+    </div>
+</section>
+{% endblock %}

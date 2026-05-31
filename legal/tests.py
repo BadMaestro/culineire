@@ -1,0 +1,305 @@
+"""
+Tests for the legal app.
+
+Covers:
+  - All legal pages are publicly accessible (no login required)
+  - report_content is accessible to anonymous users
+  - report_content is accessible to authenticated users
+  - Anonymous report submission works end-to-end
+  - Authenticated report submission pre-populates name/email
+  - Good-faith declaration is required
+  - Honeypot rejects spam
+  - Rate limit response is handled gracefully
+  - New model fields exist and save correctly
+  - Reports admin view requires superuser
+  - New URL routes work: terms, cookies, company-information
+"""
+
+from unittest.mock import patch
+
+from django.contrib.auth import get_user_model
+from django.test import Client, TestCase
+from django.urls import reverse
+
+from .models import ContentReport
+
+User = get_user_model()
+
+
+class LegalPublicAccessTests(TestCase):
+    """All public legal pages must return 200 for anonymous visitors."""
+
+    def setUp(self):
+        self.client = Client()
+
+    def _assert_public(self, url_name, kwargs=None):
+        url = reverse(url_name, kwargs=kwargs)
+        response = self.client.get(url)
+        self.assertEqual(
+            response.status_code,
+            200,
+            f"{url_name} returned {response.status_code} for anonymous user",
+        )
+
+    def test_legal_hub_public(self):
+        self._assert_public("legal:legal_hub")
+
+    def test_terms_public(self):
+        self._assert_public("legal:terms")
+
+    def test_cookies_public(self):
+        self._assert_public("legal:cookies")
+
+    def test_company_information_public(self):
+        self._assert_public("legal:company_information")
+
+    def test_content_publishing_rules_public(self):
+        self._assert_public("legal:content_publishing_rules")
+
+    def test_author_submission_agreement_public(self):
+        self._assert_public("legal:author_submission_agreement")
+
+    def test_copyright_image_rights_guide_public(self):
+        self._assert_public("legal:copyright_image_rights_guide")
+
+    def test_report_content_public(self):
+        """report_content must NOT redirect anonymous visitors to login."""
+        url = reverse("legal:report_content")
+        response = self.client.get(url)
+        self.assertEqual(
+            response.status_code,
+            200,
+            "report_content must be accessible to anonymous users",
+        )
+        # Must not redirect to login page
+        self.assertNotIn("/accounts/login/", response.get("Location", ""))
+
+    def test_privacy_public(self):
+        response = self.client.get(reverse("privacy"))
+        self.assertEqual(response.status_code, 200)
+
+
+class ReportContentAnonymousSubmissionTests(TestCase):
+    """Anonymous users can submit a content report."""
+
+    def setUp(self):
+        self.client = Client()
+        self.url = reverse("legal:report_content")
+
+    @patch("legal.views.verify_turnstile", return_value=True)
+    @patch("legal.views._send_report_notification")
+    def test_anonymous_submission_creates_report(self, mock_notify, mock_turnstile):
+        response = self.client.post(self.url, {
+            "reporter_name": "Jane Doe",
+            "reporter_email": "jane@example.com",
+            "organisation": "Example Ltd",
+            "report_type": "copyright",
+            "reported_url": "https://culineire.ie/recipes/test/",
+            "evidence_url": "https://original-source.com/photo",
+            "description": "This recipe was taken from my original blog post.",
+            "good_faith_confirmed": True,
+            "website": "",  # honeypot empty
+            "cf-turnstile-response": "dummy-token",
+        })
+        self.assertEqual(response.status_code, 200)
+        report = ContentReport.objects.first()
+        self.assertIsNotNone(report)
+        self.assertEqual(report.reporter_name, "Jane Doe")
+        self.assertEqual(report.reporter_email, "jane@example.com")
+        self.assertEqual(report.organisation, "Example Ltd")
+        self.assertEqual(report.evidence_url, "https://original-source.com/photo")
+        self.assertIsNone(report.reporter_user)
+        self.assertTrue(report.good_faith_confirmed)
+        self.assertEqual(report.status, ContentReport.Status.OPEN)
+        mock_notify.assert_called_once()
+
+    @patch("legal.views.verify_turnstile", return_value=True)
+    def test_good_faith_required(self, mock_turnstile):
+        """Form should be invalid if good_faith_confirmed is not checked."""
+        response = self.client.post(self.url, {
+            "reporter_name": "Jane Doe",
+            "reporter_email": "jane@example.com",
+            "report_type": "copyright",
+            "description": "A valid description here.",
+            "good_faith_confirmed": False,
+            "website": "",
+            "cf-turnstile-response": "dummy-token",
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(ContentReport.objects.count(), 0)
+
+    @patch("legal.views.verify_turnstile", return_value=True)
+    def test_honeypot_rejects_spam(self, mock_turnstile):
+        response = self.client.post(self.url, {
+            "reporter_name": "Spammer",
+            "reporter_email": "spam@spam.com",
+            "report_type": "other",
+            "description": "Spam submission.",
+            "good_faith_confirmed": True,
+            "website": "http://spam.example.com",  # honeypot filled
+            "cf-turnstile-response": "dummy-token",
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(ContentReport.objects.count(), 0)
+
+    @patch("legal.views.verify_turnstile", return_value=False)
+    def test_turnstile_failure_shows_error(self, mock_turnstile):
+        response = self.client.post(self.url, {
+            "reporter_name": "Jane",
+            "reporter_email": "jane@example.com",
+            "report_type": "copyright",
+            "description": "Turnstile should fail.",
+            "good_faith_confirmed": True,
+            "website": "",
+            "cf-turnstile-response": "bad-token",
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(ContentReport.objects.count(), 0)
+        self.assertContains(response, "Security check failed")
+
+
+class ReportContentAuthenticatedTests(TestCase):
+    """Authenticated users can submit reports with pre-populated fields."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="testuser",
+            email="testuser@example.com",
+            password="testpass123",
+            first_name="Test",
+            last_name="User",
+        )
+        self.client = Client()
+        self.client.login(username="testuser", password="testpass123")
+        self.url = reverse("legal:report_content")
+
+    def test_get_shows_prepopulated_form(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        # Name and email should be pre-populated in form initial values
+        form = response.context["form"]
+        self.assertEqual(form.fields["reporter_name"].initial, "Test User")
+        self.assertEqual(form.fields["reporter_email"].initial, "testuser@example.com")
+
+    @patch("legal.views.verify_turnstile", return_value=True)
+    @patch("legal.views._send_report_notification")
+    @patch("legal.views._create_report_message", return_value=None)
+    def test_authenticated_submission_links_user(self, mock_msg, mock_notify, mock_turnstile):
+        response = self.client.post(self.url, {
+            "reporter_name": "Test User",
+            "reporter_email": "testuser@example.com",
+            "organisation": "",
+            "report_type": "stolen_recipe",
+            "reported_url": "https://culineire.ie/recipes/stew/",
+            "evidence_url": "",
+            "description": "This recipe was stolen from my website.",
+            "good_faith_confirmed": True,
+            "website": "",
+            "cf-turnstile-response": "dummy-token",
+        })
+        self.assertEqual(response.status_code, 200)
+        report = ContentReport.objects.first()
+        self.assertIsNotNone(report)
+        self.assertEqual(report.reporter_user, self.user)
+        self.assertEqual(report.reporter_name, "Test User")
+
+
+class ContentReportModelTests(TestCase):
+    """Test new model fields and the Status choices."""
+
+    def test_new_fields_exist(self):
+        report = ContentReport(
+            reporter_name="Alice",
+            reporter_email="alice@example.com",
+            organisation="Alice Corp",
+            evidence_url="https://proof.com",
+            good_faith_confirmed=True,
+            report_type=ContentReport.ReportType.PRIVACY_DATA,
+            description="A privacy concern.",
+            status=ContentReport.Status.UNDER_REVIEW,
+            internal_notes="Being investigated.",
+        )
+        report.save()
+        fetched = ContentReport.objects.get(pk=report.pk)
+        self.assertEqual(fetched.organisation, "Alice Corp")
+        self.assertEqual(fetched.evidence_url, "https://proof.com")
+        self.assertTrue(fetched.good_faith_confirmed)
+        self.assertEqual(fetched.report_type, "privacy_data")
+        self.assertEqual(fetched.status, ContentReport.Status.UNDER_REVIEW)
+        self.assertEqual(fetched.internal_notes, "Being investigated.")
+        self.assertIsNotNone(fetched.updated_at)
+
+    def test_new_report_type_choices(self):
+        types = [c[0] for c in ContentReport.ReportType.choices]
+        for expected in ["privacy_data", "impersonation", "defamation", "food_safety", "spam"]:
+            self.assertIn(expected, types)
+
+    def test_status_choices(self):
+        statuses = [c[0] for c in ContentReport.Status.choices]
+        for expected in ["open", "under_review", "resolved", "dismissed"]:
+            self.assertIn(expected, statuses)
+
+    def test_default_status_is_open(self):
+        report = ContentReport.objects.create(
+            reporter_name="Bob",
+            reporter_email="bob@example.com",
+            report_type=ContentReport.ReportType.OTHER,
+            description="Something.",
+            good_faith_confirmed=True,
+        )
+        self.assertEqual(report.status, ContentReport.Status.OPEN)
+
+
+class ReportsAdminAccessTests(TestCase):
+    """Admin report views must require superuser."""
+
+    def setUp(self):
+        self.regular_user = User.objects.create_user(
+            username="regular", email="r@example.com", password="pass"
+        )
+        self.superuser = User.objects.create_superuser(
+            username="admin", email="admin@example.com", password="adminpass"
+        )
+
+    def test_reports_list_redirects_anonymous(self):
+        response = Client().get(reverse("legal:reports_list"))
+        self.assertIn(response.status_code, [302, 403, 404])
+
+    def test_reports_list_returns_404_for_non_superuser(self):
+        c = Client()
+        c.login(username="regular", password="pass")
+        response = c.get(reverse("legal:reports_list"))
+        self.assertEqual(response.status_code, 404)
+
+    def test_reports_list_accessible_to_superuser(self):
+        c = Client()
+        c.login(username="admin", password="adminpass")
+        response = c.get(reverse("legal:reports_list"))
+        self.assertEqual(response.status_code, 200)
+
+
+class CorporationTaxNumberNotPublishedTest(TestCase):
+    """Critical security test: Corporation Tax Number must never appear in any legal page."""
+
+    TAX_NUMBER = "3645402WH"
+
+    PAGES = [
+        "legal:legal_hub",
+        "legal:terms",
+        "legal:cookies",
+        "legal:company_information",
+        "legal:content_publishing_rules",
+        "legal:copyright_image_rights_guide",
+        "privacy",
+    ]
+
+    def test_tax_number_not_in_any_legal_page(self):
+        c = Client()
+        for url_name in self.PAGES:
+            url = reverse(url_name)
+            response = c.get(url)
+            self.assertNotIn(
+                self.TAX_NUMBER,
+                response.content.decode("utf-8"),
+                f"Corporation Tax Number found in response for {url_name} — this must never be published",
+            )

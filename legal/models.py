@@ -10,7 +10,18 @@ class ContentReport(models.Model):
         WATERMARK = "watermark", "Watermarked or unlicensed image"
         INACCURATE_CREDIT = "inaccurate_credit", "Inaccurate or missing credit"
         STOLEN_RECIPE = "stolen_recipe", "Stolen or uncredited recipe"
+        PRIVACY_DATA = "privacy_data", "Privacy or personal data concern"
+        IMPERSONATION = "impersonation", "Impersonation or fake identity"
+        DEFAMATION = "defamation", "Defamatory or harmful content"
+        FOOD_SAFETY = "food_safety", "Food safety or allergen concern"
+        SPAM = "spam", "Spam or promotional abuse"
         OTHER = "other", "Other"
+
+    class Status(models.TextChoices):
+        OPEN = "open", "Open"
+        UNDER_REVIEW = "under_review", "Under review"
+        RESOLVED = "resolved", "Resolved"
+        DISMISSED = "dismissed", "Dismissed"
 
     recipe = models.ForeignKey(
         "recipes.Recipe",
@@ -46,6 +57,30 @@ class ContentReport(models.Model):
     )
     reporter_name = models.CharField("Your name", max_length=100)
     reporter_email = models.EmailField("Your email")
+    organisation = models.CharField(
+        "Organisation (optional)",
+        max_length=200,
+        blank=True,
+    )
+    evidence_url = models.CharField(
+        "Link to original source or evidence (optional)",
+        max_length=500,
+        blank=True,
+    )
+    good_faith_confirmed = models.BooleanField(
+        "Good faith declaration",
+        default=False,
+        help_text="I confirm this report is made in good faith and the information is accurate to the best of my knowledge.",
+    )
+    status = models.CharField(
+        "Status",
+        max_length=20,
+        choices=Status.choices,
+        default=Status.OPEN,
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+    handled_at = models.DateTimeField("Handled at", null=True, blank=True)
+    internal_notes = models.TextField("Internal notes", blank=True)
     report_type = models.CharField(
         "Type of issue",
         max_length=30,
