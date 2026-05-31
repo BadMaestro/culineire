@@ -1,7 +1,10 @@
 {% load static %}
 <article class="ab-card{% if detail %} ab-card--detail{% endif %}">
 
-  <a class="ab-card__visual" href="{{ item.get_absolute_url }}" aria-label="{{ item.title }}">
+  <div class="ab-card__visual">
+    {# Cover link — makes whole image area clickable; hidden from assistive tech #}
+    <a class="ab-card__cover-link" href="{{ item.get_absolute_url }}" aria-hidden="true" tabindex="-1"></a>
+
     {% if item.card_image %}
     <img alt="{% if item.cover_image_alt %}{{ item.cover_image_alt }}{% else %}{{ item.title }}{% endif %}"
          src="{{ item.card_image.url }}"
@@ -9,12 +12,13 @@
     {% else %}
     <img alt="" src="{% static 'images/hero.jpg' %}" loading="lazy">
     {% endif %}
+
     <div class="ab-card__visual-overlay">
       <h2 class="ab-card__title">
-        <a href="{{ item.get_absolute_url }}" tabindex="-1">{{ item.title }}</a>
+        <a href="{{ item.get_absolute_url }}">{{ item.title }}</a>
       </h2>
     </div>
-  </a>
+  </div>
 
   <div class="ab-card__body">
 

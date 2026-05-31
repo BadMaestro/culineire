@@ -1,24 +1,7 @@
 /* ================================================================
    CulinEire — Amuse-Bouche Feed
-   Palette: warm charcoal/parchment — matches site design system
+   Uses site design tokens from base.css (--brand, --ink, etc.)
    ================================================================ */
-
-/* ---- Hero ---- */
-.ab-hero {
-  background: #f7f4ee;
-  border-bottom: 1px solid #e8e4dc;
-  padding: clamp(2.5rem, 8vw, 5rem) 0 clamp(1.5rem, 4vw, 3rem);
-}
-
-.ab-hero__inner {
-  align-items: flex-end;
-  display: flex;
-  gap: 1.5rem;
-  justify-content: space-between;
-}
-
-.ab-hero .hero-title  { color: #28221e; }
-.ab-hero .hero-subtitle { color: #7a6e5c; }
 
 /* ---- Layout ---- */
 .ab-layout {
@@ -35,27 +18,38 @@
 }
 
 .ab-filter {
-  border: 1px solid #ddd9d0;
-  border-radius: 999px;
-  color: #3a3028;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  color: var(--ink);
   font-size: .82rem;
   font-weight: 600;
   padding: .4rem .85rem;
   text-decoration: none;
   transition: background-color .18s ease, border-color .18s ease, color .18s ease;
 }
-.ab-filter:hover { background: #f0ebe0; border-color: #bfb49a; }
+
+.ab-filter:hover {
+  background: var(--surface-soft);
+  border-color: var(--brand-mid);
+  color: var(--ink);
+}
+
 .ab-filter--active {
-  background: #3a3028;
-  border-color: #3a3028;
-  color: #f0ebe0;
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+
+.ab-filter--active:hover {
+  background: var(--brand-dark);
+  border-color: var(--brand-dark);
+  color: #fff;
 }
 
 /* ---- Feed ---- */
 .ab-feed {
   display: flex;
   flex-direction: column;
-  gap: 0;
   margin-inline: auto;
   max-width: 560px;
   width: 100%;
@@ -63,28 +57,37 @@
 
 /* ---- Card ---- */
 .ab-card {
-  background: #fff;
-  border: 1px solid #e8e4dc;
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(40,34,30,.08), 0 1px 4px rgba(40,34,30,.04);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
   margin-bottom: 1.5rem;
   overflow: hidden;
-  scroll-snap-align: start;
   transition: box-shadow .2s ease, transform .2s ease;
 }
+
 .ab-card:hover {
-  box-shadow: 0 8px 36px rgba(40,34,30,.13), 0 2px 8px rgba(40,34,30,.06);
+  box-shadow: var(--shadow-md);
   transform: translateY(-2px);
 }
 
-/* ---- Visual (image with overlay) ---- */
+/* ---- Visual (image + gradient overlay) ---- */
 .ab-card__visual {
   display: block;
   overflow: hidden;
   position: relative;
-  text-decoration: none;
+}
+
+/* Full-cover transparent link — makes the image area clickable.
+   Sits below the gradient overlay (z-index 1); the title link
+   inside the overlay is on top (z-index 3) and handles keyboard
+   navigation. Screen readers see only the title link. */
+.ab-card__cover-link {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
 }
 
 .ab-card__visual img {
@@ -95,14 +98,17 @@
   transition: transform .35s ease;
   width: 100%;
 }
-.ab-card:hover .ab-card__visual img { transform: scale(1.03); }
 
-/* Gradient overlay */
+.ab-card:hover .ab-card__visual img {
+  transform: scale(1.03);
+}
+
+/* Gradient overlay — sits above the cover link, below the title link */
 .ab-card__visual-overlay {
   background: linear-gradient(
     to top,
-    rgba(28,22,18,.82) 0%,
-    rgba(28,22,18,.28) 55%,
+    rgba(11, 24, 18, .82) 0%,
+    rgba(11, 24, 18, .28) 55%,
     transparent 100%
   );
   bottom: 0;
@@ -115,24 +121,30 @@
   right: 0;
   top: 0;
   justify-content: flex-end;
+  z-index: 2;
 }
 
 .ab-card__title {
   color: #fff;
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--font-serif);
   font-size: clamp(1.15rem, 3vw, 1.45rem);
   line-height: 1.2;
   margin: 0;
-  text-shadow: 0 1px 4px rgba(0,0,0,.35);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, .35);
 }
 
 .ab-card__title a {
   color: inherit;
+  position: relative;
   text-decoration: none;
+  z-index: 3;
 }
-.ab-card__title a:hover { text-decoration: underline; }
 
-/* ---- Body ---- */
+.ab-card__title a:hover {
+  text-decoration: underline;
+}
+
+/* ---- Card body ---- */
 .ab-card__body {
   display: flex;
   flex-direction: column;
@@ -148,9 +160,9 @@
 }
 
 .ab-badge {
-  background: #f0ebe0;
-  border-radius: 999px;
-  color: #5a4a38;
+  background: var(--brand-soft);
+  border-radius: var(--radius-pill);
+  color: var(--brand);
   font-size: .72rem;
   font-weight: 700;
   letter-spacing: .04em;
@@ -159,15 +171,19 @@
 }
 
 .ab-author {
-  color: #3a3028;
+  color: var(--ink);
   font-size: .82rem;
   font-weight: 700;
   text-decoration: none;
 }
-.ab-author:hover { text-decoration: underline; }
+
+.ab-author:hover {
+  color: var(--brand);
+  text-decoration: underline;
+}
 
 .ab-card__text {
-  color: #7a6e5c;
+  color: var(--ink-soft);
   font-size: .88rem;
   line-height: 1.6;
   margin: 0;
@@ -182,35 +198,40 @@
 }
 
 .ab-card__links a {
-  background: #f4f1ec;
-  border: 1px solid #e0dbd0;
-  border-radius: 999px;
-  color: #3a3028;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  color: var(--ink);
   font-size: .78rem;
   font-weight: 600;
   padding: .3rem .75rem;
   text-decoration: none;
   transition: background-color .15s ease, border-color .15s ease;
 }
-.ab-card__links a:hover { background: #e8e3d8; border-color: #ccc5b8; }
 
-/* ---- Actions ---- */
+.ab-card__links a:hover {
+  background: var(--surface-muted);
+  border-color: var(--brand-mid);
+  color: var(--ink);
+}
+
+/* ---- Actions row ---- */
 .ab-actions {
   align-items: center;
+  border-top: 1px solid var(--line);
   display: flex;
   flex-wrap: wrap;
   gap: .5rem;
   margin-top: .15rem;
   padding-top: .65rem;
-  border-top: 1px solid #f0ece4;
 }
 
 .ab-action {
   align-items: center;
-  background: #fff;
-  border: 1.5px solid #ddd9d0;
-  border-radius: 999px;
-  color: #3a3028;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-pill);
+  color: var(--ink);
   cursor: pointer;
   display: inline-flex;
   font: inherit;
@@ -220,35 +241,39 @@
   padding: .42rem .85rem;
   text-decoration: none;
   transition: background-color .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
-  position: relative;
-  overflow: hidden;
 }
+
 .ab-action:hover {
-  background: #f0ebe0;
-  border-color: #bfb49a;
+  background: var(--surface-soft);
+  border-color: var(--brand-mid);
+  color: var(--ink);
   transform: translateY(-1px);
 }
+
 .ab-action--active {
-  background: #3a3028;
-  border-color: #3a3028;
-  color: #f0ebe0;
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
 }
+
 .ab-action--active:hover {
-  background: #28201a;
-  border-color: #28201a;
-  color: #f0ebe0;
+  background: var(--brand-dark);
+  border-color: var(--brand-dark);
+  color: #fff;
 }
 
 /* ---- Detail page ---- */
-.ab-detail-section { padding-block: 2.5rem 4rem; }
+.ab-detail-section {
+  padding-block: 2.5rem 4rem;
+}
 
 .ab-detail {
   max-width: 640px;
 }
 
 .ab-card--detail {
-  border-radius: 18px;
-  box-shadow: 0 8px 40px rgba(40,34,30,.12);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
   margin-bottom: 0;
 }
 
@@ -256,29 +281,38 @@
   aspect-ratio: 16 / 9;
 }
 
-/* ---- Mobile vertical feed ---- */
+/* ---- Empty state ---- */
+.ab-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  padding-block: 3.5rem;
+  text-align: center;
+}
+
+.ab-empty__text {
+  font-size: 1.05rem;
+  color: var(--muted);
+}
+
+/* ---- Mobile ---- */
 @media (max-width: 640px) {
-  .ab-hero__inner { align-items: flex-start; flex-direction: column; }
-
-  .ab-feed {
-    scroll-snap-type: y proximity;
-    gap: 0;
-  }
-
   .ab-card {
     border-left: none;
     border-right: none;
     border-radius: 0;
     box-shadow: none;
     margin-bottom: 12px;
-    min-height: 78vh;
-    scroll-snap-align: start;
+    transform: none !important;
+  }
+
+  .ab-card:hover {
     transform: none !important;
   }
 
   .ab-card__visual img {
     aspect-ratio: 3 / 2;
-    min-height: 42vh;
   }
 
   .ab-card__title {
@@ -288,6 +322,5 @@
   .ab-card--detail {
     border-radius: 0;
     box-shadow: none;
-    min-height: unset;
   }
 }

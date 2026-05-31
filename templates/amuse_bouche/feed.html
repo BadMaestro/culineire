@@ -8,16 +8,22 @@
 {% endblock %}
 
 {% block content %}
-<section class="ab-hero">
-    <div class="container ab-hero__inner">
-        <div>
+<section class="hero hero--home">
+    <div aria-hidden="true" class="hero__background">
+        <img alt="" src="{% static 'images/hero.jpg' %}">
+    </div>
+    <div aria-hidden="true" class="hero__overlay"></div>
+    <div class="container hero__inner">
+        <div class="hero-copy">
             <span class="pill">Small bites, big ideas</span>
             <h1 class="hero-title">Amuse-Bouche</h1>
             <p class="hero-subtitle">Quick culinary ideas, Irish bites and chef tricks from the CulinEire kitchen.</p>
+            {% if user.is_authenticated %}
+            <div class="hero__actions">
+                <a class="btn-primary" href="{% url 'amuse_bouche:create' %}">Submit a Bite</a>
+            </div>
+            {% endif %}
         </div>
-        {% if user.is_authenticated %}
-        <a class="btn-primary" href="{% url 'amuse_bouche:create' %}">Submit a Bite</a>
-        {% endif %}
     </div>
 </section>
 
@@ -25,7 +31,7 @@
     <div class="container ab-layout">
         <nav class="ab-filters" aria-label="Amuse-Bouche filters">
             <a class="ab-filter{% if not active_content_type %} ab-filter--active{% endif %}" href="{% url 'amuse_bouche:feed' %}">All</a>
-            {% for value,label in content_type_choices %}
+            {% for value, label in content_type_choices %}
             <a class="ab-filter{% if active_content_type == value %} ab-filter--active{% endif %}" href="?type={{ value }}">{{ label }}</a>
             {% endfor %}
         </nav>
@@ -37,8 +43,8 @@
             {% endfor %}
         </div>
         {% else %}
-        <div class="collection-empty">
-            <p class="collection-empty__text">No approved Amuse-Bouche posts yet.</p>
+        <div class="ab-empty">
+            <p class="ab-empty__text">No approved Amuse-Bouche posts yet.</p>
         </div>
         {% endif %}
     </div>
