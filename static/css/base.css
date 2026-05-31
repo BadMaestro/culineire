@@ -266,13 +266,18 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1.1rem;
+    gap: 1.25rem;
     text-align: center;
-    margin-block-end: 1.1rem;
+    margin-block-end: 0;
   }
 
   .search-results-header h2 {
     margin: 0;
+  }
+
+  /* Equal spacing between all elements in search results section */
+  .recipe-list-section--search .recipe-grid--mini {
+    row-gap: 1.25rem;
   }
 
   .page-subtitle,
