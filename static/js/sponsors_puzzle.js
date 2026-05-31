@@ -369,13 +369,38 @@
   }
 
   /* ------------------------------------------------------------------ */
-  /* Cell events — open modal on click                                   */
+  /* SVG ripple on click                                                 */
+  /* ------------------------------------------------------------------ */
+  function fireCellRipple(e) {
+    var svg = document.getElementById('sponsor-puzzle');
+    if (!svg || !e) return;
+    try {
+      var pt = svg.createSVGPoint();
+      pt.x = e.clientX;
+      pt.y = e.clientY;
+      var svgPt = pt.matrixTransform(svg.getScreenCTM().inverse());
+      var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', svgPt.x.toFixed(1));
+      circle.setAttribute('cy', svgPt.y.toFixed(1));
+      circle.setAttribute('r', '0');
+      circle.setAttribute('fill', 'rgba(255,255,255,0.38)');
+      circle.classList.add('puzzle-ripple');
+      svg.appendChild(circle);
+      setTimeout(function () { circle.remove(); }, 520);
+    } catch (err) {}
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Cell events — ripple first, then modal                              */
   /* ------------------------------------------------------------------ */
   function attachCellEvents(el, cellData, ring, pos) {
-    el.addEventListener('click', function () {
-      if (window.SponsorModal) {
-        window.SponsorModal.open(cellData);
-      }
+    el.addEventListener('click', function (e) {
+      fireCellRipple(e);
+      setTimeout(function () {
+        if (window.SponsorModal) {
+          window.SponsorModal.open(cellData);
+        }
+      }, 260);
     });
     el.addEventListener('mouseenter', function () {
       el.setAttribute('opacity', '0.82');

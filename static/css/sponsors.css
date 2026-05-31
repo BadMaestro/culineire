@@ -271,6 +271,16 @@
 }
 .puzzle-cell--sold { cursor: pointer !important; }
 
+/* ---- SVG cell ripple ---- */
+@keyframes puzzle-ripple-expand {
+  from { r: 0;    opacity: 0.42; }
+  to   { r: 85px; opacity: 0;    }
+}
+.puzzle-ripple {
+  animation: puzzle-ripple-expand 0.45s ease-out forwards;
+  pointer-events: none;
+}
+
 /* ---- Tooltip ---- */
 .sponsor-tooltip {
   position: absolute;
