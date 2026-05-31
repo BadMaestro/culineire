@@ -62,6 +62,84 @@ class AmuseBouchePublicTests(TestCase):
         self.assertEqual(SavedContent.objects.count(), 1)
 
 
+class AmuseBoucheGatingTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        self.author_user = user_model.objects.create_user(username="author", password="pass")
+        self.other_user = user_model.objects.create_user(username="other", password="pass")
+        self.author = RecipeAuthor.objects.create(
+            user=self.author_user,
+            name="Test Author",
+            slug="test-author",
+        )
+
+    def create_item(self, title="Pending Bite", status=AmuseBouche.Status.PENDING):
+        return AmuseBouche.objects.create(
+            author=self.author,
+            title=title,
+            short_description="A quick bite.",
+            status=status,
+        )
+
+    def test_author_can_open_create_form_before_public_launch(self):
+        self.client.force_login(self.author_user)
+
+        response = self.client.get(reverse("amuse_bouche:create"))
+
+        self.assertContains(response, "Submit Amuse-Bouche")
+
+    def test_author_can_submit_bite_before_public_launch(self):
+        self.client.force_login(self.author_user)
+
+        response = self.client.post(
+            reverse("amuse_bouche:create"),
+            {
+                "title": "Tiny Soda Bread Trick",
+                "short_description": "Toast the heel and rub it with salted butter.",
+                "content_type": AmuseBouche.ContentType.CHEF_TRICK,
+                "cover_image_alt": "",
+                "linked_recipe": "",
+                "linked_article": "",
+                "allow_comments": "on",
+                "seo_title": "",
+                "seo_description": "",
+                "confirm_own_work": "on",
+                "confirm_image_rights": "on",
+                "confirm_rules": "on",
+            },
+        )
+
+        item = AmuseBouche.objects.get(title="Tiny Soda Bread Trick")
+        self.assertRedirects(response, item.get_absolute_url())
+        self.assertEqual(item.author, self.author)
+        self.assertEqual(item.status, AmuseBouche.Status.PENDING)
+
+    def test_author_can_preview_own_pending_bite_before_public_launch(self):
+        item = self.create_item()
+        self.client.force_login(self.author_user)
+
+        response = self.client.get(reverse("amuse_bouche:detail", kwargs={"slug": item.slug}))
+
+        self.assertContains(response, item.title)
+
+    def test_author_profile_workspace_shows_own_bites_before_public_launch(self):
+        item = self.create_item()
+        self.client.force_login(self.author_user)
+
+        response = self.client.get(reverse("recipes:author_detail", kwargs={"slug": self.author.slug}))
+
+        self.assertIn(item, response.context["dashboard_amuse_bouche"])
+        self.assertContains(response, item.title)
+
+    def test_other_authenticated_user_cannot_preview_approved_bite_before_public_launch(self):
+        item = self.create_item("Approved Bite", AmuseBouche.Status.APPROVED)
+        self.client.force_login(self.other_user)
+
+        response = self.client.get(reverse("amuse_bouche:detail", kwargs={"slug": item.slug}))
+
+        self.assertEqual(response.status_code, 404)
+
+
 class AmuseBoucheModerationTests(TestCase):
     def setUp(self):
         user_model = get_user_model()

@@ -113,12 +113,14 @@ def header_author(request):
         },
     ]
 
-    if can_view_amuse_bouche:
+    if can_view_amuse_bouche or author:
         actions.insert(2, {
             "label": "My Amuse-Bouche",
-            "url": _with_query(_reverse_or_empty("amuse_bouche:feed"), author=author.slug)
-            if author
-            else "",
+            "url": (
+                _with_query(_reverse_or_empty("amuse_bouche:feed"), author=author.slug)
+                if can_view_amuse_bouche and author
+                else profile_url
+            ),
             "secondary_label": "(+ New)",
             "secondary_url": _reverse_or_empty("amuse_bouche:create") if author else "",
         })

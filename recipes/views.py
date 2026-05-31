@@ -276,12 +276,13 @@ def _build_amuse_bouche_roadmap_status():
             "phase": "Phase 3",
             "title": "Public Pages",
             "status": "done",
-            "summary": "Feed, detail, submit/edit routes and templates are available behind a launch gate.",
+            "summary": "Feed/detail are launch-gated; authoring remains available for the internal content pipeline.",
             "done": [
                 "Added /amuse-bouche/ feed and indexable detail pages.",
                 "Added author submit/edit views and templates.",
                 "Added mobile-first CSS for the feed cards.",
-                "Gated the public area behind AMUSE_BOUCHE_PUBLIC while allowing staff/moderator preview.",
+                "Gated the public feed/detail behind AMUSE_BOUCHE_PUBLIC while allowing staff/moderator preview.",
+                "Allowed authors to create and preview their own pending Amuse-Bouche posts before public launch.",
             ],
             "current": [],
             "remaining": [],
@@ -340,25 +341,57 @@ def _build_amuse_bouche_roadmap_status():
         {
             "id": "phase-7",
             "phase": "Phase 7",
+            "title": "Generate From Existing Content",
+            "status": "not_started",
+            "summary": "A recipe or article should be able to produce a short pending Amuse-Bouche entry with one action.",
+            "done": [],
+            "current": ["Next active engineering block: generate Amuse-Bouche from published recipes, then articles."],
+            "remaining": [
+                "Add Create Amuse-Bouche action on eligible recipe pages for author/moderator users.",
+                "Generate a short pending bite linked to the source recipe.",
+                "Reuse source image/alt text where appropriate and preserve the link back to full content.",
+                "Add the same pathway for articles after recipe generation is stable.",
+            ],
+            "files": ["recipes/views.py", "templates/recipes/recipe_detail.html", "amuse_bouche/forms.py", "amuse_bouche/views.py"],
+        },
+        {
+            "id": "phase-8",
+            "phase": "Phase 8",
             "title": "Internal Launch",
             "status": "partial",
-            "summary": "Staff preview is deployed; moderation flow, seed content and UX review remain.",
+            "summary": "Staff/author preview and moderation flow exist; generated content, seed content and UX review remain.",
             "done": [
                 "Deployed staff/moderator preview behind the feature flag.",
                 "Fixed preview hero contrast and authoring form layout issues found during review.",
                 "Confirmed anonymous public access returns 404 while gated.",
                 "Added Amuse-Bouche moderation queue and approve/request changes/reject/archive actions.",
             ],
-            "current": ["Next active engineering block: internal test content and browser review."],
+            "current": [],
             "remaining": [
+                "Generate Amuse-Bouche entries from existing recipes/articles.",
                 "Create 10-20 test posts.",
                 "Run browser checks on desktop and mobile.",
             ],
             "files": ["templates/moderation/panel.html", "amuse_bouche/views.py", "amuse_bouche/tests.py", "templates/amuse_bouche/form.html", "static/css/authoring.css"],
         },
         {
-            "id": "phase-8",
-            "phase": "Phase 8",
+            "id": "phase-9",
+            "phase": "Phase 9",
+            "title": "Vertical Feed UX",
+            "status": "not_started",
+            "summary": "The final feed should behave like a mobile-first Shorts/Reels/TikTok-style entry stream, not a blog grid.",
+            "done": [],
+            "current": [],
+            "remaining": [
+                "Design one-bite-at-a-time mobile scrolling layout.",
+                "Keep like/save/comment/source-link actions reachable from the focused bite.",
+                "Browser-check touch and desktop fallback behavior.",
+            ],
+            "files": ["templates/amuse_bouche/feed.html", "templates/amuse_bouche/item_card.html", "static/css/amuse_bouche.css"],
+        },
+        {
+            "id": "phase-10",
+            "phase": "Phase 10",
             "title": "Public Launch",
             "status": "not_started",
             "summary": "Launch work waits until internal content and UX are stable.",
@@ -368,8 +401,8 @@ def _build_amuse_bouche_roadmap_status():
             "files": [],
         },
         {
-            "id": "phase-9",
-            "phase": "Phase 9",
+            "id": "phase-11",
+            "phase": "Phase 11",
             "title": "Video Later",
             "status": "deferred",
             "summary": "Video remains intentionally out of MVP.",
@@ -379,8 +412,8 @@ def _build_amuse_bouche_roadmap_status():
             "files": [],
         },
         {
-            "id": "phase-10",
-            "phase": "Phase 10",
+            "id": "phase-12",
+            "phase": "Phase 12",
             "title": "Chef Battle Integration Hooks",
             "status": "deferred",
             "summary": "Amuse-Bouche must stay compatible with the future Chef Battle concept, but game mechanics are outside this MVP.",
@@ -408,7 +441,7 @@ def _build_amuse_bouche_roadmap_status():
     }
     blocked_items = [
         "Full test suite has an existing recipe rating failure unrelated to Amuse-Bouche.",
-        "Public launch is intentionally gated until moderation, seed content and browser review are complete.",
+        "Public launch is intentionally gated until generation, moderation, seed content and vertical-feed review are complete.",
     ]
     current_phase = next((phase for phase in mvp_phases if phase["current"]), phases[7])
     weighted_done = sum(progress_weight.get(phase["status"], 0) for phase in mvp_phases)
@@ -423,8 +456,9 @@ def _build_amuse_bouche_roadmap_status():
         "progress_scope": "MVP only; deferred Chef Battle and video phases remain tracked below.",
         "blocked_items": blocked_items,
         "next_steps": [
-            "Create internal launch content and browser-check the feed.",
-            "Review authoring and moderation flows on desktop and mobile.",
+            "Add one-click Amuse-Bouche generation from published recipes.",
+            "Route generated bites to pending approval with source links preserved.",
+            "Then repeat the flow for published articles.",
             "Prepare public launch by enabling AMUSE_BOUCHE_PUBLIC when content is ready.",
         ],
     }
@@ -1318,9 +1352,10 @@ def author_detail(request, slug):
     private_dashboard = can_manage or moderator
     try:
         from amuse_bouche.visibility import can_view_amuse_bouche_public_area
-        can_show_amuse_bouche = can_view_amuse_bouche_public_area(request.user)
+        can_show_public_amuse_bouche = can_view_amuse_bouche_public_area(request.user)
     except Exception:
-        can_show_amuse_bouche = False
+        can_show_public_amuse_bouche = False
+    can_show_amuse_bouche_workspace = private_dashboard or can_show_public_amuse_bouche
 
     amuse_bouche_count = 0
     try:
@@ -1328,7 +1363,7 @@ def author_detail(request, slug):
         ab_qs = _AmuseBouche.objects.filter(author=author)
         if not private_dashboard:
             ab_qs = ab_qs.filter(status=_AmuseBouche.Status.APPROVED)
-        if can_show_amuse_bouche:
+        if can_show_amuse_bouche_workspace:
             amuse_bouche_count = ab_qs.count()
     except Exception:
         pass
@@ -1366,7 +1401,7 @@ def author_detail(request, slug):
                 ab_qs2 = ab_qs2.filter(status=status_value)
         else:
             ab_qs2 = ab_qs2.filter(status=_AmuseBouche.Status.APPROVED)
-        dashboard_amuse_bouche = list(ab_qs2) if can_show_amuse_bouche else []
+        dashboard_amuse_bouche = list(ab_qs2) if can_show_amuse_bouche_workspace else []
     except Exception:
         pass
 
@@ -1375,7 +1410,7 @@ def author_detail(request, slug):
         "recipe_count": recipe_count,
         "article_count": article_count,
         "amuse_bouche_count": amuse_bouche_count,
-        "show_amuse_bouche_profile_links": can_show_amuse_bouche,
+        "show_amuse_bouche_profile_links": can_show_public_amuse_bouche,
         "is_god_author": author.slug == settings.OWNER_SLUG,
         "can_manage_author_profile": can_manage,
         "is_moderator_viewer": moderator,

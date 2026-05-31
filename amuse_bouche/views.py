@@ -26,6 +26,10 @@ def _require_public_area_access(request):
         raise Http404
 
 
+def _can_preview_item(user, item):
+    return is_moderator(user) or user_can_manage_author(user, item.author)
+
+
 def _public_queryset(approved_only=True):
     queryset = AmuseBouche.objects.all()
     if approved_only:
@@ -86,12 +90,20 @@ def feed(request):
 
 
 def detail(request, slug):
-    _require_public_area_access(request)
     if is_moderator(request.user):
         queryset = _public_queryset(approved_only=False).exclude(status=AmuseBouche.Status.ARCHIVED)
+    elif request.user.is_authenticated:
+        queryset = _public_queryset(approved_only=False).exclude(status=AmuseBouche.Status.ARCHIVED)
     else:
+        _require_public_area_access(request)
         queryset = _public_queryset()
     item = get_object_or_404(queryset, slug=slug)
+    can_preview = _can_preview_item(request.user, item)
+    if item.status == AmuseBouche.Status.APPROVED:
+        if not can_view_amuse_bouche_public_area(request.user) and not can_preview:
+            raise Http404
+    elif not can_preview:
+        raise Http404
     AmuseBouche.objects.filter(pk=item.pk).update(view_count=F("view_count") + 1)
     items, liked_ids, saved_ids = _user_state([item], request.user)
     return render(request, "amuse_bouche/detail.html", {
@@ -107,10 +119,6 @@ class AmuseBoucheCreateView(AuthorRequiredMixin, CreateView):
     template_name = "amuse_bouche/form.html"
     success_url = reverse_lazy("amuse_bouche:feed")
 
-    def dispatch(self, request, *args, **kwargs):
-        _require_public_area_access(request)
-        return super().dispatch(request, *args, **kwargs)
-
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs["author"] = self.author
@@ -124,16 +132,15 @@ class AmuseBoucheCreateView(AuthorRequiredMixin, CreateView):
         messages.success(self.request, "Your Amuse-Bouche was submitted for review.")
         return response
 
+    def get_success_url(self):
+        return self.object.get_absolute_url()
+
 
 @method_decorator(login_required, name="dispatch")
 class AmuseBoucheUpdateView(AuthorRequiredMixin, UpdateView):
     model = AmuseBouche
     form_class = AmuseBoucheAuthoringForm
     template_name = "amuse_bouche/form.html"
-
-    def dispatch(self, request, *args, **kwargs):
-        _require_public_area_access(request)
-        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         return AmuseBouche.objects.filter(author=self.author)
