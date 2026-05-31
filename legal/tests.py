@@ -278,8 +278,35 @@ class ReportsAdminAccessTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
 
+class SponsorsPublicAccessTests(TestCase):
+    """Sponsors-related public pages must return 200 for anonymous visitors."""
+
+    def setUp(self):
+        self.client = Client()
+
+    def test_annual_contract_public(self):
+        response = self.client.get(reverse("sponsors:annual_contract"))
+        self.assertEqual(response.status_code, 200)
+
+    def test_sponsors_puzzle_public(self):
+        response = self.client.get(reverse("sponsors:puzzle"))
+        self.assertEqual(response.status_code, 200)
+
+    def test_sponsors_page_links_to_annual_contract(self):
+        """Sponsors puzzle page must contain a link to /sponsors/annual-contract/."""
+        response = self.client.get(reverse("sponsors:puzzle"))
+        self.assertContains(response, "/sponsors/annual-contract/")
+
+    def test_annual_contract_link_opens_new_tab(self):
+        """The annual contract link must have target=_blank and rel=noopener noreferrer."""
+        response = self.client.get(reverse("sponsors:puzzle"))
+        content = response.content.decode("utf-8")
+        self.assertIn('target="_blank"', content)
+        self.assertIn('rel="noopener noreferrer"', content)
+
+
 class CorporationTaxNumberNotPublishedTest(TestCase):
-    """Critical security test: Corporation Tax Number must never appear in any legal page."""
+    """Critical security test: Corporation Tax Number must never appear in any public page."""
 
     TAX_NUMBER = "3645402WH"
 
@@ -291,9 +318,11 @@ class CorporationTaxNumberNotPublishedTest(TestCase):
         "legal:content_publishing_rules",
         "legal:copyright_image_rights_guide",
         "privacy",
+        "sponsors:puzzle",
+        "sponsors:annual_contract",
     ]
 
-    def test_tax_number_not_in_any_legal_page(self):
+    def test_tax_number_not_in_any_public_page(self):
         c = Client()
         for url_name in self.PAGES:
             url = reverse(url_name)
