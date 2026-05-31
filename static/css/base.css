@@ -266,9 +266,9 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.9rem;
+    gap: 1.1rem;
     text-align: center;
-    margin-block-end: 1.75rem;
+    margin-block-end: 1.1rem;
   }
 
   .search-results-header h2 {
