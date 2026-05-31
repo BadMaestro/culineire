@@ -19,11 +19,13 @@ def puzzle_page(request):
 
     cells_data = [c.as_dict() for c in cells]
 
-    sold = cells.filter(status=SponsorCell.Status.SOLD).count()
-    reserved = cells.filter(status=SponsorCell.Status.RESERVED).count()
-    available = cells.filter(status=SponsorCell.Status.AVAILABLE).count()
-    # exclude centre from totals shown to visitors
-    sellable_total = cells.exclude(ring=0).count()
+    # Exclude the centre cell (ring=0) from all public-facing counts —
+    # it is a bespoke "Central Founding Partner" spot handled separately.
+    public_cells = cells.exclude(ring=0)
+    sold = public_cells.filter(status=SponsorCell.Status.SOLD).count()
+    reserved = public_cells.filter(status=SponsorCell.Status.RESERVED).count()
+    available = public_cells.filter(status=SponsorCell.Status.AVAILABLE).count()
+    sellable_total = public_cells.count()
 
     return render(
         request,
