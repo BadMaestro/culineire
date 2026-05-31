@@ -94,6 +94,7 @@
 
         <nav aria-label="Primary" class="ce-nav" id="ce-primary-navigation">
             <div class="ce-nav__menu">
+                {% comment %}amuse-bouche nav hidden temporarily{% endcomment %}
                 {% if namespace == 'recipes' %}
                 <a class="ce-nav__link ce-nav__link--active" href="{% url 'recipes:recipe_list' %}" aria-current="page">
                     Recipes
@@ -113,18 +114,6 @@
                     Articles
                 </a>
                 {% endif %}
-                {% if can_view_amuse_bouche_public_area %}
-                <span aria-hidden="true" class="ce-nav__separator"></span>
-                {% if namespace == 'amuse_bouche' %}
-                <a class="ce-nav__link ce-nav__link--active" href="{% url 'amuse_bouche:feed' %}" aria-current="page">
-                    Amuse-Bouche
-                </a>
-                {% else %}
-                <a class="ce-nav__link" href="{% url 'amuse_bouche:feed' %}">
-                    Amuse-Bouche
-                </a>
-                {% endif %}
-                {% endif %}
                 {% if chef_battle_enabled %}
                 {% url 'chef_battle:home' as chef_battle_url %}
                 {% if chef_battle_url %}
@@ -140,6 +129,7 @@
                 {% endif %}
                 {% endif %}
                 {% endif %}
+                <span aria-hidden="true" class="ce-nav__separator"></span>
                 {% if namespace == 'newsfeed' %}
                 <a class="ce-nav__link ce-nav__link--active" href="{% url 'newsfeed:feed' %}" aria-current="page">
                     News
@@ -328,7 +318,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v1.6.28</span>
+                <span class="footer-version">v1.6.30</span>
             </div>
         </div>
     </div>
