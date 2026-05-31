@@ -266,7 +266,7 @@
                         <div class="method-panel__scroll">
                         <ol class="method-steps">
                             {% for step in method_steps %}
-                            <li class="method-steps__item" aria-label="Step {{ step.number }}">
+                            <li class="method-steps__item" id="step-{{ step.number }}" aria-label="Step {{ step.number }}">
                                 <span aria-hidden="true" class="method-steps__number">{{ step.number }}</span>
                                 <div class="method-steps__body">
                                     <p>{{ step.text }}</p>

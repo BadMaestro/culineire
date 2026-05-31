@@ -73,12 +73,27 @@ def recipe_schema_json(context, recipe) -> str:
     else:
         author = {"@type": "Organization", "name": "CulinEire"}
 
-    # Method steps (already computed by view and passed in context)
+    # Method steps — HowToStep with name + url as required by Google
     method_steps = context.get("method_steps") or []
-    instructions = [
-        {"@type": "HowToStep", "text": step["text"]}
-        for step in method_steps if step.get("text")
-    ]
+    page_url = request.build_absolute_uri() if request else ""
+    instructions = []
+    for idx, step in enumerate(method_steps, start=1):
+        text = (step.get("text") or "").strip()
+        if not text:
+            continue
+        # name: first sentence capped at 100 chars, fallback to "Step N"
+        first_sentence = text.split(".")[0].strip()
+        name = first_sentence[:100] if first_sentence else f"Step {idx}"
+        howto = {
+            "@type": "HowToStep",
+            "name": name,
+            "text": text,
+            "url": f"{page_url}#step-{idx}",
+        }
+        # image: reuse recipe hero for every step (best we can do without per-step images)
+        if image_url:
+            howto["image"] = image_url
+        instructions.append(howto)
 
     # Ingredients
     ingredients = [
