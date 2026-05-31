@@ -55,16 +55,16 @@
   width: 32px;
   height: 32px;
   font-size: 1.1rem;
-  color: #5a7060;
+  color: #7a6e5c;
   cursor: pointer;
   line-height: 1;
   z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.12s, color 0.12s;
+  transition: background-color 0.18s ease, color 0.18s ease;
 }
-.spm-close:hover { background: #e4ddd1; color: #1a2e1c; }
+.spm-close:hover { background: #e4ddd1; color: #28221e; }
 
 /* ---- Body ---- */
 #sponsor-modal-body {
@@ -86,7 +86,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #2a5c34;
+  color: #3a3028;
 }
 .spm-ring-label--sold     { color: #1e6e3e; }
 .spm-ring-label--reserved { color: #a06820; }
@@ -100,7 +100,7 @@
   padding: 3px 10px;
   border-radius: 99px;
 }
-.spm-status--available { background: #eaf3ec; color: #2a5c34; }
+.spm-status--available { background: #eaf3ec; color: #3a3028; }
 .spm-status--reserved  { background: #fef3e2; color: #a06820; }
 .spm-status--sold      { background: #e6f4ea; color: #1e6e3e; }
 
@@ -109,7 +109,7 @@
   font-size: 2rem;
   font-family: 'Playfair Display', Georgia, serif;
   font-weight: 700;
-  color: #1a2e1c;
+  color: #28221e;
   margin: 0 0 0.4rem;
   line-height: 1;
 }
@@ -124,7 +124,7 @@
 
 .spm-desc {
   font-size: 0.85rem;
-  color: #7a8a7e;
+  color: #7a6e5c;
   line-height: 1.6;
   margin: 0 0 1.25rem;
 }
@@ -142,29 +142,33 @@
   object-fit: contain;
   border-radius: 8px;
 }
-.spm-sponsor-name    { font-weight: 700; font-size: 1.05rem; color: #1a2e1c; margin: 0 0 0.3rem; }
-.spm-sponsor-tagline { font-size: 0.85rem; color: #7a8a7e; margin: 0 0 0.85rem; }
+.spm-sponsor-name    { font-weight: 700; font-size: 1.05rem; color: #28221e; margin: 0 0 0.3rem; }
+.spm-sponsor-tagline { font-size: 0.85rem; color: #7a6e5c; margin: 0 0 0.85rem; }
 .spm-visit-btn {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0.65rem 2rem;
-  background: #2a5c34;
-  color: #fff;
-  border-radius: 9px;
+  background: #3a3028;
+  color: #f0ebe0;
+  border-radius: 999px;
   font-size: 0.9rem;
-  font-weight: 700;
+  font-weight: 600;
   text-decoration: none;
-  transition: background 0.15s, transform 0.12s;
-  box-shadow: 0 3px 10px rgba(42,92,52,0.25);
+  transition: background-color 0.18s ease, transform 0.18s ease;
+  box-shadow: 0 3px 10px rgba(40,34,30,0.18);
+  position: relative;
+  overflow: hidden;
 }
-.spm-visit-btn:hover { background: #1e4226; color: #fff; transform: translateY(-1px); }
+.spm-visit-btn:hover { background: #28201a; color: #f0ebe0; transform: translateY(-1px); }
 
 /* ---- Reserved ---- */
 .spm-reserved-msg {
   text-align: center;
   padding: 1rem 0;
 }
-.spm-reserved-msg p { color: #5a7060; margin: 0 0 0.4rem; font-size: 0.9rem; }
-.spm-reserved-note  { font-size: 0.8rem; color: #a0a89a; }
+.spm-reserved-msg p { color: #7a6e5c; margin: 0 0 0.4rem; font-size: 0.9rem; }
+.spm-reserved-note  { font-size: 0.8rem; color: #9a9080; }
 
 /* ---- Form ---- */
 .spm-form { margin-top: 0; }
@@ -174,7 +178,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #a0a89a;
+  color: #9a9080;
   margin: 1.1rem 0 0.6rem;
   display: flex;
   align-items: center;
@@ -218,7 +222,7 @@
   border: 1.5px solid #ddd9d0;
   border-radius: 8px;
   font-size: 0.88rem;
-  color: #1a2e1c;
+  color: #28221e;
   background: #fdfcf9;
   transition: border-color 0.15s;
   font-family: inherit;
@@ -226,7 +230,7 @@
 .spm-input:focus,
 .spm-textarea:focus {
   outline: none;
-  border-color: #2a5c34;
+  border-color: #3a3028;
   background: #fff;
 }
 .spm-textarea { resize: vertical; min-height: 70px; }
@@ -245,16 +249,16 @@
   border: 1.5px dashed #c8c2b5;
   border-radius: 10px;
   cursor: pointer;
-  color: #7a8a7e;
+  color: #7a6e5c;
   font-size: 0.82rem;
   transition: border-color 0.15s, background 0.15s;
   background: #fdfcf9;
   text-align: center;
 }
 .spm-logo-drop:hover {
-  border-color: #2a5c34;
+  border-color: #3a3028;
   background: #f2f9f3;
-  color: #2a5c34;
+  color: #3a3028;
 }
 .spm-upload-icon {
   width: 24px;
@@ -270,7 +274,7 @@
 
 .spm-canvas-label {
   font-size: 0.75rem;
-  color: #a0a89a;
+  color: #9a9080;
   text-align: center;
   margin: 0 0 0.4rem;
 }
@@ -301,7 +305,7 @@
 
 .spm-scale-label {
   font-size: 0.75rem;
-  color: #7a8a7e;
+  color: #7a6e5c;
   font-weight: 600;
   flex-shrink: 0;
   width: 30px;
@@ -309,7 +313,7 @@
 
 .spm-scale-input {
   flex: 1;
-  accent-color: #2a5c34;
+  accent-color: #3a3028;
   cursor: pointer;
 }
 
@@ -350,33 +354,37 @@
 }
 
 .spm-buy-btn {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
-  padding: 0.75rem;
-  background: #2a5c34;
-  color: #fff;
+  padding: 0.82rem 1.15rem;
+  background: #3a3028;
+  color: #f0ebe0;
   border: none;
-  border-radius: 10px;
-  font-size: 1rem;
-  font-weight: 700;
+  border-radius: 999px;
+  font-size: 0.96rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s, transform 0.12s;
-  box-shadow: 0 4px 14px rgba(42,92,52,0.28);
+  transition: background-color 0.18s ease, transform 0.18s ease;
+  box-shadow: 0 4px 14px rgba(40,34,30,0.20);
   font-family: inherit;
+  position: relative;
+  overflow: hidden;
 }
 .spm-buy-btn:hover:not(:disabled) {
-  background: #1e4226;
+  background: #28201a;
   transform: translateY(-1px);
 }
 .spm-buy-btn:disabled {
-  background: #a0b4a4;
+  background: #c8c0b4;
   cursor: not-allowed;
   box-shadow: none;
 }
 
 .spm-note {
   font-size: 0.75rem;
-  color: #a0a89a;
+  color: #9a9080;
   text-align: center;
   margin: 0.6rem 0 0;
   line-height: 1.5;
@@ -396,7 +404,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #a0a89a;
+  color: #9a9080;
   margin-bottom: 0.9rem;
 }
 
@@ -454,17 +462,17 @@
 
 .spm-admin-lbl {
   font-weight: 600;
-  color: #5a7060;
+  color: #7a6e5c;
   font-size: 0.74rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
-.spm-admin-row a { color: #2a5c34; word-break: break-all; }
+.spm-admin-row a { color: #3a3028; word-break: break-all; }
 
 .spm-admin-empty {
   font-size: 0.82rem;
-  color: #a0a89a;
+  color: #9a9080;
   margin: 0 0 0.5rem;
   font-style: italic;
 }
@@ -492,34 +500,36 @@
 .spm-admin-approve,
 .spm-admin-reject {
   flex: 1;
-  padding: 0.6rem 0.5rem;
+  padding: 0.65rem 0.5rem;
   border: none;
-  border-radius: 8px;
+  border-radius: 999px;
   font-size: 0.84rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.12s, transform 0.1s;
+  transition: background-color 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
   font-family: inherit;
   line-height: 1.2;
+  position: relative;
+  overflow: hidden;
 }
 
 .spm-admin-approve {
-  background: #2a5c34;
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(42,92,52,0.22);
+  background: #3a3028;
+  color: #f0ebe0;
+  box-shadow: 0 2px 8px rgba(40,34,30,0.18);
 }
-.spm-admin-approve:hover { background: #1e4226; transform: translateY(-1px); }
+.spm-admin-approve:hover { background: #28201a; transform: translateY(-1px); }
 
 .spm-admin-reject {
   background: transparent;
   color: #8b3a1e;
   border: 1.5px solid #e4c9b5;
 }
-.spm-admin-reject:hover { background: #fdf0e8; border-color: #d4a890; }
+.spm-admin-reject:hover { background: #fdf0e8; border-color: #d4a890; transform: translateY(-1px); }
 
 .spm-admin-done {
   font-size: 0.88rem;
-  color: #2a5c34;
+  color: #3a3028;
   font-weight: 600;
   margin: 0;
   text-align: center;

@@ -11,6 +11,12 @@
         '.msg-action-btn',
         '.mod-tool-link',
         '.collection-btn',
+        '.sponsors-contact-btn',
+        '.tt-contact-btn',
+        '.spm-buy-btn',
+        '.spm-visit-btn',
+        '.spm-admin-approve',
+        '.spm-admin-reject',
     ].join(', ');
 
     document.addEventListener('click', function (e) {
