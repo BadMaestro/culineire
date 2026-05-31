@@ -22,10 +22,73 @@
 .ce-header-socials {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: clamp(0.7rem, 3vw, 1.7rem);
   min-height: 32px;
   padding-inline-end: 0.7rem;
+}
+
+.ce-header-socials__icons {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.7rem, 3vw, 1.7rem);
+}
+
+/* ── Header search ─────────────────────────────── */
+
+.ce-header-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.ce-header-search__input {
+  height: 22px;
+  padding: 0 2rem 0 0.75rem;
+  border: 1px solid rgba(247, 242, 234, 0.18);
+  border-radius: 999px;
+  background: rgba(247, 242, 234, 0.09);
+  color: #f7f2ea;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-size: 0.75rem;
+  width: 170px;
+  outline: none;
+  transition: background 0.18s ease, border-color 0.18s ease, width 0.22s ease;
+}
+
+.ce-header-search__input::placeholder {
+  color: rgba(247, 242, 234, 0.4);
+}
+
+.ce-header-search__input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+
+.ce-header-search__input:focus {
+  background: rgba(247, 242, 234, 0.15);
+  border-color: rgba(247, 242, 234, 0.35);
+  width: 210px;
+}
+
+.ce-header-search__btn {
+  position: absolute;
+  right: 0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: rgba(247, 242, 234, 0.55);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+  transition: color 0.15s ease;
+}
+
+.ce-header-search__btn:hover,
+.ce-header-search__input:focus ~ .ce-header-search__btn {
+  color: rgba(247, 242, 234, 0.9);
 }
 
 /* Стили .ce-header-socials__link живут в base.css вместе с .footer-socials__link
@@ -714,6 +777,10 @@
 
 
 @media (max-width: 520px) {
+  .ce-header-search {
+    display: none;
+  }
+
   .ce-header-socials {
     justify-content: center;
     gap: 0.72rem;

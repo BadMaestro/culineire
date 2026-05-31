@@ -711,12 +711,15 @@ def home(request):
 
 def recipe_list(request):
     author_slug = (request.GET.get("author") or "").strip()
+    q = (request.GET.get("q") or "").strip()
     recipes = (
         Recipe.objects.select_related("author")
         .prefetch_related("additional_category_links")
         .filter(status=Recipe.Status.APPROVED, is_deleted=False)
         .order_by("-created_at")
     )
+    if q:
+        recipes = recipes.filter(Q(title__icontains=q) | Q(short_description__icontains=q))
     popular_recipe_candidates = (
         Recipe.objects.select_related("author")
         .prefetch_related("additional_category_links")
@@ -851,6 +854,7 @@ def recipe_list(request):
         "all_recipes_grid": all_recipes_grid,
         "selected_author": selected_author,
         "can_manage_selected_author": user_can_manage_author(request.user, selected_author),
+        "search_query": q,
     }
     return render(request, "recipes/recipe_list.html", context)
 
