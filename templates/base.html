@@ -57,7 +57,7 @@
                     <svg aria-hidden="true" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                 </button>
             </form>
-            <div class="ce-header-socials__icons">
+            <span aria-hidden="true" class="ce-header-socials__sep"></span>
             <a aria-label="Instagram" class="ce-header-socials__link" href="https://www.instagram.com/culineire/" target="_blank" rel="noopener noreferrer">
                 <svg aria-hidden="true" viewBox="0 0 24 24">
                     <rect x="2" y="2" width="20" height="20" rx="5"></rect>
@@ -75,7 +75,6 @@
                     <path d="M21.7 4.2 18.4 20c-.2 1.1-.9 1.4-1.8.9l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5.2 9.5-8.6c.4-.4-.1-.6-.6-.2L5.7 13.4.6 11.8c-1.1-.3-1.1-1.1.2-1.6L20.8 2.5c.9-.3 1.7.2.9 1.7z"></path>
                 </svg>
             </a>
-            </div>
         </div>
     </div>
     {% with url_name=request.resolver_match.url_name namespace=request.resolver_match.namespace %}
@@ -326,7 +325,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v1.6.34</span>
+                <span class="footer-version">v1.6.35</span>
             </div>
         </div>
     </div>

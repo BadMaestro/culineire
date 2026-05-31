@@ -155,7 +155,63 @@
 
         {% else %}
 
-        {% if selected_category_label %}
+        {% if search_query %}
+
+        {# ── Search results view ── #}
+
+        <section aria-labelledby="search-results-title" class="recipe-list-section" id="all-recipes">
+            <div class="page-header page-header--with-gap">
+                <div>
+                    <h2 id="search-results-title">
+                        {% if all_recipes_grid %}
+                            {{ all_recipes_grid|length }} result{% if all_recipes_grid|length != 1 %}s{% endif %} for &ldquo;{{ search_query }}&rdquo;
+                        {% else %}
+                            No results for &ldquo;{{ search_query }}&rdquo;
+                        {% endif %}
+                    </h2>
+                </div>
+                <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}">Clear search</a>
+            </div>
+            {% if all_recipes_grid %}
+            <div class="recipe-grid recipe-grid--mini recipe-grid--6col">
+                {% for recipe in all_recipes_grid %}
+                <article class="recipe-card">
+                    <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
+                        {% if recipe.hero_image %}<img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}">
+                        {% else %}<img alt="{{ recipe.title }}" src="{% static 'images/hero.jpg' %}">{% endif %}
+                        {% if recipe.image_rights_status == 'ai_generated' %}<span aria-label="AI generated image" class="ai-image-badge">AI</span>{% endif %}
+                    </a>
+                    <div class="recipe-card__body">
+                        <div class="recipe-card__content">
+                            <h2 class="recipe-card__title"><a href="{{ recipe.get_absolute_url }}">{{ recipe.title }}</a></h2>
+                            <div aria-label="Recipe category and difficulty" class="recipe-card__taxonomy">
+                                <a class="recipe-card__category-link" href="{{ recipe.get_category_url }}">{{ recipe.get_category_display|default:"Recipe" }}</a>
+                                {% if recipe.get_difficulty_display %}<span class="recipe-card__difficulty">{{ recipe.get_difficulty_display }}</span>{% endif %}
+                            </div>
+                            {% if recipe.short_description %}
+                            <p class="recipe-card__excerpt"><a class="recipe-card__excerpt-link" href="{{ recipe.get_absolute_url }}">{{ recipe.short_description }}</a></p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="page-subtitle">Try a different word or browse by category below.</p>
+            {% if categories %}
+            <div class="category-nav-block">
+                <nav aria-label="Recipe categories" class="category-nav">
+                    {% for category in categories %}
+                    <a class="category-nav__item category-nav__link" href="{{ category.url }}">{{ category.label }}</a>
+                    {% if not forloop.last %}<span aria-hidden="true" class="category-nav__separator">&middot;</span>{% endif %}
+                    {% endfor %}
+                </nav>
+            </div>
+            {% endif %}
+            {% endif %}
+        </section>
+
+        {% elif selected_category_label %}
 
         {# ── Category filtered view ── #}
 

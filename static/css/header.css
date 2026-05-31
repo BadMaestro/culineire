@@ -22,16 +22,18 @@
 .ce-header-socials {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: clamp(0.7rem, 3vw, 1.7rem);
+  justify-content: flex-end;
+  gap: 0.9rem;
   min-height: 32px;
   padding-inline-end: 0.7rem;
 }
 
-.ce-header-socials__icons {
-  display: flex;
-  align-items: center;
-  gap: clamp(0.7rem, 3vw, 1.7rem);
+.ce-header-socials__sep {
+  display: inline-block;
+  width: 1px;
+  height: 14px;
+  background: rgba(247, 242, 234, 0.2);
+  flex-shrink: 0;
 }
 
 /* ── Header search ─────────────────────────────── */
