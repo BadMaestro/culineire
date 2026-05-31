@@ -7,6 +7,7 @@ from django.views.generic import RedirectView, TemplateView
 from django.views.static import serve
 
 from accounts import views as accounts_views
+from config import pwa_views
 from config import views as config_views
 from recipes import views as recipes_views
 
@@ -19,6 +20,9 @@ urlpatterns = [
     path("privacy/", TemplateView.as_view(template_name="privacy.html"), name="privacy"),
     path("robots.txt", config_views.robots_txt, name="robots_txt"),
     path("sitemap.xml", config_views.sitemap_xml, name="sitemap_xml"),
+    path("manifest.json", pwa_views.pwa_manifest, name="pwa_manifest"),
+    path("sw.js", pwa_views.pwa_service_worker, name="pwa_service_worker"),
+    path("offline/", pwa_views.pwa_offline, name="pwa_offline"),
     path("maintenance/notes/", config_views.maintenance_note_create, name="maintenance_note_create"),
     path("maintenance/login/", config_views.maintenance_login, name="maintenance_login"),
     path("maintenance/toggle/", config_views.maintenance_toggle, name="maintenance_toggle"),

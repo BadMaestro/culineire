@@ -41,6 +41,14 @@
     <link href="{% static 'css/footer.css' %}" rel="stylesheet">
     <link href="{% static 'css/messaging.css' %}" rel="stylesheet">
     <link href="{% static 'css/presence.css' %}" rel="stylesheet">
+    <link href="{% static 'css/pwa.css' %}" rel="stylesheet">
+
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#123c2d">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="CulinEire">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="{% static 'images/apple-touch-icon.png' %}">
 
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"CulinEire","url":"{{ SITE_URL }}","logo":"{{ SITE_URL }}{% static 'images/logo.png' %}","sameAs":["https://www.instagram.com/culineire/","https://www.tiktok.com/@culineire.ie","https://t.me/CULINEIRE"]}</script>
 
@@ -325,12 +333,47 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v1.6.39</span>
+                <span class="footer-version">v1.6.40</span>
             </div>
         </div>
     </div>
 
 </footer>
+
+<!-- PWA install banner — shown by install_app.js only when appropriate -->
+<div id="pwa-install-banner" class="pwa-install-banner" hidden
+     role="complementary" aria-label="Install CulinEire app">
+
+    <!-- Android / Chrome: native install prompt -->
+    <div id="pwa-install-native" class="pwa-install-banner__content" hidden>
+        <div aria-hidden="true" class="pwa-install-banner__icon">
+            <img alt="" src="{% static 'images/apple-touch-icon.png' %}">
+        </div>
+        <div class="pwa-install-banner__text">
+            <strong>Install CulinEire</strong>
+            <span>Add to your home screen for quick access</span>
+        </div>
+        <button class="pwa-install-banner__action btn-primary" id="pwa-install-btn" type="button">Install</button>
+        <button class="pwa-install-banner__dismiss" id="pwa-install-dismiss" type="button" aria-label="Dismiss install prompt">
+            <svg aria-hidden="true" fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+        </button>
+    </div>
+
+    <!-- iOS Safari: manual "Add to Home Screen" instructions -->
+    <div id="pwa-install-ios" class="pwa-install-banner__content" hidden>
+        <div aria-hidden="true" class="pwa-install-banner__icon">
+            <img alt="" src="{% static 'images/apple-touch-icon.png' %}">
+        </div>
+        <div class="pwa-install-banner__text">
+            <strong>Add CulinEire to Home Screen</strong>
+            <span>Tap <svg aria-label="Share" class="pwa-install-banner__share-icon" fill="none" height="14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24" width="14"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></svg> then "Add to Home Screen"</span>
+        </div>
+        <button class="pwa-install-banner__dismiss" id="pwa-install-ios-dismiss" type="button" aria-label="Dismiss install instructions">
+            <svg aria-hidden="true" fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+        </button>
+    </div>
+
+</div>
 
 <script src="{% static 'js/main.js' %}"></script>
 <script src="{% static 'js/presence.js' %}"></script>
@@ -372,6 +415,7 @@
 <script src="{% static 'js/form-validator.js' %}"></script>
 <script nonce="{{ request.csp_nonce }}">if(document.querySelector("[data-profanity]")){window.PROFANITY_WORDS_URL="{% url 'monitoring:profanity_words_api' %}";}</script>
 <script src="{% static 'js/profanity-check.js' %}"></script>
+<script src="{% static 'js/install_app.js' %}"></script>
 {% block extra_scripts %}{% endblock %}
 </body>
 </html>
