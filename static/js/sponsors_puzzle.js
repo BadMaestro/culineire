@@ -208,7 +208,7 @@
 
     var poly = svgEl('polygon', {
       points        : pts,
-      fill          : '#2a5c34',
+      fill          : status === 'reserved' ? '#c8942a' : status === 'sold' ? '#3a2e28' : '#6c6054',
       stroke        : '#fff',
       'stroke-width': '2',
       'filter'      : 'url(#cell-shadow)',
