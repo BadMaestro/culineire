@@ -6,8 +6,17 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
+from django.views.generic import TemplateView
 
 from .models import SponsorCell
+
+
+# ---------------------------------------------------------------------------
+# Annual contract page
+# ---------------------------------------------------------------------------
+
+class AnnualContractView(TemplateView):
+    template_name = "sponsors/annual_contract.html"
 
 
 # ---------------------------------------------------------------------------

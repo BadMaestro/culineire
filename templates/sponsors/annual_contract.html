@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Annual Sponsorship Agreement | CulinEire{% endblock %}
+{% block meta_description %}Annual sponsorship agreement terms for CulinEire puzzle spots, operated by Bearcave Limited.{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
+{% block content %}
+<section class="hero hero--home">
+    <div aria-hidden="true" class="hero__background">
+        <img alt="" src="{% static 'images/hero-contact.png' %}">
+    </div>
+    <div aria-hidden="true" class="hero__overlay"></div>
+    <div class="container hero__inner">
+        <div class="hero-copy">
+            <span class="pill">Sponsors</span>
+            <h1 class="hero-title">Annual Sponsorship Agreement</h1>
+            <p class="hero-subtitle">Terms governing CulinEire puzzle sponsorship spots managed by Bearcave Limited.</p>
+            <div class="hero__actions">
+                <a class="btn-primary" href="{% url 'sponsors:puzzle' %}">View Sponsor Puzzle</a>
+                <a class="btn-secondary" href="mailto:culineire@bearcave.ie">Contact Us</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="page-section">
+    <div class="container">
+
+        <div class="section-header">
+            <span class="section-kicker">Effective date: 28 May 2026</span>
+            <h2>CulinEire Annual Sponsorship Agreement</h2>
+        </div>
+        <p class="page-subtitle">
+            This Annual Sponsorship Agreement ("Agreement") sets out the terms under which
+            Bearcave Limited ("we", "us", "Bearcave") grants a sponsorship spot on the CulinEire
+            Sponsor Puzzle to the organisation or individual named in the sponsorship enquiry ("Sponsor").
+            By submitting a sponsorship enquiry and making payment, the Sponsor agrees to these terms.
+        </p>
+
+        <div class="section-header">
+            <span class="section-kicker">1</span>
+            <h2>Parties</h2>
+        </div>
+        <ul class="legal-list">
+            <li><strong>Service provider:</strong> Bearcave Limited, Company No. 658124, 2 The Fairways, Tir Cluain, Midleton, Co. Cork, P25 W8W3, Ireland. Trading as CulinEire (Business Name No. 786815).</li>
+            <li><strong>Sponsor:</strong> The individual or organisation who submits a sponsorship enquiry and enters into this Agreement.</li>
+        </ul>
+
+        <div class="section-header">
+            <span class="section-kicker">2</span>
+            <h2>The Sponsorship Spot</h2>
+        </div>
+        <p class="page-subtitle">
+            Subject to payment and compliance with this Agreement, Bearcave grants the Sponsor
+            a non-exclusive, non-transferable licence to occupy a single designated cell
+            on the CulinEire Sponsor Puzzle for the duration of the annual term.
+            The specific ring and cell number will be confirmed by Bearcave upon acceptance of the enquiry.
+        </p>
+        <ul class="legal-list">
+            <li>The Sponsor's logo and a link to the Sponsor's nominated website will be displayed within the assigned puzzle cell on <a href="https://culineire.ie/sponsors/">culineire.ie/sponsors/</a>.</li>
+            <li>Placement is on a first-come, first-served basis. A cell is held as "reserved" upon enquiry and confirmed as "sold" upon receipt of payment and approval of logo materials.</li>
+            <li>Bearcave reserves the right to decline any sponsorship enquiry at its sole discretion, including where the Sponsor's business or logo conflicts with CulinEire's values, legal obligations, or editorial standards.</li>
+        </ul>
+
+        <div class="section-header">
+            <span class="section-kicker">3</span>
+            <h2>Pricing and Payment</h2>
+        </div>
+        <p class="page-subtitle">
+            Annual sponsorship pricing is determined by ring position on the puzzle, as published on the
+            <a href="{% url 'sponsors:puzzle' %}">Sponsors page</a>:
+        </p>
+        <ul class="legal-list">
+            <li>Ring 6: €25 per year</li>
+            <li>Ring 5: €50 per year</li>
+            <li>Ring 4: €100 per year</li>
+            <li>Ring 3: €200 per year</li>
+            <li>Ring 2: €400 per year</li>
+            <li>Ring 1: €800 per year</li>
+            <li>Central Founding Partner spot: price on application</li>
+        </ul>
+        <p class="page-subtitle">
+            All prices are quoted exclusive of VAT where applicable.
+            Payment terms and accepted payment methods will be confirmed by Bearcave in the sponsorship confirmation email.
+            The sponsorship term commences on the date of payment confirmation.
+        </p>
+
+        <div class="section-header">
+            <span class="section-kicker">4</span>
+            <h2>Sponsor's Logo and Materials</h2>
+        </div>
+        <ul class="legal-list">
+            <li>The Sponsor is responsible for providing a logo in a suitable format (PNG or SVG preferred, minimum 200px on the shortest side).</li>
+            <li>By providing a logo, the Sponsor confirms they own or are licensed to use the logo and grants Bearcave a non-exclusive, royalty-free licence to display it on CulinEire for the duration of the sponsorship term.</li>
+            <li>Bearcave may resize or reposition the logo to fit within the designated puzzle cell. No other modifications will be made without the Sponsor's consent.</li>
+            <li>Logos that contain illegal, offensive, or misleading content will be rejected. Bearcave's decision in this regard is final.</li>
+        </ul>
+
+        <div class="section-header">
+            <span class="section-kicker">5</span>
+            <h2>Term and Renewal</h2>
+        </div>
+        <ul class="legal-list">
+            <li>The initial sponsorship term is 12 months from the date of confirmation.</li>
+            <li>Bearcave will contact the Sponsor before the end of the term to offer renewal at the then-current pricing.</li>
+            <li>If the Sponsor does not renew, the cell will be released as available after the expiry date and the Sponsor's logo and link will be removed.</li>
+            <li>There is no automatic renewal. Continued sponsorship requires a new agreement and payment for each annual term.</li>
+        </ul>
+
+        <div class="section-header">
+            <span class="section-kicker">6</span>
+            <h2>Cancellation and Refunds</h2>
+        </div>
+        <ul class="legal-list">
+            <li>The Sponsor may cancel this Agreement within 14 days of payment confirmation (the statutory cooling-off period under EU consumer law) for a full refund, provided the sponsorship has not yet been published on the puzzle.</li>
+            <li>Once the Sponsor's logo is live on the CulinEire puzzle, no refund is available for the current term.</li>
+            <li>Bearcave may terminate this Agreement immediately and without refund if the Sponsor is found to be in breach of these terms, including providing misleading or illegal content.</li>
+            <li>If Bearcave withdraws the sponsorship opportunity for reasons not attributable to the Sponsor, a pro-rata refund will be issued for any unused portion of the paid term.</li>
+        </ul>
+
+        <div class="section-header">
+            <span class="section-kicker">7</span>
+            <h2>Sponsor's Obligations</h2>
+        </div>
+        <ul class="legal-list">
+            <li>The Sponsor must not use the sponsorship spot, logo, or associated link to promote unlawful goods or services, defamatory content, or anything that violates Irish or EU law.</li>
+            <li>The Sponsor must ensure that the nominated website URL is accurate and active for the duration of the term. If the URL changes, the Sponsor must notify Bearcave at <a href="mailto:culineire@bearcave.ie">culineire@bearcave.ie</a>.</li>
+            <li>The Sponsor must not misrepresent the nature of the sponsorship relationship or imply any editorial endorsement by CulinEire or Bearcave Limited.</li>
+        </ul>
+
+        <div class="section-header">
+            <span class="section-kicker">8</span>
+            <h2>Intellectual Property</h2>
+        </div>
+        <p class="page-subtitle">
+            The CulinEire name, logo, and puzzle design remain the exclusive property of Bearcave Limited.
+            The Sponsor acquires no rights in the CulinEire brand or platform by entering into this Agreement.
+            The Sponsor's logo and brand assets remain the property of the Sponsor.
+        </p>
+
+        <div class="section-header">
+            <span class="section-kicker">9</span>
+            <h2>Limitation of Liability</h2>
+        </div>
+        <p class="page-subtitle">
+            To the fullest extent permitted by Irish and EU law, Bearcave's liability under this Agreement
+            is limited to the amount paid by the Sponsor for the current annual term.
+            Bearcave is not liable for indirect, consequential, or loss of business arising from temporary
+            unavailability of the CulinEire website or the puzzle feature.
+            Nothing in this clause limits liability for fraud, death, or personal injury caused by negligence.
+        </p>
+
+        <div class="section-header">
+            <span class="section-kicker">10</span>
+            <h2>Data Protection</h2>
+        </div>
+        <p class="page-subtitle">
+            Personal data provided as part of the sponsorship enquiry process will be processed by
+            Bearcave Limited in accordance with our <a href="{% url 'privacy' %}">Privacy Policy</a>
+            and the GDPR. Data is used solely for the purpose of managing the sponsorship relationship
+            and will not be shared with third parties for marketing.
+        </p>
+
+        <div class="section-header">
+            <span class="section-kicker">11</span>
+            <h2>Governing Law</h2>
+        </div>
+        <p class="page-subtitle">
+            This Agreement is governed by the laws of Ireland.
+            Any disputes arising under this Agreement shall be subject to the exclusive jurisdiction
+            of the Irish courts, without prejudice to any statutory rights you may hold as a consumer
+            under applicable EU law.
+        </p>
+
+        <div class="section-header">
+            <span class="section-kicker">12</span>
+            <h2>Contact</h2>
+        </div>
+        <p class="page-subtitle">
+            For all sponsorship enquiries, logo updates, or questions about this Agreement,
+            please contact Bearcave Limited at
+            <a href="mailto:culineire@bearcave.ie">culineire@bearcave.ie</a>
+            or write to 2 The Fairways, Tir Cluain, Midleton, Co. Cork, P25 W8W3, Ireland.
+        </p>
+
+        <p class="page-subtitle" style="margin-top:3rem;">
+            <a href="{% url 'sponsors:puzzle' %}">Back to Sponsor Puzzle</a> &middot;
+            <a href="{% url 'privacy' %}">Privacy Policy</a> &middot;
+            <a href="{% url 'legal:terms' %}">Terms of Use</a>
+        </p>
+
+    </div>
+</section>
+{% endblock %}
