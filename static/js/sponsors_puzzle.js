@@ -35,7 +35,7 @@
   var RING_COLOURS = {
     available : { 6: '#f4f1ec', 5: '#ede8df', 4: '#e4ddd1', 3: '#d8d0c0', 2: '#ccc1aa', 1: '#bfb49a', 0: '#b8af96' },
     reserved  : { 6: '#faf0d8', 5: '#f5e6c8', 4: '#f2ddb2', 3: '#efd49c', 2: '#ebca86', 1: '#e6c070', 0: '#e0b85a' },
-    sold      : { 6: '#ddf0dd', 5: '#c8dfc8', 4: '#b0d4b0', 3: '#8fc58f', 2: '#6db46d', 1: '#4a9e4a', 0: '#2a7a2a' },
+    sold      : { 6: '#ddd8ce', 5: '#cdc7ba', 4: '#b8b0a0', 3: '#a49888', 2: '#907e6c', 1: '#786454', 0: '#5c4c3e' },
   };
 
   var STATUS_LABEL = { available: 'Available', reserved: 'Reserved', sold: 'Sold' };
@@ -383,10 +383,27 @@
       circle.setAttribute('cx', svgPt.x.toFixed(1));
       circle.setAttribute('cy', svgPt.y.toFixed(1));
       circle.setAttribute('r', '0');
-      circle.setAttribute('fill', 'rgba(255,255,255,0.38)');
-      circle.classList.add('puzzle-ripple');
+      circle.setAttribute('fill', 'rgba(58,48,40,0.28)');
+      circle.setAttribute('pointer-events', 'none');
       svg.appendChild(circle);
-      setTimeout(function () { circle.remove(); }, 520);
+
+      var MAX_R   = 110;
+      var DURATION = 420;
+      var start = null;
+
+      function step(ts) {
+        if (!start) start = ts;
+        var progress = Math.min((ts - start) / DURATION, 1);
+        var eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+        circle.setAttribute('r', (MAX_R * eased).toFixed(1));
+        circle.setAttribute('fill-opacity', (0.28 * (1 - progress)).toFixed(3));
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        } else {
+          circle.remove();
+        }
+      }
+      requestAnimationFrame(step);
     } catch (err) {}
   }
 
