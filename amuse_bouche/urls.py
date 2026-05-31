@@ -13,4 +13,5 @@ urlpatterns = [
     path("<slug:slug>/like/", views.toggle_like, name="toggle_like"),
     path("<slug:slug>/save/", views.toggle_save, name="toggle_save"),
     path("generate/from-recipe/<slug:slug>/", views.generate_from_recipe, name="generate_from_recipe"),
+    path("generate/from-article/<slug:slug>/", views.generate_from_article, name="generate_from_article"),
 ]

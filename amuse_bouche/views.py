@@ -15,6 +15,7 @@ from django_ratelimit.decorators import ratelimit
 from collection.models import ContentReaction, SavedContent
 from monitoring.tracker import track_event
 from recipes.authoring import AuthorRequiredMixin, user_can_manage_author
+from articles.models import Article
 from recipes.models import Recipe
 from accounts.views import is_moderator
 from .forms import AmuseBoucheAuthoringForm
@@ -313,6 +314,60 @@ def generate_from_recipe(request, slug):
         content_type=AmuseBouche.ContentType.BEHIND_THE_DISH,
         linked_recipe=recipe,
         cover_image_alt=recipe.hero_image_alt_text or "",
+        status=AmuseBouche.Status.PENDING,
+    )
+
+    track_event(
+        request,
+        "amuse_bouche_generated",
+        object_type="amuse_bouche",
+        object_id=item.pk,
+        object_title=item.title,
+    )
+    messages.success(
+        request,
+        f'Amuse-Bouche "{item.title}" created as pending. Review and edit before it goes live.',
+    )
+    return redirect(item.get_absolute_url())
+
+
+@require_POST
+@login_required
+def generate_from_article(request, slug):
+    """Create a pending Amuse-Bouche pre-filled from an approved article.
+
+    Only the article's author (or a moderator) may trigger this. One bite
+    per article per author is enforced to prevent duplicate submissions.
+    """
+    article = get_object_or_404(
+        Article.objects.select_related("author"),
+        slug=slug,
+        status=Article.Status.APPROVED,
+        is_deleted=False,
+    )
+
+    if not (is_moderator(request.user) or user_can_manage_author(request.user, article.author)):
+        raise Http404
+
+    author = article.author
+
+    # Prevent duplicate: one bite per article per author (excluding archived)
+    existing = AmuseBouche.objects.filter(
+        author=author,
+        linked_article=article,
+    ).exclude(status=AmuseBouche.Status.ARCHIVED).first()
+
+    if existing:
+        messages.info(request, "An Amuse-Bouche for this article already exists.")
+        return redirect(existing.get_absolute_url())
+
+    item = AmuseBouche.objects.create(
+        author=author,
+        title=article.title[:200],
+        short_description=(article.excerpt or "")[:500],
+        content_type=AmuseBouche.ContentType.BEHIND_THE_DISH,
+        linked_article=article,
+        cover_image_alt=article.hero_image_alt_text or "",
         status=AmuseBouche.Status.PENDING,
     )
 

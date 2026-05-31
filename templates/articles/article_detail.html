@@ -79,6 +79,18 @@
             </header>
 
             <a class="detail-page__back-link" href="{% url 'articles:article_list' %}">Back to Articles</a>
+            {% if can_generate_ab %}
+            <div class="detail-page__author-tools">
+                {% if article_ab_exists %}
+                <a class="btn-secondary" href="{% url 'amuse_bouche:feed' %}">View Amuse-Bouche</a>
+                {% else %}
+                <form method="post" action="{% url 'amuse_bouche:generate_from_article' article.slug %}" style="display:inline">
+                    {% csrf_token %}
+                    <button class="btn-secondary" type="submit">Generate Amuse-Bouche</button>
+                </form>
+                {% endif %}
+            </div>
+            {% endif %}
 
             {% if gallery_items %}
             {% if has_gallery %}

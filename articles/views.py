@@ -406,6 +406,14 @@ class ArticleDetailView(DetailView):
                 is_moderator(self.request.user) or
                 user_can_manage_author(self.request.user, article.author)
         )
+        context["can_generate_ab"] = (
+            article.status == Article.Status.APPROVED
+            and context["can_manage_article"]
+        )
+        context["article_ab_exists"] = (
+            article.status == Article.Status.APPROVED
+            and article.amuse_bouche_items.exclude(status="archived").exists()
+        )
         context["can_moderate_bar"] = (
                 is_moderator(self.request.user) and
                 article.status != Article.Status.APPROVED

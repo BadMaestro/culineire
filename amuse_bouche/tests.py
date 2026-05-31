@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from articles.models import Article
 from collection.models import ContentReaction, SavedContent
 from recipes.models import Recipe, RecipeAuthor
 from .models import AmuseBouche
@@ -316,5 +317,84 @@ class AmuseBoucheGenerateFromRecipeTests(TestCase):
         self.client.post(self.url)
         self.assertEqual(
             AmuseBouche.objects.filter(linked_recipe=self.recipe).exclude(status=AmuseBouche.Status.ARCHIVED).count(),
+            1,
+        )
+
+
+class AmuseBoucheGenerateFromArticleTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        self.author_user = user_model.objects.create_user(username="writer", password="pass")
+        self.other_user = user_model.objects.create_user(username="other2", password="pass")
+        self.author = RecipeAuthor.objects.create(
+            user=self.author_user,
+            name="Writer Author",
+            slug="writer-author",
+        )
+        self.article = Article.objects.create(
+            author=self.author,
+            title="The History of Irish Soda Bread",
+            slug="history-irish-soda-bread",
+            excerpt="A deep dive into the origins of Irish soda bread.",
+            hero_image_alt_text="A golden loaf of soda bread",
+            category=Article.Category.IRISH_CULINARY_HERITAGE,
+            body="Soda bread is a staple of Irish cuisine.",
+            status=Article.Status.APPROVED,
+        )
+        self.url = reverse("amuse_bouche:generate_from_article", kwargs={"slug": self.article.slug})
+
+    def test_author_can_generate_bite_from_approved_article(self):
+        self.client.force_login(self.author_user)
+        response = self.client.post(self.url)
+
+        item = AmuseBouche.objects.get(linked_article=self.article)
+        self.assertRedirects(response, item.get_absolute_url())
+        self.assertEqual(item.title, self.article.title)
+        self.assertEqual(item.author, self.author)
+        self.assertEqual(item.status, AmuseBouche.Status.PENDING)
+        self.assertEqual(item.content_type, AmuseBouche.ContentType.BEHIND_THE_DISH)
+        self.assertEqual(item.linked_article, self.article)
+        self.assertEqual(item.cover_image_alt, self.article.hero_image_alt_text)
+
+    def test_duplicate_generation_redirects_to_existing_bite(self):
+        self.client.force_login(self.author_user)
+        self.client.post(self.url)
+        self.client.post(self.url)
+
+        self.assertEqual(AmuseBouche.objects.filter(linked_article=self.article).count(), 1)
+
+    def test_unauthenticated_user_cannot_generate(self):
+        response = self.client.post(self.url)
+        self.assertNotEqual(response.status_code, 200)
+        self.assertFalse(AmuseBouche.objects.filter(linked_article=self.article).exists())
+
+    def test_unrelated_user_cannot_generate(self):
+        self.client.force_login(self.other_user)
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_get_method_not_allowed(self):
+        self.client.force_login(self.author_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 405)
+
+    def test_draft_article_returns_404(self):
+        self.article.status = Article.Status.DRAFT
+        self.article.save(update_fields=["status"])
+        self.client.force_login(self.author_user)
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_archived_bite_does_not_block_new_generation(self):
+        AmuseBouche.objects.create(
+            author=self.author,
+            title=self.article.title,
+            linked_article=self.article,
+            status=AmuseBouche.Status.ARCHIVED,
+        )
+        self.client.force_login(self.author_user)
+        self.client.post(self.url)
+        self.assertEqual(
+            AmuseBouche.objects.filter(linked_article=self.article).exclude(status=AmuseBouche.Status.ARCHIVED).count(),
             1,
         )
