@@ -3,179 +3,223 @@
 {% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero.jpg' %}{% endblock %}
 
 {% block title %}About CulinEire | Irish Food Heritage, Recipes & Kitchen Stories{% endblock %}
-{% block meta_description %}CulinEire is a working kitchen for Irish food heritage: recipes, stories, short kitchen ideas, authors, home cooks and future Chef Battle events.{% endblock %}
+{% block meta_description %}CulinEire is a working kitchen for Irish food heritage: clear recipes, useful stories, short ideas, authors and future Chef Battle events.{% endblock %}
 
 {% block content %}
-<section class="hero hero--home hero--about">
-    <div aria-hidden="true" class="hero__background">
-        <img alt="" src="{% static 'images/hero.jpg' %}">
-    </div>
-    <div aria-hidden="true" class="hero__overlay"></div>
-    <div class="container hero__inner">
-        <div class="hero-copy">
-            <span class="pill">Our Story</span>
-            <h1 class="hero-title">About CulinEire</h1>
-            <p class="hero-subtitle">Irish food heritage, clear recipes and kitchen stories for today.</p>
-            <div class="hero__actions">
-                {% if can_view_amuse_bouche_public_area %}
-                <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
-                <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
-                {% else %}
-                <a class="btn-primary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
-                {% endif %}
-                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
+<div class="about-deck" data-about-deck>
+    <article class="about-deck__shell" aria-labelledby="about-deck-title" aria-roledescription="carousel">
+        <header class="about-deck__status" aria-label="Presentation progress">
+            <span data-about-count>1 / 7</span>
+            <div class="about-deck__progress" aria-hidden="true">
+                <span data-about-progress></span>
             </div>
-        </div>
-    </div>
-</section>
+        </header>
 
-<section class="page-section about-intro-section">
-    <div class="container about-editorial">
-        <div class="about-editorial__main">
-            <p class="about-kicker">Not a recipe museum</p>
-            <p class="about-lede">CulinEire keeps Irish cooking useful, findable and alive.</p>
-            <p class="about-lede about-lede--quiet">Recipes, stories and kitchen notes should be easy to return to before cooking.</p>
-        </div>
-        <aside class="about-mission" aria-label="CulinEire mission">
-            <p class="about-mission__label">Working Kitchen</p>
-            <p>Memory, ingredients, people and new dishes in one calm kitchen.</p>
-        </aside>
-    </div>
-</section>
+        <div class="about-deck__viewport" data-about-viewport aria-live="polite">
+            <section class="about-slide about-slide--cover is-active" data-about-slide aria-label="Slide 1 of 7">
+                <div aria-hidden="true" class="about-slide__image">
+                    <img alt="" src="{% static 'images/hero.jpg' %}">
+                </div>
+                <div class="about-slide__shade"></div>
+                <div class="about-slide__content about-slide__content--center">
+                    <span class="about-slide__kicker">Our Story</span>
+                    <h1 id="about-deck-title">CulinEire</h1>
+                    <p>A working kitchen for Irish food heritage: recipes, stories, short ideas and people worth returning to.</p>
+                    <div class="about-slide__actions">
+                        <a class="about-deck-btn about-deck-btn--primary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore recipes</a>
+                        <a class="about-deck-btn" href="{% url 'articles:article_list' %}">Read articles</a>
+                    </div>
+                </div>
+            </section>
 
-<section class="page-section about-band">
-    <div class="container about-editorial about-editorial--mirror">
-        <aside class="about-mission about-mission--warm" aria-label="Guiding thought">
-            <p class="about-mission__label">The guiding thought</p>
-            <p>Keep the flavour of the past and let it work in today's kitchen.</p>
-        </aside>
-        <div class="about-editorial__main about-editorial__main--compact">
-            <span class="section-kicker">Why CulinEire Exists</span>
-            <h2>Good kitchen ideas disappear too quickly.</h2>
-            <p>Good ideas vanish quickly: a recipe is opened once, a useful note passes through a feed, a small kitchen discovery is lost.</p>
-            <p>CulinEire is built as a calm shelf for recipes, sources, short ideas and people worth returning to.</p>
-        </div>
-    </div>
-</section>
+            <section class="about-slide" data-about-slide aria-label="Slide 2 of 7">
+                <div class="about-slide__panel about-slide__panel--wide">
+                    <span class="about-slide__kicker">Not a recipe museum</span>
+                    <h2>Keep Irish cooking useful, findable and alive.</h2>
+                    <p>A family dish should not disappear after one scroll. A kitchen note should be easy to save, share and return to before cooking.</p>
+                </div>
+                <aside class="about-slide__note">
+                    <span>Working kitchen</span>
+                    <p>Memory, ingredients, people and new dishes in one calm place.</p>
+                </aside>
+            </section>
 
-<section class="page-section">
-    <div class="container about-feature about-tree-node about-tree-node--left">
-        <div class="about-feature__header">
-            <span class="section-kicker">Irish Foundation</span>
-            <h2>Heritage, Without The Glass Case</h2>
-        </div>
-        <div class="about-feature__copy">
-            <p>Home food, baking, stews, fish, meat, dairy, seasonal ingredients and local produce give CulinEire its foundation.</p>
-            <p>The past matters here, but it is not locked away.</p>
-        </div>
-        <div class="about-principles">
-            <article class="about-principle">
-                <span class="about-principle__mark">01</span>
-                <h3>Classic dishes, modern clarity</h3>
-                <p>Old recipes should be readable, practical and useful beside the hob.</p>
-            </article>
-            <article class="about-principle">
-                <span class="about-principle__mark">02</span>
-                <h3>Sources, stories and context</h3>
-                <p>Articles give ingredients, people, old books and regional habits room to breathe.</p>
-            </article>
-            <article class="about-principle">
-                <span class="about-principle__mark">03</span>
-                <h3>Respect, not nostalgia</h3>
-                <p>Irish food should be cooked from, learned from and kept moving.</p>
-            </article>
-        </div>
-    </div>
-</section>
+            <section class="about-slide about-slide--split" data-about-slide aria-label="Slide 3 of 7">
+                <aside class="about-slide__quote">
+                    <span>The guiding thought</span>
+                    <p>Keep the flavour of the past and let it work in today's kitchen.</p>
+                </aside>
+                <div class="about-slide__panel">
+                    <span class="about-slide__kicker">Why it exists</span>
+                    <h2>Good kitchen ideas disappear too quickly.</h2>
+                    <p>A recipe is opened, cooked once and forgotten. A useful idea appears in a feed and is gone. CulinEire gives those ideas somewhere to live.</p>
+                </div>
+            </section>
 
-<section class="page-section about-band about-band--table">
-    <div class="container about-tree-node about-tree-node--right">
-        <div class="about-map-header">
-            <div class="about-map-header__copy">
-                <span class="section-kicker">One Kitchen</span>
-                <h2>Different Workstations, One Table</h2>
-                <p>A recipe can become a story. A short idea can lead back to a full dish. A future battle can turn cooking into an event.</p>
-            </div>
-        </div>
-        <div class="about-workstations">
-            <article class="about-workstation">
-                <h3>Recipes</h3>
-                <p>Clear ingredients, methods and notes for dishes people can cook.</p>
-                <a href="{% url 'recipes:recipe_list' %}#all-recipes">Explore recipes</a>
-            </article>
-            <article class="about-workstation">
-                <h3>Articles</h3>
-                <p>Food history, produce, people and old sources without heavy language.</p>
-                <a href="{% url 'articles:article_list' %}">Read articles</a>
-            </article>
-            <article class="about-workstation">
-                <h3>Amuse-Bouche</h3>
-                <p>Sauces, drinks, plating notes, quick tips and useful kitchen sparks.</p>
-                {% if can_view_amuse_bouche_public_area %}
-                <a href="{% url 'amuse_bouche:feed' %}">Open Amuse-Bouche</a>
-                {% else %}
-                <span>Preparing for public launch</span>
-                {% endif %}
-            </article>
-            <article class="about-workstation">
-                <h3>Chef Battle</h3>
-                <p>A future space for themes, two dishes, voting, story and result.</p>
-                <span>In pilot planning</span>
-            </article>
-        </div>
-    </div>
-</section>
+            <section class="about-slide" data-about-slide aria-label="Slide 4 of 7">
+                <div class="about-slide__panel about-slide__panel--wide">
+                    <span class="about-slide__kicker">How the site connects</span>
+                    <h2>One short post can lead to something bigger.</h2>
+                    <div class="about-slide__grid">
+                        <div>
+                            <strong>Recipes</strong>
+                            <p>Clear dishes people can cook.</p>
+                        </div>
+                        <div>
+                            <strong>Articles</strong>
+                            <p>Sources, stories and context.</p>
+                        </div>
+                        <div>
+                            <strong>Amuse-Bouche</strong>
+                            <p>Short sparks linked back to full material.</p>
+                        </div>
+                        <div>
+                            <strong>Chef Battle</strong>
+                            <p>Future themes, voting and results.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-<section class="page-section">
-    <div class="container about-split about-split--reverse about-tree-node about-tree-node--left">
-        <div class="about-note about-note--trust">
-            <p class="about-note__title">Trust comes first</p>
-            <p>A culinary project depends on trust, just as a kitchen depends on cleanliness.</p>
-        </div>
-        <div class="about-split__copy">
-            <span class="section-kicker">Quality And Partners</span>
-            <h2>Useful partnership, not advertising noise.</h2>
-            <p>CulinEire can work with partners connected to food, craft, training, ingredients, equipment, markets, cafes and restaurants.</p>
-            <ul class="about-checklist">
-                <li>Sponsored material should be clearly labelled.</li>
-                <li>Partners can support a theme or prize, but cannot choose a winner.</li>
-                <li>Quality and usefulness come first.</li>
-            </ul>
-        </div>
-    </div>
-</section>
+            <section class="about-slide about-slide--split" data-about-slide aria-label="Slide 5 of 7">
+                <div class="about-slide__panel">
+                    <span class="about-slide__kicker">Amuse-Bouche</span>
+                    <h2>Shorts for food ideas.</h2>
+                    <p>A recipe, article or author note can become a quick bite: a sauce, plating idea, drink, kitchen trick or Irish food spark.</p>
+                </div>
+                <aside class="about-slide__note about-slide__note--strong">
+                    <span>Format rule</span>
+                    <p>Short, clear, useful. Then link back to the full story.</p>
+                </aside>
+            </section>
 
-<section class="page-section about-path-section">
-    <div class="container about-tree-node about-tree-node--right">
-        <div class="about-path-header">
-            <div class="about-path-header__copy">
-                <span class="section-kicker">Where We Are Going</span>
-                <h2>Build the kitchen before inviting the room.</h2>
-                <p>First the site, then short-format posts, then authors and careful battle pilots.</p>
-            </div>
+            <section class="about-slide" data-about-slide aria-label="Slide 6 of 7">
+                <div class="about-slide__panel about-slide__panel--wide">
+                    <span class="about-slide__kicker">Quality and partners</span>
+                    <h2>Useful partnership, not advertising noise.</h2>
+                    <ul class="about-slide__list">
+                        <li>Sponsored material should be clearly labelled.</li>
+                        <li>Partners may support a theme or prize, not choose winners.</li>
+                        <li>Quality, fairness and usefulness come first.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="about-slide about-slide--final" data-about-slide aria-label="Slide 7 of 7">
+                <div class="about-slide__panel about-slide__panel--wide">
+                    <span class="about-slide__kicker">Where we are going</span>
+                    <h2>Build the kitchen before inviting the room.</h2>
+                    <div class="about-slide__timeline">
+                        <div>
+                            <span>Now</span>
+                            <p>Clean pages, stable navigation and strong writing.</p>
+                        </div>
+                        <div>
+                            <span>Next</span>
+                            <p>Approved short posts linked to recipes, articles and authors.</p>
+                        </div>
+                        <div>
+                            <span>Then</span>
+                            <p>Careful Chef Battle pilots and partner stories.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
-        <div class="about-path">
-            <div class="about-path__step">
-                <span>Now</span>
-                <p>Clean pages, stable navigation and strong writing.</p>
-            </div>
-            <div class="about-path__step">
-                <span>Next</span>
-                <p>Launch approved short posts linked to recipes, articles and authors.</p>
-            </div>
-            <div class="about-path__step">
-                <span>Then</span>
-                <p>Invite authors and test careful Chef Battle pilots.</p>
-            </div>
+
+        <button class="about-deck__arrow about-deck__arrow--prev" type="button" data-about-prev aria-label="Previous slide">
+            <span aria-hidden="true">&lsaquo;</span>
+        </button>
+        <button class="about-deck__arrow about-deck__arrow--next" type="button" data-about-next aria-label="Next slide">
+            <span aria-hidden="true">&rsaquo;</span>
+        </button>
+
+        <div class="about-deck__controls" aria-label="About CulinEire slides">
+            <button class="is-active" type="button" data-about-dot aria-label="Show slide 1"></button>
+            <button type="button" data-about-dot aria-label="Show slide 2"></button>
+            <button type="button" data-about-dot aria-label="Show slide 3"></button>
+            <button type="button" data-about-dot aria-label="Show slide 4"></button>
+            <button type="button" data-about-dot aria-label="Show slide 5"></button>
+            <button type="button" data-about-dot aria-label="Show slide 6"></button>
+            <button type="button" data-about-dot aria-label="Show slide 7"></button>
         </div>
-        <div class="about-final">
-            <p>CulinEire should feel like a kitchen where the cooking has already started.</p>
-            <div class="about-final__actions">
-                <a class="btn-primary" href="{% url 'recipes:recipe_list' %}#all-recipes">Start with recipes</a>
-                <a class="btn-secondary" href="{% url 'messaging:contact' %}">Contact CulinEire</a>
-                <a class="btn-secondary" href="{% url 'sponsors:puzzle' %}">For partners</a>
-            </div>
+    </article>
+
+    <section class="about-deck__summary" aria-labelledby="about-summary-title">
+        <div>
+            <span>TL;DR</span>
+            <h2 id="about-summary-title">CulinEire is a practical Irish food platform, not a static archive.</h2>
         </div>
-    </div>
-</section>
+        <p>It connects clear recipes, readable food stories, short Amuse-Bouche ideas and future Chef Battle events into one useful kitchen system.</p>
+    </section>
+
+    <section class="about-deck__quicklinks" aria-label="Start exploring CulinEire">
+        <a href="{% url 'recipes:recipe_list' %}#all-recipes">Recipes</a>
+        <a href="{% url 'articles:article_list' %}">Articles</a>
+        {% if can_view_amuse_bouche_public_area %}
+        <a href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
+        {% endif %}
+        <a href="{% url 'messaging:contact' %}">Contact</a>
+        <a href="{% url 'sponsors:puzzle' %}">Partners</a>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+  var deck = document.querySelector('[data-about-deck]');
+  if (!deck) return;
+
+  var slides = Array.prototype.slice.call(deck.querySelectorAll('[data-about-slide]'));
+  var dots = Array.prototype.slice.call(deck.querySelectorAll('[data-about-dot]'));
+  var prev = deck.querySelector('[data-about-prev]');
+  var next = deck.querySelector('[data-about-next]');
+  var viewport = deck.querySelector('[data-about-viewport]');
+  var count = deck.querySelector('[data-about-count]');
+  var progress = deck.querySelector('[data-about-progress]');
+  var current = 0;
+  var startX = 0;
+  var endX = 0;
+
+  function show(index) {
+    current = (index + slides.length) % slides.length;
+    slides.forEach(function (slide, slideIndex) {
+      var active = slideIndex === current;
+      slide.classList.toggle('is-active', active);
+      slide.setAttribute('aria-hidden', active ? 'false' : 'true');
+    });
+    dots.forEach(function (dot, dotIndex) {
+      dot.classList.toggle('is-active', dotIndex === current);
+      dot.setAttribute('aria-current', dotIndex === current ? 'true' : 'false');
+    });
+    if (count) count.textContent = String(current + 1) + ' / ' + String(slides.length);
+    if (progress) progress.style.width = String(((current + 1) / slides.length) * 100) + '%';
+  }
+
+  dots.forEach(function (dot, index) {
+    dot.addEventListener('click', function () { show(index); });
+  });
+
+  prev.addEventListener('click', function () { show(current - 1); });
+  next.addEventListener('click', function () { show(current + 1); });
+
+  viewport.addEventListener('touchstart', function (event) {
+    startX = event.changedTouches[0].clientX;
+  }, { passive: true });
+
+  viewport.addEventListener('touchend', function (event) {
+    endX = event.changedTouches[0].clientX;
+    if (Math.abs(startX - endX) < 45) return;
+    show(startX > endX ? current + 1 : current - 1);
+  }, { passive: true });
+
+  deck.addEventListener('keydown', function (event) {
+    if (event.key === 'ArrowLeft') show(current - 1);
+    if (event.key === 'ArrowRight') show(current + 1);
+  });
+
+  show(0);
+})();
+</script>
 {% endblock %}
