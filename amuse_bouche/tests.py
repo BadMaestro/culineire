@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from articles.models import Article
 from collection.models import ContentReaction, SavedContent
@@ -340,6 +341,7 @@ class AmuseBoucheGenerateFromArticleTests(TestCase):
             category=Article.Category.BAKING,
             body="Soda bread is a staple of Irish cuisine.",
             status=Article.Status.APPROVED,
+            published=timezone.now(),
         )
         self.url = reverse("amuse_bouche:generate_from_article", kwargs={"slug": self.article.slug})
 
