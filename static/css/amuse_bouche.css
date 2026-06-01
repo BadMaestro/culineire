@@ -4,6 +4,12 @@
    Structural tokens (surfaces, borders, radii, shadows) from base.css.
    ================================================================ */
 
+/* ---- Hero image framing ---- */
+.hero--amuse-bouche .hero__background img {
+  object-fit: cover;
+  object-position: center 70%;
+}
+
 /* ---- Layout ---- */
 .ab-layout {
   display: grid;
