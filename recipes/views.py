@@ -394,6 +394,38 @@ def _build_amuse_bouche_roadmap_status():
         {
             "id": "phase-10",
             "phase": "Phase 10",
+            "title": "Social Card and Engagement",
+            "status": "not_started",
+            "summary": "Instagram-style card layout with follow system, comments and emoji-decorated captions.",
+            "done": [],
+            "current": [
+                "Designing Instagram-style card: author header, social actions bar, liked-by avatars, caption with emoji.",
+            ],
+            "remaining": [
+                "AuthorFollow model in collection app — reuses collection infrastructure (get_or_create + toggle pattern).",
+                "AmuseBoucheComment model in amuse_bouche app — reuses RecipeCommentForm validation (profanity, honeypot).",
+                "Emoji decoration templatetag (keyword-to-emoji dict applied to short_description at render time).",
+                "Card header: circular author avatar, name link, timesince date, Follow/Following button, three-dot dropdown menu.",
+                "Three-dot menu: View post, Copy link, About author, Author recipes, Save to favourites.",
+                "Social actions bar: Like (heart, filled when liked), Comment (bubble + count), Share (copy link), Save (bookmark, filled when saved).",
+                "Liked-by row: up to 3 stacked RecipeAuthor avatars + 'Liked by Name and N others' text.",
+                "Caption: bold author name + post title + emoji-decorated description (truncated on feed, full on detail).",
+                "Comments section on detail page: reuses detail_page.css comment-compose classes and RecipeCommentForm.",
+                "toggle_follow view in collection/views.py — same pattern as add_recipe/remove_recipe.",
+                "submit_ab_comment and delete_ab_comment views in amuse_bouche/views.py.",
+                "Feed and detail views: attach top_likers to each item, compute followed_ids, pass comment_form.",
+            ],
+            "files": [
+                "collection/models.py", "collection/views.py", "collection/urls.py",
+                "amuse_bouche/models.py", "amuse_bouche/views.py", "amuse_bouche/urls.py",
+                "amuse_bouche/templatetags/ab_tags.py",
+                "templates/amuse_bouche/item_card.html", "templates/amuse_bouche/detail.html",
+                "static/css/amuse_bouche.css",
+            ],
+        },
+        {
+            "id": "phase-11",
+            "phase": "Phase 11",
             "title": "Public Launch",
             "status": "partial",
             "summary": "Navigation, homepage block and public gate are wired. Flip AMUSE_BOUCHE_PUBLIC=True to launch.",
@@ -404,17 +436,18 @@ def _build_amuse_bouche_roadmap_status():
                 "ab-home-grid layout added for the home page three-column display.",
                 "ab_liked_ids and ab_saved_ids computed in home view for correct like/save state.",
             ],
-            "current": ["Set AMUSE_BOUCHE_PUBLIC=True in .env and restart Unit to go public."],
+            "current": [],
             "remaining": [
                 "Set AMUSE_BOUCHE_PUBLIC=True in production .env.",
+                "Restart Unit after env change.",
                 "Post a launch newsfeed entry.",
                 "Monitor for any edge-case issues in first 24 hours.",
             ],
             "files": ["templates/base.html", "templates/home.html", "static/css/amuse_bouche.css", "recipes/views.py"],
         },
         {
-            "id": "phase-11",
-            "phase": "Phase 11",
+            "id": "phase-12",
+            "phase": "Phase 12",
             "title": "Video Later",
             "status": "deferred",
             "summary": "Video remains intentionally out of MVP.",
@@ -435,7 +468,7 @@ def _build_amuse_bouche_roadmap_status():
     }
     blocked_items = [
         "Full test suite has an existing recipe rating failure unrelated to Amuse-Bouche.",
-        "Public launch requires AMUSE_BOUCHE_PUBLIC=True in .env — flip when content is ready.",
+        "Social card phase (Phase 10) must be complete before public launch.",
     ]
     current_phase = next((phase for phase in mvp_phases if phase["current"]), phases[9])
     weighted_done = sum(progress_weight.get(phase["status"], 0) for phase in mvp_phases)
@@ -447,13 +480,13 @@ def _build_amuse_bouche_roadmap_status():
         "total_count": len(mvp_phases),
         "percent": percent,
         "current_phase": current_phase,
-        "progress_scope": "MVP complete up to public launch. Video deferred.",
+        "progress_scope": "Social card and engagement phase next before public launch. Video deferred.",
         "blocked_items": blocked_items,
         "next_steps": [
-            "Set AMUSE_BOUCHE_PUBLIC=True in /srv/culineire/shared/.env.",
-            "Restart Unit: sudo systemctl restart unit.",
-            "Post a launch newsfeed entry.",
-            "Monitor for edge cases in first 24 hours.",
+            "Build Phase 10: AuthorFollow + AmuseBoucheComment models and migrations.",
+            "Redesign item_card.html to Instagram-style layout.",
+            "Add emoji templatetag, follow toggle, comment submit/delete views.",
+            "After Phase 10: flip AMUSE_BOUCHE_PUBLIC=True and launch.",
         ],
         "future_notes": [
             "Amuse-Bouche content model and reaction foundations are compatible with Chef Battle (future feature).",
