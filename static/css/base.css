@@ -2179,3 +2179,316 @@
   }
 }
 
+/* About page layout stabilization: calm editorial rhythm, no floating modules. */
+
+.hero--about {
+  min-height: clamp(230px, 32vw, 350px);
+}
+
+.hero--about .hero-title {
+  font-size: clamp(2rem, 3.2vw, 3.3rem);
+  line-height: 1.05;
+}
+
+.hero--about .hero-subtitle {
+  max-width: 58ch;
+  font-size: clamp(0.95rem, 1.25vw, 1.08rem);
+  line-height: 1.6;
+}
+
+.about-intro-section,
+.about-band,
+.about-path-section,
+.page-section:has(.about-feature),
+.page-section:has(.about-split) {
+  padding-block: clamp(1.65rem, 3vw, 2.35rem);
+}
+
+.about-editorial,
+.about-editorial--mirror,
+.about-feature,
+.about-split,
+.about-split--reverse {
+  width: min(100% - 2rem, 1040px);
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.58fr);
+  gap: clamp(1.25rem, 3vw, 2.25rem);
+  align-items: center;
+}
+
+.about-editorial--mirror,
+.about-split--reverse {
+  grid-template-columns: minmax(280px, 0.58fr) minmax(0, 1fr);
+}
+
+.about-editorial__main,
+.about-editorial__main--compact,
+.about-split__copy,
+.about-feature__copy {
+  max-width: 66ch;
+}
+
+.about-editorial__main--compact {
+  justify-self: stretch;
+}
+
+.about-kicker,
+.about-editorial__main--compact .section-kicker,
+.about-split__copy .section-kicker,
+.about-feature__header .section-kicker,
+.about-map-header .section-kicker,
+.about-path-header .section-kicker {
+  font-size: 0.68rem;
+  line-height: 1.35;
+  letter-spacing: 0.09em;
+}
+
+.about-lede,
+.about-editorial__main--compact h2,
+.about-split__copy h2,
+.about-feature__header h2,
+.about-map-header h2,
+.about-path-header h2 {
+  max-width: 18ch;
+  font-size: clamp(1.45rem, 2.2vw, 2.15rem);
+  line-height: 1.12;
+  letter-spacing: 0;
+}
+
+.about-lede--quiet,
+.about-editorial__main--compact p,
+.about-split__copy p,
+.about-feature__copy p,
+.about-map-header p,
+.about-path-header p {
+  max-width: 62ch;
+  font-size: 0.94rem;
+  line-height: 1.68;
+}
+
+.about-mission,
+.about-mission--warm,
+.about-note {
+  align-self: center;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--line);
+  border-left: 3px solid #c7954b;
+  border-right: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  text-align: left;
+}
+
+.about-mission__label,
+.about-note__title {
+  font-size: 0.68rem;
+  letter-spacing: 0.09em;
+}
+
+.about-mission p:last-child,
+.about-note p:last-child,
+.about-final p {
+  max-width: none;
+  font-size: clamp(1.02rem, 1.45vw, 1.28rem);
+  line-height: 1.45;
+}
+
+.about-tree-node--left,
+.about-tree-node--right {
+  width: min(100% - 2rem, 1040px);
+  margin-inline: auto;
+}
+
+.about-tree-node--left::before,
+.about-tree-node--right::before {
+  display: none;
+}
+
+.about-feature {
+  grid-template-columns: minmax(230px, 0.42fr) minmax(0, 1fr);
+  align-items: start;
+}
+
+.about-feature__header {
+  position: static;
+}
+
+.about-feature__header h2 {
+  max-width: 13ch;
+}
+
+.about-principles {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+  margin-block-start: 0.5rem;
+}
+
+.about-principle,
+.about-workstation,
+.about-path__step {
+  padding: 0.95rem;
+  border-radius: 8px;
+}
+
+.about-principle__mark,
+.about-path__step span,
+.about-workstation a,
+.about-workstation span {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+}
+
+.about-principle h3,
+.about-workstation h3 {
+  font-size: 1.05rem;
+  line-height: 1.22;
+}
+
+.about-principle p,
+.about-workstation p,
+.about-path__step p,
+.about-checklist li {
+  font-size: 0.9rem;
+  line-height: 1.58;
+}
+
+.about-map-header,
+.about-path-header {
+  justify-items: start;
+  max-width: 760px;
+  margin: 0 0 1rem;
+  text-align: left;
+}
+
+.about-map-header__copy,
+.about-path-header__copy {
+  max-width: 760px;
+}
+
+.about-map-header p,
+.about-path-header p {
+  margin-inline: 0;
+}
+
+.about-workstations {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+  max-width: none;
+  margin-inline: 0;
+}
+
+.about-workstation {
+  min-height: auto;
+  transform: none;
+  justify-self: stretch;
+}
+
+.about-workstation:nth-child(2),
+.about-workstation:nth-child(3),
+.about-workstation:nth-child(odd),
+.about-workstation:nth-child(even) {
+  transform: none;
+  justify-self: stretch;
+}
+
+.about-path {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.about-path__step:nth-child(2),
+.about-path__step:nth-child(3) {
+  margin-block-start: 0;
+}
+
+.about-final {
+  margin-block-start: 1rem;
+  padding: 1.15rem;
+}
+
+@media (max-width: 900px) {
+  .about-editorial,
+  .about-editorial--mirror,
+  .about-feature,
+  .about-split,
+  .about-split--reverse {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .about-lede,
+  .about-editorial__main--compact h2,
+  .about-split__copy h2,
+  .about-feature__header h2,
+  .about-map-header h2,
+  .about-path-header h2 {
+    max-width: 22ch;
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .about-kicker,
+  .about-editorial__main--compact .section-kicker,
+  .about-split__copy .section-kicker,
+  .about-feature__header .section-kicker,
+  .about-map-header .section-kicker,
+  .about-path-header .section-kicker,
+  .about-lede--quiet,
+  .about-editorial__main--compact p,
+  .about-split__copy p,
+  .about-feature__copy p,
+  .about-map-header p,
+  .about-path-header p {
+    text-align: center;
+  }
+
+  .about-mission,
+  .about-mission--warm,
+  .about-note {
+    border-left: 0;
+    border-top: 3px solid #c7954b;
+    text-align: center;
+  }
+
+  .about-principles,
+  .about-workstations,
+  .about-path {
+    grid-template-columns: 1fr;
+  }
+
+  .about-map-header,
+  .about-path-header {
+    justify-items: center;
+    text-align: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero--about .hero-title {
+    font-size: 1.9rem;
+  }
+
+  .about-lede,
+  .about-editorial__main--compact h2,
+  .about-split__copy h2,
+  .about-feature__header h2,
+  .about-map-header h2,
+  .about-path-header h2 {
+    font-size: 1.35rem;
+  }
+
+  .about-lede--quiet,
+  .about-editorial__main--compact p,
+  .about-split__copy p,
+  .about-feature__copy p,
+  .about-map-header p,
+  .about-path-header p {
+    font-size: 0.9rem;
+  }
+}
+
