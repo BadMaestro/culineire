@@ -148,6 +148,7 @@ MIDDLEWARE = [
     "monitoring.middleware.MonitoringMiddleware",
     "config.csp_middleware.CspNonceMiddleware",
     "config.maintenance.MaintenanceModeMiddleware",
+    "config.html_cache_middleware.HtmlNoCacheMiddleware",
 ]
 
 # ── Monitoring ─────────────────────────────────────────────────────────────
