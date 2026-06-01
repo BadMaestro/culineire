@@ -2,6 +2,13 @@
    CulinEire Updates — News Feed
    ══════════════════════════════════════════ */
 
+/* ── Hero image position ────────────────────── */
+
+.hero--news .hero__background img {
+  object-fit: cover;
+  object-position: center 30%;
+}
+
 /* ── Feed shell ────────────────────────────── */
 
 .nf-section {
