@@ -451,19 +451,60 @@
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 }
 
+/* ── Homepage grid: full-photo compact cards ─────────────────────────────── */
+
+/* Card: fixed aspect-ratio container, photo fills entire area */
 .ab-home-grid .ab-card {
+  aspect-ratio: 4 / 3;
   margin-bottom: 0;
+  overflow: hidden;
+  position: relative;
 }
 
-/* In the home grid the panel sits below the photo on a light card background —
-   override the white-on-photo colours used by the snap feed. */
-.ab-home-grid .ab-card__title {
-  color: #2a1e14;
-  text-shadow: none;
+/* Visual: stretch to fill the card */
+.ab-home-grid .ab-card__visual {
+  height: auto;
+  inset: 0;
+  position: absolute;
 }
 
+.ab-home-grid .ab-card__img {
+  aspect-ratio: unset;
+  height: 100%;
+}
+
+/* Hide topbar — too cluttered in small cards */
+.ab-home-grid .ab-card__topbar { display: none; }
+
+/* Panel: bottom overlay gradient — title only */
 .ab-home-grid .ab-card__panel {
-  padding-top: .25rem;
+  background: linear-gradient(to top, rgba(0,0,0,.75) 0%, rgba(0,0,0,.1) 65%, transparent 100%);
+  bottom: 0;
+  left: 0;
+  padding: 1.5rem .85rem .65rem;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+}
+
+/* Show only title — hide everything else in the panel */
+.ab-home-grid .ab-card__actions,
+.ab-home-grid .ab-like-count,
+.ab-home-grid .ab-card__emoji-desc,
+.ab-home-grid .ab-card__more,
+.ab-home-grid .ab-card__full-desc,
+.ab-home-grid .ab-card__links { display: none; }
+
+.ab-home-grid .ab-card__body {
+  gap: 0;
+  padding: 0;
+}
+
+.ab-home-grid .ab-card__title {
+  color: #fff;
+  font-size: clamp(.78rem, 2.2vw, .95rem);
+  pointer-events: auto;
+  text-shadow: 0 1px 5px rgba(0,0,0,.9);
 }
 
 /* ---- Mobile ---- */
