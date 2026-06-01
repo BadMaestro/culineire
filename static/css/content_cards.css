@@ -1953,8 +1953,8 @@
 
 .culineire-watermark {
   position: absolute;
-  bottom: 0.55rem;
-  right: 0.6rem;
+  bottom: 0.9rem;
+  right: 1.1rem;
   z-index: 4;
   font-family: 'Playfair Display', serif;
   font-style: italic;
