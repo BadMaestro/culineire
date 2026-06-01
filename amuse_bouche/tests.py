@@ -9,6 +9,7 @@ from recipes.models import Recipe, RecipeAuthor
 from .models import AmuseBouche
 
 
+@override_settings(TELEGRAM_BOT_TOKEN="", TELEGRAM_CHANNEL_ID="", ANTHROPIC_API_KEY="")
 class AmuseBouchePublicTests(TestCase):
     def setUp(self):
         user_model = get_user_model()
@@ -64,6 +65,7 @@ class AmuseBouchePublicTests(TestCase):
         self.assertEqual(SavedContent.objects.count(), 1)
 
 
+@override_settings(TELEGRAM_BOT_TOKEN="", TELEGRAM_CHANNEL_ID="", ANTHROPIC_API_KEY="")
 class AmuseBoucheGatingTests(TestCase):
     def setUp(self):
         user_model = get_user_model()
@@ -142,6 +144,7 @@ class AmuseBoucheGatingTests(TestCase):
         self.assertEqual(response.status_code, 404)
 
 
+@override_settings(TELEGRAM_BOT_TOKEN="", TELEGRAM_CHANNEL_ID="", ANTHROPIC_API_KEY="")
 class AmuseBoucheModerationTests(TestCase):
     def setUp(self):
         user_model = get_user_model()
@@ -242,6 +245,7 @@ class AmuseBoucheModerationTests(TestCase):
         self.assertEqual(response.status_code, 404)
 
 
+@override_settings(TELEGRAM_BOT_TOKEN="", TELEGRAM_CHANNEL_ID="", ANTHROPIC_API_KEY="")
 class AmuseBoucheGenerateFromRecipeTests(TestCase):
     def setUp(self):
         user_model = get_user_model()
@@ -322,6 +326,7 @@ class AmuseBoucheGenerateFromRecipeTests(TestCase):
         )
 
 
+@override_settings(TELEGRAM_BOT_TOKEN="", TELEGRAM_CHANNEL_ID="", ANTHROPIC_API_KEY="")
 class AmuseBoucheGenerateFromArticleTests(TestCase):
     def setUp(self):
         user_model = get_user_model()
