@@ -243,4 +243,62 @@ document.addEventListener("DOMContentLoaded", () => {
       window.addEventListener("resize", updateControls);
     }
   });
+
+  // ==== Hero peek lightbox ====
+  const lightbox = document.getElementById("hero-lightbox");
+  const lightboxImg = document.getElementById("hero-lightbox-img");
+  const lightboxClose = document.getElementById("hero-lightbox-close");
+
+  if (lightbox && lightboxImg && lightboxClose) {
+    const eyeSvg =
+      '<svg aria-hidden="true" fill="none" height="14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24" width="14"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+
+    document.querySelectorAll(".hero").forEach((hero) => {
+      const bg = hero.querySelector(".hero__background");
+      const img = bg && bg.querySelector("img[src]");
+      if (!img) return;
+
+      const btn = document.createElement("button");
+      btn.className = "hero-peek-btn";
+      btn.type = "button";
+      btn.setAttribute("aria-label", "View full image");
+      btn.innerHTML = eyeSvg + " Photo";
+      hero.appendChild(btn);
+
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        lightboxImg.src = img.currentSrc || img.src;
+        lightboxImg.alt = img.alt || "";
+        lightbox.classList.add("hero-lightbox--open");
+        document.body.style.overflow = "hidden";
+        requestAnimationFrame(() => lightboxClose.focus());
+      });
+    });
+
+    const closeLightbox = () => {
+      lightbox.classList.remove("hero-lightbox--open");
+      lightbox.addEventListener(
+        "transitionend",
+        () => {
+          if (!lightbox.classList.contains("hero-lightbox--open")) {
+            lightboxImg.src = "";
+            document.body.style.overflow = "";
+          }
+        },
+        { once: true },
+      );
+    };
+
+    lightboxClose.addEventListener("click", closeLightbox);
+
+    lightbox.addEventListener("click", (e) => {
+      if (e.target === lightbox) closeLightbox();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && lightbox.classList.contains("hero-lightbox--open")) {
+        closeLightbox();
+      }
+    });
+  }
 });
