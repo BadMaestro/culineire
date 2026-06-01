@@ -1,11 +1,8 @@
 // Disable browser scroll restoration so iOS PWA does not open pages
-// scrolled below the header after a no-cache reload.
+// scrolled to a remembered position after a no-cache reload.
 if ("scrollRestoration" in history) {
   history.scrollRestoration = "manual";
 }
-window.addEventListener("pageshow", () => {
-  window.scrollTo(0, 0);
-});
 
 document.addEventListener("DOMContentLoaded", () => {
   const nav = document.querySelector(".ce-nav") || document.querySelector(".main-nav");
