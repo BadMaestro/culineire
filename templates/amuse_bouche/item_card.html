@@ -1,7 +1,7 @@
 {% load static %}
 <article class="ab-card{% if detail %} ab-card--detail{% endif %}" data-ab-id="{{ item.pk }}">
 
-  {# ── Photo fills entire card ── #}
+  {# ── Photo area ── #}
   <div class="ab-card__photo">
     {% if item.card_image %}
     <img alt="{% if item.cover_image_alt %}{{ item.cover_image_alt }}{% else %}{{ item.title }}{% endif %}"
@@ -11,23 +11,34 @@
     {% else %}
     <img alt="{{ item.title }}" class="ab-card__img" src="{% static 'images/hero.jpg' %}" loading="lazy">
     {% endif %}
-  </div>
 
-  {# ── Full-card cover link (feed and home grid only) ── #}
-  {% if not detail %}
-  <a class="ab-card__link" href="{{ item.get_absolute_url }}" aria-label="{{ item.title }}"></a>
-  {% endif %}
-
-  {# ── Content type badge — top-left ── #}
-  <span class="ab-badge ab-card__badge">{{ item.get_content_type_display }}</span>
-
-  {# ── Info column: author · title · emoji desc ── #}
-  <div class="ab-card__info">
+    {# Author overlaid at bottom of photo (feed only) #}
+    {% if not detail %}
     <a class="ab-card__author" href="{{ item.author.get_absolute_url }}">
       <img alt="{{ item.author.name }}" class="ab-card__avatar"
            src="{{ item.author.display_avatar_url }}" loading="lazy">
       <span class="ab-card__author-name">{{ item.author.name }}</span>
     </a>
+
+    {# Cover link covers only the photo area, not the info strip #}
+    <a class="ab-card__link" href="{{ item.get_absolute_url }}" aria-label="{{ item.title }}"></a>
+    {% endif %}
+  </div>
+
+  {# ── Content type badge — top-left (absolute on card/slide) ── #}
+  <span class="ab-badge ab-card__badge">{{ item.get_content_type_display }}</span>
+
+  {# ── Info strip: title · emoji desc (feed) or author · title · desc (detail) ── #}
+  <div class="ab-card__info">
+
+    {# Detail: author in info strip below photo #}
+    {% if detail %}
+    <a class="ab-card__author" href="{{ item.author.get_absolute_url }}">
+      <img alt="{{ item.author.name }}" class="ab-card__avatar"
+           src="{{ item.author.display_avatar_url }}" loading="lazy">
+      <span class="ab-card__author-name">{{ item.author.name }}</span>
+    </a>
+    {% endif %}
 
     {% if not detail %}
     <h2 class="ab-card__title">{{ item.title }}</h2>
@@ -48,9 +59,10 @@
     <p class="ab-card__detail-desc">{{ item.short_description }}</p>
     {% endif %}
     {% endif %}
+
   </div>
 
-  {# ── Bottom sheet — slides up (feed / home grid only) ── #}
+  {# ── Bottom sheet — slides up (feed only) ── #}
   {% if not detail and item.short_description %}
   <div class="ab-card__sheet" id="ab-sheet-{{ item.pk }}"
        role="dialog" aria-label="More info" aria-hidden="true">

@@ -1192,3 +1192,66 @@
     width: 100%;
   }
 }
+
+/* ================================================================
+   Snap feed card: photo-on-top + info-strip layout
+   Photo fills the upper portion; dark info strip sits below.
+   Author avatar overlaid at bottom of photo (TikTok-style).
+   Action strip spans the right edge across both zones.
+   ================================================================ */
+
+/* Card is a flex column so photo + info stack vertically */
+.ab-snap-feed .ab-card {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Photo: in normal flow, stretches to fill remaining height */
+.ab-snap-feed .ab-card__photo {
+  flex: 1;
+  inset: auto;       /* cancel the base v2 inset:0 */
+  min-height: 0;
+  position: relative;
+}
+
+/* Author: overlaid at bottom of photo (absolute within photo div) */
+.ab-snap-feed .ab-card__author {
+  bottom: .65rem;
+  left: .85rem;
+  pointer-events: auto;
+  position: absolute;
+  z-index: 5;
+}
+
+/* Info strip: dark bar below photo */
+.ab-snap-feed .ab-card__info {
+  background: #1c1610;
+  bottom: auto;
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: 3px;
+  left: auto;
+  padding: .55rem 52px .65rem .85rem; /* right pad = action strip width + gap */
+  pointer-events: auto;
+  position: static;
+  right: auto;
+  z-index: auto;
+}
+
+/* Title in dark info strip — no text-shadow, warm parchment colour */
+.ab-snap-feed .ab-card__title {
+  color: #f0e8d8;
+  font-size: clamp(.82rem, 3.5vw, 1rem);
+  text-shadow: none;
+}
+
+/* Desc row always visible in the info strip */
+.ab-snap-feed .ab-card__desc-row {
+  margin-top: 1px;
+  pointer-events: auto;
+}
+
+/* Align action strip to bottom of info strip */
+.ab-snap-feed .ab-card__actions {
+  bottom: .55rem;
+}
