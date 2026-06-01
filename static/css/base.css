@@ -607,6 +607,25 @@
     transform: scale(1);
   }
 
+  .hero-lightbox__copyright {
+    bottom: 1.1rem;
+    color: rgba(255, 255, 255, 0.42);
+    font-size: 0.68rem;
+    left: 50%;
+    letter-spacing: 0.02em;
+    pointer-events: none;
+    position: absolute;
+    text-align: center;
+    transform: translateX(-50%);
+    user-select: none;
+    white-space: nowrap;
+  }
+
+  .hero-lightbox__img {
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+
   .hero-lightbox__close {
     align-items: center;
     background: rgba(255, 255, 255, 0.1);

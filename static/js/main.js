@@ -289,6 +289,9 @@ document.addEventListener("DOMContentLoaded", () => {
       );
     };
 
+    lightboxImg.addEventListener("contextmenu", (e) => e.preventDefault());
+    lightboxImg.addEventListener("dragstart", (e) => e.preventDefault());
+
     lightboxClose.addEventListener("click", closeLightbox);
 
     lightbox.addEventListener("click", (e) => {
