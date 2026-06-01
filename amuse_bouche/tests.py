@@ -337,7 +337,7 @@ class AmuseBoucheGenerateFromArticleTests(TestCase):
             slug="history-irish-soda-bread",
             excerpt="A deep dive into the origins of Irish soda bread.",
             hero_image_alt_text="A golden loaf of soda bread",
-            category=Article.Category.IRISH_CULINARY_HERITAGE,
+            category=Article.Category.BAKING,
             body="Soda bread is a staple of Irish cuisine.",
             status=Article.Status.APPROVED,
         )
