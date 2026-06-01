@@ -37,44 +37,9 @@
   50%       { opacity: 0.3; }
 }
 
-/* ---- Hero header ---- */
-.sponsors-header {
-  text-align: center;
-  margin-bottom: 2.5rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid #e8e4dc;
-}
-
-.sponsors-eyebrow {
-  display: inline-block;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #5a5040;
-  background: #ede9e0;
-  padding: 4px 14px;
-  border-radius: 99px;
-  margin-bottom: 1rem;
-}
-
-.sponsors-title {
-  font-size: 2.4rem;
-  font-family: 'Playfair Display', Georgia, serif;
-  color: #28221e;
-  margin: 0 0 0.75rem;
-  line-height: 1.2;
-}
-
-.sponsors-subtitle {
-  color: #7a6e5c;
-  max-width: 580px;
-  margin: 0 auto 1.25rem;
-  line-height: 1.7;
-  font-size: 1.0rem;
-}
-
+/* ---- Contract note strip (below hero) ---- */
 .sponsors-contract-note {
+  margin-bottom: 2rem;
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
@@ -463,7 +428,6 @@
 
 /* ---- Mobile ---- */
 @media (max-width: 640px) {
-  .sponsors-title   { font-size: 1.8rem; }
   .sponsors-tiers   { gap: 0.35rem; }
   .sponsors-tier    { min-width: 72px; padding: 0.5rem 0.6rem; }
   .tier-price       { font-size: 0.9rem; }

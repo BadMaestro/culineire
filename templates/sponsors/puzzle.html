@@ -3,7 +3,8 @@
 
 {% block body_attrs %} class="page--sponsors"{% endblock %}
 
-{% block title %}Sponsors — CulinEire{% endblock %}
+{% block title %}Sponsors | CulinEire{% endblock %}
+{% block meta_description %}Support CulinEire and keep your brand visible to a growing Irish food community. Become a Founding Sponsor.{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/sponsors.css' %}">
@@ -11,6 +12,21 @@
 {% endblock %}
 
 {% block content %}
+
+<section class="hero hero--home hero--sponsors">
+  <div aria-hidden="true" class="hero__background">
+    <img alt="" src="{% static 'images/hero-sponsors.png' %}">
+  </div>
+  <div aria-hidden="true" class="hero__overlay"></div>
+  <div class="container hero__inner">
+    <div class="hero-copy">
+      <span class="pill">Become a Founding Sponsor</span>
+      <h1 class="hero-title">Your brand at the heart of CulinEire</h1>
+      <p class="hero-subtitle">CulinEire is building a home for Irish recipes, food stories and the cooks who create them. Support the platform and keep your business visible to a growing Irish food community.</p>
+    </div>
+  </div>
+</section>
+
 <div class="sponsors-page">
 
   {% if request.user.is_staff and reserved > 0 %}
@@ -21,23 +37,15 @@
   </div>
   {% endif %}
 
-  <!-- Header -->
-  <div class="sponsors-header">
-    <span class="sponsors-eyebrow">Become a Founding Sponsor</span>
-    <h1 class="sponsors-title">Your brand at the heart of CulinEire</h1>
-    <p class="sponsors-subtitle">
-      CulinEire is building a home for Irish recipes, food stories and the cooks who create them.
-      Support the platform and keep your business visible to a growing Irish food community.
-    </p>
-    <div class="sponsors-contract-note">
-      <span class="contract-badge">Annual contract</span>
-      <span class="contract-sep">&bull;</span>
-      <span>Managed by <strong>Bearcave Ltd.</strong></span>
-      <span class="contract-sep">&bull;</span>
-      <span>Your logo, your link, your visibility</span>
-      <span class="contract-sep">&bull;</span>
-      <a href="{% url 'sponsors:annual_contract' %}" target="_blank" rel="noopener noreferrer" style="color:inherit;font-weight:600;">View annual sponsorship agreement</a>
-    </div>
+  <!-- Contract note strip -->
+  <div class="sponsors-contract-note">
+    <span class="contract-badge">Annual contract</span>
+    <span class="contract-sep">&bull;</span>
+    <span>Managed by <strong>Bearcave Ltd.</strong></span>
+    <span class="contract-sep">&bull;</span>
+    <span>Your logo, your link, your visibility</span>
+    <span class="contract-sep">&bull;</span>
+    <a href="{% url 'sponsors:annual_contract' %}" target="_blank" rel="noopener noreferrer" style="color:inherit;font-weight:600;">View annual sponsorship agreement</a>
   </div>
 
   <!-- Progress bar -->
@@ -58,7 +66,7 @@
 
   <!-- Pricing tiers -->
   <div class="sponsors-tiers-wrap">
-    <p class="sponsors-tiers-label">Pricing — closer to centre = more exclusive</p>
+    <p class="sponsors-tiers-label">Pricing &mdash; closer to centre = more exclusive</p>
     <div class="sponsors-tiers">
       <div class="sponsors-tier sponsors-tier--6">
         <span class="tier-ring">Ring 6</span>
