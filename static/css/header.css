@@ -113,11 +113,6 @@
   text-decoration: underline;
 }
 
-@media (max-width: 540px) {
-  .ce-header-bmc {
-    display: none;
-  }
-}
 
 .ce-header__inner {
   display: grid;
