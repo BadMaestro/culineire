@@ -21,6 +21,12 @@ def assign_default_author(apps, _schema_editor):
 
 
 class Migration(migrations.Migration):
+    # DML (RunPython creates RecipeAuthor) followed by DDL (AlterField) in the
+    # same migration causes "pending trigger events" on PostgreSQL when run inside
+    # a single transaction.  Setting atomic=False lets each step commit
+    # independently, which is safe here because the data step runs first.
+    atomic = False
+
     dependencies = [
         ("recipes", "0001_initial"),
         ("articles", "0003_article_media_folder_article_hero_image_articleimage_and_more"),

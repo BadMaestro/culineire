@@ -178,20 +178,20 @@ class AmuseBouche(models.Model):
         return slug
 
     def _generate_emoji_description(self) -> None:
-        """Call Anthropic API to produce an emoji-decorated description. Fails silently."""
-        try:
-            import anthropic
+        """Call Anthropic API via raw urllib to produce an emoji-decorated description. Fails silently."""
+        import json
+        from urllib.request import Request, urlopen
 
+        try:
             api_key = getattr(settings, "ANTHROPIC_API_KEY", "")
             model = getattr(settings, "ANTHROPIC_MODEL", "claude-sonnet-4-6")
             if not api_key:
                 return
-            client = anthropic.Anthropic(api_key=api_key)
             source_text = self.short_description or self.title
-            message = client.messages.create(
-                model=model,
-                max_tokens=120,
-                messages=[{
+            payload = {
+                "model": model,
+                "max_tokens": 120,
+                "messages": [{
                     "role": "user",
                     "content": (
                         "You are a warm, playful food writer for an Irish culinary site. "
@@ -203,8 +203,20 @@ class AmuseBouche(models.Model):
                         f"Description: {source_text}"
                     ),
                 }],
+            }
+            request = Request(
+                "https://api.anthropic.com/v1/messages",
+                data=json.dumps(payload).encode("utf-8"),
+                headers={
+                    "content-type": "application/json",
+                    "x-api-key": api_key,
+                    "anthropic-version": "2023-06-01",
+                },
+                method="POST",
             )
-            self.emoji_description = message.content[0].text.strip()
+            with urlopen(request, timeout=30) as response:
+                body = json.loads(response.read().decode("utf-8"))
+            self.emoji_description = body["content"][0]["text"].strip()
         except Exception as exc:
             logger.warning("AmuseBouche emoji_description generation failed: %s", exc)
 
