@@ -585,7 +585,7 @@
     right: 0;
     top: 0;
     transition: opacity 0.22s ease;
-    z-index: 9000;
+    z-index: 9200; /* above PWA install banner (9100) */
   }
 
   .hero-lightbox--open {
