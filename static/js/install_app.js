@@ -67,7 +67,7 @@
   }
 
   var autoHideTimer = null;
-  var DESKTOP_AUTOHIDE_MS = 10000; // 10 s on non-touch screens
+  var DESKTOP_AUTOHIDE_MS = 5000; // 5 s on non-touch screens
 
   function isDesktop() {
     return !window.matchMedia('(hover: none)').matches;
