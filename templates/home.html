@@ -31,7 +31,9 @@
             <p class="hero-subtitle">CulinEire brings together heritage dishes, vintage cookbook finds and modern seasonal cooking, all shaped for a real home kitchen.</p>
 
             <div class="hero__actions">
+                {% if can_view_amuse_bouche_public_area %}
                 <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
+                {% endif %}
                 <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
                 <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
             </div>
@@ -46,7 +48,9 @@
             <div>
                 <h2>Quick Bites From The Kitchen</h2>
             </div>
+            {% if can_view_amuse_bouche_public_area %}
             <a class="text-link" href="{% url 'amuse_bouche:feed' %}">See all</a>
+            {% endif %}
         </div>
         <p class="page-subtitle">Irish bites, chef tricks and quick ideas from the CulinEire kitchen.</p>
         <div class="ab-home-grid">

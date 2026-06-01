@@ -60,8 +60,16 @@ def _with_query(url: str, **params) -> str:
 def header_author(request):
     user = getattr(request, "user", None)
 
+    try:
+        from amuse_bouche.visibility import can_view_amuse_bouche_public_area
+        can_view_amuse_bouche = can_view_amuse_bouche_public_area(user)
+    except Exception:
+        can_view_amuse_bouche = False
+
     if not user or not user.is_authenticated:
-        return {}
+        return {
+            "can_view_amuse_bouche_public_area": can_view_amuse_bouche,
+        }
 
     author = _find_author_for_user(user)
     display_name = (
@@ -73,12 +81,6 @@ def header_author(request):
     profile_url = author.get_absolute_url() if author else ""
 
     is_moderator = _is_moderator(user)
-    try:
-        from amuse_bouche.visibility import can_view_amuse_bouche_public_area
-        can_view_amuse_bouche = can_view_amuse_bouche_public_area(user)
-    except Exception:
-        can_view_amuse_bouche = False
-
     unread_count = _unread_message_count(user)
 
     actions = [

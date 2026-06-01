@@ -2,8 +2,8 @@
 {% load static %}
 {% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero.jpg' %}{% endblock %}
 
-{% block title %}About | CulinEire{% endblock %}
-{% block meta_description %}CulinEire is a modern platform celebrating Irish food heritage, vintage recipes and home cooking creativity.{% endblock %}
+{% block title %}About CulinEire | Irish Food Heritage, Recipes & Kitchen Stories{% endblock %}
+{% block meta_description %}CulinEire is a working kitchen for Irish food heritage: recipes, stories, short kitchen ideas, authors, home cooks and future Chef Battle events.{% endblock %}
 
 {% block content %}
 <section class="hero hero--home">
@@ -15,19 +15,159 @@
         <div class="hero-copy">
             <span class="pill">Our Story</span>
             <h1 class="hero-title">About CulinEire</h1>
-            <p class="hero-subtitle">A modern home for Irish food heritage - recipes, stories and the cooks behind them.</p>
+            <p class="hero-subtitle">A working kitchen for Irish food heritage: memory, ingredients, people, new dishes and the cooks preparing them today.</p>
             <div class="hero__actions">
+                {% if can_view_amuse_bouche_public_area %}
                 <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
                 <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
+                {% else %}
+                <a class="btn-primary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
+                {% endif %}
                 <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
             </div>
         </div>
     </div>
 </section>
 
+<section class="page-section about-intro-section">
+    <div class="container about-intro">
+        <p class="about-kicker">Not a recipe museum</p>
+        <p class="about-lede">CulinEire exists to keep Irish cooking useful, findable and alive. A recipe should not disappear after one scroll. A family dish should not sit behind glass. A good kitchen note should be easy to save, share and return to before cooking.</p>
+        <p class="about-lede about-lede--quiet">We begin with Irish food heritage, then let it work in today's kitchen through clear recipes, thoughtful articles, short ideas and a place for authors, home cooks and chefs to build something lasting.</p>
+    </div>
+</section>
+
+<section class="page-section about-band">
+    <div class="container about-split">
+        <div class="about-split__copy">
+            <span class="section-kicker">Why CulinEire Exists</span>
+            <h2>Good kitchen ideas disappear too quickly.</h2>
+            <p>A recipe is opened, cooked once and forgotten. A useful idea appears in a feed and is gone. A chef makes a small discovery, then loses the note before the next service or family dinner.</p>
+            <p>CulinEire is designed as a working kitchen shelf: a calm place to collect recipes, sources, short ideas and people worth returning to.</p>
+        </div>
+        <div class="about-note">
+            <p class="about-note__title">The guiding thought</p>
+            <p>Keep the flavour of the past and let it work in today's kitchen.</p>
+        </div>
+    </div>
+</section>
+
 <section class="page-section">
     <div class="container">
-        <p class="page-subtitle">CulinEire is a modern platform celebrating Irish food heritage and creativity.</p>
+        <div class="page-header">
+            <div>
+                <span class="section-kicker">Irish Foundation</span>
+                <h2>Heritage, Without The Glass Case</h2>
+            </div>
+        </div>
+        <p class="page-subtitle">Irish cooking gives CulinEire its foundation: home food, baking, stews, fish, meat, dairy, seasonal ingredients and local produce. The past matters here, but the kitchen is not locked in the past.</p>
+        <div class="about-principles">
+            <article class="about-principle">
+                <span class="about-principle__mark">01</span>
+                <h3>Classic dishes, modern clarity</h3>
+                <p>Old recipes should be readable, practical and useful beside the hob, not hidden inside heavy language.</p>
+            </article>
+            <article class="about-principle">
+                <span class="about-principle__mark">02</span>
+                <h3>Sources, stories and context</h3>
+                <p>Articles give ingredients, people, old books and regional habits the room they deserve.</p>
+            </article>
+            <article class="about-principle">
+                <span class="about-principle__mark">03</span>
+                <h3>Respect, not nostalgia</h3>
+                <p>The point is not to freeze Irish food in time. The point is to cook from it, learn from it and keep moving.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="page-section about-band about-band--table">
+    <div class="container">
+        <div class="page-header">
+            <div>
+                <span class="section-kicker">One Kitchen</span>
+                <h2>Different Workstations, One Table</h2>
+            </div>
+        </div>
+        <p class="page-subtitle">CulinEire is not a pile of separate buttons. A family recipe can become an article, a short idea can lead back to a full dish, and a chef battle can turn cooking into an event.</p>
+        <div class="about-workstations">
+            <article class="about-workstation">
+                <h3>Recipes</h3>
+                <p>Clear ingredients, methods, notes and images for dishes people can actually cook.</p>
+                <a href="{% url 'recipes:recipe_list' %}#all-recipes">Explore recipes</a>
+            </article>
+            <article class="about-workstation">
+                <h3>Articles</h3>
+                <p>Food history, produce, people, old sources and context without becoming academic or heavy.</p>
+                <a href="{% url 'articles:article_list' %}">Read articles</a>
+            </article>
+            <article class="about-workstation">
+                <h3>Amuse-Bouche</h3>
+                <p>Short ideas worth keeping: sauces, drinks, plating notes, quick tips and useful kitchen sparks.</p>
+                {% if can_view_amuse_bouche_public_area %}
+                <a href="{% url 'amuse_bouche:feed' %}">Open Amuse-Bouche</a>
+                {% else %}
+                <span>Preparing for public launch</span>
+                {% endif %}
+            </article>
+            <article class="about-workstation">
+                <h3>Chef Battle</h3>
+                <p>A future space where recipes become events: themes, two dishes, voting, story and result.</p>
+                <span>In pilot planning</span>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="page-section">
+    <div class="container about-split about-split--reverse">
+        <div class="about-note about-note--trust">
+            <p class="about-note__title">Trust comes first</p>
+            <p>A culinary project depends on trust, just as a kitchen depends on cleanliness.</p>
+        </div>
+        <div class="about-split__copy">
+            <span class="section-kicker">Quality And Partners</span>
+            <h2>Useful partnership, not advertising noise.</h2>
+            <p>CulinEire can work with partners connected to food, craft, training, ingredients, equipment, markets, cafes and the restaurant trade. But a sponsor must fit the site, the culture and the honest tone.</p>
+            <ul class="about-checklist">
+                <li>Sponsored material should be clearly labelled.</li>
+                <li>Partners can support a theme or prize, but cannot choose a winner.</li>
+                <li>Quality, fairness and usefulness matter more than short-term money.</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<section class="page-section about-path-section">
+    <div class="container">
+        <div class="page-header">
+            <div>
+                <span class="section-kicker">Where We Are Going</span>
+                <h2>Build the kitchen before inviting the room.</h2>
+            </div>
+        </div>
+        <div class="about-path">
+            <div class="about-path__step">
+                <span>Now</span>
+                <p>Bring the site to a clean standard with strong writing, stable pages and clear navigation.</p>
+            </div>
+            <div class="about-path__step">
+                <span>Next</span>
+                <p>Launch Amuse-Bouche with real approved materials that link back to recipes, articles and authors.</p>
+            </div>
+            <div class="about-path__step">
+                <span>Then</span>
+                <p>Invite first authors, run careful Chef Battle pilots and prepare a partner story based on real activity.</p>
+            </div>
+        </div>
+        <div class="about-final">
+            <p>CulinEire should feel like a kitchen where the cooking has already started.</p>
+            <div class="about-final__actions">
+                <a class="btn-primary" href="{% url 'recipes:recipe_list' %}#all-recipes">Start with recipes</a>
+                <a class="btn-secondary" href="{% url 'messaging:contact' %}">Contact CulinEire</a>
+                <a class="btn-secondary" href="{% url 'sponsors:puzzle' %}">For partners</a>
+            </div>
+        </div>
     </div>
 </section>
 {% endblock %}

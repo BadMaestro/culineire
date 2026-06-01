@@ -17,7 +17,9 @@
             <h1 class="hero-title">Legal Information</h1>
             <p class="hero-subtitle">Policies, guidelines, and your rights as a CulinEire user or author.</p>
             <div class="hero__actions">
+                {% if can_view_amuse_bouche_public_area %}
                 <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
+                {% endif %}
                 <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
                 <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
             </div>

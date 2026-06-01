@@ -30,7 +30,9 @@
             <p class="hero-subtitle">Deep dives into Irish Culinary Culture, ingredients and traditions. Stories behind the dishes, the seasons, and the people who keep the kitchen alive.</p>
             {% endif %}
             <div class="hero__actions">
+                {% if can_view_amuse_bouche_public_area %}
                 <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
+                {% endif %}
                 <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
                 <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
             </div>

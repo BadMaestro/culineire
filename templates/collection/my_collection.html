@@ -21,7 +21,9 @@
             <h1 class="hero-title">My Collection</h1>
             <p class="hero-subtitle">Your saved recipes and articles in one place.</p>
             <div class="hero__actions">
+                {% if can_view_amuse_bouche_public_area %}
                 <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
+                {% endif %}
                 <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
                 <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
             </div>
@@ -144,7 +146,9 @@
             {% else %}
             <div class="collection-empty">
                 <p class="collection-empty__text">You have no saved Amuse-Bouche posts yet.</p>
+                {% if can_view_amuse_bouche_public_area %}
                 <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Explore Amuse-Bouche</a>
+                {% endif %}
             </div>
             {% endif %}
         {% endif %}
