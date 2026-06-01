@@ -403,4 +403,55 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   });
+
+  // ==== Amuse-Bouche bottom sheet (slide-up) ====
+  const closeAllSheets = () => {
+    document.querySelectorAll(".ab-card__sheet.is-open").forEach((s) => {
+      s.classList.remove("is-open");
+      s.setAttribute("aria-hidden", "true");
+    });
+    document.querySelectorAll("[data-ab-more]").forEach((b) => {
+      b.setAttribute("aria-expanded", "false");
+    });
+  };
+
+  document.addEventListener("click", (e) => {
+    const moreBtn = e.target.closest("[data-ab-more]");
+    if (moreBtn) {
+      e.stopPropagation();
+      const pk = moreBtn.dataset.abMore;
+      const sheet = document.getElementById("ab-sheet-" + pk);
+      if (!sheet) return;
+      const wasOpen = sheet.classList.contains("is-open");
+      closeAllSheets();
+      if (!wasOpen) {
+        sheet.classList.add("is-open");
+        sheet.setAttribute("aria-hidden", "false");
+        moreBtn.setAttribute("aria-expanded", "true");
+      }
+      return;
+    }
+
+    const closeBtn = e.target.closest("[data-ab-close]");
+    if (closeBtn) {
+      const pk = closeBtn.dataset.abClose;
+      const sheet = document.getElementById("ab-sheet-" + pk);
+      if (sheet) {
+        sheet.classList.remove("is-open");
+        sheet.setAttribute("aria-hidden", "true");
+        const moreBtn2 = document.querySelector("[data-ab-more='" + pk + "']");
+        if (moreBtn2) moreBtn2.setAttribute("aria-expanded", "false");
+      }
+      return;
+    }
+
+    // Click outside sheet or more-btn closes all sheets
+    if (!e.target.closest(".ab-card__sheet") && !e.target.closest("[data-ab-more]")) {
+      closeAllSheets();
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeAllSheets();
+  });
 });

@@ -1,12 +1,8 @@
 {% load static %}
 <article class="ab-card{% if detail %} ab-card--detail{% endif %}" data-ab-id="{{ item.pk }}">
 
-  {# ── Central image (comes first in DOM so topbar can overlay it via CSS) ── #}
-  <div class="ab-card__visual">
-    {% if not detail %}
-    <a class="ab-card__cover-link" href="{{ item.get_absolute_url }}" aria-label="{{ item.title }}"></a>
-    {% endif %}
-
+  {# ── Photo fills entire card ── #}
+  <div class="ab-card__photo">
     {% if item.card_image %}
     <img alt="{% if item.cover_image_alt %}{{ item.cover_image_alt }}{% else %}{{ item.title }}{% endif %}"
          class="ab-card__img"
@@ -15,156 +11,124 @@
     {% else %}
     <img alt="{{ item.title }}" class="ab-card__img" src="{% static 'images/hero.jpg' %}" loading="lazy">
     {% endif %}
-
-    {# Top bar overlaid on photo #}
-    <div class="ab-card__topbar">
-      <a class="ab-card__author-avatar-link" href="{{ item.author.get_absolute_url }}" aria-hidden="true" tabindex="-1">
-        <img alt="" class="ab-card__author-avatar" src="{{ item.author.display_avatar_url }}" loading="lazy">
-      </a>
-      <div class="ab-card__author-info">
-        <a class="ab-card__author-name" href="{{ item.author.get_absolute_url }}">{{ item.author.name }}</a>
-        <span class="ab-card__date">
-          {% if item.published_at %}{{ item.published_at|date:"j M Y" }}{% else %}{{ item.created_at|date:"j M Y" }}{% endif %}
-        </span>
-      </div>
-      <div class="ab-card__topbar-right">
-        {% if user.is_authenticated and item.author.user != user %}
-        <form action="{% url 'collection:toggle_follow' item.author.slug %}" method="post" class="ab-follow-form">
-          {% csrf_token %}
-          <input type="hidden" name="next" value="{{ request.get_full_path }}">
-          {% if item.author.pk in followed_author_ids %}
-          <button class="ab-follow-btn ab-follow-btn--following" type="submit" title="Unfollow {{ item.author.name }}">Following</button>
-          {% else %}
-          <button class="ab-follow-btn" type="submit" title="Follow {{ item.author.name }}">Follow</button>
-          {% endif %}
-        </form>
-        {% endif %}
-        <div class="ab-menu" data-ab-menu>
-          <button class="ab-menu__trigger" type="button" aria-label="More options" aria-expanded="false" aria-haspopup="true">
-            <svg aria-hidden="true" fill="currentColor" height="16" viewBox="0 0 24 24" width="16"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
-          </button>
-          <ul class="ab-menu__list" hidden role="menu">
-            <li role="none">
-              <button class="ab-menu__item" type="button" data-ab-copy-link="{{ request.scheme }}://{{ request.get_host }}{{ item.get_absolute_url }}" role="menuitem">Copy link</button>
-            </li>
-            {% if can_edit %}
-            <li role="none">
-              <a class="ab-menu__item" href="{% url 'amuse_bouche:edit' item.slug %}" role="menuitem">Edit post</a>
-            </li>
-            {% endif %}
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    {# Type badge — bottom-left of photo #}
-    <span class="ab-badge ab-card__type-badge">{{ item.get_content_type_display }}</span>
   </div>
 
-  {# ── Content panel ── #}
-  <div class="ab-card__panel">
+  {# ── Full-card cover link (feed and home grid only) ── #}
+  {% if not detail %}
+  <a class="ab-card__link" href="{{ item.get_absolute_url }}" aria-label="{{ item.title }}"></a>
+  {% endif %}
 
-    {# Action bar #}
-    <div class="ab-card__actions">
-      <div class="ab-card__actions-left">
+  {# ── Content type badge — top-left ── #}
+  <span class="ab-badge ab-card__badge">{{ item.get_content_type_display }}</span>
 
-        {# Like #}
-        {% if user.is_authenticated %}
-        <form action="{% url 'amuse_bouche:toggle_like' item.slug %}" method="post" class="ab-action-form">
-          {% csrf_token %}
-          <input type="hidden" name="next" value="{{ request.get_full_path }}">
-          <button class="ab-action-btn{% if item.pk in liked_ids %} ab-action-btn--liked{% endif %}" type="submit" title="{% if item.pk in liked_ids %}Unlike{% else %}Like{% endif %}">
-            {% if item.pk in liked_ids %}
-            <svg aria-hidden="true" fill="currentColor" height="20" viewBox="0 0 24 24" width="20"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-            {% else %}
-            <svg aria-hidden="true" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="20"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-            {% endif %}
-            {% if item.like_total %}<span class="ab-action-count">{{ item.like_total }}</span>{% endif %}
-          </button>
-        </form>
-        {% else %}
-        <a class="ab-action-btn" href="{% url 'login' %}?next={{ request.get_full_path }}" title="Sign in to like">
-          <svg aria-hidden="true" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="20"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-          {% if item.like_total %}<span class="ab-action-count">{{ item.like_total }}</span>{% endif %}
-        </a>
-        {% endif %}
+  {# ── Info column: author · title · emoji desc ── #}
+  <div class="ab-card__info">
+    <a class="ab-card__author" href="{{ item.author.get_absolute_url }}">
+      <img alt="{{ item.author.name }}" class="ab-card__avatar"
+           src="{{ item.author.display_avatar_url }}" loading="lazy">
+      <span class="ab-card__author-name">{{ item.author.name }}</span>
+    </a>
 
-        {# Comment #}
-        {% if item.allow_comments %}
-        <a class="ab-action-btn" href="{% if detail %}#ab-comments{% else %}{{ item.get_absolute_url }}#ab-comments{% endif %}" title="Comments">
-          <svg aria-hidden="true" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="20"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        </a>
-        {% endif %}
-
-        {# Share #}
-        <button class="ab-action-btn" type="button" data-ab-share="{{ request.scheme }}://{{ request.get_host }}{{ item.get_absolute_url }}" title="Share">
-          <svg aria-hidden="true" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="20"><path d="M22 2 11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        </button>
-      </div>
-
-      {# Liker avatars + bookmark #}
-      <div class="ab-card__actions-right">
-        {% if item.liker_authors %}
-        <div class="ab-liker-avatars">
-          {% for liker in item.liker_authors %}
-          <img alt="{{ liker.name }}" class="ab-liker-avatar" src="{{ liker.display_avatar_url }}" title="{{ liker.name }}" loading="lazy">
-          {% endfor %}
-        </div>
-        {% endif %}
-        {% if user.is_authenticated %}
-        <form action="{% url 'amuse_bouche:toggle_save' item.slug %}" method="post" class="ab-action-form">
-          {% csrf_token %}
-          <input type="hidden" name="next" value="{{ request.get_full_path }}">
-          <button class="ab-action-btn{% if item.pk in saved_ids %} ab-action-btn--saved{% endif %}" type="submit" title="{% if item.pk in saved_ids %}Remove bookmark{% else %}Bookmark{% endif %}">
-            {% if item.pk in saved_ids %}
-            <svg aria-hidden="true" fill="currentColor" height="20" viewBox="0 0 24 24" width="20"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-            {% else %}
-            <svg aria-hidden="true" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="20"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-            {% endif %}
-          </button>
-        </form>
-        {% endif %}
-      </div>
-    </div>
-
-    {# Like count text #}
-    {% if item.like_total %}
-    <p class="ab-like-count">{% if item.like_total == 1 %}1 like{% else %}{{ item.like_total }} likes{% endif %}</p>
+    {% if not detail %}
+    <h2 class="ab-card__title">{{ item.title }}</h2>
+    {% else %}
+    <h1 class="ab-card__title ab-card__title--detail">{{ item.title }}</h1>
     {% endif %}
 
-    {# Title + description #}
-    <div class="ab-card__body">
-      {% if not detail %}
-      <h2 class="ab-card__title">
-        <a href="{{ item.get_absolute_url }}">{{ item.title }}</a>
-      </h2>
-      {% else %}
-      <h1 class="ab-card__title ab-card__title--detail">{{ item.title }}</h1>
-      {% endif %}
-
-      {% if item.emoji_description %}
-      <p class="ab-card__emoji-desc">{{ item.emoji_description }}</p>
-      {% endif %}
-
-      {% if item.short_description %}
-      {% if item.emoji_description %}
-      <details class="ab-card__more">
-        <summary class="ab-card__more-toggle">more</summary>
-        <p class="ab-card__full-desc">{{ item.short_description }}</p>
-      </details>
-      {% else %}
-      <p class="ab-card__full-desc">{{ item.short_description }}</p>
-      {% endif %}
-      {% endif %}
-
-      {% if item.linked_recipe or item.linked_article %}
-      <div class="ab-card__links">
-        {% if item.linked_recipe %}<a href="{{ item.linked_recipe.get_absolute_url }}">Full recipe &rarr;</a>{% endif %}
-        {% if item.linked_article %}<a href="{{ item.linked_article.get_absolute_url }}">Read the story &rarr;</a>{% endif %}
-      </div>
-      {% endif %}
+    {% if not detail %}
+    {% if item.emoji_description or item.short_description %}
+    <div class="ab-card__desc-row">
+      {% if item.emoji_description %}<span class="ab-card__desc">{{ item.emoji_description }}</span>{% endif %}
+      {% if item.short_description %}<button class="ab-more-btn" type="button"
+        data-ab-more="{{ item.pk }}" aria-expanded="false">more &#x25BE;</button>{% endif %}
     </div>
+    {% endif %}
+    {% else %}
+    {% if item.short_description %}
+    <p class="ab-card__detail-desc">{{ item.short_description }}</p>
+    {% endif %}
+    {% endif %}
+  </div>
 
-  </div>{# /ab-card__panel #}
+  {# ── Bottom sheet — slides up (feed / home grid only) ── #}
+  {% if not detail and item.short_description %}
+  <div class="ab-card__sheet" id="ab-sheet-{{ item.pk }}"
+       role="dialog" aria-label="More info" aria-hidden="true">
+    <p class="ab-sheet__text">{{ item.short_description }}</p>
+    {% if item.linked_recipe %}
+    <a class="ab-sheet__link" href="{{ item.linked_recipe.get_absolute_url }}">Full recipe &rarr;</a>
+    {% endif %}
+    {% if item.linked_article %}
+    <a class="ab-sheet__link" href="{{ item.linked_article.get_absolute_url }}">Read the story &rarr;</a>
+    {% endif %}
+    <button class="ab-sheet__close" type="button"
+            data-ab-close="{{ item.pk }}" aria-label="Close">&#x25B2; close</button>
+  </div>
+  {% endif %}
+
+  {# ── Right-side action strip ── #}
+  <div class="ab-card__actions">
+
+    {# Like #}
+    {% if user.is_authenticated %}
+    <form action="{% url 'amuse_bouche:toggle_like' item.slug %}" method="post" class="ab-action-form">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+      <button class="ab-btn{% if item.pk in liked_ids %} ab-btn--liked{% endif %}"
+              type="submit"
+              title="{% if item.pk in liked_ids %}Unlike{% else %}Like{% endif %}">
+        {% if item.pk in liked_ids %}
+        <svg aria-hidden="true" fill="currentColor" height="20" viewBox="0 0 24 24" width="20"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        {% else %}
+        <svg aria-hidden="true" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="20"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        {% endif %}
+        {% if item.like_total %}<span class="ab-btn__count">{{ item.like_total }}</span>{% endif %}
+      </button>
+    </form>
+    {% else %}
+    <a class="ab-btn" href="{% url 'login' %}?next={{ request.get_full_path }}" title="Sign in to like">
+      <svg aria-hidden="true" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="20"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      {% if item.like_total %}<span class="ab-btn__count">{{ item.like_total }}</span>{% endif %}
+    </a>
+    {% endif %}
+
+    {# Comment #}
+    {% if item.allow_comments %}
+    <a class="ab-btn"
+       href="{% if detail %}#ab-comments{% else %}{{ item.get_absolute_url }}#ab-comments{% endif %}"
+       title="Comments">
+      <svg aria-hidden="true" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="20"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </a>
+    {% endif %}
+
+    {# Share #}
+    <button class="ab-btn" type="button"
+            data-ab-share="{{ request.scheme }}://{{ request.get_host }}{{ item.get_absolute_url }}"
+            title="Share">
+      <svg aria-hidden="true" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="20"><path d="M22 2 11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+
+    {# Bookmark #}
+    {% if user.is_authenticated %}
+    <form action="{% url 'amuse_bouche:toggle_save' item.slug %}" method="post" class="ab-action-form">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+      <button class="ab-btn{% if item.pk in saved_ids %} ab-btn--saved{% endif %}"
+              type="submit"
+              title="{% if item.pk in saved_ids %}Remove bookmark{% else %}Bookmark{% endif %}">
+        {% if item.pk in saved_ids %}
+        <svg aria-hidden="true" fill="currentColor" height="20" viewBox="0 0 24 24" width="20"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        {% else %}
+        <svg aria-hidden="true" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="20"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        {% endif %}
+      </button>
+    </form>
+    {% else %}
+    <a class="ab-btn" href="{% url 'login' %}?next={{ request.get_full_path }}" title="Sign in to bookmark">
+      <svg aria-hidden="true" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="20"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+    </a>
+    {% endif %}
+
+  </div>{# /ab-card__actions #}
 
 </article>
