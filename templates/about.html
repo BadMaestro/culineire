@@ -32,7 +32,7 @@
                 </div>
             </section>
 
-            <section class="about-slide" data-about-slide aria-label="Slide 2 of 7">
+            <section class="about-slide about-slide--balanced" data-about-slide aria-label="Slide 2 of 7">
                 <div class="about-slide__panel about-slide__panel--wide">
                     <span class="about-slide__kicker">Not a recipe museum</span>
                     <h2>Keep Irish cooking useful, findable and alive.</h2>
@@ -56,7 +56,7 @@
                 </div>
             </section>
 
-            <section class="about-slide" data-about-slide aria-label="Slide 4 of 7">
+            <section class="about-slide about-slide--centered" data-about-slide aria-label="Slide 4 of 7">
                 <div class="about-slide__panel about-slide__panel--wide">
                     <span class="about-slide__kicker">How the site connects</span>
                     <h2>One short post can lead to something bigger.</h2>
@@ -93,7 +93,7 @@
                 </aside>
             </section>
 
-            <section class="about-slide" data-about-slide aria-label="Slide 6 of 7">
+            <section class="about-slide about-slide--centered" data-about-slide aria-label="Slide 6 of 7">
                 <div class="about-slide__panel about-slide__panel--wide">
                     <span class="about-slide__kicker">Quality and partners</span>
                     <h2>Useful partnership, not advertising noise.</h2>
@@ -105,7 +105,7 @@
                 </div>
             </section>
 
-            <section class="about-slide about-slide--final" data-about-slide aria-label="Slide 7 of 7">
+            <section class="about-slide about-slide--final about-slide--centered" data-about-slide aria-label="Slide 7 of 7">
                 <div class="about-slide__panel about-slide__panel--wide">
                     <span class="about-slide__kicker">Where we are going</span>
                     <h2>Build the kitchen before inviting the room.</h2>
@@ -127,21 +127,24 @@
             </section>
         </div>
 
-        <button class="about-deck__arrow about-deck__arrow--prev" type="button" data-about-prev aria-label="Previous slide">
-            <span aria-hidden="true">&lsaquo;</span>
-        </button>
-        <button class="about-deck__arrow about-deck__arrow--next" type="button" data-about-next aria-label="Next slide">
-            <span aria-hidden="true">&rsaquo;</span>
-        </button>
+        <div class="about-deck__nav">
+            <button class="about-deck__arrow about-deck__arrow--prev" type="button" data-about-prev aria-label="Previous slide">
+                <span aria-hidden="true">&lsaquo;</span>
+            </button>
 
-        <div class="about-deck__controls" aria-label="About CulinEire slides">
-            <button class="is-active" type="button" data-about-dot aria-label="Show slide 1"></button>
-            <button type="button" data-about-dot aria-label="Show slide 2"></button>
-            <button type="button" data-about-dot aria-label="Show slide 3"></button>
-            <button type="button" data-about-dot aria-label="Show slide 4"></button>
-            <button type="button" data-about-dot aria-label="Show slide 5"></button>
-            <button type="button" data-about-dot aria-label="Show slide 6"></button>
-            <button type="button" data-about-dot aria-label="Show slide 7"></button>
+            <div class="about-deck__controls" aria-label="About CulinEire slides">
+                <button class="is-active" type="button" data-about-dot aria-label="Show slide 1"></button>
+                <button type="button" data-about-dot aria-label="Show slide 2"></button>
+                <button type="button" data-about-dot aria-label="Show slide 3"></button>
+                <button type="button" data-about-dot aria-label="Show slide 4"></button>
+                <button type="button" data-about-dot aria-label="Show slide 5"></button>
+                <button type="button" data-about-dot aria-label="Show slide 6"></button>
+                <button type="button" data-about-dot aria-label="Show slide 7"></button>
+            </div>
+
+            <button class="about-deck__arrow about-deck__arrow--next" type="button" data-about-next aria-label="Next slide">
+                <span aria-hidden="true">&rsaquo;</span>
+            </button>
         </div>
     </article>
 
