@@ -607,16 +607,21 @@
     transform: scale(1);
   }
 
+  .hero-lightbox__frame {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    max-width: 63vw;
+  }
+
   .hero-lightbox__copyright {
-    bottom: 1.1rem;
     color: rgba(255, 255, 255, 0.42);
     font-size: 0.68rem;
-    left: 50%;
     letter-spacing: 0.02em;
+    margin: 0;
     pointer-events: none;
-    position: absolute;
     text-align: center;
-    transform: translateX(-50%);
     user-select: none;
     white-space: nowrap;
   }
