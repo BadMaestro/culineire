@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero.jpg' %}{% endblock %}
 
 {% block title %}Offline | CulinEire{% endblock %}
 {% block meta_description %}CulinEire is temporarily unavailable. Please check your connection.{% endblock %}

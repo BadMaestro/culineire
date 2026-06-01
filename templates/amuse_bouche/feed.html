@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-amuse-bouche.png' %}{% endblock %}
 
 {% block title %}Amuse-Bouche | CulinEire{% endblock %}
 {% block meta_description %}Small bites, big ideas from the CulinEire kitchen.{% endblock %}

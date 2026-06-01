@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-join.png' %}{% endblock %}
 
 {% block title %}Check Your Email | CulinEire{% endblock %}
 {% block meta_description %}Please confirm your email address to complete your CulinEire registration.{% endblock %}

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-login.png' %}{% endblock %}
 
 {% block title %}Sign In | CulinEire{% endblock %}
 {% block meta_description %}Sign In to your CulinEire account to continue exploring recipes and food stories.{% endblock %}

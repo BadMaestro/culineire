@@ -1,4 +1,5 @@
 {% load static %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero.jpg' %}{% endblock %}
 <article class="ab-card{% if detail %} ab-card--detail{% endif %}">
 
   <div class="ab-card__visual">

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-collection.png' %}{% endblock %}
 
 {% block title %}My Collection | CulinEire{% endblock %}
 {% block meta_description %}Your saved recipes and articles on CulinEire.{% endblock %}

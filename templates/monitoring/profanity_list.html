@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-profanity.png' %}{% endblock %}
 
 {% block title %}Profanity Filter | CulinEire Monitoring{% endblock %}
 {% block meta_description %}Manage the CulinEire profanity and forbidden word list.{% endblock %}

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-contact.png' %}{% endblock %}
 
 {% block title %}Content Publishing Rules | CulinEire{% endblock %}
 {% block meta_description %}Rules for submitting recipes and articles to CulinEire. Read before publishing content.{% endblock %}

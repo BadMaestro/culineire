@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-sponsors.png' %}{% endblock %}
 
 {% block body_attrs %} class="page--sponsors"{% endblock %}
 

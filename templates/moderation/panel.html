@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-moderator.png' %}{% endblock %}
 
 {% block title %}Moderation Panel | CulinEire{% endblock %}
 {% block meta_description %}CulinEire content moderation panel.{% endblock %}

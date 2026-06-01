@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-contact.png' %}{% endblock %}
 
 {% block title %}Terms of Use | CulinEire{% endblock %}
 {% block meta_description %}Terms of Use for CulinEire, operated by Bearcave Limited. Read the rules governing use of the CulinEire platform.{% endblock %}

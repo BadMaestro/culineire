@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-messages.png' %}{% endblock %}
 
 {% block title %}Messages | CulinEire{% endblock %}
 {% block meta_description %}Your CulinEire messages inbox.{% endblock %}

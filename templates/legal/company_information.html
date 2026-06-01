@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-contact.png' %}{% endblock %}
 
 {% block title %}Company Information | CulinEire{% endblock %}
 {% block meta_description %}Legal notice and company information for CulinEire, operated by Bearcave Limited, registered in Ireland.{% endblock %}

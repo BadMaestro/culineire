@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-news.png' %}{% endblock %}
 
 {% block title %}Add News Entry | CulinEire{% endblock %}
 {% block meta_description %}Post a new entry to CulinEire News.{% endblock %}

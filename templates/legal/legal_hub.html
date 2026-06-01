@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-contact.png' %}{% endblock %}
 
 {% block title %}Legal | CulinEire{% endblock %}
 {% block meta_description %}Legal information, company details, content policies, privacy and your rights as a CulinEire user or author.{% endblock %}

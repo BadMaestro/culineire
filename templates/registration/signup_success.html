@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-join.png' %}{% endblock %}
 
 {% block title %}Account Created | CulinEire{% endblock %}
 {% block meta_description %}Your CulinEire account has been created successfully.{% endblock %}

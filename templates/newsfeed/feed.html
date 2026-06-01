@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-news.png' %}{% endblock %}
 
 {% block title %}CulinEire News{% endblock %}
 {% block meta_description %}News, new recipes, new articles, site improvements and announcements from the CulinEire kitchen.{% endblock %}

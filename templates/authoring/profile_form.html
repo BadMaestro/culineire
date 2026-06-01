@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-profile.png' %}{% endblock %}
 
 {% block title %}Edit Profile | CulinEire{% endblock %}
 {% block meta_description %}Edit your CulinEire author profile from the author studio.{% endblock %}

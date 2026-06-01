@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-contact.png' %}{% endblock %}
 
 {% block title %}Content Report #{{ report.pk }} | CulinEire{% endblock %}
 {% block meta_description %}Content report detail.{% endblock %}

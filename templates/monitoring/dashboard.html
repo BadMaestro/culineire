@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-monitoring.png' %}{% endblock %}
 
 {% block title %}Monitoring Dashboard | CulinEire{% endblock %}
 {% block meta_description %}CulinEire internal monitoring and analytics dashboard.{% endblock %}
