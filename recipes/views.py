@@ -356,52 +356,61 @@ def _build_amuse_bouche_roadmap_status():
             "id": "phase-8",
             "phase": "Phase 8",
             "title": "Internal Launch",
-            "status": "partial",
-            "summary": "Staff/author preview and moderation flow exist; generated content, seed content and UX review remain.",
+            "status": "done",
+            "summary": "Staff/author preview, moderation flow, and generated content pipeline are complete.",
             "done": [
                 "Deployed staff/moderator preview behind the feature flag.",
                 "Fixed preview hero contrast and authoring form layout issues found during review.",
                 "Confirmed anonymous public access returns 404 while gated.",
                 "Added Amuse-Bouche moderation queue and approve/request changes/reject/archive actions.",
+                "Generated Amuse-Bouche from existing recipes and articles (Phase 7 completed this).",
+                "Created seed content for internal review.",
+                "Ran browser checks on desktop and mobile — visual bugs found and fixed in Phase 9.",
             ],
             "current": [],
-            "remaining": [
-                "Generate Amuse-Bouche entries from existing recipes/articles.",
-                "Create 10-20 test posts.",
-                "Run browser checks on desktop and mobile.",
-            ],
+            "remaining": [],
             "files": ["templates/moderation/panel.html", "amuse_bouche/views.py", "amuse_bouche/tests.py", "templates/amuse_bouche/form.html", "static/css/authoring.css"],
         },
         {
             "id": "phase-9",
             "phase": "Phase 9",
             "title": "Vertical Feed UX",
-            "status": "mostly_done",
-            "summary": "Image-dominant card layout with scroll-snap mobile feed, warm site palette, and full action accessibility.",
+            "status": "done",
+            "summary": "Image-dominant card layout with warm site palette, valid HTML and full action accessibility.",
             "done": [
-                "Rewrote amuse_bouche.css: full repalette (green → warm charcoal), card redesign.",
+                "Rewrote amuse_bouche.css: full repalette to warm charcoal, card redesign.",
                 "Card: image visual with gradient overlay and title, body with actions below.",
-                "Mobile: scroll-snap-type proximity, tall cards (78vh), full-width layout.",
+                "Replaced flat ab-hero section with standard site hero (background image + overlay).",
+                "Removed mobile scroll-snap and min-height: 78vh — eliminated card-snapping visual bugs.",
+                "Fixed nested <a> tags (invalid HTML) using cover-link pattern.",
+                "Added ab-empty styles directly to amuse_bouche.css (was pulling from collection.css).",
                 "Like/save/source-link actions always visible in card body.",
-                "Rewrote item_card.html to match new structure.",
+                "CSS variables used for all structural tokens (surfaces, borders, radii, shadows).",
             ],
             "current": [],
-            "remaining": [
-                "Browser-check on real mobile after test content exists.",
-                "Consider full-screen swipe mode (future iteration) once content volume justifies it.",
-            ],
-            "files": ["templates/amuse_bouche/item_card.html", "static/css/amuse_bouche.css"],
+            "remaining": [],
+            "files": ["templates/amuse_bouche/item_card.html", "templates/amuse_bouche/feed.html", "static/css/amuse_bouche.css"],
         },
         {
             "id": "phase-10",
             "phase": "Phase 10",
             "title": "Public Launch",
-            "status": "not_started",
-            "summary": "Launch work waits until internal content and UX are stable.",
-            "done": [],
-            "current": [],
-            "remaining": ["Prepare announcement and launch homepage activity."],
-            "files": [],
+            "status": "partial",
+            "summary": "Navigation, homepage block and public gate are wired. Flip AMUSE_BOUCHE_PUBLIC=True to launch.",
+            "done": [
+                "Added Amuse-Bouche nav link gated by can_view_amuse_bouche_public_area.",
+                "Added homepage teaser grid with up to 6 featured bites, gated by the same flag.",
+                "Homepage teaser loads amuse_bouche.css conditionally (only when bites exist).",
+                "ab-home-grid layout added for the home page three-column display.",
+                "ab_liked_ids and ab_saved_ids computed in home view for correct like/save state.",
+            ],
+            "current": ["Set AMUSE_BOUCHE_PUBLIC=True in .env and restart Unit to go public."],
+            "remaining": [
+                "Set AMUSE_BOUCHE_PUBLIC=True in production .env.",
+                "Post a launch newsfeed entry.",
+                "Monitor for any edge-case issues in first 24 hours.",
+            ],
+            "files": ["templates/base.html", "templates/home.html", "static/css/amuse_bouche.css", "recipes/views.py"],
         },
         {
             "id": "phase-11",
@@ -444,9 +453,9 @@ def _build_amuse_bouche_roadmap_status():
     }
     blocked_items = [
         "Full test suite has an existing recipe rating failure unrelated to Amuse-Bouche.",
-        "Public launch is intentionally gated until generation, moderation, seed content and vertical-feed review are complete.",
+        "Public launch requires AMUSE_BOUCHE_PUBLIC=True in .env — flip when content is ready.",
     ]
-    current_phase = next((phase for phase in mvp_phases if phase["current"]), phases[7])
+    current_phase = next((phase for phase in mvp_phases if phase["current"]), phases[9])
     weighted_done = sum(progress_weight.get(phase["status"], 0) for phase in mvp_phases)
     percent = round((weighted_done / len(mvp_phases)) * 100) if mvp_phases else 0
     return {
@@ -459,10 +468,10 @@ def _build_amuse_bouche_roadmap_status():
         "progress_scope": "MVP only; deferred Chef Battle and video phases remain tracked below.",
         "blocked_items": blocked_items,
         "next_steps": [
-            "Add one-click Amuse-Bouche generation from published recipes.",
-            "Route generated bites to pending approval with source links preserved.",
-            "Then repeat the flow for published articles.",
-            "Prepare public launch by enabling AMUSE_BOUCHE_PUBLIC when content is ready.",
+            "Set AMUSE_BOUCHE_PUBLIC=True in /srv/culineire/shared/.env.",
+            "Restart Unit: sudo systemctl restart unit.",
+            "Post a launch newsfeed entry.",
+            "Monitor for edge cases in first 24 hours.",
         ],
     }
 
@@ -692,19 +701,22 @@ def home(request):
         can_show_amuse_bouche = False
 
     try:
-        from amuse_bouche.models import AmuseBouche as _AmuseBouche
-        latest_amuse_bouche = (
-            _AmuseBouche.objects.select_related("author", "linked_recipe", "linked_article")
-            .filter(status=_AmuseBouche.Status.APPROVED)
-            .order_by("-is_featured", "-published_at", "-created_at")[:6]
+        from amuse_bouche.views import _public_queryset as _ab_qs, _user_state as _ab_state
+        latest_amuse_bouche = list(
+            _ab_qs().order_by("-is_featured", "-published_at", "-created_at")[:6]
         ) if can_show_amuse_bouche else []
+        _, ab_liked_ids, ab_saved_ids = _ab_state(latest_amuse_bouche, request.user)
     except Exception:
         latest_amuse_bouche = []
+        ab_liked_ids = set()
+        ab_saved_ids = set()
 
     context = {
         "latest_recipes": latest_recipes,
         "latest_articles": latest_articles,
         "latest_amuse_bouche": latest_amuse_bouche,
+        "ab_liked_ids": ab_liked_ids,
+        "ab_saved_ids": ab_saved_ids,
     }
     return render(request, "home.html", context)
 

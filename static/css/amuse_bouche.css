@@ -292,6 +292,17 @@
   font-size: 1.05rem;
 }
 
+/* ---- Home page teaser grid ---- */
+.ab-home-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.ab-home-grid .ab-card {
+  margin-bottom: 0;
+}
+
 /* ---- Mobile ---- */
 @media (max-width: 640px) {
   .ab-card {

@@ -11,6 +11,12 @@
 {% block twitter_description %}Explore modern Irish recipes, vintage cookbook finds, seasonal cooking ideas, and food stories from the CulinEire kitchen.{% endblock %}
 {% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero.jpg' %}{% endblock %}
 
+{% block extra_head %}
+{% if latest_amuse_bouche %}
+<link href="{% static 'css/amuse_bouche.css' %}" rel="stylesheet">
+{% endif %}
+{% endblock %}
+
 {% block content %}
 <section class="hero hero--home">
     <div aria-hidden="true" class="hero__background">
@@ -32,7 +38,24 @@
     </div>
 </section>
 
-{% comment %}amuse-bouche home section hidden temporarily{% endcomment %}
+{% if latest_amuse_bouche %}
+<section class="page-section">
+    <div class="container">
+        <div class="page-header">
+            <div>
+                <h2>Quick Bites From The Kitchen</h2>
+            </div>
+            <a class="text-link" href="{% url 'amuse_bouche:feed' %}">See all</a>
+        </div>
+        <p class="page-subtitle">Irish bites, chef tricks and quick ideas from the CulinEire kitchen.</p>
+        <div class="ab-home-grid">
+            {% for bite in latest_amuse_bouche %}
+            {% include "amuse_bouche/item_card.html" with item=bite liked_ids=ab_liked_ids saved_ids=ab_saved_ids %}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
 
 <section class="page-section">
     <div class="container">
