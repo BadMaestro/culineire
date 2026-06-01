@@ -12,14 +12,15 @@ from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, UpdateView
 from django_ratelimit.decorators import ratelimit
 
-from collection.models import ContentReaction, SavedContent
+from collection.models import AuthorFollow, ContentReaction, SavedContent
 from monitoring.tracker import track_event
 from recipes.authoring import AuthorRequiredMixin, user_can_manage_author
+from recipes.models import RecipeAuthor
 from articles.models import Article
 from recipes.models import Recipe
 from accounts.views import is_moderator
 from .forms import AmuseBoucheAuthoringForm
-from .models import AmuseBouche, AmuseBoucheGalleryImage
+from .models import AmuseBouche, AmuseBoucheComment, AmuseBoucheGalleryImage
 from .visibility import can_view_amuse_bouche_public_area
 
 
@@ -52,9 +53,10 @@ def _public_queryset(approved_only=True):
 
 
 def _user_state(queryset, user):
+    """Return (items, liked_ids, saved_ids, followed_author_ids)."""
     items = list(queryset)
     if not user.is_authenticated or not items:
-        return items, set(), set()
+        return items, set(), set(), set()
     content_type = ContentType.objects.get_for_model(AmuseBouche)
     object_ids = [item.pk for item in items]
     liked_ids = set(
@@ -69,7 +71,51 @@ def _user_state(queryset, user):
         SavedContent.objects.filter(user=user, content_type=content_type, object_id__in=object_ids)
         .values_list("object_id", flat=True)
     )
-    return items, liked_ids, saved_ids
+    author_ids = {item.author_id for item in items if item.author_id}
+    followed_author_ids = set(
+        AuthorFollow.objects.filter(user=user, author_id__in=author_ids)
+        .values_list("author_id", flat=True)
+    )
+    return items, liked_ids, saved_ids, followed_author_ids
+
+
+def _likers_by_item(items):
+    """Return a dict {item_pk: [RecipeAuthor, ...]} with up to 3 authors who liked each item."""
+    from collections import defaultdict
+    if not items:
+        return {}
+    ct = ContentType.objects.get_for_model(AmuseBouche)
+    item_ids = [item.pk for item in items]
+    reactions = (
+        ContentReaction.objects.filter(
+            content_type=ct,
+            object_id__in=item_ids,
+            reaction=ContentReaction.Reaction.LIKE,
+        )
+        .values("object_id", "user_id")
+        .order_by("object_id", "-created_at")
+    )
+    item_user_ids: dict = defaultdict(list)
+    for row in reactions:
+        lst = item_user_ids[row["object_id"]]
+        if len(lst) < 3:
+            lst.append(row["user_id"])
+    all_user_ids = {uid for uids in item_user_ids.values() for uid in uids}
+    author_by_user = {
+        a.user_id: a
+        for a in RecipeAuthor.objects.filter(user_id__in=all_user_ids)
+    }
+    return {
+        item_id: [author_by_user[uid] for uid in uids if uid in author_by_user]
+        for item_id, uids in item_user_ids.items()
+    }
+
+
+def _attach_likers(items):
+    """Attach a .liker_authors list (up to 3 RecipeAuthors) to each item in-place."""
+    likers_map = _likers_by_item(items)
+    for item in items:
+        item.liker_authors = likers_map.get(item.pk, [])
 
 
 def feed(request):
@@ -81,13 +127,15 @@ def feed(request):
         queryset = queryset.filter(content_type=content_type)
     if author:
         queryset = queryset.filter(author__slug=author)
-    items, liked_ids, saved_ids = _user_state(queryset[:30], request.user)
+    items, liked_ids, saved_ids, followed_author_ids = _user_state(queryset[:30], request.user)
+    _attach_likers(items)
     return render(request, "amuse_bouche/feed.html", {
         "items": items,
         "content_type_choices": AmuseBouche.ContentType.choices,
         "active_content_type": content_type,
         "liked_ids": liked_ids,
         "saved_ids": saved_ids,
+        "followed_author_ids": followed_author_ids,
     })
 
 
@@ -107,15 +155,24 @@ def detail(request, slug):
     elif not can_preview:
         raise Http404
     AmuseBouche.objects.filter(pk=item.pk).update(view_count=F("view_count") + 1)
-    items, liked_ids, saved_ids = _user_state([item], request.user)
+    items, liked_ids, saved_ids, followed_author_ids = _user_state([item], request.user)
+    _attach_likers(items)
     can_moderate = is_moderator(request.user)
     can_edit = can_moderate or user_can_manage_author(request.user, item.author)
+    comments = (
+        AmuseBoucheComment.objects.filter(amuse_bouche=item, is_deleted=False)
+        .select_related("user", "user__recipe_author_profile")
+        .order_by("created_at")
+        if item.allow_comments else []
+    )
     return render(request, "amuse_bouche/detail.html", {
         "item": items[0],
         "liked_ids": liked_ids,
         "saved_ids": saved_ids,
+        "followed_author_ids": followed_author_ids,
         "can_moderate": can_moderate,
         "can_edit": can_edit,
+        "comments": comments,
     })
 
 
@@ -386,4 +443,41 @@ def generate_from_article(request, slug):
         request,
         f'Amuse-Bouche "{item.title}" created as pending. Review and edit before it goes live.',
     )
+    return redirect(item.get_absolute_url())
+
+
+@require_POST
+@login_required
+@ratelimit(key="user", rate="30/h", method="POST", block=False)
+def submit_comment(request, slug):
+    """Post a comment on an Amuse-Bouche item."""
+    _require_public_area_access(request)
+    item = get_object_or_404(AmuseBouche, slug=slug, status=AmuseBouche.Status.APPROVED, allow_comments=True)
+    if getattr(request, "limited", False):
+        messages.error(request, "Too many requests. Please slow down.")
+        return redirect(item.get_absolute_url())
+    body = request.POST.get("body", "").strip()
+    if not body:
+        messages.error(request, "Comment cannot be empty.")
+        return redirect(item.get_absolute_url())
+    if len(body) > 1000:
+        messages.error(request, "Comment is too long (maximum 1000 characters).")
+        return redirect(item.get_absolute_url())
+    AmuseBoucheComment.objects.create(amuse_bouche=item, user=request.user, body=body)
+    track_event(request, "ab_comment", object_type="amuse_bouche", object_id=item.pk, object_title=item.title)
+    messages.success(request, "Comment posted.")
+    return redirect(item.get_absolute_url())
+
+
+@require_POST
+@login_required
+def delete_comment(request, slug, comment_id):
+    """Soft-delete a comment. Only the commenter or a moderator can delete."""
+    item = get_object_or_404(AmuseBouche, slug=slug)
+    comment = get_object_or_404(AmuseBoucheComment, pk=comment_id, amuse_bouche=item, is_deleted=False)
+    if comment.user != request.user and not is_moderator(request.user):
+        raise Http404
+    comment.is_deleted = True
+    comment.save(update_fields=["is_deleted"])
+    messages.success(request, "Comment removed.")
     return redirect(item.get_absolute_url())

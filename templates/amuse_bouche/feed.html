@@ -9,50 +9,41 @@
 {% endblock %}
 
 {% block content %}
-<section class="hero hero--home hero--amuse-bouche">
-    <div aria-hidden="true" class="hero__background">
-        <img alt="" src="{% static 'images/hero-amuse-bouche.png' %}">
-    </div>
-    <div aria-hidden="true" class="hero__overlay"></div>
-    <div class="container hero__inner">
-        <div class="hero-copy">
-            <span class="pill">Small bites, big ideas</span>
-            <h1 class="hero-title">Amuse-Bouche</h1>
-            <p class="hero-subtitle">Quick culinary ideas, Irish bites and chef tricks from the CulinEire kitchen.</p>
-            <div class="hero__actions">
-                {% if user.is_authenticated %}
-                <a class="btn-primary" href="{% url 'amuse_bouche:create' %}">Submit a Bite</a>
-                <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
-                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
-                {% else %}
-                <a class="btn-primary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
-                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</section>
+<div class="ab-snap-page">
 
-<section class="page-section">
-    <div class="container ab-layout">
-        <nav class="ab-filters" aria-label="Amuse-Bouche filters">
+    {# Compact filter strip #}
+    <div class="ab-snap-header">
+        <div class="ab-snap-title-row">
+            <h1 class="ab-snap-heading">Amuse-Bouche</h1>
+            {% if user.is_authenticated %}
+            <a class="ab-snap-submit" href="{% url 'amuse_bouche:create' %}">+ Submit</a>
+            {% endif %}
+        </div>
+        <nav class="ab-filters ab-filters--snap" aria-label="Amuse-Bouche filters">
             <a class="ab-filter{% if not active_content_type %} ab-filter--active{% endif %}" href="{% url 'amuse_bouche:feed' %}">All</a>
             {% for value, label in content_type_choices %}
             <a class="ab-filter{% if active_content_type == value %} ab-filter--active{% endif %}" href="?type={{ value }}">{{ label }}</a>
             {% endfor %}
         </nav>
+    </div>
 
-        {% if items %}
-        <div class="ab-feed">
-            {% for item in items %}
-            {% include "amuse_bouche/item_card.html" with item=item liked_ids=liked_ids saved_ids=saved_ids %}
-            {% endfor %}
+    {# Snap-scroll feed #}
+    {% if items %}
+    <div class="ab-snap-feed" role="list" aria-label="Amuse-Bouche posts">
+        {% for item in items %}
+        <div class="ab-snap-slide" role="listitem">
+            {% include "amuse_bouche/item_card.html" with item=item liked_ids=liked_ids saved_ids=saved_ids followed_author_ids=followed_author_ids %}
         </div>
-        {% else %}
-        <div class="ab-empty">
-            <p class="ab-empty__text">No approved Amuse-Bouche posts yet.</p>
-        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="ab-empty ab-empty--snap">
+        <p class="ab-empty__text">No approved Amuse-Bouche posts yet.</p>
+        {% if user.is_authenticated %}
+        <a class="btn-primary" href="{% url 'amuse_bouche:create' %}">Be the first to submit</a>
         {% endif %}
     </div>
-</section>
+    {% endif %}
+
+</div>
 {% endblock %}

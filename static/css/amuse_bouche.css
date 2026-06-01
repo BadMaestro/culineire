@@ -455,6 +455,17 @@
   margin-bottom: 0;
 }
 
+/* In the home grid the panel sits below the photo on a light card background —
+   override the white-on-photo colours used by the snap feed. */
+.ab-home-grid .ab-card__title {
+  color: #2a1e14;
+  text-shadow: none;
+}
+
+.ab-home-grid .ab-card__panel {
+  padding-top: .25rem;
+}
+
 /* ---- Mobile ---- */
 @media (max-width: 640px) {
   .ab-card {
@@ -481,5 +492,839 @@
   .ab-card--detail {
     border-radius: 0;
     box-shadow: none;
+  }
+}
+
+/* ================================================================
+   Instagram-style card — Phase 10 additions
+   ================================================================ */
+
+/* ---- Top bar ---- */
+/* Positioned absolutely so it overlays the image in all card contexts.
+   The snap-feed overrides its vertical position (bottom:40px instead of top:0). */
+.ab-card__topbar {
+  align-items: center;
+  background: linear-gradient(to bottom, rgba(0,0,0,.55) 0%, transparent 100%);
+  display: flex;
+  gap: .65rem;
+  left: 0;
+  padding: .75rem 1rem .65rem;
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 3;
+}
+
+.ab-card__author-avatar-link {
+  display: block;
+  flex-shrink: 0;
+}
+
+.ab-card__author-avatar {
+  border: 2px solid rgba(255,255,255,.7);
+  border-radius: 50%;
+  display: block;
+  height: 38px;
+  object-fit: cover;
+  width: 38px;
+}
+
+.ab-card__author-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.ab-card__author-name {
+  color: rgba(255,255,255,.9);
+  font-size: .85rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 3px rgba(0,0,0,.7);
+  white-space: nowrap;
+}
+
+.ab-card__author-name:hover {
+  text-decoration: underline;
+}
+
+.ab-card__date {
+  color: rgba(255,255,255,.65);
+  font-size: .75rem;
+  text-shadow: 0 1px 2px rgba(0,0,0,.7);
+}
+
+.ab-card__topbar-right {
+  align-items: center;
+  display: flex;
+  flex-shrink: 0;
+  gap: .5rem;
+}
+
+/* ---- Follow button ---- */
+.ab-follow-form {
+  display: contents;
+}
+
+.ab-follow-btn {
+  background: transparent;
+  border: 1.5px solid #c8a96e;
+  border-radius: var(--radius-pill);
+  color: #8a6a2e;
+  cursor: pointer;
+  font: inherit;
+  font-size: .78rem;
+  font-weight: 700;
+  padding: .28rem .75rem;
+  transition: background-color .18s ease, color .18s ease, border-color .18s ease;
+}
+
+.ab-follow-btn:hover {
+  background: #c8a96e;
+  color: #fff;
+}
+
+.ab-follow-btn--following {
+  background: var(--surface-soft);
+  border-color: var(--border);
+  color: #7a6e5c;
+}
+
+.ab-follow-btn--following:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #991b1b;
+}
+
+/* ---- 3-dot menu ---- */
+.ab-menu {
+  position: relative;
+}
+
+.ab-menu__trigger {
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: #7a6e5c;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: .35rem .4rem;
+  transition: background-color .15s ease, color .15s ease;
+}
+
+.ab-menu__trigger:hover {
+  background: var(--surface-soft);
+  color: #3a3028;
+}
+
+.ab-menu__list {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  list-style: none;
+  margin: 0;
+  min-width: 140px;
+  padding: .3rem 0;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 50;
+}
+
+.ab-menu__item {
+  background: transparent;
+  border: none;
+  color: #3a3028;
+  cursor: pointer;
+  display: block;
+  font: inherit;
+  font-size: .84rem;
+  padding: .5rem .9rem;
+  text-align: left;
+  text-decoration: none;
+  width: 100%;
+  transition: background-color .12s ease;
+}
+
+.ab-menu__item:hover {
+  background: var(--surface-soft);
+}
+
+/* ---- Image ---- */
+.ab-card__visual {
+  display: block;
+  overflow: hidden;
+  position: relative;
+}
+
+.ab-card__cover-link {
+  display: block;
+  inset: 0;
+  position: absolute;
+  z-index: 1;
+}
+
+.ab-card__img {
+  aspect-ratio: 4 / 3;
+  display: block;
+  object-fit: cover;
+  transition: transform .35s ease;
+  width: 100%;
+}
+
+.ab-card:hover .ab-card__img {
+  transform: scale(1.025);
+}
+
+.ab-card--detail .ab-card__img {
+  aspect-ratio: 16 / 9;
+}
+
+/* Type badge over the image (bottom-left) */
+.ab-card__type-badge {
+  bottom: .7rem;
+  left: .8rem;
+  position: absolute;
+  z-index: 2;
+}
+
+/* ---- Action bar ---- */
+.ab-card__actions {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  padding: .55rem .85rem .3rem;
+}
+
+.ab-card__actions-left {
+  align-items: center;
+  display: flex;
+  gap: .1rem;
+}
+
+.ab-action-form {
+  display: contents;
+}
+
+.ab-action-btn {
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: #3a3028;
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  justify-content: center;
+  padding: .4rem .45rem;
+  text-decoration: none;
+  transition: color .15s ease, transform .15s ease;
+}
+
+.ab-action-btn:hover {
+  color: #c8a96e;
+  transform: scale(1.12);
+}
+
+.ab-action-btn--liked {
+  color: #e03e3e;
+}
+
+.ab-action-btn--liked:hover {
+  color: #b02020;
+  transform: scale(1.12);
+}
+
+.ab-action-btn--saved {
+  color: #3a3028;
+}
+
+/* ---- Likes row ---- */
+.ab-card__likes-row {
+  align-items: center;
+  display: flex;
+  gap: .55rem;
+  padding: .1rem 1rem .35rem;
+}
+
+.ab-liker-avatars {
+  display: flex;
+}
+
+.ab-liker-avatar {
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  display: block;
+  height: 22px;
+  margin-left: -6px;
+  object-fit: cover;
+  width: 22px;
+}
+
+.ab-liker-avatars .ab-liker-avatar:first-child {
+  margin-left: 0;
+}
+
+.ab-like-count {
+  color: #3a3028;
+  font-size: .84rem;
+  font-weight: 700;
+}
+
+/* ---- Caption body ---- */
+.ab-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+  padding: .2rem 1rem 1rem;
+}
+
+.ab-card__title {
+  color: #3a3028;
+  font-family: var(--font-serif);
+  font-size: clamp(1.05rem, 2.5vw, 1.25rem);
+  line-height: 1.25;
+  margin: 0;
+}
+
+.ab-card__title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.ab-card__title a:hover {
+  text-decoration: underline;
+}
+
+.ab-card__title--detail {
+  font-size: clamp(1.2rem, 3vw, 1.5rem);
+}
+
+/* Emoji description — italic, slightly muted */
+.ab-card__emoji-desc {
+  color: #5a4a38;
+  font-size: .875rem;
+  font-style: italic;
+  font-weight: 300;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.ab-card__more {
+  margin-top: -.1rem;
+}
+
+.ab-card__more-toggle {
+  color: #9a8a78;
+  cursor: pointer;
+  font-size: .8rem;
+  font-weight: 600;
+  list-style: none;
+  user-select: none;
+}
+
+.ab-card__more-toggle::-webkit-details-marker { display: none; }
+
+.ab-card__more-toggle:hover {
+  color: #3a3028;
+}
+
+.ab-card__full-desc {
+  color: #7a6e5c;
+  font-size: .875rem;
+  line-height: 1.6;
+  margin: .4rem 0 0;
+}
+
+/* ---- Comments section ---- */
+.ab-comments {
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem 0 0;
+}
+
+.ab-comments__title {
+  align-items: center;
+  color: #3a3028;
+  display: flex;
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  gap: .5rem;
+  margin: 0;
+}
+
+.ab-comments__count {
+  background: var(--surface-soft);
+  border-radius: var(--radius-pill);
+  color: #7a6e5c;
+  font-family: var(--font-sans, inherit);
+  font-size: .75rem;
+  font-weight: 700;
+  padding: .15rem .5rem;
+}
+
+.ab-comment {
+  border-left: 2px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+  padding-left: .85rem;
+}
+
+.ab-comment__header {
+  align-items: center;
+  display: flex;
+  gap: .55rem;
+}
+
+.ab-comment__avatar-link {
+  display: block;
+  flex-shrink: 0;
+}
+
+.ab-comment__avatar {
+  border-radius: 50%;
+  display: block;
+  height: 30px;
+  object-fit: cover;
+  width: 30px;
+  border: 1.5px solid var(--border);
+}
+
+.ab-comment__avatar--anon {
+  align-items: center;
+  background: var(--surface-soft);
+  display: flex;
+  font-size: 1rem;
+  height: 30px;
+  justify-content: center;
+  width: 30px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.ab-comment__meta {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.ab-comment__author {
+  color: #3a3028;
+  font-size: .82rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.ab-comment__author:hover {
+  text-decoration: underline;
+}
+
+.ab-comment__date {
+  color: #9a8a78;
+  font-size: .72rem;
+}
+
+.ab-comment__delete-form {
+  margin-left: auto;
+}
+
+.ab-comment__delete-btn {
+  background: transparent;
+  border: none;
+  color: #bfb49a;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0 .2rem;
+  transition: color .15s ease;
+}
+
+.ab-comment__delete-btn:hover {
+  color: #dc2626;
+}
+
+.ab-comment__body {
+  color: #5a4a38;
+  font-size: .875rem;
+  line-height: 1.55;
+  margin: 0;
+  padding-left: 3.1rem;
+}
+
+.ab-comments__empty {
+  color: #9a8a78;
+  font-size: .88rem;
+  font-style: italic;
+  margin: 0;
+}
+
+.ab-comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  padding-top: .35rem;
+}
+
+.ab-comment-form__input {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font: inherit;
+  font-size: .9rem;
+  padding: .6rem .8rem;
+  resize: vertical;
+  transition: border-color .15s ease;
+  width: 100%;
+}
+
+.ab-comment-form__input:focus {
+  border-color: #bfb49a;
+  outline: none;
+}
+
+.ab-comment-form__footer {
+  align-items: center;
+  display: flex;
+  gap: .75rem;
+  justify-content: flex-end;
+}
+
+.ab-comment-form__hint {
+  color: #9a8a78;
+  font-size: .75rem;
+  margin-right: auto;
+}
+
+.ab-comments__login-prompt {
+  color: #7a6e5c;
+  font-size: .88rem;
+  margin: 0;
+}
+
+.ab-comments__login-prompt a {
+  color: #8a6a2e;
+  font-weight: 600;
+}
+
+/* ================================================================
+   Snap-scroll feed — Phase 10 (compact 3-up)
+   Three photo cards fill the viewport — CulinEire aesthetic
+   ================================================================ */
+
+/* ── Page shell ── */
+.ab-snap-page {
+  background: #111;
+  display: flex;
+  flex-direction: column;
+  /* --ab-snap-top set by JS; fallback 62px */
+  height: calc(100dvh - var(--ab-snap-top, 62px));
+  overflow: hidden;
+}
+
+/* ── Compact header strip ── */
+.ab-snap-header {
+  background: #1c1610;
+  flex-shrink: 0;
+  padding: .55rem 1rem .45rem;
+}
+
+.ab-snap-title-row {
+  align-items: center;
+  display: flex;
+  gap: .75rem;
+  margin-bottom: .4rem;
+}
+
+.ab-snap-heading {
+  color: #f0e8d8;
+  flex: 1;
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.ab-snap-submit {
+  background: #c8a96e;
+  border-radius: var(--radius-pill);
+  color: #1c1610;
+  font-size: .75rem;
+  font-weight: 700;
+  padding: .28rem .75rem;
+  text-decoration: none;
+  transition: background-color .15s ease;
+  white-space: nowrap;
+}
+
+.ab-snap-submit:hover { background: #b89050; }
+
+.ab-filters--snap {
+  -webkit-overflow-scrolling: touch;
+  flex-wrap: nowrap;
+  gap: .3rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.ab-filters--snap::-webkit-scrollbar { display: none; }
+
+.ab-filters--snap .ab-filter {
+  border-color: #3a3028;
+  color: #c8b89a;
+  flex-shrink: 0;
+  font-size: .72rem;
+  padding: .28rem .7rem;
+}
+
+.ab-filters--snap .ab-filter:hover {
+  background: #2a2018;
+  border-color: #6a5a48;
+}
+
+.ab-filters--snap .ab-filter--active {
+  background: #c8a96e;
+  border-color: #c8a96e;
+  color: #1c1610;
+}
+
+/* ── Feed container: 3 cards per viewport using container queries ── */
+.ab-snap-feed {
+  -webkit-overflow-scrolling: touch;
+  background: #111;
+  container-type: size;     /* enables 100cqh = feed visible height */
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  overscroll-behavior-y: contain;
+  padding: 2px 3px 3px;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+}
+
+.ab-snap-feed::-webkit-scrollbar { display: none; }
+
+/* ── Each slide: exactly 1/3 of the feed's visible height ── */
+.ab-snap-slide {
+  border-radius: 10px;
+  flex: 0 0 calc((100cqh - 10px) / 3); /* 3 cards + 2 gaps + padding */
+  overflow: hidden;
+  position: relative;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+/* ── Card: full-photo layout ── */
+.ab-snap-feed .ab-card {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  display: block;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  position: relative;
+  transform: none !important;
+  width: 100%;
+}
+
+.ab-snap-feed .ab-card:hover {
+  box-shadow: none;
+  transform: none !important;
+}
+
+/* Photo fills entire card (no z-index so children compete in card context) */
+.ab-snap-feed .ab-card__visual {
+  height: auto;
+  inset: 0;
+  overflow: hidden;
+  position: absolute;
+}
+
+.ab-snap-feed .ab-card__visual .ab-card__img {
+  aspect-ratio: unset;
+  height: 100%;
+  object-fit: cover;
+  transition: none;
+  width: 100%;
+}
+
+.ab-snap-feed .ab-card:hover .ab-card__img { transform: none; }
+
+/* Cover link: full-card tap target (highest z-index) */
+.ab-snap-feed .ab-card__cover-link {
+  display: block;
+  inset: 0;
+  position: absolute;
+  z-index: 10;
+}
+
+/* No top gradient needed */
+.ab-snap-feed .ab-card__visual::before { display: none; }
+
+/* Bottom-heavy gradient for text legibility */
+.ab-snap-feed .ab-card__visual::after {
+  background: linear-gradient(
+    to top,
+    rgba(0,0,0,.90) 0%,
+    rgba(0,0,0,.55) 30%,
+    rgba(0,0,0,.15) 55%,
+    transparent 75%
+  );
+  content: '';
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
+
+/* Type badge: top-right corner */
+.ab-snap-feed .ab-card__type-badge {
+  backdrop-filter: blur(6px);
+  background: rgba(0,0,0,.5);
+  border: 1px solid rgba(200,169,110,.4);
+  bottom: auto;
+  color: #c8a96e;
+  font-size: .6rem;
+  left: auto;
+  letter-spacing: .04em;
+  padding: .18rem .5rem;
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  z-index: 5;
+}
+
+/* Author strip: compact, just above the title */
+.ab-snap-feed .ab-card__topbar {
+  align-items: center;
+  background: none;
+  bottom: 40px;
+  display: flex;
+  gap: 6px;
+  left: 10px;
+  padding: 0;
+  pointer-events: none; /* cover-link handles navigation */
+  position: absolute;
+  right: 10px;
+  top: auto;
+  z-index: 5;
+}
+
+/* Show author avatar only (hide date, follow, menu in compact view) */
+.ab-snap-feed .ab-card__author-info { overflow: hidden; }
+.ab-snap-feed .ab-card__date,
+.ab-snap-feed .ab-card__topbar-right { display: none; }
+
+.ab-snap-feed .ab-card__author-avatar-link { display: flex; flex-shrink: 0; }
+
+.ab-snap-feed .ab-card__author-avatar {
+  border: 1.5px solid rgba(255,255,255,.6);
+  border-radius: 50%;
+  height: 22px;
+  width: 22px;
+}
+
+.ab-snap-feed .ab-card__author-name {
+  color: rgba(255,255,255,.85);
+  font-size: .72rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 3px rgba(0,0,0,.9);
+  white-space: nowrap;
+}
+
+/* Panel: absolute bottom overlay — text on gradient */
+.ab-snap-feed .ab-card__panel {
+  background: none;
+  border-top: none;
+  bottom: 0;
+  display: block;
+  left: 0;
+  overflow: visible;
+  padding: 0 10px 10px;
+  pointer-events: none; /* cover-link handles taps */
+  position: absolute;
+  right: 0;
+  z-index: 4;
+}
+
+/* Hide action bar and like count in compact view */
+.ab-snap-feed .ab-card__actions,
+.ab-snap-feed .ab-like-count { display: none; }
+
+/* Body: title + emoji desc */
+.ab-snap-feed .ab-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0;
+}
+
+.ab-snap-feed .ab-card__title {
+  color: #fff;
+  font-family: var(--font-serif);
+  font-size: clamp(.82rem, 3.5vw, 1rem);
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
+  text-shadow: 0 1px 6px rgba(0,0,0,.9);
+}
+
+.ab-snap-feed .ab-card__title a {
+  color: inherit;
+  pointer-events: none;
+}
+
+.ab-snap-feed .ab-card__emoji-desc {
+  color: rgba(255,255,255,.65);
+  font-size: .68rem;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 3px rgba(0,0,0,.8);
+  white-space: nowrap;
+}
+
+/* Hide more / links in compact view */
+.ab-snap-feed .ab-card__more,
+.ab-snap-feed .ab-card__links { display: none; }
+
+/* Empty state */
+.ab-empty--snap {
+  background: #1c1610;
+  flex: 1;
+  justify-content: center;
+  padding-block: 4rem;
+}
+
+.ab-empty--snap .ab-empty__text { color: #7a6e5c; }
+
+/* ── Desktop: centered narrow column ── */
+@media (min-width: 640px) {
+  .ab-snap-page {
+    align-items: center;
+    background: #0e0c08;
+  }
+
+  .ab-snap-header {
+    max-width: 480px;
+    width: 100%;
+  }
+
+  .ab-snap-feed {
+    max-width: 480px;
+    width: 100%;
   }
 }

@@ -5,6 +5,20 @@ if ("scrollRestoration" in history) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Set --ab-snap-top so the snap feed knows how much header to leave room for
+  const snapPage = document.querySelector(".ab-snap-page");
+  if (snapPage) {
+    const setSnapTop = () => {
+      const header = document.querySelector(".ce-header") || document.querySelector("header");
+      const h = header ? header.getBoundingClientRect().height : 62;
+      snapPage.style.setProperty("--ab-snap-top", h + "px");
+    };
+    setSnapTop();
+    if ("ResizeObserver" in window) {
+      new ResizeObserver(setSnapTop).observe(document.documentElement);
+    }
+  }
+
   const nav = document.querySelector(".ce-nav") || document.querySelector(".main-nav");
   const navButton = document.querySelector(".ce-nav__toggle") || document.querySelector(".nav-toggle");
 
@@ -253,7 +267,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ==== Content image watermarks ====
   (function () {
     const targets = document.querySelectorAll(
-      ".ab-card__visual, .recipe-card__image-wrapper, .recipe-gallery__image-shell, .detail-page__header",
+      ".recipe-gallery__image-shell, .detail-page__header",
     );
     targets.forEach((el) => {
       if (el.querySelector(".culineire-watermark")) return;
@@ -325,4 +339,68 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+  // ==== Amuse-Bouche 3-dot menus ====
+  document.querySelectorAll("[data-ab-menu]").forEach((menu) => {
+    const trigger = menu.querySelector(".ab-menu__trigger");
+    const list = menu.querySelector(".ab-menu__list");
+    if (!trigger || !list) return;
+
+    trigger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isOpen = !list.hidden;
+      // Close all other open menus first
+      document.querySelectorAll("[data-ab-menu] .ab-menu__list").forEach((l) => {
+        l.hidden = true;
+        l.closest("[data-ab-menu]").querySelector(".ab-menu__trigger").setAttribute("aria-expanded", "false");
+      });
+      list.hidden = isOpen;
+      trigger.setAttribute("aria-expanded", String(!isOpen));
+    });
+
+    // Copy-link items inside the menu
+    list.querySelectorAll("[data-ab-copy-link]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const url = btn.dataset.abCopyLink;
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(url).catch(() => {});
+        }
+        list.hidden = true;
+        trigger.setAttribute("aria-expanded", "false");
+      });
+    });
+  });
+
+  // Close all ab-menus on outside click / Escape
+  document.addEventListener("click", () => {
+    document.querySelectorAll("[data-ab-menu] .ab-menu__list").forEach((l) => {
+      l.hidden = true;
+      l.closest("[data-ab-menu]").querySelector(".ab-menu__trigger").setAttribute("aria-expanded", "false");
+    });
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      document.querySelectorAll("[data-ab-menu] .ab-menu__list").forEach((l) => {
+        l.hidden = true;
+        l.closest("[data-ab-menu]").querySelector(".ab-menu__trigger").setAttribute("aria-expanded", "false");
+      });
+    }
+  });
+
+  // ==== Amuse-Bouche share buttons ====
+  document.querySelectorAll("[data-ab-share]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const url = btn.dataset.abShare;
+      if (navigator.share) {
+        navigator.share({ url }).catch(() => {});
+      } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(() => {
+          const orig = btn.title;
+          btn.title = "Link copied!";
+          setTimeout(() => { btn.title = orig; }, 2000);
+        }).catch(() => {});
+      }
+    });
+  });
 });

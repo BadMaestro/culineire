@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from uuid import uuid4
 
@@ -9,6 +10,8 @@ from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
+
+logger = logging.getLogger(__name__)
 
 from collection.models import ContentReaction, SavedContent
 from recipes.models import Recipe, RecipeAuthor, safe_author_folder, safe_media_segment
@@ -127,6 +130,10 @@ class AmuseBouche(models.Model):
     moderated_at = models.DateTimeField(null=True, blank=True)
     seo_title = models.CharField(max_length=200, blank=True)
     seo_description = models.CharField(max_length=255, blank=True)
+    emoji_description = models.TextField(
+        blank=True,
+        help_text="Auto-generated emoji-decorated description (via Anthropic API). Edit freely.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -170,6 +177,37 @@ class AmuseBouche(models.Model):
             counter += 1
         return slug
 
+    def _generate_emoji_description(self) -> None:
+        """Call Anthropic API to produce an emoji-decorated description. Fails silently."""
+        try:
+            import anthropic
+
+            api_key = getattr(settings, "ANTHROPIC_API_KEY", "")
+            model = getattr(settings, "ANTHROPIC_MODEL", "claude-sonnet-4-6")
+            if not api_key:
+                return
+            client = anthropic.Anthropic(api_key=api_key)
+            source_text = self.short_description or self.title
+            message = client.messages.create(
+                model=model,
+                max_tokens=120,
+                messages=[{
+                    "role": "user",
+                    "content": (
+                        "You are a warm, playful food writer for an Irish culinary site. "
+                        "Rewrite the following culinary bite in one or two short sentences, "
+                        "weaving in relevant food and nature emojis naturally. "
+                        "Keep the tone appetising, friendly and concise. "
+                        "Output only the rewritten text, no title, no quotes.\n\n"
+                        f"Title: {self.title}\n"
+                        f"Description: {source_text}"
+                    ),
+                }],
+            )
+            self.emoji_description = message.content[0].text.strip()
+        except Exception as exc:
+            logger.warning("AmuseBouche emoji_description generation failed: %s", exc)
+
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = self.generate_unique_slug()
@@ -177,6 +215,8 @@ class AmuseBouche(models.Model):
             self.media_folder = unique_media_folder_for_amuse_bouche(self)
         if self.status == self.Status.APPROVED and not self.published_at:
             self.published_at = timezone.now()
+        if not self.emoji_description and (self.short_description or self.title):
+            self._generate_emoji_description()
         super().save(*args, **kwargs)
 
 
@@ -200,3 +240,36 @@ class AmuseBoucheGalleryImage(models.Model):
 
     def __str__(self) -> str:
         return f"{self.amuse_bouche.title} - image {self.id}"
+
+
+class AmuseBoucheComment(models.Model):
+    """A user comment on an Amuse-Bouche item.
+
+    Only available when the item has allow_comments=True and the commenter
+    has access to the Amuse-Bouche public area.
+    """
+
+    amuse_bouche = models.ForeignKey(
+        AmuseBouche,
+        on_delete=models.CASCADE,
+        related_name="comments",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="ab_comments",
+    )
+    body = models.TextField(max_length=1000)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_deleted = models.BooleanField(default=False, db_index=True)
+
+    class Meta:
+        ordering = ["created_at"]
+        indexes = [
+            models.Index(fields=["amuse_bouche", "is_deleted", "created_at"]),
+        ]
+        verbose_name = "Amuse-Bouche comment"
+        verbose_name_plural = "Amuse-Bouche comments"
+
+    def __str__(self) -> str:
+        return f"{self.user} on {self.amuse_bouche.title[:40]}"

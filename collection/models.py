@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.db.models import UniqueConstraint
 
 
 class SavedRecipe(models.Model):
@@ -116,3 +117,34 @@ class ContentReaction(models.Model):
 
     def __str__(self):
         return f"{self.user} / {self.reaction} / {self.content_object}"
+
+
+class AuthorFollow(models.Model):
+    """A user subscribing to a RecipeAuthor's content."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="following_authors",
+    )
+    author = models.ForeignKey(
+        "recipes.RecipeAuthor",
+        on_delete=models.CASCADE,
+        related_name="followers",
+    )
+    followed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=["user", "author"], name="collection_author_follow_unique")
+        ]
+        indexes = [
+            models.Index(fields=["user", "-followed_at"]),
+            models.Index(fields=["author", "-followed_at"]),
+        ]
+        ordering = ["-followed_at"]
+        verbose_name = "Author follow"
+        verbose_name_plural = "Author follows"
+
+    def __str__(self):
+        return f"{self.user} follows {self.author}"

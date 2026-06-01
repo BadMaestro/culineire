@@ -724,11 +724,12 @@ def home(request):
         latest_amuse_bouche = list(
             _ab_qs().order_by("-is_featured", "-published_at", "-created_at")[:6]
         ) if can_show_amuse_bouche else []
-        _, ab_liked_ids, ab_saved_ids = _ab_state(latest_amuse_bouche, request.user)
+        _, ab_liked_ids, ab_saved_ids, ab_followed_author_ids = _ab_state(latest_amuse_bouche, request.user)
     except Exception:
         latest_amuse_bouche = []
         ab_liked_ids = set()
         ab_saved_ids = set()
+        ab_followed_author_ids = set()
 
     context = {
         "latest_recipes": latest_recipes,
@@ -736,6 +737,7 @@ def home(request):
         "latest_amuse_bouche": latest_amuse_bouche,
         "ab_liked_ids": ab_liked_ids,
         "ab_saved_ids": ab_saved_ids,
+        "ab_followed_author_ids": ab_followed_author_ids,
     }
     return render(request, "home.html", context)
 

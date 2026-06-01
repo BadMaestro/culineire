@@ -11,9 +11,9 @@ from articles.models import Article, ArticleImage
 from amuse_bouche.models import AmuseBouche
 from amuse_bouche.visibility import can_view_amuse_bouche_public_area
 from monitoring.tracker import track_event
-from recipes.models import Recipe
+from recipes.models import Recipe, RecipeAuthor
 
-from .models import SavedArticle, SavedContent, SavedRecipe
+from .models import AuthorFollow, SavedArticle, SavedContent, SavedRecipe
 
 
 def _safe_next(request, fallback):
@@ -120,3 +120,23 @@ def remove_article(request, slug):
         track_event(request, "collection_remove", object_type="article", object_id=article.pk, object_title=article.title)
         messages.success(request, "Removed from your collection.")
     return _safe_next(request, article.get_absolute_url())
+
+
+@require_POST
+@login_required
+@ratelimit(key="user", rate="60/h", method="POST", block=False)
+def toggle_follow(request, slug):
+    """Follow or unfollow a RecipeAuthor. Returns to the next URL or the author page."""
+    author = get_object_or_404(RecipeAuthor, slug=slug)
+    if getattr(request, "limited", False):
+        messages.error(request, "Too many requests. Please try again later.")
+        return _safe_next(request, author.get_absolute_url())
+    follow, created = AuthorFollow.objects.get_or_create(user=request.user, author=author)
+    if created:
+        track_event(request, "author_follow", object_type="recipe_author", object_id=author.pk, object_title=author.name)
+        messages.success(request, f"You are now following {author.name}.")
+    else:
+        follow.delete()
+        track_event(request, "author_unfollow", object_type="recipe_author", object_id=author.pk, object_title=author.name)
+        messages.success(request, f"You unfollowed {author.name}.")
+    return _safe_next(request, author.get_absolute_url())

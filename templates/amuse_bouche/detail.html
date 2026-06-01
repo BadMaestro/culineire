@@ -44,6 +44,61 @@
         </div>
         {% endif %}
 
+        {# Comments section #}
+        {% if item.allow_comments %}
+        <section class="ab-comments" id="ab-comments" aria-label="Comments">
+            <h2 class="ab-comments__title">Comments{% if comments %} <span class="ab-comments__count">{{ comments|length }}</span>{% endif %}</h2>
+
+            {% for comment in comments %}
+            <div class="ab-comment" id="ab-comment-{{ comment.pk }}">
+                <div class="ab-comment__header">
+                    {% with author_profile=comment.user.recipe_author_profile %}
+                    {% if author_profile %}
+                    <a href="{{ author_profile.get_absolute_url }}" class="ab-comment__avatar-link">
+                        <img alt="{{ author_profile.name }}" class="ab-comment__avatar" src="{{ author_profile.display_avatar_url }}" loading="lazy">
+                    </a>
+                    <div class="ab-comment__meta">
+                        <a class="ab-comment__author" href="{{ author_profile.get_absolute_url }}">{{ author_profile.name }}</a>
+                        <span class="ab-comment__date">{{ comment.created_at|date:"j M Y" }}</span>
+                    </div>
+                    {% else %}
+                    <div class="ab-comment__avatar ab-comment__avatar--anon">&#128100;</div>
+                    <div class="ab-comment__meta">
+                        <span class="ab-comment__author">{{ comment.user.username }}</span>
+                        <span class="ab-comment__date">{{ comment.created_at|date:"j M Y" }}</span>
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                    {% if user == comment.user or can_moderate %}
+                    <form action="{% url 'amuse_bouche:delete_comment' item.slug comment.pk %}" method="post" class="ab-comment__delete-form">
+                        {% csrf_token %}
+                        <button class="ab-comment__delete-btn" type="submit" title="Delete comment">&times;</button>
+                    </form>
+                    {% endif %}
+                </div>
+                <p class="ab-comment__body">{{ comment.body }}</p>
+            </div>
+            {% empty %}
+            <p class="ab-comments__empty">No comments yet. Be the first!</p>
+            {% endfor %}
+
+            {% if user.is_authenticated %}
+            <form action="{% url 'amuse_bouche:submit_comment' item.slug %}" method="post" class="ab-comment-form">
+                {% csrf_token %}
+                <textarea class="ab-comment-form__input" name="body" placeholder="Add a comment..." maxlength="1000" rows="3" required></textarea>
+                <div class="ab-comment-form__footer">
+                    <span class="ab-comment-form__hint">Max 1000 characters</span>
+                    <button class="ab-comment-form__submit btn-primary" type="submit">Post</button>
+                </div>
+            </form>
+            {% else %}
+            <p class="ab-comments__login-prompt">
+                <a href="{% url 'login' %}?next={{ request.get_full_path }}">Sign in</a> to leave a comment.
+            </p>
+            {% endif %}
+        </section>
+        {% endif %}
+
         {# Moderation panel — moderators only #}
         {% if can_moderate %}
         <div class="ab-moderate">
