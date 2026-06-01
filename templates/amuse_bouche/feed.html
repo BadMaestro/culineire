@@ -18,11 +18,16 @@
             <span class="pill">Small bites, big ideas</span>
             <h1 class="hero-title">Amuse-Bouche</h1>
             <p class="hero-subtitle">Quick culinary ideas, Irish bites and chef tricks from the CulinEire kitchen.</p>
-            {% if user.is_authenticated %}
             <div class="hero__actions">
+                {% if user.is_authenticated %}
                 <a class="btn-primary" href="{% url 'amuse_bouche:create' %}">Submit a Bite</a>
+                <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
+                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
+                {% else %}
+                <a class="btn-primary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
+                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
+                {% endif %}
             </div>
-            {% endif %}
         </div>
     </div>
 </section>
