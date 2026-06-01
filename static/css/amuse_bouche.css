@@ -264,7 +264,22 @@
 }
 
 .ab-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
   max-width: 640px;
+}
+
+.ab-back-link {
+  color: #7a6e5c;
+  font-size: .84rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ab-back-link:hover {
+  color: #3a3028;
+  text-decoration: underline;
 }
 
 .ab-card--detail {
@@ -276,6 +291,137 @@
 .ab-card--detail .ab-card__visual img {
   aspect-ratio: 16 / 9;
 }
+
+/* ---- Status banner ---- */
+.ab-status-banner {
+  border-left: 3px solid #bfb49a;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: .88rem;
+  line-height: 1.5;
+  padding: .75rem 1rem;
+}
+
+.ab-status-banner--pending    { background: #fdf8ee; border-color: #d4a84b; color: #7a5c10; }
+.ab-status-banner--NEEDS_CHANGES { background: #fff8f0; border-color: #d97706; color: #92400e; }
+.ab-status-banner--rejected   { background: #fff2f2; border-color: #dc2626; color: #991b1b; }
+.ab-status-banner--draft      { background: #f8f7f5; border-color: #bfb49a; color: #5a4a38; }
+
+.ab-status-banner__note {
+  margin: .5rem 0 0;
+  font-style: italic;
+}
+
+/* ---- Detail footer (author edit button) ---- */
+.ab-detail-footer {
+  display: flex;
+  gap: .75rem;
+}
+
+/* ---- Moderation panel ---- */
+.ab-moderate {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+}
+
+.ab-moderate__header {
+  align-items: center;
+  display: flex;
+  gap: .75rem;
+}
+
+.ab-moderate__title {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  margin: 0;
+  color: #3a3028;
+}
+
+.ab-badge--status {
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  padding: .25rem .65rem;
+  border-radius: var(--radius-pill);
+  text-transform: uppercase;
+}
+
+.ab-badge--approved       { background: #d1fae5; color: #065f46; }
+.ab-badge--pending        { background: #fef3c7; color: #92400e; }
+.ab-badge--NEEDS_CHANGES  { background: #ffedd5; color: #9a3412; }
+.ab-badge--rejected       { background: #fee2e2; color: #991b1b; }
+.ab-badge--archived       { background: #f3f4f6; color: #374151; }
+.ab-badge--draft          { background: var(--surface-soft); color: #5a4a38; }
+
+.ab-moderate__existing-note {
+  background: var(--surface-soft);
+  border-radius: var(--radius-sm);
+  color: #5a4a38;
+  font-size: .86rem;
+  margin: 0;
+  padding: .65rem .85rem;
+}
+
+.ab-moderate__form {
+  display: flex;
+  flex-direction: column;
+  gap: .85rem;
+}
+
+.ab-moderate__note {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font: inherit;
+  font-size: .9rem;
+  min-height: 5rem;
+  padding: .6rem .8rem;
+  resize: vertical;
+  width: 100%;
+}
+
+.ab-moderate__note:focus {
+  border-color: #bfb49a;
+  outline: none;
+}
+
+.ab-moderate__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+
+.ab-moderate__btn {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 700;
+  padding: .42rem .9rem;
+  text-decoration: none;
+  transition: background-color .15s ease, border-color .15s ease;
+}
+
+.ab-moderate__btn--approve  { background: #d1fae5; border-color: #6ee7b7; color: #065f46; }
+.ab-moderate__btn--approve:hover { background: #a7f3d0; }
+
+.ab-moderate__btn--changes  { background: #fef3c7; border-color: #fcd34d; color: #92400e; }
+.ab-moderate__btn--changes:hover { background: #fde68a; }
+
+.ab-moderate__btn--reject   { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+.ab-moderate__btn--reject:hover { background: #fecaca; }
+
+.ab-moderate__btn--edit     { background: var(--surface-soft); border-color: var(--border); color: #3a3028; }
+.ab-moderate__btn--edit:hover { background: var(--surface-muted); }
+
+.ab-moderate__btn--archive  { background: #f3f4f6; border-color: #d1d5db; color: #374151; }
+.ab-moderate__btn--archive:hover { background: #e5e7eb; }
 
 /* ---- Empty state ---- */
 .ab-empty {

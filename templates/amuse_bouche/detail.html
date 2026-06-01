@@ -13,7 +13,67 @@
 {% block content %}
 <section class="page-section ab-detail-section">
     <div class="container ab-detail">
+
+        <a class="ab-back-link" href="{% url 'amuse_bouche:feed' %}">&larr; Back to Amuse-Bouche</a>
+
+        {# Status banner — visible to author and moderators when item is not yet approved #}
+        {% if item.status != 'approved' and can_edit %}
+        <div class="ab-status-banner ab-status-banner--{{ item.status }}">
+            <strong>{{ item.get_status_display }}</strong>
+            {% if item.status == 'pending' %}
+            &mdash; This post is awaiting moderation and is not yet visible to the public.
+            {% elif item.status == 'NEEDS_CHANGES' %}
+            &mdash; Changes have been requested before this post can be approved.
+            {% elif item.status == 'rejected' %}
+            &mdash; This post has been rejected.
+            {% elif item.status == 'draft' %}
+            &mdash; This post is saved as a draft.
+            {% endif %}
+            {% if item.moderation_note %}
+            <p class="ab-status-banner__note">Moderation note: {{ item.moderation_note }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
         {% include "amuse_bouche/item_card.html" with item=item liked_ids=liked_ids saved_ids=saved_ids detail=True %}
+
+        {# Author controls #}
+        {% if can_edit and not can_moderate %}
+        <div class="ab-detail-footer">
+            <a class="btn-secondary" href="{% url 'amuse_bouche:edit' item.slug %}">Edit this post</a>
+        </div>
+        {% endif %}
+
+        {# Moderation panel — moderators only #}
+        {% if can_moderate %}
+        <div class="ab-moderate">
+            <div class="ab-moderate__header">
+                <h2 class="ab-moderate__title">Moderation</h2>
+                <span class="ab-badge ab-badge--status ab-badge--{{ item.status }}">{{ item.get_status_display }}</span>
+            </div>
+
+            {% if item.moderation_note %}
+            <p class="ab-moderate__existing-note">
+                <strong>Current note:</strong> {{ item.moderation_note }}
+            </p>
+            {% endif %}
+
+            <form action="{% url 'amuse_bouche:moderate' item.slug %}" class="ab-moderate__form" method="post">
+                {% csrf_token %}
+                <textarea class="ab-moderate__note" name="moderation_note" placeholder="Moderation note — required for Request Changes and Reject">{{ item.moderation_note }}</textarea>
+                <div class="ab-moderate__actions">
+                    {% if item.status != 'approved' %}
+                    <button class="ab-moderate__btn ab-moderate__btn--approve" name="action" type="submit" value="approve">Approve</button>
+                    {% endif %}
+                    <button class="ab-moderate__btn ab-moderate__btn--changes" name="action" type="submit" value="request_changes">Request Changes</button>
+                    <button class="ab-moderate__btn ab-moderate__btn--reject" name="action" type="submit" value="reject">Reject</button>
+                    <a class="ab-moderate__btn ab-moderate__btn--edit" href="{% url 'amuse_bouche:edit' item.slug %}">Edit</a>
+                    <button class="ab-moderate__btn ab-moderate__btn--archive" name="action" type="submit" value="delete">Archive</button>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+
     </div>
 </section>
 {% endblock %}

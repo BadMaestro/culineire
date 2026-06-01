@@ -108,10 +108,14 @@ def detail(request, slug):
         raise Http404
     AmuseBouche.objects.filter(pk=item.pk).update(view_count=F("view_count") + 1)
     items, liked_ids, saved_ids = _user_state([item], request.user)
+    can_moderate = is_moderator(request.user)
+    can_edit = can_moderate or user_can_manage_author(request.user, item.author)
     return render(request, "amuse_bouche/detail.html", {
         "item": items[0],
         "liked_ids": liked_ids,
         "saved_ids": saved_ids,
+        "can_moderate": can_moderate,
+        "can_edit": can_edit,
     })
 
 

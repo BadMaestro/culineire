@@ -423,24 +423,6 @@ def _build_amuse_bouche_roadmap_status():
             "remaining": ["Design video storage/compression/moderation when MVP is stable."],
             "files": [],
         },
-        {
-            "id": "phase-12",
-            "phase": "Phase 12",
-            "title": "Chef Battle Integration Hooks",
-            "status": "deferred",
-            "summary": "Amuse-Bouche must stay compatible with the future Chef Battle concept, but game mechanics are outside this MVP.",
-            "done": [
-                "Kept reactions and activity foundations reusable.",
-                "Kept Amuse-Bouche as a compact content type that can later feed challenges, entries or battle prompts.",
-            ],
-            "current": [],
-            "remaining": [
-                "Define how Amuse-Bouche posts can become Chef Battle prompts, entries or references.",
-                "Add reputation, scoring and anti-farming rules before any competitive mechanics go live.",
-                "Connect battle activity to the shared newsfeed only after moderation rules are stable.",
-            ],
-            "files": [],
-        },
     ]
     mvp_phases = [phase for phase in phases if phase["status"] != "deferred"]
     done_count = sum(1 for phase in mvp_phases if phase["status"] == "done")
@@ -465,13 +447,17 @@ def _build_amuse_bouche_roadmap_status():
         "total_count": len(mvp_phases),
         "percent": percent,
         "current_phase": current_phase,
-        "progress_scope": "MVP only; deferred Chef Battle and video phases remain tracked below.",
+        "progress_scope": "MVP complete up to public launch. Video deferred.",
         "blocked_items": blocked_items,
         "next_steps": [
             "Set AMUSE_BOUCHE_PUBLIC=True in /srv/culineire/shared/.env.",
             "Restart Unit: sudo systemctl restart unit.",
             "Post a launch newsfeed entry.",
             "Monitor for edge cases in first 24 hours.",
+        ],
+        "future_notes": [
+            "Amuse-Bouche content model and reaction foundations are compatible with Chef Battle (future feature).",
+            "Posts can later serve as challenge prompts, entries or references without schema changes.",
         ],
     }
 
