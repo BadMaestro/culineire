@@ -247,7 +247,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ==== Content image watermarks ====
   (function () {
     const targets = document.querySelectorAll(
-      ".hero__background, .ab-card__visual, .recipe-card__image-wrapper, .recipe-gallery__image-shell, .detail-page__header",
+      ".ab-card__visual, .recipe-card__image-wrapper, .recipe-gallery__image-shell, .detail-page__header",
     );
     targets.forEach((el) => {
       if (el.querySelector(".culineire-watermark")) return;

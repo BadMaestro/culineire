@@ -615,6 +615,11 @@
     max-width: 63vw;
   }
 
+  .hero-lightbox__img-wrap {
+    position: relative;
+    line-height: 0;
+  }
+
   .hero-lightbox__copyright {
     color: rgba(255, 255, 255, 0.42);
     font-size: 0.68rem;
