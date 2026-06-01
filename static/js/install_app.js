@@ -66,8 +66,24 @@
     try { localStorage.setItem(key, String(Date.now())); } catch (e) {}
   }
 
-  function showBanner() { banner.hidden = false; }
-  function hideBanner()  { banner.hidden = true;  }
+  var autoHideTimer = null;
+  var DESKTOP_AUTOHIDE_MS = 15000; // 15 s on non-touch screens
+
+  function isDesktop() {
+    return !window.matchMedia('(hover: none)').matches;
+  }
+
+  function showBanner() {
+    banner.hidden = false;
+    if (isDesktop()) {
+      clearTimeout(autoHideTimer);
+      autoHideTimer = setTimeout(function () { hideBanner(); }, DESKTOP_AUTOHIDE_MS);
+    }
+  }
+  function hideBanner() {
+    clearTimeout(autoHideTimer);
+    banner.hidden = true;
+  }
 
   // ── Android / Chrome: native install prompt ─────────────────────────────────
   var deferredPrompt = null;

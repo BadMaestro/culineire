@@ -96,6 +96,29 @@
 /* Стили .ce-header-socials__link живут в base.css вместе с .footer-socials__link
    (общий компонент социальных иконок, см. секцию "Social link component"). */
 
+/* Buy Me a Coffee — inline link in the top header strip */
+.ce-header-bmc {
+  color: #f5a623;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-inline-start: 0.3rem;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+
+.ce-header-bmc:hover {
+  color: #fbbf3c;
+  text-decoration: underline;
+}
+
+@media (max-width: 540px) {
+  .ce-header-bmc {
+    display: none;
+  }
+}
+
 .ce-header__inner {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

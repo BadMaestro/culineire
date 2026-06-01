@@ -58,7 +58,7 @@
 
     /* Layout */
     --container: 1120px;
-    --bmc-bar-reserved-space: 2.85rem;
+    --bmc-bar-reserved-space: 0px; /* BMC moved to header */
 
     /* Шрифтовые стеки (выносим из повторяющихся font-family) */
     --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -597,8 +597,8 @@
     border-radius: var(--radius-md);
     box-shadow: 0 20px 72px rgba(0, 0, 0, 0.55);
     display: block;
-    max-height: 90vh;
-    max-width: 90vw;
+    max-height: 63vh;
+    max-width: 63vw;
     object-fit: contain;
     transition: transform 0.22s ease;
   }
@@ -1128,7 +1128,7 @@
 
 @media (max-width: 480px) {
   :root {
-    --bmc-bar-reserved-space: 4.35rem;
+    --bmc-bar-reserved-space: 0px;
   }
 }
 
