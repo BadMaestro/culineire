@@ -92,7 +92,6 @@
                     <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">
                         {% if article.card_image %}<img alt="{{ article.title }}" src="{{ article.card_image.url }}" loading="lazy">
                         {% else %}<img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}" loading="lazy">{% endif %}
-                        {% if article.image_rights_status == 'ai_generated' %}<span aria-label="AI generated image" class="ai-image-badge">AI</span>{% endif %}
                     </a>
                     <div class="recipe-card__body">
                         <div class="recipe-card__content">
