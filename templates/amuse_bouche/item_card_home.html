@@ -39,9 +39,9 @@
     {% if item.linked_article %}
     <a class="ab-sheet__link" href="{{ item.linked_article.get_absolute_url }}">Read the story &rarr;</a>
     {% endif %}
-    <a class="ab-sheet__link ab-sheet__link--detail" href="{{ item.get_absolute_url }}">Open full page &rarr;</a>
+    <a class="btn-secondary ab-sheet__open-btn" href="{{ item.get_absolute_url }}">Open full page &rarr;</a>
     <button class="ab-sheet__close" type="button"
-            data-ab-close="{{ item.pk }}" aria-label="Close">&#x25B2; close</button>
+            data-ab-close="{{ item.pk }}" aria-label="Close">CLOSE&nbsp;&#x25B4;</button>
   </div>
 
 </article>

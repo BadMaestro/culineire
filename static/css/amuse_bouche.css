@@ -580,8 +580,8 @@
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(200, 169, 110, .4) transparent;
-  /* smaller padding for compact card */
-  padding: .75rem .75rem 1rem;
+  /* smaller padding — extra bottom room for the absolute close button */
+  padding: .75rem .75rem 2rem;
   gap: .4rem;
 }
 
@@ -608,9 +608,28 @@
   padding: .22rem .55rem;
 }
 
+/* Close button: 100% copy of .ab-home-card__more, same position bottom-right */
 .ab-home-card .ab-sheet__close {
-  font-size: .65rem;
+  background: none;
+  border: none;
+  bottom: .5rem;
+  color: rgba(255, 255, 255, .72);
+  cursor: pointer;
+  font: inherit;
+  font-size: .6rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  padding: 0;
+  position: absolute;
+  right: .6rem;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .8);
+  text-transform: uppercase;
+  transition: color .15s;
+  z-index: 4;
 }
+
+.ab-home-card .ab-sheet__close:hover,
+.ab-home-card .ab-sheet__close:focus-visible { color: #fff; }
 
 /* ---- Mobile base ---- */
 @media (max-width: 640px) {
@@ -891,7 +910,7 @@
   flex-direction: column;
   gap: .55rem;
   left: 0;
-  padding: 1rem 1rem 1.25rem;
+  padding: 1rem 1rem 2.5rem; /* extra bottom for absolute close button */
   position: absolute;
   right: 0;
   transform: translateY(100%);
@@ -927,35 +946,50 @@
   border-color: rgba(200, 169, 110, .7);
 }
 
-.ab-sheet__link--detail {
-  border-color: rgba(255, 255, 255, .22);
-  color: rgba(255, 255, 255, .72);
-}
-
-.ab-sheet__link--detail:hover {
-  background: rgba(255, 255, 255, .1);
-  border-color: rgba(255, 255, 255, .4);
-  color: #fff;
-}
-
-.ab-sheet__close {
+/* "Open full page" — btn-secondary adapted for dark sheet background */
+.ab-card__sheet .ab-sheet__open-btn {
   align-self: center;
-  background: transparent;
+  background: rgba(247, 242, 234, 0.1);
+  border: 0;
+  color: rgba(247, 242, 234, 0.85);
+  font-size: .78rem;
+  min-height: unset;
+  padding: .3rem .85rem;
+}
+
+.ab-card__sheet .ab-sheet__open-btn:hover,
+.ab-card__sheet .ab-sheet__open-btn:focus-visible {
+  background: rgba(247, 242, 234, 0.2);
+  color: #fff8ee;
+}
+
+/* Close button: 100% copy of .ab-card__open-btn, same position bottom-left */
+.ab-sheet__close {
+  background: none;
   border: none;
-  color: rgba(255, 255, 255, .45);
+  bottom: .85rem;
+  color: rgba(255, 255, 255, .7);
   cursor: pointer;
   font: inherit;
-  font-size: .7rem;
-  font-weight: 600;
-  letter-spacing: .05em;
-  margin-top: .2rem;
-  padding: .2rem .5rem;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  max-width: calc(100% - 56px);
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  left: .9rem;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .8);
   text-transform: uppercase;
   transition: color .15s ease;
+  white-space: nowrap;
+  z-index: 4;
 }
 
-.ab-sheet__close:hover {
-  color: rgba(255, 255, 255, .8);
+.ab-sheet__close:hover,
+.ab-sheet__close:focus-visible {
+  color: #fff;
 }
 
 /* ================================================================
