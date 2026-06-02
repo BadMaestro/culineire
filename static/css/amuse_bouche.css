@@ -597,7 +597,7 @@
 }
 
 .ab-home-card .ab-card__sheet::-webkit-scrollbar {
-  width: 9px;
+  width: 13px;
 }
 
 .ab-home-card .ab-card__sheet::-webkit-scrollbar-track {
@@ -608,7 +608,7 @@
   background: rgba(200, 169, 110, .45);
   background-clip: padding-box;
   border-radius: 3px;
-  border-right: 5px solid transparent;
+  border-right: 8px solid transparent;
 }
 
 .ab-home-card .ab-sheet__text {
@@ -636,6 +636,7 @@
   text-shadow: 0 1px 3px rgba(0, 0, 0, .8);
   text-transform: uppercase;
   transition: color .15s;
+  white-space: nowrap;
 }
 
 .ab-home-card__close:hover,
