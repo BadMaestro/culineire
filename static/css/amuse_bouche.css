@@ -628,30 +628,37 @@
   padding: .22rem .55rem;
 }
 
-/* CLOSE button — lives inside .ab-sheet__footer, always in-flow */
+/* CLOSE — absolute, identical position to MORE (they swap in the same spot) */
 .ab-home-card__close {
   background: none;
   border: none;
+  bottom: .5rem;
   color: rgba(255, 255, 255, .72);
   cursor: pointer;
+  display: none;
   font: inherit;
   font-size: .6rem;
   font-weight: 700;
   letter-spacing: .06em;
   overflow: hidden;
   padding: 0;
+  position: absolute;
+  right: .6rem;
   text-shadow: 0 1px 3px rgba(0, 0, 0, .8);
   text-transform: uppercase;
   transition: color .15s;
   white-space: nowrap;
+  z-index: 12;
 }
 
 .ab-home-card__close:hover,
 .ab-home-card__close:focus-visible { color: #fff; }
 
-/* Sticky footer bar: Open Page left, CLOSE right — always on same line.
-   padding-right matches sheet padding (.75rem) so CLOSE aligns with
-   the left edge of the scrollbar column */
+/* Swap MORE ↔ CLOSE at the same spot when sheet opens */
+.ab-home-card .ab-card__sheet.is-open ~ .ab-home-card__close { display: block; }
+.ab-home-card .ab-card__sheet.is-open ~ .ab-home-card__more  { display: none; }
+
+/* Footer: only Open Page button, centered */
 .ab-sheet__footer {
   align-items: center;
   background: linear-gradient(to bottom,
@@ -660,13 +667,10 @@
   bottom: 0;
   display: flex;
   flex-shrink: 0;
-  justify-content: space-between;
-  padding: .9rem .75rem .5rem .6rem;
+  justify-content: center;
+  padding: .9rem .6rem .5rem;
   position: sticky;
 }
-
-/* Hide MORE when sheet is open (CLOSE is now inside sheet) */
-.ab-home-card .ab-card__sheet.is-open ~ .ab-home-card__more { visibility: hidden; }
 
 /* ---- Mobile base ---- */
 @media (max-width: 640px) {

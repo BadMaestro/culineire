@@ -29,7 +29,7 @@
           aria-expanded="false"
           aria-label="More about {{ item.title }}">MORE&#x25BE;</button>
 
-  {# Slide-up sheet — footer is sticky so CLOSE never scrolls away #}
+  {# Slide-up sheet #}
   <div class="ab-card__sheet" id="ab-sheet-{{ item.pk }}"
        role="dialog" aria-label="More info" aria-hidden="true">
     <div class="ab-sheet__body">
@@ -45,9 +45,11 @@
     </div>
     <div class="ab-sheet__footer">
       <a class="btn-secondary ab-sheet__open-btn" href="{{ item.get_absolute_url }}">Open Page</a>
-      <button class="ab-home-card__close" type="button"
-              data-ab-close="{{ item.pk }}" aria-label="Close">CLOSE&nbsp;&#x25B4;</button>
     </div>
   </div>
+
+  {# CLOSE — sibling of sheet, same position as MORE, they swap #}
+  <button class="ab-home-card__close" type="button"
+          data-ab-close="{{ item.pk }}" aria-label="Close">CLOSE&nbsp;&#x25B4;</button>
 
 </article>
