@@ -209,7 +209,7 @@ class AmuseBoucheCreateView(AuthorRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        # Cancel falls back to author profile — feed is gated for non-staff/non-moderator authors.
+        ctx["author"] = self.author
         ctx["cancel_url"] = self.author.get_absolute_url()
         return ctx
 
@@ -241,6 +241,7 @@ class AmuseBoucheUpdateView(AuthorRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        ctx["author"] = self.author
         ctx["cancel_url"] = self.object.get_absolute_url()
         ctx["is_moderator"] = is_moderator(self.request.user)
         return ctx
