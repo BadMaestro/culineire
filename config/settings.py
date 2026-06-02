@@ -168,7 +168,7 @@ MONITORING_EXCLUDED_PATH_PREFIXES = [
     "/presence/",
 ]
 
-AMUSE_BOUCHE_PUBLIC = env_bool("AMUSE_BOUCHE_PUBLIC", default=False)
+AMUSE_BOUCHE_PUBLIC = env_bool("AMUSE_BOUCHE_PUBLIC", default=True)
 
 ROOT_URLCONF = "config.urls"
 

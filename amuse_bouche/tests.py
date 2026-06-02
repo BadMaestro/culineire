@@ -11,7 +11,7 @@ from recipes.models import Recipe, RecipeAuthor
 from .models import AmuseBouche
 
 
-@override_settings(TELEGRAM_BOT_TOKEN="", TELEGRAM_CHANNEL_ID="", ANTHROPIC_API_KEY="")
+@override_settings(TELEGRAM_BOT_TOKEN="", TELEGRAM_CHANNEL_ID="", ANTHROPIC_API_KEY="", AMUSE_BOUCHE_PUBLIC=False)
 class AmuseBouchePublicTests(TestCase):
     def setUp(self):
         user_model = get_user_model()
@@ -67,7 +67,7 @@ class AmuseBouchePublicTests(TestCase):
         self.assertEqual(SavedContent.objects.count(), 1)
 
 
-@override_settings(TELEGRAM_BOT_TOKEN="", TELEGRAM_CHANNEL_ID="", ANTHROPIC_API_KEY="")
+@override_settings(TELEGRAM_BOT_TOKEN="", TELEGRAM_CHANNEL_ID="", ANTHROPIC_API_KEY="", AMUSE_BOUCHE_PUBLIC=False)
 class AmuseBoucheGatingTests(TestCase):
     def setUp(self):
         user_model = get_user_model()
@@ -409,7 +409,7 @@ class AmuseBoucheGenerateFromArticleTests(TestCase):
         )
 
 
-@override_settings(TELEGRAM_BOT_TOKEN="", TELEGRAM_CHANNEL_ID="", ANTHROPIC_API_KEY="")
+@override_settings(TELEGRAM_BOT_TOKEN="", TELEGRAM_CHANNEL_ID="", ANTHROPIC_API_KEY="", AMUSE_BOUCHE_PUBLIC=False)
 class AmuseBoucheRegressionTests(TestCase):
     """
     Regression tests for the five quality fixes applied after Phase 10 completion:
