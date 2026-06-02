@@ -226,7 +226,8 @@ class AmuseBoucheUpdateView(AuthorRequiredMixin, UpdateView):
         item = form.save(commit=False)
         if not user_can_manage_author(self.request.user, item.author):
             return redirect(item.get_absolute_url())
-        if item.status == AmuseBouche.Status.APPROVED:
+        # Moderators save directly — no status reset needed
+        if item.status == AmuseBouche.Status.APPROVED and not is_moderator(self.request.user):
             item.status = AmuseBouche.Status.PENDING
         response = super().form_valid(form)
         messages.success(self.request, "Amuse-Bouche updated.")
@@ -234,8 +235,8 @@ class AmuseBoucheUpdateView(AuthorRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        # Cancel goes back to the item detail — always safe since the author can preview their own posts.
         ctx["cancel_url"] = self.object.get_absolute_url()
+        ctx["is_moderator"] = is_moderator(self.request.user)
         return ctx
 
 

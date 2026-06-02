@@ -44,7 +44,7 @@
             {% endfor %}
             <div class="authoring-actions">
                 <div class="authoring-actions__buttons">
-                    <button class="authoring-submit" type="submit">Submit For Review</button>
+                    <button class="authoring-submit" type="submit">{% if is_moderator %}Save Changes{% else %}Submit For Review{% endif %}</button>
                     <a class="authoring-submit authoring-submit--secondary" href="{{ cancel_url }}">Cancel</a>
                 </div>
             </div>
