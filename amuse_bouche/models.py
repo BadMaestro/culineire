@@ -173,7 +173,12 @@ class AmuseBouche(models.Model):
                 self.gallery_images.filter(is_active=True).order_by("sort_order", "id")[:1]
             )
         first = gallery[0] if gallery else None
-        return first.image if first else None
+        if first:
+            return first.image
+        # Fall back to linked recipe hero image so generated bites look good immediately
+        if self.linked_recipe_id and self.linked_recipe.hero_image:
+            return self.linked_recipe.hero_image
+        return None
 
     def generate_unique_slug(self) -> str:
         base_slug = slugify(self.title)[:200] or "amuse-bouche"
