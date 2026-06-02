@@ -29,7 +29,7 @@
           aria-expanded="false"
           aria-label="More about {{ item.title }}">MORE&#x25BE;</button>
 
-  {# Slide-up sheet — NO close button inside (avoids scroll-away bug) #}
+  {# Slide-up sheet — footer is sticky so CLOSE never scrolls away #}
   <div class="ab-card__sheet" id="ab-sheet-{{ item.pk }}"
        role="dialog" aria-label="More info" aria-hidden="true">
     <div class="ab-sheet__body">
@@ -43,11 +43,11 @@
       <a class="ab-sheet__link" href="{{ item.linked_article.get_absolute_url }}">Read the story &rarr;</a>
       {% endif %}
     </div>
-    <a class="btn-secondary ab-sheet__open-btn" href="{{ item.get_absolute_url }}">Open Page &rarr;</a>
+    <div class="ab-sheet__footer">
+      <a class="btn-secondary ab-sheet__open-btn" href="{{ item.get_absolute_url }}">Open Page</a>
+      <button class="ab-home-card__close" type="button"
+              data-ab-close="{{ item.pk }}" aria-label="Close">CLOSE&nbsp;&#x25B4;</button>
+    </div>
   </div>
-
-  {# CLOSE button — sibling of sheet, shown via CSS when sheet is open #}
-  <button class="ab-home-card__close" type="button"
-          data-ab-close="{{ item.pk }}" aria-label="Close">CLOSE&nbsp;&#x25B4;</button>
 
 </article>

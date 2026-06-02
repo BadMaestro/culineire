@@ -590,8 +590,8 @@
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(200, 169, 110, .4) transparent;
-  padding: .75rem .75rem 2.8rem;  /* bottom clears the CLOSE button */
-  gap: .5rem;
+  padding: .75rem .75rem 0;   /* footer row handles bottom space */
+  gap: .4rem;
 }
 
 .ab-home-card .ab-card__sheet::-webkit-scrollbar {
@@ -619,34 +619,40 @@
   padding: .22rem .55rem;
 }
 
-/* CLOSE button — outside the sheet, same position/style as MORE */
+/* CLOSE button — lives inside .ab-sheet__footer, always in-flow */
 .ab-home-card__close {
   background: none;
   border: none;
-  bottom: .5rem;
   color: rgba(255, 255, 255, .72);
   cursor: pointer;
-  display: none;            /* hidden until sheet opens */
   font: inherit;
   font-size: .6rem;
   font-weight: 700;
   letter-spacing: .06em;
   overflow: hidden;
   padding: 0;
-  position: absolute;
-  right: .6rem;
   text-shadow: 0 1px 3px rgba(0, 0, 0, .8);
   text-transform: uppercase;
   transition: color .15s;
-  z-index: 12;              /* above the sheet */
 }
 
 .ab-home-card__close:hover,
 .ab-home-card__close:focus-visible { color: #fff; }
 
-/* Show CLOSE / hide MORE when sheet is open */
-.ab-home-card .ab-card__sheet.is-open ~ .ab-home-card__close { display: block; }
-.ab-home-card .ab-card__sheet.is-open ~ .ab-home-card__more  { visibility: hidden; }
+/* Sticky footer bar: Open Page left, CLOSE right — always on same line */
+.ab-sheet__footer {
+  align-items: center;
+  background: rgba(14, 20, 14, 0.97);
+  bottom: 0;
+  display: flex;
+  flex-shrink: 0;
+  justify-content: space-between;
+  padding: .45rem .6rem .55rem;
+  position: sticky;
+}
+
+/* Hide MORE when sheet is open (CLOSE is now inside sheet) */
+.ab-home-card .ab-card__sheet.is-open ~ .ab-home-card__more { visibility: hidden; }
 
 /* ---- Mobile base ---- */
 @media (max-width: 640px) {
@@ -978,13 +984,12 @@
 
 /* "Open Page" — btn-secondary adapted for dark sheet background */
 .ab-card__sheet .ab-sheet__open-btn {
-  align-self: center;
   background: rgba(247, 242, 234, 0.1);
   border: 0;
   color: rgba(247, 242, 234, 0.85);
   font-size: .78rem;
   min-height: unset;
-  padding: .35rem 1.8rem;
+  padding: .3rem .9rem;   /* snug: just wider than text */
   text-decoration: none;
   width: auto;
 }
