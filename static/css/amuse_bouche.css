@@ -226,12 +226,20 @@
   text-decoration: underline;
 }
 
+/* Card shell — light cappuccino, soft warm shadow */
 .ab-card--detail {
-  background: #f7f0e6;
+  background: #f4eadc;
+  border: 1px solid rgba(139, 99, 55, .16);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 22px rgba(63, 43, 25, .14);
   margin-bottom: 0;
   position: relative;
+}
+
+/* No lift on detail — it is a static reading card, not a clickable grid item */
+.ab-card--detail:hover {
+  box-shadow: 0 6px 26px rgba(63, 43, 25, .18);
+  transform: none;
 }
 
 /* Photo in normal flow for detail page */
@@ -242,90 +250,119 @@
   width: 100%;
 }
 
-/* Gradient bridging photo into cream panel */
+/* Gradient: fades photo gently into the cappuccino panel below */
 .ab-card--detail .ab-card__photo::after {
-  background: linear-gradient(to bottom, transparent 45%, rgba(247, 240, 230, .78) 100%);
+  background: linear-gradient(
+    to bottom,
+    transparent 38%,
+    rgba(244, 234, 220, .55) 68%,
+    rgba(244, 234, 220, .96) 100%
+  );
   border-radius: 0;
   display: block;
 }
 
-/* Badge stays overlaid on the photo */
+/* Badge: soft parchment pill on detail (not the dark glass used in feed) */
 .ab-card--detail .ab-card__badge {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: rgba(244, 234, 220, .92);
+  border: 1px solid rgba(139, 99, 55, .24);
+  color: #5a3a1a;
   left: .75rem;
   position: absolute;
   top: .75rem;
 }
 
-/* Info panel in normal flow below the photo */
+/* Info panel — explicit cappuccino gradient, generous breathing room */
 .ab-card--detail .ab-card__info {
+  background: linear-gradient(180deg, #f4eadc 0%, #eedfc9 100%);
   bottom: auto;
   display: flex;
   flex-direction: column;
-  gap: .5rem;
+  gap: .6rem;
   left: auto;
-  padding: .9rem 1.1rem .65rem;
+  padding: 1rem 1.3rem .8rem;
   pointer-events: auto;
   position: static;
   right: auto;
 }
 
-/* Title: dark espresso, strong hierarchy */
+/* Title: espresso — maximum readability */
 .ab-card--detail .ab-card__title {
-  color: #2e1a0a;
+  color: #2f2118;
   font-weight: 700;
   text-shadow: none;
 }
 
-/* Author name: warm medium brown */
+/* Author link: no underline at rest */
+.ab-card--detail .ab-card__author {
+  text-decoration: none;
+}
+
+/* Author name: warm caramel brown */
 .ab-card--detail .ab-card__author-name {
-  color: #7a5535;
+  color: #9a6f3f;
   text-shadow: none;
 }
 
-/* Avatar: warm brown border */
+/* Avatar: warm soft border */
 .ab-card--detail .ab-card__avatar {
-  border-color: rgba(120, 80, 30, .35);
+  border-color: rgba(139, 99, 55, .28);
 }
 
-/* Description: warm readable brown */
+/* Description: warm muted brown, comfortable line-height */
 .ab-card--detail .ab-card__detail-desc {
-  color: #6b5040;
+  color: #6f5945;
   line-height: 1.65;
 }
 
-/* Actions in normal flow — pill-button row */
+/* Actions row — soft separator, generous padding */
 .ab-card--detail .ab-card__actions {
+  border-top: 1px solid rgba(139, 99, 55, .12);
   bottom: auto;
   flex-direction: row;
   justify-content: flex-start;
-  padding: .5rem 1.1rem .9rem;
+  padding: .65rem 1.3rem 1rem;
   position: static;
   right: auto;
   width: auto;
 }
 
+/* Buttons: elegant cream pills with warm espresso text */
 .ab-card--detail .ab-btn {
+  -webkit-backdrop-filter: none;
   backdrop-filter: none;
-  background: rgba(42, 26, 10, .06);
-  border: 1.5px solid rgba(42, 26, 10, .18);
+  background: #fff7ed;
+  border: 1.5px solid rgba(92, 63, 38, .18);
   border-radius: var(--radius-pill);
-  color: #4a3020;
+  color: #3a2618;
   filter: none;
   flex-direction: row;
   height: auto;
-  padding: .38rem .75rem;
+  padding: .4rem .82rem;
   width: auto;
 }
 
 .ab-card--detail .ab-btn:hover {
-  background: rgba(200, 169, 110, .22);
-  border-color: #c8a96e;
-  color: #2e1a0a;
+  background: #ead8c1;
+  border-color: rgba(139, 99, 55, .38);
+  color: #2f2118;
   transform: translateY(-1px);
 }
 
-.ab-card--detail .ab-btn--liked { border-color: #c0392b; color: #c0392b; }
-.ab-card--detail .ab-btn--saved { border-color: #b8892e; color: #b8892e; }
+/* Liked: warm terracotta, not harsh social-media red */
+.ab-card--detail .ab-btn--liked {
+  border-color: rgba(180, 90, 50, .42);
+  color: #b45a32;
+}
+
+/* Saved: warm caramel amber */
+.ab-card--detail .ab-btn--saved {
+  border-color: rgba(184, 137, 46, .42);
+  color: #b8892e;
+}
+
 .ab-card--detail .ab-btn__count { font-size: .75rem; }
 
 /* ---- Status banner ---- */
