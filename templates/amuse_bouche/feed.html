@@ -21,11 +21,6 @@
             <div class="hero-copy">
                 <h1 class="hero-title">Amuse-Bouche</h1>
                 <p class="hero-subtitle">Small bites, big ideas from the CulinEire kitchen.</p>
-                {% if user.is_authenticated %}
-                <div class="hero__actions">
-                    <a class="btn-primary" href="{% url 'amuse_bouche:create' %}">Share a Bite</a>
-                </div>
-                {% endif %}
                 <div class="ab-filter-bar">
                     <nav class="ab-filters" aria-label="Amuse-Bouche filters">
                         <a class="ab-filter{% if not active_content_type %} ab-filter--active{% endif %}"
@@ -36,6 +31,11 @@
                         {% endfor %}
                     </nav>
                 </div>
+                {% if user.is_authenticated %}
+                <div class="hero__actions">
+                    <a class="btn-primary" href="{% url 'amuse_bouche:create' %}">Share a Bite</a>
+                </div>
+                {% endif %}
             </div>
         </div>
     </section>
