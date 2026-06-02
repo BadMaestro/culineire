@@ -38,14 +38,10 @@
     {% endwith %}
   </div>
 
-  {# MORE button — outside pointer-events:none overlay so it receives clicks correctly #}
-  <button class="ab-card__open-btn" type="button"
-          data-ab-more="{{ item.pk }}"
-          aria-expanded="false"
-          aria-label="More about {{ item.title }}">MORE&nbsp;&#x25BE;</button>
   {% endif %}
 
-  {# ── Slide-up sheet (feed only) ── #}
+  {# ── Slide-up sheet (feed only) — must come BEFORE MORE and CLOSE so the CSS
+     general sibling combinator (~) can hide MORE and reveal CLOSE on is-open ── #}
   {% if not detail %}
   <div class="ab-card__sheet" id="ab-sheet-{{ item.pk }}"
        role="dialog" aria-label="More info" aria-hidden="true">
@@ -61,9 +57,17 @@
       {% endif %}
     </div>
     <a class="btn-secondary ab-sheet__open-btn" href="{{ item.get_absolute_url }}">Open Page &rarr;</a>
-    <button class="ab-sheet__close" type="button"
-            data-ab-close="{{ item.pk }}" aria-label="Close">CLOSE&nbsp;&#x25B4;</button>
   </div>
+
+  {# MORE — hidden by CSS when sheet opens (.sheet.is-open ~ .ab-card__open-btn) #}
+  <button class="ab-card__open-btn" type="button"
+          data-ab-more="{{ item.pk }}"
+          aria-expanded="false"
+          aria-label="More about {{ item.title }}">MORE&nbsp;&#x25BE;</button>
+
+  {# CLOSE — shown by CSS when sheet opens (.sheet.is-open ~ .ab-sheet__close) #}
+  <button class="ab-sheet__close" type="button"
+          data-ab-close="{{ item.pk }}" aria-label="Close">CLOSE&nbsp;&#x25B4;</button>
   {% endif %}
 
   {# ── Info strip: author, title, desc (detail only) ── #}

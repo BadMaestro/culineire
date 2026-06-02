@@ -1046,7 +1046,7 @@
   flex-direction: column;
   gap: .55rem;
   left: 0;
-  padding: 1rem 1rem 2.5rem; /* extra bottom for absolute close button */
+  padding: 1rem; /* CLOSE is now a sibling outside the sheet */
   position: absolute;
   right: 0;
   transform: translateY(100%);
@@ -1110,35 +1110,40 @@
   color: #fff8ee;
 }
 
-/* Close button: 100% copy of .ab-card__open-btn, same position bottom-left */
+/* Close button — sibling of .ab-card__sheet, same absolute position as MORE.
+   Hidden by default; revealed by CSS sibling selector when sheet is open. */
 .ab-sheet__close {
   background: none;
   border: none;
   bottom: .85rem;
-  overflow: hidden;
   color: rgba(255, 255, 255, .7);
   cursor: pointer;
+  display: none; /* shown via .ab-card__sheet.is-open ~ .ab-sheet__close */
   font: inherit;
   font-size: .68rem;
   font-weight: 700;
+  left: .9rem;
   letter-spacing: .06em;
   max-width: calc(100% - 56px);
   overflow: hidden;
   padding: 0;
   position: absolute;
-  left: .9rem;
   text-overflow: ellipsis;
   text-shadow: 0 1px 3px rgba(0, 0, 0, .8);
   text-transform: uppercase;
   transition: color .15s ease;
   white-space: nowrap;
-  z-index: 4;
+  z-index: 11;
 }
 
 .ab-sheet__close:hover,
 .ab-sheet__close:focus-visible {
   color: #fff;
 }
+
+/* Swap MORE ↔ CLOSE when sheet opens — identical mechanism to .ab-home-card */
+.ab-card__sheet.is-open ~ .ab-card__open-btn  { display: none; }
+.ab-card__sheet.is-open ~ .ab-sheet__close    { display: block; }
 
 /* ================================================================
    Feed page shell — warm dark espresso, centred column
