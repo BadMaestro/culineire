@@ -586,29 +586,36 @@
 .ab-home-card__more:hover,
 .ab-home-card__more:focus-visible { color: #fff; }
 
-/* Sheet inside mini home card: cap to card height + scroll internally */
+/* Sheet inside mini home card — sheet itself does NOT scroll;
+   only .ab-sheet__body scrolls, so scrollbar sits inside the sheet's
+   padding and is naturally inset from the card's right border */
 .ab-home-card .ab-card__sheet {
   max-height: 100%;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(200, 169, 110, .4) transparent;
-  padding: .75rem .75rem 0;   /* footer row handles bottom space */
+  overflow: hidden;
+  padding: .75rem .75rem 0;
   gap: .4rem;
 }
 
-.ab-home-card .ab-card__sheet::-webkit-scrollbar {
-  width: 13px;
+/* Body is the real scroll container — inset by sheet's .75rem padding */
+.ab-home-card .ab-sheet__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(200, 169, 110, .5) transparent;
 }
 
-.ab-home-card .ab-card__sheet::-webkit-scrollbar-track {
+.ab-home-card .ab-sheet__body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.ab-home-card .ab-sheet__body::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.ab-home-card .ab-card__sheet::-webkit-scrollbar-thumb {
-  background: rgba(200, 169, 110, .45);
-  background-clip: padding-box;
+.ab-home-card .ab-sheet__body::-webkit-scrollbar-thumb {
+  background: rgba(200, 169, 110, .55);
   border-radius: 3px;
-  border-right: 8px solid transparent;
 }
 
 .ab-home-card .ab-sheet__text {
@@ -642,10 +649,11 @@
 .ab-home-card__close:hover,
 .ab-home-card__close:focus-visible { color: #fff; }
 
-/* Sticky footer bar: Open Page left, CLOSE right — always on same line */
+/* Sticky footer bar: Open Page left, CLOSE right — always on same line.
+   padding-right matches sheet padding (.75rem) so CLOSE aligns with
+   the left edge of the scrollbar column */
 .ab-sheet__footer {
   align-items: center;
-  /* gradient fades content into the footer — no hard dark bar */
   background: linear-gradient(to bottom,
     rgba(10, 6, 4, 0)   0%,
     rgba(10, 6, 4, .92) 30%);
@@ -653,7 +661,7 @@
   display: flex;
   flex-shrink: 0;
   justify-content: space-between;
-  padding: .9rem .6rem .5rem;
+  padding: .9rem .75rem .5rem .6rem;
   position: sticky;
 }
 
