@@ -22,7 +22,7 @@
   {# ── Content type badge — top-left ── #}
   <span class="ab-badge ab-card__badge">{{ item.get_content_type_display }}</span>
 
-  {# ── Overlay: author, title, caption, open-bite (feed only) ── #}
+  {# ── Overlay: author, title, caption (feed only — pointer-events:none) ── #}
   {% if not detail %}
   <div class="ab-card__overlay">
     <a class="ab-card__author" href="{{ item.author.get_absolute_url }}"
@@ -32,16 +32,16 @@
       <span class="ab-card__author-name">{{ item.author.name }}</span>
     </a>
     <h2 class="ab-card__title">{{ item.title }}</h2>
-    <div class="ab-card__desc-row">
-      {% with caption=item.emoji_description|default:item.short_description %}
-      {% if caption %}<p class="ab-card__caption">{{ caption }}</p>{% endif %}
-      {% endwith %}
-      <button class="ab-card__open-btn" type="button"
-              data-ab-more="{{ item.pk }}"
-              aria-expanded="false"
-              aria-label="More about {{ item.title }}">MORE&nbsp;&#x25BE;</button>
-    </div>
+    {% with caption=item.emoji_description|default:item.short_description %}
+    {% if caption %}<p class="ab-card__caption">{{ caption }}</p>{% endif %}
+    {% endwith %}
   </div>
+
+  {# MORE button — outside pointer-events:none overlay so it receives clicks correctly #}
+  <button class="ab-card__open-btn" type="button"
+          data-ab-more="{{ item.pk }}"
+          aria-expanded="false"
+          aria-label="More about {{ item.title }}">MORE&nbsp;&#x25BE;</button>
   {% endif %}
 
   {# ── Slide-up sheet (feed only) ── #}

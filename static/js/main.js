@@ -556,37 +556,46 @@ document.addEventListener("DOMContentLoaded", () => {
     ripple.addEventListener("animationend", function () { ripple.remove(); }, { once: true });
   });
 
-  // ==== AB comments panel (bottom drawer, AJAX) ====
+  // ==== AB comments panel (card-anchored popup, AJAX) ====
   (function () {
     var panel = null;
-    var panelDrawer = null;
+    var scrim = null;
     var activeSlug = null;
 
     function buildPanel() {
       if (panel) return;
+
+      // Separate full-screen scrim
+      scrim = document.createElement("div");
+      scrim.className = "ab-cmt-scrim";
+      scrim.dataset.abCmtClose = "";
+      document.body.appendChild(scrim);
+
+      // Popup panel (no internal scrim)
       panel = document.createElement("div");
       panel.className = "ab-cmt-panel";
       panel.setAttribute("aria-hidden", "true");
       panel.setAttribute("role", "dialog");
       panel.setAttribute("aria-label", "Comments");
-
-      var scrim = document.createElement("div");
-      scrim.className = "ab-cmt-panel__scrim";
-      scrim.dataset.abCmtClose = "";
-
-      panelDrawer = document.createElement("div");
-      panelDrawer.className = "ab-cmt-panel__drawer";
-
-      panel.appendChild(scrim);
-      panel.appendChild(panelDrawer);
       document.body.appendChild(panel);
     }
 
-    function openPanel(slug) {
+    function positionPanel(cardEl) {
+      if (!panel || !cardEl || window.innerWidth < 640) return;
+      var rect = cardEl.getBoundingClientRect();
+      panel.style.top    = rect.top    + "px";
+      panel.style.left   = rect.left   + "px";
+      panel.style.width  = rect.width  + "px";
+      panel.style.height = rect.height + "px";
+    }
+
+    function openPanel(slug, cardEl) {
       buildPanel();
       activeSlug = slug;
-      panelDrawer.innerHTML =
+      panel.innerHTML =
         '<div style="padding:2rem;text-align:center;color:#9a8a78;font-size:.9rem;">Loading&hellip;</div>';
+      positionPanel(cardEl);
+      scrim.classList.add("is-open");
       panel.setAttribute("aria-hidden", "false");
       document.body.style.overflow = "hidden";
       requestAnimationFrame(function () { panel.classList.add("is-open"); });
@@ -596,10 +605,10 @@ document.addEventListener("DOMContentLoaded", () => {
       })
         .then(function (r) { return r.json(); })
         .then(function (data) {
-          if (data.ok) panelDrawer.innerHTML = data.html;
+          if (data.ok) panel.innerHTML = data.html;
         })
         .catch(function () {
-          panelDrawer.innerHTML =
+          panel.innerHTML =
             '<div style="padding:2rem;text-align:center;color:#9a8a78;font-size:.9rem;">Could not load comments.</div>';
         });
     }
@@ -607,6 +616,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function closePanel() {
       if (!panel) return;
       panel.classList.remove("is-open");
+      scrim.classList.remove("is-open");
       document.body.style.overflow = "";
       panel.addEventListener(
         "transitionend",
@@ -655,7 +665,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Open panel from feed card button
       var cmtBtn = e.target.closest("[data-ab-cmt]");
       if (cmtBtn && !e.target.closest(".ab-cmt-panel")) {
-        openPanel(cmtBtn.dataset.abCmt);
+        openPanel(cmtBtn.dataset.abCmt, cmtBtn.closest(".ab-card"));
         return;
       }
 

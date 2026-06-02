@@ -117,7 +117,7 @@ class AmuseBouche(models.Model):
     )
     published_at = models.DateTimeField(null=True, blank=True, db_index=True)
     is_featured = models.BooleanField(default=False, db_index=True)
-    allow_comments = models.BooleanField(default=False)
+    allow_comments = models.BooleanField(default=True)
     view_count = models.PositiveIntegerField(default=0)
     moderation_note = models.TextField(blank=True, default="")
     moderated_by = models.ForeignKey(

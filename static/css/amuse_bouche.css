@@ -660,45 +660,41 @@
   font-size: clamp(1.2rem, 3vw, 1.5rem);
 }
 
-/* Caption + MORE row */
-.ab-card__desc-row {
-  align-items: center;
-  display: flex;
-  gap: .4rem;
-  justify-content: space-between;
-  margin-top: 1px;
-  pointer-events: auto;
-}
-
-/* Caption — italic, 1-line clamp */
+/* Caption — italic, 1-line clamp (direct child of overlay now) */
 .ab-card__caption {
   color: rgba(255, 255, 255, .62);
-  flex: 1;
   font-size: .74rem;
   font-style: italic;
   line-height: 1.4;
-  margin: 0;
-  min-width: 0;
+  margin: 2px 0 0;
   overflow: hidden;
   text-overflow: ellipsis;
   text-shadow: 0 1px 3px rgba(0, 0, 0, .75);
   white-space: nowrap;
 }
 
-/* MORE ▾ text link */
+/* MORE ▾ button — positioned OUTSIDE pointer-events:none overlay on the card itself */
 .ab-card__open-btn {
+  background: none;
+  border: none;
+  bottom: .85rem;
   color: rgba(255, 255, 255, .7);
-  flex-shrink: 0;
+  cursor: pointer;
+  font: inherit;
   font-size: .68rem;
   font-weight: 700;
+  left: .9rem;
   letter-spacing: .06em;
-  pointer-events: auto;
-  text-decoration: none;
+  max-width: calc(100% - 56px); /* don't overlap action strip */
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  text-overflow: ellipsis;
   text-shadow: 0 1px 3px rgba(0, 0, 0, .8);
   text-transform: uppercase;
   transition: color .15s ease;
   white-space: nowrap;
-  z-index: 6;
+  z-index: 10;
 }
 
 .ab-card__open-btn:hover {
@@ -885,10 +881,15 @@
   color: #fff;
 }
 
-/* ---- Visible container — inherits recipe-vscroll styles, no height cap ---- */
-.ab-vscroll.recipe-vscroll {
+/* ---- Visible container — no height cap (except when ab-grid-scroll handles it) ---- */
+.ab-vscroll.recipe-vscroll:not(.ab-grid-scroll) {
   max-height: none;
   overflow: visible;
+}
+
+/* Grid scroll: overflow set here, max-height set by JS after cards render */
+.ab-vscroll.recipe-vscroll.ab-grid-scroll {
+  overflow-y: auto;
 }
 
 /* ---- Three-column editorial grid (≈30% smaller than 2-col) ---- */
@@ -1184,56 +1185,61 @@
 }
 
 /* ================================================================
-   Comments panel — fixed bottom drawer
+   Comments panel — popup that appears over the clicked card
    ================================================================ */
-.ab-cmt-panel {
+
+/* Scrim: full-screen dim overlay behind the panel */
+.ab-cmt-scrim {
+  background: rgba(0, 0, 0, .38);
+  cursor: pointer;
   inset: 0;
+  opacity: 0;
   position: fixed;
+  transition: opacity .22s ease;
+  z-index: 199;
+}
+
+.ab-cmt-scrim.is-open {
+  opacity: 1;
+}
+
+/* Panel: positioned by JS over the clicked card */
+.ab-cmt-panel {
+  background: var(--surface, #fff);
+  border-radius: var(--radius-md, 14px);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, .45);
+  display: flex;
+  flex-direction: column;
+  min-height: 320px;
+  min-width: 280px;
+  opacity: 0;
+  overflow: hidden;
+  position: fixed;
+  transform: scale(.96) translateY(6px);
+  transition: opacity .2s ease, transform .2s ease;
   z-index: 200;
 }
 
-.ab-cmt-panel[aria-hidden="true"] {
-  display: none;
+.ab-cmt-panel.is-open {
+  opacity: 1;
+  transform: scale(1) translateY(0);
 }
 
-.ab-cmt-panel__scrim {
-  background: rgba(0, 0, 0, .45);
-  cursor: pointer;
-  inset: 0;
-  position: absolute;
-}
-
-.ab-cmt-panel__drawer {
-  background: var(--surface, #fff);
-  border-radius: 20px 20px 0 0;
-  bottom: 0;
-  box-shadow: 0 -8px 40px rgba(0, 0, 0, .22);
-  display: flex;
-  flex-direction: column;
-  left: 0;
-  max-height: 70vh;
-  overflow: hidden;
-  position: absolute;
-  right: 0;
-  transform: translateY(105%);
-  transition: transform .3s cubic-bezier(.32, .72, 0, 1);
-}
-
-@media (min-width: 768px) {
-  .ab-cmt-panel__drawer {
-    left: 50%;
-    max-width: 680px;
-    right: auto;
-    transform: translate(-50%, 105%);
-    width: 100%;
+/* Mobile override: full-width bottom drawer */
+@media (max-width: 639px) {
+  .ab-cmt-panel {
+    border-radius: 20px 20px 0 0;
+    bottom: 0 !important;
+    left: 0 !important;
+    max-height: 72vh;
+    right: 0 !important;
+    top: auto !important;
+    transform: translateY(20px);
+    width: auto !important;
   }
-  .ab-cmt-panel.is-open .ab-cmt-panel__drawer {
-    transform: translate(-50%, 0);
+  .ab-cmt-panel.is-open {
+    transform: translateY(0);
   }
-}
-
-.ab-cmt-panel.is-open .ab-cmt-panel__drawer {
-  transform: translateY(0);
 }
 
 /* Panel header — sticky */
