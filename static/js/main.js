@@ -282,8 +282,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.querySelectorAll(".hero").forEach((hero) => {
       const bg = hero.querySelector(".hero__background");
-      const img = bg && bg.querySelector("img[src]");
-      if (!img) return;
+      if (!bg) return;
 
       const btn = document.createElement("button");
       btn.className = "hero-peek-btn";
@@ -294,8 +293,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
-        lightboxImg.src = img.currentSrc || img.src;
-        lightboxImg.alt = img.alt || "";
+        // Always read the currently active slide so the lightbox shows
+        // the right image when the hero switcher has been used.
+        const activeSlide = bg.querySelector(".hero__slide.is-active") || bg;
+        const activeImg = activeSlide.querySelector("img");
+        if (!activeImg) return;
+        lightboxImg.src = activeImg.currentSrc || activeImg.src;
+        lightboxImg.alt = activeImg.alt || "";
         lightbox.classList.add("hero-lightbox--open");
         document.body.style.overflow = "hidden";
         requestAnimationFrame(() => lightboxClose.focus());
@@ -304,12 +308,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const closeLightbox = () => {
       lightbox.classList.remove("hero-lightbox--open");
+      // Restore scroll immediately — do NOT rely on transitionend for this.
+      // transitionend can fire from a child element first (the img has its own
+      // transition: transform) or not fire at all under prefers-reduced-motion,
+      // which would leave body overflow stuck at "hidden" permanently.
+      document.body.style.overflow = "";
+      // Clear the img src after the fade-out finishes (memory optimisation).
+      // Guard with e.target === lightbox so the child img's transitionend
+      // bubbling up does not trigger the clear prematurely.
       lightbox.addEventListener(
         "transitionend",
-        () => {
-          if (!lightbox.classList.contains("hero-lightbox--open")) {
+        (e) => {
+          if (e.target === lightbox && !lightbox.classList.contains("hero-lightbox--open")) {
             lightboxImg.src = "";
-            document.body.style.overflow = "";
           }
         },
         { once: true },
