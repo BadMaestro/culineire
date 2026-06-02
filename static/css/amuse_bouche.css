@@ -227,7 +227,7 @@
 }
 
 .ab-card--detail {
-  background: #2a2017;
+  background: #f7f0e6;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
   margin-bottom: 0;
@@ -242,9 +242,9 @@
   width: 100%;
 }
 
-/* Subtle gradient bridging photo into the warm dark panel below */
+/* Gradient bridging photo into cream panel */
 .ab-card--detail .ab-card__photo::after {
-  background: linear-gradient(to bottom, transparent 45%, rgba(42, 32, 23, .72) 100%);
+  background: linear-gradient(to bottom, transparent 45%, rgba(247, 240, 230, .78) 100%);
   border-radius: 0;
   display: block;
 }
@@ -269,27 +269,27 @@
   right: auto;
 }
 
-/* Title: warm cream, clearly readable */
+/* Title: dark espresso, strong hierarchy */
 .ab-card--detail .ab-card__title {
-  color: #f4eadc;
+  color: #2e1a0a;
   font-weight: 700;
   text-shadow: none;
 }
 
-/* Author name: warm visible tone */
+/* Author name: warm medium brown */
 .ab-card--detail .ab-card__author-name {
-  color: #e0cfb8;
+  color: #7a5535;
   text-shadow: none;
 }
 
-/* Avatar: subtle golden border */
+/* Avatar: warm brown border */
 .ab-card--detail .ab-card__avatar {
-  border-color: rgba(200, 169, 110, .5);
+  border-color: rgba(120, 80, 30, .35);
 }
 
-/* Description scoped to dark detail panel */
+/* Description: warm readable brown */
 .ab-card--detail .ab-card__detail-desc {
-  color: #cdbb9f;
+  color: #6b5040;
   line-height: 1.65;
 }
 
@@ -306,10 +306,10 @@
 
 .ab-card--detail .ab-btn {
   backdrop-filter: none;
-  background: rgba(244, 234, 220, .1);
-  border: 1.5px solid rgba(200, 169, 110, .35);
+  background: rgba(42, 26, 10, .06);
+  border: 1.5px solid rgba(42, 26, 10, .18);
   border-radius: var(--radius-pill);
-  color: #e8d8b8;
+  color: #4a3020;
   filter: none;
   flex-direction: row;
   height: auto;
@@ -318,14 +318,14 @@
 }
 
 .ab-card--detail .ab-btn:hover {
-  background: rgba(217, 179, 108, .22);
-  border-color: #d9b36c;
-  color: #f4eadc;
+  background: rgba(200, 169, 110, .22);
+  border-color: #c8a96e;
+  color: #2e1a0a;
   transform: translateY(-1px);
 }
 
-.ab-card--detail .ab-btn--liked { border-color: #e03e3e; color: #e86666; }
-.ab-card--detail .ab-btn--saved { border-color: #c8a96e; color: #d9b36c; }
+.ab-card--detail .ab-btn--liked { border-color: #c0392b; color: #c0392b; }
+.ab-card--detail .ab-btn--saved { border-color: #b8892e; color: #b8892e; }
 .ab-card--detail .ab-btn__count { font-size: .75rem; }
 
 /* ---- Status banner ---- */
