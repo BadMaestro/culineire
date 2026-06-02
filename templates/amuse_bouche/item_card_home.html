@@ -23,13 +23,8 @@
     <p class="ab-home-card__title">{{ item.title }}</p>
   </div>
 
-  {# MORE button — bottom-right; hidden when sheet is open (CSS) #}
-  <button class="ab-home-card__more" type="button"
-          data-ab-more="{{ item.pk }}"
-          aria-expanded="false"
-          aria-label="More about {{ item.title }}">MORE&#x25BE;</button>
-
-  {# Slide-up sheet #}
+  {# Slide-up sheet — must come BEFORE MORE and CLOSE so the CSS general
+     sibling combinator (~) can hide MORE and reveal CLOSE when is-open fires #}
   <div class="ab-card__sheet" id="ab-sheet-{{ item.pk }}"
        role="dialog" aria-label="More info" aria-hidden="true">
     <div class="ab-sheet__body">
@@ -48,7 +43,13 @@
     </div>
   </div>
 
-  {# CLOSE — sibling of sheet, same position as MORE, they swap #}
+  {# MORE — hidden by CSS when sheet opens (.sheet.is-open ~ .ab-home-card__more) #}
+  <button class="ab-home-card__more" type="button"
+          data-ab-more="{{ item.pk }}"
+          aria-expanded="false"
+          aria-label="More about {{ item.title }}">MORE&#x25BE;</button>
+
+  {# CLOSE — shown by CSS when sheet opens (.sheet.is-open ~ .ab-home-card__close) #}
   <button class="ab-home-card__close" type="button"
           data-ab-close="{{ item.pk }}" aria-label="Close">CLOSE&nbsp;&#x25B4;</button>
 

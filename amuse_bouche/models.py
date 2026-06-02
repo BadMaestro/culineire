@@ -164,8 +164,16 @@ class AmuseBouche(models.Model):
     def card_image(self):
         if self.cover_image:
             return self.cover_image
-        first_gallery_image = self.gallery_images.filter(is_active=True).order_by("sort_order", "id").first()
-        return first_gallery_image.image if first_gallery_image else None
+        # Use prefetched gallery images (to_attr="active_gallery_images") when
+        # available — avoids an N+1 query on feed and home-page list views.
+        # Falls back to a direct DB hit on detail-page or ad-hoc access.
+        gallery = getattr(self, "active_gallery_images", None)
+        if gallery is None:
+            gallery = list(
+                self.gallery_images.filter(is_active=True).order_by("sort_order", "id")[:1]
+            )
+        first = gallery[0] if gallery else None
+        return first.image if first else None
 
     def generate_unique_slug(self) -> str:
         base_slug = slugify(self.title)[:200] or "amuse-bouche"
