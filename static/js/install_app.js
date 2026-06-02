@@ -87,6 +87,8 @@
 
   // ── Android / Chrome: native install prompt ─────────────────────────────────
   var deferredPrompt = null;
+  var installPromptRunning = false;
+  var lastTouchInstallAt = 0;
 
   window.addEventListener('beforeinstallprompt', function (e) {
     e.preventDefault();
@@ -102,16 +104,58 @@
   window.addEventListener('appinstalled', function () {
     hideBanner();
     deferredPrompt = null;
+    installPromptRunning = false;
   });
 
+  function resetInstallButton() {
+    installPromptRunning = false;
+    if (installBtn) {
+      installBtn.disabled = false;
+      installBtn.removeAttribute('aria-busy');
+    }
+  }
+
+  function runInstallPrompt(event) {
+    if (event && typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
+    if (!deferredPrompt || installPromptRunning || !installBtn) return;
+
+    installPromptRunning = true;
+    installBtn.disabled = true;
+    installBtn.setAttribute('aria-busy', 'true');
+
+    try {
+      var promptEvent = deferredPrompt;
+      Promise.resolve(promptEvent.prompt())
+        .then(function () {
+          return promptEvent.userChoice;
+        })
+        .then(function () {
+          deferredPrompt = null;
+          hideBanner();
+        })
+        .catch(resetInstallButton);
+    } catch (e) {
+      resetInstallButton();
+    }
+  }
+
   if (installBtn) {
-    installBtn.addEventListener('click', function () {
-      if (!deferredPrompt) return;
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(function () {
-        deferredPrompt = null;
-        hideBanner();
-      });
+    installBtn.addEventListener('pointerup', function (event) {
+      if (event.pointerType !== 'touch') return;
+      lastTouchInstallAt = Date.now();
+      runInstallPrompt(event);
+    });
+
+    installBtn.addEventListener('touchend', function (event) {
+      lastTouchInstallAt = Date.now();
+      runInstallPrompt(event);
+    }, { passive: false });
+
+    installBtn.addEventListener('click', function (event) {
+      if (Date.now() - lastTouchInstallAt < 800) return;
+      runInstallPrompt(event);
     });
   }
 
