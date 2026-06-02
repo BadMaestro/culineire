@@ -530,6 +530,12 @@
     object-fit: cover;
   }
 
+  /* Recipe detail: shift crop toward the lower part of the frame
+     where food subjects typically sit */
+  .hero--recipe-detail .hero__background img {
+    object-position: center 65%;
+  }
+
   .hero__overlay {
     z-index: 2;
     background:
