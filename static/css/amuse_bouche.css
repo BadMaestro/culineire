@@ -878,7 +878,7 @@
   flex-direction: column;
   gap: 5px;
   left: 0;
-  padding: 3rem .9rem .85rem;
+  padding: 3rem .9rem 2.2rem; /* extra bottom clears the MORE ▾ button */
   pointer-events: none;  /* pass through to cover-link */
   position: absolute;
   right: 48px;           /* leave room for action strip */
