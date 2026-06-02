@@ -47,7 +47,14 @@
                 {% if can_manage_recipe %}
                 <a class="btn-secondary" href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit Recipe</a>
                 {% endif %}
-                {% comment %}amuse-bouche generate button hidden temporarily{% endcomment %}
+                {% if can_generate_ab %}
+                <form action="{% url 'amuse_bouche:generate_from_recipe' recipe.slug %}" method="post" style="display:contents">
+                  {% csrf_token %}
+                  <button class="btn-secondary" type="submit">
+                    {% if recipe_ab_exists %}View Amuse-Bouche{% else %}Generate Amuse-Bouche{% endif %}
+                  </button>
+                </form>
+                {% endif %}
             </div>
         </div>
     {% if recipe.image_rights_status == 'ai_generated' %}<span aria-label="AI generated image" class="ai-image-badge ai-image-badge--watermark">AI</span>{% endif %}
