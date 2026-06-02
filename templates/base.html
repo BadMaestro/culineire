@@ -111,6 +111,18 @@
 
         <nav aria-label="Primary" class="ce-nav" id="ce-primary-navigation">
             <div class="ce-nav__menu">
+                {% if can_view_amuse_bouche_public_area %}
+                {% if namespace == 'amuse_bouche' %}
+                <a class="ce-nav__link ce-nav__link--active" href="{% url 'amuse_bouche:feed' %}" aria-current="page">
+                    Amuse-Bouche
+                </a>
+                {% else %}
+                <a class="ce-nav__link" href="{% url 'amuse_bouche:feed' %}">
+                    Amuse-Bouche
+                </a>
+                {% endif %}
+                <span aria-hidden="true" class="ce-nav__separator"></span>
+                {% endif %}
                 {% if namespace == 'recipes' %}
                 <a class="ce-nav__link ce-nav__link--active" href="{% url 'recipes:recipe_list' %}" aria-current="page">
                     Recipes
@@ -143,18 +155,6 @@
                     Chef Battle
                 </a>
                 {% endif %}
-                {% endif %}
-                {% endif %}
-                {% if can_view_amuse_bouche_public_area %}
-                <span aria-hidden="true" class="ce-nav__separator"></span>
-                {% if namespace == 'amuse_bouche' %}
-                <a class="ce-nav__link ce-nav__link--active" href="{% url 'amuse_bouche:feed' %}" aria-current="page">
-                    Amuse-Bouche
-                </a>
-                {% else %}
-                <a class="ce-nav__link" href="{% url 'amuse_bouche:feed' %}">
-                    Amuse-Bouche
-                </a>
                 {% endif %}
                 {% endif %}
                 <span aria-hidden="true" class="ce-nav__separator"></span>
@@ -347,7 +347,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v1.6.94</span>
+                <span class="footer-version">v1.6.95</span>
             </div>
         </div>
     </div>
