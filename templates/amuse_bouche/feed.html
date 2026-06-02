@@ -9,56 +9,89 @@
 {% endblock %}
 
 {% block content %}
-<div class="ab-page">
 
-    {# Hero #}
-    <section class="hero hero--home hero--amuse-bouche">
-        <div aria-hidden="true" class="hero__background">
-            <img alt="" src="{% static 'images/hero-amuse-bouche.png' %}">
-        </div>
-        <div aria-hidden="true" class="hero__overlay"></div>
-        <div class="container hero__inner">
-            <div class="hero-copy">
-                <h1 class="hero-title">Amuse-Bouche</h1>
-                <p class="hero-subtitle">Small bites, big ideas from the CulinEire kitchen.</p>
-                <div class="ab-filter-bar">
-                    <nav class="ab-filters" aria-label="Amuse-Bouche filters">
-                        <a class="ab-filter{% if not active_content_type %} ab-filter--active{% endif %}"
-                           href="{% url 'amuse_bouche:feed' %}">All</a>
-                        {% for value, label in content_type_choices %}
-                        <a class="ab-filter{% if active_content_type == value %} ab-filter--active{% endif %}"
-                           href="?type={{ value }}">{{ label }}</a>
-                        {% endfor %}
-                    </nav>
-                </div>
-                <div class="hero__actions">
-                    {% if user.is_authenticated %}
-                    <a class="btn-primary" href="{% url 'amuse_bouche:create' %}">Share a Bite +</a>
-                    {% endif %}
-                    <a class="btn-primary" href="{% url 'recipes:recipe_list' %}">Explore Recipes</a>
-                    <a class="btn-primary" href="{% url 'articles:article_list' %}">Read Articles</a>
-                </div>
+{# ── Hero ── #}
+<section class="hero hero--home hero--amuse-bouche">
+    <div aria-hidden="true" class="hero__background">
+        <img alt="" src="{% static 'images/hero-amuse-bouche.png' %}">
+    </div>
+    <div aria-hidden="true" class="hero__overlay"></div>
+    <div class="container hero__inner">
+        <div class="hero-copy">
+            <span class="pill">Kitchen Notes</span>
+            <h1 class="hero-title">Amuse-Bouche</h1>
+            <p class="hero-subtitle">Small bites, big ideas from the CulinEire kitchen.</p>
+            <div class="hero__actions">
+                {% if user.is_authenticated %}
+                <a class="btn-primary" href="{% url 'amuse_bouche:create' %}">Share a Bite +</a>
+                {% endif %}
+                <a class="btn-primary" href="{% url 'recipes:recipe_list' %}">Explore Recipes</a>
+                <a class="btn-primary" href="{% url 'articles:article_list' %}">Read Articles</a>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    {# Feed #}
-    {% if items %}
-    <div class="ab-feed" role="list" aria-label="Amuse-Bouche posts">
-        {% for item in items %}
-        <div class="ab-feed__item" role="listitem">
-            {% include "amuse_bouche/item_card.html" with item=item liked_ids=liked_ids saved_ids=saved_ids followed_author_ids=followed_author_ids %}
+{# ── Content section ── #}
+<section class="page-section recipe-list-page">
+    <div class="container recipe-list-stack">
+
+        {# Category nav — dot-separated, articles style #}
+        {% if content_type_choices %}
+        <div class="category-nav-block" data-category-toggle>
+            <div class="category-nav-wrap" data-category-wrap>
+                <nav aria-label="Amuse-Bouche categories" class="category-nav" data-category-nav>
+                    {% if not active_content_type %}
+                    <span class="category-nav__item category-nav__item--active">All</span>
+                    {% else %}
+                    <a class="category-nav__item category-nav__link" href="{% url 'amuse_bouche:feed' %}">All</a>
+                    {% endif %}
+                    {% for value, label in content_type_choices %}
+                    <span aria-hidden="true" class="category-nav__separator">&middot;</span>
+                    {% if active_content_type == value %}
+                    <span class="category-nav__item category-nav__item--active">{{ label }}</span>
+                    {% else %}
+                    <a class="category-nav__item category-nav__link" href="?type={{ value }}">{{ label }}</a>
+                    {% endif %}
+                    {% endfor %}
+                </nav>
+            </div>
+            <button aria-expanded="false" aria-label="View all categories"
+                    class="category-nav-toggle" data-category-button hidden type="button">
+                <span aria-hidden="true" class="category-nav-toggle__icon category-nav-toggle__icon--left">&#8964;</span>
+                <span class="category-nav-toggle__label" data-category-button-label>View All</span>
+                <span aria-hidden="true" class="category-nav-toggle__icon">&#8964;</span>
+            </button>
         </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <div class="ab-empty ab-empty--page">
-        <p class="ab-empty__text">No bites yet. Share the first small kitchen idea.</p>
-        {% if user.is_authenticated %}
-        <a class="ab-page-cta" href="{% url 'amuse_bouche:create' %}">Share a Bite</a>
         {% endif %}
-    </div>
-    {% endif %}
 
-</div>
+        {# Feed grid #}
+        {% if items %}
+        <section aria-labelledby="ab-feed-title" class="recipe-list-section">
+            <div class="page-header page-header--with-gap">
+                <div>
+                    <h2 id="ab-feed-title">
+                        {% if active_content_type %}{% for value, label in content_type_choices %}{% if value == active_content_type %}{{ label }}{% endif %}{% endfor %}{% else %}All Bites{% endif %}
+                    </h2>
+                </div>
+            </div>
+            <div class="ab-grid">
+                {% for item in items %}
+                {% include "amuse_bouche/item_card.html" with item=item liked_ids=liked_ids saved_ids=saved_ids followed_author_ids=followed_author_ids %}
+                {% endfor %}
+            </div>
+        </section>
+        {% else %}
+        <div class="empty-state">
+            <h2>No bites yet</h2>
+            <p>No approved Amuse-Bouche posts yet. Be the first to share a small kitchen idea.</p>
+            {% if user.is_authenticated %}
+            <a class="btn-primary" href="{% url 'amuse_bouche:create' %}">Share a Bite +</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+
 {% endblock %}

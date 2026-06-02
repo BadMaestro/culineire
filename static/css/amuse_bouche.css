@@ -531,8 +531,8 @@
   transition: box-shadow .25s ease, transform .25s ease;
 }
 
-/* Portrait aspect ratio in the feed; home grid overrides to 4/3 */
-.ab-feed .ab-card {
+/* Portrait aspect ratio in the main grid; home grid overrides to 4/3 */
+.ab-grid .ab-card {
   aspect-ratio: 3 / 4;
   margin-bottom: 0;
 }
@@ -800,13 +800,18 @@
   color: #fff;
 }
 
-/* ---- Feed column ---- */
-.ab-feed {
+/* ---- Two-column editorial grid ---- */
+.ab-grid {
+  display: grid;
   gap: 1.5rem;
-  padding-inline: 1.25rem;
+  grid-template-columns: repeat(2, 1fr);
 }
 
-.ab-feed__item { width: 100%; }
+@media (max-width: 540px) {
+  .ab-grid {
+    grid-template-columns: 1fr;
+  }
+}
 
 /* ---- Empty state (dark page context) ---- */
 .ab-empty--page {
