@@ -40,10 +40,12 @@
     object-position: 55% center;
   }
 
-  /* Hide the Photo peek button on mobile — it conflicts visually
-     with the centred pill and the switcher already handles images */
+  /* On mobile, move the peek button away from the top (where it
+     overlaps the centred pill) — anchor it just above the dot row */
   .hero--home .hero-peek-btn {
-    display: none;
+    top: auto;
+    bottom: 2.8rem;
+    right: 0.75rem;
   }
 
   /* Extra bottom padding so the dot switcher never overlaps the
