@@ -16,12 +16,12 @@
 
     --detail-shadow-soft: 0 8px 20px rgb(20 33 43 / 0.04);
     --detail-shadow-card-hover: 0 12px 24px rgb(20 33 43 / 0.12);
-    --detail-shadow-button: 0 14px 28px rgb(15 79 54 / 0.18);
-    --detail-shadow-button-hover: 0 16px 32px rgb(15 79 54 / 0.22);
+    --detail-shadow-button: 0 14px 28px rgb(139 115 85 / 0.22);
+    --detail-shadow-button-hover: 0 16px 32px rgb(139 115 85 / 0.30);
 
-    --detail-green-1: #166645;
-    --detail-green-2: #0f4f36;
-    --detail-green-3: #0b3f2b;
+    --detail-green-1: #a8874e;
+    --detail-green-2: #8b6e3a;
+    --detail-green-3: #6e5830;
 
     --detail-text-main: #24313a;
     --detail-text-secondary: #223038;
@@ -54,9 +54,9 @@
     --detail-topbar-pill-padding-block: 0.52rem;
 
     --detail-focus-outline-width: 2px;
-    --detail-focus-outline-color: rgb(22 102 69 / 0.45);
+    --detail-focus-outline-color: rgb(168 135 78 / 0.55);
     --detail-focus-outline-offset: 2px;
-    --detail-focus-ring: 0 0 0 4px rgb(22 102 69 / 0.1);
+    --detail-focus-ring: 0 0 0 4px rgb(168 135 78 / 0.12);
   }
 }
 
@@ -103,12 +103,12 @@
   }
 
   .site-message--success {
-    border-color: rgb(22 102 69 / 0.18);
+    border-color: rgb(168 135 78 /0.18);
     border-inline-start-width: 4px;
     background:
-      linear-gradient(135deg, rgb(22 102 69 / 0.14), rgb(22 102 69 / 0.07));
+      linear-gradient(135deg, rgb(168 135 78 /0.14), rgb(168 135 78 /0.07));
     box-shadow:
-      0 12px 24px rgb(22 102 69 / 0.08),
+      0 12px 24px rgb(168 135 78 /0.08),
       inset 0 1px 0 rgb(255 255 255 / 0.35);
   }
 
@@ -471,7 +471,7 @@
   }
 
   .detail-page__author-link:focus-visible {
-    outline-color: rgb(22 102 69 / 0.32);
+    outline-color: rgb(168 135 78 /0.32);
     outline-offset: 3px;
     border-radius: 999px;
   }
@@ -563,7 +563,7 @@
   .recipe-gallery:focus-visible {
     outline-color: var(--detail-focus-outline-color);
     box-shadow:
-      inset 0 0 0 2px rgb(22 102 69 / 0.24),
+      inset 0 0 0 2px rgb(168 135 78 /0.24),
       var(--detail-focus-ring);
   }
 
@@ -1084,7 +1084,7 @@
   .ingredient-check__input:checked + .ingredient-check__box {
     background: linear-gradient(135deg, var(--detail-green-1) 0%, var(--detail-green-2) 100%);
     border-color: var(--detail-green-1);
-    box-shadow: 0 6px 14px rgb(15 79 54 / 0.16);
+    box-shadow: 0 6px 14px rgb(139 115 85 /0.16);
   }
 
   .ingredient-check__input:checked + .ingredient-check__box::after {
@@ -1167,7 +1167,7 @@
     font-size: 0.72rem;
     line-height: 1;
     font-weight: 700;
-    box-shadow: 0 6px 12px rgb(15 79 54 / 0.14);
+    box-shadow: 0 6px 12px rgb(139 115 85 /0.14);
   }
 
   .method-steps__body {
@@ -1422,10 +1422,10 @@
     align-items: center;
     padding-block: 0.55rem;
     padding-inline: 1.4rem;
-    background: var(--brand);
+    background: #a8874e;
     color: #fff;
     border: none;
-    border-radius: var(--detail-radius-base);
+    border-radius: var(--detail-radius-pill);
     font: inherit;
     font-size: 0.85rem;
     font-weight: 700;
@@ -1436,7 +1436,7 @@
   }
 
   .comment-compose__submit:hover {
-    background: color-mix(in srgb, var(--brand) 82%, #000);
+    background: #8b6e3a;
   }
 
   .comment-compose__submit:active {
@@ -1974,8 +1974,8 @@
 
   .detail-page__source-link:hover,
   .detail-page__source-link:focus-visible {
-    border-color: rgb(22 102 69 / 0.24);
-    background: rgb(22 102 69 / 0.06);
+    border-color: rgb(168 135 78 /0.24);
+    background: rgb(168 135 78 /0.06);
     text-decoration: none;
   }
 
@@ -2029,8 +2029,8 @@
   }
 
   .allergen-check--present {
-    border-color: rgb(22 102 69 / 0.18);
-    background: rgb(22 102 69 / 0.08);
+    border-color: rgb(168 135 78 /0.18);
+    background: rgb(168 135 78 /0.08);
   }
 
   .allergen-check__box {
@@ -2048,7 +2048,7 @@
   .allergen-check--present .allergen-check__box {
     background: linear-gradient(135deg, var(--detail-green-1) 0%, var(--detail-green-2) 100%);
     border-color: var(--detail-green-1);
-    box-shadow: 0 6px 14px rgb(15 79 54 / 0.16);
+    box-shadow: 0 6px 14px rgb(139 115 85 /0.16);
   }
 
   .allergen-check--present .allergen-check__box::after {
@@ -2145,7 +2145,7 @@
   .recipe-form__field input:focus-visible,
   .recipe-form__field textarea:focus-visible {
     outline-color: var(--detail-focus-outline-color);
-    border-color: rgb(22 102 69 / 0.44);
+    border-color: rgb(168 135 78 /0.44);
     box-shadow: var(--detail-focus-ring);
   }
 
@@ -2202,7 +2202,7 @@
 
   .detail-button--secondary:hover,
   .detail-button--secondary:focus-visible {
-    background: rgb(22 102 69 / 0.06);
+    background: rgb(168 135 78 /0.06);
     box-shadow: none;
     filter: none;
   }
@@ -2289,13 +2289,13 @@
     border-color: var(--detail-green-1);
     background: linear-gradient(135deg, var(--detail-green-1), var(--detail-green-2));
     color: #ffffff;
-    box-shadow: 0 6px 16px rgb(22 102 69 / 0.28);
+    box-shadow: 0 6px 16px rgb(168 135 78 /0.28);
     transform: translateY(-2px);
   }
 
   .rating-form__option span:hover {
     border-color: var(--detail-green-1);
-    background: rgb(22 102 69 / 0.07);
+    background: rgb(168 135 78 /0.07);
     color: var(--detail-green-1);
     transform: translateY(-1px);
   }
@@ -3575,7 +3575,7 @@
   padding-block: 1rem;
   padding-inline: 1.5rem;
   margin-block: 2rem;
-  background: rgb(22 102 69 / 0.04);
+  background: rgb(168 135 78 /0.04);
   border-radius: 0 10px 10px 0;
 }
 
@@ -3763,8 +3763,8 @@
 }
 
 .editorial-checklist__icon--ok {
-  background: rgb(22 102 69 / 0.12);
-  color: #166645;
+  background: rgb(168 135 78 /0.12);
+  color: #a8874e;
 }
 
 .editorial-checklist__icon--warn {
