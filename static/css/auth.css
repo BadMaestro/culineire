@@ -491,8 +491,7 @@
 }
 
 .btn--not-ready,
-.authoring-submit.btn--not-ready,
-.detail-button.btn--not-ready {
+.authoring-submit.btn--not-ready {
     background: rgb(160 35 35 / 0.13);
     color: rgb(140 30 30 / 0.88);
     box-shadow: none;
@@ -501,9 +500,23 @@
 }
 
 .btn--not-ready:hover,
-.authoring-submit.btn--not-ready:hover,
-.detail-button.btn--not-ready:hover {
+.authoring-submit.btn--not-ready:hover {
     background: rgb(160 35 35 / 0.2);
+    transform: none;
+}
+
+/* detail-button not-ready: muted warm pill — stays visible, not transparent */
+.detail-button.btn--not-ready {
+    background: rgb(58 44 30 / 0.14);
+    color: rgb(58 44 30 / 0.45);
+    box-shadow: none;
+    filter: none;
+    transition: background 0.18s ease;
+}
+
+.detail-button.btn--not-ready:hover {
+    background: rgb(58 44 30 / 0.2);
+    color: rgb(58 44 30 / 0.6);
     transform: none;
 }
 

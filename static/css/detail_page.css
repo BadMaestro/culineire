@@ -1416,7 +1416,9 @@
     font-weight: 700;
   }
 
-  .comment-compose__submit {
+  /* Force visible gold pill at all times — overrides .detail-button base and
+     all btn--ready / btn--not-ready states via chained selector specificity */
+  .comment-compose .comment-compose__submit {
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
@@ -1432,14 +1434,16 @@
     letter-spacing: 0.05em;
     text-transform: uppercase;
     cursor: pointer;
-    transition: background 140ms ease, transform 80ms ease;
+    box-shadow: 0 4px 14px rgb(168 135 78 / 0.28);
+    transition: background 140ms ease, transform 80ms ease, box-shadow 140ms ease;
   }
 
-  .comment-compose__submit:hover {
+  .comment-compose .comment-compose__submit:hover {
     background: #8b6e3a;
+    box-shadow: 0 6px 18px rgb(168 135 78 / 0.38);
   }
 
-  .comment-compose__submit:active {
+  .comment-compose .comment-compose__submit:active {
     transform: scale(0.97);
   }
 
