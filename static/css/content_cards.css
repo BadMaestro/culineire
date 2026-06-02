@@ -236,13 +236,7 @@
 }
 
 .recipe-list-page .recipe-card__image-wrapper {
-  aspect-ratio: 2 / 1;
-}
-
-/* Homepage carousels: square image crop, like AB cards */
-.recipe-grid--home .recipe-card__image-wrapper {
   aspect-ratio: 1 / 1;
-  border-radius: 14px 14px 0 0;
 }
 
 .recipe-list-page .recipe-card__body {
@@ -561,7 +555,7 @@
 .recipe-card__image-wrapper {
   position: relative;
   display: block;
-  aspect-ratio: 4 / 2.6;
+  aspect-ratio: 1 / 1;
   overflow: hidden;
   background: var(--surface-soft, #f5eee4);
 }
@@ -1334,7 +1328,7 @@
   }
 
   .hero--articles + .recipe-list-page .recipe-grid--carousel .recipe-card__image-wrapper {
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 1 / 1;
   }
 
   .hero--articles + .recipe-list-page .recipe-vscroll {
@@ -1355,7 +1349,7 @@
 
   .hero--articles + .recipe-list-page .recipe-grid--mini .recipe-card__image-wrapper {
     height: auto;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 1 / 1;
   }
 
   .hero--articles + .recipe-list-page .recipe-grid--mini .recipe-card__title {
@@ -1495,7 +1489,7 @@
   }
 
   .hero--recipes + .recipe-list-page .recipe-grid--carousel .recipe-card__image-wrapper {
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 1 / 1;
   }
 
   .hero--recipes + .recipe-list-page .recipe-vscroll {
@@ -1516,7 +1510,7 @@
 
   .hero--recipes + .recipe-list-page .recipe-grid--mini .recipe-card__image-wrapper {
     height: auto;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 1 / 1;
   }
 
   .hero--recipes + .recipe-list-page .recipe-grid--mini .recipe-card__title {
