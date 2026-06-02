@@ -21,6 +21,7 @@
     let animationTimer = null;
     let pendingIndex = null;
     let touchStartX = 0;
+    let touchStartY = 0;
 
     function clampIndex(index) {
         return Math.min(Math.max(index, 0), totalItems - 1);
@@ -136,6 +137,7 @@
         "touchstart",
         function (event) {
             touchStartX = event.touches[0].clientX;
+            touchStartY = event.touches[0].clientY;
         },
         { passive: true }
     );
@@ -144,9 +146,11 @@
         "touchend",
         function (event) {
             const touchEndX = event.changedTouches[0].clientX;
+            const touchEndY = event.changedTouches[0].clientY;
             const deltaX = touchStartX - touchEndX;
+            const deltaY = touchStartY - touchEndY;
 
-            if (Math.abs(deltaX) < SWIPE_THRESHOLD_PX) {
+            if (Math.abs(deltaX) < SWIPE_THRESHOLD_PX || Math.abs(deltaY) > Math.abs(deltaX)) {
                 return;
             }
 

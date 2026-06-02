@@ -2470,17 +2470,25 @@
     }
 
     .recipe-gallery__item {
-      transition:
-        opacity var(--detail-gallery-transition),
-        transform var(--detail-gallery-transition);
+      width: 100%;
+      transform: translate(-50%, -50%) scale(1);
+      transition: opacity 160ms ease;
+      will-change: auto;
     }
 
-    .recipe-gallery__item.is-current {
+    .recipe-gallery__item.is-current,
+    .recipe-gallery__item.is-prev,
+    .recipe-gallery__item.is-next,
+    .recipe-gallery__item.is-far-prev,
+    .recipe-gallery__item.is-far-next {
       width: 100%;
+      transform: translate(-50%, -50%) scale(1);
     }
 
     .recipe-gallery__item.is-prev,
-    .recipe-gallery__item.is-next {
+    .recipe-gallery__item.is-next,
+    .recipe-gallery__item.is-far-prev,
+    .recipe-gallery__item.is-far-next {
       opacity: 0;
       pointer-events: none;
     }
