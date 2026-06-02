@@ -14,7 +14,7 @@
 <section class="page-section ab-detail-section">
     <div class="container ab-detail">
 
-        <a class="ab-back-link" href="{% url 'amuse_bouche:feed' %}">&larr; Back to Amuse-Bouche</a>
+        {% if can_view_ab_public %}<a class="ab-back-link" href="{% url 'amuse_bouche:feed' %}">&larr; Back to Amuse-Bouche</a>{% endif %}
 
         {# Status banner — visible to author and moderators when item is not yet approved #}
         {% if item.status != 'approved' and can_edit %}

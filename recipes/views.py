@@ -395,32 +395,29 @@ def _build_amuse_bouche_roadmap_status():
             "id": "phase-10",
             "phase": "Phase 10",
             "title": "Social Card and Engagement",
-            "status": "not_started",
-            "summary": "Instagram-style card layout with follow system, comments and emoji-decorated captions.",
-            "done": [],
-            "current": [
-                "Designing Instagram-style card: author header, social actions bar, liked-by avatars, caption with emoji.",
-            ],
-            "remaining": [
-                "AuthorFollow model in collection app — reuses collection infrastructure (get_or_create + toggle pattern).",
-                "AmuseBoucheComment model in amuse_bouche app — reuses RecipeCommentForm validation (profanity, honeypot).",
-                "Emoji decoration templatetag (keyword-to-emoji dict applied to short_description at render time).",
-                "Card header: circular author avatar, name link, timesince date, Follow/Following button, three-dot dropdown menu.",
-                "Three-dot menu: View post, Copy link, About author, Author recipes, Save to favourites.",
-                "Social actions bar: Like (heart, filled when liked), Comment (bubble + count), Share (copy link), Save (bookmark, filled when saved).",
-                "Liked-by row: up to 3 stacked RecipeAuthor avatars + 'Liked by Name and N others' text.",
-                "Caption: bold author name + post title + emoji-decorated description (truncated on feed, full on detail).",
-                "Comments section on detail page: reuses detail_page.css comment-compose classes and RecipeCommentForm.",
-                "toggle_follow view in collection/views.py — same pattern as add_recipe/remove_recipe.",
+            "status": "done",
+            "summary": "Snap-scroll card layout with author overlay, follow system, comments, likes, saves and emoji-decorated captions are complete.",
+            "done": [
+                "AuthorFollow model in collection app — get_or_create + toggle pattern.",
+                "AmuseBoucheComment model in amuse_bouche app — profanity filter, honeypot, soft delete.",
+                "Photo-dominant snap-scroll card: full-bleed image, author avatar overlay, dark info strip.",
+                "Social actions bar: Like (heart, filled when liked), Comment (bubble + count), Share (copy link), Save (bookmark).",
+                "Liked-by row: up to 3 stacked RecipeAuthor avatars per item.",
+                "Caption: post title + emoji-decorated description in info strip.",
+                "Comments section on detail page with compose form.",
+                "toggle_follow view in collection/views.py.",
                 "submit_ab_comment and delete_ab_comment views in amuse_bouche/views.py.",
-                "Feed and detail views: attach top_likers to each item, compute followed_ids, pass comment_form.",
+                "Feed and detail views compute followed_ids and top likers.",
+                "Emoji description is now opt-in — generated via management commands, not on save().",
+                "Regression tests: 31 tests, all passing, no external API calls during test runs.",
             ],
+            "current": [],
+            "remaining": [],
             "files": [
                 "collection/models.py", "collection/views.py", "collection/urls.py",
                 "amuse_bouche/models.py", "amuse_bouche/views.py", "amuse_bouche/urls.py",
-                "amuse_bouche/templatetags/ab_tags.py",
                 "templates/amuse_bouche/item_card.html", "templates/amuse_bouche/detail.html",
-                "static/css/amuse_bouche.css",
+                "static/css/amuse_bouche.css", "amuse_bouche/tests.py",
             ],
         },
         {
@@ -468,9 +465,8 @@ def _build_amuse_bouche_roadmap_status():
     }
     blocked_items = [
         "Full test suite has an existing recipe rating failure unrelated to Amuse-Bouche.",
-        "Social card phase (Phase 10) must be complete before public launch.",
     ]
-    current_phase = next((phase for phase in mvp_phases if phase["current"]), phases[9])
+    current_phase = next((phase for phase in mvp_phases if phase["current"]), phases[10])
     weighted_done = sum(progress_weight.get(phase["status"], 0) for phase in mvp_phases)
     percent = round((weighted_done / len(mvp_phases)) * 100) if mvp_phases else 0
     return {
@@ -480,13 +476,13 @@ def _build_amuse_bouche_roadmap_status():
         "total_count": len(mvp_phases),
         "percent": percent,
         "current_phase": current_phase,
-        "progress_scope": "Social card and engagement phase next before public launch. Video deferred.",
+        "progress_scope": "Phase 10 complete. Public launch (Phase 11) is the only remaining step — flip AMUSE_BOUCHE_PUBLIC=True.",
         "blocked_items": blocked_items,
         "next_steps": [
-            "Build Phase 10: AuthorFollow + AmuseBoucheComment models and migrations.",
-            "Redesign item_card.html to Instagram-style layout.",
-            "Add emoji templatetag, follow toggle, comment submit/delete views.",
-            "After Phase 10: flip AMUSE_BOUCHE_PUBLIC=True and launch.",
+            "Set AMUSE_BOUCHE_PUBLIC=True in production .env.",
+            "Restart Unit after env change.",
+            "Post a launch newsfeed entry.",
+            "Monitor for any edge-case issues in first 24 hours.",
         ],
         "future_notes": [
             "Amuse-Bouche content model and reaction foundations are compatible with Chef Battle (future feature).",

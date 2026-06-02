@@ -132,7 +132,7 @@ class AmuseBouche(models.Model):
     seo_description = models.CharField(max_length=255, blank=True)
     emoji_description = models.TextField(
         blank=True,
-        help_text="Auto-generated emoji-decorated description (via Anthropic API). Edit freely.",
+        help_text="Emoji-decorated description shown in the feed card. Generate via admin action or management command; edit freely.",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -177,8 +177,13 @@ class AmuseBouche(models.Model):
             counter += 1
         return slug
 
-    def _generate_emoji_description(self) -> None:
-        """Call Anthropic API via raw urllib to produce an emoji-decorated description. Fails silently."""
+    def generate_emoji_description(self) -> None:
+        """
+        Call Anthropic API via raw urllib to produce an emoji-decorated description. Fails silently.
+
+        This is an opt-in, explicit call only — never invoked automatically during save().
+        Call it from management commands, admin actions, or generation workflows, then save separately.
+        """
         import json
         from urllib.request import Request, urlopen
 
@@ -218,7 +223,7 @@ class AmuseBouche(models.Model):
                 body = json.loads(response.read().decode("utf-8"))
             self.emoji_description = body["content"][0]["text"].strip()
         except Exception as exc:
-            logger.warning("AmuseBouche emoji_description generation failed: %s", exc)
+            logger.warning("AmuseBouche.generate_emoji_description failed: %s", exc)
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -227,8 +232,6 @@ class AmuseBouche(models.Model):
             self.media_folder = unique_media_folder_for_amuse_bouche(self)
         if self.status == self.Status.APPROVED and not self.published_at:
             self.published_at = timezone.now()
-        if not self.emoji_description and (self.short_description or self.title):
-            self._generate_emoji_description()
         super().save(*args, **kwargs)
 
 

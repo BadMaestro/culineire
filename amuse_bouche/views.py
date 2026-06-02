@@ -173,6 +173,7 @@ def detail(request, slug):
         "can_moderate": can_moderate,
         "can_edit": can_edit,
         "comments": comments,
+        "can_view_ab_public": can_view_amuse_bouche_public_area(request.user),
     })
 
 
@@ -198,6 +199,12 @@ class AmuseBoucheCreateView(AuthorRequiredMixin, CreateView):
     def get_success_url(self):
         return self.object.get_absolute_url()
 
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        # Cancel falls back to author profile — feed is gated for non-staff/non-moderator authors.
+        ctx["cancel_url"] = self.author.get_absolute_url()
+        return ctx
+
 
 @method_decorator(login_required, name="dispatch")
 class AmuseBoucheUpdateView(AuthorRequiredMixin, UpdateView):
@@ -222,6 +229,12 @@ class AmuseBoucheUpdateView(AuthorRequiredMixin, UpdateView):
         response = super().form_valid(form)
         messages.success(self.request, "Amuse-Bouche updated.")
         return response
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        # Cancel goes back to the item detail — always safe since the author can preview their own posts.
+        ctx["cancel_url"] = self.object.get_absolute_url()
+        return ctx
 
 
 def _safe_next(request, fallback):

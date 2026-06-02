@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -405,3 +407,146 @@ class AmuseBoucheGenerateFromArticleTests(TestCase):
             AmuseBouche.objects.filter(linked_article=self.article).exclude(status=AmuseBouche.Status.ARCHIVED).count(),
             1,
         )
+
+
+@override_settings(TELEGRAM_BOT_TOKEN="", TELEGRAM_CHANNEL_ID="", ANTHROPIC_API_KEY="")
+class AmuseBoucheRegressionTests(TestCase):
+    """
+    Regression tests for the five quality fixes applied after Phase 10 completion:
+
+    1. AmuseBouche.save() must never call the Anthropic API (emoji_description is opt-in).
+    2. Public AB links stay hidden while AMUSE_BOUCHE_PUBLIC=False.
+    3. Cancel link on the form resolves to a safe URL (author profile or item detail), not the gated feed.
+    4. Back link on the detail page is suppressed when the user cannot access the feed.
+    5. Authors can create/edit/preview pending bites without hitting the gated feed.
+    """
+
+    def setUp(self):
+        user_model = get_user_model()
+        self.author_user = user_model.objects.create_user(username="reg_author", password="pass")
+        self.plain_user = user_model.objects.create_user(username="reg_plain", password="pass")
+        self.author = RecipeAuthor.objects.create(
+            user=self.author_user,
+            name="Reg Author",
+            slug="reg-author",
+        )
+
+    def _create_item(self, title="Bite", status=AmuseBouche.Status.PENDING):
+        return AmuseBouche.objects.create(
+            author=self.author,
+            title=title,
+            short_description="A quick bite.",
+            status=status,
+        )
+
+    # ── Regression 1: save() must not call Anthropic ──────────────────────────
+
+    def test_save_does_not_call_anthropic_api(self):
+        """Creating or updating an AmuseBouche must never invoke generate_emoji_description automatically."""
+        with patch.object(AmuseBouche, "generate_emoji_description") as mock_gen:
+            item = AmuseBouche.objects.create(
+                author=self.author,
+                title="No API Bite",
+                short_description="Should not trigger API.",
+                status=AmuseBouche.Status.PENDING,
+            )
+            mock_gen.assert_not_called()
+
+            item.short_description = "Updated text."
+            item.save(update_fields=["short_description"])
+            mock_gen.assert_not_called()
+
+    def test_generate_emoji_description_is_explicit_call_only(self):
+        """Calling generate_emoji_description() explicitly with no API key fails silently and leaves field blank."""
+        item = self._create_item()
+        item.generate_emoji_description()  # ANTHROPIC_API_KEY="" via @override_settings
+        self.assertEqual(item.emoji_description, "")  # Fails silently, field unchanged
+
+    # ── Regression 2: public CTA links stay hidden when gated ─────────────────
+
+    def test_anonymous_user_sees_no_ab_cta_on_homepage(self):
+        """Homepage AB CTA must be absent for anonymous users while AMUSE_BOUCHE_PUBLIC=False."""
+        response = self.client.get(reverse("home"))
+        self.assertNotContains(response, reverse("amuse_bouche:feed"))
+
+    def test_plain_authenticated_user_sees_no_ab_cta_on_homepage(self):
+        """Regular logged-in user (not staff/moderator) must not see the AB feed link when gated."""
+        self.client.force_login(self.plain_user)
+        response = self.client.get(reverse("home"))
+        self.assertNotContains(response, reverse("amuse_bouche:feed"))
+
+    def test_staff_user_sees_ab_nav_link_before_public_launch(self):
+        """Staff users can see the AB nav link even before public launch."""
+        self.author_user.is_staff = True
+        self.author_user.save(update_fields=["is_staff"])
+        self.client.force_login(self.author_user)
+        response = self.client.get(reverse("home"))
+        self.assertContains(response, reverse("amuse_bouche:feed"))
+
+    # ── Regression 3: Cancel link on the form is safe ─────────────────────────
+
+    def test_create_form_cancel_url_is_author_profile_not_feed(self):
+        """On the create form, cancel_url must be the author profile, not the gated feed."""
+        self.client.force_login(self.author_user)
+        response = self.client.get(reverse("amuse_bouche:create"))
+        self.assertEqual(response.status_code, 200)
+        cancel_url = response.context.get("cancel_url", "")
+        self.assertNotEqual(cancel_url, reverse("amuse_bouche:feed"))
+        self.assertIn(self.author.slug, cancel_url)
+
+    def test_edit_form_cancel_url_is_item_detail_not_feed(self):
+        """On the edit form, cancel_url must be the item's detail page, not the gated feed."""
+        item = self._create_item()
+        self.client.force_login(self.author_user)
+        response = self.client.get(reverse("amuse_bouche:edit", kwargs={"slug": item.slug}))
+        self.assertEqual(response.status_code, 200)
+        cancel_url = response.context.get("cancel_url", "")
+        self.assertNotEqual(cancel_url, reverse("amuse_bouche:feed"))
+        self.assertEqual(cancel_url, item.get_absolute_url())
+
+    # ── Regression 4: Back link on detail is suppressed when feed is gated ────
+
+    def test_back_link_absent_on_detail_for_author_when_gated(self):
+        """
+        While AMUSE_BOUCHE_PUBLIC=False, can_view_ab_public is False for a plain author
+        (not staff/moderator), so the Back to Amuse-Bouche link must not appear on their
+        detail page preview.
+        """
+        item = self._create_item()
+        self.client.force_login(self.author_user)
+        response = self.client.get(reverse("amuse_bouche:detail", kwargs={"slug": item.slug}))
+        self.assertNotContains(response, "Back to Amuse-Bouche")
+
+    @override_settings(AMUSE_BOUCHE_PUBLIC=True)
+    def test_back_link_present_on_detail_when_public(self):
+        """When AMUSE_BOUCHE_PUBLIC=True, the Back link must appear on the detail page."""
+        item = self._create_item(status=AmuseBouche.Status.APPROVED)
+        self.client.force_login(self.author_user)
+        response = self.client.get(reverse("amuse_bouche:detail", kwargs={"slug": item.slug}))
+        self.assertContains(response, "Back to Amuse-Bouche")
+
+    # ── Regression 5: Authors can work on bites without hitting the gated feed ─
+
+    def test_author_feed_returns_404_when_gated(self):
+        """Regular authors (not staff/mod) must get 404 on the feed while gated."""
+        self.client.force_login(self.author_user)
+        response = self.client.get(reverse("amuse_bouche:feed"))
+        self.assertEqual(response.status_code, 404)
+
+    def test_author_can_open_edit_form_while_gated(self):
+        """Author must be able to open the edit form for their own post while the feed is gated."""
+        item = self._create_item()
+        self.client.force_login(self.author_user)
+        response = self.client.get(reverse("amuse_bouche:edit", kwargs={"slug": item.slug}))
+        self.assertEqual(response.status_code, 200)
+
+    def test_likes_and_saves_gated_for_anonymous(self):
+        """Anonymous users must be redirected when trying to like or save a bite."""
+        item = self._create_item(status=AmuseBouche.Status.APPROVED)
+        like_resp = self.client.post(reverse("amuse_bouche:toggle_like", kwargs={"slug": item.slug}))
+        save_resp = self.client.post(reverse("amuse_bouche:toggle_save", kwargs={"slug": item.slug}))
+        self.assertEqual(ContentReaction.objects.count(), 0)
+        self.assertEqual(SavedContent.objects.count(), 0)
+        # Should redirect to login or return 302
+        self.assertIn(like_resp.status_code, [302, 403])
+        self.assertIn(save_resp.status_code, [302, 403])
