@@ -658,18 +658,17 @@
 .ab-home-card .ab-card__sheet.is-open ~ .ab-home-card__close { display: block; }
 .ab-home-card .ab-card__sheet.is-open ~ .ab-home-card__more  { display: none; }
 
-/* Footer: only Open Page button, centered */
+/* Footer: only Open Page, no sticky — body flex:1 pushes it down naturally.
+   padding-bottom keeps Open Page above the absolute CLOSE button */
 .ab-sheet__footer {
   align-items: center;
   background: linear-gradient(to bottom,
-    rgba(10, 6, 4, 0)   0%,
-    rgba(10, 6, 4, .92) 30%);
-  bottom: 0;
+    rgba(10, 6, 4, 0) 0%,
+    rgba(10, 6, 4, .9) 35%);
   display: flex;
   flex-shrink: 0;
   justify-content: center;
-  padding: .9rem .6rem .5rem;
-  position: sticky;
+  padding: .7rem .6rem 1.4rem;
 }
 
 /* ---- Mobile base ---- */
