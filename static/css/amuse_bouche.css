@@ -778,6 +778,36 @@
   margin-top: 1.5rem;
 }
 
+.ab-filter-bar .ab-filters {
+  justify-content: center;
+}
+
+.ab-filter-bar .ab-filter {
+  background: rgb(247 242 234 / 0.14);
+  border: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: var(--radius-pill);
+  color: rgba(255, 255, 255, 0.88);
+  font-size: .82rem;
+  padding: .32rem .85rem;
+  transition: background-color .2s ease, border-color .2s ease, color .2s ease;
+}
+
+.ab-filter-bar .ab-filter:hover {
+  background: rgb(247 242 234 / 0.26);
+  border-color: rgb(255 255 255 / 0.32);
+  color: #fff;
+}
+
+.ab-filter-bar .ab-filter--active {
+  background: rgb(247 242 234 / 0.32);
+  border-color: rgb(255 255 255 / 0.5);
+  color: #fff;
+}
+
+.ab-filter-bar .ab-filter--active:hover {
+  background: rgb(247 242 234 / 0.42);
+}
+
 /* ---- Feed column ---- */
 .ab-feed {
   gap: 1.5rem;
