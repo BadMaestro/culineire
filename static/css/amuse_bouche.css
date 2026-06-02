@@ -1540,6 +1540,7 @@
   min-width: 280px;
   opacity: 0;
   overflow: hidden;
+  pointer-events: none; /* closed panel must not block clicks */
   position: fixed;
   transform: scale(.96) translateY(6px);
   transition: opacity .2s ease, transform .2s ease;
@@ -1548,6 +1549,7 @@
 
 .ab-cmt-panel.is-open {
   opacity: 1;
+  pointer-events: auto;
   transform: scale(1) translateY(0);
 }
 
