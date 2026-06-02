@@ -4,6 +4,8 @@
 (function () {
   'use strict';
 
+  var SWIPE_THRESHOLD_PX = 48;
+
   var hero = document.querySelector('.hero--home');
   if (!hero) return;
 
@@ -12,6 +14,8 @@
   if (slides.length < 2 || dots.length !== slides.length) return;
 
   var current = 0;
+  var touchStartX = 0;
+  var touchStartY = 0;
 
   function goTo(index) {
     if (index === current) return;
@@ -24,19 +28,60 @@
     dots[current].setAttribute('aria-pressed', 'true');
   }
 
+  function goNext() {
+    goTo((current + 1) % slides.length);
+  }
+
+  function goPrevious() {
+    goTo((current - 1 + slides.length) % slides.length);
+  }
+
   dots.forEach(function (dot, i) {
     dot.addEventListener('click', function () { goTo(i); });
     dot.addEventListener('keydown', function (e) {
       if (e.key === 'ArrowRight') {
         e.preventDefault();
-        goTo((current + 1) % slides.length);
-        dots[(current) % slides.length].focus();
+        goNext();
+        dots[current].focus();
       }
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        goTo((current - 1 + slides.length) % slides.length);
-        dots[(current) % slides.length].focus();
+        goPrevious();
+        dots[current].focus();
       }
     });
   });
+
+  hero.addEventListener(
+    'touchstart',
+    function (event) {
+      if (!event.touches || event.touches.length !== 1) return;
+      touchStartX = event.touches[0].clientX;
+      touchStartY = event.touches[0].clientY;
+    },
+    { passive: true }
+  );
+
+  hero.addEventListener(
+    'touchend',
+    function (event) {
+      if (!event.changedTouches || event.changedTouches.length !== 1) return;
+
+      var touchEndX = event.changedTouches[0].clientX;
+      var touchEndY = event.changedTouches[0].clientY;
+      var deltaX = touchStartX - touchEndX;
+      var deltaY = touchStartY - touchEndY;
+
+      if (Math.abs(deltaX) < SWIPE_THRESHOLD_PX || Math.abs(deltaY) > Math.abs(deltaX)) {
+        return;
+      }
+
+      if (deltaX > 0) {
+        goNext();
+      } else {
+        goPrevious();
+      }
+    },
+    { passive: true }
+  );
 }());

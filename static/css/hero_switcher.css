@@ -34,6 +34,36 @@
   object-position: 60% center;
 }
 
+.hero--home .hero__inner {
+  justify-content: center;
+  padding-block: clamp(1.7rem, 4vw, 3rem) clamp(3.3rem, 5vw, 4.1rem);
+}
+
+.hero--home .hero-copy {
+  justify-content: center;
+  margin-inline: auto;
+  max-width: min(850px, 100%);
+}
+
+.hero--home .hero-title,
+.hero--home .hero-subtitle {
+  text-align: center;
+  text-wrap: balance;
+}
+
+.hero--home .hero-title {
+  max-width: 13.5em;
+}
+
+.hero--home .hero-subtitle {
+  max-width: 68ch;
+}
+
+.hero--home .hero-copy .hero__actions {
+  margin-block-start: 0;
+  padding-block-start: 0.55rem;
+}
+
 /* On small screens keep some visual balance */
 @media (max-width: 640px) {
   .hero--home .hero__slide img {
@@ -51,7 +81,17 @@
   /* Extra bottom padding so the dot switcher never overlaps the
      last hero action button when content is tall on small screens */
   .hero--home .hero__inner {
-    padding-block-end: 2.8rem;
+    padding-block-end: 3.2rem;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 980px) {
+  .hero--home .hero-title {
+    max-width: 14.5em;
+  }
+
+  .hero--home .hero-subtitle {
+    max-width: 62ch;
   }
 }
 
