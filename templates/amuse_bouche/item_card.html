@@ -40,8 +40,7 @@
 
   {% endif %}
 
-  {# ── Slide-up sheet (feed only) — must come BEFORE MORE and CLOSE so the CSS
-     general sibling combinator (~) can hide MORE and reveal CLOSE on is-open ── #}
+  {# Slide-up sheet (feed only) — sheet must be before MORE/CLOSE so CSS sibling combinator works #}
   {% if not detail %}
   <div class="ab-card__sheet" id="ab-sheet-{{ item.pk }}"
        role="dialog" aria-label="More info" aria-hidden="true">
@@ -50,13 +49,13 @@
       <p class="ab-sheet__text">{{ item.short_description }}</p>
       {% endif %}
       {% if item.linked_recipe %}
-      <a class="ab-sheet__link" href="{{ item.linked_recipe.get_absolute_url }}">Full recipe &rarr;</a>
+      <a class="ab-sheet__link" href="{{ item.linked_recipe.get_absolute_url }}">Full recipe</a>
       {% endif %}
       {% if item.linked_article %}
-      <a class="ab-sheet__link" href="{{ item.linked_article.get_absolute_url }}">Read the story &rarr;</a>
+      <a class="ab-sheet__link" href="{{ item.linked_article.get_absolute_url }}">Read the story</a>
       {% endif %}
+      <a class="ab-sheet__link ab-sheet__open-btn" href="{{ item.get_absolute_url }}">Open Page</a>
     </div>
-    <a class="btn-secondary ab-sheet__open-btn" href="{{ item.get_absolute_url }}">Open Page &rarr;</a>
   </div>
 
   {# MORE — hidden by CSS when sheet opens (.sheet.is-open ~ .ab-card__open-btn) #}

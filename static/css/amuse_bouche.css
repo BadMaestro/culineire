@@ -943,7 +943,7 @@
   white-space: nowrap;
 }
 
-/* MORE ▾ button — positioned OUTSIDE pointer-events:none overlay on the card itself */
+/* MORE ▾ button — positioned bottom-right, same coords as CLOSE */
 .ab-card__open-btn {
   background: none;
   border: none;
@@ -953,9 +953,8 @@
   font: inherit;
   font-size: .68rem;
   font-weight: 700;
-  left: .9rem;
+  right: .6rem;
   letter-spacing: .06em;
-  max-width: calc(100% - 56px); /* don't overlap action strip */
   overflow: hidden;
   padding: 0;
   position: absolute;
@@ -1091,26 +1090,40 @@
   width: 100%;
 }
 
-/* "Open Page" — btn-secondary adapted for dark sheet background */
-.ab-card__sheet .ab-sheet__open-btn {
-  background: rgba(247, 242, 234, 0.1);
-  border: 1px solid rgba(247, 242, 234, 0.2);
-  color: rgba(247, 242, 234, 0.85);
-  font-size: .68rem;
+/* Feed card sheet: centre all pills and leave room for the CLOSE button at the bottom */
+.ab-card .ab-card__sheet .ab-sheet__body {
+  align-items: center;
+  padding-bottom: 2.25rem;
+}
+
+/* Feed card: allow the parent's align-items:center to take effect on each link */
+.ab-card .ab-card__sheet .ab-sheet__link {
+  align-self: auto;
+}
+
+/* "Open Page" inside the feed sheet — same gold pill as Full recipe / Read the story */
+.ab-card .ab-card__sheet .ab-sheet__open-btn {
+  background: none;
+  border: 1px solid rgba(200, 169, 110, .45);
+  border-radius: var(--radius-pill);
+  color: #e8d8b0;
+  font-size: .78rem;
+  font-weight: 400;
   min-height: unset;
-  padding: .28rem .85rem;
+  padding: .28rem .7rem;
   text-decoration: none;
-  white-space: nowrap;   /* never wrap to two lines */
+  transition: background-color .15s ease, border-color .15s ease;
+  white-space: nowrap;
   width: auto;
 }
 
-.ab-card__sheet .ab-sheet__open-btn:hover,
-.ab-card__sheet .ab-sheet__open-btn:focus-visible {
-  background: rgba(247, 242, 234, 0.2);
-  color: #fff8ee;
+.ab-card .ab-card__sheet .ab-sheet__open-btn:hover,
+.ab-card .ab-card__sheet .ab-sheet__open-btn:focus-visible {
+  background: rgba(200, 169, 110, .15);
+  border-color: rgba(200, 169, 110, .7);
 }
 
-/* Close button — sibling of .ab-card__sheet, same absolute position as MORE.
+/* Close button — sibling of .ab-card__sheet, same absolute position as MORE (bottom-right).
    Hidden by default; revealed by CSS sibling selector when sheet is open. */
 .ab-sheet__close {
   background: none;
@@ -1122,9 +1135,8 @@
   font: inherit;
   font-size: .68rem;
   font-weight: 700;
-  left: .9rem;
+  right: .6rem;
   letter-spacing: .06em;
-  max-width: calc(100% - 56px);
   overflow: hidden;
   padding: 0;
   position: absolute;
