@@ -31,7 +31,7 @@ def _safe_next(request, fallback):
 def my_collection(request):
     tab = request.GET.get("tab", "recipes")
     show_amuse_bouche = can_view_amuse_bouche_public_area(request.user)
-    if tab == "amuse-bouche" and not show_amuse_bouche:
+    if tab in ("amuse-bouche", "my-bites") and not show_amuse_bouche:
         tab = "recipes"
     article_card_gallery_prefetch = Prefetch(
         "article__gallery_images",
@@ -51,16 +51,25 @@ def my_collection(request):
     )
     amuse_bouche_type = ContentType.objects.get_for_model(AmuseBouche)
     saved_amuse_bouche = []
+    authored_amuse_bouche = []
     if show_amuse_bouche:
         saved_amuse_bouche = [
             saved for saved in SavedContent.objects.filter(user=request.user, content_type=amuse_bouche_type)
             .select_related("content_type")
             if getattr(saved.content_object, "status", None) == AmuseBouche.Status.APPROVED
         ]
+        author_profile = getattr(request.user, "recipe_author_profile", None)
+        if author_profile:
+            authored_amuse_bouche = (
+                AmuseBouche.objects.filter(author=author_profile)
+                .exclude(status=AmuseBouche.Status.ARCHIVED)
+                .order_by("-created_at")
+            )
     return render(request, "collection/my_collection.html", {
         "saved_recipes": saved_recipes,
         "saved_articles": saved_articles,
         "saved_amuse_bouche": saved_amuse_bouche,
+        "authored_amuse_bouche": authored_amuse_bouche,
         "active_tab": tab,
         "show_amuse_bouche": show_amuse_bouche,
     })

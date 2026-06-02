@@ -9,6 +9,7 @@ urlpatterns = [
     path("new/", views.AmuseBoucheCreateView.as_view(), name="create"),
     path("<slug:slug>/", views.detail, name="detail"),
     path("<slug:slug>/edit/", views.AmuseBoucheUpdateView.as_view(), name="edit"),
+    path("<slug:slug>/delete/", views.AmuseBoucheDeleteView.as_view(), name="delete"),
     path("<slug:slug>/moderate/", views.moderate, name="moderate"),
     path("<slug:slug>/like/", views.toggle_like, name="toggle_like"),
     path("<slug:slug>/save/", views.toggle_save, name="toggle_save"),

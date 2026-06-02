@@ -10,7 +10,7 @@ from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_GET, require_POST
-from django.views.generic import CreateView, UpdateView
+from django.views.generic import CreateView, DeleteView, UpdateView
 from django_ratelimit.decorators import ratelimit
 
 from collection.models import AuthorFollow, ContentReaction, SavedContent
@@ -237,6 +237,32 @@ class AmuseBoucheUpdateView(AuthorRequiredMixin, UpdateView):
         ctx = super().get_context_data(**kwargs)
         ctx["cancel_url"] = self.object.get_absolute_url()
         ctx["is_moderator"] = is_moderator(self.request.user)
+        return ctx
+
+
+class AmuseBoucheDeleteView(AuthorRequiredMixin, DeleteView):
+    model = AmuseBouche
+    template_name = "authoring/confirm_delete.html"
+    context_object_name = "managed_object"
+    success_url = reverse_lazy("collection:my_collection")
+
+    def get_queryset(self):
+        if is_moderator(self.request.user):
+            return AmuseBouche.objects.all()
+        return AmuseBouche.objects.filter(author=self.author)
+
+    def form_valid(self, form):
+        messages.success(self.request, "Amuse-Bouche deleted.")
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["delete_title"] = "Delete Amuse-Bouche"
+        ctx["delete_intro"] = (
+            f'You are about to delete "{self.object.title}". This action cannot be undone.'
+        )
+        ctx["delete_label"] = "Delete Amuse-Bouche"
+        ctx["cancel_url"] = self.object.get_absolute_url()
         return ctx
 
 
