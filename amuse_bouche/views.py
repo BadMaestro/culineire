@@ -263,6 +263,7 @@ class AmuseBoucheDeleteView(AuthorRequiredMixin, DeleteView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        ctx["author"] = self.author
         ctx["delete_title"] = "Delete Amuse-Bouche"
         ctx["delete_intro"] = (
             f'You are about to delete "{self.object.title}". This action cannot be undone.'
