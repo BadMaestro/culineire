@@ -32,13 +32,13 @@
       <span class="ab-card__author-name">{{ item.author.name }}</span>
     </a>
     <h2 class="ab-card__title">{{ item.title }}</h2>
-    {% with caption=item.emoji_description|default:item.short_description %}
-    {% if caption %}
-    <p class="ab-card__caption">{{ caption }}</p>
-    {% endif %}
-    {% endwith %}
-    <a class="ab-card__open-btn" href="{{ item.get_absolute_url }}"
-       aria-label="Open {{ item.title }}">Open Bite</a>
+    <div class="ab-card__desc-row">
+      {% with caption=item.emoji_description|default:item.short_description %}
+      {% if caption %}<p class="ab-card__caption">{{ caption }}</p>{% endif %}
+      {% endwith %}
+      <a class="ab-card__open-btn" href="{{ item.get_absolute_url }}"
+         aria-label="Open {{ item.title }}">MORE&nbsp;&#x25BE;</a>
+    </div>
   </div>
   {% endif %}
 

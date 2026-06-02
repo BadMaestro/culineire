@@ -659,42 +659,49 @@
   font-size: clamp(1.2rem, 3vw, 1.5rem);
 }
 
-/* Caption — 2-line clamp */
-.ab-card__caption {
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  color: rgba(255, 255, 255, .62);
-  display: -webkit-box;
-  font-size: .76rem;
-  line-height: 1.45;
-  margin: 0;
-  overflow: hidden;
-  pointer-events: none;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, .75);
+/* Caption + MORE row */
+.ab-card__desc-row {
+  align-items: center;
+  display: flex;
+  gap: .4rem;
+  justify-content: space-between;
+  margin-top: 1px;
+  pointer-events: auto;
 }
 
-/* Open Bite link */
+/* Caption — italic, 1-line clamp */
+.ab-card__caption {
+  color: rgba(255, 255, 255, .62);
+  flex: 1;
+  font-size: .74rem;
+  font-style: italic;
+  line-height: 1.4;
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .75);
+  white-space: nowrap;
+}
+
+/* MORE ▾ text link */
 .ab-card__open-btn {
-  align-self: flex-start;
-  background: rgba(200, 169, 110, .18);
-  border: 1px solid rgba(200, 169, 110, .45);
-  border-radius: var(--radius-pill);
-  color: #e8c888;
-  font-size: .72rem;
+  color: rgba(255, 255, 255, .7);
+  flex-shrink: 0;
+  font-size: .68rem;
   font-weight: 700;
-  letter-spacing: .03em;
-  margin-top: 3px;
-  padding: .22rem .7rem;
+  letter-spacing: .06em;
   pointer-events: auto;
   text-decoration: none;
-  transition: background-color .15s ease, border-color .15s ease;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .8);
+  text-transform: uppercase;
+  transition: color .15s ease;
+  white-space: nowrap;
   z-index: 6;
 }
 
 .ab-card__open-btn:hover {
-  background: rgba(200, 169, 110, .35);
-  border-color: rgba(200, 169, 110, .7);
-  color: #f5dfa0;
+  color: #fff;
 }
 
 /* Detail desc (below title in info strip) */
