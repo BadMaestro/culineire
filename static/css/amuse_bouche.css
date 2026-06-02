@@ -763,14 +763,6 @@
   padding: .6rem 3.5rem .5rem .75rem;
 }
 
-/* Ensure "Open Page" stays compact and never wraps in the home card sheet footer */
-.ab-home-card .ab-sheet__open-btn {
-  font-size: .68rem;
-  min-height: unset;
-  padding: .28rem .85rem;
-  white-space: nowrap;
-  width: auto;
-}
 
 /* ---- Mobile base ---- */
 @media (max-width: 640px) {
@@ -1108,6 +1100,25 @@
 /* Feed card: allow the parent's align-items:center to take effect on each link */
 .ab-card .ab-card__sheet .ab-sheet__link {
   align-self: auto;
+}
+
+/* "Open Page" — original btn-secondary overrides (applies to all sheets incl. home card) */
+.ab-card__sheet .ab-sheet__open-btn {
+  background: rgba(247, 242, 234, 0.1);
+  border: 1px solid rgba(247, 242, 234, 0.2);
+  color: rgba(247, 242, 234, 0.85);
+  font-size: .68rem;
+  min-height: unset;
+  padding: .28rem .85rem;
+  text-decoration: none;
+  white-space: nowrap;
+  width: auto;
+}
+
+.ab-card__sheet .ab-sheet__open-btn:hover,
+.ab-card__sheet .ab-sheet__open-btn:focus-visible {
+  background: rgba(247, 242, 234, 0.2);
+  color: #fff8ee;
 }
 
 /* "Open Page" inside the feed sheet — same gold pill as Full recipe / Read the story */
