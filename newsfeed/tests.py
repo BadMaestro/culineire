@@ -1,9 +1,11 @@
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.core.management import call_command
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
+from newsfeed.launch_copy import AMUSE_BOUCHE_LAUNCH_EVENT_KEY, AMUSE_BOUCHE_LAUNCH_TITLE
 from newsfeed.models import NewsFeedEntry, SocialPostLog
 from newsfeed.telegram import TelegramResult
 
@@ -309,3 +311,36 @@ class FeedPageTest(TestCase):
         self.assertContains(response, "View All News")
         self.assertContains(response, "nf-entry--extra")
         self.assertContains(response, "data-news-toggle")
+
+
+class AmuseBoucheLaunchNewsCommandTest(TestCase):
+    @override_settings(
+        TELEGRAM_BOT_TOKEN="test-token",
+        TELEGRAM_CHANNEL_ID="@culineire_test",
+        SITE_SCHEME="https",
+        SITE_DOMAIN="culineire.ie",
+    )
+    @patch("newsfeed.telegram.send_telegram_message")
+    def test_command_creates_public_news_and_pushes_telegram_once(self, send_telegram_message):
+        send_telegram_message.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
+
+        call_command("publish_amuse_bouche_launch_news")
+
+        entry = NewsFeedEntry.objects.get(event_key=AMUSE_BOUCHE_LAUNCH_EVENT_KEY)
+        self.assertEqual(entry.title, AMUSE_BOUCHE_LAUNCH_TITLE)
+        self.assertTrue(entry.is_public)
+        self.assertFalse(entry.is_auto)
+        self.assertIn("mobile-first feed", entry.message)
+
+        self.assertEqual(send_telegram_message.call_count, 1)
+        self.assertTrue(
+            SocialPostLog.objects.filter(
+                platform=SocialPostLog.Platform.TELEGRAM,
+                event_key=f"newsfeed_launch:{AMUSE_BOUCHE_LAUNCH_EVENT_KEY}",
+                status=SocialPostLog.Status.SENT,
+            ).exists()
+        )
+
+        call_command("publish_amuse_bouche_launch_news")
+
+        self.assertEqual(send_telegram_message.call_count, 1)

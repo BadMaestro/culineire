@@ -10,7 +10,7 @@ from newsfeed.launch_copy import (
 )
 
 
-def add_amuse_bouche_launch_entry(apps, schema_editor):
+def refresh_amuse_bouche_launch_entry(apps, schema_editor):
     NewsFeedEntry = apps.get_model("newsfeed", "NewsFeedEntry")
     NewsFeedEntry.objects.update_or_create(
         event_key=AMUSE_BOUCHE_LAUNCH_EVENT_KEY,
@@ -27,17 +27,16 @@ def add_amuse_bouche_launch_entry(apps, schema_editor):
     )
 
 
-def remove_amuse_bouche_launch_entry(apps, schema_editor):
-    NewsFeedEntry = apps.get_model("newsfeed", "NewsFeedEntry")
-    NewsFeedEntry.objects.filter(event_key=AMUSE_BOUCHE_LAUNCH_EVENT_KEY).delete()
+def noop_reverse(apps, schema_editor):
+    del apps, schema_editor
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("newsfeed", "0005_alter_newsfeedentry_entry_type"),
+        ("newsfeed", "0006_amuse_bouche_launch_entry"),
     ]
 
     operations = [
-        migrations.RunPython(add_amuse_bouche_launch_entry, remove_amuse_bouche_launch_entry),
+        migrations.RunPython(refresh_amuse_bouche_launch_entry, noop_reverse),
     ]

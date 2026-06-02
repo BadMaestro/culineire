@@ -44,6 +44,16 @@ def build_article_telegram_message(article) -> str:
     return "\n\n".join(parts)
 
 
+def build_newsfeed_telegram_message(entry) -> str:
+    site_url = f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}".rstrip("/")
+    parts = [entry.title]
+    if entry.message:
+        parts.append(entry.message)
+    if entry.url:
+        parts.append(f"{site_url}{entry.url}" if entry.url.startswith("/") else entry.url)
+    return "\n\n".join(parts)
+
+
 def send_telegram_message(text: str) -> TelegramResult:
     token = getattr(settings, "TELEGRAM_BOT_TOKEN", "")
     channel_id = getattr(settings, "TELEGRAM_CHANNEL_ID", "")
@@ -132,4 +142,12 @@ def publish_article_to_telegram(article) -> TelegramResult:
         event_key=f"article_published:{article.pk}",
         message=build_article_telegram_message(article),
         target_url=article.get_absolute_url(),
+    )
+
+
+def publish_newsfeed_entry_to_telegram(entry, *, message: str | None = None, event_key: str | None = None) -> TelegramResult:
+    return _publish_to_telegram(
+        event_key=event_key or f"newsfeed_entry:{entry.pk}",
+        message=message or build_newsfeed_telegram_message(entry),
+        target_url=entry.url or "",
     )

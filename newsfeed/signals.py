@@ -84,20 +84,8 @@ def on_newsfeed_entry_save(sender, instance, created, **kwargs):
     if not instance.is_public or instance.is_auto:
         return
     try:
-        from newsfeed.telegram import _publish_to_telegram
-        parts = [instance.title]
-        if instance.message:
-            parts.append(instance.message)
-        if instance.url:
-            from django.conf import settings
-            site_url = f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}".rstrip("/")
-            parts.append(f"{site_url}{instance.url}" if instance.url.startswith("/") else instance.url)
-        message = "\n\n".join(parts)
-        _publish_to_telegram(
-            event_key=f"newsfeed_entry:{instance.pk}",
-            message=message,
-            target_url=instance.url or "",
-        )
+        from newsfeed.telegram import publish_newsfeed_entry_to_telegram
+        publish_newsfeed_entry_to_telegram(instance)
     except Exception:
         logger.exception("Failed to publish newsfeed entry pk=%s to Telegram", instance.pk)
 
