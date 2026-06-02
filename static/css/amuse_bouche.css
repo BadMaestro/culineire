@@ -578,9 +578,24 @@
 .ab-home-card .ab-card__sheet {
   max-height: 100%;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(200, 169, 110, .4) transparent;
   /* smaller padding for compact card */
   padding: .75rem .75rem 1rem;
   gap: .4rem;
+}
+
+.ab-home-card .ab-card__sheet::-webkit-scrollbar {
+  width: 4px;
+}
+
+.ab-home-card .ab-card__sheet::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ab-home-card .ab-card__sheet::-webkit-scrollbar-thumb {
+  background: rgba(200, 169, 110, .45);
+  border-radius: 3px;
 }
 
 .ab-home-card .ab-sheet__text {
