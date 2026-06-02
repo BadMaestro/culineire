@@ -545,9 +545,11 @@ document.addEventListener("DOMContentLoaded", () => {
     _abResizeTimer = setTimeout(sizeAbGrid, 100);
   });
 
-  // ==== AB action-button ripple (mirrors sponsor puzzle-cell pulse) ====
+  // ==== AB ripple: action buttons, MORE, CLOSE, category badges ====
   document.addEventListener("click", function (e) {
-    const btn = e.target.closest(".ab-btn");
+    const btn = e.target.closest(
+      ".ab-btn, [data-ab-more], [data-ab-close], .ab-card__badge, .ab-home-card__badge"
+    );
     if (!btn) return;
     btn.querySelectorAll(".ab-ripple").forEach(function (r) { r.remove(); });
     const ripple = document.createElement("span");

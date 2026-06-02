@@ -492,6 +492,7 @@
 /* Individual square card */
 .ab-home-card {
   aspect-ratio: 1 / 1;
+  border: 1px solid rgba(200, 169, 110, .28);
   border-radius: 14px;
   contain: layout;            /* ensures overflow: hidden clips transforms */
   flex: 0 0 clamp(155px, 17vw, 185px);
@@ -520,9 +521,15 @@
   z-index: 2;
 }
 
-/* Category badge — top-left */
+/* Category badge — top-left, dark-glass style matching feed cards */
 .ab-home-card__badge {
+  backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, .42);
+  border: 1px solid rgba(200, 169, 110, .35);
+  color: #e8d8b0;
+  cursor: pointer;
   left: .5rem;
+  overflow: hidden;
   position: absolute;
   top: .5rem;
   z-index: 3;
@@ -557,6 +564,7 @@
   border: none;
   bottom: .5rem;
   color: rgba(255,255,255,.72);
+  overflow: hidden;
   cursor: pointer;
   font: inherit;
   font-size: .6rem;
@@ -586,7 +594,7 @@
 }
 
 .ab-home-card .ab-card__sheet::-webkit-scrollbar {
-  width: 4px;
+  width: 7px;
 }
 
 .ab-home-card .ab-card__sheet::-webkit-scrollbar-track {
@@ -595,7 +603,9 @@
 
 .ab-home-card .ab-card__sheet::-webkit-scrollbar-thumb {
   background: rgba(200, 169, 110, .45);
+  background-clip: padding-box;
   border-radius: 3px;
+  border-right: 3px solid transparent;
 }
 
 .ab-home-card .ab-sheet__text {
@@ -613,6 +623,7 @@
   background: none;
   border: none;
   bottom: .5rem;
+  overflow: hidden;
   color: rgba(255, 255, 255, .72);
   cursor: pointer;
   font: inherit;
@@ -658,6 +669,7 @@
 /* ---- Card shell ---- */
 .ab-card {
   background: #1c1610;
+  border: 1px solid rgba(200, 169, 110, .28);
   border-radius: var(--radius-md);
   box-shadow: 0 4px 18px rgba(0, 0, 0, .45);
   overflow: hidden;
@@ -724,10 +736,12 @@
   border: 1px solid rgba(200, 169, 110, .35);
   border-radius: var(--radius-pill);
   color: #e8d8b0;
+  cursor: pointer;
   font-size: .65rem;
   font-weight: 700;
   left: .75rem;
   letter-spacing: .05em;
+  overflow: hidden;
   padding: .2rem .55rem;
   position: absolute;
   text-transform: uppercase;
@@ -968,6 +982,7 @@
   background: none;
   border: none;
   bottom: .85rem;
+  overflow: hidden;
   color: rgba(255, 255, 255, .7);
   cursor: pointer;
   font: inherit;
@@ -1302,7 +1317,7 @@
 }
 
 .ab-grid-scroll::-webkit-scrollbar {
-  width: 5px;
+  width: 7px;
 }
 
 .ab-grid-scroll::-webkit-scrollbar-track {
@@ -1311,7 +1326,9 @@
 
 .ab-grid-scroll::-webkit-scrollbar-thumb {
   background: rgba(200, 169, 110, .4);
+  background-clip: padding-box;
   border-radius: 3px;
+  border-right: 3px solid transparent;
 }
 
 /* ================================================================
