@@ -788,24 +788,16 @@
   border-radius: var(--radius-pill);
   color: rgba(255, 255, 255, 0.88);
   font-size: .82rem;
+  font-weight: 400;
   padding: .32rem .85rem;
   transition: background-color .2s ease, border-color .2s ease, color .2s ease;
 }
 
-.ab-filter-bar .ab-filter:hover {
+.ab-filter-bar .ab-filter:hover,
+.ab-filter-bar .ab-filter--active {
   background: rgb(247 242 234 / 0.26);
   border-color: rgb(255 255 255 / 0.32);
   color: #fff;
-}
-
-.ab-filter-bar .ab-filter--active {
-  background: rgb(247 242 234 / 0.32);
-  border-color: rgb(255 255 255 / 0.5);
-  color: #fff;
-}
-
-.ab-filter-bar .ab-filter--active:hover {
-  background: rgb(247 242 234 / 0.42);
 }
 
 /* ---- Feed column ---- */
