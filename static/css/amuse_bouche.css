@@ -944,7 +944,7 @@
   white-space: nowrap;
 }
 
-/* MORE ▾ button — positioned bottom-right, same coords as CLOSE */
+/* MORE ▾ button — positioned bottom-right, clear of the action strip (36px + .5rem) */
 .ab-card__open-btn {
   background: none;
   border: none;
@@ -954,7 +954,7 @@
   font: inherit;
   font-size: .68rem;
   font-weight: 700;
-  right: .6rem;
+  right: 3rem;
   letter-spacing: .06em;
   overflow: hidden;
   padding: 0;
@@ -1155,7 +1155,7 @@
   font: inherit;
   font-size: .68rem;
   font-weight: 700;
-  right: .6rem;
+  right: 3rem;
   letter-spacing: .06em;
   overflow: hidden;
   padding: 0;
