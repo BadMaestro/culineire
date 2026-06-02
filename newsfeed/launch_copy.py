@@ -2,6 +2,7 @@ AMUSE_BOUCHE_LAUNCH_EVENT_KEY = "version_release_amuse_bouche_public_v2"
 AMUSE_BOUCHE_LAUNCH_TITLE = "Amuse-Bouche Is Now Open"
 AMUSE_BOUCHE_LAUNCH_VERSION = "2.0.0"
 AMUSE_BOUCHE_LAUNCH_URL = "/amuse-bouche/"
+TELEGRAM_CHANNEL_URL = "https://t.me/CULINEIRE"
 
 AMUSE_BOUCHE_LAUNCH_MESSAGE = (
     "CulinEire is now officially running as v2.0.0, with a new public section: Amuse-Bouche.\n\n"
@@ -11,7 +12,9 @@ AMUSE_BOUCHE_LAUNCH_MESSAGE = (
     "full recipes, articles, author pages and future Chef Battle stories, so a small idea can still "
     "lead to deeper context.\n\n"
     "The first public version includes a mobile-first feed, moderation before publication, comments, "
-    "likes, saves, My Collection support and clean navigation across the site."
+    "likes, saves, My Collection support and clean navigation across the site.\n\n"
+    "Follow the CulinEire Telegram channel for launch notes, new recipes, short kitchen ideas and "
+    f"future site updates: {TELEGRAM_CHANNEL_URL}"
 )
 
 AMUSE_BOUCHE_LAUNCH_TELEGRAM_MESSAGE = (
@@ -22,5 +25,6 @@ AMUSE_BOUCHE_LAUNCH_TELEGRAM_MESSAGE = (
     "authors and future Chef Battle stories.\n\n"
     "What shipped: mobile-first feed, approval flow, comments, likes, saves, My Collection support "
     "and site-wide navigation.\n\n"
-    "Short, clear, useful. A small bite before the full meal."
+    "Short, clear, useful. A small bite before the full meal.\n\n"
+    f"Follow the CulinEire Telegram channel for news and updates: {TELEGRAM_CHANNEL_URL}"
 )
