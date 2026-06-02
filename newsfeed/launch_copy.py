@@ -4,7 +4,7 @@ AMUSE_BOUCHE_LAUNCH_VERSION = "2.0.0"
 AMUSE_BOUCHE_LAUNCH_URL = "/amuse-bouche/"
 
 AMUSE_BOUCHE_LAUNCH_MESSAGE = (
-    "A new CulinEire section is live: Amuse-Bouche.\n\n"
+    "CulinEire is now officially running as v2.0.0, with a new public section: Amuse-Bouche.\n\n"
     "It is our short-form kitchen feed for quick food ideas: mini recipes, Irish bites, snacks, "
     "sauces, cocktails, plating notes, leftover ideas, chef tricks and behind-the-dish sparks.\n\n"
     "This release connects the new format to the wider site. Amuse-Bouche posts can link back to "
@@ -15,7 +15,8 @@ AMUSE_BOUCHE_LAUNCH_MESSAGE = (
 )
 
 AMUSE_BOUCHE_LAUNCH_TELEGRAM_MESSAGE = (
-    "Amuse-Bouche is now open on CulinEire.\n\n"
+    "CulinEire v2.0.0 is now official.\n\n"
+    "Amuse-Bouche is open on the site.\n\n"
     "This is our new short-form kitchen feed: quick Irish bites, mini recipes, sauces, cocktails, "
     "plating notes, chef tricks and small ideas that can lead back to full recipes, articles, "
     "authors and future Chef Battle stories.\n\n"
