@@ -530,10 +530,14 @@
     object-fit: cover;
   }
 
-  /* Recipe detail: shift crop toward the lower part of the frame
-     where food subjects typically sit */
+  /* Recipe detail: taller hero so more of the food photo is visible,
+     and keep the crop centered where the dish typically sits */
+  .hero--recipe-detail {
+    min-height: clamp(380px, 52vw, 580px);
+  }
+
   .hero--recipe-detail .hero__background img {
-    object-position: center 65%;
+    object-position: center center;
   }
 
   .hero__overlay {
