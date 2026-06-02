@@ -75,10 +75,12 @@
                     </h2>
                 </div>
             </div>
-            <div class="ab-grid">
-                {% for item in items %}
-                {% include "amuse_bouche/item_card.html" with item=item liked_ids=liked_ids saved_ids=saved_ids followed_author_ids=followed_author_ids %}
-                {% endfor %}
+            <div class="recipe-vscroll ab-vscroll">
+                <div class="ab-grid">
+                    {% for item in items %}
+                    {% include "amuse_bouche/item_card.html" with item=item liked_ids=liked_ids saved_ids=saved_ids followed_author_ids=followed_author_ids %}
+                    {% endfor %}
+                </div>
             </div>
         </section>
         {% else %}

@@ -800,17 +800,25 @@
   color: #fff;
 }
 
-/* ---- Two-column editorial grid ---- */
-.ab-grid {
-  display: grid;
-  gap: 1.5rem;
-  grid-template-columns: repeat(2, 1fr);
+/* ---- Visible container — inherits recipe-vscroll styles, no height cap ---- */
+.ab-vscroll.recipe-vscroll {
+  max-height: none;
+  overflow: visible;
 }
 
-@media (max-width: 540px) {
-  .ab-grid {
-    grid-template-columns: 1fr;
-  }
+/* ---- Three-column editorial grid (≈30% smaller than 2-col) ---- */
+.ab-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 640px) {
+  .ab-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 400px) {
+  .ab-grid { grid-template-columns: 1fr; }
 }
 
 /* ---- Empty state (dark page context) ---- */
