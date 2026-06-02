@@ -763,9 +763,13 @@
   padding: .6rem 3.5rem .5rem .75rem;
 }
 
-/* Ensure "Open Page" never wraps in the home card sheet footer */
+/* Ensure "Open Page" stays compact and never wraps in the home card sheet footer */
 .ab-home-card .ab-sheet__open-btn {
+  font-size: .68rem;
+  min-height: unset;
+  padding: .28rem .85rem;
   white-space: nowrap;
+  width: auto;
 }
 
 /* ---- Mobile base ---- */
