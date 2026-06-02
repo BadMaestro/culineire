@@ -66,6 +66,13 @@ class AmuseBouche(models.Model):
         REJECTED = "rejected", "Rejected"
         ARCHIVED = "archived", "Archived"
 
+    class ImageRightsStatus(models.TextChoices):
+        OWN = "own", "My own photo"
+        AI_GENERATED = "ai_generated", "AI generated image"
+        LICENSED = "licensed", "Licensed (CC, stock, written permission)"
+        PUBLIC_DOMAIN = "public_domain", "Public domain"
+        NOT_APPLICABLE = "not_applicable", "No image uploaded"
+
     class ContentType(models.TextChoices):
         MINI_RECIPE = "mini_recipe", "Mini Recipe"
         SNACK = "snack", "Snack"
@@ -128,6 +135,47 @@ class AmuseBouche(models.Model):
         related_name="moderated_amuse_bouche_items",
     )
     moderated_at = models.DateTimeField(null=True, blank=True)
+
+    image_rights_status = models.CharField(
+        "Image rights",
+        max_length=20,
+        choices=ImageRightsStatus.choices,
+        default=ImageRightsStatus.NOT_APPLICABLE,
+    )
+    image_rights_note = models.CharField(
+        "Image rights note",
+        max_length=255,
+        blank=True,
+        help_text="Credit line or permission reference if applicable.",
+    )
+
+    confirmed_own_work = models.BooleanField(
+        "Confirmed: original or properly credited work",
+        default=False,
+    )
+    confirmed_image_rights = models.BooleanField(
+        "Confirmed: image rights",
+        default=False,
+    )
+    confirmed_rules = models.BooleanField(
+        "Confirmed: content publishing rules",
+        default=False,
+    )
+    confirmation_timestamp = models.DateTimeField(
+        "Confirmed at",
+        null=True,
+        blank=True,
+    )
+    confirmed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="confirmed_amuse_bouche_items",
+        verbose_name="Confirmed by",
+        editable=False,
+    )
+
     seo_title = models.CharField(max_length=200, blank=True)
     seo_description = models.CharField(max_length=255, blank=True)
     emoji_description = models.TextField(

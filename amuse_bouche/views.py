@@ -197,12 +197,12 @@ class AmuseBoucheCreateView(AuthorRequiredMixin, CreateView):
         return kwargs
 
     def form_valid(self, form):
-        item = form.save(commit=False)
+        item = form.save(commit=False, confirmed_by=self.request.user)
         item.author = self.author
         item.status = AmuseBouche.Status.PENDING
-        response = super().form_valid(form)
+        item.save()
         messages.success(self.request, "Your Amuse-Bouche was submitted for review.")
-        return response
+        return redirect(item.get_absolute_url())
 
     def get_success_url(self):
         return self.object.get_absolute_url()
@@ -229,15 +229,15 @@ class AmuseBoucheUpdateView(AuthorRequiredMixin, UpdateView):
         return kwargs
 
     def form_valid(self, form):
-        item = form.save(commit=False)
+        item = form.save(commit=False, confirmed_by=self.request.user)
         if not user_can_manage_author(self.request.user, item.author):
             return redirect(item.get_absolute_url())
         # Moderators save directly — no status reset needed
         if item.status == AmuseBouche.Status.APPROVED and not is_moderator(self.request.user):
             item.status = AmuseBouche.Status.PENDING
-        response = super().form_valid(form)
+        item.save()
         messages.success(self.request, "Amuse-Bouche updated.")
-        return response
+        return redirect(item.get_absolute_url())
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
