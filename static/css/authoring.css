@@ -71,7 +71,8 @@
 
 .authoring-delete-warning {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
   gap: 0.65rem;
   background: rgb(220 60 60 / 0.07);
   border: 1px solid rgb(220 60 60 / 0.22);
@@ -81,6 +82,7 @@
   line-height: 1.5;
   margin-bottom: 0.5rem;
   padding: 0.85rem 1.1rem;
+  text-align: center;
 }
 
 .authoring-delete-warning svg {
