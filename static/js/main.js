@@ -193,7 +193,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let scrollFrame = null;
 
     const getScrollStep = () => {
-      const card = track.querySelector(".recipe-card");
+      const card = track.querySelector(".recipe-card, .ab-home-card, [data-carousel-item]");
 
       if (!card) {
         return Math.max(track.clientWidth * 0.85, 1);
@@ -207,18 +207,10 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const updateControls = () => {
-      track.style.marginInline = "0";
       const maxScrollLeft = Math.max(track.scrollWidth - track.clientWidth, 0);
       const canScroll = maxScrollLeft > 2;
       const atStart = track.scrollLeft <= 1;
       const atEnd = track.scrollLeft >= maxScrollLeft - 1;
-
-      if (canScroll) {
-        track.style.marginInline = "";
-        track.style.justifyContent = "";
-      } else {
-        track.style.justifyContent = "center";
-      }
 
       carousel.classList.toggle("content-showcase--scrollable", canScroll);
       carousel.classList.toggle("content-showcase--at-start", !canScroll || atStart);

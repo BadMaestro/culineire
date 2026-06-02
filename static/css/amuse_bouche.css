@@ -564,13 +564,22 @@
   overflow-y: hidden;
   overscroll-behavior-inline: contain;
   padding-block: 0.08rem 0.55rem;
-  padding-inline: 0.05rem;
+  padding-inline: 0.05rem 0.9rem;
   scroll-behavior: smooth;
+  scroll-padding-inline: 0.05rem 0.9rem;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
 }
 
 .ab-home-carousel::-webkit-scrollbar { display: none; }
+
+@media (max-width: 900px) {
+  .ab-home-carousel {
+    margin-inline: 2.35rem;
+    padding-inline: 0 2.35rem;
+    scroll-padding-inline: 0 2.35rem;
+  }
+}
 
 /* Individual square card */
 .ab-home-card {

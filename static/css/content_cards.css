@@ -422,6 +422,7 @@
 .content-carousel {
   position: relative;
   isolation: isolate;
+  overflow: visible;
 }
 
 .recipe-grid--carousel {
@@ -431,11 +432,12 @@
   gap: 0.9rem;
   margin-inline: 2.7rem;
   padding-block: 0.08rem 0.55rem;
-  padding-inline: 0.05rem;
+  padding-inline: 0.05rem 0.9rem;
   overflow-x: auto;
   overflow-y: hidden;
   overscroll-behavior-inline: contain;
   scroll-behavior: smooth;
+  scroll-padding-inline: 0.05rem 0.9rem;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
 }
@@ -527,6 +529,14 @@
   box-shadow: none;
   cursor: default;
   pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  .recipe-grid--carousel {
+    margin-inline: 2.35rem;
+    padding-inline: 0 2.35rem;
+    scroll-padding-inline: 0 2.35rem;
+  }
 }
 
 /* ==== Recipe card ==== */
@@ -1107,6 +1117,8 @@
   .recipe-grid--carousel {
     gap: 0.9rem;
     margin-inline: 1.85rem;
+    padding-inline: 0 1.85rem;
+    scroll-padding-inline: 0 1.85rem;
   }
 
   .recipe-grid--carousel > .recipe-card {
