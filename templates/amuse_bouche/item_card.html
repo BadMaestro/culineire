@@ -48,13 +48,23 @@
       {% if item.short_description %}
       <p class="ab-sheet__text">{{ item.short_description }}</p>
       {% endif %}
-      {% if item.linked_recipe %}
-      <a class="ab-sheet__link" href="{{ item.linked_recipe.get_absolute_url }}">Full recipe</a>
+      {# Row 1: content links #}
+      <div class="ab-sheet__row">
+        {% if item.linked_recipe %}
+        <a class="ab-sheet__link" href="{{ item.linked_recipe.get_absolute_url }}">Full recipe</a>
+        {% endif %}
+        {% if item.linked_article %}
+        <a class="ab-sheet__link" href="{{ item.linked_article.get_absolute_url }}">Read the story</a>
+        {% endif %}
+        <a class="ab-sheet__link ab-sheet__open-btn" href="{{ item.get_absolute_url }}">Open Page</a>
+      </div>
+      {# Row 2: Edit / Delete — author and moderators only #}
+      {% if user_author_slug == item.author.slug or user_is_moderator %}
+      <div class="ab-sheet__row">
+        <a class="ab-sheet__link" href="{% url 'amuse_bouche:edit' item.slug %}">Edit</a>
+        <a class="ab-sheet__link ab-sheet__link--danger" href="{% url 'amuse_bouche:delete' item.slug %}">Delete</a>
+      </div>
       {% endif %}
-      {% if item.linked_article %}
-      <a class="ab-sheet__link" href="{{ item.linked_article.get_absolute_url }}">Read the story</a>
-      {% endif %}
-      <a class="ab-sheet__link ab-sheet__open-btn" href="{{ item.get_absolute_url }}">Open Page</a>
     </div>
   </div>
 
@@ -150,5 +160,6 @@
     {% endif %}
 
   </div>{# /ab-card__actions #}
+
 
 </article>

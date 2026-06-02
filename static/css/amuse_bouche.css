@@ -1097,6 +1097,31 @@
   padding-bottom: 2.25rem;
 }
 
+/* Row of pills side-by-side inside the sheet */
+.ab-sheet__row {
+  display: flex;
+  gap: .4rem;
+  justify-content: center;
+  width: 100%;
+}
+
+.ab-sheet__row .ab-sheet__link {
+  flex: 1;
+  text-align: center;
+}
+
+/* Delete pill — red border variant */
+.ab-sheet__link--danger {
+  border-color: rgba(220, 80, 80, .5);
+  color: #f4a0a0;
+}
+
+.ab-sheet__link--danger:hover,
+.ab-sheet__link--danger:focus-visible {
+  background: rgba(220, 80, 80, .15);
+  border-color: rgba(220, 80, 80, .8);
+}
+
 /* Feed card: allow the parent's align-items:center to take effect on each link */
 .ab-card .ab-card__sheet .ab-sheet__link {
   align-self: auto;

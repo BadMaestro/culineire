@@ -131,6 +131,10 @@ def feed(request):
         queryset = queryset.filter(author__slug=author)
     items, liked_ids, saved_ids, followed_author_ids = _user_state(queryset[:30], request.user)
     _attach_likers(items)
+    user_author_slug = ""
+    if request.user.is_authenticated:
+        profile = getattr(request.user, "recipe_author_profile", None)
+        user_author_slug = profile.slug if profile else ""
     return render(request, "amuse_bouche/feed.html", {
         "items": items,
         "content_type_choices": AmuseBouche.ContentType.choices,
@@ -138,6 +142,8 @@ def feed(request):
         "liked_ids": liked_ids,
         "saved_ids": saved_ids,
         "followed_author_ids": followed_author_ids,
+        "user_author_slug": user_author_slug,
+        "user_is_moderator": is_moderator(request.user),
     })
 
 
