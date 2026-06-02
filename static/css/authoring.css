@@ -174,18 +174,18 @@
 }
 
 .authoring-check-label {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: start;
-  gap: 0.65rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
   max-width: 72rem;
   line-height: 1.45;
 }
 
 .authoring-check-label input {
+  flex: none;
   inline-size: 1rem;
   block-size: 1rem;
-  margin-block-start: 0.18rem;
+  margin: 0;
 }
 
 .authoring-check-label a {

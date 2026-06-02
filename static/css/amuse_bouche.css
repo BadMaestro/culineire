@@ -1166,6 +1166,29 @@
 }
 
 /* ================================================================
+   Form: allow_comments warning strip
+   ================================================================ */
+.ab-comments-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.45rem;
+  padding: 0.3rem 0.75rem;
+  background: rgba(200, 100, 20, 0.08);
+  border-left: 3px solid #c86414;
+  border-radius: 0 4px 4px 0;
+  color: #8a4210;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  max-width: 42rem;
+}
+
+.ab-comments-warning svg {
+  flex: none;
+  opacity: 0.75;
+}
+
+/* ================================================================
    Action button ripple (mirrors sponsor puzzle-cell pulse)
    ================================================================ */
 @keyframes ab-btn-ripple {

@@ -28,6 +28,12 @@
                         {{ field }}
                         <span>{{ field.label }}</span>
                     </label>
+                    {% if field.html_name == 'allow_comments' %}
+                    <div class="ab-comments-warning" id="ab-comments-warning">
+                        <svg aria-hidden="true" fill="none" height="14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="14"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+                        If you uncheck this, visitors will not be able to leave comments on your card.
+                    </div>
+                    {% endif %}
                 {% else %}
                     {{ field.label_tag }}
                     {{ field }}
@@ -45,4 +51,18 @@
         </form>
     </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<link href="{% static 'css/amuse_bouche.css' %}" rel="stylesheet">
+<script>
+(function () {
+  var chk = document.getElementById("id_allow_comments");
+  var warn = document.getElementById("ab-comments-warning");
+  if (!chk || !warn) return;
+  function toggle() { warn.style.display = chk.checked ? "none" : "flex"; }
+  toggle();
+  chk.addEventListener("change", toggle);
+})();
+</script>
 {% endblock %}
