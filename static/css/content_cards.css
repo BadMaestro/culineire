@@ -239,6 +239,12 @@
   aspect-ratio: 2 / 1;
 }
 
+/* Homepage carousels: square image crop, like AB cards */
+.recipe-grid--home .recipe-card__image-wrapper {
+  aspect-ratio: 1 / 1;
+  border-radius: 14px 14px 0 0;
+}
+
 .recipe-list-page .recipe-card__body {
   padding-block: 0.72rem 0.66rem;
   padding-inline: 0.72rem;
@@ -387,7 +393,7 @@
 
 .content-showcase {
   margin-block-start: 1.05rem;
-  padding-block: 1.2rem;
+  padding-block: 1.2rem 0.65rem;
   padding-inline: 1.15rem;
   border: 1px solid rgb(31 44 37 / 0.08);
   border-radius: 24px;

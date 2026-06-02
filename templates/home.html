@@ -80,6 +80,7 @@
             <div>
                 <h2>New From The Kitchen</h2>
             </div>
+            <a class="text-link" href="{% url 'recipes:recipe_list' %}">See all</a>
         </div>
 
         <p class="page-subtitle">
@@ -94,7 +95,7 @@
                 <button aria-label="Scroll recipes left" class="content-carousel__button content-carousel__button--prev" data-carousel-prev type="button">
                     <svg aria-hidden="true" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="11 6 5 12 11 18"/></svg>
                 </button>
-                <div class="recipe-grid recipe-grid--carousel recipe-list-page" data-carousel-track>
+                <div class="recipe-grid recipe-grid--carousel recipe-list-page recipe-grid--home" data-carousel-track>
                     {% for recipe in latest_recipes %}
                     <article class="recipe-card">
                         <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
@@ -184,6 +185,7 @@
             <div>
                 <h2>Food Notes, Stories And Technique</h2>
             </div>
+            <a class="text-link" href="{% url 'articles:article_list' %}">See all</a>
         </div>
 
         <p class="page-subtitle">Short reads on Irish food culture, useful techniques, ingredient notes and the stories behind the recipes.</p>
@@ -195,7 +197,7 @@
                 <button aria-label="Scroll articles left" class="content-carousel__button content-carousel__button--prev" data-carousel-prev type="button">
                     <svg aria-hidden="true" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="11 6 5 12 11 18"/></svg>
                 </button>
-                <div class="recipe-grid recipe-grid--carousel recipe-list-page" data-carousel-track>
+                <div class="recipe-grid recipe-grid--carousel recipe-list-page recipe-grid--home" data-carousel-track>
                     {% for article in latest_articles %}
                     <article class="recipe-card recipe-card--article">
                         <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">

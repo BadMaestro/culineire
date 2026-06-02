@@ -32,16 +32,18 @@
   {# Slide-up sheet — NO close button inside (avoids scroll-away bug) #}
   <div class="ab-card__sheet" id="ab-sheet-{{ item.pk }}"
        role="dialog" aria-label="More info" aria-hidden="true">
-    {% if item.short_description %}
-    <p class="ab-sheet__text">{{ item.short_description }}</p>
-    {% endif %}
-    {% if item.linked_recipe %}
-    <a class="ab-sheet__link" href="{{ item.linked_recipe.get_absolute_url }}">Full recipe &rarr;</a>
-    {% endif %}
-    {% if item.linked_article %}
-    <a class="ab-sheet__link" href="{{ item.linked_article.get_absolute_url }}">Read the story &rarr;</a>
-    {% endif %}
-    <a class="btn-secondary ab-sheet__open-btn" href="{{ item.get_absolute_url }}">Open full page &rarr;</a>
+    <div class="ab-sheet__body">
+      {% if item.short_description %}
+      <p class="ab-sheet__text">{{ item.short_description }}</p>
+      {% endif %}
+      {% if item.linked_recipe %}
+      <a class="ab-sheet__link" href="{{ item.linked_recipe.get_absolute_url }}">Full recipe &rarr;</a>
+      {% endif %}
+      {% if item.linked_article %}
+      <a class="ab-sheet__link" href="{{ item.linked_article.get_absolute_url }}">Read the story &rarr;</a>
+      {% endif %}
+    </div>
+    <a class="btn-secondary ab-sheet__open-btn" href="{{ item.get_absolute_url }}">Open Page &rarr;</a>
   </div>
 
   {# CLOSE button — sibling of sheet, shown via CSS when sheet is open #}
