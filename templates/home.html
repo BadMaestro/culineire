@@ -6,10 +6,10 @@
 
 {% block og_title %}CulinEire | Modern Irish Recipes & Food Stories{% endblock %}
 {% block og_description %}Explore modern Irish recipes, vintage cookbook finds, seasonal cooking ideas, and food stories from the CulinEire kitchen.{% endblock %}
-{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero.jpg' %}{% endblock %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero.png' %}{% endblock %}
 {% block twitter_title %}CulinEire | Modern Irish Recipes & Food Stories{% endblock %}
 {% block twitter_description %}Explore modern Irish recipes, vintage cookbook finds, seasonal cooking ideas, and food stories from the CulinEire kitchen.{% endblock %}
-{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero.jpg' %}{% endblock %}
+{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero.png' %}{% endblock %}
 
 {% block extra_head %}
 {% if latest_amuse_bouche %}
@@ -20,7 +20,7 @@
 {% block content %}
 <section class="hero hero--home">
     <div aria-hidden="true" class="hero__background">
-        <img alt="" src="{% static 'images/hero.jpg' %}">
+        <img alt="" src="{% static 'images/hero.png' %}">
     </div>
     <div aria-hidden="true" class="hero__overlay"></div>
 
@@ -102,7 +102,7 @@
                             {% if recipe.hero_image %}
                             <img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}">
                             {% else %}
-                            <img alt="{{ recipe.title }}" src="{% static 'images/hero.jpg' %}">
+                            <img alt="{{ recipe.title }}" src="{% static 'images/hero.png' %}">
                             {% endif %}
                         </a>
 
@@ -204,7 +204,7 @@
                             {% if article.card_image %}
                             <img alt="{{ article.title }}" src="{{ article.card_image.url }}">
                             {% else %}
-                            <img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}">
+                            <img alt="{{ article.title }}" src="{% static 'images/hero.png' %}">
                             {% endif %}
                         </a>
 
