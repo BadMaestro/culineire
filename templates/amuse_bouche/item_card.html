@@ -68,11 +68,8 @@
       <button class="ab-btn{% if item.pk in liked_ids %} ab-btn--liked{% endif %}"
               type="submit"
               aria-label="{% if item.pk in liked_ids %}Unlike{% else %}Like{% endif %}">
-        {% if item.pk in liked_ids %}
-        <svg aria-hidden="true" fill="currentColor" height="20" viewBox="0 0 24 24" width="20"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-        {% else %}
-        <svg aria-hidden="true" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="20"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-        {% endif %}
+        <svg class="ab-icon--on" aria-hidden="true" fill="currentColor" height="20" viewBox="0 0 24 24" width="20"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <svg class="ab-icon--off" aria-hidden="true" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="20"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         {% if item.like_total %}<span class="ab-btn__count">{{ item.like_total }}</span>{% endif %}
       </button>
     </form>
@@ -82,16 +79,15 @@
       <svg aria-hidden="true" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="20"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
       {% if item.like_total %}<span class="ab-btn__count">{{ item.like_total }}</span>{% endif %}
     </a>
+
     {% endif %}
 
-    {# Comment #}
-    {% if item.allow_comments %}
+    {# Comment — always shown; detail page handles whether form is open #}
     <a class="ab-btn"
-       href="{% if detail %}#ab-comments{% else %}{{ item.get_absolute_url }}#ab-comments{% endif %}"
+       href="{% if detail %}#ab-comments{% else %}{{ item.get_absolute_url }}{% endif %}"
        aria-label="Comments">
       <svg aria-hidden="true" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="20"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
     </a>
-    {% endif %}
 
     {# Share #}
     <button class="ab-btn" type="button"
@@ -108,11 +104,8 @@
       <button class="ab-btn{% if item.pk in saved_ids %} ab-btn--saved{% endif %}"
               type="submit"
               aria-label="{% if item.pk in saved_ids %}Remove bookmark{% else %}Bookmark{% endif %}">
-        {% if item.pk in saved_ids %}
-        <svg aria-hidden="true" fill="currentColor" height="20" viewBox="0 0 24 24" width="20"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-        {% else %}
-        <svg aria-hidden="true" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="20"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-        {% endif %}
+        <svg class="ab-icon--on" aria-hidden="true" fill="currentColor" height="20" viewBox="0 0 24 24" width="20"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        <svg class="ab-icon--off" aria-hidden="true" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="20"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
       </button>
     </form>
     {% else %}

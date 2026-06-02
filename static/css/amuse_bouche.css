@@ -748,6 +748,14 @@
 .ab-btn--liked { color: #e03e3e; }
 .ab-btn--saved { color: #c8a96e; }
 
+/* SVG icon toggle: show .ab-icon--on only when active, .ab-icon--off otherwise */
+.ab-btn .ab-icon--on  { display: none; }
+.ab-btn .ab-icon--off { display: block; }
+.ab-btn--liked .ab-icon--on,
+.ab-btn--saved .ab-icon--on  { display: block; }
+.ab-btn--liked .ab-icon--off,
+.ab-btn--saved .ab-icon--off { display: none; }
+
 .ab-btn__count {
   font-size: .6rem;
   font-weight: 700;

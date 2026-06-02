@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count, F, Prefetch, Q
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -254,7 +254,10 @@ def _safe_next(request, fallback):
 def toggle_like(request, slug):
     _require_public_area_access(request)
     item = get_object_or_404(AmuseBouche, slug=slug, status=AmuseBouche.Status.APPROVED)
+    is_fetch = request.headers.get("X-AB-Fetch") == "1"
     if getattr(request, "limited", False):
+        if is_fetch:
+            return JsonResponse({"ok": False, "error": "rate_limited"}, status=429)
         messages.error(request, "Too many requests. Please try again later.")
         return _safe_next(request, item.get_absolute_url())
     content_type = ContentType.objects.get_for_model(AmuseBouche)
@@ -266,9 +269,18 @@ def toggle_like(request, slug):
     )
     if created:
         track_event(request, "content_like", object_type="amuse_bouche", object_id=item.pk, object_title=item.title)
-        messages.success(request, "Liked.")
     else:
         reaction.delete()
+    if is_fetch:
+        count = ContentReaction.objects.filter(
+            content_type=content_type,
+            object_id=item.pk,
+            reaction=ContentReaction.Reaction.LIKE,
+        ).count()
+        return JsonResponse({"ok": True, "liked": created, "count": count})
+    if created:
+        messages.success(request, "Liked.")
+    else:
         messages.success(request, "Like removed.")
     return _safe_next(request, item.get_absolute_url())
 
@@ -279,7 +291,10 @@ def toggle_like(request, slug):
 def toggle_save(request, slug):
     _require_public_area_access(request)
     item = get_object_or_404(AmuseBouche, slug=slug, status=AmuseBouche.Status.APPROVED)
+    is_fetch = request.headers.get("X-AB-Fetch") == "1"
     if getattr(request, "limited", False):
+        if is_fetch:
+            return JsonResponse({"ok": False, "error": "rate_limited"}, status=429)
         messages.error(request, "Too many requests. Please try again later.")
         return _safe_next(request, item.get_absolute_url())
     content_type = ContentType.objects.get_for_model(AmuseBouche)
@@ -290,10 +305,14 @@ def toggle_save(request, slug):
     )
     if created:
         track_event(request, "collection_add", object_type="amuse_bouche", object_id=item.pk, object_title=item.title)
-        messages.success(request, "Added to your collection.")
     else:
         saved.delete()
         track_event(request, "collection_remove", object_type="amuse_bouche", object_id=item.pk, object_title=item.title)
+    if is_fetch:
+        return JsonResponse({"ok": True, "saved": created})
+    if created:
+        messages.success(request, "Added to your collection.")
+    else:
         messages.success(request, "Removed from your collection.")
     return _safe_next(request, item.get_absolute_url())
 

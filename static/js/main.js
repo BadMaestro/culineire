@@ -454,4 +454,63 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeAllSheets();
   });
+
+  // ==== Amuse-Bouche like / save — AJAX toggle (no page reload, no scroll reset) ====
+  document.addEventListener("submit", (e) => {
+    const form = e.target.closest(".ab-action-form");
+    if (!form) return;
+    const csrfInput = form.querySelector("[name=csrfmiddlewaretoken]");
+    if (!csrfInput) return;
+    e.preventDefault();
+
+    const btn = form.querySelector(".ab-btn");
+    if (!btn) return;
+
+    // Optimistic: disable while in flight
+    btn.disabled = true;
+
+    fetch(form.action, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": csrfInput.value,
+        "X-AB-Fetch": "1",
+      },
+      body: new FormData(form),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (!data.ok) return;
+
+        // Like button
+        if ("liked" in data) {
+          btn.classList.toggle("ab-btn--liked", data.liked);
+          btn.setAttribute("aria-label", data.liked ? "Unlike" : "Like");
+          // Update count badge
+          let countEl = btn.querySelector(".ab-btn__count");
+          if (data.count > 0) {
+            if (!countEl) {
+              countEl = document.createElement("span");
+              countEl.className = "ab-btn__count";
+              btn.appendChild(countEl);
+            }
+            countEl.textContent = data.count;
+          } else if (countEl) {
+            countEl.remove();
+          }
+        }
+
+        // Save / bookmark button
+        if ("saved" in data) {
+          btn.classList.toggle("ab-btn--saved", data.saved);
+          btn.setAttribute("aria-label", data.saved ? "Remove bookmark" : "Bookmark");
+        }
+      })
+      .catch(() => {
+        // Network error — fall back to normal form submit
+        form.submit();
+      })
+      .finally(() => {
+        btn.disabled = false;
+      });
+  });
 });
