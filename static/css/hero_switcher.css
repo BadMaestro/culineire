@@ -39,6 +39,18 @@
   .hero--home .hero__slide img {
     object-position: 55% center;
   }
+
+  /* Hide the Photo peek button on mobile — it conflicts visually
+     with the centred pill and the switcher already handles images */
+  .hero--home .hero-peek-btn {
+    display: none;
+  }
+
+  /* Extra bottom padding so the dot switcher never overlaps the
+     last hero action button when content is tall on small screens */
+  .hero--home .hero__inner {
+    padding-block-end: 2.8rem;
+  }
 }
 
 /* ------------------------------------------------------------------
