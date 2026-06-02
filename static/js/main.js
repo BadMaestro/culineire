@@ -455,6 +455,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.key === "Escape") closeAllSheets();
   });
 
+  // ==== AB hero actions burger (mobile) ====
+  document.addEventListener("click", (e) => {
+    const toggle = e.target.closest(".ab-hero-toggle");
+    if (!toggle) return;
+    const actions = toggle.closest(".ab-hero-actions");
+    if (!actions) return;
+    const isOpen = actions.classList.toggle("is-open");
+    toggle.setAttribute("aria-expanded", String(isOpen));
+  });
+
   // ==== Amuse-Bouche like / save — AJAX toggle (no page reload, no scroll reset) ====
   document.addEventListener("submit", (e) => {
     const form = e.target.closest(".ab-action-form");
