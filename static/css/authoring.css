@@ -3,6 +3,16 @@
   object-position: center 70%;
 }
 
+.hero--article-form,
+.hero--recipe-form {
+  width: 100%;
+}
+
+.hero--article-form .hero-copy,
+.hero--recipe-form .hero-copy {
+  margin-inline: auto;
+}
+
 .authoring-page {
   background: #f7f2ea;
 }
@@ -716,6 +726,22 @@ textarea.authoring-control {
 }
 
 @media (max-width: 760px) {
+  .hero--article-form .hero__actions,
+  .hero--recipe-form .hero__actions {
+    width: min(100%, 18rem);
+    margin-inline: auto;
+  }
+
+  .hero--article-form .hero__actions .btn-primary,
+  .hero--article-form .hero__actions .btn-secondary,
+  .hero--article-form .hero__actions .btn,
+  .hero--recipe-form .hero__actions .btn-primary,
+  .hero--recipe-form .hero__actions .btn-secondary,
+  .hero--recipe-form .hero__actions .btn {
+    width: 100%;
+    max-width: 18rem;
+  }
+
   .authoring-header {
     grid-template-columns: 1fr;
     justify-items: center;
@@ -738,9 +764,31 @@ textarea.authoring-control {
     grid-template-columns: 1fr;
   }
 
+  .authoring-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.95rem;
+    width: 100%;
+    padding-top: 0.75rem;
+  }
+
+  .authoring-actions .cf-turnstile {
+    align-self: center;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
   .authoring-actions__buttons {
     flex-direction: column-reverse;
     align-items: stretch;
+    width: 100%;
+    gap: 0.65rem;
+  }
+
+  .authoring-actions__buttons .authoring-link,
+  .authoring-actions__buttons .authoring-submit {
+    width: 100%;
+    min-height: 46px;
   }
 }
 
