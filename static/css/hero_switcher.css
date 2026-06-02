@@ -1,0 +1,93 @@
+/* ================================================================
+   Hero Switcher — homepage only
+   All selectors scoped to .hero--home / .hero__slide / .hero__dot.
+   Does not touch any other page, section, or component.
+   ================================================================ */
+
+/* ------------------------------------------------------------------
+   Slides — each fills the .hero__background container
+   ------------------------------------------------------------------ */
+
+.hero--home .hero__slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 700ms ease;
+}
+
+.hero--home .hero__slide.is-active {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero--home .hero__slide {
+    transition: none;
+  }
+}
+
+/* Images: fill slide, position so warm detail shows on the right */
+.hero--home .hero__slide img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 60% center;
+}
+
+/* On small screens keep some visual balance */
+@media (max-width: 640px) {
+  .hero--home .hero__slide img {
+    object-position: 55% center;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Dot switcher — centred at hero bottom
+   ------------------------------------------------------------------ */
+
+.hero__switcher {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.hero__dot {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.22);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: background 0.22s ease, border-color 0.22s ease, transform 0.22s ease;
+}
+
+.hero__dot:hover {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: rgba(255, 255, 255, 0.85);
+}
+
+.hero__dot.is-active {
+  background: rgba(200, 169, 110, 0.92);
+  border-color: rgb(200, 169, 110);
+  transform: scale(1.3);
+}
+
+.hero__dot:focus-visible {
+  outline: 2px solid rgb(200, 169, 110);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__dot {
+    transition: none;
+  }
+}

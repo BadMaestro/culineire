@@ -506,7 +506,7 @@
   }
 
   .hero--home {
-    min-height: clamp(250px, 38vw, 410px);
+    min-height: clamp(420px, 52vw, 620px);
     padding: 0;
     display: flex;
     align-items: flex-start;
@@ -1086,7 +1086,7 @@
     }
 
     .hero--home {
-      min-height: clamp(270px, 52vw, 420px);
+      min-height: clamp(380px, 54vw, 500px);
     }
 
     .hero__overlay {
@@ -1121,7 +1121,7 @@
     }
 
     .hero--home {
-      min-height: 300px;
+      min-height: 400px;
     }
 
     .hero__inner {

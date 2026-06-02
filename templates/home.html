@@ -12,6 +12,7 @@
 {% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero.png' %}{% endblock %}
 
 {% block extra_head %}
+<link href="{% static 'css/hero_switcher.css' %}" rel="stylesheet">
 {% if latest_amuse_bouche %}
 <link href="{% static 'css/amuse_bouche.css' %}" rel="stylesheet">
 {% endif %}
@@ -20,7 +21,12 @@
 {% block content %}
 <section class="hero hero--home">
     <div aria-hidden="true" class="hero__background">
-        <img alt="" src="{% static 'images/hero.png' %}">
+        <div class="hero__slide is-active">
+            <img alt="" fetchpriority="high" loading="eager" src="{% static 'images/hero.png' %}">
+        </div>
+        <div class="hero__slide">
+            <img alt="" loading="lazy" src="{% static 'images/hero-battle.png' %}">
+        </div>
     </div>
     <div aria-hidden="true" class="hero__overlay"></div>
 
@@ -38,6 +44,11 @@
                 <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
             </div>
         </div>
+    </div>
+
+    <div aria-label="Choose hero image" class="hero__switcher">
+        <button aria-label="Show hero image 1" aria-pressed="true" class="hero__dot is-active" data-slide="0" type="button"></button>
+        <button aria-label="Show hero image 2" aria-pressed="false" class="hero__dot" data-slide="1" type="button"></button>
     </div>
 </section>
 
@@ -263,4 +274,8 @@
         {% endif %}
     </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/hero_switcher.js' %}"></script>
 {% endblock %}
