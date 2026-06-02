@@ -890,6 +890,8 @@
 /* Grid scroll: overflow set here, max-height set by JS after cards render */
 .ab-vscroll.recipe-vscroll.ab-grid-scroll {
   overflow-y: auto;
+  overflow-x: hidden;   /* clip scrollbar to container bounds */
+  padding-right: 6px;   /* gutter so scrollbar renders inside, not at the edge */
 }
 
 /* ---- Three-column editorial grid (≈30% smaller than 2-col) ---- */
