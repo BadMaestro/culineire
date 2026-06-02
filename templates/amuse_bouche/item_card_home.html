@@ -1,0 +1,47 @@
+{% load static %}
+<article class="ab-home-card" data-ab-id="{{ item.pk }}">
+
+  {# Photo #}
+  <div class="ab-home-card__photo">
+    {% if item.card_image %}
+    <img alt="{% if item.cover_image_alt %}{{ item.cover_image_alt }}{% else %}{{ item.title }}{% endif %}"
+         src="{{ item.card_image.url }}" loading="lazy">
+    {% else %}
+    <img alt="{{ item.title }}" src="{% static 'images/hero.jpg' %}" loading="lazy">
+    {% endif %}
+    <a class="ab-card__cover-link" href="{{ item.get_absolute_url }}"
+       tabindex="-1" aria-hidden="true"></a>
+  </div>
+
+  {# Category badge — top-left #}
+  <span class="ab-badge ab-home-card__badge">{{ item.get_content_type_display }}</span>
+
+  {# Title overlay — bottom-left, pointer-events:none so cover link still works #}
+  <div class="ab-home-card__overlay" aria-hidden="true">
+    <p class="ab-home-card__title">{{ item.title }}</p>
+  </div>
+
+  {# MORE button — bottom-right, outside pointer-events:none overlay #}
+  <button class="ab-home-card__more" type="button"
+          data-ab-more="{{ item.pk }}"
+          aria-expanded="false"
+          aria-label="More about {{ item.title }}">MORE&#x25BE;</button>
+
+  {# Slide-up sheet (same JS + CSS as feed cards) #}
+  <div class="ab-card__sheet" id="ab-sheet-{{ item.pk }}"
+       role="dialog" aria-label="More info" aria-hidden="true">
+    {% if item.short_description %}
+    <p class="ab-sheet__text">{{ item.short_description }}</p>
+    {% endif %}
+    {% if item.linked_recipe %}
+    <a class="ab-sheet__link" href="{{ item.linked_recipe.get_absolute_url }}">Full recipe &rarr;</a>
+    {% endif %}
+    {% if item.linked_article %}
+    <a class="ab-sheet__link" href="{{ item.linked_article.get_absolute_url }}">Read the story &rarr;</a>
+    {% endif %}
+    <a class="ab-sheet__link ab-sheet__link--detail" href="{{ item.get_absolute_url }}">Open full page &rarr;</a>
+    <button class="ab-sheet__close" type="button"
+            data-ab-close="{{ item.pk }}" aria-label="Close">&#x25B2; close</button>
+  </div>
+
+</article>

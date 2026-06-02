@@ -49,14 +49,26 @@
                 <h2>Quick Bites From The Kitchen</h2>
             </div>
             {% if can_view_amuse_bouche_public_area %}
-            <a class="text-link" href="{% url 'amuse_bouche:feed' %}">See all</a>
+            <a class="text-link" href="{% url 'amuse_bouche:feed' %}">See all ...</a>
             {% endif %}
         </div>
         <p class="page-subtitle">Irish bites, chef tricks and quick ideas from the CulinEire kitchen.</p>
-        <div class="ab-home-grid">
-            {% for bite in latest_amuse_bouche %}
-            {% include "amuse_bouche/item_card.html" with item=bite liked_ids=ab_liked_ids saved_ids=ab_saved_ids followed_author_ids=ab_followed_author_ids %}
-            {% endfor %}
+
+        <div class="content-showcase content-showcase--carousel" data-card-carousel>
+            <p class="content-showcase__eyebrow">Latest Bites</p>
+            <div class="content-carousel">
+                <button aria-label="Scroll bites left" class="content-carousel__button content-carousel__button--prev" data-carousel-prev type="button">
+                    <svg aria-hidden="true" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="11 6 5 12 11 18"/></svg>
+                </button>
+                <div class="ab-home-carousel" data-carousel-track>
+                    {% for bite in latest_amuse_bouche %}
+                    {% include "amuse_bouche/item_card_home.html" with item=bite %}
+                    {% endfor %}
+                </div>
+                <button aria-label="Scroll bites right" class="content-carousel__button content-carousel__button--next" data-carousel-next type="button">
+                    <svg aria-hidden="true" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>
+                </button>
+            </div>
         </div>
     </div>
 </section>
