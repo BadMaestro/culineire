@@ -15,9 +15,6 @@
             <div class="authoring-header__copy">
                 <p class="eyebrow">Author Studio</p>
                 <h1>{{ delete_title|default:"Delete Item" }}</h1>
-                <p class="authoring-intro">
-                    {{ delete_intro|default:"Please confirm this destructive action." }}
-                </p>
             </div>
             <p aria-label="Current author" class="authoring-author">
                 <span class="authoring-author__label">By:</span>
@@ -25,6 +22,11 @@
                 <strong>{{ author.name }}</strong>
             </p>
         </header>
+
+        <div class="authoring-delete-warning">
+            <svg aria-hidden="true" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="20"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+            <p>{{ delete_intro|default:"Please confirm this destructive action." }}</p>
+        </div>
 
         <form class="authoring-form" method="post">
             {% csrf_token %}

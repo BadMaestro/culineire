@@ -69,6 +69,30 @@
   line-height: 1.55;
 }
 
+.authoring-delete-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  background: rgb(220 60 60 / 0.07);
+  border: 1px solid rgb(220 60 60 / 0.22);
+  border-radius: var(--radius-md, 10px);
+  color: #7a2020;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+  padding: 0.85rem 1.1rem;
+}
+
+.authoring-delete-warning svg {
+  flex-shrink: 0;
+  color: #c0392b;
+  margin-top: 0.1rem;
+}
+
+.authoring-delete-warning p {
+  margin: 0;
+}
+
 .authoring-author {
   position: relative;
   z-index: 1;
