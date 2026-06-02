@@ -9,38 +9,43 @@
 {% endblock %}
 
 {% block content %}
-<div class="ab-snap-page">
+<div class="ab-page">
 
-    {# Compact filter strip #}
-    <div class="ab-snap-header">
-        <div class="ab-snap-title-row">
-            <h1 class="ab-snap-heading">Amuse-Bouche</h1>
-            {% if user.is_authenticated %}
-            <a class="ab-snap-submit" href="{% url 'amuse_bouche:create' %}">+ Submit</a>
-            {% endif %}
-        </div>
-        <nav class="ab-filters ab-filters--snap" aria-label="Amuse-Bouche filters">
-            <a class="ab-filter{% if not active_content_type %} ab-filter--active{% endif %}" href="{% url 'amuse_bouche:feed' %}">All</a>
+    {# Page header #}
+    <header class="ab-page-header">
+        <h1 class="ab-page-heading">Amuse-Bouche</h1>
+        <p class="ab-page-subtitle">Small bites, big ideas from the CulinEire kitchen.</p>
+        {% if user.is_authenticated %}
+        <a class="ab-page-cta" href="{% url 'amuse_bouche:create' %}">Share a Bite</a>
+        {% endif %}
+    </header>
+
+    {# Filter bar #}
+    <div class="ab-filter-bar">
+        <nav class="ab-filters" aria-label="Amuse-Bouche filters">
+            <a class="ab-filter{% if not active_content_type %} ab-filter--active{% endif %}"
+               href="{% url 'amuse_bouche:feed' %}">All</a>
             {% for value, label in content_type_choices %}
-            <a class="ab-filter{% if active_content_type == value %} ab-filter--active{% endif %}" href="?type={{ value }}">{{ label }}</a>
+            <a class="ab-filter{% if active_content_type == value %} ab-filter--active{% endif %}"
+               href="?type={{ value }}">{{ label }}</a>
             {% endfor %}
         </nav>
     </div>
 
-    {# Snap-scroll feed #}
+    {# Feed #}
     {% if items %}
-    <div class="ab-snap-feed" role="list" aria-label="Amuse-Bouche posts">
+    <div class="ab-feed" role="list" aria-label="Amuse-Bouche posts">
         {% for item in items %}
-        <div class="ab-snap-slide" role="listitem">
+        <div class="ab-feed__item" role="listitem">
             {% include "amuse_bouche/item_card.html" with item=item liked_ids=liked_ids saved_ids=saved_ids followed_author_ids=followed_author_ids %}
         </div>
         {% endfor %}
     </div>
     {% else %}
-    <div class="ab-empty ab-empty--snap">
-        <p class="ab-empty__text">No approved Amuse-Bouche posts yet.</p>
+    <div class="ab-empty ab-empty--page">
+        <p class="ab-empty__text">No bites yet. Share the first small kitchen idea.</p>
         {% if user.is_authenticated %}
-        <a class="btn-primary" href="{% url 'amuse_bouche:create' %}">Be the first to submit</a>
+        <a class="ab-page-cta" href="{% url 'amuse_bouche:create' %}">Share a Bite</a>
         {% endif %}
     </div>
     {% endif %}
