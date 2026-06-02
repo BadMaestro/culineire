@@ -1518,6 +1518,7 @@
   cursor: pointer;
   inset: 0;
   opacity: 0;
+  pointer-events: none; /* invisible scrim must not intercept clicks */
   position: fixed;
   transition: opacity .22s ease;
   z-index: 199;
@@ -1525,6 +1526,7 @@
 
 .ab-cmt-scrim.is-open {
   opacity: 1;
+  pointer-events: auto;
 }
 
 /* Panel: positioned by JS over the clicked card */
