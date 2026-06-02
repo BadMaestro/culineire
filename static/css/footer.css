@@ -65,12 +65,92 @@
   color: rgba(247 242 234 / 0.55);
 }
 
+/* ── Action row: social icons + search + support ── */
+.footer-brand__action-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
 /* ── Social icons in footer ── */
 .footer-socials {
   display: flex;
   align-items: center;
   gap: clamp(0.7rem, 3vw, 1.4rem);
   flex-wrap: nowrap;
+}
+
+/* ── Compact search form ── */
+.footer-search {
+  align-items: center;
+  background: rgba(247, 242, 234, 0.07);
+  border: 1px solid rgba(247, 242, 234, 0.14);
+  border-radius: 999px;
+  display: flex;
+  gap: 0.2rem;
+  padding: 0.22rem 0.38rem 0.22rem 0.65rem;
+  transition: border-color 0.15s ease;
+}
+
+.footer-search:focus-within {
+  border-color: rgba(200, 169, 110, 0.5);
+}
+
+.footer-search__input {
+  background: none;
+  border: none;
+  color: rgba(247, 242, 234, 0.78);
+  font: inherit;
+  font-size: 0.78rem;
+  min-width: 0;
+  outline: none;
+  width: 120px;
+}
+
+.footer-search__input::placeholder {
+  color: rgba(247, 242, 234, 0.32);
+}
+
+.footer-search__btn {
+  align-items: center;
+  background: none;
+  border: none;
+  color: rgba(247, 242, 234, 0.45);
+  cursor: pointer;
+  display: flex;
+  flex-shrink: 0;
+  padding: 0.15rem 0.2rem;
+  transition: color 0.15s ease;
+}
+
+.footer-search__btn:hover,
+.footer-search__btn:focus-visible {
+  color: rgba(247, 242, 234, 0.9);
+}
+
+/* ── Support / Buy-me-a-coffee link ── */
+.footer-bmc {
+  align-items: center;
+  background: rgba(247, 242, 234, 0.07);
+  border: 1px solid rgba(247, 242, 234, 0.14);
+  border-radius: 999px;
+  color: rgba(247, 242, 234, 0.65);
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 500;
+  gap: 0.3rem;
+  padding: 0.24rem 0.75rem;
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+}
+
+.footer-bmc:hover,
+.footer-bmc:focus-visible {
+  background: rgba(200, 169, 110, 0.15);
+  border-color: rgba(200, 169, 110, 0.45);
+  color: #e8d8b0;
 }
 
 /* Styles for .footer-socials__link live in base.css (shared social component) */
@@ -185,6 +265,10 @@
 
   .footer-brand__tagline {
     max-width: none;
+  }
+
+  .footer-brand__action-row {
+    justify-content: center;
   }
 
   .footer-socials {
