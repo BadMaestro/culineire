@@ -493,6 +493,7 @@
 .ab-home-card {
   aspect-ratio: 1 / 1;
   border-radius: 14px;
+  contain: layout;            /* ensures overflow: hidden clips transforms */
   flex: 0 0 clamp(155px, 17vw, 185px);
   overflow: hidden;
   position: relative;
@@ -572,6 +573,29 @@
 
 .ab-home-card__more:hover,
 .ab-home-card__more:focus-visible { color: #fff; }
+
+/* Sheet inside mini home card: cap to card height + scroll internally */
+.ab-home-card .ab-card__sheet {
+  max-height: 100%;
+  overflow-y: auto;
+  /* smaller padding for compact card */
+  padding: .75rem .75rem 1rem;
+  gap: .4rem;
+}
+
+.ab-home-card .ab-sheet__text {
+  font-size: .78rem;
+  line-height: 1.45;
+}
+
+.ab-home-card .ab-sheet__link {
+  font-size: .72rem;
+  padding: .22rem .55rem;
+}
+
+.ab-home-card .ab-sheet__close {
+  font-size: .65rem;
+}
 
 /* ---- Mobile base ---- */
 @media (max-width: 640px) {
