@@ -250,7 +250,10 @@ class AmuseBoucheDeleteView(AuthorRequiredMixin, DeleteView):
     model = AmuseBouche
     template_name = "authoring/confirm_delete.html"
     context_object_name = "managed_object"
-    success_url = reverse_lazy("collection:my_collection")
+
+    def get_success_url(self):
+        from django.urls import reverse
+        return reverse("amuse_bouche:feed") + f"?author={self.author.slug}"
 
     def get_queryset(self):
         if is_moderator(self.request.user):
