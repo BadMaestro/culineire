@@ -49,7 +49,6 @@ def pwa_manifest(request):
         "start_url": "/",
         "scope": "/",
         "display": "standalone",
-        "orientation": "portrait-primary",
         "background_color": "#faf6f0",
         "theme_color": "#123c2d",
         "categories": ["food", "lifestyle", "social"],
