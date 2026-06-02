@@ -242,6 +242,31 @@
   transform: none;
 }
 
+/* ── Specificity fix ──────────────────────────────────────────────
+   .ab-card { background: #1c1610 } is declared later in this file
+   than .ab-card--detail { background: #f4eadc }, so equal-specificity
+   cascade gives the dark base card the win.
+   Using the chained selector .ab-card.ab-card--detail (2 classes,
+   specificity 0-2-0) beats the base .ab-card (0-1-0) regardless
+   of order, ensuring the light cappuccino background always wins.
+   ──────────────────────────────────────────────────────────────── */
+.ab-card.ab-card--detail {
+  background: #f4eadc;
+  border: 1px solid rgba(139, 99, 55, .16);
+  box-shadow: 0 4px 22px rgba(63, 43, 25, .14);
+}
+
+.ab-card.ab-card--detail:hover {
+  box-shadow: 0 6px 26px rgba(63, 43, 25, .18);
+  transform: none;
+}
+
+/* Disable image zoom on detail hover — the scale was exposing the
+   dark base card background at the seam between photo and content */
+.ab-card.ab-card--detail:hover .ab-card__img {
+  transform: none;
+}
+
 /* Photo in normal flow for detail page */
 .ab-card--detail .ab-card__photo {
   aspect-ratio: 16 / 9;
@@ -250,13 +275,14 @@
   width: 100%;
 }
 
-/* Gradient: fades photo gently into the cappuccino panel below */
+/* Gradient: gentle fade from photo into cappuccino panel.
+   Kept light — dark background is now fixed so no compensation needed. */
 .ab-card--detail .ab-card__photo::after {
   background: linear-gradient(
     to bottom,
-    transparent 38%,
-    rgba(244, 234, 220, .55) 68%,
-    rgba(244, 234, 220, .96) 100%
+    transparent 52%,
+    rgba(244, 234, 220, .18) 72%,
+    rgba(244, 234, 220, .62) 100%
   );
   border-radius: 0;
   display: block;
