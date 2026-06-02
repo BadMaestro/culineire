@@ -75,7 +75,12 @@
 <section class="section section--flush-top">
     <div class="container">
         <article class="detail-page">
-            <a class="detail-page__back-link" href="{% url 'recipes:recipe_list' %}">Back to Recipes</a>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <a class="detail-page__back-link" href="{% url 'recipes:recipe_list' %}">Back to Recipes</a>
+                {% if recipe_ab_url %}
+                <a class="detail-page__back-link" href="{{ recipe_ab_url }}">Back to Amuse-Bouche</a>
+                {% endif %}
+            </div>
 
             {% if recipe.get_all_category_items or gallery_items %}
             <div class="detail-gallery-block">

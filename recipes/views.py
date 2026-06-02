@@ -1097,6 +1097,11 @@ def recipe_detail(request, slug):
             recipe.status == Recipe.Status.APPROVED
             and recipe.amuse_bouche_items.exclude(status="archived").exists()
         ),
+        "recipe_ab_url": (
+            ab.get_absolute_url()
+            if (ab := recipe.amuse_bouche_items.exclude(status="archived").first())
+            else None
+        ),
         "is_greenbear": request.user.is_authenticated and hasattr(request.user, "recipe_author_profile") and request.user.recipe_author_profile.slug == settings.OWNER_SLUG,
         "can_moderate_bar": is_moderator(request.user) and recipe.status != Recipe.Status.APPROVED,
         "has_rated": has_rated,
