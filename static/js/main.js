@@ -523,4 +523,257 @@ document.addEventListener("DOMContentLoaded", () => {
         btn.disabled = false;
       });
   });
+
+  // ==== AB grid: fixed 3×3 (desktop) / 2×2 (mobile) with internal scroll ====
+  function sizeAbGrid() {
+    const wrapper = document.querySelector(".ab-grid-scroll");
+    if (!wrapper) return;
+    const firstCard = wrapper.querySelector(".ab-card");
+    if (!firstCard) return;
+    const gridEl = wrapper.querySelector(".ab-grid");
+    const isMobile = window.innerWidth <= 640;
+    const rows = isMobile ? 2 : 3;
+    const gap = gridEl
+      ? (parseFloat(getComputedStyle(gridEl).rowGap) || 16)
+      : 16;
+    wrapper.style.maxHeight = firstCard.offsetHeight * rows + gap * (rows - 1) + "px";
+  }
+  window.addEventListener("load", sizeAbGrid);
+  let _abResizeTimer;
+  window.addEventListener("resize", function () {
+    clearTimeout(_abResizeTimer);
+    _abResizeTimer = setTimeout(sizeAbGrid, 100);
+  });
+
+  // ==== AB action-button ripple (mirrors sponsor puzzle-cell pulse) ====
+  document.addEventListener("click", function (e) {
+    const btn = e.target.closest(".ab-btn");
+    if (!btn) return;
+    btn.querySelectorAll(".ab-ripple").forEach(function (r) { r.remove(); });
+    const ripple = document.createElement("span");
+    ripple.className = "ab-ripple";
+    btn.appendChild(ripple);
+    ripple.addEventListener("animationend", function () { ripple.remove(); }, { once: true });
+  });
+
+  // ==== AB comments panel (bottom drawer, AJAX) ====
+  (function () {
+    var panel = null;
+    var panelDrawer = null;
+    var activeSlug = null;
+
+    function buildPanel() {
+      if (panel) return;
+      panel = document.createElement("div");
+      panel.className = "ab-cmt-panel";
+      panel.setAttribute("aria-hidden", "true");
+      panel.setAttribute("role", "dialog");
+      panel.setAttribute("aria-label", "Comments");
+
+      var scrim = document.createElement("div");
+      scrim.className = "ab-cmt-panel__scrim";
+      scrim.dataset.abCmtClose = "";
+
+      panelDrawer = document.createElement("div");
+      panelDrawer.className = "ab-cmt-panel__drawer";
+
+      panel.appendChild(scrim);
+      panel.appendChild(panelDrawer);
+      document.body.appendChild(panel);
+    }
+
+    function openPanel(slug) {
+      buildPanel();
+      activeSlug = slug;
+      panelDrawer.innerHTML =
+        '<div style="padding:2rem;text-align:center;color:#9a8a78;font-size:.9rem;">Loading&hellip;</div>';
+      panel.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+      requestAnimationFrame(function () { panel.classList.add("is-open"); });
+
+      fetch("/amuse-bouche/" + slug + "/comments/", {
+        headers: { "X-AB-Fetch": "1" },
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data.ok) panelDrawer.innerHTML = data.html;
+        })
+        .catch(function () {
+          panelDrawer.innerHTML =
+            '<div style="padding:2rem;text-align:center;color:#9a8a78;font-size:.9rem;">Could not load comments.</div>';
+        });
+    }
+
+    function closePanel() {
+      if (!panel) return;
+      panel.classList.remove("is-open");
+      document.body.style.overflow = "";
+      panel.addEventListener(
+        "transitionend",
+        function () {
+          panel.setAttribute("aria-hidden", "true");
+          activeSlug = null;
+        },
+        { once: true }
+      );
+    }
+
+    function updateFeedCount(slug, count) {
+      var feedBtn = document.querySelector('[data-ab-cmt="' + slug + '"]');
+      if (!feedBtn) return;
+      var countEl = feedBtn.querySelector(".ab-btn__count");
+      if (count > 0) {
+        if (!countEl) {
+          countEl = document.createElement("span");
+          countEl.className = "ab-btn__count";
+          feedBtn.appendChild(countEl);
+        }
+        countEl.textContent = count;
+      } else if (countEl) {
+        countEl.remove();
+      }
+    }
+
+    function updatePanelCount(count) {
+      if (!panel) return;
+      var countEl = panel.querySelector(".ab-cmt-panel__count");
+      var titleEl = panel.querySelector(".ab-cmt-panel__title");
+      if (count > 0) {
+        if (!countEl && titleEl) {
+          countEl = document.createElement("span");
+          countEl.className = "ab-cmt-panel__count";
+          titleEl.appendChild(countEl);
+        }
+        if (countEl) countEl.textContent = count;
+      } else if (countEl) {
+        countEl.remove();
+      }
+    }
+
+    // Click delegation
+    document.addEventListener("click", function (e) {
+      // Open panel from feed card button
+      var cmtBtn = e.target.closest("[data-ab-cmt]");
+      if (cmtBtn && !e.target.closest(".ab-cmt-panel")) {
+        openPanel(cmtBtn.dataset.abCmt);
+        return;
+      }
+
+      // Close panel
+      if (e.target.closest("[data-ab-cmt-close]")) {
+        closePanel();
+        return;
+      }
+
+      if (!panel) return;
+
+      // Reply toggle
+      var replyBtn = e.target.closest("[data-ab-cmt-reply]");
+      if (replyBtn) {
+        var pk = replyBtn.dataset.abCmtReply;
+        var form = panel.querySelector('[data-reply-to="' + pk + '"]');
+        if (form) {
+          form.hidden = !form.hidden;
+          if (!form.hidden) {
+            var ta = form.querySelector("textarea");
+            if (ta) ta.focus();
+          }
+        }
+        return;
+      }
+
+      // Reply cancel
+      var cancelBtn = e.target.closest(".ab-cmt__reply-cancel");
+      if (cancelBtn) {
+        var rForm = cancelBtn.closest(".ab-cmt__reply-form");
+        if (rForm) rForm.hidden = true;
+        return;
+      }
+
+      // Delete comment
+      var delBtn = e.target.closest("[data-ab-cmt-delete]");
+      if (delBtn) {
+        var commentId = delBtn.dataset.abCmtDelete;
+        var dSlug = delBtn.dataset.slug;
+        var csrfEl = panel.querySelector("[name=csrfmiddlewaretoken]");
+        if (!csrfEl) return;
+        fetch("/amuse-bouche/" + dSlug + "/comment/" + commentId + "/delete/", {
+          method: "POST",
+          headers: { "X-CSRFToken": csrfEl.value, "X-AB-Fetch": "1" },
+          body: new FormData(),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (!data.ok) return;
+            var el = panel.querySelector("#ab-cmt-" + commentId);
+            if (el) el.remove();
+            updateFeedCount(activeSlug, data.count);
+            updatePanelCount(data.count);
+          })
+          .catch(function () {});
+        return;
+      }
+    });
+
+    // Submit new comment or reply
+    document.addEventListener("submit", function (e) {
+      var form = e.target.closest("[data-ab-cmt-form]");
+      if (!form) return;
+      e.preventDefault();
+      var slug = form.dataset.abCmtForm;
+      var csrfEl = form.querySelector("[name=csrfmiddlewaretoken]");
+      if (!csrfEl) return;
+      var bodyInput = form.querySelector("[name=body]");
+      if (!bodyInput || !bodyInput.value.trim()) return;
+      var submitBtn = form.querySelector("[type=submit]");
+      if (submitBtn) submitBtn.disabled = true;
+
+      var fd = new FormData(form);
+      fetch("/amuse-bouche/" + slug + "/comment/", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrfEl.value, "X-AB-Fetch": "1" },
+        body: fd,
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data.ok) return;
+          bodyInput.value = "";
+          // Hide reply form after posting
+          if (form.dataset.replyTo) form.hidden = true;
+
+          var list = panel ? panel.querySelector("[data-ab-cmt-list]") : null;
+          if (!list) return;
+
+          var tmp = document.createElement("div");
+          tmp.innerHTML = data.comment_html;
+          var newEl = tmp.firstElementChild;
+          if (!newEl) return;
+
+          if (data.parent_id) {
+            // Insert into replies container
+            var repliesDiv = panel.querySelector("#ab-cmt-replies-" + data.parent_id);
+            if (repliesDiv) repliesDiv.appendChild(newEl);
+          } else {
+            // Append to top-level list
+            var emptyEl = list.querySelector(".ab-cmt-panel__empty");
+            if (emptyEl) emptyEl.remove();
+            list.appendChild(newEl);
+          }
+          newEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          updateFeedCount(slug, data.count);
+          updatePanelCount(data.count);
+        })
+        .catch(function () {})
+        .finally(function () {
+          if (submitBtn) submitBtn.disabled = false;
+        });
+    });
+
+    // Escape key closes panel
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && panel && panel.classList.contains("is-open")) {
+        closePanel();
+      }
+    });
+  })();
 });

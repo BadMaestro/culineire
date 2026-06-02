@@ -1,0 +1,41 @@
+{% load static %}
+<div class="ab-cmt-panel__header">
+  <h3 class="ab-cmt-panel__title">
+    Comments
+    {% with total=comments|length %}
+    {% if total %}<span class="ab-cmt-panel__count">{{ total }}</span>{% endif %}
+    {% endwith %}
+  </h3>
+  <button class="ab-cmt-panel__close" type="button"
+          data-ab-cmt-close aria-label="Close comments">&#x2715;</button>
+</div>
+
+{% if item.allow_comments %}
+
+  {% if user.is_authenticated %}
+  <form class="ab-cmt-panel__new-form" data-ab-cmt-form="{{ item.slug }}">
+    {% csrf_token %}
+    <textarea class="ab-cmt-panel__input" name="body"
+              placeholder="Write a comment..." maxlength="1000" rows="2"></textarea>
+    <div class="ab-cmt-panel__form-footer">
+      <span class="ab-cmt-panel__hint">Max 1000 chars</span>
+      <button type="submit" class="btn-primary" style="font-size:.82rem;padding:.38rem .9rem;">Post</button>
+    </div>
+  </form>
+  {% else %}
+  <p class="ab-cmt-panel__login">
+    <a href="{% url 'login' %}?next={{ item.get_absolute_url }}">Sign in</a> to leave a comment.
+  </p>
+  {% endif %}
+
+  <div class="ab-cmt-panel__list" data-ab-cmt-list>
+    {% for comment in comments %}
+    {% include "amuse_bouche/comment_item.html" with comment=comment user=user item=item can_moderate=can_moderate is_reply=False %}
+    {% empty %}
+    <p class="ab-cmt-panel__empty">No comments yet. Be the first!</p>
+    {% endfor %}
+  </div>
+
+{% else %}
+<p class="ab-cmt-panel__disabled">Comments are not enabled for this post.</p>
+{% endif %}

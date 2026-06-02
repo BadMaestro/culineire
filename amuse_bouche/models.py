@@ -274,6 +274,13 @@ class AmuseBoucheComment(models.Model):
         on_delete=models.CASCADE,
         related_name="ab_comments",
     )
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="replies",
+    )
     body = models.TextField(max_length=1000)
     created_at = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False, db_index=True)

@@ -4,11 +4,12 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count, F, Prefetch, Q
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 from django.views.generic import CreateView, UpdateView
 from django_ratelimit.decorators import ratelimit
 
@@ -49,6 +50,7 @@ def _public_queryset(approved_only=True):
         )
         .annotate(like_total=Count("reactions", filter=Q(reactions__reaction=ContentReaction.Reaction.LIKE), distinct=True))
         .annotate(save_total=Count("saves", distinct=True))
+        .annotate(comment_total=Count("comments", filter=Q(comments__is_deleted=False), distinct=True))
     )
 
 
@@ -478,25 +480,100 @@ def generate_from_article(request, slug):
     return redirect(item.get_absolute_url())
 
 
+def comments_panel(request, slug):
+    """AJAX endpoint: return comment panel HTML for a feed card."""
+    _require_public_area_access(request)
+    item = get_object_or_404(AmuseBouche, slug=slug, status=AmuseBouche.Status.APPROVED)
+    if request.headers.get("X-AB-Fetch") != "1":
+        return redirect(item.get_absolute_url())
+    comments = []
+    if item.allow_comments:
+        comments = list(
+            AmuseBoucheComment.objects.filter(amuse_bouche=item, is_deleted=False, parent__isnull=True)
+            .select_related("user", "user__recipe_author_profile")
+            .prefetch_related(
+                Prefetch(
+                    "replies",
+                    queryset=AmuseBoucheComment.objects.filter(is_deleted=False)
+                    .select_related("user", "user__recipe_author_profile"),
+                    to_attr="active_replies",
+                )
+            )
+            .order_by("created_at")
+        )
+    html = render_to_string(
+        "amuse_bouche/comments_panel.html",
+        {
+            "item": item,
+            "comments": comments,
+            "user": request.user,
+            "can_moderate": is_moderator(request.user),
+        },
+        request=request,
+    )
+    total = AmuseBoucheComment.objects.filter(amuse_bouche=item, is_deleted=False).count()
+    return JsonResponse({"ok": True, "html": html, "count": total, "title": item.title})
+
+
 @require_POST
 @login_required
 @ratelimit(key="user", rate="30/h", method="POST", block=False)
 def submit_comment(request, slug):
-    """Post a comment on an Amuse-Bouche item."""
+    """Post a top-level comment or a reply on an Amuse-Bouche item."""
     _require_public_area_access(request)
     item = get_object_or_404(AmuseBouche, slug=slug, status=AmuseBouche.Status.APPROVED, allow_comments=True)
+    is_fetch = request.headers.get("X-AB-Fetch") == "1"
     if getattr(request, "limited", False):
+        if is_fetch:
+            return JsonResponse({"ok": False, "error": "rate_limited"}, status=429)
         messages.error(request, "Too many requests. Please slow down.")
         return redirect(item.get_absolute_url())
     body = request.POST.get("body", "").strip()
     if not body:
+        if is_fetch:
+            return JsonResponse({"ok": False, "error": "empty"}, status=400)
         messages.error(request, "Comment cannot be empty.")
         return redirect(item.get_absolute_url())
     if len(body) > 1000:
+        if is_fetch:
+            return JsonResponse({"ok": False, "error": "too_long"}, status=400)
         messages.error(request, "Comment is too long (maximum 1000 characters).")
         return redirect(item.get_absolute_url())
-    AmuseBoucheComment.objects.create(amuse_bouche=item, user=request.user, body=body)
+    # Optional parent for replies (only one level deep — no replies-to-replies)
+    parent = None
+    parent_id_raw = request.POST.get("parent_id", "").strip()
+    if parent_id_raw:
+        try:
+            parent = AmuseBoucheComment.objects.get(
+                pk=int(parent_id_raw),
+                amuse_bouche=item,
+                is_deleted=False,
+                parent__isnull=True,  # only top-level comments can be replied to
+            )
+        except (AmuseBoucheComment.DoesNotExist, ValueError):
+            if is_fetch:
+                return JsonResponse({"ok": False, "error": "invalid_parent"}, status=400)
+    comment = AmuseBoucheComment.objects.create(amuse_bouche=item, user=request.user, body=body, parent=parent)
     track_event(request, "ab_comment", object_type="amuse_bouche", object_id=item.pk, object_title=item.title)
+    if is_fetch:
+        comment_html = render_to_string(
+            "amuse_bouche/comment_item.html",
+            {
+                "comment": comment,
+                "user": request.user,
+                "item": item,
+                "can_moderate": is_moderator(request.user),
+                "is_reply": parent is not None,
+            },
+            request=request,
+        )
+        total = AmuseBoucheComment.objects.filter(amuse_bouche=item, is_deleted=False).count()
+        return JsonResponse({
+            "ok": True,
+            "comment_html": comment_html,
+            "count": total,
+            "parent_id": comment.parent_id,
+        })
     messages.success(request, "Comment posted.")
     return redirect(item.get_absolute_url())
 
@@ -511,5 +588,9 @@ def delete_comment(request, slug, comment_id):
         raise Http404
     comment.is_deleted = True
     comment.save(update_fields=["is_deleted"])
+    is_fetch = request.headers.get("X-AB-Fetch") == "1"
+    if is_fetch:
+        total = AmuseBoucheComment.objects.filter(amuse_bouche=item, is_deleted=False).count()
+        return JsonResponse({"ok": True, "comment_id": comment_id, "count": total})
     messages.success(request, "Comment removed.")
     return redirect(item.get_absolute_url())

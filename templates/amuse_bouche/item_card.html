@@ -36,9 +36,30 @@
       {% with caption=item.emoji_description|default:item.short_description %}
       {% if caption %}<p class="ab-card__caption">{{ caption }}</p>{% endif %}
       {% endwith %}
-      <a class="ab-card__open-btn" href="{{ item.get_absolute_url }}"
-         aria-label="Open {{ item.title }}">MORE&nbsp;&#x25BE;</a>
+      <button class="ab-card__open-btn" type="button"
+              data-ab-more="{{ item.pk }}"
+              aria-expanded="false"
+              aria-label="More about {{ item.title }}">MORE&nbsp;&#x25BE;</button>
     </div>
+  </div>
+  {% endif %}
+
+  {# ── Slide-up sheet (feed only) ── #}
+  {% if not detail %}
+  <div class="ab-card__sheet" id="ab-sheet-{{ item.pk }}"
+       role="dialog" aria-label="More info" aria-hidden="true">
+    {% if item.short_description %}
+    <p class="ab-sheet__text">{{ item.short_description }}</p>
+    {% endif %}
+    {% if item.linked_recipe %}
+    <a class="ab-sheet__link" href="{{ item.linked_recipe.get_absolute_url }}">Full recipe &rarr;</a>
+    {% endif %}
+    {% if item.linked_article %}
+    <a class="ab-sheet__link" href="{{ item.linked_article.get_absolute_url }}">Read the story &rarr;</a>
+    {% endif %}
+    <a class="ab-sheet__link ab-sheet__link--detail" href="{{ item.get_absolute_url }}">Open full page &rarr;</a>
+    <button class="ab-sheet__close" type="button"
+            data-ab-close="{{ item.pk }}" aria-label="Close">&#x25B2; close</button>
   </div>
   {% endif %}
 
@@ -82,12 +103,19 @@
 
     {% endif %}
 
-    {# Comment — always shown; detail page handles whether form is open #}
-    <a class="ab-btn"
-       href="{% if detail %}#ab-comments{% else %}{{ item.get_absolute_url }}{% endif %}"
-       aria-label="Comments">
+    {# Comment — detail: anchor link; feed: AJAX panel trigger #}
+    {% if detail %}
+    <a class="ab-btn" href="#ab-comments" aria-label="Comments">
       <svg aria-hidden="true" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="20"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
     </a>
+    {% else %}
+    <button class="ab-btn" type="button"
+            data-ab-cmt="{{ item.slug }}"
+            aria-label="Comments">
+      <svg aria-hidden="true" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="20"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      {% if item.comment_total %}<span class="ab-btn__count">{{ item.comment_total }}</span>{% endif %}
+    </button>
+    {% endif %}
 
     {# Share #}
     <button class="ab-btn" type="button"
