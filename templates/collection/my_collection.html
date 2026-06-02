@@ -50,13 +50,6 @@
                 Amuse-Bouche
                 <span class="collection-tab__count">{{ saved_amuse_bouche|length }}</span>
             </a>
-            {% if authored_amuse_bouche %}
-            <a class="collection-tab{% if active_tab == 'my-bites' %} collection-tab--active{% endif %}"
-               href="?tab=my-bites"{% if active_tab == 'my-bites' %} aria-current="page"{% endif %}>
-                My Bites
-                <span class="collection-tab__count">{{ authored_amuse_bouche|length }}</span>
-            </a>
-            {% endif %}
             {% endif %}
         </nav>
 
@@ -122,34 +115,6 @@
             <div class="collection-empty">
                 <p class="collection-empty__text">You have no saved articles yet.</p>
                 <a class="btn-primary" href="{% url 'articles:article_list' %}">Explore Articles</a>
-            </div>
-            {% endif %}
-        {% elif active_tab == 'my-bites' %}
-            {% if authored_amuse_bouche %}
-            <div class="recipe-grid recipe-grid--mini">
-                {% for item in authored_amuse_bouche %}
-                <article class="recipe-card">
-                    <a class="recipe-card__image-wrapper" href="{{ item.get_absolute_url }}">
-                        {% if item.card_image %}<img alt="{{ item.title }}" src="{{ item.card_image.url }}" loading="lazy">
-                        {% else %}<img alt="{{ item.title }}" src="{% static 'images/hero.jpg' %}" loading="lazy">{% endif %}
-                    </a>
-                    <div class="recipe-card__body">
-                        <div class="recipe-card__content">
-                            <h2 class="recipe-card__title"><a href="{{ item.get_absolute_url }}">{{ item.title }}</a></h2>
-                            <p class="recipe-card__meta">{{ item.get_status_display }}</p>
-                        </div>
-                        <div class="recipe-card__footer">
-                            <a class="recipe-card__cta btn" href="{% url 'amuse_bouche:edit' item.slug %}">Edit Amuse-Bouche</a>
-                            <a class="recipe-card__cta btn btn--danger recipe-card__delete" href="{% url 'amuse_bouche:delete' item.slug %}">Delete Amuse-Bouche</a>
-                        </div>
-                    </div>
-                </article>
-                {% endfor %}
-            </div>
-            {% else %}
-            <div class="collection-empty">
-                <p class="collection-empty__text">You have no Amuse-Bouche posts yet.</p>
-                <a class="btn-primary" href="{% url 'amuse_bouche:create' %}">Create your first bite</a>
             </div>
             {% endif %}
         {% else %}
