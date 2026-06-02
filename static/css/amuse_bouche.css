@@ -269,10 +269,14 @@
 
 /* Photo in normal flow for detail page */
 .ab-card--detail .ab-card__photo {
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 1 / 1;
   inset: auto;
   position: relative;
   width: 100%;
+}
+
+.ab-card--detail .ab-card__img {
+  object-position: center 65%;
 }
 
 /* Gradient: gentle fade from photo into cappuccino panel.
