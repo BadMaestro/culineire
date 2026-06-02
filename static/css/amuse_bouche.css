@@ -588,13 +588,12 @@
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(200, 169, 110, .4) transparent;
-  /* smaller padding — extra bottom room for the absolute close button */
-  padding: .75rem .75rem 2rem;
+  padding: .75rem .75rem 1rem;
   gap: .4rem;
 }
 
 .ab-home-card .ab-card__sheet::-webkit-scrollbar {
-  width: 7px;
+  width: 9px;
 }
 
 .ab-home-card .ab-card__sheet::-webkit-scrollbar-track {
@@ -605,7 +604,7 @@
   background: rgba(200, 169, 110, .45);
   background-clip: padding-box;
   border-radius: 3px;
-  border-right: 3px solid transparent;
+  border-right: 5px solid transparent;
 }
 
 .ab-home-card .ab-sheet__text {
@@ -618,29 +617,34 @@
   padding: .22rem .55rem;
 }
 
-/* Close button: 100% copy of .ab-home-card__more, same position bottom-right */
-.ab-home-card .ab-sheet__close {
+/* CLOSE button — outside the sheet, same position/style as MORE */
+.ab-home-card__close {
   background: none;
   border: none;
   bottom: .5rem;
-  overflow: hidden;
   color: rgba(255, 255, 255, .72);
   cursor: pointer;
+  display: none;            /* hidden until sheet opens */
   font: inherit;
   font-size: .6rem;
   font-weight: 700;
   letter-spacing: .06em;
+  overflow: hidden;
   padding: 0;
   position: absolute;
   right: .6rem;
   text-shadow: 0 1px 3px rgba(0, 0, 0, .8);
   text-transform: uppercase;
   transition: color .15s;
-  z-index: 4;
+  z-index: 12;              /* above the sheet */
 }
 
-.ab-home-card .ab-sheet__close:hover,
-.ab-home-card .ab-sheet__close:focus-visible { color: #fff; }
+.ab-home-card__close:hover,
+.ab-home-card__close:focus-visible { color: #fff; }
+
+/* Show CLOSE / hide MORE when sheet is open */
+.ab-home-card .ab-card__sheet.is-open ~ .ab-home-card__close { display: block; }
+.ab-home-card .ab-card__sheet.is-open ~ .ab-home-card__more  { visibility: hidden; }
 
 /* ---- Mobile base ---- */
 @media (max-width: 640px) {
@@ -968,7 +972,8 @@
   color: rgba(247, 242, 234, 0.85);
   font-size: .78rem;
   min-height: unset;
-  padding: .3rem .85rem;
+  padding: .3rem 1.5rem;
+  width: max-content;
 }
 
 .ab-card__sheet .ab-sheet__open-btn:hover,
@@ -1317,7 +1322,7 @@
 }
 
 .ab-grid-scroll::-webkit-scrollbar {
-  width: 7px;
+  width: 9px;
 }
 
 .ab-grid-scroll::-webkit-scrollbar-track {
@@ -1328,7 +1333,7 @@
   background: rgba(200, 169, 110, .4);
   background-clip: padding-box;
   border-radius: 3px;
-  border-right: 3px solid transparent;
+  border-right: 5px solid transparent;
 }
 
 /* ================================================================

@@ -20,7 +20,8 @@
   </div>
 
   {# ── Content type badge — top-left ── #}
-  <span class="ab-badge ab-card__badge">{{ item.get_content_type_display }}</span>
+  <a class="ab-badge ab-card__badge" href="{% url 'amuse_bouche:feed' %}?type={{ item.content_type }}"
+     aria-label="{{ item.get_content_type_display }} bites">{{ item.get_content_type_display }}</a>
 
   {# ── Overlay: author, title, caption (feed only — pointer-events:none) ── #}
   {% if not detail %}

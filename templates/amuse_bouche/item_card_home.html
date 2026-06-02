@@ -13,21 +13,23 @@
        tabindex="-1" aria-hidden="true"></a>
   </div>
 
-  {# Category badge — top-left #}
-  <span class="ab-badge ab-home-card__badge">{{ item.get_content_type_display }}</span>
+  {# Category badge — top-left, links to feed filtered by type #}
+  <a class="ab-badge ab-home-card__badge"
+     href="{% url 'amuse_bouche:feed' %}?type={{ item.content_type }}"
+     aria-label="{{ item.get_content_type_display }} bites">{{ item.get_content_type_display }}</a>
 
   {# Title overlay — bottom-left, pointer-events:none so cover link still works #}
   <div class="ab-home-card__overlay" aria-hidden="true">
     <p class="ab-home-card__title">{{ item.title }}</p>
   </div>
 
-  {# MORE button — bottom-right, outside pointer-events:none overlay #}
+  {# MORE button — bottom-right; hidden when sheet is open (CSS) #}
   <button class="ab-home-card__more" type="button"
           data-ab-more="{{ item.pk }}"
           aria-expanded="false"
           aria-label="More about {{ item.title }}">MORE&#x25BE;</button>
 
-  {# Slide-up sheet (same JS + CSS as feed cards) #}
+  {# Slide-up sheet — NO close button inside (avoids scroll-away bug) #}
   <div class="ab-card__sheet" id="ab-sheet-{{ item.pk }}"
        role="dialog" aria-label="More info" aria-hidden="true">
     {% if item.short_description %}
@@ -40,8 +42,10 @@
     <a class="ab-sheet__link" href="{{ item.linked_article.get_absolute_url }}">Read the story &rarr;</a>
     {% endif %}
     <a class="btn-secondary ab-sheet__open-btn" href="{{ item.get_absolute_url }}">Open full page &rarr;</a>
-    <button class="ab-sheet__close" type="button"
-            data-ab-close="{{ item.pk }}" aria-label="Close">CLOSE&nbsp;&#x25B4;</button>
   </div>
+
+  {# CLOSE button — sibling of sheet, shown via CSS when sheet is open #}
+  <button class="ab-home-card__close" type="button"
+          data-ab-close="{{ item.pk }}" aria-label="Close">CLOSE&nbsp;&#x25B4;</button>
 
 </article>

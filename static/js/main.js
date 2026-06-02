@@ -548,7 +548,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ==== AB ripple: action buttons, MORE, CLOSE, category badges ====
   document.addEventListener("click", function (e) {
     const btn = e.target.closest(
-      ".ab-btn, [data-ab-more], [data-ab-close], .ab-card__badge, .ab-home-card__badge"
+      ".ab-btn, [data-ab-more], [data-ab-close], .ab-card__badge, .ab-home-card__badge, .ab-home-card__close"
     );
     if (!btn) return;
     btn.querySelectorAll(".ab-ripple").forEach(function (r) { r.remove(); });
