@@ -124,6 +124,7 @@
                     <button class="ab-moderate__btn ab-moderate__btn--reject" name="action" type="submit" value="reject">Reject</button>
                     <a class="ab-moderate__btn ab-moderate__btn--edit" href="{% url 'amuse_bouche:edit' item.slug %}">Edit</a>
                     <button class="ab-moderate__btn ab-moderate__btn--archive" name="action" type="submit" value="delete">Archive</button>
+                    <a class="ab-moderate__btn ab-moderate__btn--reject" href="{% url 'amuse_bouche:delete' item.slug %}">Delete</a>
                 </div>
             </form>
         </div>
