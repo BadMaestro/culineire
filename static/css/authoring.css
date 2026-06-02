@@ -50,6 +50,11 @@
   text-align: left;
 }
 
+.authoring-header--centered {
+  grid-template-columns: 1fr;
+  justify-items: center;
+}
+
 .authoring-header--centered .authoring-header__copy {
   justify-items: center;
   text-align: center;
