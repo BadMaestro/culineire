@@ -11,26 +11,34 @@
 {% block content %}
 <div class="ab-page">
 
-    {# Page header #}
-    <header class="ab-page-header">
-        <h1 class="ab-page-heading">Amuse-Bouche</h1>
-        <p class="ab-page-subtitle">Small bites, big ideas from the CulinEire kitchen.</p>
-        {% if user.is_authenticated %}
-        <a class="ab-page-cta" href="{% url 'amuse_bouche:create' %}">Share a Bite</a>
-        {% endif %}
-    </header>
-
-    {# Filter bar #}
-    <div class="ab-filter-bar">
-        <nav class="ab-filters" aria-label="Amuse-Bouche filters">
-            <a class="ab-filter{% if not active_content_type %} ab-filter--active{% endif %}"
-               href="{% url 'amuse_bouche:feed' %}">All</a>
-            {% for value, label in content_type_choices %}
-            <a class="ab-filter{% if active_content_type == value %} ab-filter--active{% endif %}"
-               href="?type={{ value }}">{{ label }}</a>
-            {% endfor %}
-        </nav>
-    </div>
+    {# Hero #}
+    <section class="hero hero--home hero--amuse-bouche">
+        <div aria-hidden="true" class="hero__background">
+            <img alt="" src="{% static 'images/hero-amuse-bouche.png' %}">
+        </div>
+        <div aria-hidden="true" class="hero__overlay"></div>
+        <div class="container hero__inner">
+            <div class="hero-copy">
+                <h1 class="hero-title">Amuse-Bouche</h1>
+                <p class="hero-subtitle">Small bites, big ideas from the CulinEire kitchen.</p>
+                {% if user.is_authenticated %}
+                <div class="hero__actions">
+                    <a class="btn-primary" href="{% url 'amuse_bouche:create' %}">Share a Bite</a>
+                </div>
+                {% endif %}
+                <div class="ab-filter-bar">
+                    <nav class="ab-filters" aria-label="Amuse-Bouche filters">
+                        <a class="ab-filter{% if not active_content_type %} ab-filter--active{% endif %}"
+                           href="{% url 'amuse_bouche:feed' %}">All</a>
+                        {% for value, label in content_type_choices %}
+                        <a class="ab-filter{% if active_content_type == value %} ab-filter--active{% endif %}"
+                           href="?type={{ value }}">{{ label }}</a>
+                        {% endfor %}
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
 
     {# Feed #}
     {% if items %}

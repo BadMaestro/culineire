@@ -773,52 +773,9 @@
   padding-bottom: 4rem;
 }
 
-/* ---- Page header ---- */
-.ab-page-header {
-  margin-inline: auto;
-  max-width: 640px;
-  padding: 2.75rem 1.25rem 1.5rem;
-  text-align: center;
-}
-
-.ab-page-heading {
-  color: #f0e8d8;
-  font-family: var(--font-serif);
-  font-size: clamp(1.65rem, 4.5vw, 2.5rem);
-  font-weight: 700;
-  letter-spacing: -.01em;
-  margin: 0 0 .4rem;
-}
-
-.ab-page-subtitle {
-  color: #7a6e5c;
-  font-size: .92rem;
-  line-height: 1.55;
-  margin: 0 0 1.6rem;
-}
-
-.ab-page-cta {
-  background: #c8a96e;
-  border-radius: var(--radius-pill);
-  color: #1c1610;
-  display: inline-block;
-  font-size: .85rem;
-  font-weight: 700;
-  padding: .6rem 1.5rem;
-  text-decoration: none;
-  transition: background-color .15s ease, transform .15s ease;
-}
-
-.ab-page-cta:hover {
-  background: #b89050;
-  transform: translateY(-1px);
-}
-
-/* ---- Filter bar (dark pill row) ---- */
+/* ---- Filter bar inside hero ---- */
 .ab-filter-bar {
-  margin-inline: auto;
-  max-width: 600px;
-  padding: 0 1.25rem 1.5rem;
+  margin-top: 1.5rem;
 }
 
 .ab-filter-bar .ab-filters {
