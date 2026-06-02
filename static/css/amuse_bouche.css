@@ -778,41 +778,6 @@
   margin-top: 1.5rem;
 }
 
-.ab-filter-bar .ab-filters {
-  -webkit-overflow-scrolling: touch;
-  flex-wrap: nowrap;
-  gap: .35rem;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.ab-filter-bar .ab-filters::-webkit-scrollbar { display: none; }
-
-.ab-filter-bar .ab-filter {
-  border-color: #3a3028;
-  color: #c8b89a;
-  flex-shrink: 0;
-  font-size: .78rem;
-  padding: .35rem .8rem;
-}
-
-.ab-filter-bar .ab-filter:hover {
-  background: #2a2018;
-  border-color: #6a5a48;
-  color: #f0e8d8;
-}
-
-.ab-filter-bar .ab-filter--active {
-  background: #c8a96e;
-  border-color: #c8a96e;
-  color: #1c1610;
-}
-
-.ab-filter-bar .ab-filter--active:hover {
-  background: #b89050;
-  border-color: #b89050;
-}
-
 /* ---- Feed column ---- */
 .ab-feed {
   gap: 1.5rem;
