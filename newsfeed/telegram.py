@@ -185,7 +185,6 @@ def publish_ab_to_telegram(ab) -> TelegramResult:
         event_key=f"amuse_bouche_published:{ab.pk}",
         message=build_ab_direct_telegram_message(ab),
         target_url=ab.get_absolute_url(),
-        _send_fn=send_telegram_message_with_link_preview,
     )
 
 

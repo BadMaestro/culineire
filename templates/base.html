@@ -20,7 +20,7 @@
     <meta content="{{ SITE_URL }}{{ request.path }}" property="og:url">
     <meta content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero.jpg' %}{% endblock %}" property="og:image">
 
-    <meta content="summary_large_image" name="twitter:card">
+    <meta content="{% block twitter_card %}summary_large_image{% endblock %}" name="twitter:card">
     <meta content="@culineire_ie" name="twitter:site">
     <meta content="{% block twitter_title %}CulinEire - Irish Recipes and Food Stories{% endblock %}" name="twitter:title">
     <meta content="{% block twitter_description %}CulinEire is a modern Irish culinary platform for recipes, food stories, and classic dishes adapted for the home kitchen.{% endblock %}" name="twitter:description">
