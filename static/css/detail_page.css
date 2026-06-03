@@ -2006,8 +2006,7 @@
 
   .source-support a:hover,
   .source-support a:focus-visible {
-    text-decoration: underline;
-    text-underline-offset: 0.16em;
+    text-decoration: none;
   }
 
   .allergen-list {
