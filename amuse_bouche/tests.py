@@ -93,6 +93,8 @@ class AmuseBoucheGatingTests(TestCase):
         response = self.client.get(reverse("amuse_bouche:create"))
 
         self.assertContains(response, "Submit Amuse-Bouche")
+        self.assertContains(response, 'data-autosave="true"', html=False)
+        self.assertContains(response, "amuse-bouche-authoring:/amuse-bouche/new/", html=False)
 
     def test_author_can_submit_bite_before_public_launch(self):
         self.client.force_login(self.author_user)

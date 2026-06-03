@@ -25,7 +25,7 @@
             </p>
         </div>
 
-        <form class="authoring-form" method="post" enctype="multipart/form-data">
+        <form class="authoring-form" data-autosave="true" data-autosave-key="amuse-bouche-authoring:{{ request.path }}" method="post" enctype="multipart/form-data">
             {% csrf_token %}
             {{ form.non_field_errors }}
 

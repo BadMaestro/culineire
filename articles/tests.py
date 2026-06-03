@@ -538,6 +538,8 @@ class ArticleAuthoringPermissionTests(TestCase):
 
         response = self.client.get(reverse("articles:article_create"))
 
+        self.assertContains(response, 'data-autosave="true"', html=False)
+        self.assertContains(response, "article-authoring:/articles/create/", html=False)
         self.assertContains(response, 'data-upload-mode="single"', html=False)
         self.assertContains(response, 'data-upload-input="id_hero_image"', html=False)
         self.assertContains(response, "Drop Article Image here")

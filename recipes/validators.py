@@ -16,6 +16,16 @@ class ImageUploadValidator:
         ".png": {"PNG"},
         ".webp": {"WEBP"},
     }
+    format_extensions = {
+        "JPEG": ".jpg",
+        "PNG": ".png",
+        "WEBP": ".webp",
+    }
+    format_content_types = {
+        "JPEG": "image/jpeg",
+        "PNG": "image/png",
+        "WEBP": "image/webp",
+    }
 
     supported_formats = {fmt for formats in allowed_extensions.values() for fmt in formats}
 
@@ -54,10 +64,7 @@ class ImageUploadValidator:
             )
 
         if image_format not in self.allowed_extensions[extension]:
-            raise ValidationError(
-                "The file extension does not match the actual image format.",
-                code="format_mismatch",
-            )
+            self._normalize_uploaded_filename(uploaded_file, image_format)
 
     @staticmethod
     def _detect_image_format(uploaded_file) -> str:
@@ -88,6 +95,20 @@ class ImageUploadValidator:
                     uploaded_file.seek(original_position)
                 except (OSError, ValueError):
                     uploaded_file.seek(0)
+
+    @classmethod
+    def _normalize_uploaded_filename(cls, uploaded_file, image_format: str) -> None:
+        normalized_extension = cls.format_extensions.get(image_format)
+        if not normalized_extension:
+            return
+
+        original_name = Path(uploaded_file.name or f"upload{normalized_extension}").name
+        stem = Path(original_name).stem or "upload"
+        uploaded_file.name = f"{stem}{normalized_extension}"
+
+        content_type = cls.format_content_types.get(image_format)
+        if content_type and hasattr(uploaded_file, "content_type"):
+            uploaded_file.content_type = content_type
 
 
 validate_image_upload = ImageUploadValidator()

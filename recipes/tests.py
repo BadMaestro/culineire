@@ -4,24 +4,60 @@ import os
 import re
 import tempfile
 from datetime import date, timedelta
+from io import BytesIO
 from unittest import skip
 from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core import mail
+from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 from django.http import QueryDict
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.utils import timezone
 from django.urls import reverse
+from PIL import Image
 
 from articles.models import Article, ArticleImage
 from .admin import RecipeAdmin, RecipeAdminForm
 from .allergens import build_present_allergen_items, parse_selected_allergen_keys, serialize_allergen_keys
 from .forms import RecipeAuthoringForm, RecipeCommentForm
 from .models import Recipe, RecipeAdditionalCategory, RecipeAuthor, RecipeComment, RecipeGenerationTask, RecipeRating
+from .validators import validate_image_upload
 from .views import _build_context_paragraphs, _build_ingredient_items, _build_method_steps, _gallery_step_alt, _gallery_step_rows, _image_alt_text, _soft_delete_recipe, _split_text_lines, _update_recipe_gallery_order
+
+
+class ImageUploadValidatorTests(SimpleTestCase):
+    @staticmethod
+    def uploaded_image(name, image_format="PNG"):
+        image_file = BytesIO()
+        Image.new("RGB", (24, 24), (24, 76, 58)).save(image_file, format=image_format)
+        image_file.seek(0)
+        return SimpleUploadedFile(name, image_file.read(), content_type="image/png")
+
+    def test_renames_valid_jpeg_with_png_extension(self):
+        uploaded = self.uploaded_image("Gallery image 4.png", image_format="JPEG")
+
+        validate_image_upload(uploaded)
+
+        self.assertEqual(uploaded.name, "Gallery image 4.jpg")
+        self.assertEqual(uploaded.content_type, "image/jpeg")
+
+    def test_keeps_matching_png_name(self):
+        uploaded = self.uploaded_image("step.png", image_format="PNG")
+
+        validate_image_upload(uploaded)
+
+        self.assertEqual(uploaded.name, "step.png")
+        self.assertEqual(uploaded.content_type, "image/png")
+
+    def test_rejects_corrupt_image_file(self):
+        uploaded = SimpleUploadedFile("broken.png", b"not an image", content_type="image/png")
+
+        with self.assertRaises(ValidationError):
+            validate_image_upload(uploaded)
 
 
 class RecipeTextHelperTests(SimpleTestCase):
@@ -717,6 +753,24 @@ class AuthenticationPageTests(TestCase):
         response = self.client.get(reverse("recipes:recipe_create"))
 
         self.assertRedirects(response, reverse("home"))
+
+    def test_recipe_create_form_enables_autosave(self):
+        RecipeAuthor.objects.create(
+            user=self.user,
+            name="Ciaran",
+            slug="ciaran",
+        )
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("recipes:recipe_create"))
+
+        self.assertContains(response, 'data-autosave="true"', html=False)
+        self.assertContains(response, "recipe-authoring:/recipes/create/", html=False)
+
+    def test_login_form_does_not_enable_autosave(self):
+        response = self.client.get(reverse("login"))
+
+        self.assertNotContains(response, 'data-autosave="true"', html=False)
 
     def test_author_edit_requires_linked_author_profile(self):
         self.client.force_login(self.user)

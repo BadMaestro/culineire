@@ -37,7 +37,7 @@
 
 <section class="page-section authoring-page">
     <div class="container authoring-shell">
-        <form class="authoring-form" data-validate enctype="multipart/form-data" method="post">
+        <form class="authoring-form" data-autosave="true" data-autosave-key="article-authoring:{{ request.path }}" data-validate enctype="multipart/form-data" method="post">
             {% csrf_token %}
             {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
 

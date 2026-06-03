@@ -445,6 +445,7 @@
 {% endif %}
 <script src="{% static 'js/buttons.js' %}"></script>
 <script src="{% static 'js/form-validator.js' %}"></script>
+<script src="{% static 'js/form-autosave.js' %}"></script>
 <script nonce="{{ request.csp_nonce }}">if(document.querySelector("[data-profanity]")){window.PROFANITY_WORDS_URL="{% url 'monitoring:profanity_words_api' %}";}</script>
 <script src="{% static 'js/profanity-check.js' %}"></script>
 <script src="{% static 'js/install_app.js' %}"></script>
