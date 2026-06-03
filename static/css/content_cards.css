@@ -1403,17 +1403,7 @@
 }
 
 .recipe-vscroll::-webkit-scrollbar {
-  width: 5px;
-}
-
-.recipe-vscroll::-webkit-scrollbar-track {
-  background: transparent;
-  margin-block: 8px;
-}
-
-.recipe-vscroll::-webkit-scrollbar-thumb {
-  background: var(--brand-mid, #8b7355);
-  border-radius: 3px;
+  display: none;
 }
 
 .author-recipes-add {
