@@ -384,16 +384,16 @@ class AmuseBoucheTelegramPublishTest(TestCase):
     def setUp(self):
         self.author = _make_author()
 
-    @patch("newsfeed.telegram.send_telegram_message")
-    def test_ab_without_image_uses_send_message(self, mock_send):
-        """AB with no image uses sendMessage (no photo to send)."""
+    @patch("newsfeed.telegram.send_telegram_message_with_link_preview")
+    def test_ab_approval_uses_link_preview(self, mock_send):
+        """AB uses sendMessage with link preview (prefer_small_media)."""
         mock_send.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
         ab = _make_ab(self.author, status="pending")
         ab.status = "approved"
         ab.save()
         self.assertEqual(mock_send.call_count, 1)
 
-    @patch("newsfeed.telegram.send_telegram_message")
+    @patch("newsfeed.telegram.send_telegram_message_with_link_preview")
     def test_ab_telegram_message_is_compact(self, mock_send):
         mock_send.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
         ab = _make_ab(self.author, title="Boxty Bite", status="pending")
@@ -404,7 +404,7 @@ class AmuseBoucheTelegramPublishTest(TestCase):
         self.assertIn("Amuse-Bouche: Boxty Bite", sent_text)
         self.assertNotIn("short culinary note", sent_text)
 
-    @patch("newsfeed.telegram.send_telegram_message")
+    @patch("newsfeed.telegram.send_telegram_message_with_link_preview")
     def test_ab_notification_not_duplicated_after_edit(self, mock_send):
         mock_send.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
         ab = _make_ab(self.author, status="pending")

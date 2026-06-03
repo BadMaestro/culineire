@@ -180,49 +180,12 @@ def _publish_to_telegram(*, event_key: str, message: str, target_url: str, image
     return result
 
 
-def send_telegram_ab_compact(text: str, image_url: str) -> TelegramResult:
-    """sendMessage with a small image preview via link_preview_options.url pointing at the image directly."""
-    token = getattr(settings, "TELEGRAM_BOT_TOKEN", "")
-    channel_id = getattr(settings, "TELEGRAM_CHANNEL_ID", "")
-    if not token or not channel_id:
-        return TelegramResult(ok=False, status="skipped", response="Telegram settings are not configured.")
-    return _call_telegram_api(token, "sendMessage", {
-        "chat_id": channel_id,
-        "text": text,
-        "link_preview_options": json.dumps({
-            "is_disabled": False,
-            "url": image_url,
-            "prefer_small_media": True,
-            "show_above_text": False,
-        }),
-    })
-
-
 def publish_ab_to_telegram(ab) -> TelegramResult:
-    message = build_ab_direct_telegram_message(ab)
-    target_url = ab.get_absolute_url()
-
-    image_url = ""
-    try:
-        card = ab.card_image
-        if card:
-            site_url = f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}".rstrip("/")
-            image_url = f"{site_url}{card.url}"
-    except Exception:
-        pass
-
-    if image_url:
-        return _publish_to_telegram(
-            event_key=f"amuse_bouche_published:{ab.pk}",
-            message=message,
-            target_url=target_url,
-            _send_fn=lambda text: send_telegram_ab_compact(text, image_url),
-        )
-
     return _publish_to_telegram(
         event_key=f"amuse_bouche_published:{ab.pk}",
-        message=message,
-        target_url=target_url,
+        message=build_ab_direct_telegram_message(ab),
+        target_url=ab.get_absolute_url(),
+        _send_fn=send_telegram_message_with_link_preview,
     )
 
 
