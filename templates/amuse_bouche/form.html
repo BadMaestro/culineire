@@ -76,6 +76,12 @@
 
                     <div class="authoring-field">
                         {{ form.cover_image.label_tag }}
+                        {% if inherited_image_url %}
+                        <div class="authoring-inherited-image">
+                            <img src="{{ inherited_image_url }}" alt="{{ inherited_image_label }}" class="authoring-inherited-image__preview">
+                            <p class="authoring-help">{{ inherited_image_label }}. Upload a new image below to replace it, or leave empty to keep using it.</p>
+                        </div>
+                        {% endif %}
                         {{ form.cover_image }}
                         {{ form.cover_image.errors }}
                     </div>

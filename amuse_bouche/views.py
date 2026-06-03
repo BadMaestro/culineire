@@ -273,6 +273,14 @@ class AmuseBoucheUpdateView(AuthorRequiredMixin, UpdateView):
         ctx["is_moderator"] = is_moderator(self.request.user)
         ctx["from_recipe"] = self.request.GET.get("from_recipe") == "1"
         ctx["from_article"] = self.request.GET.get("from_article") == "1"
+        if not self.object.cover_image:
+            item = self.object
+            if item.linked_recipe_id and item.linked_recipe.hero_image:
+                ctx["inherited_image_url"] = item.linked_recipe.hero_image.url
+                ctx["inherited_image_label"] = "Image inherited from recipe"
+            elif item.linked_article_id and item.linked_article.hero_image:
+                ctx["inherited_image_url"] = item.linked_article.hero_image.url
+                ctx["inherited_image_label"] = "Image inherited from article"
         return ctx
 
 
