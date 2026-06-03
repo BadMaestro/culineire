@@ -192,6 +192,7 @@ class MaintenanceModeTests(TestCase):
         self.assertContains(response, "Waiting outside.", status_code=503)
         self.assertContains(response, "Same here.", status_code=503)
 
+
     @override_settings(MAINTENANCE_MODE=True)
     def test_maintenance_note_honeypot_drops_spam(self):
         self.client.post(
@@ -218,3 +219,45 @@ class MaintenanceModeTests(TestCase):
 
         self.assertRedirects(response, reverse("home"))
         self.assertFalse(MaintenanceNote.objects.exists())
+
+
+class CanonicalHostRedirectMiddlewareTests(TestCase):
+    @override_settings(
+        CANONICAL_HOST_REDIRECT=True,
+        SITE_DOMAIN="culineire.ie",
+        SITE_SCHEME="https",
+        ALLOWED_HOSTS=["culineire.ie", "www.culineire.ie"],
+    )
+    def test_www_host_redirects_to_canonical_apex_host(self):
+        response = self.client.get(
+            "/recipes/?page=2",
+            SERVER_NAME="www.culineire.ie",
+            SERVER_PORT=443,
+            secure=True,
+        )
+
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(response.headers["Location"], "https://culineire.ie/recipes/?page=2")
+
+    @override_settings(
+        CANONICAL_HOST_REDIRECT=True,
+        SITE_DOMAIN="culineire.ie",
+        SITE_SCHEME="https",
+        ALLOWED_HOSTS=["culineire.ie", "www.culineire.ie"],
+    )
+    def test_canonical_apex_host_does_not_redirect(self):
+        response = self.client.get("/", SERVER_NAME="culineire.ie", SERVER_PORT=443, secure=True)
+
+        self.assertEqual(response.status_code, 200)
+
+    @override_settings(
+        CANONICAL_HOST_REDIRECT=True,
+        SITE_DOMAIN="culineire.ie",
+        SITE_SCHEME="https",
+        SECURE_SSL_REDIRECT=False,
+        ALLOWED_HOSTS=["127.0.0.1", "localhost", "culineire.ie"],
+    )
+    def test_loopback_hosts_are_not_canonical_redirected(self):
+        response = self.client.get("/", SERVER_NAME="localhost", SERVER_PORT=8000)
+
+        self.assertEqual(response.status_code, 200)

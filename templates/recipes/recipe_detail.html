@@ -2,7 +2,7 @@
 {% load static recipe_schema %}
 
 {% block title %}{{ recipe.title }} | CulinEire{% endblock %}
-{% block meta_description %}{% if recipe.short_description %}{{ recipe.short_description }}{% else %}Recipe detail page for {{ recipe.title }} on CulinEire.{% endif %}{% endblock %}
+{% block meta_description %}{% if recipe.short_description %}{{ recipe.short_description }}{% else %}A home-cooking recipe for {{ recipe.title }} on CulinEire.{% endif %}{% endblock %}
 
 {% block og_type %}article{% endblock %}
 {% block og_title %}{{ recipe.title }} | CulinEire{% endblock %}

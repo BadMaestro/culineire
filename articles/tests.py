@@ -862,6 +862,19 @@ class ArticleAuthoringPermissionTests(TestCase):
             f"http://testserver{self.owner_author.get_absolute_url()}",
         )
 
+    def test_article_detail_uses_human_fallback_meta_description(self):
+        self.article.status = Article.Status.APPROVED
+        self.article.excerpt = ""
+        self.article.save(update_fields=["status", "excerpt"])
+
+        response = self.client.get(self.article.get_absolute_url())
+
+        self.assertContains(
+            response,
+            "Read Original Article on CulinEire, with Irish food stories, cooking context, and recipe notes.",
+        )
+        self.assertNotContains(response, "Article detail page for")
+
     def test_article_edit_appends_gallery_images_after_highest_existing_sort_order(self):
         ArticleImage.objects.create(
             article=self.article,

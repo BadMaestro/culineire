@@ -273,14 +273,14 @@ def _build_site_research_progress():
             "detail": "Remove public template comments from base and sponsors templates so snippets cannot expose implementation notes.",
         },
         {
-            "status": "active",
+            "status": "done",
             "label": "Canonical host verification",
-            "detail": "Verify apex/www redirects, rendered canonical tags, footer links and sitemap host consistency before changing policy.",
+            "detail": "Verified deployed www duplicate, kept sitemap/canonical on apex and added app-level www-to-apex redirect.",
         },
         {
-            "status": "active",
+            "status": "done",
             "label": "Structured data validation",
-            "detail": "Validate existing Recipe JSON-LD and BreadcrumbList from rendered recipe/article pages before any rewrite.",
+            "detail": "Added rendered Recipe JSON-LD/BreadcrumbList validation and kept existing Article JSON-LD coverage.",
         },
         {
             "status": "done",
@@ -288,9 +288,9 @@ def _build_site_research_progress():
             "detail": "Check recipe list, category and author archive queries for duplicate rows caused by joins or category links.",
         },
         {
-            "status": "pending",
+            "status": "active",
             "label": "SERP snippet hygiene",
-            "detail": "Find and remove any template comments or boilerplate that can leak into search snippets.",
+            "detail": "Monitor re-crawl after deploy and remove remaining duplicated numbering or boilerplate snippets.",
         },
         {
             "status": "manual",
@@ -304,7 +304,7 @@ def _build_site_research_progress():
             "month": "Month 1",
             "title": "Evidence baseline and P0 repairs",
             "status": "active",
-            "detail": "Moderation mirror, rendered HTML audit, duplicate step numbering, archive duplicates, SERP leak, canonical verification.",
+            "detail": "Moderation mirror, rendered HTML audit, duplicate step numbering, archive duplicates, SERP leak, canonical redirect.",
         },
         {
             "month": "Month 2",
@@ -380,7 +380,7 @@ def _build_site_research_progress():
     total_count = len([item for item in checklist if item["status"] != "manual"])
     percent = round((done_count / total_count) * 100) if total_count else 0
 
-    current_focus = "P0 verification of canonical host, structured data and SERP snippet hygiene"
+    current_focus = "P0 SERP snippet hygiene and post-deploy verification"
 
     handoff_lines = [
         "CulinEire site research tracker",

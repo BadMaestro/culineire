@@ -139,6 +139,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "config.canonical_host_middleware.CanonicalHostRedirectMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -293,6 +294,7 @@ EMAIL_TIMEOUT = env_int("EMAIL_TIMEOUT", 10)
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "CulinEire <noreply@culineire.ie>")
 SITE_DOMAIN = os.getenv("SITE_DOMAIN", "127.0.0.1:8000")
 SITE_SCHEME = os.getenv("SITE_SCHEME", "https" if IS_PRODUCTION else "http")
+CANONICAL_HOST_REDIRECT = env_bool("DJANGO_CANONICAL_HOST_REDIRECT", default=IS_PRODUCTION)
 OWNER_SLUG = "greenbear"
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-6")

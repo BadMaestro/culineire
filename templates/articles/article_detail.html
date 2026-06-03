@@ -2,7 +2,7 @@
 {% load static article_filters %}
 
 {% block title %}{{ article.title }} | CulinEire{% endblock %}
-{% block meta_description %}{% if article.excerpt %}{{ article.excerpt|striptags|truncatechars:160 }}{% else %}Article detail page for {{ article.title }} on CulinEire.{% endif %}{% endblock %}
+{% block meta_description %}{% if article.excerpt %}{{ article.excerpt|striptags|truncatechars:160 }}{% else %}Read {{ article.title }} on CulinEire, with Irish food stories, cooking context, and recipe notes.{% endif %}{% endblock %}
 
 {% block og_type %}article{% endblock %}
 {% block og_title %}{{ article.title }} | CulinEire{% endblock %}

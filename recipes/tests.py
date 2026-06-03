@@ -1,5 +1,7 @@
 import importlib
+import json
 import os
+import re
 import tempfile
 from datetime import date, timedelta
 from unittest import skip
@@ -1329,6 +1331,79 @@ class RecipeDetailAccessibilityMarkupTests(TestCase):
         self.assertContains(response, "Wash the potatoes")
         self.assertNotContains(response, "method-steps__number")
         self.assertNotContains(response, 'aria-label="Step 1"')
+
+
+class RecipeDetailStructuredDataTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        user = user_model.objects.create_user(username="schema-chef", password="pass")
+        self.author = RecipeAuthor.objects.create(user=user, name="Schema Chef", slug="schema-chef")
+
+    def test_recipe_detail_outputs_parseable_recipe_and_breadcrumb_json_ld(self):
+        recipe = Recipe.objects.create(
+            title="Structured Coddle",
+            slug="structured-coddle",
+            author=self.author,
+            short_description="A structured data test recipe.",
+            category=Recipe.Category.SOUPS_AND_STEWS,
+            prep_time_minutes=10,
+            cook_time_minutes=40,
+            servings=4,
+            calories=320,
+            ingredients="Potatoes\nSausages\nOnions",
+            method="1. Slice the onions\n2. Simmer everything gently",
+            status=Recipe.Status.APPROVED,
+            confirmed_own_work=True,
+            confirmed_image_rights=True,
+            confirmed_rules=True,
+            image_rights_status=Recipe.ImageRightsStatus.NOT_APPLICABLE,
+        )
+
+        response = self.client.get(recipe.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        scripts = re.findall(
+            r'<script type="application/ld\+json">(.*?)</script>',
+            response.content.decode(),
+            flags=re.S,
+        )
+        schemas = [json.loads(script) for script in scripts]
+        recipe_schema = next(schema for schema in schemas if schema.get("@type") == "Recipe")
+        breadcrumb_schema = next(schema for schema in schemas if schema.get("@type") == "BreadcrumbList")
+
+        self.assertEqual(recipe_schema["name"], "Structured Coddle")
+        self.assertEqual(recipe_schema["recipeCategory"], "Soups and Stews")
+        self.assertEqual(recipe_schema["prepTime"], "PT10M")
+        self.assertEqual(recipe_schema["cookTime"], "PT40M")
+        self.assertEqual(recipe_schema["totalTime"], "PT50M")
+        self.assertEqual(recipe_schema["recipeIngredient"], ["Potatoes", "Sausages", "Onions"])
+        self.assertEqual(recipe_schema["recipeInstructions"][0]["@type"], "HowToStep")
+        self.assertEqual(recipe_schema["recipeInstructions"][0]["text"], "Slice the onions")
+        self.assertTrue(recipe_schema["recipeInstructions"][0]["url"].endswith("#step-1"))
+        self.assertEqual(
+            [item["position"] for item in breadcrumb_schema["itemListElement"]],
+            [1, 2, 3],
+        )
+
+    def test_recipe_detail_uses_human_fallback_meta_description(self):
+        recipe = Recipe.objects.create(
+            title="Fallback Meta Bread",
+            slug="fallback-meta-bread",
+            author=self.author,
+            category=Recipe.Category.BREAD_AND_BAKING,
+            ingredients="Flour\nWater",
+            method="1. Mix\n2. Bake",
+            status=Recipe.Status.APPROVED,
+            confirmed_own_work=True,
+            confirmed_image_rights=True,
+            confirmed_rules=True,
+            image_rights_status=Recipe.ImageRightsStatus.NOT_APPLICABLE,
+        )
+
+        response = self.client.get(recipe.get_absolute_url())
+
+        self.assertContains(response, "A home-cooking recipe for Fallback Meta Bread on CulinEire.")
+        self.assertNotContains(response, "Recipe detail page for")
 
 
 class RecipeModerationTrackingTests(TestCase):
