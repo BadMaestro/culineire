@@ -181,10 +181,16 @@ def _publish_to_telegram(*, event_key: str, message: str, target_url: str, image
 
 
 def publish_ab_to_telegram(ab) -> TelegramResult:
+    try:
+        from amuse_bouche.telegram_preview import get_telegram_preview_image
+        get_telegram_preview_image(ab)
+    except Exception:
+        logger.exception("Failed to prepare Amuse-Bouche Telegram preview image for pk=%s", getattr(ab, "pk", None))
     return _publish_to_telegram(
         event_key=f"amuse_bouche_published:{ab.pk}",
         message=build_ab_direct_telegram_message(ab),
         target_url=ab.get_absolute_url(),
+        _send_fn=send_telegram_message_with_link_preview,
     )
 
 

@@ -1,10 +1,14 @@
+from io import BytesIO
 from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.files.storage import default_storage
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
+from PIL import Image
 
 from articles.models import Article
 from collection.models import ContentReaction, SavedContent
@@ -550,6 +554,61 @@ class AmuseBoucheGenerateFromArticleTests(TestCase):
             AmuseBouche.objects.filter(linked_article=self.article).exclude(status=AmuseBouche.Status.ARCHIVED).count(),
             1,
         )
+
+
+@override_settings(TELEGRAM_BOT_TOKEN="", TELEGRAM_CHANNEL_ID="", ANTHROPIC_API_KEY="", AMUSE_BOUCHE_PUBLIC=True)
+class AmuseBoucheTelegramPreviewTests(TestCase):
+    def setUp(self):
+        self.author = RecipeAuthor.objects.create(name="Preview Author", slug="preview-author")
+
+    @staticmethod
+    def uploaded_image(name="preview.png", size=(1600, 1000), color=(24, 76, 58)):
+        image_file = BytesIO()
+        Image.new("RGB", size, color).save(image_file, format="PNG")
+        image_file.seek(0)
+        return SimpleUploadedFile(name, image_file.read(), content_type="image/png")
+
+    def test_card_image_falls_back_to_linked_article_image(self):
+        article = Article.objects.create(
+            author=self.author,
+            title="Preview Article",
+            slug="preview-article",
+            excerpt="Article excerpt.",
+            body="Article body.",
+            status=Article.Status.APPROVED,
+            published=timezone.localdate(),
+        )
+        article.hero_image.save("article-cover.png", self.uploaded_image("article-cover.png"), save=True)
+        item = AmuseBouche.objects.create(
+            author=self.author,
+            title="Article Bite",
+            short_description="A bite from an article.",
+            linked_article=article,
+            status=AmuseBouche.Status.APPROVED,
+        )
+
+        self.assertEqual(item.card_image.url, article.hero_image.url)
+
+    def test_detail_uses_generated_telegram_preview_image_metadata(self):
+        item = AmuseBouche.objects.create(
+            author=self.author,
+            title="Preview Bite",
+            short_description="A bite with a large cover image.",
+            status=AmuseBouche.Status.APPROVED,
+        )
+        item.cover_image.save("large-cover.png", self.uploaded_image("large-cover.png"), save=True)
+
+        response = self.client.get(item.get_absolute_url())
+
+        preview = response.context["telegram_preview_image"]
+        self.assertIn(f"/media/amuse-bouche/telegram-previews/{item.pk}/", preview.url)
+        self.assertNotEqual(preview.url, f"http://testserver{item.cover_image.url}")
+        self.assertEqual((preview.width, preview.height), (640, 640))
+        self.assertIn(f'<meta content="{preview.url}" property="og:image">', response.content.decode())
+        with default_storage.open(preview.name, "rb") as generated_file:
+            with Image.open(generated_file) as generated_image:
+                self.assertEqual(generated_image.size, (640, 640))
+                self.assertEqual(generated_image.format, "JPEG")
 
 
 @override_settings(TELEGRAM_BOT_TOKEN="", TELEGRAM_CHANNEL_ID="", ANTHROPIC_API_KEY="", AMUSE_BOUCHE_PUBLIC=False)

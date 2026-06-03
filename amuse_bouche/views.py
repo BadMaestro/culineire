@@ -22,6 +22,7 @@ from recipes.models import Recipe
 from accounts.views import is_moderator
 from .forms import AmuseBoucheAuthoringForm
 from .models import AmuseBouche, AmuseBoucheComment, AmuseBoucheGalleryImage
+from .telegram_preview import get_telegram_preview_meta
 from .visibility import can_view_amuse_bouche_public_area
 
 
@@ -198,6 +199,7 @@ def detail(request, slug):
     )
     return render(request, "amuse_bouche/detail.html", {
         "item": items[0],
+        "telegram_preview_image": get_telegram_preview_meta(items[0], request=request),
         "liked_ids": liked_ids,
         "saved_ids": saved_ids,
         "followed_author_ids": followed_author_ids,

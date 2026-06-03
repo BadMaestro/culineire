@@ -6,12 +6,16 @@
 {% block og_title %}{{ item.title }} | Amuse-Bouche{% endblock %}
 {% block og_type %}article{% endblock %}
 {% block og_description %}Amuse-Bouche on CulinEire{% endblock %}
-{% block og_image %}{% if item.card_image %}{{ request.scheme }}://{{ request.get_host }}{{ item.card_image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero.jpg' %}{% endif %}{% endblock %}
+{% block og_image %}{{ telegram_preview_image.url }}{% endblock %}
 {% block twitter_card %}summary{% endblock %}
 {% block twitter_title %}{{ item.title }} | Amuse-Bouche | CulinEire{% endblock %}
 {% block twitter_description %}Amuse-Bouche on CulinEire{% endblock %}
-{% block twitter_image %}{% if item.card_image %}{{ request.scheme }}://{{ request.get_host }}{{ item.card_image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero.jpg' %}{% endif %}{% endblock %}
+{% block twitter_image %}{{ telegram_preview_image.url }}{% endblock %}
 {% block extra_head %}
+{% if telegram_preview_image.width and telegram_preview_image.height %}
+<meta content="{{ telegram_preview_image.width }}" property="og:image:width">
+<meta content="{{ telegram_preview_image.height }}" property="og:image:height">
+{% endif %}
 <link href="{% static 'css/amuse_bouche.css' %}" rel="stylesheet">
 {% endblock %}
 

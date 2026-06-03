@@ -257,6 +257,8 @@ class AmuseBouche(models.Model):
         # Fall back to linked recipe hero image so generated bites look good immediately
         if self.linked_recipe_id and self.linked_recipe.hero_image:
             return self.linked_recipe.hero_image
+        if self.linked_article_id and self.linked_article.card_image:
+            return self.linked_article.card_image
         return None
 
     def generate_unique_slug(self) -> str:
