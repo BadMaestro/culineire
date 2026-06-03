@@ -110,20 +110,23 @@ def send_telegram_message(text: str) -> TelegramResult:
     })
 
 
-def send_telegram_message_with_link_preview(text: str) -> TelegramResult:
+def send_telegram_message_with_link_preview(text: str, *, preview_url: str = "") -> TelegramResult:
     """sendMessage with small link preview — used for Amuse-Bouche compact notifications."""
     token = getattr(settings, "TELEGRAM_BOT_TOKEN", "")
     channel_id = getattr(settings, "TELEGRAM_CHANNEL_ID", "")
     if not token or not channel_id:
         return TelegramResult(ok=False, status="skipped", response="Telegram settings are not configured.")
+    link_preview_options = {
+        "is_disabled": False,
+        "prefer_small_media": True,
+        "show_above_text": False,
+    }
+    if preview_url:
+        link_preview_options["url"] = preview_url
     return _call_telegram_api(token, "sendMessage", {
         "chat_id": channel_id,
         "text": text,
-        "link_preview_options": json.dumps({
-            "is_disabled": False,
-            "prefer_small_media": True,
-            "show_above_text": False,
-        }),
+        "link_preview_options": json.dumps(link_preview_options),
     })
 
 
@@ -181,16 +184,20 @@ def _publish_to_telegram(*, event_key: str, message: str, target_url: str, image
 
 
 def publish_ab_to_telegram(ab) -> TelegramResult:
+    preview_url = ""
     try:
-        from amuse_bouche.telegram_preview import get_telegram_preview_image
+        from amuse_bouche.telegram_preview import absolute_url, get_telegram_preview_image
         get_telegram_preview_image(ab)
+        version = getattr(ab, "updated_at", None)
+        version_value = int(version.timestamp()) if version else getattr(ab, "pk", "")
+        preview_url = f"{absolute_url(ab.get_absolute_url())}?tg={ab.pk}-{version_value}"
     except Exception:
         logger.exception("Failed to prepare Amuse-Bouche Telegram preview image for pk=%s", getattr(ab, "pk", None))
     return _publish_to_telegram(
         event_key=f"amuse_bouche_published:{ab.pk}",
         message=build_ab_direct_telegram_message(ab),
         target_url=ab.get_absolute_url(),
-        _send_fn=send_telegram_message_with_link_preview,
+        _send_fn=lambda text: send_telegram_message_with_link_preview(text, preview_url=preview_url),
     )
 
 

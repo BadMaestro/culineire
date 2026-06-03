@@ -149,6 +149,16 @@ class MaintenanceModeTests(TestCase):
 
         self.assertNotEqual(response.status_code, 503)
 
+    @override_settings(MAINTENANCE_MODE=True)
+    def test_telegram_link_preview_can_fetch_public_pages_during_maintenance(self):
+        response = self.client.get(
+            reverse("about"),
+            HTTP_USER_AGENT="TelegramBot (like TwitterBot)",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Kitchen Closed for a Deep Clean")
+
     @override_settings(MAINTENANCE_MODE=False)
     def test_site_uses_normal_response_when_maintenance_disabled(self):
         response = self.client.get("/")

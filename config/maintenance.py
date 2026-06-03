@@ -65,6 +65,11 @@ def _is_privileged_user(user) -> bool:
         return False
 
 
+def _is_telegram_link_preview_request(request) -> bool:
+    user_agent = (request.META.get("HTTP_USER_AGENT") or "").lower()
+    return "telegrambot" in user_agent
+
+
 class MaintenanceModeMiddleware:
     allowed_prefixes = (
         "/static/",
@@ -100,6 +105,8 @@ class MaintenanceModeMiddleware:
             return self.get_response(request)
         admin_url = getattr(settings, "ADMIN_URL_PREFIX", "cave19850324")
         if path.startswith(f"/{admin_url}/"):
+            return self.get_response(request)
+        if _is_telegram_link_preview_request(request):
             return self.get_response(request)
 
         maintenance_until = ""

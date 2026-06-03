@@ -450,6 +450,33 @@ class AmuseBoucheTelegramPublishTest(TestCase):
         self.assertTrue(options["prefer_small_media"])
         self.assertFalse(options["show_above_text"])
 
+    @patch("newsfeed.telegram._call_telegram_api")
+    def test_compact_link_preview_payload_accepts_preview_url(self, mock_call):
+        from newsfeed.telegram import send_telegram_message_with_link_preview
+        mock_call.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
+
+        send_telegram_message_with_link_preview(
+            "Amuse-Bouche: Test\n\nhttps://culineire.ie/amuse-bouche/test/",
+            preview_url="https://culineire.ie/amuse-bouche/test/?tg=1-123",
+        )
+
+        payload = mock_call.call_args[0][2]
+        options = json.loads(payload["link_preview_options"])
+        self.assertEqual(options["url"], "https://culineire.ie/amuse-bouche/test/?tg=1-123")
+
+    @patch("newsfeed.telegram.send_telegram_message_with_link_preview")
+    def test_ab_publish_uses_cache_busted_preview_url(self, mock_send):
+        mock_send.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
+        ab = _make_ab(self.author, title="Cache Bite", status="pending")
+
+        ab.status = "approved"
+        ab.save()
+
+        sent_text = mock_send.call_args[0][0]
+        preview_url = mock_send.call_args.kwargs["preview_url"]
+        self.assertIn("https://culineire.ie/amuse-bouche/cache-bite/", sent_text)
+        self.assertRegex(preview_url, r"https://culineire\.ie/amuse-bouche/cache-bite/\?tg=\d+-\d+")
+
 
 class AmuseBoucheLaunchNewsCommandTest(TestCase):
     @override_settings(
