@@ -119,15 +119,15 @@
                             <div class="recipe-gallery__image-shell">
                                 {% if forloop.first %}
                                     {% if item.width and item.height %}
-                                <img class="recipe-gallery__media" src="{{ item.src }}" alt="{{ item.alt }}" width="{{ item.width }}" height="{{ item.height }}" loading="eager" fetchpriority="high">
+                                <img class="recipe-gallery__media" src="{{ item.src }}" alt="{{ item.alt }}" width="{{ item.width }}" height="{{ item.height }}" loading="eager" fetchpriority="high" decoding="async">
                                     {% else %}
-                                <img class="recipe-gallery__media" src="{{ item.src }}" alt="{{ item.alt }}" loading="eager" fetchpriority="high">
+                                <img class="recipe-gallery__media" src="{{ item.src }}" alt="{{ item.alt }}" loading="eager" fetchpriority="high" decoding="async">
                                     {% endif %}
                                 {% else %}
                                     {% if item.width and item.height %}
-                                <img class="recipe-gallery__media" src="{{ item.src }}" alt="{{ item.alt }}" width="{{ item.width }}" height="{{ item.height }}" loading="lazy">
+                                <img class="recipe-gallery__media" src="{{ item.src }}" alt="{{ item.alt }}" width="{{ item.width }}" height="{{ item.height }}" loading="lazy" decoding="async">
                                     {% else %}
-                                <img class="recipe-gallery__media" src="{{ item.src }}" alt="{{ item.alt }}" loading="lazy">
+                                <img class="recipe-gallery__media" src="{{ item.src }}" alt="{{ item.alt }}" loading="lazy" decoding="async">
                                     {% endif %}
                                 {% endif %}
                                 {% if article.image_rights_status == 'ai_generated' %}<span aria-label="AI generated image" class="ai-image-badge ai-image-badge--watermark">AI</span>{% endif %}

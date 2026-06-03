@@ -1405,6 +1405,77 @@ class RecipeDetailStructuredDataTests(TestCase):
         self.assertContains(response, "A home-cooking recipe for Fallback Meta Bread on CulinEire.")
         self.assertNotContains(response, "Recipe detail page for")
 
+    def test_recipe_detail_marks_hero_image_as_high_priority(self):
+        recipe = Recipe.objects.create(
+            title="Priority Hero Bread",
+            slug="priority-hero-bread",
+            author=self.author,
+            category=Recipe.Category.BREAD_AND_BAKING,
+            ingredients="Flour\nWater",
+            method="1. Mix\n2. Bake",
+            status=Recipe.Status.APPROVED,
+            confirmed_own_work=True,
+            confirmed_image_rights=True,
+            confirmed_rules=True,
+            image_rights_status=Recipe.ImageRightsStatus.NOT_APPLICABLE,
+        )
+
+        response = self.client.get(recipe.get_absolute_url())
+
+        self.assertContains(response, 'loading="eager"')
+        self.assertContains(response, 'fetchpriority="high"')
+        self.assertContains(response, 'decoding="async"')
+
+
+class PublicImagePerformanceHintTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        user = user_model.objects.create_user(username="performance-chef", password="pass")
+        self.author = RecipeAuthor.objects.create(user=user, name="Performance Chef", slug="performance-chef")
+        self.recipe = Recipe.objects.create(
+            title="Lazy Card Stew",
+            slug="lazy-card-stew",
+            author=self.author,
+            category=Recipe.Category.SOUPS_AND_STEWS,
+            ingredients="Potatoes\nOnions",
+            method="1. Chop\n2. Simmer",
+            status=Recipe.Status.APPROVED,
+            confirmed_own_work=True,
+            confirmed_image_rights=True,
+            confirmed_rules=True,
+            image_rights_status=Recipe.ImageRightsStatus.NOT_APPLICABLE,
+        )
+        self.article = Article.objects.create(
+            title="Lazy Card Article",
+            slug="lazy-card-article",
+            author=self.author,
+            body="Article body.",
+            published=date(2026, 6, 3),
+            status=Article.Status.APPROVED,
+            confirmed_own_work=True,
+            confirmed_image_rights=True,
+            confirmed_rules=True,
+            image_rights_status=Article.ImageRightsStatus.NOT_APPLICABLE,
+        )
+
+    def test_home_cards_use_lazy_async_image_hints(self):
+        response = self.client.get(reverse("home"))
+
+        self.assertContains(response, 'loading="lazy"')
+        self.assertContains(response, 'decoding="async"')
+
+    def test_recipe_list_cards_use_lazy_async_image_hints(self):
+        response = self.client.get(reverse("recipes:recipe_list"))
+
+        self.assertContains(response, 'loading="lazy"')
+        self.assertContains(response, 'decoding="async"')
+
+    def test_article_list_cards_use_lazy_async_image_hints(self):
+        response = self.client.get(reverse("articles:article_list"))
+
+        self.assertContains(response, 'loading="lazy"')
+        self.assertContains(response, 'decoding="async"')
+
 
 class RecipeModerationTrackingTests(TestCase):
     def setUp(self):

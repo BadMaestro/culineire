@@ -17,6 +17,7 @@ class CspNonceMiddleware:
             f"img-src 'self' data: blob:; "
             f"connect-src 'self'; "
             f"frame-src https://challenges.cloudflare.com; "
+            f"frame-ancestors 'none'; "
             f"object-src 'none'; "
             f"base-uri 'self'; "
             f"form-action 'self';"

@@ -261,3 +261,22 @@ class CanonicalHostRedirectMiddlewareTests(TestCase):
         response = self.client.get("/", SERVER_NAME="localhost", SERVER_PORT=8000)
 
         self.assertEqual(response.status_code, 200)
+
+
+class SecurityHeaderTests(TestCase):
+    def test_html_responses_include_security_headers(self):
+        response = self.client.get("/")
+
+        self.assertEqual(response.status_code, 200)
+        csp = response.headers["Content-Security-Policy"]
+        self.assertIn("default-src 'self'", csp)
+        self.assertIn("script-src 'self' 'nonce-", csp)
+        self.assertIn("https://challenges.cloudflare.com", csp)
+        self.assertIn("object-src 'none'", csp)
+        self.assertIn("base-uri 'self'", csp)
+        self.assertIn("form-action 'self'", csp)
+        self.assertIn("frame-ancestors 'none'", csp)
+        self.assertEqual(response.headers["Permissions-Policy"], "camera=(), microphone=(), geolocation=()")
+        self.assertEqual(response.headers["X-Frame-Options"], "DENY")
+        self.assertEqual(response.headers["X-Content-Type-Options"], "nosniff")
+        self.assertEqual(response.headers["Referrer-Policy"], "same-origin")

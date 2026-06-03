@@ -127,9 +127,9 @@
                     <article class="recipe-card">
                         <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
                             {% if recipe.hero_image %}
-                            <img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}">
+                            <img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="lazy" decoding="async">
                             {% else %}
-                            <img alt="{{ recipe.title }}" src="{% static 'images/hero.png' %}">
+                            <img alt="{{ recipe.title }}" src="{% static 'images/hero.png' %}" loading="lazy" decoding="async">
                             {% endif %}
                         </a>
 
@@ -182,6 +182,8 @@
                                         <img alt="{{ recipe.author.name }}"
                                              class="recipe-card-author__brand-logo"
                                              height="40"
+                                             loading="lazy"
+                                             decoding="async"
                                              src="{{ recipe.author.display_avatar_url }}" width="40">
                                         <span class="recipe-card-author__name">{{ recipe.author.name }}</span>
                                     </a>
@@ -229,9 +231,9 @@
                     <article class="recipe-card recipe-card--article">
                         <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">
                             {% if article.card_image %}
-                            <img alt="{{ article.title }}" src="{{ article.card_image.url }}">
+                            <img alt="{{ article.title }}" src="{{ article.card_image.url }}" loading="lazy" decoding="async">
                             {% else %}
-                            <img alt="{{ article.title }}" src="{% static 'images/hero.png' %}">
+                            <img alt="{{ article.title }}" src="{% static 'images/hero.png' %}" loading="lazy" decoding="async">
                             {% endif %}
                         </a>
 
@@ -267,6 +269,8 @@
                                         <img alt="{{ article.author.name }}"
                                              class="recipe-card-author__brand-logo"
                                              height="40"
+                                             loading="lazy"
+                                             decoding="async"
                                              src="{{ article.author.display_avatar_url }}" width="40">
                                         <span class="recipe-card-author__name">{{ article.author.name }}</span>
                                     </a>

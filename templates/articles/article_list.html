@@ -58,8 +58,8 @@
                     {% for article in recent_articles %}
                     <article class="recipe-card recipe-card--article">
                         <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">
-                            {% if article.card_image %}<img alt="{{ article.title }}" src="{{ article.card_image.url }}">
-                            {% else %}<img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}">{% endif %}
+                            {% if article.card_image %}<img alt="{{ article.title }}" src="{{ article.card_image.url }}" loading="lazy" decoding="async">
+                            {% else %}<img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}" loading="lazy" decoding="async">{% endif %}
                         </a>
                         <div class="recipe-card__body">
                             <div class="recipe-card__content">
@@ -104,8 +104,8 @@
                 {% for article in all_articles %}
                 <article class="recipe-card recipe-card--article">
                     <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">
-                        {% if article.card_image %}<img alt="{{ article.title }}" src="{{ article.card_image.url }}">
-                        {% else %}<img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}">{% endif %}
+                        {% if article.card_image %}<img alt="{{ article.title }}" src="{{ article.card_image.url }}" loading="lazy" decoding="async">
+                        {% else %}<img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}" loading="lazy" decoding="async">{% endif %}
                     </a>
                     <div class="recipe-card__body">
                         <div class="recipe-card__content">
@@ -180,8 +180,8 @@
                     {% for article in category_articles %}
                     <article class="recipe-card recipe-card--article">
                         <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">
-                            {% if article.card_image %}<img alt="{{ article.title }}" src="{{ article.card_image.url }}">
-                            {% else %}<img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}">{% endif %}
+                            {% if article.card_image %}<img alt="{{ article.title }}" src="{{ article.card_image.url }}" loading="lazy" decoding="async">
+                            {% else %}<img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}" loading="lazy" decoding="async">{% endif %}
                         </a>
                         <div class="recipe-card__body">
                             <div class="recipe-card__content">
@@ -239,8 +239,8 @@
                     {% for article in default_recent_articles %}
                     <article class="recipe-card recipe-card--article">
                         <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">
-                            {% if article.card_image %}<img alt="{{ article.title }}" src="{{ article.card_image.url }}">
-                            {% else %}<img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}">{% endif %}
+                            {% if article.card_image %}<img alt="{{ article.title }}" src="{{ article.card_image.url }}" loading="lazy" decoding="async">
+                            {% else %}<img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}" loading="lazy" decoding="async">{% endif %}
                         </a>
                         <div class="recipe-card__body">
                             <div class="recipe-card__content">
@@ -287,8 +287,8 @@
                     {% for article in all_articles_grid %}
                     <article class="recipe-card recipe-card--article">
                         <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">
-                            {% if article.card_image %}<img alt="{{ article.title }}" src="{{ article.card_image.url }}">
-                            {% else %}<img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}">{% endif %}
+                            {% if article.card_image %}<img alt="{{ article.title }}" src="{{ article.card_image.url }}" loading="lazy" decoding="async">
+                            {% else %}<img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}" loading="lazy" decoding="async">{% endif %}
                         </a>
                         <div class="recipe-card__body">
                             <div class="recipe-card__content">

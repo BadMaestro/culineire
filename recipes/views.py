@@ -243,10 +243,10 @@ def _build_site_research_progress():
 
     areas = [
         {"label": "Accessibility", "score": 64, "status": "active"},
-        {"label": "Performance", "score": 55, "status": "pending"},
+        {"label": "Performance", "score": 61, "status": "done"},
         {"label": "SEO", "score": 62, "status": "active"},
         {"label": "Mobile", "score": 60, "status": "pending"},
-        {"label": "Security", "score": 67, "status": "pending"},
+        {"label": "Security", "score": 72, "status": "done"},
         {"label": "Content", "score": 72, "status": "active"},
         {"label": "Governance", "score": 63, "status": "pending"},
     ]
@@ -288,9 +288,24 @@ def _build_site_research_progress():
             "detail": "Check recipe list, category and author archive queries for duplicate rows caused by joins or category links.",
         },
         {
-            "status": "active",
+            "status": "done",
             "label": "SERP snippet hygiene",
-            "detail": "Monitor re-crawl after deploy and remove remaining duplicated numbering or boilerplate snippets.",
+            "detail": "Removed template-like fallback descriptions and verified deployed canonical/schema snippets after deploy.",
+        },
+        {
+            "status": "done",
+            "label": "Security headers baseline",
+            "detail": "Verified production security headers and added CSP/header regression tests with frame-ancestors protection.",
+        },
+        {
+            "status": "done",
+            "label": "Performance evidence baseline",
+            "detail": "Measured deployed HTML weight and added lazy/async image hints for public cards and detail media.",
+        },
+        {
+            "status": "active",
+            "label": "PageSpeed post-deploy check",
+            "detail": "Run external PageSpeed/Core Web Vitals checks after deployment and decide whether image resizing or CSS splitting is next.",
         },
         {
             "status": "manual",
@@ -304,7 +319,7 @@ def _build_site_research_progress():
             "month": "Month 1",
             "title": "Evidence baseline and P0 repairs",
             "status": "active",
-            "detail": "Moderation mirror, rendered HTML audit, duplicate step numbering, archive duplicates, SERP leak, canonical redirect.",
+            "detail": "Moderation mirror, rendered HTML audit, duplicate step numbering, archive duplicates, SERP leak, canonical redirect, security headers.",
         },
         {
             "month": "Month 2",
@@ -380,7 +395,7 @@ def _build_site_research_progress():
     total_count = len([item for item in checklist if item["status"] != "manual"])
     percent = round((done_count / total_count) * 100) if total_count else 0
 
-    current_focus = "P0 SERP snippet hygiene and post-deploy verification"
+    current_focus = "P1 PageSpeed post-deploy check and image delivery decisions"
 
     handoff_lines = [
         "CulinEire site research tracker",
