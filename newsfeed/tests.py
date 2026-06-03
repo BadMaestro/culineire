@@ -385,22 +385,13 @@ class AmuseBoucheTelegramPublishTest(TestCase):
         self.author = _make_author()
 
     @patch("newsfeed.telegram.send_telegram_message")
-    def test_ab_approval_uses_send_message(self, mock_send):
-        """AB notifications use plain sendMessage (same mechanism as recipes)."""
+    def test_ab_without_image_uses_send_message(self, mock_send):
+        """AB with no image uses sendMessage (no photo to send)."""
         mock_send.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
         ab = _make_ab(self.author, status="pending")
         ab.status = "approved"
         ab.save()
         self.assertEqual(mock_send.call_count, 1)
-
-    @patch("newsfeed.telegram.send_telegram_photo")
-    def test_ab_approval_does_not_use_send_photo(self, mock_photo):
-        with patch("newsfeed.telegram.send_telegram_message") as mock_send:
-            mock_send.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
-            ab = _make_ab(self.author, status="pending")
-            ab.status = "approved"
-            ab.save()
-        mock_photo.assert_not_called()
 
     @patch("newsfeed.telegram.send_telegram_message")
     def test_ab_telegram_message_is_compact(self, mock_send):

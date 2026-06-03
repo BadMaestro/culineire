@@ -55,7 +55,7 @@ def build_newsfeed_telegram_message(entry) -> str:
 
 
 def build_ab_direct_telegram_message(ab) -> str:
-    """Compact Amuse-Bouche message built from the model object (used by the direct approval signal)."""
+    """Compact Amuse-Bouche caption: title + URL only, no description or author prefix."""
     site_url = f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}".rstrip("/")
     absolute_url = f"{site_url}{ab.get_absolute_url()}"
     return f"Amuse-Bouche: {ab.title}\n\n{absolute_url}"
@@ -181,10 +181,29 @@ def _publish_to_telegram(*, event_key: str, message: str, target_url: str, image
 
 
 def publish_ab_to_telegram(ab) -> TelegramResult:
+    message = build_ab_direct_telegram_message(ab)
+    target_url = ab.get_absolute_url()
+
+    card = None
+    try:
+        card = ab.card_image
+    except Exception:
+        pass
+
+    if card:
+        site_url = f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}".rstrip("/")
+        image_url = f"{site_url}{card.url}"
+        return _publish_to_telegram(
+            event_key=f"amuse_bouche_published:{ab.pk}",
+            message=message,
+            target_url=target_url,
+            _send_fn=lambda text: send_telegram_photo(image_url, text),
+        )
+
     return _publish_to_telegram(
         event_key=f"amuse_bouche_published:{ab.pk}",
-        message=build_ab_direct_telegram_message(ab),
-        target_url=ab.get_absolute_url(),
+        message=message,
+        target_url=target_url,
     )
 
 
