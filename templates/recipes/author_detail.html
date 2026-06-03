@@ -92,6 +92,7 @@
                         {% endif %}
                         {% if can_manage_author_profile %}
                         <a class="author-studio-pending__edit" href="{% url 'recipes:recipe_edit' recipe.slug %}?next={{ request.path }}">Edit</a>
+                        <a class="author-studio-pending__delete" href="{% url 'recipes:recipe_delete' recipe.slug %}?next={{ request.path }}">Delete</a>
                         {% endif %}
                     </li>
                     {% if private_dashboard and recipe.moderation_note %}{% if recipe.status == 'rejected' or recipe.status == 'NEEDS_CHANGES' %}

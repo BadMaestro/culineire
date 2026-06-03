@@ -1733,7 +1733,16 @@
   white-space: nowrap;
 }
 
-.author-studio-pending__edit:hover {
+.author-studio-pending__delete {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgb(160 30 30);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.author-studio-pending__edit:hover,
+.author-studio-pending__delete:hover {
   text-decoration: underline;
 }
 

@@ -2205,6 +2205,21 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertContains(response, self.approved_recipe.get_absolute_url())
         self.assertContains(response, self.approved_article.get_absolute_url())
 
+    def test_dashboard_recipe_rows_include_edit_and_delete_actions(self):
+        self.client.force_login(self.author_user)
+
+        response = self.client.get(self.url)
+
+        for recipe in (
+            self.approved_recipe,
+            self.draft_recipe,
+            self.pending_recipe,
+            self.needs_changes_recipe,
+            self.rejected_recipe,
+        ):
+            self.assertContains(response, reverse("recipes:recipe_edit", kwargs={"slug": recipe.slug}))
+            self.assertContains(response, reverse("recipes:recipe_delete", kwargs={"slug": recipe.slug}))
+
     def test_public_visitor_sees_approved_content_only(self):
         response = self.client.get(self.url)
 
