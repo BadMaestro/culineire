@@ -81,7 +81,7 @@ def on_newsfeed_entry_save(sender, instance, created, **kwargs):
     del sender, kwargs
     if not created:
         return
-    if not instance.is_public or instance.is_auto:
+    if not instance.is_public:
         return
     try:
         from newsfeed.telegram import publish_newsfeed_entry_to_telegram
