@@ -104,6 +104,7 @@ class AmuseBoucheGatingTests(TestCase):
                 "short_description": "Toast the heel and rub it with salted butter.",
                 "content_type": AmuseBouche.ContentType.CHEF_TRICK,
                 "cover_image_alt": "",
+                "image_rights_status": AmuseBouche.ImageRightsStatus.NOT_APPLICABLE,
                 "linked_recipe": "",
                 "linked_article": "",
                 "allow_comments": "on",

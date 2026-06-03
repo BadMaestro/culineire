@@ -226,6 +226,211 @@ def _build_automation_roadmap_progress():
     }
 
 
+def _build_site_research_progress():
+    approved_recipe_count = Recipe.objects.filter(status=Recipe.Status.APPROVED, is_deleted=False).count()
+    approved_article_count = Article.objects.filter(status=Article.Status.APPROVED, is_deleted=False).count()
+    draft_recipe_count = Recipe.objects.filter(status__in=[Recipe.Status.DRAFT, Recipe.Status.PENDING], is_deleted=False).count()
+    draft_article_count = Article.objects.filter(status__in=[Article.Status.DRAFT, Article.Status.PENDING], is_deleted=False).count()
+
+    try:
+        from amuse_bouche.models import AmuseBouche
+
+        approved_bite_count = AmuseBouche.objects.filter(status=AmuseBouche.Status.APPROVED).count()
+        pending_bite_count = AmuseBouche.objects.filter(status=AmuseBouche.Status.PENDING).count()
+    except Exception:
+        approved_bite_count = 0
+        pending_bite_count = 0
+
+    areas = [
+        {"label": "Accessibility", "score": 64, "status": "active"},
+        {"label": "Performance", "score": 55, "status": "pending"},
+        {"label": "SEO", "score": 62, "status": "active"},
+        {"label": "Mobile", "score": 60, "status": "pending"},
+        {"label": "Security", "score": 67, "status": "pending"},
+        {"label": "Content", "score": 72, "status": "active"},
+        {"label": "Governance", "score": 63, "status": "pending"},
+    ]
+
+    checklist = [
+        {
+            "status": "done",
+            "label": "Research report ingested",
+            "detail": "Deep research findings have been converted into a site-wide verification backlog.",
+        },
+        {
+            "status": "done",
+            "label": "Moderation mirror",
+            "detail": "Create a read-only page showing the current research phase, scores, TODOs and yearly roadmap.",
+        },
+        {
+            "status": "done",
+            "label": "Recipe method accessibility",
+            "detail": "Remove duplicated step numerals from recipe method markup while preserving visual numbering.",
+        },
+        {
+            "status": "done",
+            "label": "Rendered HTML comment hygiene",
+            "detail": "Remove public template comments from base and sponsors templates so snippets cannot expose implementation notes.",
+        },
+        {
+            "status": "active",
+            "label": "Canonical host verification",
+            "detail": "Verify apex/www redirects, rendered canonical tags, footer links and sitemap host consistency before changing policy.",
+        },
+        {
+            "status": "active",
+            "label": "Structured data validation",
+            "detail": "Validate existing Recipe JSON-LD and BreadcrumbList from rendered recipe/article pages before any rewrite.",
+        },
+        {
+            "status": "done",
+            "label": "Archive duplicate audit",
+            "detail": "Check recipe list, category and author archive queries for duplicate rows caused by joins or category links.",
+        },
+        {
+            "status": "pending",
+            "label": "SERP snippet hygiene",
+            "detail": "Find and remove any template comments or boilerplate that can leak into search snippets.",
+        },
+        {
+            "status": "manual",
+            "label": "External evidence pass",
+            "detail": "Run Rich Results, Search Console, Lighthouse/PageSpeed and security header checks against deployed URLs.",
+        },
+    ]
+
+    months = [
+        {
+            "month": "Month 1",
+            "title": "Evidence baseline and P0 repairs",
+            "status": "active",
+            "detail": "Moderation mirror, rendered HTML audit, duplicate step numbering, archive duplicates, SERP leak, canonical verification.",
+        },
+        {
+            "month": "Month 2",
+            "title": "Recipe and article SEO quality",
+            "status": "pending",
+            "detail": "Validate schema, improve meta descriptions, align BreadcrumbList, improve Recipe/Article trust signals.",
+        },
+        {
+            "month": "Month 3",
+            "title": "Accessibility hardening",
+            "status": "pending",
+            "detail": "Forms, ratings, comments, keyboard focus, target sizes, alt policy and WCAG 2.2 checks.",
+        },
+        {
+            "month": "Month 4",
+            "title": "Performance and Core Web Vitals",
+            "status": "pending",
+            "detail": "Hero image handling, lazy loading, width/height, Lighthouse budgets and field measurement plan.",
+        },
+        {
+            "month": "Month 5",
+            "title": "Security and privacy baseline",
+            "status": "pending",
+            "detail": "Headers, cautious HSTS policy, third-party inventory, self-hosted fonts and cookie/storage audit.",
+        },
+        {
+            "month": "Month 6",
+            "title": "Monitoring and feedback loops",
+            "status": "pending",
+            "detail": "Use existing monitoring to feed content, SEO and social planning without adding non-essential tracking.",
+        },
+        {
+            "month": "Month 7",
+            "title": "Archive IA and crawl hygiene",
+            "status": "pending",
+            "detail": "Pagination, ItemList markup, category navigation, author archives and internal linking.",
+        },
+        {
+            "month": "Month 8",
+            "title": "Content depth",
+            "status": "pending",
+            "detail": "Nutrition, substitutions, storage, equipment, provenance notes and editorial review notes.",
+        },
+        {
+            "month": "Month 9",
+            "title": "Distribution readiness",
+            "status": "pending",
+            "detail": "Telegram, social queues, share metadata, post templates and human review gates.",
+        },
+        {
+            "month": "Month 10",
+            "title": "Localization decision",
+            "status": "pending",
+            "detail": "Keep hreflang out until alternate-language URLs exist; design reciprocal clusters if localization starts.",
+        },
+        {
+            "month": "Month 11",
+            "title": "Governance and stack inventory",
+            "status": "pending",
+            "detail": "Single build version, SBOM, dependency cadence, deployment smoke checks and ownership matrix.",
+        },
+        {
+            "month": "Month 12",
+            "title": "Full re-audit",
+            "status": "pending",
+            "detail": "Repeat site-wide audit, compare scores, close remaining P1/P2 issues and update the next yearly plan.",
+        },
+    ]
+
+    active_items = [item for item in checklist if item["status"] == "active"]
+    completed_items = [item for item in checklist if item["status"] == "done"]
+    done_count = len(completed_items)
+    total_count = len([item for item in checklist if item["status"] != "manual"])
+    percent = round((done_count / total_count) * 100) if total_count else 0
+
+    current_focus = "P0 verification of canonical host, structured data and SERP snippet hygiene"
+
+    handoff_lines = [
+        "CulinEire site research tracker",
+        f"Generated: {timezone.localdate().isoformat()}",
+        f"Current focus: {current_focus}.",
+        "",
+        "Current local content counts:",
+        f"- Approved recipes: {approved_recipe_count}",
+        f"- Draft/pending recipes: {draft_recipe_count}",
+        f"- Approved articles: {approved_article_count}",
+        f"- Draft/pending articles: {draft_article_count}",
+        f"- Approved Amuse-Bouche: {approved_bite_count}",
+        f"- Pending Amuse-Bouche: {pending_bite_count}",
+        "",
+        "Active work:",
+    ]
+    for item in active_items:
+        handoff_lines.append(f"- {item['label']}: {item['detail']}")
+
+    return {
+        "generated_on": timezone.localdate(),
+        "current_focus": current_focus,
+        "areas": areas,
+        "checklist": checklist,
+        "months": months,
+        "active_items": active_items,
+        "done_count": done_count,
+        "total_count": total_count,
+        "percent": percent,
+        "content_counts": {
+            "approved_recipes": approved_recipe_count,
+            "draft_recipes": draft_recipe_count,
+            "approved_articles": approved_article_count,
+            "draft_articles": draft_article_count,
+            "approved_bites": approved_bite_count,
+            "pending_bites": pending_bite_count,
+        },
+        "copy_text": "\n".join(handoff_lines),
+    }
+
+
+def _can_view_site_update_plan(user):
+    if not user or not user.is_authenticated:
+        return False
+    if user.is_staff or user.is_superuser:
+        return True
+    author = getattr(user, "recipe_author_profile", None)
+    return author is not None and author.slug == settings.OWNER_SLUG
+
+
 def _build_amuse_bouche_roadmap_status():
     phases = [
         {
@@ -1968,6 +2173,7 @@ def moderation_panel(request):
         "author_query": author_query,
         "can_grant_bearseeker_privileges": _can_grant_bearseeker_privileges(request.user),
         "can_revoke_superuser_privileges": _can_revoke_superuser_privileges(request.user),
+        "can_view_site_update_plan": _can_view_site_update_plan(request.user),
         "bearseeker_super_users": bearseeker_super_users,
         "bearseeker_authors": bearseeker_authors,
         "maintenance_web_active": maintenance_web_active,
@@ -2129,6 +2335,17 @@ def automation_progress(request):
         request,
         "moderation/automation_progress.html",
         {"automation_progress": _build_automation_roadmap_progress()},
+    )
+
+
+def site_research_progress(request):
+    if not _can_view_site_update_plan(request.user):
+        raise Http404
+
+    return render(
+        request,
+        "moderation/site_research_progress.html",
+        {"research": _build_site_research_progress()},
     )
 
 

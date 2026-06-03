@@ -11,6 +11,7 @@ urlpatterns = [
     path("profile/delete/", views.RecipeAuthorDeleteView.as_view(), name="author_delete"),
     path("moderation/", views.moderation_panel, name="moderation_panel"),
     path("moderation/automation-progress/", views.automation_progress, name="automation_progress"),
+    path("moderation/site-research/", views.site_research_progress, name="site_research_progress"),
     path("moderation/amuse-bouche-roadmap/", views.amuse_bouche_roadmap, name="amuse_bouche_roadmap"),
     path("moderation/generate/", views.generate_recipe_view, name="generate_recipe"),
     path("moderation/generate/poll/", views.generate_recipe_poll, name="generate_recipe_poll"),

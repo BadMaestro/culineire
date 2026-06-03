@@ -1035,6 +1035,27 @@ class RecipeCategoryAssignmentTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Irish Stew")
 
+    def test_category_page_deduplicates_primary_category_matches_with_extra_links(self):
+        recipe = Recipe.objects.create(
+            title="Duplicate Guard Stew",
+            category=Recipe.Category.IRISH_CULINARY_HERITAGE,
+            ingredients="2 potatoes\n1 onion",
+            method="1. Chop everything\n2. Cook slowly",
+            status=Recipe.Status.APPROVED,
+        )
+        recipe.additional_category_links.create(category=Recipe.Category.EVERYDAY_IRISH_COOKING)
+        recipe.additional_category_links.create(category=Recipe.Category.SOUPS_AND_STEWS)
+
+        response = self.client.get(
+            reverse(
+                "recipes:category_detail",
+                kwargs={"category_slug": "irish-culinary-heritage"},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(list(response.context["recipes"]), [recipe])
+
 
 class SecuritySettingsModuleTests(SimpleTestCase):
     def tearDown(self):
@@ -1222,6 +1243,92 @@ class AmuseBoucheRoadmapViewTests(TestCase):
         self.assertContains(response, "Project State Navigation")
         self.assertContains(response, "Amuse-Bouche Integration")
         self.assertContains(response, "data-roadmap-filter")
+
+
+class SiteResearchProgressViewTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        self.user = user_model.objects.create_user(username="reader", password="pass")
+        self.moderator = user_model.objects.create_user(username="mod", password="pass", is_staff=True)
+        self.greenbear_user = user_model.objects.create_user(username="greenbear", password="pass")
+        RecipeAuthor.objects.update_or_create(
+            slug=settings.OWNER_SLUG,
+            defaults={"user": self.greenbear_user, "name": "GreenBear"},
+        )
+        self.bearseeker_user = user_model.objects.create_user(username="bear-admin", password="pass")
+        RecipeAuthor.objects.create(
+            user=self.bearseeker_user,
+            name="Bear Admin",
+            slug="bear-admin",
+            has_bearseeker_privileges=True,
+        )
+
+    def test_research_progress_requires_moderator(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("recipes:site_research_progress"))
+        self.assertEqual(response.status_code, 404)
+
+    def test_moderator_can_view_read_only_update_plan(self):
+        self.client.force_login(self.moderator)
+        response = self.client.get(reverse("recipes:site_research_progress"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Site Updates Plan")
+        self.assertContains(response, "One-Year Plan")
+        html = response.content.decode()
+        research_section = html.split('class="page-section moderation-page automation-page research-page"', 1)[1]
+        research_section = research_section.split("</main>", 1)[0]
+        self.assertNotIn("<form", research_section)
+
+    def test_greenbear_owner_can_view_update_plan_without_staff_flag(self):
+        self.client.force_login(self.greenbear_user)
+        response = self.client.get(reverse("recipes:site_research_progress"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Site Updates Plan")
+
+    def test_bearseeker_privileges_do_not_grant_update_plan_access(self):
+        self.client.force_login(self.bearseeker_user)
+        response = self.client.get(reverse("recipes:site_research_progress"))
+        self.assertEqual(response.status_code, 404)
+
+        response = self.client.get(reverse("recipes:moderation_panel"))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, reverse("recipes:site_research_progress"))
+
+    def test_moderation_panel_links_to_update_plan(self):
+        self.client.force_login(self.moderator)
+        response = self.client.get(reverse("recipes:moderation_panel"))
+        self.assertContains(response, reverse("recipes:site_research_progress"))
+        self.assertContains(response, "Site Updates Plan")
+
+
+class RecipeDetailAccessibilityMarkupTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        user = user_model.objects.create_user(username="chef", password="pass")
+        self.author = RecipeAuthor.objects.create(user=user, name="Chef", slug="chef")
+
+    def test_method_steps_use_css_counter_not_dom_step_number(self):
+        recipe = Recipe.objects.create(
+            title="Numbered Method Test",
+            slug="numbered-method-test",
+            author=self.author,
+            short_description="A method numbering test.",
+            category=Recipe.Category.EVERYDAY_IRISH_COOKING,
+            ingredients="Potatoes",
+            method="1. Wash the potatoes\n2. Bake until tender",
+            status=Recipe.Status.APPROVED,
+            confirmed_own_work=True,
+            confirmed_image_rights=True,
+            confirmed_rules=True,
+            image_rights_status=Recipe.ImageRightsStatus.NOT_APPLICABLE,
+        )
+
+        response = self.client.get(recipe.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Wash the potatoes")
+        self.assertNotContains(response, "method-steps__number")
+        self.assertNotContains(response, 'aria-label="Step 1"')
 
 
 class RecipeModerationTrackingTests(TestCase):

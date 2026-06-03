@@ -83,6 +83,12 @@
                     <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M4 19V5"/><path d="M4 7h8"/><path d="M12 7v5"/><path d="M12 12h8"/><path d="M20 12v5"/><path d="M16 17h4"/></svg>
                     Automation Progress
                 </a>
+                {% if can_view_site_update_plan %}
+                <a class="mod-tool-link" href="{% url 'recipes:site_research_progress' %}">
+                    <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M4 19V5"/><path d="M8 17V9"/><path d="M13 17V4"/><path d="M18 17v-6"/><path d="M3 19h18"/></svg>
+                    Site Updates Plan
+                </a>
+                {% endif %}
                 <a class="mod-tool-link" href="{% url 'recipes:amuse_bouche_roadmap' %}">
                     <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M4 6h16"/><path d="M4 12h10"/><path d="M4 18h7"/><path d="m15 16 2 2 4-5"/></svg>
                     Amuse-Bouche Roadmap

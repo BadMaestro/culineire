@@ -1134,12 +1134,14 @@
   }
 
   .method-steps {
+    counter-reset: recipe-method-step;
     list-style: none;
     margin: 0;
     padding: 0;
   }
 
   .method-steps__item {
+    counter-increment: recipe-method-step;
     display: grid;
     grid-template-columns: 24px minmax(0, 1fr);
     gap: 0.65rem;
@@ -1155,7 +1157,8 @@
 
   /* Fixed decorative square controls intentionally keep width/height
      for readability; logical sizing is reserved for accessibility utilities. */
-  .method-steps__number {
+  .method-steps__item::before {
+    content: counter(recipe-method-step);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -2495,7 +2498,7 @@
       padding-inline: 0.65rem;
     }
 
-    .method-steps__number {
+    .method-steps__item::before {
       width: 22px;
       height: 22px;
       border-radius: 999px;

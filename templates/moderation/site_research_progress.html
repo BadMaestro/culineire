@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Site Updates Plan | CulinEire{% endblock %}
+{% block meta_description %}Read-only CulinEire site update roadmap for moderators and GreenBear.{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+<link href="{% static 'css/moderation.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="page-section moderation-page automation-page research-page">
+    <div class="container moderation-shell">
+        <a class="mon-back-link" href="{% url 'recipes:moderation_panel' %}">Back to Moderation Panel</a>
+
+        <header class="automation-header research-header">
+            <div>
+                <p class="automation-kicker">Moderator update tracker</p>
+                <h1 class="automation-title">Site Updates Plan</h1>
+                <p class="automation-summary">
+                    Current focus: {{ research.current_focus }}. Updated {{ research.generated_on|date:"j M Y" }}.
+                </p>
+                <p class="automation-summary automation-summary--quiet">
+                    Visible to staff moderators, superusers and GreenBear owner access only.
+                </p>
+            </div>
+            <div class="automation-meter" aria-label="{{ research.percent }} percent complete">
+                <span style="width: {{ research.percent }}%"></span>
+            </div>
+        </header>
+
+        <section class="research-grid" aria-label="Site update overview">
+            <section class="research-panel" aria-labelledby="research-active-heading">
+                <h2 class="moderation-block__title" id="research-active-heading">Active Tasks</h2>
+                <ul class="automation-list">
+                    {% for item in research.active_items %}
+                    <li class="automation-item automation-item--{{ item.status }}">
+                        <span class="automation-item__state">{{ item.status }}</span>
+                        <span class="automation-item__body">
+                            <strong>{{ item.label }}</strong>
+                            <span>{{ item.detail }}</span>
+                        </span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </section>
+
+            <section class="research-panel" aria-labelledby="research-counts-heading">
+                <h2 class="moderation-block__title" id="research-counts-heading">Content Snapshot</h2>
+                <dl class="research-counts">
+                    <div><dt>Approved recipes</dt><dd>{{ research.content_counts.approved_recipes }}</dd></div>
+                    <div><dt>Recipe drafts</dt><dd>{{ research.content_counts.draft_recipes }}</dd></div>
+                    <div><dt>Approved articles</dt><dd>{{ research.content_counts.approved_articles }}</dd></div>
+                    <div><dt>Article drafts</dt><dd>{{ research.content_counts.draft_articles }}</dd></div>
+                    <div><dt>Approved bites</dt><dd>{{ research.content_counts.approved_bites }}</dd></div>
+                    <div><dt>Pending bites</dt><dd>{{ research.content_counts.pending_bites }}</dd></div>
+                </dl>
+            </section>
+        </section>
+
+        <section class="research-panel" aria-labelledby="research-chart-heading">
+            <div class="automation-copy__header">
+                <h2 class="moderation-block__title" id="research-chart-heading">2026 Baseline Scores</h2>
+                <span class="automation-copy__hint">From the external audit, pending local verification</span>
+            </div>
+            <div class="research-score-chart">
+                {% for area in research.areas %}
+                <div class="research-score-row research-score-row--{{ area.status }}">
+                    <span class="research-score-row__label">{{ area.label }}</span>
+                    <span class="research-score-row__track" aria-label="{{ area.label }} score {{ area.score }} out of 100">
+                        <span style="width: {{ area.score }}%"></span>
+                    </span>
+                    <span class="research-score-row__value">{{ area.score }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="automation-tree" aria-labelledby="research-checklist-heading">
+                <h2 class="moderation-block__title" id="research-checklist-heading">Update Checklist</h2>
+            <ul class="automation-list">
+                {% for item in research.checklist %}
+                <li class="automation-item automation-item--{{ item.status }}">
+                    <span class="automation-item__state">{{ item.status }}</span>
+                    <span class="automation-item__body">
+                        <strong>{{ item.label }}</strong>
+                        <span>{{ item.detail }}</span>
+                    </span>
+                </li>
+                {% endfor %}
+            </ul>
+        </section>
+
+        <section class="research-panel" aria-labelledby="research-year-heading">
+            <h2 class="moderation-block__title" id="research-year-heading">One-Year Plan</h2>
+            <div class="research-year-grid">
+                {% for month in research.months %}
+                <article class="research-month research-month--{{ month.status }}">
+                    <div class="research-month__meta">
+                        <span>{{ month.month }}</span>
+                        <span class="automation-item__state">{{ month.status }}</span>
+                    </div>
+                    <h3>{{ month.title }}</h3>
+                    <p>{{ month.detail }}</p>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="research-panel" aria-labelledby="research-handoff-heading">
+            <div class="automation-copy__header">
+                <h2 class="moderation-block__title" id="research-handoff-heading">Handoff Text</h2>
+                <span class="automation-copy__hint">Read-only</span>
+            </div>
+            <pre class="research-copy">{{ research.copy_text }}</pre>
+        </section>
+    </div>
+</section>
+{% endblock %}

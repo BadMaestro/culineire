@@ -1511,23 +1511,23 @@
    ================================================================ */
 .ab-grid-scroll {
   overflow-y: auto;
+  contain: paint; /* clips scrollbar to border-radius */
   scrollbar-width: thin;
   scrollbar-color: rgba(200, 169, 110, .4) transparent;
 }
 
 .ab-grid-scroll::-webkit-scrollbar {
-  width: 9px;
+  width: 5px;
 }
 
 .ab-grid-scroll::-webkit-scrollbar-track {
   background: transparent;
+  margin-block: 8px;
 }
 
 .ab-grid-scroll::-webkit-scrollbar-thumb {
   background: rgba(200, 169, 110, .4);
-  background-clip: padding-box;
   border-radius: 3px;
-  border-right: 5px solid transparent;
 }
 
 /* ================================================================
