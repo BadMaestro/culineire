@@ -25,6 +25,16 @@
             </p>
         </div>
 
+        {% if from_recipe %}
+        <div class="authoring-notice authoring-notice--info" role="note">
+            Legal details copied from the original recipe. Please review and confirm them for this Amuse-Bouche. This Amuse-Bouche will store its own image-rights record.
+        </div>
+        {% elif from_article %}
+        <div class="authoring-notice authoring-notice--info" role="note">
+            Legal details copied from the original article. Please review and confirm them for this Amuse-Bouche. This Amuse-Bouche will store its own image-rights record.
+        </div>
+        {% endif %}
+
         <form class="authoring-form" data-autosave="true" data-autosave-key="amuse-bouche-authoring:{{ request.path }}" method="post" enctype="multipart/form-data">
             {% csrf_token %}
             {{ form.non_field_errors }}
@@ -92,7 +102,52 @@
                 </div>
             </fieldset>
 
-            {# ── Section 3: Links ── #}
+            {# ── Section 3: Source & Attribution ── #}
+            <fieldset class="authoring-section">
+                <legend>Source &amp; Attribution</legend>
+                {% if from_recipe %}
+                <p class="authoring-help authoring-help--center">Image inherited from recipe. Please confirm the source details below before publishing.</p>
+                {% elif from_article %}
+                <p class="authoring-help authoring-help--center">Image inherited from article. Please confirm the source details below before publishing.</p>
+                {% else %}
+                <p class="authoring-help authoring-help--center">Please confirm the image rights and source details for this Amuse-Bouche before publishing.</p>
+                {% endif %}
+                <div class="authoring-grid">
+
+                    <div class="authoring-field">
+                        {{ form.source_type.label_tag }}
+                        {{ form.source_type }}
+                        {{ form.source_type.errors }}
+                    </div>
+
+                    <div class="authoring-field">
+                        {{ form.source_title.label_tag }}
+                        {{ form.source_title }}
+                        {{ form.source_title.errors }}
+                    </div>
+
+                    <div class="authoring-field">
+                        {{ form.source_author.label_tag }}
+                        {{ form.source_author }}
+                        {{ form.source_author.errors }}
+                    </div>
+
+                    <div class="authoring-field">
+                        {{ form.source_url.label_tag }}
+                        {{ form.source_url }}
+                        {{ form.source_url.errors }}
+                    </div>
+
+                    <div class="authoring-field">
+                        {{ form.source_note.label_tag }}
+                        {{ form.source_note }}
+                        {{ form.source_note.errors }}
+                    </div>
+
+                </div>
+            </fieldset>
+
+            {# ── Section 4: Links ── #}
             <fieldset class="authoring-section">
                 <legend>Linked Content</legend>
                 <div class="authoring-grid authoring-grid--two">

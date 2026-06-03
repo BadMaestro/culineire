@@ -16,7 +16,7 @@ class AmuseBoucheAdmin(admin.ModelAdmin):
     search_fields = ("title", "short_description", "author__name", "slug")
     prepopulated_fields = {"slug": ("title",)}
     autocomplete_fields = ("author", "linked_recipe", "linked_article")
-    readonly_fields = ("created_at", "updated_at", "view_count", "media_folder")
+    readonly_fields = ("created_at", "updated_at", "view_count", "media_folder", "confirmation_timestamp", "confirmed_by", "moderated_by", "moderated_at")
     inlines = [AmuseBoucheGalleryImageInline]
     fieldsets = (
         ("Content", {
@@ -31,6 +31,22 @@ class AmuseBoucheAdmin(admin.ModelAdmin):
             )
         }),
         ("Discovery links", {"fields": ("linked_recipe", "linked_article")}),
+        ("Image Rights & Legal", {
+            "fields": (
+                "image_rights_status",
+                "image_rights_note",
+                "source_type",
+                "source_title",
+                "source_author",
+                "source_url",
+                "source_note",
+                "confirmed_own_work",
+                "confirmed_image_rights",
+                "confirmed_rules",
+                "confirmation_timestamp",
+                "confirmed_by",
+            )
+        }),
         ("Publication", {
             "fields": (
                 "status",
@@ -38,6 +54,8 @@ class AmuseBoucheAdmin(admin.ModelAdmin):
                 "is_featured",
                 "allow_comments",
                 "moderation_note",
+                "moderated_by",
+                "moderated_at",
             )
         }),
         ("SEO", {"fields": ("seo_title", "seo_description")}),

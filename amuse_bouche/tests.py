@@ -108,6 +108,11 @@ class AmuseBoucheGatingTests(TestCase):
                 "content_type": AmuseBouche.ContentType.CHEF_TRICK,
                 "cover_image_alt": "",
                 "image_rights_status": AmuseBouche.ImageRightsStatus.NOT_APPLICABLE,
+                "source_type": AmuseBouche.SourceType.ORIGINAL,
+                "source_title": "",
+                "source_author": "",
+                "source_url": "",
+                "source_note": "",
                 "linked_recipe": "",
                 "linked_article": "",
                 "allow_comments": "on",
@@ -141,6 +146,11 @@ class AmuseBoucheGatingTests(TestCase):
                 "content_type": AmuseBouche.ContentType.CHEF_TRICK,
                 "cover_image_alt": "",
                 "image_rights_status": AmuseBouche.ImageRightsStatus.NOT_APPLICABLE,
+                "source_type": AmuseBouche.SourceType.ORIGINAL,
+                "source_title": "",
+                "source_author": "",
+                "source_url": "",
+                "source_note": "",
                 "linked_recipe": "",
                 "linked_article": "",
                 "allow_comments": "on",
@@ -347,7 +357,8 @@ class AmuseBoucheGenerateFromRecipeTests(TestCase):
         response = self.client.post(self.url)
 
         item = AmuseBouche.objects.get(linked_recipe=self.recipe)
-        self.assertRedirects(response, item.get_absolute_url())
+        edit_url = reverse("amuse_bouche:edit", kwargs={"slug": item.slug})
+        self.assertRedirects(response, f"{edit_url}?from_recipe=1")
         self.assertEqual(item.title, self.recipe.title)
         self.assertEqual(item.author, self.author)
         self.assertEqual(item.status, AmuseBouche.Status.PENDING)
@@ -458,7 +469,8 @@ class AmuseBoucheGenerateFromArticleTests(TestCase):
         response = self.client.post(self.url)
 
         item = AmuseBouche.objects.get(linked_article=self.article)
-        self.assertRedirects(response, item.get_absolute_url())
+        edit_url = reverse("amuse_bouche:edit", kwargs={"slug": item.slug})
+        self.assertRedirects(response, f"{edit_url}?from_article=1")
         self.assertEqual(item.title, self.article.title)
         self.assertEqual(item.author, self.author)
         self.assertEqual(item.status, AmuseBouche.Status.PENDING)
@@ -681,3 +693,279 @@ class AmuseBoucheRegressionTests(TestCase):
         # Should redirect to login or return 302
         self.assertIn(like_resp.status_code, [302, 403])
         self.assertIn(save_resp.status_code, [302, 403])
+
+
+@override_settings(TELEGRAM_BOT_TOKEN="", TELEGRAM_CHANNEL_ID="", ANTHROPIC_API_KEY="", AMUSE_BOUCHE_PUBLIC=False)
+class AmuseBoucheLegalComplianceTests(TestCase):
+    """
+    Tests covering the legal/image-rights compliance requirements for Amuse-Bouche.
+
+    Covers:
+    - Source attribution validation on the create form
+    - Form shows source fields
+    - generate_from_recipe prefills legal and source data, redirects to edit form
+    - generate_from_article prefills legal and source data, redirects to edit form
+    - AB stores its own legal snapshot; editing source does not overwrite it
+    - Edit form loads from AB, not dynamically from recipe
+    """
+
+    def setUp(self):
+        user_model = get_user_model()
+        self.author_user = user_model.objects.create_user(username="legal_chef", password="pass")
+        self.author = RecipeAuthor.objects.create(
+            user=self.author_user,
+            name="Legal Chef",
+            slug="legal-chef",
+        )
+        self.recipe = Recipe.objects.create(
+            author=self.author,
+            title="Colcannon",
+            slug="colcannon-legal",
+            short_description="Classic mashed potato dish.",
+            hero_image_alt_text="Bowl of colcannon",
+            category=Recipe.Category.IRISH_CULINARY_HERITAGE,
+            ingredients="Potatoes, kale, butter.",
+            method="Boil and mash.",
+            status=Recipe.Status.APPROVED,
+            image_rights_status=Recipe.ImageRightsStatus.OWN,
+            image_rights_note="",
+            source_type=Recipe.SourceType.COOKBOOK,
+            source_title="The Complete Irish Cookbook",
+            source_author="Darina Allen",
+            source_url="https://example.com/cookbook",
+            source_note="Page 42",
+        )
+        self.article = Article.objects.create(
+            author=self.author,
+            title="Irish Food History",
+            slug="irish-food-history-legal",
+            excerpt="A short history.",
+            category=Article.Category.BAKING,
+            body="Food history content.",
+            status=Article.Status.APPROVED,
+            published=timezone.now(),
+            image_rights_status=Article.ImageRightsStatus.LICENSED,
+            image_rights_note="CC BY 4.0",
+            source_type=Article.SourceType.ADAPTED,
+            source_title="Adapted Source",
+            source_author="Some Author",
+            source_url="https://example.com/article-source",
+            source_note="Adapted with permission",
+        )
+
+    # ── Form field visibility ────────────────────────────────────────────────
+
+    def test_create_form_shows_source_fields(self):
+        self.client.force_login(self.author_user)
+        response = self.client.get(reverse("amuse_bouche:create"))
+        self.assertContains(response, 'name="source_type"')
+        self.assertContains(response, 'name="source_title"')
+        self.assertContains(response, 'name="source_url"')
+
+    def test_edit_form_shows_source_fields(self):
+        item = AmuseBouche.objects.create(
+            author=self.author,
+            title="Test Bite",
+            status=AmuseBouche.Status.PENDING,
+        )
+        self.client.force_login(self.author_user)
+        response = self.client.get(reverse("amuse_bouche:edit", kwargs={"slug": item.slug}))
+        self.assertContains(response, 'name="source_type"')
+        self.assertContains(response, 'name="source_title"')
+
+    # ── Source attribution validation ────────────────────────────────────────
+
+    def test_form_requires_source_title_or_url_for_cookbook(self):
+        self.client.force_login(self.author_user)
+        response = self.client.post(
+            reverse("amuse_bouche:create"),
+            {
+                "title": "Source Test Bite",
+                "short_description": "Test.",
+                "content_type": AmuseBouche.ContentType.IRISH_BITE,
+                "cover_image_alt": "",
+                "image_rights_status": AmuseBouche.ImageRightsStatus.NOT_APPLICABLE,
+                "source_type": AmuseBouche.SourceType.COOKBOOK,
+                "source_title": "",
+                "source_author": "",
+                "source_url": "",
+                "source_note": "",
+                "linked_recipe": "",
+                "linked_article": "",
+                "allow_comments": "on",
+                "seo_title": "",
+                "seo_description": "",
+                "confirm_own_work": "on",
+                "confirm_rules": "on",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(AmuseBouche.objects.filter(title="Source Test Bite").exists())
+        self.assertFormError(
+            response.context["form"],
+            "source_title",
+            "Please provide a source title or URL for this type of content.",
+        )
+
+    def test_form_accepts_original_source_without_attribution(self):
+        self.client.force_login(self.author_user)
+        response = self.client.post(
+            reverse("amuse_bouche:create"),
+            {
+                "title": "Original Bite",
+                "short_description": "Test.",
+                "content_type": AmuseBouche.ContentType.IRISH_BITE,
+                "cover_image_alt": "",
+                "image_rights_status": AmuseBouche.ImageRightsStatus.NOT_APPLICABLE,
+                "source_type": AmuseBouche.SourceType.ORIGINAL,
+                "source_title": "",
+                "source_author": "",
+                "source_url": "",
+                "source_note": "",
+                "linked_recipe": "",
+                "linked_article": "",
+                "allow_comments": "on",
+                "seo_title": "",
+                "seo_description": "",
+                "confirm_own_work": "on",
+                "confirm_rules": "on",
+            },
+        )
+        self.assertTrue(AmuseBouche.objects.filter(title="Original Bite").exists())
+
+    def test_form_saves_source_snapshot(self):
+        self.client.force_login(self.author_user)
+        self.client.post(
+            reverse("amuse_bouche:create"),
+            {
+                "title": "Snapshot Bite",
+                "short_description": "Test.",
+                "content_type": AmuseBouche.ContentType.IRISH_BITE,
+                "cover_image_alt": "",
+                "image_rights_status": AmuseBouche.ImageRightsStatus.NOT_APPLICABLE,
+                "source_type": AmuseBouche.SourceType.COOKBOOK,
+                "source_title": "My Cookbook",
+                "source_author": "Chef One",
+                "source_url": "",
+                "source_note": "p.10",
+                "linked_recipe": "",
+                "linked_article": "",
+                "allow_comments": "on",
+                "seo_title": "",
+                "seo_description": "",
+                "confirm_own_work": "on",
+                "confirm_rules": "on",
+            },
+        )
+        item = AmuseBouche.objects.get(title="Snapshot Bite")
+        self.assertEqual(item.source_type, AmuseBouche.SourceType.COOKBOOK)
+        self.assertEqual(item.source_title, "My Cookbook")
+        self.assertEqual(item.source_author, "Chef One")
+        self.assertEqual(item.source_note, "p.10")
+        self.assertTrue(item.confirmed_own_work)
+        self.assertTrue(item.confirmed_rules)
+
+    # ── generate_from_recipe prefill ─────────────────────────────────────────
+
+    def test_generate_from_recipe_prefills_image_rights(self):
+        self.client.force_login(self.author_user)
+        self.client.post(
+            reverse("amuse_bouche:generate_from_recipe", kwargs={"slug": self.recipe.slug})
+        )
+        item = AmuseBouche.objects.get(linked_recipe=self.recipe)
+        self.assertEqual(item.image_rights_status, self.recipe.image_rights_status)
+        self.assertEqual(item.image_rights_note, self.recipe.image_rights_note)
+
+    def test_generate_from_recipe_prefills_source_fields(self):
+        self.client.force_login(self.author_user)
+        self.client.post(
+            reverse("amuse_bouche:generate_from_recipe", kwargs={"slug": self.recipe.slug})
+        )
+        item = AmuseBouche.objects.get(linked_recipe=self.recipe)
+        self.assertEqual(item.source_type, self.recipe.source_type)
+        self.assertEqual(item.source_title, self.recipe.source_title)
+        self.assertEqual(item.source_author, self.recipe.source_author)
+        self.assertEqual(item.source_url, self.recipe.source_url)
+        self.assertEqual(item.source_note, self.recipe.source_note)
+
+    def test_generate_from_recipe_redirects_to_edit_form(self):
+        self.client.force_login(self.author_user)
+        response = self.client.post(
+            reverse("amuse_bouche:generate_from_recipe", kwargs={"slug": self.recipe.slug})
+        )
+        item = AmuseBouche.objects.get(linked_recipe=self.recipe)
+        edit_url = reverse("amuse_bouche:edit", kwargs={"slug": item.slug})
+        self.assertRedirects(response, f"{edit_url}?from_recipe=1")
+
+    def test_generate_from_recipe_edit_form_shows_review_banner(self):
+        self.client.force_login(self.author_user)
+        self.client.post(
+            reverse("amuse_bouche:generate_from_recipe", kwargs={"slug": self.recipe.slug})
+        )
+        item = AmuseBouche.objects.get(linked_recipe=self.recipe)
+        response = self.client.get(
+            reverse("amuse_bouche:edit", kwargs={"slug": item.slug}) + "?from_recipe=1"
+        )
+        self.assertContains(response, "Legal details copied from the original recipe")
+
+    # ── AB snapshot independence ──────────────────────────────────────────────
+
+    def test_editing_recipe_does_not_change_ab_source_snapshot(self):
+        self.client.force_login(self.author_user)
+        self.client.post(
+            reverse("amuse_bouche:generate_from_recipe", kwargs={"slug": self.recipe.slug})
+        )
+        item = AmuseBouche.objects.get(linked_recipe=self.recipe)
+        original_source_title = item.source_title
+
+        self.recipe.source_title = "Updated Cookbook Title"
+        self.recipe.save(update_fields=["source_title"])
+
+        item.refresh_from_db()
+        self.assertEqual(item.source_title, original_source_title)
+
+    def test_edit_form_loads_source_from_ab_not_recipe(self):
+        item = AmuseBouche.objects.create(
+            author=self.author,
+            title="Snapshot Edit Bite",
+            status=AmuseBouche.Status.PENDING,
+            linked_recipe=self.recipe,
+            source_type=AmuseBouche.SourceType.OTHER,
+            source_title="AB Own Source",
+        )
+        self.client.force_login(self.author_user)
+        response = self.client.get(reverse("amuse_bouche:edit", kwargs={"slug": item.slug}))
+        self.assertContains(response, "AB Own Source")
+        self.assertNotContains(response, self.recipe.source_title)
+
+    # ── generate_from_article prefill ────────────────────────────────────────
+
+    def test_generate_from_article_prefills_image_rights(self):
+        self.client.force_login(self.author_user)
+        self.client.post(
+            reverse("amuse_bouche:generate_from_article", kwargs={"slug": self.article.slug})
+        )
+        item = AmuseBouche.objects.get(linked_article=self.article)
+        self.assertEqual(item.image_rights_status, self.article.image_rights_status)
+        self.assertEqual(item.image_rights_note, self.article.image_rights_note)
+
+    def test_generate_from_article_prefills_source_fields(self):
+        self.client.force_login(self.author_user)
+        self.client.post(
+            reverse("amuse_bouche:generate_from_article", kwargs={"slug": self.article.slug})
+        )
+        item = AmuseBouche.objects.get(linked_article=self.article)
+        # ADAPTED maps to OTHER in AB SourceType
+        self.assertEqual(item.source_type, AmuseBouche.SourceType.OTHER)
+        self.assertEqual(item.source_title, self.article.source_title)
+        self.assertEqual(item.source_author, self.article.source_author)
+        self.assertEqual(item.source_url, self.article.source_url)
+
+    def test_generate_from_article_redirects_to_edit_form(self):
+        self.client.force_login(self.author_user)
+        response = self.client.post(
+            reverse("amuse_bouche:generate_from_article", kwargs={"slug": self.article.slug})
+        )
+        item = AmuseBouche.objects.get(linked_article=self.article)
+        edit_url = reverse("amuse_bouche:edit", kwargs={"slug": item.slug})
+        self.assertRedirects(response, f"{edit_url}?from_article=1")

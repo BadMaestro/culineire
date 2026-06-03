@@ -73,6 +73,15 @@ class AmuseBouche(models.Model):
         PUBLIC_DOMAIN = "public_domain", "Public domain"
         NOT_APPLICABLE = "not_applicable", "No image uploaded"
 
+    class SourceType(models.TextChoices):
+        ORIGINAL = "original", "Original"
+        AI_ASSISTED = "ai_assisted", "AI assisted"
+        FAMILY = "family", "Family recipe"
+        COOKBOOK = "cookbook", "Cookbook"
+        WEBSITE = "website", "Website"
+        RESTAURANT = "restaurant", "Restaurant"
+        OTHER = "other", "Other"
+
     class ContentType(models.TextChoices):
         MINI_RECIPE = "mini_recipe", "Mini Recipe"
         SNACK = "snack", "Snack"
@@ -148,6 +157,17 @@ class AmuseBouche(models.Model):
         blank=True,
         help_text="Credit line or permission reference if applicable.",
     )
+
+    source_type = models.CharField(
+        "Source type",
+        max_length=20,
+        choices=SourceType.choices,
+        default=SourceType.ORIGINAL,
+    )
+    source_title = models.CharField("Source title", max_length=255, blank=True)
+    source_author = models.CharField("Source author", max_length=255, blank=True)
+    source_url = models.URLField("Source URL", blank=True)
+    source_note = models.TextField("Source note", blank=True)
 
     confirmed_own_work = models.BooleanField(
         "Confirmed: original or properly credited work",

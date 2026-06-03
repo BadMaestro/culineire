@@ -50,6 +50,11 @@ class AmuseBoucheAuthoringForm(forms.ModelForm):
             "cover_image_alt",
             "image_rights_status",
             "image_rights_note",
+            "source_type",
+            "source_title",
+            "source_author",
+            "source_url",
+            "source_note",
             "linked_recipe",
             "linked_article",
             "allow_comments",
@@ -59,6 +64,7 @@ class AmuseBoucheAuthoringForm(forms.ModelForm):
         widgets = {
             "cover_image": _NoCurrentlyWidget(),
             "short_description": forms.Textarea(attrs={"rows": 4}),
+            "source_note": forms.Textarea(attrs={"rows": 2}),
             "seo_description": forms.Textarea(attrs={"rows": 2}),
         }
         labels = {
@@ -66,6 +72,11 @@ class AmuseBoucheAuthoringForm(forms.ModelForm):
             "cover_image_alt": "Cover Image Alt Text",
             "image_rights_status": "Image Rights",
             "image_rights_note": "Image Credit / Licence",
+            "source_type": "Source Type",
+            "source_title": "Source Title",
+            "source_author": "Source Author",
+            "source_url": "Source URL",
+            "source_note": "Source Note",
         }
 
     def __init__(self, *args, author=None, **kwargs):
@@ -101,6 +112,12 @@ class AmuseBoucheAuthoringForm(forms.ModelForm):
         self.fields["short_description"].widget.attrs.setdefault(
             "placeholder", "A short description shown on your card and in the feed.",
         )
+        self.fields["source_title"].widget.attrs.setdefault("placeholder", "e.g. Ballymaloe Cookery Course")
+        self.fields["source_author"].widget.attrs.setdefault("placeholder", "e.g. Darina Allen")
+        self.fields["source_url"].widget.attrs.setdefault("placeholder", "https://")
+        self.fields["source_note"].widget.attrs.setdefault(
+            "placeholder", "Any additional attribution or context."
+        )
 
     def clean(self):
         cleaned_data = super().clean()
@@ -129,8 +146,26 @@ class AmuseBoucheAuthoringForm(forms.ModelForm):
                 "Please confirm your image rights before uploading.",
             )
 
+        # Source attribution: non-original content requires title or URL
+        source_type = cleaned_data.get("source_type")
+        source_title = (cleaned_data.get("source_title") or "").strip()
+        source_url = (cleaned_data.get("source_url") or "").strip()
+        if source_type and source_type not in {
+            AmuseBouche.SourceType.ORIGINAL,
+            AmuseBouche.SourceType.AI_ASSISTED,
+        }:
+            if not source_title and not source_url:
+                self.add_error(
+                    "source_title",
+                    "Please provide a source title or URL for this type of content.",
+                )
+
         # Profanity check
-        for field_name in ("title", "short_description", "cover_image_alt", "seo_title", "seo_description"):
+        for field_name in (
+            "title", "short_description", "cover_image_alt",
+            "source_title", "source_author", "source_note",
+            "seo_title", "seo_description",
+        ):
             matches = find_profanity(cleaned_data.get(field_name, "") or "")
             if matches:
                 self.add_error(field_name, "Please remove inappropriate language before submitting.")

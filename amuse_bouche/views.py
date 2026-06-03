@@ -5,7 +5,7 @@ from django.db.models import Count, F, Prefetch, Q
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -271,6 +271,8 @@ class AmuseBoucheUpdateView(AuthorRequiredMixin, UpdateView):
         ctx["author"] = self.author
         ctx["cancel_url"] = self.object.get_absolute_url()
         ctx["is_moderator"] = is_moderator(self.request.user)
+        ctx["from_recipe"] = self.request.GET.get("from_recipe") == "1"
+        ctx["from_article"] = self.request.GET.get("from_article") == "1"
         return ctx
 
 
@@ -474,6 +476,13 @@ def generate_from_recipe(request, slug):
         content_type=AmuseBouche.ContentType.BEHIND_THE_DISH,
         linked_recipe=recipe,
         cover_image_alt=recipe.hero_image_alt_text or "",
+        image_rights_status=recipe.image_rights_status,
+        image_rights_note=recipe.image_rights_note or "",
+        source_type=recipe.source_type,
+        source_title=recipe.source_title or "",
+        source_author=recipe.source_author or "",
+        source_url=recipe.source_url or "",
+        source_note=recipe.source_note or "",
         **_initial_status_fields(author, request.user),
     )
 
@@ -484,14 +493,18 @@ def generate_from_recipe(request, slug):
         object_id=item.pk,
         object_title=item.title,
     )
-    messages.success(
+
+    if item.status == AmuseBouche.Status.APPROVED:
+        messages.success(request, _created_message(item, ""))
+        return redirect(item.get_absolute_url())
+
+    messages.info(
         request,
-        _created_message(
-            item,
-            f'Amuse-Bouche "{item.title}" created as pending. Review and edit before it goes live.',
-        ),
+        "Legal details copied from the original recipe. Please review and confirm them for this Amuse-Bouche.",
     )
-    return redirect(item.get_absolute_url())
+    return redirect(
+        reverse("amuse_bouche:edit", kwargs={"slug": item.slug}) + "?from_recipe=1"
+    )
 
 
 @require_POST
@@ -524,6 +537,12 @@ def generate_from_article(request, slug):
         messages.info(request, "An Amuse-Bouche for this article already exists.")
         return redirect(existing.get_absolute_url())
 
+    _article_source_map = {
+        "adapted": AmuseBouche.SourceType.OTHER,
+        "inspired": AmuseBouche.SourceType.OTHER,
+    }
+    source_type = _article_source_map.get(article.source_type, AmuseBouche.SourceType.ORIGINAL)
+
     item = AmuseBouche.objects.create(
         author=author,
         title=article.title[:200],
@@ -531,6 +550,13 @@ def generate_from_article(request, slug):
         content_type=AmuseBouche.ContentType.BEHIND_THE_DISH,
         linked_article=article,
         cover_image_alt=article.hero_image_alt_text or "",
+        image_rights_status=article.image_rights_status,
+        image_rights_note=article.image_rights_note or "",
+        source_type=source_type,
+        source_title=article.source_title or "",
+        source_author=article.source_author or "",
+        source_url=article.source_url or "",
+        source_note=article.source_note or "",
         **_initial_status_fields(author, request.user),
     )
 
@@ -541,14 +567,18 @@ def generate_from_article(request, slug):
         object_id=item.pk,
         object_title=item.title,
     )
-    messages.success(
+
+    if item.status == AmuseBouche.Status.APPROVED:
+        messages.success(request, _created_message(item, ""))
+        return redirect(item.get_absolute_url())
+
+    messages.info(
         request,
-        _created_message(
-            item,
-            f'Amuse-Bouche "{item.title}" created as pending. Review and edit before it goes live.',
-        ),
+        "Legal details copied from the original article. Please review and confirm them for this Amuse-Bouche.",
     )
-    return redirect(item.get_absolute_url())
+    return redirect(
+        reverse("amuse_bouche:edit", kwargs={"slug": item.slug}) + "?from_article=1"
+    )
 
 
 def comments_panel(request, slug):

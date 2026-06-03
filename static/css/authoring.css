@@ -1460,3 +1460,17 @@ textarea.authoring-control {
   font-size: 0.82rem;
   margin: 0;
 }
+
+
+.authoring-notice {
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.authoring-notice--info {
+  background: #eaf3ec;
+  border-left: 3px solid #2e7d4f;
+  color: #1a4a2e;
+}
