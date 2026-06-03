@@ -15,7 +15,7 @@ from django_ratelimit.decorators import ratelimit
 
 from collection.models import AuthorFollow, ContentReaction, SavedContent
 from monitoring.tracker import track_event
-from recipes.authoring import AuthorRequiredMixin, user_can_manage_author
+from recipes.authoring import AuthorRequiredMixin, author_skips_approval, user_can_manage_author
 from recipes.models import RecipeAuthor
 from articles.models import Article
 from recipes.models import Recipe
@@ -32,6 +32,27 @@ def _require_public_area_access(request):
 
 def _can_preview_item(user, item):
     return is_moderator(user) or user_can_manage_author(user, item.author)
+
+
+def _initial_status_for_author(author):
+    if author_skips_approval(author):
+        return AmuseBouche.Status.APPROVED
+    return AmuseBouche.Status.PENDING
+
+
+def _initial_status_fields(author, actor):
+    status = _initial_status_for_author(author)
+    fields = {"status": status}
+    if status == AmuseBouche.Status.APPROVED:
+        fields["moderated_by"] = actor
+        fields["moderated_at"] = timezone.now()
+    return fields
+
+
+def _created_message(item, pending_message):
+    if item.status == AmuseBouche.Status.APPROVED:
+        return f'Amuse-Bouche "{item.title}" approved and is now live.'
+    return pending_message
 
 
 def _public_queryset(approved_only=True):
@@ -199,9 +220,13 @@ class AmuseBoucheCreateView(AuthorRequiredMixin, CreateView):
     def form_valid(self, form):
         item = form.save(commit=False, confirmed_by=self.request.user)
         item.author = self.author
-        item.status = AmuseBouche.Status.PENDING
+        for field, value in _initial_status_fields(self.author, self.request.user).items():
+            setattr(item, field, value)
         item.save()
-        messages.success(self.request, "Your Amuse-Bouche was submitted for review.")
+        messages.success(
+            self.request,
+            _created_message(item, "Your Amuse-Bouche was submitted for review."),
+        )
         return redirect(item.get_absolute_url())
 
     def get_success_url(self):
@@ -413,7 +438,7 @@ def moderate(request, slug):
 @require_POST
 @login_required
 def generate_from_recipe(request, slug):
-    """Create a pending Amuse-Bouche pre-filled from an approved recipe.
+    """Create an Amuse-Bouche pre-filled from an approved recipe.
 
     Only the recipe's author (or a moderator) may trigger this. One bite
     per recipe per author is enforced to prevent duplicate submissions.
@@ -447,7 +472,7 @@ def generate_from_recipe(request, slug):
         content_type=AmuseBouche.ContentType.BEHIND_THE_DISH,
         linked_recipe=recipe,
         cover_image_alt=recipe.hero_image_alt_text or "",
-        status=AmuseBouche.Status.PENDING,
+        **_initial_status_fields(author, request.user),
     )
 
     track_event(
@@ -459,7 +484,10 @@ def generate_from_recipe(request, slug):
     )
     messages.success(
         request,
-        f'Amuse-Bouche "{item.title}" created as pending. Review and edit before it goes live.',
+        _created_message(
+            item,
+            f'Amuse-Bouche "{item.title}" created as pending. Review and edit before it goes live.',
+        ),
     )
     return redirect(item.get_absolute_url())
 
@@ -467,7 +495,7 @@ def generate_from_recipe(request, slug):
 @require_POST
 @login_required
 def generate_from_article(request, slug):
-    """Create a pending Amuse-Bouche pre-filled from an approved article.
+    """Create an Amuse-Bouche pre-filled from an approved article.
 
     Only the article's author (or a moderator) may trigger this. One bite
     per article per author is enforced to prevent duplicate submissions.
@@ -501,7 +529,7 @@ def generate_from_article(request, slug):
         content_type=AmuseBouche.ContentType.BEHIND_THE_DISH,
         linked_article=article,
         cover_image_alt=article.hero_image_alt_text or "",
-        status=AmuseBouche.Status.PENDING,
+        **_initial_status_fields(author, request.user),
     )
 
     track_event(
@@ -513,7 +541,10 @@ def generate_from_article(request, slug):
     )
     messages.success(
         request,
-        f'Amuse-Bouche "{item.title}" created as pending. Review and edit before it goes live.',
+        _created_message(
+            item,
+            f'Amuse-Bouche "{item.title}" created as pending. Review and edit before it goes live.',
+        ),
     )
     return redirect(item.get_absolute_url())
 

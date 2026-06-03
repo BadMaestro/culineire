@@ -3,6 +3,7 @@ from datetime import date
 from io import BytesIO
 from unittest.mock import patch
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -66,6 +67,11 @@ class ArticleAuthoringPermissionTests(TestCase):
             user=self.moderator_user,
             name="Moderator Author",
             slug="moderator-author",
+        )
+        self.greenbear_user = user_model.objects.create_user(username="greenbear", password="pass")
+        self.greenbear_author, _ = RecipeAuthor.objects.update_or_create(
+            slug=settings.OWNER_SLUG,
+            defaults={"user": self.greenbear_user, "name": "GreenBear"},
         )
         self.article = Article.objects.create(
             title="Original Article",
@@ -1314,6 +1320,19 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertRedirects(response, article.get_absolute_url())
         self.assertEqual(article.status, Article.Status.PENDING)
 
+    def test_greenbear_submit_new_article_publishes_without_review(self):
+        self.client.force_login(self.greenbear_user)
+
+        response = self.client.post(
+            reverse("articles:article_create"),
+            {**self.article_payload(title="GreenBear Submitted Article"), "action": "submit_review"},
+        )
+
+        article = Article.objects.get(title="GreenBear Submitted Article")
+        self.assertRedirects(response, article.get_absolute_url())
+        self.assertEqual(article.author, self.greenbear_author)
+        self.assertEqual(article.status, Article.Status.APPROVED)
+
     def test_draft_article_is_hidden_from_public_list_and_direct_url(self):
         article = self.create_article("Draft Article", Article.Status.DRAFT)
 
@@ -1348,6 +1367,30 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.article.refresh_from_db()
         self.assertRedirects(response, self.article.get_absolute_url())
         self.assertEqual(self.article.status, Article.Status.PENDING)
+
+    def test_greenbear_submit_draft_article_publishes_without_review(self):
+        article = Article.objects.create(
+            title="GreenBear Draft Article",
+            slug="greenbear-draft-article",
+            author=self.greenbear_author,
+            excerpt="Draft excerpt",
+            body="Draft body",
+            published=date(2026, 5, 20),
+            status=Article.Status.DRAFT,
+            confirmed_own_work=True,
+            confirmed_image_rights=True,
+            confirmed_rules=True,
+        )
+        self.client.force_login(self.greenbear_user)
+
+        response = self.client.post(
+            reverse("articles:article_edit", kwargs={"slug": article.slug}),
+            {**self.article_payload(title="GreenBear Published Article"), "action": "submit_review"},
+        )
+
+        article.refresh_from_db()
+        self.assertRedirects(response, article.get_absolute_url())
+        self.assertEqual(article.status, Article.Status.APPROVED)
 
     def test_author_can_save_needs_changes_article_as_draft_and_keep_note(self):
         self.article.status = Article.Status.NEEDS_CHANGES

@@ -1550,6 +1550,11 @@ class RecipeModerationTrackingTests(TestCase):
             name="Moderator",
             slug="moderator",
         )
+        self.greenbear_user = user_model.objects.create_user(username="greenbear", password="pass")
+        self.greenbear_author, _ = RecipeAuthor.objects.update_or_create(
+            slug=settings.OWNER_SLUG,
+            defaults={"user": self.greenbear_user, "name": "GreenBear"},
+        )
         self.recipe = Recipe.objects.create(
             title="Test Recipe",
             slug="test-recipe",
@@ -1621,6 +1626,19 @@ class RecipeModerationTrackingTests(TestCase):
         self.assertRedirects(response, recipe.get_absolute_url())
         self.assertEqual(recipe.status, Recipe.Status.PENDING)
 
+    def test_greenbear_submit_new_recipe_publishes_without_review(self):
+        self.client.force_login(self.greenbear_user)
+
+        response = self.client.post(
+            reverse("recipes:recipe_create"),
+            {**self.recipe_payload(title="GreenBear Submitted Recipe"), "action": "submit_review"},
+        )
+
+        recipe = Recipe.objects.get(title="GreenBear Submitted Recipe")
+        self.assertRedirects(response, recipe.get_absolute_url())
+        self.assertEqual(recipe.author, self.greenbear_author)
+        self.assertEqual(recipe.status, Recipe.Status.APPROVED)
+
     def test_draft_recipe_is_hidden_from_public_list_category_and_direct_url(self):
         self.recipe.status = Recipe.Status.DRAFT
         self.recipe.category = Recipe.Category.EVERYDAY_IRISH_COOKING
@@ -1667,6 +1685,40 @@ class RecipeModerationTrackingTests(TestCase):
         self.assertNotContains(response, self.recipe.title)
         self.assertNotContains(response, "Draft Panel Article")
 
+    def test_moderation_panel_excludes_greenbear_recipe_and_article_items(self):
+        owner_recipe = Recipe.objects.create(
+            title="Owner Pending Recipe",
+            slug="owner-pending-recipe",
+            author=self.greenbear_author,
+            ingredients="Potatoes",
+            method="Boil them.",
+            status=Recipe.Status.PENDING,
+        )
+        owner_article = Article.objects.create(
+            title="Owner Pending Article",
+            slug="owner-pending-article",
+            author=self.greenbear_author,
+            body="Owner article.",
+            published=date(2026, 5, 21),
+            status=Article.Status.PENDING,
+        )
+        normal_article = Article.objects.create(
+            title="Author Pending Article",
+            slug="author-pending-article",
+            author=self.author,
+            body="Author article.",
+            published=date(2026, 5, 21),
+            status=Article.Status.PENDING,
+        )
+        self.client.force_login(self.moderator_user)
+
+        response = self.client.get(reverse("recipes:moderation_panel"))
+
+        self.assertNotIn(owner_recipe, response.context["pending_recipes"])
+        self.assertNotIn(owner_article, response.context["pending_articles"])
+        self.assertIn(self.recipe, response.context["pending_recipes"])
+        self.assertIn(normal_article, response.context["pending_articles"])
+
     def test_author_can_submit_draft_recipe_for_review(self):
         self.recipe.status = Recipe.Status.DRAFT
         self.recipe.save(update_fields=["status"])
@@ -1680,6 +1732,26 @@ class RecipeModerationTrackingTests(TestCase):
         self.recipe.refresh_from_db()
         self.assertRedirects(response, self.recipe.get_absolute_url())
         self.assertEqual(self.recipe.status, Recipe.Status.PENDING)
+
+    def test_greenbear_submit_draft_recipe_publishes_without_review(self):
+        owner_recipe = Recipe.objects.create(
+            title="GreenBear Draft Recipe",
+            slug="greenbear-draft-recipe",
+            author=self.greenbear_author,
+            ingredients="Potatoes",
+            method="Boil them.",
+            status=Recipe.Status.DRAFT,
+        )
+        self.client.force_login(self.greenbear_user)
+
+        response = self.client.post(
+            reverse("recipes:recipe_edit", kwargs={"slug": owner_recipe.slug}),
+            {**self.recipe_payload(title="GreenBear Published Recipe"), "action": "submit_review"},
+        )
+
+        owner_recipe.refresh_from_db()
+        self.assertRedirects(response, owner_recipe.get_absolute_url())
+        self.assertEqual(owner_recipe.status, Recipe.Status.APPROVED)
 
     def test_author_can_save_needs_changes_recipe_as_draft_and_keep_note(self):
         self.recipe.status = Recipe.Status.NEEDS_CHANGES

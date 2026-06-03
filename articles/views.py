@@ -20,7 +20,7 @@ from django.views.generic import CreateView, DeleteView, DetailView, ListView, U
 from collection.models import SavedArticle
 from config.turnstile import verify_turnstile
 from monitoring.tracker import track_event
-from recipes.authoring import AuthorRequiredMixin, user_can_manage_author
+from recipes.authoring import AuthorRequiredMixin, author_skips_approval, user_can_manage_author
 from recipes.models import Recipe, RecipeAuthor
 from recipes.validators import validate_image_upload
 from accounts.views import is_moderator
@@ -283,10 +283,12 @@ class ArticleCreateView(AuthorRequiredMixin, CreateView):
             article = form.save(confirmed_by=self.request.user)
             self.object = article
 
-            if is_moderator(self.request.user) and action == "approve_publish":
-                article.status = Article.Status.APPROVED
-            elif action == "save_draft":
+            if action == "save_draft":
                 article.status = Article.Status.DRAFT
+            elif is_moderator(self.request.user) and action == "approve_publish":
+                article.status = Article.Status.APPROVED
+            elif author_skips_approval(article.author):
+                article.status = Article.Status.APPROVED
             else:
                 article.status = Article.Status.PENDING
             article.save(update_fields=["status"])
@@ -495,6 +497,11 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
             article = form.save(commit=False, confirmed_by=self.request.user)
             if is_moderator(self.request.user) and action == "approve_publish":
                 article.status = Article.Status.APPROVED
+            elif author_skips_approval(article.author):
+                if action == "save_draft" and not was_approved:
+                    article.status = Article.Status.DRAFT
+                else:
+                    article.status = Article.Status.APPROVED
             elif not is_moderator(self.request.user):
                 if was_approved:
                     article.status = Article.Status.PENDING
@@ -527,6 +534,12 @@ class ArticleUpdateView(AuthorRequiredMixin, UpdateView):
                 self.request,
                 "Article updated and sent back to review before it goes live again.",
             )
+        elif (
+            author_skips_approval(article.author)
+            and previous_status != Article.Status.APPROVED
+            and article.status == Article.Status.APPROVED
+        ):
+            messages.success(self.request, "Article approved and published.")
         elif action == "submit_review" and article.status == Article.Status.PENDING:
             messages.success(self.request, "Article submitted for review.")
         else:

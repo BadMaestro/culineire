@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
@@ -17,6 +18,13 @@ def user_can_manage_author(user, author) -> bool:
 
     linked_author = get_author_for_user(user)
     return bool(linked_author and linked_author.pk == author.pk)
+
+
+def author_skips_approval(author) -> bool:
+    return bool(
+        author
+        and getattr(author, "slug", "") == getattr(settings, "OWNER_SLUG", "greenbear")
+    )
 
 
 class AuthorRequiredMixin(LoginRequiredMixin):

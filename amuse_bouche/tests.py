@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -123,6 +124,42 @@ class AmuseBoucheGatingTests(TestCase):
         self.assertEqual(item.author, self.author)
         self.assertEqual(item.status, AmuseBouche.Status.PENDING)
 
+    def test_greenbear_submit_bite_publishes_without_review(self):
+        user_model = get_user_model()
+        greenbear_user = user_model.objects.create_user(username="greenbear", password="pass")
+        greenbear_author, _ = RecipeAuthor.objects.update_or_create(
+            slug=settings.OWNER_SLUG,
+            defaults={"user": greenbear_user, "name": "GreenBear"},
+        )
+        self.client.force_login(greenbear_user)
+
+        response = self.client.post(
+            reverse("amuse_bouche:create"),
+            {
+                "title": "GreenBear Soda Bread Trick",
+                "short_description": "Toast the heel and rub it with salted butter.",
+                "content_type": AmuseBouche.ContentType.CHEF_TRICK,
+                "cover_image_alt": "",
+                "image_rights_status": AmuseBouche.ImageRightsStatus.NOT_APPLICABLE,
+                "linked_recipe": "",
+                "linked_article": "",
+                "allow_comments": "on",
+                "seo_title": "",
+                "seo_description": "",
+                "confirm_own_work": "on",
+                "confirm_image_rights": "on",
+                "confirm_rules": "on",
+            },
+        )
+
+        item = AmuseBouche.objects.get(title="GreenBear Soda Bread Trick")
+        self.assertRedirects(response, item.get_absolute_url())
+        self.assertEqual(item.author, greenbear_author)
+        self.assertEqual(item.status, AmuseBouche.Status.APPROVED)
+        self.assertEqual(item.moderated_by, greenbear_user)
+        self.assertIsNotNone(item.moderated_at)
+        self.assertIsNotNone(item.published_at)
+
     def test_author_can_preview_own_pending_bite_before_public_launch(self):
         item = self.create_item()
         self.client.force_login(self.author_user)
@@ -181,6 +218,37 @@ class AmuseBoucheModerationTests(TestCase):
         self.assertIn(pending, response.context["pending_amuse_bouche"])
         self.assertIn(needs_changes, response.context["needs_changes_amuse_bouche"])
         self.assertIn(rejected, response.context["rejected_amuse_bouche"])
+
+    def test_moderation_panel_excludes_greenbear_amuse_bouche_items(self):
+        greenbear, _ = RecipeAuthor.objects.update_or_create(
+            slug=settings.OWNER_SLUG,
+            defaults={"name": "GreenBear"},
+        )
+        owner_pending = AmuseBouche.objects.create(
+            author=greenbear,
+            title="Owner Pending Bite",
+            short_description="Owner bite.",
+            status=AmuseBouche.Status.PENDING,
+        )
+        owner_needs_changes = AmuseBouche.objects.create(
+            author=greenbear,
+            title="Owner Needs Work Bite",
+            short_description="Owner bite.",
+            status=AmuseBouche.Status.NEEDS_CHANGES,
+        )
+        owner_rejected = AmuseBouche.objects.create(
+            author=greenbear,
+            title="Owner Rejected Bite",
+            short_description="Owner bite.",
+            status=AmuseBouche.Status.REJECTED,
+        )
+        self.client.force_login(self.moderator)
+
+        response = self.client.get(reverse("recipes:moderation_panel"))
+
+        self.assertNotIn(owner_pending, response.context["pending_amuse_bouche"])
+        self.assertNotIn(owner_needs_changes, response.context["needs_changes_amuse_bouche"])
+        self.assertNotIn(owner_rejected, response.context["rejected_amuse_bouche"])
 
     def test_moderator_can_preview_pending_detail(self):
         item = self.create_item()
@@ -287,6 +355,36 @@ class AmuseBoucheGenerateFromRecipeTests(TestCase):
         self.assertEqual(item.linked_recipe, self.recipe)
         self.assertEqual(item.cover_image_alt, self.recipe.hero_image_alt_text)
 
+    def test_greenbear_recipe_generation_publishes_without_review(self):
+        user_model = get_user_model()
+        greenbear_user = user_model.objects.create_user(username="greenbear", password="pass")
+        greenbear_author, _ = RecipeAuthor.objects.update_or_create(
+            slug=settings.OWNER_SLUG,
+            defaults={"user": greenbear_user, "name": "GreenBear"},
+        )
+        recipe = Recipe.objects.create(
+            author=greenbear_author,
+            title="GreenBear Boxty",
+            slug="greenbear-boxty",
+            short_description="A classic Irish potato pancake.",
+            hero_image_alt_text="Golden boxty on a plate",
+            category=Recipe.Category.IRISH_CULINARY_HERITAGE,
+            ingredients="500g potatoes",
+            method="Grate the potatoes.",
+            status=Recipe.Status.APPROVED,
+        )
+        self.client.force_login(greenbear_user)
+
+        response = self.client.post(reverse("amuse_bouche:generate_from_recipe", kwargs={"slug": recipe.slug}))
+
+        item = AmuseBouche.objects.get(linked_recipe=recipe)
+        self.assertRedirects(response, item.get_absolute_url())
+        self.assertEqual(item.author, greenbear_author)
+        self.assertEqual(item.status, AmuseBouche.Status.APPROVED)
+        self.assertEqual(item.moderated_by, greenbear_user)
+        self.assertIsNotNone(item.moderated_at)
+        self.assertIsNotNone(item.published_at)
+
     def test_duplicate_generation_redirects_to_existing_bite(self):
         self.client.force_login(self.author_user)
         self.client.post(self.url)
@@ -367,6 +465,36 @@ class AmuseBoucheGenerateFromArticleTests(TestCase):
         self.assertEqual(item.content_type, AmuseBouche.ContentType.BEHIND_THE_DISH)
         self.assertEqual(item.linked_article, self.article)
         self.assertEqual(item.cover_image_alt, self.article.hero_image_alt_text)
+
+    def test_greenbear_article_generation_publishes_without_review(self):
+        user_model = get_user_model()
+        greenbear_user = user_model.objects.create_user(username="greenbear", password="pass")
+        greenbear_author, _ = RecipeAuthor.objects.update_or_create(
+            slug=settings.OWNER_SLUG,
+            defaults={"user": greenbear_user, "name": "GreenBear"},
+        )
+        article = Article.objects.create(
+            author=greenbear_author,
+            title="GreenBear Soda Bread History",
+            slug="greenbear-soda-bread-history",
+            excerpt="A deep dive into the origins of Irish soda bread.",
+            hero_image_alt_text="A golden loaf of soda bread",
+            category=Article.Category.BAKING,
+            body="Soda bread is a staple of Irish cuisine.",
+            status=Article.Status.APPROVED,
+            published=timezone.now(),
+        )
+        self.client.force_login(greenbear_user)
+
+        response = self.client.post(reverse("amuse_bouche:generate_from_article", kwargs={"slug": article.slug}))
+
+        item = AmuseBouche.objects.get(linked_article=article)
+        self.assertRedirects(response, item.get_absolute_url())
+        self.assertEqual(item.author, greenbear_author)
+        self.assertEqual(item.status, AmuseBouche.Status.APPROVED)
+        self.assertEqual(item.moderated_by, greenbear_user)
+        self.assertIsNotNone(item.moderated_at)
+        self.assertIsNotNone(item.published_at)
 
     def test_duplicate_generation_redirects_to_existing_bite(self):
         self.client.force_login(self.author_user)

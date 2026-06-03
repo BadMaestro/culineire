@@ -36,7 +36,7 @@ from collection.models import SavedRecipe
 from config.turnstile import verify_turnstile
 from monitoring.tracker import get_client_ip, hash_ip, track_event
 from .allergens import build_present_allergen_items
-from .authoring import AuthorRequiredMixin, user_can_manage_author
+from .authoring import AuthorRequiredMixin, author_skips_approval, user_can_manage_author
 from .forms import (
     RecipeAuthoringForm,
     RecipeAuthorProfileForm,
@@ -1728,10 +1728,12 @@ class RecipeCreateView(AuthorRequiredMixin, CreateView):
         action = _authoring_action(self.request)
         recipe = form.save(commit=False, confirmed_by=self.request.user)
         recipe.author = self.author
-        if is_moderator(self.request.user) and action == "approve_publish":
-            recipe.status = Recipe.Status.APPROVED
-        elif action == "save_draft":
+        if action == "save_draft":
             recipe.status = Recipe.Status.DRAFT
+        elif is_moderator(self.request.user) and action == "approve_publish":
+            recipe.status = Recipe.Status.APPROVED
+        elif author_skips_approval(self.author):
+            recipe.status = Recipe.Status.APPROVED
         else:
             recipe.status = Recipe.Status.PENDING
 
@@ -1816,6 +1818,11 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
         recipe = form.save(commit=False, confirmed_by=self.request.user)
         if is_moderator(self.request.user) and action == "approve_publish":
             recipe.status = Recipe.Status.APPROVED
+        elif author_skips_approval(recipe.author):
+            if action == "save_draft" and not was_approved:
+                recipe.status = Recipe.Status.DRAFT
+            else:
+                recipe.status = Recipe.Status.APPROVED
         elif not is_moderator(self.request.user):
             if was_approved:
                 recipe.status = Recipe.Status.PENDING
@@ -1850,6 +1857,12 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
             messages.success(self.request, "Recipe saved as a private draft.")
         elif was_approved and not is_moderator(self.request.user):
             messages.success(self.request, "Recipe updated and sent back to review before it goes live again.")
+        elif (
+            author_skips_approval(recipe.author)
+            and previous_status != Recipe.Status.APPROVED
+            and recipe.status == Recipe.Status.APPROVED
+        ):
+            messages.success(self.request, "Recipe approved and published.")
         elif previous_status in {Recipe.Status.DRAFT, Recipe.Status.NEEDS_CHANGES, Recipe.Status.REJECTED} and recipe.status == Recipe.Status.PENDING:
             messages.success(self.request, "Recipe submitted for review.")
             _send_recipe_notification(recipe, "pending")
@@ -1858,7 +1871,11 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
         next_url = self.request.POST.get("next") or self.request.GET.get("next", "")
         if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts=None):
             return redirect(next_url)
-        if is_moderator(self.request.user) and action != "approve_publish":
+        if (
+            is_moderator(self.request.user)
+            and action != "approve_publish"
+            and not author_skips_approval(recipe.author)
+        ):
             return redirect(reverse_lazy("recipes:moderation_panel"))
         return redirect(recipe.get_absolute_url())
 
@@ -2090,31 +2107,37 @@ def moderation_panel(request):
     pending_recipes = list(
         Recipe.objects.select_related("author", "author__user")
         .filter(status=Recipe.Status.PENDING, is_deleted=False)
+        .exclude(author__slug=settings.OWNER_SLUG)
         .order_by("-created_at")
     )
     needs_changes_recipes = list(
         Recipe.objects.select_related("author", "author__user", "moderated_by")
         .filter(status=Recipe.Status.NEEDS_CHANGES, is_deleted=False)
+        .exclude(author__slug=settings.OWNER_SLUG)
         .order_by("-moderated_at", "-created_at")
     )
     rejected_recipes = list(
         Recipe.objects.select_related("author", "author__user", "moderated_by")
         .filter(status=Recipe.Status.REJECTED, is_deleted=False)
+        .exclude(author__slug=settings.OWNER_SLUG)
         .order_by("-created_at")
     )
     pending_articles = (
         Article.objects.select_related("author", "author__user")
         .filter(status=Article.Status.PENDING)
+        .exclude(author__slug=settings.OWNER_SLUG)
         .order_by("-published")
     )
     needs_changes_articles = (
         Article.objects.select_related("author", "author__user", "moderated_by")
         .filter(status=Article.Status.NEEDS_CHANGES)
+        .exclude(author__slug=settings.OWNER_SLUG)
         .order_by("-moderated_at", "-published")
     )
     rejected_articles = (
         Article.objects.select_related("author", "author__user", "moderated_by")
         .filter(status=Article.Status.REJECTED)
+        .exclude(author__slug=settings.OWNER_SLUG)
         .order_by("-published")
     )
     from amuse_bouche.models import AmuseBouche
@@ -2122,16 +2145,19 @@ def moderation_panel(request):
     pending_amuse_bouche = (
         AmuseBouche.objects.select_related("author", "author__user")
         .filter(status=AmuseBouche.Status.PENDING)
+        .exclude(author__slug=settings.OWNER_SLUG)
         .order_by("-created_at")
     )
     needs_changes_amuse_bouche = (
         AmuseBouche.objects.select_related("author", "author__user", "moderated_by")
         .filter(status=AmuseBouche.Status.NEEDS_CHANGES)
+        .exclude(author__slug=settings.OWNER_SLUG)
         .order_by("-moderated_at", "-created_at")
     )
     rejected_amuse_bouche = (
         AmuseBouche.objects.select_related("author", "author__user", "moderated_by")
         .filter(status=AmuseBouche.Status.REJECTED)
+        .exclude(author__slug=settings.OWNER_SLUG)
         .order_by("-created_at")
     )
     protected_super_user_filter = Q(user__is_superuser=True) | Q(slug=settings.OWNER_SLUG)
