@@ -122,6 +122,7 @@ def create_newsfeed_entry_on_approval(sender, instance, **kwargs):
         _hide_auto_entry(event_key)
         return
     try:
+        from django.conf import settings as _settings
         from newsfeed.models import NewsFeedEntry
         author_name = getattr(instance.author, "name", "") if instance.author else ""
         message = instance.short_description or ""
@@ -129,6 +130,9 @@ def create_newsfeed_entry_on_approval(sender, instance, **kwargs):
             message = f"{author_name}: {message}"
         elif author_name:
             message = f"By {author_name}"
+        card = instance.card_image
+        site_root = f"{_settings.SITE_SCHEME}://{_settings.SITE_DOMAIN}".rstrip("/")
+        image_url = f"{site_root}{card.url}" if card else ""
         NewsFeedEntry.objects.update_or_create(
             event_key=event_key,
             defaults={
@@ -136,6 +140,7 @@ def create_newsfeed_entry_on_approval(sender, instance, **kwargs):
                 "title": instance.title,
                 "message": message,
                 "url": instance.get_absolute_url(),
+                "image_url": image_url,
                 "is_auto": True,
                 "is_public": True,
             },

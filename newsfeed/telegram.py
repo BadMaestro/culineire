@@ -54,22 +54,11 @@ def build_newsfeed_telegram_message(entry) -> str:
     return "\n\n".join(parts)
 
 
-def send_telegram_message(text: str) -> TelegramResult:
-    token = getattr(settings, "TELEGRAM_BOT_TOKEN", "")
-    channel_id = getattr(settings, "TELEGRAM_CHANNEL_ID", "")
-    if not token or not channel_id:
-        return TelegramResult(ok=False, status="skipped", response="Telegram settings are not configured.")
-
-    payload = urlencode(
-        {
-            "chat_id": channel_id,
-            "text": text,
-            "disable_web_page_preview": "false",
-        }
-    ).encode("utf-8")
+def _call_telegram_api(token: str, method: str, payload: dict) -> TelegramResult:
+    data = urlencode(payload).encode("utf-8")
     request = Request(
-        f"https://api.telegram.org/bot{token}/sendMessage",
-        data=payload,
+        f"https://api.telegram.org/bot{token}/{method}",
+        data=data,
         headers={"Content-Type": "application/x-www-form-urlencoded"},
         method="POST",
     )
@@ -78,12 +67,11 @@ def send_telegram_message(text: str) -> TelegramResult:
             body = response.read().decode("utf-8", errors="replace")
     except HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
-        logger.warning("Telegram API returned HTTP %s: %s", exc.code, body)
+        logger.warning("Telegram API %s returned HTTP %s: %s", method, exc.code, body)
         return TelegramResult(ok=False, status="failed", response=body)
     except URLError as exc:
-        logger.warning("Telegram API request failed: %s", exc)
+        logger.warning("Telegram API %s request failed: %s", method, exc)
         return TelegramResult(ok=False, status="failed", response=str(exc))
-
     try:
         parsed = json.loads(body)
     except json.JSONDecodeError:
@@ -93,7 +81,31 @@ def send_telegram_message(text: str) -> TelegramResult:
     return TelegramResult(ok=False, status="failed", response=body)
 
 
-def _publish_to_telegram(*, event_key: str, message: str, target_url: str) -> TelegramResult:
+def send_telegram_message(text: str) -> TelegramResult:
+    token = getattr(settings, "TELEGRAM_BOT_TOKEN", "")
+    channel_id = getattr(settings, "TELEGRAM_CHANNEL_ID", "")
+    if not token or not channel_id:
+        return TelegramResult(ok=False, status="skipped", response="Telegram settings are not configured.")
+    return _call_telegram_api(token, "sendMessage", {
+        "chat_id": channel_id,
+        "text": text,
+        "disable_web_page_preview": "false",
+    })
+
+
+def send_telegram_photo(image_url: str, caption: str) -> TelegramResult:
+    token = getattr(settings, "TELEGRAM_BOT_TOKEN", "")
+    channel_id = getattr(settings, "TELEGRAM_CHANNEL_ID", "")
+    if not token or not channel_id:
+        return TelegramResult(ok=False, status="skipped", response="Telegram settings are not configured.")
+    return _call_telegram_api(token, "sendPhoto", {
+        "chat_id": channel_id,
+        "photo": image_url,
+        "caption": caption[:1024],
+    })
+
+
+def _publish_to_telegram(*, event_key: str, message: str, target_url: str, image_url: str = "") -> TelegramResult:
     if not getattr(settings, "TELEGRAM_BOT_TOKEN", "") or not getattr(settings, "TELEGRAM_CHANNEL_ID", ""):
         return TelegramResult(ok=False, status="skipped", response="Telegram settings are not configured.")
 
@@ -120,7 +132,7 @@ def _publish_to_telegram(*, event_key: str, message: str, target_url: str) -> Te
     if not created and log.status in {SocialPostLog.Status.PENDING, SocialPostLog.Status.SENT}:
         return TelegramResult(ok=log.status == SocialPostLog.Status.SENT, status="skipped", response="Telegram post already handled.")
 
-    result = send_telegram_message(message)
+    result = send_telegram_photo(image_url, message) if image_url else send_telegram_message(message)
     log.status = result.status
     log.target_url = target_url
     log.message = message
@@ -150,4 +162,5 @@ def publish_newsfeed_entry_to_telegram(entry, *, message: str | None = None, eve
         event_key=event_key or f"newsfeed_entry:{entry.pk}",
         message=message or build_newsfeed_telegram_message(entry),
         target_url=entry.url or "",
+        image_url=getattr(entry, "image_url", "") or "",
     )

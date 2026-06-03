@@ -5,6 +5,15 @@ from django.db.models.signals import post_delete, post_save
 logger = logging.getLogger(__name__)
 
 
+def _absolute_image_url(image_field) -> str:
+    from django.conf import settings as _settings
+    name = getattr(image_field, "name", "")
+    if not name:
+        return ""
+    site_root = f"{_settings.SITE_SCHEME}://{_settings.SITE_DOMAIN}".rstrip("/")
+    return f"{site_root}{image_field.url}"
+
+
 def _create_recipe_entry(recipe):
     try:
         from newsfeed.models import NewsFeedEntry
@@ -15,6 +24,7 @@ def _create_recipe_entry(recipe):
                 "entry_type": NewsFeedEntry.EntryType.RECIPE_PUBLISHED,
                 "title": f"New recipe published: {recipe.title}",
                 "url": recipe.get_absolute_url(),
+                "image_url": _absolute_image_url(recipe.hero_image),
                 "is_auto": True,
                 "is_public": True,
             },
@@ -33,6 +43,7 @@ def _create_article_entry(article):
                 "entry_type": NewsFeedEntry.EntryType.ARTICLE_PUBLISHED,
                 "title": f"New article published: {article.title}",
                 "url": article.get_absolute_url(),
+                "image_url": _absolute_image_url(article.hero_image),
                 "is_auto": True,
                 "is_public": True,
             },

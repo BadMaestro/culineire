@@ -33,6 +33,7 @@ class NewsFeedEntry(models.Model):
         on_delete=models.SET_NULL,
         related_name="newsfeed_entries",
     )
+    image_url = models.CharField(max_length=500, blank=True)
     # Null for manual entries; unique string for auto entries prevents duplicates.
     event_key = models.CharField(max_length=200, unique=True, null=True, blank=True)
 
