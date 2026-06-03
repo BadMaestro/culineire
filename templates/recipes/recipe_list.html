@@ -259,6 +259,7 @@
                 <div><h2 id="category-recipes-title">{{ selected_category_label }}</h2></div>
             </div>
             {% if recipes %}
+            <div class="recipe-vscroll-wrap">
             <div class="recipe-vscroll">
                 <div class="recipe-grid recipe-grid--mini recipe-grid--6col">
                     {% for recipe in recipes %}
@@ -281,6 +282,7 @@
                     </article>
                     {% endfor %}
                 </div>
+            </div>
             </div>
             {% else %}
             <p class="page-subtitle">No recipes in this category yet — check back soon.</p>
@@ -406,6 +408,7 @@
                 <div><h2 id="all-recipes-grid-title">All Recipes</h2></div>
             </div>
             <p class="page-subtitle">Browse the complete collection — scroll to explore all recipes in the CulinEire Kitchen.</p>
+            <div class="recipe-vscroll-wrap">
             <div class="recipe-vscroll">
                 <div class="recipe-grid recipe-grid--mini recipe-grid--6col">
                     {% for recipe in all_recipes_grid %}
@@ -426,6 +429,7 @@
                     </article>
                     {% endfor %}
                 </div>
+            </div>
             </div>
         </section>
         {% endif %}

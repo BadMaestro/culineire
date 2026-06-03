@@ -1511,7 +1511,6 @@
    ================================================================ */
 .ab-grid-scroll {
   overflow-y: auto;
-  contain: paint; /* clips scrollbar to border-radius */
   scrollbar-width: thin;
   scrollbar-color: rgba(200, 169, 110, .4) transparent;
 }
