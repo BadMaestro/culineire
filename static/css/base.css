@@ -1134,6 +1134,10 @@
       min-height: 300px;
     }
 
+    .hero-peek-btn {
+      display: none;
+    }
+
     .hero__inner {
       width: min(100% - 1.25rem, var(--container));
       padding-block: 1.35rem;
