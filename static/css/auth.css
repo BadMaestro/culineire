@@ -332,14 +332,14 @@
     border-radius: var(--radius-sm);
     background: var(--surface-muted, #f8f5f0);
     scrollbar-width: thin;
-    scrollbar-color: var(--brand-mid, #8b7355) transparent;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
-.contact-history__scroll::-webkit-scrollbar { width: 5px; }
-.contact-history__scroll::-webkit-scrollbar-track { background: transparent; }
+.contact-history__scroll::-webkit-scrollbar { width: var(--scrollbar-size); }
+.contact-history__scroll::-webkit-scrollbar-track { background: var(--scrollbar-track); }
 .contact-history__scroll::-webkit-scrollbar-thumb {
-    background: var(--brand-mid, #8b7355);
-    border-radius: 3px;
+    background: var(--scrollbar-thumb);
+    border-radius: var(--scrollbar-radius);
 }
 
 .contact-history__item {

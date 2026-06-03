@@ -1399,21 +1399,21 @@
   overflow-x: hidden;
   padding: 1.2rem 1.15rem;
   scrollbar-width: thin;
-  scrollbar-color: var(--brand-mid, #8b7355) transparent;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 .recipe-vscroll::-webkit-scrollbar {
-  width: 5px;
+  width: var(--scrollbar-size);
 }
 
 .recipe-vscroll::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--scrollbar-track);
   margin-block: 8px;
 }
 
 .recipe-vscroll::-webkit-scrollbar-thumb {
-  background: var(--brand-mid, #8b7355);
-  border-radius: 3px;
+  background: var(--scrollbar-thumb);
+  border-radius: var(--scrollbar-radius);
 }
 
 .author-recipes-add {

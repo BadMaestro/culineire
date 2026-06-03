@@ -46,6 +46,13 @@
     --brand-soft: rgb(24 76 58 / 0.08);
     --border: #e2d9cc;
 
+    /* Scrollbars */
+    --scrollbar-size: 4px;
+    --scrollbar-thumb: rgb(200 169 110 / 0.46);
+    --scrollbar-thumb-hover: rgb(139 115 85 / 0.64);
+    --scrollbar-track: transparent;
+    --scrollbar-radius: 999px;
+
     /* Elevation */
     --shadow-sm: 0 6px 18px rgb(22 33 27 / 0.05);
     --shadow-md: 0 12px 30px rgb(22 33 27 / 0.08);
@@ -81,7 +88,32 @@
 
   html {
     scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
     overflow-x: clip; /* clip without creating a scroll container — preserves position:fixed on Safari */
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  }
+
+  *::-webkit-scrollbar {
+    width: var(--scrollbar-size);
+    height: var(--scrollbar-size);
+  }
+
+  *::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: var(--scrollbar-radius);
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
   }
 
   @media (prefers-reduced-motion: no-preference) {

@@ -697,20 +697,20 @@
   min-height: 0;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: rgba(200, 169, 110, .5) transparent;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 .ab-home-card .ab-sheet__body::-webkit-scrollbar {
-  width: 5px;
+  width: var(--scrollbar-size);
 }
 
 .ab-home-card .ab-sheet__body::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--scrollbar-track);
 }
 
 .ab-home-card .ab-sheet__body::-webkit-scrollbar-thumb {
-  background: rgba(200, 169, 110, .55);
-  border-radius: 3px;
+  background: var(--scrollbar-thumb);
+  border-radius: var(--scrollbar-radius);
 }
 
 .ab-home-card .ab-sheet__text {
@@ -1512,21 +1512,21 @@
 .ab-grid-scroll {
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: rgba(200, 169, 110, .4) transparent;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 .ab-grid-scroll::-webkit-scrollbar {
-  width: 5px;
+  width: var(--scrollbar-size);
 }
 
 .ab-grid-scroll::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--scrollbar-track);
   margin-block: 8px;
 }
 
 .ab-grid-scroll::-webkit-scrollbar-thumb {
-  background: rgba(200, 169, 110, .4);
-  border-radius: 3px;
+  background: var(--scrollbar-thumb);
+  border-radius: var(--scrollbar-radius);
 }
 
 /* ================================================================
@@ -1759,7 +1759,7 @@
   overflow-y: auto;
   padding: .9rem 1.25rem 2rem;
   scrollbar-width: thin;
-  scrollbar-color: #ddd6c8 transparent;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 .ab-cmt-panel__empty {

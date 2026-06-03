@@ -1008,7 +1008,7 @@
     height: 420px;
     overflow-y: auto;
     scrollbar-width: thin;
-    scrollbar-color: var(--detail-border-strong) transparent;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   }
 
   .ingredients-list {
@@ -1130,7 +1130,7 @@
     height: 420px;
     overflow-y: auto;
     scrollbar-width: thin;
-    scrollbar-color: var(--detail-border-strong) transparent;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   }
 
   .method-steps {
@@ -1858,7 +1858,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: thin;
-    scrollbar-color: var(--detail-border-strong) transparent;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
     padding-inline-end: 0.6rem;
   }
 
@@ -3206,6 +3206,7 @@
   max-block-size: 160px;
   overflow-y: auto;
   scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 .rating-panel__list-item {

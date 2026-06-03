@@ -256,22 +256,22 @@
   overscroll-behavior-block: contain;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
-  scrollbar-color: rgb(11 76 58 / 0.35) transparent;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   -webkit-overflow-scrolling: touch;
 }
 
 .mon-table-wrap::-webkit-scrollbar {
-  inline-size: 8px;
-  block-size: 8px;
+  width: var(--scrollbar-size);
+  height: var(--scrollbar-size);
 }
 
 .mon-table-wrap::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--scrollbar-track);
 }
 
 .mon-table-wrap::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background: rgb(11 76 58 / 0.28);
+  border-radius: var(--scrollbar-radius);
+  background: var(--scrollbar-thumb);
 }
 
 .mon-table {
