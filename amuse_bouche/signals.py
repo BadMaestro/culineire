@@ -104,6 +104,33 @@ def delete_gallery_image_on_delete(sender, instance, **kwargs):
         _delete_file_and_cleanup(instance.image)
 
 
+# ── Telegram: direct approval signal (mirrors recipes/signals.py) ────────────
+
+@receiver(pre_save, sender=AmuseBouche)
+def remember_previous_ab_status(sender, instance, **kwargs):
+    del sender, kwargs
+    if not instance.pk:
+        instance._previous_status = None
+        return
+    try:
+        instance._previous_status = AmuseBouche.objects.only("status").get(pk=instance.pk).status
+    except AmuseBouche.DoesNotExist:
+        instance._previous_status = None
+
+
+@receiver(post_save, sender=AmuseBouche)
+def publish_ab_to_telegram_on_approval(sender, instance, **kwargs):
+    del sender, kwargs
+    previous_status = getattr(instance, "_previous_status", None)
+    if instance.status != AmuseBouche.Status.APPROVED or previous_status == AmuseBouche.Status.APPROVED:
+        return
+    try:
+        from newsfeed.telegram import publish_ab_to_telegram
+        publish_ab_to_telegram(instance)
+    except Exception:
+        logger.exception("Failed to publish amuse-bouche pk=%s to Telegram", instance.pk)
+
+
 # ── Newsfeed integration ──────────────────────────────────────────────────────
 
 def _hide_auto_entry(event_key):

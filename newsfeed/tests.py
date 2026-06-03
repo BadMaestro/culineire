@@ -384,8 +384,9 @@ class AmuseBoucheTelegramPublishTest(TestCase):
     def setUp(self):
         self.author = _make_author()
 
-    @patch("newsfeed.telegram.send_telegram_message_with_link_preview")
-    def test_ab_approval_uses_link_preview_send(self, mock_send):
+    @patch("newsfeed.telegram.send_telegram_message")
+    def test_ab_approval_uses_send_message(self, mock_send):
+        """AB notifications use plain sendMessage (same mechanism as recipes)."""
         mock_send.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
         ab = _make_ab(self.author, status="pending")
         ab.status = "approved"
@@ -394,14 +395,14 @@ class AmuseBoucheTelegramPublishTest(TestCase):
 
     @patch("newsfeed.telegram.send_telegram_photo")
     def test_ab_approval_does_not_use_send_photo(self, mock_photo):
-        with patch("newsfeed.telegram.send_telegram_message_with_link_preview") as mock_send:
+        with patch("newsfeed.telegram.send_telegram_message") as mock_send:
             mock_send.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
             ab = _make_ab(self.author, status="pending")
             ab.status = "approved"
             ab.save()
         mock_photo.assert_not_called()
 
-    @patch("newsfeed.telegram.send_telegram_message_with_link_preview")
+    @patch("newsfeed.telegram.send_telegram_message")
     def test_ab_telegram_message_is_compact(self, mock_send):
         mock_send.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
         ab = _make_ab(self.author, title="Boxty Bite", status="pending")
@@ -412,7 +413,7 @@ class AmuseBoucheTelegramPublishTest(TestCase):
         self.assertIn("Amuse-Bouche: Boxty Bite", sent_text)
         self.assertNotIn("short culinary note", sent_text)
 
-    @patch("newsfeed.telegram.send_telegram_message_with_link_preview")
+    @patch("newsfeed.telegram.send_telegram_message")
     def test_ab_notification_not_duplicated_after_edit(self, mock_send):
         mock_send.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
         ab = _make_ab(self.author, status="pending")
@@ -424,7 +425,7 @@ class AmuseBoucheTelegramPublishTest(TestCase):
 
     @patch("newsfeed.telegram.send_telegram_message")
     def test_recipe_notification_still_uses_send_message_not_link_preview(self, mock_send):
-        """Recipe notifications go through publish_recipe_to_telegram (direct signal), not AB path."""
+        """Recipe notifications go through publish_recipe_to_telegram (direct signal)."""
         mock_send.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
         recipe = _make_recipe(self.author, status="pending")
         recipe.status = "approved"
