@@ -25,12 +25,14 @@ def _unread_message_count(user):
 
 def _pending_moderation_count():
     try:
+        from django.conf import settings as _settings
         from recipes.models import Recipe
         from articles.models import Article
         from amuse_bouche.models import AmuseBouche
+        owner = getattr(_settings, "OWNER_SLUG", "greenbear")
         pending_recipes = Recipe.objects.filter(status=Recipe.Status.PENDING, is_deleted=False).count()
         pending_articles = Article.objects.filter(status=Article.Status.PENDING, is_deleted=False).count()
-        pending_bites = AmuseBouche.objects.filter(status=AmuseBouche.Status.PENDING).count()
+        pending_bites = AmuseBouche.objects.filter(status=AmuseBouche.Status.PENDING).exclude(author__slug=owner).count()
         return pending_recipes + pending_articles + pending_bites
     except ImportError:
         return 0

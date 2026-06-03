@@ -44,8 +44,10 @@ def _initial_status_fields(author, actor):
     status = _initial_status_for_author(author)
     fields = {"status": status}
     if status == AmuseBouche.Status.APPROVED:
+        now = timezone.now()
         fields["moderated_by"] = actor
-        fields["moderated_at"] = timezone.now()
+        fields["moderated_at"] = now
+        fields["published_at"] = now
     return fields
 
 
