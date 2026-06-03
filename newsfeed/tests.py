@@ -313,6 +313,127 @@ class FeedPageTest(TestCase):
         self.assertContains(response, "data-news-toggle")
 
 
+def _make_ab(author, title="Test Bite", status="approved"):
+    from amuse_bouche.models import AmuseBouche
+    return AmuseBouche.objects.create(
+        author=author,
+        title=title,
+        slug=title.lower().replace(" ", "-"),
+        short_description="A short culinary note.",
+        status=status,
+    )
+
+
+@override_settings(SITE_DOMAIN="culineire.ie", SITE_SCHEME="https")
+class AmuseBoucheTelegramMessageTest(TestCase):
+    """Tests for the compact AB Telegram formatter."""
+
+    def setUp(self):
+        self.author = _make_author()
+
+    def _make_entry(self, title="Tuna, Egg and Potato Salad", url="/amuse-bouche/tuna-egg-and-potato-salad/"):
+        from newsfeed.models import NewsFeedEntry
+        return NewsFeedEntry(
+            entry_type=NewsFeedEntry.EntryType.AMUSE_BOUCHE_PUBLISHED,
+            title=title,
+            message="GreenBear: A simple layered salad of tender potatoes.",
+            url=url,
+        )
+
+    def test_ab_message_contains_title(self):
+        from newsfeed.telegram import build_ab_telegram_message
+        entry = self._make_entry()
+        msg = build_ab_telegram_message(entry)
+        self.assertIn("Tuna, Egg and Potato Salad", msg)
+
+    def test_ab_message_contains_absolute_url(self):
+        from newsfeed.telegram import build_ab_telegram_message
+        entry = self._make_entry()
+        msg = build_ab_telegram_message(entry)
+        self.assertIn("https://culineire.ie/amuse-bouche/tuna-egg-and-potato-salad/", msg)
+
+    def test_ab_message_has_amuse_bouche_prefix(self):
+        from newsfeed.telegram import build_ab_telegram_message
+        entry = self._make_entry()
+        msg = build_ab_telegram_message(entry)
+        self.assertTrue(msg.startswith("Amuse-Bouche: "))
+
+    def test_ab_message_does_not_contain_author_prefix(self):
+        from newsfeed.telegram import build_ab_telegram_message
+        entry = self._make_entry()
+        msg = build_ab_telegram_message(entry)
+        self.assertNotIn("GreenBear:", msg)
+
+    def test_ab_message_does_not_contain_long_description(self):
+        from newsfeed.telegram import build_ab_telegram_message
+        entry = self._make_entry()
+        msg = build_ab_telegram_message(entry)
+        self.assertNotIn("simple layered salad", msg)
+
+
+@override_settings(
+    TELEGRAM_BOT_TOKEN="test-token",
+    TELEGRAM_CHANNEL_ID="@culineire_test",
+    SITE_DOMAIN="culineire.ie",
+    SITE_SCHEME="https",
+    AMUSE_BOUCHE_PUBLIC=True,
+)
+class AmuseBoucheTelegramPublishTest(TestCase):
+    """Tests that AB notifications use sendMessage (not sendPhoto) and are not duplicated."""
+
+    def setUp(self):
+        self.author = _make_author()
+
+    @patch("newsfeed.telegram.send_telegram_message_with_link_preview")
+    def test_ab_approval_uses_link_preview_send(self, mock_send):
+        mock_send.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
+        ab = _make_ab(self.author, status="pending")
+        ab.status = "approved"
+        ab.save()
+        self.assertEqual(mock_send.call_count, 1)
+
+    @patch("newsfeed.telegram.send_telegram_photo")
+    def test_ab_approval_does_not_use_send_photo(self, mock_photo):
+        with patch("newsfeed.telegram.send_telegram_message_with_link_preview") as mock_send:
+            mock_send.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
+            ab = _make_ab(self.author, status="pending")
+            ab.status = "approved"
+            ab.save()
+        mock_photo.assert_not_called()
+
+    @patch("newsfeed.telegram.send_telegram_message_with_link_preview")
+    def test_ab_telegram_message_is_compact(self, mock_send):
+        mock_send.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
+        ab = _make_ab(self.author, title="Boxty Bite", status="pending")
+        ab.status = "approved"
+        ab.save()
+        self.assertEqual(mock_send.call_count, 1)
+        sent_text = mock_send.call_args[0][0]
+        self.assertIn("Amuse-Bouche: Boxty Bite", sent_text)
+        self.assertNotIn("short culinary note", sent_text)
+
+    @patch("newsfeed.telegram.send_telegram_message_with_link_preview")
+    def test_ab_notification_not_duplicated_after_edit(self, mock_send):
+        mock_send.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
+        ab = _make_ab(self.author, status="pending")
+        ab.status = "approved"
+        ab.save()
+        ab.short_description = "Updated description."
+        ab.save()
+        self.assertEqual(mock_send.call_count, 1)
+
+    @patch("newsfeed.telegram.send_telegram_message")
+    def test_recipe_notification_still_uses_send_message_not_link_preview(self, mock_send):
+        """Recipe notifications go through publish_recipe_to_telegram (direct signal), not AB path."""
+        mock_send.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
+        recipe = _make_recipe(self.author, status="pending")
+        recipe.status = "approved"
+        recipe.save()
+        self.assertEqual(mock_send.call_count, 1)
+        sent_text = mock_send.call_args[0][0]
+        self.assertIn("New recipe on CulinEire:", sent_text)
+
+
 class AmuseBoucheLaunchNewsCommandTest(TestCase):
     @override_settings(
         TELEGRAM_BOT_TOKEN="test-token",

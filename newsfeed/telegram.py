@@ -54,6 +54,16 @@ def build_newsfeed_telegram_message(entry) -> str:
     return "\n\n".join(parts)
 
 
+def build_ab_telegram_message(entry) -> str:
+    """Compact Amuse-Bouche notification: title + URL only, no description or author prefix."""
+    site_url = f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}".rstrip("/")
+    absolute_url = f"{site_url}{entry.url}" if entry.url and entry.url.startswith("/") else (entry.url or "")
+    parts = [f"Amuse-Bouche: {entry.title}"]
+    if absolute_url:
+        parts.append(absolute_url)
+    return "\n\n".join(parts)
+
+
 def _call_telegram_api(token: str, method: str, payload: dict) -> TelegramResult:
     data = urlencode(payload).encode("utf-8")
     request = Request(
@@ -93,6 +103,23 @@ def send_telegram_message(text: str) -> TelegramResult:
     })
 
 
+def send_telegram_message_with_link_preview(text: str) -> TelegramResult:
+    """sendMessage with small link preview — used for Amuse-Bouche compact notifications."""
+    token = getattr(settings, "TELEGRAM_BOT_TOKEN", "")
+    channel_id = getattr(settings, "TELEGRAM_CHANNEL_ID", "")
+    if not token or not channel_id:
+        return TelegramResult(ok=False, status="skipped", response="Telegram settings are not configured.")
+    return _call_telegram_api(token, "sendMessage", {
+        "chat_id": channel_id,
+        "text": text,
+        "link_preview_options": json.dumps({
+            "is_disabled": False,
+            "prefer_small_media": True,
+            "show_above_text": False,
+        }),
+    })
+
+
 def send_telegram_photo(image_url: str, caption: str) -> TelegramResult:
     token = getattr(settings, "TELEGRAM_BOT_TOKEN", "")
     channel_id = getattr(settings, "TELEGRAM_CHANNEL_ID", "")
@@ -105,7 +132,7 @@ def send_telegram_photo(image_url: str, caption: str) -> TelegramResult:
     })
 
 
-def _publish_to_telegram(*, event_key: str, message: str, target_url: str, image_url: str = "") -> TelegramResult:
+def _publish_to_telegram(*, event_key: str, message: str, target_url: str, image_url: str = "", _send_fn=None) -> TelegramResult:
     if not getattr(settings, "TELEGRAM_BOT_TOKEN", "") or not getattr(settings, "TELEGRAM_CHANNEL_ID", ""):
         return TelegramResult(ok=False, status="skipped", response="Telegram settings are not configured.")
 
@@ -132,7 +159,12 @@ def _publish_to_telegram(*, event_key: str, message: str, target_url: str, image
     if not created and log.status in {SocialPostLog.Status.PENDING, SocialPostLog.Status.SENT}:
         return TelegramResult(ok=log.status == SocialPostLog.Status.SENT, status="skipped", response="Telegram post already handled.")
 
-    result = send_telegram_photo(image_url, message) if image_url else send_telegram_message(message)
+    if _send_fn is not None:
+        result = _send_fn(message)
+    elif image_url:
+        result = send_telegram_photo(image_url, message)
+    else:
+        result = send_telegram_message(message)
     log.status = result.status
     log.target_url = target_url
     log.message = message
@@ -158,6 +190,14 @@ def publish_article_to_telegram(article) -> TelegramResult:
 
 
 def publish_newsfeed_entry_to_telegram(entry, *, message: str | None = None, event_key: str | None = None) -> TelegramResult:
+    from newsfeed.models import NewsFeedEntry as _NewsFeedEntry
+    if entry.entry_type == _NewsFeedEntry.EntryType.AMUSE_BOUCHE_PUBLISHED:
+        return _publish_to_telegram(
+            event_key=event_key or f"newsfeed_entry:{entry.pk}",
+            message=message or build_ab_telegram_message(entry),
+            target_url=entry.url or "",
+            _send_fn=send_telegram_message_with_link_preview,
+        )
     return _publish_to_telegram(
         event_key=event_key or f"newsfeed_entry:{entry.pk}",
         message=message or build_newsfeed_telegram_message(entry),

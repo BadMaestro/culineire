@@ -88,11 +88,19 @@ def on_article_delete(sender, instance, **kwargs):
     _hide_auto_entry(f"article_published:{instance.pk}")
 
 
+_DIRECT_TELEGRAM_ENTRY_TYPES = {"recipe_published", "article_published"}
+
+
 def on_newsfeed_entry_save(sender, instance, created, **kwargs):
     del sender, kwargs
     if not created:
         return
     if not instance.is_public:
+        return
+    # Recipe and article approvals have their own direct Telegram signals in
+    # recipes/signals.py and articles/signals.py — skip them here to avoid
+    # sending duplicate notifications.
+    if instance.entry_type in _DIRECT_TELEGRAM_ENTRY_TYPES:
         return
     try:
         from newsfeed.telegram import publish_newsfeed_entry_to_telegram
