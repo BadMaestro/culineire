@@ -39,14 +39,9 @@
             <p class="hero-subtitle">{{ recipe.short_description }}</p>
             {% endif %}
             <div class="hero__actions">
-                {% if can_view_amuse_bouche_public_area %}
-                <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
-                {% endif %}
-                <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
-                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
                 {% if can_manage_recipe %}
                 <a class="btn-secondary" href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit Recipe</a>
-                {% endif %}
+                <a class="btn-secondary" href="{% url 'recipes:recipe_delete' recipe.slug %}">Delete Recipe</a>
                 {% if can_generate_ab %}
                 <form action="{% url 'amuse_bouche:generate_from_recipe' recipe.slug %}" method="post" style="display:contents">
                   {% csrf_token %}
@@ -54,6 +49,13 @@
                     {% if recipe_ab_exists %}View Amuse-Bouche{% else %}Generate Amuse-Bouche{% endif %}
                   </button>
                 </form>
+                {% endif %}
+                {% else %}
+                {% if can_view_amuse_bouche_public_area %}
+                <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
+                {% endif %}
+                <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
+                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
                 {% endif %}
             </div>
         </div>

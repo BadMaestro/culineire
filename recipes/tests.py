@@ -1381,6 +1381,7 @@ class RecipeDetailAccessibilityMarkupTests(TestCase):
     def setUp(self):
         user_model = get_user_model()
         user = user_model.objects.create_user(username="chef", password="pass")
+        self.user = user
         self.author = RecipeAuthor.objects.create(user=user, name="Chef", slug="chef")
 
     def test_method_steps_use_css_counter_not_dom_step_number(self):
@@ -1405,6 +1406,34 @@ class RecipeDetailAccessibilityMarkupTests(TestCase):
         self.assertContains(response, "Wash the potatoes")
         self.assertNotContains(response, "method-steps__number")
         self.assertNotContains(response, 'aria-label="Step 1"')
+
+    def test_managed_recipe_hero_shows_author_actions_only(self):
+        recipe = Recipe.objects.create(
+            title="Managed Hero Test",
+            slug="managed-hero-test",
+            author=self.author,
+            short_description="A managed recipe hero test.",
+            category=Recipe.Category.EVERYDAY_IRISH_COOKING,
+            ingredients="Potatoes",
+            method="Bake until tender",
+            status=Recipe.Status.APPROVED,
+            confirmed_own_work=True,
+            confirmed_image_rights=True,
+            confirmed_rules=True,
+            image_rights_status=Recipe.ImageRightsStatus.NOT_APPLICABLE,
+        )
+
+        self.client.force_login(self.user)
+        response = self.client.get(recipe.get_absolute_url())
+        hero_actions = response.content.decode().split('<div class="hero__actions">', 1)[1].split("</div>", 1)[0]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Edit Recipe", hero_actions)
+        self.assertIn("Delete Recipe", hero_actions)
+        self.assertIn("Generate Amuse-Bouche", hero_actions)
+        self.assertNotIn(">Amuse-Bouche</a>", hero_actions)
+        self.assertNotIn("Explore Recipes", hero_actions)
+        self.assertNotIn("Read Articles", hero_actions)
 
 
 class RecipeDetailStructuredDataTests(TestCase):
@@ -1504,8 +1533,8 @@ class RecipeDetailStructuredDataTests(TestCase):
 class PublicImagePerformanceHintTests(TestCase):
     def setUp(self):
         user_model = get_user_model()
-        user = user_model.objects.create_user(username="performance-chef", password="pass")
-        self.author = RecipeAuthor.objects.create(user=user, name="Performance Chef", slug="performance-chef")
+        self.user = user_model.objects.create_user(username="performance-chef", password="pass")
+        self.author = RecipeAuthor.objects.create(user=self.user, name="Performance Chef", slug="performance-chef")
         self.recipe = Recipe.objects.create(
             title="Lazy Card Stew",
             slug="lazy-card-stew",
@@ -1543,6 +1572,15 @@ class PublicImagePerformanceHintTests(TestCase):
 
         self.assertContains(response, 'loading="lazy"')
         self.assertContains(response, 'decoding="async"')
+
+    def test_author_recipe_mini_cards_show_management_actions(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(f'{reverse("recipes:recipe_list")}?author={self.author.slug}')
+
+        self.assertContains(response, "recipe-grid--author-actions")
+        self.assertContains(response, reverse("recipes:recipe_edit", kwargs={"slug": self.recipe.slug}))
+        self.assertContains(response, reverse("recipes:recipe_delete", kwargs={"slug": self.recipe.slug}))
 
     def test_article_list_cards_use_lazy_async_image_hints(self):
         response = self.client.get(reverse("articles:article_list"))

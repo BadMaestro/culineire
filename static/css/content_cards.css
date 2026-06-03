@@ -1271,6 +1271,14 @@
   display: none;
 }
 
+.recipe-grid--mini.recipe-grid--author-actions .recipe-card__management {
+  display: flex;
+}
+
+.recipe-grid--mini.recipe-grid--author-actions .recipe-card__delete {
+  display: inline-flex;
+}
+
 /* ==== Recipe grid — 6-column fixed ==== */
 /* Use high-specificity selectors (0-3-0) to override .recipe-list-page .recipe-grid (0-2-0) */
 

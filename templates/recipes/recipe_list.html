@@ -119,7 +119,7 @@
                 </div>
             </div>
             <p class="page-subtitle">The complete collection of {{ selected_author.name }}'s recipes — from quick weeknight suppers to weekend projects worth the effort.</p>
-            <div class="recipe-grid recipe-grid--mini recipe-list-page">
+            <div class="recipe-grid recipe-grid--mini recipe-grid--author-actions recipe-list-page">
                 {% for recipe in recipes %}
                 <article class="recipe-card">
                     <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
