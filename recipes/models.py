@@ -381,6 +381,16 @@ class Recipe(models.Model):
         return reverse("recipes:recipe_detail", kwargs={"slug": self.slug})
 
     @property
+    def author_status_label(self) -> str:
+        return {
+            self.Status.DRAFT: "Draft",
+            self.Status.PENDING: "Waiting for review",
+            self.Status.APPROVED: "Published",
+            self.Status.NEEDS_CHANGES: "Needs changes",
+            self.Status.REJECTED: "Rejected",
+        }.get(self.status, self.get_status_display())
+
+    @property
     def total_time_minutes(self) -> int:
         return (self.prep_time_minutes or 0) + (self.cook_time_minutes or 0)
 

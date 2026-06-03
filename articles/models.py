@@ -211,6 +211,16 @@ class Article(models.Model):
     def get_absolute_url(self):
         return reverse("articles:article_detail", args=[self.slug])
 
+    @property
+    def author_status_label(self) -> str:
+        return {
+            self.Status.DRAFT: "Draft",
+            self.Status.PENDING: "Waiting for review",
+            self.Status.APPROVED: "Published",
+            self.Status.NEEDS_CHANGES: "Needs changes",
+            self.Status.REJECTED: "Rejected",
+        }.get(self.status, self.get_status_display())
+
     @classmethod
     def get_category_value_from_slug(cls, category_slug):
         value = category_slug.replace("-", "_")

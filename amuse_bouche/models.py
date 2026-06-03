@@ -225,6 +225,17 @@ class AmuseBouche(models.Model):
         return reverse("amuse_bouche:detail", kwargs={"slug": self.slug})
 
     @property
+    def author_status_label(self) -> str:
+        return {
+            self.Status.DRAFT: "Draft",
+            self.Status.PENDING: "Waiting for review",
+            self.Status.APPROVED: "Published",
+            self.Status.NEEDS_CHANGES: "Needs changes",
+            self.Status.REJECTED: "Rejected",
+            self.Status.ARCHIVED: "Archived",
+        }.get(self.status, self.get_status_display())
+
+    @property
     def public_description(self) -> str:
         return self.seo_description or self.short_description
 

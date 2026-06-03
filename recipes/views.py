@@ -36,7 +36,12 @@ from collection.models import SavedRecipe
 from config.turnstile import verify_turnstile
 from monitoring.tracker import get_client_ip, hash_ip, track_event
 from .allergens import build_present_allergen_items
-from .authoring import AuthorRequiredMixin, author_skips_approval, user_can_manage_author
+from .authoring import (
+    AuthorRequiredMixin,
+    author_skips_approval,
+    get_author_for_user,
+    user_can_manage_author,
+)
 from .forms import (
     RecipeAuthoringForm,
     RecipeAuthorProfileForm,
@@ -71,6 +76,14 @@ RECIPE_MOOD_CHIPS = [
     ("desserts", "Desserts"),
     ("drinks", "Drinks"),
 ]
+
+AUTHOR_DASHBOARD_STATUS_FILTERS = (
+    ("draft", Recipe.Status.DRAFT, "Draft"),
+    ("pending", Recipe.Status.PENDING, "Waiting for review"),
+    ("needs_changes", Recipe.Status.NEEDS_CHANGES, "Needs changes"),
+    ("rejected", Recipe.Status.REJECTED, "Rejected"),
+    ("approved", Recipe.Status.APPROVED, "Published"),
+)
 
 
 def _build_automation_roadmap_progress():
@@ -1604,6 +1617,19 @@ def add_comment_reply(request, comment_id):
     return redirect(f"{recipe.get_absolute_url()}#comment-{reply.pk}")
 
 
+@login_required
+def author_dashboard(request):
+    author = get_author_for_user(request.user)
+    if not author:
+        messages.error(
+            request,
+            AuthorRequiredMixin.author_required_message,
+        )
+        return redirect("home")
+
+    return author_detail(request, author.slug)
+
+
 def author_detail(request, slug):
     author = get_object_or_404(RecipeAuthor, slug=slug)
     can_manage = user_can_manage_author(request.user, author)
@@ -1637,16 +1663,16 @@ def author_detail(request, slug):
         pass
 
     _VALID_STATUS_FILTERS = {
-        "draft": Recipe.Status.DRAFT,
-        "pending": Recipe.Status.PENDING,
-        "needs_changes": Recipe.Status.NEEDS_CHANGES,
-        "rejected": Recipe.Status.REJECTED,
-        "approved": Recipe.Status.APPROVED,
+        key: status_value for key, status_value, _label in AUTHOR_DASHBOARD_STATUS_FILTERS
+    }
+    _STATUS_FILTER_LABELS = {
+        key: label for key, _status_value, label in AUTHOR_DASHBOARD_STATUS_FILTERS
     }
     status_filter = request.GET.get("status", "").lower() if private_dashboard else ""
     status_value = _VALID_STATUS_FILTERS.get(status_filter)
     if not status_value:
         status_filter = ""
+    status_filter_label = _STATUS_FILTER_LABELS.get(status_filter, "")
 
     recipe_qs = Recipe.objects.filter(author=author, is_deleted=False).order_by("-created_at")
     article_qs = Article.objects.filter(author=author, is_deleted=False).order_by("-published")
@@ -1686,7 +1712,9 @@ def author_detail(request, slug):
         "dashboard_recipes": dashboard_recipes,
         "dashboard_articles": dashboard_articles,
         "dashboard_amuse_bouche": dashboard_amuse_bouche,
+        "dashboard_status_filters": AUTHOR_DASHBOARD_STATUS_FILTERS,
         "status_filter": status_filter,
+        "status_filter_label": status_filter_label,
     }
     return render(request, "recipes/author_detail.html", context)
 
@@ -2124,19 +2152,19 @@ def moderation_panel(request):
     )
     pending_articles = (
         Article.objects.select_related("author", "author__user")
-        .filter(status=Article.Status.PENDING)
+        .filter(status=Article.Status.PENDING, is_deleted=False)
         .exclude(author__slug=settings.OWNER_SLUG)
         .order_by("-published")
     )
     needs_changes_articles = (
         Article.objects.select_related("author", "author__user", "moderated_by")
-        .filter(status=Article.Status.NEEDS_CHANGES)
+        .filter(status=Article.Status.NEEDS_CHANGES, is_deleted=False)
         .exclude(author__slug=settings.OWNER_SLUG)
         .order_by("-moderated_at", "-published")
     )
     rejected_articles = (
         Article.objects.select_related("author", "author__user", "moderated_by")
-        .filter(status=Article.Status.REJECTED)
+        .filter(status=Article.Status.REJECTED, is_deleted=False)
         .exclude(author__slug=settings.OWNER_SLUG)
         .order_by("-published")
     )

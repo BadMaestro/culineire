@@ -703,8 +703,24 @@ class AuthenticationPageTests(TestCase):
         self.assertContains(response, author.get_absolute_url())
         self.assertContains(response, reverse("recipes:recipe_create"))
         self.assertContains(response, reverse("articles:article_create"))
+        self.assertContains(response, reverse("recipes:author_dashboard"))
         self.assertContains(response, f'{reverse("recipes:recipe_list")}?author={author.slug}')
         self.assertContains(response, f'{reverse("articles:article_list")}?author={author.slug}')
+
+    def test_author_dashboard_requires_login(self):
+        response = self.client.get(reverse("recipes:author_dashboard"))
+
+        self.assertRedirects(
+            response,
+            f'{reverse("login")}?next={reverse("recipes:author_dashboard")}',
+        )
+
+    def test_author_dashboard_requires_linked_author_profile(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("recipes:author_dashboard"))
+
+        self.assertRedirects(response, reverse("home"))
 
     def test_home_uses_article_gallery_image_when_article_image_is_missing(self):
         author = RecipeAuthor.objects.create(
@@ -1041,7 +1057,9 @@ class RecipeInteractionTests(TestCase):
             status=Recipe.Status.APPROVED,
         )
 
-    def test_submit_recipe_rating_is_limited_to_one_per_session(self):
+    def test_submit_recipe_rating_updates_existing_user_rating_without_duplicate(self):
+        user = get_user_model().objects.create_user(username="rater", password="Kitchen123!")
+        self.client.force_login(user)
         url = reverse("recipes:submit_recipe_rating", args=[self.recipe.slug])
 
         first_response = self.client.post(url, {"value": 5})
@@ -1050,7 +1068,9 @@ class RecipeInteractionTests(TestCase):
         self.assertEqual(first_response.status_code, 302)
         self.assertEqual(second_response.status_code, 302)
         self.assertEqual(RecipeRating.objects.filter(recipe=self.recipe).count(), 1)
-        self.assertEqual(RecipeRating.objects.get(recipe=self.recipe).value, 5)
+        rating = RecipeRating.objects.get(recipe=self.recipe)
+        self.assertEqual(rating.user, user)
+        self.assertEqual(rating.value, 4)
 
     def test_submit_recipe_comment_blocks_duplicate_payloads_in_session(self):
         user = get_user_model().objects.create_user(username="niamh", password="Kitchen123!")
@@ -2162,6 +2182,28 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertIn(self.pending_article, response.context["dashboard_articles"])
         self.assertIn(self.needs_changes_article, response.context["dashboard_articles"])
         self.assertIn(self.rejected_article, response.context["dashboard_articles"])
+
+    def test_author_dashboard_url_renders_owner_cabinet(self):
+        self.client.force_login(self.author_user)
+
+        response = self.client.get(reverse("recipes:author_dashboard"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["author"], self.author)
+        self.assertTrue(response.context["private_dashboard"])
+        self.assertContains(response, "Author Dashboard")
+        self.assertContains(response, reverse("recipes:recipe_create"))
+        self.assertContains(response, reverse("articles:article_create"))
+
+    def test_dashboard_uses_author_facing_status_labels_and_view_links(self):
+        self.client.force_login(self.author_user)
+
+        response = self.client.get(self.url)
+
+        self.assertContains(response, ">Waiting for review</span>", html=False)
+        self.assertContains(response, ">Published</span>", html=False)
+        self.assertContains(response, self.approved_recipe.get_absolute_url())
+        self.assertContains(response, self.approved_article.get_absolute_url())
 
     def test_public_visitor_sees_approved_content_only(self):
         response = self.client.get(self.url)

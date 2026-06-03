@@ -7,6 +7,7 @@ app_name = "recipes"
 urlpatterns = [
     path("", views.recipe_list, name="recipe_list"),
     path("create/", views.RecipeCreateView.as_view(), name="recipe_create"),
+    path("dashboard/", views.author_dashboard, name="author_dashboard"),
     path("profile/edit/", views.RecipeAuthorUpdateView.as_view(), name="author_edit"),
     path("profile/delete/", views.RecipeAuthorDeleteView.as_view(), name="author_delete"),
     path("moderation/", views.moderation_panel, name="moderation_panel"),

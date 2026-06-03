@@ -233,7 +233,7 @@ class ArticleAuthoringPermissionTests(TestCase):
         self.assertContains(response, "Approved Article")
         self.assertContains(response, "Pending Article")
         self.assertContains(response, "Rejected Article")
-        self.assertContains(response, "Pending Review")
+        self.assertContains(response, "Waiting for review")
         self.assertContains(response, "Rejected")
         self.assertContains(response, "Edit Article")
         self.assertTrue(response.context["can_manage_selected_author"])
@@ -2059,6 +2059,18 @@ class ArticleSoftDeleteTests(TestCase):
         )
         dashboard_articles = response.context.get("dashboard_articles", [])
         self.assertNotIn(self.article, dashboard_articles)
+
+    def test_deleted_article_excluded_from_moderation_panel(self):
+        self.article.status = Article.Status.PENDING
+        self.article.save(update_fields=["status"])
+        _soft_delete_article(self.article, self.owner_user)
+        self.client.force_login(self.moderator_user)
+
+        response = self.client.get(reverse("recipes:moderation_panel"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(self.article, response.context["pending_articles"])
+        self.assertNotContains(response, self.article.title)
 
     def test_deleted_article_excluded_from_related_articles(self):
         recipe = Recipe.objects.create(

@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}{{ author.name }} | CulinEire{% endblock %}
-{% block meta_description %}Browse recipes and articles by {{ author.name }} on CulinEire.{% endblock %}
+{% block title %}{% if private_dashboard %}Author Dashboard{% else %}{{ author.name }}{% endif %} | CulinEire{% endblock %}
+{% block meta_description %}{% if private_dashboard %}Manage recipes, articles and author content in your CulinEire dashboard.{% else %}Browse recipes and articles by {{ author.name }} on CulinEire.{% endif %}{% endblock %}
 
 {% block og_title %}{{ author.name }} | CulinEire{% endblock %}
 {% block og_description %}Browse recipes and articles by {{ author.name }} on CulinEire.{% endblock %}
@@ -23,7 +23,7 @@
             <div class="hero-author-avatar-wrap">
                 <img alt="{{ author.name }}" class="hero-author-avatar" src="{{ author.display_avatar_url }}">
             </div>
-            <h1 class="hero-title {% if is_god_author %}author-name--greenbear{% endif %}">{% if is_god_author %}{{ author.name }}{% else %}Author's Profile{% endif %}</h1>
+            <h1 class="hero-title {% if is_god_author %}author-name--greenbear{% endif %}">{% if private_dashboard %}Author Dashboard{% elif is_god_author %}{{ author.name }}{% else %}Author's Profile{% endif %}</h1>
             {% if author.bio %}
             <p class="hero-subtitle">{{ author.bio }}</p>
             {% endif %}
@@ -69,16 +69,10 @@
             <nav class="author-studio-filters" aria-label="Filter by status">
                 <a class="author-studio-filters__tab{% if not status_filter %} author-studio-filters__tab--active{% endif %}"
                    href="?">All</a>
-                <a class="author-studio-filters__tab{% if status_filter == 'draft' %} author-studio-filters__tab--active{% endif %}"
-                   href="?status=draft">Draft</a>
-                <a class="author-studio-filters__tab{% if status_filter == 'pending' %} author-studio-filters__tab--active{% endif %}"
-                   href="?status=pending">Pending</a>
-                <a class="author-studio-filters__tab{% if status_filter == 'needs_changes' %} author-studio-filters__tab--active{% endif %}"
-                   href="?status=needs_changes">Needs Changes</a>
-                <a class="author-studio-filters__tab{% if status_filter == 'rejected' %} author-studio-filters__tab--active{% endif %}"
-                   href="?status=rejected">Rejected</a>
-                <a class="author-studio-filters__tab{% if status_filter == 'approved' %} author-studio-filters__tab--active{% endif %}"
-                   href="?status=approved">Approved</a>
+                {% for filter_key, filter_value, filter_label in dashboard_status_filters %}
+                <a class="author-studio-filters__tab{% if status_filter == filter_key %} author-studio-filters__tab--active{% endif %}"
+                   href="?status={{ filter_key }}">{{ filter_label }}</a>
+                {% endfor %}
             </nav>
             {% endif %}
 
@@ -87,13 +81,13 @@
                 <p class="author-studio-pending__group-label">Recipes</p>
                 <ul class="author-studio-pending__list">
                     {% for recipe in dashboard_recipes %}
-                    <li class="author-studio-pending__item{% if recipe.status == 'REJECTED' %} author-studio-pending__item--rejected{% endif %}{% if recipe.status == 'DRAFT' %} author-studio-pending__item--draft{% endif %}">
+                    <li class="author-studio-pending__item{% if recipe.status == 'rejected' %} author-studio-pending__item--rejected{% endif %}{% if recipe.status == 'draft' %} author-studio-pending__item--draft{% endif %}">
                         {% if private_dashboard %}
-                        <span class="author-studio-status author-studio-status--{{ recipe.status|lower }}">{{ recipe.get_status_display }}</span>
+                        <span class="author-studio-status author-studio-status--{{ recipe.status|lower }}">{{ recipe.author_status_label }}</span>
                         {% endif %}
                         <span class="author-studio-pending__name" title="{{ recipe.title }}">{{ recipe.title }}</span>
                         <span class="author-studio-pending__date">{{ recipe.created_at|date:"j M Y" }}</span>
-                        {% if recipe.status == 'APPROVED' %}
+                        {% if recipe.status == 'approved' %}
                         <a class="author-studio-pending__view" href="{{ recipe.get_absolute_url }}">View</a>
                         {% endif %}
                         {% if can_manage_author_profile %}
@@ -116,13 +110,13 @@
                 <p class="author-studio-pending__group-label">Articles</p>
                 <ul class="author-studio-pending__list">
                     {% for article in dashboard_articles %}
-                    <li class="author-studio-pending__item{% if article.status == 'REJECTED' %} author-studio-pending__item--rejected{% endif %}{% if article.status == 'DRAFT' %} author-studio-pending__item--draft{% endif %}">
+                    <li class="author-studio-pending__item{% if article.status == 'rejected' %} author-studio-pending__item--rejected{% endif %}{% if article.status == 'draft' %} author-studio-pending__item--draft{% endif %}">
                         {% if private_dashboard %}
-                        <span class="author-studio-status author-studio-status--{{ article.status|lower }}">{{ article.get_status_display }}</span>
+                        <span class="author-studio-status author-studio-status--{{ article.status|lower }}">{{ article.author_status_label }}</span>
                         {% endif %}
                         <span class="author-studio-pending__name" title="{{ article.title }}">{{ article.title }}</span>
                         <span class="author-studio-pending__date">{{ article.published|date:"j M Y" }}</span>
-                        {% if article.status == 'APPROVED' %}
+                        {% if article.status == 'approved' %}
                         <a class="author-studio-pending__view" href="{{ article.get_absolute_url }}">View</a>
                         {% endif %}
                         {% if can_manage_author_profile %}
@@ -147,7 +141,7 @@
                     {% for item in dashboard_amuse_bouche %}
                     <li class="author-studio-pending__item">
                         {% if private_dashboard %}
-                        <span class="author-studio-status author-studio-status--{{ item.status|lower }}">{{ item.get_status_display }}</span>
+                        <span class="author-studio-status author-studio-status--{{ item.status|lower }}">{{ item.author_status_label }}</span>
                         {% endif %}
                         <span class="author-studio-pending__name" title="{{ item.title }}">{{ item.title }}</span>
                         <span class="author-studio-pending__date">{{ item.created_at|date:"j M Y" }}</span>
@@ -170,15 +164,17 @@
             {% endif %}
 
             {% if not dashboard_recipes and not dashboard_articles and not dashboard_amuse_bouche %}
-            <p class="author-studio-pending__note">{% if private_dashboard %}No content found{% if status_filter %} with status &ldquo;{{ status_filter }}&rdquo;{% endif %}.{% else %}No published content yet.{% endif %}</p>
+            <p class="author-studio-pending__note">{% if private_dashboard %}No content found{% if status_filter_label %} with status &ldquo;{{ status_filter_label }}&rdquo;{% endif %}.{% else %}No published content yet.{% endif %}</p>
             {% endif %}
         </div>
         {% endif %}
 
         {% if can_manage_author_profile %}
         <div class="author-profile-manage">
-            <p class="author-profile-manage__label">Manage Profile</p>
+            <p class="author-profile-manage__label">Author Cabinet</p>
             <div class="author-profile-manage__actions">
+                <a class="btn" href="{% url 'recipes:recipe_create' %}">Create Recipe</a>
+                <a class="btn" href="{% url 'articles:article_create' %}">Create Article</a>
                 <a class="btn" href="{% url 'recipes:author_edit' %}">Edit Profile</a>
                 {% if not is_god_author %}
                 <a class="recipe-card__cta btn btn--danger recipe-card__delete" href="{% url 'recipes:author_delete' %}">Delete Profile</a>

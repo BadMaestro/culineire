@@ -117,6 +117,12 @@ def header_author(request):
         },
     ]
 
+    if author:
+        actions.insert(0, {
+            "label": "Dashboard",
+            "url": _reverse_or_empty("recipes:author_dashboard"),
+        })
+
     if can_view_amuse_bouche or author:
         actions.insert(2, {
             "label": "My Amuse-Bouche",
