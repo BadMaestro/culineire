@@ -79,7 +79,9 @@
 }
 
 .auth-field input,
-.auth-field select {
+.auth-field select,
+.auth-field textarea {
+    display: block;
     width: 100%;
     min-height: 3.35rem;
     padding: 0.84rem 0.95rem;
@@ -88,6 +90,12 @@
     background: rgb(255 255 255 / 0.92);
     color: var(--ink);
     font: inherit;
+    line-height: 1.5;
+}
+
+.auth-field textarea {
+    min-height: 9rem;
+    resize: vertical;
 }
 
 .auth-field select {
@@ -103,10 +111,73 @@
 }
 
 .auth-field input:focus,
-.auth-field select:focus {
+.auth-field select:focus,
+.auth-field textarea:focus {
     outline: 2px solid rgb(24 76 58 / 0.18);
     outline-offset: 2px;
     border-color: var(--brand);
+}
+
+.auth-form .profanity-wrapper {
+    display: block;
+    position: relative;
+    width: 100%;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: rgb(255 255 255 / 0.92);
+}
+
+.auth-form .profanity-wrapper:focus-within {
+    outline: 2px solid rgb(24 76 58 / 0.18);
+    outline-offset: 2px;
+    border-color: var(--brand);
+}
+
+.auth-form .profanity-wrapper:has(.profanity-active) {
+    border-color: rgb(160 35 35 / 0.55);
+    background: rgb(255 248 248 / 0.92);
+    outline: 2px solid rgb(160 35 35 / 0.12);
+    outline-offset: 2px;
+}
+
+.auth-form .profanity-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+    border-radius: var(--radius-sm);
+}
+
+.auth-form .profanity-highlights {
+    width: 100%;
+    color: transparent;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+}
+
+.auth-form .profanity-highlights--input {
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.auth-form .profanity-mark {
+    color: transparent;
+    background: transparent;
+    text-decoration: underline wavy rgb(160 35 35);
+    text-underline-offset: 3px;
+}
+
+.auth-form .profanity-wrapper input,
+.auth-form .profanity-wrapper textarea {
+    position: relative;
+    z-index: 1;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: 0 !important;
+    caret-color: var(--ink);
 }
 
 .auth-field__label {
