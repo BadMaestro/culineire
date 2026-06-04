@@ -68,6 +68,13 @@
                 <svg aria-hidden="true" class="author-profile-links__arrow" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
             </a>
             {% endif %}
+            {% if private_dashboard %}
+            <a class="author-profile-links__card" href="{% url 'collection:my_collection' %}">
+                <span class="author-profile-links__count">{{ collection_count }}</span>
+                <span class="author-profile-links__label">My Collection</span>
+                <svg aria-hidden="true" class="author-profile-links__arrow" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+            </a>
+            {% endif %}
         </div>
 
         {% if private_dashboard or dashboard_recipes or dashboard_articles or dashboard_amuse_bouche %}

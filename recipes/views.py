@@ -8,6 +8,7 @@ from typing import cast
 logger = logging.getLogger("recipes")
 
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout
@@ -32,7 +33,7 @@ from accounts.views import (
     is_moderator,
 )
 from articles.models import Article, ArticleImage
-from collection.models import SavedRecipe
+from collection.models import SavedArticle, SavedContent, SavedRecipe
 from config.turnstile import verify_turnstile
 from monitoring.tracker import get_client_ip, hash_ip, track_event
 from .allergens import build_present_allergen_items
@@ -1714,6 +1715,35 @@ def author_detail(request, slug):
     except Exception:
         pass
 
+    collection_count = 0
+    if private_dashboard:
+        collection_count = (
+            SavedRecipe.objects.filter(
+                user=request.user,
+                recipe__status=Recipe.Status.APPROVED,
+                recipe__is_deleted=False,
+            ).count()
+            + SavedArticle.objects.filter(
+                user=request.user,
+                article__status=Article.Status.APPROVED,
+                article__is_deleted=False,
+            ).count()
+        )
+        if can_show_public_amuse_bouche:
+            try:
+                from amuse_bouche.models import AmuseBouche as _AmuseBouche
+                amuse_bouche_type = ContentType.objects.get_for_model(_AmuseBouche)
+                approved_bite_ids = _AmuseBouche.objects.filter(
+                    status=_AmuseBouche.Status.APPROVED
+                ).values("pk")
+                collection_count += SavedContent.objects.filter(
+                    user=request.user,
+                    content_type=amuse_bouche_type,
+                    object_id__in=approved_bite_ids,
+                ).count()
+            except Exception:
+                pass
+
     context = {
         "author": author,
         "recipe_count": recipe_count,
@@ -1730,6 +1760,7 @@ def author_detail(request, slug):
         "dashboard_status_filters": dashboard_status_filters,
         "status_filter": status_filter,
         "status_filter_label": status_filter_label,
+        "collection_count": collection_count,
     }
     return render(request, "recipes/author_detail.html", context)
 

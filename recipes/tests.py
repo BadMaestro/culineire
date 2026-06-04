@@ -21,6 +21,7 @@ from django.urls import reverse
 from PIL import Image
 
 from articles.models import Article, ArticleImage
+from collection.models import SavedRecipe
 from .admin import RecipeAdmin, RecipeAdminForm
 from .allergens import build_present_allergen_items, parse_selected_allergen_keys, serialize_allergen_keys
 from .forms import RecipeAuthoringForm, RecipeCommentForm
@@ -2329,6 +2330,17 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertLess(hero.index("Create Article"), hero.index("Edit Profile"))
         self.assertNotIn("Explore Recipes", hero)
         self.assertNotIn("Read Articles", hero)
+
+    def test_author_dashboard_links_to_my_collection(self):
+        SavedRecipe.objects.create(user=self.author_user, recipe=self.approved_recipe)
+        self.client.force_login(self.author_user)
+
+        response = self.client.get(reverse("recipes:author_dashboard"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["collection_count"], 1)
+        self.assertContains(response, "My Collection")
+        self.assertContains(response, reverse("collection:my_collection"))
 
     def test_dashboard_uses_author_facing_status_labels_and_view_links(self):
         self.client.force_login(self.author_user)
