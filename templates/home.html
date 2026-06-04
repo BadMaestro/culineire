@@ -127,9 +127,9 @@
                     <article class="recipe-card">
                         <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
                             {% if recipe.hero_image %}
-                            <img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="lazy" decoding="async">
+                            <img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="eager" decoding="async">
                             {% else %}
-                            <img alt="{{ recipe.title }}" src="{% static 'images/hero.png' %}" loading="lazy" decoding="async">
+                            <img alt="{{ recipe.title }}" src="{% static 'images/hero.png' %}" loading="eager" decoding="async">
                             {% endif %}
                         </a>
 
@@ -231,9 +231,9 @@
                     <article class="recipe-card recipe-card--article">
                         <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">
                             {% if article.card_image %}
-                            <img alt="{{ article.title }}" src="{{ article.card_image.url }}" loading="lazy" decoding="async">
+                            <img alt="{{ article.title }}" src="{{ article.card_image.url }}" loading="eager" decoding="async">
                             {% else %}
-                            <img alt="{{ article.title }}" src="{% static 'images/hero.png' %}" loading="lazy" decoding="async">
+                            <img alt="{{ article.title }}" src="{% static 'images/hero.png' %}" loading="eager" decoding="async">
                             {% endif %}
                         </a>
 

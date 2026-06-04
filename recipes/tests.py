@@ -1561,16 +1561,16 @@ class PublicImagePerformanceHintTests(TestCase):
             image_rights_status=Article.ImageRightsStatus.NOT_APPLICABLE,
         )
 
-    def test_home_cards_use_lazy_async_image_hints(self):
+    def test_home_cards_use_eager_async_image_hints(self):
         response = self.client.get(reverse("home"))
 
-        self.assertContains(response, 'loading="lazy"')
+        self.assertContains(response, 'loading="eager"')
         self.assertContains(response, 'decoding="async"')
 
-    def test_recipe_list_cards_use_lazy_async_image_hints(self):
+    def test_recipe_list_cards_use_eager_async_image_hints(self):
         response = self.client.get(reverse("recipes:recipe_list"))
 
-        self.assertContains(response, 'loading="lazy"')
+        self.assertContains(response, 'loading="eager"')
         self.assertContains(response, 'decoding="async"')
 
     def test_author_recipe_mini_cards_show_management_actions(self):
@@ -1663,10 +1663,10 @@ class PublicImagePerformanceHintTests(TestCase):
             self.assertNotIn("+ New Recipe", content)
             self.assertNotIn("+ New Article", content)
 
-    def test_article_list_cards_use_lazy_async_image_hints(self):
+    def test_article_list_cards_use_eager_async_image_hints(self):
         response = self.client.get(reverse("articles:article_list"))
 
-        self.assertContains(response, 'loading="lazy"')
+        self.assertContains(response, 'loading="eager"')
         self.assertContains(response, 'decoding="async"')
 
 
