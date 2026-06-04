@@ -10,17 +10,18 @@ VENV=/srv/culineire/venv
 PY=$VENV/bin/python
 PIP=$VENV/bin/pip
 ENV_FILE=/srv/culineire/shared/.env
+UNIT_CONFIG=$APP/deploy/unit.culineire.json
 
 export DJANGO_ENV_FILE="$ENV_FILE"
-
-if [ ! -f "$ENV_FILE" ]; then
-    fail "Production .env not found at $ENV_FILE"
-fi
 
 GREEN='\033[0;32m'; RED='\033[0;31m'; CYAN='\033[0;36m'; NC='\033[0m'
 ok()   { echo -e "${GREEN}[OK]${NC}  $*"; }
 info() { echo -e "${CYAN}[--]${NC}  $*"; }
 fail() { echo -e "${RED}[FAIL]${NC} $*"; exit 1; }
+
+if [ ! -f "$ENV_FILE" ]; then
+    fail "Production .env not found at $ENV_FILE"
+fi
 
 echo ""
 info "=== CulinEire deploy $(date '+%Y-%m-%d %H:%M:%S') ==="
@@ -73,6 +74,17 @@ if sudo systemctl is-active --quiet unit; then
     ok "NGINX Unit is running"
 else
     fail "NGINX Unit failed to start — check: sudo journalctl -u unit -n 50"
+fi
+
+info "Loading CulinEire NGINX Unit configuration..."
+sudo curl -sS -X PUT --data-binary @"$UNIT_CONFIG" \
+    --unix-socket /var/run/control.unit.sock \
+    http://localhost/config/ >/tmp/culineire-unit-reconfigure.json
+if grep -q '"success"' /tmp/culineire-unit-reconfigure.json; then
+    ok "NGINX Unit configuration loaded"
+else
+    cat /tmp/culineire-unit-reconfigure.json
+    fail "NGINX Unit configuration failed - check: sudo tail -n 100 /var/log/unit.log"
 fi
 
 # --- 9. Smoke test ------------------------------------------------------------

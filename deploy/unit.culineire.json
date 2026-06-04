@@ -32,7 +32,9 @@
       "environment": {
         "DJANGO_SETTINGS_MODULE": "config.settings",
         "DJANGO_ENV_FILE": "/srv/culineire/shared/.env"
-      }
+      },
+      "user": "deploy",
+      "group": "deploy"
     }
   }
 }
