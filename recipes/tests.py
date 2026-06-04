@@ -2380,16 +2380,23 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.client.force_login(self.author_user)
 
         response = self.client.get(self.url)
+        filter_nav = response.content.decode().split('aria-label="Dashboard filters"', 1)[1].split("</nav>", 1)[0]
 
-        self.assertContains(response, 'aria-label="Filter by content type"')
+        self.assertContains(response, 'aria-label="Dashboard filters"')
         self.assertContains(response, "category-nav author-studio-filter-row")
         self.assertContains(response, "category-nav__item category-nav__link")
-        self.assertContains(response, "All Types")
-        self.assertContains(response, "Recipes")
-        self.assertContains(response, "Articles")
-        self.assertContains(response, "AB")
-        self.assertContains(response, 'aria-label="Filter by status"')
-        self.assertContains(response, "All Statuses")
+        self.assertNotIn("All Types", filter_nav)
+        self.assertIn("Amuse-Bouche", filter_nav)
+        self.assertIn("Recipes", filter_nav)
+        self.assertIn("Articles", filter_nav)
+        self.assertIn("Draft", filter_nav)
+        self.assertIn("Published", filter_nav)
+        self.assertNotIn(">AB<", filter_nav)
+        self.assertNotContains(response, 'aria-label="Filter by status"')
+        self.assertNotIn("All Statuses", filter_nav)
+        self.assertNotIn("Waiting for review", filter_nav)
+        self.assertNotIn("Needs changes", filter_nav)
+        self.assertNotIn("Rejected", filter_nav)
         self.assertNotContains(response, "author-studio-filters")
 
     def test_dashboard_content_filter_recipes_returns_only_recipes(self):

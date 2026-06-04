@@ -90,10 +90,12 @@ AUTHOR_DASHBOARD_STATUS_FILTERS = (
 GOD_AUTHOR_DASHBOARD_STATUS_FILTER_KEYS = {"draft", "approved"}
 
 AUTHOR_DASHBOARD_CONTENT_FILTERS = (
+    ("ab", "Amuse-Bouche"),
     ("recipes", "Recipes"),
     ("articles", "Articles"),
-    ("ab", "AB"),
 )
+
+AUTHOR_DASHBOARD_VISIBLE_STATUS_FILTER_KEYS = {"draft", "approved"}
 
 
 def _build_automation_roadmap_progress():
@@ -1455,37 +1457,26 @@ def author_detail(request, slug):
 
     dashboard_content_filters = [
         {
-            "key": "",
-            "label": "All Types",
-            "url": _dashboard_filter_url(content_key=""),
-            "active": not content_filter,
-        },
-        *[
-            {
-                "key": key,
-                "label": label,
-                "url": _dashboard_filter_url(content_key=key),
-                "active": content_filter == key,
-            }
-            for key, label in AUTHOR_DASHBOARD_CONTENT_FILTERS
-        ],
+            "key": key,
+            "label": label,
+            "url": _dashboard_filter_url(content_key=key),
+            "active": content_filter == key,
+        }
+        for key, label in AUTHOR_DASHBOARD_CONTENT_FILTERS
     ]
     dashboard_status_filter_links = [
         {
-            "key": "",
-            "label": "All Statuses",
-            "url": _dashboard_filter_url(status_key=""),
-            "active": not status_filter,
-        },
-        *[
-            {
-                "key": key,
-                "label": label,
-                "url": _dashboard_filter_url(status_key=key),
-                "active": status_filter == key,
-            }
-            for key, _status_value, label in dashboard_status_filters
-        ],
+            "key": key,
+            "label": label,
+            "url": _dashboard_filter_url(status_key=key),
+            "active": status_filter == key,
+        }
+        for key, _status_value, label in dashboard_status_filters
+        if key in AUTHOR_DASHBOARD_VISIBLE_STATUS_FILTER_KEYS
+    ]
+    dashboard_filter_links = [
+        *dashboard_content_filters,
+        *dashboard_status_filter_links,
     ]
 
     recipe_qs = Recipe.objects.filter(author=author, is_deleted=False).order_by("-created_at")
@@ -1565,6 +1556,7 @@ def author_detail(request, slug):
         "dashboard_status_filters": dashboard_status_filters,
         "dashboard_content_filters": dashboard_content_filters,
         "dashboard_status_filter_links": dashboard_status_filter_links,
+        "dashboard_filter_links": dashboard_filter_links,
         "status_filter": status_filter,
         "status_filter_label": status_filter_label,
         "content_filter": content_filter,

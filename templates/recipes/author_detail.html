@@ -84,20 +84,8 @@
 
             {% if private_dashboard %}
             <div class="author-studio-controls">
-                <nav class="category-nav author-studio-filter-row" aria-label="Filter by content type">
-                    {% for filter in dashboard_content_filters %}
-                    {% if filter.active %}
-                    <span class="category-nav__item category-nav__item--active" aria-current="true">{{ filter.label }}</span>
-                    {% else %}
-                    <a class="category-nav__item category-nav__link" href="{{ filter.url }}">{{ filter.label }}</a>
-                    {% endif %}
-                    {% if not forloop.last %}
-                    <span aria-hidden="true" class="category-nav__separator">&middot;</span>
-                    {% endif %}
-                    {% endfor %}
-                </nav>
-                <nav class="category-nav author-studio-filter-row" aria-label="Filter by status">
-                    {% for filter in dashboard_status_filter_links %}
+                <nav class="category-nav author-studio-filter-row" aria-label="Dashboard filters">
+                    {% for filter in dashboard_filter_links %}
                     {% if filter.active %}
                     <span class="category-nav__item category-nav__item--active" aria-current="true">{{ filter.label }}</span>
                     {% else %}
