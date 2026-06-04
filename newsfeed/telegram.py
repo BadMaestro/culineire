@@ -12,6 +12,19 @@ from django.db import IntegrityError, transaction
 
 logger = logging.getLogger(__name__)
 
+_NOTIFICATIONS_DISABLED_RESULT = None  # populated after TelegramResult is defined
+
+
+def external_notifications_disabled() -> bool:
+    """True when running under the test runner or when explicitly disabled in settings.
+
+    Read from settings at call time so override_settings() works in tests.
+    """
+    return (
+        getattr(settings, "IS_TESTING", False)
+        or getattr(settings, "DISABLE_EXTERNAL_NOTIFICATIONS", False)
+    )
+
 
 @dataclass(frozen=True)
 class TelegramResult:
@@ -72,6 +85,8 @@ def build_ab_telegram_message(entry) -> str:
 
 
 def _call_telegram_api(token: str, method: str, payload: dict) -> TelegramResult:
+    if external_notifications_disabled():
+        return TelegramResult(ok=False, status="skipped", response="External notifications are disabled.")
     data = urlencode(payload).encode("utf-8")
     request = Request(
         f"https://api.telegram.org/bot{token}/{method}",
@@ -143,6 +158,8 @@ def send_telegram_photo(image_url: str, caption: str) -> TelegramResult:
 
 
 def _publish_to_telegram(*, event_key: str, message: str, target_url: str, image_url: str = "", _send_fn=None) -> TelegramResult:
+    if external_notifications_disabled():
+        return TelegramResult(ok=False, status="skipped", response="External notifications are disabled.")
     if not getattr(settings, "TELEGRAM_BOT_TOKEN", "") or not getattr(settings, "TELEGRAM_CHANNEL_ID", ""):
         return TelegramResult(ok=False, status="skipped", response="Telegram settings are not configured.")
 

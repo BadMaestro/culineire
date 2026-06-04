@@ -109,6 +109,7 @@ class RecipeFeedEntryTest(TestCase):
         )
 
 
+@override_settings(IS_TESTING=False)
 class RecipeTelegramPublishTest(TestCase):
     def setUp(self):
         self.author = _make_author()
@@ -159,6 +160,7 @@ class RecipeTelegramPublishTest(TestCase):
         self.assertFalse(SocialPostLog.objects.exists())
 
 
+@override_settings(IS_TESTING=False)
 class ArticleTelegramPublishTest(TestCase):
     def setUp(self):
         self.author = _make_author()
@@ -373,6 +375,7 @@ class AmuseBoucheTelegramMessageTest(TestCase):
 
 
 @override_settings(
+    IS_TESTING=False,
     TELEGRAM_BOT_TOKEN="test-token",
     TELEGRAM_CHANNEL_ID="@culineire_test",
     SITE_DOMAIN="culineire.ie",
@@ -478,6 +481,7 @@ class AmuseBoucheTelegramPublishTest(TestCase):
         self.assertRegex(preview_url, r"https://culineire\.ie/amuse-bouche/cache-bite/\?tg=\d+-\d+")
 
 
+@override_settings(IS_TESTING=False)
 class AmuseBoucheLaunchNewsCommandTest(TestCase):
     @override_settings(
         TELEGRAM_BOT_TOKEN="test-token",
@@ -509,3 +513,88 @@ class AmuseBoucheLaunchNewsCommandTest(TestCase):
         call_command("publish_amuse_bouche_launch_news")
 
         self.assertEqual(send_telegram_message.call_count, 1)
+
+
+class TelegramNotificationGuardTests(TestCase):
+    """Verify the IS_TESTING / DISABLE_EXTERNAL_NOTIFICATIONS guard prevents real sends."""
+
+    # ------------------------------------------------------------------ #
+    # Helpers                                                              #
+    # ------------------------------------------------------------------ #
+
+    def _call_api(self):
+        from newsfeed.telegram import _call_telegram_api
+        return _call_telegram_api("tok", "sendMessage", {"chat_id": "@c", "text": "hi"})
+
+    # ------------------------------------------------------------------ #
+    # Guard active: IS_TESTING=True (default during the test suite)       #
+    # ------------------------------------------------------------------ #
+
+    @patch("newsfeed.telegram.urlopen")
+    def test_call_telegram_api_is_skipped_when_is_testing_true(self, mock_urlopen):
+        """_call_telegram_api must never open a network connection during tests."""
+        result = self._call_api()
+
+        mock_urlopen.assert_not_called()
+        self.assertEqual(result.status, "skipped")
+        self.assertFalse(result.ok)
+
+    @patch("newsfeed.telegram.urlopen")
+    @override_settings(IS_TESTING=True)
+    def test_no_urllib_call_possible_when_is_testing_true(self, mock_urlopen):
+        """Belt-and-braces: patching urlopen AND checking it stays uncalled."""
+        self._call_api()
+        mock_urlopen.assert_not_called()
+
+    # ------------------------------------------------------------------ #
+    # Guard active: DISABLE_EXTERNAL_NOTIFICATIONS=True                   #
+    # ------------------------------------------------------------------ #
+
+    @patch("newsfeed.telegram.urlopen")
+    @override_settings(IS_TESTING=False, DISABLE_EXTERNAL_NOTIFICATIONS=True)
+    def test_call_telegram_api_is_skipped_when_disable_external_notifications_true(self, mock_urlopen):
+        result = self._call_api()
+
+        mock_urlopen.assert_not_called()
+        self.assertEqual(result.status, "skipped")
+
+    @patch("newsfeed.telegram.urlopen")
+    @override_settings(IS_TESTING=False, DISABLE_EXTERNAL_NOTIFICATIONS=True,
+                       TELEGRAM_BOT_TOKEN="sk_real", TELEGRAM_CHANNEL_ID="@real")
+    def test_publish_to_telegram_skipped_without_creating_social_post_log(self, mock_urlopen):
+        """_publish_to_telegram must return early and not create a SocialPostLog entry."""
+        from newsfeed.telegram import _publish_to_telegram
+
+        result = _publish_to_telegram(
+            event_key="guard_test:1",
+            message="Should not send",
+            target_url="/test/",
+        )
+
+        mock_urlopen.assert_not_called()
+        self.assertEqual(result.status, "skipped")
+        self.assertFalse(SocialPostLog.objects.exists())
+
+    # ------------------------------------------------------------------ #
+    # Guard inactive: production path exercises _call_telegram_api        #
+    # ------------------------------------------------------------------ #
+
+    @override_settings(
+        IS_TESTING=False,
+        DISABLE_EXTERNAL_NOTIFICATIONS=False,
+        TELEGRAM_BOT_TOKEN="test-token",
+        TELEGRAM_CHANNEL_ID="@culineire_test",
+    )
+    @patch("newsfeed.telegram.urlopen")
+    def test_production_path_calls_telegram_api_when_guard_is_false(self, mock_urlopen):
+        """When guard is off and tokens are present, _call_telegram_api reaches urlopen."""
+        import io
+        mock_urlopen.return_value.__enter__ = lambda s: s
+        mock_urlopen.return_value.__exit__ = lambda s, *a: False
+        mock_urlopen.return_value.read.return_value = b'{"ok": true}'
+
+        result = self._call_api()
+
+        mock_urlopen.assert_called_once()
+        self.assertTrue(result.ok)
+        self.assertEqual(result.status, "sent")

@@ -310,6 +310,9 @@ OPENAI_IMAGE_MODEL = os.getenv("OPENAI_IMAGE_MODEL", "gpt-image-1")
 OPENAI_IMAGE_QUALITY = os.getenv("OPENAI_IMAGE_QUALITY", "low")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHANNEL_ID = os.getenv("TELEGRAM_CHANNEL_ID", "")
+# Set True in .env to block all outbound Telegram sends (e.g. staging).
+# Always effectively True during test runs because IS_TESTING=True.
+DISABLE_EXTERNAL_NOTIFICATIONS = env_bool("DISABLE_EXTERNAL_NOTIFICATIONS", default=False)
 PRESENCE_EVENT_COOLDOWN_MINUTES = env_int("PRESENCE_EVENT_COOLDOWN_MINUTES", default=5)
 SIGNUP_REQUIRE_EMAIL_CONFIRMATION = env_bool(
     "SIGNUP_REQUIRE_EMAIL_CONFIRMATION",
