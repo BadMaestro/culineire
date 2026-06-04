@@ -1119,6 +1119,7 @@ def recipe_list(request):
         "all_recipes_grid": all_recipes_grid,
         "selected_author": selected_author,
         "can_manage_selected_author": can_manage_selected_author,
+        "dashboard_back_url": reverse("recipes:author_dashboard") if can_manage_selected_author else "",
         "search_query": q,
     }
     return render(request, "recipes/recipe_list.html", context)

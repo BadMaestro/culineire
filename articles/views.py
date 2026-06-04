@@ -251,6 +251,7 @@ class ArticleListView(ListView):
         context["selected_category_label"] = selected_category_label
         context["categories"] = Article.get_category_navigation(selected_value=category_value)
         context["can_manage_selected_author"] = can_manage_selected_author
+        context["dashboard_back_url"] = reverse("recipes:author_dashboard") if can_manage_selected_author else ""
         return context
 
 

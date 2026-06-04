@@ -159,6 +159,7 @@ def feed(request):
     if request.user.is_authenticated:
         profile = getattr(request.user, "recipe_author_profile", None)
         user_author_slug = profile.slug if profile else ""
+    show_author_create_action = bool(user_author_slug and author == user_author_slug)
     return render(request, "amuse_bouche/feed.html", {
         "items": items,
         "content_type_choices": AmuseBouche.ContentType.choices,
@@ -168,7 +169,8 @@ def feed(request):
         "followed_author_ids": followed_author_ids,
         "user_author_slug": user_author_slug,
         "user_is_moderator": is_moderator(request.user),
-        "show_author_create_action": bool(user_author_slug and author == user_author_slug),
+        "show_author_create_action": show_author_create_action,
+        "dashboard_back_url": reverse("recipes:author_dashboard") if show_author_create_action else "",
     })
 
 

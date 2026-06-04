@@ -1582,6 +1582,20 @@ class PublicImagePerformanceHintTests(TestCase):
         self.assertContains(response, reverse("recipes:recipe_edit", kwargs={"slug": self.recipe.slug}))
         self.assertContains(response, reverse("recipes:recipe_delete", kwargs={"slug": self.recipe.slug}))
 
+    def test_author_recipe_list_owner_sees_dashboard_back_link(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(f'{reverse("recipes:recipe_list")}?author={self.author.slug}')
+
+        self.assertContains(response, "Back to My Dashboard")
+        self.assertContains(response, reverse("recipes:author_dashboard"))
+
+    def test_author_recipe_list_guest_does_not_see_dashboard_back_link(self):
+        response = self.client.get(f'{reverse("recipes:recipe_list")}?author={self.author.slug}')
+
+        self.assertNotContains(response, "Back to My Dashboard")
+        self.assertNotContains(response, reverse("recipes:author_dashboard"))
+
     @override_settings(AMUSE_BOUCHE_PUBLIC=True)
     def test_author_sees_dashboard_back_button_in_main_sections(self):
         self.client.force_login(self.user)
@@ -1641,6 +1655,8 @@ class PublicImagePerformanceHintTests(TestCase):
             hero = content.split("<section class=\"hero", 1)[1].split("</section>", 1)[0]
             self.assertNotIn("hero-author-cabinet", hero)
             self.assertIn(expected_label, hero)
+            self.assertIn("Back to My Dashboard", hero)
+            self.assertIn(reverse("recipes:author_dashboard"), hero)
             self.assertNotIn("Explore Recipes", hero)
             self.assertNotIn("Read Articles", hero)
             self.assertNotIn("author-recipes-add", content)
