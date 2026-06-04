@@ -8,12 +8,11 @@
 {% block meta_description %}Support CulinEire and keep your brand visible to a growing Irish food community. Become a Founding Sponsor.{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/sponsors.css' %}">
-<link rel="stylesheet" href="{% static 'css/sponsors_modal.css' %}">
+<link rel="stylesheet" href="{% static 'css/sponsors.css' %}?v=20260604-avatar">
+<link rel="stylesheet" href="{% static 'css/sponsors_modal.css' %}?v=20260604-avatar">
 {% endblock %}
 
 {% block content %}
-
 <section class="hero hero--home hero--sponsors">
   <div aria-hidden="true" class="hero__background">
     <img alt="" src="{% static 'images/hero-sponsors.png' %}">
@@ -23,7 +22,7 @@
     <div class="hero-copy">
       <span class="pill">Become a Founding Sponsor</span>
       <h1 class="hero-title">Your brand at the heart of CulinEire</h1>
-      <p class="hero-subtitle">CulinEire is building a home for Irish recipes, food stories and the cooks who create them. Support the platform and keep your business visible to a growing Irish food community.</p>
+      <p class="hero-subtitle">CulinEire is building a home for Irish recipes, food stories and the cooks who create them. Businesses, sole traders and individuals can choose an annual sponsor spot. Prices are shown excluding VAT. VAT is calculated at checkout.</p>
       <div class="hero__actions">
         {% if can_view_amuse_bouche_public_area %}
         <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
@@ -41,24 +40,26 @@
   {% if request.user.is_staff and reserved > 0 %}
   <div class="sponsors-admin-notice">
     <span class="sponsors-admin-notice__icon">&#9679;</span>
-    <strong>{{ reserved }} pending enquir{{ reserved|pluralize:"y,ies" }}</strong> waiting for review.
-    Click the amber cells on the puzzle to approve or reject.
+    <strong>{{ reserved }} sponsor spot{{ reserved|pluralize }} reserved</strong> in payment or approval workflow.
+    Open sponsor moderation to review paid applications.
   </div>
   {% endif %}
 
   <div class="sponsors-contract-note">
     <span class="contract-badge">Annual contract</span>
     <span class="contract-sep">&bull;</span>
-    <span>Managed by <strong>Bearcave Ltd.</strong></span>
+    <span>Managed by <strong>Bearcave Limited</strong></span>
     <span class="contract-sep">&bull;</span>
-    <span>Your logo, your link, your visibility</span>
+    <span>Prices exclude VAT</span>
     <span class="contract-sep">&bull;</span>
-    <a href="{% url 'sponsors:annual_contract' %}" target="_blank" rel="noopener noreferrer" style="color:inherit;font-weight:600;">View annual sponsorship agreement</a>
+    <span>Publication after approval</span>
+    <span class="contract-sep">&bull;</span>
+    <a href="{% url 'sponsors:annual_contract' %}" target="_blank" rel="noopener noreferrer" style="color:inherit;font-weight:600;">View annual sponsorship terms</a>
   </div>
 
   <div class="sponsors-progress-wrap">
     <div class="sponsors-progress-labels">
-      <span><strong>{{ sold }}</strong> spot{{ sold|pluralize }} taken</span>
+      <span><strong>{{ sold }}</strong> spot{{ sold|pluralize }} active</span>
       <span class="sponsors-progress-mid">{{ available }} still available</span>
       <span><strong>{{ sellable_total }}</strong> total</span>
     </div>
@@ -66,43 +67,42 @@
       <div class="sponsors-progress-fill" style="width: {{ percent_sold }}%"></div>
     </div>
     <p class="sponsors-progress-note">
-      {% if sold > 0 %}{{ sold }} of {{ sellable_total }} founding spots reserved.{% else %}All {{ sellable_total }} founding spots are open.{% endif %}
-      {{ available }} still available.
+      Sponsor logos or avatars are published after Bearcave Limited approval. Payment reserves the selected spot only.
     </p>
   </div>
 
   <div class="sponsors-tiers-wrap">
-    <p class="sponsors-tiers-label">Pricing &mdash; closer to centre = more exclusive</p>
+    <p class="sponsors-tiers-label">Pricing - net annual price, VAT calculated at checkout</p>
     <div class="sponsors-tiers">
       <div class="sponsors-tier sponsors-tier--6">
         <span class="tier-ring">Ring 6</span>
         <span class="tier-count">60 spots</span>
-        <span class="tier-price">€25<span class="tier-mo">/yr</span></span>
+        <span class="tier-price">€25<span class="tier-mo">/year + VAT</span></span>
       </div>
       <div class="sponsors-tier sponsors-tier--5">
         <span class="tier-ring">Ring 5</span>
         <span class="tier-count">50 spots</span>
-        <span class="tier-price">€50<span class="tier-mo">/yr</span></span>
+        <span class="tier-price">€50<span class="tier-mo">/year + VAT</span></span>
       </div>
       <div class="sponsors-tier sponsors-tier--4">
         <span class="tier-ring">Ring 4</span>
         <span class="tier-count">40 spots</span>
-        <span class="tier-price">€100<span class="tier-mo">/yr</span></span>
+        <span class="tier-price">€100<span class="tier-mo">/year + VAT</span></span>
       </div>
       <div class="sponsors-tier sponsors-tier--3">
         <span class="tier-ring">Ring 3</span>
         <span class="tier-count">30 spots</span>
-        <span class="tier-price">€200<span class="tier-mo">/yr</span></span>
+        <span class="tier-price">€200<span class="tier-mo">/year + VAT</span></span>
       </div>
       <div class="sponsors-tier sponsors-tier--2">
         <span class="tier-ring">Ring 2</span>
         <span class="tier-count">20 spots</span>
-        <span class="tier-price">€400<span class="tier-mo">/yr</span></span>
+        <span class="tier-price">€400<span class="tier-mo">/year + VAT</span></span>
       </div>
       <div class="sponsors-tier sponsors-tier--1">
         <span class="tier-ring">Ring 1</span>
         <span class="tier-count">10 spots</span>
-        <span class="tier-price">€800<span class="tier-mo">/yr</span></span>
+        <span class="tier-price">€800<span class="tier-mo">/year + VAT</span></span>
       </div>
       <div class="sponsors-tier sponsors-tier--0">
         <span class="tier-ring">Central Founding Partner</span>
@@ -113,7 +113,7 @@
   </div>
 
   <div class="sponsors-puzzle-container">
-    <p class="sponsors-puzzle-label">Click any available spot to enquire</p>
+    <p class="sponsors-puzzle-label">Click any available spot to apply and pay</p>
     <svg id="sponsor-puzzle" viewBox="30 30 1040 1040" xmlns="http://www.w3.org/2000/svg"
          role="img" aria-label="CulinEire sponsor puzzle">
       <defs>
@@ -131,34 +131,33 @@
 
   <div class="sponsors-how">
     <h2 class="sponsors-how-title">How it works</h2>
-    <p class="sponsors-how-subtitle">Three simple steps to secure your annual sponsor spot on the puzzle.</p>
+    <p class="sponsors-how-subtitle">Three steps to reserve your annual sponsor spot.</p>
     <div class="sponsors-how-grid">
       <div class="sponsors-how-step">
         <div class="how-num">1</div>
-        <p>Choose your ring on the puzzle. The closer to the centre, the more exclusive and prominent your placement.</p>
+        <p>Choose an available ring on the puzzle. Prices are net annual prices, excluding VAT.</p>
       </div>
       <div class="sponsors-how-step">
         <div class="how-num">2</div>
-        <p>Get in touch. Bearcave Ltd. will confirm availability, agree your annual sponsorship terms and prepare the agreement.</p>
+        <p>Submit your sponsor details, upload a logo or avatar, position it inside the selected cell, and pay securely through Stripe Checkout. VAT is calculated at checkout.</p>
       </div>
       <div class="sponsors-how-step">
         <div class="how-num">3</div>
-        <p>Your logo appears on this page for the duration of your annual sponsorship term, linked to your website and visible to CulinEire visitors.</p>
+        <p>Bearcave Limited reviews your image, sponsor details and website or profile link before publication. The 12-month term starts when the approved image is published.</p>
       </div>
     </div>
     <div class="sponsors-cta">
-      <a href="mailto:culineire@bearcave.ie?subject=Sponsor%20Puzzle%20Enquiry%20%E2%80%94%20Bearcave%20Ltd."
+      <a href="mailto:culineire@bearcave.ie?subject=Sponsor%20Puzzle%20Question%20%E2%80%94%20Bearcave%20Limited"
          class="sponsors-contact-btn">
-        Enquire about a spot
+        Ask a sponsor question
       </a>
       <a href="{% url 'sponsors:annual_contract' %}" target="_blank" rel="noopener noreferrer"
          class="sponsors-contact-btn" style="background:#f4f1ec;color:#3a3028;border:1.5px solid #c8c0b4;margin-top:0.75rem;">
-        View annual sponsorship agreement
+        View annual sponsorship terms
       </a>
-      <p class="sponsors-cta-note">All sponsorships are arranged as annual agreements with <strong>Bearcave Ltd.</strong></p>
+      <p class="sponsors-cta-note">Payment reserves a spot only. Publication remains subject to <strong>Bearcave Limited</strong> approval.</p>
     </div>
   </div>
-
 </div>
 
 <div id="sponsor-modal" class="spm-overlay" hidden
@@ -171,6 +170,6 @@
 
 {{ cells_data|json_script:"sponsor-cells-json" }}
 {{ request.user.is_staff|json_script:"sponsor-is-admin-json" }}
-<script src="{% static 'js/sponsors_modal.js' %}"></script>
-<script src="{% static 'js/sponsors_puzzle.js' %}"></script>
+<script src="{% static 'js/sponsors_modal.js' %}?v=20260604-avatar"></script>
+<script src="{% static 'js/sponsors_puzzle.js' %}?v=20260604-avatar"></script>
 {% endblock %}

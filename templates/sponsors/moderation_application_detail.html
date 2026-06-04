@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Sponsor Application | CulinEire{% endblock %}
+{% block meta_description %}Internal sponsor application detail.{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+<link href="{% static 'css/moderation.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="page-section moderation-page">
+    <div class="container moderation-shell">
+        <a class="mon-back-link" href="{% url 'sponsors:moderation_applications' %}">Back to Sponsor Applications</a>
+
+        <header class="automation-header">
+            <div>
+                <p class="automation-kicker">Sponsor review</p>
+                <h1 class="automation-title">{{ application.sponsor_name }}</h1>
+                <p class="automation-summary">
+                    {{ application.get_status_display }} / Ring {{ application.cell.ring }}, cell #{{ application.cell.cell_number }} / {{ application.price_display }}
+                </p>
+            </div>
+            {% if application.logo %}
+            <img alt="{{ application.sponsor_name }} logo or avatar preview" src="{{ application.logo.url }}" style="max-height:120px;max-width:220px;object-fit:contain;justify-self:end;background:#fff;border:1px solid #e0dbd0;border-radius:8px;padding:0.5rem;">
+            {% endif %}
+        </header>
+
+        <section class="research-grid">
+            <section class="research-panel">
+                <h2 class="moderation-block__title">Application</h2>
+                <dl class="research-counts">
+                    <div><dt>Contact</dt><dd style="font-size:0.9rem">{{ application.contact_name }}</dd></div>
+                    <div><dt>Email</dt><dd style="font-size:0.9rem">{{ application.email }}</dd></div>
+                    <div><dt>Phone</dt><dd style="font-size:0.9rem">{{ application.phone|default:"-" }}</dd></div>
+                    <div><dt>Website/profile</dt><dd style="font-size:0.9rem">{% if application.website_url %}<a href="{{ application.website_url }}" target="_blank" rel="noopener noreferrer">{{ application.website_url }}</a>{% else %}-{% endif %}</dd></div>
+                    <div><dt>Terms accepted</dt><dd style="font-size:0.9rem">{{ application.terms_accepted_at|date:"j M Y H:i" }}</dd></div>
+                    <div><dt>Terms version</dt><dd style="font-size:0.9rem">{{ application.terms_version }}</dd></div>
+                    <div><dt>Image position</dt><dd style="font-size:0.9rem">X {{ application.logo_offset_x|floatformat:1 }}%, Y {{ application.logo_offset_y|floatformat:1 }}%, scale {{ application.logo_scale|floatformat:2 }}x</dd></div>
+                </dl>
+                {% if application.sponsor_note %}
+                <p class="moderation-card__note">{{ application.sponsor_note }}</p>
+                {% endif %}
+            </section>
+
+            <section class="research-panel">
+                <h2 class="moderation-block__title">Payment</h2>
+                {% if payment %}
+                <ul class="automation-list">
+                    <li class="automation-item"><span class="automation-item__state">status</span><span class="automation-item__body"><strong>{{ payment.get_status_display }}</strong><span>Paid at {{ payment.paid_at|date:"j M Y H:i"|default:"-" }}</span></span></li>
+                    <li class="automation-item"><span class="automation-item__state">net</span><span class="automation-item__body"><strong>{{ payment.net_amount_cents|default:application.price_net_cents }} cents</strong><span>Stored excluding VAT</span></span></li>
+                    <li class="automation-item"><span class="automation-item__state">tax</span><span class="automation-item__body"><strong>{{ payment.vat_amount_cents }} cents</strong><span>VAT/tax amount reported by Stripe</span></span></li>
+                    <li class="automation-item"><span class="automation-item__state">total</span><span class="automation-item__body"><strong>{{ payment.total_amount_cents }} cents</strong><span>Total amount reported by Stripe</span></span></li>
+                    <li class="automation-item"><span class="automation-item__state">session</span><span class="automation-item__body"><strong>{{ payment.stripe_checkout_session_id|default:"-" }}</strong><span>Stripe Checkout Session ID</span></span></li>
+                    <li class="automation-item"><span class="automation-item__state">intent</span><span class="automation-item__body"><strong>{{ payment.stripe_payment_intent_id|default:"-" }}</strong><span>Stripe PaymentIntent ID</span></span></li>
+                </ul>
+                {% else %}
+                <div class="moderation-empty">No payment record exists for this application.</div>
+                {% endif %}
+            </section>
+        </section>
+
+        <section class="research-panel">
+            <h2 class="moderation-block__title">Actions</h2>
+            <form class="moderation-contact__form" method="post" style="position:static;box-shadow:none;max-width:none;">
+                {% csrf_token %}
+                <textarea name="note" rows="3" placeholder="Optional note for audit log or rejection reason"></textarea>
+                <div class="moderation-card__actions">
+                    <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve and publish</button>
+                    <button class="mod-btn mod-btn--reject" name="action" type="submit" value="reject">Reject and mark refund required</button>
+                    <button class="mod-btn mod-btn--edit" name="action" type="submit" value="mark_refunded">Mark refund completed</button>
+                    <button class="mod-btn mod-btn--delete" name="action" type="submit" value="unpublish">Unpublish</button>
+                    <button class="mod-btn mod-btn--block" name="action" type="submit" value="expire">Expire sponsorship</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="automation-tree">
+            <h2 class="moderation-block__title">Audit Log</h2>
+            <ul class="automation-list">
+                {% for log in audit_logs %}
+                <li class="automation-item">
+                    <span class="automation-item__state">{{ log.action }}</span>
+                    <span class="automation-item__body">
+                        <strong>{{ log.created_at|date:"j M Y H:i" }}{% if log.actor %} by {{ log.actor.get_username }}{% endif %}</strong>
+                        <span>{{ log.from_status|default:"-" }} to {{ log.to_status|default:"-" }}{% if log.notes %} / {{ log.notes }}{% endif %}</span>
+                    </span>
+                </li>
+                {% empty %}
+                <li class="moderation-empty">No audit entries yet.</li>
+                {% endfor %}
+            </ul>
+        </section>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Sponsor Applications | CulinEire{% endblock %}
+{% block meta_description %}Internal sponsor payment and approval queue.{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+<link href="{% static 'css/moderation.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="page-section moderation-page">
+    <div class="container moderation-shell">
+        <a class="mon-back-link" href="{% url 'recipes:moderation_panel' %}">Back to Moderation Panel</a>
+
+        <div class="moderation-block moderation-block--tools">
+            <h1 class="moderation-block__title">Sponsor Applications</h1>
+            <div class="mod-tools-row">
+                {% for option in status_options %}
+                <a class="mod-tool-link{% if option.value == status_filter %} is-active{% endif %}" href="{% url 'sponsors:moderation_applications' %}?status={{ option.value }}">
+                    {{ option.label }}{% if option.count %} ({{ option.count }}){% endif %}
+                </a>
+                {% endfor %}
+                <a class="mod-tool-link" href="{% url 'sponsors:moderation_cells' %}">Sponsor Cells</a>
+                {% if request.user.is_superuser %}
+                <a class="mod-tool-link" href="{% url 'sponsors:sponsor_roadmap' %}">Sponsor Roadmap</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="moderation-block">
+            <div class="moderation-scroll">
+                {% for application in applications %}
+                <div class="moderation-card">
+                    <div class="moderation-card__body">
+                        <div class="moderation-card__meta">
+                            <span class="author-studio-status author-studio-status--{{ application.status }}">{{ application.get_status_display }}</span>
+                            <span class="moderation-card__author">Cell #{{ application.cell.cell_number }} / Ring {{ application.cell.ring }}</span>
+                            <span class="moderation-card__date">{{ application.created_at|date:"j M Y H:i" }}</span>
+                        </div>
+                        <h2 class="moderation-card__title">
+                            <a href="{% url 'sponsors:moderation_application_detail' application.pk %}">{{ application.sponsor_name }}</a>
+                        </h2>
+                        <p class="moderation-card__note">{{ application.price_display }}{% if application.payment %} / payment {{ application.payment.get_status_display }}{% endif %}</p>
+                    </div>
+                    <div class="moderation-card__actions">
+                        <a class="mod-btn mod-btn--view" href="{% url 'sponsors:moderation_application_detail' application.pk %}">Review</a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="moderation-empty">No sponsor applications in this queue.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

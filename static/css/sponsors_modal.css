@@ -103,6 +103,12 @@
 .spm-status--available { background: #eaf3ec; color: #3a3028; }
 .spm-status--reserved  { background: #fef3e2; color: #a06820; }
 .spm-status--sold      { background: #e6f4ea; color: #1e6e3e; }
+.spm-status--payment_pending,
+.spm-status--paid_pending_approval { background: #fef3e2; color: #a06820; }
+.spm-status--active { background: #e6f4ea; color: #1e6e3e; }
+.spm-status--expired,
+.spm-status--unavailable { background: #eef1f4; color: #52616d; }
+.spm-status--rejected { background: #f8e7e7; color: #8b2e2e; }
 
 /* ---- Price ---- */
 .spm-price {
@@ -326,6 +332,25 @@
   flex-shrink: 0;
 }
 
+.spm-reset-btn {
+  display: block;
+  width: 100%;
+  min-height: 32px;
+  margin-top: 0.55rem;
+  border: 1px solid rgb(58 48 40 / 0.16);
+  border-radius: 8px;
+  background: #fff;
+  color: #3a3028;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.spm-reset-btn:hover {
+  background: #f4f1ec;
+}
+
 /* ---- Error / success ---- */
 .spm-error {
   margin-top: 0.6rem;
@@ -380,6 +405,10 @@
   background: #c8c0b4;
   cursor: not-allowed;
   box-shadow: none;
+}
+
+.spm-buy-btn--link {
+  text-decoration: none;
 }
 
 .spm-note {
@@ -534,6 +563,39 @@
   margin: 0;
   text-align: center;
   padding: 0.25rem 0;
+}
+
+.spm-admin-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid rgb(58 48 40 / 0.18);
+  border-radius: 8px;
+  background: #fff;
+  color: #3a3028;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.spm-check {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 0.5rem;
+  align-items: start;
+  margin: 0 0 0.55rem;
+  color: #4d4439;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.spm-check input {
+  width: 16px;
+  height: 16px;
+  margin-top: 0.12rem;
+  accent-color: #3a3028;
 }
 
 /* ---- Mobile ---- */

@@ -136,7 +136,7 @@
   align-items: center;
   padding: 0.85rem 1rem;
   border-radius: 12px;
-  min-width: 92px;
+  min-width: 108px;
   border: 1px solid #ddd6c8;
   cursor: default;
   background: #faf8f4;
@@ -188,8 +188,8 @@
   text-align: center;
 }
 .tier-count { font-size: 0.75rem; font-weight: 600; margin-bottom: 4px; opacity: 0.70; }
-.tier-price { font-size: 1.05rem; font-weight: 700; font-family: 'Playfair Display', Georgia, serif; color: #28221e; }
-.tier-mo    { font-size: 0.6rem; font-weight: 400; opacity: 0.50; font-family: sans-serif; }
+.tier-price { display: grid; gap: 0.08rem; font-size: 1.05rem; font-weight: 700; font-family: 'Playfair Display', Georgia, serif; color: #28221e; text-align: center; line-height: 1.05; }
+.tier-mo    { font-size: 0.58rem; font-weight: 700; opacity: 0.62; font-family: sans-serif; text-transform: uppercase; letter-spacing: 0.04em; }
 
 .sponsors-tier--0 .tier-ring {
   font-family: 'Playfair Display', Georgia, serif;

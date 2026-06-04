@@ -1,288 +1,227 @@
 /**
  * CulinEire Sponsor Modal
- * AJAX-powered modal for each sponsor cell:
- *  - Enquiry form with logo upload
- *  - Drag-to-reposition canvas preview
- *  - Scale slider
- *  - Admin moderation panel (approve / reject)
+ * Creates a sponsor application, reserves the selected cell, and redirects to
+ * Stripe Checkout.
  */
 
 (function () {
   'use strict';
 
-  /* ------------------------------------------------------------------ */
-  /* State                                                               */
-  /* ------------------------------------------------------------------ */
-  var modal     = null;
+  var modal = null;
   var modalBody = null;
-  var currentCell  = null;
-  var logoImg      = null;
-  var logoOffset   = { x: 0, y: 0 };
-  var logoScale    = 1.0;
-  var dragActive   = false;
-  var dragLast     = null;
-  var canvasEl     = null;
+  var currentCell = null;
+  var logoImg = null;
+  var logoOffset = { x: 0, y: 0 };
+  var logoScale = 1.0;
+  var canvasEl = null;
+  var previewShape = null;
+  var dragActive = false;
+  var dragLast = null;
+  var CANVAS_R = 90;
+  var CANVAS_CX = 110;
+  var CANVAS_CY = 110;
+  var PUZZLE_CX = 550;
+  var PUZZLE_CY = 550;
+  var PUZZLE_GAP = 3;
+  var RING_RADII = {
+    centre: [0, 85],
+    1: [85, 145],
+    2: [145, 235],
+    3: [235, 325],
+    4: [325, 400],
+    5: [400, 460],
+    6: [460, 515],
+  };
+  var RING_COUNTS = { 1: 10, 2: 20, 3: 30, 4: 40, 5: 50, 6: 60 };
 
-  /* ------------------------------------------------------------------ */
-  /* Init                                                                */
-  /* ------------------------------------------------------------------ */
   document.addEventListener('DOMContentLoaded', function () {
-    modal     = document.getElementById('sponsor-modal');
+    modal = document.getElementById('sponsor-modal');
     modalBody = document.getElementById('sponsor-modal-body');
 
     var closeBtn = document.getElementById('sponsor-modal-close');
-    if (closeBtn) {
-      closeBtn.addEventListener('click', closeModal);
-    }
-
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
     if (modal) {
       modal.addEventListener('click', function (e) {
-        if (e.target === modal) { closeModal(); }
+        if (e.target === modal) closeModal();
       });
     }
-
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && modal && !modal.hidden) { closeModal(); }
+      if (e.key === 'Escape' && modal && !modal.hidden) closeModal();
     });
-
-    // Global drag listeners (canvas drag continues outside canvas)
     document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup',   onMouseUp);
+    document.addEventListener('mouseup', function () { dragActive = false; });
     document.addEventListener('touchmove', onTouchMove, { passive: false });
-    document.addEventListener('touchend',  onTouchEnd);
+    document.addEventListener('touchend', function () { dragActive = false; });
   });
 
-  /* ------------------------------------------------------------------ */
-  /* Open / Close                                                        */
-  /* ------------------------------------------------------------------ */
   function openModal(cellData) {
     currentCell = cellData;
-    logoImg     = null;
-    logoOffset  = { x: 0, y: 0 };
-    logoScale   = 1.0;
-    dragActive  = false;
-    canvasEl    = null;
-
-    renderModal(cellData);
+    logoImg = null;
+    logoOffset = { x: 0, y: 0 };
+    logoScale = 1.0;
+    canvasEl = null;
+    previewShape = null;
+    renderModal(cellData || {});
     modal.hidden = false;
     document.body.style.overflow = 'hidden';
-
-    // If admin, fetch extra enquiry + pending-logo data
-    var adminEl = document.getElementById('sponsor-is-admin-json');
-    var isAdmin = adminEl ? JSON.parse(adminEl.textContent) : false;
-    if (isAdmin && cellData && cellData.id) {
-      loadAdminPanel(cellData.id);
-    }
   }
 
   function closeModal() {
-    if (modal) { modal.hidden = true; }
+    if (modal) modal.hidden = true;
     document.body.style.overflow = '';
     currentCell = null;
   }
 
-  /* ------------------------------------------------------------------ */
-  /* Render                                                              */
-  /* ------------------------------------------------------------------ */
   function renderModal(cell) {
-    if (!modalBody) { return; }
-
-    var ring   = cell ? cell.ring   : 0;
-    var status = cell ? cell.status : 'available';
-
+    var status = cell.status || 'available';
+    var ring = cell.ring || 0;
     var html = '';
-
-    /* -- Header -- */
     html += '<div class="spm-header">';
-    html += '<div class="spm-ring-label ' + ringLabelClass(ring, status) + '">';
-    html += ring === 0 ? 'Central Founding Partner' : 'Ring ' + ring;
-    html += '</div>';
-    html += '<span class="spm-status spm-status--' + status + '">' + statusText(status) + '</span>';
+    html += '<div class="spm-ring-label ' + ringLabelClass(ring, status) + '">' + (ring === 0 ? 'Central Founding Partner' : 'Ring ' + ring) + '</div>';
+    html += '<span class="spm-status spm-status--' + esc(status) + '">' + statusText(status) + '</span>';
     html += '</div>';
 
-    /* -- Content -- */
-    if (status === 'sold') {
-      html += renderSold(cell);
-    } else if (status === 'reserved') {
-      html += renderReserved();
+    if (isActive(status)) {
+      html += renderActive(cell);
+    } else if (isReserved(status)) {
+      html += renderReserved(status);
+    } else if (ring === 0) {
+      html += renderCentre();
     } else {
-      html += renderAvailable(cell, ring);
+      html += renderAvailable(cell);
     }
 
-    /* -- Admin placeholder -- */
-    html += '<div id="spm-admin-panel" hidden></div>';
+    if (isAdminViewer() && cell.application_detail_url) {
+      html += '<div class="spm-admin"><div class="spm-admin-title">Admin moderation</div>';
+      html += '<a class="spm-admin-link" href="' + esc(cell.application_detail_url) + '">Open sponsor application</a>';
+      html += '</div>';
+    }
 
     modalBody.innerHTML = html;
-    bindFormEvents(cell, ring);
+    bindModalEvents();
   }
 
-  /* ---- Sold ---- */
-  function renderSold(cell) {
+  function renderActive(cell) {
     var html = '<div class="spm-sold-content">';
     if (cell.sponsor_logo) {
       html += '<div><img src="' + esc(cell.sponsor_logo) + '" alt="' + esc(cell.sponsor_name || '') + '"></div>';
     }
-    if (cell.sponsor_name) {
-      html += '<p class="spm-sponsor-name">' + esc(cell.sponsor_name) + '</p>';
-    }
-    if (cell.sponsor_tagline) {
-      html += '<p class="spm-sponsor-tagline">' + esc(cell.sponsor_tagline) + '</p>';
-    }
+    if (cell.sponsor_name) html += '<p class="spm-sponsor-name">' + esc(cell.sponsor_name) + '</p>';
+    if (cell.sponsor_tagline) html += '<p class="spm-sponsor-tagline">' + esc(cell.sponsor_tagline) + '</p>';
     if (cell.sponsor_url) {
-      var url = cell.sponsor_url;
-      if (!/^https?:\/\//i.test(url)) { url = 'https://' + url; }
-      html += '<a href="' + esc(url) + '" target="_blank" rel="noopener noreferrer" class="spm-visit-btn">Visit website &rarr;</a>';
+      html += '<a href="' + esc(normalizeUrl(cell.sponsor_url)) + '" target="_blank" rel="noopener noreferrer" class="spm-visit-btn">Visit website &rarr;</a>';
     }
     html += '</div>';
     return html;
   }
 
-  /* ---- Reserved ---- */
-  function renderReserved() {
+  function renderReserved(status) {
+    var label = status === 'paid_pending_approval' ? 'paid and pending Bearcave approval' : 'currently reserved while checkout is pending';
     return '<div class="spm-reserved-msg">' +
-      '<p>This spot is currently reserved and pending confirmation.</p>' +
-      '<p class="spm-reserved-note">It will become available again if the reservation expires.</p>' +
+      '<p>This spot is ' + label + '.</p>' +
+      '<p class="spm-reserved-note">It will become available again if payment is not completed or the placement is rejected before publication.</p>' +
       '</div>';
   }
 
-  /* ---- Available ---- */
-  function renderAvailable(cell, ring) {
-    var isCentre = (ring === 0);
+  function renderCentre() {
+    return '<p class="spm-price spm-price--secret">Price on request</p>' +
+      '<p class="spm-desc">The central sponsor spot is handled directly by Bearcave Limited.</p>' +
+      '<a class="spm-buy-btn spm-buy-btn--link" href="mailto:culineire@bearcave.ie?subject=Central%20Founding%20Partner%20Sponsor%20Spot">Contact Bearcave</a>';
+  }
+
+  function renderAvailable(cell) {
     var html = '';
-
-    if (isCentre) {
-      html += '<p class="spm-price spm-price--secret">Price on request</p>';
-      html += '<p class="spm-desc">The most exclusive placement on the puzzle. One annual contract with Bearcave Ltd. — your brand at the very heart of CulinEire.</p>';
-    } else {
-      html += '<p class="spm-price">' + esc(cell ? cell.price_display : ringPrice(ring)) + '</p>';
-      html += '<p class="spm-desc">Your logo appears here, linked to your website, visible to every CulinEire visitor. Annual contract with Bearcave Ltd.</p>';
-    }
-
-    /* Enquiry form */
-    html += '<form id="spm-enquiry-form" class="spm-form" novalidate>';
-
-    /* Section: contact */
-    html += '<div class="spm-form-section-label">Contact details</div>';
-    html += field('spm-name',    'text',  'Name',    'Your full name',        true,  'name');
-    html += field('spm-email',   'email', 'Email',   'your@email.com',        true,  'email');
-    html += field('spm-company', 'text',  'Company', 'Your company name',     false, 'organization');
-    html += field('spm-website', 'url',   'Website', 'https://yoursite.com',  false, 'url');
-
-    html += '<div class="spm-field">';
-    html += '<label class="spm-label" for="spm-message">Message</label>';
-    html += '<textarea id="spm-message" name="message" class="spm-textarea" rows="3" placeholder="Tell us about your brand..."></textarea>';
-    html += '</div>';
-
-    /* Section: logo */
-    html += '<div class="spm-form-section-label">Logo preview <span class="spm-optional">optional</span></div>';
-    html += '<div class="spm-logo-upload">';
-    html += '<label class="spm-logo-drop" for="spm-logo-input" id="spm-logo-label">';
-    html += uploadIcon();
-    html += '<span id="spm-upload-text">Click to upload your logo</span>';
-    html += '</label>';
-    html += '<input type="file" id="spm-logo-input" name="logo" accept="image/*" style="display:none">';
-    html += '</div>';
-
-    /* Canvas (hidden until image chosen) */
-    html += '<div id="spm-canvas-wrap" class="spm-canvas-wrap" hidden>';
-    html += '<p class="spm-canvas-label">Drag to position your logo inside the cell</p>';
-    html += '<div class="spm-canvas-outer"><canvas id="spm-canvas" width="220" height="220"></canvas></div>';
-    html += '<div class="spm-scale-row">';
-    html += '<span class="spm-scale-label">Size</span>';
-    html += '<input type="range" id="spm-scale" min="0.2" max="2.5" step="0.05" value="1.0" class="spm-scale-input">';
-    html += '<span id="spm-scale-val" class="spm-scale-val">1.0&times;</span>';
-    html += '</div>';
-    html += '</div>';
-
+    html += '<p class="spm-price">' + esc(cell.price_display || '') + '</p>';
+    html += '<p class="spm-desc">Payment securely reserves this spot. VAT is calculated at checkout. Businesses, sole traders and individuals are welcome. Publication is subject to Bearcave Limited approval.</p>';
+    html += '<form id="spm-application-form" class="spm-form" enctype="multipart/form-data" novalidate>';
+    html += '<div class="spm-form-section-label">Sponsor details</div>';
+    html += field('spm-sponsor-name', 'text', 'Sponsor display name', 'Business, sole trader or individual name', true, 'organization');
+    html += field('spm-contact-name', 'text', 'Contact person', 'Full name', true, 'name');
+    html += field('spm-email', 'email', 'Email', 'your@email.com', true, 'email');
+    html += field('spm-phone', 'tel', 'Phone', 'Optional', false, 'tel');
+    html += field('spm-website-url', 'url', 'Website or profile URL', 'Optional', false, 'url');
+    html += '<div class="spm-field"><label class="spm-label" for="spm-sponsor-note">Sponsor note</label><textarea id="spm-sponsor-note" class="spm-textarea" rows="3" placeholder="Optional note for Bearcave"></textarea></div>';
+    html += '<div class="spm-form-section-label">Logo or avatar</div>';
+    html += '<div class="spm-logo-upload"><label class="spm-logo-drop" for="spm-logo-input" id="spm-logo-label">' + uploadIcon() + '<span id="spm-upload-text">Upload logo or avatar (PNG, JPG or WebP)</span></label><input type="file" id="spm-logo-input" accept="image/png,image/jpeg,image/webp" style="display:none"></div>';
+    html += '<div id="spm-canvas-wrap" class="spm-canvas-wrap" hidden><p class="spm-canvas-label">Drag the image and adjust size until it fits this exact cell</p><div class="spm-canvas-outer"><canvas id="spm-canvas" width="220" height="220"></canvas></div><div class="spm-scale-row"><span class="spm-scale-label">Size</span><input type="range" id="spm-scale" min="0.2" max="2.5" step="0.05" value="1.0" class="spm-scale-input"><span id="spm-scale-val" class="spm-scale-val">1.0x</span></div><button type="button" id="spm-image-reset" class="spm-reset-btn">Reset image position</button></div>';
+    html += '<div class="spm-form-section-label">Confirmations</div>';
+    html += checkbox('spm-logo-rights', 'I confirm I have the right to use the submitted logo, avatar and materials.');
+    html += checkbox('spm-terms', 'I accept the CulinEire Annual Sponsorship Terms.');
+    html += checkbox('spm-approval', 'I understand payment reserves the spot but publication is subject to Bearcave Limited approval.');
     html += '<div id="spm-form-error" class="spm-error" hidden></div>';
-    html += '<div id="spm-form-success" class="spm-success" hidden></div>';
-
-    html += '<div class="spm-actions">';
-    html += '<button type="submit" class="spm-buy-btn" id="spm-submit">Reserve this spot</button>';
-    html += '</div>';
-    html += '<p class="spm-note">Bearcave Ltd. will contact you within 24 hours to arrange the annual contract.</p>';
+    html += '<div class="spm-actions"><button type="submit" class="spm-buy-btn" id="spm-submit">Continue to secure checkout</button></div>';
     html += '</form>';
-
     return html;
   }
 
   function field(id, type, label, placeholder, required, autocomplete) {
-    return '<div class="spm-field">' +
-      '<label class="spm-label" for="' + id + '">' + esc(label) + (required ? ' <span class="spm-req">*</span>' : '') + '</label>' +
-      '<input type="' + type + '" id="' + id + '" name="' + id.replace('spm-', '') + '" class="spm-input"' +
-        ' placeholder="' + esc(placeholder) + '"' +
-        (autocomplete ? ' autocomplete="' + autocomplete + '"' : '') + '>' +
-      '</div>';
+    return '<div class="spm-field"><label class="spm-label" for="' + id + '">' + esc(label) + (required ? ' <span class="spm-req">*</span>' : '') + '</label><input type="' + type + '" id="' + id + '" class="spm-input" placeholder="' + esc(placeholder) + '"' + (autocomplete ? ' autocomplete="' + autocomplete + '"' : '') + '></div>';
+  }
+
+  function checkbox(id, label) {
+    return '<label class="spm-check"><input type="checkbox" id="' + id + '"><span>' + esc(label) + '</span></label>';
   }
 
   function uploadIcon() {
-    return '<svg class="spm-upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-      '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>' +
-      '<polyline points="17 8 12 3 7 8"/>' +
-      '<line x1="12" y1="3" x2="12" y2="15"/>' +
-      '</svg>';
+    return '<svg class="spm-upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
   }
 
-  /* ------------------------------------------------------------------ */
-  /* Bind form events after HTML injection                               */
-  /* ------------------------------------------------------------------ */
-  function bindFormEvents(cell, ring) {
-    var form = document.getElementById('spm-enquiry-form');
-    if (form) {
-      form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        submitEnquiry(cell);
+  function bindModalEvents() {
+    var form = document.getElementById('spm-application-form');
+    if (form) form.addEventListener('submit', submitApplication);
+
+    var logoInput = document.getElementById('spm-logo-input');
+    if (logoInput) logoInput.addEventListener('change', handleLogoUpload);
+
+    var scale = document.getElementById('spm-scale');
+    if (scale) {
+      scale.addEventListener('input', function () {
+        logoScale = parseFloat(scale.value || '1');
+        var val = document.getElementById('spm-scale-val');
+        if (val) val.textContent = logoScale.toFixed(1) + 'x';
+        redrawCanvas();
       });
     }
 
-    var logoInput = document.getElementById('spm-logo-input');
-    if (logoInput) {
-      logoInput.addEventListener('change', handleLogoUpload);
-    }
-
-    var scaleSlider = document.getElementById('spm-scale');
-    if (scaleSlider) {
-      scaleSlider.addEventListener('input', function () {
-        logoScale = parseFloat(this.value);
-        var valEl = document.getElementById('spm-scale-val');
-        if (valEl) { valEl.textContent = logoScale.toFixed(1) + '×'; }
+    var reset = document.getElementById('spm-image-reset');
+    if (reset) {
+      reset.addEventListener('click', function () {
+        logoOffset = { x: 0, y: 0 };
+        logoScale = 1.0;
+        var scaleInput = document.getElementById('spm-scale');
+        var scaleVal = document.getElementById('spm-scale-val');
+        if (scaleInput) scaleInput.value = '1.0';
+        if (scaleVal) scaleVal.textContent = '1.0x';
         redrawCanvas();
       });
     }
 
     canvasEl = document.getElementById('spm-canvas');
     if (canvasEl) {
-      canvasEl.addEventListener('mousedown',  onCanvasMouseDown);
+      canvasEl.addEventListener('mousedown', onCanvasMouseDown);
       canvasEl.addEventListener('touchstart', onCanvasTouchStart, { passive: false });
     }
   }
 
-  /* ------------------------------------------------------------------ */
-  /* Logo upload                                                         */
-  /* ------------------------------------------------------------------ */
   function handleLogoUpload(e) {
     var file = e.target.files[0];
-    if (!file) { return; }
-
+    if (!file) return;
     var label = document.getElementById('spm-upload-text');
-    if (label) { label.textContent = file.name; }
-
+    if (label) label.textContent = file.name;
     var reader = new FileReader();
     reader.onload = function (ev) {
-      var img   = new Image();
+      var img = new Image();
       img.onload = function () {
-        logoImg    = img;
+        logoImg = img;
         logoOffset = { x: 0, y: 0 };
-        logoScale  = 1.0;
-
-        var slider = document.getElementById('spm-scale');
-        if (slider) { slider.value = '1.0'; }
-        var valEl = document.getElementById('spm-scale-val');
-        if (valEl)  { valEl.textContent = '1.0×'; }
-
+        logoScale = 1.0;
+        previewShape = null;
+        var scaleInput = document.getElementById('spm-scale');
+        var scaleVal = document.getElementById('spm-scale-val');
+        if (scaleInput) scaleInput.value = '1.0';
+        if (scaleVal) scaleVal.textContent = '1.0x';
         var wrap = document.getElementById('spm-canvas-wrap');
-        if (wrap) { wrap.hidden = false; }
-
+        if (wrap) wrap.hidden = false;
         redrawCanvas();
       };
       img.src = ev.target.result;
@@ -290,115 +229,184 @@
     reader.readAsDataURL(file);
   }
 
-  /* ------------------------------------------------------------------ */
-  /* Canvas                                                              */
-  /* ------------------------------------------------------------------ */
-  var CANVAS_R  = 90;   // octagon radius on canvas (px)
-  var CANVAS_CX = 110;
-  var CANVAS_CY = 110;
+  function octRadius(angle, radius) {
+    var sector = Math.PI / 4;
+    var half = sector / 2;
+    var norm = ((angle % sector) + sector) % sector;
+    return radius * Math.cos(half) / Math.cos(norm - half);
+  }
 
-  function drawOctagonPath(ctx) {
-    ctx.beginPath();
+  function octPoint(cx, cy, angle, radius) {
+    var r = octRadius(angle, radius);
+    return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)];
+  }
+
+  function octagonPoints(cx, cy, radius) {
+    var points = [];
     for (var i = 0; i < 8; i++) {
-      var a  = Math.PI / 8 + i * Math.PI / 4;
-      var px = CANVAS_CX + CANVAS_R * Math.cos(a);
-      var py = CANVAS_CY + CANVAS_R * Math.sin(a);
-      if (i === 0) { ctx.moveTo(px, py); } else { ctx.lineTo(px, py); }
+      var angle = i * Math.PI / 4;
+      points.push([cx + radius * Math.cos(angle), cy + radius * Math.sin(angle)]);
+    }
+    return points;
+  }
+
+  function ringSegmentPoints(cx, cy, innerR, outerR, startAngle, endAngle) {
+    var steps = 12;
+    var points = [];
+    var i, angle, point;
+    for (i = 0; i <= steps; i++) {
+      angle = startAngle + (endAngle - startAngle) * i / steps;
+      point = octPoint(cx, cy, angle, outerR);
+      points.push(point);
+    }
+    for (i = steps; i >= 0; i--) {
+      angle = startAngle + (endAngle - startAngle) * i / steps;
+      point = octPoint(cx, cy, angle, innerR);
+      points.push(point);
+    }
+    return points;
+  }
+
+  function pointBounds(points) {
+    var minX = Infinity;
+    var minY = Infinity;
+    var maxX = -Infinity;
+    var maxY = -Infinity;
+    for (var i = 0; i < points.length; i++) {
+      minX = Math.min(minX, points[i][0]);
+      minY = Math.min(minY, points[i][1]);
+      maxX = Math.max(maxX, points[i][0]);
+      maxY = Math.max(maxY, points[i][1]);
+    }
+    return {
+      minX: minX,
+      minY: minY,
+      maxX: maxX,
+      maxY: maxY,
+      width: Math.max(1, maxX - minX),
+      height: Math.max(1, maxY - minY),
+    };
+  }
+
+  function buildPreviewShape(cell) {
+    var canvas = canvasEl || document.getElementById('spm-canvas');
+    var canvasWidth = canvas ? canvas.width : 220;
+    var canvasHeight = canvas ? canvas.height : 220;
+    var ring = Number(cell && cell.ring ? cell.ring : 0);
+    var pos = Number(cell && cell.position_in_ring ? cell.position_in_ring : 0);
+    var rawPoints;
+
+    if (ring === 0) {
+      rawPoints = octagonPoints(PUZZLE_CX, PUZZLE_CY, RING_RADII.centre[1] - PUZZLE_GAP);
+    } else {
+      var count = RING_COUNTS[ring] || 1;
+      var innerR = RING_RADII[ring][0];
+      var outerR = RING_RADII[ring][1];
+      var sweep = (2 * Math.PI) / count;
+      var offset = -Math.PI / 2 - sweep / 2;
+      var startAngle = offset + pos * sweep + PUZZLE_GAP / outerR;
+      var endAngle = offset + (pos + 1) * sweep - PUZZLE_GAP / outerR;
+      rawPoints = ringSegmentPoints(
+        PUZZLE_CX,
+        PUZZLE_CY,
+        innerR + PUZZLE_GAP,
+        outerR - PUZZLE_GAP / 2,
+        startAngle,
+        endAngle
+      );
+    }
+
+    var bounds = pointBounds(rawPoints);
+    var padding = 16;
+    var scale = Math.min(
+      (canvasWidth - padding * 2) / bounds.width,
+      (canvasHeight - padding * 2) / bounds.height
+    );
+    var tx = (canvasWidth - bounds.width * scale) / 2 - bounds.minX * scale;
+    var ty = (canvasHeight - bounds.height * scale) / 2 - bounds.minY * scale;
+    var points = rawPoints.map(function (point) {
+      return [point[0] * scale + tx, point[1] * scale + ty];
+    });
+    var previewBounds = pointBounds(points);
+    return {
+      points: points,
+      bounds: previewBounds,
+      center: {
+        x: (previewBounds.minX + previewBounds.maxX) / 2,
+        y: (previewBounds.minY + previewBounds.maxY) / 2,
+      },
+      refRadius: Math.max(previewBounds.width, previewBounds.height) / 2,
+    };
+  }
+
+  function drawPreviewPath(ctx, shape) {
+    var points = shape && shape.points ? shape.points : octagonPoints(CANVAS_CX, CANVAS_CY, CANVAS_R);
+    ctx.beginPath();
+    for (var i = 0; i < points.length; i++) {
+      if (i === 0) {
+        ctx.moveTo(points[i][0], points[i][1]);
+      } else {
+        ctx.lineTo(points[i][0], points[i][1]);
+      }
     }
     ctx.closePath();
   }
 
   function redrawCanvas() {
     var canvas = canvasEl || document.getElementById('spm-canvas');
-    if (!canvas) { return; }
+    if (!canvas) return;
     var ctx = canvas.getContext('2d');
+    previewShape = previewShape || buildPreviewShape(currentCell || {});
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    var ring      = currentCell ? currentCell.ring : 1;
-    var fillColor = cellFill(ring);
-
-    /* Draw octagonal background */
-    drawOctagonPath(ctx);
-    ctx.fillStyle = fillColor;
+    drawPreviewPath(ctx, previewShape);
+    ctx.fillStyle = '#f4f1ec';
     ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-    ctx.lineWidth   = 2;
+    ctx.strokeStyle = 'rgba(58,48,40,0.25)';
+    ctx.lineWidth = 2;
     ctx.stroke();
-
-    /* Draw logo clipped to octagon */
-    if (logoImg) {
-      ctx.save();
-      drawOctagonPath(ctx);
-      ctx.clip();
-
-      /* scale=1.0 → logo fills the octagon (slice semantics, matching SVG) */
-      var baseSize = CANVAS_R * 2 * logoScale;
-      var lw, lh;
-      if (logoImg.width >= logoImg.height) {
-        lh = baseSize;
-        lw = baseSize * (logoImg.width / logoImg.height);
-      } else {
-        lw = baseSize;
-        lh = baseSize * (logoImg.height / logoImg.width);
-      }
-      ctx.drawImage(logoImg, CANVAS_CX + logoOffset.x - lw / 2,
-                             CANVAS_CY + logoOffset.y - lh / 2, lw, lh);
-      ctx.restore();
-    }
-
-    /* Guide crosshair on top */
+    if (!logoImg) return;
     ctx.save();
-    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-    ctx.lineWidth   = 1;
-    ctx.setLineDash([3, 3]);
-    ctx.beginPath();
-    ctx.moveTo(CANVAS_CX - 16, CANVAS_CY); ctx.lineTo(CANVAS_CX + 16, CANVAS_CY);
-    ctx.moveTo(CANVAS_CX, CANVAS_CY - 16); ctx.lineTo(CANVAS_CX, CANVAS_CY + 16);
-    ctx.stroke();
-    ctx.setLineDash([]);
+    drawPreviewPath(ctx, previewShape);
+    ctx.clip();
+    var refRadius = previewShape.refRadius || CANVAS_R;
+    var center = previewShape.center || { x: CANVAS_CX, y: CANVAS_CY };
+    var baseSize = refRadius * 2 * logoScale;
+    var lw, lh;
+    if (logoImg.width >= logoImg.height) {
+      lh = baseSize;
+      lw = baseSize * (logoImg.width / logoImg.height);
+    } else {
+      lw = baseSize;
+      lh = baseSize * (logoImg.height / logoImg.width);
+    }
+    ctx.drawImage(logoImg, center.x + logoOffset.x - lw / 2, center.y + logoOffset.y - lh / 2, lw, lh);
     ctx.restore();
   }
 
-  var CELL_COLOURS = {
-    0: '#2a5c34', 1: '#bfb49a', 2: '#ccc1aa', 3: '#d8d0c0',
-    4: '#e4ddd1', 5: '#ede8df', 6: '#f4f1ec',
-  };
-
-  function cellFill(ring) {
-    return CELL_COLOURS[ring] || '#d8d0c0';
-  }
-
-  /* ------------------------------------------------------------------ */
-  /* Canvas drag                                                         */
-  /* ------------------------------------------------------------------ */
   function onCanvasMouseDown(e) {
     e.preventDefault();
     dragActive = true;
-    dragLast   = { x: e.clientX, y: e.clientY };
-  }
-
-  function onMouseMove(e) {
-    if (!dragActive) { return; }
-    logoOffset.x += e.clientX - dragLast.x;
-    logoOffset.y += e.clientY - dragLast.y;
     dragLast = { x: e.clientX, y: e.clientY };
-    redrawCanvas();
-  }
-
-  function onMouseUp() {
-    dragActive = false;
   }
 
   function onCanvasTouchStart(e) {
     e.preventDefault();
     if (e.touches.length === 1) {
       dragActive = true;
-      dragLast   = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      dragLast = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     }
   }
 
+  function onMouseMove(e) {
+    if (!dragActive) return;
+    logoOffset.x += e.clientX - dragLast.x;
+    logoOffset.y += e.clientY - dragLast.y;
+    dragLast = { x: e.clientX, y: e.clientY };
+    redrawCanvas();
+  }
+
   function onTouchMove(e) {
-    if (!dragActive || e.touches.length !== 1) { return; }
+    if (!dragActive || e.touches.length !== 1) return;
     e.preventDefault();
     logoOffset.x += e.touches[0].clientX - dragLast.x;
     logoOffset.y += e.touches[0].clientY - dragLast.y;
@@ -406,76 +414,75 @@
     redrawCanvas();
   }
 
-  function onTouchEnd() {
-    dragActive = false;
-  }
+  function submitApplication(e) {
+    e.preventDefault();
+    if (!currentCell) return;
 
-  /* ------------------------------------------------------------------ */
-  /* Form submission                                                     */
-  /* ------------------------------------------------------------------ */
-  function submitEnquiry(cell) {
-    if (!cell) { return; }
-
-    var errEl = document.getElementById('spm-form-error');
-    var sucEl = document.getElementById('spm-form-success');
-    var btn   = document.getElementById('spm-submit');
-    var form  = document.getElementById('spm-enquiry-form');
-
-    if (errEl) { errEl.hidden = true; errEl.textContent = ''; }
-    if (sucEl) { sucEl.hidden = true; }
-
-    var name    = val('spm-name');
-    var email   = val('spm-email');
-    var company = val('spm-company');
-    var website = val('spm-website');
-    var message = val('spm-message');
-
-    if (!name)  { showErr(errEl, 'Please enter your name.'); return; }
-    if (!email) { showErr(errEl, 'Please enter your email address.'); return; }
-
-    var fd = new FormData();
-    fd.append('name',    name);
-    fd.append('email',   email);
-    fd.append('company', company);
-    fd.append('website', website);
-    fd.append('message', message);
-
-    var logoInput = document.getElementById('spm-logo-input');
-    if (logoInput && logoInput.files.length > 0) {
-      fd.append('logo',     logoInput.files[0]);
-      fd.append('offset_x', (logoOffset.x / CANVAS_R * 100).toFixed(2));
-      fd.append('offset_y', (logoOffset.y / CANVAS_R * 100).toFixed(2));
-      fd.append('scale',    logoScale.toFixed(3));
+    var err = document.getElementById('spm-form-error');
+    var btn = document.getElementById('spm-submit');
+    if (err) {
+      err.hidden = true;
+      err.textContent = '';
     }
 
-    if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+    var logoInput = document.getElementById('spm-logo-input');
+    if (!val('spm-sponsor-name') || !val('spm-contact-name') || !val('spm-email')) {
+      return showErr('Please complete the required sponsor details.');
+    }
+    if (!logoInput || !logoInput.files.length) {
+      return showErr('Please upload a sponsor logo or avatar.');
+    }
+    if (!checked('spm-logo-rights') || !checked('spm-terms') || !checked('spm-approval')) {
+      return showErr('Please tick all required confirmations.');
+    }
 
-    fetch('/sponsors/cell/' + cell.id + '/enquire/', {
-      method:  'POST',
+    var fd = new FormData();
+    fd.append('sponsor_name', val('spm-sponsor-name'));
+    fd.append('contact_name', val('spm-contact-name'));
+    fd.append('email', val('spm-email'));
+    fd.append('phone', val('spm-phone'));
+    fd.append('website_url', val('spm-website-url'));
+    fd.append('sponsor_note', val('spm-sponsor-note'));
+    fd.append('logo', logoInput.files[0]);
+    var refRadius = (previewShape && previewShape.refRadius) || CANVAS_R;
+    fd.append('logo_offset_x', (logoOffset.x / refRadius * 100).toFixed(2));
+    fd.append('logo_offset_y', (logoOffset.y / refRadius * 100).toFixed(2));
+    fd.append('logo_scale', logoScale.toFixed(3));
+    fd.append('logo_rights_confirmed', 'on');
+    fd.append('terms_accepted', 'on');
+    fd.append('approval_acknowledged', 'on');
+
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Opening checkout...';
+    }
+
+    fetch('/sponsors/cell/' + currentCell.id + '/enquire/', {
+      method: 'POST',
       headers: { 'X-CSRFToken': getCsrf() },
-      body:    fd,
+      body: fd,
     })
-    .then(function (r) {
-      return r.json().then(function (d) { return { ok: r.ok, data: d }; });
-    })
-    .then(function (res) {
-      if (res.ok && res.data.ok) {
-        if (form) { form.hidden = true; }
-        if (sucEl) {
-          sucEl.innerHTML = '<strong>Enquiry submitted!</strong> Bearcave Ltd. will be in touch within 24 hours to arrange your annual contract. A confirmation has been sent to your email.';
-          sucEl.hidden = false;
+      .then(function (r) {
+        return r.json().then(function (data) { return { ok: r.ok, data: data }; });
+      })
+      .then(function (res) {
+        if (res.ok && res.data.checkout_url) {
+          window.location.href = res.data.checkout_url;
+          return;
         }
-        // Reload page so puzzle colour updates to Reserved
-        setTimeout(function () { location.reload(); }, 2800);
-      } else {
-        showErr(errEl, res.data.error || 'Something went wrong. Please try again.');
-        if (btn) { btn.disabled = false; btn.textContent = 'Reserve this spot'; }
-      }
-    })
-    .catch(function () {
-      showErr(errEl, 'Network error. Please check your connection and try again.');
-      if (btn) { btn.disabled = false; btn.textContent = 'Reserve this spot'; }
-    });
+        showErr(res.data.error || 'Checkout could not be started.');
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Continue to secure checkout';
+        }
+      })
+      .catch(function () {
+        showErr('Network error. Please try again.');
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Continue to secure checkout';
+        }
+      });
   }
 
   function val(id) {
@@ -483,239 +490,69 @@
     return el ? el.value.trim() : '';
   }
 
-  function showErr(el, msg) {
-    if (el) { el.textContent = msg; el.hidden = false; }
+  function checked(id) {
+    var el = document.getElementById(id);
+    return !!(el && el.checked);
   }
 
-  /* ------------------------------------------------------------------ */
-  /* Admin panel                                                         */
-  /* ------------------------------------------------------------------ */
-  function loadAdminPanel(cellId) {
-    fetch('/sponsors/cell/' + cellId + '/', {
-      headers: { 'X-Requested-With': 'XMLHttpRequest' },
-    })
-    .then(function (r) { return r.json(); })
-    .then(function (data) { renderAdminPanel(data); })
-    .catch(function () { /* silent — admin panel is optional enhancement */ });
-  }
-
-  function renderAdminPanel(data) {
-    var panel = document.getElementById('spm-admin-panel');
-    if (!panel) { return; }
-
-    var html = '<div class="spm-admin">';
-    html += '<div class="spm-admin-title">Admin moderation</div>';
-
-    if (data.status === 'sold') {
-      /* --- Logo repositioning canvas --- */
-      if (data.sponsor_logo) {
-        var initScale = (data.logo_scale || 1.0).toFixed(2);
-        var initScaleLabel = parseFloat(initScale).toFixed(1);
-        html += '<div class="spm-admin-canvas-section">';
-        html += '<p class="spm-canvas-label">Drag to reposition logo inside the cell</p>';
-        html += '<div class="spm-canvas-outer"><canvas id="spm-admin-canvas" width="220" height="220"></canvas></div>';
-        html += '<div class="spm-scale-row">';
-        html += '<span class="spm-scale-label">Size</span>';
-        html += '<input type="range" id="spm-admin-scale" min="0.2" max="3.0" step="0.05" value="' + initScale + '" class="spm-scale-input">';
-        html += '<span id="spm-admin-scale-val" class="spm-scale-val">' + initScaleLabel + '&times;</span>';
-        html += '</div>';
-        html += '</div>';
-      }
-
-      /* --- Edit fields --- */
-      html += '<div class="spm-admin-edit">';
-      html += '<div class="spm-admin-field">';
-      html += '<label class="spm-admin-lbl">Display name</label>';
-      html += '<input type="text" id="spm-admin-display-name" class="spm-input spm-admin-input" value="' + esc(data.sponsor_name || '') + '">';
-      html += '</div>';
-      html += '<div class="spm-admin-field">';
-      html += '<label class="spm-admin-lbl">Website URL</label>';
-      html += '<input type="text" id="spm-admin-sponsor-url" class="spm-input spm-admin-input" value="' + esc(data.sponsor_url || '') + '" placeholder="https://">';
-      html += '</div>';
-      html += '</div>';
-      html += '<div class="spm-admin-btns">';
-      html += '<button class="spm-admin-approve" data-action="edit" data-id="' + data.id + '">Save changes</button>';
-      html += '<button class="spm-admin-reject"  data-action="reject" data-id="' + data.id + '">Reset to available</button>';
-      html += '</div>';
-
-    } else {
-      /* --- Enquiry details for reserved cells --- */
-      if (data.enquiry_submitted_at) {
-        html += '<div class="spm-admin-enquiry">';
-        html += row('From', esc(data.enquiry_name) + ' &lt;' + esc(data.enquiry_email) + '&gt;');
-        if (data.enquiry_company) { html += row('Company', esc(data.enquiry_company)); }
-        if (data.enquiry_website) {
-          var wUrl = data.enquiry_website;
-          if (!/^https?:\/\//i.test(wUrl)) { wUrl = 'https://' + wUrl; }
-          html += '<div class="spm-admin-row"><span class="spm-admin-lbl">Website</span><a href="' + esc(wUrl) + '" target="_blank">' + esc(data.enquiry_website) + '</a></div>';
-        }
-        if (data.enquiry_message) { html += row('Message', esc(data.enquiry_message)); }
-        html += row('Submitted', fmtDate(data.enquiry_submitted_at));
-        html += '</div>';
-      } else {
-        html += '<p class="spm-admin-empty">No enquiry submitted yet.</p>';
-      }
-
-      if (data.logo_pending) {
-        html += '<div class="spm-admin-pending-logo">';
-        html += '<span class="spm-admin-lbl">Pending logo</span>';
-        html += '<img src="' + esc(data.logo_pending) + '" alt="Pending logo" class="spm-admin-logo-img">';
-        html += '</div>';
-      }
-
-      /* Editable name + URL before approving */
-      if (data.status === 'reserved' || data.logo_pending) {
-        var defName = data.enquiry_company || data.enquiry_name || '';
-        var defUrl  = data.enquiry_website || '';
-        html += '<div class="spm-admin-edit">';
-        html += '<div class="spm-admin-field">';
-        html += '<label class="spm-admin-lbl">Display name on puzzle</label>';
-        html += '<input type="text" id="spm-admin-display-name" class="spm-input spm-admin-input" value="' + esc(defName) + '">';
-        html += '</div>';
-        html += '<div class="spm-admin-field">';
-        html += '<label class="spm-admin-lbl">Sponsor URL</label>';
-        html += '<input type="text" id="spm-admin-sponsor-url" class="spm-input spm-admin-input" value="' + esc(defUrl) + '" placeholder="https://">';
-        html += '</div>';
-        html += '</div>';
-        html += '<div class="spm-admin-btns">';
-        html += '<button class="spm-admin-approve" data-action="approve" data-id="' + data.id + '">Approve &amp; publish</button>';
-        html += '<button class="spm-admin-reject"  data-action="reject"  data-id="' + data.id + '">Reject &amp; reset</button>';
-        html += '</div>';
-      }
-    }
-
-    html += '</div>';
-    panel.innerHTML = html;
-    panel.hidden    = false;
-
-    panel.querySelectorAll('.spm-admin-approve, .spm-admin-reject').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        moderateCell(data.id, this.getAttribute('data-action'));
-      });
-    });
-
-    // Init draggable canvas for sold cells with a logo
-    if (data.status === 'sold' && data.sponsor_logo) {
-      initAdminCanvas(data);
+  function showErr(msg) {
+    var err = document.getElementById('spm-form-error');
+    if (err) {
+      err.textContent = msg;
+      err.hidden = false;
     }
   }
 
-  function initAdminCanvas(data) {
-    canvasEl = document.getElementById('spm-admin-canvas');
-    if (!canvasEl) { return; }
-
-    // Restore stored position/scale
-    logoOffset.x = ((data.logo_offset_x || 0) / 100) * CANVAS_R;
-    logoOffset.y = ((data.logo_offset_y || 0) / 100) * CANVAS_R;
-    logoScale    = data.logo_scale || 1.0;
-
-    // Bind canvas drag events
-    canvasEl.addEventListener('mousedown',  onCanvasMouseDown);
-    canvasEl.addEventListener('touchstart', onCanvasTouchStart, { passive: false });
-
-    // Bind scale slider
-    var slider = document.getElementById('spm-admin-scale');
-    if (slider) {
-      slider.addEventListener('input', function () {
-        logoScale = parseFloat(this.value);
-        var v = document.getElementById('spm-admin-scale-val');
-        if (v) { v.textContent = logoScale.toFixed(1) + '×'; }
-        redrawCanvas();
-      });
-    }
-
-    // Load existing sponsor logo into canvas
-    var img = new Image();
-    img.onload = function () {
-      logoImg = img;
-      redrawCanvas();
-    };
-    img.src = data.sponsor_logo;
+  function isAdminViewer() {
+    var el = document.getElementById('sponsor-is-admin-json');
+    return el ? JSON.parse(el.textContent) : false;
   }
 
-  function row(label, value) {
-    return '<div class="spm-admin-row"><span class="spm-admin-lbl">' + label + '</span><span>' + value + '</span></div>';
-  }
-
-  function moderateCell(cellId, action) {
-    var fd = new FormData();
-    fd.append('action', action);
-
-    var nameEl = document.getElementById('spm-admin-display-name');
-    if (nameEl && nameEl.value.trim()) { fd.append('sponsor_name', nameEl.value.trim()); }
-    var urlEl = document.getElementById('spm-admin-sponsor-url');
-    if (urlEl && urlEl.value.trim()) { fd.append('sponsor_url', urlEl.value.trim()); }
-
-    // Send logo position when admin canvas is active (edit or approve)
-    if (document.getElementById('spm-admin-canvas') && (action === 'edit' || action === 'approve')) {
-      fd.append('offset_x', (logoOffset.x / CANVAS_R * 100).toFixed(2));
-      fd.append('offset_y', (logoOffset.y / CANVAS_R * 100).toFixed(2));
-      fd.append('scale',    logoScale.toFixed(3));
-    }
-
-    fetch('/sponsors/cell/' + cellId + '/moderate/', {
-      method:  'POST',
-      headers: { 'X-CSRFToken': getCsrf() },
-      body:    fd,
-    })
-    .then(function (r) { return r.json(); })
-    .then(function (data) {
-      if (data.ok) {
-        var panel = document.getElementById('spm-admin-panel');
-        if (panel) {
-          var msgs = { approve: 'Approved and published.', reject: 'Rejected — spot reset to available.', edit: 'Sponsor info updated.' };
-          panel.innerHTML = '<div class="spm-admin"><p class="spm-admin-done">' + (msgs[action] || 'Done.') + '</p></div>';
-        }
-        // Reload to refresh puzzle state (edit just closes quietly)
-        setTimeout(function () { location.reload(); }, action === 'edit' ? 1000 : 1400);
-      }
-    })
-    .catch(function () {
-      alert('Action failed. Please refresh the page and try again.');
-    });
-  }
-
-  /* ------------------------------------------------------------------ */
-  /* Helpers                                                             */
-  /* ------------------------------------------------------------------ */
   function getCsrf() {
     var m = document.cookie.match(/csrftoken=([^;]+)/);
     return m ? m[1] : '';
   }
 
-  function esc(str) {
-    if (!str) { return ''; }
-    return String(str)
-      .replace(/&/g,  '&amp;')
-      .replace(/</g,  '&lt;')
-      .replace(/>/g,  '&gt;')
-      .replace(/"/g,  '&quot;');
+  function normalizeUrl(url) {
+    return /^https?:\/\//i.test(url) ? url : 'https://' + url;
   }
 
-  function fmtDate(iso) {
-    if (!iso) { return ''; }
-    try { return new Date(iso).toLocaleString(); } catch (e) { return iso; }
+  function isActive(status) {
+    return status === 'active' || status === 'sold';
   }
 
-  function ringPrice(ring) {
-    var p = { 1: '€800/yr', 2: '€400/yr', 3: '€200/yr', 4: '€100/yr', 5: '€50/yr', 6: '€25/yr' };
-    return p[ring] || '€25/yr';
+  function isReserved(status) {
+    return status === 'payment_pending' || status === 'paid_pending_approval' || status === 'reserved';
   }
 
   function ringLabelClass(ring, status) {
-    if (ring === 0)            { return 'spm-ring-label--centre'; }
-    if (status === 'sold')     { return 'spm-ring-label--sold'; }
-    if (status === 'reserved') { return 'spm-ring-label--reserved'; }
+    if (ring === 0) return 'spm-ring-label--centre';
+    if (isActive(status)) return 'spm-ring-label--sold';
+    if (isReserved(status)) return 'spm-ring-label--reserved';
     return '';
   }
 
   function statusText(status) {
-    return { available: 'Available', reserved: 'Reserved', sold: 'Sold' }[status] || status;
+    return {
+      available: 'Available',
+      payment_pending: 'Payment pending',
+      paid_pending_approval: 'Paid pending approval',
+      active: 'Active',
+      expired: 'Expired',
+      rejected: 'Rejected',
+      unavailable: 'Unavailable',
+      reserved: 'Reserved',
+      sold: 'Sold',
+    }[status] || status;
   }
 
-  /* ------------------------------------------------------------------ */
-  /* Export                                                              */
-  /* ------------------------------------------------------------------ */
-  window.SponsorModal = { open: openModal, close: closeModal };
+  function esc(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
 
+  window.SponsorModal = { open: openModal, close: closeModal };
 }());

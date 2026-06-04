@@ -1,7 +1,14 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import SponsorCell
+from .models import (
+    ProcessedStripeEvent,
+    SponsorApplication,
+    SponsorAuditLog,
+    SponsorCell,
+    SponsorPayment,
+    SponsorRoadmapItem,
+)
 
 
 @admin.register(SponsorCell)
@@ -46,8 +53,14 @@ class SponsorCellAdmin(admin.ModelAdmin):
     def status_badge(self, obj):
         colours = {
             "available": "#4caf50",
+            "payment_pending": "#ff9800",
+            "paid_pending_approval": "#9c27b0",
+            "active": "#2196f3",
             "reserved": "#ff9800",
             "sold": "#2196f3",
+            "expired": "#607d8b",
+            "rejected": "#b71c1c",
+            "unavailable": "#777",
         }
         colour = colours.get(obj.status, "#999")
         return format_html(
@@ -64,4 +77,79 @@ class SponsorCellAdmin(admin.ModelAdmin):
                 obj.sponsor_logo.url,
             )
         return ""
-    sponsor_logo_thumb.short_description = "Logo"
+    sponsor_logo_thumb.short_description = "Logo/avatar"
+
+
+@admin.register(SponsorApplication)
+class SponsorApplicationAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "sponsor_name",
+        "cell",
+        "status",
+        "price_display",
+        "email",
+        "created_at",
+        "published_at",
+        "expires_at",
+    )
+    list_filter = ("status", "cell__ring", "terms_version")
+    search_fields = ("sponsor_name", "contact_name", "email", "website_url")
+    readonly_fields = (
+        "reference",
+        "price_net_cents",
+        "currency",
+        "terms_accepted_at",
+        "terms_version",
+        "created_at",
+        "updated_at",
+    )
+    raw_id_fields = ("cell", "approved_by", "rejected_by")
+    ordering = ("-created_at",)
+
+
+@admin.register(SponsorPayment)
+class SponsorPaymentAdmin(admin.ModelAdmin):
+    list_display = (
+        "application",
+        "status",
+        "net_amount_cents",
+        "vat_amount_cents",
+        "total_amount_cents",
+        "currency",
+        "paid_at",
+        "refunded_at",
+    )
+    list_filter = ("status", "currency")
+    search_fields = (
+        "application__sponsor_name",
+        "stripe_checkout_session_id",
+        "stripe_payment_intent_id",
+    )
+    readonly_fields = ("created_at", "updated_at")
+    raw_id_fields = ("application",)
+
+
+@admin.register(ProcessedStripeEvent)
+class ProcessedStripeEventAdmin(admin.ModelAdmin):
+    list_display = ("event_id", "event_type", "application", "processed_at")
+    list_filter = ("event_type",)
+    search_fields = ("event_id", "application__sponsor_name")
+    raw_id_fields = ("application",)
+
+
+@admin.register(SponsorAuditLog)
+class SponsorAuditLogAdmin(admin.ModelAdmin):
+    list_display = ("created_at", "action", "application", "cell", "actor", "from_status", "to_status")
+    list_filter = ("action", "created_at")
+    search_fields = ("application__sponsor_name", "notes")
+    readonly_fields = ("created_at",)
+    raw_id_fields = ("application", "cell", "actor")
+
+
+@admin.register(SponsorRoadmapItem)
+class SponsorRoadmapItemAdmin(admin.ModelAdmin):
+    list_display = ("sort_order", "title", "phase", "status", "priority", "is_blocker", "updated_at")
+    list_filter = ("status", "priority", "is_blocker", "phase")
+    search_fields = ("title", "description", "phase")
+    ordering = ("sort_order", "title")

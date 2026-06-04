@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Sponsor Payment Not Completed | CulinEire{% endblock %}
+{% block meta_description %}CulinEire sponsor checkout cancellation.{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
+{% block content %}
+<section class="page-section">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-kicker">Sponsors</span>
+            <h1>Payment was not completed</h1>
+        </div>
+        <p class="page-subtitle">
+            Payment was not completed. Your sponsor spot has not been confirmed. You may return to the
+            sponsor page and choose an available spot again.
+        </p>
+        <p class="page-subtitle">
+            <a href="{% url 'sponsors:puzzle' %}">Back to Sponsor Puzzle</a>
+        </p>
+    </div>
+</section>
+{% endblock %}

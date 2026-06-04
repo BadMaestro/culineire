@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Stripe Sponsors Roadmap | CulinEire{% endblock %}
+{% block meta_description %}Internal Stripe Sponsors implementation and operational roadmap.{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+<link href="{% static 'css/moderation.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="page-section moderation-page automation-page">
+    <div class="container moderation-shell">
+        <a class="mon-back-link" href="{% url 'recipes:moderation_panel' %}">Back to Moderation Panel</a>
+
+        <header class="automation-header">
+            <div>
+                <p class="automation-kicker">Super-admin roadmap</p>
+                <h1 class="automation-title">Stripe Sponsors Roadmap</h1>
+                <p class="automation-summary">
+                    {{ roadmap.done_count }}/{{ roadmap.total_count }} milestones complete. Current phase: {{ roadmap.current_phase }}.
+                    Last updated {{ roadmap.last_updated|date:"j M Y H:i" }}. Environment: {{ roadmap.environment_mode }}.
+                </p>
+            </div>
+            <div class="automation-meter" aria-label="{{ roadmap.percent }} percent complete">
+                <span style="width: {{ roadmap.percent }}%"></span>
+            </div>
+        </header>
+
+        <section class="moderation-block moderation-block--tools">
+            <h2 class="moderation-block__title">Links</h2>
+            <div class="mod-tools-row">
+                <a class="mod-tool-link" href="{% url 'sponsors:moderation_applications' %}">Sponsor Applications</a>
+                <a class="mod-tool-link" href="{% url 'sponsors:moderation_applications' %}?status=paid_pending_approval">Paid Pending Approval</a>
+                <a class="mod-tool-link" href="{% url 'sponsors:moderation_applications' %}?status=refund_required">Refund Required</a>
+                <a class="mod-tool-link" href="{% url 'sponsors:puzzle' %}">Public Sponsors Page</a>
+                <a class="mod-tool-link" href="{% url 'sponsors:annual_contract' %}">Annual Sponsorship Terms</a>
+            </div>
+        </section>
+
+        <section class="research-grid">
+            <section class="research-panel">
+                <h2 class="moderation-block__title">Stripe Configuration</h2>
+                <ul class="automation-list">
+                    {% for label, ok in roadmap.checks.stripe %}
+                    <li class="automation-item automation-item--{% if ok %}done{% else %}pending{% endif %}">
+                        <span class="automation-item__state">{% if ok %}done{% else %}pending{% endif %}</span>
+                        <span class="automation-item__body"><strong>{{ label }}</strong></span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </section>
+
+            <section class="research-panel">
+                <h2 class="moderation-block__title">VAT Configuration</h2>
+                <ul class="automation-list">
+                    {% for label, ok in roadmap.checks.vat %}
+                    <li class="automation-item automation-item--{% if ok %}done{% else %}pending{% endif %}">
+                        <span class="automation-item__state">{% if ok %}done{% else %}pending{% endif %}</span>
+                        <span class="automation-item__body"><strong>{{ label }}</strong></span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        </section>
+
+        <section class="research-grid">
+            <section class="research-panel">
+                <h2 class="moderation-block__title">Sponsor Flow Checks</h2>
+                <ul class="automation-list">
+                    {% for label, ok in roadmap.checks.flow %}
+                    <li class="automation-item automation-item--{% if ok %}done{% else %}pending{% endif %}">
+                        <span class="automation-item__state">{% if ok %}done{% else %}pending{% endif %}</span>
+                        <span class="automation-item__body"><strong>{{ label }}</strong></span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </section>
+
+            <section class="research-panel">
+                <h2 class="moderation-block__title">Test Status</h2>
+                <ul class="automation-list">
+                    {% for label, ok in roadmap.checks.tests %}
+                    <li class="automation-item automation-item--{% if ok %}done{% else %}pending{% endif %}">
+                        <span class="automation-item__state">{% if ok %}done{% else %}pending{% endif %}</span>
+                        <span class="automation-item__body"><strong>{{ label }}</strong></span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        </section>
+
+        {% if roadmap.blockers %}
+        <section class="automation-tree">
+            <h2 class="moderation-block__title">Blockers</h2>
+            <ul class="automation-list">
+                {% for item in roadmap.blockers %}
+                <li class="automation-item automation-item--blocked">
+                    <span class="automation-item__state">blocked</span>
+                    <span class="automation-item__body"><strong>{{ item.title }}</strong><span>{{ item.description }}</span></span>
+                </li>
+                {% endfor %}
+            </ul>
+        </section>
+        {% endif %}
+
+        <section class="automation-tree">
+            <h2 class="moderation-block__title">Pending Tasks</h2>
+            <ul class="automation-list">
+                {% for item in roadmap.pending_items %}
+                <li class="automation-item automation-item--{{ item.status }}">
+                    <span class="automation-item__state">{{ item.get_status_display }}</span>
+                    <span class="automation-item__body">
+                        <strong>{{ item.title }}</strong>
+                        <span>{{ item.phase }} / {{ item.get_priority_display }} priority</span>
+                    </span>
+                </li>
+                {% empty %}
+                <li class="moderation-empty">No pending roadmap items.</li>
+                {% endfor %}
+            </ul>
+        </section>
+
+        <details class="automation-completed">
+            <summary>Show completed tasks</summary>
+            <div class="automation-completed__grid">
+                {% for item in roadmap.completed_items %}
+                <div class="automation-item automation-item--done">
+                    <span class="automation-item__state">{{ item.get_status_display }}</span>
+                    <span class="automation-item__body"><strong>{{ item.title }}</strong><span>{{ item.completed_at|date:"j M Y H:i"|default:"Completed" }}</span></span>
+                </div>
+                {% empty %}
+                <div class="moderation-empty">No completed roadmap items yet.</div>
+                {% endfor %}
+            </div>
+        </details>
+    </div>
+</section>
+{% endblock %}

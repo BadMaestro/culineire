@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Sponsor Cells | CulinEire{% endblock %}
+{% block meta_description %}Internal sponsor cell status table.{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+<link href="{% static 'css/moderation.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="page-section moderation-page">
+    <div class="container moderation-shell">
+        <a class="mon-back-link" href="{% url 'sponsors:moderation_applications' %}">Back to Sponsor Applications</a>
+
+        <div class="moderation-block">
+            <h1 class="moderation-block__title">Sponsor Cells</h1>
+            <div class="moderation-authors-table-wrap">
+                <table class="moderation-authors-table">
+                    <thead>
+                    <tr>
+                        <th>Cell</th>
+                        <th>Ring</th>
+                        <th>Position</th>
+                        <th>Net price</th>
+                        <th>Status</th>
+                        <th>Active sponsor</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for cell in cells %}
+                    <tr>
+                        <td>#{{ cell.cell_number }}</td>
+                        <td>{% if cell.ring == 0 %}Centre{% else %}Ring {{ cell.ring }}{% endif %}</td>
+                        <td>{{ cell.position_in_ring }}</td>
+                        <td>{% if cell.ring == 0 %}Price on request{% else %}{{ cell.price_display }}{% endif %}</td>
+                        <td>{{ cell.get_status_display }}</td>
+                        <td>{{ cell.sponsor_name|default:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

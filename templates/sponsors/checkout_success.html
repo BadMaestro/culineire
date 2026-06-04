@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Sponsor Payment Received | CulinEire{% endblock %}
+{% block meta_description %}CulinEire sponsor payment confirmation.{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
+{% block content %}
+<section class="page-section">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-kicker">Sponsors</span>
+            <h1>Payment received</h1>
+        </div>
+        <p class="page-subtitle">
+            Payment received. Thank you. Your sponsor spot is now reserved and pending Bearcave approval.
+            We will review your logo or avatar, website/profile link and sponsor details before publication. Your 12-month
+            sponsorship term begins when the approved image is published.
+        </p>
+        {% if application %}
+        <ul class="legal-list">
+            <li><strong>Sponsor:</strong> {{ application.sponsor_name }}</li>
+            <li><strong>Spot:</strong> Ring {{ application.cell.ring }}, cell #{{ application.cell.cell_number }}</li>
+            <li><strong>Status:</strong> {{ application.get_status_display }}</li>
+        </ul>
+        {% endif %}
+        <p class="page-subtitle">
+            <a href="{% url 'sponsors:puzzle' %}">Back to Sponsor Puzzle</a>
+        </p>
+    </div>
+</section>
+{% endblock %}

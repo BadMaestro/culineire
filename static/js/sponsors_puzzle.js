@@ -38,7 +38,29 @@
     sold      : { 6: '#ddd8ce', 5: '#cdc7ba', 4: '#b8b0a0', 3: '#a49888', 2: '#907e6c', 1: '#786454', 0: '#3a2e28' },
   };
 
-  var STATUS_LABEL = { available: 'Available', reserved: 'Reserved', sold: 'Sold' };
+  var STATUS_LABEL = {
+    available: 'Available',
+    payment_pending: 'Payment pending',
+    paid_pending_approval: 'Paid pending approval',
+    active: 'Active',
+    expired: 'Expired',
+    rejected: 'Rejected',
+    unavailable: 'Unavailable',
+    reserved: 'Reserved',
+    sold: 'Sold',
+  };
+
+  function statusBucket(status) {
+    if (status === 'active' || status === 'sold') { return 'sold'; }
+    if (status === 'payment_pending' || status === 'paid_pending_approval' || status === 'reserved') {
+      return 'reserved';
+    }
+    return 'available';
+  }
+
+  function isActiveStatus(status) {
+    return status === 'active' || status === 'sold';
+  }
 
   /* ------------------------------------------------------------------ */
   /* Math helpers                                                         */
@@ -66,10 +88,10 @@
   }
 
   /**
-   * Build an SVG arc-path string for one ring segment.
+   * Build the point list for one ring segment.
    * The segment spans angles [startAngle, endAngle] between inner and outer radii.
    */
-  function ringSegmentPath(cx, cy, innerR, outerR, startAngle, endAngle) {
+  function ringSegmentPoints(cx, cy, innerR, outerR, startAngle, endAngle) {
     var STEPS = 12;   // number of points on each arc edge
     var pts   = [];
     var i, angle, pt;
@@ -78,17 +100,55 @@
     for (i = 0; i <= STEPS; i++) {
       angle = startAngle + (endAngle - startAngle) * i / STEPS;
       pt = octPoint(cx, cy, angle, outerR);
-      pts.push(pt[0].toFixed(2) + ',' + pt[1].toFixed(2));
+      pts.push(pt);
     }
 
     // Inner edge: counter-clockwise from endAngle → startAngle
     for (i = STEPS; i >= 0; i--) {
       angle = startAngle + (endAngle - startAngle) * i / STEPS;
       pt = octPoint(cx, cy, angle, innerR);
-      pts.push(pt[0].toFixed(2) + ',' + pt[1].toFixed(2));
+      pts.push(pt);
     }
 
-    return 'M ' + pts[0] + ' L ' + pts.slice(1).join(' L ') + ' Z';
+    return pts;
+  }
+
+  function pathFromPoints(pts) {
+    if (!pts.length) { return ''; }
+    var first = pts[0][0].toFixed(2) + ',' + pts[0][1].toFixed(2);
+    var rest = [];
+    for (var i = 1; i < pts.length; i++) {
+      rest.push(pts[i][0].toFixed(2) + ',' + pts[i][1].toFixed(2));
+    }
+    return 'M ' + first + ' L ' + rest.join(' L ') + ' Z';
+  }
+
+  /**
+   * Build an SVG arc-path string for one ring segment.
+   */
+  function ringSegmentPath(cx, cy, innerR, outerR, startAngle, endAngle) {
+    return pathFromPoints(ringSegmentPoints(cx, cy, innerR, outerR, startAngle, endAngle));
+  }
+
+  function pointBounds(points) {
+    var minX = Infinity;
+    var minY = Infinity;
+    var maxX = -Infinity;
+    var maxY = -Infinity;
+    for (var i = 0; i < points.length; i++) {
+      minX = Math.min(minX, points[i][0]);
+      minY = Math.min(minY, points[i][1]);
+      maxX = Math.max(maxX, points[i][0]);
+      maxY = Math.max(maxY, points[i][1]);
+    }
+    return {
+      minX: minX,
+      minY: minY,
+      maxX: maxX,
+      maxY: maxY,
+      width: Math.max(1, maxX - minX),
+      height: Math.max(1, maxY - minY),
+    };
   }
 
   /**
@@ -164,7 +224,8 @@
 
         var cellData = cellMap[ring + '_' + pos] || null;
         var status   = cellData ? cellData.status : 'available';
-        var fill     = (RING_COLOURS[status] || RING_COLOURS.available)[ring];
+        var bucket   = statusBucket(status);
+        var fill     = (RING_COLOURS[bucket] || RING_COLOURS.available)[ring];
 
         var pathEl = svgEl('path', {
           d            : path,
@@ -179,7 +240,7 @@
           'data-status': status,
         });
 
-        if (cellData && cellData.sponsor_logo && status === 'sold') {
+        if (cellData && cellData.sponsor_logo && isActiveStatus(status)) {
           pathEl.setAttribute('fill', fill);
           pathEl.setAttribute('opacity', '0.85');
         }
@@ -191,7 +252,7 @@
         addCellPriceLabel(group, ring, innerR, outerR, startAngle, endAngle, status, cellData);
 
         // Add sponsor logo for sold cells (rendered as SVG image)
-        if (cellData && cellData.sponsor_logo && status === 'sold') {
+        if (cellData && cellData.sponsor_logo && isActiveStatus(status)) {
           appendLogoToCell(group, cellData, ring, pos, innerR, outerR, offset, sweep, count);
         }
       }
@@ -208,7 +269,7 @@
 
     var poly = svgEl('polygon', {
       points        : pts,
-      fill          : status === 'reserved' ? '#c8942a' : status === 'sold' ? '#3a2e28' : '#6c6054',
+      fill          : statusBucket(status) === 'reserved' ? '#c8942a' : isActiveStatus(status) ? '#3a2e28' : '#6c6054',
       stroke        : '#fff',
       'stroke-width': '2',
       'filter'      : 'url(#cell-shadow)',
@@ -218,7 +279,7 @@
     attachCellEvents(poly, cellData, 0, 0);
     g.appendChild(poly);
 
-    if (status === 'sold' && cellData && cellData.sponsor_logo) {
+    if (isActiveStatus(status) && cellData && cellData.sponsor_logo) {
       /* ---- Sold: show sponsor logo clipped to octagon, with offset/scale ---- */
 
       // Register a clipPath in <defs> matching exactly this cell's octagon
@@ -309,10 +370,11 @@
 
   var RING_PRICE_LABEL = {1: '€800', 2: '€400', 3: '€200', 4: '€100', 5: '€50', 6: '€25'};
   var RING_FONT_SIZE   = {1: 13, 2: 12, 3: 11, 4: 10, 5: 9, 6: 8};
+  RING_PRICE_LABEL = {1: '€800', 2: '€400', 3: '€200', 4: '€100', 5: '€50', 6: '€25'};
 
   function addCellPriceLabel(group, ring, innerR, outerR, startAngle, endAngle, status, cellData) {
     // Don't show price label on sold cells that have a logo — logo replaces it
-    if (status === 'sold' && cellData && cellData.sponsor_logo) { return; }
+    if (isActiveStatus(status) && cellData && cellData.sponsor_logo) { return; }
 
     var centroid  = segmentCentroid(innerR + GAP, outerR - GAP / 2, startAngle, endAngle);
     var midAngle  = (startAngle + endAngle) / 2;
@@ -324,7 +386,7 @@
     if (rotateDeg > 90 && rotateDeg < 270) { rotateDeg += 180; }
 
     var label;
-    if (status === 'sold' && cellData && cellData.sponsor_name) {
+    if (isActiveStatus(status) && cellData && cellData.sponsor_name) {
       // Show short sponsor name (first word, max 6 chars)
       var name = cellData.sponsor_name.split(' ')[0];
       label = name.length > 6 ? name.slice(0, 5) + '…' : name;
@@ -332,7 +394,7 @@
       label = RING_PRICE_LABEL[ring] || '';
     }
 
-    var textColour = (status === 'sold') ? 'rgba(255,255,255,0.9)' : 'rgba(60,55,45,0.65)';
+    var textColour = isActiveStatus(status) ? 'rgba(255,255,255,0.9)' : 'rgba(60,55,45,0.65)';
 
     var textEl = svgEl('text', {
       x                  : centroid[0].toFixed(1),
@@ -351,21 +413,43 @@
   }
 
   function appendLogoToCell(group, cellData, ring, pos, innerR, outerR, offset, sweep, count) {
-    var startAngle = offset + pos * sweep;
-    var endAngle   = offset + (pos + 1) * sweep;
-    var centroid   = segmentCentroid(innerR + GAP, outerR - GAP / 2, startAngle, endAngle);
-    var size = Math.min((outerR - innerR) * 0.6, 36);
+    var startAngle = offset + pos * sweep + GAP / outerR;
+    var endAngle   = offset + (pos + 1) * sweep - GAP / outerR;
+    var points     = ringSegmentPoints(CX, CY, innerR + GAP, outerR - GAP / 2, startAngle, endAngle);
+    var bounds     = pointBounds(points);
+    var refRadius  = Math.max(bounds.width, bounds.height) / 2;
+    var sc         = cellData.logo_scale || 1.0;
+    var ox         = ((cellData.logo_offset_x || 0) / 100) * refRadius;
+    var oy         = ((cellData.logo_offset_y || 0) / 100) * refRadius;
+    var size       = Math.max(bounds.width, bounds.height) * sc;
+    var cx         = (bounds.minX + bounds.maxX) / 2 + ox;
+    var cy         = (bounds.minY + bounds.maxY) / 2 + oy;
+    var clipId     = 'sponsor-cell-clip-' + ring + '-' + pos;
+    var svgDefs    = document.querySelector('#sponsor-puzzle defs');
+
+    if (svgDefs) {
+      var clip = svgEl('clipPath', { id: clipId });
+      clip.appendChild(svgEl('path', { d: pathFromPoints(points) }));
+      svgDefs.appendChild(clip);
+    }
 
     var img = svgEl('image', {
-      href            : cellData.sponsor_logo,
-      x               : (centroid[0] - size / 2).toFixed(1),
-      y               : (centroid[1] - size / 2).toFixed(1),
-      width           : size.toFixed(1),
-      height          : size.toFixed(1),
-      preserveAspectRatio: 'xMidYMid meet',
-      'pointer-events': 'none',
+      href                : cellData.sponsor_logo,
+      x                   : (cx - size / 2).toFixed(1),
+      y                   : (cy - size / 2).toFixed(1),
+      width               : size.toFixed(1),
+      height              : size.toFixed(1),
+      preserveAspectRatio : 'xMidYMid slice',
+      'pointer-events'    : 'none',
     });
-    group.appendChild(img);
+
+    if (svgDefs) {
+      var clipped = svgEl('g', { 'clip-path': 'url(#' + clipId + ')' });
+      clipped.appendChild(img);
+      group.appendChild(clipped);
+    } else {
+      group.appendChild(img);
+    }
   }
 
   /* ------------------------------------------------------------------ */

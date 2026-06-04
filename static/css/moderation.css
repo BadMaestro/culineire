@@ -571,6 +571,12 @@
   border-color: rgb(11 76 58 / 0.35);
 }
 
+.mod-tool-link.is-active {
+  background: rgb(11 76 58 / 0.14);
+  border-color: rgb(11 76 58 / 0.42);
+  color: #06392b;
+}
+
 .moderation-block__title {
   display: flex;
   flex-wrap: wrap;
@@ -610,6 +616,29 @@
   background: rgb(146 64 14 / 0.12);
   color: rgb(138 61 8);
   border: 1px solid rgb(146 64 14 / 0.28);
+}
+
+.author-studio-status--payment_pending,
+.author-studio-status--paid_pending_approval,
+.author-studio-status--refund_required {
+  background: rgb(255 193 7 / 0.18);
+  color: rgb(120 80 0);
+  border: 1px solid rgb(255 193 7 / 0.4);
+}
+
+.author-studio-status--approved,
+.author-studio-status--refunded {
+  background: rgb(11 76 58 / 0.08);
+  color: #0b4c3a;
+  border: 1px solid rgb(11 76 58 / 0.18);
+}
+
+.author-studio-status--rejected,
+.author-studio-status--cancelled,
+.author-studio-status--expired {
+  background: rgb(180 40 40 / 0.08);
+  color: rgb(140 30 30);
+  border: 1px solid rgb(180 40 40 / 0.22);
 }
 
 /* Row layout */
