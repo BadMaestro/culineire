@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import shutil
+import tempfile
 from io import BytesIO
 from unittest.mock import patch
 
@@ -28,6 +30,21 @@ from .services import (
     reject_application,
 )
 
+# Isolated settings applied to every sponsor test class:
+#   MEDIA_ROOT  — temporary directory so uploaded logos never touch production media.
+#   SECURE_SSL_REDIRECT — disabled so the test client receives 200/400/404, not 301.
+#   SECURE_HSTS_SECONDS — zero to suppress SecurityMiddleware redirects.
+#   SESSION_COOKIE_SECURE / CSRF_COOKIE_SECURE — allow plain-HTTP test client requests.
+_TEMP_MEDIA = tempfile.mkdtemp(prefix="culineire_sponsor_tests_")
+
+SPONSOR_TEST_SETTINGS = dict(
+    MEDIA_ROOT=_TEMP_MEDIA,
+    SECURE_SSL_REDIRECT=False,
+    SECURE_HSTS_SECONDS=0,
+    SESSION_COOKIE_SECURE=False,
+    CSRF_COOKIE_SECURE=False,
+)
+
 
 def png_upload(name="logo.png"):
     image = Image.new("RGB", (16, 16), color=(22, 100, 61))
@@ -36,6 +53,7 @@ def png_upload(name="logo.png"):
     return SimpleUploadedFile(name, buffer.getvalue(), content_type="image/png")
 
 
+@override_settings(**SPONSOR_TEST_SETTINGS)
 class SponsorFlowTests(TestCase):
     def setUp(self):
         self.cell = SponsorCell.objects.create(cell_number=1, ring=6, position_in_ring=0)
@@ -313,6 +331,7 @@ class SponsorFlowTests(TestCase):
         self.assertEqual(self.cell.status, SponsorCell.Status.AVAILABLE)
 
 
+@override_settings(**SPONSOR_TEST_SETTINGS)
 class SponsorModerationPermissionTests(TestCase):
     def setUp(self):
         user_model = get_user_model()
@@ -367,3 +386,8 @@ class SponsorModerationPermissionTests(TestCase):
         response = self.client.get(reverse("sponsors:sponsor_roadmap"))
 
         self.assertEqual(response.status_code, 200)
+
+
+def teardown_module(_module=None):
+    """Remove the temporary media directory created for sponsor tests."""
+    shutil.rmtree(_TEMP_MEDIA, ignore_errors=True)
