@@ -1582,6 +1582,25 @@ class PublicImagePerformanceHintTests(TestCase):
         self.assertContains(response, reverse("recipes:recipe_edit", kwargs={"slug": self.recipe.slug}))
         self.assertContains(response, reverse("recipes:recipe_delete", kwargs={"slug": self.recipe.slug}))
 
+    @override_settings(AMUSE_BOUCHE_PUBLIC=True)
+    def test_author_sees_dashboard_back_button_in_main_sections(self):
+        self.client.force_login(self.user)
+        urls = (
+            reverse("recipes:recipe_list"),
+            reverse("articles:article_list"),
+            reverse("amuse_bouche:feed"),
+            reverse("newsfeed:feed"),
+            reverse("sponsors:puzzle"),
+            reverse("messaging:contact"),
+        )
+
+        for url in urls:
+            with self.subTest(url=url):
+                response = self.client.get(url)
+
+                self.assertContains(response, "Back to My Dashboard")
+                self.assertContains(response, reverse("recipes:author_dashboard"))
+
     def test_section_heroes_show_author_create_actions(self):
         self.client.force_login(self.user)
 
