@@ -27,6 +27,9 @@
             {% if author.bio %}
             <p class="hero-subtitle">{{ author.bio }}</p>
             {% endif %}
+            {% if can_manage_author_profile %}
+                {% include "includes/author_cabinet_actions.html" %}
+            {% else %}
             <div class="hero__actions">
                 {% if can_view_amuse_bouche_public_area %}
                 <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
@@ -34,6 +37,7 @@
                 <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
                 <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
             </div>
+            {% endif %}
         </div>
     </div>
 </section>
@@ -170,16 +174,11 @@
         </div>
         {% endif %}
 
-        {% if can_manage_author_profile %}
+        {% if can_manage_author_profile and not is_god_author %}
         <div class="author-profile-manage">
-            <p class="author-profile-manage__label">Author Cabinet</p>
+            <p class="author-profile-manage__label">Profile Settings</p>
             <div class="author-profile-manage__actions">
-                <a class="btn" href="{% url 'recipes:recipe_create' %}">Create Recipe</a>
-                <a class="btn" href="{% url 'articles:article_create' %}">Create Article</a>
-                <a class="btn" href="{% url 'recipes:author_edit' %}">Edit Profile</a>
-                {% if not is_god_author %}
                 <a class="recipe-card__cta btn btn--danger recipe-card__delete" href="{% url 'recipes:author_delete' %}">Delete Profile</a>
-                {% endif %}
             </div>
         </div>
 

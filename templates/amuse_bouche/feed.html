@@ -21,6 +21,9 @@
             <span class="pill">Kitchen Notes</span>
             <h1 class="hero-title">Amuse-Bouche</h1>
             <p class="hero-subtitle">Shorts for food ideas. A recipe, article or author note can become a quick bite: a sauce, plating idea, drink, kitchen trick or Irish food spark. Short, clear, useful.</p>
+            {% if show_author_cabinet_actions %}
+                {% include "includes/author_cabinet_actions.html" %}
+            {% else %}
             <div class="hero__actions ab-hero-actions">
                 <button class="ab-hero-toggle" aria-expanded="false" aria-label="Quick links" type="button">
                     <svg aria-hidden="true" fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewBox="0 0 24 24" width="18">
@@ -28,12 +31,13 @@
                     </svg>
                     Menu
                 </button>
-                {% if user.is_authenticated %}
-                <a class="btn-primary" href="{% url 'amuse_bouche:create' %}">Share a Bite +</a>
+                {% if header_author %}
+                <a class="btn-primary" href="{% url 'amuse_bouche:create' %}">Create Amuse-Bouche</a>
                 {% endif %}
-                <a class="btn-primary" href="{% url 'recipes:recipe_list' %}">Explore Recipes</a>
-                <a class="btn-primary" href="{% url 'articles:article_list' %}">Read Articles</a>
+                <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}">Explore Recipes</a>
+                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
             </div>
+            {% endif %}
         </div>
     </div>
 </section>
@@ -95,8 +99,8 @@
         <div class="empty-state">
             <h2>No bites yet</h2>
             <p>No approved Amuse-Bouche posts yet. Be the first to share a small kitchen idea.</p>
-            {% if user.is_authenticated %}
-            <a class="btn-primary" href="{% url 'amuse_bouche:create' %}">Share a Bite +</a>
+            {% if header_author %}
+            <a class="btn-primary" href="{% url 'amuse_bouche:create' %}">Create Amuse-Bouche</a>
             {% endif %}
         </div>
         {% endif %}

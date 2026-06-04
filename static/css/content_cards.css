@@ -1820,6 +1820,55 @@
   font-size: 0.78rem;
 }
 
+.hero-author-cabinet {
+  width: min(100%, 1120px);
+  margin-block-start: 1rem;
+  padding: 0.95rem 1.15rem;
+  border: 1px solid rgb(255 255 255 / 0.22);
+  border-radius: 8px;
+  background: rgb(247 242 234 / 0.1);
+  box-shadow: 0 16px 40px rgb(0 0 0 / 0.16);
+  text-align: center;
+  backdrop-filter: blur(8px);
+}
+
+.hero-author-cabinet__label {
+  margin: 0 0 0.72rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: rgb(255 248 238 / 0.72);
+}
+
+.hero-author-cabinet__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.hero .hero-author-cabinet__actions .btn {
+  min-height: 32px;
+  padding: 0.38rem 0.85rem;
+  border: 1px solid rgb(247 242 234 / 0.25);
+  border-radius: var(--radius-pill);
+  background: rgb(247 242 234 / 0.86);
+  color: #2f261f;
+  box-shadow: none;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.hero .hero-author-cabinet__actions .btn:hover,
+.hero .hero-author-cabinet__actions .btn:focus-visible {
+  background: #fff8ee;
+  border-color: rgb(255 255 255 / 0.45);
+  color: #1f2c25;
+  transform: none;
+}
+
 .author-profile-manage__actions .btn--danger,
 .recipe-card__delete {
   background: rgb(180 40 40 / 0.06);

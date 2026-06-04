@@ -1582,6 +1582,55 @@ class PublicImagePerformanceHintTests(TestCase):
         self.assertContains(response, reverse("recipes:recipe_edit", kwargs={"slug": self.recipe.slug}))
         self.assertContains(response, reverse("recipes:recipe_delete", kwargs={"slug": self.recipe.slug}))
 
+    def test_section_heroes_show_author_create_actions(self):
+        self.client.force_login(self.user)
+
+        recipe_response = self.client.get(reverse("recipes:recipe_list"))
+        recipe_hero = recipe_response.content.decode().split('<div class="hero__actions">', 1)[1].split("</div>", 1)[0]
+        self.assertIn("Create Recipe", recipe_hero)
+        self.assertIn(reverse("recipes:recipe_create"), recipe_hero)
+        self.assertIn("Explore Recipes", recipe_hero)
+        self.assertIn("Read Articles", recipe_hero)
+
+        article_response = self.client.get(reverse("articles:article_list"))
+        article_hero = article_response.content.decode().split('<div class="hero__actions">', 1)[1].split("</div>", 1)[0]
+        self.assertIn("Create Article", article_hero)
+        self.assertIn(reverse("articles:article_create"), article_hero)
+        self.assertIn("Explore Recipes", article_hero)
+        self.assertIn("Read Articles", article_hero)
+
+        amuse_bouche_response = self.client.get(reverse("amuse_bouche:feed"))
+        amuse_bouche_hero = amuse_bouche_response.content.decode().split('<div class="hero__actions ab-hero-actions">', 1)[1].split("</div>", 1)[0]
+        self.assertIn("Create Amuse-Bouche", amuse_bouche_hero)
+        self.assertIn(reverse("amuse_bouche:create"), amuse_bouche_hero)
+        self.assertIn("Explore Recipes", amuse_bouche_hero)
+        self.assertIn("Read Articles", amuse_bouche_hero)
+        self.assertNotIn("Share a Bite +", amuse_bouche_hero)
+
+    @override_settings(AMUSE_BOUCHE_PUBLIC=True)
+    def test_author_filtered_heroes_show_author_cabinet_actions(self):
+        self.client.force_login(self.user)
+
+        responses = [
+            self.client.get(f'{reverse("recipes:recipe_list")}?author={self.author.slug}'),
+            self.client.get(f'{reverse("articles:article_list")}?author={self.author.slug}'),
+            self.client.get(f'{reverse("amuse_bouche:feed")}?author={self.author.slug}'),
+        ]
+
+        for response in responses:
+            hero = response.content.decode().split("<section class=\"hero", 1)[1].split("</section>", 1)[0]
+            self.assertIn("hero-author-cabinet", hero)
+            self.assertIn("Author Cabinet", hero)
+            self.assertIn("Create Recipe", hero)
+            self.assertIn("Create Article", hero)
+            self.assertIn("Edit Profile", hero)
+            self.assertIn(reverse("recipes:recipe_create"), hero)
+            self.assertIn(reverse("articles:article_create"), hero)
+            self.assertIn(reverse("recipes:author_edit"), hero)
+            self.assertNotIn("Explore Recipes", hero)
+            self.assertNotIn("Read Articles", hero)
+            self.assertNotIn("Create Amuse-Bouche", hero)
+
     def test_article_list_cards_use_lazy_async_image_hints(self):
         response = self.client.get(reverse("articles:article_list"))
 
@@ -2232,6 +2281,10 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertContains(response, "Author Dashboard")
         self.assertContains(response, reverse("recipes:recipe_create"))
         self.assertContains(response, reverse("articles:article_create"))
+        hero = response.content.decode().split("<section class=\"hero", 1)[1].split("</section>", 1)[0]
+        self.assertIn("hero-author-cabinet", hero)
+        self.assertNotIn("Explore Recipes", hero)
+        self.assertNotIn("Read Articles", hero)
 
     def test_dashboard_uses_author_facing_status_labels_and_view_links(self):
         self.client.force_login(self.author_user)

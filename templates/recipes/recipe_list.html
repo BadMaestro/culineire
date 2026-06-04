@@ -28,13 +28,17 @@
             <p class="hero-subtitle">
                 {% if page_subtitle %}{{ page_subtitle }}{% else %}Irish classics, treasured vintage recipes, and modern home-kitchen twists, bringing familiar flavours back to the table and opening Ireland's culinary heritage to food lovers.{% endif %}
             </p>
+            {% if selected_author and header_author and selected_author.slug == header_author.slug %}
+                {% include "includes/author_cabinet_actions.html" %}
+            {% else %}
             <div class="hero__actions">
-                {% if can_view_amuse_bouche_public_area %}
-                <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
+                {% if header_author %}
+                <a class="btn-primary" href="{% url 'recipes:recipe_create' %}">Create Recipe</a>
                 {% endif %}
                 <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
                 <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
             </div>
+            {% endif %}
         </div>
     </div>
 </section>

@@ -147,7 +147,7 @@ def _attach_likers(items):
 def feed(request):
     _require_public_area_access(request)
     content_type = request.GET.get("type", "")
-    author = request.GET.get("author", "")
+    author = request.GET.get("author", "").strip()
     queryset = _public_queryset()
     if content_type:
         queryset = queryset.filter(content_type=content_type)
@@ -168,6 +168,7 @@ def feed(request):
         "followed_author_ids": followed_author_ids,
         "user_author_slug": user_author_slug,
         "user_is_moderator": is_moderator(request.user),
+        "show_author_cabinet_actions": bool(user_author_slug and author == user_author_slug),
     })
 
 

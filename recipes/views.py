@@ -992,12 +992,14 @@ def recipe_list(request):
         .order_by("-average_rating_value", "-ratings_total", "-created_at")
     )
     selected_author = None
+    can_manage_selected_author = False
     if author_slug:
         selected_author = get_object_or_404(RecipeAuthor, slug=author_slug)
+        can_manage_selected_author = user_can_manage_author(request.user, selected_author) or is_moderator(request.user)
         recipes = recipes.filter(author=selected_author)
         popular_recipe_candidates = popular_recipe_candidates.filter(author=selected_author)
 
-        if user_can_manage_author(request.user, selected_author) or is_moderator(request.user):
+        if can_manage_selected_author:
             recipes = (
                 Recipe.objects.select_related("author")
                 .prefetch_related("additional_category_links")
@@ -1071,7 +1073,7 @@ def recipe_list(request):
             .filter(author=selected_author, is_deleted=False)
             .order_by("-published")
         )
-        if not (user_can_manage_author(request.user, selected_author) or is_moderator(request.user)):
+        if not can_manage_selected_author:
             all_articles = all_articles.filter(status=Article.Status.APPROVED)
         recent_articles = list(all_articles[:6])
 
@@ -1114,7 +1116,7 @@ def recipe_list(request):
         "default_recent_recipes": default_recent_recipes,
         "all_recipes_grid": all_recipes_grid,
         "selected_author": selected_author,
-        "can_manage_selected_author": user_can_manage_author(request.user, selected_author),
+        "can_manage_selected_author": can_manage_selected_author,
         "search_query": q,
     }
     return render(request, "recipes/recipe_list.html", context)
