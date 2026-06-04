@@ -1456,7 +1456,7 @@ def author_detail(request, slug):
     dashboard_content_filters = [
         {
             "key": "",
-            "label": "All Content",
+            "label": "All Types",
             "url": _dashboard_filter_url(content_key=""),
             "active": not content_filter,
         },
@@ -1473,7 +1473,7 @@ def author_detail(request, slug):
     dashboard_status_filter_links = [
         {
             "key": "",
-            "label": "All",
+            "label": "All Statuses",
             "url": _dashboard_filter_url(status_key=""),
             "active": not status_filter,
         },

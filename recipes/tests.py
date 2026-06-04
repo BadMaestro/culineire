@@ -2374,11 +2374,12 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         response = self.client.get(self.url)
 
         self.assertContains(response, 'aria-label="Filter by content type"')
-        self.assertContains(response, "All Content")
+        self.assertContains(response, "All Types")
         self.assertContains(response, "Recipes")
         self.assertContains(response, "Articles")
         self.assertContains(response, "AB")
         self.assertContains(response, 'aria-label="Filter by status"')
+        self.assertContains(response, "All Statuses")
 
     def test_dashboard_content_filter_recipes_returns_only_recipes(self):
         self.client.force_login(self.author_user)
