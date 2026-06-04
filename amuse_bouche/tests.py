@@ -610,6 +610,31 @@ class AmuseBoucheTelegramPreviewTests(TestCase):
                 self.assertEqual(generated_image.size, (640, 640))
                 self.assertEqual(generated_image.format, "JPEG")
 
+    def test_detail_uses_short_description_for_telegram_preview_text(self):
+        description = "Tender orchard apples baked in whiskey caramel with a crisp oat crown."
+        item = AmuseBouche.objects.create(
+            author=self.author,
+            title="Orchard Apples in Whiskey Sauce",
+            short_description=description,
+            status=AmuseBouche.Status.APPROVED,
+        )
+
+        response = self.client.get(item.get_absolute_url())
+        html = response.content.decode()
+
+        self.assertIn(f'<meta content="{description}" property="og:title">', html)
+        self.assertIn(f'<meta content="{description}" name="twitter:title">', html)
+        self.assertNotIn(
+            '<meta content="Orchard Apples in Whiskey Sauce | Amuse-Bouche" property="og:title">',
+            html,
+        )
+        self.assertNotIn(
+            '<meta content="Orchard Apples in Whiskey Sauce | Amuse-Bouche" name="twitter:title">',
+            html,
+        )
+        self.assertNotIn('<meta content="Amuse-Bouche on CulinEire" property="og:description">', html)
+        self.assertNotIn('<meta content="Amuse-Bouche on CulinEire" name="twitter:description">', html)
+
     @patch("amuse_bouche.telegram_preview._create_preview_image", side_effect=OSError("preview write failed"))
     def test_detail_falls_back_to_source_image_when_preview_generation_fails(self, _mock_create):
         item = AmuseBouche.objects.create(
