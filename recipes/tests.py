@@ -690,7 +690,7 @@ class AuthenticationPageTests(TestCase):
     def test_authenticated_header_shows_staff_author_actions(self):
         self.user.is_staff = True
         self.user.save(update_fields=["is_staff"])
-        author = RecipeAuthor.objects.create(
+        RecipeAuthor.objects.create(
             user=self.user,
             name="Ciaran",
             slug="ciaran",
@@ -701,12 +701,20 @@ class AuthenticationPageTests(TestCase):
         response = self.client.get(reverse("home"))
 
         self.assertContains(response, "Ciaran")
-        self.assertContains(response, author.get_absolute_url())
-        self.assertContains(response, reverse("recipes:recipe_create"))
-        self.assertContains(response, reverse("articles:article_create"))
+        self.assertContains(response, "My Content Studio")
         self.assertContains(response, reverse("recipes:author_dashboard"))
-        self.assertContains(response, f'{reverse("recipes:recipe_list")}?author={author.slug}')
-        self.assertContains(response, f'{reverse("articles:article_list")}?author={author.slug}')
+        self.assertContains(response, "Messages")
+        self.assertContains(response, reverse("messaging:inbox"))
+        self.assertContains(response, "Moderation Panel")
+        self.assertContains(response, reverse("recipes:moderation_panel"))
+        self.assertNotContains(response, "My Recipes")
+        self.assertNotContains(response, "My Amuse-Bouche")
+        self.assertNotContains(response, "My Articles")
+        self.assertNotContains(response, "My Collection")
+        self.assertNotContains(response, "Profile")
+        self.assertNotContains(response, "(+ New)")
+        self.assertNotContains(response, reverse("recipes:recipe_create"))
+        self.assertNotContains(response, reverse("articles:article_create"))
 
     def test_author_dashboard_requires_login(self):
         response = self.client.get(reverse("recipes:author_dashboard"))
@@ -1625,16 +1633,20 @@ class PublicImagePerformanceHintTests(TestCase):
         self.assertNotIn("Create Recipe", recipe_hero)
         self.assertNotIn(reverse("recipes:recipe_create"), recipe_hero)
         self.assertNotIn("Back to My Dashboard", recipe_hero)
-        self.assertIn("Explore Recipes", recipe_hero)
+        self.assertIn("Amuse-Bouche", recipe_hero)
+        self.assertNotIn("Explore Recipes", recipe_hero)
         self.assertIn("Read Articles", recipe_hero)
+        self.assertIn("Sponsors", recipe_hero)
 
         article_response = self.client.get(reverse("articles:article_list"))
         article_hero = article_response.content.decode().split('<div class="hero__actions">', 1)[1].split("</div>", 1)[0]
         self.assertNotIn("Create Article", article_hero)
         self.assertNotIn(reverse("articles:article_create"), article_hero)
         self.assertNotIn("Back to My Dashboard", article_hero)
+        self.assertIn("Amuse-Bouche", article_hero)
         self.assertIn("Explore Recipes", article_hero)
-        self.assertIn("Read Articles", article_hero)
+        self.assertNotIn("Read Articles", article_hero)
+        self.assertIn("Sponsors", article_hero)
 
         amuse_bouche_response = self.client.get(reverse("amuse_bouche:feed"))
         amuse_bouche_hero = amuse_bouche_response.content.decode().split('<div class="hero__actions ab-hero-actions">', 1)[1].split("</div>", 1)[0]
@@ -1643,6 +1655,7 @@ class PublicImagePerformanceHintTests(TestCase):
         self.assertNotIn("Back to My Dashboard", amuse_bouche_hero)
         self.assertIn("Explore Recipes", amuse_bouche_hero)
         self.assertIn("Read Articles", amuse_bouche_hero)
+        self.assertIn("Sponsors", amuse_bouche_hero)
         self.assertNotIn("Share a Bite +", amuse_bouche_hero)
 
     @override_settings(AMUSE_BOUCHE_PUBLIC=True)

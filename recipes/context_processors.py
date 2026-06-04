@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from urllib.parse import urlencode
 
 from django.db import DatabaseError
 from django.urls import NoReverseMatch, reverse
@@ -52,13 +51,6 @@ def _find_author_for_user(user):
     return get_author_for_user(user)
 
 
-def _with_query(url: str, **params) -> str:
-    if not url:
-        return ""
-    query = urlencode({key: value for key, value in params.items() if value})
-    return f"{url}?{query}" if query else url
-
-
 def header_author(request):
     user = getattr(request, "user", None)
 
@@ -80,60 +72,22 @@ def header_author(request):
         or user.get_username()
     )
 
-    profile_url = author.get_absolute_url() if author else ""
-
     is_moderator = _is_moderator(user)
     unread_count = _unread_message_count(user)
 
-    actions = [
-        {
-            "label": "My Recipes",
-            "url": _with_query(_reverse_or_empty("recipes:recipe_list"), author=author.slug)
-            if author
-            else "",
-            "secondary_label": "(+ New)",
-            "secondary_url": _reverse_or_empty("recipes:recipe_create") if author else "",
-        },
-        {
-            "label": "My Articles",
-            "url": _with_query(_reverse_or_empty("articles:article_list"), author=author.slug)
-            if author
-            else "",
-            "secondary_label": "(+ New)",
-            "secondary_url": _reverse_or_empty("articles:article_create") if author else "",
-        },
-        {
-            "label": "My Collection",
-            "url": _reverse_or_empty("collection:my_collection"),
-        },
-        {
-            "label": "Profile",
-            "url": profile_url,
-        },
-        {
-            "label": "Messages",
-            "url": _reverse_or_empty("messaging:inbox"),
-            "badge": unread_count if unread_count else None,
-        },
-    ]
+    actions = []
 
     if author:
-        actions.insert(0, {
-            "label": "Dashboard",
+        actions.append({
+            "label": "My Content Studio",
             "url": _reverse_or_empty("recipes:author_dashboard"),
         })
 
-    if can_view_amuse_bouche or author:
-        actions.insert(2, {
-            "label": "My Amuse-Bouche",
-            "url": (
-                _with_query(_reverse_or_empty("amuse_bouche:feed"), author=author.slug)
-                if can_view_amuse_bouche and author
-                else profile_url
-            ),
-            "secondary_label": "(+ New)",
-            "secondary_url": _reverse_or_empty("amuse_bouche:create") if author else "",
-        })
+    actions.append({
+        "label": "Messages",
+        "url": _reverse_or_empty("messaging:inbox"),
+        "badge": unread_count if unread_count else None,
+    })
 
     if is_moderator:
         pending_count = _pending_moderation_count()
