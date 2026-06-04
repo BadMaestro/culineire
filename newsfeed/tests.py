@@ -109,7 +109,7 @@ class RecipeFeedEntryTest(TestCase):
         )
 
 
-@override_settings(IS_TESTING=False)
+@override_settings(IS_TESTING=False, DISABLE_EXTERNAL_NOTIFICATIONS=False)
 class RecipeTelegramPublishTest(TestCase):
     def setUp(self):
         self.author = _make_author()
@@ -160,7 +160,7 @@ class RecipeTelegramPublishTest(TestCase):
         self.assertFalse(SocialPostLog.objects.exists())
 
 
-@override_settings(IS_TESTING=False)
+@override_settings(IS_TESTING=False, DISABLE_EXTERNAL_NOTIFICATIONS=False)
 class ArticleTelegramPublishTest(TestCase):
     def setUp(self):
         self.author = _make_author()
@@ -266,6 +266,12 @@ class ArticleFeedEntryTest(TestCase):
         )
 
 
+@override_settings(
+    SECURE_SSL_REDIRECT=False,
+    SECURE_HSTS_SECONDS=0,
+    SESSION_COOKIE_SECURE=False,
+    CSRF_COOKIE_SECURE=False,
+)
 class FeedPageTest(TestCase):
     def setUp(self):
         self.client = Client()
@@ -376,6 +382,7 @@ class AmuseBoucheTelegramMessageTest(TestCase):
 
 @override_settings(
     IS_TESTING=False,
+    DISABLE_EXTERNAL_NOTIFICATIONS=False,
     TELEGRAM_BOT_TOKEN="test-token",
     TELEGRAM_CHANNEL_ID="@culineire_test",
     SITE_DOMAIN="culineire.ie",
@@ -481,7 +488,7 @@ class AmuseBoucheTelegramPublishTest(TestCase):
         self.assertRegex(preview_url, r"https://culineire\.ie/amuse-bouche/cache-bite/\?tg=\d+-\d+")
 
 
-@override_settings(IS_TESTING=False)
+@override_settings(IS_TESTING=False, DISABLE_EXTERNAL_NOTIFICATIONS=False)
 class AmuseBoucheLaunchNewsCommandTest(TestCase):
     @override_settings(
         TELEGRAM_BOT_TOKEN="test-token",
