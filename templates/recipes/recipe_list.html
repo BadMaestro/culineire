@@ -220,17 +220,22 @@
         {# ── Category filtered view ── #}
 
         {% if mood_categories %}
-        <section aria-label="Recipe mood categories" class="recipe-mood-panel">
-            <div class="recipe-mood-panel__chips">
-                {% for mood_category in mood_categories %}
-                {% if mood_category.is_active %}
-                <span class="recipe-mood-chip recipe-mood-chip--active">{{ mood_category.label }}</span>
-                {% else %}
-                <a class="recipe-mood-chip" href="{{ mood_category.url }}">{{ mood_category.label }}</a>
-                {% endif %}
-                {% endfor %}
+        <div class="category-nav-block recipe-mood-panel">
+            <div class="category-nav-wrap">
+                <nav aria-label="Recipe mood categories" class="category-nav">
+                    {% for mood_category in mood_categories %}
+                    {% if mood_category.is_active %}
+                    <span class="category-nav__item category-nav__item--active">{{ mood_category.label }}</span>
+                    {% else %}
+                    <a class="category-nav__item category-nav__link" href="{{ mood_category.url }}">{{ mood_category.label }}</a>
+                    {% endif %}
+                    {% if not forloop.last %}
+                    <span aria-hidden="true" class="category-nav__separator">&middot;</span>
+                    {% endif %}
+                    {% endfor %}
+                </nav>
             </div>
-        </section>
+        </div>
         {% endif %}
 
         {% if categories %}
@@ -294,17 +299,21 @@
 
         {% else %}
 
-        {# ── Default view: mood chips, category nav, popular categories, recent recipes ── #}
+        {# ── Default view: mood categories, category nav, popular categories, recent recipes ── #}
 
         {% if mood_categories %}
-        <section aria-label="Recipe mood categories" class="recipe-mood-panel">
-            <h2 class="recipe-mood-panel__title">What are you in the mood for today?</h2>
-            <div class="recipe-mood-panel__chips">
-                {% for mood_category in mood_categories %}
-                <a class="recipe-mood-chip" href="{{ mood_category.url }}">{{ mood_category.label }}</a>
-                {% endfor %}
+        <div class="category-nav-block recipe-mood-panel">
+            <div class="category-nav-wrap">
+                <nav aria-label="Recipe mood categories" class="category-nav">
+                    {% for mood_category in mood_categories %}
+                    <a class="category-nav__item category-nav__link" href="{{ mood_category.url }}">{{ mood_category.label }}</a>
+                    {% if not forloop.last %}
+                    <span aria-hidden="true" class="category-nav__separator">&middot;</span>
+                    {% endif %}
+                    {% endfor %}
+                </nav>
             </div>
-        </section>
+        </div>
         {% endif %}
 
         {% if categories %}

@@ -23,7 +23,6 @@
 .recipe-list-page .category-nav-wrap,
 .recipe-list-page .category-nav,
 .recipe-mood-panel,
-.recipe-mood-panel__chips,
 .content-showcase,
 .recipe-vscroll {
   min-width: 0;
@@ -59,81 +58,6 @@
 .recipe-list-section > .recipe-grid,
 .recipe-list-section > .recipe-vscroll {
   width: 100%;
-}
-
-.recipe-mood-panel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--recipe-list-section-gap, 1.25rem);
-  margin: 0;
-  padding: 0;
-}
-
-.recipe-mood-panel__title {
-  margin: 0;
-  display: block;
-  font-family: inherit;
-  font-size: 0.82rem;
-  font-weight: 600;
-  letter-spacing: 0;
-  line-height: 1.2;
-  color: var(--ink-soft, #42514a);
-  text-align: center;
-}
-
-.recipe-mood-panel__chips {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.58rem;
-  max-width: 940px;
-  margin: 0;
-}
-
-.recipe-mood-chip,
-.recipe-mood-chip:visited {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 32px;
-  padding: 0.08rem 0.72rem;
-  border: 1px solid rgb(31 44 37 / 0.16);
-  border-radius: 999px;
-  background: rgb(58 44 30 / 0.03);
-  box-shadow: none;
-  color: rgb(58 44 30 / 0.86);
-  font-size: 0.78rem;
-  font-weight: 400;
-  letter-spacing: 0.02em;
-  line-height: 1;
-  text-decoration: none;
-  white-space: nowrap;
-  transition:
-    background-color 0.32s ease,
-    border-color 0.18s ease,
-    color 0.32s ease;
-}
-
-.recipe-mood-chip:hover,
-.recipe-mood-chip:focus-visible {
-  border-color: rgb(31 44 37 / 0.24);
-  background: rgb(58 44 30 / 0.12);
-  color: var(--content-card-action-ink, var(--ink, #1f2c25));
-  text-decoration: none;
-}
-
-.recipe-mood-chip:focus-visible {
-  outline: 2px solid #166645;
-  outline-offset: 3px;
-}
-
-.recipe-mood-chip--active {
-  border-color: rgb(31 44 37 / 0.4);
-  background: rgb(58 44 30 / 0.12);
-  color: var(--content-card-action-ink, var(--ink, #1f2c25));
-  font-weight: 600;
-  cursor: default;
 }
 
 .recipe-list-page .category-nav-block {
@@ -1033,25 +957,6 @@
     padding-inline: 0.58rem;
   }
 
-  .recipe-mood-panel {
-    gap: var(--recipe-list-section-gap, 1.25rem);
-  }
-
-  .recipe-mood-panel__title {
-    font-size: 0.76rem;
-  }
-
-  .recipe-mood-panel__chips {
-    gap: 0.46rem;
-  }
-
-  .recipe-mood-chip,
-  .recipe-mood-chip:visited {
-    min-height: 32px;
-    padding: 0.06rem 0.62rem;
-    font-size: 0.72rem;
-  }
-
   .recipe-list-page .category-nav-block {
     gap: var(--recipe-list-section-gap, 1.25rem);
   }
@@ -1481,11 +1386,6 @@
     width: 100%;
     min-width: 0;
     max-width: 100%;
-  }
-
-  .hero--recipes + .recipe-list-page .recipe-mood-panel__chips {
-    width: 100%;
-    justify-content: center;
   }
 
   .hero--recipes + .recipe-list-page .category-nav-wrap {

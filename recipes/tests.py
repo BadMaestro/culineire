@@ -1591,6 +1591,14 @@ class PublicImagePerformanceHintTests(TestCase):
         self.assertContains(response, 'loading="eager"')
         self.assertContains(response, 'decoding="async"')
 
+    def test_recipe_mood_categories_use_standard_category_nav(self):
+        response = self.client.get(reverse("recipes:recipe_list"))
+
+        self.assertContains(response, 'aria-label="Recipe mood categories"')
+        self.assertContains(response, "category-nav__item category-nav__link")
+        self.assertNotContains(response, "recipe-mood-chip")
+        self.assertNotContains(response, "What are you in the mood for today?")
+
     def test_author_recipe_mini_cards_show_management_actions(self):
         self.client.force_login(self.user)
 
