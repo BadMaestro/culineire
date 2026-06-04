@@ -66,13 +66,12 @@ def get_telegram_preview_image(item) -> TelegramPreviewImage | None:
     except (OSError, ValueError, UnidentifiedImageError) as exc:
         logger.warning("Could not create Telegram preview image for AB pk=%s: %s", getattr(item, "pk", None), exc)
         source_width, source_height = _safe_source_dimensions(source)
-        if source_width and source_height and max(source_width, source_height) <= max(TELEGRAM_PREVIEW_SIZE):
-            return TelegramPreviewImage(
-                name=source_name,
-                url=source.url,
-                width=source_width,
-                height=source_height,
-            )
+        return TelegramPreviewImage(
+            name=source_name,
+            url=source.url,
+            width=source_width,
+            height=source_height,
+        )
     return None
 
 

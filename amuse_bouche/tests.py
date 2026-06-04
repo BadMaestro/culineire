@@ -610,6 +610,23 @@ class AmuseBoucheTelegramPreviewTests(TestCase):
                 self.assertEqual(generated_image.size, (640, 640))
                 self.assertEqual(generated_image.format, "JPEG")
 
+    @patch("amuse_bouche.telegram_preview._create_preview_image", side_effect=OSError("preview write failed"))
+    def test_detail_falls_back_to_source_image_when_preview_generation_fails(self, _mock_create):
+        item = AmuseBouche.objects.create(
+            author=self.author,
+            title="Fallback Preview Bite",
+            short_description="A bite with a cover image.",
+            status=AmuseBouche.Status.APPROVED,
+        )
+        item.cover_image.save("fallback-cover.png", self.uploaded_image("fallback-cover.png"), save=True)
+
+        response = self.client.get(item.get_absolute_url())
+
+        preview = response.context["telegram_preview_image"]
+        self.assertEqual(preview.url, f"http://testserver{item.cover_image.url}")
+        self.assertNotIn("/static/images/hero", preview.url)
+        self.assertIn(f'<meta content="{preview.url}" property="og:image">', response.content.decode())
+
 
 @override_settings(TELEGRAM_BOT_TOKEN="", TELEGRAM_CHANNEL_ID="", ANTHROPIC_API_KEY="", AMUSE_BOUCHE_PUBLIC=False)
 class AmuseBoucheRegressionTests(TestCase):
