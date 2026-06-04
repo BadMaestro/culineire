@@ -84,16 +84,28 @@
 
             {% if private_dashboard %}
             <div class="author-studio-controls">
-                <nav class="author-studio-filters author-studio-filters--content" aria-label="Filter by content type">
+                <nav class="category-nav author-studio-filter-row" aria-label="Filter by content type">
                     {% for filter in dashboard_content_filters %}
-                    <a class="author-studio-filters__tab{% if filter.active %} author-studio-filters__tab--active{% endif %}"
-                       href="{{ filter.url }}"{% if filter.active %} aria-current="true"{% endif %}>{{ filter.label }}</a>
+                    {% if filter.active %}
+                    <span class="category-nav__item category-nav__item--active" aria-current="true">{{ filter.label }}</span>
+                    {% else %}
+                    <a class="category-nav__item category-nav__link" href="{{ filter.url }}">{{ filter.label }}</a>
+                    {% endif %}
+                    {% if not forloop.last %}
+                    <span aria-hidden="true" class="category-nav__separator">&middot;</span>
+                    {% endif %}
                     {% endfor %}
                 </nav>
-                <nav class="author-studio-filters author-studio-filters--status" aria-label="Filter by status">
+                <nav class="category-nav author-studio-filter-row" aria-label="Filter by status">
                     {% for filter in dashboard_status_filter_links %}
-                    <a class="author-studio-filters__tab{% if filter.active %} author-studio-filters__tab--active{% endif %}"
-                       href="{{ filter.url }}"{% if filter.active %} aria-current="true"{% endif %}>{{ filter.label }}</a>
+                    {% if filter.active %}
+                    <span class="category-nav__item category-nav__item--active" aria-current="true">{{ filter.label }}</span>
+                    {% else %}
+                    <a class="category-nav__item category-nav__link" href="{{ filter.url }}">{{ filter.label }}</a>
+                    {% endif %}
+                    {% if not forloop.last %}
+                    <span aria-hidden="true" class="category-nav__separator">&middot;</span>
+                    {% endif %}
                     {% endfor %}
                 </nav>
             </div>
