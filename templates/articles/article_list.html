@@ -108,7 +108,7 @@
                 <div><h2 id="all-articles-title">All Articles</h2></div>
             </div>
             <p class="page-subtitle">All food writing by {{ selected_author.name }} — stories, techniques and ideas from the kitchen, sorted by publication date.</p>
-            <div class="recipe-grid recipe-grid--mini recipe-list-page">
+            <div class="recipe-grid recipe-grid--mini recipe-grid--author-actions recipe-list-page">
                 {% for article in all_articles %}
                 <article class="recipe-card recipe-card--article">
                     <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">
