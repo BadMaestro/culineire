@@ -2285,6 +2285,9 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertIn("Create Article", hero)
         self.assertIn("Create Amuse-Bouche", hero)
         self.assertIn("Edit Profile", hero)
+        self.assertLess(hero.index("Create Amuse-Bouche"), hero.index("Create Recipe"))
+        self.assertLess(hero.index("Create Recipe"), hero.index("Create Article"))
+        self.assertLess(hero.index("Create Article"), hero.index("Edit Profile"))
         self.assertNotIn("Explore Recipes", hero)
         self.assertNotIn("Read Articles", hero)
 
