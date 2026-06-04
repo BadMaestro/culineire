@@ -2310,6 +2310,40 @@ class RecipePhase3AuthorDashboardTests(TestCase):
             status=Article.Status.NEEDS_CHANGES,
             moderation_note="Article needs clearer source attribution.",
         )
+        from amuse_bouche.models import AmuseBouche
+
+        self.approved_bite = AmuseBouche.objects.create(
+            title="Approved Bite",
+            author=self.author,
+            short_description="Published amuse-bouche.",
+            status=AmuseBouche.Status.APPROVED,
+        )
+        self.draft_bite = AmuseBouche.objects.create(
+            title="Draft Bite",
+            author=self.author,
+            short_description="Draft amuse-bouche.",
+            status=AmuseBouche.Status.DRAFT,
+        )
+        self.pending_bite = AmuseBouche.objects.create(
+            title="Pending Bite",
+            author=self.author,
+            short_description="Pending amuse-bouche.",
+            status=AmuseBouche.Status.PENDING,
+        )
+        self.rejected_bite = AmuseBouche.objects.create(
+            title="Rejected Bite",
+            author=self.author,
+            short_description="Rejected amuse-bouche.",
+            status=AmuseBouche.Status.REJECTED,
+            moderation_note="Bite needs clearer attribution.",
+        )
+        self.needs_changes_bite = AmuseBouche.objects.create(
+            title="Needs Changes Bite",
+            author=self.author,
+            short_description="Needs changes amuse-bouche.",
+            status=AmuseBouche.Status.NEEDS_CHANGES,
+            moderation_note="Bite needs clearer source note.",
+        )
         self.url = reverse("recipes:author_detail", kwargs={"slug": self.author.slug})
 
     def test_owner_sees_all_content_in_dashboard(self):
@@ -2328,6 +2362,79 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertIn(self.pending_article, response.context["dashboard_articles"])
         self.assertIn(self.needs_changes_article, response.context["dashboard_articles"])
         self.assertIn(self.rejected_article, response.context["dashboard_articles"])
+        self.assertIn(self.approved_bite, response.context["dashboard_amuse_bouche"])
+        self.assertIn(self.draft_bite, response.context["dashboard_amuse_bouche"])
+        self.assertIn(self.pending_bite, response.context["dashboard_amuse_bouche"])
+        self.assertIn(self.needs_changes_bite, response.context["dashboard_amuse_bouche"])
+        self.assertIn(self.rejected_bite, response.context["dashboard_amuse_bouche"])
+
+    def test_dashboard_content_filters_render_for_private_dashboard(self):
+        self.client.force_login(self.author_user)
+
+        response = self.client.get(self.url)
+
+        self.assertContains(response, 'aria-label="Filter by content type"')
+        self.assertContains(response, "All Content")
+        self.assertContains(response, "Recipes")
+        self.assertContains(response, "Articles")
+        self.assertContains(response, "AB")
+        self.assertContains(response, 'aria-label="Filter by status"')
+
+    def test_dashboard_content_filter_recipes_returns_only_recipes(self):
+        self.client.force_login(self.author_user)
+
+        response = self.client.get(self.url + "?content=recipes")
+
+        self.assertEqual(response.context["content_filter"], "recipes")
+        self.assertIn(self.approved_recipe, response.context["dashboard_recipes"])
+        self.assertIn(self.draft_recipe, response.context["dashboard_recipes"])
+        self.assertEqual(response.context["dashboard_articles"], [])
+        self.assertEqual(response.context["dashboard_amuse_bouche"], [])
+        self.assertContains(response, "content=recipes&amp;status=draft")
+
+    def test_dashboard_content_filter_articles_returns_only_articles(self):
+        self.client.force_login(self.author_user)
+
+        response = self.client.get(self.url + "?content=articles")
+
+        self.assertEqual(response.context["content_filter"], "articles")
+        self.assertEqual(response.context["dashboard_recipes"], [])
+        self.assertIn(self.approved_article, response.context["dashboard_articles"])
+        self.assertIn(self.draft_article, response.context["dashboard_articles"])
+        self.assertEqual(response.context["dashboard_amuse_bouche"], [])
+
+    def test_dashboard_content_filter_ab_returns_only_amuse_bouche(self):
+        self.client.force_login(self.author_user)
+
+        response = self.client.get(self.url + "?content=ab")
+
+        self.assertEqual(response.context["content_filter"], "ab")
+        self.assertEqual(response.context["dashboard_recipes"], [])
+        self.assertEqual(response.context["dashboard_articles"], [])
+        self.assertIn(self.approved_bite, response.context["dashboard_amuse_bouche"])
+        self.assertIn(self.draft_bite, response.context["dashboard_amuse_bouche"])
+
+    def test_dashboard_content_filter_preserves_status_filter(self):
+        self.client.force_login(self.author_user)
+
+        response = self.client.get(self.url + "?content=recipes&status=draft")
+
+        self.assertEqual(response.context["content_filter"], "recipes")
+        self.assertEqual(response.context["status_filter"], "draft")
+        self.assertIn(self.draft_recipe, response.context["dashboard_recipes"])
+        self.assertNotIn(self.approved_recipe, response.context["dashboard_recipes"])
+        self.assertEqual(response.context["dashboard_articles"], [])
+        self.assertEqual(response.context["dashboard_amuse_bouche"], [])
+        self.assertContains(response, "content=articles&amp;status=draft")
+        self.assertContains(response, "content=recipes")
+
+    def test_public_content_filter_is_ignored(self):
+        response = self.client.get(self.url + "?content=recipes")
+
+        self.assertEqual(response.context["content_filter"], "")
+        self.assertIn(self.approved_recipe, response.context["dashboard_recipes"])
+        self.assertIn(self.approved_article, response.context["dashboard_articles"])
+        self.assertNotContains(response, "author-studio-filters")
 
     def test_author_dashboard_url_renders_owner_cabinet(self):
         self.client.force_login(self.author_user)
@@ -2494,6 +2601,11 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertNotIn(self.draft_article, response.context["dashboard_articles"])
         self.assertNotIn(self.needs_changes_article, response.context["dashboard_articles"])
         self.assertNotIn(self.rejected_article, response.context["dashboard_articles"])
+        self.assertIn(self.pending_bite, response.context["dashboard_amuse_bouche"])
+        self.assertNotIn(self.approved_bite, response.context["dashboard_amuse_bouche"])
+        self.assertNotIn(self.draft_bite, response.context["dashboard_amuse_bouche"])
+        self.assertNotIn(self.needs_changes_bite, response.context["dashboard_amuse_bouche"])
+        self.assertNotIn(self.rejected_bite, response.context["dashboard_amuse_bouche"])
 
     def test_status_filter_needs_changes_returns_only_needs_changes(self):
         self.client.force_login(self.author_user)
@@ -2510,6 +2622,11 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertNotIn(self.draft_article, response.context["dashboard_articles"])
         self.assertNotIn(self.pending_article, response.context["dashboard_articles"])
         self.assertNotIn(self.rejected_article, response.context["dashboard_articles"])
+        self.assertIn(self.needs_changes_bite, response.context["dashboard_amuse_bouche"])
+        self.assertNotIn(self.approved_bite, response.context["dashboard_amuse_bouche"])
+        self.assertNotIn(self.draft_bite, response.context["dashboard_amuse_bouche"])
+        self.assertNotIn(self.pending_bite, response.context["dashboard_amuse_bouche"])
+        self.assertNotIn(self.rejected_bite, response.context["dashboard_amuse_bouche"])
 
     def test_public_status_filter_cannot_reveal_needs_changes_content(self):
         response = self.client.get(self.url + "?status=needs_changes")
@@ -2535,6 +2652,10 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertNotIn(self.approved_article, response.context["dashboard_articles"])
         self.assertNotIn(self.pending_article, response.context["dashboard_articles"])
         self.assertNotIn(self.rejected_article, response.context["dashboard_articles"])
+        self.assertIn(self.draft_bite, response.context["dashboard_amuse_bouche"])
+        self.assertNotIn(self.approved_bite, response.context["dashboard_amuse_bouche"])
+        self.assertNotIn(self.pending_bite, response.context["dashboard_amuse_bouche"])
+        self.assertNotIn(self.rejected_bite, response.context["dashboard_amuse_bouche"])
 
     def test_public_status_filter_cannot_reveal_draft_content(self):
         response = self.client.get(self.url + "?status=draft")
@@ -2560,6 +2681,10 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertNotIn(self.pending_article, response.context["dashboard_articles"])
         self.assertNotIn(self.draft_article, response.context["dashboard_articles"])
         self.assertNotIn(self.rejected_article, response.context["dashboard_articles"])
+        self.assertIn(self.approved_bite, response.context["dashboard_amuse_bouche"])
+        self.assertNotIn(self.pending_bite, response.context["dashboard_amuse_bouche"])
+        self.assertNotIn(self.draft_bite, response.context["dashboard_amuse_bouche"])
+        self.assertNotIn(self.rejected_bite, response.context["dashboard_amuse_bouche"])
 
     def test_invalid_status_filter_is_ignored(self):
         self.client.force_login(self.author_user)
@@ -2569,6 +2694,7 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertEqual(response.context["status_filter"], "")
         self.assertEqual(len(response.context["dashboard_recipes"]), 5)
         self.assertEqual(len(response.context["dashboard_articles"]), 5)
+        self.assertEqual(len(response.context["dashboard_amuse_bouche"]), 5)
 
 
 class RecipePhase3RelatedArticlesTests(TestCase):

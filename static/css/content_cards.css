@@ -1953,36 +1953,96 @@
   line-height: 1.5;
 }
 
+.author-studio-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-block: 0.75rem 1.25rem;
+}
+
 .author-studio-filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
-  margin-block-end: 1.1rem;
+  align-items: center;
   justify-content: center;
+  gap: 0.45rem;
+  margin: 0;
+}
+
+.author-studio-filters--content {
+  gap: 0.5rem;
+}
+
+.author-studio-filters--content .author-studio-filters__tab {
+  min-width: 6.8rem;
 }
 
 .author-studio-filters__tab {
-  display: inline-block;
-  padding: 0.25rem 0.7rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0.56rem 0.95rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.82rem;
   font-weight: 600;
+  line-height: 1;
   text-decoration: none;
-  color: var(--ink-soft);
-  border: 1px solid rgb(31 44 37 / 0.14);
-  background: rgb(255 255 255 / 0.6);
-  transition: background 0.12s, color 0.12s;
+  color: rgb(58 44 30 / 0.86);
+  border: 1px solid rgb(58 44 30 / 0.16);
+  background: rgb(255 255 255 / 0.72);
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.6) inset;
+  transition:
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease;
 }
 
-.author-studio-filters__tab:hover {
-  background: rgb(31 44 37 / 0.06);
-  color: var(--ink);
+.author-studio-filters__tab:hover,
+.author-studio-filters__tab:focus-visible {
+  background: rgb(58 44 30 / 0.12);
+  border-color: rgb(58 44 30 / 0.26);
+  color: #3a2c1e;
+}
+
+.author-studio-filters__tab:focus-visible {
+  outline: 2px solid rgb(24 76 58 / 0.34);
+  outline-offset: 2px;
 }
 
 .author-studio-filters__tab--active {
   background: var(--brand);
   color: #fff;
   border-color: var(--brand);
+  box-shadow: none;
+}
+
+.author-studio-filters__tab--active:hover,
+.author-studio-filters__tab--active:focus-visible {
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+}
+
+@media (max-width: 560px) {
+  .author-studio-controls {
+    align-items: stretch;
+  }
+
+  .author-studio-filters {
+    justify-content: flex-start;
+  }
+
+  .author-studio-filters__tab {
+    min-height: 36px;
+    padding-inline: 0.8rem;
+  }
+
+  .author-studio-filters--content .author-studio-filters__tab {
+    flex: 1 1 8.5rem;
+    min-width: 0;
+  }
 }
 
 .ai-image-badge--inline {

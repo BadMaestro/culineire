@@ -83,14 +83,20 @@
             <p class="author-studio-pending__title">{% if private_dashboard %}Content Dashboard{% else %}Published Content{% endif %}</p>
 
             {% if private_dashboard %}
-            <nav class="author-studio-filters" aria-label="Filter by status">
-                <a class="author-studio-filters__tab{% if not status_filter %} author-studio-filters__tab--active{% endif %}"
-                   href="?">All</a>
-                {% for filter_key, filter_value, filter_label in dashboard_status_filters %}
-                <a class="author-studio-filters__tab{% if status_filter == filter_key %} author-studio-filters__tab--active{% endif %}"
-                   href="?status={{ filter_key }}">{{ filter_label }}</a>
-                {% endfor %}
-            </nav>
+            <div class="author-studio-controls">
+                <nav class="author-studio-filters author-studio-filters--content" aria-label="Filter by content type">
+                    {% for filter in dashboard_content_filters %}
+                    <a class="author-studio-filters__tab{% if filter.active %} author-studio-filters__tab--active{% endif %}"
+                       href="{{ filter.url }}"{% if filter.active %} aria-current="true"{% endif %}>{{ filter.label }}</a>
+                    {% endfor %}
+                </nav>
+                <nav class="author-studio-filters author-studio-filters--status" aria-label="Filter by status">
+                    {% for filter in dashboard_status_filter_links %}
+                    <a class="author-studio-filters__tab{% if filter.active %} author-studio-filters__tab--active{% endif %}"
+                       href="{{ filter.url }}"{% if filter.active %} aria-current="true"{% endif %}>{{ filter.label }}</a>
+                    {% endfor %}
+                </nav>
+            </div>
             {% endif %}
 
             {% if dashboard_recipes %}
@@ -182,7 +188,7 @@
             {% endif %}
 
             {% if not dashboard_recipes and not dashboard_articles and not dashboard_amuse_bouche %}
-            <p class="author-studio-pending__note">{% if private_dashboard %}No content found{% if status_filter_label %} with status &ldquo;{{ status_filter_label }}&rdquo;{% endif %}.{% else %}No published content yet.{% endif %}</p>
+            <p class="author-studio-pending__note">{% if private_dashboard %}No content found{% if content_filter_label %} in {{ content_filter_label }}{% endif %}{% if status_filter_label %} with status &ldquo;{{ status_filter_label }}&rdquo;{% endif %}.{% else %}No published content yet.{% endif %}</p>
             {% endif %}
         </div>
         {% endif %}

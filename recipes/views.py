@@ -4,6 +4,7 @@ import re
 from datetime import timedelta
 from pathlib import Path
 from typing import cast
+from urllib.parse import urlencode
 
 logger = logging.getLogger("recipes")
 
@@ -87,6 +88,12 @@ AUTHOR_DASHBOARD_STATUS_FILTERS = (
 )
 
 GOD_AUTHOR_DASHBOARD_STATUS_FILTER_KEYS = {"draft", "approved"}
+
+AUTHOR_DASHBOARD_CONTENT_FILTERS = (
+    ("recipes", "Recipes"),
+    ("articles", "Articles"),
+    ("ab", "AB"),
+)
 
 
 def _build_automation_roadmap_progress():
@@ -1427,6 +1434,59 @@ def author_detail(request, slug):
     if not status_value:
         status_filter = ""
     status_filter_label = _STATUS_FILTER_LABELS.get(status_filter, "")
+    _CONTENT_FILTER_LABELS = {
+        key: label for key, label in AUTHOR_DASHBOARD_CONTENT_FILTERS
+    }
+    content_filter = request.GET.get("content", "").lower() if private_dashboard else ""
+    if content_filter not in _CONTENT_FILTER_LABELS:
+        content_filter = ""
+    content_filter_label = _CONTENT_FILTER_LABELS.get(content_filter, "")
+
+    def _dashboard_filter_url(*, content_key=None, status_key=None):
+        next_content = content_filter if content_key is None else content_key
+        next_status = status_filter if status_key is None else status_key
+        params = {}
+        if next_content:
+            params["content"] = next_content
+        if next_status:
+            params["status"] = next_status
+        query = urlencode(params)
+        return f"{request.path}?{query}" if query else request.path
+
+    dashboard_content_filters = [
+        {
+            "key": "",
+            "label": "All Content",
+            "url": _dashboard_filter_url(content_key=""),
+            "active": not content_filter,
+        },
+        *[
+            {
+                "key": key,
+                "label": label,
+                "url": _dashboard_filter_url(content_key=key),
+                "active": content_filter == key,
+            }
+            for key, label in AUTHOR_DASHBOARD_CONTENT_FILTERS
+        ],
+    ]
+    dashboard_status_filter_links = [
+        {
+            "key": "",
+            "label": "All",
+            "url": _dashboard_filter_url(status_key=""),
+            "active": not status_filter,
+        },
+        *[
+            {
+                "key": key,
+                "label": label,
+                "url": _dashboard_filter_url(status_key=key),
+                "active": status_filter == key,
+            }
+            for key, _status_value, label in dashboard_status_filters
+        ],
+    ]
 
     recipe_qs = Recipe.objects.filter(author=author, is_deleted=False).order_by("-created_at")
     article_qs = Article.objects.filter(author=author, is_deleted=False).order_by("-published")
@@ -1438,18 +1498,25 @@ def author_detail(request, slug):
         recipe_qs = recipe_qs.filter(status=Recipe.Status.APPROVED)
         article_qs = article_qs.filter(status=Article.Status.APPROVED)
 
+    if private_dashboard and content_filter:
+        if content_filter != "recipes":
+            recipe_qs = recipe_qs.none()
+        if content_filter != "articles":
+            article_qs = article_qs.none()
+
     dashboard_recipes = list(recipe_qs)
     dashboard_articles = list(article_qs)
     dashboard_amuse_bouche = []
     try:
         from amuse_bouche.models import AmuseBouche as _AmuseBouche
-        ab_qs2 = _AmuseBouche.objects.filter(author=author).order_by("-published_at", "-created_at")
-        if private_dashboard:
-            if status_value:
-                ab_qs2 = ab_qs2.filter(status=status_value)
-        else:
-            ab_qs2 = ab_qs2.filter(status=_AmuseBouche.Status.APPROVED)
-        dashboard_amuse_bouche = list(ab_qs2) if can_show_amuse_bouche_workspace else []
+        if not (private_dashboard and content_filter and content_filter != "ab"):
+            ab_qs2 = _AmuseBouche.objects.filter(author=author).order_by("-published_at", "-created_at")
+            if private_dashboard:
+                if status_value:
+                    ab_qs2 = ab_qs2.filter(status=status_value)
+            else:
+                ab_qs2 = ab_qs2.filter(status=_AmuseBouche.Status.APPROVED)
+            dashboard_amuse_bouche = list(ab_qs2) if can_show_amuse_bouche_workspace else []
     except Exception:
         pass
 
@@ -1496,8 +1563,12 @@ def author_detail(request, slug):
         "dashboard_articles": dashboard_articles,
         "dashboard_amuse_bouche": dashboard_amuse_bouche,
         "dashboard_status_filters": dashboard_status_filters,
+        "dashboard_content_filters": dashboard_content_filters,
+        "dashboard_status_filter_links": dashboard_status_filter_links,
         "status_filter": status_filter,
         "status_filter_label": status_filter_label,
+        "content_filter": content_filter,
+        "content_filter_label": content_filter_label,
         "collection_count": collection_count,
     }
     return render(request, "recipes/author_detail.html", context)
