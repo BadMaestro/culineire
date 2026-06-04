@@ -1608,28 +1608,25 @@ class PublicImagePerformanceHintTests(TestCase):
         self.assertNotIn("Share a Bite +", amuse_bouche_hero)
 
     @override_settings(AMUSE_BOUCHE_PUBLIC=True)
-    def test_author_filtered_heroes_show_author_cabinet_actions(self):
+    def test_author_filtered_heroes_show_page_create_action_only(self):
         self.client.force_login(self.user)
 
-        responses = [
-            self.client.get(f'{reverse("recipes:recipe_list")}?author={self.author.slug}'),
-            self.client.get(f'{reverse("articles:article_list")}?author={self.author.slug}'),
-            self.client.get(f'{reverse("amuse_bouche:feed")}?author={self.author.slug}'),
+        cases = [
+            (self.client.get(f'{reverse("recipes:recipe_list")}?author={self.author.slug}'), "Create Recipe"),
+            (self.client.get(f'{reverse("articles:article_list")}?author={self.author.slug}'), "Create Article"),
+            (self.client.get(f'{reverse("amuse_bouche:feed")}?author={self.author.slug}'), "Create Amuse-Bouche"),
         ]
 
-        for response in responses:
-            hero = response.content.decode().split("<section class=\"hero", 1)[1].split("</section>", 1)[0]
-            self.assertIn("hero-author-cabinet", hero)
-            self.assertIn("Author Cabinet", hero)
-            self.assertIn("Create Recipe", hero)
-            self.assertIn("Create Article", hero)
-            self.assertIn("Edit Profile", hero)
-            self.assertIn(reverse("recipes:recipe_create"), hero)
-            self.assertIn(reverse("articles:article_create"), hero)
-            self.assertIn(reverse("recipes:author_edit"), hero)
+        for response, expected_label in cases:
+            content = response.content.decode()
+            hero = content.split("<section class=\"hero", 1)[1].split("</section>", 1)[0]
+            self.assertNotIn("hero-author-cabinet", hero)
+            self.assertIn(expected_label, hero)
             self.assertNotIn("Explore Recipes", hero)
             self.assertNotIn("Read Articles", hero)
-            self.assertNotIn("Create Amuse-Bouche", hero)
+            self.assertNotIn("author-recipes-add", content)
+            self.assertNotIn("+ New Recipe", content)
+            self.assertNotIn("+ New Article", content)
 
     def test_article_list_cards_use_lazy_async_image_hints(self):
         response = self.client.get(reverse("articles:article_list"))
@@ -2282,7 +2279,10 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertContains(response, reverse("recipes:recipe_create"))
         self.assertContains(response, reverse("articles:article_create"))
         hero = response.content.decode().split("<section class=\"hero", 1)[1].split("</section>", 1)[0]
-        self.assertIn("hero-author-cabinet", hero)
+        self.assertNotIn("hero-author-cabinet", hero)
+        self.assertIn("Create Recipe", hero)
+        self.assertIn("Create Article", hero)
+        self.assertIn("Edit Profile", hero)
         self.assertNotIn("Explore Recipes", hero)
         self.assertNotIn("Read Articles", hero)
 

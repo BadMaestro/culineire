@@ -30,7 +30,9 @@
             <p class="hero-subtitle">Deep dives into Irish Culinary Culture, ingredients and traditions. Stories behind the dishes, the seasons, and the people who keep the kitchen alive.</p>
             {% endif %}
             {% if selected_author and header_author and selected_author.slug == header_author.slug %}
-                {% include "includes/author_cabinet_actions.html" %}
+            <div class="hero__actions">
+                <a class="btn-primary" href="{% url 'articles:article_create' %}">Create Article</a>
+            </div>
             {% else %}
             <div class="hero__actions">
                 {% if header_author %}
@@ -140,11 +142,6 @@
                 </article>
                 {% endfor %}
             </div>
-            {% if header_author and selected_author and header_author.slug == selected_author.slug %}
-            <div class="author-recipes-add">
-                <a class="btn-primary" href="{% url 'articles:article_create' %}">+ New Article</a>
-            </div>
-            {% endif %}
         </section>
         {% endif %}
 

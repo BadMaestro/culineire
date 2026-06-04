@@ -28,7 +28,11 @@
             <p class="hero-subtitle">{{ author.bio }}</p>
             {% endif %}
             {% if can_manage_author_profile %}
-                {% include "includes/author_cabinet_actions.html" %}
+            <div class="hero__actions">
+                <a class="btn-primary" href="{% url 'recipes:recipe_create' %}">Create Recipe</a>
+                <a class="btn-secondary" href="{% url 'articles:article_create' %}">Create Article</a>
+                <a class="btn-secondary" href="{% url 'recipes:author_edit' %}">Edit Profile</a>
+            </div>
             {% else %}
             <div class="hero__actions">
                 {% if can_view_amuse_bouche_public_area %}

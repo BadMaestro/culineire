@@ -29,7 +29,9 @@
                 {% if page_subtitle %}{{ page_subtitle }}{% else %}Irish classics, treasured vintage recipes, and modern home-kitchen twists, bringing familiar flavours back to the table and opening Ireland's culinary heritage to food lovers.{% endif %}
             </p>
             {% if selected_author and header_author and selected_author.slug == header_author.slug %}
-                {% include "includes/author_cabinet_actions.html" %}
+            <div class="hero__actions">
+                <a class="btn-primary" href="{% url 'recipes:recipe_create' %}">Create Recipe</a>
+            </div>
             {% else %}
             <div class="hero__actions">
                 {% if header_author %}
@@ -152,11 +154,6 @@
                 </article>
                 {% endfor %}
             </div>
-            {% if header_author and selected_author and header_author.slug == selected_author.slug %}
-            <div class="author-recipes-add">
-                <a class="btn-primary" href="{% url 'recipes:recipe_create' %}">+ New Recipe</a>
-            </div>
-            {% endif %}
         </section>
         {% endif %}
 
