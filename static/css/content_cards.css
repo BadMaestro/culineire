@@ -457,6 +457,11 @@
   flex: 0 0 clamp(168px, 20vw, 188px);
 }
 
+.hero--articles + .recipe-list-page .content-showcase--at-start.content-showcase--at-end .recipe-grid--carousel {
+  justify-content: center;
+  padding-inline: 0.05rem;
+}
+
 .content-carousel__button {
   display: none;
   appearance: none;
