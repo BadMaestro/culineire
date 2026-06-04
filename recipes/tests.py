@@ -2278,10 +2278,12 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertContains(response, "Author Dashboard")
         self.assertContains(response, reverse("recipes:recipe_create"))
         self.assertContains(response, reverse("articles:article_create"))
+        self.assertContains(response, reverse("amuse_bouche:create"))
         hero = response.content.decode().split("<section class=\"hero", 1)[1].split("</section>", 1)[0]
         self.assertNotIn("hero-author-cabinet", hero)
         self.assertIn("Create Recipe", hero)
         self.assertIn("Create Article", hero)
+        self.assertIn("Create Amuse-Bouche", hero)
         self.assertIn("Edit Profile", hero)
         self.assertNotIn("Explore Recipes", hero)
         self.assertNotIn("Read Articles", hero)
