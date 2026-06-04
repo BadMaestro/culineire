@@ -254,6 +254,7 @@ class ModerationPanelRoleTests(TestCase):
         self.assertContains(response, "@catwithtail")
         self.assertContains(response, "Revoke Superuser Privileges", count=1)
         self.assertContains(response, "Automation Progress")
+        self.assertNotContains(response, "Amuse-Bouche Roadmap")
         self.assertNotContains(response, "Month 1 Update Progress")
 
     @override_settings(TELEGRAM_BOT_TOKEN="token", TELEGRAM_CHANNEL_ID="@culineire", ANTHROPIC_API_KEY="anthropic-key")
@@ -1308,26 +1309,6 @@ class SecurityMiddlewareEnvironmentTests(TestCase):
             response.headers["Strict-Transport-Security"],
             "max-age=31536000; includeSubDomains; preload",
         )
-
-
-class AmuseBoucheRoadmapViewTests(TestCase):
-    def setUp(self):
-        user_model = get_user_model()
-        self.user = user_model.objects.create_user(username="reader", password="pass")
-        self.moderator = user_model.objects.create_user(username="mod", password="pass", is_staff=True)
-
-    def test_roadmap_requires_moderator(self):
-        self.client.force_login(self.user)
-        response = self.client.get(reverse("recipes:amuse_bouche_roadmap"))
-        self.assertEqual(response.status_code, 404)
-
-    def test_moderator_can_view_interactive_roadmap(self):
-        self.client.force_login(self.moderator)
-        response = self.client.get(reverse("recipes:amuse_bouche_roadmap"))
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Project State Navigation")
-        self.assertContains(response, "Amuse-Bouche Integration")
-        self.assertContains(response, "data-roadmap-filter")
 
 
 class SiteResearchProgressViewTests(TestCase):
