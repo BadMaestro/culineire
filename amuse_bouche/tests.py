@@ -1,3 +1,4 @@
+from datetime import timedelta
 from io import BytesIO
 from unittest.mock import patch
 
@@ -53,6 +54,24 @@ class AmuseBouchePublicTests(TestCase):
         response = self.client.get(reverse("amuse_bouche:feed"))
         self.assertContains(response, approved.title)
         self.assertNotContains(response, "Pending Bite")
+
+    @override_settings(AMUSE_BOUCHE_PUBLIC=True)
+    def test_feed_orders_newest_published_items_first(self):
+        older_featured = self.create_item("Older Featured Bite", AmuseBouche.Status.APPROVED)
+        newest = self.create_item("Newest Bite", AmuseBouche.Status.APPROVED)
+        now = timezone.now()
+        AmuseBouche.objects.filter(pk=older_featured.pk).update(
+            is_featured=True,
+            published_at=now - timedelta(days=2),
+        )
+        AmuseBouche.objects.filter(pk=newest.pk).update(published_at=now)
+
+        response = self.client.get(reverse("amuse_bouche:feed"))
+
+        self.assertEqual(
+            [item.title for item in response.context["items"][:2]],
+            ["Newest Bite", "Older Featured Bite"],
+        )
 
     @override_settings(AMUSE_BOUCHE_PUBLIC=True)
     def test_detail_hides_unapproved_item(self):

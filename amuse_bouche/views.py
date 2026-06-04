@@ -75,6 +75,7 @@ def _public_queryset(approved_only=True):
         .annotate(like_total=Count("reactions", filter=Q(reactions__reaction=ContentReaction.Reaction.LIKE), distinct=True))
         .annotate(save_total=Count("saves", distinct=True))
         .annotate(comment_total=Count("comments", filter=Q(comments__is_deleted=False), distinct=True))
+        .order_by(F("published_at").desc(nulls_last=True), "-created_at")
     )
 
 

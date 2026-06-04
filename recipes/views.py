@@ -953,7 +953,7 @@ def home(request):
     try:
         from amuse_bouche.views import _public_queryset as _ab_qs, _user_state as _ab_state
         latest_amuse_bouche = list(
-            _ab_qs().order_by("-is_featured", "-published_at", "-created_at")[:6]
+            _ab_qs()[:6]
         ) if can_show_amuse_bouche else []
         _, ab_liked_ids, ab_saved_ids, ab_followed_author_ids = _ab_state(latest_amuse_bouche, request.user)
     except Exception:

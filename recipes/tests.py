@@ -1576,6 +1576,34 @@ class PublicImagePerformanceHintTests(TestCase):
         self.assertContains(response, 'loading="eager"')
         self.assertContains(response, 'decoding="async"')
 
+    @override_settings(AMUSE_BOUCHE_PUBLIC=True)
+    def test_home_amuse_bouche_carousel_orders_newest_first(self):
+        from amuse_bouche.models import AmuseBouche
+
+        older_featured = AmuseBouche.objects.create(
+            author=self.author,
+            title="Older Featured Bite",
+            short_description="Older bite.",
+            status=AmuseBouche.Status.APPROVED,
+            is_featured=True,
+        )
+        newest = AmuseBouche.objects.create(
+            author=self.author,
+            title="Newest Bite",
+            short_description="Newer bite.",
+            status=AmuseBouche.Status.APPROVED,
+        )
+        now = timezone.now()
+        AmuseBouche.objects.filter(pk=older_featured.pk).update(published_at=now - timedelta(days=2))
+        AmuseBouche.objects.filter(pk=newest.pk).update(published_at=now)
+
+        response = self.client.get(reverse("home"))
+
+        self.assertEqual(
+            [item.title for item in response.context["latest_amuse_bouche"][:2]],
+            ["Newest Bite", "Older Featured Bite"],
+        )
+
     def test_recipe_list_cards_use_eager_async_image_hints(self):
         response = self.client.get(reverse("recipes:recipe_list"))
 
