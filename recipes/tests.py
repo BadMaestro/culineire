@@ -1597,7 +1597,7 @@ class PublicImagePerformanceHintTests(TestCase):
         self.assertNotContains(response, reverse("recipes:author_dashboard"))
 
     @override_settings(AMUSE_BOUCHE_PUBLIC=True)
-    def test_author_sees_dashboard_back_button_in_main_sections(self):
+    def test_public_main_sections_do_not_show_dashboard_back_button(self):
         self.client.force_login(self.user)
         urls = (
             reverse("recipes:recipe_list"),
@@ -1612,30 +1612,34 @@ class PublicImagePerformanceHintTests(TestCase):
             with self.subTest(url=url):
                 response = self.client.get(url)
 
-                self.assertContains(response, "Back to My Dashboard")
-                self.assertContains(response, reverse("recipes:author_dashboard"))
+                self.assertNotContains(response, "Back to My Dashboard")
+                self.assertNotContains(response, "author-dashboard-back-button")
 
-    def test_section_heroes_show_author_create_actions(self):
+    @override_settings(AMUSE_BOUCHE_PUBLIC=True)
+    def test_public_section_heroes_hide_author_create_actions(self):
         self.client.force_login(self.user)
 
         recipe_response = self.client.get(reverse("recipes:recipe_list"))
         recipe_hero = recipe_response.content.decode().split('<div class="hero__actions">', 1)[1].split("</div>", 1)[0]
-        self.assertIn("Create Recipe", recipe_hero)
-        self.assertIn(reverse("recipes:recipe_create"), recipe_hero)
+        self.assertNotIn("Create Recipe", recipe_hero)
+        self.assertNotIn(reverse("recipes:recipe_create"), recipe_hero)
+        self.assertNotIn("Back to My Dashboard", recipe_hero)
         self.assertIn("Explore Recipes", recipe_hero)
         self.assertIn("Read Articles", recipe_hero)
 
         article_response = self.client.get(reverse("articles:article_list"))
         article_hero = article_response.content.decode().split('<div class="hero__actions">', 1)[1].split("</div>", 1)[0]
-        self.assertIn("Create Article", article_hero)
-        self.assertIn(reverse("articles:article_create"), article_hero)
+        self.assertNotIn("Create Article", article_hero)
+        self.assertNotIn(reverse("articles:article_create"), article_hero)
+        self.assertNotIn("Back to My Dashboard", article_hero)
         self.assertIn("Explore Recipes", article_hero)
         self.assertIn("Read Articles", article_hero)
 
         amuse_bouche_response = self.client.get(reverse("amuse_bouche:feed"))
         amuse_bouche_hero = amuse_bouche_response.content.decode().split('<div class="hero__actions ab-hero-actions">', 1)[1].split("</div>", 1)[0]
-        self.assertIn("Create Amuse-Bouche", amuse_bouche_hero)
-        self.assertIn(reverse("amuse_bouche:create"), amuse_bouche_hero)
+        self.assertNotIn("Create Amuse-Bouche", amuse_bouche_hero)
+        self.assertNotIn(reverse("amuse_bouche:create"), amuse_bouche_hero)
+        self.assertNotIn("Back to My Dashboard", amuse_bouche_hero)
         self.assertIn("Explore Recipes", amuse_bouche_hero)
         self.assertIn("Read Articles", amuse_bouche_hero)
         self.assertNotIn("Share a Bite +", amuse_bouche_hero)

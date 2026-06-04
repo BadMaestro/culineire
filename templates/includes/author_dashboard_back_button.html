@@ -1,5 +1,3 @@
 {% if dashboard_back_url %}
 <a class="btn-secondary author-dashboard-back-button" href="{{ dashboard_back_url }}">Back to My Dashboard</a>
-{% elif header_author %}
-<a class="btn-secondary author-dashboard-back-button" href="{% url 'recipes:author_dashboard' %}">Back to My Dashboard</a>
 {% endif %}
