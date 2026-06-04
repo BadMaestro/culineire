@@ -2301,6 +2301,32 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertContains(response, self.approved_recipe.get_absolute_url())
         self.assertContains(response, self.approved_article.get_absolute_url())
 
+    def test_greenbear_dashboard_hides_moderation_only_status_filters(self):
+        greenbear_user = get_user_model().objects.create_user(username="greenbear", password="pass")
+        greenbear_author, _created = RecipeAuthor.objects.update_or_create(
+            slug=settings.OWNER_SLUG,
+            defaults={"user": greenbear_user, "name": "GreenBear"},
+        )
+        greenbear_url = reverse("recipes:author_detail", kwargs={"slug": greenbear_author.slug})
+        self.client.force_login(greenbear_user)
+
+        response = self.client.get(greenbear_url)
+
+        self.assertEqual(
+            tuple(filter_key for filter_key, _status_value, _label in response.context["dashboard_status_filters"]),
+            ("draft", "approved"),
+        )
+        self.assertContains(response, "Content Dashboard")
+        self.assertContains(response, "All")
+        self.assertContains(response, "Draft")
+        self.assertContains(response, "Published")
+        self.assertNotContains(response, "Waiting for review")
+        self.assertNotContains(response, "Needs changes")
+        self.assertNotContains(response, "Rejected")
+
+        filtered_response = self.client.get(greenbear_url + "?status=pending")
+        self.assertEqual(filtered_response.context["status_filter"], "")
+
     def test_dashboard_recipe_rows_include_edit_and_delete_actions(self):
         self.client.force_login(self.author_user)
 

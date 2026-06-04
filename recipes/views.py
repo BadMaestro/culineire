@@ -85,6 +85,8 @@ AUTHOR_DASHBOARD_STATUS_FILTERS = (
     ("approved", Recipe.Status.APPROVED, "Published"),
 )
 
+GOD_AUTHOR_DASHBOARD_STATUS_FILTER_KEYS = {"draft", "approved"}
+
 
 def _build_automation_roadmap_progress():
     base_dir = Path(settings.BASE_DIR)
@@ -1636,6 +1638,16 @@ def author_detail(request, slug):
     author = get_object_or_404(RecipeAuthor, slug=slug)
     can_manage = user_can_manage_author(request.user, author)
     moderator = is_moderator(request.user)
+    is_god_author = author.slug == settings.OWNER_SLUG
+    dashboard_status_filters = (
+        tuple(
+            status_filter
+            for status_filter in AUTHOR_DASHBOARD_STATUS_FILTERS
+            if status_filter[0] in GOD_AUTHOR_DASHBOARD_STATUS_FILTER_KEYS
+        )
+        if is_god_author
+        else AUTHOR_DASHBOARD_STATUS_FILTERS
+    )
 
     recipes_for_count = Recipe.objects.filter(author=author, is_deleted=False)
     articles_for_count = Article.objects.filter(author=author, is_deleted=False)
@@ -1665,10 +1677,10 @@ def author_detail(request, slug):
         pass
 
     _VALID_STATUS_FILTERS = {
-        key: status_value for key, status_value, _label in AUTHOR_DASHBOARD_STATUS_FILTERS
+        key: status_value for key, status_value, _label in dashboard_status_filters
     }
     _STATUS_FILTER_LABELS = {
-        key: label for key, _status_value, label in AUTHOR_DASHBOARD_STATUS_FILTERS
+        key: label for key, _status_value, label in dashboard_status_filters
     }
     status_filter = request.GET.get("status", "").lower() if private_dashboard else ""
     status_value = _VALID_STATUS_FILTERS.get(status_filter)
@@ -1707,14 +1719,14 @@ def author_detail(request, slug):
         "article_count": article_count,
         "amuse_bouche_count": amuse_bouche_count,
         "show_amuse_bouche_profile_links": can_show_public_amuse_bouche,
-        "is_god_author": author.slug == settings.OWNER_SLUG,
+        "is_god_author": is_god_author,
         "can_manage_author_profile": can_manage,
         "is_moderator_viewer": moderator,
         "private_dashboard": private_dashboard,
         "dashboard_recipes": dashboard_recipes,
         "dashboard_articles": dashboard_articles,
         "dashboard_amuse_bouche": dashboard_amuse_bouche,
-        "dashboard_status_filters": AUTHOR_DASHBOARD_STATUS_FILTERS,
+        "dashboard_status_filters": dashboard_status_filters,
         "status_filter": status_filter,
         "status_filter_label": status_filter_label,
     }
