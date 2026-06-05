@@ -617,12 +617,16 @@ class TelegramNotificationGuardTests(TestCase):
 class TelegramPhotoUploadTests(TestCase):
     @patch("newsfeed.telegram._call_telegram_multipart_api")
     def test_photo_upload_sends_binary_file_as_multipart(self, mock_call):
+        import io
+        from PIL import Image
         from django.core.files.base import ContentFile
         from django.core.files.storage import default_storage
         from newsfeed.telegram import send_telegram_photo_upload
 
         mock_call.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
-        name = default_storage.save("telegram-tests/sponsor.png", ContentFile(b"png-bytes"))
+        source = io.BytesIO()
+        Image.new("RGB", (12, 600), "#123c2d").save(source, format="PNG")
+        name = default_storage.save("telegram-tests/sponsor.png", ContentFile(source.getvalue()))
         try:
             with default_storage.open(name, "rb") as image:
                 result = send_telegram_photo_upload(image, "Sponsor caption")
@@ -632,5 +636,7 @@ class TelegramPhotoUploadTests(TestCase):
         self.assertTrue(result.ok)
         kwargs = mock_call.call_args.kwargs
         self.assertEqual(kwargs["file_field"], "photo")
-        self.assertEqual(kwargs["content_type"], "image/png")
-        self.assertEqual(kwargs["file_bytes"], b"png-bytes")
+        self.assertEqual(kwargs["filename"], "culineire-sponsor.jpg")
+        self.assertEqual(kwargs["content_type"], "image/jpeg")
+        with Image.open(io.BytesIO(kwargs["file_bytes"])) as uploaded:
+            self.assertEqual(uploaded.size, (1200, 630))

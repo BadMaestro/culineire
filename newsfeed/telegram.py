@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
-import mimetypes
+import io
 import uuid
 from dataclasses import dataclass
 from urllib.error import HTTPError, URLError
@@ -11,6 +11,7 @@ from urllib.request import Request, urlopen
 
 from django.conf import settings
 from django.db import IntegrityError, transaction
+from PIL import Image, ImageOps, UnidentifiedImageError
 
 logger = logging.getLogger(__name__)
 
@@ -222,11 +223,23 @@ def send_telegram_photo_upload(image, caption: str) -> TelegramResult:
     if not image:
         return TelegramResult(ok=False, status="skipped", response="Sponsor image is not available.")
 
-    filename = image.name.rsplit("/", 1)[-1] or "sponsor-logo"
-    content_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
     image.open("rb")
     try:
-        file_bytes = image.read()
+        with Image.open(image) as source:
+            source = ImageOps.exif_transpose(source).convert("RGBA")
+            source.thumbnail((860, 430), Image.Resampling.LANCZOS)
+            card = Image.new("RGB", (1200, 630), "#f7f3ea")
+            logo_layer = Image.new("RGBA", card.size, (0, 0, 0, 0))
+            x = (card.width - source.width) // 2
+            y = (card.height - source.height) // 2
+            logo_layer.alpha_composite(source, (x, y))
+            card.paste(logo_layer, mask=logo_layer.getchannel("A"))
+            output = io.BytesIO()
+            card.save(output, format="JPEG", quality=92, optimize=True)
+            file_bytes = output.getvalue()
+    except (UnidentifiedImageError, OSError) as exc:
+        logger.warning("Sponsor Telegram image could not be prepared: %s", exc)
+        return TelegramResult(ok=False, status="failed", response="Sponsor image could not be prepared.")
     finally:
         image.close()
     return _call_telegram_multipart_api(
@@ -234,8 +247,8 @@ def send_telegram_photo_upload(image, caption: str) -> TelegramResult:
         "sendPhoto",
         {"chat_id": channel_id, "caption": caption[:1024]},
         file_field="photo",
-        filename=filename,
-        content_type=content_type,
+        filename="culineire-sponsor.jpg",
+        content_type="image/jpeg",
         file_bytes=file_bytes,
     )
 
