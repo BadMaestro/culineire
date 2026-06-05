@@ -629,6 +629,80 @@ def approve_application(application_id: int, actor) -> SponsorApplication:
     return application
 
 
+def _notify_sponsor_changes_requested(application: SponsorApplication, notes: str) -> None:
+    try:
+        from config.email_utils import send_template_mail
+        send_template_mail(
+            subject="Changes requested for your CulinEire sponsor application",
+            template="sponsor_changes_requested",
+            context={
+                "sponsor_name": application.sponsor_name,
+                "product_name": (
+                    "Sponsor of the Month"
+                    if application.product_type == SponsorCell.ProductType.CENTRAL_MONTHLY
+                    else "Annual Ring Sponsorship"
+                ),
+                "notes": notes,
+            },
+            recipient_list=[application.email],
+            fail_silently=True,
+        )
+    except Exception:
+        import logging
+        logging.getLogger(__name__).exception(
+            "Failed to send sponsor changes-requested email for application pk=%s",
+            application.pk,
+        )
+
+
+def request_application_changes(application_id: int, actor, notes: str) -> SponsorApplication:
+    notes = (notes or "").strip()
+    if not notes:
+        raise ValueError("A note explaining the requested changes is required.")
+    with transaction.atomic():
+        application = SponsorApplication.objects.select_for_update().select_related("cell").get(pk=application_id)
+        if application.status != SponsorApplication.Status.PAID_PENDING_APPROVAL:
+            raise ValueError("Changes can only be requested for paid applications pending approval.")
+        cell = SponsorCell.objects.select_for_update().get(pk=application.cell_id)
+        from_status = application.status
+        application.status = SponsorApplication.Status.CHANGES_REQUESTED
+        application.save(update_fields=["status", "updated_at"])
+        cell.status = SponsorCell.Status.PAID_PENDING_APPROVAL
+        cell.save(update_fields=["status", "updated_at"])
+        record_audit(
+            action=SponsorAuditLog.Action.CHANGES_REQUESTED,
+            application=application,
+            actor=actor,
+            from_status=from_status,
+            to_status=application.status,
+            notes=notes,
+        )
+    _notify_sponsor_changes_requested(application, notes)
+    return application
+
+
+def mark_application_ready_for_review(application_id: int, actor, notes: str = "") -> SponsorApplication:
+    with transaction.atomic():
+        application = SponsorApplication.objects.select_for_update().select_related("cell").get(pk=application_id)
+        if application.status != SponsorApplication.Status.CHANGES_REQUESTED:
+            raise ValueError("Only applications with changes requested can be marked ready for review.")
+        cell = SponsorCell.objects.select_for_update().get(pk=application.cell_id)
+        from_status = application.status
+        application.status = SponsorApplication.Status.PAID_PENDING_APPROVAL
+        application.save(update_fields=["status", "updated_at"])
+        cell.status = SponsorCell.Status.PAID_PENDING_APPROVAL
+        cell.save(update_fields=["status", "updated_at"])
+        record_audit(
+            action=SponsorAuditLog.Action.READY_FOR_REVIEW,
+            application=application,
+            actor=actor,
+            from_status=from_status,
+            to_status=application.status,
+            notes=(notes or "").strip(),
+        )
+        return application
+
+
 def reject_application(application_id: int, actor, reason: str = "") -> SponsorApplication:
     with transaction.atomic():
         application = (
@@ -641,11 +715,12 @@ def reject_application(application_id: int, actor, reason: str = "") -> SponsorA
             SponsorApplication.Status.DRAFT,
             SponsorApplication.Status.PAYMENT_PENDING,
             SponsorApplication.Status.PAID_PENDING_APPROVAL,
+            SponsorApplication.Status.CHANGES_REQUESTED,
         }
         if application.status not in _REJECTABLE_STATES:
             raise ValueError(
                 f"Cannot reject application in status '{application.status}'. "
-                f"Only draft, payment_pending, or paid_pending_approval applications can be rejected."
+                f"Only draft, payment_pending, paid_pending_approval, or changes_requested applications can be rejected."
             )
         cell = SponsorCell.objects.select_for_update().get(pk=application.cell_id)
         payment = getattr(application, "payment", None)

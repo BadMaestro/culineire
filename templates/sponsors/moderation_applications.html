@@ -36,7 +36,7 @@
                     <div class="moderation-card__body">
                         <div class="moderation-card__meta">
                             <span class="author-studio-status author-studio-status--{{ application.status }}">{{ application.get_status_display }}</span>
-                            <span class="moderation-card__author">Cell #{{ application.cell.cell_number }} / Ring {{ application.cell.ring }}</span>
+                            <span class="moderation-card__author">{% if application.cell.is_centre %}Sponsor of the Month{% else %}Annual Ring Sponsorship &middot; Ring {{ application.cell.ring }}, cell #{{ application.cell.cell_number }}{% endif %}</span>
                             <span class="moderation-card__date">{{ application.created_at|date:"j M Y H:i" }}</span>
                         </div>
                         <h2 class="moderation-card__title">

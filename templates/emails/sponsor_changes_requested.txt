@@ -1,0 +1,13 @@
+Hello,
+
+Bearcave has requested changes for {{ sponsor_name }}'s {{ product_name }} application.
+
+Requested changes:
+{{ notes }}
+
+Please reply to Bearcave or provide the corrected details for review.
+
+Your payment remains received and your placement remains reserved while Bearcave reviews the updated details. Publication has not started yet.
+
+Regards,
+CulinEire / Bearcave Limited

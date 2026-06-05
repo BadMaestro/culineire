@@ -30,8 +30,10 @@ from .services import (
     expire_application,
     handle_stripe_event,
     mark_refund_completed,
+    mark_application_ready_for_review,
     record_audit,
     reject_application,
+    request_application_changes,
     unpublish_application,
 )
 
@@ -370,6 +372,12 @@ def moderation_application_detail(request, application_id):
             elif action == "reject":
                 reject_application(application.pk, request.user, note)
                 messages.warning(request, "Sponsor rejected. Manual refund is required if payment was completed.")
+            elif action == "request_changes":
+                request_application_changes(application.pk, request.user, note)
+                messages.warning(request, "Changes requested. The paid placement remains reserved.")
+            elif action == "ready_for_review":
+                mark_application_ready_for_review(application.pk, request.user, note)
+                messages.success(request, "Sponsor application marked ready for review.")
             elif action == "mark_refunded":
                 mark_refund_completed(application.pk, request.user, note)
                 messages.success(request, "Refund marked completed and the sponsor cell was released.")
@@ -387,10 +395,22 @@ def moderation_application_detail(request, application_id):
 
     audit_logs = application.audit_logs.select_related("actor").order_by("-created_at")[:50]
     payment = getattr(application, "payment", None)
+    action_flags = {
+        "can_approve": application.status == SponsorApplication.Status.PAID_PENDING_APPROVAL,
+        "can_request_changes": application.status == SponsorApplication.Status.PAID_PENDING_APPROVAL,
+        "can_ready_for_review": application.status == SponsorApplication.Status.CHANGES_REQUESTED,
+        "can_reject_paid": application.status in {
+            SponsorApplication.Status.PAID_PENDING_APPROVAL,
+            SponsorApplication.Status.CHANGES_REQUESTED,
+        },
+        "can_mark_refunded": application.status == SponsorApplication.Status.REFUND_REQUIRED,
+        "can_unpublish": application.status == SponsorApplication.Status.APPROVED,
+        "can_expire": application.status == SponsorApplication.Status.APPROVED,
+    }
     return render(
         request,
         "sponsors/moderation_application_detail.html",
-        {"application": application, "payment": payment, "audit_logs": audit_logs},
+        {"application": application, "payment": payment, "audit_logs": audit_logs, **action_flags},
     )
 
 

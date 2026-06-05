@@ -1,0 +1,8 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<h2>Changes requested for your CulinEire sponsor application</h2>
+<p>Bearcave has requested changes for <strong>{{ sponsor_name }}</strong>'s {{ product_name }} application.</p>
+<p><strong>Requested changes:</strong><br>{{ notes|linebreaksbr }}</p>
+<p>Please reply to Bearcave or provide the corrected details for review.</p>
+<p>Your payment remains received and your placement remains reserved while Bearcave reviews the updated details. Publication has not started yet.</p>
+{% endblock %}

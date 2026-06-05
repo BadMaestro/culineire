@@ -9,6 +9,7 @@ from .models import ProcessedStripeEvent, SponsorApplication, SponsorAuditLog, S
 
 PROTECTED_APPLICATION_STATUSES = {
     SponsorApplication.Status.PAID_PENDING_APPROVAL,
+    SponsorApplication.Status.CHANGES_REQUESTED,
     SponsorApplication.Status.APPROVED,
     SponsorApplication.Status.REFUND_REQUIRED,
     SponsorApplication.Status.REFUNDED,

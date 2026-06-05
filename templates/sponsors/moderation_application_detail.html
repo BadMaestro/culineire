@@ -72,14 +72,33 @@
             <h2 class="moderation-block__title">Actions</h2>
             <form class="moderation-contact__form" method="post" style="position:static;box-shadow:none;max-width:none;">
                 {% csrf_token %}
-                <textarea name="note" rows="3" placeholder="Optional note for audit log or rejection reason"></textarea>
+                <textarea name="note" rows="3" placeholder="Staff note or reason. Required when requesting changes."></textarea>
                 <div class="moderation-card__actions">
+                    {% if can_approve %}
                     <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve and publish</button>
+                    {% endif %}
+                    {% if can_request_changes %}
+                    <button class="mod-btn mod-btn--edit" name="action" type="submit" value="request_changes">Request Changes</button>
+                    {% endif %}
+                    {% if can_ready_for_review %}
+                    <button class="mod-btn mod-btn--approve" name="action" type="submit" value="ready_for_review">Mark ready for review</button>
+                    {% endif %}
+                    {% if can_reject_paid %}
                     <button class="mod-btn mod-btn--reject" name="action" type="submit" value="reject">Reject and mark refund required</button>
+                    {% endif %}
+                    {% if can_mark_refunded %}
                     <button class="mod-btn mod-btn--edit" name="action" type="submit" value="mark_refunded">Mark refund completed</button>
+                    {% endif %}
+                    {% if can_unpublish %}
                     <button class="mod-btn mod-btn--delete" name="action" type="submit" value="unpublish">Unpublish</button>
+                    {% endif %}
+                    {% if can_expire %}
                     <button class="mod-btn mod-btn--block" name="action" type="submit" value="expire">Expire sponsorship</button>
+                    {% endif %}
                 </div>
+                {% if not can_approve and not can_request_changes and not can_ready_for_review and not can_reject_paid and not can_mark_refunded and not can_unpublish and not can_expire %}
+                <p class="moderation-card__note">No moderation actions are currently available for this status.</p>
+                {% endif %}
             </form>
         </section>
 
