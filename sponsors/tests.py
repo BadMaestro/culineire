@@ -71,6 +71,7 @@ class SponsorFlowTests(TestCase):
             "logo_offset_x": "0",
             "logo_offset_y": "0",
             "logo_scale": "1",
+            "logo_rotation": "0",
             "logo_rights_confirmed": "on",
             "terms_accepted": "on",
             "approval_acknowledged": "on",
@@ -823,6 +824,7 @@ class SponsorPublicFormTests(TestCase):
             "logo_offset_x": "0",
             "logo_offset_y": "0",
             "logo_scale": "1",
+            "logo_rotation": "0",
         }
         with patch(
             "sponsors.views.create_checkout_session",
