@@ -6,30 +6,60 @@
 
 {% block extra_head %}
 <meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="{% static 'css/sponsors_checkout.css' %}?v=20260605">
 {% endblock %}
 
 {% block content %}
-<section class="page-section">
-    <div class="container">
-        <div class="section-header">
-            <span class="section-kicker">Sponsors</span>
-            <h1>Payment received</h1>
-        </div>
-        <p class="page-subtitle">
-            Payment received. Thank you. Your sponsor spot is now reserved and pending Bearcave approval.
-            We will review your logo or avatar, website/profile link and sponsor details before publication.
-            {% if application %}Your {{ application.term_display }} begins when the approved image is published.{% else %}Your sponsorship term begins when the approved image is published.{% endif %}
-        </p>
-        {% if application %}
-        <ul class="legal-list">
-            <li><strong>Sponsor:</strong> {{ application.sponsor_name }}</li>
-            <li><strong>Spot:</strong> Ring {{ application.cell.ring }}, cell #{{ application.cell.cell_number }}</li>
-            <li><strong>Status:</strong> {{ application.get_status_display }}</li>
-        </ul>
-        {% endif %}
-        <p class="page-subtitle">
-            <a href="{% url 'sponsors:puzzle' %}">Back to Sponsor Puzzle</a>
-        </p>
+<section class="sponsor-success">
+    <div class="sponsor-success__shell">
+        <article class="sponsor-receipt">
+            <div class="sponsor-receipt__mark" aria-hidden="true">&#10003;</div>
+            <p class="sponsor-receipt__kicker">Payment received</p>
+            <h1>Your placement is reserved</h1>
+            <p class="sponsor-receipt__intro">
+                Thank you. Your placement is reserved while it awaits Bearcave review.
+            </p>
+
+            {% if application %}
+            <div class="sponsor-receipt__product">
+                <span>Confirmed product</span>
+                <strong>
+                    {% if application.cell.is_centre %}
+                    Sponsor of the Month
+                    {% else %}
+                    Annual Ring Sponsorship
+                    {% endif %}
+                </strong>
+                {% if not application.cell.is_centre %}
+                <small>Ring {{ application.cell.ring }}, cell #{{ application.cell.cell_number }}</small>
+                {% endif %}
+            </div>
+
+            <dl class="sponsor-receipt__details">
+                <div><dt>Sponsor name</dt><dd>{{ application.sponsor_name }}</dd></div>
+                <div>
+                    <dt>Status</dt>
+                    <dd><span class="sponsor-receipt__status">Paid pending approval</span></dd>
+                </div>
+                <div><dt>Term</dt><dd>{{ application.term_display }}</dd></div>
+                {% if payment_details %}
+                <div><dt>Net amount</dt><dd>{{ payment_details.net }}</dd></div>
+                <div><dt>VAT</dt><dd>{{ payment_details.vat }}</dd></div>
+                <div class="sponsor-receipt__total"><dt>Total</dt><dd>{{ payment_details.total }}</dd></div>
+                {% endif %}
+            </dl>
+            {% endif %}
+
+            <div class="sponsor-receipt__next">
+                <span>What happens next</span>
+                <p>Bearcave will review your logo/avatar, website/profile link and sponsor details before publication.</p>
+                {% if application %}
+                <p>Your {{ application.term_display }} begins only when the approved image and link are published.</p>
+                {% endif %}
+            </div>
+
+            <a class="sponsor-receipt__cta" href="{% url 'sponsors:puzzle' %}">Back to Sponsor Puzzle</a>
+        </article>
     </div>
 </section>
 {% endblock %}

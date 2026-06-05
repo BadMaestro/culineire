@@ -403,6 +403,57 @@ class SponsorFlowTests(TestCase):
         application.refresh_from_db()
         self.assertEqual((application.expires_at - application.published_at).days, 30)
 
+    def test_annual_checkout_success_shows_premium_receipt_details(self):
+        application = self.create_pending_application(paid=True)
+        payment = application.payment
+        payment.net_amount_cents = 2500
+        payment.vat_amount_cents = 575
+        payment.total_amount_cents = 3075
+        payment.save()
+
+        response = self.client.get(
+            reverse("sponsors:checkout_success"),
+            {"session_id": payment.stripe_checkout_session_id},
+        )
+
+        self.assertContains(response, "Your placement is reserved")
+        self.assertContains(response, "Annual Ring Sponsorship")
+        self.assertContains(response, "Ring 6, cell #1")
+        self.assertContains(response, "€25.00")
+        self.assertContains(response, "€5.75")
+        self.assertContains(response, "€30.75")
+        self.assertContains(response, "12-month term from approval/publication")
+        self.assertContains(response, "Paid pending approval")
+
+    def test_central_checkout_success_hides_internal_ring_zero_label(self):
+        self.cell.product_type = SponsorCell.ProductType.CENTRAL_MONTHLY
+        self.cell.ring = 0
+        self.cell.cell_number = 0
+        self.cell.save()
+        application = self.create_pending_application(paid=True)
+        application.product_type = SponsorCell.ProductType.CENTRAL_MONTHLY
+        application.term_days = 30
+        application.price_net_cents = 100000
+        application.save()
+        payment = application.payment
+        payment.net_amount_cents = 100000
+        payment.vat_amount_cents = 23000
+        payment.total_amount_cents = 123000
+        payment.save()
+
+        response = self.client.get(
+            reverse("sponsors:checkout_success"),
+            {"session_id": payment.stripe_checkout_session_id},
+        )
+
+        self.assertContains(response, "Sponsor of the Month")
+        self.assertContains(response, "€1,000.00")
+        self.assertContains(response, "€230.00")
+        self.assertContains(response, "€1,230.00")
+        self.assertContains(response, "30-day term from approval/publication")
+        self.assertNotContains(response, "Ring 0")
+        self.assertNotContains(response, "cell #0")
+
     def test_rejection_marks_paid_application_refund_required_without_publication(self):
         user = get_user_model().objects.create_user("admin", password="pass", is_staff=True)
         application = self.create_pending_application(paid=True)

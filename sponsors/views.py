@@ -251,10 +251,23 @@ def checkout_success(request):
             .first()
         )
         application = payment.application if payment else None
+    payment_details = None
+    if application:
+        payment = getattr(application, "payment", None)
+        if payment and payment.total_amount_cents:
+            payment_details = {
+                "net": f"€{payment.net_amount_cents / 100:,.2f}",
+                "vat": f"€{payment.vat_amount_cents / 100:,.2f}",
+                "total": f"€{payment.total_amount_cents / 100:,.2f}",
+            }
     return render(
         request,
         "sponsors/checkout_success.html",
-        {"application": application, "session_id": session_id},
+        {
+            "application": application,
+            "payment_details": payment_details,
+            "session_id": session_id,
+        },
     )
 
 
