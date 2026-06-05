@@ -94,6 +94,7 @@ def create_checkout_session(application: SponsorApplication, request=None) -> Ch
                     "product_data": {
                         "name": "CulinEire Annual Sponsor Spot",
                         "description": "Annual sponsor placement on the CulinEire Sponsor Puzzle",
+                        "tax_code": "txcd_20060002",
                     },
                 },
                 "quantity": 1,

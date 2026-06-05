@@ -233,6 +233,8 @@ class SponsorFlowTests(TestCase):
         self.assertEqual(price_data["currency"], "eur")
         self.assertEqual(price_data["unit_amount"], application.price_net_cents)
         self.assertEqual(price_data["tax_behavior"], "exclusive")
+        self.assertEqual(price_data["product_data"]["tax_code"], "txcd_20060002")
+        self.assertEqual(kwargs["automatic_tax"], {"enabled": True})
 
     def test_successful_webhook_sets_paid_pending_approval_without_publishing_logo(self):
         application = self.create_pending_application(paid=False)
