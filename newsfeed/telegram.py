@@ -234,6 +234,21 @@ def publish_article_to_telegram(article) -> TelegramResult:
     )
 
 
+def build_sponsor_telegram_message(application) -> str:
+    """Announcement when a sponsor is approved and published on the puzzle."""
+    site_url = f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}".rstrip("/")
+    sponsors_url = f"{site_url}/sponsors/"
+    return f"New sponsor on CulinEire: {application.sponsor_name}\n\n{sponsors_url}"
+
+
+def publish_sponsor_to_telegram(application) -> TelegramResult:
+    return _publish_to_telegram(
+        event_key=f"sponsor_approved:{application.pk}",
+        message=build_sponsor_telegram_message(application),
+        target_url="/sponsors/",
+    )
+
+
 def publish_newsfeed_entry_to_telegram(entry, *, message: str | None = None, event_key: str | None = None) -> TelegramResult:
     from newsfeed.models import NewsFeedEntry as _NewsFeedEntry
     if entry.entry_type == _NewsFeedEntry.EntryType.AMUSE_BOUCHE_PUBLISHED:

@@ -336,6 +336,86 @@ class SponsorFlowTests(TestCase):
         self.assertEqual(self.cell.status, SponsorCell.Status.AVAILABLE)
 
 
+@override_settings(**SPONSOR_TEST_SETTINGS, IS_TESTING=False, DISABLE_EXTERNAL_NOTIFICATIONS=False,
+                   TELEGRAM_BOT_TOKEN="test-token", TELEGRAM_CHANNEL_ID="@culineire_test",
+                   SITE_DOMAIN="culineire.ie", SITE_SCHEME="https")
+class SponsorApprovalTelegramTests(TestCase):
+    """Telegram announcement is sent when a sponsor application is approved."""
+
+    def setUp(self):
+        self.cell = SponsorCell.objects.create(cell_number=42, ring=3, position_in_ring=0)
+        self.actor = get_user_model().objects.create_user("approver", password="pass", is_staff=True)
+
+    def _make_paid_application(self):
+        application = SponsorApplication.objects.create(
+            cell=self.cell,
+            status=SponsorApplication.Status.PAID_PENDING_APPROVAL,
+            sponsor_name="Bearcave Bakery",
+            contact_name="Barry",
+            email="barry@example.com",
+            logo=png_upload(),
+            price_net_cents=self.cell.price_net_cents,
+            terms_accepted=True,
+            logo_rights_confirmed=True,
+            approval_acknowledged=True,
+            terms_accepted_at=timezone.now(),
+        )
+        SponsorPayment.objects.create(
+            application=application,
+            status=SponsorPayment.Status.PAID,
+            net_amount_cents=application.price_net_cents,
+            currency="eur",
+            stripe_checkout_session_id="cs_tg_test",
+            stripe_payment_intent_id="pi_tg_test",
+            paid_at=timezone.now(),
+        )
+        self.cell.status = SponsorCell.Status.PAID_PENDING_APPROVAL
+        self.cell.save(update_fields=["status"])
+        return application
+
+    @patch("newsfeed.telegram.send_telegram_message")
+    def test_approve_sends_telegram_announcement(self, mock_send):
+        mock_send.return_value = __import__("newsfeed.telegram", fromlist=["TelegramResult"]).TelegramResult(
+            ok=True, status="sent", response='{"ok": true}'
+        )
+        application = self._make_paid_application()
+
+        approve_application(application.pk, self.actor)
+
+        self.assertEqual(mock_send.call_count, 1)
+        sent_text = mock_send.call_args[0][0]
+        self.assertIn("New sponsor on CulinEire:", sent_text)
+        self.assertIn("Bearcave Bakery", sent_text)
+        self.assertIn("culineire.ie/sponsors/", sent_text)
+
+    @patch("newsfeed.telegram.send_telegram_message")
+    def test_approve_telegram_not_duplicated_on_second_call(self, mock_send):
+        from newsfeed.telegram import TelegramResult
+        mock_send.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
+        application = self._make_paid_application()
+
+        approve_application(application.pk, self.actor)
+        # Simulate a second approve attempt (would raise but Telegram should not double-send)
+        # Just verify the SocialPostLog dedup works: call publish directly twice
+        from newsfeed.telegram import publish_sponsor_to_telegram
+        publish_sponsor_to_telegram(application)  # second call — already logged
+
+        self.assertEqual(mock_send.call_count, 1, "Telegram must not send duplicate announcements")
+
+    @patch("newsfeed.telegram.send_telegram_message")
+    def test_approve_copies_logo_rotation_to_cell(self, mock_send):
+        from newsfeed.telegram import TelegramResult
+        mock_send.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
+        application = self._make_paid_application()
+        application.logo_rotation = 90.0
+        application.save(update_fields=["logo_rotation"])
+
+        approve_application(application.pk, self.actor)
+
+        self.cell.refresh_from_db()
+        self.assertAlmostEqual(self.cell.logo_rotation, 90.0)
+
+
 @override_settings(**SPONSOR_TEST_SETTINGS)
 class SponsorModerationPermissionTests(TestCase):
     def setUp(self):

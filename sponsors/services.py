@@ -594,6 +594,7 @@ def approve_application(application_id: int, actor) -> SponsorApplication:
         cell.logo_offset_x = application.logo_offset_x
         cell.logo_offset_y = application.logo_offset_y
         cell.logo_scale = application.logo_scale
+        cell.logo_rotation = application.logo_rotation
         cell.status = SponsorCell.Status.ACTIVE
         cell.purchased_at = now
         cell.save()
@@ -605,7 +606,20 @@ def approve_application(application_id: int, actor) -> SponsorApplication:
             from_status=from_status,
             to_status=application.status,
         )
-        return application
+
+    # Announce on Telegram outside the atomic block so a Telegram failure
+    # never rolls back the approval.
+    try:
+        from newsfeed.telegram import publish_sponsor_to_telegram
+        publish_sponsor_to_telegram(application)
+    except Exception:
+        import logging as _logging
+        _logging.getLogger(__name__).exception(
+            "Failed to send sponsor Telegram announcement for application pk=%s",
+            application.pk,
+        )
+
+    return application
 
 
 def reject_application(application_id: int, actor, reason: str = "") -> SponsorApplication:
