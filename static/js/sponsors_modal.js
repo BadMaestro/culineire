@@ -13,6 +13,7 @@
   var logoImg = null;
   var logoOffset = { x: 0, y: 0 };
   var logoScale = 1.0;
+  var logoRotation = 0; // degrees
   var canvasEl = null;
   var previewShape = null;
   var dragActive = false;
@@ -143,7 +144,7 @@
     html += '<div class="spm-field"><label class="spm-label" for="spm-sponsor-note">Sponsor note</label><textarea id="spm-sponsor-note" class="spm-textarea" rows="3" placeholder="Optional note for Bearcave"></textarea></div>';
     html += '<div class="spm-form-section-label">Logo or avatar</div>';
     html += '<div class="spm-logo-upload"><label class="spm-logo-drop" for="spm-logo-input" id="spm-logo-label">' + uploadIcon() + '<span id="spm-upload-text">Upload logo or avatar (PNG, JPG or WebP)</span></label><input type="file" id="spm-logo-input" accept="image/png,image/jpeg,image/webp" style="display:none"></div>';
-    html += '<div id="spm-canvas-wrap" class="spm-canvas-wrap" hidden><p class="spm-canvas-label">Drag the image and adjust size until it fits this exact cell</p><div class="spm-canvas-outer"><canvas id="spm-canvas" width="220" height="220"></canvas></div><div class="spm-scale-row"><span class="spm-scale-label">Size</span><input type="range" id="spm-scale" min="0.2" max="2.5" step="0.05" value="1.0" class="spm-scale-input"><span id="spm-scale-val" class="spm-scale-val">1.0x</span></div><button type="button" id="spm-image-reset" class="spm-reset-btn">Reset image position</button></div>';
+    html += '<div id="spm-canvas-wrap" class="spm-canvas-wrap" hidden><p class="spm-canvas-label">Drag the image and adjust size until it fits this exact cell</p><div class="spm-canvas-outer"><canvas id="spm-canvas" width="220" height="220"></canvas></div><div class="spm-scale-row"><span class="spm-scale-label">Size</span><input type="range" id="spm-scale" min="0.2" max="2.5" step="0.05" value="1.0" class="spm-scale-input"><span id="spm-scale-val" class="spm-scale-val">1.0x</span></div><div class="spm-rotate-row"><span class="spm-scale-label">Rotate</span><button type="button" id="spm-rotate-ccw" class="spm-rotate-btn" title="Rotate 90° counter-clockwise">&#8635;</button><button type="button" id="spm-rotate-cw" class="spm-rotate-btn" title="Rotate 90° clockwise">&#8634;</button></div><button type="button" id="spm-image-reset" class="spm-reset-btn">Reset image position</button></div>';
     html += '<div class="spm-form-section-label">Confirmations</div>';
     html += checkbox('spm-logo-rights', 'I confirm that I have the right to use this logo/avatar and that Bearcave Limited may display it on CulinEire if the sponsorship is approved.');
     html += checkbox('spm-terms', 'I accept the CulinEire Annual Sponsorship Terms.');
@@ -188,10 +189,27 @@
       reset.addEventListener('click', function () {
         logoOffset = { x: 0, y: 0 };
         logoScale = 1.0;
+        logoRotation = 0;
         var scaleInput = document.getElementById('spm-scale');
         var scaleVal = document.getElementById('spm-scale-val');
         if (scaleInput) scaleInput.value = '1.0';
         if (scaleVal) scaleVal.textContent = '1.0x';
+        redrawCanvas();
+      });
+    }
+
+    var rotateCcw = document.getElementById('spm-rotate-ccw');
+    if (rotateCcw) {
+      rotateCcw.addEventListener('click', function () {
+        logoRotation = (logoRotation - 90 + 360) % 360;
+        redrawCanvas();
+      });
+    }
+
+    var rotateCw = document.getElementById('spm-rotate-cw');
+    if (rotateCw) {
+      rotateCw.addEventListener('click', function () {
+        logoRotation = (logoRotation + 90) % 360;
         redrawCanvas();
       });
     }
@@ -215,6 +233,7 @@
         logoImg = img;
         logoOffset = { x: 0, y: 0 };
         logoScale = 1.0;
+        logoRotation = 0;
         previewShape = null;
         var scaleInput = document.getElementById('spm-scale');
         var scaleVal = document.getElementById('spm-scale-val');
@@ -379,7 +398,11 @@
       lw = baseSize;
       lh = baseSize * (logoImg.height / logoImg.width);
     }
-    ctx.drawImage(logoImg, center.x + logoOffset.x - lw / 2, center.y + logoOffset.y - lh / 2, lw, lh);
+    var cx = center.x + logoOffset.x;
+    var cy = center.y + logoOffset.y;
+    ctx.translate(cx, cy);
+    if (logoRotation) ctx.rotate(logoRotation * Math.PI / 180);
+    ctx.drawImage(logoImg, -lw / 2, -lh / 2, lw, lh);
     ctx.restore();
   }
 
@@ -448,6 +471,7 @@
     fd.append('logo_offset_x', (logoOffset.x / refRadius * 100).toFixed(2));
     fd.append('logo_offset_y', (logoOffset.y / refRadius * 100).toFixed(2));
     fd.append('logo_scale', logoScale.toFixed(3));
+    fd.append('logo_rotation', logoRotation.toFixed(2));
     fd.append('logo_rights_confirmed', 'on');
     fd.append('terms_accepted', 'on');
     fd.append('approval_acknowledged', 'on');

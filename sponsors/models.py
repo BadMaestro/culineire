@@ -61,6 +61,7 @@ class SponsorCell(models.Model):
     logo_offset_x = models.FloatField(default=0.0)
     logo_offset_y = models.FloatField(default=0.0)
     logo_scale = models.FloatField(default=1.0)
+    logo_rotation = models.FloatField(default=0.0)
 
     enquiry_name = models.CharField(max_length=200, blank=True)
     enquiry_email = models.EmailField(blank=True)
@@ -191,6 +192,7 @@ class SponsorApplication(models.Model):
     logo_offset_x = models.FloatField(default=0.0)
     logo_offset_y = models.FloatField(default=0.0)
     logo_scale = models.FloatField(default=1.0)
+    logo_rotation = models.FloatField(default=0.0)
 
     price_net_cents = models.PositiveIntegerField()
     currency = models.CharField(max_length=3, default="eur")

@@ -24,6 +24,7 @@ class SponsorApplicationForm(forms.ModelForm):
             "logo_offset_x",
             "logo_offset_y",
             "logo_scale",
+            "logo_rotation",
             "logo_rights_confirmed",
             "terms_accepted",
             "approval_acknowledged",
@@ -35,6 +36,7 @@ class SponsorApplicationForm(forms.ModelForm):
             "logo_offset_x": "Image horizontal offset",
             "logo_offset_y": "Image vertical offset",
             "logo_scale": "Image scale",
+            "logo_rotation": "Image rotation (degrees)",
         }
 
     def clean_website_url(self):
@@ -60,6 +62,11 @@ class SponsorApplicationForm(forms.ModelForm):
         if scale < 0.2 or scale > 3.0:
             raise forms.ValidationError("Image scale must be between 0.2 and 3.0.")
         return scale
+
+    def clean_logo_rotation(self):
+        rotation = self.cleaned_data.get("logo_rotation") or 0.0
+        # Normalise to [0, 360)
+        return float(rotation) % 360
 
     def clean(self):
         cleaned = super().clean()
