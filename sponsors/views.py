@@ -146,6 +146,8 @@ def cell_enquire(request, cell_id):
         application.status = SponsorApplication.Status.PAYMENT_PENDING
         application.price_net_cents = cell.price_net_cents
         application.currency = "eur"
+        application.product_type = cell.product_type
+        application.term_days = 30 if cell.product_type == SponsorCell.ProductType.CENTRAL_MONTHLY else 365
         application.save()
 
         SponsorPayment.objects.create(

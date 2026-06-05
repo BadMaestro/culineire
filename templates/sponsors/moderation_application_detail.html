@@ -21,7 +21,7 @@
                 <p class="spon-review-header__meta">
                     <span class="spon-review-header__status spon-review-header__status--{{ application.status }}">{{ application.get_status_display }}</span>
                     <span class="spon-review-header__sep">&middot;</span>
-                    <span class="spon-review-header__detail">Ring {{ application.cell.ring }}, cell #{{ application.cell.cell_number }}</span>
+                    <span class="spon-review-header__detail">{{ application.get_product_type_display }} &middot; {% if application.cell.is_centre %}central cell{% else %}Ring {{ application.cell.ring }}, cell #{{ application.cell.cell_number }}{% endif %}</span>
                     <span class="spon-review-header__sep">&middot;</span>
                     <span class="spon-review-header__detail">{{ application.price_display }}</span>
                 </p>
@@ -43,6 +43,7 @@
                     <div><dt>Website/profile</dt><dd style="font-size:0.9rem">{% if application.website_url %}<a href="{{ application.website_url }}" target="_blank" rel="noopener noreferrer">{{ application.website_url }}</a>{% else %}-{% endif %}</dd></div>
                     <div><dt>Terms accepted</dt><dd style="font-size:0.9rem">{{ application.terms_accepted_at|date:"j M Y H:i" }}</dd></div>
                     <div><dt>Terms version</dt><dd style="font-size:0.9rem">{{ application.terms_version }}</dd></div>
+                    <div><dt>Placement term</dt><dd style="font-size:0.9rem">{{ application.term_display }}</dd></div>
                     <div><dt>Image position</dt><dd style="font-size:0.9rem">X {{ application.logo_offset_x|floatformat:1 }}%, Y {{ application.logo_offset_y|floatformat:1 }}%, scale {{ application.logo_scale|floatformat:2 }}x</dd></div>
                 </dl>
                 {% if application.sponsor_note %}

@@ -8,13 +8,17 @@ from django.utils import timezone
 
 from recipes.validators import ImageUploadValidator
 
-RING_PRICES = {0: 30000, 1: 800, 2: 400, 3: 200, 4: 100, 5: 50, 6: 25}
+RING_PRICES = {0: 1000, 1: 800, 2: 400, 3: 200, 4: 100, 5: 50, 6: 25}
 
 # Number of cells in each ring (outer to inner)
 RING_CELL_COUNTS = {6: 60, 5: 50, 4: 40, 3: 30, 2: 20, 1: 10}
 
 
 class SponsorCell(models.Model):
+    class ProductType(models.TextChoices):
+        ANNUAL_RING = "annual_ring", "Annual Ring Sponsorship"
+        CENTRAL_MONTHLY = "central_monthly", "Central Sponsor of the Month"
+
     class Status(models.TextChoices):
         AVAILABLE = "available", "Available"
         PAYMENT_PENDING = "payment_pending", "Payment pending"
@@ -33,6 +37,12 @@ class SponsorCell(models.Model):
         db_index=True,
     )
     position_in_ring = models.PositiveIntegerField(default=0)
+    product_type = models.CharField(
+        max_length=32,
+        choices=ProductType.choices,
+        default=ProductType.ANNUAL_RING,
+        db_index=True,
+    )
 
     # Status
     status = models.CharField(
@@ -97,6 +107,8 @@ class SponsorCell(models.Model):
 
     @property
     def price_display(self):
+        if self.product_type == self.ProductType.CENTRAL_MONTHLY:
+            return f"€{self.price:,}/month + VAT"
         return f"€{self.price:,}/year + VAT"
 
     @property
@@ -109,7 +121,7 @@ class SponsorCell(models.Model):
 
     @property
     def centre_label(self):
-        return "Central Founding Partner" if self.ring == 0 else None
+        return "Central Sponsor of the Month" if self.ring == 0 else None
 
     @property
     def is_public_active(self):
@@ -125,7 +137,7 @@ class SponsorCell(models.Model):
 
     @property
     def is_available_for_checkout(self):
-        return self.status == self.Status.AVAILABLE and not self.is_centre
+        return self.status == self.Status.AVAILABLE
 
     def as_dict(self):
         """Serialise to JSON-safe dict for the frontend puzzle renderer."""
@@ -152,7 +164,7 @@ class SponsorCell(models.Model):
 
 
 class SponsorApplication(models.Model):
-    TERMS_VERSION = "2026-06-04-stripe-sponsors-v1"
+    TERMS_VERSION = "2026-06-05-central-monthly-v2"
 
     class Status(models.TextChoices):
         DRAFT = "draft", "Draft"
@@ -196,6 +208,13 @@ class SponsorApplication(models.Model):
 
     price_net_cents = models.PositiveIntegerField()
     currency = models.CharField(max_length=3, default="eur")
+    product_type = models.CharField(
+        max_length=32,
+        choices=SponsorCell.ProductType.choices,
+        default=SponsorCell.ProductType.ANNUAL_RING,
+        db_index=True,
+    )
+    term_days = models.PositiveIntegerField(default=365)
 
     logo_rights_confirmed = models.BooleanField(default=False)
     terms_accepted = models.BooleanField(default=False)
@@ -243,7 +262,15 @@ class SponsorApplication(models.Model):
     @property
     def price_display(self):
         amount = self.price_net_cents // 100
+        if self.product_type == SponsorCell.ProductType.CENTRAL_MONTHLY:
+            return f"€{amount:,}/month + VAT"
         return f"€{amount:,}/year + VAT"
+
+    @property
+    def term_display(self):
+        if self.product_type == SponsorCell.ProductType.CENTRAL_MONTHLY:
+            return "30-day term from approval/publication"
+        return "12-month term from approval/publication"
 
 
 class SponsorPayment(models.Model):

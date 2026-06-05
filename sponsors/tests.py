@@ -122,6 +122,9 @@ class SponsorFlowTests(TestCase):
         self.assertContains(response, "/year + VAT")
         self.assertContains(response, "Prices are shown excluding VAT")
         self.assertContains(response, "Businesses, sole traders and individuals")
+        self.assertContains(response, "Sponsor of the Month")
+        self.assertContains(response, "€1000")
+        self.assertContains(response, "/ month + VAT")
 
     def test_application_requires_terms_logo_rights_and_approval_acknowledgement(self):
         data = self.valid_post_data()
@@ -202,6 +205,30 @@ class SponsorFlowTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(SponsorApplication.objects.count(), 0)
 
+    @override_settings(STRIPE_SECRET_KEY="sk_test_123")
+    def test_central_application_snapshots_monthly_product_and_term(self):
+        central = SponsorCell.objects.create(
+            cell_number=0,
+            ring=0,
+            position_in_ring=0,
+            product_type=SponsorCell.ProductType.CENTRAL_MONTHLY,
+        )
+        with patch(
+            "sponsors.views.create_checkout_session",
+            return_value=CheckoutSessionInfo("cs_central_form", "https://stripe.test/central"),
+        ):
+            response = self.client.post(
+                reverse("sponsors:cell_enquire", args=[central.pk]),
+                self.valid_post_data(),
+            )
+
+        self.assertEqual(response.status_code, 200)
+        application = SponsorApplication.objects.get(cell=central)
+        self.assertEqual(application.product_type, SponsorCell.ProductType.CENTRAL_MONTHLY)
+        self.assertEqual(application.price_net_cents, 100000)
+        self.assertEqual(application.term_days, 30)
+        self.assertEqual(application.status, SponsorApplication.Status.PAYMENT_PENDING)
+
     @override_settings(STRIPE_SECRET_KEY="sk_test_123", SITE_BASE_URL="https://culineire.ie")
     def test_checkout_session_uses_metadata_and_exclusive_tax(self):
         application = self.create_pending_application()
@@ -227,6 +254,53 @@ class SponsorFlowTests(TestCase):
         self.assertEqual(session_info.session_id, "cs_test_456")
         self.assertEqual(kwargs["mode"], "payment")
         self.assertEqual(kwargs["automatic_tax"], {"enabled": True})
+
+    @override_settings(STRIPE_SECRET_KEY="sk_test_123", SITE_BASE_URL="https://culineire.ie")
+    def test_central_monthly_checkout_uses_explicit_product_and_price(self):
+        central = SponsorCell.objects.create(
+            cell_number=0,
+            ring=0,
+            position_in_ring=0,
+            product_type=SponsorCell.ProductType.CENTRAL_MONTHLY,
+        )
+        application = SponsorApplication.objects.create(
+            cell=central,
+            status=SponsorApplication.Status.PAYMENT_PENDING,
+            sponsor_name="Central Foods",
+            contact_name="Cora",
+            email="cora@example.com",
+            logo=png_upload("central.png"),
+            price_net_cents=central.price_net_cents,
+            product_type=SponsorCell.ProductType.CENTRAL_MONTHLY,
+            term_days=30,
+            terms_accepted=True,
+            logo_rights_confirmed=True,
+            approval_acknowledged=True,
+        )
+
+        class FakeSession:
+            called_with = None
+
+            @classmethod
+            def create(cls, **kwargs):
+                cls.called_with = kwargs
+                return {"id": "cs_central", "url": "https://stripe.test/central"}
+
+        class FakeStripe:
+            class checkout:
+                Session = FakeSession
+
+        with patch("sponsors.services._stripe", return_value=FakeStripe):
+            create_checkout_session(application)
+
+        kwargs = FakeSession.called_with
+        price_data = kwargs["line_items"][0]["price_data"]
+        self.assertEqual(price_data["unit_amount"], 100000)
+        self.assertEqual(price_data["tax_behavior"], "exclusive")
+        self.assertEqual(price_data["product_data"]["tax_code"], "txcd_20060002")
+        self.assertEqual(price_data["product_data"]["name"], "CulinEire Sponsor of the Month")
+        self.assertEqual(kwargs["metadata"]["sponsor_product_type"], "central_monthly")
+        self.assertEqual(kwargs["mode"], "payment")
         self.assertEqual(kwargs["billing_address_collection"], "required")
         self.assertEqual(kwargs["tax_id_collection"], {"enabled": True})
         self.assertEqual(kwargs["customer_creation"], "always")
@@ -309,6 +383,23 @@ class SponsorFlowTests(TestCase):
         self.assertTrue(bool(self.cell.sponsor_logo))
         self.assertIsNotNone(application.published_at)
         self.assertEqual(application.expires_at.year, application.published_at.year + 1)
+
+    def test_central_monthly_approval_starts_thirty_day_term(self):
+        user = get_user_model().objects.create_user("central-admin", password="pass", is_staff=True)
+        self.cell.product_type = SponsorCell.ProductType.CENTRAL_MONTHLY
+        self.cell.ring = 0
+        self.cell.cell_number = 0
+        self.cell.save()
+        application = self.create_pending_application(paid=True)
+        application.product_type = SponsorCell.ProductType.CENTRAL_MONTHLY
+        application.term_days = 30
+        application.price_net_cents = 100000
+        application.save()
+
+        approve_application(application.pk, user)
+
+        application.refresh_from_db()
+        self.assertEqual((application.expires_at - application.published_at).days, 30)
 
     def test_rejection_marks_paid_application_refund_required_without_publication(self):
         user = get_user_model().objects.create_user("admin", password="pass", is_staff=True)
@@ -973,6 +1064,13 @@ class SponsorPublicFormTests(TestCase):
     def test_sponsor_puzzle_page_returns_200(self):
         response = self.client.get(reverse("sponsors:puzzle"))
         self.assertEqual(response.status_code, 200)
+
+    def test_sponsorship_contract_distinguishes_central_monthly_from_annual_ring(self):
+        response = self.client.get(reverse("sponsors:annual_contract"))
+        self.assertContains(response, "Annual Ring Sponsorship")
+        self.assertContains(response, "Central Sponsor of the Month costs €1000/month plus VAT")
+        self.assertContains(response, "runs for 30 days from that publication date")
+        self.assertContains(response, "It is not a calendar-month or annual product")
 
     def test_sponsor_puzzle_page_contains_logo_rights_checkbox_js(self):
         """The sponsors_modal.js must contain the logo rights confirmation wording."""

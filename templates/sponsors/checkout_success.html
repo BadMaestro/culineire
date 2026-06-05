@@ -17,8 +17,8 @@
         </div>
         <p class="page-subtitle">
             Payment received. Thank you. Your sponsor spot is now reserved and pending Bearcave approval.
-            We will review your logo or avatar, website/profile link and sponsor details before publication. Your 12-month
-            sponsorship term begins when the approved image is published.
+            We will review your logo or avatar, website/profile link and sponsor details before publication.
+            {% if application %}Your {{ application.term_display }} begins when the approved image is published.{% else %}Your sponsorship term begins when the approved image is published.{% endif %}
         </p>
         {% if application %}
         <ul class="legal-list">

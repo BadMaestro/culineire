@@ -22,14 +22,14 @@ class SponsorCellAdmin(admin.ModelAdmin):
         "sponsor_logo_thumb",
         "purchased_at",
     )
-    list_filter = ("ring", "status")
+    list_filter = ("product_type", "ring", "status")
     search_fields = ("sponsor_name", "sponsor_tagline", "admin_notes")
-    readonly_fields = ("cell_number", "ring", "position_in_ring", "price_display_col", "created_at", "updated_at")
+    readonly_fields = ("cell_number", "ring", "position_in_ring", "product_type", "price_display_col", "created_at", "updated_at")
     ordering = ["ring", "position_in_ring"]
 
     fieldsets = (
         ("Cell Info", {
-            "fields": ("cell_number", "ring", "position_in_ring", "price_display_col", "status"),
+            "fields": ("cell_number", "ring", "position_in_ring", "product_type", "price_display_col", "status"),
         }),
         ("Sponsor Details", {
             "fields": ("sponsor_name", "sponsor_logo", "sponsor_url", "sponsor_tagline"),
@@ -93,12 +93,14 @@ class SponsorApplicationAdmin(admin.ModelAdmin):
         "published_at",
         "expires_at",
     )
-    list_filter = ("status", "cell__ring", "terms_version")
+    list_filter = ("status", "product_type", "cell__ring", "terms_version")
     search_fields = ("sponsor_name", "contact_name", "email", "website_url")
     readonly_fields = (
         "reference",
         "price_net_cents",
         "currency",
+        "product_type",
+        "term_days",
         "terms_accepted_at",
         "terms_version",
         "created_at",

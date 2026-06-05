@@ -34,7 +34,7 @@
                         <td>#{{ cell.cell_number }}</td>
                         <td>{% if cell.ring == 0 %}Centre{% else %}Ring {{ cell.ring }}{% endif %}</td>
                         <td>{{ cell.position_in_ring }}</td>
-                        <td>{% if cell.ring == 0 %}Price on request{% else %}{{ cell.price_display }}{% endif %}</td>
+                        <td>{{ cell.price_display }}</td>
                         <td>{{ cell.get_status_display }}</td>
                         <td>{{ cell.sponsor_name|default:"-" }}</td>
                     </tr>

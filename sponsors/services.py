@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import timedelta
 from typing import Any
 
 from django.conf import settings
@@ -68,6 +69,7 @@ def _checkout_metadata(application: SponsorApplication) -> dict[str, str]:
     return {
         "sponsor_application_id": str(application.pk),
         "sponsor_cell_id": str(application.cell_id),
+        "sponsor_product_type": application.product_type,
     }
 
 
@@ -75,6 +77,7 @@ def create_checkout_session(application: SponsorApplication, request=None) -> Ch
     stripe = _stripe()
     base_url = site_base_url(request)
     metadata = _checkout_metadata(application)
+    is_central = application.product_type == SponsorCell.ProductType.CENTRAL_MONTHLY
     session = stripe.checkout.Session.create(
         mode="payment",
         success_url=f"{base_url}{reverse('sponsors:checkout_success')}?session_id={{CHECKOUT_SESSION_ID}}",
@@ -92,8 +95,8 @@ def create_checkout_session(application: SponsorApplication, request=None) -> Ch
                     "unit_amount": application.price_net_cents,
                     "tax_behavior": "exclusive",
                     "product_data": {
-                        "name": "CulinEire Annual Sponsor Spot",
-                        "description": "Annual sponsor placement on the CulinEire Sponsor Puzzle",
+                        "name": "CulinEire Sponsor of the Month" if is_central else "CulinEire Annual Sponsor Spot",
+                        "description": "Monthly central sponsor placement on the CulinEire Sponsor Puzzle" if is_central else "Annual sponsor placement on the CulinEire Sponsor Puzzle",
                         "tax_code": "txcd_20060002",
                     },
                 },
@@ -585,7 +588,11 @@ def approve_application(application_id: int, actor) -> SponsorApplication:
         application.approved_by = actor
         application.approved_at = now
         application.published_at = now
-        application.expires_at = add_one_year(now)
+        application.expires_at = (
+            now + timedelta(days=application.term_days)
+            if application.product_type == SponsorCell.ProductType.CENTRAL_MONTHLY
+            else add_one_year(now)
+        )
         application.save()
 
         cell.sponsor_name = application.sponsor_name
@@ -773,7 +780,7 @@ ROADMAP_MILESTONES: list[tuple[str, str, bool, bool]] = [
     ("Add paid pending approval workflow",          "Phase 1: Foundation",    True,  False),
     ("Add approval and publication workflow",       "Phase 1: Foundation",    True,  False),
     ("Add rejection and refund-required workflow",  "Phase 1: Foundation",    True,  False),
-    ("Update annual sponsorship terms wording",     "Phase 1: Foundation",    True,  False),
+    ("Update annual and central monthly sponsorship terms wording", "Phase 1: Foundation", True, False),
     ("Add success and cancel pages",                "Phase 1: Foundation",    True,  False),
     ("Add moderation dashboard views",              "Phase 1: Foundation",    True,  False),
     ("Add super-admin roadmap page",                "Phase 1: Foundation",    True,  False),

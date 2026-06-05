@@ -33,7 +33,7 @@ class Command(BaseCommand):
         # Centre cell
         _, was_created = SponsorCell.objects.get_or_create(
             cell_number=0,
-            defaults={"ring": 0, "position_in_ring": 0},
+            defaults={"ring": 0, "position_in_ring": 0, "product_type": SponsorCell.ProductType.CENTRAL_MONTHLY},
         )
         if was_created:
             created += 1

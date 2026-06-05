@@ -79,7 +79,7 @@
     var ring = cell.ring || 0;
     var html = '';
     html += '<div class="spm-header">';
-    html += '<div class="spm-ring-label ' + ringLabelClass(ring, status) + '">' + (ring === 0 ? 'Central Founding Partner' : 'Ring ' + ring) + '</div>';
+    html += '<div class="spm-ring-label ' + ringLabelClass(ring, status) + '">' + (ring === 0 ? 'Central Sponsor of the Month' : 'Ring ' + ring) + '</div>';
     html += '<span class="spm-status spm-status--' + esc(status) + '">' + statusText(status) + '</span>';
     html += '</div>';
 
@@ -87,8 +87,6 @@
       html += renderActive(cell);
     } else if (isReserved(status)) {
       html += renderReserved(status);
-    } else if (ring === 0) {
-      html += renderCentre();
     } else {
       html += renderAvailable(cell);
     }
@@ -125,16 +123,11 @@
       '</div>';
   }
 
-  function renderCentre() {
-    return '<p class="spm-price spm-price--secret">Price on request</p>' +
-      '<p class="spm-desc">The central sponsor spot is handled directly by Bearcave Limited.</p>' +
-      '<a class="spm-buy-btn spm-buy-btn--link" href="mailto:culineire@bearcave.ie?subject=Central%20Founding%20Partner%20Sponsor%20Spot">Contact Bearcave</a>';
-  }
-
   function renderAvailable(cell) {
     var html = '';
+    var isCentral = cell.ring === 0;
     html += '<p class="spm-price">' + esc(cell.price_display || '') + '</p>';
-    html += '<p class="spm-desc">Payment securely reserves this spot. VAT is calculated at checkout. Businesses, sole traders and individuals are welcome. Publication is subject to Bearcave Limited approval.</p>';
+    html += '<p class="spm-desc">' + (isCentral ? 'Payment reserves the central monthly placement pending Bearcave approval. The 30-day term starts only when the approved image and link are published. This is a one-off payment, not an annual placement or recurring subscription.' : 'Payment securely reserves this annual ring spot. VAT is calculated at checkout. Businesses, sole traders and individuals are welcome. Publication is subject to Bearcave Limited approval.') + '</p>';
     html += '<form id="spm-application-form" class="spm-form" enctype="multipart/form-data" novalidate>';
     html += '<div class="spm-form-section-label">Sponsor details</div>';
     html += field('spm-sponsor-name', 'text', 'Sponsor display name', 'Business, sole trader or individual name', true, 'organization');
@@ -148,7 +141,7 @@
     html += '<div id="spm-canvas-wrap" class="spm-canvas-wrap" hidden><p class="spm-canvas-label">Drag the image and adjust size until it fits this exact cell</p><div class="spm-canvas-outer"><canvas id="spm-canvas" width="220" height="220"></canvas></div><div class="spm-scale-row"><span class="spm-scale-label">Size</span><input type="range" id="spm-scale" min="0.2" max="2.5" step="0.05" value="1.0" class="spm-scale-input"><span id="spm-scale-val" class="spm-scale-val">1.0x</span></div><div class="spm-scale-row"><span class="spm-scale-label spm-scale-label--rotate">Rotate</span><input type="range" id="spm-rotate" min="-180" max="180" step="1" value="0" class="spm-scale-input"><span id="spm-rotate-val" class="spm-scale-val">0°</span></div><button type="button" id="spm-image-reset" class="spm-reset-btn">Reset image position</button></div>';
     html += '<div class="spm-form-section-label">Confirmations</div>';
     html += checkbox('spm-logo-rights', 'I confirm that I have the right to use this logo/avatar and that Bearcave Limited may display it on CulinEire if the sponsorship is approved.');
-    html += checkbox('spm-terms', 'I accept the CulinEire Annual Sponsorship Terms.');
+    html += checkbox('spm-terms', isCentral ? 'I accept the CulinEire sponsorship terms for the 30-day Central Sponsor of the Month.' : 'I accept the CulinEire Annual Ring Sponsorship Terms.');
     html += checkbox('spm-approval', 'I understand payment reserves the spot but publication is subject to Bearcave Limited approval.');
     html += '<div id="spm-form-error" class="spm-error" hidden></div>';
     html += '<div class="spm-actions"><button type="submit" class="spm-buy-btn" id="spm-submit">Continue to secure checkout</button></div>';
