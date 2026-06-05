@@ -14,16 +14,22 @@
     <div class="container moderation-shell">
         <a class="mon-back-link" href="{% url 'sponsors:moderation_applications' %}">Back to Sponsor Applications</a>
 
-        <header class="automation-header">
-            <div>
-                <p class="automation-kicker">Sponsor review</p>
-                <h1 class="automation-title">{{ application.sponsor_name }}</h1>
-                <p class="automation-summary">
-                    {{ application.get_status_display }} / Ring {{ application.cell.ring }}, cell #{{ application.cell.cell_number }} / {{ application.price_display }}
+        <header class="spon-review-header">
+            <div class="spon-review-header__body">
+                <p class="spon-review-header__kicker">Sponsor Review</p>
+                <h1 class="spon-review-header__name">{{ application.sponsor_name }}</h1>
+                <p class="spon-review-header__meta">
+                    <span class="spon-review-header__status spon-review-header__status--{{ application.status }}">{{ application.get_status_display }}</span>
+                    <span class="spon-review-header__sep">&middot;</span>
+                    <span class="spon-review-header__detail">Ring {{ application.cell.ring }}, cell #{{ application.cell.cell_number }}</span>
+                    <span class="spon-review-header__sep">&middot;</span>
+                    <span class="spon-review-header__detail">{{ application.price_display }}</span>
                 </p>
             </div>
             {% if application.logo %}
-            <img alt="{{ application.sponsor_name }} logo or avatar preview" src="{{ application.logo.url }}" style="max-height:120px;max-width:220px;object-fit:contain;justify-self:end;background:#fff;border:1px solid #e0dbd0;border-radius:8px;padding:0.5rem;">
+            <div class="spon-review-header__logo">
+                <img alt="{{ application.sponsor_name }} logo or avatar preview" src="{{ application.logo.url }}">
+            </div>
             {% endif %}
         </header>
 

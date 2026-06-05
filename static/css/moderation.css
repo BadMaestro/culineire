@@ -2140,3 +2140,107 @@
   border-radius: 999px;
   transition: width 1s linear;
 }
+
+/* ---- Sponsor review header ---- */
+.spon-review-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1.25rem 2rem;
+  align-items: center;
+  padding: 1.5rem;
+  border: 1px solid rgb(58 44 30 / 0.1);
+  border-radius: 10px;
+  background: #fff;
+  margin-bottom: 1.25rem;
+}
+
+.spon-review-header__body {
+  min-width: 0;
+}
+
+.spon-review-header__kicker {
+  margin: 0 0 0.4rem;
+  color: #0b4c3a;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.spon-review-header__name {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+  line-height: 1.1;
+  color: var(--ink);
+  word-break: break-word;
+}
+
+.spon-review-header__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  margin: 0;
+}
+
+.spon-review-header__status {
+  display: inline-block;
+  padding: 0.2em 0.65em;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #e8f4ef;
+  color: #0b4c3a;
+}
+
+.spon-review-header__status--payment_pending     { background: #dbeafe; color: #1e40af; }
+.spon-review-header__status--paid_pending_approval { background: #fef3cd; color: #7a5200; }
+.spon-review-header__status--approved            { background: #d4edda; color: #155724; }
+.spon-review-header__status--rejected            { background: #f8d7da; color: #721c24; }
+.spon-review-header__status--refund_required     { background: #fff3cd; color: #856404; }
+.spon-review-header__status--refunded            { background: #e2e3e5; color: #383d41; }
+.spon-review-header__status--expired             { background: #e2e3e5; color: #383d41; }
+.spon-review-header__status--cancelled           { background: #e2e3e5; color: #383d41; }
+
+.spon-review-header__sep {
+  color: var(--ink-soft, #888);
+  font-size: 0.8rem;
+  opacity: 0.5;
+}
+
+.spon-review-header__detail {
+  font-size: 0.84rem;
+  color: var(--ink-soft, #5a5249);
+}
+
+.spon-review-header__logo {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 130px;
+  height: 130px;
+  background: #faf9f7;
+  border: 1px solid #e0dbd0;
+  border-radius: 10px;
+  overflow: hidden;
+  padding: 0.5rem;
+}
+
+.spon-review-header__logo img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+@media (max-width: 560px) {
+  .spon-review-header {
+    grid-template-columns: 1fr;
+  }
+
+  .spon-review-header__logo {
+    width: 90px;
+    height: 90px;
+  }
+}
