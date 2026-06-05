@@ -689,6 +689,75 @@ class SponsorModerationTransitionTests(TestCase):
         self.assertEqual(result.status, SponsorApplication.Status.REFUNDED)
 
 
+@override_settings(**SPONSOR_TEST_SETTINGS)
+class SponsorPublicFormTests(TestCase):
+    """Tests that the public sponsor form renders and validates logo rights correctly."""
+
+    def setUp(self):
+        self.cell = SponsorCell.objects.create(cell_number=1, ring=6, position_in_ring=0)
+
+    def test_sponsor_puzzle_page_returns_200(self):
+        response = self.client.get(reverse("sponsors:puzzle"))
+        self.assertEqual(response.status_code, 200)
+
+    def test_sponsor_puzzle_page_contains_logo_rights_checkbox_js(self):
+        """The sponsors_modal.js must contain the logo rights confirmation wording."""
+        from django.contrib.staticfiles import finders
+        js_path = finders.find("js/sponsors_modal.js")
+        self.assertIsNotNone(js_path, "sponsors_modal.js not found in static files")
+        with open(js_path, encoding="utf-8") as f:
+            js_content = f.read()
+        self.assertIn("logo_rights_confirmed", js_content,
+                      "logo_rights_confirmed must be submitted by the sponsor form JS")
+        self.assertIn("spm-logo-rights", js_content,
+                      "spm-logo-rights checkbox must be rendered in the sponsor modal JS")
+        self.assertIn("Bearcave Limited may display it on CulinEire", js_content,
+                      "Logo rights wording must mention Bearcave Limited displaying on CulinEire")
+
+    def test_enquire_without_logo_rights_returns_400(self):
+        """Submitting the enquiry without logo_rights_confirmed must return 400."""
+        data = {
+            "sponsor_name": "Test Sponsor",
+            "contact_name": "Test Contact",
+            "email": "test@example.com",
+            "terms_accepted": "on",
+            "approval_acknowledged": "on",
+            # logo_rights_confirmed deliberately omitted
+        }
+        response = self.client.post(
+            reverse("sponsors:cell_enquire", args=[self.cell.pk]), data
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Image rights confirmed", response.json()["error"])
+
+    @override_settings(STRIPE_SECRET_KEY="sk_test_123")
+    def test_enquire_with_logo_rights_proceeds_past_validation(self):
+        """Submitting with logo_rights_confirmed=on passes the rights check."""
+        from unittest.mock import patch
+        from .services import CheckoutSessionInfo
+        data = {
+            "sponsor_name": "Test Sponsor",
+            "contact_name": "Test Contact",
+            "email": "test@example.com",
+            "logo_rights_confirmed": "on",
+            "terms_accepted": "on",
+            "approval_acknowledged": "on",
+            "logo": png_upload(),
+            "logo_offset_x": "0",
+            "logo_offset_y": "0",
+            "logo_scale": "1",
+        }
+        with patch(
+            "sponsors.views.create_checkout_session",
+            return_value=CheckoutSessionInfo("cs_test_rights", "https://checkout.stripe.test/rights"),
+        ):
+            response = self.client.post(
+                reverse("sponsors:cell_enquire", args=[self.cell.pk]), data
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("checkout_url", response.json())
+
+
 def teardown_module(_module=None):
     """Remove the temporary media directory created for sponsor tests."""
     shutil.rmtree(_TEMP_MEDIA, ignore_errors=True)

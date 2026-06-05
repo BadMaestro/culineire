@@ -145,7 +145,7 @@
     html += '<div class="spm-logo-upload"><label class="spm-logo-drop" for="spm-logo-input" id="spm-logo-label">' + uploadIcon() + '<span id="spm-upload-text">Upload logo or avatar (PNG, JPG or WebP)</span></label><input type="file" id="spm-logo-input" accept="image/png,image/jpeg,image/webp" style="display:none"></div>';
     html += '<div id="spm-canvas-wrap" class="spm-canvas-wrap" hidden><p class="spm-canvas-label">Drag the image and adjust size until it fits this exact cell</p><div class="spm-canvas-outer"><canvas id="spm-canvas" width="220" height="220"></canvas></div><div class="spm-scale-row"><span class="spm-scale-label">Size</span><input type="range" id="spm-scale" min="0.2" max="2.5" step="0.05" value="1.0" class="spm-scale-input"><span id="spm-scale-val" class="spm-scale-val">1.0x</span></div><button type="button" id="spm-image-reset" class="spm-reset-btn">Reset image position</button></div>';
     html += '<div class="spm-form-section-label">Confirmations</div>';
-    html += checkbox('spm-logo-rights', 'I confirm I have the right to use the submitted logo, avatar and materials.');
+    html += checkbox('spm-logo-rights', 'I confirm that I have the right to use this logo/avatar and that Bearcave Limited may display it on CulinEire if the sponsorship is approved.');
     html += checkbox('spm-terms', 'I accept the CulinEire Annual Sponsorship Terms.');
     html += checkbox('spm-approval', 'I understand payment reserves the spot but publication is subject to Bearcave Limited approval.');
     html += '<div id="spm-form-error" class="spm-error" hidden></div>';
