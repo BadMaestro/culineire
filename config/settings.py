@@ -447,6 +447,10 @@ LOGGING = {
 }
 
 if IS_TESTING:
+    # Keep production security defaults testable, but prevent Django test client
+    # requests from being mass-redirected to HTTPS during server-side tests.
+    SECURE_REDIRECT_EXEMPT = [r".*"]
+
     LOGGING["handlers"]["null"] = {
         "class": "logging.NullHandler",
     }

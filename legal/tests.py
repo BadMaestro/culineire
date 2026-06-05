@@ -306,11 +306,17 @@ class SponsorsPublicAccessTests(TestCase):
 
 
 class CorporationTaxNumberNotPublishedTest(TestCase):
-    """Critical security test: Corporation Tax Number must never appear in any public page."""
+    """
+    Tax/VAT identifier publication policy.
+
+    The company tax/VAT identifier must not appear on ordinary public legal pages.
+    The sponsor annual contract is the explicit exception because sponsor payments
+    are VAT-rated and the page sets out the commercial terms for paid sponsorship.
+    """
 
     TAX_NUMBER = "3645402WH"
 
-    PAGES = [
+    TAX_NUMBER_RESTRICTED_PAGES = [
         "legal:legal_hub",
         "legal:terms",
         "legal:cookies",
@@ -319,16 +325,26 @@ class CorporationTaxNumberNotPublishedTest(TestCase):
         "legal:copyright_image_rights_guide",
         "privacy",
         "sponsors:puzzle",
+    ]
+
+    TAX_NUMBER_ALLOWED_PAGES = [
         "sponsors:annual_contract",
     ]
 
-    def test_tax_number_not_in_any_public_page(self):
+    def test_tax_number_not_in_restricted_public_pages(self):
         c = Client()
-        for url_name in self.PAGES:
+        for url_name in self.TAX_NUMBER_RESTRICTED_PAGES:
             url = reverse(url_name)
             response = c.get(url)
             self.assertNotIn(
                 self.TAX_NUMBER,
                 response.content.decode("utf-8"),
-                f"Corporation Tax Number found in response for {url_name} — this must never be published",
+                f"Tax/VAT identifier found in response for {url_name} — this page must not publish it",
             )
+
+    def test_tax_number_allowed_on_sponsor_annual_contract(self):
+        c = Client()
+        for url_name in self.TAX_NUMBER_ALLOWED_PAGES:
+            url = reverse(url_name)
+            response = c.get(url)
+            self.assertContains(response, self.TAX_NUMBER)
