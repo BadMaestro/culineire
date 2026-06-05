@@ -25,6 +25,7 @@ from .services import (
     CheckoutSessionInfo,
     approve_application,
     create_checkout_session,
+    expire_application,
     handle_stripe_event,
     mark_refund_completed,
     reject_application,
@@ -386,6 +387,306 @@ class SponsorModerationPermissionTests(TestCase):
         response = self.client.get(reverse("sponsors:sponsor_roadmap"))
 
         self.assertEqual(response.status_code, 200)
+
+
+@override_settings(**SPONSOR_TEST_SETTINGS)
+class SponsorWebhookHardeningTests(TestCase):
+    """Phase 2 hardening tests for the Stripe webhook state machine."""
+
+    def setUp(self):
+        self.cell = SponsorCell.objects.create(cell_number=99, ring=6, position_in_ring=0)
+
+    def _make_payment_pending_application(self):
+        application = SponsorApplication.objects.create(
+            cell=self.cell,
+            status=SponsorApplication.Status.PAYMENT_PENDING,
+            sponsor_name="TestCo",
+            contact_name="Tester",
+            email="test@example.com",
+            logo=png_upload(),
+            price_net_cents=self.cell.price_net_cents,
+            terms_accepted=True,
+            logo_rights_confirmed=True,
+            approval_acknowledged=True,
+            terms_accepted_at=timezone.now(),
+        )
+        SponsorPayment.objects.create(
+            application=application,
+            status=SponsorPayment.Status.PENDING,
+            net_amount_cents=application.price_net_cents,
+            currency="eur",
+            stripe_checkout_session_id="cs_test_hp_123",
+        )
+        self.cell.status = SponsorCell.Status.PAYMENT_PENDING
+        self.cell.save(update_fields=["status"])
+        return application
+
+    def _completed_event(self, application, event_id="evt_hp_1", payment_status="paid"):
+        return {
+            "id": event_id,
+            "type": "checkout.session.completed",
+            "data": {
+                "object": {
+                    "id": "cs_hp_completed",
+                    "payment_intent": "pi_hp_001",
+                    "payment_status": payment_status,
+                    "amount_subtotal": application.price_net_cents,
+                    "amount_total": application.price_net_cents + 575,
+                    "total_details": {"amount_tax": 575},
+                    "currency": "eur",
+                    "metadata": {
+                        "sponsor_application_id": str(application.pk),
+                        "sponsor_cell_id": str(self.cell.pk),
+                    },
+                }
+            },
+        }
+
+    # Issue 2: payment_status != "paid" must not mark application as paid.
+    def test_checkout_completed_with_unpaid_payment_status_does_not_mark_paid(self):
+        application = self._make_payment_pending_application()
+        event = self._completed_event(application, event_id="evt_unpaid_1", payment_status="unpaid")
+
+        handle_stripe_event(event)
+
+        application.refresh_from_db()
+        self.cell.refresh_from_db()
+        # Must stay payment_pending — not advanced to paid_pending_approval.
+        self.assertEqual(application.status, SponsorApplication.Status.PAYMENT_PENDING)
+        self.assertEqual(self.cell.status, SponsorCell.Status.PAYMENT_PENDING)
+
+    def test_checkout_completed_with_no_payment_required_does_not_mark_paid(self):
+        application = self._make_payment_pending_application()
+        event = self._completed_event(application, event_id="evt_nopay_1", payment_status="no_payment_required")
+
+        handle_stripe_event(event)
+
+        application.refresh_from_db()
+        self.assertNotEqual(application.status, SponsorApplication.Status.PAID_PENDING_APPROVAL)
+
+    # Issue 1: Late completion after cell reassignment.
+    def test_late_checkout_after_cell_released_creates_refund_required(self):
+        application = self._make_payment_pending_application()
+        # Cancel the application — cell becomes available.
+        from .services import cancel_pending_application
+        cancel_pending_application(application.reference)
+        application.refresh_from_db()
+        self.cell.refresh_from_db()
+        self.assertEqual(self.cell.status, SponsorCell.Status.AVAILABLE)
+
+        # Now simulate late checkout.session.completed arriving.
+        # Re-set application to payment_pending to simulate the window where
+        # the old session completes after cancel.
+        application.status = SponsorApplication.Status.PAYMENT_PENDING
+        application.save(update_fields=["status"])
+        # Cell is AVAILABLE (taken by someone else or released). The late event must NOT overwrite.
+        event = self._completed_event(application, event_id="evt_late_1", payment_status="paid")
+
+        handle_stripe_event(event)
+
+        application.refresh_from_db()
+        self.cell.refresh_from_db()
+        # Application must be in refund_required, not paid_pending_approval.
+        self.assertEqual(application.status, SponsorApplication.Status.REFUND_REQUIRED)
+        # Cell must remain available (not overwritten by this late event).
+        self.assertEqual(self.cell.status, SponsorCell.Status.AVAILABLE)
+        # Logo must not be published.
+        self.assertFalse(bool(self.cell.sponsor_logo))
+
+    # Issue 3: Webhook ordering — terminal states must not be overwritten.
+    def test_completed_event_after_rejected_state_does_not_overwrite(self):
+        application = self._make_payment_pending_application()
+        # Mark application as rejected directly (simulate a staff action or prior event).
+        application.status = SponsorApplication.Status.REJECTED
+        application.save(update_fields=["status"])
+
+        event = self._completed_event(application, event_id="evt_rejected_replay_1", payment_status="paid")
+        handle_stripe_event(event)
+
+        application.refresh_from_db()
+        # Must stay rejected.
+        self.assertEqual(application.status, SponsorApplication.Status.REJECTED)
+
+    def test_completed_event_after_refunded_state_does_not_overwrite(self):
+        application = self._make_payment_pending_application()
+        application.status = SponsorApplication.Status.REFUNDED
+        application.save(update_fields=["status"])
+
+        event = self._completed_event(application, event_id="evt_refunded_replay_1", payment_status="paid")
+        handle_stripe_event(event)
+
+        application.refresh_from_db()
+        self.assertEqual(application.status, SponsorApplication.Status.REFUNDED)
+
+    def test_completed_event_after_cancelled_state_does_not_overwrite(self):
+        application = self._make_payment_pending_application()
+        application.status = SponsorApplication.Status.CANCELLED
+        application.save(update_fields=["status"])
+
+        event = self._completed_event(application, event_id="evt_cancelled_replay_1", payment_status="paid")
+        handle_stripe_event(event)
+
+        application.refresh_from_db()
+        self.assertEqual(application.status, SponsorApplication.Status.CANCELLED)
+
+    def test_completed_event_after_expired_state_does_not_overwrite(self):
+        application = self._make_payment_pending_application()
+        application.status = SponsorApplication.Status.EXPIRED
+        application.save(update_fields=["status"])
+
+        event = self._completed_event(application, event_id="evt_expired_replay_1", payment_status="paid")
+        handle_stripe_event(event)
+
+        application.refresh_from_db()
+        self.assertEqual(application.status, SponsorApplication.Status.EXPIRED)
+
+    # Issue 4: Refund webhook — full refund completes the refund workflow.
+    def test_charge_refunded_full_refund_transitions_refund_required_to_refunded(self):
+        application = self._make_payment_pending_application()
+        payment = application.payment
+        payment.status = SponsorPayment.Status.PAID
+        payment.stripe_payment_intent_id = "pi_refund_full"
+        payment.total_amount_cents = 3050
+        payment.net_amount_cents = 2500
+        payment.vat_amount_cents = 550
+        payment.paid_at = timezone.now()
+        payment.save()
+        application.status = SponsorApplication.Status.REFUND_REQUIRED
+        application.save(update_fields=["status"])
+        self.cell.status = SponsorCell.Status.REJECTED
+        self.cell.save(update_fields=["status"])
+
+        charge_refunded_event = {
+            "id": "evt_charge_refunded_full",
+            "type": "charge.refunded",
+            "data": {
+                "object": {
+                    "payment_intent": "pi_refund_full",
+                    "amount": 3050,
+                    "amount_refunded": 3050,
+                }
+            },
+        }
+        handle_stripe_event(charge_refunded_event)
+
+        application.refresh_from_db()
+        self.cell.refresh_from_db()
+        payment.refresh_from_db()
+        self.assertEqual(application.status, SponsorApplication.Status.REFUNDED)
+        self.assertEqual(payment.status, SponsorPayment.Status.REFUNDED)
+        self.assertEqual(self.cell.status, SponsorCell.Status.AVAILABLE)
+
+    def test_charge_refunded_partial_refund_does_not_release_cell(self):
+        application = self._make_payment_pending_application()
+        payment = application.payment
+        payment.status = SponsorPayment.Status.PAID
+        payment.stripe_payment_intent_id = "pi_refund_partial"
+        payment.total_amount_cents = 3050
+        payment.paid_at = timezone.now()
+        payment.save()
+        application.status = SponsorApplication.Status.REFUND_REQUIRED
+        application.save(update_fields=["status"])
+        self.cell.status = SponsorCell.Status.REJECTED
+        self.cell.save(update_fields=["status"])
+
+        charge_refunded_event = {
+            "id": "evt_charge_refunded_partial",
+            "type": "charge.refunded",
+            "data": {
+                "object": {
+                    "payment_intent": "pi_refund_partial",
+                    "amount": 3050,
+                    "amount_refunded": 1000,  # partial
+                }
+            },
+        }
+        handle_stripe_event(charge_refunded_event)
+
+        application.refresh_from_db()
+        self.cell.refresh_from_db()
+        payment.refresh_from_db()
+        # Partial refund — application must stay refund_required, cell must stay rejected.
+        self.assertEqual(application.status, SponsorApplication.Status.REFUND_REQUIRED)
+        self.assertEqual(payment.status, SponsorPayment.Status.PARTIALLY_REFUNDED)
+        self.assertEqual(self.cell.status, SponsorCell.Status.REJECTED)
+
+
+@override_settings(**SPONSOR_TEST_SETTINGS)
+class SponsorModerationTransitionTests(TestCase):
+    """Issue 5: Moderation transition validation tests."""
+
+    def setUp(self):
+        self.cell = SponsorCell.objects.create(cell_number=88, ring=6, position_in_ring=0)
+        self.user = get_user_model().objects.create_user("mod", password="pass", is_staff=True)
+
+    def _make_application(self, status, paid=False):
+        application = SponsorApplication.objects.create(
+            cell=self.cell,
+            status=status,
+            sponsor_name="TransitionCo",
+            contact_name="Tester",
+            email="transition@example.com",
+            logo=png_upload(),
+            price_net_cents=self.cell.price_net_cents,
+            terms_accepted=True,
+            logo_rights_confirmed=True,
+            approval_acknowledged=True,
+            terms_accepted_at=timezone.now(),
+        )
+        SponsorPayment.objects.create(
+            application=application,
+            status=SponsorPayment.Status.PAID if paid else SponsorPayment.Status.PENDING,
+            net_amount_cents=application.price_net_cents,
+            currency="eur",
+            stripe_checkout_session_id="cs_trans_123" if paid else None,
+            stripe_payment_intent_id="pi_trans_123" if paid else "",
+            paid_at=timezone.now() if paid else None,
+        )
+        return application
+
+    def test_mark_refund_completed_from_non_refund_required_raises(self):
+        application = self._make_application(SponsorApplication.Status.APPROVED, paid=True)
+        with self.assertRaises(ValueError):
+            mark_refund_completed(application.pk, self.user, "test")
+
+    def test_mark_refund_completed_from_refunded_raises(self):
+        application = self._make_application(SponsorApplication.Status.REFUNDED, paid=True)
+        with self.assertRaises(ValueError):
+            mark_refund_completed(application.pk, self.user, "test")
+
+    def test_reject_active_application_raises(self):
+        application = self._make_application(SponsorApplication.Status.APPROVED, paid=True)
+        with self.assertRaises(ValueError):
+            reject_application(application.pk, self.user, "too late")
+
+    def test_reject_refunded_application_raises(self):
+        application = self._make_application(SponsorApplication.Status.REFUNDED, paid=True)
+        with self.assertRaises(ValueError):
+            reject_application(application.pk, self.user, "already refunded")
+
+    def test_reject_expired_application_raises(self):
+        application = self._make_application(SponsorApplication.Status.EXPIRED, paid=True)
+        with self.assertRaises(ValueError):
+            reject_application(application.pk, self.user, "already expired")
+
+    def test_expire_non_approved_application_raises(self):
+        application = self._make_application(SponsorApplication.Status.PAID_PENDING_APPROVAL, paid=True)
+        with self.assertRaises(ValueError):
+            expire_application(application.pk, self.user)
+
+    def test_expire_payment_pending_application_raises(self):
+        application = self._make_application(SponsorApplication.Status.PAYMENT_PENDING, paid=False)
+        with self.assertRaises(ValueError):
+            expire_application(application.pk, self.user)
+
+    def test_mark_refund_completed_valid_from_refund_required(self):
+        application = self._make_application(SponsorApplication.Status.REFUND_REQUIRED, paid=True)
+        self.cell.status = SponsorCell.Status.REJECTED
+        self.cell.save(update_fields=["status"])
+
+        result = mark_refund_completed(application.pk, self.user, "test refund")
+
+        self.assertEqual(result.status, SponsorApplication.Status.REFUNDED)
 
 
 def teardown_module(_module=None):

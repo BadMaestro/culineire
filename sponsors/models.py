@@ -288,6 +288,14 @@ class SponsorPayment(models.Model):
             models.Index(fields=["status", "created_at"]),
             models.Index(fields=["stripe_payment_intent_id"]),
         ]
+        constraints = [
+            # Issue 7: Enforce uniqueness for non-empty PaymentIntent IDs.
+            models.UniqueConstraint(
+                fields=["stripe_payment_intent_id"],
+                condition=~models.Q(stripe_payment_intent_id=""),
+                name="unique_nonempty_stripe_payment_intent_id",
+            )
+        ]
 
     def __str__(self):
         return f"{self.application.sponsor_name} payment [{self.get_status_display()}]"

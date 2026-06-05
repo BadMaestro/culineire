@@ -262,6 +262,12 @@ def handle_stripe_event(event) -> dict[str, Any]:
 
 
 def _handle_checkout_completed(session) -> SponsorApplication | None:
+    # Issue 2: Require payment_status == "paid" before marking as paid.
+    payment_status = (_get(session, "payment_status", "") or "").lower()
+    if payment_status and payment_status != "paid":
+        # Not a completed card payment — do not mark as paid.
+        return None
+
     metadata = _metadata(session)
     application = _application_from_metadata(metadata)
     if not application:
@@ -271,6 +277,34 @@ def _handle_checkout_completed(session) -> SponsorApplication | None:
     if cell_id and str(application.cell_id) != str(cell_id):
         raise SponsorPaymentVerificationError("Stripe metadata cell id does not match application.")
 
+    # Issue 3: Monotonic state guard — only advance from valid payment_pending states.
+    _VALID_COMPLETION_STATES = {
+        SponsorApplication.Status.PAYMENT_PENDING,
+        SponsorApplication.Status.PAID_PENDING_APPROVAL,  # idempotent replay
+    }
+    _TERMINAL_STATES = {
+        SponsorApplication.Status.APPROVED,
+        SponsorApplication.Status.REJECTED,
+        SponsorApplication.Status.REFUND_REQUIRED,
+        SponsorApplication.Status.REFUNDED,
+        SponsorApplication.Status.CANCELLED,
+        SponsorApplication.Status.EXPIRED,
+    }
+    if application.status in _TERMINAL_STATES:
+        # Late/replayed event — audit and leave for manual review.
+        record_audit(
+            action=SponsorAuditLog.Action.PAYMENT_CONFIRMED,
+            application=application,
+            from_status=application.status,
+            to_status=application.status,
+            notes=(
+                f"checkout.session.completed received but application is already in terminal "
+                f"state '{application.status}'. Left for manual review."
+            ),
+            metadata={"stripe_session_id": _get(session, "id", "")},
+        )
+        return application
+
     amount_subtotal = _get(session, "amount_subtotal")
     currency = (_get(session, "currency", "") or "").lower()
     if amount_subtotal is not None and int(amount_subtotal) != application.price_net_cents:
@@ -279,11 +313,44 @@ def _handle_checkout_completed(session) -> SponsorApplication | None:
         raise SponsorPaymentVerificationError("Stripe checkout currency does not match application currency.")
 
     cell = SponsorCell.objects.select_for_update().get(pk=application.cell_id)
+
+    # Issue 1: Late payment conflict — verify cell is still owned by this application.
+    _VALID_CELL_STATES = {
+        SponsorCell.Status.PAYMENT_PENDING,
+        SponsorCell.Status.PAID_PENDING_APPROVAL,  # idempotent replay
+    }
+    session_id = _get(session, "id", "") or ""
+    if cell.status not in _VALID_CELL_STATES:
+        # Cell was released and may have been taken by another applicant.
+        payment_conflict, _ = SponsorPayment.objects.select_for_update().get_or_create(
+            application=application,
+            defaults={"net_amount_cents": application.price_net_cents, "currency": application.currency},
+        )
+        payment_intent_conflict = _get(session, "payment_intent", "") or ""
+        payment_conflict.stripe_payment_intent_id = payment_conflict.stripe_payment_intent_id or payment_intent_conflict
+        payment_conflict.stripe_checkout_session_id = payment_conflict.stripe_checkout_session_id or session_id
+        payment_conflict.save(update_fields=["stripe_payment_intent_id", "stripe_checkout_session_id", "updated_at"])
+        from_status = application.status
+        application.status = SponsorApplication.Status.REFUND_REQUIRED
+        application.save(update_fields=["status", "updated_at"])
+        record_audit(
+            action=SponsorAuditLog.Action.REFUND_REQUIRED,
+            application=application,
+            from_status=from_status,
+            to_status=application.status,
+            notes=(
+                f"Late checkout.session.completed: cell {cell.pk} is in state '{cell.status}' "
+                f"and is no longer reserved for this application. "
+                f"Application set to refund_required for manual review."
+            ),
+            metadata={"stripe_session_id": session_id, "cell_status": cell.status},
+        )
+        return application
+
     total_details = _get(session, "total_details", {}) or {}
     tax_amount = _get(total_details, "amount_tax", 0) or 0
     total_amount = _get(session, "amount_total", 0) or 0
     payment_intent = _get(session, "payment_intent", "") or ""
-    session_id = _get(session, "id", "") or ""
 
     payment, _ = SponsorPayment.objects.select_for_update().get_or_create(
         application=application,
@@ -373,6 +440,7 @@ def _handle_payment_intent_failed(payment_intent) -> SponsorApplication | None:
 
 
 def _handle_charge_refunded(charge) -> SponsorApplication | None:
+    # Issue 4: On verified full refund, complete the refund workflow atomically.
     payment_intent_id = _get(charge, "payment_intent", "") or ""
     payment = SponsorPayment.objects.select_for_update().filter(
         stripe_payment_intent_id=payment_intent_id
@@ -380,22 +448,56 @@ def _handle_charge_refunded(charge) -> SponsorApplication | None:
     if not payment:
         return None
 
+    application = SponsorApplication.objects.select_for_update().select_related("cell").get(
+        pk=payment.application_id
+    )
+    cell = SponsorCell.objects.select_for_update().get(pk=application.cell_id)
+
     refunded_amount = int(_get(charge, "amount_refunded", 0) or 0)
     total_amount = int(_get(charge, "amount", 0) or payment.total_amount_cents or 0)
+    is_full_refund = bool(total_amount and refunded_amount >= total_amount)
+
     payment.refunded_amount_cents = refunded_amount
     payment.refunded_at = timezone.now()
     payment.status = (
         SponsorPayment.Status.REFUNDED
-        if total_amount and refunded_amount >= total_amount
+        if is_full_refund
         else SponsorPayment.Status.PARTIALLY_REFUNDED
     )
     payment.save(update_fields=["refunded_amount_cents", "refunded_at", "status", "updated_at"])
-    record_audit(
-        action=SponsorAuditLog.Action.REFUND_COMPLETED,
-        application=payment.application,
-        metadata={"refunded_amount_cents": refunded_amount, "stripe_payment_intent_id": payment_intent_id},
-    )
-    return payment.application
+
+    # If the application is in refund_required and the refund is now full, transition atomically.
+    if is_full_refund and application.status == SponsorApplication.Status.REFUND_REQUIRED:
+        from_status = application.status
+        application.status = SponsorApplication.Status.REFUNDED
+        application.save(update_fields=["status", "updated_at"])
+        # Release cell only if it is still held by this application (not already taken).
+        if cell.status in {SponsorCell.Status.REJECTED, SponsorCell.Status.PAID_PENDING_APPROVAL}:
+            cell.status = SponsorCell.Status.AVAILABLE
+            cell.sponsor_name = ""
+            cell.sponsor_url = ""
+            cell.sponsor_tagline = ""
+            cell.sponsor_logo = None
+            cell.save()
+        record_audit(
+            action=SponsorAuditLog.Action.REFUND_COMPLETED,
+            application=application,
+            from_status=from_status,
+            to_status=application.status,
+            notes="Full refund verified via charge.refunded webhook. Cell released automatically.",
+            metadata={"refunded_amount_cents": refunded_amount, "stripe_payment_intent_id": payment_intent_id},
+        )
+    else:
+        record_audit(
+            action=SponsorAuditLog.Action.REFUND_COMPLETED,
+            application=application,
+            metadata={
+                "refunded_amount_cents": refunded_amount,
+                "stripe_payment_intent_id": payment_intent_id,
+                "is_full_refund": is_full_refund,
+            },
+        )
+    return application
 
 
 def add_one_year(value):
@@ -452,6 +554,17 @@ def reject_application(application_id: int, actor, reason: str = "") -> SponsorA
             .select_related("cell")
             .get(pk=application_id)
         )
+        # Issue 5: Do not silently reject terminal/active applications.
+        _REJECTABLE_STATES = {
+            SponsorApplication.Status.DRAFT,
+            SponsorApplication.Status.PAYMENT_PENDING,
+            SponsorApplication.Status.PAID_PENDING_APPROVAL,
+        }
+        if application.status not in _REJECTABLE_STATES:
+            raise ValueError(
+                f"Cannot reject application in status '{application.status}'. "
+                f"Only draft, payment_pending, or paid_pending_approval applications can be rejected."
+            )
         cell = SponsorCell.objects.select_for_update().get(pk=application.cell_id)
         payment = getattr(application, "payment", None)
         from_status = application.status
@@ -494,6 +607,12 @@ def mark_refund_completed(application_id: int, actor, notes: str = "") -> Sponso
             .select_related("cell")
             .get(pk=application_id)
         )
+        # Issue 5: Only allow from refund_required.
+        if application.status != SponsorApplication.Status.REFUND_REQUIRED:
+            raise ValueError(
+                f"mark_refund_completed is only valid from refund_required status. "
+                f"Current status: {application.status}"
+            )
         payment = getattr(application, "payment", None)
         cell = SponsorCell.objects.select_for_update().get(pk=application.cell_id)
         from_status = application.status
@@ -542,6 +661,12 @@ def unpublish_application(application_id: int, actor, notes: str = "") -> Sponso
 def expire_application(application_id: int, actor, notes: str = "") -> SponsorApplication:
     with transaction.atomic():
         application = SponsorApplication.objects.select_for_update().select_related("cell").get(pk=application_id)
+        # Issue 5: Only expire approved/active applications.
+        if application.status != SponsorApplication.Status.APPROVED:
+            raise ValueError(
+                f"expire_application is only valid for approved applications. "
+                f"Current status: {application.status}"
+            )
         cell = SponsorCell.objects.select_for_update().get(pk=application.cell_id)
         from_status = application.status
         application.status = SponsorApplication.Status.EXPIRED
