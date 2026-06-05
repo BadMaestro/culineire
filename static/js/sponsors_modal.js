@@ -60,6 +60,7 @@
     logoImg = null;
     logoOffset = { x: 0, y: 0 };
     logoScale = 1.0;
+    logoRotation = 0;
     canvasEl = null;
     previewShape = null;
     renderModal(cellData || {});
