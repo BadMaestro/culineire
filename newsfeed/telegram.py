@@ -238,7 +238,30 @@ def build_sponsor_telegram_message(application) -> str:
     """Announcement when a sponsor is approved and published on the puzzle."""
     site_url = f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}".rstrip("/")
     sponsors_url = f"{site_url}/sponsors/"
-    return f"New sponsor on CulinEire: {application.sponsor_name}\n\n{sponsors_url}"
+    if application.product_type == "central_monthly":
+        return (
+            "Sponsor of the Month\n\n"
+            f"{application.sponsor_name} is now featured as CulinEire Sponsor of the Month.\n"
+            "Featured for 30 days from publication.\n\n"
+            f"{sponsors_url}"
+        )
+    return (
+        "New CulinEire sponsor\n\n"
+        f"{application.sponsor_name} is now featured as an Annual Ring Sponsor.\n"
+        f"Ring {application.cell.ring}, cell #{application.cell.cell_number}\n\n"
+        f"{sponsors_url}"
+    )
+
+
+def sponsor_telegram_image_url(application) -> str:
+    image = getattr(application, "logo", None)
+    if not image:
+        return ""
+    image_url = image.url
+    if image_url.startswith(("http://", "https://")):
+        return image_url
+    site_url = f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}".rstrip("/")
+    return f"{site_url}/{image_url.lstrip('/')}"
 
 
 def publish_sponsor_to_telegram(application) -> TelegramResult:
@@ -246,6 +269,7 @@ def publish_sponsor_to_telegram(application) -> TelegramResult:
         event_key=f"sponsor_approved:{application.pk}",
         message=build_sponsor_telegram_message(application),
         target_url="/sponsors/",
+        image_url=sponsor_telegram_image_url(application),
     )
 
 

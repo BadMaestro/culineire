@@ -350,6 +350,33 @@ class SponsorFlowTests(TestCase):
         self.assertTrue(duplicate["duplicate"])
         self.assertEqual(ProcessedStripeEvent.objects.count(), 1)
 
+    @patch("newsfeed.telegram.publish_sponsor_to_telegram")
+    def test_payment_confirmation_does_not_send_sponsor_telegram_announcement(self, mock_publish):
+        application = self.create_pending_application(paid=False)
+        event = {
+            "id": "evt_payment_no_telegram",
+            "type": "checkout.session.completed",
+            "data": {
+                "object": {
+                    "id": "cs_payment_no_telegram",
+                    "payment_status": "paid",
+                    "payment_intent": "pi_payment_no_telegram",
+                    "amount_subtotal": application.price_net_cents,
+                    "amount_total": application.price_net_cents + 575,
+                    "total_details": {"amount_tax": 575},
+                    "currency": "eur",
+                    "metadata": {
+                        "sponsor_application_id": str(application.pk),
+                        "sponsor_cell_id": str(self.cell.pk),
+                    },
+                }
+            },
+        }
+
+        handle_stripe_event(event)
+
+        mock_publish.assert_not_called()
+
     def test_expired_checkout_releases_unpaid_cell(self):
         application = self.create_pending_application(paid=False)
         event = {
@@ -517,7 +544,7 @@ class SponsorApprovalTelegramTests(TestCase):
         self.cell.save(update_fields=["status"])
         return application
 
-    @patch("newsfeed.telegram.send_telegram_message")
+    @patch("newsfeed.telegram.send_telegram_photo")
     def test_approve_sends_telegram_announcement(self, mock_send):
         mock_send.return_value = __import__("newsfeed.telegram", fromlist=["TelegramResult"]).TelegramResult(
             ok=True, status="sent", response='{"ok": true}'
@@ -527,12 +554,15 @@ class SponsorApprovalTelegramTests(TestCase):
         approve_application(application.pk, self.actor)
 
         self.assertEqual(mock_send.call_count, 1)
-        sent_text = mock_send.call_args[0][0]
-        self.assertIn("New sponsor on CulinEire:", sent_text)
-        self.assertIn("Bearcave Bakery", sent_text)
-        self.assertIn("culineire.ie/sponsors/", sent_text)
+        image_url, caption = mock_send.call_args[0]
+        self.assertIn("culineire.ie/media/sponsors/applications/", image_url)
+        self.assertIn("New CulinEire sponsor", caption)
+        self.assertIn("Annual Ring Sponsor", caption)
+        self.assertIn("Bearcave Bakery", caption)
+        self.assertIn("Ring 3, cell #42", caption)
+        self.assertIn("culineire.ie/sponsors/", caption)
 
-    @patch("newsfeed.telegram.send_telegram_message")
+    @patch("newsfeed.telegram.send_telegram_photo")
     def test_approve_telegram_not_duplicated_on_second_call(self, mock_send):
         from newsfeed.telegram import TelegramResult
         mock_send.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
@@ -546,7 +576,7 @@ class SponsorApprovalTelegramTests(TestCase):
 
         self.assertEqual(mock_send.call_count, 1, "Telegram must not send duplicate announcements")
 
-    @patch("newsfeed.telegram.send_telegram_message")
+    @patch("newsfeed.telegram.send_telegram_photo")
     def test_approve_copies_logo_rotation_to_cell(self, mock_send):
         from newsfeed.telegram import TelegramResult
         mock_send.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
@@ -558,6 +588,28 @@ class SponsorApprovalTelegramTests(TestCase):
 
         self.cell.refresh_from_db()
         self.assertAlmostEqual(self.cell.logo_rotation, 90.0)
+
+    @patch("newsfeed.telegram.send_telegram_photo")
+    def test_central_monthly_approval_sends_sponsor_of_the_month_photo(self, mock_send):
+        from newsfeed.telegram import TelegramResult
+        mock_send.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
+        self.cell.ring = 0
+        self.cell.cell_number = 0
+        self.cell.product_type = SponsorCell.ProductType.CENTRAL_MONTHLY
+        self.cell.save()
+        application = self._make_paid_application()
+        application.product_type = SponsorCell.ProductType.CENTRAL_MONTHLY
+        application.term_days = 30
+        application.save()
+
+        approve_application(application.pk, self.actor)
+
+        image_url, caption = mock_send.call_args[0]
+        self.assertIn("culineire.ie/media/sponsors/applications/", image_url)
+        self.assertIn("Sponsor of the Month", caption)
+        self.assertIn("Bearcave Bakery is now featured as CulinEire Sponsor of the Month.", caption)
+        self.assertIn("Featured for 30 days from publication.", caption)
+        self.assertNotIn("Ring 0", caption)
 
 
 @override_settings(**SPONSOR_TEST_SETTINGS)
