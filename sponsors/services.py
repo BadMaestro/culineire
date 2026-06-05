@@ -759,41 +759,64 @@ def expire_application(application_id: int, actor, notes: str = "") -> SponsorAp
         return application
 
 
-ROADMAP_MILESTONES = [
-    "Audit existing Sponsors section",
-    "Update sponsor data model",
-    "Add VAT-aware pricing display",
-    "Add sponsor application form updates",
-    "Add sponsor cell locking",
-    "Add Stripe Checkout Session creation",
-    "Add Stripe webhook handling",
-    "Add payment status tracking",
-    "Add paid pending approval workflow",
-    "Add approval and publication workflow",
-    "Add rejection and refund-required workflow",
-    "Update annual sponsorship terms wording",
-    "Add success and cancel pages",
-    "Add moderation dashboard views",
-    "Add super-admin roadmap page",
-    "Add audit logging",
-    "Add tests",
-    "Complete test-mode Stripe payment",
-    "Complete webhook test",
-    "Prepare live-mode checklist",
+# Each entry: (title, phase, is_done, is_blocker)
+ROADMAP_MILESTONES: list[tuple[str, str, bool, bool]] = [
+    # Phase 1 — Foundation
+    ("Audit existing Sponsors section",             "Phase 1: Foundation",    True,  False),
+    ("Update sponsor data model",                   "Phase 1: Foundation",    True,  False),
+    ("Add VAT-aware pricing display",               "Phase 1: Foundation",    True,  False),
+    ("Add sponsor application form",                "Phase 1: Foundation",    True,  False),
+    ("Add sponsor cell locking",                    "Phase 1: Foundation",    True,  False),
+    ("Add Stripe Checkout Session creation",        "Phase 1: Foundation",    True,  False),
+    ("Add Stripe webhook handling",                 "Phase 1: Foundation",    True,  False),
+    ("Add payment status tracking",                 "Phase 1: Foundation",    True,  False),
+    ("Add paid pending approval workflow",          "Phase 1: Foundation",    True,  False),
+    ("Add approval and publication workflow",       "Phase 1: Foundation",    True,  False),
+    ("Add rejection and refund-required workflow",  "Phase 1: Foundation",    True,  False),
+    ("Update annual sponsorship terms wording",     "Phase 1: Foundation",    True,  False),
+    ("Add success and cancel pages",                "Phase 1: Foundation",    True,  False),
+    ("Add moderation dashboard views",              "Phase 1: Foundation",    True,  False),
+    ("Add super-admin roadmap page",                "Phase 1: Foundation",    True,  False),
+    ("Add audit logging",                           "Phase 1: Foundation",    True,  False),
+    ("Add tests",                                   "Phase 1: Foundation",    True,  False),
+    # Phase 2 — Hardening
+    ("Harden state machine: late payment conflict", "Phase 2: Hardening",     True,  False),
+    ("Harden state machine: payment_status guard",  "Phase 2: Hardening",     True,  False),
+    ("Harden state machine: monotonic transitions", "Phase 2: Hardening",     True,  False),
+    ("Harden state machine: refund webhook",        "Phase 2: Hardening",     True,  False),
+    ("Harden state machine: moderation validation", "Phase 2: Hardening",     True,  False),
+    ("Add Stripe Tax code (txcd_20060002)",         "Phase 2: Hardening",     True,  False),
+    ("Fix Stripe StripeObject metadata conversion", "Phase 2: Hardening",     True,  False),
+    ("Add logo rights checkbox to sponsor form",    "Phase 2: Hardening",     True,  False),
+    ("Add logo rotation editor to sponsor form",    "Phase 2: Hardening",     True,  False),
+    # Sandbox testing
+    ("Complete test-mode Stripe payment",           "Sandbox Testing",        True,  False),
+    ("Complete webhook test",                       "Sandbox Testing",        True,  False),
+    # Notifications
+    ("Admin email on payment confirmation",         "Notifications",          True,  False),
+    ("Telegram announcement on sponsor approval",   "Notifications",          True,  False),
+    ("Sponsor Applications in nav dropdown",        "Notifications",          True,  False),
+    ("Paid badge on Moderation Panel",              "Notifications",          True,  False),
+    # Live mode
+    ("Fix media folder permissions on server",      "Live Mode Prep",         False, True),
+    ("Merge feature branch to main",                "Live Mode Prep",         False, True),
+    ("Switch Stripe to live mode",                  "Live Mode Prep",         False, True),
+    ("Configure live Stripe webhook endpoint",      "Live Mode Prep",         False, True),
+    ("Prepare live-mode checklist",                 "Live Mode Prep",         False, False),
 ]
 
 
 def seed_roadmap_items() -> None:
     now = timezone.now()
-    for index, title in enumerate(ROADMAP_MILESTONES, start=1):
-        is_done = index <= 17
-        SponsorRoadmapItem.objects.get_or_create(
+    for index, (title, phase, is_done, is_blocker) in enumerate(ROADMAP_MILESTONES, start=1):
+        SponsorRoadmapItem.objects.update_or_create(
             title=title,
             defaults={
-                "phase": "Stripe Sponsors",
+                "phase": phase,
                 "sort_order": index,
                 "status": SponsorRoadmapItem.Status.DONE if is_done else SponsorRoadmapItem.Status.NOT_STARTED,
-                "priority": SponsorRoadmapItem.Priority.HIGH if index <= 17 else SponsorRoadmapItem.Priority.MEDIUM,
+                "priority": SponsorRoadmapItem.Priority.HIGH,
+                "is_blocker": is_blocker,
                 "completed_at": now if is_done else None,
             },
         )
