@@ -125,6 +125,8 @@ class SponsorFlowTests(TestCase):
         self.assertContains(response, "Sponsor of the Month")
         self.assertContains(response, "€1000")
         self.assertContains(response, "/ month + VAT")
+        self.assertContains(response, "Ring sponsorship is annual. Central sponsor is monthly. VAT calculated at checkout.")
+        self.assertNotContains(response, "Net annual price")
 
     def test_application_requires_terms_logo_rights_and_approval_acknowledgement(self):
         data = self.valid_post_data()
@@ -1085,6 +1087,15 @@ class SponsorPublicFormTests(TestCase):
                       "spm-logo-rights checkbox must be rendered in the sponsor modal JS")
         self.assertIn("Bearcave Limited may display it on CulinEire", js_content,
                       "Logo rights wording must mention Bearcave Limited displaying on CulinEire")
+
+    def test_sponsor_puzzle_centre_uses_sponsor_of_the_month_copy(self):
+        from django.contrib.staticfiles import finders
+        js_path = finders.find("js/sponsors_puzzle.js")
+        self.assertIsNotNone(js_path, "sponsors_puzzle.js not found in static files")
+        with open(js_path, encoding="utf-8") as f:
+            js_content = f.read()
+        self.assertIn("★ SPONSOR OF THE MONTH ★", js_content)
+        self.assertNotIn("FOUNDING SPONSOR", js_content)
 
     def test_enquire_without_logo_rights_returns_400(self):
         """Submitting the enquiry without logo_rights_confirmed must return 400."""

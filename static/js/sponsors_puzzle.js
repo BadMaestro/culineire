@@ -311,7 +311,7 @@
       clipGroup.appendChild(img);
       g.appendChild(clipGroup);
 
-      /* small "★ FOUNDING SPONSOR" label — positioned above bottom vertices */
+      /* small "★ SPONSOR OF THE MONTH ★" label — positioned above bottom vertices */
       var lbl = svgEl('text', {
         x                  : CX,
         y                  : CY + Math.round(R * 0.68),
@@ -322,7 +322,7 @@
         'font-size'        : '10',
         'pointer-events'   : 'none',
       });
-      lbl.textContent = '★ FOUNDING SPONSOR ★';
+      lbl.textContent = '★ SPONSOR OF THE MONTH ★';
       g.appendChild(lbl);
 
     } else {
@@ -350,7 +350,7 @@
         'font-size'        : '10',
         'pointer-events'   : 'none',
       });
-      text2.textContent = '★ FOUNDING SPONSOR ★';
+      text2.textContent = '★ SPONSOR OF THE MONTH ★';
 
       g.appendChild(text1);
       g.appendChild(text2);
