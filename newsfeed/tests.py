@@ -615,6 +615,18 @@ class TelegramNotificationGuardTests(TestCase):
     TELEGRAM_CHANNEL_ID="@culineire_test",
 )
 class TelegramPhotoUploadTests(TestCase):
+    @patch("newsfeed.telegram._call_telegram_api")
+    def test_text_fallback_disables_link_preview(self, mock_call):
+        from newsfeed.telegram import send_telegram_message_without_link_preview
+
+        mock_call.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
+
+        result = send_telegram_message_without_link_preview("Sponsor announcement")
+
+        self.assertTrue(result.ok)
+        self.assertEqual(mock_call.call_args.args[1], "sendMessage")
+        self.assertEqual(mock_call.call_args.args[2]["disable_web_page_preview"], "true")
+
     @patch("newsfeed.telegram._call_telegram_multipart_api")
     def test_photo_upload_sends_binary_file_as_multipart(self, mock_call):
         import io

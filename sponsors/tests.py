@@ -557,7 +557,8 @@ class SponsorApprovalTelegramTests(TestCase):
         image, caption = mock_send.call_args[0]
         self.assertIn("sponsors/applications/", image.name)
         self.assertIn("New CulinEire sponsor", caption)
-        self.assertIn("Annual Ring Sponsor", caption)
+        self.assertIn("has joined the CulinEire Sponsor Puzzle", caption)
+        self.assertIn("Annual Ring Sponsorship", caption)
         self.assertIn("Bearcave Bakery", caption)
         self.assertIn("Ring 3, cell #42", caption)
         self.assertIn("culineire.ie/sponsors/", caption)
@@ -606,10 +607,28 @@ class SponsorApprovalTelegramTests(TestCase):
 
         image, caption = mock_send.call_args[0]
         self.assertIn("sponsors/applications/", image.name)
-        self.assertIn("Sponsor of the Month", caption)
-        self.assertIn("Bearcave Bakery is now featured as CulinEire Sponsor of the Month.", caption)
-        self.assertIn("Featured for 30 days from publication.", caption)
+        self.assertIn("CulinEire Sponsor of the Month", caption)
+        self.assertIn("Bearcave Bakery is now featured as our Sponsor of the Month.", caption)
+        self.assertIn("For the next 30 days", caption)
+        self.assertIn("highlighted through CulinEire sponsor areas", caption)
+        self.assertIn("Discover the Sponsor Puzzle:", caption)
         self.assertNotIn("Ring 0", caption)
+
+    @patch("newsfeed.telegram.send_telegram_message_without_link_preview")
+    @patch("newsfeed.telegram.send_telegram_photo_upload")
+    def test_approval_without_logo_uses_text_fallback_without_link_preview(self, mock_photo, mock_text):
+        from newsfeed.telegram import TelegramResult
+        mock_text.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
+        application = self._make_paid_application()
+        application.logo.delete(save=False)
+        application.logo = ""
+        application.save(update_fields=["logo"])
+
+        approve_application(application.pk, self.actor)
+
+        mock_photo.assert_not_called()
+        mock_text.assert_called_once()
+        self.assertIn("Annual Ring Sponsorship", mock_text.call_args.args[0])
 
 
 @override_settings(**SPONSOR_TEST_SETTINGS)

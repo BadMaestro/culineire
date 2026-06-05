@@ -183,6 +183,18 @@ def send_telegram_message(text: str) -> TelegramResult:
     })
 
 
+def send_telegram_message_without_link_preview(text: str) -> TelegramResult:
+    token = getattr(settings, "TELEGRAM_BOT_TOKEN", "")
+    channel_id = getattr(settings, "TELEGRAM_CHANNEL_ID", "")
+    if not token or not channel_id:
+        return TelegramResult(ok=False, status="skipped", response="Telegram settings are not configured.")
+    return _call_telegram_api(token, "sendMessage", {
+        "chat_id": channel_id,
+        "text": text,
+        "disable_web_page_preview": "true",
+    })
+
+
 def send_telegram_message_with_link_preview(text: str, *, preview_url: str = "") -> TelegramResult:
     """sendMessage with small link preview — used for Amuse-Bouche compact notifications."""
     token = getattr(settings, "TELEGRAM_BOT_TOKEN", "")
@@ -336,25 +348,32 @@ def build_sponsor_telegram_message(application) -> str:
     sponsors_url = f"{site_url}/sponsors/"
     if application.product_type == "central_monthly":
         return (
-            "Sponsor of the Month\n\n"
-            f"{application.sponsor_name} is now featured as CulinEire Sponsor of the Month.\n"
-            "Featured for 30 days from publication.\n\n"
+            "CulinEire Sponsor of the Month\n\n"
+            f"{application.sponsor_name} is now featured as our Sponsor of the Month.\n\n"
+            "For the next 30 days, this sponsor will be highlighted through CulinEire "
+            "sponsor areas, announcements and selected site placements.\n\n"
+            "Discover the Sponsor Puzzle:\n"
             f"{sponsors_url}"
         )
     return (
         "New CulinEire sponsor\n\n"
-        f"{application.sponsor_name} is now featured as an Annual Ring Sponsor.\n"
-        f"Ring {application.cell.ring}, cell #{application.cell.cell_number}\n\n"
+        f"{application.sponsor_name} has joined the CulinEire Sponsor Puzzle.\n\n"
+        f"Annual Ring Sponsorship · Ring {application.cell.ring}, cell #{application.cell.cell_number}\n\n"
         f"{sponsors_url}"
     )
 
 
 def publish_sponsor_to_telegram(application) -> TelegramResult:
+    def send_announcement(message):
+        if application.logo:
+            return send_telegram_photo_upload(application.logo, message)
+        return send_telegram_message_without_link_preview(message)
+
     return _publish_to_telegram(
         event_key=f"sponsor_approved:{application.pk}",
         message=build_sponsor_telegram_message(application),
         target_url="/sponsors/",
-        _send_fn=lambda caption: send_telegram_photo_upload(application.logo, caption),
+        _send_fn=send_announcement,
     )
 
 

@@ -1,4 +1,5 @@
 from io import BytesIO
+from unittest.mock import patch
 
 from PIL import Image
 from django.contrib.auth import get_user_model
@@ -98,11 +99,15 @@ class SponsorChangesRequestedWorkflowTests(TestCase):
             mark_application_ready_for_review(self.application.pk, self.actor)
 
     def test_changes_requested_can_be_rejected_into_existing_refund_workflow(self):
-        request_application_changes(self.application.pk, self.actor, "Update logo")
-        reject_application(self.application.pk, self.actor, "Cannot be resolved")
+        with patch("newsfeed.telegram.publish_sponsor_to_telegram") as publish:
+            request_application_changes(self.application.pk, self.actor, "Update logo")
+            mark_application_ready_for_review(self.application.pk, self.actor)
+            request_application_changes(self.application.pk, self.actor, "Update logo again")
+            reject_application(self.application.pk, self.actor, "Cannot be resolved")
 
         self.application.refresh_from_db()
         self.assertEqual(self.application.status, SponsorApplication.Status.REFUND_REQUIRED)
+        publish.assert_not_called()
 
     def test_paid_pending_approval_action_visibility(self):
         response = self.detail()
