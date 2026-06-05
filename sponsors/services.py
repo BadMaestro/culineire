@@ -798,7 +798,7 @@ ROADMAP_MILESTONES: list[tuple[str, str, bool, bool]] = [
     ("Sponsor Applications in nav dropdown",        "Notifications",          True,  False),
     ("Paid badge on Moderation Panel",              "Notifications",          True,  False),
     # Live mode
-    ("Fix media folder permissions on server",      "Live Mode Prep",         False, True),
+    ("Fix media folder permissions on server",      "Live Mode Prep",         True,  False),
     ("Merge feature branch to main",                "Live Mode Prep",         False, True),
     ("Switch Stripe to live mode",                  "Live Mode Prep",         False, True),
     ("Configure live Stripe webhook endpoint",      "Live Mode Prep",         False, True),
