@@ -87,11 +87,13 @@
             <ul class="automation-list">
                 {% for log in audit_logs %}
                 <li class="automation-item">
-                    <span class="automation-item__state">{{ log.action }}</span>
-                    <span class="automation-item__body">
-                        <strong>{{ log.created_at|date:"j M Y H:i" }}{% if log.actor %} by {{ log.actor.get_username }}{% endif %}</strong>
-                        <span>{{ log.from_status|default:"-" }} to {{ log.to_status|default:"-" }}{% if log.notes %} / {{ log.notes }}{% endif %}</span>
-                    </span>
+                    <div class="automation-item__row">
+                        <span class="automation-item__state">{{ log.action }}</span>
+                        <span style="font-size:0.8rem;color:var(--ink-soft,#5a5249);">{{ log.created_at|date:"j M Y H:i" }}{% if log.actor %} &middot; {{ log.actor.get_username }}{% endif %}</span>
+                    </div>
+                    <div class="automation-item__body">
+                        <span>{{ log.from_status|default:"-" }} &rarr; {{ log.to_status|default:"-" }}{% if log.notes %} &mdash; {{ log.notes }}{% endif %}</span>
+                    </div>
                 </li>
                 {% empty %}
                 <li class="moderation-empty">No audit entries yet.</li>
