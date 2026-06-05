@@ -582,6 +582,7 @@ class TelegramNotificationGuardTests(TestCase):
         self.assertEqual(result.status, "skipped")
         self.assertFalse(SocialPostLog.objects.exists())
 
+
     # ------------------------------------------------------------------ #
     # Guard inactive: production path exercises _call_telegram_api        #
     # ------------------------------------------------------------------ #
@@ -605,3 +606,31 @@ class TelegramNotificationGuardTests(TestCase):
         mock_urlopen.assert_called_once()
         self.assertTrue(result.ok)
         self.assertEqual(result.status, "sent")
+
+
+@override_settings(
+    IS_TESTING=False,
+    DISABLE_EXTERNAL_NOTIFICATIONS=False,
+    TELEGRAM_BOT_TOKEN="test-token",
+    TELEGRAM_CHANNEL_ID="@culineire_test",
+)
+class TelegramPhotoUploadTests(TestCase):
+    @patch("newsfeed.telegram._call_telegram_multipart_api")
+    def test_photo_upload_sends_binary_file_as_multipart(self, mock_call):
+        from django.core.files.base import ContentFile
+        from django.core.files.storage import default_storage
+        from newsfeed.telegram import send_telegram_photo_upload
+
+        mock_call.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
+        name = default_storage.save("telegram-tests/sponsor.png", ContentFile(b"png-bytes"))
+        try:
+            with default_storage.open(name, "rb") as image:
+                result = send_telegram_photo_upload(image, "Sponsor caption")
+        finally:
+            default_storage.delete(name)
+
+        self.assertTrue(result.ok)
+        kwargs = mock_call.call_args.kwargs
+        self.assertEqual(kwargs["file_field"], "photo")
+        self.assertEqual(kwargs["content_type"], "image/png")
+        self.assertEqual(kwargs["file_bytes"], b"png-bytes")

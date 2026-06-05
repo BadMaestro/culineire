@@ -544,7 +544,7 @@ class SponsorApprovalTelegramTests(TestCase):
         self.cell.save(update_fields=["status"])
         return application
 
-    @patch("newsfeed.telegram.send_telegram_photo")
+    @patch("newsfeed.telegram.send_telegram_photo_upload")
     def test_approve_sends_telegram_announcement(self, mock_send):
         mock_send.return_value = __import__("newsfeed.telegram", fromlist=["TelegramResult"]).TelegramResult(
             ok=True, status="sent", response='{"ok": true}'
@@ -554,15 +554,15 @@ class SponsorApprovalTelegramTests(TestCase):
         approve_application(application.pk, self.actor)
 
         self.assertEqual(mock_send.call_count, 1)
-        image_url, caption = mock_send.call_args[0]
-        self.assertIn("culineire.ie/media/sponsors/applications/", image_url)
+        image, caption = mock_send.call_args[0]
+        self.assertIn("sponsors/applications/", image.name)
         self.assertIn("New CulinEire sponsor", caption)
         self.assertIn("Annual Ring Sponsor", caption)
         self.assertIn("Bearcave Bakery", caption)
         self.assertIn("Ring 3, cell #42", caption)
         self.assertIn("culineire.ie/sponsors/", caption)
 
-    @patch("newsfeed.telegram.send_telegram_photo")
+    @patch("newsfeed.telegram.send_telegram_photo_upload")
     def test_approve_telegram_not_duplicated_on_second_call(self, mock_send):
         from newsfeed.telegram import TelegramResult
         mock_send.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
@@ -576,7 +576,7 @@ class SponsorApprovalTelegramTests(TestCase):
 
         self.assertEqual(mock_send.call_count, 1, "Telegram must not send duplicate announcements")
 
-    @patch("newsfeed.telegram.send_telegram_photo")
+    @patch("newsfeed.telegram.send_telegram_photo_upload")
     def test_approve_copies_logo_rotation_to_cell(self, mock_send):
         from newsfeed.telegram import TelegramResult
         mock_send.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
@@ -589,7 +589,7 @@ class SponsorApprovalTelegramTests(TestCase):
         self.cell.refresh_from_db()
         self.assertAlmostEqual(self.cell.logo_rotation, 90.0)
 
-    @patch("newsfeed.telegram.send_telegram_photo")
+    @patch("newsfeed.telegram.send_telegram_photo_upload")
     def test_central_monthly_approval_sends_sponsor_of_the_month_photo(self, mock_send):
         from newsfeed.telegram import TelegramResult
         mock_send.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
@@ -604,8 +604,8 @@ class SponsorApprovalTelegramTests(TestCase):
 
         approve_application(application.pk, self.actor)
 
-        image_url, caption = mock_send.call_args[0]
-        self.assertIn("culineire.ie/media/sponsors/applications/", image_url)
+        image, caption = mock_send.call_args[0]
+        self.assertIn("sponsors/applications/", image.name)
         self.assertIn("Sponsor of the Month", caption)
         self.assertIn("Bearcave Bakery is now featured as CulinEire Sponsor of the Month.", caption)
         self.assertIn("Featured for 30 days from publication.", caption)

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import logging
+import mimetypes
+import uuid
 from dataclasses import dataclass
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
@@ -113,6 +115,61 @@ def _call_telegram_api(token: str, method: str, payload: dict) -> TelegramResult
     return TelegramResult(ok=False, status="failed", response=body)
 
 
+def _call_telegram_multipart_api(
+    token: str,
+    method: str,
+    payload: dict[str, str],
+    *,
+    file_field: str,
+    filename: str,
+    content_type: str,
+    file_bytes: bytes,
+) -> TelegramResult:
+    if external_notifications_disabled():
+        return TelegramResult(ok=False, status="skipped", response="External notifications are disabled.")
+
+    boundary = f"----CulinEireTelegram{uuid.uuid4().hex}"
+    body = bytearray()
+    for key, value in payload.items():
+        body.extend(f"--{boundary}\r\n".encode())
+        body.extend(f'Content-Disposition: form-data; name="{key}"\r\n\r\n'.encode())
+        body.extend(str(value).encode("utf-8"))
+        body.extend(b"\r\n")
+    body.extend(f"--{boundary}\r\n".encode())
+    body.extend(
+        f'Content-Disposition: form-data; name="{file_field}"; filename="{filename}"\r\n'.encode()
+    )
+    body.extend(f"Content-Type: {content_type}\r\n\r\n".encode())
+    body.extend(file_bytes)
+    body.extend(f"\r\n--{boundary}--\r\n".encode())
+
+    request = Request(
+        f"https://api.telegram.org/bot{token}/{method}",
+        data=bytes(body),
+        headers={"Content-Type": f"multipart/form-data; boundary={boundary}"},
+        method="POST",
+    )
+    try:
+        with urlopen(request, timeout=20) as response:
+            response_body = response.read().decode("utf-8", errors="replace")
+    except HTTPError as exc:
+        response_body = exc.read().decode("utf-8", errors="replace")
+        logger.warning("Telegram API %s returned HTTP %s: %s", method, exc.code, response_body)
+        return TelegramResult(ok=False, status="failed", response=response_body)
+    except URLError as exc:
+        logger.warning("Telegram API %s request failed: %s", method, exc)
+        return TelegramResult(ok=False, status="failed", response=str(exc))
+    try:
+        parsed = json.loads(response_body)
+    except json.JSONDecodeError:
+        return TelegramResult(ok=False, status="failed", response=response_body)
+    return TelegramResult(
+        ok=bool(parsed.get("ok")),
+        status="sent" if parsed.get("ok") else "failed",
+        response=response_body,
+    )
+
+
 def send_telegram_message(text: str) -> TelegramResult:
     token = getattr(settings, "TELEGRAM_BOT_TOKEN", "")
     channel_id = getattr(settings, "TELEGRAM_CHANNEL_ID", "")
@@ -155,6 +212,32 @@ def send_telegram_photo(image_url: str, caption: str) -> TelegramResult:
         "photo": image_url,
         "caption": caption[:1024],
     })
+
+
+def send_telegram_photo_upload(image, caption: str) -> TelegramResult:
+    token = getattr(settings, "TELEGRAM_BOT_TOKEN", "")
+    channel_id = getattr(settings, "TELEGRAM_CHANNEL_ID", "")
+    if not token or not channel_id:
+        return TelegramResult(ok=False, status="skipped", response="Telegram settings are not configured.")
+    if not image:
+        return TelegramResult(ok=False, status="skipped", response="Sponsor image is not available.")
+
+    filename = image.name.rsplit("/", 1)[-1] or "sponsor-logo"
+    content_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
+    image.open("rb")
+    try:
+        file_bytes = image.read()
+    finally:
+        image.close()
+    return _call_telegram_multipart_api(
+        token,
+        "sendPhoto",
+        {"chat_id": channel_id, "caption": caption[:1024]},
+        file_field="photo",
+        filename=filename,
+        content_type=content_type,
+        file_bytes=file_bytes,
+    )
 
 
 def _publish_to_telegram(*, event_key: str, message: str, target_url: str, image_url: str = "", _send_fn=None) -> TelegramResult:
@@ -253,23 +336,12 @@ def build_sponsor_telegram_message(application) -> str:
     )
 
 
-def sponsor_telegram_image_url(application) -> str:
-    image = getattr(application, "logo", None)
-    if not image:
-        return ""
-    image_url = image.url
-    if image_url.startswith(("http://", "https://")):
-        return image_url
-    site_url = f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}".rstrip("/")
-    return f"{site_url}/{image_url.lstrip('/')}"
-
-
 def publish_sponsor_to_telegram(application) -> TelegramResult:
     return _publish_to_telegram(
         event_key=f"sponsor_approved:{application.pk}",
         message=build_sponsor_telegram_message(application),
         target_url="/sponsors/",
-        image_url=sponsor_telegram_image_url(application),
+        _send_fn=lambda caption: send_telegram_photo_upload(application.logo, caption),
     )
 
 
