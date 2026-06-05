@@ -403,7 +403,50 @@ def _handle_checkout_completed(session) -> SponsorApplication | None:
             "total_amount_cents": payment.total_amount_cents,
         },
     )
+    # Notify admin — only on a genuine new confirmation (not idempotent replay).
+    if from_status == SponsorApplication.Status.PAYMENT_PENDING:
+        _notify_sponsor_payment_confirmed(application, payment)
     return application
+
+
+def _notify_sponsor_payment_confirmed(application: SponsorApplication, payment: SponsorPayment) -> None:
+    """Send an email notification to the sponsor admin after payment is confirmed."""
+    try:
+        from config.email_utils import build_absolute_url, send_template_mail
+        admin_email = getattr(settings, "SPONSOR_ADMIN_EMAIL", "culineire@bearcave.ie")
+        if not admin_email:
+            return
+        detail_url = build_absolute_url(
+            reverse("sponsors:moderation_application_detail", args=[application.pk])
+        )
+
+        def _cents_to_eur(cents: int) -> str:
+            return f"{cents / 100:.2f}"
+
+        context = {
+            "application_id": application.pk,
+            "sponsor_name": application.sponsor_name,
+            "sponsor_email": application.email,
+            "cell_id": application.cell_id,
+            "ring": getattr(application.cell, "ring", None),
+            "net_eur": _cents_to_eur(payment.net_amount_cents or 0),
+            "vat_eur": _cents_to_eur(payment.vat_amount_cents or 0),
+            "total_eur": _cents_to_eur(payment.total_amount_cents or 0),
+            "moderation_url": detail_url,
+        }
+        send_template_mail(
+            subject="New paid sponsor application pending approval",
+            template="sponsor_payment_confirmed",
+            context=context,
+            recipient_list=[admin_email],
+            fail_silently=True,
+        )
+    except Exception:
+        import logging
+        logging.getLogger(__name__).exception(
+            "Failed to send sponsor payment confirmation email for application pk=%s",
+            application.pk,
+        )
 
 
 def _handle_checkout_expired(session) -> SponsorApplication | None:

@@ -1,0 +1,19 @@
+New paid sponsor application — action required.
+
+Sponsor details:
+  Application ID: {{ application_id }}
+  Sponsor name:   {{ sponsor_name }}
+  Sponsor email:  {{ sponsor_email }}
+  Cell ID:        {{ cell_id }}{% if ring %}
+  Ring:           {{ ring }}{% endif %}
+
+Payment:
+  Net:   €{{ net_eur }}
+  VAT:   €{{ vat_eur }}
+  Total: €{{ total_eur }}
+
+Review and approve or reject this application:
+{{ moderation_url }}
+
+-- CulinEire Kitchen
+{{ site_url }}

@@ -52,7 +52,7 @@
                 </a>
                 <a class="mod-tool-link" href="{% url 'sponsors:moderation_applications' %}">
                     <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h10"/><path d="M18 15l2 2 3-4"/></svg>
-                    Sponsor Applications
+                    Sponsor Applications{% if paid_pending_sponsors %} <span class="moderation-badge moderation-badge--pending">{{ paid_pending_sponsors }} paid</span>{% endif %}
                 </a>
                 {% if can_grant_bearseeker_privileges %}
                 <a class="mod-tool-link" href="{% url 'sponsors:sponsor_roadmap' %}">

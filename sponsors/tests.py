@@ -44,6 +44,7 @@ SPONSOR_TEST_SETTINGS = dict(
     SECURE_HSTS_SECONDS=0,
     SESSION_COOKIE_SECURE=False,
     CSRF_COOKIE_SECURE=False,
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
 )
 
 
@@ -765,6 +766,121 @@ class SponsorModerationTransitionTests(TestCase):
         result = mark_refund_completed(application.pk, self.user, "test refund")
 
         self.assertEqual(result.status, SponsorApplication.Status.REFUNDED)
+
+
+@override_settings(**SPONSOR_TEST_SETTINGS, SPONSOR_ADMIN_EMAIL="admin@example.com")
+class SponsorPaymentNotificationTests(TestCase):
+    """Tests for admin email notification after sponsor payment confirmation."""
+
+    def setUp(self):
+        self.cell = SponsorCell.objects.create(cell_number=77, ring=6, position_in_ring=0)
+
+    def _make_payment_pending_application(self):
+        application = SponsorApplication.objects.create(
+            cell=self.cell,
+            status=SponsorApplication.Status.PAYMENT_PENDING,
+            sponsor_name="Notify Co",
+            contact_name="Nora",
+            email="notify@example.com",
+            logo=png_upload(),
+            price_net_cents=self.cell.price_net_cents,
+            terms_accepted=True,
+            logo_rights_confirmed=True,
+            approval_acknowledged=True,
+            terms_accepted_at=timezone.now(),
+        )
+        SponsorPayment.objects.create(
+            application=application,
+            status=SponsorPayment.Status.PENDING,
+            net_amount_cents=application.price_net_cents,
+            currency="eur",
+            stripe_checkout_session_id="cs_notify_123",
+        )
+        self.cell.status = SponsorCell.Status.PAYMENT_PENDING
+        self.cell.save(update_fields=["status"])
+        return application
+
+    def _completed_event(self, application):
+        return {
+            "id": "evt_notify_1",
+            "type": "checkout.session.completed",
+            "data": {
+                "object": {
+                    "id": "cs_notify_done",
+                    "payment_intent": "pi_notify_1",
+                    "payment_status": "paid",
+                    "amount_subtotal": application.price_net_cents,
+                    "amount_total": application.price_net_cents + 575,
+                    "total_details": {"amount_tax": 575},
+                    "currency": "eur",
+                    "metadata": {
+                        "sponsor_application_id": str(application.pk),
+                        "sponsor_cell_id": str(self.cell.pk),
+                    },
+                }
+            },
+        }
+
+    def test_payment_confirmation_sends_admin_email(self):
+        """handle_stripe_event sends one email to SPONSOR_ADMIN_EMAIL on new payment."""
+        from sponsors.services import handle_stripe_event
+        application = self._make_payment_pending_application()
+
+        with self.settings(SPONSOR_ADMIN_EMAIL="admin@example.com"):
+            with self.assertLogs("sponsors.services", level="DEBUG") if False else __import__("contextlib").nullcontext():
+                from django.core import mail
+                mail.outbox = []
+                handle_stripe_event(self._completed_event(application))
+
+        self.assertEqual(len(mail.outbox), 1)
+        email = mail.outbox[0]
+        self.assertIn("admin@example.com", email.to)
+        self.assertIn("pending approval", email.subject.lower())
+        self.assertIn("Notify Co", email.body)
+        self.assertIn("notify@example.com", email.body)
+
+    def test_duplicate_webhook_does_not_send_duplicate_email(self):
+        """A second identical webhook (idempotent) must not send a second email."""
+        from sponsors.services import handle_stripe_event
+        application = self._make_payment_pending_application()
+        event = self._completed_event(application)
+
+        from django.core import mail
+        mail.outbox = []
+        handle_stripe_event(event)
+        # Second call — application is now paid_pending_approval, so it is a replay
+        handle_stripe_event({**event, "id": "evt_notify_2"})
+
+        self.assertEqual(len(mail.outbox), 1, "Email must be sent exactly once, not on replay")
+
+    def test_payment_state_machine_unchanged(self):
+        """Payment confirmation still sets correct statuses."""
+        from sponsors.services import handle_stripe_event
+        application = self._make_payment_pending_application()
+
+        from django.core import mail
+        mail.outbox = []
+        handle_stripe_event(self._completed_event(application))
+
+        application.refresh_from_db()
+        self.cell.refresh_from_db()
+        self.assertEqual(application.status, SponsorApplication.Status.PAID_PENDING_APPROVAL)
+        self.assertEqual(self.cell.status, SponsorCell.Status.PAID_PENDING_APPROVAL)
+        payment = application.payment
+        self.assertEqual(payment.status, SponsorPayment.Status.PAID)
+        self.assertEqual(payment.vat_amount_cents, 575)
+
+    def test_no_email_sent_when_sponsor_admin_email_empty(self):
+        """If SPONSOR_ADMIN_EMAIL is empty, no email is sent (no crash)."""
+        from sponsors.services import handle_stripe_event
+        application = self._make_payment_pending_application()
+
+        from django.core import mail
+        mail.outbox = []
+        with self.settings(SPONSOR_ADMIN_EMAIL=""):
+            handle_stripe_event(self._completed_event(application))
+
+        self.assertEqual(len(mail.outbox), 0)
 
 
 @override_settings(**SPONSOR_TEST_SETTINGS)
