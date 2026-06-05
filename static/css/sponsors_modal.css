@@ -28,11 +28,15 @@
 /* ---- Panel ---- */
 .spm-panel {
   position: relative;
-  background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.22), 0 4px 16px rgba(0,0,0,0.10);
+  background: #fffdf8;
+  border-radius: 22px;
+  border: 1px solid rgba(200, 185, 150, 0.28);
+  box-shadow:
+    0 32px 72px rgba(15, 20, 10, 0.20),
+    0 6px 20px rgba(15, 20, 10, 0.10),
+    inset 0 1px 0 rgba(255, 252, 240, 0.8);
   width: 100%;
-  max-width: 460px;
+  max-width: 480px;
   max-height: 90vh;
   overflow-y: auto;
   animation: spm-slide-up 0.18s ease;
@@ -48,13 +52,13 @@
   position: sticky;
   top: 0;
   float: right;
-  margin: 1rem 1rem 0 0;
-  background: #f4f1ec;
-  border: none;
+  margin: 1.1rem 1.1rem 0 0;
+  background: rgba(244, 241, 236, 0.9);
+  border: 1px solid rgba(180, 165, 140, 0.22);
   border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  font-size: 1.1rem;
+  width: 36px;
+  height: 36px;
+  font-size: 1.15rem;
   color: #7a6e5c;
   cursor: pointer;
   line-height: 1;
@@ -62,9 +66,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.18s ease, color 0.18s ease;
+  transition: background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+  backdrop-filter: blur(4px);
 }
-.spm-close:hover { background: #e4ddd1; color: #28221e; }
+.spm-close:hover {
+  background: #e4ddd1;
+  color: #28221e;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+}
+.spm-close:focus-visible {
+  outline: 2px solid #0b4c3a;
+  outline-offset: 2px;
+}
 
 /* ---- Body ---- */
 #sponsor-modal-body {
@@ -76,39 +89,74 @@
 .spm-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.6rem;
-  margin-bottom: 1.1rem;
+  margin-bottom: 1.25rem;
   flex-wrap: wrap;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(200, 185, 150, 0.22);
 }
 
 .spm-ring-label {
-  font-size: 0.72rem;
-  font-weight: 700;
+  font-size: 0.78rem;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   color: #3a3028;
+  padding: 0.25em 0.7em;
+  border-radius: 6px;
+  background: rgba(58, 48, 40, 0.06);
 }
-.spm-ring-label--sold     { color: #1e6e3e; }
-.spm-ring-label--reserved { color: #a06820; }
-.spm-ring-label--centre   { color: #8b6914; }
+.spm-ring-label--sold     { background: rgba(30, 110, 62, 0.08); color: #1e6e3e; }
+.spm-ring-label--reserved { background: rgba(160, 104, 32, 0.10); color: #8a5c14; }
+.spm-ring-label--centre   { background: rgba(139, 105, 20, 0.10); color: #7a5a10; }
 
 .spm-status {
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  padding: 3px 10px;
+  padding: 0.3em 0.8em;
   border-radius: 99px;
+  border: 1px solid transparent;
 }
-.spm-status--available { background: #eaf3ec; color: #3a3028; }
-.spm-status--reserved  { background: #fef3e2; color: #a06820; }
-.spm-status--sold      { background: #e6f4ea; color: #1e6e3e; }
+.spm-status--available {
+  background: #eaf3ec;
+  color: #1e5c30;
+  border-color: rgba(30, 110, 62, 0.15);
+}
+.spm-status--reserved {
+  background: #fef3e2;
+  color: #8a5c14;
+  border-color: rgba(160, 104, 32, 0.18);
+}
+.spm-status--sold {
+  background: #e6f4ea;
+  color: #1e6e3e;
+  border-color: rgba(30, 110, 62, 0.18);
+}
 .spm-status--payment_pending,
-.spm-status--paid_pending_approval { background: #fef3e2; color: #a06820; }
-.spm-status--active { background: #e6f4ea; color: #1e6e3e; }
+.spm-status--paid_pending_approval {
+  background: #fef3e2;
+  color: #8a5c14;
+  border-color: rgba(160, 104, 32, 0.18);
+}
+.spm-status--active {
+  background: #e6f4ea;
+  color: #1e6e3e;
+  border-color: rgba(30, 110, 62, 0.18);
+}
 .spm-status--expired,
-.spm-status--unavailable { background: #eef1f4; color: #52616d; }
-.spm-status--rejected { background: #f8e7e7; color: #8b2e2e; }
+.spm-status--unavailable {
+  background: #eef1f4;
+  color: #52616d;
+  border-color: rgba(82, 97, 109, 0.15);
+}
+.spm-status--rejected {
+  background: #f8e7e7;
+  color: #8b2e2e;
+  border-color: rgba(139, 46, 46, 0.15);
+}
 
 /* ---- Price ---- */
 .spm-price {
@@ -168,13 +216,40 @@
 }
 .spm-visit-btn:hover { background: #28201a; color: #f0ebe0; transform: translateY(-1px); }
 
-/* ---- Reserved ---- */
+/* ---- Reserved / paid pending ---- */
 .spm-reserved-msg {
   text-align: center;
-  padding: 1rem 0;
+  padding: 1.25rem 0.5rem 0.75rem;
 }
-.spm-reserved-msg p { color: #7a6e5c; margin: 0 0 0.4rem; font-size: 0.9rem; }
-.spm-reserved-note  { font-size: 0.8rem; color: #9a9080; }
+
+.spm-reserved-msg::before {
+  content: '';
+  display: block;
+  width: 36px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(160,104,32,0.35), rgba(160,104,32,0.6), rgba(160,104,32,0.35));
+  border-radius: 2px;
+  margin: 0 auto 1.1rem;
+}
+
+.spm-reserved-msg p {
+  color: #3a3028;
+  margin: 0 0 0.6rem;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+  max-width: 320px;
+  margin-inline: auto;
+}
+
+.spm-reserved-note {
+  font-size: 0.82rem;
+  color: #9a9080;
+  line-height: 1.55;
+  max-width: 300px;
+  margin-inline: auto;
+  font-weight: 400;
+}
 
 /* ---- Form ---- */
 .spm-form { margin-top: 0; }
@@ -604,7 +679,9 @@
 
 /* ---- Mobile ---- */
 @media (max-width: 480px) {
-  .spm-panel         { border-radius: 14px; }
+  .spm-panel         { border-radius: 16px; }
   #sponsor-modal-body { padding: 1.25rem 1.25rem 1.5rem; }
   .spm-price         { font-size: 1.6rem; }
+  .spm-header        { gap: 0.45rem; }
+  .spm-reserved-msg p { font-size: 0.93rem; }
 }

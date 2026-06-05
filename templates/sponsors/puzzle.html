@@ -8,8 +8,8 @@
 {% block meta_description %}Support CulinEire and keep your brand visible to a growing Irish food community. Become a Founding Sponsor.{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/sponsors.css' %}?v=20260605-rotate">
-<link rel="stylesheet" href="{% static 'css/sponsors_modal.css' %}?v=20260605-rotate">
+<link rel="stylesheet" href="{% static 'css/sponsors.css' %}?v=20260605-premium">
+<link rel="stylesheet" href="{% static 'css/sponsors_modal.css' %}?v=20260605-premium">
 {% endblock %}
 
 {% block content %}
@@ -170,6 +170,6 @@
 
 {{ cells_data|json_script:"sponsor-cells-json" }}
 {{ request.user.is_staff|json_script:"sponsor-is-admin-json" }}
-<script src="{% static 'js/sponsors_modal.js' %}?v=20260605-rotate"></script>
-<script src="{% static 'js/sponsors_puzzle.js' %}?v=20260605-rotate"></script>
+<script src="{% static 'js/sponsors_modal.js' %}?v=20260605-premium"></script>
+<script src="{% static 'js/sponsors_puzzle.js' %}?v=20260605-premium"></script>
 {% endblock %}
