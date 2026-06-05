@@ -22,6 +22,16 @@ def _unread_message_count(user):
         return 0
 
 
+def _paid_pending_sponsors_count():
+    try:
+        from sponsors.models import SponsorApplication
+        return SponsorApplication.objects.filter(
+            status=SponsorApplication.Status.PAID_PENDING_APPROVAL
+        ).count()
+    except Exception:
+        return 0
+
+
 def _pending_moderation_count():
     try:
         from django.conf import settings as _settings
@@ -95,6 +105,12 @@ def header_author(request):
             "label": "Moderation Panel",
             "url": _reverse_or_empty("recipes:moderation_panel"),
             "badge": pending_count if pending_count else None,
+        })
+        paid_sponsors = _paid_pending_sponsors_count()
+        actions.insert(1, {
+            "label": "Sponsor Applications",
+            "url": _reverse_or_empty("sponsors:moderation_applications"),
+            "badge": paid_sponsors if paid_sponsors else None,
         })
 
     return {
