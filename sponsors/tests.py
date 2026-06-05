@@ -391,6 +391,81 @@ class SponsorModerationPermissionTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
 
+class StripeMetadataConversionTests(TestCase):
+    """Unit tests for _metadata() robustness against StripeObject payloads."""
+
+    def _call(self, obj):
+        from sponsors.services import _metadata
+        return _metadata(obj)
+
+    def test_plain_dict_metadata_returned_unchanged(self):
+        obj = {"metadata": {"sponsor_application_id": "42", "sponsor_cell_id": "7"}}
+        result = self._call(obj)
+        self.assertEqual(result, {"sponsor_application_id": "42", "sponsor_cell_id": "7"})
+
+    def test_empty_metadata_returns_empty_dict(self):
+        self.assertEqual(self._call({}), {})
+        self.assertEqual(self._call({"metadata": None}), {})
+        self.assertEqual(self._call({"metadata": {}}), {})
+
+    def test_stripe_object_with_to_dict_recursive(self):
+        """Simulates a StripeObject that has to_dict_recursive()."""
+        class FakeStripeObject:
+            def to_dict_recursive(self):
+                return {"sponsor_application_id": "99"}
+            def __iter__(self):
+                # Mimics broken StripeObject.__iter__ that yields integer indices
+                return iter([0, 1, 2])
+            def __getitem__(self, key):
+                raise KeyError(key)
+
+        obj = {"metadata": FakeStripeObject()}
+        result = self._call(obj)
+        self.assertEqual(result, {"sponsor_application_id": "99"})
+
+    def test_stripe_object_with_to_dict_only(self):
+        """Simulates a StripeObject that only has to_dict()."""
+        class FakeStripeObjectSimple:
+            def to_dict(self):
+                return {"sponsor_application_id": "55"}
+            def __iter__(self):
+                return iter([0])
+            def __getitem__(self, key):
+                raise KeyError(key)
+
+        obj = {"metadata": FakeStripeObjectSimple()}
+        result = self._call(obj)
+        self.assertEqual(result, {"sponsor_application_id": "55"})
+
+    def test_stripe_object_with_data_attr_fallback(self):
+        """Simulates a StripeObject with _data attribute as last resort."""
+        class FakeStripeObjectData:
+            _data = {"sponsor_application_id": "77"}
+            def __iter__(self):
+                return iter([0])
+            def __getitem__(self, key):
+                raise KeyError(key)
+
+        obj = {"metadata": FakeStripeObjectData()}
+        result = self._call(obj)
+        self.assertEqual(result, {"sponsor_application_id": "77"})
+
+    def test_dict_of_metadata_would_previously_raise_keyerror(self):
+        """dict(stripe_obj) raises KeyError: 0 — _metadata must not call dict() on it."""
+        class BrokenStripeObject:
+            def __iter__(self):
+                return iter([0])
+            def __getitem__(self, key):
+                raise KeyError(key)
+            def to_dict_recursive(self):
+                return {"sponsor_application_id": "33", "sponsor_cell_id": "1"}
+
+        obj = {"metadata": BrokenStripeObject()}
+        # This would have raised KeyError: 0 with the old dict(metadata) approach
+        result = self._call(obj)
+        self.assertEqual(result["sponsor_application_id"], "33")
+
+
 @override_settings(**SPONSOR_TEST_SETTINGS)
 class SponsorWebhookHardeningTests(TestCase):
     """Phase 2 hardening tests for the Stripe webhook state machine."""

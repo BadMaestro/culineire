@@ -217,7 +217,24 @@ def _event_object(event):
 
 def _metadata(obj) -> dict:
     metadata = _get(obj, "metadata", {}) or {}
-    return dict(metadata)
+    if isinstance(metadata, dict):
+        return metadata
+    # Stripe SDK returns metadata as a StripeObject; dict(stripe_obj) fails with
+    # KeyError: 0 because StripeObject.__iter__ yields integer indices, not keys.
+    # Use to_dict_recursive() → to_dict() → _data → fall back to empty dict.
+    for attr in ("to_dict_recursive", "to_dict"):
+        fn = getattr(metadata, attr, None)
+        if callable(fn):
+            try:
+                result = fn()
+                if isinstance(result, dict):
+                    return result
+            except Exception:
+                pass
+    raw = getattr(metadata, "_data", None) or getattr(metadata, "__dict__", None)
+    if isinstance(raw, dict):
+        return raw
+    return {}
 
 
 def _application_from_metadata(metadata: dict) -> SponsorApplication | None:
