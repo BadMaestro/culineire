@@ -356,9 +356,10 @@ def build_sponsor_telegram_message(application) -> str:
             f"{sponsors_url}"
         )
     return (
-        "New CulinEire sponsor\n\n"
-        f"{application.sponsor_name} has joined the CulinEire Sponsor Puzzle.\n\n"
+        f"Thank you to {application.sponsor_name} for supporting CulinEire.\n\n"
+        f"{application.sponsor_name} has joined the CulinEire Sponsor Puzzle as an Annual Ring Sponsor.\n\n"
         f"Annual Ring Sponsorship · Ring {application.cell.ring}, cell #{application.cell.cell_number}\n\n"
+        "Discover the Sponsor Puzzle:\n"
         f"{sponsors_url}"
     )
 

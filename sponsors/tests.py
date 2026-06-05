@@ -556,12 +556,22 @@ class SponsorApprovalTelegramTests(TestCase):
         self.assertEqual(mock_send.call_count, 1)
         image, caption = mock_send.call_args[0]
         self.assertIn("sponsors/applications/", image.name)
-        self.assertIn("New CulinEire sponsor", caption)
+        self.assertIn("Thank you to Bearcave Bakery for supporting CulinEire.", caption)
         self.assertIn("has joined the CulinEire Sponsor Puzzle", caption)
+        self.assertIn("Annual Ring Sponsor", caption)
         self.assertIn("Annual Ring Sponsorship", caption)
         self.assertIn("Bearcave Bakery", caption)
         self.assertIn("Ring 3, cell #42", caption)
+        self.assertIn("Discover the Sponsor Puzzle:", caption)
         self.assertIn("culineire.ie/sponsors/", caption)
+        for excluded in (
+            "Sponsor of the Month",
+            "Central Sponsor",
+            "Founding Sponsor",
+            "Central Founding Partner",
+            "next 30 days",
+        ):
+            self.assertNotIn(excluded, caption)
 
     @patch("newsfeed.telegram.send_telegram_photo_upload")
     def test_approve_telegram_not_duplicated_on_second_call(self, mock_send):
@@ -612,6 +622,8 @@ class SponsorApprovalTelegramTests(TestCase):
         self.assertIn("For the next 30 days", caption)
         self.assertIn("highlighted through CulinEire sponsor areas", caption)
         self.assertIn("Discover the Sponsor Puzzle:", caption)
+        self.assertNotIn("Annual Ring Sponsor", caption)
+        self.assertNotIn("Annual Ring Sponsorship", caption)
         self.assertNotIn("Ring 0", caption)
 
     @patch("newsfeed.telegram.send_telegram_message_without_link_preview")
