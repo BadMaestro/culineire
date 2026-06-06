@@ -17,6 +17,7 @@ from .models import (
     SponsorPayment,
     SponsorRoadmapItem,
 )
+from .compliance import compliance_allows_progress, latest_compliance_check, run_compliance_check
 
 
 class SponsorStripeConfigurationError(RuntimeError):
@@ -24,6 +25,10 @@ class SponsorStripeConfigurationError(RuntimeError):
 
 
 class SponsorPaymentVerificationError(RuntimeError):
+    pass
+
+
+class SponsorComplianceReviewRequired(RuntimeError):
     pass
 
 
@@ -74,6 +79,11 @@ def _checkout_metadata(application: SponsorApplication) -> dict[str, str]:
 
 
 def create_checkout_session(application: SponsorApplication, request=None) -> CheckoutSessionInfo:
+    check = latest_compliance_check(application) or run_compliance_check(application)
+    if check.status == "clear" and not compliance_allows_progress(application):
+        check = run_compliance_check(application)
+    if not compliance_allows_progress(application):
+        raise SponsorComplianceReviewRequired("Sponsor application requires manual compliance review.")
     stripe = _stripe()
     base_url = site_base_url(request)
     metadata = _checkout_metadata(application)
@@ -580,6 +590,10 @@ def approve_application(application_id: int, actor) -> SponsorApplication:
         )
         if application.status != SponsorApplication.Status.PAID_PENDING_APPROVAL:
             raise ValueError("Only paid applications pending approval can be approved.")
+        if getattr(settings, "SPONSOR_COMPLIANCE_ALLOW_EMPTY_DATA", False) and not latest_compliance_check(application):
+            run_compliance_check(application, actor)
+        if not compliance_allows_progress(application):
+            raise ValueError("Compliance must be clear or false-positive cleared before approval and publication.")
         cell = SponsorCell.objects.select_for_update().get(pk=application.cell_id)
         now = timezone.now()
         from_status = application.status

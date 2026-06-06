@@ -164,7 +164,7 @@ class SponsorCell(models.Model):
 
 
 class SponsorApplication(models.Model):
-    TERMS_VERSION = "2026-06-05-central-monthly-v2"
+    TERMS_VERSION = "2026-06-06-compliance-v1"
 
     class Status(models.TextChoices):
         DRAFT = "draft", "Draft"
@@ -274,6 +274,64 @@ class SponsorApplication(models.Model):
         return "12-month term from approval/publication"
 
 
+class SanctionsEntry(models.Model):
+    class Source(models.TextChoices):
+        EU = "eu", "EU Consolidated Financial Sanctions List"
+        UN = "un", "UN Security Council Consolidated List"
+        MANUAL = "manual", "Manual compliance entry"
+
+    source = models.CharField(max_length=16, choices=Source.choices, db_index=True)
+    external_id = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, db_index=True)
+    aliases = models.JSONField(default=list, blank=True)
+    country = models.CharField(max_length=100, blank=True)
+    entity_type = models.CharField(max_length=50, blank=True)
+    listed_on = models.DateField(null=True, blank=True)
+    raw_data = models.JSONField(default=dict, blank=True)
+    active = models.BooleanField(default=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["source", "external_id"], name="unique_sanctions_source_external_id"),
+        ]
+
+    def __str__(self):
+        return f"{self.get_source_display()}: {self.name}"
+
+
+class SponsorComplianceCheck(models.Model):
+    class Status(models.TextChoices):
+        NOT_CHECKED = "not_checked", "Not checked"
+        CLEAR = "clear", "Compliance clear"
+        POSSIBLE_MATCH = "possible_match", "Possible sanctions match"
+        CONFIRMED_MATCH = "confirmed_match", "Confirmed sanctions match"
+        FALSE_POSITIVE_CLEARED = "false_positive_cleared", "False positive cleared"
+        BLOCKED = "blocked", "Blocked"
+        ERROR = "error", "Screening error"
+
+    application = models.ForeignKey(SponsorApplication, on_delete=models.CASCADE, related_name="compliance_checks")
+    status = models.CharField(max_length=32, choices=Status.choices, default=Status.NOT_CHECKED, db_index=True)
+    checked_at = models.DateTimeField(null=True, blank=True)
+    source_summary = models.CharField(max_length=500, blank=True)
+    matched_name = models.CharField(max_length=255, blank=True)
+    matched_source = models.CharField(max_length=100, blank=True)
+    match_score = models.FloatField(null=True, blank=True)
+    checked_payload = models.JSONField(default=dict, blank=True)
+    raw_matches = models.JSONField(default=list, blank=True)
+    staff_notes = models.TextField(blank=True)
+    reviewed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.application.sponsor_name}: {self.get_status_display()}"
+
+
 class SponsorPayment(models.Model):
     class Status(models.TextChoices):
         PENDING = "pending", "Pending"
@@ -367,6 +425,11 @@ class SponsorAuditLog(models.Model):
         REFUND_COMPLETED = "refund_completed", "Refund completed"
         UNPUBLISHED = "unpublished", "Unpublished"
         EXPIRED = "expired", "Expired"
+        COMPLIANCE_CHECK_CLEAR = "compliance_check_clear", "Compliance check clear"
+        COMPLIANCE_POSSIBLE_MATCH = "compliance_possible_match", "Compliance possible match"
+        COMPLIANCE_BLOCKED = "compliance_blocked", "Compliance blocked"
+        COMPLIANCE_FALSE_POSITIVE_CLEARED = "compliance_false_positive_cleared", "Compliance false positive cleared"
+        COMPLIANCE_ERROR = "compliance_error", "Compliance error"
 
     application = models.ForeignKey(
         SponsorApplication,

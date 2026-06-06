@@ -6,8 +6,10 @@ from .models import (
     SponsorApplication,
     SponsorAuditLog,
     SponsorCell,
+    SponsorComplianceCheck,
     SponsorPayment,
     SponsorRoadmapItem,
+    SanctionsEntry,
 )
 
 
@@ -108,6 +110,22 @@ class SponsorApplicationAdmin(admin.ModelAdmin):
     )
     raw_id_fields = ("cell", "approved_by", "rejected_by")
     ordering = ("-created_at",)
+
+
+@admin.register(SanctionsEntry)
+class SanctionsEntryAdmin(admin.ModelAdmin):
+    list_display = ("name", "source", "external_id", "country", "active", "updated_at")
+    list_filter = ("source", "active")
+    search_fields = ("name", "external_id", "country")
+
+
+@admin.register(SponsorComplianceCheck)
+class SponsorComplianceCheckAdmin(admin.ModelAdmin):
+    list_display = ("application", "status", "matched_name", "matched_source", "reviewed_by", "created_at")
+    list_filter = ("status", "matched_source")
+    search_fields = ("application__sponsor_name", "matched_name", "staff_notes")
+    readonly_fields = ("created_at", "updated_at")
+    raw_id_fields = ("application", "reviewed_by")
 
 
 @admin.register(SponsorPayment)

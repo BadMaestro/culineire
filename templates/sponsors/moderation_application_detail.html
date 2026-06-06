@@ -69,11 +69,26 @@
         </section>
 
         <section class="research-panel">
+            <h2 class="moderation-block__title">Compliance Screening</h2>
+            <dl class="research-counts">
+                <div><dt>Status</dt><dd>{% if compliance_check %}{{ compliance_check.get_status_display }}{% else %}Not checked{% endif %}</dd></div>
+                <div><dt>Checked</dt><dd>{% if compliance_check %}{{ compliance_check.checked_at|date:"j M Y H:i"|default:"-" }}{% else %}-{% endif %}</dd></div>
+                <div><dt>Summary</dt><dd>{% if compliance_check %}{{ compliance_check.source_summary|default:"-" }}{% else %}-{% endif %}</dd></div>
+                <div><dt>Possible match</dt><dd>{% if compliance_check %}{{ compliance_check.matched_name|default:"-" }}{% else %}-{% endif %}</dd></div>
+            </dl>
+            <p class="moderation-card__note">Detailed screening information is internal and must not be presented to the applicant as a finding of wrongdoing.</p>
+        </section>
+
+        <section class="research-panel">
             <h2 class="moderation-block__title">Actions</h2>
             <form class="moderation-contact__form" method="post" style="position:static;box-shadow:none;max-width:none;">
                 {% csrf_token %}
                 <textarea name="note" rows="3" placeholder="Staff note or reason. Required when requesting changes."></textarea>
                 <div class="moderation-card__actions">
+                    <button class="mod-btn mod-btn--view" name="action" type="submit" value="run_compliance">Run compliance check</button>
+                    <button class="mod-btn mod-btn--approve" name="action" type="submit" value="compliance_false_positive">Mark false positive cleared</button>
+                    <button class="mod-btn mod-btn--reject" name="action" type="submit" value="compliance_block">Block for compliance</button>
+                    <button class="mod-btn mod-btn--edit" name="action" type="submit" value="compliance_review">Return to compliance review</button>
                     {% if can_approve %}
                     <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve and publish</button>
                     {% endif %}

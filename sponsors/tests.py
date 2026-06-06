@@ -45,6 +45,7 @@ SPONSOR_TEST_SETTINGS = dict(
     SESSION_COOKIE_SECURE=False,
     CSRF_COOKIE_SECURE=False,
     EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    SPONSOR_COMPLIANCE_ALLOW_EMPTY_DATA=True,
 )
 
 

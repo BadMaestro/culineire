@@ -111,8 +111,9 @@ class SponsorChangesRequestedWorkflowTests(TestCase):
 
     def test_paid_pending_approval_action_visibility(self):
         response = self.detail()
-        for text in ("Approve and publish", "Request Changes", "Reject and mark refund required"):
+        for text in ("Request Changes", "Reject and mark refund required", "Run compliance check"):
             self.assertContains(response, text)
+        self.assertNotContains(response, "Approve and publish")
         for text in ("Mark ready for review", "Mark refund completed", "Unpublish", "Expire sponsorship"):
             self.assertNotContains(response, text)
 

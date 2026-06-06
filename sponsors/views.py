@@ -5,6 +5,7 @@ import logging
 from django.contrib import messages
 from django.conf import settings
 from django.db import transaction
+from django.db.models import OuterRef, Q, Subquery
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -16,8 +17,10 @@ from django.views.generic import TemplateView
 from accounts.views import can_grant_bearseeker_privileges, is_moderator
 
 from .forms import SponsorApplicationForm
-from .models import SponsorApplication, SponsorAuditLog, SponsorCell, SponsorPayment
+from .compliance import compliance_allows_progress, latest_compliance_check, run_compliance_check, staff_set_compliance_status
+from .models import SponsorApplication, SponsorAuditLog, SponsorCell, SponsorComplianceCheck, SponsorPayment
 from .services import (
+    SponsorComplianceReviewRequired,
     SponsorPaymentVerificationError,
     SponsorStripeConfigurationError,
     approve_application,
@@ -177,6 +180,15 @@ def cell_enquire(request, cell_id):
 
     try:
         session_info = create_checkout_session(application, request=request)
+    except SponsorComplianceReviewRequired:
+        return JsonResponse(
+            {
+                "ok": False,
+                "compliance_review_required": True,
+                "error": "Your sponsor application requires manual compliance review before checkout can continue. Bearcave Limited will contact you if more information is needed.",
+            },
+            status=202,
+        )
     except SponsorStripeConfigurationError as exc:
         checkout_failed(application, str(exc))
         return JsonResponse(
@@ -322,11 +334,29 @@ def moderation_applications(request):
     _require_moderator(request.user)
     status_filter = request.GET.get("status", SponsorApplication.Status.PAID_PENDING_APPROVAL)
     valid_statuses = {choice[0] for choice in SponsorApplication.Status.choices}
-    if status_filter not in valid_statuses and status_filter != "all":
+    if status_filter not in valid_statuses and status_filter not in {"all", "compliance_review"}:
         status_filter = SponsorApplication.Status.PAID_PENDING_APPROVAL
 
-    qs = SponsorApplication.objects.select_related("cell", "payment").order_by("-created_at")
-    if status_filter != "all":
+    latest_compliance_status = SponsorComplianceCheck.objects.filter(
+        application=OuterRef("pk")
+    ).order_by("-created_at").values("status")[:1]
+    qs = (
+        SponsorApplication.objects.select_related("cell", "payment")
+        .prefetch_related("compliance_checks")
+        .annotate(latest_compliance_status=Subquery(latest_compliance_status))
+        .order_by("-created_at")
+    )
+    if status_filter == "compliance_review":
+        qs = qs.filter(
+            Q(latest_compliance_status__isnull=True) | Q(latest_compliance_status__in={
+                SponsorComplianceCheck.Status.NOT_CHECKED,
+                SponsorComplianceCheck.Status.POSSIBLE_MATCH,
+                SponsorComplianceCheck.Status.CONFIRMED_MATCH,
+                SponsorComplianceCheck.Status.BLOCKED,
+                SponsorComplianceCheck.Status.ERROR,
+            })
+        )
+    elif status_filter != "all":
         qs = qs.filter(status=status_filter)
 
     status_counts = {
@@ -334,6 +364,21 @@ def moderation_applications(request):
         for status, _label in SponsorApplication.Status.choices
     }
     status_options = [{"value": "all", "label": "All", "count": SponsorApplication.objects.count()}]
+    status_options.append({
+        "value": "compliance_review",
+        "label": "Compliance review",
+        "count": SponsorApplication.objects.annotate(
+            latest_compliance_status=Subquery(latest_compliance_status)
+        ).filter(
+            Q(latest_compliance_status__isnull=True) | Q(latest_compliance_status__in={
+                SponsorComplianceCheck.Status.NOT_CHECKED,
+                SponsorComplianceCheck.Status.POSSIBLE_MATCH,
+                SponsorComplianceCheck.Status.CONFIRMED_MATCH,
+                SponsorComplianceCheck.Status.BLOCKED,
+                SponsorComplianceCheck.Status.ERROR,
+            })
+        ).count(),
+    })
     status_options.extend(
         {"value": status, "label": label, "count": status_counts[status]}
         for status, label in SponsorApplication.Status.choices
@@ -358,7 +403,7 @@ def moderation_cells(request):
 def moderation_application_detail(request, application_id):
     _require_moderator(request.user)
     application = get_object_or_404(
-        SponsorApplication.objects.select_related("cell", "payment", "approved_by", "rejected_by"),
+        SponsorApplication.objects.select_related("cell", "payment", "approved_by", "rejected_by").prefetch_related("compliance_checks"),
         pk=application_id,
     )
 
@@ -387,6 +432,18 @@ def moderation_application_detail(request, application_id):
             elif action == "expire":
                 expire_application(application.pk, request.user, note)
                 messages.warning(request, "Sponsorship marked expired.")
+            elif action == "run_compliance":
+                run_compliance_check(application, request.user)
+                messages.success(request, "Compliance screening completed.")
+            elif action == "compliance_false_positive":
+                staff_set_compliance_status(application, SponsorComplianceCheck.Status.FALSE_POSITIVE_CLEARED, request.user, note)
+                messages.success(request, "Possible match marked as a false positive.")
+            elif action == "compliance_block":
+                staff_set_compliance_status(application, SponsorComplianceCheck.Status.BLOCKED, request.user, note)
+                messages.warning(request, "Sponsor application blocked by compliance review.")
+            elif action == "compliance_review":
+                staff_set_compliance_status(application, SponsorComplianceCheck.Status.POSSIBLE_MATCH, request.user, note)
+                messages.warning(request, "Sponsor application returned to compliance review.")
             else:
                 messages.error(request, "Unknown sponsor moderation action.")
         except ValueError as exc:
@@ -395,8 +452,9 @@ def moderation_application_detail(request, application_id):
 
     audit_logs = application.audit_logs.select_related("actor").order_by("-created_at")[:50]
     payment = getattr(application, "payment", None)
+    compliance_check = latest_compliance_check(application)
     action_flags = {
-        "can_approve": application.status == SponsorApplication.Status.PAID_PENDING_APPROVAL,
+        "can_approve": application.status == SponsorApplication.Status.PAID_PENDING_APPROVAL and compliance_allows_progress(application),
         "can_request_changes": application.status == SponsorApplication.Status.PAID_PENDING_APPROVAL,
         "can_ready_for_review": application.status == SponsorApplication.Status.CHANGES_REQUESTED,
         "can_reject_paid": application.status in {
@@ -410,7 +468,7 @@ def moderation_application_detail(request, application_id):
     return render(
         request,
         "sponsors/moderation_application_detail.html",
-        {"application": application, "payment": payment, "audit_logs": audit_logs, **action_flags},
+        {"application": application, "payment": payment, "compliance_check": compliance_check, "audit_logs": audit_logs, **action_flags},
     )
 
 
