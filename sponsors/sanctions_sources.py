@@ -8,6 +8,7 @@ import unicodedata
 from dataclasses import dataclass
 from datetime import timedelta
 from email.utils import parsedate_to_datetime
+from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 from xml.etree import ElementTree
@@ -269,82 +270,119 @@ def fetch_source(source_key: str, *, timeout: int) -> tuple[bytes, dict]:
     raise URLError("; ".join(errors))
 
 
-def update_source(source_key: str, *, dry_run=False, force=False, timeout=30) -> SanctionsSourceSnapshot:
+def fetch_source_file(file_path: str | Path) -> tuple[bytes, dict]:
+    path = Path(file_path)
+    payload = path.read_bytes()
+    file_format = detect_format(payload, path.suffix.lower())
+    return payload, {
+        "source_url": f"manual-file:{path}",
+        "file_format": file_format,
+    }
+
+
+def _failed_snapshot(config: dict, *, now, source_url: str, file_format: str, error_message: str) -> SanctionsSourceSnapshot:
+    return SanctionsSourceSnapshot.objects.create(
+        source_code=config["source_code"],
+        source_name=config["source_name"],
+        source_url=source_url,
+        file_format=file_format,
+        fetched_at=now,
+        status=SanctionsSourceSnapshot.Status.FAILED,
+        error_message=error_message[:2000],
+        parser_version=PARSER_VERSION,
+    )
+
+
+def _save_source_payload(
+    source_key: str,
+    payload: bytes,
+    metadata: dict,
+    *,
+    dry_run=False,
+    force=False,
+    now=None,
+) -> SanctionsSourceSnapshot:
     config = OFFICIAL_SOURCES[source_key]
-    now = timezone.now()
-    try:
-        payload, metadata = fetch_source(source_key, timeout=timeout)
-        sha256 = hashlib.sha256(payload).hexdigest()
-        latest = latest_successful_snapshot(config["source_code"])
-        if latest and latest.source_sha256 == sha256 and not force:
-            return SanctionsSourceSnapshot.objects.create(
-                source_code=config["source_code"],
-                source_name=config["source_name"],
-                source_url=metadata.get("source_url", config["source_url"]),
-                file_format=metadata.get("file_format", "xml"),
-                fetched_at=now,
-                source_last_modified_at=metadata.get("last_modified"),
-                source_etag=metadata.get("etag", ""),
-                source_sha256=sha256,
-                record_count=latest.record_count,
-                status=SanctionsSourceSnapshot.Status.SKIPPED_NOT_MODIFIED,
-                parser_version=PARSER_VERSION,
-            )
-        file_format = metadata.get("file_format", "xml")
-        parsed_subjects = parse_source(source_key, payload, file_format)
-        if dry_run:
-            return SanctionsSourceSnapshot(
-                source_code=config["source_code"],
-                source_name=config["source_name"],
-                source_url=metadata.get("source_url", config["source_url"]),
-                file_format=file_format,
-                fetched_at=now,
-                source_sha256=sha256,
-                record_count=len(parsed_subjects),
-                status=SanctionsSourceSnapshot.Status.SUCCESS,
-                parser_version=PARSER_VERSION,
-            )
-        with transaction.atomic():
-            snapshot = SanctionsSourceSnapshot.objects.create(
-                source_code=config["source_code"],
-                source_name=config["source_name"],
-                source_url=metadata.get("source_url", config["source_url"]),
-                file_format=file_format,
-                fetched_at=now,
-                source_last_modified_at=metadata.get("last_modified"),
-                source_etag=metadata.get("etag", ""),
-                source_sha256=sha256,
-                record_count=len(parsed_subjects),
-                status=SanctionsSourceSnapshot.Status.SUCCESS,
-                parser_version=PARSER_VERSION,
-            )
-            SanctionsSubject.objects.bulk_create([
-                SanctionsSubject(
-                    source_snapshot=snapshot,
-                    source_code=config["source_code"],
-                    external_reference=subject.external_reference,
-                    subject_type=subject.subject_type,
-                    primary_name=subject.primary_name,
-                    normalised_name=normalise_name(subject.primary_name),
-                    aliases=subject.aliases,
-                    countries=subject.countries,
-                    dates_of_birth=subject.dates_of_birth,
-                    identifiers=subject.identifiers,
-                    regimes=subject.regimes,
-                    measures=subject.measures,
-                    raw_payload=subject.raw_payload,
-                )
-                for subject in parsed_subjects
-            ])
-            return snapshot
-    except (ElementTree.ParseError, URLError, TimeoutError, OSError, ValueError) as exc:
+    now = now or timezone.now()
+    sha256 = hashlib.sha256(payload).hexdigest()
+    latest = latest_successful_snapshot(config["source_code"])
+    if latest and latest.source_sha256 == sha256 and not force:
         return SanctionsSourceSnapshot.objects.create(
             source_code=config["source_code"],
             source_name=config["source_name"],
-            source_url=config["source_url"],
-            file_format="xml",
+            source_url=metadata.get("source_url", config["source_url"]),
+            file_format=metadata.get("file_format", "xml"),
             fetched_at=now,
-            status=SanctionsSourceSnapshot.Status.FAILED,
-            error_message=str(exc)[:2000],
+            source_last_modified_at=metadata.get("last_modified"),
+            source_etag=metadata.get("etag", ""),
+            source_sha256=sha256,
+            record_count=latest.record_count,
+            status=SanctionsSourceSnapshot.Status.SKIPPED_NOT_MODIFIED,
             parser_version=PARSER_VERSION,
+        )
+    file_format = metadata.get("file_format", "xml")
+    parsed_subjects = parse_source(source_key, payload, file_format)
+    if not parsed_subjects:
+        raise ValueError("Parsed sanctions source did not contain any subjects.")
+    if dry_run:
+        return SanctionsSourceSnapshot(
+            source_code=config["source_code"],
+            source_name=config["source_name"],
+            source_url=metadata.get("source_url", config["source_url"]),
+            file_format=file_format,
+            fetched_at=now,
+            source_sha256=sha256,
+            record_count=len(parsed_subjects),
+            status=SanctionsSourceSnapshot.Status.SUCCESS,
+            parser_version=PARSER_VERSION,
+        )
+    with transaction.atomic():
+        snapshot = SanctionsSourceSnapshot.objects.create(
+            source_code=config["source_code"],
+            source_name=config["source_name"],
+            source_url=metadata.get("source_url", config["source_url"]),
+            file_format=file_format,
+            fetched_at=now,
+            source_last_modified_at=metadata.get("last_modified"),
+            source_etag=metadata.get("etag", ""),
+            source_sha256=sha256,
+            record_count=len(parsed_subjects),
+            status=SanctionsSourceSnapshot.Status.SUCCESS,
+            parser_version=PARSER_VERSION,
+        )
+        SanctionsSubject.objects.bulk_create([
+            SanctionsSubject(
+                source_snapshot=snapshot,
+                source_code=config["source_code"],
+                external_reference=subject.external_reference,
+                subject_type=subject.subject_type,
+                primary_name=subject.primary_name,
+                normalised_name=normalise_name(subject.primary_name),
+                aliases=subject.aliases,
+                countries=subject.countries,
+                dates_of_birth=subject.dates_of_birth,
+                identifiers=subject.identifiers,
+                regimes=subject.regimes,
+                measures=subject.measures,
+                raw_payload=subject.raw_payload,
+            )
+            for subject in parsed_subjects
+        ])
+        return snapshot
+
+
+def update_source(source_key: str, *, dry_run=False, force=False, timeout=30, from_file=None) -> SanctionsSourceSnapshot:
+    config = OFFICIAL_SOURCES[source_key]
+    now = timezone.now()
+    try:
+        payload, metadata = fetch_source_file(from_file) if from_file else fetch_source(source_key, timeout=timeout)
+        return _save_source_payload(source_key, payload, metadata, dry_run=dry_run, force=force, now=now)
+    except (ElementTree.ParseError, URLError, TimeoutError, OSError, ValueError) as exc:
+        source_url = f"manual-file:{from_file}" if from_file else config["source_url"]
+        return _failed_snapshot(
+            config,
+            now=now,
+            source_url=source_url,
+            file_format="xml",
+            error_message=str(exc),
         )

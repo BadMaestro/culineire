@@ -1,9 +1,12 @@
 from datetime import timedelta
+from pathlib import Path
+from tempfile import NamedTemporaryFile
 from unittest.mock import patch
 from urllib.error import HTTPError
 
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -79,6 +82,13 @@ class SanctionsSourceUpdateTests(TestCase):
     def setUp(self):
         self.staff = get_user_model().objects.create_user("source-staff", password="pass", is_staff=True)
 
+    def write_temp_source_file(self, payload: bytes, suffix: str) -> str:
+        temp_file = NamedTemporaryFile(delete=False, suffix=suffix)
+        temp_file.write(payload)
+        temp_file.close()
+        self.addCleanup(lambda: Path(temp_file.name).unlink(missing_ok=True))
+        return temp_file.name
+
     @patch("sponsors.sanctions_sources.urlopen", return_value=MockHTTPResponse(EU_XML))
     def test_successful_eu_update_creates_snapshot_and_subject(self, _urlopen):
         call_command("update_sanctions_sources", source="eu")
@@ -120,6 +130,58 @@ class SanctionsSourceUpdateTests(TestCase):
         self.assertEqual(snapshot.file_format, "csv")
         self.assertEqual(subject.primary_name, "CSV Entity Ltd")
         self.assertEqual(subject.subject_type, SanctionsSubject.SubjectType.ENTITY)
+
+    def test_eu_xml_local_file_import_succeeds(self):
+        file_path = self.write_temp_source_file(EU_XML, ".xml")
+
+        call_command("update_sanctions_sources", source="eu", from_file=file_path)
+
+        snapshot = SanctionsSourceSnapshot.objects.get(source_code=SanctionsSourceSnapshot.SourceCode.EU_FSF)
+        subject = SanctionsSubject.objects.get(source_snapshot=snapshot)
+        self.assertEqual(snapshot.status, SanctionsSourceSnapshot.Status.SUCCESS)
+        self.assertEqual(snapshot.file_format, "xml")
+        self.assertEqual(snapshot.source_url, f"manual-file:{file_path}")
+        self.assertEqual(snapshot.record_count, 1)
+        self.assertEqual(subject.primary_name, "Example Person")
+
+    def test_eu_csv_local_file_import_succeeds(self):
+        file_path = self.write_temp_source_file(EU_CSV, ".csv")
+
+        call_command("update_sanctions_sources", source="eu", from_file=file_path)
+
+        snapshot = SanctionsSourceSnapshot.objects.get(source_code=SanctionsSourceSnapshot.SourceCode.EU_FSF)
+        subject = SanctionsSubject.objects.get(source_snapshot=snapshot)
+        self.assertEqual(snapshot.status, SanctionsSourceSnapshot.Status.SUCCESS)
+        self.assertEqual(snapshot.file_format, "csv")
+        self.assertEqual(snapshot.source_url, f"manual-file:{file_path}")
+        self.assertEqual(subject.primary_name, "CSV Entity Ltd")
+
+    def test_eu_local_html_error_file_is_recorded_as_failure(self):
+        file_path = self.write_temp_source_file(b"<html>Forbidden</html>", ".html")
+
+        with self.assertRaises(CommandError):
+            call_command("update_sanctions_sources", source="eu", from_file=file_path)
+
+        snapshot = SanctionsSourceSnapshot.objects.get(source_code=SanctionsSourceSnapshot.SourceCode.EU_FSF)
+        self.assertEqual(snapshot.status, SanctionsSourceSnapshot.Status.FAILED)
+        self.assertEqual(snapshot.source_url, f"manual-file:{file_path}")
+        self.assertIn("HTML error page", snapshot.error_message)
+
+    def test_from_file_missing_path_raises_command_error(self):
+        missing_path = "C:/definitely/missing/eu-file.xml"
+
+        with self.assertRaises(CommandError):
+            call_command("update_sanctions_sources", source="eu", from_file=missing_path)
+
+        self.assertFalse(SanctionsSourceSnapshot.objects.exists())
+
+    def test_from_file_with_source_all_raises_command_error(self):
+        file_path = self.write_temp_source_file(EU_XML, ".xml")
+
+        with self.assertRaises(CommandError):
+            call_command("update_sanctions_sources", source="all", from_file=file_path)
+
+        self.assertFalse(SanctionsSourceSnapshot.objects.exists())
 
     @patch("sponsors.sanctions_sources.urlopen", return_value=MockHTTPResponse(b"<html>Forbidden</html>", content_type="text/html"))
     def test_html_error_response_is_recorded_as_failure(self, _urlopen):
