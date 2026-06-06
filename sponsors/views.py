@@ -18,6 +18,7 @@ from accounts.views import can_grant_bearseeker_privileges, is_moderator
 
 from .forms import DECLARATION_TEXTS, SponsorApplicationForm
 from .compliance import compliance_allows_progress, latest_compliance_check, staff_set_compliance_status
+from .attention import get_sponsor_moderation_attention_count
 from .models import SponsorApplicantDeclaration, SponsorApplication, SponsorAuditLog, SponsorCell, SponsorComplianceCheck, SponsorPayment
 from .services import (
     SponsorPaymentVerificationError,
@@ -403,6 +404,7 @@ def moderation_applications(request):
             "applications": qs,
             "status_filter": status_filter,
             "status_options": status_options,
+            "sponsor_attention_count": get_sponsor_moderation_attention_count(),
         },
     )
 

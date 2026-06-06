@@ -2070,15 +2070,14 @@ def moderation_panel(request):
     )
 
     from config.maintenance import read_maintenance_flag
-    from sponsors.models import SponsorApplication as _SponsorApplication
+    from sponsors.attention import get_sponsor_moderation_attention_breakdown, get_sponsor_moderation_attention_count
 
     maintenance_flag = read_maintenance_flag()
     maintenance_web_active = maintenance_flag is not None and maintenance_flag.get("active", False)
     maintenance_until_str = maintenance_flag.get("until", "") if maintenance_flag else ""
 
-    paid_pending_sponsors = _SponsorApplication.objects.filter(
-        status=_SponsorApplication.Status.PAID_PENDING_APPROVAL
-    ).count()
+    sponsor_attention_count = get_sponsor_moderation_attention_count()
+    sponsor_attention_breakdown = get_sponsor_moderation_attention_breakdown()
 
     return render(request, "moderation/panel.html", {
         "pending_recipes": pending_recipes,
@@ -2100,7 +2099,8 @@ def moderation_panel(request):
         "maintenance_web_active": maintenance_web_active,
         "maintenance_until_str": maintenance_until_str,
         "maintenance_env_active": getattr(settings, "MAINTENANCE_MODE", False),
-        "paid_pending_sponsors": paid_pending_sponsors,
+        "sponsor_attention_count": sponsor_attention_count,
+        "sponsor_attention_breakdown": sponsor_attention_breakdown,
     })
 
 

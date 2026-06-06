@@ -22,12 +22,10 @@ def _unread_message_count(user):
         return 0
 
 
-def _paid_pending_sponsors_count():
+def _sponsor_attention_count():
     try:
-        from sponsors.models import SponsorApplication
-        return SponsorApplication.objects.filter(
-            status=SponsorApplication.Status.PAID_PENDING_APPROVAL
-        ).count()
+        from sponsors.attention import get_sponsor_moderation_attention_count
+        return get_sponsor_moderation_attention_count()
     except Exception:
         return 0
 
@@ -106,11 +104,11 @@ def header_author(request):
             "url": _reverse_or_empty("recipes:moderation_panel"),
             "badge": pending_count if pending_count else None,
         })
-        paid_sponsors = _paid_pending_sponsors_count()
+        sponsor_attention_count = _sponsor_attention_count()
         actions.insert(1, {
             "label": "Sponsor Applications",
             "url": _reverse_or_empty("sponsors:moderation_applications"),
-            "badge": paid_sponsors if paid_sponsors else None,
+            "badge": sponsor_attention_count if sponsor_attention_count else None,
         })
 
     return {
