@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Sanctions Source Status | CulinEire{% endblock %}
+{% block meta_description %}Internal official sanctions source update status.{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+<link href="{% static 'css/moderation.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="page-section moderation-page">
+    <div class="container moderation-shell">
+        <a class="mon-back-link" href="{% url 'sponsors:moderation_applications' %}">Back to Sponsor Applications</a>
+        <div class="moderation-block">
+            <h1 class="moderation-block__title">Official Sanctions Source Status</h1>
+            <p class="moderation-card__note">Phase 2 imports official EU/UN sanctions datasets and tracks freshness. Sponsor matching is not implemented in this phase.</p>
+            <div class="moderation-scroll">
+                {% for item in source_statuses %}
+                <div class="moderation-card">
+                    <div class="moderation-card__body">
+                        <div class="moderation-card__meta">
+                            <span class="author-studio-status author-studio-status--{{ item.latest.status|default:'missing' }}">{{ item.source_code }}</span>
+                            {% if item.is_stale %}<span class="moderation-badge moderation-badge--rejected">stale or unavailable</span>{% else %}<span class="moderation-badge moderation-badge--pending">current</span>{% endif %}
+                        </div>
+                        <h2 class="moderation-card__title">{{ item.source_name }}</h2>
+                        <p class="moderation-card__note">Latest successful update: {% if item.latest_success %}{{ item.latest_success.fetched_at|date:"j M Y H:i" }}{% else %}never{% endif %}</p>
+                        <p class="moderation-card__note">Record count: {{ item.record_count }}</p>
+                        <p class="moderation-card__note">Latest status: {% if item.latest %}{{ item.latest.get_status_display }}{% else %}No update attempted{% endif %}</p>
+                        {% if item.last_error %}<p class="moderation-card__note">Last error: {{ item.last_error }}</p>{% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

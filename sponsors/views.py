@@ -19,6 +19,7 @@ from accounts.views import can_grant_bearseeker_privileges, is_moderator
 from .forms import DECLARATION_TEXTS, SponsorApplicationForm
 from .compliance import compliance_allows_progress, latest_compliance_check, staff_set_compliance_status
 from .attention import get_sponsor_moderation_attention_count
+from .sanctions_sources import sanctions_sources_unavailable_or_stale, source_statuses
 from .models import SponsorApplicantDeclaration, SponsorApplication, SponsorAuditLog, SponsorCell, SponsorComplianceCheck, SponsorPayment
 from .services import (
     SponsorPaymentVerificationError,
@@ -415,6 +416,15 @@ def moderation_cells(request):
     return render(request, "sponsors/moderation_cells.html", {"cells": cells})
 
 
+def sanctions_source_status(request):
+    _require_moderator(request.user)
+    return render(
+        request,
+        "sponsors/sanctions_source_status.html",
+        {"source_statuses": source_statuses()},
+    )
+
+
 def moderation_application_detail(request, application_id):
     _require_moderator(request.user)
     application = get_object_or_404(
@@ -483,6 +493,7 @@ def moderation_application_detail(request, application_id):
         "can_manual_clear": application.status == SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW and not compliance_allows_progress(application),
         "can_compliance_block": application.status == SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW,
         "can_return_to_compliance_review": application.status == SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW and compliance_allows_progress(application),
+        "sanctions_sources_stale": sanctions_sources_unavailable_or_stale(),
     }
     return render(
         request,

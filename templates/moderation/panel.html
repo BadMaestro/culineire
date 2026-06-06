@@ -69,6 +69,10 @@
                     Sponsors Roadmap
                 </a>
                 {% endif %}
+                <a class="mod-tool-link" href="{% url 'sponsors:sanctions_source_status' %}">
+                    <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+                    Sanctions Source Status
+                </a>
                 {% if can_grant_bearseeker_privileges %}
                 <details class="mod-maintenance-details{% if maintenance_web_active %} mod-maintenance-details--active{% endif %}">
                     <summary class="mod-tool-link mod-maintenance-summary">

@@ -323,6 +323,76 @@ class SponsorApplicantDeclaration(models.Model):
         return f"Declaration for {self.sponsor_name}"
 
 
+class SanctionsSourceSnapshot(models.Model):
+    class SourceCode(models.TextChoices):
+        EU_FSF = "eu_fsf", "EU Financial Sanctions Files"
+        UN_SC_CONSOLIDATED = "un_sc_consolidated", "UN Security Council Consolidated List"
+
+    class Status(models.TextChoices):
+        SUCCESS = "success", "Success"
+        FAILED = "failed", "Failed"
+        STALE = "stale", "Stale"
+        SKIPPED_NOT_MODIFIED = "skipped_not_modified", "Skipped not modified"
+
+    source_code = models.CharField(max_length=32, choices=SourceCode.choices, db_index=True)
+    source_name = models.CharField(max_length=200)
+    source_url = models.URLField(max_length=1000)
+    file_format = models.CharField(max_length=16, default="xml")
+    fetched_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    source_last_modified_at = models.DateTimeField(null=True, blank=True)
+    source_etag = models.CharField(max_length=255, blank=True)
+    source_sha256 = models.CharField(max_length=64, blank=True, db_index=True)
+    record_count = models.PositiveIntegerField(default=0)
+    status = models.CharField(max_length=32, choices=Status.choices, db_index=True)
+    error_message = models.TextField(blank=True)
+    raw_file = models.FileField(upload_to="sanctions/sources/", blank=True, null=True)
+    parser_version = models.CharField(max_length=32, default="phase2-xml-v1")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["source_code", "status", "fetched_at"])]
+
+    def __str__(self):
+        return f"{self.get_source_code_display()} [{self.get_status_display()}]"
+
+
+class SanctionsSubject(models.Model):
+    class SubjectType(models.TextChoices):
+        INDIVIDUAL = "individual", "Individual"
+        ENTITY = "entity", "Entity"
+        VESSEL = "vessel", "Vessel"
+        AIRCRAFT = "aircraft", "Aircraft"
+        UNKNOWN = "unknown", "Unknown"
+
+    source_snapshot = models.ForeignKey(SanctionsSourceSnapshot, on_delete=models.CASCADE, related_name="subjects")
+    source_code = models.CharField(max_length=32, choices=SanctionsSourceSnapshot.SourceCode.choices, db_index=True)
+    external_reference = models.CharField(max_length=255, blank=True, db_index=True)
+    subject_type = models.CharField(max_length=32, choices=SubjectType.choices, default=SubjectType.UNKNOWN, db_index=True)
+    primary_name = models.CharField(max_length=500)
+    normalised_name = models.CharField(max_length=500, db_index=True)
+    aliases = models.JSONField(default=list, blank=True)
+    countries = models.JSONField(default=list, blank=True)
+    dates_of_birth = models.JSONField(default=list, blank=True)
+    identifiers = models.JSONField(default=list, blank=True)
+    regimes = models.JSONField(default=list, blank=True)
+    measures = models.JSONField(default=list, blank=True)
+    raw_payload = models.JSONField(default=dict, blank=True)
+    is_active = models.BooleanField(default=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["source_code", "normalised_name"]),
+            models.Index(fields=["source_code", "external_reference"]),
+        ]
+
+    def __str__(self):
+        return f"{self.primary_name} [{self.source_code}]"
+
+
 class SponsorPayment(models.Model):
     class Status(models.TextChoices):
         PENDING = "pending", "Pending"

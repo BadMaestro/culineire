@@ -26,6 +26,7 @@
                 </a>
                 {% endfor %}
                 <a class="mod-tool-link" href="{% url 'sponsors:moderation_cells' %}">Sponsor Cells</a>
+                <a class="mod-tool-link" href="{% url 'sponsors:sanctions_source_status' %}">Sanctions Source Status</a>
                 {% if request.user.is_superuser %}
                 <a class="mod-tool-link" href="{% url 'sponsors:sponsor_roadmap' %}">Sponsor Roadmap</a>
                 {% endif %}

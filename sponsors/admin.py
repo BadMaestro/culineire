@@ -3,6 +3,8 @@ from django.utils.html import format_html
 
 from .models import (
     ProcessedStripeEvent,
+    SanctionsSourceSnapshot,
+    SanctionsSubject,
     SponsorApplication,
     SponsorApplicantDeclaration,
     SponsorAuditLog,
@@ -127,6 +129,22 @@ class SponsorApplicantDeclarationAdmin(admin.ModelAdmin):
     search_fields = ("sponsor_name", "applicant_email", "contact_person", "stripe_session_id")
     readonly_fields = ("created_at",)
     raw_id_fields = ("application",)
+
+
+@admin.register(SanctionsSourceSnapshot)
+class SanctionsSourceSnapshotAdmin(admin.ModelAdmin):
+    list_display = ("source_code", "status", "fetched_at", "record_count", "source_sha256")
+    list_filter = ("source_code", "status")
+    search_fields = ("source_name", "source_url", "source_sha256", "error_message")
+    readonly_fields = ("created_at", "updated_at")
+
+
+@admin.register(SanctionsSubject)
+class SanctionsSubjectAdmin(admin.ModelAdmin):
+    list_display = ("primary_name", "source_code", "subject_type", "external_reference", "is_active")
+    list_filter = ("source_code", "subject_type", "is_active")
+    search_fields = ("primary_name", "normalised_name", "external_reference")
+    raw_id_fields = ("source_snapshot",)
 
 
 @admin.register(SponsorPayment)

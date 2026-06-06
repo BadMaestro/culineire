@@ -33,6 +33,14 @@
             {% endif %}
         </header>
 
+        {% if sanctions_sources_stale %}
+        <section class="research-panel">
+            <h2 class="moderation-block__title">Official Sanctions Source Warning</h2>
+            <p class="moderation-card__note">Official sanctions source data is stale or unavailable. Manual compliance approval should not proceed until sources are updated.</p>
+            <a class="mod-btn mod-btn--view" href="{% url 'sponsors:sanctions_source_status' %}">View source status</a>
+        </section>
+        {% endif %}
+
         <section class="research-grid">
             <section class="research-panel">
                 <h2 class="moderation-block__title">Application</h2>

@@ -15,6 +15,7 @@ urlpatterns = [
     path("cell/<int:cell_id>/moderate/", views.cell_moderate, name="cell_moderate"),
     path("moderation/applications/", views.moderation_applications, name="moderation_applications"),
     path("moderation/applications/<int:application_id>/", views.moderation_application_detail, name="moderation_application_detail"),
+    path("moderation/sanctions-sources/", views.sanctions_source_status, name="sanctions_source_status"),
     path("moderation/cells/", views.moderation_cells, name="moderation_cells"),
     path("moderation/roadmap/", views.sponsor_roadmap, name="sponsor_roadmap"),
 ]
