@@ -20,7 +20,8 @@ from .forms import DECLARATION_TEXTS, SponsorApplicationForm
 from .compliance import compliance_allows_progress, latest_compliance_check, staff_set_compliance_status
 from .attention import get_sponsor_moderation_attention_count
 from .sanctions_sources import sanctions_sources_unavailable_or_stale, source_statuses
-from .models import SponsorApplicantDeclaration, SponsorApplication, SponsorAuditLog, SponsorCell, SponsorComplianceCheck, SponsorPayment
+from .models import SponsorApplicantDeclaration, SponsorApplication, SponsorAuditLog, SponsorCell, SponsorComplianceCheck, SponsorPayment, SponsorSanctionsMatch
+from .sanctions_matching import review_sanctions_match, screen_sponsor_application, unresolved_sanctions_matches
 from .services import (
     SponsorPaymentVerificationError,
     SponsorStripeConfigurationError,
@@ -466,6 +467,18 @@ def moderation_application_detail(request, application_id):
             elif action == "compliance_review":
                 staff_set_compliance_status(application, SponsorComplianceCheck.Status.SCREENING_REQUIRED, request.user, note)
                 messages.warning(request, "Sponsor application returned to compliance review.")
+            elif action == "run_sanctions_screening":
+                result = screen_sponsor_application(application, force=True)
+                messages.success(request, f"Sanctions screening completed: {result.possible_matches_count} possible match(es), {result.subjects_checked} subjects checked.")
+            elif action in {"sanctions_false_positive", "sanctions_manually_cleared", "sanctions_blocked"}:
+                match = get_object_or_404(SponsorSanctionsMatch, pk=request.POST.get("match_id"), application=application)
+                status = {
+                    "sanctions_false_positive": SponsorSanctionsMatch.Status.FALSE_POSITIVE,
+                    "sanctions_manually_cleared": SponsorSanctionsMatch.Status.MANUALLY_CLEARED,
+                    "sanctions_blocked": SponsorSanctionsMatch.Status.BLOCKED,
+                }[action]
+                review_sanctions_match(match, status=status, actor=request.user, note=note)
+                messages.success(request, "Sanctions match review decision saved.")
             else:
                 messages.error(request, "Unknown sponsor moderation action.")
         except ValueError as exc:
@@ -475,11 +488,13 @@ def moderation_application_detail(request, application_id):
     audit_logs = application.audit_logs.select_related("actor").order_by("-created_at")[:50]
     payment = getattr(application, "payment", None)
     compliance_check = latest_compliance_check(application)
+    sanctions_matches = application.sanctions_matches.select_related("subject", "source_snapshot", "reviewed_by").order_by("-match_score", "-created_at")
+    unresolved_match_count = unresolved_sanctions_matches(application).count()
     action_flags = {
         "can_approve": application.status in {
             SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW,
             SponsorApplication.Status.PAID_PENDING_APPROVAL,
-        } and compliance_allows_progress(application),
+        } and compliance_allows_progress(application) and unresolved_match_count == 0,
         "can_request_changes": application.status == SponsorApplication.Status.PAID_PENDING_APPROVAL,
         "can_ready_for_review": application.status == SponsorApplication.Status.CHANGES_REQUESTED,
         "can_reject_paid": application.status in {
@@ -498,7 +513,15 @@ def moderation_application_detail(request, application_id):
     return render(
         request,
         "sponsors/moderation_application_detail.html",
-        {"application": application, "payment": payment, "compliance_check": compliance_check, "audit_logs": audit_logs, **action_flags},
+        {
+            "application": application,
+            "payment": payment,
+            "compliance_check": compliance_check,
+            "sanctions_matches": sanctions_matches,
+            "unresolved_match_count": unresolved_match_count,
+            "audit_logs": audit_logs,
+            **action_flags,
+        },
     )
 
 

@@ -23,3 +23,27 @@ DJANGO_ENV_FILE=/srv/culineire/shared/.env python manage.py update_sanctions_sou
 ```
 
 Use only officially downloaded EU Financial Sanctions Files. Do not use third-party sanctions aggregators for this import.
+
+## Sponsors Compliance Phase 3
+
+Phase 3 adds internal sanctions screening for paid sponsor applications. It compares available sponsor/application names against the imported official EU FSF and UN sanctions subjects and records explainable possible sanctions matches for staff review.
+
+This is not full AML/KYC and does not automatically reject, approve, refund or publish a sponsor. It is an internal manual compliance review aid. Sponsor applications with unresolved possible sanctions matches, or a blocked compliance decision, cannot be approved and published until staff review is completed.
+
+Run screening for one application:
+
+```bash
+DJANGO_ENV_FILE=/srv/culineire/shared/.env python manage.py screen_sponsor_application --application-id 123
+```
+
+Useful options:
+
+```bash
+--dry-run
+--force
+--verbose
+```
+
+Staff can review possible matches from the sponsor moderation detail page and mark each match as false positive, manually cleared or blocked for compliance. Each decision requires a staff note and is written to the sponsor audit log.
+
+Left out for later phases: full fuzzy matching libraries, external API calls, automatic legal rejection, refund automation, public match display, beneficial ownership collection, full AML/KYC and scheduled rescreening of all active sponsors.

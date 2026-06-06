@@ -418,6 +418,15 @@ def _handle_checkout_completed(session) -> SponsorApplication | None:
         },
     )
     # Notify admin — only on a genuine new confirmation (not idempotent replay).
+    try:
+        from .sanctions_matching import screen_sponsor_application
+        screen_sponsor_application(application)
+    except Exception as exc:
+        record_audit(
+            action=SponsorAuditLog.Action.COMPLIANCE_BLOCKED,
+            application=application,
+            notes=f"Sanctions screening failed and requires manual review: {exc}",
+        )
     if from_status == SponsorApplication.Status.PAYMENT_PENDING:
         _notify_sponsor_payment_confirmed(application, payment)
     return application
@@ -583,6 +592,25 @@ def add_one_year(value):
 
 
 def approve_application(application_id: int, actor) -> SponsorApplication:
+    preflight_application = SponsorApplication.objects.filter(pk=application_id).first()
+    if preflight_application:
+        from .sanctions_matching import has_blocked_sanctions_match, has_unresolved_sanctions_matches
+        if has_unresolved_sanctions_matches(preflight_application):
+            record_audit(
+                action=SponsorAuditLog.Action.APPROVAL_BLOCKED_SANCTIONS,
+                application=preflight_application,
+                actor=actor,
+                notes="Approval blocked due to unresolved possible sanctions matches.",
+            )
+            raise ValueError("This sponsor application has unresolved possible sanctions matches and cannot be approved until compliance review is completed.")
+        if has_blocked_sanctions_match(preflight_application):
+            record_audit(
+                action=SponsorAuditLog.Action.APPROVAL_BLOCKED_SANCTIONS,
+                application=preflight_application,
+                actor=actor,
+                notes="Approval blocked due to a blocked sanctions match decision.",
+            )
+            raise ValueError("This sponsor application is blocked for compliance and cannot be approved.")
     with transaction.atomic():
         application = (
             SponsorApplication.objects.select_for_update()
@@ -595,6 +623,23 @@ def approve_application(application_id: int, actor) -> SponsorApplication:
         }:
             raise ValueError("Only paid applications pending review can be approved.")
         if not compliance_allows_progress(application):
+            from .sanctions_matching import has_blocked_sanctions_match, has_unresolved_sanctions_matches
+            if has_unresolved_sanctions_matches(application):
+                record_audit(
+                    action=SponsorAuditLog.Action.APPROVAL_BLOCKED_SANCTIONS,
+                    application=application,
+                    actor=actor,
+                    notes="Approval blocked due to unresolved possible sanctions matches.",
+                )
+                raise ValueError("This sponsor application has unresolved possible sanctions matches and cannot be approved until compliance review is completed.")
+            if has_blocked_sanctions_match(application):
+                record_audit(
+                    action=SponsorAuditLog.Action.APPROVAL_BLOCKED_SANCTIONS,
+                    application=application,
+                    actor=actor,
+                    notes="Approval blocked due to a blocked sanctions match decision.",
+                )
+                raise ValueError("This sponsor application is blocked for compliance and cannot be approved.")
             raise ValueError("Compliance must be clear or manually cleared before approval and publication.")
         cell = SponsorCell.objects.select_for_update().get(pk=application.cell_id)
         now = timezone.now()

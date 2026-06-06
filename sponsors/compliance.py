@@ -15,7 +15,13 @@ def latest_compliance_check(application):
 
 def compliance_allows_progress(application):
     check = latest_compliance_check(application)
-    return bool(check and check.status in ALLOWED_STATUSES)
+    if not check or check.status not in ALLOWED_STATUSES:
+        return False
+    try:
+        from .sanctions_matching import has_blocked_sanctions_match, has_unresolved_sanctions_matches
+        return not has_unresolved_sanctions_matches(application) and not has_blocked_sanctions_match(application)
+    except Exception:
+        return False
 
 
 def mark_screening_required(application):

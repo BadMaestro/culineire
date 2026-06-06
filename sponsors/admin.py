@@ -12,6 +12,7 @@ from .models import (
     SponsorComplianceCheck,
     SponsorPayment,
     SponsorRoadmapItem,
+    SponsorSanctionsMatch,
 )
 
 
@@ -121,6 +122,15 @@ class SponsorComplianceCheckAdmin(admin.ModelAdmin):
     search_fields = ("application__sponsor_name", "matched_name", "staff_notes")
     readonly_fields = ("created_at", "updated_at")
     raw_id_fields = ("application", "reviewed_by")
+
+
+@admin.register(SponsorSanctionsMatch)
+class SponsorSanctionsMatchAdmin(admin.ModelAdmin):
+    list_display = ("application", "subject", "source_code", "match_status", "match_score", "reviewed_by", "created_at")
+    list_filter = ("source_code", "match_status")
+    search_fields = ("application__sponsor_name", "subject__primary_name", "staff_note")
+    readonly_fields = ("created_at", "updated_at")
+    raw_id_fields = ("application", "subject", "source_snapshot", "reviewed_by")
 
 
 @admin.register(SponsorApplicantDeclaration)

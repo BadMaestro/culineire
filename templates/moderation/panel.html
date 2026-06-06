@@ -61,6 +61,7 @@
                     {% if sponsor_attention_breakdown.paid_pending_approval %}{{ sponsor_attention_breakdown.paid_pending_approval }} paid pending approval{% endif %}
                     {% if sponsor_attention_breakdown.changes_requested %}{{ sponsor_attention_breakdown.changes_requested }} changes requested{% endif %}
                     {% if sponsor_attention_breakdown.refund_required %}{{ sponsor_attention_breakdown.refund_required }} refund required{% endif %}
+                    {% if sponsor_attention_breakdown.possible_sanctions_match %}{{ sponsor_attention_breakdown.possible_sanctions_match }} possible sanctions match{% endif %}
                 </span>
                 {% endif %}
                 {% if can_grant_bearseeker_privileges %}

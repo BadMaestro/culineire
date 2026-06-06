@@ -491,6 +491,12 @@ class SponsorAuditLog(models.Model):
         UNPUBLISHED = "unpublished", "Unpublished"
         EXPIRED = "expired", "Expired"
         COMPLIANCE_BLOCKED = "compliance_blocked", "Compliance blocked"
+        SANCTIONS_SCREENING_COMPLETED = "sanctions_screening_completed", "Sanctions screening completed"
+        SANCTIONS_POSSIBLE_MATCH_CREATED = "sanctions_possible_match_created", "Sanctions possible match created"
+        SANCTIONS_MATCH_FALSE_POSITIVE = "sanctions_match_false_positive", "Sanctions match marked false positive"
+        SANCTIONS_MATCH_MANUALLY_CLEARED = "sanctions_match_manually_cleared", "Sanctions match manually cleared"
+        SANCTIONS_MATCH_BLOCKED = "sanctions_match_blocked", "Sanctions match blocked"
+        APPROVAL_BLOCKED_SANCTIONS = "approval_blocked_sanctions", "Approval blocked by sanctions review"
 
     application = models.ForeignKey(
         SponsorApplication,
@@ -529,6 +535,43 @@ class SponsorAuditLog(models.Model):
 
     def __str__(self):
         return f"{self.get_action_display()} at {self.created_at:%Y-%m-%d %H:%M}"
+
+
+class SponsorSanctionsMatch(models.Model):
+    class Status(models.TextChoices):
+        POSSIBLE = "possible", "Possible sanctions match"
+        FALSE_POSITIVE = "false_positive", "False positive"
+        MANUALLY_CLEARED = "manually_cleared", "Manually cleared"
+        BLOCKED = "blocked", "Blocked for compliance"
+
+    application = models.ForeignKey(SponsorApplication, on_delete=models.CASCADE, related_name="sanctions_matches")
+    subject = models.ForeignKey(SanctionsSubject, on_delete=models.CASCADE, related_name="sponsor_matches")
+    source_code = models.CharField(max_length=32, choices=SanctionsSourceSnapshot.SourceCode.choices, db_index=True)
+    source_snapshot = models.ForeignKey(SanctionsSourceSnapshot, on_delete=models.SET_NULL, null=True, blank=True, related_name="sponsor_matches")
+    match_status = models.CharField(max_length=32, choices=Status.choices, default=Status.POSSIBLE, db_index=True)
+    match_score = models.PositiveSmallIntegerField(default=0, db_index=True)
+    match_reasons = models.JSONField(default=list, blank=True)
+    matched_fields = models.JSONField(default=list, blank=True)
+    sponsor_values = models.JSONField(default=dict, blank=True)
+    subject_values = models.JSONField(default=dict, blank=True)
+    reviewed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="reviewed_sponsor_sanctions_matches")
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    staff_note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-match_score", "-created_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["application", "subject"], name="unique_sponsor_sanctions_match_subject")
+        ]
+        indexes = [
+            models.Index(fields=["application", "match_status"]),
+            models.Index(fields=["source_code", "match_status"]),
+        ]
+
+    def __str__(self):
+        return f"{self.application.sponsor_name} / {self.subject.primary_name} [{self.get_match_status_display()}]"
 
 
 class SponsorRoadmapItem(models.Model):

@@ -87,6 +87,53 @@
                 <div><dt>Staff note</dt><dd>{% if compliance_check %}{{ compliance_check.staff_notes|default:"-" }}{% else %}-{% endif %}</dd></div>
             </dl>
             <p class="moderation-card__note">Detailed screening information is internal and must not be presented to the applicant as a finding of wrongdoing.</p>
+            {% if unresolved_match_count %}
+            <p class="moderation-card__note">This sponsor application has unresolved possible sanctions matches and cannot be approved until compliance review is completed.</p>
+            {% endif %}
+            <form method="post" style="margin-top:0.65rem;">
+                {% csrf_token %}
+                <button class="mod-btn mod-btn--view" name="action" type="submit" value="run_sanctions_screening">Run sanctions screening</button>
+            </form>
+        </section>
+
+        <section class="research-panel">
+            <h2 class="moderation-block__title">Possible Sanctions Matches</h2>
+            {% if sanctions_matches %}
+            <ul class="automation-list">
+                {% for match in sanctions_matches %}
+                <li class="automation-item">
+                    <div class="automation-item__row">
+                        <span class="automation-item__state">{{ match.get_match_status_display }}</span>
+                        <span style="font-size:0.8rem;color:var(--ink-soft,#5a5249);">{{ match.get_source_code_display }} &middot; score {{ match.match_score }}</span>
+                    </div>
+                    <div class="automation-item__body">
+                        <strong>{{ match.subject.primary_name }}</strong>
+                        {% if match.subject.aliases %}<span>Aliases: {{ match.subject.aliases|join:", "|truncatechars:220 }}</span>{% endif %}
+                        {% if match.subject.countries %}<span>Countries: {{ match.subject.countries|join:", "|truncatechars:180 }}</span>{% endif %}
+                        {% if match.subject.regimes %}<span>Regimes: {{ match.subject.regimes|join:", "|truncatechars:220 }}</span>{% endif %}
+                        {% if match.subject.measures %}<span>Measures: {{ match.subject.measures|join:", "|truncatechars:220 }}</span>{% endif %}
+                        <span>Matched fields: {{ match.matched_fields|join:", " }}</span>
+                        <span>Reasons: {{ match.match_reasons|join:", " }}</span>
+                        {% if match.staff_note %}<span>Staff note: {{ match.staff_note }}</span>{% endif %}
+                    </div>
+                    {% if match.match_status == "possible" %}
+                    <form class="moderation-contact__form" method="post" style="position:static;box-shadow:none;max-width:none;margin-top:0.5rem;">
+                        {% csrf_token %}
+                        <input name="match_id" type="hidden" value="{{ match.pk }}">
+                        <textarea name="note" rows="2" placeholder="Required staff note for this sanctions match review decision."></textarea>
+                        <div class="moderation-card__actions">
+                            <button class="mod-btn mod-btn--approve" name="action" type="submit" value="sanctions_false_positive">Mark false positive</button>
+                            <button class="mod-btn mod-btn--edit" name="action" type="submit" value="sanctions_manually_cleared">Mark manually cleared</button>
+                            <button class="mod-btn mod-btn--reject" name="action" type="submit" value="sanctions_blocked">Block for compliance</button>
+                        </div>
+                    </form>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="moderation-empty">No possible sanctions matches recorded for this application.</div>
+            {% endif %}
         </section>
 
         <section class="research-panel">
