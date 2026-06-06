@@ -1,112 +1,31 @@
+from unittest.mock import patch
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
-from unittest.mock import patch
 
+from .compliance import staff_set_compliance_status
 from .cleanup import assess_safe_unpaid_deletion
-from .compliance import run_compliance_check, staff_set_compliance_status
-from .models import (
-    SanctionsEntry,
-    SponsorApplication,
-    SponsorAuditLog,
-    SponsorCell,
-    SponsorComplianceCheck,
-    SponsorPayment,
-)
-from .services import SponsorComplianceReviewRequired, approve_application, create_checkout_session
+from .forms import DECLARATION_TEXTS
+from .models import SponsorApplication, SponsorApplicantDeclaration, SponsorCell, SponsorComplianceCheck, SponsorPayment
+from .services import CheckoutSessionInfo, approve_application, handle_stripe_event
 from .tests import SPONSOR_TEST_SETTINGS, png_upload
 
 
-@override_settings(**{**SPONSOR_TEST_SETTINGS, "SPONSOR_COMPLIANCE_ALLOW_EMPTY_DATA": False})
-class SponsorComplianceTests(TestCase):
+@override_settings(**SPONSOR_TEST_SETTINGS)
+class SponsorCompliancePhaseOneTests(TestCase):
     def setUp(self):
         self.staff = get_user_model().objects.create_user("compliance-staff", password="pass", is_staff=True)
         self.cell = SponsorCell.objects.create(cell_number=71, ring=6, position_in_ring=0)
 
-    def application(self, *, name="Clear Community Sponsor", paid=False):
-        application = SponsorApplication.objects.create(
-            cell=self.cell,
-            status=SponsorApplication.Status.PAID_PENDING_APPROVAL if paid else SponsorApplication.Status.PAYMENT_PENDING,
-            sponsor_name=name,
-            contact_name="Compliance Contact",
-            email="contact@example.com",
-            website_url="https://example.com",
-            logo=png_upload("compliance.png"),
-            price_net_cents=self.cell.price_net_cents,
-            terms_accepted=True,
-            logo_rights_confirmed=True,
-            approval_acknowledged=True,
-            terms_accepted_at=timezone.now(),
-        )
-        SponsorPayment.objects.create(
-            application=application,
-            status=SponsorPayment.Status.PAID if paid else SponsorPayment.Status.PENDING,
-            net_amount_cents=application.price_net_cents,
-            stripe_checkout_session_id="cs_compliance_paid" if paid else None,
-            stripe_payment_intent_id="pi_compliance_paid" if paid else "",
-            paid_at=timezone.now() if paid else None,
-        )
-        self.cell.status = SponsorCell.Status.PAID_PENDING_APPROVAL if paid else SponsorCell.Status.PAYMENT_PENDING
-        self.cell.save(update_fields=["status"])
-        return application
-
-    def sanctions_entry(self, name="Listed Entity", aliases=None):
-        return SanctionsEntry.objects.create(
-            source=SanctionsEntry.Source.MANUAL,
-            external_id=f"manual-{SanctionsEntry.objects.count() + 1}",
-            name=name,
-            aliases=aliases or [],
-        )
-
-    def test_clear_and_exact_match_screening_create_audit_records(self):
-        self.sanctions_entry()
-        clear = run_compliance_check(self.application())
-        possible = run_compliance_check(self.application(name="Listed Entity"))
-
-        self.assertEqual(clear.status, SponsorComplianceCheck.Status.CLEAR)
-        self.assertEqual(possible.status, SponsorComplianceCheck.Status.POSSIBLE_MATCH)
-        self.assertEqual(possible.match_score, 1.0)
-        self.assertTrue(SponsorAuditLog.objects.filter(action=SponsorAuditLog.Action.COMPLIANCE_CHECK_CLEAR).exists())
-        self.assertTrue(SponsorAuditLog.objects.filter(action=SponsorAuditLog.Action.COMPLIANCE_POSSIBLE_MATCH).exists())
-
-    def test_fuzzy_match_requires_review_not_automatic_block(self):
-        self.sanctions_entry("International Trading Holdings")
-
-        check = run_compliance_check(self.application(name="International Trading Holding"))
-
-        self.assertEqual(check.status, SponsorComplianceCheck.Status.POSSIBLE_MATCH)
-
-    def test_missing_data_fails_closed_and_blocks_checkout_before_stripe(self):
-        application = self.application()
-
-        with patch("sponsors.services._stripe") as stripe:
-            with self.assertRaises(SponsorComplianceReviewRequired):
-                create_checkout_session(application)
-
-        stripe.assert_not_called()
-        self.assertEqual(application.compliance_checks.latest("created_at").status, SponsorComplianceCheck.Status.ERROR)
-
-    def test_possible_match_blocks_checkout_before_stripe(self):
-        self.sanctions_entry("Listed Entity")
-        application = self.application(name="Listed Entity")
-
-        with patch("sponsors.services._stripe") as stripe:
-            with self.assertRaises(SponsorComplianceReviewRequired):
-                create_checkout_session(application)
-
-        stripe.assert_not_called()
-
-    def test_public_checkout_block_message_is_neutral_and_stripe_is_not_called(self):
-        self.sanctions_entry("Listed Entity")
-        self.cell.status = SponsorCell.Status.AVAILABLE
-        self.cell.save(update_fields=["status"])
-        data = {
-            "sponsor_name": "Listed Entity",
-            "contact_name": "Contact",
+    def post_data(self):
+        return {
+            "sponsor_name": "Community Sponsor",
+            "contact_name": "Compliance Contact",
             "email": "contact@example.com",
             "website_url": "https://example.com",
-            "logo": png_upload("listed.png"),
+            "logo": png_upload("compliance.png"),
             "logo_offset_x": "0",
             "logo_offset_y": "0",
             "logo_scale": "1",
@@ -114,99 +33,115 @@ class SponsorComplianceTests(TestCase):
             "logo_rights_confirmed": "on",
             "terms_accepted": "on",
             "approval_acknowledged": "on",
+            "sanctions_declaration_1": "on",
+            "sanctions_declaration_2": "on",
+            "sanctions_declaration_3": "on",
+            "sanctions_declaration_4": "on",
         }
 
-        with patch("sponsors.views.create_checkout_session", wraps=create_checkout_session) as checkout:
-            with patch("sponsors.services._stripe") as stripe:
-                response = self.client.post(reverse("sponsors:cell_enquire", args=[self.cell.pk]), data)
-
-        self.assertEqual(response.status_code, 202)
-        self.assertIn("requires manual compliance review", response.json()["error"])
-        self.assertNotIn("sanctioned", response.json()["error"].lower())
-        checkout.assert_called_once()
-        stripe.assert_not_called()
-
-    def test_clear_compliance_preserves_checkout_payload(self):
-        self.sanctions_entry()
-        application = self.application()
-
-        class FakeSession:
-            called_with = None
-
-            @classmethod
-            def create(cls, **kwargs):
-                cls.called_with = kwargs
-                return {"id": "cs_clear", "url": "https://stripe.test/clear"}
-
-        class FakeStripe:
-            class checkout:
-                Session = FakeSession
-
-        with patch("sponsors.services._stripe", return_value=FakeStripe):
-            create_checkout_session(application)
-
-        self.assertEqual(FakeSession.called_with["line_items"][0]["price_data"]["unit_amount"], application.price_net_cents)
-        self.assertEqual(FakeSession.called_with["line_items"][0]["price_data"]["product_data"]["tax_code"], "txcd_20060002")
-
-    def test_staff_decisions_require_note_and_staff(self):
-        application = self.application()
-        with self.assertRaisesMessage(ValueError, "note"):
-            staff_set_compliance_status(application, SponsorComplianceCheck.Status.FALSE_POSITIVE_CLEARED, self.staff, "")
-        result = staff_set_compliance_status(
-            application,
-            SponsorComplianceCheck.Status.FALSE_POSITIVE_CLEARED,
-            self.staff,
-            "Confirmed unrelated entity.",
+    def create_paid_review_application(self):
+        application = SponsorApplication.objects.create(
+            cell=self.cell,
+            status=SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW,
+            sponsor_name="Community Sponsor",
+            contact_name="Compliance Contact",
+            email="contact@example.com",
+            logo=png_upload(),
+            price_net_cents=self.cell.price_net_cents,
         )
-        self.assertEqual(result.status, SponsorComplianceCheck.Status.FALSE_POSITIVE_CLEARED)
+        SponsorPayment.objects.create(application=application, status=SponsorPayment.Status.PAID, net_amount_cents=application.price_net_cents)
+        SponsorComplianceCheck.objects.create(application=application, status=SponsorComplianceCheck.Status.SCREENING_REQUIRED)
+        self.cell.status = SponsorCell.Status.PAID_PENDING_APPROVAL
+        self.cell.save(update_fields=["status"])
+        return application
 
-    def test_approval_requires_clear_or_false_positive_cleared(self):
-        blocked = self.application(paid=True)
-        with self.assertRaisesMessage(ValueError, "Compliance must be clear"):
-            approve_application(blocked.pk, self.staff)
+    def test_all_declarations_are_required_before_checkout(self):
+        data = self.post_data()
+        data.pop("sanctions_declaration_4")
+        with patch("sponsors.views.create_checkout_session") as checkout:
+            response = self.client.post(reverse("sponsors:cell_enquire", args=[self.cell.pk]), data)
+        self.assertEqual(response.status_code, 400)
+        checkout.assert_not_called()
 
-        SponsorComplianceCheck.objects.create(application=blocked, status=SponsorComplianceCheck.Status.FALSE_POSITIVE_CLEARED)
-        with patch("newsfeed.telegram.publish_sponsor_to_telegram"):
-            approve_application(blocked.pk, self.staff)
-        blocked.refresh_from_db()
-        self.assertEqual(blocked.status, SponsorApplication.Status.APPROVED)
+    def test_declaration_snapshot_allows_checkout_without_screening_data(self):
+        with patch("sponsors.views.create_checkout_session", return_value=CheckoutSessionInfo("cs_declared", "https://stripe.test/session")):
+            response = self.client.post(
+                reverse("sponsors:cell_enquire", args=[self.cell.pk]),
+                self.post_data(),
+                HTTP_USER_AGENT="Compliance test browser",
+                REMOTE_ADDR="192.0.2.10",
+            )
+        declaration = SponsorApplicantDeclaration.objects.get()
+        check = SponsorComplianceCheck.objects.get()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(declaration.declaration_text, DECLARATION_TEXTS)
+        self.assertEqual(declaration.applicant_email, "contact@example.com")
+        self.assertEqual(declaration.sponsor_name, "Community Sponsor")
+        self.assertEqual(declaration.stripe_session_id, "cs_declared")
+        self.assertEqual(check.status, SponsorComplianceCheck.Status.SELF_DECLARED)
+        self.assertNotEqual(check.status, SponsorComplianceCheck.Status.CLEAR)
 
-    def test_clear_compliance_allows_approval(self):
-        self.sanctions_entry()
-        application = self.application(paid=True)
-        self.assertEqual(run_compliance_check(application).status, SponsorComplianceCheck.Status.CLEAR)
+    @patch("newsfeed.telegram.publish_sponsor_to_telegram")
+    def test_payment_moves_to_compliance_review_without_publication_or_telegram(self, telegram):
+        with patch("sponsors.views.create_checkout_session", return_value=CheckoutSessionInfo("cs_paid_review", "https://stripe.test/session")):
+            self.client.post(reverse("sponsors:cell_enquire", args=[self.cell.pk]), self.post_data())
+        application = SponsorApplication.objects.get()
+        handle_stripe_event({
+            "id": "evt_paid_review",
+            "type": "checkout.session.completed",
+            "data": {"object": {
+                "id": "cs_paid_review",
+                "payment_status": "paid",
+                "payment_intent": "pi_paid_review",
+                "amount_subtotal": application.price_net_cents,
+                "amount_total": application.price_net_cents,
+                "total_details": {"amount_tax": 0},
+                "currency": "eur",
+                "metadata": {"sponsor_application_id": str(application.pk), "sponsor_cell_id": str(self.cell.pk)},
+            }},
+        })
+        application.refresh_from_db()
+        self.assertEqual(application.status, SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW)
+        self.assertEqual(application.compliance_checks.first().status, SponsorComplianceCheck.Status.SCREENING_REQUIRED)
+        self.assertIsNone(application.published_at)
+        telegram.assert_not_called()
 
+    def test_manual_clear_requires_note_and_enables_approval(self):
+        application = self.create_paid_review_application()
+        with self.assertRaisesMessage(ValueError, "note"):
+            staff_set_compliance_status(application, SponsorComplianceCheck.Status.MANUALLY_CLEARED, self.staff, "")
+        check = staff_set_compliance_status(
+            application, SponsorComplianceCheck.Status.MANUALLY_CLEARED, self.staff, "Reviewed against available official sources."
+        )
+        self.assertEqual(check.reviewed_by, self.staff)
+        self.assertIsNotNone(check.reviewed_at)
         with patch("newsfeed.telegram.publish_sponsor_to_telegram"):
             approve_application(application.pk, self.staff)
-
         application.refresh_from_db()
         self.assertEqual(application.status, SponsorApplication.Status.APPROVED)
 
-    def test_moderation_ui_shows_compliance_and_hides_approve_when_blocked(self):
-        application = self.application(paid=True)
-        SponsorComplianceCheck.objects.create(application=application, status=SponsorComplianceCheck.Status.POSSIBLE_MATCH)
-        self.client.force_login(self.staff)
+    def test_blocked_application_cannot_be_approved(self):
+        application = self.create_paid_review_application()
+        staff_set_compliance_status(application, SponsorComplianceCheck.Status.BLOCKED, self.staff, "Compliance requirement.")
+        with self.assertRaisesMessage(ValueError, "manually cleared"):
+            approve_application(application.pk, self.staff)
 
+    def test_paid_compliance_review_application_is_cleanup_protected(self):
+        application = self.create_paid_review_application()
+        assessment = assess_safe_unpaid_deletion(application)
+        self.assertFalse(assessment.allowed)
+
+    def test_moderation_and_success_pages_use_truthful_wording(self):
+        application = self.create_paid_review_application()
+        payment = application.payment
+        payment.stripe_checkout_session_id = "cs_success_review"
+        payment.save(update_fields=["stripe_checkout_session_id"])
+        self.client.force_login(self.staff)
         detail = self.client.get(reverse("sponsors:moderation_application_detail", args=[application.pk]))
         listing = self.client.get(reverse("sponsors:moderation_applications"), {"status": "all"})
-        review_queue = self.client.get(reverse("sponsors:moderation_applications"), {"status": "compliance_review"})
-
-        self.assertContains(detail, "Possible sanctions match")
+        success = self.client.get(reverse("sponsors:checkout_success"), {"session_id": "cs_success_review"})
+        self.assertContains(detail, "Manual compliance review required")
         self.assertNotContains(detail, "Approve and publish")
-        self.assertContains(listing, "Compliance: Possible sanctions match")
-        self.assertContains(review_queue, application.sponsor_name)
-
-    def test_unpaid_compliance_blocked_application_remains_cleanup_eligible(self):
-        application = self.application()
-        SponsorComplianceCheck.objects.create(application=application, status=SponsorComplianceCheck.Status.BLOCKED)
-
-        assessment = assess_safe_unpaid_deletion(application)
-
-        self.assertTrue(assessment.allowed)
-
-    def test_terms_include_compliance_wording(self):
-        response = self.client.get(reverse("sponsors:annual_contract"))
-        self.assertContains(response, "Irish or international sponsors")
-        self.assertContains(response, "do not need to be food-related businesses")
-        self.assertContains(response, "cannot accept sponsorship, payment, promotional placement")
-        self.assertContains(response, "do not replace Bearcave Limited's own compliance review")
+        self.assertNotContains(detail, "Mark false positive cleared")
+        self.assertContains(listing, "Payment received pending compliance review")
+        self.assertContains(success, "Payment received pending compliance review")

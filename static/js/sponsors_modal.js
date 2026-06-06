@@ -143,6 +143,11 @@
     html += checkbox('spm-logo-rights', 'I confirm that I have the right to use this logo/avatar and that Bearcave Limited may display it on CulinEire if the sponsorship is approved.');
     html += checkbox('spm-terms', isCentral ? 'I accept the CulinEire sponsorship terms for the 30-day Central Sponsor of the Month.' : 'I accept the CulinEire Annual Ring Sponsorship Terms.');
     html += checkbox('spm-approval', 'I understand payment reserves the spot but publication is subject to Bearcave Limited approval.');
+    html += checkbox('spm-sanctions-1', 'I confirm that, to the best of my knowledge, neither I, nor the company, organisation or business I represent, nor any relevant owner, director, beneficial owner or controlling person, is subject to EU, UN, Irish or other applicable financial sanctions.');
+    html += checkbox('spm-sanctions-2', 'I confirm that I am not applying for this sponsorship on behalf of, for the benefit of, or under the control of any person, company, organisation or body subject to applicable financial sanctions.');
+    html += checkbox('spm-sanctions-3', "I understand that payment does not guarantee approval, publication or activation of the sponsor slot. Sponsorship is subject to CulinEire's internal compliance review, approval process and website rules.");
+    html += checkbox('spm-sanctions-4', 'I understand that CulinEire may delay, refuse, suspend, cancel, reject, hold or reverse a sponsorship application where sanctions, payment, legal, compliance, fraud, content, reputational or policy concerns arise.');
+    html += '<p class="spm-note">Payment does not guarantee approval or publication. Sponsorship activation is subject to CulinEire review, including sanctions and compliance checks where required.</p>';
     html += '<div id="spm-form-error" class="spm-error" hidden></div>';
     html += '<div class="spm-actions"><button type="submit" class="spm-buy-btn" id="spm-submit">Continue to secure checkout</button></div>';
     html += '</form>';
@@ -451,7 +456,9 @@
     if (!logoInput || !logoInput.files.length) {
       return showErr('Please upload a sponsor logo or avatar.');
     }
-    if (!checked('spm-logo-rights') || !checked('spm-terms') || !checked('spm-approval')) {
+    if (!checked('spm-logo-rights') || !checked('spm-terms') || !checked('spm-approval') ||
+        !checked('spm-sanctions-1') || !checked('spm-sanctions-2') ||
+        !checked('spm-sanctions-3') || !checked('spm-sanctions-4')) {
       return showErr('Please tick all required confirmations.');
     }
 
@@ -471,6 +478,10 @@
     fd.append('logo_rights_confirmed', 'on');
     fd.append('terms_accepted', 'on');
     fd.append('approval_acknowledged', 'on');
+    fd.append('sanctions_declaration_1', 'on');
+    fd.append('sanctions_declaration_2', 'on');
+    fd.append('sanctions_declaration_3', 'on');
+    fd.append('sanctions_declaration_4', 'on');
 
     if (btn) {
       btn.disabled = true;

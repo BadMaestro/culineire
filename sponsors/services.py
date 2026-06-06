@@ -17,7 +17,7 @@ from .models import (
     SponsorPayment,
     SponsorRoadmapItem,
 )
-from .compliance import compliance_allows_progress, latest_compliance_check, run_compliance_check
+from .compliance import compliance_allows_progress, mark_screening_required
 
 
 class SponsorStripeConfigurationError(RuntimeError):
@@ -25,10 +25,6 @@ class SponsorStripeConfigurationError(RuntimeError):
 
 
 class SponsorPaymentVerificationError(RuntimeError):
-    pass
-
-
-class SponsorComplianceReviewRequired(RuntimeError):
     pass
 
 
@@ -79,11 +75,6 @@ def _checkout_metadata(application: SponsorApplication) -> dict[str, str]:
 
 
 def create_checkout_session(application: SponsorApplication, request=None) -> CheckoutSessionInfo:
-    check = latest_compliance_check(application) or run_compliance_check(application)
-    if check.status == "clear" and not compliance_allows_progress(application):
-        check = run_compliance_check(application)
-    if not compliance_allows_progress(application):
-        raise SponsorComplianceReviewRequired("Sponsor application requires manual compliance review.")
     stripe = _stripe()
     base_url = site_base_url(request)
     metadata = _checkout_metadata(application)
@@ -158,7 +149,11 @@ def checkout_created(application: SponsorApplication, session_info: CheckoutSess
     payment.stripe_checkout_session_id = session_info.session_id
     payment.save(update_fields=["stripe_checkout_session_id", "updated_at"])
     record_audit(
-        action=SponsorAuditLog.Action.CHECKOUT_CREATED,
+        action=(
+            SponsorAuditLog.Action.CHECKOUT_CREATED_AFTER_DECLARATION
+            if hasattr(application, "applicant_declaration")
+            else SponsorAuditLog.Action.CHECKOUT_CREATED
+        ),
         application=application,
         metadata={"stripe_checkout_session_id": session_info.session_id},
     )
@@ -311,6 +306,7 @@ def _handle_checkout_completed(session) -> SponsorApplication | None:
     # Issue 3: Monotonic state guard — only advance from valid payment_pending states.
     _VALID_COMPLETION_STATES = {
         SponsorApplication.Status.PAYMENT_PENDING,
+        SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW,
         SponsorApplication.Status.PAID_PENDING_APPROVAL,  # idempotent replay
     }
     _TERMINAL_STATES = {
@@ -399,12 +395,17 @@ def _handle_checkout_completed(session) -> SponsorApplication | None:
     payment.save()
 
     from_status = application.status
-    application.status = SponsorApplication.Status.PAID_PENDING_APPROVAL
+    application.status = SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW
     application.save(update_fields=["status", "updated_at"])
     cell.status = SponsorCell.Status.PAID_PENDING_APPROVAL
     cell.save(update_fields=["status", "updated_at"])
+    mark_screening_required(application)
+    declaration = getattr(application, "applicant_declaration", None)
+    if declaration and session_id and declaration.stripe_session_id != session_id:
+        declaration.stripe_session_id = session_id
+        declaration.save(update_fields=["stripe_session_id"])
     record_audit(
-        action=SponsorAuditLog.Action.PAYMENT_CONFIRMED,
+        action=SponsorAuditLog.Action.PAYMENT_RECEIVED_PENDING_COMPLIANCE_REVIEW,
         application=application,
         from_status=from_status,
         to_status=application.status,
@@ -588,12 +589,13 @@ def approve_application(application_id: int, actor) -> SponsorApplication:
             .select_related("cell")
             .get(pk=application_id)
         )
-        if application.status != SponsorApplication.Status.PAID_PENDING_APPROVAL:
-            raise ValueError("Only paid applications pending approval can be approved.")
-        if getattr(settings, "SPONSOR_COMPLIANCE_ALLOW_EMPTY_DATA", False) and not latest_compliance_check(application):
-            run_compliance_check(application, actor)
+        if application.status not in {
+            SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW,
+            SponsorApplication.Status.PAID_PENDING_APPROVAL,
+        }:
+            raise ValueError("Only paid applications pending review can be approved.")
         if not compliance_allows_progress(application):
-            raise ValueError("Compliance must be clear or false-positive cleared before approval and publication.")
+            raise ValueError("Compliance must be clear or manually cleared before approval and publication.")
         cell = SponsorCell.objects.select_for_update().get(pk=application.cell_id)
         now = timezone.now()
         from_status = application.status
@@ -728,13 +730,14 @@ def reject_application(application_id: int, actor, reason: str = "") -> SponsorA
         _REJECTABLE_STATES = {
             SponsorApplication.Status.DRAFT,
             SponsorApplication.Status.PAYMENT_PENDING,
+            SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW,
             SponsorApplication.Status.PAID_PENDING_APPROVAL,
             SponsorApplication.Status.CHANGES_REQUESTED,
         }
         if application.status not in _REJECTABLE_STATES:
             raise ValueError(
                 f"Cannot reject application in status '{application.status}'. "
-                f"Only draft, payment_pending, paid_pending_approval, or changes_requested applications can be rejected."
+                f"Only draft, payment_pending, paid_pending_compliance_review, paid_pending_approval, or changes_requested applications can be rejected."
             )
         cell = SponsorCell.objects.select_for_update().get(pk=application.cell_id)
         payment = getattr(application, "payment", None)

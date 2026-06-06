@@ -16,11 +16,10 @@ from django.views.generic import TemplateView
 
 from accounts.views import can_grant_bearseeker_privileges, is_moderator
 
-from .forms import SponsorApplicationForm
-from .compliance import compliance_allows_progress, latest_compliance_check, run_compliance_check, staff_set_compliance_status
-from .models import SponsorApplication, SponsorAuditLog, SponsorCell, SponsorComplianceCheck, SponsorPayment
+from .forms import DECLARATION_TEXTS, SponsorApplicationForm
+from .compliance import compliance_allows_progress, latest_compliance_check, staff_set_compliance_status
+from .models import SponsorApplicantDeclaration, SponsorApplication, SponsorAuditLog, SponsorCell, SponsorComplianceCheck, SponsorPayment
 from .services import (
-    SponsorComplianceReviewRequired,
     SponsorPaymentVerificationError,
     SponsorStripeConfigurationError,
     approve_application,
@@ -129,6 +128,10 @@ def cell_enquire(request, cell_id):
         "logo_rights_confirmed": "Image rights confirmed",
         "terms_accepted": "Terms accepted",
         "approval_acknowledged": "Approval acknowledgement",
+        "sanctions_declaration_1": "Sanctions declaration 1",
+        "sanctions_declaration_2": "Sanctions declaration 2",
+        "sanctions_declaration_3": "Sanctions declaration 3",
+        "sanctions_declaration_4": "Sanctions declaration 4",
     }
     for field_name, label in required_confirmations.items():
         if field_name not in request.POST:
@@ -142,7 +145,7 @@ def cell_enquire(request, cell_id):
         cell = SponsorCell.objects.select_for_update().get(pk=cell_id)
         if not cell.is_available_for_checkout:
             return JsonResponse(
-                {"error": "This sponsor spot is no longer available."},
+                {"error": "This sponsor spot currently has a sponsor application under review."},
                 status=400,
             )
 
@@ -177,18 +180,28 @@ def cell_enquire(request, cell_id):
             to_status=application.status,
             metadata={"cell_number": cell.cell_number, "price_net_cents": application.price_net_cents},
         )
+        SponsorApplicantDeclaration.objects.create(
+            application=application,
+            declaration_text=DECLARATION_TEXTS,
+            applicant_email=application.email,
+            sponsor_name=application.sponsor_name,
+            contact_person=application.contact_name,
+            ip_address=request.META.get("REMOTE_ADDR") or None,
+            user_agent=(request.META.get("HTTP_USER_AGENT") or "")[:500],
+        )
+        SponsorComplianceCheck.objects.create(
+            application=application,
+            status=SponsorComplianceCheck.Status.SELF_DECLARED,
+            source_summary="Applicant declarations accepted before Stripe Checkout.",
+        )
+        record_audit(
+            action=SponsorAuditLog.Action.APPLICANT_DECLARATION_ACCEPTED,
+            application=application,
+            to_status=SponsorComplianceCheck.Status.SELF_DECLARED,
+        )
 
     try:
         session_info = create_checkout_session(application, request=request)
-    except SponsorComplianceReviewRequired:
-        return JsonResponse(
-            {
-                "ok": False,
-                "compliance_review_required": True,
-                "error": "Your sponsor application requires manual compliance review before checkout can continue. Bearcave Limited will contact you if more information is needed.",
-            },
-            status=202,
-        )
     except SponsorStripeConfigurationError as exc:
         checkout_failed(application, str(exc))
         return JsonResponse(
@@ -204,6 +217,8 @@ def cell_enquire(request, cell_id):
         )
 
     checkout_created(application, session_info)
+    application.applicant_declaration.stripe_session_id = session_info.session_id
+    application.applicant_declaration.save(update_fields=["stripe_session_id"])
     return JsonResponse({"ok": True, "checkout_url": session_info.checkout_url})
 
 
@@ -332,10 +347,10 @@ def _require_super_admin(user):
 
 def moderation_applications(request):
     _require_moderator(request.user)
-    status_filter = request.GET.get("status", SponsorApplication.Status.PAID_PENDING_APPROVAL)
+    status_filter = request.GET.get("status", SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW)
     valid_statuses = {choice[0] for choice in SponsorApplication.Status.choices}
     if status_filter not in valid_statuses and status_filter not in {"all", "compliance_review"}:
-        status_filter = SponsorApplication.Status.PAID_PENDING_APPROVAL
+        status_filter = SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW
 
     latest_compliance_status = SponsorComplianceCheck.objects.filter(
         application=OuterRef("pk")
@@ -350,10 +365,9 @@ def moderation_applications(request):
         qs = qs.filter(
             Q(latest_compliance_status__isnull=True) | Q(latest_compliance_status__in={
                 SponsorComplianceCheck.Status.NOT_CHECKED,
-                SponsorComplianceCheck.Status.POSSIBLE_MATCH,
-                SponsorComplianceCheck.Status.CONFIRMED_MATCH,
+                SponsorComplianceCheck.Status.SELF_DECLARED,
+                SponsorComplianceCheck.Status.SCREENING_REQUIRED,
                 SponsorComplianceCheck.Status.BLOCKED,
-                SponsorComplianceCheck.Status.ERROR,
             })
         )
     elif status_filter != "all":
@@ -372,10 +386,9 @@ def moderation_applications(request):
         ).filter(
             Q(latest_compliance_status__isnull=True) | Q(latest_compliance_status__in={
                 SponsorComplianceCheck.Status.NOT_CHECKED,
-                SponsorComplianceCheck.Status.POSSIBLE_MATCH,
-                SponsorComplianceCheck.Status.CONFIRMED_MATCH,
+                SponsorComplianceCheck.Status.SELF_DECLARED,
+                SponsorComplianceCheck.Status.SCREENING_REQUIRED,
                 SponsorComplianceCheck.Status.BLOCKED,
-                SponsorComplianceCheck.Status.ERROR,
             })
         ).count(),
     })
@@ -432,17 +445,14 @@ def moderation_application_detail(request, application_id):
             elif action == "expire":
                 expire_application(application.pk, request.user, note)
                 messages.warning(request, "Sponsorship marked expired.")
-            elif action == "run_compliance":
-                run_compliance_check(application, request.user)
-                messages.success(request, "Compliance screening completed.")
-            elif action == "compliance_false_positive":
-                staff_set_compliance_status(application, SponsorComplianceCheck.Status.FALSE_POSITIVE_CLEARED, request.user, note)
-                messages.success(request, "Possible match marked as a false positive.")
+            elif action == "compliance_manual_clear":
+                staff_set_compliance_status(application, SponsorComplianceCheck.Status.MANUALLY_CLEARED, request.user, note)
+                messages.success(request, "Manual compliance review completed and cleared.")
             elif action == "compliance_block":
                 staff_set_compliance_status(application, SponsorComplianceCheck.Status.BLOCKED, request.user, note)
                 messages.warning(request, "Sponsor application blocked by compliance review.")
             elif action == "compliance_review":
-                staff_set_compliance_status(application, SponsorComplianceCheck.Status.POSSIBLE_MATCH, request.user, note)
+                staff_set_compliance_status(application, SponsorComplianceCheck.Status.SCREENING_REQUIRED, request.user, note)
                 messages.warning(request, "Sponsor application returned to compliance review.")
             else:
                 messages.error(request, "Unknown sponsor moderation action.")
@@ -454,16 +464,23 @@ def moderation_application_detail(request, application_id):
     payment = getattr(application, "payment", None)
     compliance_check = latest_compliance_check(application)
     action_flags = {
-        "can_approve": application.status == SponsorApplication.Status.PAID_PENDING_APPROVAL and compliance_allows_progress(application),
+        "can_approve": application.status in {
+            SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW,
+            SponsorApplication.Status.PAID_PENDING_APPROVAL,
+        } and compliance_allows_progress(application),
         "can_request_changes": application.status == SponsorApplication.Status.PAID_PENDING_APPROVAL,
         "can_ready_for_review": application.status == SponsorApplication.Status.CHANGES_REQUESTED,
         "can_reject_paid": application.status in {
+            SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW,
             SponsorApplication.Status.PAID_PENDING_APPROVAL,
             SponsorApplication.Status.CHANGES_REQUESTED,
         },
         "can_mark_refunded": application.status == SponsorApplication.Status.REFUND_REQUIRED,
         "can_unpublish": application.status == SponsorApplication.Status.APPROVED,
         "can_expire": application.status == SponsorApplication.Status.APPROVED,
+        "can_manual_clear": application.status == SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW and not compliance_allows_progress(application),
+        "can_compliance_block": application.status == SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW,
+        "can_return_to_compliance_review": application.status == SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW and compliance_allows_progress(application),
     }
     return render(
         request,

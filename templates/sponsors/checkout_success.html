@@ -39,7 +39,7 @@
                 <div><dt>Sponsor name</dt><dd>{{ application.sponsor_name }}</dd></div>
                 <div>
                     <dt>Status</dt>
-                    <dd><span class="sponsor-receipt__status">Paid pending approval</span></dd>
+                    <dd><span class="sponsor-receipt__status">Payment received pending compliance review</span></dd>
                 </div>
                 <div><dt>Term</dt><dd>{{ application.term_display }}</dd></div>
                 {% if payment_details %}
@@ -52,7 +52,7 @@
 
             <div class="sponsor-receipt__next">
                 <span>What happens next</span>
-                <p>Bearcave will review your logo/avatar, website/profile link and sponsor details before publication.</p>
+                <p>Bearcave will complete compliance review and review your logo/avatar, website/profile link and sponsor details before publication.</p>
                 {% if application %}
                 <p>Your {{ application.term_display }} begins only when the approved image and link are published.</p>
                 {% endif %}

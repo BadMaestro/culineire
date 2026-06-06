@@ -5,11 +5,22 @@ from django.utils import timezone
 
 from .models import SponsorApplication
 
+DECLARATION_TEXTS = [
+    "I confirm that, to the best of my knowledge, neither I, nor the company, organisation or business I represent, nor any relevant owner, director, beneficial owner or controlling person, is subject to EU, UN, Irish or other applicable financial sanctions.",
+    "I confirm that I am not applying for this sponsorship on behalf of, for the benefit of, or under the control of any person, company, organisation or body subject to applicable financial sanctions.",
+    "I understand that payment does not guarantee approval, publication or activation of the sponsor slot. Sponsorship is subject to CulinEire's internal compliance review, approval process and website rules.",
+    "I understand that CulinEire may delay, refuse, suspend, cancel, reject, hold or reverse a sponsorship application where sanctions, payment, legal, compliance, fraud, content, reputational or policy concerns arise.",
+]
+
 
 class SponsorApplicationForm(forms.ModelForm):
     logo_rights_confirmed = forms.BooleanField(required=True)
     terms_accepted = forms.BooleanField(required=True)
     approval_acknowledged = forms.BooleanField(required=True)
+    sanctions_declaration_1 = forms.BooleanField(required=True)
+    sanctions_declaration_2 = forms.BooleanField(required=True)
+    sanctions_declaration_3 = forms.BooleanField(required=True)
+    sanctions_declaration_4 = forms.BooleanField(required=True)
 
     class Meta:
         model = SponsorApplication
@@ -28,6 +39,10 @@ class SponsorApplicationForm(forms.ModelForm):
             "logo_rights_confirmed",
             "terms_accepted",
             "approval_acknowledged",
+            "sanctions_declaration_1",
+            "sanctions_declaration_2",
+            "sanctions_declaration_3",
+            "sanctions_declaration_4",
         ]
         labels = {
             "sponsor_name": "Sponsor display name",

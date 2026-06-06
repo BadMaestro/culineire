@@ -164,11 +164,12 @@ class SponsorCell(models.Model):
 
 
 class SponsorApplication(models.Model):
-    TERMS_VERSION = "2026-06-06-compliance-v1"
+    TERMS_VERSION = "2026-06-06-compliance-phase1-v1"
 
     class Status(models.TextChoices):
         DRAFT = "draft", "Draft"
         PAYMENT_PENDING = "payment_pending", "Payment pending"
+        PAID_PENDING_COMPLIANCE_REVIEW = "paid_pending_compliance_review", "Payment received pending compliance review"
         PAID_PENDING_APPROVAL = "paid_pending_approval", "Paid pending approval"
         CHANGES_REQUESTED = "changes_requested", "Changes requested"
         APPROVED = "approved", "Approved"
@@ -274,41 +275,14 @@ class SponsorApplication(models.Model):
         return "12-month term from approval/publication"
 
 
-class SanctionsEntry(models.Model):
-    class Source(models.TextChoices):
-        EU = "eu", "EU Consolidated Financial Sanctions List"
-        UN = "un", "UN Security Council Consolidated List"
-        MANUAL = "manual", "Manual compliance entry"
-
-    source = models.CharField(max_length=16, choices=Source.choices, db_index=True)
-    external_id = models.CharField(max_length=255)
-    name = models.CharField(max_length=255, db_index=True)
-    aliases = models.JSONField(default=list, blank=True)
-    country = models.CharField(max_length=100, blank=True)
-    entity_type = models.CharField(max_length=50, blank=True)
-    listed_on = models.DateField(null=True, blank=True)
-    raw_data = models.JSONField(default=dict, blank=True)
-    active = models.BooleanField(default=True, db_index=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=["source", "external_id"], name="unique_sanctions_source_external_id"),
-        ]
-
-    def __str__(self):
-        return f"{self.get_source_display()}: {self.name}"
-
-
 class SponsorComplianceCheck(models.Model):
     class Status(models.TextChoices):
         NOT_CHECKED = "not_checked", "Not checked"
+        SELF_DECLARED = "self_declared", "Applicant declaration accepted"
+        SCREENING_REQUIRED = "screening_required", "Manual compliance review required"
         CLEAR = "clear", "Compliance clear"
-        POSSIBLE_MATCH = "possible_match", "Possible sanctions match"
-        CONFIRMED_MATCH = "confirmed_match", "Confirmed sanctions match"
-        FALSE_POSITIVE_CLEARED = "false_positive_cleared", "False positive cleared"
+        MANUALLY_CLEARED = "manually_cleared", "Manually reviewed and clear"
         BLOCKED = "blocked", "Blocked"
-        ERROR = "error", "Screening error"
 
     application = models.ForeignKey(SponsorApplication, on_delete=models.CASCADE, related_name="compliance_checks")
     status = models.CharField(max_length=32, choices=Status.choices, default=Status.NOT_CHECKED, db_index=True)
@@ -330,6 +304,23 @@ class SponsorComplianceCheck(models.Model):
 
     def __str__(self):
         return f"{self.application.sponsor_name}: {self.get_status_display()}"
+
+
+class SponsorApplicantDeclaration(models.Model):
+    application = models.OneToOneField(SponsorApplication, on_delete=models.CASCADE, related_name="applicant_declaration")
+    declaration_text = models.JSONField(default=list)
+    accepted_at = models.DateTimeField(default=timezone.now)
+    applicant_email = models.EmailField()
+    sponsor_name = models.CharField(max_length=200)
+    contact_person = models.CharField(max_length=200, blank=True)
+    country = models.CharField(max_length=100, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.CharField(max_length=500, blank=True)
+    stripe_session_id = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Declaration for {self.sponsor_name}"
 
 
 class SponsorPayment(models.Model):
@@ -412,10 +403,14 @@ class SponsorAuditLog(models.Model):
     class Action(models.TextChoices):
         APPLICATION_CREATED = "application_created", "Application created"
         CHECKOUT_CREATED = "checkout_created", "Checkout created"
+        CHECKOUT_CREATED_AFTER_DECLARATION = "checkout_created_after_declaration", "Checkout created after declaration"
         CHECKOUT_FAILED = "checkout_failed", "Checkout failed"
         CHECKOUT_CANCELLED = "checkout_cancelled", "Checkout cancelled"
         CHECKOUT_EXPIRED = "checkout_expired", "Checkout expired"
         PAYMENT_CONFIRMED = "payment_confirmed", "Payment confirmed"
+        APPLICANT_DECLARATION_ACCEPTED = "applicant_declaration_accepted", "Applicant declaration accepted"
+        PAYMENT_RECEIVED_PENDING_COMPLIANCE_REVIEW = "payment_received_pending_compliance_review", "Payment received pending compliance review"
+        MANUAL_COMPLIANCE_CLEAR = "manual_compliance_clear", "Manual compliance clear"
         PAYMENT_FAILED = "payment_failed", "Payment failed"
         CHANGES_REQUESTED = "changes_requested", "Changes requested"
         READY_FOR_REVIEW = "ready_for_review", "Ready for review"
@@ -425,11 +420,7 @@ class SponsorAuditLog(models.Model):
         REFUND_COMPLETED = "refund_completed", "Refund completed"
         UNPUBLISHED = "unpublished", "Unpublished"
         EXPIRED = "expired", "Expired"
-        COMPLIANCE_CHECK_CLEAR = "compliance_check_clear", "Compliance check clear"
-        COMPLIANCE_POSSIBLE_MATCH = "compliance_possible_match", "Compliance possible match"
         COMPLIANCE_BLOCKED = "compliance_blocked", "Compliance blocked"
-        COMPLIANCE_FALSE_POSITIVE_CLEARED = "compliance_false_positive_cleared", "Compliance false positive cleared"
-        COMPLIANCE_ERROR = "compliance_error", "Compliance error"
 
     application = models.ForeignKey(
         SponsorApplication,

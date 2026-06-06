@@ -18,6 +18,7 @@ from .models import (
     ProcessedStripeEvent,
     SponsorApplication,
     SponsorCell,
+    SponsorComplianceCheck,
     SponsorPayment,
     SponsorRoadmapItem,
 )
@@ -45,7 +46,6 @@ SPONSOR_TEST_SETTINGS = dict(
     SESSION_COOKIE_SECURE=False,
     CSRF_COOKIE_SECURE=False,
     EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
-    SPONSOR_COMPLIANCE_ALLOW_EMPTY_DATA=True,
 )
 
 
@@ -77,6 +77,10 @@ class SponsorFlowTests(TestCase):
             "logo_rights_confirmed": "on",
             "terms_accepted": "on",
             "approval_acknowledged": "on",
+            "sanctions_declaration_1": "on",
+            "sanctions_declaration_2": "on",
+            "sanctions_declaration_3": "on",
+            "sanctions_declaration_4": "on",
         }
 
     def create_pending_application(self, paid=False):
@@ -113,6 +117,12 @@ class SponsorFlowTests(TestCase):
             else SponsorCell.Status.PAYMENT_PENDING
         )
         self.cell.save(update_fields=["status"])
+        if paid:
+            SponsorComplianceCheck.objects.create(
+                application=application,
+                status=SponsorComplianceCheck.Status.MANUALLY_CLEARED,
+                checked_at=timezone.now(),
+            )
         return application
 
     def test_public_sponsor_page_displays_net_plus_vat_pricing(self):
@@ -315,7 +325,7 @@ class SponsorFlowTests(TestCase):
         self.assertEqual(price_data["product_data"]["tax_code"], "txcd_20060002")
         self.assertEqual(kwargs["automatic_tax"], {"enabled": True})
 
-    def test_successful_webhook_sets_paid_pending_approval_without_publishing_logo(self):
+    def test_successful_webhook_sets_paid_pending_compliance_review_without_publishing_logo(self):
         application = self.create_pending_application(paid=False)
         event = {
             "id": "evt_completed_1",
@@ -341,7 +351,7 @@ class SponsorFlowTests(TestCase):
         application.refresh_from_db()
         self.cell.refresh_from_db()
         payment = application.payment
-        self.assertEqual(application.status, SponsorApplication.Status.PAID_PENDING_APPROVAL)
+        self.assertEqual(application.status, SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW)
         self.assertEqual(self.cell.status, SponsorCell.Status.PAID_PENDING_APPROVAL)
         self.assertEqual(payment.status, SponsorPayment.Status.PAID)
         self.assertEqual(payment.vat_amount_cents, 575)
@@ -451,7 +461,7 @@ class SponsorFlowTests(TestCase):
         self.assertContains(response, "€5.75")
         self.assertContains(response, "€30.75")
         self.assertContains(response, "12-month term from approval/publication")
-        self.assertContains(response, "Paid pending approval")
+        self.assertContains(response, "Payment received pending compliance review")
 
     def test_central_checkout_success_hides_internal_ring_zero_label(self):
         self.cell.product_type = SponsorCell.ProductType.CENTRAL_MONTHLY
@@ -543,6 +553,11 @@ class SponsorApprovalTelegramTests(TestCase):
         )
         self.cell.status = SponsorCell.Status.PAID_PENDING_APPROVAL
         self.cell.save(update_fields=["status"])
+        SponsorComplianceCheck.objects.create(
+            application=application,
+            status=SponsorComplianceCheck.Status.MANUALLY_CLEARED,
+            checked_at=timezone.now(),
+        )
         return application
 
     @patch("newsfeed.telegram.send_telegram_photo_upload")
@@ -1172,7 +1187,7 @@ class SponsorPaymentNotificationTests(TestCase):
 
         application.refresh_from_db()
         self.cell.refresh_from_db()
-        self.assertEqual(application.status, SponsorApplication.Status.PAID_PENDING_APPROVAL)
+        self.assertEqual(application.status, SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW)
         self.assertEqual(self.cell.status, SponsorCell.Status.PAID_PENDING_APPROVAL)
         payment = application.payment
         self.assertEqual(payment.status, SponsorPayment.Status.PAID)
@@ -1260,6 +1275,10 @@ class SponsorPublicFormTests(TestCase):
             "logo_rights_confirmed": "on",
             "terms_accepted": "on",
             "approval_acknowledged": "on",
+            "sanctions_declaration_1": "on",
+            "sanctions_declaration_2": "on",
+            "sanctions_declaration_3": "on",
+            "sanctions_declaration_4": "on",
             "logo": png_upload(),
             "logo_offset_x": "0",
             "logo_offset_y": "0",

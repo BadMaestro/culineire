@@ -4,12 +4,12 @@ from django.utils.html import format_html
 from .models import (
     ProcessedStripeEvent,
     SponsorApplication,
+    SponsorApplicantDeclaration,
     SponsorAuditLog,
     SponsorCell,
     SponsorComplianceCheck,
     SponsorPayment,
     SponsorRoadmapItem,
-    SanctionsEntry,
 )
 
 
@@ -112,13 +112,6 @@ class SponsorApplicationAdmin(admin.ModelAdmin):
     ordering = ("-created_at",)
 
 
-@admin.register(SanctionsEntry)
-class SanctionsEntryAdmin(admin.ModelAdmin):
-    list_display = ("name", "source", "external_id", "country", "active", "updated_at")
-    list_filter = ("source", "active")
-    search_fields = ("name", "external_id", "country")
-
-
 @admin.register(SponsorComplianceCheck)
 class SponsorComplianceCheckAdmin(admin.ModelAdmin):
     list_display = ("application", "status", "matched_name", "matched_source", "reviewed_by", "created_at")
@@ -126,6 +119,14 @@ class SponsorComplianceCheckAdmin(admin.ModelAdmin):
     search_fields = ("application__sponsor_name", "matched_name", "staff_notes")
     readonly_fields = ("created_at", "updated_at")
     raw_id_fields = ("application", "reviewed_by")
+
+
+@admin.register(SponsorApplicantDeclaration)
+class SponsorApplicantDeclarationAdmin(admin.ModelAdmin):
+    list_display = ("sponsor_name", "applicant_email", "contact_person", "accepted_at", "stripe_session_id")
+    search_fields = ("sponsor_name", "applicant_email", "contact_person", "stripe_session_id")
+    readonly_fields = ("created_at",)
+    raw_id_fields = ("application",)
 
 
 @admin.register(SponsorPayment)

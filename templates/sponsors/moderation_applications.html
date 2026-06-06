@@ -42,10 +42,11 @@
                         <h2 class="moderation-card__title">
                             <a href="{% url 'sponsors:moderation_application_detail' application.pk %}">{{ application.sponsor_name }}</a>
                         </h2>
-                        <p class="moderation-card__note">{{ application.price_display }}{% if application.payment %} / payment {{ application.payment.get_status_display }}{% endif %}</p>
+                        <p class="moderation-card__note">{{ application.price_display }}{% if application.payment %} / Payment: {{ application.payment.get_status_display }}{% endif %}</p>
                         {% with check=application.compliance_checks.first %}
                         <p class="moderation-card__note">Compliance: {% if check %}{{ check.get_status_display }}{% else %}Not checked{% endif %}</p>
                         {% endwith %}
+                        <p class="moderation-card__note">Declaration: {% if application.applicant_declaration %}Accepted{% else %}Missing{% endif %}</p>
                     </div>
                     <div class="moderation-card__actions">
                         <a class="mod-btn mod-btn--view" href="{% url 'sponsors:moderation_application_detail' application.pk %}">Review</a>
