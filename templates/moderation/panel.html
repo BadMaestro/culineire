@@ -73,6 +73,10 @@
                     <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
                     Sanctions Source Status
                 </a>
+                <a class="mod-tool-link" href="{% url 'recipes:deployment_journal' %}">
+                    <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M5 4h14v16H5z"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h5"/></svg>
+                    Deployment Journal
+                </a>
                 {% if can_grant_bearseeker_privileges %}
                 <details class="mod-maintenance-details{% if maintenance_web_active %} mod-maintenance-details--active{% endif %}">
                     <summary class="mod-tool-link mod-maintenance-summary">

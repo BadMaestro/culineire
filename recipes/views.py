@@ -35,6 +35,7 @@ from accounts.views import (
 )
 from articles.models import Article, ArticleImage
 from collection.models import SavedArticle, SavedContent, SavedRecipe
+from config.release_journal import RELEASE_JOURNAL
 from config.turnstile import verify_turnstile
 from monitoring.tracker import get_client_ip, hash_ip, track_event
 from .allergens import build_present_allergen_items
@@ -2268,6 +2269,17 @@ def site_research_progress(request):
         request,
         "moderation/site_research_progress.html",
         {"research": _build_site_research_progress()},
+    )
+
+
+def deployment_journal(request):
+    if not is_moderator(request.user):
+        raise Http404
+
+    return render(
+        request,
+        "moderation/deployment_journal.html",
+        {"release_journal": RELEASE_JOURNAL},
     )
 
 

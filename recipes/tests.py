@@ -22,6 +22,7 @@ from PIL import Image
 
 from articles.models import Article, ArticleImage
 from collection.models import SavedRecipe
+from config.release_journal import RELEASE_JOURNAL
 from .admin import RecipeAdmin, RecipeAdminForm
 from .allergens import build_present_allergen_items, parse_selected_allergen_keys, serialize_allergen_keys
 from .forms import RecipeAuthoringForm, RecipeCommentForm
@@ -302,6 +303,46 @@ class ModerationPanelRoleTests(TestCase):
         response = self.client.get(reverse("recipes:automation_progress"))
 
         self.assertEqual(response.status_code, 404)
+
+    def test_deployment_journal_hidden_from_anonymous_users(self):
+        response = self.client.get(reverse("recipes:deployment_journal"))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_deployment_journal_hidden_from_non_moderator_users(self):
+        regular_user = get_user_model().objects.create_user(
+            username="regular-reader",
+            email="regular@example.com",
+            password="pass",
+        )
+        self.client.force_login(regular_user)
+
+        response = self.client.get(reverse("recipes:deployment_journal"))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_staff_user_can_view_deployment_journal(self):
+        staff_user = get_user_model().objects.create_user(
+            username="journal-staff",
+            email="journal-staff@example.com",
+            password="pass",
+            is_staff=True,
+        )
+        self.client.force_login(staff_user)
+
+        response = self.client.get(reverse("recipes:deployment_journal"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Deployment Journal")
+        self.assertEqual(response.context["release_journal"], RELEASE_JOURNAL)
+
+    def test_moderation_panel_links_to_deployment_journal(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse("recipes:moderation_panel"))
+
+        self.assertContains(response, "Deployment Journal")
+        self.assertContains(response, reverse("recipes:deployment_journal"))
 
     def test_panel_can_revoke_other_superuser_privileges(self):
         self.client.login(username="greenbear", password="pass")

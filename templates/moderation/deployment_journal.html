@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Deployment Journal | CulinEire{% endblock %}
+{% block meta_description %}Internal staff deployment and release journal.{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+<link href="{% static 'css/moderation.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="page-section moderation-page deployment-journal-page">
+    <div class="container moderation-shell">
+        <a class="mon-back-link" href="{% url 'recipes:moderation_panel' %}">Back to Moderation Panel</a>
+
+        <header class="dj-header">
+            <p class="automation-kicker">Staff Release Ledger</p>
+            <h1 class="automation-title">Deployment Journal</h1>
+            <p class="automation-summary">Internal read-only record of deployment notes, commit history, project owner smoke-test notes and production server output.</p>
+        </header>
+
+        <p class="dj-backfill-note">
+            Earlier release history and deployment statistics can be backfilled from Git history, project owner notes and server deployment records. Entries marked 'version pending backfill' are deployed work whose exact public site version still needs to be tied to the site version ledger.
+        </p>
+
+        <div class="dj-entries">
+            {% for entry in release_journal %}
+            <article class="dj-entry{% if forloop.first %} dj-entry--latest{% endif %}">
+                <div class="dj-entry__meta">
+                    <span class="moderation-badge moderation-badge--pending">{{ entry.deployment_status }}</span>
+                    <span>{{ entry.date }}</span>
+                    <span>{{ entry.version }}</span>
+                    <span>{{ entry.section }}</span>
+                    <span>commit {{ entry.commit }}</span>
+                </div>
+                <h2 class="dj-entry__title">{{ entry.title }}</h2>
+                <p class="dj-entry__summary">{{ entry.summary }}</p>
+
+                <div class="dj-entry__grid">
+                    <section>
+                        <h3>Checklist</h3>
+                        <ul class="dj-entry__checklist">
+                            {% for item in entry.checklist %}
+                            <li>{{ item }}</li>
+                            {% endfor %}
+                        </ul>
+                    </section>
+
+                    {% if entry.stats %}
+                    <section>
+                        <h3>Deployment Stats</h3>
+                        <ul class="dj-entry__stats">
+                            {% for stat in entry.stats %}
+                            <li>{{ stat }}</li>
+                            {% endfor %}
+                        </ul>
+                    </section>
+                    {% endif %}
+                </div>
+
+                {% if entry.notes %}
+                <p class="dj-entry__notes">{{ entry.notes }}</p>
+                {% endif %}
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
