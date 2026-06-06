@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, timezone as datetime_timezone
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from unittest.mock import patch
@@ -30,6 +30,38 @@ EU_XML = b"""<?xml version="1.0" encoding="UTF-8"?>
 """
 EU_CSV = b"""euReferenceNumber,wholeName,subjectType,countryDescription,birthdate,programme,regulationSummary
 EU.456,CSV Entity Ltd,entity,Ireland,,CSV regime,Asset freeze
+"""
+EU_RSS = b"""<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <item>
+      <title>XML (Based on XSD) - v1.1</title>
+      <link>https://webgate.ec.europa.eu/fsd/fsf/public/files/xmlFullSanctionsList_1_1/content?token=xml-token</link>
+      <guid>xml-guid</guid>
+      <pubDate>Sat, 06 Jun 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>CSV - v1.1</title>
+      <link>https://webgate.ec.europa.eu/fsd/fsf/public/files/csvFullSanctionsList_1_1/content?token=csv-token</link>
+      <guid>csv-guid</guid>
+      <pubDate>Sat, 06 Jun 2026 01:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>
+"""
+EU_RSS_CSV_ONLY = b"""<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <item>
+      <title>CSV - v1.1</title>
+      <enclosure url="https://webgate.ec.europa.eu/fsd/fsf/public/files/csvFullSanctionsList_1_1/content?token=csv-token" />
+      <pubDate>Sat, 06 Jun 2026 01:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>
+"""
+EU_RSS_MISSING_FILES = b"""<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel><item><title>Other file</title><link>https://example.test/other</link></item></channel></rss>
 """
 
 
@@ -89,22 +121,26 @@ class SanctionsSourceUpdateTests(TestCase):
         self.addCleanup(lambda: Path(temp_file.name).unlink(missing_ok=True))
         return temp_file.name
 
-    @patch("sponsors.sanctions_sources.urlopen", return_value=MockHTTPResponse(EU_XML))
+    @patch("sponsors.sanctions_sources.urlopen")
     def test_successful_eu_update_creates_snapshot_and_subject(self, _urlopen):
+        _urlopen.side_effect = [MockHTTPResponse(EU_RSS), MockHTTPResponse(EU_XML)]
+
         call_command("update_sanctions_sources", source="eu")
 
         snapshot = SanctionsSourceSnapshot.objects.get(source_code=SanctionsSourceSnapshot.SourceCode.EU_FSF)
         subject = SanctionsSubject.objects.get(source_snapshot=snapshot)
         self.assertEqual(snapshot.status, SanctionsSourceSnapshot.Status.SUCCESS)
         self.assertEqual(snapshot.record_count, 1)
+        self.assertEqual(snapshot.source_url, "https://webgate.ec.europa.eu/fsd/fsf/public/files/xmlFullSanctionsList_1_1/content?token=xml-token")
+        self.assertEqual(snapshot.source_last_modified_at, timezone.datetime(2026, 6, 6, 0, 0, tzinfo=datetime_timezone.utc))
         self.assertEqual(subject.primary_name, "Example Person")
         self.assertEqual(subject.normalised_name, "example person")
         self.assertIn("E Person", subject.aliases)
 
     @patch("sponsors.sanctions_sources.urlopen")
-    def test_eu_primary_403_tries_official_fallback_url(self, mock_urlopen):
+    def test_eu_rss_xml_url_is_used_to_download_sanctions_xml(self, mock_urlopen):
         mock_urlopen.side_effect = [
-            HTTPError("https://webgate.ec.europa.eu/europeaid/fsd/fsf/public/files/xmlFullSanctionsList_1_1/content", 403, "Forbidden", {}, None),
+            MockHTTPResponse(EU_RSS),
             MockHTTPResponse(EU_XML),
         ]
 
@@ -116,10 +152,10 @@ class SanctionsSourceUpdateTests(TestCase):
         self.assertEqual(mock_urlopen.call_count, 2)
 
     @patch("sponsors.sanctions_sources.urlopen")
-    def test_eu_csv_fallback_works_when_xml_unavailable(self, mock_urlopen):
+    def test_eu_rss_xml_download_failure_falls_back_to_csv(self, mock_urlopen):
         mock_urlopen.side_effect = [
-            HTTPError("https://webgate.ec.europa.eu/europeaid/fsd/fsf/public/files/xmlFullSanctionsList_1_1/content", 403, "Forbidden", {}, None),
-            HTTPError("https://webgate.ec.europa.eu/fsd/fsf/public/files/xmlFullSanctionsList_1_1/content", 403, "Forbidden", {}, None),
+            MockHTTPResponse(EU_RSS),
+            HTTPError("https://webgate.ec.europa.eu/fsd/fsf/public/files/xmlFullSanctionsList_1_1/content?token=xml-token", 403, "Forbidden", {}, None),
             MockHTTPResponse(EU_CSV, content_type="text/csv"),
         ]
 
@@ -128,8 +164,41 @@ class SanctionsSourceUpdateTests(TestCase):
         snapshot = SanctionsSourceSnapshot.objects.get(source_code=SanctionsSourceSnapshot.SourceCode.EU_FSF)
         subject = SanctionsSubject.objects.get(source_snapshot=snapshot)
         self.assertEqual(snapshot.file_format, "csv")
+        self.assertEqual(snapshot.source_url, "https://webgate.ec.europa.eu/fsd/fsf/public/files/csvFullSanctionsList_1_1/content?token=csv-token")
         self.assertEqual(subject.primary_name, "CSV Entity Ltd")
         self.assertEqual(subject.subject_type, SanctionsSubject.SubjectType.ENTITY)
+
+    @patch("sponsors.sanctions_sources.urlopen")
+    def test_eu_rss_csv_only_fallback_succeeds(self, mock_urlopen):
+        mock_urlopen.side_effect = [
+            MockHTTPResponse(EU_RSS_CSV_ONLY),
+            MockHTTPResponse(EU_CSV, content_type="text/csv"),
+        ]
+
+        call_command("update_sanctions_sources", source="eu")
+
+        snapshot = SanctionsSourceSnapshot.objects.get(source_code=SanctionsSourceSnapshot.SourceCode.EU_FSF)
+        self.assertEqual(snapshot.status, SanctionsSourceSnapshot.Status.SUCCESS)
+        self.assertEqual(snapshot.file_format, "csv")
+        self.assertEqual(snapshot.record_count, 1)
+
+    @patch("sponsors.sanctions_sources.urlopen", return_value=MockHTTPResponse(EU_RSS_MISSING_FILES))
+    def test_eu_rss_missing_xml_and_csv_records_clear_failure(self, _urlopen):
+        with self.assertRaises(CommandError):
+            call_command("update_sanctions_sources", source="eu")
+
+        snapshot = SanctionsSourceSnapshot.objects.get(source_code=SanctionsSourceSnapshot.SourceCode.EU_FSF)
+        self.assertEqual(snapshot.status, SanctionsSourceSnapshot.Status.FAILED)
+        self.assertIn("EU sanctions RSS did not contain", snapshot.error_message)
+
+    @patch("sponsors.sanctions_sources.urlopen", return_value=MockHTTPResponse(b"<html>Forbidden</html>", content_type="text/html"))
+    def test_eu_rss_html_error_response_is_rejected(self, _urlopen):
+        with self.assertRaises(CommandError):
+            call_command("update_sanctions_sources", source="eu")
+
+        snapshot = SanctionsSourceSnapshot.objects.get(source_code=SanctionsSourceSnapshot.SourceCode.EU_FSF)
+        self.assertEqual(snapshot.status, SanctionsSourceSnapshot.Status.FAILED)
+        self.assertIn("HTML error page", snapshot.error_message)
 
     def test_eu_xml_local_file_import_succeeds(self):
         file_path = self.write_temp_source_file(EU_XML, ".xml")
@@ -183,8 +252,14 @@ class SanctionsSourceUpdateTests(TestCase):
 
         self.assertFalse(SanctionsSourceSnapshot.objects.exists())
 
-    @patch("sponsors.sanctions_sources.urlopen", return_value=MockHTTPResponse(b"<html>Forbidden</html>", content_type="text/html"))
-    def test_html_error_response_is_recorded_as_failure(self, _urlopen):
+    @patch("sponsors.sanctions_sources.urlopen")
+    def test_downloaded_html_error_response_is_recorded_as_failure(self, mock_urlopen):
+        mock_urlopen.side_effect = [
+            MockHTTPResponse(EU_RSS),
+            MockHTTPResponse(b"<html>Forbidden</html>", content_type="text/html"),
+            HTTPError("https://webgate.ec.europa.eu/fsd/fsf/public/files/csvFullSanctionsList_1_1/content?token=csv-token", 403, "Forbidden", {}, None),
+        ]
+
         with self.assertRaises(Exception):
             call_command("update_sanctions_sources", source="eu")
 
@@ -206,8 +281,6 @@ class SanctionsSourceUpdateTests(TestCase):
     def test_allow_partial_succeeds_when_eu_fails_and_un_succeeds(self, mock_urlopen):
         mock_urlopen.side_effect = [
             OSError("eu down"),
-            OSError("eu fallback down"),
-            OSError("eu csv down"),
             MockHTTPResponse(UN_XML),
         ]
 
@@ -239,8 +312,15 @@ class SanctionsSourceUpdateTests(TestCase):
         self.assertTrue(SanctionsSourceSnapshot.objects.filter(pk=successful.pk).exists())
         self.assertTrue(SanctionsSourceSnapshot.objects.filter(status=SanctionsSourceSnapshot.Status.FAILED).exists())
 
-    @patch("sponsors.sanctions_sources.urlopen", return_value=MockHTTPResponse(EU_XML))
+    @patch("sponsors.sanctions_sources.urlopen")
     def test_same_sha_without_force_records_skipped_not_modified(self, _urlopen):
+        _urlopen.side_effect = [
+            MockHTTPResponse(EU_RSS),
+            MockHTTPResponse(EU_XML),
+            MockHTTPResponse(EU_RSS),
+            MockHTTPResponse(EU_XML),
+        ]
+
         call_command("update_sanctions_sources", source="eu")
         call_command("update_sanctions_sources", source="eu")
 

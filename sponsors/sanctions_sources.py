@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import csv
 import io
+import os
 import re
 import unicodedata
 from dataclasses import dataclass
@@ -25,11 +26,8 @@ OFFICIAL_SOURCES = {
     "eu": {
         "source_code": SanctionsSourceSnapshot.SourceCode.EU_FSF,
         "source_name": "EU Financial Sanctions Files",
-        "source_url": "https://webgate.ec.europa.eu/europeaid/fsd/fsf/public/files/xmlFullSanctionsList_1_1/content",
-        "fallback_urls": [
-            "https://webgate.ec.europa.eu/fsd/fsf/public/files/xmlFullSanctionsList_1_1/content",
-            "https://webgate.ec.europa.eu/europeaid/fsd/fsf/public/files/csvFullSanctionsList/content",
-        ],
+        "source_url": "https://webgate.ec.europa.eu/fsd/fsf/public/rss",
+        "rss_url": "https://webgate.ec.europa.eu/fsd/fsf/public/rss",
     },
     "un": {
         "source_code": SanctionsSourceSnapshot.SourceCode.UN_SC_CONSOLIDATED,
@@ -37,6 +35,8 @@ OFFICIAL_SOURCES = {
         "source_url": "https://scsanctions.un.org/resources/xml/en/consolidated.xml",
     },
 }
+EU_RSS_XML_TITLE = "XML (Based on XSD) - v1.1"
+EU_RSS_CSV_TITLE = "CSV - v1.1"
 REQUEST_HEADERS = {
     "User-Agent": "CulinEire Compliance Source Updater",
     "Accept": "application/xml,text/xml,text/csv,application/octet-stream,*/*",
@@ -102,6 +102,17 @@ def sanctions_sources_unavailable_or_stale() -> bool:
 def _text(element, path: str) -> str:
     found = element.find(path)
     return (found.text or "").strip() if found is not None and found.text else ""
+
+
+def _local_name(element) -> str:
+    return element.tag.split("}")[-1]
+
+
+def _child_text(element, local_name: str) -> str:
+    for child in element:
+        if _local_name(child).lower() == local_name.lower() and child.text:
+            return child.text.strip()
+    return ""
 
 
 def _all_text(element, local_name: str) -> list[str]:
@@ -247,27 +258,109 @@ def _header_datetime(headers, name: str):
         return None
 
 
-def fetch_source(source_key: str, *, timeout: int) -> tuple[bytes, dict]:
-    config = OFFICIAL_SOURCES[source_key]
-    urls = [config["source_url"], *config.get("fallback_urls", [])]
+def download_url(url: str, *, timeout: int) -> tuple[bytes, dict]:
+    request = Request(url, headers=REQUEST_HEADERS)
+    with urlopen(request, timeout=timeout) as response:
+        payload = response.read()
+        content_type = response.headers.get("Content-Type", "")
+        file_format = detect_format(payload, content_type)
+        return payload, {
+            "etag": response.headers.get("ETag", ""),
+            "last_modified": _header_datetime(response.headers, "Last-Modified"),
+            "source_url": url,
+            "file_format": file_format,
+        }
+
+
+def _extract_rss_item_url(item) -> str:
+    link = _child_text(item, "link")
+    if link:
+        return link
+    for child in item:
+        if _local_name(child).lower() == "enclosure":
+            url = child.attrib.get("url", "").strip()
+            if url:
+                return url
+    return ""
+
+
+def parse_eu_rss(payload: bytes) -> dict[str, dict]:
+    if _looks_like_html(payload):
+        raise ValueError("Downloaded EU sanctions RSS appears to be an HTML error page.")
+    root = ElementTree.fromstring(payload)
+    items = {}
+    for item in [node for node in root.iter() if _local_name(node).lower() == "item"]:
+        title = _child_text(item, "title")
+        if title not in {EU_RSS_XML_TITLE, EU_RSS_CSV_TITLE}:
+            continue
+        source_url = _extract_rss_item_url(item)
+        if not source_url:
+            continue
+        items[title] = {
+            "source_url": source_url,
+            "pub_date": _parse_http_datetime(_child_text(item, "pubDate")),
+            "guid": _child_text(item, "guid"),
+        }
+    return items
+
+
+def _parse_http_datetime(value: str):
+    if not value:
+        return None
+    try:
+        parsed = parsedate_to_datetime(value)
+        return parsed if timezone.is_aware(parsed) else timezone.make_aware(parsed)
+    except (TypeError, ValueError):
+        return None
+
+
+def _download_candidate_urls(candidates: list[dict], *, timeout: int) -> tuple[bytes, dict]:
     errors = []
-    for url in urls:
-        request = Request(url, headers=REQUEST_HEADERS)
+    for candidate in candidates:
+        url = candidate["source_url"]
         try:
-            with urlopen(request, timeout=timeout) as response:
-                payload = response.read()
-                content_type = response.headers.get("Content-Type", "")
-                file_format = detect_format(payload, content_type)
-                return payload, {
-                    "etag": response.headers.get("ETag", ""),
-                    "last_modified": _header_datetime(response.headers, "Last-Modified"),
-                    "source_url": url,
-                    "file_format": file_format,
-                }
+            payload, metadata = download_url(url, timeout=timeout)
+            expected_format = candidate.get("file_format")
+            if expected_format and metadata["file_format"] != expected_format:
+                raise ValueError(f"Expected {expected_format} sanctions source but got {metadata['file_format']}.")
+            if candidate.get("pub_date"):
+                metadata["last_modified"] = candidate["pub_date"]
+            if candidate.get("guid") and not metadata.get("etag"):
+                metadata["etag"] = candidate["guid"]
+            return payload, metadata
         except (HTTPError, URLError, TimeoutError, OSError, ValueError) as exc:
             errors.append(f"{url}: {exc}")
             continue
     raise URLError("; ".join(errors))
+
+
+def fetch_eu_source(*, timeout: int) -> tuple[bytes, dict]:
+    candidates = []
+    xml_override = os.environ.get("EU_SANCTIONS_XML_URL")
+    csv_override = os.environ.get("EU_SANCTIONS_CSV_URL")
+    if xml_override:
+        candidates.append({"source_url": xml_override, "file_format": "xml"})
+    if csv_override:
+        candidates.append({"source_url": csv_override, "file_format": "csv"})
+    if candidates:
+        return _download_candidate_urls(candidates, timeout=timeout)
+
+    rss_url = OFFICIAL_SOURCES["eu"]["rss_url"]
+    rss_payload, _metadata = download_url(rss_url, timeout=timeout)
+    rss_items = parse_eu_rss(rss_payload)
+    if EU_RSS_XML_TITLE in rss_items:
+        candidates.append({**rss_items[EU_RSS_XML_TITLE], "file_format": "xml"})
+    if EU_RSS_CSV_TITLE in rss_items:
+        candidates.append({**rss_items[EU_RSS_CSV_TITLE], "file_format": "csv"})
+    if not candidates:
+        raise URLError("EU sanctions RSS did not contain XML (Based on XSD) - v1.1 or CSV - v1.1 download URLs.")
+    return _download_candidate_urls(candidates, timeout=timeout)
+
+
+def fetch_source(source_key: str, *, timeout: int) -> tuple[bytes, dict]:
+    if source_key == "eu":
+        return fetch_eu_source(timeout=timeout)
+    return download_url(OFFICIAL_SOURCES[source_key]["source_url"], timeout=timeout)
 
 
 def fetch_source_file(file_path: str | Path) -> tuple[bytes, dict]:
