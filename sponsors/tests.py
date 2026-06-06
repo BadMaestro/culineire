@@ -501,8 +501,20 @@ class SponsorFlowTests(TestCase):
         application.refresh_from_db()
         self.cell.refresh_from_db()
         self.assertEqual(application.status, SponsorApplication.Status.REFUND_REQUIRED)
-        self.assertEqual(self.cell.status, SponsorCell.Status.REJECTED)
+        self.assertEqual(self.cell.status, SponsorCell.Status.PAID_PENDING_APPROVAL)
         self.assertFalse(bool(self.cell.sponsor_logo))
+
+    def test_paid_rejection_requires_staff_note_for_manual_refund_tracking(self):
+        user = get_user_model().objects.create_user("admin", password="pass", is_staff=True)
+        application = self.create_pending_application(paid=True)
+
+        with self.assertRaisesMessage(ValueError, "staff note"):
+            reject_application(application.pk, user, "")
+
+        application.refresh_from_db()
+        self.cell.refresh_from_db()
+        self.assertEqual(application.status, SponsorApplication.Status.PAID_PENDING_APPROVAL)
+        self.assertEqual(self.cell.status, SponsorCell.Status.PAID_PENDING_APPROVAL)
 
     def test_refund_completed_releases_cell(self):
         user = get_user_model().objects.create_user("admin", password="pass", is_staff=True)
@@ -1007,10 +1019,10 @@ class SponsorWebhookHardeningTests(TestCase):
         application.refresh_from_db()
         self.cell.refresh_from_db()
         payment.refresh_from_db()
-        # Partial refund — application must stay refund_required, cell must stay rejected.
+        # Partial refund keeps refund_required and keeps the paid placement reserved.
         self.assertEqual(application.status, SponsorApplication.Status.REFUND_REQUIRED)
         self.assertEqual(payment.status, SponsorPayment.Status.PARTIALLY_REFUNDED)
-        self.assertEqual(self.cell.status, SponsorCell.Status.REJECTED)
+        self.assertEqual(self.cell.status, SponsorCell.Status.PAID_PENDING_APPROVAL)
 
 
 @override_settings(**SPONSOR_TEST_SETTINGS)
@@ -1089,6 +1101,12 @@ class SponsorModerationTransitionTests(TestCase):
         result = mark_refund_completed(application.pk, self.user, "test refund")
 
         self.assertEqual(result.status, SponsorApplication.Status.REFUNDED)
+
+    def test_mark_refund_completed_requires_staff_note(self):
+        application = self._make_application(SponsorApplication.Status.REFUND_REQUIRED, paid=True)
+
+        with self.assertRaisesMessage(ValueError, "staff note"):
+            mark_refund_completed(application.pk, self.user, "")
 
 
 @override_settings(**SPONSOR_TEST_SETTINGS, SPONSOR_ADMIN_EMAIL="admin@example.com")

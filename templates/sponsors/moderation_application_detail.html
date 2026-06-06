@@ -23,6 +23,8 @@
                     <span class="spon-review-header__sep">&middot;</span>
                     <span class="spon-review-header__detail">{{ application.get_product_type_display }} &middot; {% if application.cell.is_centre %}central cell{% else %}Ring {{ application.cell.ring }}, cell #{{ application.cell.cell_number }}{% endif %}</span>
                     <span class="spon-review-header__sep">&middot;</span>
+                    <span class="spon-review-header__detail">Cell: {{ application.cell.get_status_display }}</span>
+                    <span class="spon-review-header__sep">&middot;</span>
                     <span class="spon-review-header__detail">{{ application.price_display }}</span>
                 </p>
             </div>
@@ -38,6 +40,26 @@
             <h2 class="moderation-block__title">Official Sanctions Source Warning</h2>
             <p class="moderation-card__note">Official sanctions source data is stale or unavailable. Manual compliance approval should not proceed until sources are updated.</p>
             <a class="mod-btn mod-btn--view" href="{% url 'sponsors:sanctions_source_status' %}">View source status</a>
+        </section>
+        {% endif %}
+
+        {% if approval_block_reason %}
+        <section class="research-panel">
+            <h2 class="moderation-block__title">Approval Blocked</h2>
+            <p class="moderation-card__note">{{ approval_block_reason }}</p>
+            {% if unresolved_match_count %}
+            <p class="moderation-card__note">{{ unresolved_match_count }} possible sanctions match(es) still require staff review.</p>
+            {% endif %}
+            {% if blocked_match_count %}
+            <p class="moderation-card__note">{{ blocked_match_count }} sanctions match decision is blocked for compliance. Leave on hold, request changes if appropriate, or reject and mark refund required.</p>
+            {% endif %}
+        </section>
+        {% endif %}
+
+        {% if application.status == "refund_required" %}
+        <section class="research-panel">
+            <h2 class="moderation-block__title">Manual Refund Required</h2>
+            <p class="moderation-card__note">This paid sponsor application is rejected/blocked from publication and requires manual refund tracking. The sponsor cell remains reserved until staff marks the refund completed.</p>
         </section>
         {% endif %}
 
@@ -82,6 +104,7 @@
                 <div><dt>Applicant declaration</dt><dd>{% if application.applicant_declaration %}Accepted {{ application.applicant_declaration.accepted_at|date:"j M Y H:i" }}{% else %}Missing{% endif %}</dd></div>
                 <div><dt>Payment status</dt><dd>{% if payment %}{{ payment.get_status_display }}{% else %}No payment record{% endif %}</dd></div>
                 <div><dt>Status</dt><dd>{% if compliance_check %}{{ compliance_check.get_status_display }}{% else %}Not checked{% endif %}</dd></div>
+                <div><dt>Cell state</dt><dd>{{ application.cell.get_status_display }}</dd></div>
                 <div><dt>Checked</dt><dd>{% if compliance_check %}{{ compliance_check.checked_at|date:"j M Y H:i"|default:"-" }}{% else %}-{% endif %}</dd></div>
                 <div><dt>Summary</dt><dd>{% if compliance_check %}{{ compliance_check.source_summary|default:"-" }}{% else %}-{% endif %}</dd></div>
                 <div><dt>Staff note</dt><dd>{% if compliance_check %}{{ compliance_check.staff_notes|default:"-" }}{% else %}-{% endif %}</dd></div>
@@ -89,6 +112,9 @@
             <p class="moderation-card__note">Detailed screening information is internal and must not be presented to the applicant as a finding of wrongdoing.</p>
             {% if unresolved_match_count %}
             <p class="moderation-card__note">This sponsor application has unresolved possible sanctions matches and cannot be approved until compliance review is completed.</p>
+            {% endif %}
+            {% if is_compliance_blocked %}
+            <p class="moderation-card__note">Compliance is blocked. Approve and publish is unavailable until the block is resolved; staff may request changes, leave the application on hold, or reject and track a manual refund.</p>
             {% endif %}
             <form method="post" style="margin-top:0.65rem;">
                 {% csrf_token %}
@@ -140,7 +166,7 @@
             <h2 class="moderation-block__title">Actions</h2>
             <form class="moderation-contact__form" method="post" style="position:static;box-shadow:none;max-width:none;">
                 {% csrf_token %}
-                <textarea name="note" rows="3" placeholder="Staff note or reason. Required when requesting changes."></textarea>
+                <textarea name="note" rows="3" placeholder="Staff note or reason. Required for changes, compliance block, refund required and refund completed."></textarea>
                 <div class="moderation-card__actions">
                     {% if can_manual_clear %}
                     <button class="mod-btn mod-btn--approve" name="action" type="submit" value="compliance_manual_clear">Mark manually reviewed and clear</button>
@@ -173,6 +199,12 @@
                     <button class="mod-btn mod-btn--block" name="action" type="submit" value="expire">Expire sponsorship</button>
                     {% endif %}
                 </div>
+                {% if approval_block_reason %}
+                <p class="moderation-card__note">{{ approval_block_reason }}</p>
+                {% endif %}
+                {% if can_mark_refunded %}
+                <p class="moderation-card__note">Use only after the refund has been completed outside CulinEire. This records manual refund completion and releases the sponsor cell.</p>
+                {% endif %}
                 {% if not can_approve and not can_request_changes and not can_ready_for_review and not can_reject_paid and not can_mark_refunded and not can_unpublish and not can_expire %}
                 <p class="moderation-card__note">No moderation actions are currently available for this status.</p>
                 {% endif %}

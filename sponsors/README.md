@@ -47,3 +47,37 @@ Useful options:
 Staff can review possible matches from the sponsor moderation detail page and mark each match as false positive, manually cleared or blocked for compliance. Each decision requires a staff note and is written to the sponsor audit log.
 
 Left out for later phases: full fuzzy matching libraries, external API calls, automatic legal rejection, refund automation, public match display, beneficial ownership collection, full AML/KYC and scheduled rescreening of all active sponsors.
+
+## Sponsors Compliance Phase 4
+
+Phase 4 hardens the staff enforcement path after a sponsor has paid but cannot yet be approved.
+
+Approval and publication remain blocked while sanctions compliance is unresolved or blocked. This includes unresolved possible matches, blocked match decisions and blocked compliance checks. Staff see the explicit message: "This sponsor application cannot be approved while sanctions compliance review is unresolved or blocked."
+
+Staff next steps for a paid application on compliance hold are manual:
+
+- request changes or more information, keeping the paid cell reserved
+- mark a possible match false positive or manually cleared with a required staff note
+- block for compliance with a required staff note
+- reject and mark refund required with a required staff note
+- mark refund completed manually with a required staff note
+
+Refund tracking is manual in this phase. CulinEire records "Refund required" and "Refund completed manually", updates payment/application status, writes audit log entries and releases the sponsor cell only after staff mark the refund completed. Phase 4 does not call the Stripe refund API.
+
+Sponsor cell rules:
+
+- payment pending and paid compliance review keep the selected cell reserved/unavailable
+- changes requested after payment keeps the selected cell reserved
+- blocked compliance without a terminal decision keeps the selected cell reserved
+- approved/published sets the cell active
+- refund required keeps the cell reserved until refund completion
+- refund completed releases the cell back to available and clears public sponsor fields
+- unpaid rejection releases the cell back to available
+- expiry keeps the existing expired-cell design
+- unpublish keeps the existing unavailable-cell design and removes the public active benefit
+
+The sponsor moderation attention badge includes paid compliance review, paid approval, changes requested, refund required, unresolved possible sanctions matches and blocked compliance applications that still need staff action.
+
+Cleanup commands continue to protect paid/refund/compliance states. Deleting a safe sandbox sponsor application cascades its SponsorSanctionsMatch rows, but official SanctionsSourceSnapshot and SanctionsSubject records are not deleted by sponsor application cleanup.
+
+Left out for later phases: automatic Stripe refunds, applicant-facing legal copy overhaul, full AML/KYC, beneficial ownership collection, scheduled re-screening and live Stripe switch.

@@ -572,6 +572,9 @@ def _handle_charge_refunded(charge) -> SponsorApplication | None:
             metadata={"refunded_amount_cents": refunded_amount, "stripe_payment_intent_id": payment_intent_id},
         )
     else:
+        if application.status == SponsorApplication.Status.REFUND_REQUIRED and not is_full_refund:
+            cell.status = SponsorCell.Status.PAID_PENDING_APPROVAL
+            cell.save(update_fields=["status", "updated_at"])
         record_audit(
             action=SponsorAuditLog.Action.REFUND_COMPLETED,
             application=application,
@@ -592,6 +595,7 @@ def add_one_year(value):
 
 
 def approve_application(application_id: int, actor) -> SponsorApplication:
+    blocked_message = "This sponsor application cannot be approved while sanctions compliance review is unresolved or blocked."
     preflight_application = SponsorApplication.objects.filter(pk=application_id).first()
     if preflight_application:
         from .sanctions_matching import has_blocked_sanctions_match, has_unresolved_sanctions_matches
@@ -602,7 +606,9 @@ def approve_application(application_id: int, actor) -> SponsorApplication:
                 actor=actor,
                 notes="Approval blocked due to unresolved possible sanctions matches.",
             )
-            raise ValueError("This sponsor application has unresolved possible sanctions matches and cannot be approved until compliance review is completed.")
+            raise ValueError(
+                f"{blocked_message} unresolved possible sanctions matches must be reviewed first."
+            )
         if has_blocked_sanctions_match(preflight_application):
             record_audit(
                 action=SponsorAuditLog.Action.APPROVAL_BLOCKED_SANCTIONS,
@@ -610,7 +616,9 @@ def approve_application(application_id: int, actor) -> SponsorApplication:
                 actor=actor,
                 notes="Approval blocked due to a blocked sanctions match decision.",
             )
-            raise ValueError("This sponsor application is blocked for compliance and cannot be approved.")
+            raise ValueError(
+                f"{blocked_message} This application is blocked for compliance."
+            )
     with transaction.atomic():
         application = (
             SponsorApplication.objects.select_for_update()
@@ -631,7 +639,9 @@ def approve_application(application_id: int, actor) -> SponsorApplication:
                     actor=actor,
                     notes="Approval blocked due to unresolved possible sanctions matches.",
                 )
-                raise ValueError("This sponsor application has unresolved possible sanctions matches and cannot be approved until compliance review is completed.")
+                raise ValueError(
+                    f"{blocked_message} unresolved possible sanctions matches must be reviewed first."
+                )
             if has_blocked_sanctions_match(application):
                 record_audit(
                     action=SponsorAuditLog.Action.APPROVAL_BLOCKED_SANCTIONS,
@@ -639,8 +649,12 @@ def approve_application(application_id: int, actor) -> SponsorApplication:
                     actor=actor,
                     notes="Approval blocked due to a blocked sanctions match decision.",
                 )
-                raise ValueError("This sponsor application is blocked for compliance and cannot be approved.")
-            raise ValueError("Compliance must be clear or manually cleared before approval and publication.")
+                raise ValueError(
+                    f"{blocked_message} This application is blocked for compliance."
+                )
+            raise ValueError(
+                f"{blocked_message} Compliance must be clear or manually cleared before approval and publication."
+            )
         cell = SponsorCell.objects.select_for_update().get(pk=application.cell_id)
         now = timezone.now()
         from_status = application.status
@@ -722,8 +736,11 @@ def request_application_changes(application_id: int, actor, notes: str) -> Spons
         raise ValueError("A note explaining the requested changes is required.")
     with transaction.atomic():
         application = SponsorApplication.objects.select_for_update().select_related("cell").get(pk=application_id)
-        if application.status != SponsorApplication.Status.PAID_PENDING_APPROVAL:
-            raise ValueError("Changes can only be requested for paid applications pending approval.")
+        if application.status not in {
+            SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW,
+            SponsorApplication.Status.PAID_PENDING_APPROVAL,
+        }:
+            raise ValueError("Changes can only be requested for paid applications pending approval or pending compliance review.")
         cell = SponsorCell.objects.select_for_update().get(pk=application.cell_id)
         from_status = application.status
         application.status = SponsorApplication.Status.CHANGES_REQUESTED
@@ -765,6 +782,7 @@ def mark_application_ready_for_review(application_id: int, actor, notes: str = "
 
 
 def reject_application(application_id: int, actor, reason: str = "") -> SponsorApplication:
+    reason = (reason or "").strip()
     with transaction.atomic():
         application = (
             SponsorApplication.objects.select_for_update()
@@ -787,19 +805,22 @@ def reject_application(application_id: int, actor, reason: str = "") -> SponsorA
         cell = SponsorCell.objects.select_for_update().get(pk=application.cell_id)
         payment = getattr(application, "payment", None)
         from_status = application.status
+        requires_refund = payment and payment.status == SponsorPayment.Status.PAID
+        if requires_refund and not reason:
+            raise ValueError("A staff note is required to mark a paid sponsor application refund required.")
 
         application.rejected_by = actor
         application.rejected_at = timezone.now()
         application.rejection_reason = reason
         application.status = (
             SponsorApplication.Status.REFUND_REQUIRED
-            if payment and payment.status == SponsorPayment.Status.PAID
+            if requires_refund
             else SponsorApplication.Status.REJECTED
         )
         application.save()
 
         cell.status = (
-            SponsorCell.Status.REJECTED
+            SponsorCell.Status.PAID_PENDING_APPROVAL
             if application.status == SponsorApplication.Status.REFUND_REQUIRED
             else SponsorCell.Status.AVAILABLE
         )
@@ -815,11 +836,18 @@ def reject_application(application_id: int, actor, reason: str = "") -> SponsorA
             from_status=from_status,
             to_status=application.status,
             notes=reason,
+            metadata={
+                "cell_status": cell.status,
+                "manual_refund_tracking": application.status == SponsorApplication.Status.REFUND_REQUIRED,
+            },
         )
         return application
 
 
 def mark_refund_completed(application_id: int, actor, notes: str = "") -> SponsorApplication:
+    notes = (notes or "").strip()
+    if not notes:
+        raise ValueError("A staff note is required to mark a sponsor refund completed manually.")
     with transaction.atomic():
         application = (
             SponsorApplication.objects.select_for_update()
@@ -855,6 +883,7 @@ def mark_refund_completed(application_id: int, actor, notes: str = "") -> Sponso
             from_status=from_status,
             to_status=application.status,
             notes=notes,
+            metadata={"cell_released": True, "manual_refund_tracking": True},
         )
         return application
 

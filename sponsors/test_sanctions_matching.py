@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from .attention import get_sponsor_moderation_attention_count
+from .cleanup import delete_application_records
 from .models import (
     SanctionsSourceSnapshot,
     SanctionsSubject,
@@ -19,7 +20,7 @@ from .models import (
     SponsorSanctionsMatch,
 )
 from .sanctions_matching import review_sanctions_match, screen_sponsor_application
-from .services import approve_application, handle_stripe_event
+from .services import approve_application, handle_stripe_event, reject_application, request_application_changes
 from .tests import SPONSOR_TEST_SETTINGS, png_upload
 
 
@@ -177,6 +178,35 @@ class SponsorSanctionsMatchingTests(TestCase):
         with self.assertRaisesMessage(ValueError, "blocked for compliance"):
             approve_application(application.pk, self.staff)
 
+    def test_blocked_match_creates_audit_and_can_move_to_refund_required(self):
+        application = self.application("Example Holdings Ltd")
+        screen_sponsor_application(application)
+        match = SponsorSanctionsMatch.objects.get(application=application)
+
+        review_sanctions_match(match, status=SponsorSanctionsMatch.Status.BLOCKED, actor=self.staff, note="Confirmed concern.")
+        reject_application(application.pk, self.staff, "Cannot publish after compliance block.")
+
+        application.refresh_from_db()
+        self.cell.refresh_from_db()
+        self.assertEqual(match.reviewed_by, self.staff)
+        self.assertIsNotNone(match.reviewed_at)
+        self.assertEqual(application.status, SponsorApplication.Status.REFUND_REQUIRED)
+        self.assertEqual(self.cell.status, SponsorCell.Status.PAID_PENDING_APPROVAL)
+        self.assertTrue(SponsorAuditLog.objects.filter(application=application, action=SponsorAuditLog.Action.SANCTIONS_MATCH_BLOCKED).exists())
+        self.assertTrue(SponsorAuditLog.objects.filter(application=application, action=SponsorAuditLog.Action.REFUND_REQUIRED).exists())
+
+    def test_request_changes_allowed_from_compliance_hold_and_keeps_cell_reserved(self):
+        application = self.application("Friendly Bakery")
+        self.cell.status = SponsorCell.Status.PAID_PENDING_APPROVAL
+        self.cell.save(update_fields=["status"])
+
+        request_application_changes(application.pk, self.staff, "Please clarify ownership details.")
+
+        application.refresh_from_db()
+        self.cell.refresh_from_db()
+        self.assertEqual(application.status, SponsorApplication.Status.CHANGES_REQUESTED)
+        self.assertEqual(self.cell.status, SponsorCell.Status.PAID_PENDING_APPROVAL)
+
     def test_staff_note_required_for_review_decision(self):
         application = self.application("Example Holdings Ltd")
         screen_sponsor_application(application)
@@ -214,6 +244,25 @@ class SponsorSanctionsMatchingTests(TestCase):
         screen_sponsor_application(application)
 
         self.assertEqual(get_sponsor_moderation_attention_count(), 1)
+
+    def test_admin_attention_count_includes_blocked_compliance_hold(self):
+        application = self.application("Example Holdings Ltd", status=SponsorApplication.Status.PAYMENT_PENDING)
+        screen_sponsor_application(application)
+        match = SponsorSanctionsMatch.objects.get(application=application)
+        review_sanctions_match(match, status=SponsorSanctionsMatch.Status.BLOCKED, actor=self.staff, note="Confirmed concern.")
+
+        self.assertEqual(get_sponsor_moderation_attention_count(), 1)
+
+    def test_cleanup_deleted_application_cascades_matches_but_keeps_official_sources(self):
+        application = self.application("Example Holdings Ltd", status=SponsorApplication.Status.PAYMENT_PENDING)
+        screen_sponsor_application(application)
+        self.assertEqual(SponsorSanctionsMatch.objects.filter(application=application).count(), 1)
+
+        delete_application_records(application, force_cell_reset=True)
+
+        self.assertFalse(SponsorSanctionsMatch.objects.exists())
+        self.assertEqual(SanctionsSourceSnapshot.objects.count(), 2)
+        self.assertEqual(SanctionsSubject.objects.count(), 2)
 
     def test_payment_success_triggers_screening_and_does_not_publish(self):
         application = SponsorApplication.objects.create(

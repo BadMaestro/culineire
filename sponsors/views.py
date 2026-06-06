@@ -490,12 +490,28 @@ def moderation_application_detail(request, application_id):
     compliance_check = latest_compliance_check(application)
     sanctions_matches = application.sanctions_matches.select_related("subject", "source_snapshot", "reviewed_by").order_by("-match_score", "-created_at")
     unresolved_match_count = unresolved_sanctions_matches(application).count()
+    blocked_match_count = application.sanctions_matches.filter(match_status=SponsorSanctionsMatch.Status.BLOCKED).count()
+    is_compliance_blocked = (
+        (compliance_check and compliance_check.status == SponsorComplianceCheck.Status.BLOCKED)
+        or blocked_match_count > 0
+    )
+    approval_block_reason = ""
+    if application.status in {
+        SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW,
+        SponsorApplication.Status.PAID_PENDING_APPROVAL,
+    } and not compliance_allows_progress(application):
+        approval_block_reason = (
+            "This sponsor application cannot be approved while sanctions compliance review is unresolved or blocked."
+        )
     action_flags = {
         "can_approve": application.status in {
             SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW,
             SponsorApplication.Status.PAID_PENDING_APPROVAL,
         } and compliance_allows_progress(application) and unresolved_match_count == 0,
-        "can_request_changes": application.status == SponsorApplication.Status.PAID_PENDING_APPROVAL,
+        "can_request_changes": application.status in {
+            SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW,
+            SponsorApplication.Status.PAID_PENDING_APPROVAL,
+        },
         "can_ready_for_review": application.status == SponsorApplication.Status.CHANGES_REQUESTED,
         "can_reject_paid": application.status in {
             SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW,
@@ -519,6 +535,9 @@ def moderation_application_detail(request, application_id):
             "compliance_check": compliance_check,
             "sanctions_matches": sanctions_matches,
             "unresolved_match_count": unresolved_match_count,
+            "blocked_match_count": blocked_match_count,
+            "is_compliance_blocked": is_compliance_blocked,
+            "approval_block_reason": approval_block_reason,
             "audit_logs": audit_logs,
             **action_flags,
         },

@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 
 from sponsors.cleanup import assess_safe_unpaid_deletion, delete_application_records
-from sponsors.models import SponsorApplication
+from sponsors.models import SponsorApplication, SponsorSanctionsMatch
 
 
 class Command(BaseCommand):
@@ -44,7 +44,9 @@ class Command(BaseCommand):
                 refused = True
                 continue
             eligible.append(application)
+            match_count = SponsorSanctionsMatch.objects.filter(application=application).count()
             self.stdout.write(f"ELIGIBLE application #{application_id}: {application.sponsor_name} [{application.status}]")
+            self.stdout.write(f"  Sponsor sanctions matches to delete by cascade: {match_count}")
 
         if not options["confirm"]:
             self.stdout.write("Dry run only. Re-run with --confirm to delete eligible applications.")

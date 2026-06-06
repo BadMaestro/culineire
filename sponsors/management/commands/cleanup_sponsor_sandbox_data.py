@@ -2,7 +2,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
 from sponsors.cleanup import delete_application_records
-from sponsors.models import ProcessedStripeEvent, SponsorApplication, SponsorAuditLog
+from sponsors.models import ProcessedStripeEvent, SponsorApplication, SponsorAuditLog, SponsorSanctionsMatch
 
 
 class Command(BaseCommand):
@@ -21,7 +21,10 @@ class Command(BaseCommand):
             raise CommandError("Use either --dry-run or --confirm, not both.")
 
         applications = list(SponsorApplication.objects.select_related("cell").order_by("pk"))
+        application_ids = [application.pk for application in applications]
+        match_count = SponsorSanctionsMatch.objects.filter(application_id__in=application_ids).count()
         self.stdout.write(f"Sandbox sponsor applications found: {len(applications)}")
+        self.stdout.write(f"Sponsor sanctions matches to delete by cascade: {match_count}")
         for application in applications:
             self.stdout.write(
                 f"  application #{application.pk}: {application.sponsor_name} "
