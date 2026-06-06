@@ -55,6 +55,9 @@
             <a class="author-profile-links__card" href="{% url 'recipes:recipe_list' %}?author={{ author.slug }}">
                 <span class="author-profile-links__count">{{ recipe_count }}</span>
                 <span class="author-profile-links__label">Recipes</span>
+                {% if recipe_workspace_attention_count %}
+                <span class="author-profile-links__badge">{{ recipe_workspace_attention_count }} needs attention</span>
+                {% endif %}
                 <svg aria-hidden="true" class="author-profile-links__arrow" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
             </a>
             <a class="author-profile-links__card" href="{% url 'articles:article_list' %}?author={{ author.slug }}">

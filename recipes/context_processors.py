@@ -37,14 +37,36 @@ def _pending_moderation_count():
         from articles.models import Article
         from amuse_bouche.models import AmuseBouche
         owner = getattr(_settings, "OWNER_SLUG", "greenbear")
-        pending_recipes = Recipe.objects.filter(status=Recipe.Status.PENDING, is_deleted=False).count()
-        pending_articles = Article.objects.filter(status=Article.Status.PENDING, is_deleted=False).count()
+        pending_recipes = Recipe.objects.filter(status=Recipe.Status.PENDING, is_deleted=False).exclude(author__slug=owner).count()
+        pending_articles = Article.objects.filter(status=Article.Status.PENDING, is_deleted=False).exclude(author__slug=owner).count()
         pending_bites = AmuseBouche.objects.filter(status=AmuseBouche.Status.PENDING).exclude(author__slug=owner).count()
         return pending_recipes + pending_articles + pending_bites
     except ImportError:
         return 0
     except DatabaseError:
         logger.debug("Could not fetch pending moderation count", exc_info=True)
+        return 0
+
+
+def _author_workspace_attention_count(author):
+    if not author:
+        return 0
+    try:
+        from recipes.models import Recipe
+        return Recipe.objects.filter(
+            author=author,
+            is_deleted=False,
+            status__in=[
+                Recipe.Status.DRAFT,
+                Recipe.Status.PENDING,
+                Recipe.Status.NEEDS_CHANGES,
+                Recipe.Status.REJECTED,
+            ],
+        ).count()
+    except ImportError:
+        return 0
+    except DatabaseError:
+        logger.debug("Could not fetch author workspace attention count", exc_info=True)
         return 0
 
 
@@ -86,9 +108,11 @@ def header_author(request):
     actions = []
 
     if author:
+        workspace_attention_count = _author_workspace_attention_count(author)
         actions.append({
             "label": "My Content Studio",
             "url": _reverse_or_empty("recipes:author_dashboard"),
+            "badge": workspace_attention_count if workspace_attention_count else None,
         })
 
     actions.append({

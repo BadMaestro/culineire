@@ -304,6 +304,42 @@ class ModerationPanelRoleTests(TestCase):
 
         self.assertEqual(response.status_code, 404)
 
+    def test_owner_pending_recipe_counts_in_content_studio_not_moderation_header(self):
+        Recipe.objects.create(
+            title="Owner AI Draft",
+            slug="owner-ai-draft",
+            author=self.owner_author,
+            ingredients="Flour",
+            method="Draft.",
+            status=Recipe.Status.PENDING,
+        )
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse("recipes:moderation_panel"))
+
+        actions = {action["label"]: action for action in response.context["header_author_actions"]}
+        self.assertIsNone(actions["Moderation Panel"].get("badge"))
+        self.assertEqual(actions["My Content Studio"]["badge"], 1)
+        self.assertEqual(response.context["pending_recipes"], [])
+
+    def test_other_author_pending_recipe_counts_in_moderation_header(self):
+        Recipe.objects.create(
+            title="Other Author Pending",
+            slug="other-author-pending",
+            author=self.bearseeker_author,
+            ingredients="Flour",
+            method="Review.",
+            status=Recipe.Status.PENDING,
+        )
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse("recipes:moderation_panel"))
+
+        actions = {action["label"]: action for action in response.context["header_author_actions"]}
+        self.assertEqual(actions["Moderation Panel"]["badge"], 1)
+        self.assertIsNone(actions["My Content Studio"].get("badge"))
+        self.assertEqual(len(response.context["pending_recipes"]), 1)
+
     def test_deployment_journal_hidden_from_anonymous_users(self):
         response = self.client.get(reverse("recipes:deployment_journal"))
 
@@ -2417,6 +2453,14 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertIn(self.pending_bite, response.context["dashboard_amuse_bouche"])
         self.assertIn(self.needs_changes_bite, response.context["dashboard_amuse_bouche"])
         self.assertIn(self.rejected_bite, response.context["dashboard_amuse_bouche"])
+
+    def test_recipe_card_shows_author_workspace_attention_count(self):
+        self.client.force_login(self.author_user)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.context["recipe_workspace_attention_count"], 4)
+        self.assertContains(response, "4 needs attention")
 
     def test_dashboard_content_filters_render_for_private_dashboard(self):
         self.client.force_login(self.author_user)

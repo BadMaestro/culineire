@@ -1408,6 +1408,18 @@ def author_detail(request, slug):
     recipe_count = recipes_for_count.count()
     article_count = articles_for_count.count()
     private_dashboard = can_manage or moderator
+    recipe_workspace_attention_count = 0
+    if private_dashboard:
+        recipe_workspace_attention_count = Recipe.objects.filter(
+            author=author,
+            is_deleted=False,
+            status__in=[
+                Recipe.Status.DRAFT,
+                Recipe.Status.PENDING,
+                Recipe.Status.NEEDS_CHANGES,
+                Recipe.Status.REJECTED,
+            ],
+        ).count()
     try:
         from amuse_bouche.visibility import can_view_amuse_bouche_public_area
         can_show_public_amuse_bouche = can_view_amuse_bouche_public_area(request.user)
@@ -1544,6 +1556,7 @@ def author_detail(request, slug):
     context = {
         "author": author,
         "recipe_count": recipe_count,
+        "recipe_workspace_attention_count": recipe_workspace_attention_count,
         "article_count": article_count,
         "amuse_bouche_count": amuse_bouche_count,
         "show_amuse_bouche_profile_links": can_show_public_amuse_bouche,
