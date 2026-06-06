@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import hashlib
+import csv
+import io
 import re
 import unicodedata
 from dataclasses import dataclass
 from datetime import timedelta
 from email.utils import parsedate_to_datetime
-from urllib.error import URLError
+from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 from xml.etree import ElementTree
 
@@ -22,13 +24,21 @@ OFFICIAL_SOURCES = {
     "eu": {
         "source_code": SanctionsSourceSnapshot.SourceCode.EU_FSF,
         "source_name": "EU Financial Sanctions Files",
-        "source_url": "https://webgate.ec.europa.eu/fsd/fsf/public/files/xmlFullSanctionsList_1_1/content",
+        "source_url": "https://webgate.ec.europa.eu/europeaid/fsd/fsf/public/files/xmlFullSanctionsList_1_1/content",
+        "fallback_urls": [
+            "https://webgate.ec.europa.eu/fsd/fsf/public/files/xmlFullSanctionsList_1_1/content",
+            "https://webgate.ec.europa.eu/europeaid/fsd/fsf/public/files/csvFullSanctionsList/content",
+        ],
     },
     "un": {
         "source_code": SanctionsSourceSnapshot.SourceCode.UN_SC_CONSOLIDATED,
         "source_name": "UN Security Council Consolidated List",
         "source_url": "https://scsanctions.un.org/resources/xml/en/consolidated.xml",
     },
+}
+REQUEST_HEADERS = {
+    "User-Agent": "CulinEire Compliance Source Updater",
+    "Accept": "application/xml,text/xml,text/csv,application/octet-stream,*/*",
 }
 
 
@@ -130,6 +140,45 @@ def parse_eu_xml(payload: bytes) -> list[ParsedSubject]:
     return subjects
 
 
+def parse_eu_csv(payload: bytes) -> list[ParsedSubject]:
+    text = payload.decode("utf-8-sig")
+    reader = csv.DictReader(io.StringIO(text))
+    subjects = []
+    for row in reader:
+        lowered = {str(key or "").strip().lower(): (value or "").strip() for key, value in row.items()}
+        primary_name = (
+            lowered.get("wholename")
+            or lowered.get("whole name")
+            or lowered.get("name")
+            or lowered.get("namealias")
+            or lowered.get("alias")
+            or ""
+        )
+        if not primary_name:
+            continue
+        subject_type_value = (lowered.get("subjecttype") or lowered.get("subject type") or "").lower()
+        subject_type = SanctionsSubject.SubjectType.ENTITY if "entity" in subject_type_value else SanctionsSubject.SubjectType.INDIVIDUAL
+        external_reference = lowered.get("eureferencenumber") or lowered.get("eu reference number") or lowered.get("logicalid") or ""
+        countries = [value for key, value in lowered.items() if "country" in key and value]
+        dates_of_birth = [value for key, value in lowered.items() if ("birth" in key or "date" in key) and value]
+        identifiers = [value for key, value in lowered.items() if ("number" in key or "identifier" in key) and value]
+        regimes = [value for key, value in lowered.items() if ("programme" in key or "regime" in key) and value]
+        measures = [value for key, value in lowered.items() if ("measure" in key or "regulation" in key) and value]
+        subjects.append(ParsedSubject(
+            external_reference=external_reference,
+            subject_type=subject_type,
+            primary_name=primary_name,
+            aliases=[],
+            countries=list(dict.fromkeys(countries)),
+            dates_of_birth=list(dict.fromkeys(dates_of_birth)),
+            identifiers=list(dict.fromkeys(identifiers)),
+            regimes=list(dict.fromkeys(regimes)),
+            measures=list(dict.fromkeys(measures)),
+            raw_payload=row,
+        ))
+    return subjects
+
+
 def parse_un_xml(payload: bytes) -> list[ParsedSubject]:
     root = ElementTree.fromstring(payload)
     subjects = []
@@ -161,8 +210,29 @@ def parse_un_xml(payload: bytes) -> list[ParsedSubject]:
     return subjects
 
 
-def parse_source(source_key: str, payload: bytes) -> list[ParsedSubject]:
-    return parse_eu_xml(payload) if source_key == "eu" else parse_un_xml(payload)
+def _looks_like_html(payload: bytes) -> bool:
+    sample = payload[:512].lstrip().lower()
+    return sample.startswith(b"<!doctype html") or sample.startswith(b"<html") or b"<html" in sample[:128]
+
+
+def detect_format(payload: bytes, content_type: str = "") -> str:
+    if _looks_like_html(payload):
+        raise ValueError("Downloaded sanctions source appears to be an HTML error page.")
+    sample = payload[:512].lstrip()
+    content_type = (content_type or "").lower()
+    if sample.startswith(b"<") or "xml" in content_type:
+        return "xml"
+    if b"," in sample or "csv" in content_type:
+        return "csv"
+    raise ValueError("Downloaded sanctions source is not recognised as XML or CSV.")
+
+
+def parse_source(source_key: str, payload: bytes, file_format: str) -> list[ParsedSubject]:
+    if source_key == "eu":
+        return parse_eu_csv(payload) if file_format == "csv" else parse_eu_xml(payload)
+    if file_format != "xml":
+        raise ValueError("UN sanctions source must be XML.")
+    return parse_un_xml(payload)
 
 
 def _header_datetime(headers, name: str):
@@ -178,12 +248,25 @@ def _header_datetime(headers, name: str):
 
 def fetch_source(source_key: str, *, timeout: int) -> tuple[bytes, dict]:
     config = OFFICIAL_SOURCES[source_key]
-    request = Request(config["source_url"], headers={"User-Agent": "CulinEire Compliance Source Updater"})
-    with urlopen(request, timeout=timeout) as response:
-        return response.read(), {
-            "etag": response.headers.get("ETag", ""),
-            "last_modified": _header_datetime(response.headers, "Last-Modified"),
-        }
+    urls = [config["source_url"], *config.get("fallback_urls", [])]
+    errors = []
+    for url in urls:
+        request = Request(url, headers=REQUEST_HEADERS)
+        try:
+            with urlopen(request, timeout=timeout) as response:
+                payload = response.read()
+                content_type = response.headers.get("Content-Type", "")
+                file_format = detect_format(payload, content_type)
+                return payload, {
+                    "etag": response.headers.get("ETag", ""),
+                    "last_modified": _header_datetime(response.headers, "Last-Modified"),
+                    "source_url": url,
+                    "file_format": file_format,
+                }
+        except (HTTPError, URLError, TimeoutError, OSError, ValueError) as exc:
+            errors.append(f"{url}: {exc}")
+            continue
+    raise URLError("; ".join(errors))
 
 
 def update_source(source_key: str, *, dry_run=False, force=False, timeout=30) -> SanctionsSourceSnapshot:
@@ -197,8 +280,8 @@ def update_source(source_key: str, *, dry_run=False, force=False, timeout=30) ->
             return SanctionsSourceSnapshot.objects.create(
                 source_code=config["source_code"],
                 source_name=config["source_name"],
-                source_url=config["source_url"],
-                file_format="xml",
+                source_url=metadata.get("source_url", config["source_url"]),
+                file_format=metadata.get("file_format", "xml"),
                 fetched_at=now,
                 source_last_modified_at=metadata.get("last_modified"),
                 source_etag=metadata.get("etag", ""),
@@ -207,13 +290,14 @@ def update_source(source_key: str, *, dry_run=False, force=False, timeout=30) ->
                 status=SanctionsSourceSnapshot.Status.SKIPPED_NOT_MODIFIED,
                 parser_version=PARSER_VERSION,
             )
-        parsed_subjects = parse_source(source_key, payload)
+        file_format = metadata.get("file_format", "xml")
+        parsed_subjects = parse_source(source_key, payload, file_format)
         if dry_run:
             return SanctionsSourceSnapshot(
                 source_code=config["source_code"],
                 source_name=config["source_name"],
-                source_url=config["source_url"],
-                file_format="xml",
+                source_url=metadata.get("source_url", config["source_url"]),
+                file_format=file_format,
                 fetched_at=now,
                 source_sha256=sha256,
                 record_count=len(parsed_subjects),
@@ -224,8 +308,8 @@ def update_source(source_key: str, *, dry_run=False, force=False, timeout=30) ->
             snapshot = SanctionsSourceSnapshot.objects.create(
                 source_code=config["source_code"],
                 source_name=config["source_name"],
-                source_url=config["source_url"],
-                file_format="xml",
+                source_url=metadata.get("source_url", config["source_url"]),
+                file_format=file_format,
                 fetched_at=now,
                 source_last_modified_at=metadata.get("last_modified"),
                 source_etag=metadata.get("etag", ""),

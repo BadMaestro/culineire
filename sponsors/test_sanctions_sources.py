@@ -1,5 +1,6 @@
 from datetime import timedelta
 from unittest.mock import patch
+from urllib.error import HTTPError
 
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
@@ -23,6 +24,9 @@ EU_XML = b"""<?xml version="1.0" encoding="UTF-8"?>
     <regulationSummary>Asset freeze</regulationSummary>
   </sanctionEntity>
 </export>
+"""
+EU_CSV = b"""euReferenceNumber,wholeName,subjectType,countryDescription,birthdate,programme,regulationSummary
+EU.456,CSV Entity Ltd,entity,Ireland,,CSV regime,Asset freeze
 """
 
 
@@ -52,9 +56,13 @@ UN_XML = b"""<?xml version="1.0" encoding="UTF-8"?>
 
 
 class MockHTTPResponse:
-    def __init__(self, payload):
+    def __init__(self, payload, content_type="application/xml"):
         self.payload = payload
-        self.headers = {"ETag": '"test"', "Last-Modified": "Sat, 06 Jun 2026 00:00:00 GMT"}
+        self.headers = {
+            "ETag": '"test"',
+            "Last-Modified": "Sat, 06 Jun 2026 00:00:00 GMT",
+            "Content-Type": content_type,
+        }
 
     def __enter__(self):
         return self
@@ -83,6 +91,45 @@ class SanctionsSourceUpdateTests(TestCase):
         self.assertEqual(subject.normalised_name, "example person")
         self.assertIn("E Person", subject.aliases)
 
+    @patch("sponsors.sanctions_sources.urlopen")
+    def test_eu_primary_403_tries_official_fallback_url(self, mock_urlopen):
+        mock_urlopen.side_effect = [
+            HTTPError("https://webgate.ec.europa.eu/europeaid/fsd/fsf/public/files/xmlFullSanctionsList_1_1/content", 403, "Forbidden", {}, None),
+            MockHTTPResponse(EU_XML),
+        ]
+
+        call_command("update_sanctions_sources", source="eu")
+
+        snapshot = SanctionsSourceSnapshot.objects.get(source_code=SanctionsSourceSnapshot.SourceCode.EU_FSF)
+        self.assertEqual(snapshot.status, SanctionsSourceSnapshot.Status.SUCCESS)
+        self.assertEqual(snapshot.record_count, 1)
+        self.assertEqual(mock_urlopen.call_count, 2)
+
+    @patch("sponsors.sanctions_sources.urlopen")
+    def test_eu_csv_fallback_works_when_xml_unavailable(self, mock_urlopen):
+        mock_urlopen.side_effect = [
+            HTTPError("https://webgate.ec.europa.eu/europeaid/fsd/fsf/public/files/xmlFullSanctionsList_1_1/content", 403, "Forbidden", {}, None),
+            HTTPError("https://webgate.ec.europa.eu/fsd/fsf/public/files/xmlFullSanctionsList_1_1/content", 403, "Forbidden", {}, None),
+            MockHTTPResponse(EU_CSV, content_type="text/csv"),
+        ]
+
+        call_command("update_sanctions_sources", source="eu")
+
+        snapshot = SanctionsSourceSnapshot.objects.get(source_code=SanctionsSourceSnapshot.SourceCode.EU_FSF)
+        subject = SanctionsSubject.objects.get(source_snapshot=snapshot)
+        self.assertEqual(snapshot.file_format, "csv")
+        self.assertEqual(subject.primary_name, "CSV Entity Ltd")
+        self.assertEqual(subject.subject_type, SanctionsSubject.SubjectType.ENTITY)
+
+    @patch("sponsors.sanctions_sources.urlopen", return_value=MockHTTPResponse(b"<html>Forbidden</html>", content_type="text/html"))
+    def test_html_error_response_is_recorded_as_failure(self, _urlopen):
+        with self.assertRaises(Exception):
+            call_command("update_sanctions_sources", source="eu")
+
+        snapshot = SanctionsSourceSnapshot.objects.get(source_code=SanctionsSourceSnapshot.SourceCode.EU_FSF)
+        self.assertEqual(snapshot.status, SanctionsSourceSnapshot.Status.FAILED)
+        self.assertIn("HTML error page", snapshot.error_message)
+
     @patch("sponsors.sanctions_sources.urlopen", return_value=MockHTTPResponse(UN_XML))
     def test_successful_un_update_creates_snapshot_and_subjects(self, _urlopen):
         call_command("update_sanctions_sources", source="un")
@@ -92,6 +139,25 @@ class SanctionsSourceUpdateTests(TestCase):
         self.assertEqual(snapshot.record_count, 2)
         self.assertTrue(SanctionsSubject.objects.filter(primary_name="United Person").exists())
         self.assertTrue(SanctionsSubject.objects.filter(primary_name="United Entity Ltd").exists())
+
+    @patch("sponsors.sanctions_sources.urlopen")
+    def test_allow_partial_succeeds_when_eu_fails_and_un_succeeds(self, mock_urlopen):
+        mock_urlopen.side_effect = [
+            OSError("eu down"),
+            OSError("eu fallback down"),
+            OSError("eu csv down"),
+            MockHTTPResponse(UN_XML),
+        ]
+
+        call_command("update_sanctions_sources", source="all", allow_partial=True)
+
+        self.assertTrue(SanctionsSourceSnapshot.objects.filter(source_code=SanctionsSourceSnapshot.SourceCode.EU_FSF, status=SanctionsSourceSnapshot.Status.FAILED).exists())
+        self.assertTrue(SanctionsSourceSnapshot.objects.filter(source_code=SanctionsSourceSnapshot.SourceCode.UN_SC_CONSOLIDATED, status=SanctionsSourceSnapshot.Status.SUCCESS).exists())
+
+    @patch("sponsors.sanctions_sources.urlopen", side_effect=OSError("all down"))
+    def test_allow_partial_raises_when_all_requested_sources_fail(self, _urlopen):
+        with self.assertRaises(Exception):
+            call_command("update_sanctions_sources", source="all", allow_partial=True)
 
     @patch("sponsors.sanctions_sources.urlopen", side_effect=OSError("network down"))
     def test_failed_fetch_does_not_delete_latest_successful_snapshot(self, _urlopen):

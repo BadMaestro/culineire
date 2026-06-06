@@ -12,12 +12,14 @@ class Command(BaseCommand):
         parser.add_argument("--force", action="store_true")
         parser.add_argument("--timeout", type=int, default=30)
         parser.add_argument("--no-raw-store", action="store_true", help="Accepted for operational compatibility; raw files are not stored by default.")
+        parser.add_argument("--allow-partial", action="store_true", help="Exit successfully if at least one requested source succeeds.")
 
     def handle(self, *args, **options):
         if options["timeout"] <= 0:
             raise CommandError("--timeout must be positive.")
         sources = OFFICIAL_SOURCES.keys() if options["source"] == "all" else (options["source"],)
         failed = False
+        succeeded = False
         for source in sources:
             snapshot = update_source(
                 source,
@@ -31,5 +33,6 @@ class Command(BaseCommand):
             if snapshot.error_message:
                 self.stdout.write(self.style.ERROR(snapshot.error_message))
             failed = failed or snapshot.status == "failed"
-        if failed:
+            succeeded = succeeded or snapshot.status in {"success", "skipped_not_modified"}
+        if failed and (not options["allow_partial"] or not succeeded):
             raise CommandError("One or more sanctions source updates failed.")
