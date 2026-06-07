@@ -1,3 +1,34 @@
+## Sponsors Compliance Summary
+
+Completed phases:
+
+- Phase 1: sponsor declaration before Stripe, paid pending compliance review, manual compliance clear before approval, approve/publish flow and sponsor moderation attention badges.
+- Phase 2: official EU/UN sanctions source ingestion, source snapshots, EU RSS discovery, manual EU file fallback and staff source freshness visibility.
+- Phase 3: internal possible sanctions match workflow, staff review decisions, audit logging and approval blocking for unresolved or blocked matches.
+- Phase 4: enforcement around blocked compliance, refund required, manual refund completion and safe sponsor cell state rules.
+- Phase 5: legal-facing wording, applicant/staff UI clarity, notification wording and documentation polish.
+
+Current sponsor flow:
+
+```text
+application + declarations -> Stripe Checkout -> paid_pending_compliance_review
+-> sanctions screening / staff compliance review
+-> manual clear -> paid_pending_approval -> approve and publish -> approved/active
+```
+
+Payment reserves the selected sponsor spot while Bearcave Limited completes staff review. It does not guarantee approval, publication or activation. Sponsor names, logos, avatars and website/profile links are not public until approval and publication.
+
+If an application cannot proceed, staff can reject and mark refund required. Refund tracking is manual: CulinEire records the operational status and releases the sponsor cell only after staff records refund completion. The application does not call the Stripe refund API.
+
+Public data safety rules:
+
+- Do not expose sanctions match details publicly.
+- Do not expose sanctions source URLs, tokenized EU URLs or raw sanctions payloads publicly.
+- Do not expose staff notes, audit logs or Stripe payment identifiers publicly.
+- Telegram sponsor announcements are sent only after Approve and publish.
+
+Still out of scope: automatic Stripe refunds, full AML/KYC, beneficial ownership collection, scheduled re-screening, live Stripe switch and legal/applicant workflow beyond the current sponsor declarations and review process.
+
 ## Sponsors Compliance Phase 2
 
 Phase 2 imports official EU and UN sanctions source XML files and tracks source freshness for staff review.

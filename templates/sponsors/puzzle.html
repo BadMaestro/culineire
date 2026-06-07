@@ -22,7 +22,7 @@
     <div class="hero-copy">
       <span class="pill">Become a Founding Sponsor</span>
       <h1 class="hero-title">Your brand at the heart of CulinEire</h1>
-      <p class="hero-subtitle">CulinEire is building a home for Irish recipes, food stories and the cooks who create them. Businesses, sole traders and individuals can choose an annual ring spot or the 30-day Central Sponsor of the Month. Prices are shown excluding VAT. VAT is calculated at checkout.</p>
+      <p class="hero-subtitle">CulinEire is building a home for Irish recipes, food stories and the cooks who create them. Businesses, sole traders and individuals can choose an annual ring spot or the 30-day Central Sponsor of the Month. Prices are shown excluding VAT. VAT is calculated at checkout. Payment reserves a spot while Bearcave Limited completes internal review; publication starts only after approval.</p>
       <div class="hero__actions">
         {% if can_view_amuse_bouche_public_area %}
         <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
@@ -52,7 +52,7 @@
     <span class="contract-sep">&bull;</span>
     <span>Prices exclude VAT</span>
     <span class="contract-sep">&bull;</span>
-    <span>Publication after approval</span>
+    <span>Activation subject to approval</span>
     <span class="contract-sep">&bull;</span>
     <a href="{% url 'sponsors:annual_contract' %}" target="_blank" rel="noopener noreferrer" style="color:inherit;font-weight:600;">View sponsorship terms</a>
   </div>
@@ -67,7 +67,7 @@
       <div class="sponsors-progress-fill" style="width: {{ percent_sold }}%"></div>
     </div>
     <p class="sponsors-progress-note">
-      Sponsor logos or avatars are published after Bearcave Limited approval. Payment reserves the selected spot only.
+      Sponsor logos or avatars are published after Bearcave Limited approval. Payment reserves the selected spot only; it does not guarantee approval, publication or activation.
     </p>
   </div>
 
@@ -113,7 +113,7 @@
   </div>
 
   <div class="sponsors-puzzle-container">
-    <p class="sponsors-puzzle-label">Click any available spot to apply and pay</p>
+    <p class="sponsors-puzzle-label">Click any available spot to apply and reserve it through checkout</p>
     <svg id="sponsor-puzzle" viewBox="30 30 1040 1040" xmlns="http://www.w3.org/2000/svg"
          role="img" aria-label="CulinEire sponsor puzzle">
       <defs>
@@ -135,7 +135,7 @@
     <div class="sponsors-how-grid">
       <div class="sponsors-how-step">
         <div class="how-num">1</div>
-        <p>Choose an available ring on the puzzle. Prices are net annual prices, excluding VAT.</p>
+        <p>Choose an available ring spot or the central monthly placement. Prices are net prices, excluding VAT.</p>
       </div>
       <div class="sponsors-how-step">
         <div class="how-num">2</div>
@@ -143,7 +143,7 @@
       </div>
       <div class="sponsors-how-step">
         <div class="how-num">3</div>
-        <p>Bearcave Limited reviews your image, sponsor details and website or profile link before publication. The 12-month term starts when the approved image is published.</p>
+        <p>Bearcave Limited reviews your image, sponsor details, website or profile link and compliance declarations before publication. The sponsorship term starts when the approved image and link are published.</p>
       </div>
     </div>
     <div class="sponsors-cta">
@@ -155,7 +155,7 @@
          class="sponsors-contact-btn" style="background:#f4f1ec;color:#3a3028;border:1.5px solid #c8c0b4;margin-top:0.75rem;">
         View sponsorship terms
       </a>
-      <p class="sponsors-cta-note">Payment reserves a spot only. Publication remains subject to <strong>Bearcave Limited</strong> approval.</p>
+      <p class="sponsors-cta-note">Payment reserves a spot only. Publication remains subject to <strong>Bearcave Limited</strong> approval and internal compliance review.</p>
     </div>
   </div>
 </div>
@@ -170,6 +170,6 @@
 
 {{ cells_data|json_script:"sponsor-cells-json" }}
 {{ request.user.is_staff|json_script:"sponsor-is-admin-json" }}
-<script src="{% static 'js/sponsors_modal.js' %}?v=20260605-tiers"></script>
+<script src="{% static 'js/sponsors_modal.js' %}?v=20260607-phase5"></script>
 <script src="{% static 'js/sponsors_puzzle.js' %}?v=20260605-tiers"></script>
 {% endblock %}

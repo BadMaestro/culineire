@@ -17,7 +17,7 @@
             <p class="sponsor-receipt__kicker">Payment received</p>
             <h1>Your placement is reserved</h1>
             <p class="sponsor-receipt__intro">
-                Thank you. Your placement is reserved while it awaits Bearcave review.
+                Thank you. Your payment has been received and your placement is reserved while it awaits Bearcave compliance and staff review.
             </p>
 
             {% if application %}
@@ -52,10 +52,11 @@
 
             <div class="sponsor-receipt__next">
                 <span>What happens next</span>
-                <p>Bearcave will complete compliance review and review your logo/avatar, website/profile link and sponsor details before publication.</p>
+                <p>Your sponsorship is not active yet. Bearcave will complete compliance review and review your logo/avatar, website/profile link and sponsor details before publication.</p>
                 {% if application %}
                 <p>Your {{ application.term_display }} begins only when the approved image and link are published.</p>
                 {% endif %}
+                <p>No public sponsor listing or Telegram sponsor announcement is sent until Bearcave approves and publishes the placement.</p>
             </div>
 
             <a class="sponsor-receipt__cta" href="{% url 'sponsors:puzzle' %}">Back to Sponsor Puzzle</a>

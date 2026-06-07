@@ -59,7 +59,14 @@
         {% if application.status == "refund_required" %}
         <section class="research-panel">
             <h2 class="moderation-block__title">Manual Refund Required</h2>
-            <p class="moderation-card__note">This paid sponsor application is rejected/blocked from publication and requires manual refund tracking. The sponsor cell remains reserved until staff marks the refund completed.</p>
+            <p class="moderation-card__note">Refund required. The sponsor cell remains reserved until staff records refund completion or another terminal action is taken.</p>
+        </section>
+        {% endif %}
+
+        {% if application.status == "refunded" %}
+        <section class="research-panel">
+            <h2 class="moderation-block__title">Manual Refund Completed</h2>
+            <p class="moderation-card__note">Manual refund completion recorded. The sponsor cell has been released.</p>
         </section>
         {% endif %}
 
@@ -203,7 +210,7 @@
                 <p class="moderation-card__note">{{ approval_block_reason }}</p>
                 {% endif %}
                 {% if can_mark_refunded %}
-                <p class="moderation-card__note">Use only after the refund has been completed outside CulinEire. This records manual refund completion and releases the sponsor cell.</p>
+                <p class="moderation-card__note">Use only after the refund has been completed outside CulinEire. This records manual refund completion and releases the sponsor cell. It does not call the Stripe refund API.</p>
                 {% endif %}
                 {% if not can_approve and not can_request_changes and not can_ready_for_review and not can_reject_paid and not can_mark_refunded and not can_unpublish and not can_expire %}
                 <p class="moderation-card__note">No moderation actions are currently available for this status.</p>

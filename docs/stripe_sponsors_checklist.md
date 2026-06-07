@@ -10,14 +10,15 @@
 6. Drag and resize the uploaded image in the exact cell preview, then continue to checkout.
 7. Confirm Stripe Checkout opens with one annual sponsor line item, EUR currency, exclusive tax behaviour, billing address collection, tax ID collection, and automatic tax.
 8. Complete a Stripe test card payment.
-9. Confirm `/sponsors/checkout/success/` states that the spot is reserved and pending Bearcave approval.
-10. Confirm the Stripe webhook sets the application to `paid_pending_approval` and does not publish the image.
-11. In sponsor moderation, approve the application and confirm the logo/avatar appears publicly with the selected placement.
-12. Confirm `published_at` is set to approval/publication time and `expires_at` is 12 months later.
-13. Repeat with a second application and reject it; confirm it becomes `refund_required` and no image is published.
-14. Process the refund manually in Stripe, then mark refund completed in CulinEire and confirm the cell is released.
-15. Start checkout and cancel before payment; confirm the application is cancelled and the cell is available again.
-16. Trigger `checkout.session.expired`; confirm unpaid cells are released.
+9. Confirm `/sponsors/checkout/success/` states that payment was received, the spot is reserved, sponsorship is not active yet, and compliance/staff review is required before publication.
+10. Confirm the Stripe webhook sets the application to `paid_pending_compliance_review`, keeps the cell reserved, and does not publish the image.
+11. In sponsor moderation, complete sanctions/compliance review. Confirm unresolved or blocked possible sanctions matches prevent approval.
+12. After manual compliance clear, approve the application and confirm the logo/avatar appears publicly with the selected placement.
+13. Confirm `published_at` is set to approval/publication time and `expires_at` matches the product term.
+14. Repeat with a second paid application and reject it with a staff note; confirm it becomes `refund_required`, the cell remains reserved, and no image is published.
+15. Process the refund manually in Stripe, then mark refund completed in CulinEire with a staff note and confirm the cell is released.
+16. Start checkout and cancel before payment; confirm the application is cancelled and the cell is available again.
+17. Trigger `checkout.session.expired`; confirm unpaid cells are released.
 
 ## Live Deployment Checklist
 
@@ -29,5 +30,6 @@
 6. Confirm Bearcave Limited VAT number is configured and visible in the internal roadmap checks.
 7. Run Django migrations.
 8. Run the sponsor test suite.
-9. Complete one low-value live test if appropriate, then refund it manually through Stripe.
+9. Complete one low-value live test if appropriate, then refund it manually through Stripe and record manual refund completion in CulinEire.
 10. Confirm the sponsor roadmap is visible only to superusers or GreenBear owner access.
+11. Confirm no public page exposes sanctions match details, staff notes, audit logs, tokenized EU URLs or Stripe payment identifiers.

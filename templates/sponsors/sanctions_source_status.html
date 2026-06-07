@@ -15,7 +15,7 @@
         <a class="mon-back-link" href="{% url 'sponsors:moderation_applications' %}">Back to Sponsor Applications</a>
         <div class="moderation-block">
             <h1 class="moderation-block__title">Official Sanctions Source Status</h1>
-            <p class="moderation-card__note">Phase 2 imports official EU/UN sanctions datasets and tracks freshness. Sponsor matching is not implemented in this phase.</p>
+            <p class="moderation-card__note">Official EU/UN sanctions datasets are imported for internal sponsor compliance review. Fresh source data supports possible-match screening; it is not a legal guarantee or full AML/KYC process.</p>
             <p class="moderation-card__note">If automatic EU source update fails with HTTP 403, manually download the official EU FSF XML/CSV file and import it with <code>update_sanctions_sources --source eu --from-file /path/to/file</code>.</p>
             <div class="moderation-scroll">
                 {% for item in source_statuses %}

@@ -16,7 +16,10 @@ from recipes.models import RecipeAuthor
 
 from .models import (
     ProcessedStripeEvent,
+    SanctionsSourceSnapshot,
+    SanctionsSubject,
     SponsorApplication,
+    SponsorAuditLog,
     SponsorCell,
     SponsorComplianceCheck,
     SponsorPayment,
@@ -133,11 +136,48 @@ class SponsorFlowTests(TestCase):
         self.assertContains(response, "/year + VAT")
         self.assertContains(response, "Prices are shown excluding VAT")
         self.assertContains(response, "Businesses, sole traders and individuals")
+        self.assertContains(response, "Payment reserves a spot while Bearcave Limited completes internal review")
+        self.assertContains(response, "does not guarantee approval, publication or activation")
         self.assertContains(response, "Sponsor of the Month")
         self.assertContains(response, "€1000")
         self.assertContains(response, "/ month + VAT")
         self.assertContains(response, "Ring sponsorship is annual. Central sponsor is monthly. VAT calculated at checkout.")
         self.assertNotContains(response, "Net annual price")
+
+    def test_public_sponsor_page_does_not_expose_internal_compliance_data(self):
+        snapshot = SanctionsSourceSnapshot.objects.create(
+            source_code=SanctionsSourceSnapshot.SourceCode.EU_FSF,
+            source_name="EU Financial Sanctions Files",
+            source_url="https://webgate.ec.europa.eu/fsd/fsf/public/files/xmlFullSanctionsList_1_1/content?token=secret-token",
+            file_format="xml",
+            source_sha256="secret-sha",
+            record_count=1,
+            status=SanctionsSourceSnapshot.Status.SUCCESS,
+        )
+        SanctionsSubject.objects.create(
+            source_snapshot=snapshot,
+            source_code=SanctionsSourceSnapshot.SourceCode.EU_FSF,
+            external_reference="EU.SECRET",
+            primary_name="Sensitive Match Name",
+            normalised_name="sensitive match name",
+        )
+        application = self.create_pending_application(paid=True)
+        application.status = SponsorApplication.Status.REFUND_REQUIRED
+        application.save(update_fields=["status"])
+        SponsorAuditLog.objects.create(
+            application=application,
+            action=SponsorAuditLog.Action.REFUND_REQUIRED,
+            notes="Internal staff note should not be public.",
+            metadata={"stripe_payment_intent_id": "pi_secret_public_safety"},
+        )
+
+        response = self.client.get(reverse("sponsors:puzzle"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Sensitive Match Name")
+        self.assertNotContains(response, "secret-token")
+        self.assertNotContains(response, "Internal staff note")
+        self.assertNotContains(response, "pi_secret_public_safety")
 
     def test_application_requires_terms_logo_rights_and_approval_acknowledgement(self):
         data = self.valid_post_data()
@@ -462,6 +502,8 @@ class SponsorFlowTests(TestCase):
         self.assertContains(response, "€30.75")
         self.assertContains(response, "12-month term from approval/publication")
         self.assertContains(response, "Payment received pending compliance review")
+        self.assertContains(response, "Your sponsorship is not active yet")
+        self.assertContains(response, "No public sponsor listing or Telegram sponsor announcement is sent until Bearcave approves and publishes the placement.")
 
     def test_central_checkout_success_hides_internal_ring_zero_label(self):
         self.cell.product_type = SponsorCell.ProductType.CENTRAL_MONTHLY
@@ -489,6 +531,7 @@ class SponsorFlowTests(TestCase):
         self.assertContains(response, "€230.00")
         self.assertContains(response, "€1,230.00")
         self.assertContains(response, "30-day term from approval/publication")
+        self.assertContains(response, "No public sponsor listing or Telegram sponsor announcement is sent")
         self.assertNotContains(response, "Ring 0")
         self.assertNotContains(response, "cell #0")
 
@@ -688,6 +731,34 @@ class SponsorModerationPermissionTests(TestCase):
         self.client.force_login(self.user)
 
         response = self.client.get(reverse("sponsors:moderation_applications"))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_non_staff_cannot_access_sponsor_match_or_refund_details(self):
+        cell = SponsorCell.objects.create(cell_number=7, ring=6, position_in_ring=0)
+        application = SponsorApplication.objects.create(
+            cell=cell,
+            status=SponsorApplication.Status.REFUND_REQUIRED,
+            sponsor_name="Private Sponsor",
+            contact_name="Contact",
+            email="private@example.com",
+            logo=png_upload("private.png"),
+            price_net_cents=cell.price_net_cents,
+        )
+        SponsorPayment.objects.create(
+            application=application,
+            status=SponsorPayment.Status.PAID,
+            net_amount_cents=application.price_net_cents,
+            stripe_payment_intent_id="pi_private_staff_only",
+        )
+        SponsorAuditLog.objects.create(
+            application=application,
+            action=SponsorAuditLog.Action.REFUND_REQUIRED,
+            notes="Staff-only refund note.",
+        )
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("sponsors:moderation_application_detail", args=[application.pk]))
 
         self.assertEqual(response.status_code, 404)
 

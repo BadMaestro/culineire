@@ -17,7 +17,7 @@
         <div class="moderation-block moderation-block--tools">
             <h1 class="moderation-block__title">Sponsor Applications</h1>
             {% if sponsor_attention_count %}
-            <p class="moderation-card__note">Sponsor work requiring attention: {{ sponsor_attention_count }}</p>
+            <p class="moderation-card__note">Sponsor work requiring attention: {{ sponsor_attention_count }}. Includes paid compliance review, paid approval, changes requested, refund required, unresolved possible sanctions matches and blocked compliance cases pending staff action.</p>
             {% endif %}
             <div class="mod-tools-row">
                 {% for option in status_options %}
@@ -46,7 +46,7 @@
                         <h2 class="moderation-card__title">
                             <a href="{% url 'sponsors:moderation_application_detail' application.pk %}">{{ application.sponsor_name }}</a>
                         </h2>
-                        <p class="moderation-card__note">{{ application.price_display }}{% if application.payment %} / Payment: {{ application.payment.get_status_display }}{% endif %}</p>
+                        <p class="moderation-card__note">{{ application.price_display }}{% if application.payment %} / Payment: {{ application.payment.get_status_display }}{% endif %} / Cell: {{ application.cell.get_status_display }}</p>
                         {% with check=application.compliance_checks.first %}
                         <p class="moderation-card__note">Compliance: {% if check %}{{ check.get_status_display }}{% else %}Not checked{% endif %}</p>
                         {% endwith %}

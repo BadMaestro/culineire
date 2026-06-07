@@ -116,10 +116,10 @@
   }
 
   function renderReserved(status) {
-    var label = status === 'paid_pending_approval' ? 'paid and pending Bearcave approval' : 'currently reserved while checkout is pending';
+    var label = status === 'paid_pending_approval' ? 'paid and pending Bearcave compliance/staff review' : 'currently reserved while checkout is pending';
     return '<div class="spm-reserved-msg">' +
       '<p>This spot is ' + label + '.</p>' +
-      '<p class="spm-reserved-note">It will become available again if payment is not completed or the placement is rejected before publication.</p>' +
+      '<p class="spm-reserved-note">It will become available again if payment is not completed, or if Bearcave records a terminal rejection/refund outcome before publication.</p>' +
       '</div>';
   }
 
@@ -127,7 +127,7 @@
     var html = '';
     var isCentral = cell.ring === 0;
     html += '<p class="spm-price">' + esc(cell.price_display || '') + '</p>';
-    html += '<p class="spm-desc">' + (isCentral ? 'Payment reserves the central monthly placement pending Bearcave approval. The 30-day term starts only when the approved image and link are published. This is a one-off payment, not an annual placement or recurring subscription.' : 'Payment securely reserves this annual ring spot. VAT is calculated at checkout. Businesses, sole traders and individuals are welcome. Publication is subject to Bearcave Limited approval.') + '</p>';
+    html += '<p class="spm-desc">' + (isCentral ? 'Payment reserves the central monthly placement pending Bearcave compliance and staff review. The 30-day term starts only when the approved image and link are published. This is a one-off payment, not an annual placement or recurring subscription.' : 'Payment securely reserves this annual ring spot pending Bearcave compliance and staff review. VAT is calculated at checkout. Businesses, sole traders and individuals are welcome. Publication is subject to Bearcave Limited approval.') + '</p>';
     html += '<form id="spm-application-form" class="spm-form" enctype="multipart/form-data" novalidate>';
     html += '<div class="spm-form-section-label">Sponsor details</div>';
     html += field('spm-sponsor-name', 'text', 'Sponsor display name', 'Business, sole trader or individual name', true, 'organization');
@@ -142,12 +142,12 @@
     html += '<div class="spm-form-section-label">Confirmations</div>';
     html += checkbox('spm-logo-rights', 'I confirm that I have the right to use this logo/avatar and that Bearcave Limited may display it on CulinEire if the sponsorship is approved.');
     html += checkbox('spm-terms', isCentral ? 'I accept the CulinEire sponsorship terms for the 30-day Central Sponsor of the Month.' : 'I accept the CulinEire Annual Ring Sponsorship Terms.');
-    html += checkbox('spm-approval', 'I understand payment reserves the spot but publication is subject to Bearcave Limited approval.');
+    html += checkbox('spm-approval', 'I understand payment reserves the spot but does not guarantee approval, publication or activation.');
     html += checkbox('spm-sanctions-1', 'I confirm that, to the best of my knowledge, neither I, nor the company, organisation or business I represent, nor any relevant owner, director, beneficial owner or controlling person, is subject to EU, UN, Irish or other applicable financial sanctions.');
     html += checkbox('spm-sanctions-2', 'I confirm that I am not applying for this sponsorship on behalf of, for the benefit of, or under the control of any person, company, organisation or body subject to applicable financial sanctions.');
     html += checkbox('spm-sanctions-3', "I understand that payment does not guarantee approval, publication or activation of the sponsor slot. Sponsorship is subject to CulinEire's internal compliance review, approval process and website rules.");
-    html += checkbox('spm-sanctions-4', 'I understand that CulinEire may delay, refuse, suspend, cancel, reject, hold or reverse a sponsorship application where sanctions, payment, legal, compliance, fraud, content, reputational or policy concerns arise.');
-    html += '<p class="spm-note">Payment does not guarantee approval or publication. Sponsorship activation is subject to CulinEire review, including sanctions and compliance checks where required.</p>';
+    html += checkbox('spm-sanctions-4', 'I understand that CulinEire may delay, refuse, suspend, cancel, reject, hold or reverse a sponsorship application where sanctions screening, payment, legal, compliance, fraud, content, reputational or policy concerns arise.');
+    html += '<p class="spm-note">Payment does not guarantee approval or publication. Sponsorship activation is subject to CulinEire review, including sanctions screening and manual compliance review where required. If an application cannot proceed, Bearcave may mark refund required for manual refund tracking.</p>';
     html += '<div id="spm-form-error" class="spm-error" hidden></div>';
     html += '<div class="spm-actions"><button type="submit" class="spm-buy-btn" id="spm-submit">Continue to secure checkout</button></div>';
     html += '</form>';
@@ -567,7 +567,7 @@
     return {
       available: 'Available',
       payment_pending: 'Payment pending',
-      paid_pending_approval: 'Paid pending approval',
+      paid_pending_approval: 'Paid pending review',
       active: 'Active',
       expired: 'Expired',
       rejected: 'Rejected',

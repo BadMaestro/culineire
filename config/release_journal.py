@@ -71,4 +71,24 @@ RELEASE_JOURNAL = [
         "deployment_status": "deployed",
         "notes": "Related commits: 8fc01bb Add official sanctions source ingestion; 65062d6 Fix EU sanctions source download fallback; cd44a19 Add manual EU sanctions file import. Phase 2 imports and tracks official sources only. Sponsor matching and possible-match workflow are Phase 3.",
     },
+    {
+        "version": "version pending backfill",
+        "date": "2026-06-07",
+        "commit": "628f3f4",
+        "title": "Sponsors Compliance Phase 5 - Legal and UI Polish",
+        "section": "Sponsors / Compliance / Staff UI",
+        "summary": "Polished applicant-facing sponsor wording, staff compliance/refund messages, notification clarity and internal sponsor compliance documentation.",
+        "checklist": [
+            "Clarified that payment reserves a sponsor spot but does not guarantee approval, publication or activation",
+            "Clarified pending compliance review wording on checkout success and sponsor application UI",
+            "Clarified manual refund tracking and refund completion wording",
+            "Updated sponsor moderation list and detail helper text for staff action queues",
+            "Confirmed public pages do not expose sanctions match details, source URLs, staff notes, audit logs or Stripe identifiers",
+        ],
+        "stats": [
+            "Test results pending final Phase 5 run",
+        ],
+        "deployment_status": "pending deployment",
+        "notes": "Phase 5 is wording, UI clarity and documentation only. It does not change Stripe payment/webhook semantics, Telegram trigger behaviour, sanctions source ingestion or sanctions matching logic.",
+    },
 ]
