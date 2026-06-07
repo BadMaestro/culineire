@@ -32,11 +32,7 @@ class SponsorCompliancePhaseOneTests(TestCase):
             "logo_rotation": "0",
             "logo_rights_confirmed": "on",
             "terms_accepted": "on",
-            "approval_acknowledged": "on",
             "sanctions_declaration_1": "on",
-            "sanctions_declaration_2": "on",
-            "sanctions_declaration_3": "on",
-            "sanctions_declaration_4": "on",
         }
 
     def create_paid_review_application(self):
@@ -57,7 +53,7 @@ class SponsorCompliancePhaseOneTests(TestCase):
 
     def test_all_declarations_are_required_before_checkout(self):
         data = self.post_data()
-        data.pop("sanctions_declaration_4")
+        data.pop("sanctions_declaration_1")
         with patch("sponsors.views.create_checkout_session") as checkout:
             response = self.client.post(reverse("sponsors:cell_enquire", args=[self.cell.pk]), data)
         self.assertEqual(response.status_code, 400)

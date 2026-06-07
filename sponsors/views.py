@@ -118,8 +118,6 @@ def _first_form_error(form: SponsorApplicationForm) -> str:
             return f"Terms accepted: {errors[0]}"
         if field == "logo_rights_confirmed":
             return f"Image rights confirmed: {errors[0]}"
-        if field == "approval_acknowledged":
-            return f"Approval acknowledgement: {errors[0]}"
         label = form.fields[field].label if field in form.fields else field
         return f"{label}: {errors[0]}"
     return "Please check the sponsor application form."
@@ -130,11 +128,7 @@ def cell_enquire(request, cell_id):
     required_confirmations = {
         "logo_rights_confirmed": "Image rights confirmed",
         "terms_accepted": "Terms accepted",
-        "approval_acknowledged": "Approval acknowledgement",
-        "sanctions_declaration_1": "Sanctions declaration 1",
-        "sanctions_declaration_2": "Sanctions declaration 2",
-        "sanctions_declaration_3": "Sanctions declaration 3",
-        "sanctions_declaration_4": "Sanctions declaration 4",
+        "sanctions_declaration_1": "Sanctions declaration",
     }
     for field_name, label in required_confirmations.items():
         if field_name not in request.POST:

@@ -140,14 +140,10 @@
     html += '<div class="spm-logo-upload"><label class="spm-logo-drop" for="spm-logo-input" id="spm-logo-label">' + uploadIcon() + '<span id="spm-upload-text">Upload logo or avatar (PNG, JPG or WebP)</span></label><input type="file" id="spm-logo-input" accept="image/png,image/jpeg,image/webp" style="display:none"></div>';
     html += '<div id="spm-canvas-wrap" class="spm-canvas-wrap" hidden><p class="spm-canvas-label">Drag the image and adjust size until it fits this exact cell</p><div class="spm-canvas-outer"><canvas id="spm-canvas" width="220" height="220"></canvas></div><div class="spm-scale-row"><span class="spm-scale-label">Size</span><input type="range" id="spm-scale" min="0.2" max="2.5" step="0.05" value="1.0" class="spm-scale-input"><span id="spm-scale-val" class="spm-scale-val">1.0x</span></div><div class="spm-scale-row"><span class="spm-scale-label spm-scale-label--rotate">Rotate</span><input type="range" id="spm-rotate" min="-180" max="180" step="1" value="0" class="spm-scale-input"><span id="spm-rotate-val" class="spm-scale-val">0°</span></div><button type="button" id="spm-image-reset" class="spm-reset-btn">Reset image position</button></div>';
     html += '<div class="spm-form-section-label">Confirmations</div>';
-    html += checkbox('spm-logo-rights', 'I confirm that I have the right to use this logo/avatar and that Bearcave Limited may display it on CulinEire if the sponsorship is approved.');
-    html += checkbox('spm-terms', isCentral ? 'I accept the CulinEire sponsorship terms for the 30-day Central Sponsor of the Month.' : 'I accept the CulinEire Annual Ring Sponsorship Terms.');
-    html += checkbox('spm-approval', 'I understand payment reserves the spot but does not guarantee approval, publication or activation.');
-    html += checkbox('spm-sanctions-1', 'I confirm that, to the best of my knowledge, neither I, nor the company, organisation or business I represent, nor any relevant owner, director, beneficial owner or controlling person, is subject to EU, UN, Irish or other applicable financial sanctions.');
-    html += checkbox('spm-sanctions-2', 'I confirm that I am not applying for this sponsorship on behalf of, for the benefit of, or under the control of any person, company, organisation or body subject to applicable financial sanctions.');
-    html += checkbox('spm-sanctions-3', "I understand that payment does not guarantee approval, publication or activation of the sponsor slot. Sponsorship is subject to CulinEire's internal compliance review, approval process and website rules.");
-    html += checkbox('spm-sanctions-4', 'I understand that CulinEire may delay, refuse, suspend, cancel, reject, hold or reverse a sponsorship application where sanctions screening, payment, legal, compliance, fraud, content, reputational or policy concerns arise.');
-    html += '<p class="spm-note">Payment does not guarantee approval or publication. Sponsorship activation is subject to CulinEire review, including sanctions screening and manual compliance review where required. If an application cannot proceed, Bearcave may mark refund required for manual refund tracking.</p>';
+    html += checkbox('spm-confirm-1', 'I confirm that I have the right to use this logo/avatar and that Bearcave Limited may display it on CulinEire if the sponsorship is approved and published.');
+    html += checkbox('spm-confirm-2', isCentral ? 'I accept the CulinEire sponsorship terms for the 30-day Central Sponsor of the Month and understand that payment reserves the selected spot for review only. Payment does not guarantee approval, publication or activation.' : 'I accept the CulinEire Annual Ring Sponsorship Terms and understand that payment reserves the selected spot for review only. Payment does not guarantee approval, publication or activation.');
+    html += checkbox('spm-confirm-3', 'I confirm, to the best of my knowledge, that neither I, nor any company, organisation or business I represent, nor any relevant owner, director, beneficial owner or controlling person, is subject to EU, UN, Irish or other applicable financial sanctions. I also confirm that I am not applying on behalf of, for the benefit of, or under the control of any sanctioned person, company, organisation or body.');
+    html += '<p class="spm-note">Payment reserves the selected spot while CulinEire reviews the application. Sponsorship may be approved, refused, delayed, cancelled, suspended or marked for manual refund where required by compliance, legal, payment, fraud, content, reputational or policy checks.</p>';
     html += '<div id="spm-form-error" class="spm-error" hidden></div>';
     html += '<div class="spm-actions"><button type="submit" class="spm-buy-btn" id="spm-submit">Continue to secure checkout</button></div>';
     html += '</form>';
@@ -456,9 +452,7 @@
     if (!logoInput || !logoInput.files.length) {
       return showErr('Please upload a sponsor logo or avatar.');
     }
-    if (!checked('spm-logo-rights') || !checked('spm-terms') || !checked('spm-approval') ||
-        !checked('spm-sanctions-1') || !checked('spm-sanctions-2') ||
-        !checked('spm-sanctions-3') || !checked('spm-sanctions-4')) {
+    if (!checked('spm-confirm-1') || !checked('spm-confirm-2') || !checked('spm-confirm-3')) {
       return showErr('Please tick all required confirmations.');
     }
 
@@ -477,11 +471,7 @@
     fd.append('logo_rotation', logoRotation.toFixed(2));
     fd.append('logo_rights_confirmed', 'on');
     fd.append('terms_accepted', 'on');
-    fd.append('approval_acknowledged', 'on');
     fd.append('sanctions_declaration_1', 'on');
-    fd.append('sanctions_declaration_2', 'on');
-    fd.append('sanctions_declaration_3', 'on');
-    fd.append('sanctions_declaration_4', 'on');
 
     if (btn) {
       btn.disabled = true;

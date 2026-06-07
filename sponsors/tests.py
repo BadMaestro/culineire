@@ -81,11 +81,7 @@ class SponsorFlowTests(TestCase):
             "logo_rotation": "0",
             "logo_rights_confirmed": "on",
             "terms_accepted": "on",
-            "approval_acknowledged": "on",
             "sanctions_declaration_1": "on",
-            "sanctions_declaration_2": "on",
-            "sanctions_declaration_3": "on",
-            "sanctions_declaration_4": "on",
         }
 
     def create_pending_application(self, paid=False):
@@ -181,7 +177,7 @@ class SponsorFlowTests(TestCase):
         self.assertNotContains(response, "Internal staff note")
         self.assertNotContains(response, "pi_secret_public_safety")
 
-    def test_application_requires_terms_logo_rights_and_approval_acknowledgement(self):
+    def test_application_requires_terms(self):
         data = self.valid_post_data()
         data.pop("terms_accepted")
 
@@ -189,6 +185,25 @@ class SponsorFlowTests(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertIn("Terms accepted", response.json()["error"])
+        self.assertEqual(SponsorApplication.objects.count(), 0)
+
+    def test_application_requires_sanctions_declaration(self):
+        data = self.valid_post_data()
+        data.pop("sanctions_declaration_1")
+
+        response = self.client.post(reverse("sponsors:cell_enquire", args=[self.cell.pk]), data)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Sanctions declaration", response.json()["error"])
+        self.assertEqual(SponsorApplication.objects.count(), 0)
+
+    def test_application_requires_logo_rights(self):
+        data = self.valid_post_data()
+        data.pop("logo_rights_confirmed")
+
+        response = self.client.post(reverse("sponsors:cell_enquire", args=[self.cell.pk]), data)
+
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(SponsorApplication.objects.count(), 0)
 
     def test_application_requires_logo_upload(self):
@@ -1351,19 +1366,42 @@ class SponsorPublicFormTests(TestCase):
         self.assertContains(response, "runs for 30 days from that publication date")
         self.assertContains(response, "It is not a calendar-month or annual product")
 
-    def test_sponsor_puzzle_page_contains_logo_rights_checkbox_js(self):
-        """The sponsors_modal.js must contain the logo rights confirmation wording."""
+    def test_sponsor_modal_js_has_exactly_three_public_confirmations(self):
+        """sponsors_modal.js must render exactly 3 confirmation checkboxes."""
         from django.contrib.staticfiles import finders
         js_path = finders.find("js/sponsors_modal.js")
         self.assertIsNotNone(js_path, "sponsors_modal.js not found in static files")
         with open(js_path, encoding="utf-8") as f:
             js_content = f.read()
+
+        # All 3 checkbox IDs must be present
+        self.assertIn("spm-confirm-1", js_content, "Checkbox 1 (logo rights) must be in modal JS")
+        self.assertIn("spm-confirm-2", js_content, "Checkbox 2 (terms/payment) must be in modal JS")
+        self.assertIn("spm-confirm-3", js_content, "Checkbox 3 (sanctions) must be in modal JS")
+
+        # Old redundant checkbox IDs must not appear
+        self.assertNotIn("spm-sanctions-1", js_content, "Old spm-sanctions-1 must be removed")
+        self.assertNotIn("spm-sanctions-2", js_content, "Old spm-sanctions-2 must be removed")
+        self.assertNotIn("spm-sanctions-3", js_content, "Old spm-sanctions-3 must be removed")
+        self.assertNotIn("spm-sanctions-4", js_content, "Old spm-sanctions-4 must be removed")
+        self.assertNotIn("spm-approval", js_content, "Old spm-approval must be removed")
+
+        # Key wording checks
         self.assertIn("logo_rights_confirmed", js_content,
-                      "logo_rights_confirmed must be submitted by the sponsor form JS")
-        self.assertIn("spm-logo-rights", js_content,
-                      "spm-logo-rights checkbox must be rendered in the sponsor modal JS")
+                      "logo_rights_confirmed must be submitted by the form JS")
         self.assertIn("Bearcave Limited may display it on CulinEire", js_content,
                       "Logo rights wording must mention Bearcave Limited displaying on CulinEire")
+        self.assertIn("Payment does not guarantee approval, publication or activation", js_content,
+                      "Combined terms/payment wording must be present")
+        self.assertIn("I also confirm that I am not applying on behalf of", js_content,
+                      "Combined sanctions declaration must be present")
+
+        # Old duplicate wording must be gone
+        self.assertNotIn(
+            "I understand that CulinEire may delay, refuse, suspend, cancel, reject, hold or reverse",
+            js_content,
+            "Old redundant sanctions-4 wording must be removed",
+        )
 
     def test_sponsor_puzzle_centre_uses_sponsor_of_the_month_copy(self):
         from django.contrib.staticfiles import finders
@@ -1381,7 +1419,7 @@ class SponsorPublicFormTests(TestCase):
             "contact_name": "Test Contact",
             "email": "test@example.com",
             "terms_accepted": "on",
-            "approval_acknowledged": "on",
+            "sanctions_declaration_1": "on",
             # logo_rights_confirmed deliberately omitted
         }
         response = self.client.post(
@@ -1391,8 +1429,8 @@ class SponsorPublicFormTests(TestCase):
         self.assertIn("Image rights confirmed", response.json()["error"])
 
     @override_settings(STRIPE_SECRET_KEY="sk_test_123")
-    def test_enquire_with_logo_rights_proceeds_past_validation(self):
-        """Submitting with logo_rights_confirmed=on passes the rights check."""
+    def test_enquire_with_all_three_confirmations_proceeds_to_checkout(self):
+        """Submitting all 3 required confirmations passes validation and reaches checkout."""
         from unittest.mock import patch
         from .services import CheckoutSessionInfo
         data = {
@@ -1401,11 +1439,7 @@ class SponsorPublicFormTests(TestCase):
             "email": "test@example.com",
             "logo_rights_confirmed": "on",
             "terms_accepted": "on",
-            "approval_acknowledged": "on",
             "sanctions_declaration_1": "on",
-            "sanctions_declaration_2": "on",
-            "sanctions_declaration_3": "on",
-            "sanctions_declaration_4": "on",
             "logo": png_upload(),
             "logo_offset_x": "0",
             "logo_offset_y": "0",
@@ -1421,6 +1455,37 @@ class SponsorPublicFormTests(TestCase):
             )
         self.assertEqual(response.status_code, 200)
         self.assertIn("checkout_url", response.json())
+
+    @override_settings(STRIPE_SECRET_KEY="sk_test_123")
+    def test_approval_acknowledged_set_on_application_after_checkout(self):
+        """approval_acknowledged must be True on the saved application (combined with terms checkbox)."""
+        from unittest.mock import patch
+        from .services import CheckoutSessionInfo
+        data = {
+            "sponsor_name": "Rights Check Sponsor",
+            "contact_name": "Rights Contact",
+            "email": "rights@example.com",
+            "logo_rights_confirmed": "on",
+            "terms_accepted": "on",
+            "sanctions_declaration_1": "on",
+            "logo": png_upload(),
+            "logo_offset_x": "0",
+            "logo_offset_y": "0",
+            "logo_scale": "1",
+            "logo_rotation": "0",
+        }
+        with patch(
+            "sponsors.views.create_checkout_session",
+            return_value=CheckoutSessionInfo("cs_test_ack", "https://checkout.stripe.test/ack"),
+        ):
+            response = self.client.post(
+                reverse("sponsors:cell_enquire", args=[self.cell.pk]), data
+            )
+        self.assertEqual(response.status_code, 200)
+        app = SponsorApplication.objects.get()
+        self.assertTrue(app.approval_acknowledged)
+        self.assertTrue(app.terms_accepted)
+        self.assertTrue(app.logo_rights_confirmed)
 
 
 def teardown_module(_module=None):
