@@ -12,6 +12,10 @@ PIP=$VENV/bin/pip
 ENV_FILE=/srv/culineire/shared/.env
 UNIT_CONFIG=$APP/deploy/unit.culineire.json
 
+# STAGE B: deploying from feature branch while Sponsors/Stripe workflow awaits
+# merge into main. Change back to main once Stage A merge is complete.
+DEPLOY_BRANCH=feature/sponsors-stripe-phase-1
+
 export DJANGO_ENV_FILE="$ENV_FILE"
 
 GREEN='\033[0;32m'; RED='\033[0;31m'; CYAN='\033[0;36m'; NC='\033[0m'
@@ -25,19 +29,26 @@ fi
 
 echo ""
 info "=== CulinEire deploy $(date '+%Y-%m-%d %H:%M:%S') ==="
+info "Deploying branch: $DEPLOY_BRANCH"
 echo ""
 
 # --- 1. Pull latest code -----------------------------------------------------
 info "Pulling latest code from GitHub..."
 cd "$APP"
-git fetch origin main
+
+if ! git diff --quiet || ! git diff --cached --quiet; then
+    fail "Working tree has uncommitted changes — aborting deploy. Run 'git status' to inspect."
+fi
+
+git fetch origin
 BEFORE=$(git rev-parse HEAD)
-git reset --hard origin/main
+git checkout "$DEPLOY_BRANCH"
+git reset --hard "origin/$DEPLOY_BRANCH"
 AFTER=$(git rev-parse HEAD)
 if [ "$BEFORE" = "$AFTER" ]; then
-    ok "Already up to date ($AFTER)"
+    ok "Already up to date on $DEPLOY_BRANCH ($AFTER)"
 else
-    ok "Updated $BEFORE → $AFTER"
+    ok "Updated $BEFORE → $AFTER on $DEPLOY_BRANCH"
     git log --oneline "$BEFORE".."$AFTER"
 fi
 
