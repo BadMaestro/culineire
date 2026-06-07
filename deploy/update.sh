@@ -12,9 +12,7 @@ PIP=$VENV/bin/pip
 ENV_FILE=/srv/culineire/shared/.env
 UNIT_CONFIG=$APP/deploy/unit.culineire.json
 
-# STAGE B: deploying from feature branch while Sponsors/Stripe workflow awaits
-# merge into main. Change back to main once Stage A merge is complete.
-DEPLOY_BRANCH=feature/sponsors-stripe-phase-1
+DEPLOY_BRANCH=main
 
 export DJANGO_ENV_FILE="$ENV_FILE"
 
