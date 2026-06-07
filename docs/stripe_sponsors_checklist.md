@@ -1,5 +1,7 @@
 # Stripe Sponsors Manual Test Checklist
 
+For live readiness and owner/accountant review, also use `docs/sponsor_stripe_live_readiness.md`. This checklist remains the manual smoke-test checklist; it is not the live Stripe switch.
+
 ## Test Mode
 
 1. Set `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_MODE=test`, and `SITE_BASE_URL`.
@@ -23,13 +25,19 @@
 ## Live Deployment Checklist
 
 1. Confirm production `SITE_BASE_URL=https://culineire.ie`.
-2. Confirm live Stripe keys and webhook secret are loaded from environment variables only.
-3. Confirm Stripe webhook endpoint is configured as `/sponsors/stripe/webhook/`.
-4. Confirm no secret key or webhook secret appears in templates, logs, admin display, or source code.
-5. Confirm Automatic Tax is enabled in Stripe live mode.
-6. Confirm Bearcave Limited VAT number is configured and visible in the internal roadmap checks.
-7. Run Django migrations.
-8. Run the sponsor test suite.
-9. Complete one low-value live test if appropriate, then refund it manually through Stripe and record manual refund completion in CulinEire.
-10. Confirm the sponsor roadmap is visible only to superusers or GreenBear owner access.
-11. Confirm no public page exposes sanctions match details, staff notes, audit logs, tokenized EU URLs or Stripe payment identifiers.
+2. Confirm `STRIPE_PRICE_MODE=live` only when the project owner authorises live payments.
+3. Confirm live Stripe publishable key, secret key and webhook secret are loaded from environment variables only.
+4. Confirm test keys are not used in live mode and live keys are not used in test mode.
+5. Confirm Stripe webhook endpoint is configured as `/sponsors/stripe/webhook/`.
+6. Confirm no secret key or webhook secret appears in templates, logs, admin display or source code.
+7. Confirm Automatic Tax is enabled in Stripe live mode.
+8. Requires accountant/Stripe Tax review before live mode: VAT setup, VAT rate handling and customer tax ID behaviour.
+9. Confirm Bearcave Limited VAT number is configured and visible in the internal roadmap checks.
+10. Take a database backup and record the deployed commit hash before the switch.
+11. Run Django migrations if any are pending.
+12. Run the sponsor test suite and the legal/newsfeed/recipes controls.
+13. Run collectstatic and restart Unit.
+14. Complete one controlled low-value live test only when authorised, then refund it manually through Stripe if required and record manual refund completion in CulinEire.
+15. Confirm the sponsor roadmap is visible only to superusers or GreenBear owner access.
+16. Confirm no public page exposes sanctions match details, staff notes, audit logs, tokenized EU URLs or Stripe payment identifiers.
+17. Confirm no Telegram sponsor announcement is sent until staff approve and publish.

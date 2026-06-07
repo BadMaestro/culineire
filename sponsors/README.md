@@ -7,6 +7,7 @@ Completed phases:
 - Phase 3: internal possible sanctions match workflow, staff review decisions, audit logging and approval blocking for unresolved or blocked matches.
 - Phase 4: enforcement around blocked compliance, refund required, manual refund completion and safe sponsor cell state rules.
 - Phase 5: legal-facing wording, applicant/staff UI clarity, notification wording and documentation polish.
+- Phase 6: Stripe live readiness checklist, mode/key safety guards, owner/accountant review checklist and rollback/cleanup documentation.
 
 Current sponsor flow:
 
@@ -28,6 +29,36 @@ Public data safety rules:
 - Telegram sponsor announcements are sent only after Approve and publish.
 
 Still out of scope: automatic Stripe refunds, full AML/KYC, beneficial ownership collection, scheduled re-screening, live Stripe switch and legal/applicant workflow beyond the current sponsor declarations and review process.
+
+## Sponsors Phase 6: Stripe Live Readiness
+
+Phase 6 does not switch Stripe to live mode. It adds readiness checks and documentation for a future live switch.
+
+Runtime safeguards:
+
+- `STRIPE_PRICE_MODE` must be `test` or `live`.
+- `sk_live_` secret keys are rejected in test mode.
+- `sk_test_` secret keys are rejected in live mode.
+- Publishable key mode mismatches are rejected when a publishable key is configured.
+- Stripe webhook verification still requires `STRIPE_WEBHOOK_SECRET`.
+
+The current checkout implementation uses server-side `price_data` from `SponsorCell.price_net_cents`. It does not use separate Stripe Price IDs. If Stripe Price IDs are introduced later, test and live IDs must be separated and validated before live use.
+
+Readiness documentation:
+
+- `docs/sponsor_stripe_live_readiness.md` contains the owner/accountant/developer checklist.
+- `docs/stripe_sponsors_checklist.md` remains the manual smoke-test checklist and now references the Phase 6 live-readiness document.
+
+Items requiring owner/accountant/Stripe review before live mode:
+
+- Stripe account activation.
+- Live Automatic Tax/VAT setup.
+- VAT rate handling and customer tax ID behaviour.
+- Production email delivery.
+- Live webhook endpoint and signing secret.
+- Final sandbox cleanup and database backup.
+
+Phase 6 still leaves out automatic Stripe refunds, full AML/KYC, beneficial ownership collection, scheduled re-screening, real live payments and the actual live Stripe switch.
 
 ## Sponsors Compliance Phase 2
 

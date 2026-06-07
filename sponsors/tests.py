@@ -27,12 +27,14 @@ from .models import (
 )
 from .services import (
     CheckoutSessionInfo,
+    SponsorStripeConfigurationError,
     approve_application,
     create_checkout_session,
     expire_application,
     handle_stripe_event,
     mark_refund_completed,
     reject_application,
+    validate_stripe_runtime_configuration,
 )
 
 # Isolated settings applied to every sponsor test class:
@@ -364,6 +366,42 @@ class SponsorFlowTests(TestCase):
         self.assertEqual(price_data["tax_behavior"], "exclusive")
         self.assertEqual(price_data["product_data"]["tax_code"], "txcd_20060002")
         self.assertEqual(kwargs["automatic_tax"], {"enabled": True})
+
+    @override_settings(
+        STRIPE_PRICE_MODE="live",
+        STRIPE_SECRET_KEY="sk_test_mismatch",
+        STRIPE_PUBLISHABLE_KEY="pk_live_ok",
+    )
+    def test_stripe_live_mode_rejects_test_secret_key(self):
+        with self.assertRaisesMessage(SponsorStripeConfigurationError, "test secret key"):
+            validate_stripe_runtime_configuration()
+
+    @override_settings(
+        STRIPE_PRICE_MODE="test",
+        STRIPE_SECRET_KEY="sk_live_mismatch",
+        STRIPE_PUBLISHABLE_KEY="pk_test_ok",
+    )
+    def test_stripe_test_mode_rejects_live_secret_key(self):
+        with self.assertRaisesMessage(SponsorStripeConfigurationError, "live secret key"):
+            validate_stripe_runtime_configuration()
+
+    @override_settings(
+        STRIPE_PRICE_MODE="live",
+        STRIPE_SECRET_KEY="sk_live_ok",
+        STRIPE_PUBLISHABLE_KEY="pk_test_mismatch",
+    )
+    def test_stripe_live_mode_rejects_test_publishable_key(self):
+        with self.assertRaisesMessage(SponsorStripeConfigurationError, "test publishable key"):
+            validate_stripe_runtime_configuration()
+
+    @override_settings(
+        STRIPE_PRICE_MODE="test",
+        STRIPE_SECRET_KEY="sk_test_ok",
+        STRIPE_WEBHOOK_SECRET="",
+    )
+    def test_stripe_webhook_runtime_requires_webhook_secret(self):
+        with self.assertRaisesMessage(SponsorStripeConfigurationError, "STRIPE_WEBHOOK_SECRET"):
+            validate_stripe_runtime_configuration(require_webhook_secret=True)
 
     def test_successful_webhook_sets_paid_pending_compliance_review_without_publishing_logo(self):
         application = self.create_pending_application(paid=False)

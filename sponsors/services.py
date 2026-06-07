@@ -34,6 +34,29 @@ class CheckoutSessionInfo:
     checkout_url: str
 
 
+def validate_stripe_runtime_configuration(*, require_webhook_secret: bool = False) -> None:
+    mode = str(getattr(settings, "STRIPE_PRICE_MODE", "") or "").strip().lower()
+    secret_key = str(getattr(settings, "STRIPE_SECRET_KEY", "") or "").strip()
+    publishable_key = str(getattr(settings, "STRIPE_PUBLISHABLE_KEY", "") or "").strip()
+    webhook_secret = str(getattr(settings, "STRIPE_WEBHOOK_SECRET", "") or "").strip()
+
+    if mode not in {"test", "live"}:
+        raise SponsorStripeConfigurationError("STRIPE_PRICE_MODE must be either 'test' or 'live'.")
+    if not secret_key:
+        raise SponsorStripeConfigurationError("STRIPE_SECRET_KEY is not configured.")
+    if mode == "test" and secret_key.startswith("sk_live_"):
+        raise SponsorStripeConfigurationError("Stripe live secret key cannot be used while STRIPE_PRICE_MODE is test.")
+    if mode == "live" and secret_key.startswith("sk_test_"):
+        raise SponsorStripeConfigurationError("Stripe test secret key cannot be used while STRIPE_PRICE_MODE is live.")
+    if publishable_key:
+        if mode == "test" and publishable_key.startswith("pk_live_"):
+            raise SponsorStripeConfigurationError("Stripe live publishable key cannot be used while STRIPE_PRICE_MODE is test.")
+        if mode == "live" and publishable_key.startswith("pk_test_"):
+            raise SponsorStripeConfigurationError("Stripe test publishable key cannot be used while STRIPE_PRICE_MODE is live.")
+    if require_webhook_secret and not webhook_secret:
+        raise SponsorStripeConfigurationError("STRIPE_WEBHOOK_SECRET is not configured.")
+
+
 def _get(obj: Any, key: str, default=None):
     if obj is None:
         return default
@@ -50,9 +73,8 @@ def _stripe():
             "The stripe Python package is not installed."
         ) from exc
 
+    validate_stripe_runtime_configuration()
     secret_key = getattr(settings, "STRIPE_SECRET_KEY", "")
-    if not secret_key:
-        raise SponsorStripeConfigurationError("STRIPE_SECRET_KEY is not configured.")
     stripe.api_key = secret_key
     return stripe
 
@@ -113,9 +135,8 @@ def create_checkout_session(application: SponsorApplication, request=None) -> Ch
 
 def construct_stripe_event(payload: bytes, signature: str):
     stripe = _stripe()
+    validate_stripe_runtime_configuration(require_webhook_secret=True)
     webhook_secret = getattr(settings, "STRIPE_WEBHOOK_SECRET", "")
-    if not webhook_secret:
-        raise SponsorStripeConfigurationError("STRIPE_WEBHOOK_SECRET is not configured.")
     return stripe.Webhook.construct_event(payload, signature, webhook_secret)
 
 
@@ -1007,10 +1028,17 @@ def build_roadmap_context() -> dict[str, Any]:
     stripe_secret = bool(getattr(settings, "STRIPE_SECRET_KEY", ""))
     publishable_key = bool(getattr(settings, "STRIPE_PUBLISHABLE_KEY", ""))
     webhook_secret = bool(getattr(settings, "STRIPE_WEBHOOK_SECRET", ""))
-    stripe_live_mode = str(getattr(settings, "STRIPE_SECRET_KEY", "")).startswith("sk_live_")
+    stripe_mode = str(getattr(settings, "STRIPE_PRICE_MODE", "") or "").lower()
+    stripe_live_mode = stripe_mode == "live"
+    try:
+        validate_stripe_runtime_configuration(require_webhook_secret=webhook_secret)
+        stripe_configuration_consistent = True
+    except SponsorStripeConfigurationError:
+        stripe_configuration_consistent = False
 
     checks = {
         "stripe": [
+            ("Mode/key consistency", stripe_configuration_consistent),
             ("Publishable key configured", publishable_key),
             ("Secret key configured", stripe_secret),
             ("Webhook secret configured", webhook_secret),
@@ -1026,7 +1054,7 @@ def build_roadmap_context() -> dict[str, Any]:
             ("Form validation working", True),
             ("Checkout creation working", stripe_secret),
             ("Webhook working", webhook_secret),
-            ("Paid pending approval working", True),
+            ("Paid pending compliance review working", True),
             ("Approval publishing working", True),
             ("Rejection/refund workflow working", True),
         ],
@@ -1034,7 +1062,7 @@ def build_roadmap_context() -> dict[str, Any]:
             ("Unit tests", any(item.title == "Add tests" and item.status == SponsorRoadmapItem.Status.DONE for item in items)),
             ("Integration tests", False),
             ("Webhook tests", False),
-            ("Manual test checklist", False),
+            ("Manual test checklist", True),
         ],
     }
     return {
@@ -1045,7 +1073,7 @@ def build_roadmap_context() -> dict[str, Any]:
         "done_count": done_count,
         "total_count": total_count,
         "percent": round((done_count / total_count) * 100) if total_count else 0,
-        "current_phase": "Stripe Checkout and moderation workflow",
+        "current_phase": "Stripe live readiness review",
         "last_updated": max((item.updated_at for item in items), default=timezone.now()),
         "environment_mode": "Stripe live mode" if stripe_live_mode else "Stripe test mode",
         "checks": checks,
