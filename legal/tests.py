@@ -78,6 +78,29 @@ class LegalPublicAccessTests(TestCase):
         response = self.client.get(reverse("privacy"))
         self.assertEqual(response.status_code, 200)
 
+    def test_legal_hub_preserves_links_and_visual_layout(self):
+        response = self.client.get(reverse("legal:legal_hub"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="legal-hero"')
+        self.assertContains(response, 'class="legal-card-grid"')
+        self.assertContains(response, 'class="legal-contact-card"')
+
+        expected_links = [
+            (reverse("legal:terms"), "Terms of Use"),
+            (reverse("privacy"), "Privacy Policy"),
+            (reverse("legal:cookies"), "Cookie Policy"),
+            (reverse("legal:report_content"), "Report Content"),
+            (reverse("legal:company_information"), "Company Information"),
+            (reverse("legal:content_publishing_rules"), "Content Publishing Rules"),
+            (reverse("legal:author_submission_agreement"), "Author Submission Agreement"),
+            (reverse("legal:copyright_image_rights_guide"), "Copyright and Image Rights"),
+        ]
+        for url, text in expected_links:
+            with self.subTest(text=text):
+                self.assertContains(response, f'href="{url}"')
+                self.assertContains(response, text)
+
 
 class ReportContentAnonymousSubmissionTests(TestCase):
     """Anonymous users can submit a content report."""

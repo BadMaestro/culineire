@@ -6,121 +6,89 @@
 {% block meta_description %}Legal information, company details, content policies, privacy and your rights as a CulinEire user or author.{% endblock %}
 
 {% block content %}
-<section class="hero hero--home">
+<section class="legal-hero">
     <div aria-hidden="true" class="hero__background">
         <img alt="" src="{% static 'images/hero-contact.png' %}">
     </div>
     <div aria-hidden="true" class="hero__overlay"></div>
-    <div class="container hero__inner">
-        <div class="hero-copy">
-            <span class="pill">Legal</span>
-            <h1 class="hero-title">Legal Information</h1>
-            <p class="hero-subtitle">Policies, guidelines, and your rights as a CulinEire user or author.</p>
-            <div class="hero__actions">
+    <div class="legal-hero__inner">
+        <div class="legal-hero__copy">
+            <span class="legal-eyebrow">Legal</span>
+            <h1>Legal Information</h1>
+            <p>Policies, guidelines, and your rights as a CulinEire user or author.</p>
+            <div class="legal-hero__actions">
                 {% if can_view_amuse_bouche_public_area %}
-                <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
+                <a class="legal-button legal-button--primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
                 {% endif %}
-                <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
-                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
-                <a class="btn-secondary" href="{% url 'sponsors:puzzle' %}">Sponsors</a>
+                <a class="legal-button" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
+                <a class="legal-button" href="{% url 'articles:article_list' %}">Read Articles</a>
+                <a class="legal-button" href="{% url 'sponsors:puzzle' %}">Sponsors</a>
             </div>
         </div>
     </div>
 </section>
 
-<section class="page-section">
-    <div class="container">
-        <div class="section-header">
-            <span class="section-kicker">Policies</span>
-            <h2>What You Need to Know</h2>
-        </div>
-        <p class="page-subtitle">
+<section class="legal-shell" aria-labelledby="legal-hub-title">
+    <div class="legal-intro">
+        <span class="legal-eyebrow">Policies</span>
+        <h2 id="legal-hub-title">What You Need to Know</h2>
+        <p>
             CulinEire is operated by Bearcave Limited (Company No. 658124), a private limited company
             registered in Ireland. The following documents govern how the platform works,
             what rights you have, and how to raise concerns.
         </p>
-
-        <div class="recipe-grid recipe-grid--mini" style="margin-top:2rem;grid-template-columns:repeat(auto-fit,minmax(160px,220px));justify-content:center;">
-
-            <a class="recipe-card" href="{% url 'legal:terms' %}" style="text-decoration:none;">
-                <div class="recipe-card__body">
-                    <div class="recipe-card__content">
-                        <h2 class="recipe-card__title" style="font-size:1rem;">Terms of Use</h2>
-                        <p style="font-size:0.85rem;color:var(--text-muted);">The rules governing your use of CulinEire.</p>
-                    </div>
-                </div>
-            </a>
-
-            <a class="recipe-card" href="{% url 'privacy' %}" style="text-decoration:none;">
-                <div class="recipe-card__body">
-                    <div class="recipe-card__content">
-                        <h2 class="recipe-card__title" style="font-size:1rem;">Privacy Policy</h2>
-                        <p style="font-size:0.85rem;color:var(--text-muted);">How we collect, use, and protect your personal data under GDPR.</p>
-                    </div>
-                </div>
-            </a>
-
-            <a class="recipe-card" href="{% url 'legal:cookies' %}" style="text-decoration:none;">
-                <div class="recipe-card__body">
-                    <div class="recipe-card__content">
-                        <h2 class="recipe-card__title" style="font-size:1rem;">Cookie Policy</h2>
-                        <p style="font-size:0.85rem;color:var(--text-muted);">What cookies we use and how to control them.</p>
-                    </div>
-                </div>
-            </a>
-
-            <a class="recipe-card" href="{% url 'legal:content_publishing_rules' %}" style="text-decoration:none;">
-                <div class="recipe-card__body">
-                    <div class="recipe-card__content">
-                        <h2 class="recipe-card__title" style="font-size:1rem;">Content Publishing Rules</h2>
-                        <p style="font-size:0.85rem;color:var(--text-muted);">What you may and may not submit to CulinEire.</p>
-                    </div>
-                </div>
-            </a>
-
-            <a class="recipe-card" href="{% url 'legal:author_submission_agreement' %}" style="text-decoration:none;">
-                <div class="recipe-card__body">
-                    <div class="recipe-card__content">
-                        <h2 class="recipe-card__title" style="font-size:1rem;">Author Submission Agreement</h2>
-                        <p style="font-size:0.85rem;color:var(--text-muted);">Terms authors accept when submitting recipes or articles.</p>
-                    </div>
-                </div>
-            </a>
-
-            <a class="recipe-card" href="{% url 'legal:copyright_image_rights_guide' %}" style="text-decoration:none;">
-                <div class="recipe-card__body">
-                    <div class="recipe-card__content">
-                        <h2 class="recipe-card__title" style="font-size:1rem;">Copyright and Image Rights</h2>
-                        <p style="font-size:0.85rem;color:var(--text-muted);">How to use images legally on CulinEire.</p>
-                    </div>
-                </div>
-            </a>
-
-            <a class="recipe-card" href="{% url 'legal:report_content' %}" style="text-decoration:none;">
-                <div class="recipe-card__body">
-                    <div class="recipe-card__content">
-                        <h2 class="recipe-card__title" style="font-size:1rem;">Report Content</h2>
-                        <p style="font-size:0.85rem;color:var(--text-muted);">Report copyright infringement or policy violations.</p>
-                    </div>
-                </div>
-            </a>
-
-            <a class="recipe-card" href="{% url 'legal:company_information' %}" style="text-decoration:none;">
-                <div class="recipe-card__body">
-                    <div class="recipe-card__content">
-                        <h2 class="recipe-card__title" style="font-size:1rem;">Company Information</h2>
-                        <p style="font-size:0.85rem;color:var(--text-muted);">Legal notice and registered company details for CulinEire.</p>
-                    </div>
-                </div>
-            </a>
-
-        </div>
-
-        <p class="page-subtitle" style="margin-top:3rem;">
-            Questions about these policies can be sent to
-            <a href="mailto:culineire@bearcave.ie">culineire@bearcave.ie</a>
-            or through our <a href="{% url 'messaging:contact' %}">contact form</a>.
-        </p>
     </div>
+
+    <div class="legal-card-grid" aria-label="Legal resources">
+        <a class="legal-card legal-card--primary" href="{% url 'legal:terms' %}">
+            <h3>Terms of Use</h3>
+            <p>The rules governing your use of CulinEire.</p>
+        </a>
+
+        <a class="legal-card legal-card--primary" href="{% url 'privacy' %}">
+            <h3>Privacy Policy</h3>
+            <p>How we collect, use, and protect your personal data under GDPR.</p>
+        </a>
+
+        <a class="legal-card legal-card--primary" href="{% url 'legal:cookies' %}">
+            <h3>Cookie Policy</h3>
+            <p>What cookies we use and how to control them.</p>
+        </a>
+
+        <a class="legal-card" href="{% url 'legal:content_publishing_rules' %}">
+            <h3>Content Publishing Rules</h3>
+            <p>What you may and may not submit to CulinEire.</p>
+        </a>
+
+        <a class="legal-card" href="{% url 'legal:author_submission_agreement' %}">
+            <h3>Author Submission Agreement</h3>
+            <p>Terms authors accept when submitting recipes or articles.</p>
+        </a>
+
+        <a class="legal-card" href="{% url 'legal:copyright_image_rights_guide' %}">
+            <h3>Copyright and Image Rights</h3>
+            <p>How to use images legally on CulinEire.</p>
+        </a>
+
+        <a class="legal-card" href="{% url 'legal:report_content' %}">
+            <h3>Report Content</h3>
+            <p>Report copyright infringement or policy violations.</p>
+        </a>
+
+        <a class="legal-card" href="{% url 'legal:company_information' %}">
+            <h3>Company Information</h3>
+            <p>Legal notice and registered company details for CulinEire.</p>
+        </a>
+    </div>
+
+    <aside class="legal-contact-card" aria-label="Legal contact">
+        <div>
+            <p>
+                Questions about these policies can be sent to
+                <a href="mailto:culineire@bearcave.ie">culineire@bearcave.ie</a>
+                or through our <a href="{% url 'messaging:contact' %}">contact form</a>.
+            </p>
+        </div>
+    </aside>
 </section>
 {% endblock %}
