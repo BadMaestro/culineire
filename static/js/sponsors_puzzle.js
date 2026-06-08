@@ -378,7 +378,7 @@
 
     var centroid  = segmentCentroid(innerR + GAP, outerR - GAP / 2, startAngle, endAngle);
     var midAngle  = (startAngle + endAngle) / 2;
-    var fontSize  = RING_FONT_SIZE[ring] || 9;
+    var fontSize  = (cellData && cellData.product_type === 'weekly_ring') ? 7 : (RING_FONT_SIZE[ring] || 9);
 
     // Rotate text to follow the ring radially (so it's readable outward)
     var rotateDeg = (midAngle * 180 / Math.PI) + 90;
@@ -390,6 +390,8 @@
       // Show short sponsor name (first word, max 6 chars)
       var name = cellData.sponsor_name.split(' ')[0];
       label = name.length > 6 ? name.slice(0, 5) + '…' : name;
+    } else if (cellData && cellData.product_type === 'weekly_ring') {
+      label = '€' + Math.round(cellData.price_net_cents / 100) + '/wk';
     } else {
       label = RING_PRICE_LABEL[ring] || '';
     }
