@@ -126,8 +126,14 @@
   function renderAvailable(cell) {
     var html = '';
     var isCentral = cell.ring === 0;
+    var isWeekly = !isCentral && cell.product_type === 'weekly_ring';
     html += '<p class="spm-price">' + esc(cell.price_display || '') + '</p>';
-    html += '<p class="spm-desc">' + (isCentral ? 'Payment reserves the central monthly placement pending Bearcave compliance and staff review. The 30-day term starts only when the approved image and link are published. This is a one-off payment, not an annual placement or recurring subscription.' : 'Payment securely reserves this annual ring spot pending Bearcave compliance and staff review. VAT is calculated at checkout. Businesses, sole traders and individuals are welcome. Publication is subject to Bearcave Limited approval.') + '</p>';
+    var desc = isCentral
+      ? 'Payment reserves the central monthly placement pending Bearcave compliance and staff review. The 30-day term starts only when the approved image and link are published. This is a one-off payment, not an annual placement or recurring subscription.'
+      : isWeekly
+        ? 'Payment securely reserves this weekly ring spot pending Bearcave compliance and staff review. VAT is calculated at checkout. Businesses, sole traders and individuals are welcome. Publication is subject to Bearcave Limited approval.'
+        : 'Payment securely reserves this annual ring spot pending Bearcave compliance and staff review. VAT is calculated at checkout. Businesses, sole traders and individuals are welcome. Publication is subject to Bearcave Limited approval.';
+    html += '<p class="spm-desc">' + desc + '</p>';
     html += '<form id="spm-application-form" class="spm-form" enctype="multipart/form-data" novalidate>';
     html += '<div class="spm-form-section-label">Sponsor details</div>';
     html += field('spm-sponsor-name', 'text', 'Sponsor display name', 'Business, sole trader or individual name', true, 'organization');
@@ -141,7 +147,11 @@
     html += '<div id="spm-canvas-wrap" class="spm-canvas-wrap" hidden><p class="spm-canvas-label">Drag the image and adjust size until it fits this exact cell</p><div class="spm-canvas-outer"><canvas id="spm-canvas" width="220" height="220"></canvas></div><div class="spm-scale-row"><span class="spm-scale-label">Size</span><input type="range" id="spm-scale" min="0.2" max="2.5" step="0.05" value="1.0" class="spm-scale-input"><span id="spm-scale-val" class="spm-scale-val">1.0x</span></div><div class="spm-scale-row"><span class="spm-scale-label spm-scale-label--rotate">Rotate</span><input type="range" id="spm-rotate" min="-180" max="180" step="1" value="0" class="spm-scale-input"><span id="spm-rotate-val" class="spm-scale-val">0°</span></div><button type="button" id="spm-image-reset" class="spm-reset-btn">Reset image position</button></div>';
     html += '<div class="spm-form-section-label">Confirmations</div>';
     html += checkbox('spm-confirm-1', 'I confirm that I have the right to use this logo/avatar and that Bearcave Limited may display it on CulinEire if the sponsorship is approved and published.');
-    html += checkbox('spm-confirm-2', isCentral ? 'I accept the CulinEire sponsorship terms for the 30-day Central Sponsor of the Month and understand that payment reserves the selected spot for review only. Payment does not guarantee approval, publication or activation.' : 'I accept the CulinEire Annual Ring Sponsorship Terms and understand that payment reserves the selected spot for review only. Payment does not guarantee approval, publication or activation.');
+    html += checkbox('spm-confirm-2', isCentral
+      ? 'I accept the CulinEire sponsorship terms for the 30-day Central Sponsor of the Month and understand that payment reserves the selected spot for review only. Payment does not guarantee approval, publication or activation.'
+      : isWeekly
+        ? 'I accept the CulinEire Weekly Ring Sponsorship Terms and understand that payment reserves the selected spot for review only. Payment does not guarantee approval, publication or activation.'
+        : 'I accept the CulinEire Annual Ring Sponsorship Terms and understand that payment reserves the selected spot for review only. Payment does not guarantee approval, publication or activation.');
     html += checkbox('spm-confirm-3', 'I confirm, to the best of my knowledge, that neither I, nor any company, organisation or business I represent, nor any relevant owner, director, beneficial owner or controlling person, is subject to EU, UN, Irish or other applicable financial sanctions. I also confirm that I am not applying on behalf of, for the benefit of, or under the control of any sanctioned person, company, organisation or body.');
     html += '<p class="spm-note">Payment reserves the selected spot while CulinEire reviews the application. Sponsorship may be approved, refused, delayed, cancelled, suspended or marked for manual refund where required by compliance, legal, payment, fraud, content, reputational or policy checks.</p>';
     html += '<div id="spm-form-error" class="spm-error" hidden></div>';
