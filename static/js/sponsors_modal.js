@@ -40,14 +40,9 @@
     modalBody = document.getElementById('sponsor-modal-body');
 
     var closeBtn = document.getElementById('sponsor-modal-close');
-    if (closeBtn) closeBtn.addEventListener('click', closeModal);
-    if (modal) {
-      modal.addEventListener('click', function (e) {
-        if (e.target === modal) closeModal();
-      });
-    }
+    if (closeBtn) closeBtn.addEventListener('click', maybeClose);
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && modal && !modal.hidden) closeModal();
+      if (e.key === 'Escape' && modal && !modal.hidden) maybeClose();
     });
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', function () { dragActive = false; });
@@ -66,6 +61,29 @@
     renderModal(cellData || {});
     modal.hidden = false;
     document.body.style.overflow = 'hidden';
+  }
+
+  function isFormDirty() {
+    var form = document.getElementById('spm-application-form');
+    if (!form) return false;
+    var inputs = form.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="url"], textarea');
+    for (var i = 0; i < inputs.length; i++) {
+      if (inputs[i].value.trim() !== '') return true;
+    }
+    var files = form.querySelector('input[type="file"]');
+    if (files && files.files && files.files.length > 0) return true;
+    var checks = form.querySelectorAll('input[type="checkbox"]');
+    for (var j = 0; j < checks.length; j++) {
+      if (checks[j].checked) return true;
+    }
+    return false;
+  }
+
+  function maybeClose() {
+    if (isFormDirty()) {
+      if (!window.confirm('You have unsaved details in the form. Close and lose your input?')) return;
+    }
+    closeModal();
   }
 
   function closeModal() {

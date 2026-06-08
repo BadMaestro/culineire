@@ -1403,6 +1403,44 @@ class SponsorPublicFormTests(TestCase):
             "Old redundant sanctions-4 wording must be removed",
         )
 
+    def test_sponsor_modal_no_backdrop_click_close(self):
+        """Backdrop click must NOT close the modal (handler removed)."""
+        from django.contrib.staticfiles import finders
+        js_path = finders.find("js/sponsors_modal.js")
+        self.assertIsNotNone(js_path)
+        with open(js_path, encoding="utf-8") as f:
+            js_content = f.read()
+        # The old backdrop-close pattern must be gone
+        self.assertNotIn(
+            "if (e.target === modal) closeModal()",
+            js_content,
+            "Backdrop click must not close the modal — old handler must be removed",
+        )
+
+    def test_sponsor_modal_js_has_dirty_guard(self):
+        """sponsors_modal.js must have isFormDirty, maybeClose and window.confirm guard."""
+        from django.contrib.staticfiles import finders
+        js_path = finders.find("js/sponsors_modal.js")
+        self.assertIsNotNone(js_path)
+        with open(js_path, encoding="utf-8") as f:
+            js_content = f.read()
+        self.assertIn("isFormDirty", js_content, "isFormDirty function must be present")
+        self.assertIn("maybeClose", js_content, "maybeClose function must be present")
+        self.assertIn("window.confirm", js_content, "window.confirm guard must be present")
+
+    def test_sponsor_modal_template_has_panel_header(self):
+        """puzzle.html modal must wrap close button in .spm-panel-header."""
+        import os
+        from django.conf import settings
+        template_path = os.path.join(settings.BASE_DIR, "templates", "sponsors", "puzzle.html")
+        with open(template_path, encoding="utf-8") as f:
+            html = f.read()
+        self.assertIn(
+            'class="spm-panel-header"',
+            html,
+            "Modal must have a .spm-panel-header wrapper for the close button",
+        )
+
     def test_sponsor_puzzle_centre_uses_sponsor_of_the_month_copy(self):
         from django.contrib.staticfiles import finders
         js_path = finders.find("js/sponsors_puzzle.js")

@@ -38,7 +38,8 @@
   width: 100%;
   max-width: 480px;
   max-height: 90vh;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   animation: spm-slide-up 0.18s ease;
 }
 
@@ -47,12 +48,23 @@
   to   { transform: translateY(0);    opacity: 1; }
 }
 
+/* ---- Panel header (fixed close bar, never scrolls) ---- */
+.spm-panel-header {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.75rem 0.85rem 0.35rem;
+  border-radius: 22px 22px 0 0;
+}
+
+/* ---- Scrollable body ---- */
+.spm-panel-body {
+  overflow-y: auto;
+  flex: 1;
+}
+
 /* ---- Close button ---- */
 .spm-close {
-  position: sticky;
-  top: 0;
-  float: right;
-  margin: 1.1rem 1.1rem 0 0;
   background: rgba(244, 241, 236, 0.9);
   border: 1px solid rgba(180, 165, 140, 0.22);
   border-radius: 50%;
@@ -62,12 +74,11 @@
   color: #7a6e5c;
   cursor: pointer;
   line-height: 1;
-  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
-  backdrop-filter: blur(4px);
+  flex-shrink: 0;
 }
 .spm-close:hover {
   background: #e4ddd1;
@@ -81,8 +92,7 @@
 
 /* ---- Body ---- */
 #sponsor-modal-body {
-  padding: 1.5rem 1.75rem 1.75rem;
-  clear: both;
+  padding: 0.25rem 1.75rem 1.75rem;
 }
 
 /* ---- Header ---- */
