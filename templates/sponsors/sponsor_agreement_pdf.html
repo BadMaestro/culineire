@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: Helvetica, Arial, sans-serif; font-size: 10pt; color: #1f2c25; margin: 2cm; }
+  h1 { font-size: 16pt; text-align: center; margin-bottom: 4pt; }
+  .kicker { text-align: center; font-size: 9pt; color: #6b5e52; margin-bottom: 20pt; }
+  h2 { font-size: 10pt; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #c8beb4; padding-bottom: 3pt; margin-top: 18pt; margin-bottom: 6pt; }
+  table.summary { width: 100%; border-collapse: collapse; margin-bottom: 12pt; }
+  table.summary td { padding: 3pt 0; font-size: 9.5pt; vertical-align: top; }
+  table.summary td.label { color: #6b5e52; width: 42%; }
+  table.summary td.value { color: #1f2c25; font-weight: bold; }
+  p { font-size: 9.5pt; line-height: 1.55; margin: 0 0 8pt; }
+  .footer { margin-top: 24pt; border-top: 1px solid #c8beb4; padding-top: 8pt; font-size: 8.5pt; color: #7a8a82; text-align: center; }
+</style>
+</head>
+<body>
+
+<h1>CulinEire Sponsor Agreement</h1>
+<p class="kicker">Reference: {{ contract_reference }}</p>
+
+<h2>Agreement Summary</h2>
+<table class="summary">
+  <tr><td class="label">Reference</td><td class="value">{{ contract_reference }}</td></tr>
+  <tr><td class="label">Application ID</td><td class="value">{{ application.reference }}</td></tr>
+  <tr><td class="label">Sponsor</td><td class="value">{{ application.sponsor_name }}</td></tr>
+  <tr><td class="label">Contact</td><td class="value">{{ application.contact_name }}</td></tr>
+  <tr><td class="label">Email</td><td class="value">{{ application.email }}</td></tr>
+  {% if application.website_url %}<tr><td class="label">Website / Profile</td><td class="value">{{ application.website_url }}</td></tr>{% endif %}
+  <tr><td class="label">Sponsor slot</td><td class="value">
+    {% if application.cell.is_centre %}
+      Central Sponsor of the Month
+    {% elif application.product_type == "weekly_ring" %}
+      Weekly Ring Sponsor Slot &mdash; Ring {{ application.cell.ring }}, Cell #{{ application.cell.cell_number }}
+    {% else %}
+      Annual Ring Sponsor Slot &mdash; Ring {{ application.cell.ring }}, Cell #{{ application.cell.cell_number }}
+    {% endif %}
+  </td></tr>
+  <tr><td class="label">Service term</td><td class="value">
+    {% if application.product_type == "weekly_ring" %}
+      Weekly &mdash; 7 calendar days from activation
+    {% elif application.product_type == "central_monthly" %}
+      Monthly &mdash; 30 calendar days from activation
+    {% else %}
+      Annual &mdash; 12 months from activation
+    {% endif %}
+  </td></tr>
+  <tr><td class="label">Net amount</td><td class="value">EUR {{ application.price_net_euros|floatformat:2 }}{% if application.product_type == "weekly_ring" %} per week{% elif application.product_type == "central_monthly" %} per month{% else %} per year{% endif %}</td></tr>
+  {% if payment and payment.vat_amount_cents %}<tr><td class="label">VAT</td><td class="value">{{ payment.vat_amount_cents }} cents (reported by Stripe at checkout)</td></tr>{% endif %}
+  {% if payment and payment.total_amount_cents %}<tr><td class="label">Total paid</td><td class="value">{{ payment.total_amount_cents }} cents (reported by Stripe at checkout)</td></tr>{% endif %}
+  <tr><td class="label">Activation date</td><td class="value">{{ activation_date|date:"j F Y" }}</td></tr>
+  {% if end_date %}<tr><td class="label">End date</td><td class="value">{{ end_date|date:"j F Y" }}</td></tr>{% endif %}
+</table>
+
+<h2>Parties</h2>
+<p><strong>Service provider:</strong> Bearcave Limited, Company No. 658124, 2 The Fairways, Tir Cluain, Midleton, Co. Cork, P25 W8W3, Ireland. Trading as CulinEire (Business Name No. 786815). VAT number: IE3645402WH.</p>
+<p><strong>Client / Sponsor:</strong> {{ application.sponsor_name }}, {{ application.contact_name }}, {{ application.email }}</p>
+
+<h2>Service</h2>
+<p>Bearcave Limited has approved and activated a
+{% if application.cell.is_centre %}Central Sponsor of the Month placement{% elif application.product_type == "weekly_ring" %}Weekly Ring Sponsor Slot{% else %}Annual Ring Sponsor Slot{% endif %}
+on the CulinEire Sponsor Puzzle{% if not application.cell.is_centre %} at Ring {{ application.cell.ring }}, Cell #{{ application.cell.cell_number }}{% endif %}. The sponsor logo or avatar will be displayed on the CulinEire website for the term stated above, subject to the terms below.
+{% if application.product_type == "weekly_ring" %}This is a one-time weekly placement with no automatic renewal.{% elif application.product_type == "central_monthly" %}This is a one-time monthly placement with no automatic renewal.{% else %}This is a one-year annual placement with no automatic renewal.{% endif %}</p>
+
+<h2>Payment and VAT</h2>
+<p>The net sponsor fee is quoted exclusive of VAT. VAT was calculated at Stripe Checkout where applicable. Payment reserved the selected sponsor spot for review only. Payment did not guarantee approval, publication or activation. The sponsorship term starts from the activation date confirmed above. There is no automatic renewal for this placement.</p>
+
+<h2>Approval Before Publication</h2>
+<p>All sponsorship applications are subject to review and approval by Bearcave Limited. Payment does not guarantee acceptance, approval, publication or activation of a sponsor slot. Bearcave Limited may refuse, delay, cancel, suspend or reject a sponsorship application where legal, payment, compliance, sanctions, fraud, content, reputational, technical or policy concerns arise. A paid sponsor spot is not published automatically. The submitted logo or avatar becomes visible only after Bearcave Limited approves and publishes it.</p>
+
+<h2>Sponsor Materials Licence</h2>
+<p>The sponsor confirms they have the right to use the submitted logo, avatar, website or profile link and related materials. The sponsor grants Bearcave Limited a non-exclusive licence to display those materials on CulinEire for the sponsorship term.</p>
+
+<h2>Content Standards</h2>
+<p>The sponsor must not use the sponsorship slot to promote unlawful goods or services, defamatory content, misleading claims, infringing materials or anything that violates Irish or EU law. The sponsor must not imply editorial endorsement by CulinEire or Bearcave Limited unless expressly agreed in writing.</p>
+
+<h2>No Guarantee of Results</h2>
+<p>Bearcave Limited does not guarantee any particular level of traffic, impressions, clicks or commercial results from the sponsorship placement.</p>
+
+<h2>Website Changes and Availability</h2>
+<p>CulinEire is provided on a best-efforts basis. Bearcave Limited may update the website design, layout or features at any time without affecting the sponsor's right to display their approved logo or avatar for the agreed term, except where required by law, safety or compliance obligations.</p>
+
+<h2>Refunds and Compliance</h2>
+<p>If Bearcave Limited declines a paid placement before publication, the application enters the refund-required workflow and Bearcave Limited will process a refund through Stripe. Once a sponsor image has been published, refunds are not guaranteed unless required by applicable law or agreed in writing by Bearcave Limited. Bearcave Limited may suspend, cancel or remove a sponsorship placement where compliance, sanctions, legal or policy concerns arise.</p>
+
+<h2>Sanctions and Compliance Declaration</h2>
+<p>By submitting the sponsor application, the sponsor confirmed that, to the best of their knowledge, neither the sponsor, nor the company or organisation represented, nor any relevant owner, director, beneficial owner or controlling person, is subject to EU, UN, Irish or other applicable financial sanctions. The applicant also confirmed that they are not applying for sponsorship on behalf of, for the benefit of, or under the control of any sanctioned person, entity or body. Bearcave Limited cannot accept sponsorship from persons or entities subject to applicable sanctions, asset freezes or restrictive measures.</p>
+
+<h2>Governing Law</h2>
+<p>This agreement is governed by the laws of Ireland. Any disputes are subject to the exclusive jurisdiction of the Irish courts, without prejudice to any statutory rights that may apply under Irish or EU law.</p>
+
+<h2>Electronic Acceptance</h2>
+<p>This agreement was entered into electronically when the sponsor submitted their application and accepted the CulinEire sponsorship terms via the website on {{ application.terms_accepted_at|date:"j F Y" }}. This document is the provider copy issued on behalf of Bearcave Limited upon activation of the sponsorship.</p>
+
+<div class="footer">
+  Bearcave Limited &bull; Company No. 658124 &bull; 2 The Fairways, Tir Cluain, Midleton, Co. Cork, Ireland &bull; VAT IE3645402WH<br>
+  Trading as CulinEire (Business Name No. 786815) &bull; culineire@bearcave.ie
+</div>
+
+</body>
+</html>

@@ -737,7 +737,7 @@ def approve_application(application_id: int, actor) -> SponsorApplication:
 
     # Send agreement email — failure must not roll back or block approval.
     try:
-        _send_contract_email(application)
+        pdf_filename = _send_contract_email(application)
         application.contract_sent_at = timezone.now()
         application.contract_email_status = SponsorApplication.ContractEmailStatus.SENT
         application.save(update_fields=["contract_sent_at", "contract_email_status", "updated_at"])
@@ -746,6 +746,11 @@ def approve_application(application_id: int, actor) -> SponsorApplication:
             application=application,
             actor=actor,
             notes=f"Agreement email sent to {application.email}",
+            metadata={
+                "pdf_attached": True,
+                "pdf_filename": pdf_filename,
+                "contract_reference": application.contract_reference,
+            },
         )
     except Exception:
         import logging as _logging
@@ -781,23 +786,70 @@ def _select_agreement_template(product_type: str) -> str:
     }.get(product_type, "sponsors/agreement_annual")
 
 
-def _send_contract_email(application: SponsorApplication) -> None:
-    from config.email_utils import send_template_mail
+def generate_contract_pdf(application: SponsorApplication) -> bytes:
+    from io import BytesIO
+    from django.template.loader import render_to_string
+    try:
+        from xhtml2pdf import pisa
+    except ImportError as exc:
+        raise RuntimeError("xhtml2pdf is not installed. Add xhtml2pdf to requirements.txt.") from exc
+
+    payment = getattr(application, "payment", None)
+    html = render_to_string("sponsors/sponsor_agreement_pdf.html", {
+        "application": application,
+        "payment": payment,
+        "contract_reference": application.contract_reference,
+        "activation_date": application.published_at,
+        "end_date": application.expires_at,
+    })
+    buf = BytesIO()
+    result = pisa.CreatePDF(html, dest=buf)
+    if result.err:
+        raise RuntimeError(f"PDF generation failed with {result.err} error(s).")
+    return buf.getvalue()
+
+
+def _send_contract_email(application: SponsorApplication) -> str:
+    """Generate contract PDF and send short agreement email with PDF attached.
+
+    Returns the PDF filename used as the attachment name.
+    Raises on any failure so the caller can record the failure status.
+    """
+    from django.conf import settings
+    from django.core.mail import EmailMultiAlternatives
+    from django.template.loader import render_to_string
+    from config.email_utils import build_absolute_url, sanitize_email_subject
+
     payment = getattr(application, "payment", None)
     template = _select_agreement_template(application.product_type)
-    send_template_mail(
-        subject=f"Your CulinEire Sponsor Agreement — {application.contract_reference}",
-        template=template,
-        context={
-            "application": application,
-            "payment": payment,
-            "contract_reference": application.contract_reference,
-            "activation_date": application.published_at,
-            "end_date": application.expires_at,
-        },
-        recipient_list=[application.email],
-        fail_silently=False,
+    pdf_filename = f"CulinEire_Sponsor_Agreement_{application.contract_reference}.pdf"
+    pdf_bytes = generate_contract_pdf(application)
+
+    site_url = build_absolute_url("")
+    email_context = {
+        "application": application,
+        "payment": payment,
+        "contract_reference": application.contract_reference,
+        "activation_date": application.published_at,
+        "end_date": application.expires_at,
+        "site_url": site_url,
+    }
+    subject = sanitize_email_subject(
+        f"CulinEire Sponsor Agreement — {application.contract_reference}"
     )
+    html_body = render_to_string(f"emails/{template}.html", email_context)
+    text_body = render_to_string(f"emails/{template}.txt", email_context)
+
+    msg = EmailMultiAlternatives(
+        subject=subject,
+        body=text_body,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[application.email],
+    )
+    msg.attach_alternative(html_body, "text/html")
+    msg.attach(pdf_filename, pdf_bytes, "application/pdf")
+    msg.send(fail_silently=False)
+    return pdf_filename
 
 
 def resend_contract_email(application_id: int, actor) -> SponsorApplication:
@@ -808,7 +860,7 @@ def resend_contract_email(application_id: int, actor) -> SponsorApplication:
         application.contract_reference = _generate_contract_reference(application)
         application.save(update_fields=["contract_reference", "updated_at"])
     try:
-        _send_contract_email(application)
+        pdf_filename = _send_contract_email(application)
         application.contract_sent_at = timezone.now()
         application.contract_email_status = SponsorApplication.ContractEmailStatus.RESENT
         application.save(update_fields=["contract_sent_at", "contract_email_status", "updated_at"])
@@ -817,6 +869,11 @@ def resend_contract_email(application_id: int, actor) -> SponsorApplication:
             application=application,
             actor=actor,
             notes=f"Agreement email resent to {application.email}",
+            metadata={
+                "pdf_attached": True,
+                "pdf_filename": pdf_filename,
+                "contract_reference": application.contract_reference,
+            },
         )
     except Exception:
         import logging as _logging

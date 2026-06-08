@@ -1893,7 +1893,7 @@ class SponsorContractEmailTests(TestCase):
         )
         return application
 
-    # --- Test 1: annual approval sends annual agreement email ---
+    # --- Test 1: annual approval sends agreement email with CUL-AN reference ---
 
     def test_annual_approval_sends_annual_agreement_email(self):
         application = self._make_paid_application(
@@ -1904,10 +1904,10 @@ class SponsorContractEmailTests(TestCase):
             mail.outbox = []
             approve_application(application.pk, self.actor)
         application.refresh_from_db()
-        self.assertTrue(any("Annual Sponsor Agreement" in m.subject or "CUL-AN" in m.subject for m in mail.outbox))
+        self.assertTrue(any("CUL-AN" in m.subject for m in mail.outbox))
         self.assertEqual(application.contract_email_status, SponsorApplication.ContractEmailStatus.SENT)
 
-    # --- Test 2: monthly approval sends monthly agreement email ---
+    # --- Test 2: monthly approval sends agreement email with CUL-MO reference ---
 
     def test_monthly_approval_sends_monthly_agreement_email(self):
         application = self._make_paid_application(
@@ -1918,10 +1918,10 @@ class SponsorContractEmailTests(TestCase):
             mail.outbox = []
             approve_application(application.pk, self.actor)
         application.refresh_from_db()
-        self.assertTrue(any("Monthly" in m.subject or "CUL-MO" in m.subject for m in mail.outbox))
+        self.assertTrue(any("CUL-MO" in m.subject for m in mail.outbox))
         self.assertEqual(application.contract_email_status, SponsorApplication.ContractEmailStatus.SENT)
 
-    # --- Test 3: weekly approval sends weekly agreement email ---
+    # --- Test 3: weekly approval sends agreement email with CUL-WK reference ---
 
     def test_weekly_approval_sends_weekly_agreement_email(self):
         application = self._make_paid_application(
@@ -1932,7 +1932,7 @@ class SponsorContractEmailTests(TestCase):
             mail.outbox = []
             approve_application(application.pk, self.actor)
         application.refresh_from_db()
-        self.assertTrue(any("Weekly" in m.subject or "CUL-WK" in m.subject for m in mail.outbox))
+        self.assertTrue(any("CUL-WK" in m.subject for m in mail.outbox))
         self.assertEqual(application.contract_email_status, SponsorApplication.ContractEmailStatus.SENT)
 
     # --- Test 4: no agreement sent before staff approval ---
@@ -2061,7 +2061,7 @@ class SponsorContractEmailTests(TestCase):
         delta = application.expires_at - application.published_at
         self.assertEqual(delta.days, 30)
 
-    # --- Test 12: audit log records contract sent ---
+    # --- Test 12: audit log records contract sent with PDF metadata ---
 
     def test_audit_log_records_contract_sent(self):
         application = self._make_paid_application(
@@ -2069,9 +2069,11 @@ class SponsorContractEmailTests(TestCase):
         )
         with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
             approve_application(application.pk, self.actor)
-        self.assertTrue(
-            application.audit_logs.filter(action=SponsorAuditLog.Action.CONTRACT_SENT).exists()
-        )
+        log = application.audit_logs.filter(action=SponsorAuditLog.Action.CONTRACT_SENT).first()
+        self.assertIsNotNone(log)
+        self.assertTrue(log.metadata.get("pdf_attached"))
+        self.assertIn("pdf_filename", log.metadata)
+        self.assertIn("contract_reference", log.metadata)
 
     # --- Test 13: email failure sets failed status and audit log ---
 
@@ -2186,6 +2188,99 @@ class SponsorContractEmailTests(TestCase):
         application.refresh_from_db()
         import re
         self.assertRegex(application.contract_reference, r"^CUL-(AN|MO|WK)-\d{4}-\d{6}$")
+
+    # --- Test 19: email body is short — does not contain full agreement text ---
+
+    def test_email_body_is_short_no_full_agreement_text(self):
+        application = self._make_paid_application(
+            self.annual_cell, SponsorCell.ProductType.ANNUAL_RING, 5000, 365, "cs_short_body"
+        )
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            from django.core import mail
+            mail.outbox = []
+            approve_application(application.pk, self.actor)
+        self.assertTrue(len(mail.outbox) > 0)
+        msg = mail.outbox[-1]
+        # The plaintext body must not contain the full legal sections
+        self.assertNotIn("GOVERNING LAW", msg.body)
+        self.assertNotIn("SANCTIONS AND COMPLIANCE DECLARATION", msg.body)
+        self.assertNotIn("ELECTRONIC ACCEPTANCE", msg.body)
+        # Short body must reference the contract reference and attachment
+        self.assertIn(application.contract_reference, msg.body)
+
+    # --- Test 20: email has exactly one PDF attachment ---
+
+    def test_email_has_exactly_one_pdf_attachment(self):
+        application = self._make_paid_application(
+            self.annual_cell, SponsorCell.ProductType.ANNUAL_RING, 5000, 365, "cs_attach_count"
+        )
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            from django.core import mail
+            mail.outbox = []
+            approve_application(application.pk, self.actor)
+        self.assertTrue(len(mail.outbox) > 0)
+        msg = mail.outbox[-1]
+        self.assertEqual(len(msg.attachments), 1)
+
+    # --- Test 21: PDF attachment filename includes contract_reference ---
+
+    def test_pdf_attachment_filename_includes_contract_reference(self):
+        application = self._make_paid_application(
+            self.annual_cell, SponsorCell.ProductType.ANNUAL_RING, 5000, 365, "cs_attach_fname"
+        )
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            from django.core import mail
+            mail.outbox = []
+            approve_application(application.pk, self.actor)
+        application.refresh_from_db()
+        msg = mail.outbox[-1]
+        filename, _content, _mimetype = msg.attachments[0]
+        self.assertIn(application.contract_reference, filename)
+        self.assertTrue(filename.endswith(".pdf"))
+
+    # --- Test 22: PDF attachment MIME type is application/pdf ---
+
+    def test_pdf_attachment_mimetype_is_application_pdf(self):
+        application = self._make_paid_application(
+            self.annual_cell, SponsorCell.ProductType.ANNUAL_RING, 5000, 365, "cs_attach_mime"
+        )
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            from django.core import mail
+            mail.outbox = []
+            approve_application(application.pk, self.actor)
+        msg = mail.outbox[-1]
+        _filename, _content, mimetype = msg.attachments[0]
+        self.assertEqual(mimetype, "application/pdf")
+
+    # --- Test 23: PDF generation failure sets failed status, does not mark sent ---
+
+    def test_pdf_generation_failure_sets_failed_status(self):
+        from unittest.mock import patch
+        application = self._make_paid_application(
+            self.annual_cell, SponsorCell.ProductType.ANNUAL_RING, 5000, 365, "cs_pdf_fail"
+        )
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            with patch("sponsors.services.generate_contract_pdf", side_effect=RuntimeError("PDF error")):
+                approve_application(application.pk, self.actor)
+        application.refresh_from_db()
+        self.assertEqual(application.contract_email_status, SponsorApplication.ContractEmailStatus.FAILED)
+        self.assertNotEqual(application.contract_email_status, SponsorApplication.ContractEmailStatus.SENT)
+        self.assertTrue(
+            application.audit_logs.filter(action=SponsorAuditLog.Action.CONTRACT_EMAIL_FAILED).exists()
+        )
+
+    # --- Test 24: PDF generation failure does not rollback approval ---
+
+    def test_pdf_generation_failure_does_not_rollback_approval(self):
+        from unittest.mock import patch
+        application = self._make_paid_application(
+            self.annual_cell, SponsorCell.ProductType.ANNUAL_RING, 5000, 365, "cs_pdf_fail_rb"
+        )
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            with patch("sponsors.services.generate_contract_pdf", side_effect=RuntimeError("PDF error")):
+                approve_application(application.pk, self.actor)
+        application.refresh_from_db()
+        self.assertEqual(application.status, SponsorApplication.Status.APPROVED)
 
 
 class _BrokenEmailBackend:
