@@ -1308,6 +1308,7 @@ def generate_contract_pdf(application: SponsorApplication) -> bytes:
 
 
 def generate_invoice_pdf(application: SponsorApplication) -> bytes:
+    import os
     from io import BytesIO
     from xml.sax.saxutils import escape
 
@@ -1319,7 +1320,7 @@ def generate_invoice_pdf(application: SponsorApplication) -> bytes:
         from reportlab.lib.units import mm
         from reportlab.platypus import (
             HRFlowable,
-            KeepTogether,
+            Image as RLImage,
             Paragraph,
             SimpleDocTemplate,
             Spacer,
@@ -1329,7 +1330,7 @@ def generate_invoice_pdf(application: SponsorApplication) -> bytes:
     except ImportError as exc:
         raise RuntimeError("reportlab is not installed.") from exc
 
-    # ── Palette (same Heritage style) ─────────────────────────────────────────
+    # ── Palette ───────────────────────────────────────────────────────────────
     c_parchment = colors.HexColor("#FAF6EF")
     c_card      = colors.HexColor("#FFFDF8")
     c_text      = colors.HexColor("#2A2622")
@@ -1339,16 +1340,16 @@ def generate_invoice_pdf(application: SponsorApplication) -> bytes:
     c_muted     = colors.HexColor("#6B5E52")
 
     page_w, page_h = A4
-    l_margin = r_margin = 22 * mm
-    t_margin = 24 * mm
-    b_margin = 28 * mm
+    l_margin = r_margin = 20 * mm
+    t_margin = 20 * mm
+    b_margin = 26 * mm
     text_w = page_w - l_margin - r_margin
 
     payment = getattr(application, "payment", None)
     cell    = application.cell
 
     def _eur(cents):
-        return f"EUR {cents / 100:.2f}" if cents else "EUR 0.00"
+        return f"EUR {cents / 100:.2f}" if cents is not None else "EUR 0.00"
 
     def _fmt_date(dt):
         return f"{dt.day} {dt.strftime('%B %Y')}" if dt else "-"
@@ -1356,10 +1357,8 @@ def generate_invoice_pdf(application: SponsorApplication) -> bytes:
     def _safe(v):
         return escape(str(v or ""))
 
-    # invoice number derived from contract reference
-    # CUL-WK-2026-000016 → INV-2026-000016
     raw_ref = application.contract_reference or ""
-    parts = raw_ref.split("-")
+    parts   = raw_ref.split("-")
     invoice_number = "INV-" + "-".join(parts[2:]) if len(parts) >= 4 else f"INV-{raw_ref}"
 
     issue_date     = _fmt_date(application.published_at)
@@ -1380,12 +1379,17 @@ def generate_invoice_pdf(application: SponsorApplication) -> bytes:
             f"Ring {cell.ring}, Cell #{cell.cell_number}"
         )
 
+    net_eur   = _eur(application.price_net_cents)
+    vat_eur   = _eur(payment.vat_amount_cents   if payment else 0)
+    total_eur = _eur(payment.total_amount_cents if payment else 0)
+
     # ── Page callback ─────────────────────────────────────────────────────────
     def _draw_page(canvas, doc):
         canvas.saveState()
         canvas.setFillColor(c_parchment)
         canvas.rect(0, 0, page_w, page_h, fill=1, stroke=0)
 
+        # watermark
         canvas.saveState()
         canvas.setFont("Times-Roman", 80)
         canvas.setFillColor(colors.Color(0.69, 0.478, 0.227, alpha=0.04))
@@ -1394,6 +1398,7 @@ def generate_invoice_pdf(application: SponsorApplication) -> bytes:
         canvas.drawCentredString(0, 0, "CulinEire")
         canvas.restoreState()
 
+        # footer
         y_rule = b_margin - 8 * mm
         canvas.setStrokeColor(c_stone)
         canvas.setLineWidth(0.5)
@@ -1404,92 +1409,132 @@ def generate_invoice_pdf(application: SponsorApplication) -> bytes:
             "Bearcave Limited  ·  Company No. 658124  ·  Trading as CulinEire (Business Name No. 786815)")
         canvas.drawString(l_margin, y_rule - 9 * mm,
             "VAT IE3645402WH  ·  culineire@bearcave.ie  ·  www.culineire.ie")
-        canvas.drawRightString(page_w - r_margin, y_rule - 5 * mm, f"Page {doc.page}")
         inv_num = getattr(doc, "_invoice_number", "")
+        canvas.drawRightString(page_w - r_margin, y_rule - 5 * mm, "VAT Invoice")
         if inv_num:
-            canvas.drawRightString(page_w - r_margin, y_rule - 9 * mm, f"Invoice: {inv_num}")
+            canvas.drawRightString(page_w - r_margin, y_rule - 9 * mm, inv_num)
         canvas.restoreState()
 
     # ── Styles ────────────────────────────────────────────────────────────────
-    brand_name = ParagraphStyle("BrandName", fontName="Times-Bold", fontSize=20, leading=24,
-                                textColor=c_heading, alignment=TA_LEFT)
-    brand_sub  = ParagraphStyle("BrandSub",  fontName="Times-Roman", fontSize=10, leading=13,
-                                textColor=c_muted, alignment=TA_LEFT)
     hdr_label  = ParagraphStyle("HdrLabel",  fontName="Helvetica", fontSize=7, leading=10,
                                 textColor=c_muted, alignment=TA_RIGHT, charSpace=0.8)
-    hdr_status = ParagraphStyle("HdrStatus", fontName="Helvetica-Bold", fontSize=9, leading=12,
+    hdr_status = ParagraphStyle("HdrStatus", fontName="Helvetica-Bold", fontSize=10, leading=13,
                                 textColor=c_copper, alignment=TA_RIGHT)
     hdr_ref    = ParagraphStyle("HdrRef",    fontName="Helvetica", fontSize=8, leading=11,
                                 textColor=c_muted, alignment=TA_RIGHT)
-    section_head = ParagraphStyle("SHead", fontName="Helvetica-Bold", fontSize=7, leading=10,
-                                  textColor=c_copper, charSpace=1.0, spaceAfter=5)
-    field_label  = ParagraphStyle("FLabel", fontName="Helvetica", fontSize=8.5, leading=13,
-                                  textColor=c_muted)
-    field_value  = ParagraphStyle("FValue", fontName="Helvetica-Bold", fontSize=8.5, leading=13,
-                                  textColor=c_heading)
-    body_style   = ParagraphStyle("Body", fontName="Helvetica", fontSize=8.5, leading=13,
-                                  textColor=c_text, alignment=TA_JUSTIFY)
-    total_label  = ParagraphStyle("TotLabel", fontName="Helvetica-Bold", fontSize=9, leading=13,
-                                  textColor=c_heading)
-    total_value  = ParagraphStyle("TotValue", fontName="Helvetica-Bold", fontSize=9, leading=13,
-                                  textColor=c_copper, alignment=TA_RIGHT)
-    paid_stamp   = ParagraphStyle("Paid", fontName="Helvetica-Bold", fontSize=11, leading=14,
-                                  textColor=c_copper, alignment=TA_RIGHT)
+    sh         = ParagraphStyle("SH", fontName="Helvetica-Bold", fontSize=7, leading=9,
+                                textColor=c_copper, charSpace=1.0, spaceAfter=3)
+    fl         = ParagraphStyle("FL", fontName="Helvetica",      fontSize=8,  leading=11, textColor=c_muted)
+    fv         = ParagraphStyle("FV", fontName="Helvetica-Bold", fontSize=8,  leading=11, textColor=c_heading)
+    body_s     = ParagraphStyle("BS", fontName="Helvetica",      fontSize=7.5, leading=11,
+                                textColor=c_muted, alignment=TA_JUSTIFY)
 
     def _copper_rule():
-        return HRFlowable(width="100%", thickness=1.2, color=c_copper, spaceAfter=6, spaceBefore=0)
+        return HRFlowable(width="100%", thickness=1.2, color=c_copper, spaceAfter=5, spaceBefore=0)
 
-    def _stone_rule():
-        return HRFlowable(width="100%", thickness=0.4, color=c_stone, spaceAfter=4, spaceBefore=8)
+    def _stone_rule(sb=6):
+        return HRFlowable(width="100%", thickness=0.4, color=c_stone, spaceAfter=3, spaceBefore=sb)
 
-    def _card_table(heading, rows):
-        data = [[Paragraph(heading.upper(), section_head), ""]]
-        for label, value in rows:
-            data.append([Paragraph(_safe(label), field_label), Paragraph(_safe(value), field_value)])
-        t = Table(data, colWidths=[48 * mm, text_w / 2 - 48 * mm - 4 * mm])
+    # ── Logo ──────────────────────────────────────────────────────────────────
+    logo_h  = 12 * mm
+    logo_w  = 12 * mm
+    logo_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "static", "images", "logo2.png",
+    )
+    try:
+        logo_img = RLImage(logo_path, width=logo_w, height=logo_h)
+    except Exception:
+        logo_img = Spacer(logo_w, logo_h)
+
+    # ── QR code ───────────────────────────────────────────────────────────────
+    qr_size = 16 * mm
+    qr_element = None
+    try:
+        from reportlab.graphics.barcode.qr import QrCodeWidget
+        from reportlab.graphics.shapes import Drawing
+        qr = QrCodeWidget("https://www.culineire.ie")
+        qr.barWidth  = qr_size
+        qr.barHeight = qr_size
+        d = Drawing(qr_size, qr_size)
+        d.add(qr)
+        qr_element = d
+    except Exception:
+        pass
+
+    # ── Header: logo | title+inv | status ─────────────────────────────────────
+    logo_col = [logo_img,
+                Paragraph("CulinEire", ParagraphStyle("LN", fontName="Times-Bold", fontSize=13,
+                          leading=15, textColor=c_heading))]
+    mid_col  = [Paragraph("VAT Invoice", ParagraphStyle("VI", fontName="Times-Roman", fontSize=10,
+                          leading=13, textColor=c_muted)),
+                Paragraph("TAX INVOICE", hdr_label),
+                Paragraph(invoice_number, hdr_status)]
+    right_col = [Paragraph(issue_date, hdr_ref),
+                 Paragraph(supply_date and f"Supply: {supply_date}" or "", hdr_ref)]
+
+    header_table = Table(
+        [[logo_col, mid_col, right_col]],
+        colWidths=[logo_w + 4 * mm, text_w * 0.45, text_w * 0.45 - logo_w - 4 * mm],
+    )
+    header_table.setStyle(TableStyle([
+        ("VALIGN",        (0, 0), (-1, -1), "BOTTOM"),
+        ("LEFTPADDING",   (0, 0), (-1, -1), 0),
+        ("RIGHTPADDING",  (0, 0), (-1, -1), 0),
+        ("TOPPADDING",    (0, 0), (-1, -1), 0),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+    ]))
+
+    # ── Parties: supplier | customer (compact single rows) ────────────────────
+    cw_lbl = 22 * mm
+    cw_val = text_w / 2 - cw_lbl - 5 * mm
+
+    def _party(heading, rows):
+        data = [[Paragraph(heading.upper(), sh), ""]]
+        for lbl, val in rows:
+            data.append([Paragraph(_safe(lbl), fl), Paragraph(_safe(val), fv)])
+        t = Table(data, colWidths=[cw_lbl, cw_val])
         t.setStyle(TableStyle([
             ("SPAN",          (0, 0), (-1, 0)),
             ("BACKGROUND",    (0, 0), (-1, -1), c_card),
-            ("LINEABOVE",     (0, 0), (-1, 0),  2.0, c_copper),
+            ("LINEABOVE",     (0, 0), (-1, 0),  1.5, c_copper),
             ("BOX",           (0, 0), (-1, -1), 0.5, c_stone),
-            ("TOPPADDING",    (0, 0), (-1, -1), 6),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-            ("LEFTPADDING",   (0, 0), (-1, -1), 10),
-            ("RIGHTPADDING",  (0, 0), (-1, -1), 10),
+            ("TOPPADDING",    (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ("LEFTPADDING",   (0, 0), (-1, -1), 8),
+            ("RIGHTPADDING",  (0, 0), (-1, -1), 8),
             ("VALIGN",        (0, 0), (-1, -1), "TOP"),
         ]))
         return t
 
-    # ── Supplier / Customer cards ─────────────────────────────────────────────
     supplier_rows = [
-        ("Name",    "Bearcave Limited trading as CulinEire"),
-        ("Address", "2 The Fairways, Tir Cluain, Midleton, Co. Cork, P25 W8W3, Ireland"),
-        ("Company", "No. 658124  ·  Business Name No. 786815"),
-        ("VAT No.", "IE3645402WH"),
+        ("Name",    "Bearcave Limited t/a CulinEire"),
+        ("Address", "2 The Fairways, Tir Cluain, Midleton, Co. Cork, P25 W8W3"),
+        ("Co. No.", "658124  ·  BN 786815"),
+        ("VAT",     "IE3645402WH"),
         ("Email",   "culineire@bearcave.ie"),
     ]
-
-    customer_rows = [("Name", application.sponsor_name), ("Contact", application.contact_name),
-                     ("Email", application.email)]
+    customer_rows = [
+        ("Name",    application.sponsor_name),
+        ("Contact", application.contact_name),
+        ("Email",   application.email),
+    ]
     if application.website_url:
-        customer_rows.append(("Website", application.website_url))
+        customer_rows.append(("Web", application.website_url))
     billing = payment.billing_address if payment and payment.billing_address else {}
     if billing:
-        addr_parts = [
-            billing.get("line1", ""), billing.get("line2", ""),
-            billing.get("city", ""), billing.get("state", ""),
-            billing.get("postal_code", ""), billing.get("country", ""),
-        ]
+        addr_parts = [billing.get("line1",""), billing.get("line2",""),
+                      billing.get("city",""), billing.get("postal_code",""),
+                      billing.get("country","")]
         addr_str = ", ".join(p for p in addr_parts if p)
         if addr_str:
             customer_rows.append(("Address", addr_str))
 
-    supplier_card = _card_table("Supplier", supplier_rows)
-    customer_card = _card_table("Customer", customer_rows)
-
+    gap = 4 * mm
+    half = text_w / 2 - gap / 2
     parties_table = Table(
-        [[supplier_card, Spacer(4 * mm, 1), customer_card]],
-        colWidths=[text_w / 2 - 2 * mm, 4 * mm, text_w / 2 - 2 * mm],
+        [[_party("Supplier", supplier_rows), Spacer(gap, 1), _party("Customer", customer_rows)]],
+        colWidths=[half, gap, half],
     )
     parties_table.setStyle(TableStyle([
         ("VALIGN",        (0, 0), (-1, -1), "TOP"),
@@ -1499,112 +1544,46 @@ def generate_invoice_pdf(application: SponsorApplication) -> bytes:
         ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
     ]))
 
-    # ── Invoice meta card ─────────────────────────────────────────────────────
-    meta_rows = [
-        ("Invoice No.",    invoice_number),
-        ("Issue date",     issue_date),
-        ("Supply date",    supply_date),
-        ("Application",    _safe(application.contract_reference)),
+    # ── Invoice meta (compact, inline with parties) ───────────────────────────
+    meta_rows_left = [
+        ("Invoice No.", invoice_number),
+        ("Issue date",  issue_date),
+        ("Supply date", supply_date),
+        ("Application", _safe(application.contract_reference)),
     ]
+    meta_rows_right = []
     if payment and payment.paid_at:
-        meta_rows.append(("Payment date", payment_date))
+        meta_rows_right.append(("Payment date", payment_date))
     if payment and payment.stripe_payment_intent_id:
-        meta_rows.append(("Stripe Ref.", payment.stripe_payment_intent_id))
+        meta_rows_right.append(("Stripe Ref.", payment.stripe_payment_intent_id))
 
-    meta_data = [[Paragraph("Invoice Details".upper(), section_head), ""]]
-    for label, value in meta_rows:
-        meta_data.append([Paragraph(_safe(label), field_label), Paragraph(_safe(value), field_value)])
-    meta_table = Table(meta_data, colWidths=[48 * mm, text_w - 48 * mm])
+    cw_ml = 26 * mm
+    cw_mv = text_w / 2 - cw_ml - gap / 2
+
+    def _meta_half(rows):
+        data = []
+        for lbl, val in rows:
+            data.append([Paragraph(_safe(lbl), fl), Paragraph(_safe(val), fv)])
+        if not data:
+            return Spacer(1, 1)
+        t = Table(data, colWidths=[cw_ml, cw_mv])
+        t.setStyle(TableStyle([
+            ("BACKGROUND",    (0, 0), (-1, -1), c_card),
+            ("LINEABOVE",     (0, 0), (-1, 0),  1.5, c_copper),
+            ("BOX",           (0, 0), (-1, -1), 0.5, c_stone),
+            ("TOPPADDING",    (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ("LEFTPADDING",   (0, 0), (-1, -1), 8),
+            ("RIGHTPADDING",  (0, 0), (-1, -1), 8),
+            ("VALIGN",        (0, 0), (-1, -1), "TOP"),
+        ]))
+        return t
+
+    meta_table = Table(
+        [[_meta_half(meta_rows_left), Spacer(gap, 1), _meta_half(meta_rows_right)]],
+        colWidths=[half, gap, half],
+    )
     meta_table.setStyle(TableStyle([
-        ("SPAN",          (0, 0), (-1, 0)),
-        ("BACKGROUND",    (0, 0), (-1, -1), c_card),
-        ("LINEABOVE",     (0, 0), (-1, 0),  2.0, c_copper),
-        ("BOX",           (0, 0), (-1, -1), 0.5, c_stone),
-        ("TOPPADDING",    (0, 0), (-1, -1), 6),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-        ("LEFTPADDING",   (0, 0), (-1, -1), 10),
-        ("RIGHTPADDING",  (0, 0), (-1, -1), 10),
-        ("VALIGN",        (0, 0), (-1, -1), "TOP"),
-    ]))
-
-    # ── Line items table ──────────────────────────────────────────────────────
-    net_eur   = _eur(application.price_net_cents)
-    vat_eur   = _eur(payment.vat_amount_cents   if payment else None)
-    total_eur = _eur(payment.total_amount_cents if payment else None)
-
-    col_desc = text_w - 20 * mm - 28 * mm - 28 * mm
-    items_header = [
-        Paragraph("Description", ParagraphStyle("IH", fontName="Helvetica-Bold", fontSize=7,
-                  textColor=c_muted, charSpace=0.5)),
-        Paragraph("Qty", ParagraphStyle("IH2", fontName="Helvetica-Bold", fontSize=7,
-                  textColor=c_muted, charSpace=0.5, alignment=TA_RIGHT)),
-        Paragraph("Unit price ex VAT", ParagraphStyle("IH3", fontName="Helvetica-Bold", fontSize=7,
-                  textColor=c_muted, charSpace=0.5, alignment=TA_RIGHT)),
-        Paragraph("Amount ex VAT", ParagraphStyle("IH4", fontName="Helvetica-Bold", fontSize=7,
-                  textColor=c_muted, charSpace=0.5, alignment=TA_RIGHT)),
-    ]
-    items_row = [
-        Paragraph(
-            f"{_safe(service_desc)}<br/>"
-            f'<font color="#6B5E52" size="7.5">Service period: {_safe(service_period)}</font>',
-            ParagraphStyle("Desc", fontName="Helvetica", fontSize=8.5, leading=13, textColor=c_text),
-        ),
-        Paragraph("1", ParagraphStyle("Qty", fontName="Helvetica", fontSize=8.5, textColor=c_text,
-                  alignment=TA_RIGHT)),
-        Paragraph(net_eur, ParagraphStyle("UP", fontName="Helvetica", fontSize=8.5, textColor=c_text,
-                  alignment=TA_RIGHT)),
-        Paragraph(net_eur, ParagraphStyle("Amt", fontName="Helvetica", fontSize=8.5, textColor=c_text,
-                  alignment=TA_RIGHT)),
-    ]
-    items_table = Table(
-        [items_header, items_row],
-        colWidths=[col_desc, 20 * mm, 28 * mm, 28 * mm],
-    )
-    items_table.setStyle(TableStyle([
-        ("BACKGROUND",    (0, 0), (-1, 0),  c_card),
-        ("LINEABOVE",     (0, 0), (-1, 0),  2.0, c_copper),
-        ("LINEBELOW",     (0, 0), (-1, 0),  0.4, c_stone),
-        ("BOX",           (0, 0), (-1, -1), 0.5, c_stone),
-        ("TOPPADDING",    (0, 0), (-1, -1), 6),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-        ("LEFTPADDING",   (0, 0), (-1, -1), 10),
-        ("RIGHTPADDING",  (0, 0), (-1, -1), 10),
-        ("VALIGN",        (0, 0), (-1, -1), "TOP"),
-    ]))
-
-    # ── Totals block ──────────────────────────────────────────────────────────
-    totals_rows = [
-        ["Net amount", net_eur],
-        [f"VAT  23% Irish VAT", vat_eur],
-        ["Total", total_eur],
-    ]
-    totals_data = []
-    for i, (lbl, val) in enumerate(totals_rows):
-        is_total = (i == len(totals_rows) - 1)
-        lbl_style = ParagraphStyle("TL", fontName="Helvetica-Bold" if is_total else "Helvetica",
-                                   fontSize=9 if is_total else 8.5, textColor=c_heading)
-        val_style = ParagraphStyle("TV", fontName="Helvetica-Bold" if is_total else "Helvetica",
-                                   fontSize=9 if is_total else 8.5,
-                                   textColor=c_copper if is_total else c_text, alignment=TA_RIGHT)
-        totals_data.append([Paragraph(lbl, lbl_style), Paragraph(val, val_style)])
-
-    totals_table = Table(totals_data, colWidths=[text_w / 2, text_w / 2])
-    totals_table.setStyle(TableStyle([
-        ("BACKGROUND",    (0, 0), (-1, -1), c_card),
-        ("BOX",           (0, 0), (-1, -1), 0.5, c_stone),
-        ("LINEABOVE",     (0, -1), (-1, -1), 0.8, c_stone),
-        ("TOPPADDING",    (0, 0), (-1, -1), 5),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-        ("LEFTPADDING",   (0, 0), (-1, -1), 10),
-        ("RIGHTPADDING",  (0, 0), (-1, -1), 10),
-        ("VALIGN",        (0, 0), (-1, -1), "MIDDLE"),
-    ]))
-
-    totals_row = Table(
-        [[Spacer(text_w / 2, 1), totals_table]],
-        colWidths=[text_w / 2, text_w / 2],
-    )
-    totals_row.setStyle(TableStyle([
         ("VALIGN",        (0, 0), (-1, -1), "TOP"),
         ("LEFTPADDING",   (0, 0), (-1, -1), 0),
         ("RIGHTPADDING",  (0, 0), (-1, -1), 0),
@@ -1612,65 +1591,129 @@ def generate_invoice_pdf(application: SponsorApplication) -> bytes:
         ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
     ]))
 
-    # ── Payment status ────────────────────────────────────────────────────────
+    # ── Line items ────────────────────────────────────────────────────────────
+    col_desc = text_w - 14 * mm - 26 * mm - 26 * mm
+    ih = lambda t, a=TA_RIGHT: Paragraph(t, ParagraphStyle("IH", fontName="Helvetica-Bold",
+                               fontSize=7, textColor=c_muted, charSpace=0.5, alignment=a))
+    iv = lambda t, a=TA_RIGHT: Paragraph(t, ParagraphStyle("IV", fontName="Helvetica",
+                               fontSize=8, leading=12, textColor=c_text, alignment=a))
+
+    items_table = Table(
+        [
+            [ih("Description", TA_LEFT), ih("Qty"), ih("Unit ex VAT"), ih("Amount ex VAT")],
+            [
+                Paragraph(
+                    f"{_safe(service_desc)}<br/>"
+                    f'<font color="#6B5E52" size="7">Service period: {_safe(service_period)}</font>',
+                    ParagraphStyle("Desc", fontName="Helvetica", fontSize=8, leading=12, textColor=c_text),
+                ),
+                iv("1"),
+                iv(net_eur),
+                iv(net_eur),
+            ],
+        ],
+        colWidths=[col_desc, 14 * mm, 26 * mm, 26 * mm],
+    )
+    items_table.setStyle(TableStyle([
+        ("BACKGROUND",    (0, 0), (-1, 0),  c_card),
+        ("LINEABOVE",     (0, 0), (-1, 0),  1.5, c_copper),
+        ("LINEBELOW",     (0, 0), (-1, 0),  0.4, c_stone),
+        ("BOX",           (0, 0), (-1, -1), 0.5, c_stone),
+        ("TOPPADDING",    (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ("LEFTPADDING",   (0, 0), (-1, -1), 8),
+        ("RIGHTPADDING",  (0, 0), (-1, -1), 8),
+        ("VALIGN",        (0, 0), (-1, -1), "TOP"),
+    ]))
+
+    # ── Totals + QR side by side ──────────────────────────────────────────────
+    tot_cw = 60 * mm
+    totals_data = [
+        [Paragraph("Net amount",       ParagraphStyle("TL",  fontName="Helvetica",      fontSize=8, textColor=c_muted)),
+         Paragraph(net_eur,            ParagraphStyle("TV",  fontName="Helvetica",      fontSize=8, textColor=c_text,    alignment=TA_RIGHT))],
+        [Paragraph("VAT  23% Irish VAT", ParagraphStyle("TL2", fontName="Helvetica",    fontSize=8, textColor=c_muted)),
+         Paragraph(vat_eur,            ParagraphStyle("TV2", fontName="Helvetica",      fontSize=8, textColor=c_text,    alignment=TA_RIGHT))],
+        [Paragraph("Total",            ParagraphStyle("TLT", fontName="Helvetica-Bold", fontSize=9, textColor=c_heading)),
+         Paragraph(total_eur,          ParagraphStyle("TVT", fontName="Helvetica-Bold", fontSize=9, textColor=c_copper,  alignment=TA_RIGHT))],
+    ]
+    totals_inner = Table(totals_data, colWidths=[tot_cw - 26 * mm, 26 * mm])
+    totals_inner.setStyle(TableStyle([
+        ("BACKGROUND",    (0, 0), (-1, -1), c_card),
+        ("BOX",           (0, 0), (-1, -1), 0.5, c_stone),
+        ("LINEABOVE",     (0, -1), (-1, -1), 0.8, c_stone),
+        ("TOPPADDING",    (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ("LEFTPADDING",   (0, 0), (-1, -1), 8),
+        ("RIGHTPADDING",  (0, 0), (-1, -1), 8),
+        ("VALIGN",        (0, 0), (-1, -1), "MIDDLE"),
+    ]))
+
+    # payment status label
     if payment and payment.status == SponsorPayment.Status.PAID:
-        status_text = f"PAID  ·  {payment_date}  ·  Stripe card payment"
+        status_text = f"PAID  ·  {payment_date}  ·  Stripe"
     elif payment and payment.status == SponsorPayment.Status.REFUNDED:
         status_text = f"REFUNDED  ·  {_fmt_date(payment.refunded_at)}"
     else:
         status_text = "UNPAID"
 
-    payment_status_para = Paragraph(
-        status_text,
-        ParagraphStyle("PS", fontName="Helvetica-Bold", fontSize=9, leading=13,
-                       textColor=c_copper, alignment=TA_RIGHT),
-    )
+    status_para = Paragraph(status_text, ParagraphStyle("SP", fontName="Helvetica-Bold",
+                            fontSize=8, textColor=c_copper, alignment=TA_RIGHT))
 
-    # ── Notes ─────────────────────────────────────────────────────────────────
-    notes_text = (
-        "This is a VAT invoice issued by Bearcave Limited (trading as CulinEire) for sponsorship "
-        "placement services on culineire.ie. The supply date is the activation date of the sponsorship. "
-        "Subject to CulinEire Sponsor Terms. For invoice queries: culineire@bearcave.ie"
+    qr_label = Paragraph(
+        '<font color="#B07A3A">www.culineire.ie</font>',
+        ParagraphStyle("QL", fontName="Helvetica", fontSize=6, textColor=c_copper, alignment=TA_CENTER),
     )
+    if qr_element:
+        qr_block = Table([[qr_element], [qr_label]], colWidths=[qr_size + 2 * mm])
+        qr_block.setStyle(TableStyle([
+            ("ALIGN",         (0, 0), (-1, -1), "CENTER"),
+            ("LEFTPADDING",   (0, 0), (-1, -1), 0),
+            ("RIGHTPADDING",  (0, 0), (-1, -1), 0),
+            ("TOPPADDING",    (0, 0), (-1, -1), 1),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
+        ]))
+    else:
+        qr_block = Spacer(qr_size, qr_size)
 
-    # ── Header ────────────────────────────────────────────────────────────────
-    hdr_left = [
-        Paragraph("CulinEire", brand_name),
-        Paragraph("VAT Invoice", brand_sub),
-    ]
-    hdr_right = [
-        Paragraph("TAX INVOICE", hdr_label),
-        Paragraph(invoice_number, hdr_status),
-        Paragraph(issue_date, hdr_ref),
-    ]
-    header_table = Table(
-        [[hdr_left, hdr_right]],
-        colWidths=[text_w * 0.6, text_w * 0.4],
+    qr_col_w  = qr_size + 6 * mm
+    tot_col_w = tot_cw
+    mid_col_w = text_w - qr_col_w - tot_col_w
+
+    bottom_row = Table(
+        [[totals_inner, Spacer(mid_col_w, 1), qr_block]],
+        colWidths=[tot_col_w, mid_col_w, qr_col_w],
     )
-    header_table.setStyle(TableStyle([
+    bottom_row.setStyle(TableStyle([
         ("VALIGN",        (0, 0), (-1, -1), "BOTTOM"),
         ("LEFTPADDING",   (0, 0), (-1, -1), 0),
         ("RIGHTPADDING",  (0, 0), (-1, -1), 0),
         ("TOPPADDING",    (0, 0), (-1, -1), 0),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
     ]))
+
+    # ── Notes (single line in footer area) ───────────────────────────────────
+    notes_para = Paragraph(
+        "VAT invoice issued by Bearcave Limited (t/a CulinEire) for sponsorship services on culineire.ie. "
+        "Supply date = activation date. Subject to CulinEire Sponsor Terms. Queries: culineire@bearcave.ie",
+        body_s,
+    )
 
     # ── Story ─────────────────────────────────────────────────────────────────
     story = [
         header_table,
         _copper_rule(),
-        Spacer(1, 3 * mm),
+        Spacer(1, 2 * mm),
         meta_table,
-        Spacer(1, 4 * mm),
+        Spacer(1, 2 * mm),
         parties_table,
-        Spacer(1, 4 * mm),
+        Spacer(1, 2 * mm),
         items_table,
-        Spacer(1, 3 * mm),
-        totals_row,
-        Spacer(1, 4 * mm),
-        payment_status_para,
-        _stone_rule(),
-        Paragraph(notes_text, body_style),
+        Spacer(1, 2 * mm),
+        status_para,
+        Spacer(1, 2 * mm),
+        bottom_row,
+        _stone_rule(sb=4),
+        notes_para,
     ]
 
     buf = BytesIO()
