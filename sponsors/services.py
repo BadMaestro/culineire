@@ -788,24 +788,265 @@ def _select_agreement_template(product_type: str) -> str:
 
 def generate_contract_pdf(application: SponsorApplication) -> bytes:
     from io import BytesIO
-    from django.template.loader import render_to_string
     try:
-        from xhtml2pdf import pisa
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib.styles import ParagraphStyle
+        from reportlab.lib.units import mm
+        from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+        from reportlab.lib import colors
+        from reportlab.lib.enums import TA_CENTER, TA_LEFT
     except ImportError as exc:
-        raise RuntimeError("xhtml2pdf is not installed. Add xhtml2pdf to requirements.txt.") from exc
+        raise RuntimeError("reportlab is not installed. Add reportlab to requirements.txt.") from exc
 
     payment = getattr(application, "payment", None)
-    html = render_to_string("sponsors/sponsor_agreement_pdf.html", {
-        "application": application,
-        "payment": payment,
-        "contract_reference": application.contract_reference,
-        "activation_date": application.published_at,
-        "end_date": application.expires_at,
-    })
+    cell = application.cell
+
     buf = BytesIO()
-    result = pisa.CreatePDF(html, dest=buf)
-    if result.err:
-        raise RuntimeError(f"PDF generation failed with {result.err} error(s).")
+    doc = SimpleDocTemplate(
+        buf,
+        pagesize=A4,
+        leftMargin=20 * mm,
+        rightMargin=20 * mm,
+        topMargin=20 * mm,
+        bottomMargin=20 * mm,
+        title=f"CulinEire Sponsor Agreement {application.contract_reference}",
+        author="Bearcave Limited",
+    )
+
+    heading_style = ParagraphStyle(
+        "Heading",
+        fontName="Helvetica-Bold",
+        fontSize=14,
+        leading=18,
+        spaceAfter=4,
+        alignment=TA_CENTER,
+    )
+    subheading_style = ParagraphStyle(
+        "SubHeading",
+        fontName="Helvetica-Bold",
+        fontSize=9,
+        leading=12,
+        spaceBefore=10,
+        spaceAfter=4,
+        textColor=colors.HexColor("#1f2c25"),
+    )
+    body_style = ParagraphStyle(
+        "Body",
+        fontName="Helvetica",
+        fontSize=9,
+        leading=13,
+        spaceAfter=6,
+        alignment=TA_LEFT,
+    )
+    kicker_style = ParagraphStyle(
+        "Kicker",
+        fontName="Helvetica",
+        fontSize=9,
+        leading=12,
+        spaceAfter=12,
+        textColor=colors.HexColor("#6b5e52"),
+        alignment=TA_CENTER,
+    )
+    footer_style = ParagraphStyle(
+        "Footer",
+        fontName="Helvetica",
+        fontSize=8,
+        leading=11,
+        textColor=colors.HexColor("#7a8a82"),
+        alignment=TA_CENTER,
+    )
+
+    # --- helpers ---
+    def _section(title, *paragraphs):
+        items = [Paragraph(title.upper(), subheading_style)]
+        for text in paragraphs:
+            items.append(Paragraph(text, body_style))
+        return items
+
+    def _cents_display(cents):
+        return f"€{cents / 100:.2f}" if cents else "-"
+
+    # --- placement label ---
+    if cell.is_centre:
+        placement_label = "Central Sponsor of the Month"
+    elif application.product_type == SponsorCell.ProductType.WEEKLY_RING:
+        placement_label = f"Weekly Ring Sponsor Slot — Ring {cell.ring}, Cell #{cell.cell_number}"
+    else:
+        placement_label = f"Annual Ring Sponsor Slot — Ring {cell.ring}, Cell #{cell.cell_number}"
+
+    if application.product_type == SponsorCell.ProductType.WEEKLY_RING:
+        term_label = "Weekly — 7 calendar days from activation"
+        net_label = f"{_cents_display(application.price_net_cents)} EUR per week"
+    elif application.product_type == SponsorCell.ProductType.CENTRAL_MONTHLY:
+        term_label = "Monthly — 30 calendar days from activation"
+        net_label = f"{_cents_display(application.price_net_cents)} EUR per month"
+    else:
+        term_label = "Annual — 12 months from activation"
+        net_label = f"{_cents_display(application.price_net_cents)} EUR per year"
+
+    activation_str = application.published_at.strftime("%-d %B %Y") if application.published_at else "-"
+    end_str = application.expires_at.strftime("%-d %B %Y") if application.expires_at else "-"
+    terms_date_str = application.terms_accepted_at.strftime("%-d %B %Y") if application.terms_accepted_at else "-"
+
+    # --- summary table ---
+    summary_rows = [
+        ["Reference", application.contract_reference],
+        ["Application ID", str(application.reference)],
+        ["Sponsor", application.sponsor_name],
+        ["Contact", application.contact_name],
+        ["Email", application.email],
+    ]
+    if application.website_url:
+        summary_rows.append(["Website / Profile", application.website_url])
+    summary_rows += [
+        ["Sponsor slot", placement_label],
+        ["Service term", term_label],
+        ["Net amount", net_label],
+    ]
+    if payment and payment.vat_amount_cents:
+        summary_rows.append(["VAT", f"{payment.vat_amount_cents} cents (reported by Stripe at checkout)"])
+    if payment and payment.total_amount_cents:
+        summary_rows.append(["Total paid", f"{payment.total_amount_cents} cents (reported by Stripe at checkout)"])
+    summary_rows += [
+        ["Activation date", activation_str],
+        ["End date", end_str],
+    ]
+
+    label_style = ParagraphStyle("TLabel", fontName="Helvetica", fontSize=8.5, textColor=colors.HexColor("#6b5e52"))
+    value_style = ParagraphStyle("TValue", fontName="Helvetica-Bold", fontSize=8.5, textColor=colors.HexColor("#1f2c25"))
+    table_data = [[Paragraph(r[0], label_style), Paragraph(r[1], value_style)] for r in summary_rows]
+    summary_table = Table(table_data, colWidths=[55 * mm, None])
+    summary_table.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("ROWBACKGROUNDS", (0, 0), (-1, -1), [colors.HexColor("#faf6f0"), colors.white]),
+        ("TOPPADDING", (0, 0), (-1, -1), 3),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+        ("LEFTPADDING", (0, 0), (-1, -1), 4),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+        ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#c8beb4")),
+    ]))
+
+    story = [
+        Paragraph("CulinEire Sponsor Agreement", heading_style),
+        Paragraph(f"Reference: {application.contract_reference}", kicker_style),
+        Paragraph("Agreement Summary", subheading_style),
+        summary_table,
+        Spacer(1, 4 * mm),
+    ]
+
+    story += _section(
+        "Parties",
+        "<b>Service provider:</b> Bearcave Limited, Company No. 658124, 2 The Fairways, Tir Cluain, "
+        "Midleton, Co. Cork, P25 W8W3, Ireland. Trading as CulinEire (Business Name No. 786815). "
+        "VAT number: IE3645402WH.",
+        f"<b>Client / Sponsor:</b> {application.sponsor_name}, {application.contact_name}, {application.email}",
+    )
+
+    if cell.is_centre:
+        service_slot = "a Central Sponsor of the Month placement"
+    elif application.product_type == SponsorCell.ProductType.WEEKLY_RING:
+        service_slot = f"a Weekly Ring Sponsor Slot at Ring {cell.ring}, Cell #{cell.cell_number}"
+    else:
+        service_slot = f"an Annual Ring Sponsor Slot at Ring {cell.ring}, Cell #{cell.cell_number}"
+
+    if application.product_type == SponsorCell.ProductType.WEEKLY_RING:
+        renewal_note = "This is a one-time weekly placement with no automatic renewal."
+        duration_note = "7 calendar days from the activation date stated above"
+    elif application.product_type == SponsorCell.ProductType.CENTRAL_MONTHLY:
+        renewal_note = "This is a one-time monthly placement with no automatic renewal."
+        duration_note = "30 calendar days from the activation date stated above"
+    else:
+        renewal_note = "This is a one-year annual placement with no automatic renewal."
+        duration_note = "12 months from the activation date stated above"
+
+    story += _section(
+        "Service",
+        f"Bearcave Limited has approved and activated {service_slot} on the CulinEire Sponsor Puzzle. "
+        f"The sponsor logo or avatar will be displayed on the CulinEire website for {duration_note}, "
+        f"subject to the terms below. {renewal_note}",
+    )
+    story += _section(
+        "Payment and VAT",
+        "The net sponsor fee is quoted exclusive of VAT. VAT was calculated at Stripe Checkout where "
+        "applicable. Payment reserved the selected sponsor spot for review only. Payment did not guarantee "
+        "approval, publication or activation. The sponsorship term starts from the activation date confirmed "
+        "above. There is no automatic renewal for this placement.",
+    )
+    story += _section(
+        "Approval Before Publication",
+        "All sponsorship applications are subject to review and approval by Bearcave Limited. Payment does "
+        "not guarantee acceptance, approval, publication or activation of a sponsor slot. Bearcave Limited "
+        "may refuse, delay, cancel, suspend or reject a sponsorship application where legal, payment, "
+        "compliance, sanctions, fraud, content, reputational, technical or policy concerns arise. A paid "
+        "sponsor spot is not published automatically. The submitted logo or avatar becomes visible only "
+        "after Bearcave Limited approves and publishes it.",
+    )
+    story += _section(
+        "Sponsor Materials Licence",
+        "The sponsor confirms they have the right to use the submitted logo, avatar, website or profile "
+        "link and related materials. The sponsor grants Bearcave Limited a non-exclusive licence to display "
+        "those materials on CulinEire for the sponsorship term.",
+    )
+    story += _section(
+        "Content Standards",
+        "The sponsor must not use the sponsorship slot to promote unlawful goods or services, defamatory "
+        "content, misleading claims, infringing materials or anything that violates Irish or EU law. The "
+        "sponsor must not imply editorial endorsement by CulinEire or Bearcave Limited unless expressly "
+        "agreed in writing.",
+    )
+    story += _section(
+        "No Guarantee of Results",
+        "Bearcave Limited does not guarantee any particular level of traffic, impressions, clicks or "
+        "commercial results from the sponsorship placement.",
+    )
+    story += _section(
+        "Website Changes and Availability",
+        "CulinEire is provided on a best-efforts basis. Bearcave Limited may update the website design, "
+        "layout or features at any time without affecting the sponsor's right to display their approved "
+        "logo or avatar for the agreed term, except where required by law, safety or compliance obligations.",
+    )
+    story += _section(
+        "Refunds and Compliance",
+        "If Bearcave Limited declines a paid placement before publication, the application enters the "
+        "refund-required workflow and Bearcave Limited will process a refund through Stripe. Once a sponsor "
+        "image has been published, refunds are not guaranteed unless required by applicable law or agreed "
+        "in writing by Bearcave Limited. Bearcave Limited may suspend, cancel or remove a sponsorship "
+        "placement where compliance, sanctions, legal or policy concerns arise.",
+    )
+    story += _section(
+        "Sanctions and Compliance Declaration",
+        "By submitting the sponsor application, the sponsor confirmed that, to the best of their knowledge, "
+        "neither the sponsor, nor the company or organisation represented, nor any relevant owner, director, "
+        "beneficial owner or controlling person, is subject to EU, UN, Irish or other applicable financial "
+        "sanctions. The applicant also confirmed that they are not applying for sponsorship on behalf of, "
+        "for the benefit of, or under the control of any sanctioned person, entity or body. Bearcave Limited "
+        "cannot accept sponsorship from persons or entities subject to applicable sanctions, asset freezes "
+        "or restrictive measures.",
+    )
+    story += _section(
+        "Governing Law",
+        "This agreement is governed by the laws of Ireland. Any disputes are subject to the exclusive "
+        "jurisdiction of the Irish courts, without prejudice to any statutory rights that may apply under "
+        "Irish or EU law.",
+    )
+    story += _section(
+        "Electronic Acceptance",
+        f"This agreement was entered into electronically when the sponsor submitted their application and "
+        f"accepted the CulinEire sponsorship terms via the website on {terms_date_str}. This document is "
+        f"the provider copy issued on behalf of Bearcave Limited upon activation of the sponsorship.",
+    )
+
+    story += [
+        Spacer(1, 6 * mm),
+        Paragraph(
+            "Bearcave Limited • Company No. 658124 • 2 The Fairways, Tir Cluain, Midleton, "
+            "Co. Cork, Ireland • VAT IE3645402WH<br/>"
+            "Trading as CulinEire (Business Name No. 786815) • culineire@bearcave.ie",
+            footer_style,
+        ),
+    ]
+
+    doc.build(story)
     return buf.getvalue()
 
 
