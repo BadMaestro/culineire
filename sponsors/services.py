@@ -1338,19 +1338,19 @@ def generate_invoice_pdf(application: SponsorApplication) -> bytes:  # noqa: C90
     c_copper    = colors.HexColor("#B07A3A")
     c_stone     = colors.HexColor("#D8C8B6")
     c_muted     = colors.HexColor("#6B5E52")
-    c_stripe    = colors.HexColor("#F0EBE3")  # subtle band for header bg
 
     page_w, page_h = A4
     l_margin = r_margin = 20 * mm
     t_margin = 18 * mm
-    b_margin = 24 * mm
+    # Large bottom margin reserves space for the pinned totals block
+    b_margin = 88 * mm
     text_w = page_w - l_margin - r_margin
 
     payment = getattr(application, "payment", None)
     cell    = application.cell
 
     def _eur(cents):
-        return f"EUR {cents / 100:.2f}" if cents else "EUR 0.00"
+        return f"EUR {cents / 100:.2f}" if cents is not None else "EUR 0.00"
 
     def _fmt_date(dt):
         return f"{dt.day} {dt.strftime('%B %Y')}" if dt else "-"
@@ -1372,13 +1372,9 @@ def generate_invoice_pdf(application: SponsorApplication) -> bytes:  # noqa: C90
     if cell.is_centre:
         service_desc = "CulinEire Sponsor Placement — Central Sponsor of the Month"
     elif application.product_type == SponsorCell.ProductType.WEEKLY_RING:
-        service_desc = (
-            f"CulinEire 7-Day Ring Sponsor Slot — Ring {cell.ring}, Cell #{cell.cell_number}"
-        )
+        service_desc = f"CulinEire 7-Day Ring Sponsor Slot — Ring {cell.ring}, Cell #{cell.cell_number}"
     else:
-        service_desc = (
-            f"CulinEire Annual Ring Sponsor Slot — Ring {cell.ring}, Cell #{cell.cell_number}"
-        )
+        service_desc = f"CulinEire Annual Ring Sponsor Slot — Ring {cell.ring}, Cell #{cell.cell_number}"
 
     net_eur   = _eur(application.price_net_cents)
     vat_eur   = _eur(payment.vat_amount_cents   if payment else 0)
@@ -1396,7 +1392,7 @@ def generate_invoice_pdf(application: SponsorApplication) -> bytes:  # noqa: C90
         logo_img = Spacer(logo_sz, logo_sz)
 
     # ── QR code ───────────────────────────────────────────────────────────────
-    qr_sz      = 18 * mm
+    qr_sz      = 20 * mm
     qr_element = None
     try:
         from reportlab.graphics.barcode.qr import QrCodeWidget
@@ -1410,41 +1406,15 @@ def generate_invoice_pdf(application: SponsorApplication) -> bytes:  # noqa: C90
     except Exception:
         pass
 
-    # ── Page background + footer ──────────────────────────────────────────────
-    def _draw_page(canvas, doc):
-        canvas.saveState()
-        canvas.setFillColor(c_parchment)
-        canvas.rect(0, 0, page_w, page_h, fill=1, stroke=0)
+    # ── Shared layout constants ───────────────────────────────────────────────
+    col_gap = 4 * mm
+    half_w  = text_w / 2 - col_gap / 2
+    lbl_s   = ParagraphStyle("LS",  fontName="Helvetica",      fontSize=7.5, textColor=c_muted,   leading=12)
+    val_s   = ParagraphStyle("VS",  fontName="Helvetica-Bold", fontSize=7.5, textColor=c_heading, leading=12)
+    sec_s   = ParagraphStyle("SEC", fontName="Helvetica-Bold", fontSize=7,   textColor=c_copper,
+                             charSpace=1.2, spaceAfter=3, leading=10)
 
-        # subtle watermark
-        canvas.saveState()
-        canvas.setFont("Times-Roman", 90)
-        canvas.setFillColor(colors.Color(0.69, 0.478, 0.227, alpha=0.035))
-        canvas.translate(page_w / 2, page_h / 2)
-        canvas.rotate(32)
-        canvas.drawCentredString(0, 0, "CulinEire")
-        canvas.restoreState()
-
-        y = b_margin - 8 * mm
-        canvas.setStrokeColor(c_stone)
-        canvas.setLineWidth(0.5)
-        canvas.line(l_margin, y, page_w - r_margin, y)
-        canvas.setFont("Helvetica", 6.5)
-        canvas.setFillColor(c_muted)
-        canvas.drawString(l_margin, y - 5 * mm,
-            "Bearcave Limited  ·  Company No. 658124  ·  Trading as CulinEire (Business Name No. 786815)")
-        canvas.drawString(l_margin, y - 9 * mm,
-            "VAT IE3645402WH  ·  culineire@bearcave.ie  ·  www.culineire.ie")
-        inv = getattr(doc, "_invoice_number", "")
-        canvas.drawRightString(page_w - r_margin, y - 5 * mm, "VAT Invoice")
-        if inv:
-            canvas.drawRightString(page_w - r_margin, y - 9 * mm, inv)
-        canvas.restoreState()
-
-    # ═══════════════════════════════════════════════════════════════════════════
-    # BLOCK 1 — HEADER BAND
-    # Left:  logo + wordmark    Right: invoice meta (number / date / status)
-    # ═══════════════════════════════════════════════════════════════════════════
+    # ── BLOCK 1: HEADER BAND ─────────────────────────────────────────────────
     wordmark_col = Table(
         [[logo_img,
           Paragraph("CulinEire",
@@ -1460,15 +1430,15 @@ def generate_invoice_pdf(application: SponsorApplication) -> bytes:  # noqa: C90
         ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
     ]))
 
-    hdr_right_data = [
-        [_p("TAX INVOICE", fontName="Helvetica", fontSize=7, textColor=c_muted,
-            alignment=TA_RIGHT, charSpace=1.2)],
-        [_p(invoice_number, fontName="Helvetica-Bold", fontSize=13, textColor=c_copper,
-            alignment=TA_RIGHT)],
-        [_p(issue_date, fontName="Helvetica", fontSize=8, textColor=c_muted,
-            alignment=TA_RIGHT)],
-    ]
-    hdr_right = Table(hdr_right_data, colWidths=[text_w * 0.65])
+    hdr_right = Table(
+        [[_p("TAX INVOICE", fontName="Helvetica", fontSize=7, textColor=c_muted,
+             alignment=TA_RIGHT, charSpace=1.2)],
+         [_p(invoice_number, fontName="Helvetica-Bold", fontSize=13, textColor=c_copper,
+             alignment=TA_RIGHT)],
+         [_p(issue_date, fontName="Helvetica", fontSize=8, textColor=c_muted,
+             alignment=TA_RIGHT)]],
+        colWidths=[text_w * 0.65],
+    )
     hdr_right.setStyle(TableStyle([
         ("VALIGN",        (0, 0), (-1, -1), "MIDDLE"),
         ("LEFTPADDING",   (0, 0), (-1, -1), 0),
@@ -1489,31 +1459,11 @@ def generate_invoice_pdf(application: SponsorApplication) -> bytes:  # noqa: C90
         ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
     ]))
 
-    copper_rule = HRFlowable(width="100%", thickness=1.2, color=c_copper,
-                             spaceAfter=5, spaceBefore=0)
-    stone_rule  = HRFlowable(width="100%", thickness=0.4, color=c_stone,
-                             spaceAfter=4, spaceBefore=6)
+    copper_rule = HRFlowable(width="100%", thickness=1.2, color=c_copper, spaceAfter=5, spaceBefore=0)
 
-    # ═══════════════════════════════════════════════════════════════════════════
-    # BLOCK 2 — INVOICE META + PAYMENT REF  (full-width, 2 columns inside)
-    # ═══════════════════════════════════════════════════════════════════════════
-    lbl_s  = ParagraphStyle("LS", fontName="Helvetica", fontSize=7.5, textColor=c_muted,   leading=12)
-    val_s  = ParagraphStyle("VS", fontName="Helvetica-Bold", fontSize=7.5, textColor=c_heading, leading=12)
+    # ── BLOCK 2: META — 3 rows left, 3 rows right (balanced) ─────────────────
     lbl_cw = 28 * mm
-    val_cw = text_w / 2 - lbl_cw - 4 * mm
-
-    meta_left = [
-        [Paragraph("Invoice No.",   lbl_s), Paragraph(invoice_number, val_s)],
-        [Paragraph("Issue date",    lbl_s), Paragraph(issue_date,     val_s)],
-        [Paragraph("Supply date",   lbl_s), Paragraph(supply_date,    val_s)],
-        [Paragraph("Application",   lbl_s), Paragraph(_safe(application.contract_reference), val_s)],
-    ]
-    meta_right = []
-    if payment and payment.paid_at:
-        meta_right.append([Paragraph("Payment date", lbl_s), Paragraph(payment_date, val_s)])
-    if payment and payment.stripe_payment_intent_id:
-        meta_right.append([Paragraph("Stripe Ref.",  lbl_s),
-                           Paragraph(_safe(payment.stripe_payment_intent_id), val_s)])
+    val_cw = half_w - lbl_cw - col_gap / 2
 
     def _meta_block(rows):
         if not rows:
@@ -1523,18 +1473,32 @@ def generate_invoice_pdf(application: SponsorApplication) -> bytes:  # noqa: C90
             ("BACKGROUND",    (0, 0), (-1, -1), c_card),
             ("LINEABOVE",     (0, 0), (-1, 0),  1.5, c_copper),
             ("BOX",           (0, 0), (-1, -1), 0.5, c_stone),
-            ("TOPPADDING",    (0, 0), (-1, -1), 4),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ("TOPPADDING",    (0, 0), (-1, -1), 5),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
             ("LEFTPADDING",   (0, 0), (-1, -1), 8),
             ("RIGHTPADDING",  (0, 0), (-1, -1), 6),
             ("VALIGN",        (0, 0), (-1, -1), "TOP"),
         ]))
         return t
 
-    col_gap = 4 * mm
-    half_w  = text_w / 2 - col_gap / 2
+    # Left: Invoice No / Issue date / Supply date
+    # Right: Application ref / Payment date / Stripe Ref  (balanced: 3 rows each)
+    meta_left_rows = [
+        [Paragraph("Invoice No.", lbl_s), Paragraph(invoice_number, val_s)],
+        [Paragraph("Issue date",  lbl_s), Paragraph(issue_date,     val_s)],
+        [Paragraph("Supply date", lbl_s), Paragraph(supply_date,    val_s)],
+    ]
+    meta_right_rows = [
+        [Paragraph("Application", lbl_s), Paragraph(_safe(application.contract_reference), val_s)],
+    ]
+    if payment and payment.paid_at:
+        meta_right_rows.append([Paragraph("Payment date", lbl_s), Paragraph(payment_date, val_s)])
+    if payment and payment.stripe_payment_intent_id:
+        meta_right_rows.append([Paragraph("Stripe Ref.", lbl_s),
+                                 Paragraph(_safe(payment.stripe_payment_intent_id), val_s)])
+
     meta_row = Table(
-        [[_meta_block(meta_left), Spacer(col_gap, 1), _meta_block(meta_right)]],
+        [[_meta_block(meta_left_rows), Spacer(col_gap, 1), _meta_block(meta_right_rows)]],
         colWidths=[half_w, col_gap, half_w],
     )
     meta_row.setStyle(TableStyle([
@@ -1545,11 +1509,7 @@ def generate_invoice_pdf(application: SponsorApplication) -> bytes:  # noqa: C90
         ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
     ]))
 
-    # ═══════════════════════════════════════════════════════════════════════════
-    # BLOCK 3 — SUPPLIER | CUSTOMER  (side by side, equal columns)
-    # ═══════════════════════════════════════════════════════════════════════════
-    sec_s  = ParagraphStyle("SEC", fontName="Helvetica-Bold", fontSize=7, textColor=c_copper,
-                            charSpace=1.2, spaceAfter=3, leading=10)
+    # ── BLOCK 3: SUPPLIER | CUSTOMER ─────────────────────────────────────────
     plbl_cw = 22 * mm
 
     billing = payment.billing_address if payment and payment.billing_address else {}
@@ -1577,7 +1537,7 @@ def generate_invoice_pdf(application: SponsorApplication) -> bytes:  # noqa: C90
             customer_rows.append(("Address", addr_str))
 
     def _party_block(heading, rows):
-        pval_cw = half_w - plbl_cw - 16  # 16 = left+right pad
+        pval_cw = half_w - plbl_cw - 16
         data = [[Paragraph(heading.upper(), sec_s), ""]]
         for lbl, val in rows:
             data.append([
@@ -1591,7 +1551,7 @@ def generate_invoice_pdf(application: SponsorApplication) -> bytes:  # noqa: C90
             ("LINEABOVE",     (0, 0), (-1, 0),  1.5, c_copper),
             ("BOX",           (0, 0), (-1, -1), 0.5, c_stone),
             ("TOPPADDING",    (0, 0), (-1, -1), 5),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
             ("LEFTPADDING",   (0, 0), (-1, -1), 8),
             ("RIGHTPADDING",  (0, 0), (-1, -1), 8),
             ("VALIGN",        (0, 0), (-1, -1), "TOP"),
@@ -1612,9 +1572,7 @@ def generate_invoice_pdf(application: SponsorApplication) -> bytes:  # noqa: C90
         ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
     ]))
 
-    # ═══════════════════════════════════════════════════════════════════════════
-    # BLOCK 4 — LINE ITEMS
-    # ═══════════════════════════════════════════════════════════════════════════
+    # ── BLOCK 4: LINE ITEMS ───────────────────────────────────────────────────
     qty_w  = 12 * mm
     unit_w = 28 * mm
     amt_w  = 28 * mm
@@ -1650,16 +1608,24 @@ def generate_invoice_pdf(application: SponsorApplication) -> bytes:  # noqa: C90
         ("LINEABOVE",     (0, 0), (-1, 0),  1.5, c_copper),
         ("LINEBELOW",     (0, 0), (-1, 0),  0.4, c_stone),
         ("BOX",           (0, 0), (-1, -1), 0.5, c_stone),
-        ("TOPPADDING",    (0, 0), (-1, -1), 5),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ("TOPPADDING",    (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
         ("LEFTPADDING",   (0, 0), (-1, -1), 8),
         ("RIGHTPADDING",  (0, 0), (-1, -1), 8),
         ("VALIGN",        (0, 0), (-1, -1), "TOP"),
     ]))
 
-    # ═══════════════════════════════════════════════════════════════════════════
-    # BLOCK 5 — TOTALS (right-aligned) + QR (far right)
-    # ═══════════════════════════════════════════════════════════════════════════
+    # ── BOTTOM BLOCK: totals + QR + notes — pinned to page bottom ────────────
+    # These are drawn via _draw_page canvas callback at fixed Y coordinates,
+    # so they always sit in the lower portion regardless of content height.
+
+    if payment and payment.status == SponsorPayment.Status.PAID:
+        status_str = f"PAID  ·  {payment_date}  ·  Stripe card payment"
+    elif payment and payment.status == SponsorPayment.Status.REFUNDED:
+        status_str = f"REFUNDED  ·  {_fmt_date(payment.refunded_at)}"
+    else:
+        status_str = "UNPAID"
+
     tot_lbl_w = 36 * mm
     tot_val_w = 28 * mm
     tot_w     = tot_lbl_w + tot_val_w
@@ -1672,13 +1638,13 @@ def generate_invoice_pdf(application: SponsorApplication) -> bytes:  # noqa: C90
                             textColor=c_copper if bold else c_text, alignment=TA_RIGHT)
         return [Paragraph(lbl, ls), Paragraph(val, vs)]
 
-    totals_inner = Table(
+    totals_table = Table(
         [_trow("Net amount", net_eur),
          _trow("VAT  23% Irish VAT", vat_eur),
          _trow("Total", total_eur, bold=True)],
         colWidths=[tot_lbl_w, tot_val_w],
     )
-    totals_inner.setStyle(TableStyle([
+    totals_table.setStyle(TableStyle([
         ("BACKGROUND",    (0, 0), (-1, -1), c_card),
         ("BOX",           (0, 0), (-1, -1), 0.5, c_stone),
         ("LINEABOVE",     (0, -1), (-1, -1), 0.8, c_stone),
@@ -1689,23 +1655,12 @@ def generate_invoice_pdf(application: SponsorApplication) -> bytes:  # noqa: C90
         ("VALIGN",        (0, 0), (-1, -1), "MIDDLE"),
     ]))
 
-    if payment and payment.status == SponsorPayment.Status.PAID:
-        status_str = f"PAID  ·  {payment_date}  ·  Stripe card payment"
-    elif payment and payment.status == SponsorPayment.Status.REFUNDED:
-        status_str = f"REFUNDED  ·  {_fmt_date(payment.refunded_at)}"
-    else:
-        status_str = "UNPAID"
-
-    status_para = Paragraph(status_str,
-                            ParagraphStyle("STP", fontName="Helvetica-Bold", fontSize=8,
-                                           textColor=c_copper, alignment=TA_RIGHT))
-
-    qr_label = Paragraph(
+    qr_label_p = Paragraph(
         '<font color="#B07A3A">www.culineire.ie</font>',
         ParagraphStyle("QL", fontName="Helvetica", fontSize=6, textColor=c_copper, alignment=TA_CENTER),
     )
     if qr_element:
-        qr_block = Table([[qr_element], [qr_label]], colWidths=[qr_sz + 2 * mm])
+        qr_block = Table([[qr_element], [qr_label_p]], colWidths=[qr_sz + 2 * mm])
         qr_block.setStyle(TableStyle([
             ("ALIGN",         (0, 0), (-1, -1), "CENTER"),
             ("LEFTPADDING",   (0, 0), (-1, -1), 0),
@@ -1716,46 +1671,95 @@ def generate_invoice_pdf(application: SponsorApplication) -> bytes:  # noqa: C90
     else:
         qr_block = Spacer(qr_sz, qr_sz)
 
-    qr_col_w  = qr_sz + 4 * mm
-    # layout: [spacer | totals | gap | qr]
-    bottom_table = Table(
-        [[Spacer(1, 1), totals_inner, Spacer(4 * mm, 1), qr_block]],
-        colWidths=[text_w - tot_w - qr_col_w - 4 * mm, tot_w, 4 * mm, qr_col_w],
-    )
-    bottom_table.setStyle(TableStyle([
-        ("VALIGN",        (0, 0), (-1, -1), "BOTTOM"),
-        ("LEFTPADDING",   (0, 0), (-1, -1), 0),
-        ("RIGHTPADDING",  (0, 0), (-1, -1), 0),
-        ("TOPPADDING",    (0, 0), (-1, -1), 0),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
-    ]))
+    qr_col_w = qr_sz + 4 * mm
 
-    # ── Notes ─────────────────────────────────────────────────────────────────
-    notes_para = Paragraph(
+    notes_p = Paragraph(
         "VAT invoice issued by Bearcave Limited (t/a CulinEire) for sponsorship placement services "
-        "on culineire.ie. Supply date is the activation date of the sponsorship. "
-        "Subject to CulinEire Sponsor Terms. Invoice queries: culineire@bearcave.ie",
+        "on culineire.ie. Supply date is the activation date. "
+        "Subject to CulinEire Sponsor Terms. Queries: culineire@bearcave.ie",
         ParagraphStyle("NP", fontName="Helvetica", fontSize=7, leading=10,
                        textColor=c_muted, alignment=TA_JUSTIFY),
     )
+    status_p = Paragraph(
+        status_str,
+        ParagraphStyle("STP", fontName="Helvetica-Bold", fontSize=8,
+                       textColor=c_copper, alignment=TA_RIGHT),
+    )
 
-    # ── Story ─────────────────────────────────────────────────────────────────
+    # ── Page callback: background, watermark, footer, pinned bottom block ─────
+    def _draw_page(canvas, doc):
+        canvas.saveState()
+
+        # background
+        canvas.setFillColor(c_parchment)
+        canvas.rect(0, 0, page_w, page_h, fill=1, stroke=0)
+
+        # watermark
+        canvas.saveState()
+        canvas.setFont("Times-Roman", 90)
+        canvas.setFillColor(colors.Color(0.69, 0.478, 0.227, alpha=0.035))
+        canvas.translate(page_w / 2, page_h / 2)
+        canvas.rotate(32)
+        canvas.drawCentredString(0, 0, "CulinEire")
+        canvas.restoreState()
+
+        # footer rule + text (absolute, same as Agreement)
+        y_foot = 16 * mm
+        canvas.setStrokeColor(c_stone)
+        canvas.setLineWidth(0.5)
+        canvas.line(l_margin, y_foot, page_w - r_margin, y_foot)
+        canvas.setFont("Helvetica", 6.5)
+        canvas.setFillColor(c_muted)
+        canvas.drawString(l_margin, y_foot - 5 * mm,
+            "Bearcave Limited  ·  Company No. 658124  ·  Trading as CulinEire (Business Name No. 786815)")
+        canvas.drawString(l_margin, y_foot - 9 * mm,
+            "VAT IE3645402WH  ·  culineire@bearcave.ie  ·  www.culineire.ie")
+        inv = getattr(doc, "_invoice_number", "")
+        canvas.drawRightString(page_w - r_margin, y_foot - 5 * mm, "VAT Invoice")
+        if inv:
+            canvas.drawRightString(page_w - r_margin, y_foot - 9 * mm, inv)
+
+        # ── pinned bottom block — build upward from just above footer ─────────
+        y = y_foot + 10 * mm  # baseline for notes bottom
+
+        # notes
+        notes_p.wrapOn(canvas, text_w, 20 * mm)
+        notes_p.drawOn(canvas, l_margin, y)
+        y += notes_p.height + 4 * mm
+
+        # stone rule
+        canvas.setStrokeColor(c_stone)
+        canvas.setLineWidth(0.4)
+        canvas.line(l_margin, y, page_w - r_margin, y)
+        y += 5 * mm
+
+        # totals table + QR at same baseline
+        totals_table.wrapOn(canvas, tot_w, 60 * mm)
+        qr_block.wrapOn(canvas, qr_col_w, 60 * mm)
+
+        x_totals = page_w - r_margin - qr_col_w - 4 * mm - tot_w
+        x_qr     = page_w - r_margin - qr_col_w
+        totals_table.drawOn(canvas, x_totals, y)
+        qr_block.drawOn(canvas, x_qr, y)
+        y += totals_table.height + 3 * mm
+
+        # status line (PAID / UNPAID) right-aligned above totals
+        status_p.wrapOn(canvas, text_w, 10 * mm)
+        status_p.drawOn(canvas, l_margin, y)
+
+        canvas.restoreState()
+
+    # ── Story (flowable content only — no totals/notes here) ─────────────────
     sp = lambda n: Spacer(1, n * mm)
     story = [
         header_band,
         copper_rule,
-        sp(2),
+        sp(3),
         meta_row,
-        sp(2.5),
+        sp(3),
         parties_row,
-        sp(2.5),
+        sp(3),
         items_table,
-        sp(2),
-        status_para,
-        sp(2),
-        bottom_table,
-        stone_rule,
-        notes_para,
     ]
 
     buf = BytesIO()
