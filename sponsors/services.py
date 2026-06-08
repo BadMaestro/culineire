@@ -1723,9 +1723,9 @@ def generate_invoice_pdf(application: SponsorApplication) -> bytes:  # noqa: C90
         y = y_foot + 10 * mm  # baseline for notes bottom
 
         # notes
-        notes_p.wrapOn(canvas, text_w, 20 * mm)
+        _nw, notes_h = notes_p.wrapOn(canvas, text_w, 20 * mm)
         notes_p.drawOn(canvas, l_margin, y)
-        y += notes_p.height + 4 * mm
+        y += notes_h + 4 * mm
 
         # stone rule
         canvas.setStrokeColor(c_stone)
@@ -1734,18 +1734,18 @@ def generate_invoice_pdf(application: SponsorApplication) -> bytes:  # noqa: C90
         y += 5 * mm
 
         # totals table + QR at same baseline
-        totals_table.wrapOn(canvas, tot_w, 60 * mm)
-        qr_block.wrapOn(canvas, qr_col_w, 60 * mm)
+        _tot_w, tot_h = totals_table.wrapOn(canvas, tot_w, 60 * mm)
+        _qr_w,  qr_h  = qr_block.wrapOn(canvas, qr_col_w, 60 * mm)
 
         x_totals = page_w - r_margin - qr_col_w - 4 * mm - tot_w
         x_qr     = page_w - r_margin - qr_col_w
         totals_table.drawOn(canvas, x_totals, y)
         qr_block.drawOn(canvas, x_qr, y)
-        y += totals_table.height + 3 * mm
+        y += tot_h + 3 * mm
 
         # status line (PAID / UNPAID) right-aligned above totals
         status_p.wrapOn(canvas, text_w, 10 * mm)
-        status_p.drawOn(canvas, l_margin, y)
+        status_p.drawOn(canvas, l_margin, y)  # noqa: unused height
 
         canvas.restoreState()
 
