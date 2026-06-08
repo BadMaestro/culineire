@@ -412,6 +412,7 @@ class SponsorFlowTests(TestCase):
     @override_settings(
         STRIPE_PRICE_MODE="test",
         STRIPE_SECRET_KEY="sk_test_ok",
+        STRIPE_PUBLISHABLE_KEY="pk_test_ok",
         STRIPE_WEBHOOK_SECRET="",
     )
     def test_stripe_webhook_runtime_requires_webhook_secret(self):
@@ -1647,7 +1648,7 @@ class SponsorWeeklyRingTests(TestCase):
         self.assertEqual(price_data["tax_behavior"], "exclusive")        # test 7
         self.assertEqual(kw["automatic_tax"], {"enabled": True})         # test 5
         self.assertEqual(kw["tax_id_collection"], {"enabled": True})     # test 6
-        self.assertEqual(price_data["product_data"]["name"], "CulinEire Weekly Ring Sponsor Spot")  # test 4
+        self.assertEqual(price_data["product_data"]["name"], "CulinEire 7-Day Ring Sponsor Spot")  # test 4
         self.assertEqual(price_data["product_data"]["tax_code"], "txcd_20060002")
 
     # --- Test 8: public modal / as_dict shows weekly placement and VAT ---
