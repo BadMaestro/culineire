@@ -2283,6 +2283,146 @@ class SponsorContractEmailTests(TestCase):
         self.assertEqual(application.status, SponsorApplication.Status.APPROVED)
 
 
+@override_settings(**SPONSOR_TEST_SETTINGS)
+class ResendSponsorContractCommandTests(TestCase):
+    """Tests for the resend_sponsor_contract management command."""
+
+    def setUp(self):
+        self.actor = get_user_model().objects.create_user("cmd_staff", password="pass", is_staff=True)
+        self.cell = SponsorCell.objects.create(
+            cell_number=701, ring=5, position_in_ring=0,
+            product_type=SponsorCell.ProductType.ANNUAL_RING,
+        )
+        application = SponsorApplication.objects.create(
+            cell=self.cell,
+            status=SponsorApplication.Status.PAID_PENDING_APPROVAL,
+            sponsor_name="Cmd Sponsor",
+            contact_name="Cmdr",
+            email="cmd@example.com",
+            logo=png_upload("cmd.png"),
+            price_net_cents=5000,
+            product_type=SponsorCell.ProductType.ANNUAL_RING,
+            term_days=365,
+            terms_accepted=True,
+            logo_rights_confirmed=True,
+            approval_acknowledged=True,
+            terms_accepted_at=timezone.now(),
+        )
+        SponsorPayment.objects.create(
+            application=application,
+            status=SponsorPayment.Status.PAID,
+            net_amount_cents=5000,
+            vat_amount_cents=575,
+            total_amount_cents=5575,
+            currency="eur",
+            stripe_checkout_session_id="cs_cmd_test",
+            stripe_payment_intent_id="pi_cmd_test",
+            paid_at=timezone.now(),
+        )
+        self.cell.status = SponsorCell.Status.PAID_PENDING_APPROVAL
+        self.cell.save(update_fields=["status"])
+        SponsorComplianceCheck.objects.create(
+            application=application,
+            status=SponsorComplianceCheck.Status.MANUALLY_CLEARED,
+            checked_at=timezone.now(),
+        )
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            approve_application(application.pk, self.actor)
+        application.refresh_from_db()
+        self.application = application
+
+    def _call_command(self, *args, **kwargs):
+        from io import StringIO
+        from django.core.management import call_command
+        out = StringIO()
+        call_command("resend_sponsor_contract", *args, stdout=out, **kwargs)
+        return out.getvalue()
+
+    # --- dry-run does not send email ---
+
+    def test_dry_run_does_not_send_email(self):
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            from django.core import mail
+            mail.outbox = []
+            self._call_command(application_id=self.application.pk, dry_run=True)
+        self.assertEqual(len(mail.outbox), 0)
+
+    # --- dry-run does not mutate contract_sent_at or contract_email_status ---
+
+    def test_dry_run_does_not_mutate_database(self):
+        before_sent_at = self.application.contract_sent_at
+        before_status = self.application.contract_email_status
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            self._call_command(application_id=self.application.pk, dry_run=True)
+        self.application.refresh_from_db()
+        self.assertEqual(self.application.contract_sent_at, before_sent_at)
+        self.assertEqual(self.application.contract_email_status, before_status)
+
+    # --- dry-run output includes required info ---
+
+    def test_dry_run_output_contains_required_fields(self):
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            output = self._call_command(application_id=self.application.pk, dry_run=True)
+        self.assertIn(str(self.application.pk), output)
+        self.assertIn(self.application.sponsor_name, output)
+        self.assertIn(self.application.email, output)
+        self.assertIn(self.application.contract_reference, output)
+        pdf_filename = f"CulinEire_Sponsor_Agreement_{self.application.contract_reference}.pdf"
+        self.assertIn(pdf_filename, output)
+        self.assertIn("would send", output.lower())
+
+    # --- resend sends one email with one PDF attachment ---
+
+    def test_resend_sends_one_email_with_pdf_attachment(self):
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            from django.core import mail
+            mail.outbox = []
+            self._call_command(application_id=self.application.pk, dry_run=False)
+        self.assertEqual(len(mail.outbox), 1)
+        msg = mail.outbox[0]
+        self.assertEqual(len(msg.attachments), 1)
+        _fname, _content, mimetype = msg.attachments[0]
+        self.assertEqual(mimetype, "application/pdf")
+
+    # --- resend reuses existing contract_reference ---
+
+    def test_resend_reuses_existing_contract_reference(self):
+        original_ref = self.application.contract_reference
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            self._call_command(application_id=self.application.pk, dry_run=False)
+        self.application.refresh_from_db()
+        self.assertEqual(self.application.contract_reference, original_ref)
+
+    # --- resend does not create SponsorPayment ---
+
+    def test_resend_does_not_create_payment(self):
+        payment_count_before = SponsorPayment.objects.filter(application=self.application).count()
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            self._call_command(application_id=self.application.pk, dry_run=False)
+        payment_count_after = SponsorPayment.objects.filter(application=self.application).count()
+        self.assertEqual(payment_count_before, payment_count_after)
+
+    # --- resend does not change Stripe/webhook/sanctions/Telegram state ---
+
+    def test_resend_does_not_change_stripe_or_compliance_state(self):
+        compliance_before = SponsorComplianceCheck.objects.filter(
+            application=self.application
+        ).values("status", "checked_at").first()
+        payment_before = SponsorPayment.objects.filter(
+            application=self.application
+        ).values("status", "stripe_checkout_session_id", "stripe_payment_intent_id").first()
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            self._call_command(application_id=self.application.pk, dry_run=False)
+        compliance_after = SponsorComplianceCheck.objects.filter(
+            application=self.application
+        ).values("status", "checked_at").first()
+        payment_after = SponsorPayment.objects.filter(
+            application=self.application
+        ).values("status", "stripe_checkout_session_id", "stripe_payment_intent_id").first()
+        self.assertEqual(compliance_before, compliance_after)
+        self.assertEqual(payment_before, payment_after)
+
+
 class _BrokenEmailBackend:
     """Stub email backend that always raises to simulate send failure."""
     def __init__(self, *args, **kwargs):
