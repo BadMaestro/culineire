@@ -792,81 +792,149 @@ def generate_contract_pdf(application: SponsorApplication) -> bytes:
         from reportlab.lib.pagesizes import A4
         from reportlab.lib.styles import ParagraphStyle
         from reportlab.lib.units import mm
-        from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+        from reportlab.platypus import (
+            HRFlowable, KeepTogether, Paragraph, SimpleDocTemplate,
+            Spacer, Table, TableStyle,
+        )
         from reportlab.lib import colors
-        from reportlab.lib.enums import TA_CENTER, TA_LEFT
+        from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT
     except ImportError as exc:
         raise RuntimeError("reportlab is not installed. Add reportlab to requirements.txt.") from exc
 
-    payment = getattr(application, "payment", None)
-    cell = application.cell
+    # ── colours ──────────────────────────────────────────────────────────────
+    C_DARK    = colors.HexColor("#1f2c25")   # near-black green
+    C_BRAND   = colors.HexColor("#184c3a")   # CulinEire dark green
+    C_MUTED   = colors.HexColor("#6b5e52")   # warm grey-brown
+    C_RULE    = colors.HexColor("#c8beb4")   # light warm border
+    C_ROW_A   = colors.HexColor("#f5f0eb")   # table alternate row
+    C_FOOT    = colors.HexColor("#8a7d74")   # footer text
 
-    buf = BytesIO()
-    doc = SimpleDocTemplate(
-        buf,
-        pagesize=A4,
-        leftMargin=20 * mm,
-        rightMargin=20 * mm,
-        topMargin=20 * mm,
-        bottomMargin=20 * mm,
-        title=f"CulinEire Sponsor Agreement {application.contract_reference}",
-        author="Bearcave Limited",
+    PAGE_W, PAGE_H = A4
+    L_MARGIN = R_MARGIN = 22 * mm
+    T_MARGIN = 22 * mm
+    B_MARGIN = 26 * mm          # extra room for canvas footer
+    TEXT_W   = PAGE_W - L_MARGIN - R_MARGIN
+
+    # ── per-page canvas footer ────────────────────────────────────────────────
+    footer_line1 = (
+        "Bearcave Limited  •  Company No. 658124  •  "
+        "2 The Fairways, Tir Cluain, Midleton, Co. Cork, Ireland  •  VAT IE3645402WH"
+    )
+    footer_line2 = (
+        "Trading as CulinEire (Business Name No. 786815)  •  culineire@bearcave.ie"
     )
 
-    heading_style = ParagraphStyle(
-        "Heading",
+    def _draw_page(canvas, doc):
+        canvas.saveState()
+        y_rule = B_MARGIN - 6 * mm
+        canvas.setStrokeColor(C_RULE)
+        canvas.setLineWidth(0.4)
+        canvas.line(L_MARGIN, y_rule, PAGE_W - R_MARGIN, y_rule)
+        canvas.setFont("Helvetica", 7)
+        canvas.setFillColor(C_FOOT)
+        canvas.drawCentredString(PAGE_W / 2, y_rule - 5 * mm, footer_line1)
+        canvas.drawCentredString(PAGE_W / 2, y_rule - 9 * mm, footer_line2)
+        canvas.setFont("Helvetica", 7)
+        canvas.drawRightString(PAGE_W - R_MARGIN, y_rule - 5 * mm, f"Page {doc.page}")
+        canvas.restoreState()
+
+    # ── styles ────────────────────────────────────────────────────────────────
+    title_style = ParagraphStyle(
+        "DocTitle",
         fontName="Helvetica-Bold",
-        fontSize=14,
-        leading=18,
-        spaceAfter=4,
+        fontSize=11,
+        leading=14,
+        textColor=colors.white,
         alignment=TA_CENTER,
     )
-    subheading_style = ParagraphStyle(
-        "SubHeading",
-        fontName="Helvetica-Bold",
+    ref_style = ParagraphStyle(
+        "DocRef",
+        fontName="Helvetica",
         fontSize=9,
         leading=12,
-        spaceBefore=10,
+        textColor=colors.white,
+        alignment=TA_CENTER,
+        spaceAfter=0,
+    )
+    section_kicker = ParagraphStyle(
+        "SectionKicker",
+        fontName="Helvetica",
+        fontSize=8,
+        leading=10,
+        spaceAfter=2,
+        textColor=C_MUTED,
+        alignment=TA_CENTER,
+    )
+    sum_heading = ParagraphStyle(
+        "SumHeading",
+        fontName="Helvetica-Bold",
+        fontSize=8,
+        leading=11,
+        spaceBefore=14,
+        spaceAfter=5,
+        textColor=C_BRAND,
+        alignment=TA_LEFT,
+        charSpace=0.6,
+    )
+    sec_heading = ParagraphStyle(
+        "SecHeading",
+        fontName="Helvetica-Bold",
+        fontSize=8,
+        leading=11,
+        spaceBefore=0,
         spaceAfter=4,
-        textColor=colors.HexColor("#1f2c25"),
+        textColor=C_BRAND,
+        charSpace=0.6,
     )
     body_style = ParagraphStyle(
         "Body",
         fontName="Helvetica",
         fontSize=9,
-        leading=13,
-        spaceAfter=6,
-        alignment=TA_LEFT,
+        leading=13.5,
+        spaceAfter=0,
+        alignment=TA_JUSTIFY,
     )
-    kicker_style = ParagraphStyle(
-        "Kicker",
+    t_label = ParagraphStyle(
+        "TLabel",
         fontName="Helvetica",
-        fontSize=9,
+        fontSize=8.5,
         leading=12,
-        spaceAfter=12,
-        textColor=colors.HexColor("#6b5e52"),
-        alignment=TA_CENTER,
+        textColor=C_MUTED,
     )
-    footer_style = ParagraphStyle(
-        "Footer",
-        fontName="Helvetica",
-        fontSize=8,
-        leading=11,
-        textColor=colors.HexColor("#7a8a82"),
-        alignment=TA_CENTER,
+    t_value = ParagraphStyle(
+        "TValue",
+        fontName="Helvetica-Bold",
+        fontSize=8.5,
+        leading=12,
+        textColor=C_DARK,
     )
 
-    # --- helpers ---
-    def _section(title, *paragraphs):
-        items = [Paragraph(title.upper(), subheading_style)]
-        for text in paragraphs:
-            items.append(Paragraph(text, body_style))
-        return items
-
+    # ── helpers ───────────────────────────────────────────────────────────────
     def _cents_display(cents):
         return f"€{cents / 100:.2f}" if cents else "-"
 
-    # --- placement label ---
+    def _fmt_date(dt):
+        return dt.strftime("%-d %B %Y") if dt else "-"
+
+    def _rule():
+        return HRFlowable(
+            width="100%", thickness=0.5, color=C_RULE, spaceAfter=4, spaceBefore=10,
+        )
+
+    def _section(title, *paragraphs):
+        """Return a KeepTogether block: rule + heading + first paragraph, then remaining."""
+        head = [_rule(), Paragraph(title.upper(), sec_heading)]
+        if paragraphs:
+            head.append(Paragraph(paragraphs[0], body_style))
+        items = [KeepTogether(head)]
+        for text in paragraphs[1:]:
+            items.append(Paragraph(text, body_style))
+        return items
+
+    # ── data ──────────────────────────────────────────────────────────────────
+    payment = getattr(application, "payment", None)
+    cell = application.cell
+
     if cell.is_centre:
         placement_label = "Central Sponsor of the Month"
     elif application.product_type == SponsorCell.ProductType.WEEKLY_RING:
@@ -876,32 +944,31 @@ def generate_contract_pdf(application: SponsorApplication) -> bytes:
 
     if application.product_type == SponsorCell.ProductType.WEEKLY_RING:
         term_label = "Weekly — 7 calendar days from activation"
-        net_label = f"{_cents_display(application.price_net_cents)} EUR per week"
+        net_label  = f"{_cents_display(application.price_net_cents)} EUR per week"
     elif application.product_type == SponsorCell.ProductType.CENTRAL_MONTHLY:
         term_label = "Monthly — 30 calendar days from activation"
-        net_label = f"{_cents_display(application.price_net_cents)} EUR per month"
+        net_label  = f"{_cents_display(application.price_net_cents)} EUR per month"
     else:
         term_label = "Annual — 12 months from activation"
-        net_label = f"{_cents_display(application.price_net_cents)} EUR per year"
+        net_label  = f"{_cents_display(application.price_net_cents)} EUR per year"
 
-    activation_str = application.published_at.strftime("%-d %B %Y") if application.published_at else "-"
-    end_str = application.expires_at.strftime("%-d %B %Y") if application.expires_at else "-"
-    terms_date_str = application.terms_accepted_at.strftime("%-d %B %Y") if application.terms_accepted_at else "-"
+    activation_str  = _fmt_date(application.published_at)
+    end_str         = _fmt_date(application.expires_at)
+    terms_date_str  = _fmt_date(application.terms_accepted_at)
 
-    # --- summary table ---
     summary_rows = [
-        ["Reference", application.contract_reference],
-        ["Application ID", str(application.reference)],
-        ["Sponsor", application.sponsor_name],
-        ["Contact", application.contact_name],
-        ["Email", application.email],
+        ["Reference",       application.contract_reference],
+        ["Application ID",  str(application.reference)],
+        ["Sponsor",         application.sponsor_name],
+        ["Contact",         application.contact_name],
+        ["Email",           application.email],
     ]
     if application.website_url:
         summary_rows.append(["Website / Profile", application.website_url])
     summary_rows += [
-        ["Sponsor slot", placement_label],
-        ["Service term", term_label],
-        ["Net amount", net_label],
+        ["Sponsor slot",    placement_label],
+        ["Service term",    term_label],
+        ["Net amount",      net_label],
     ]
     if payment and payment.vat_amount_cents:
         summary_rows.append(["VAT", f"{payment.vat_amount_cents} cents (reported by Stripe at checkout)"])
@@ -909,29 +976,71 @@ def generate_contract_pdf(application: SponsorApplication) -> bytes:
         summary_rows.append(["Total paid", f"{payment.total_amount_cents} cents (reported by Stripe at checkout)"])
     summary_rows += [
         ["Activation date", activation_str],
-        ["End date", end_str],
+        ["End date",        end_str],
     ]
 
-    label_style = ParagraphStyle("TLabel", fontName="Helvetica", fontSize=8.5, textColor=colors.HexColor("#6b5e52"))
-    value_style = ParagraphStyle("TValue", fontName="Helvetica-Bold", fontSize=8.5, textColor=colors.HexColor("#1f2c25"))
-    table_data = [[Paragraph(r[0], label_style), Paragraph(r[1], value_style)] for r in summary_rows]
-    summary_table = Table(table_data, colWidths=[55 * mm, None])
+    table_data = [
+        [Paragraph(r[0], t_label), Paragraph(r[1], t_value)]
+        for r in summary_rows
+    ]
+    nrows = len(table_data)
+    row_bgs = []
+    for i in range(nrows):
+        bg = C_ROW_A if i % 2 == 0 else colors.white
+        row_bgs += [("BACKGROUND", (0, i), (-1, i), bg)]
+    summary_table = Table(table_data, colWidths=[52 * mm, TEXT_W - 52 * mm])
     summary_table.setStyle(TableStyle([
-        ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ("ROWBACKGROUNDS", (0, 0), (-1, -1), [colors.HexColor("#faf6f0"), colors.white]),
-        ("TOPPADDING", (0, 0), (-1, -1), 3),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-        ("LEFTPADDING", (0, 0), (-1, -1), 4),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
-        ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#c8beb4")),
+        ("VALIGN",        (0, 0), (-1, -1), "TOP"),
+        ("TOPPADDING",    (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ("LEFTPADDING",   (0, 0), (-1, -1), 7),
+        ("RIGHTPADDING",  (0, 0), (-1, -1), 7),
+        ("BOX",           (0, 0), (-1, -1), 0.5, C_RULE),
+        ("LINEBELOW",     (0, 0), (-1, -2), 0.3, C_RULE),
+    ] + row_bgs))
+
+    # ── title banner ──────────────────────────────────────────────────────────
+    banner_inner = Table(
+        [
+            [Paragraph("CulinEire Sponsor Agreement", title_style)],
+            [Paragraph(f"Reference: {application.contract_reference}", ref_style)],
+        ],
+        colWidths=[TEXT_W],
+    )
+    banner_inner.setStyle(TableStyle([
+        ("BACKGROUND",    (0, 0), (-1, -1), C_BRAND),
+        ("TOPPADDING",    (0, 0), (-1, 0),  14),
+        ("BOTTOMPADDING", (0, 0), (-1, 0),  4),
+        ("TOPPADDING",    (0, 1), (-1, 1),  2),
+        ("BOTTOMPADDING", (0, 1), (-1, 1),  14),
+        ("LEFTPADDING",   (0, 0), (-1, -1), 12),
+        ("RIGHTPADDING",  (0, 0), (-1, -1), 12),
     ]))
 
+    # ── story ─────────────────────────────────────────────────────────────────
+    if cell.is_centre:
+        service_slot = "a Central Sponsor of the Month placement"
+    elif application.product_type == SponsorCell.ProductType.WEEKLY_RING:
+        service_slot = f"a Weekly Ring Sponsor Slot at Ring {cell.ring}, Cell #{cell.cell_number}"
+    else:
+        service_slot = f"an Annual Ring Sponsor Slot at Ring {cell.ring}, Cell #{cell.cell_number}"
+
+    if application.product_type == SponsorCell.ProductType.WEEKLY_RING:
+        renewal_note  = "This is a one-time weekly placement with no automatic renewal."
+        duration_note = "7 calendar days from the activation date stated above"
+    elif application.product_type == SponsorCell.ProductType.CENTRAL_MONTHLY:
+        renewal_note  = "This is a one-time monthly placement with no automatic renewal."
+        duration_note = "30 calendar days from the activation date stated above"
+    else:
+        renewal_note  = "This is a one-year annual placement with no automatic renewal."
+        duration_note = "12 months from the activation date stated above"
+
     story = [
-        Paragraph("CulinEire Sponsor Agreement", heading_style),
-        Paragraph(f"Reference: {application.contract_reference}", kicker_style),
-        Paragraph("Agreement Summary", subheading_style),
+        banner_inner,
+        Spacer(1, 5 * mm),
+        Paragraph("AGREEMENT SUMMARY", sum_heading),
         summary_table,
-        Spacer(1, 4 * mm),
+        Spacer(1, 2 * mm),
     ]
 
     story += _section(
@@ -941,24 +1050,6 @@ def generate_contract_pdf(application: SponsorApplication) -> bytes:
         "VAT number: IE3645402WH.",
         f"<b>Client / Sponsor:</b> {application.sponsor_name}, {application.contact_name}, {application.email}",
     )
-
-    if cell.is_centre:
-        service_slot = "a Central Sponsor of the Month placement"
-    elif application.product_type == SponsorCell.ProductType.WEEKLY_RING:
-        service_slot = f"a Weekly Ring Sponsor Slot at Ring {cell.ring}, Cell #{cell.cell_number}"
-    else:
-        service_slot = f"an Annual Ring Sponsor Slot at Ring {cell.ring}, Cell #{cell.cell_number}"
-
-    if application.product_type == SponsorCell.ProductType.WEEKLY_RING:
-        renewal_note = "This is a one-time weekly placement with no automatic renewal."
-        duration_note = "7 calendar days from the activation date stated above"
-    elif application.product_type == SponsorCell.ProductType.CENTRAL_MONTHLY:
-        renewal_note = "This is a one-time monthly placement with no automatic renewal."
-        duration_note = "30 calendar days from the activation date stated above"
-    else:
-        renewal_note = "This is a one-year annual placement with no automatic renewal."
-        duration_note = "12 months from the activation date stated above"
-
     story += _section(
         "Service",
         f"Bearcave Limited has approved and activated {service_slot} on the CulinEire Sponsor Puzzle. "
@@ -1002,7 +1093,7 @@ def generate_contract_pdf(application: SponsorApplication) -> bytes:
     story += _section(
         "Website Changes and Availability",
         "CulinEire is provided on a best-efforts basis. Bearcave Limited may update the website design, "
-        "layout or features at any time without affecting the sponsor's right to display their approved "
+        "layout or features at any time without affecting the sponsor’s right to display their approved "
         "logo or avatar for the agreed term, except where required by law, safety or compliance obligations.",
     )
     story += _section(
@@ -1036,17 +1127,18 @@ def generate_contract_pdf(application: SponsorApplication) -> bytes:
         f"the provider copy issued on behalf of Bearcave Limited upon activation of the sponsorship.",
     )
 
-    story += [
-        Spacer(1, 6 * mm),
-        Paragraph(
-            "Bearcave Limited • Company No. 658124 • 2 The Fairways, Tir Cluain, Midleton, "
-            "Co. Cork, Ireland • VAT IE3645402WH<br/>"
-            "Trading as CulinEire (Business Name No. 786815) • culineire@bearcave.ie",
-            footer_style,
-        ),
-    ]
-
-    doc.build(story)
+    buf = BytesIO()
+    doc = SimpleDocTemplate(
+        buf,
+        pagesize=A4,
+        leftMargin=L_MARGIN,
+        rightMargin=R_MARGIN,
+        topMargin=T_MARGIN,
+        bottomMargin=B_MARGIN,
+        title=f"CulinEire Sponsor Agreement {application.contract_reference}",
+        author="Bearcave Limited",
+    )
+    doc.build(story, onFirstPage=_draw_page, onLaterPages=_draw_page)
     return buf.getvalue()
 
 
