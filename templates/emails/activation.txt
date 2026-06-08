@@ -10,5 +10,5 @@ This link expires in 24 hours.
 
 If you did not create a CulinEire account, you can safely ignore this email.
 
--- CulinEire Kitchen
+-- CulinEire
 {{ site_url }}

@@ -118,7 +118,7 @@ class SponsorCell(models.Model):
             return f"€{self.price:,}/month + VAT"
         if self.product_type == self.ProductType.WEEKLY_RING:
             amount = self.price_net_cents // 100
-            return f"€{amount:,}/week + VAT"
+            return f"€{amount:,} for 7 days + VAT"
         return f"€{self.price:,}/year + VAT"
 
     @property
@@ -294,7 +294,7 @@ class SponsorApplication(models.Model):
         if self.product_type == SponsorCell.ProductType.CENTRAL_MONTHLY:
             return f"€{amount:,}/month + VAT"
         if self.product_type == SponsorCell.ProductType.WEEKLY_RING:
-            return f"€{amount:,}/week + VAT"
+            return f"€{amount:,} for 7 days + VAT"
         return f"€{amount:,}/year + VAT"
 
     @property

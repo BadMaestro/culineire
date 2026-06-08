@@ -1656,13 +1656,13 @@ class SponsorWeeklyRingTests(TestCase):
     def test_weekly_cell_as_dict_includes_product_type_and_weekly_price_display(self):
         data = self.cell_top.as_dict()
         self.assertEqual(data["product_type"], "weekly_ring")
-        self.assertIn("/week", data["price_display"])
+        self.assertIn("7 days", data["price_display"])
         self.assertIn("+ VAT", data["price_display"])
         self.assertEqual(data["price_net_cents"], 2500)
 
     def test_weekly_cell_price_display_property(self):
-        self.assertEqual(self.cell_top.price_display, "€25/week + VAT")
-        self.assertEqual(self.cell_bottom.price_display, "€5/week + VAT")
+        self.assertEqual(self.cell_top.price_display, "€25 for 7 days + VAT")
+        self.assertEqual(self.cell_bottom.price_display, "€5 for 7 days + VAT")
 
     # --- Test 9: exactly 3 confirmation checkboxes (modal JS) ---
 
@@ -1861,7 +1861,7 @@ class SponsorWeeklyRingTests(TestCase):
             term_days=7,
         )
         self.assertEqual(application.term_display, "7-day term from approval/publication")
-        self.assertEqual(application.price_display, "€25/week + VAT")
+        self.assertEqual(application.price_display, "€25 for 7 days + VAT")
 
     # --- annual ring term_display unchanged ---
 

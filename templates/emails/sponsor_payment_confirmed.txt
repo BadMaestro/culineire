@@ -15,5 +15,5 @@ Payment:
 Review and approve or reject this application:
 {{ moderation_url }}
 
--- CulinEire Kitchen
+-- CulinEire
 {{ site_url }}

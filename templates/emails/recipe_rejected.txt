@@ -8,5 +8,5 @@ You are welcome to revise your recipe and resubmit it at any time. If you have a
 
 View your profile: {{ profile_url }}
 
--- CulinEire Kitchen
+-- CulinEire
 {{ site_url }}

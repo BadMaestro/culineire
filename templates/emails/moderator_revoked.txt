@@ -1,9 +1,9 @@
 Dear {{ author_name }},
 
-Your moderator privileges on CulinEire Kitchen have been removed. You will no longer have access to the moderation panel.
+Your moderator privileges on CulinEire have been removed. You will no longer have access to the moderation panel.
 
 If you have any questions, please contact us at:
 {{ contact_url }}
 
--- CulinEire Kitchen
+-- CulinEire
 {{ site_url }}

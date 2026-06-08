@@ -1,11 +1,11 @@
 Dear {{ author_name }},
 
-You have been granted moderator privileges on CulinEire Kitchen. You can now review and manage content submissions from our authors.
+You have been granted moderator privileges on CulinEire. You can now review and manage content submissions from our authors.
 
 Moderation panel: {{ moderation_url }}
 
 If You believe this was assigned in error, please contact us at:
 {{ contact_url }}
 
--- CulinEire Kitchen
+-- CulinEire
 {{ site_url }}
