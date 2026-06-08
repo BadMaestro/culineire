@@ -459,6 +459,7 @@ class SponsorPayment(models.Model):
     paid_at = models.DateTimeField(null=True, blank=True)
     refunded_at = models.DateTimeField(null=True, blank=True)
     failure_message = models.CharField(max_length=500, blank=True)
+    billing_address = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
