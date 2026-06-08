@@ -700,6 +700,8 @@ def approve_application(application_id: int, actor) -> SponsorApplication:
             if application.product_type == SponsorCell.ProductType.ANNUAL_RING
             else now + timedelta(days=application.term_days)
         )
+        application.contract_reference = _generate_contract_reference(application)
+        application.contract_email_status = SponsorApplication.ContractEmailStatus.PENDING
         application.save()
 
         cell.sponsor_name = application.sponsor_name
@@ -733,6 +735,102 @@ def approve_application(application_id: int, actor) -> SponsorApplication:
             application.pk,
         )
 
+    # Send agreement email — failure must not roll back or block approval.
+    try:
+        _send_contract_email(application)
+        application.contract_sent_at = timezone.now()
+        application.contract_email_status = SponsorApplication.ContractEmailStatus.SENT
+        application.save(update_fields=["contract_sent_at", "contract_email_status", "updated_at"])
+        record_audit(
+            action=SponsorAuditLog.Action.CONTRACT_SENT,
+            application=application,
+            actor=actor,
+            notes=f"Agreement email sent to {application.email}",
+        )
+    except Exception:
+        import logging as _logging
+        _logging.getLogger(__name__).exception(
+            "Failed to send sponsor contract email for application pk=%s", application.pk,
+        )
+        application.contract_email_status = SponsorApplication.ContractEmailStatus.FAILED
+        application.save(update_fields=["contract_email_status", "updated_at"])
+        record_audit(
+            action=SponsorAuditLog.Action.CONTRACT_EMAIL_FAILED,
+            application=application,
+            actor=actor,
+            notes="Contract agreement email failed to send.",
+        )
+
+    return application
+
+
+def _generate_contract_reference(application: SponsorApplication) -> str:
+    prefix = {
+        SponsorCell.ProductType.ANNUAL_RING: "AN",
+        SponsorCell.ProductType.WEEKLY_RING: "WK",
+        SponsorCell.ProductType.CENTRAL_MONTHLY: "MO",
+    }.get(application.product_type, "SP")
+    year = timezone.now().year
+    return f"CUL-{prefix}-{year}-{application.pk:06d}"
+
+
+def _select_agreement_template(product_type: str) -> str:
+    return {
+        SponsorCell.ProductType.WEEKLY_RING: "sponsors/agreement_weekly",
+        SponsorCell.ProductType.CENTRAL_MONTHLY: "sponsors/agreement_monthly",
+    }.get(product_type, "sponsors/agreement_annual")
+
+
+def _send_contract_email(application: SponsorApplication) -> None:
+    from config.email_utils import send_template_mail
+    payment = getattr(application, "payment", None)
+    template = _select_agreement_template(application.product_type)
+    send_template_mail(
+        subject=f"Your CulinEire Sponsor Agreement — {application.contract_reference}",
+        template=template,
+        context={
+            "application": application,
+            "payment": payment,
+            "contract_reference": application.contract_reference,
+            "activation_date": application.published_at,
+            "end_date": application.expires_at,
+        },
+        recipient_list=[application.email],
+        fail_silently=False,
+    )
+
+
+def resend_contract_email(application_id: int, actor) -> SponsorApplication:
+    application = SponsorApplication.objects.select_related("cell", "payment").get(pk=application_id)
+    if application.status != SponsorApplication.Status.APPROVED:
+        raise ValueError("Contract email can only be resent for approved applications.")
+    if not application.contract_reference:
+        application.contract_reference = _generate_contract_reference(application)
+        application.save(update_fields=["contract_reference", "updated_at"])
+    try:
+        _send_contract_email(application)
+        application.contract_sent_at = timezone.now()
+        application.contract_email_status = SponsorApplication.ContractEmailStatus.RESENT
+        application.save(update_fields=["contract_sent_at", "contract_email_status", "updated_at"])
+        record_audit(
+            action=SponsorAuditLog.Action.CONTRACT_EMAIL_RESENT,
+            application=application,
+            actor=actor,
+            notes=f"Agreement email resent to {application.email}",
+        )
+    except Exception:
+        import logging as _logging
+        _logging.getLogger(__name__).exception(
+            "Failed to resend sponsor contract email for application pk=%s", application.pk,
+        )
+        application.contract_email_status = SponsorApplication.ContractEmailStatus.FAILED
+        application.save(update_fields=["contract_email_status", "updated_at"])
+        record_audit(
+            action=SponsorAuditLog.Action.CONTRACT_EMAIL_FAILED,
+            application=application,
+            actor=actor,
+            notes="Contract email resend failed.",
+        )
     return application
 
 

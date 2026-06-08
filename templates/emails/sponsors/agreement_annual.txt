@@ -1,0 +1,85 @@
+CULINEIRE ANNUAL SPONSOR AGREEMENT
+Reference: {{ contract_reference }}
+Application ID: {{ application.reference }}
+
+Dear {{ application.contact_name }},
+
+Thank you for your sponsorship of CulinEire. This email is your copy of the Annual Sponsor Slot Agreement between Bearcave Limited and {{ application.sponsor_name }}. Please keep this for your records.
+
+---
+AGREEMENT SUMMARY
+---
+Reference:        {{ contract_reference }}
+Application ID:   {{ application.reference }}
+Sponsor:          {{ application.sponsor_name }}
+Contact:          {{ application.contact_name }}{% if application.website_url %}
+Website/Profile:  {{ application.website_url }}{% endif %}
+Sponsor slot:     Annual Ring Sponsor Slot - Ring {{ application.cell.ring }}, Cell #{{ application.cell.cell_number }}
+Service term:     Annual - 12 months from activation
+Net amount:       EUR {{ application.price_net_euros|floatformat:2 }}{% if payment and payment.vat_amount_cents %}
+VAT:              {{ payment.vat_amount_cents }} cents (reported by Stripe at checkout){% endif %}{% if payment and payment.total_amount_cents %}
+Total paid:       {{ payment.total_amount_cents }} cents (reported by Stripe at checkout){% endif %}
+Activation date:  {{ activation_date|date:"j F Y" }}
+End date:         {{ end_date|date:"j F Y" }}
+
+---
+PARTIES
+---
+Service provider: Bearcave Limited, Company No. 658124, 2 The Fairways, Tir Cluain, Midleton, Co. Cork, P25 W8W3, Ireland. Trading as CulinEire (Business Name No. 786815). VAT number: IE3645402WH.
+Client / Sponsor: {{ application.sponsor_name }}, {{ application.contact_name }}, {{ application.email }}
+
+---
+SERVICE
+---
+Bearcave Limited has approved and activated an Annual Ring Sponsor Slot on the CulinEire Sponsor Puzzle at Ring {{ application.cell.ring }}, Cell #{{ application.cell.cell_number }}. The sponsor logo or avatar will be displayed on the CulinEire website for 12 months from the activation date stated above, subject to the terms below.
+
+---
+PAYMENT AND VAT
+---
+The net sponsor fee was quoted exclusive of VAT. VAT was calculated at Stripe Checkout where applicable. Payment reserved the selected sponsor spot for review only. Payment did not guarantee approval, publication or activation. The sponsorship term starts from the activation date confirmed above.
+
+---
+SPONSOR MATERIALS LICENCE
+---
+The sponsor confirms they have the right to use the submitted logo, avatar, website or profile link and related materials. The sponsor grants Bearcave Limited a non-exclusive licence to display those materials on CulinEire for the sponsorship term.
+
+---
+CONTENT STANDARDS
+---
+The sponsor must not use the sponsorship slot to promote unlawful goods or services, defamatory content, misleading claims, infringing materials or anything that violates Irish or EU law. The sponsor must not imply editorial endorsement by CulinEire or Bearcave Limited unless expressly agreed in writing.
+
+---
+NO GUARANTEE OF RESULTS
+---
+Bearcave Limited does not guarantee any particular level of traffic, impressions, clicks or commercial results from the sponsorship placement.
+
+---
+WEBSITE CHANGES AND AVAILABILITY
+---
+CulinEire is provided on a best-efforts basis. Bearcave Limited may update the website design, layout or features at any time without affecting the sponsor's right to display their approved logo or avatar for the agreed term, except where required by law, safety or compliance obligations.
+
+---
+REFUNDS AND COMPLIANCE
+---
+Once a sponsor image has been published, refunds are not guaranteed unless required by applicable law or agreed in writing by Bearcave Limited. Bearcave Limited may suspend, cancel or remove a sponsorship placement where compliance, sanctions, legal or policy concerns arise.
+
+---
+SANCTIONS AND COMPLIANCE DECLARATION
+---
+By submitting the sponsor application, the sponsor confirmed that, to the best of their knowledge, neither the sponsor, nor the company or organisation represented, nor any relevant owner, director, beneficial owner or controlling person, is subject to EU, UN, Irish or other applicable financial sanctions.
+
+---
+GOVERNING LAW
+---
+This agreement is governed by the laws of Ireland. Any disputes are subject to the exclusive jurisdiction of the Irish courts, without prejudice to any statutory rights that may apply under Irish or EU law.
+
+---
+ELECTRONIC ACCEPTANCE
+---
+This agreement was entered into electronically when the sponsor submitted their application and accepted the CulinEire sponsorship terms via the website on {{ application.terms_accepted_at|date:"j F Y" }}. This email is the provider copy sent on behalf of Bearcave Limited upon activation of the sponsorship.
+
+---
+Bearcave Limited | Company No. 658124 | VAT IE3645402WH
+2 The Fairways, Tir Cluain, Midleton, Co. Cork, Ireland
+Trading as CulinEire (Business Name No. 786815)
+culineire@bearcave.ie | {{ site_url }}

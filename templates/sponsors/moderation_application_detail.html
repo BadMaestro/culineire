@@ -56,6 +56,17 @@
         </section>
         {% endif %}
 
+        {% if application.contract_email_status == "failed" %}
+        <section class="research-panel">
+            <h2 class="moderation-block__title">Contract Email Failed</h2>
+            <p class="moderation-card__note">The agreement email failed to send on approval. The sponsorship is active, but the sponsor has not received their contract copy. Use the resend button below or in the Actions panel.</p>
+            <form method="post" style="margin-top:0.65rem;">
+                {% csrf_token %}
+                <button class="mod-btn mod-btn--approve" name="action" type="submit" value="resend_contract_email">Resend contract email</button>
+            </form>
+        </section>
+        {% endif %}
+
         {% if application.status == "refund_required" %}
         <section class="research-panel">
             <h2 class="moderation-block__title">Manual Refund Required</h2>
@@ -82,6 +93,8 @@
                     <div><dt>Terms version</dt><dd style="font-size:0.9rem">{{ application.terms_version }}</dd></div>
                     <div><dt>Placement term</dt><dd style="font-size:0.9rem">{{ application.term_display }}</dd></div>
                     <div><dt>Image position</dt><dd style="font-size:0.9rem">X {{ application.logo_offset_x|floatformat:1 }}%, Y {{ application.logo_offset_y|floatformat:1 }}%, scale {{ application.logo_scale|floatformat:2 }}x</dd></div>
+                    {% if application.contract_reference %}<div><dt>Contract reference</dt><dd style="font-size:0.9rem">{{ application.contract_reference }}</dd></div>{% endif %}
+                    {% if application.contract_email_status %}<div><dt>Contract email</dt><dd style="font-size:0.9rem">{{ application.contract_email_status }}{% if application.contract_sent_at %} &mdash; {{ application.contract_sent_at|date:"j M Y H:i" }}{% endif %}</dd></div>{% endif %}
                 </dl>
                 {% if application.sponsor_note %}
                 <p class="moderation-card__note">{{ application.sponsor_note }}</p>
@@ -204,6 +217,9 @@
                     {% endif %}
                     {% if can_expire %}
                     <button class="mod-btn mod-btn--block" name="action" type="submit" value="expire">Expire sponsorship</button>
+                    {% endif %}
+                    {% if can_resend_contract %}
+                    <button class="mod-btn mod-btn--view" name="action" type="submit" value="resend_contract_email">Resend contract email</button>
                     {% endif %}
                 </div>
                 {% if approval_block_reason %}

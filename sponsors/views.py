@@ -39,6 +39,7 @@ from .services import (
     record_audit,
     reject_application,
     request_application_changes,
+    resend_contract_email,
     unpublish_application,
 )
 
@@ -457,6 +458,9 @@ def moderation_application_detail(request, application_id):
             elif action == "expire":
                 expire_application(application.pk, request.user, note)
                 messages.warning(request, "Sponsorship marked expired.")
+            elif action == "resend_contract_email":
+                resend_contract_email(application.pk, request.user)
+                messages.success(request, "Contract agreement email resent.")
             elif action == "compliance_manual_clear":
                 staff_set_compliance_status(application, SponsorComplianceCheck.Status.MANUALLY_CLEARED, request.user, note)
                 messages.success(request, "Manual compliance review completed and cleared.")
@@ -520,6 +524,7 @@ def moderation_application_detail(request, application_id):
         "can_mark_refunded": application.status == SponsorApplication.Status.REFUND_REQUIRED,
         "can_unpublish": application.status == SponsorApplication.Status.APPROVED,
         "can_expire": application.status == SponsorApplication.Status.APPROVED,
+        "can_resend_contract": application.status == SponsorApplication.Status.APPROVED,
         "can_manual_clear": application.status == SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW and not compliance_allows_progress(application),
         "can_compliance_block": application.status == SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW,
         "can_return_to_compliance_review": application.status == SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW and compliance_allows_progress(application),

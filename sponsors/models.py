@@ -177,6 +177,12 @@ class SponsorCell(models.Model):
 class SponsorApplication(models.Model):
     TERMS_VERSION = "2026-06-06-compliance-phase1-v1"
 
+    class ContractEmailStatus(models.TextChoices):
+        PENDING = "pending", "Pending"
+        SENT = "sent", "Sent"
+        FAILED = "failed", "Failed"
+        RESENT = "resent", "Resent"
+
     class Status(models.TextChoices):
         DRAFT = "draft", "Draft"
         PAYMENT_PENDING = "payment_pending", "Payment pending"
@@ -254,6 +260,15 @@ class SponsorApplication(models.Model):
     rejection_reason = models.TextField(blank=True)
     published_at = models.DateTimeField(null=True, blank=True)
     expires_at = models.DateTimeField(null=True, blank=True)
+
+    contract_reference = models.CharField(max_length=30, blank=True, db_index=True)
+    contract_sent_at = models.DateTimeField(null=True, blank=True)
+    contract_email_status = models.CharField(
+        max_length=20,
+        choices=ContractEmailStatus.choices,
+        blank=True,
+        db_index=True,
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -512,6 +527,9 @@ class SponsorAuditLog(models.Model):
         SANCTIONS_MATCH_MANUALLY_CLEARED = "sanctions_match_manually_cleared", "Sanctions match manually cleared"
         SANCTIONS_MATCH_BLOCKED = "sanctions_match_blocked", "Sanctions match blocked"
         APPROVAL_BLOCKED_SANCTIONS = "approval_blocked_sanctions", "Approval blocked by sanctions review"
+        CONTRACT_SENT = "contract_sent", "Contract email sent"
+        CONTRACT_EMAIL_FAILED = "contract_email_failed", "Contract email failed"
+        CONTRACT_EMAIL_RESENT = "contract_email_resent", "Contract email resent"
 
     application = models.ForeignKey(
         SponsorApplication,
