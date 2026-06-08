@@ -737,7 +737,7 @@ def approve_application(application_id: int, actor) -> SponsorApplication:
 
     # Send agreement email — failure must not roll back or block approval.
     try:
-        _send_contract_email(application)
+        pdf_filename = _send_contract_email(application)
         application.contract_sent_at = timezone.now()
         application.contract_email_status = SponsorApplication.ContractEmailStatus.SENT
         application.save(update_fields=["contract_sent_at", "contract_email_status", "updated_at"])
@@ -746,6 +746,11 @@ def approve_application(application_id: int, actor) -> SponsorApplication:
             application=application,
             actor=actor,
             notes=f"Agreement email sent to {application.email}",
+            metadata={
+                "pdf_attached": True,
+                "pdf_filename": pdf_filename,
+                "contract_reference": application.contract_reference,
+            },
         )
     except Exception:
         import logging as _logging
@@ -781,23 +786,447 @@ def _select_agreement_template(product_type: str) -> str:
     }.get(product_type, "sponsors/agreement_annual")
 
 
-def _send_contract_email(application: SponsorApplication) -> None:
-    from config.email_utils import send_template_mail
+def generate_contract_pdf(application: SponsorApplication) -> bytes:
+    from io import BytesIO
+    from xml.sax.saxutils import escape
+
+    try:
+        from reportlab.lib import colors
+        from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib.styles import ParagraphStyle
+        from reportlab.lib.units import mm
+        from reportlab.platypus import (
+            HRFlowable,
+            KeepTogether,
+            Paragraph,
+            SimpleDocTemplate,
+            Spacer,
+            Table,
+            TableStyle,
+        )
+    except ImportError as exc:
+        raise RuntimeError("reportlab is not installed. Add reportlab to requirements.txt.") from exc
+
+    c_dark = colors.HexColor("#1f2c25")
+    c_brand = colors.HexColor("#184c3a")
+    c_muted = colors.HexColor("#6b5e52")
+    c_rule = colors.HexColor("#c8beb4")
+    c_row_a = colors.HexColor("#f5f0eb")
+    c_foot = colors.HexColor("#8a7d74")
+
+    page_w, _page_h = A4
+    l_margin = r_margin = 22 * mm
+    t_margin = 22 * mm
+    b_margin = 26 * mm
+    text_w = page_w - l_margin - r_margin
+
+    footer_line1 = (
+        "Bearcave Limited  -  Company No. 658124  -  "
+        "2 The Fairways, Tir Cluain, Midleton, Co. Cork, Ireland  -  VAT IE3645402WH"
+    )
+    footer_line2 = (
+        "Trading as CulinEire (Business Name No. 786815)  -  culineire@bearcave.ie"
+    )
+
+    def _draw_page(canvas, doc):
+        canvas.saveState()
+        y_rule = b_margin - 6 * mm
+        canvas.setStrokeColor(c_rule)
+        canvas.setLineWidth(0.4)
+        canvas.line(l_margin, y_rule, page_w - r_margin, y_rule)
+        canvas.setFont("Helvetica", 7)
+        canvas.setFillColor(c_foot)
+        canvas.drawCentredString(page_w / 2, y_rule - 5 * mm, footer_line1)
+        canvas.drawCentredString(page_w / 2, y_rule - 9 * mm, footer_line2)
+        canvas.drawRightString(page_w - r_margin, y_rule - 5 * mm, f"Page {doc.page}")
+        canvas.restoreState()
+
+    title_style = ParagraphStyle(
+        "DocTitle",
+        fontName="Helvetica-Bold",
+        fontSize=11,
+        leading=14,
+        textColor=colors.white,
+        alignment=TA_CENTER,
+    )
+    ref_style = ParagraphStyle(
+        "DocRef",
+        fontName="Helvetica",
+        fontSize=9,
+        leading=12,
+        textColor=colors.white,
+        alignment=TA_CENTER,
+        spaceAfter=0,
+    )
+    sum_heading = ParagraphStyle(
+        "SumHeading",
+        fontName="Helvetica-Bold",
+        fontSize=8,
+        leading=11,
+        spaceBefore=14,
+        spaceAfter=5,
+        textColor=c_brand,
+        alignment=TA_LEFT,
+        charSpace=0.6,
+    )
+    sec_heading = ParagraphStyle(
+        "SecHeading",
+        fontName="Helvetica-Bold",
+        fontSize=8,
+        leading=11,
+        spaceBefore=0,
+        spaceAfter=4,
+        textColor=c_brand,
+        charSpace=0.6,
+    )
+    body_style = ParagraphStyle(
+        "Body",
+        fontName="Helvetica",
+        fontSize=9,
+        leading=13.5,
+        spaceAfter=0,
+        alignment=TA_JUSTIFY,
+    )
+    t_label = ParagraphStyle(
+        "TLabel",
+        fontName="Helvetica",
+        fontSize=8.5,
+        leading=12,
+        textColor=c_muted,
+    )
+    t_value = ParagraphStyle(
+        "TValue",
+        fontName="Helvetica-Bold",
+        fontSize=8.5,
+        leading=12,
+        textColor=c_dark,
+    )
+
+    def _cents_display(cents):
+        return f"EUR {cents / 100:.2f}" if cents else "-"
+
+    def _fmt_date(dt):
+        return f"{dt.day} {dt.strftime('%B %Y')}" if dt else "-"
+
+    def _safe(value):
+        return escape(str(value or ""))
+
+    def _rule():
+        return HRFlowable(
+            width="100%",
+            thickness=0.5,
+            color=c_rule,
+            spaceAfter=4,
+            spaceBefore=10,
+        )
+
+    def _section(title, *paragraphs):
+        head = [_rule(), Paragraph(title.upper(), sec_heading)]
+        if paragraphs:
+            head.append(Paragraph(paragraphs[0], body_style))
+        items = [KeepTogether(head)]
+        for text in paragraphs[1:]:
+            items.append(Paragraph(text, body_style))
+        return items
+
+    payment = getattr(application, "payment", None)
+    cell = application.cell
+
+    if cell.is_centre:
+        placement_label = "Central Sponsor of the Month"
+    elif application.product_type == SponsorCell.ProductType.WEEKLY_RING:
+        placement_label = f"Weekly Ring Sponsor Slot - Ring {cell.ring}, Cell #{cell.cell_number}"
+    else:
+        placement_label = f"Annual Ring Sponsor Slot - Ring {cell.ring}, Cell #{cell.cell_number}"
+
+    if application.product_type == SponsorCell.ProductType.WEEKLY_RING:
+        term_label = "Weekly - 7 calendar days from activation"
+        net_label = f"{_cents_display(application.price_net_cents)} per week"
+    elif application.product_type == SponsorCell.ProductType.CENTRAL_MONTHLY:
+        term_label = "Monthly - 30 calendar days from activation"
+        net_label = f"{_cents_display(application.price_net_cents)} per month"
+    else:
+        term_label = "Annual - 12 months from activation"
+        net_label = f"{_cents_display(application.price_net_cents)} per year"
+
+    activation_str = _fmt_date(application.published_at)
+    end_str = _fmt_date(application.expires_at)
+    terms_date_str = _fmt_date(application.terms_accepted_at)
+
+    summary_rows = [
+        ["Reference", application.contract_reference],
+        ["Application ID", application.reference],
+        ["Sponsor", application.sponsor_name],
+        ["Contact", application.contact_name],
+        ["Email", application.email],
+    ]
+    if application.website_url:
+        summary_rows.append(["Website / Profile", application.website_url])
+    summary_rows += [
+        ["Sponsor slot", placement_label],
+        ["Service term", term_label],
+        ["Net amount", net_label],
+    ]
+    if payment and payment.vat_amount_cents:
+        summary_rows.append(["VAT", f"{payment.vat_amount_cents} cents (reported by Stripe at checkout)"])
+    if payment and payment.total_amount_cents:
+        summary_rows.append(["Total paid", f"{payment.total_amount_cents} cents (reported by Stripe at checkout)"])
+    summary_rows += [
+        ["Activation date", activation_str],
+        ["End date", end_str],
+    ]
+
+    table_data = [
+        [Paragraph(_safe(label), t_label), Paragraph(_safe(value), t_value)]
+        for label, value in summary_rows
+    ]
+    row_bgs = [
+        ("BACKGROUND", (0, i), (-1, i), c_row_a if i % 2 == 0 else colors.white)
+        for i in range(len(table_data))
+    ]
+    summary_table = Table(table_data, colWidths=[52 * mm, text_w - 52 * mm])
+    summary_table.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ("LEFTPADDING", (0, 0), (-1, -1), 7),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 7),
+        ("BOX", (0, 0), (-1, -1), 0.5, c_rule),
+        ("LINEBELOW", (0, 0), (-1, -2), 0.3, c_rule),
+    ] + row_bgs))
+
+    banner_inner = Table(
+        [
+            [Paragraph("CulinEire Sponsor Agreement", title_style)],
+            [Paragraph(f"Reference: {_safe(application.contract_reference)}", ref_style)],
+        ],
+        colWidths=[text_w],
+    )
+    banner_inner.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), c_brand),
+        ("TOPPADDING", (0, 0), (-1, 0), 14),
+        ("BOTTOMPADDING", (0, 0), (-1, 0), 4),
+        ("TOPPADDING", (0, 1), (-1, 1), 2),
+        ("BOTTOMPADDING", (0, 1), (-1, 1), 14),
+        ("LEFTPADDING", (0, 0), (-1, -1), 12),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+    ]))
+
+    if application.product_type == SponsorCell.ProductType.WEEKLY_RING:
+        service_text = (
+            f"Bearcave Limited has approved and activated a Weekly Ring Sponsor Slot on the "
+            f"CulinEire Sponsor Puzzle at Ring {_safe(cell.ring)}, Cell #{_safe(cell.cell_number)}. "
+            "The sponsor logo or avatar will be displayed on the CulinEire website for "
+            "7 calendar days from the activation date stated above. This is a one-time weekly "
+            "placement with no automatic renewal."
+        )
+        payment_text = (
+            "The net sponsor fee is quoted exclusive of VAT. VAT was calculated at Stripe Checkout "
+            "where applicable. Payment reserved the selected sponsor spot for review only. Payment "
+            "did not guarantee approval, publication or activation. The sponsorship term starts from "
+            "the activation date confirmed above. There is no automatic renewal for this weekly placement."
+        )
+        approval_text = (
+            "All sponsorship applications are subject to review and approval by Bearcave Limited. "
+            "Payment does not guarantee acceptance, approval, publication or activation of a sponsor "
+            "slot. Bearcave Limited may refuse, delay, cancel, suspend or reject a sponsorship "
+            "application where legal, payment, compliance, sanctions, fraud, content, reputational, "
+            "technical or policy concerns arise. A paid sponsor spot is not published automatically. "
+            "The submitted logo or avatar becomes visible only after Bearcave Limited approves and "
+            "publishes it."
+        )
+        refund_text = (
+            "If Bearcave Limited declines a paid placement before publication, the application enters "
+            "the refund-required workflow and Bearcave Limited will process a refund through Stripe. "
+            "Once a sponsor image has been published, refunds are not guaranteed unless required by "
+            "applicable law or agreed in writing by Bearcave Limited. Bearcave Limited may suspend, "
+            "cancel or remove a sponsorship placement where compliance, sanctions, legal or policy "
+            "concerns arise."
+        )
+        sanctions_text = (
+            "By submitting the sponsor application, the sponsor confirmed that, to the best of their "
+            "knowledge, neither the sponsor, nor the company or organisation represented, nor any "
+            "relevant owner, director, beneficial owner or controlling person, is subject to EU, UN, "
+            "Irish or other applicable financial sanctions. The applicant also confirmed that they "
+            "are not applying for sponsorship on behalf of, for the benefit of, or under the control "
+            "of any sanctioned person, entity or body. Bearcave Limited cannot accept sponsorship "
+            "from persons or entities subject to applicable sanctions, asset freezes or restrictive measures."
+        )
+    elif application.product_type == SponsorCell.ProductType.CENTRAL_MONTHLY:
+        service_text = (
+            "Bearcave Limited has approved and activated the Central Sponsor of the Month placement "
+            "on the CulinEire Sponsor Puzzle. The sponsor logo or avatar will be displayed in the "
+            "central featured position on the CulinEire website for 30 calendar days from the "
+            "activation date stated above. This is a one-time placement and is not a recurring "
+            "subscription or calendar-month product."
+        )
+        payment_text = (
+            "The net sponsor fee was quoted exclusive of VAT. VAT was calculated at Stripe Checkout "
+            "where applicable. Payment reserved the selected sponsor spot for review only. Payment "
+            "did not guarantee approval, publication or activation. The sponsorship term starts from "
+            "the activation date confirmed above."
+        )
+        approval_text = ""
+        refund_text = (
+            "Once a sponsor image has been published, refunds are not guaranteed unless required by "
+            "applicable law or agreed in writing by Bearcave Limited. Bearcave Limited may suspend, "
+            "cancel or remove a sponsorship placement where compliance, sanctions, legal or policy "
+            "concerns arise."
+        )
+        sanctions_text = (
+            "By submitting the sponsor application, the sponsor confirmed that, to the best of their "
+            "knowledge, neither the sponsor, nor the company or organisation represented, nor any "
+            "relevant owner, director, beneficial owner or controlling person, is subject to EU, UN, "
+            "Irish or other applicable financial sanctions."
+        )
+    else:
+        service_text = (
+            f"Bearcave Limited has approved and activated an Annual Ring Sponsor Slot on the "
+            f"CulinEire Sponsor Puzzle at Ring {_safe(cell.ring)}, Cell #{_safe(cell.cell_number)}. "
+            "The sponsor logo or avatar will be displayed on the CulinEire website for 12 months "
+            "from the activation date stated above, subject to the terms below."
+        )
+        payment_text = (
+            "The net sponsor fee was quoted exclusive of VAT. VAT was calculated at Stripe Checkout "
+            "where applicable. Payment reserved the selected sponsor spot for review only. Payment "
+            "did not guarantee approval, publication or activation. The sponsorship term starts from "
+            "the activation date confirmed above."
+        )
+        approval_text = ""
+        refund_text = (
+            "Once a sponsor image has been published, refunds are not guaranteed unless required by "
+            "applicable law or agreed in writing by Bearcave Limited. Bearcave Limited may suspend, "
+            "cancel or remove a sponsorship placement where compliance, sanctions, legal or policy "
+            "concerns arise."
+        )
+        sanctions_text = (
+            "By submitting the sponsor application, the sponsor confirmed that, to the best of their "
+            "knowledge, neither the sponsor, nor the company or organisation represented, nor any "
+            "relevant owner, director, beneficial owner or controlling person, is subject to EU, UN, "
+            "Irish or other applicable financial sanctions."
+        )
+
+    story = [
+        banner_inner,
+        Spacer(1, 5 * mm),
+        Paragraph("AGREEMENT SUMMARY", sum_heading),
+        summary_table,
+        Spacer(1, 2 * mm),
+    ]
+
+    story += _section(
+        "Parties",
+        "<b>Service provider:</b> Bearcave Limited, Company No. 658124, 2 The Fairways, Tir Cluain, "
+        "Midleton, Co. Cork, P25 W8W3, Ireland. Trading as CulinEire (Business Name No. 786815). "
+        "VAT number: IE3645402WH.",
+        f"<b>Client / Sponsor:</b> {_safe(application.sponsor_name)}, {_safe(application.contact_name)}, {_safe(application.email)}",
+    )
+    story += _section(
+        "Service",
+        service_text,
+    )
+    story += _section(
+        "Payment and VAT",
+        payment_text,
+    )
+    if approval_text:
+        story += _section("Approval Before Publication", approval_text)
+    story += _section(
+        "Sponsor Materials Licence",
+        "The sponsor confirms they have the right to use the submitted logo, avatar, website or profile "
+        "link and related materials. The sponsor grants Bearcave Limited a non-exclusive licence to display "
+        "those materials on CulinEire for the sponsorship term.",
+    )
+    story += _section(
+        "Content Standards",
+        "The sponsor must not use the sponsorship slot to promote unlawful goods or services, defamatory "
+        "content, misleading claims, infringing materials or anything that violates Irish or EU law. The "
+        "sponsor must not imply editorial endorsement by CulinEire or Bearcave Limited unless expressly "
+        "agreed in writing.",
+    )
+    story += _section(
+        "No Guarantee of Results",
+        "Bearcave Limited does not guarantee any particular level of traffic, impressions, clicks or "
+        "commercial results from the sponsorship placement.",
+    )
+    story += _section(
+        "Website Changes and Availability",
+        "CulinEire is provided on a best-efforts basis. Bearcave Limited may update the website design, "
+        "layout or features at any time without affecting the sponsor's right to display their approved "
+        "logo or avatar for the agreed term, except where required by law, safety or compliance obligations.",
+    )
+    story += _section(
+        "Refunds and Compliance",
+        refund_text,
+    )
+    story += _section(
+        "Sanctions and Compliance Declaration",
+        sanctions_text,
+    )
+    story += _section(
+        "Governing Law",
+        "This agreement is governed by the laws of Ireland. Any disputes are subject to the exclusive "
+        "jurisdiction of the Irish courts, without prejudice to any statutory rights that may apply under "
+        "Irish or EU law.",
+    )
+    story += _section(
+        "Electronic Acceptance",
+        f"This agreement was entered into electronically when the sponsor submitted their application and "
+        f"accepted the CulinEire sponsorship terms via the website on {_safe(terms_date_str)}. This document "
+        f"is the provider copy issued on behalf of Bearcave Limited upon activation of the sponsorship.",
+    )
+
+    buf = BytesIO()
+    doc = SimpleDocTemplate(
+        buf,
+        pagesize=A4,
+        leftMargin=l_margin,
+        rightMargin=r_margin,
+        topMargin=t_margin,
+        bottomMargin=b_margin,
+        title=f"CulinEire Sponsor Agreement {application.contract_reference}",
+        author="Bearcave Limited",
+    )
+    doc.build(story, onFirstPage=_draw_page, onLaterPages=_draw_page)
+    return buf.getvalue()
+
+
+def _send_contract_email(application: SponsorApplication) -> str:
+    """Send a short agreement email with the sponsor contract PDF attached."""
+    from django.core.mail import EmailMultiAlternatives
+    from django.template.loader import render_to_string
+    from config.email_utils import build_absolute_url, sanitize_email_subject
+
     payment = getattr(application, "payment", None)
     template = _select_agreement_template(application.product_type)
-    send_template_mail(
-        subject=f"Your CulinEire Sponsor Agreement — {application.contract_reference}",
-        template=template,
-        context={
-            "application": application,
-            "payment": payment,
-            "contract_reference": application.contract_reference,
-            "activation_date": application.published_at,
-            "end_date": application.expires_at,
-        },
-        recipient_list=[application.email],
-        fail_silently=False,
+    pdf_filename = f"CulinEire_Sponsor_Agreement_{application.contract_reference}.pdf"
+    pdf_bytes = generate_contract_pdf(application)
+
+    email_context = {
+        "application": application,
+        "payment": payment,
+        "contract_reference": application.contract_reference,
+        "activation_date": application.published_at,
+        "end_date": application.expires_at,
+        "site_url": build_absolute_url(""),
+    }
+    subject = sanitize_email_subject(
+        f"CulinEire Sponsor Agreement - {application.contract_reference}"
     )
+    html_body = render_to_string(f"emails/{template}.html", email_context)
+    text_body = render_to_string(f"emails/{template}.txt", email_context)
+
+    msg = EmailMultiAlternatives(
+        subject=subject,
+        body=text_body,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[application.email],
+    )
+    msg.attach_alternative(html_body, "text/html")
+    msg.attach(pdf_filename, pdf_bytes, "application/pdf")
+    msg.send(fail_silently=False)
+    return pdf_filename
 
 
 def resend_contract_email(application_id: int, actor) -> SponsorApplication:
@@ -808,7 +1237,7 @@ def resend_contract_email(application_id: int, actor) -> SponsorApplication:
         application.contract_reference = _generate_contract_reference(application)
         application.save(update_fields=["contract_reference", "updated_at"])
     try:
-        _send_contract_email(application)
+        pdf_filename = _send_contract_email(application)
         application.contract_sent_at = timezone.now()
         application.contract_email_status = SponsorApplication.ContractEmailStatus.RESENT
         application.save(update_fields=["contract_sent_at", "contract_email_status", "updated_at"])
@@ -817,6 +1246,11 @@ def resend_contract_email(application_id: int, actor) -> SponsorApplication:
             application=application,
             actor=actor,
             notes=f"Agreement email resent to {application.email}",
+            metadata={
+                "pdf_attached": True,
+                "pdf_filename": pdf_filename,
+                "contract_reference": application.contract_reference,
+            },
         )
     except Exception:
         import logging as _logging

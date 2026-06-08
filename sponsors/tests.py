@@ -1931,6 +1931,14 @@ class SponsorContractEmailTests(TestCase):
         )
         return application
 
+    def _pdf_attachment(self, message):
+        matches = [
+            attachment for attachment in message.attachments
+            if attachment[0].endswith(".pdf") and attachment[2] == "application/pdf"
+        ]
+        self.assertEqual(len(matches), 1)
+        return matches[0]
+
     # --- Test 1: annual approval sends annual agreement email ---
 
     def test_annual_approval_sends_annual_agreement_email(self):
@@ -2107,9 +2115,11 @@ class SponsorContractEmailTests(TestCase):
         )
         with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
             approve_application(application.pk, self.actor)
-        self.assertTrue(
-            application.audit_logs.filter(action=SponsorAuditLog.Action.CONTRACT_SENT).exists()
-        )
+        log = application.audit_logs.filter(action=SponsorAuditLog.Action.CONTRACT_SENT).first()
+        self.assertIsNotNone(log)
+        self.assertTrue(log.metadata.get("pdf_attached"))
+        self.assertIn("pdf_filename", log.metadata)
+        self.assertIn("contract_reference", log.metadata)
 
     # --- Test 13: email failure sets failed status and audit log ---
 
@@ -2153,7 +2163,12 @@ class SponsorContractEmailTests(TestCase):
         self.assertTrue(
             application.audit_logs.filter(action=SponsorAuditLog.Action.CONTRACT_EMAIL_RESENT).exists()
         )
-        self.assertTrue(len(mail.outbox) > 0)
+        self.assertEqual(len(mail.outbox), 1)
+        filename, content, mimetype = self._pdf_attachment(mail.outbox[0])
+        self.assertIn(application.contract_reference, filename)
+        self.assertTrue(filename.endswith(".pdf"))
+        self.assertTrue(content.startswith(b"%PDF"))
+        self.assertEqual(mimetype, "application/pdf")
 
     # --- Test 15: sanctions/compliance blocking prevents approval (no email sent) ---
 
@@ -2224,6 +2239,73 @@ class SponsorContractEmailTests(TestCase):
         application.refresh_from_db()
         import re
         self.assertRegex(application.contract_reference, r"^CUL-(AN|MO|WK)-\d{4}-\d{6}$")
+
+    # --- Test 19: confirmation email has PDF attachment and short body ---
+
+    def test_confirmation_email_has_pdf_attachment_and_short_body(self):
+        application = self._make_paid_application(
+            self.annual_cell, SponsorCell.ProductType.ANNUAL_RING, 5000, 365, "cs_pdf_attachment"
+        )
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            from django.core import mail
+            mail.outbox = []
+            approve_application(application.pk, self.actor)
+        application.refresh_from_db()
+        self.assertEqual(len(mail.outbox), 1)
+        msg = mail.outbox[0]
+
+        filename, content, mimetype = self._pdf_attachment(msg)
+        self.assertIn(application.contract_reference, filename)
+        self.assertTrue(filename.endswith(".pdf"))
+        self.assertEqual(mimetype, "application/pdf")
+        self.assertTrue(content.startswith(b"%PDF"))
+        self.assertGreater(len(content), 1000)
+
+        self.assertIn(application.contract_reference, msg.body)
+        self.assertIn("attached as a PDF document", msg.body)
+        self.assertLess(len(msg.body), 1500)
+        for forbidden in (
+            "GOVERNING LAW",
+            "SANCTIONS AND COMPLIANCE DECLARATION",
+            "ELECTRONIC ACCEPTANCE",
+            "The sponsor must not use the sponsorship slot",
+            "Bearcave Limited does not guarantee any particular level of traffic",
+        ):
+            self.assertNotIn(forbidden, msg.body)
+
+        html_body = msg.alternatives[0][0]
+        self.assertIn("attached as a PDF document", html_body)
+        self.assertNotIn("SANCTIONS AND COMPLIANCE DECLARATION", html_body)
+
+    # --- Test 20: PDF generation failure does not fall back to inline terms ---
+
+    def test_pdf_generation_failure_sets_failed_status_without_inline_email(self):
+        application = self._make_paid_application(
+            self.annual_cell, SponsorCell.ProductType.ANNUAL_RING, 5000, 365, "cs_pdf_fail"
+        )
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            from django.core import mail
+            mail.outbox = []
+            with patch("sponsors.services.generate_contract_pdf", side_effect=RuntimeError("PDF error")):
+                approve_application(application.pk, self.actor)
+        application.refresh_from_db()
+        self.assertEqual(application.contract_email_status, SponsorApplication.ContractEmailStatus.FAILED)
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertTrue(
+            application.audit_logs.filter(action=SponsorAuditLog.Action.CONTRACT_EMAIL_FAILED).exists()
+        )
+
+    # --- Test 21: PDF generation failure does NOT roll back approval ---
+
+    def test_pdf_generation_failure_does_not_rollback_approval(self):
+        application = self._make_paid_application(
+            self.annual_cell, SponsorCell.ProductType.ANNUAL_RING, 5000, 365, "cs_pdf_fail_rb"
+        )
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            with patch("sponsors.services.generate_contract_pdf", side_effect=RuntimeError("PDF error")):
+                approve_application(application.pk, self.actor)
+        application.refresh_from_db()
+        self.assertEqual(application.status, SponsorApplication.Status.APPROVED)
 
 
 class _BrokenEmailBackend:
