@@ -464,6 +464,7 @@
   }
 
   .legal-hero .hero__overlay {
+    z-index: 2;
     background:
       linear-gradient(90deg, rgb(18 37 31 / 0.88) 0%, rgb(18 37 31 / 0.66) 48%, rgb(84 59 35 / 0.48) 100%),
       linear-gradient(180deg, rgb(0 0 0 / 0.16), rgb(0 0 0 / 0.28));
@@ -471,7 +472,7 @@
 
   .legal-hero__inner {
     position: relative;
-    z-index: 1;
+    z-index: 3;
     width: min(1120px, calc(100% - 2rem));
     margin-inline: auto;
     padding-block: clamp(5rem, 10vw, 8rem);
@@ -662,10 +663,13 @@
   }
 
   .legal-contact-card {
+    display: grid;
+    justify-items: center;
     margin-block-start: clamp(1.2rem, 3vw, 2rem);
     padding: clamp(1.2rem, 2.5vw, 1.75rem);
     border: 1px solid rgb(24 76 58 / 0.16);
     border-radius: 1.45rem;
+    text-align: center;
     background:
       linear-gradient(135deg, rgb(24 76 58 / 0.08), rgb(180 122 51 / 0.08)),
       var(--legal-paper);
