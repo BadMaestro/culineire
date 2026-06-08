@@ -1,27 +1,27 @@
 {% extends "base.html" %}
 {% load static %}
-{% block og_image %}{{ SITE_URL }}{% static 'images/hero-contact.png' %}{% endblock %}
-{% block og_image_secure_url %}{{ SITE_URL }}{% static 'images/hero-contact.png' %}{% endblock %}
-{% block twitter_image %}{{ SITE_URL }}{% static 'images/hero-contact.png' %}{% endblock %}
+{% block og_image %}{{ SITE_URL }}{% static 'images/hero-sponsors.png' %}{% endblock %}
+{% block og_image_secure_url %}{{ SITE_URL }}{% static 'images/hero-sponsors.png' %}{% endblock %}
+{% block twitter_image %}{{ SITE_URL }}{% static 'images/hero-sponsors.png' %}{% endblock %}
 
 {% block title %}Sponsorship Terms | CulinEire{% endblock %}
-{% block meta_description %}Terms for annual ring sponsorship and the Central Sponsor of the Month, operated by Bearcave Limited.{% endblock %}
+{% block meta_description %}Sponsorship options, pricing, payment, contracts and VAT invoices for CulinEire Sponsor Puzzle placements. Operated by Bearcave Limited.{% endblock %}
 
 {% block extra_head %}
 <meta name="robots" content="noindex, nofollow">
 {% endblock %}
 
 {% block content %}
-<section class="hero hero--home">
+<section class="hero hero--home hero--sponsors">
     <div aria-hidden="true" class="hero__background">
-        <img alt="" src="{% static 'images/hero-contact.png' %}">
+        <img alt="" src="{% static 'images/hero-sponsors.png' %}">
     </div>
     <div aria-hidden="true" class="hero__overlay"></div>
     <div class="container hero__inner">
         <div class="hero-copy">
             <span class="pill">Sponsors</span>
-            <h1 class="hero-title">CulinEire Sponsorship Terms</h1>
-            <p class="hero-subtitle">Terms governing Annual Ring Sponsorship and the Central Sponsor of the Month.</p>
+            <h1 class="hero-title">Sponsorship Terms</h1>
+            <p class="hero-subtitle">Placement options, pricing, payment and your rights as a CulinEire sponsor.</p>
             <div class="hero__actions">
                 <a class="btn-primary" href="{% url 'sponsors:puzzle' %}">View Sponsor Puzzle</a>
                 <a class="btn-secondary" href="mailto:culineire@bearcave.ie">Contact Us</a>
@@ -30,93 +30,156 @@
     </div>
 </section>
 
-<section class="page-section">
-    <div class="container">
-        <div class="section-header">
-            <span class="section-kicker">Effective date: 6 June 2026</span>
-            <h2>Annual Ring and Central Monthly Sponsorship Terms</h2>
-        </div>
-        <p class="page-subtitle">
-            These terms set out the conditions under which Bearcave Limited, trading as CulinEire,
-            may provide an Annual Ring Sponsorship or a Central Sponsor of the Month placement on the CulinEire Sponsor Puzzle.
-            By submitting a sponsor application and making payment, the sponsor agrees to these terms.
-        </p>
+<section class="legal-shell" aria-labelledby="sponsorship-terms-title">
 
-        <div class="section-header"><h2>Parties</h2></div>
-        <ul class="legal-list">
-            <li><strong>Service provider:</strong> Bearcave Limited, Company No. 658124, 2 The Fairways, Tir Cluain, Midleton, Co. Cork, P25 W8W3, Ireland. Trading as CulinEire (Business Name No. 786815). VAT number: IE3645402WH.</li>
-            <li><strong>Sponsor:</strong> The individual, sole trader, business or organisation that submits a sponsor application, provides logo, avatar, website/profile or related materials, and pays for a sponsor spot.</li>
-        </ul>
-
-        <div class="section-header"><h2>Pricing, VAT and Payment</h2></div>
-        <ul class="legal-list">
-            <li>Published sponsor spot prices are quoted exclusive of VAT.</li>
-            <li>VAT is calculated and added at Stripe Checkout where applicable.</li>
-            <li>Payment reserves the selected sponsor spot but does not guarantee publication.</li>
-            <li>Annual Ring Sponsorship uses a one-time annual payment. The Central Sponsor of the Month costs €1000/month plus VAT and uses a one-time payment for one 30-day placement. It is not a recurring Stripe subscription.</li>
-        </ul>
-
-        <div class="section-header"><h2>Approval Before Publication</h2></div>
-        <ul class="legal-list">
-            <li>CulinEire may accept Irish or international sponsors, and sponsors do not need to be food-related businesses.</li>
-            <li>All sponsorship applications are subject to review and approval by CulinEire. Payment does not guarantee acceptance, approval, publication or activation of a sponsor slot.</li>
-            <li>CulinEire may refuse, delay, cancel, suspend or reject a sponsorship application where legal, payment, compliance, sanctions, fraud, content, reputational, technical or policy concerns arise.</li>
-            <li>Sponsor names, logos, avatars, website/profile links and materials remain subject to Bearcave Limited approval.</li>
-            <li>Bearcave Limited may reject sponsor materials before publication where they breach rights, brand, safety, legal or quality standards, or are unsuitable, unlawful, misleading, offensive or infringing.</li>
-            <li>A paid sponsor spot is not published automatically. The submitted logo or avatar becomes visible only after Bearcave Limited approves and publishes it.</li>
-            <li>The sponsor confirms they have the right to use the submitted logo, avatar, website/profile link and related materials, and grants Bearcave Limited a non-exclusive licence to display those materials for the sponsorship term.</li>
-        </ul>
-
-        <div class="section-header"><h2>Sanctions and Compliance</h2></div>
-        <ul class="legal-list">
-            <li>By submitting a sponsorship application, the applicant confirms that, to the best of their knowledge, neither the applicant, nor the company, organisation or business represented by the applicant, nor any relevant owner, director, beneficial owner or controlling person, is subject to EU, UN, Irish or other applicable financial sanctions.</li>
-            <li>The applicant also confirms that they are not applying for sponsorship on behalf of, for the benefit of, or under the control of any sanctioned person, entity or body.</li>
-            <li>Bearcave Limited cannot accept sponsorship, payment, promotional placement, publication, logo display, website link or other benefit from persons, companies, organisations, beneficial owners or related parties subject to applicable EU, UN, Irish or other legally binding sanctions, asset freezes or restrictive measures.</li>
-            <li>Bearcave Limited may refuse, cancel, reject, block publication, request further information or require manual compliance review where sanctions or compliance risk is identified.</li>
-            <li>Stripe's checks and restricted-business rules apply but do not replace Bearcave Limited's own compliance review.</li>
-            <li>Stripe payment processing is separate from CulinEire's internal approval and compliance review. A successful payment does not mean that a sponsor application has been approved, cleared, published or activated.</li>
-            <li>CulinEire's decision to delay, review, reject or refuse a sponsorship application does not necessarily mean that the applicant is subject to sanctions or has acted unlawfully. Some checks may require manual review.</li>
-        </ul>
-
-        <div class="section-header"><h2>Term</h2></div>
-        <ul class="legal-list">
-            <li>An Annual Ring Sponsorship term begins when the approved sponsor logo or avatar is first published and runs for 12 months from that publication date.</li>
-            <li>The Central Sponsor of the Month term begins when the approved image and link are first published and runs for 30 days from that publication date. It is not a calendar-month or annual product.</li>
-            <li>During an active Central Sponsor of the Month term, new recipes and articles published on CulinEire may carry a "Sponsored by: [Sponsor Name]" attribution in site announcements and social channel notifications. This attribution is automatic for the duration of the active term and is removed when the term ends.</li>
-            <li>When the term ends, Bearcave Limited may remove or expire the logo or avatar and release the spot unless a new written agreement and payment are completed.</li>
-        </ul>
-
-        <div class="section-header"><h2>Rejection and Refunds</h2></div>
-        <ul class="legal-list">
-            <li>If Bearcave Limited declines a paid placement before publication, the application enters the refund-required workflow and Bearcave Limited will process the refund through Stripe in accordance with applicable law and Stripe processing rules.</li>
-            <li>Where a refund is required, Bearcave Limited will process the refund manually through Stripe and then mark the sponsor application as refunded in the CulinEire moderation system.</li>
-            <li>The CulinEire refund-required and refunded statuses are internal manual tracking records; they do not by themselves trigger an automatic Stripe refund.</li>
-            <li>Once a sponsor logo or avatar has been published, refunds are not guaranteed unless required by applicable law or agreed in writing by Bearcave Limited.</li>
-            <li>Nothing in these terms limits any statutory consumer rights that may apply.</li>
-        </ul>
-
-        <div class="section-header"><h2>Sponsor Obligations</h2></div>
-        <ul class="legal-list">
-            <li>The sponsor must not use the sponsorship spot to promote unlawful goods or services, defamatory content, misleading claims, infringing materials, or anything that violates Irish or EU law.</li>
-            <li>If the sponsor provides a website or profile URL, the sponsor must ensure it is accurate, active and suitable for CulinEire visitors.</li>
-            <li>The sponsor must not imply editorial endorsement by CulinEire or Bearcave Limited unless expressly agreed in writing.</li>
-        </ul>
-
-        <div class="section-header"><h2>Data Protection</h2></div>
-        <p class="page-subtitle">
-            Personal data provided during the sponsor application and payment flow is processed by Bearcave Limited for sponsorship administration, approval, payment and compliance purposes, in accordance with the CulinEire <a href="{% url 'privacy' %}">Privacy Policy</a>.
-        </p>
-
-        <div class="section-header"><h2>Governing Law</h2></div>
-        <p class="page-subtitle">
-            These terms are governed by the laws of Ireland. Any disputes are subject to the exclusive jurisdiction of the Irish courts, without prejudice to statutory rights that may apply under Irish or EU law.
-        </p>
-
-        <p class="page-subtitle" style="margin-top:3rem;">
-            <a href="{% url 'sponsors:puzzle' %}">Back to Sponsor Puzzle</a> &middot;
-            <a href="{% url 'privacy' %}">Privacy Policy</a> &middot;
-            <a href="{% url 'legal:terms' %}">Terms of Use</a>
+    <div class="legal-intro">
+        <span class="legal-eyebrow">Sponsorship</span>
+        <h2 id="sponsorship-terms-title">Placement Options</h2>
+        <p>
+            CulinEire offers three sponsorship placements on the Sponsor Puzzle, operated by
+            Bearcave Limited (Company No. 658124, VAT IE3645402WH). All prices are quoted
+            exclusive of VAT. Payment is processed securely through Stripe.
         </p>
     </div>
+
+    {# ── Anchor nav ────────────────────────────────────────────────────────── #}
+    <nav class="legal-anchor-nav" aria-label="Jump to section">
+        <a href="#weekly-ring">Weekly Ring</a>
+        <a href="#annual-ring">Annual Ring</a>
+        <a href="#central-monthly">Sponsor of the Month</a>
+        <a href="#payment">Payment</a>
+        <a href="#contract-invoice">Contract &amp; Invoice</a>
+        <a href="#approval">Approval</a>
+        <a href="#terms">Terms &amp; Conditions</a>
+    </nav>
+
+    {# ── Placement cards ───────────────────────────────────────────────────── #}
+    <div class="legal-card-grid" aria-label="Sponsorship placements">
+
+        <a class="legal-card legal-card--primary" href="#weekly-ring" id="weekly-ring">
+            <h3>Weekly Ring Sponsor</h3>
+            <p>A 7-day ring cell placement. One-off payment, no auto-renewal. Display your logo or avatar on the CulinEire Sponsor Puzzle for one week.</p>
+        </a>
+
+        <a class="legal-card legal-card--primary" href="#annual-ring" id="annual-ring">
+            <h3>Annual Ring Sponsor</h3>
+            <p>A 12-month ring cell placement. One-off annual payment. Your logo or avatar stays on the Sponsor Puzzle for a full year.</p>
+        </a>
+
+        <a class="legal-card legal-card--primary" href="#central-monthly" id="central-monthly">
+            <h3>Sponsor of the Month</h3>
+            <p>The central cell. 30-day placement at &euro;1,000 + VAT. Your brand is highlighted across site announcements and social channel notifications alongside every new recipe and article published during your term.</p>
+        </a>
+
+    </div>
+
+    {# ── Weekly Ring detail ────────────────────────────────────────────────── #}
+    <div class="legal-section" aria-labelledby="weekly-ring-detail">
+        <span class="legal-eyebrow">Weekly Ring</span>
+        <h2 id="weekly-ring-detail">7-Day Ring Sponsorship</h2>
+        <ul class="legal-list">
+            <li>A single ring cell on the CulinEire Sponsor Puzzle for 7 calendar days from the activation date.</li>
+            <li>Price is set per cell and quoted exclusive of VAT. VAT is added at Stripe Checkout.</li>
+            <li>This is a one-off payment for a single 7-day period. It is not a weekly subscription and does not renew automatically.</li>
+            <li>Payment reserves the selected cell for compliance review. It does not guarantee publication.</li>
+            <li>If you wish to sponsor again after the 7-day term, a new application and payment are required.</li>
+        </ul>
+    </div>
+
+    {# ── Annual Ring detail ────────────────────────────────────────────────── #}
+    <div class="legal-section" aria-labelledby="annual-ring-detail">
+        <span class="legal-eyebrow">Annual Ring</span>
+        <h2 id="annual-ring-detail">12-Month Ring Sponsorship</h2>
+        <ul class="legal-list">
+            <li>A single ring cell on the CulinEire Sponsor Puzzle for 12 months from the activation date.</li>
+            <li>Price is set per cell and quoted exclusive of VAT. VAT is added at Stripe Checkout.</li>
+            <li>This is a one-off annual payment. It is not a recurring subscription and does not renew automatically.</li>
+            <li>Payment reserves the selected cell for compliance review. It does not guarantee publication.</li>
+            <li>When the 12-month term ends, Bearcave Limited may remove or expire the placement and release the cell unless a new written agreement and payment are completed.</li>
+        </ul>
+    </div>
+
+    {# ── Central Monthly detail ────────────────────────────────────────────── #}
+    <div class="legal-section" aria-labelledby="central-monthly-detail">
+        <span class="legal-eyebrow">Sponsor of the Month</span>
+        <h2 id="central-monthly-detail">Central Monthly Sponsorship</h2>
+        <ul class="legal-list">
+            <li>The central cell on the CulinEire Sponsor Puzzle, reserved exclusively for the Sponsor of the Month.</li>
+            <li>Price: &euro;1,000 per month, exclusive of VAT. VAT is added at Stripe Checkout.</li>
+            <li>The term begins when the approved sponsor image and link are first published and runs for 30 days. It is not a calendar-month or annual product.</li>
+            <li>This is a one-off payment for a single 30-day placement. It is not a recurring Stripe subscription and does not renew automatically.</li>
+            <li>During an active Sponsor of the Month term, new recipes and articles published on CulinEire carry a <strong>"Sponsored by: [Sponsor Name]"</strong> attribution in site announcements and social channel notifications. This attribution is automatic for the duration of the active term and is removed when the term ends.</li>
+            <li>The Sponsor of the Month is highlighted in the CulinEire Sponsor Puzzle as the central sponsor for the duration of the term.</li>
+        </ul>
+    </div>
+
+    {# ── Payment ───────────────────────────────────────────────────────────── #}
+    <div class="legal-section" aria-labelledby="payment-detail">
+        <span class="legal-eyebrow">Payment</span>
+        <h2 id="payment">Pricing, VAT and Payment</h2>
+        <ul class="legal-list">
+            <li>All prices are quoted exclusive of VAT. VAT at the applicable rate is calculated and added at Stripe Checkout.</li>
+            <li>Payment is processed securely through Stripe. Bearcave Limited does not store card details.</li>
+            <li>Payment reserves the selected sponsor spot for compliance review and staff approval. It does not guarantee publication or activation.</li>
+            <li>Bearcave Limited is VAT-registered in Ireland: VAT number IE3645402WH.</li>
+            <li>CulinEire may accept Irish or international sponsors. Sponsors do not need to be food-related businesses.</li>
+        </ul>
+    </div>
+
+    {# ── Contract & Invoice ────────────────────────────────────────────────── #}
+    <div class="legal-section" aria-labelledby="contract-invoice-detail">
+        <span class="legal-eyebrow">Documents</span>
+        <h2 id="contract-invoice">Sponsor Agreement and VAT Invoice</h2>
+        <ul class="legal-list">
+            <li>When a sponsorship is approved and activated, Bearcave Limited sends a <strong>Sponsor Agreement PDF</strong> and a <strong>VAT Invoice PDF</strong> to the sponsor's email address.</li>
+            <li>The Sponsor Agreement confirms the placement details, term, payment summary and the governing terms of the sponsorship.</li>
+            <li>The VAT Invoice is a full Irish VAT invoice issued by Bearcave Limited (t/a CulinEire), VAT IE3645402WH, and is suitable for accountant and tax records.</li>
+            <li>The invoice is generated automatically at the time of activation. The supply date on the invoice is the activation date of the sponsorship.</li>
+            <li>If you need a copy of your documents, contact <a href="mailto:culineire@bearcave.ie">culineire@bearcave.ie</a>.</li>
+        </ul>
+    </div>
+
+    {# ── Approval ──────────────────────────────────────────────────────────── #}
+    <div class="legal-section" aria-labelledby="approval-detail">
+        <span class="legal-eyebrow">Approval</span>
+        <h2 id="approval">Review, Approval and Compliance</h2>
+        <ul class="legal-list">
+            <li>All sponsorship applications are subject to review and approval by Bearcave Limited. Payment does not guarantee acceptance, approval, publication or activation.</li>
+            <li>Bearcave Limited may refuse, delay, cancel, suspend or reject a sponsorship application where legal, payment, compliance, sanctions, fraud, content, reputational, technical or policy concerns arise.</li>
+            <li>A paid sponsor spot is not published automatically. The submitted logo or avatar becomes visible only after Bearcave Limited approves and publishes it.</li>
+            <li>By submitting a sponsor application, the applicant confirms that neither they, nor the company or organisation represented, nor any relevant owner, director or controlling person, is subject to EU, UN, Irish or other applicable financial sanctions.</li>
+            <li>Bearcave Limited cannot accept sponsorship from persons or entities subject to applicable sanctions, asset freezes or restrictive measures.</li>
+            <li>If Bearcave Limited declines a paid placement before publication, the application enters the refund-required workflow and Bearcave Limited will process a refund through Stripe. Once a sponsor image has been published, refunds are not guaranteed unless required by applicable law or agreed in writing.</li>
+        </ul>
+    </div>
+
+    {# ── Terms ─────────────────────────────────────────────────────────────── #}
+    <div class="legal-section" aria-labelledby="terms-detail">
+        <span class="legal-eyebrow">Terms</span>
+        <h2 id="terms">Sponsor Obligations and Governing Law</h2>
+        <ul class="legal-list">
+            <li>The sponsor confirms they have the right to use the submitted logo, avatar, website or profile link and related materials, and grants Bearcave Limited a non-exclusive licence to display those materials for the sponsorship term.</li>
+            <li>The sponsor must not use the sponsorship slot to promote unlawful goods or services, defamatory content, misleading claims, infringing materials, or anything that violates Irish or EU law.</li>
+            <li>The sponsor must not imply editorial endorsement by CulinEire or Bearcave Limited unless expressly agreed in writing.</li>
+            <li>Bearcave Limited does not guarantee any particular level of traffic, impressions, clicks or commercial results from the sponsorship placement.</li>
+            <li>Personal data provided during the sponsor application and payment flow is processed by Bearcave Limited for sponsorship administration, approval, payment and compliance purposes, in accordance with the CulinEire <a href="{% url 'privacy' %}">Privacy Policy</a>.</li>
+            <li>These terms are governed by the laws of Ireland. Any disputes are subject to the exclusive jurisdiction of the Irish courts, without prejudice to statutory rights that may apply under Irish or EU law.</li>
+            <li>Effective date: 6 June 2026. Bearcave Limited, Company No. 658124, 2 The Fairways, Tir Cluain, Midleton, Co. Cork, P25 W8W3, Ireland. Trading as CulinEire (Business Name No. 786815).</li>
+        </ul>
+    </div>
+
+    <aside class="legal-contact-card" aria-label="Sponsorship contact">
+        <div>
+            <p>
+                Questions about sponsorship can be sent to
+                <a href="mailto:culineire@bearcave.ie">culineire@bearcave.ie</a>
+                or through our <a href="{% url 'messaging:contact' %}">contact form</a>.
+                &middot; <a href="{% url 'sponsors:puzzle' %}">Back to Sponsor Puzzle</a>
+                &middot; <a href="{% url 'privacy' %}">Privacy Policy</a>
+                &middot; <a href="{% url 'legal:terms' %}">Terms of Use</a>
+            </p>
+        </div>
+    </aside>
+
 </section>
 {% endblock %}
