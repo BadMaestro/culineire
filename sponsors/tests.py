@@ -1939,6 +1939,21 @@ class SponsorContractEmailTests(TestCase):
         self.assertEqual(len(matches), 1)
         return matches[0]
 
+    @staticmethod
+    def _extract_pdf_text(pdf_bytes: bytes) -> str:
+        """Extract readable text from an ASCII85+FlateDecode compressed PDF."""
+        import base64, zlib, re as _re
+        texts = []
+        for m in _re.finditer(rb'stream\r?\n(.*?)\r?\nendstream', pdf_bytes, _re.DOTALL):
+            data = m.group(1).strip()
+            if data.endswith(b'~>'):
+                try:
+                    decoded = base64.a85decode(b'<~' + data, adobe=True)
+                    texts.append(zlib.decompress(decoded).decode('latin-1', errors='replace'))
+                except Exception:
+                    pass
+        return ' '.join(texts)
+
     # --- Test 1: annual approval sends annual agreement email ---
 
     def test_annual_approval_sends_annual_agreement_email(self):
@@ -2355,15 +2370,15 @@ class SponsorContractEmailTests(TestCase):
 
     def test_pdf_shows_eur_not_raw_cents(self):
         from .services import generate_contract_pdf
-        import re
         application = self._make_paid_application(
             self.weekly_cell, SponsorCell.ProductType.WEEKLY_RING, 500, 7, "cs_cents_pdf"
         )
         application.contract_reference = "CUL-WK-2026-999002"
         application.save(update_fields=["contract_reference"])
         pdf_bytes = generate_contract_pdf(application)
-        self.assertNotIn(b"reported by Stripe at checkout", pdf_bytes)
-        self.assertIn(b"EUR 5.00", pdf_bytes)
+        text = self._extract_pdf_text(pdf_bytes)
+        self.assertNotIn("reported by Stripe at checkout", text)
+        self.assertIn("EUR 5.00", text)
 
     # --- Test 26: weekly wording — "per week" not in email body or PDF ---
 
@@ -2388,8 +2403,9 @@ class SponsorContractEmailTests(TestCase):
         application.contract_reference = "CUL-WK-2026-999003"
         application.save(update_fields=["contract_reference"])
         pdf_bytes = generate_contract_pdf(application)
-        self.assertNotIn(b"per week", pdf_bytes.lower())
-        self.assertNotIn(b"/week", pdf_bytes.lower())
+        text = self._extract_pdf_text(pdf_bytes).lower()
+        self.assertNotIn("per week", text)
+        self.assertNotIn("/week", text)
 
     # --- Test 27: one-off wording — email and PDF must say this is a one-off payment ---
 
@@ -2417,9 +2433,9 @@ class SponsorContractEmailTests(TestCase):
         application.contract_reference = "CUL-WK-2026-999004"
         application.save(update_fields=["contract_reference"])
         pdf_bytes = generate_contract_pdf(application)
-        lowered = pdf_bytes.lower()
-        self.assertIn(b"one-off payment", lowered)
-        self.assertIn(b"does not renew automatically", lowered)
+        text = self._extract_pdf_text(pdf_bytes).lower()
+        self.assertIn("one-off payment", text)
+        self.assertIn("does not renew automatically", text)
 
     # --- Test 28: weekly placement label uses "7-Day" not "Weekly Ring" in PDF ---
 
@@ -2431,7 +2447,8 @@ class SponsorContractEmailTests(TestCase):
         application.contract_reference = "CUL-WK-2026-999005"
         application.save(update_fields=["contract_reference"])
         pdf_bytes = generate_contract_pdf(application)
-        self.assertIn(b"7-Day Ring Sponsor Slot", pdf_bytes)
+        text = self._extract_pdf_text(pdf_bytes)
+        self.assertIn("7-Day Ring Sponsor Slot", text)
 
 
 class _BrokenEmailBackend:

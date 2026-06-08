@@ -13,7 +13,7 @@ Sponsor:            {{ application.sponsor_name }}
 Status:             Approved
 Placement:          7-Day Ring Sponsor Slot - Ring {{ application.cell.ring }}, Cell #{{ application.cell.cell_number }}
 
-Full placement details, payment information, and agreement terms are contained in the attached PDF.
+This is a one-off payment for a single 7-day sponsorship placement period. It is not a weekly subscription and does not renew automatically. Full placement details, payment information, and agreement terms are contained in the attached PDF.
 
 Kind regards,
 CulinEire
