@@ -101,6 +101,17 @@ def create_checkout_session(application: SponsorApplication, request=None) -> Ch
     base_url = site_base_url(request)
     metadata = _checkout_metadata(application)
     is_central = application.product_type == SponsorCell.ProductType.CENTRAL_MONTHLY
+    is_weekly = application.product_type == SponsorCell.ProductType.WEEKLY_RING
+    product_name = (
+        "CulinEire Sponsor of the Month" if is_central
+        else "CulinEire Weekly Ring Sponsor Spot" if is_weekly
+        else "CulinEire Annual Sponsor Spot"
+    )
+    product_description = (
+        "Monthly central sponsor placement on the CulinEire Sponsor Puzzle" if is_central
+        else "Weekly ring sponsor placement on the CulinEire Sponsor Puzzle" if is_weekly
+        else "Annual sponsor placement on the CulinEire Sponsor Puzzle"
+    )
     session = stripe.checkout.Session.create(
         mode="payment",
         success_url=f"{base_url}{reverse('sponsors:checkout_success')}?session_id={{CHECKOUT_SESSION_ID}}",
@@ -118,8 +129,8 @@ def create_checkout_session(application: SponsorApplication, request=None) -> Ch
                     "unit_amount": application.price_net_cents,
                     "tax_behavior": "exclusive",
                     "product_data": {
-                        "name": "CulinEire Sponsor of the Month" if is_central else "CulinEire Annual Sponsor Spot",
-                        "description": "Monthly central sponsor placement on the CulinEire Sponsor Puzzle" if is_central else "Annual sponsor placement on the CulinEire Sponsor Puzzle",
+                        "name": product_name,
+                        "description": product_description,
                         "tax_code": "txcd_20060002",
                     },
                 },
@@ -685,9 +696,9 @@ def approve_application(application_id: int, actor) -> SponsorApplication:
         application.approved_at = now
         application.published_at = now
         application.expires_at = (
-            now + timedelta(days=application.term_days)
-            if application.product_type == SponsorCell.ProductType.CENTRAL_MONTHLY
-            else add_one_year(now)
+            add_one_year(now)
+            if application.product_type == SponsorCell.ProductType.ANNUAL_RING
+            else now + timedelta(days=application.term_days)
         )
         application.save()
 
@@ -940,7 +951,12 @@ def expire_application(application_id: int, actor, notes: str = "") -> SponsorAp
         from_status = application.status
         application.status = SponsorApplication.Status.EXPIRED
         application.save(update_fields=["status", "updated_at"])
-        cell.status = SponsorCell.Status.EXPIRED
+        # Weekly ring cells return to AVAILABLE so they can be repurchased immediately.
+        # Annual and monthly cells go to EXPIRED and require manual staff release.
+        if cell.product_type == SponsorCell.ProductType.WEEKLY_RING:
+            cell.status = SponsorCell.Status.AVAILABLE
+        else:
+            cell.status = SponsorCell.Status.EXPIRED
         cell.save(update_fields=["status", "updated_at"])
         record_audit(
             action=SponsorAuditLog.Action.EXPIRED,

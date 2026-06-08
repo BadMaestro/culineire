@@ -17,6 +17,7 @@ RING_CELL_COUNTS = {6: 60, 5: 50, 4: 40, 3: 30, 2: 20, 1: 10}
 class SponsorCell(models.Model):
     class ProductType(models.TextChoices):
         ANNUAL_RING = "annual_ring", "Annual Ring Sponsorship"
+        WEEKLY_RING = "weekly_ring", "Weekly Ring Sponsorship"
         CENTRAL_MONTHLY = "central_monthly", "Central Sponsor of the Month"
 
     class Status(models.TextChoices):
@@ -32,6 +33,10 @@ class SponsorCell(models.Model):
 
     # Cell identity
     cell_number = models.PositiveIntegerField(unique=True, db_index=True)
+    price_override_cents = models.PositiveIntegerField(
+        null=True, blank=True,
+        help_text="Per-cell price override in cents. Overrides RING_PRICES when set.",
+    )
     ring = models.PositiveIntegerField(
         help_text="0 = centre (CulinEire logo), 1 = inner, 4 = outer",
         db_index=True,
@@ -103,12 +108,17 @@ class SponsorCell(models.Model):
 
     @property
     def price_net_cents(self):
+        if self.price_override_cents is not None:
+            return self.price_override_cents
         return int(self.price) * 100
 
     @property
     def price_display(self):
         if self.product_type == self.ProductType.CENTRAL_MONTHLY:
             return f"€{self.price:,}/month + VAT"
+        if self.product_type == self.ProductType.WEEKLY_RING:
+            amount = self.price_net_cents // 100
+            return f"€{amount:,}/week + VAT"
         return f"€{self.price:,}/year + VAT"
 
     @property
@@ -152,6 +162,7 @@ class SponsorCell(models.Model):
             "sponsor_logo": public_logo,
             "sponsor_url": self.sponsor_url if self.is_public_active else "",
             "sponsor_tagline": self.sponsor_tagline,
+            "product_type": self.product_type,
             "price": self.price,
             "price_net_cents": self.price_net_cents,
             "price_display": self.price_display,
@@ -266,12 +277,16 @@ class SponsorApplication(models.Model):
         amount = self.price_net_cents // 100
         if self.product_type == SponsorCell.ProductType.CENTRAL_MONTHLY:
             return f"€{amount:,}/month + VAT"
+        if self.product_type == SponsorCell.ProductType.WEEKLY_RING:
+            return f"€{amount:,}/week + VAT"
         return f"€{amount:,}/year + VAT"
 
     @property
     def term_display(self):
         if self.product_type == SponsorCell.ProductType.CENTRAL_MONTHLY:
             return "30-day term from approval/publication"
+        if self.product_type == SponsorCell.ProductType.WEEKLY_RING:
+            return "7-day term from approval/publication"
         return "12-month term from approval/publication"
 
 

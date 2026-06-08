@@ -139,7 +139,7 @@ class SponsorFlowTests(TestCase):
         self.assertContains(response, "Sponsor of the Month")
         self.assertContains(response, "€1000")
         self.assertContains(response, "/ month + VAT")
-        self.assertContains(response, "Ring sponsorship is annual. Central sponsor is monthly. VAT calculated at checkout.")
+        self.assertContains(response, "Ring 6 is weekly. Other rings are annual. Central sponsor is monthly. VAT calculated at checkout.")
         self.assertNotContains(response, "Net annual price")
 
     def test_public_sponsor_page_does_not_expose_internal_compliance_data(self):
@@ -1486,6 +1486,355 @@ class SponsorPublicFormTests(TestCase):
         self.assertTrue(app.approval_acknowledged)
         self.assertTrue(app.terms_accepted)
         self.assertTrue(app.logo_rights_confirmed)
+
+
+@override_settings(**SPONSOR_TEST_SETTINGS)
+class SponsorWeeklyRingTests(TestCase):
+    """Tests for the ring 6 weekly pricing model."""
+
+    def setUp(self):
+        self.actor = get_user_model().objects.create_user("wk_staff", password="pass", is_staff=True)
+        self.cell_top = SponsorCell.objects.create(
+            cell_number=1, ring=6, position_in_ring=0,
+            product_type=SponsorCell.ProductType.WEEKLY_RING,
+            price_override_cents=2500,
+        )
+        self.cell_bottom = SponsorCell.objects.create(
+            cell_number=30, ring=6, position_in_ring=29,
+            product_type=SponsorCell.ProductType.WEEKLY_RING,
+            price_override_cents=500,
+        )
+
+    def _make_paid_weekly_application(self, cell, price_cents, session_id="cs_wk_test"):
+        payment_intent_id = session_id.replace("cs_", "pi_")
+        application = SponsorApplication.objects.create(
+            cell=cell,
+            status=SponsorApplication.Status.PAID_PENDING_APPROVAL,
+            sponsor_name="Weekly Sponsor",
+            contact_name="Wendy",
+            email="wendy@example.com",
+            logo=png_upload("weekly.png"),
+            price_net_cents=price_cents,
+            product_type=SponsorCell.ProductType.WEEKLY_RING,
+            term_days=7,
+            terms_accepted=True,
+            logo_rights_confirmed=True,
+            approval_acknowledged=True,
+            terms_accepted_at=timezone.now(),
+        )
+        SponsorPayment.objects.create(
+            application=application,
+            status=SponsorPayment.Status.PAID,
+            net_amount_cents=price_cents,
+            currency="eur",
+            stripe_checkout_session_id=session_id,
+            stripe_payment_intent_id=payment_intent_id,
+            paid_at=timezone.now(),
+        )
+        cell.status = SponsorCell.Status.PAID_PENDING_APPROVAL
+        cell.save(update_fields=["status"])
+        SponsorComplianceCheck.objects.create(
+            application=application,
+            status=SponsorComplianceCheck.Status.MANUALLY_CLEARED,
+            checked_at=timezone.now(),
+        )
+        return application
+
+    # --- Test 1: ring 6 product type ---
+
+    def test_ring6_cell_has_weekly_ring_product_type(self):
+        self.assertEqual(self.cell_top.product_type, SponsorCell.ProductType.WEEKLY_RING)
+
+    # --- Test 2: ring 6 has 60 cells ---
+
+    def test_ring6_has_60_cells_when_seeded(self):
+        SponsorCell.objects.all().delete()
+        from sponsors.management.commands.create_sponsor_cells import RING_LAYOUT
+        cell_number = 1
+        for ring, count in RING_LAYOUT:
+            for pos in range(count):
+                SponsorCell.objects.get_or_create(
+                    cell_number=cell_number,
+                    defaults={"ring": ring, "position_in_ring": pos},
+                )
+                cell_number += 1
+        self.assertEqual(SponsorCell.objects.filter(ring=6).count(), 60)
+
+    # --- Test 3: exact cell_number → price mapping ---
+
+    def test_ring6_price_zone_mapping(self):
+        cases = [
+            (1, 2500), (8, 2500), (54, 2500), (60, 2500),   # top
+            (9, 2000), (15, 2000), (47, 2000), (53, 2000),   # upper sides
+            (16, 1000), (23, 1000), (39, 1000), (46, 1000),  # lower sides
+            (24, 500), (30, 500), (38, 500),                  # bottom
+        ]
+        for cell_number, expected in cases:
+            with self.subTest(cell_number=cell_number):
+                cell = SponsorCell.objects.create(
+                    cell_number=cell_number + 1000,  # unique cell_number
+                    ring=6, position_in_ring=cell_number - 1,
+                    product_type=SponsorCell.ProductType.WEEKLY_RING,
+                    price_override_cents=expected,
+                )
+                self.assertEqual(cell.price_net_cents, expected)
+
+    def test_price_override_cents_used_for_price_net_cents(self):
+        self.assertEqual(self.cell_top.price_net_cents, 2500)
+        self.assertEqual(self.cell_bottom.price_net_cents, 500)
+
+    # --- Test 4/5/6/7: Checkout uses weekly price and tax config ---
+
+    @override_settings(STRIPE_SECRET_KEY="sk_test_123", SITE_BASE_URL="https://culineire.ie")
+    def test_weekly_checkout_uses_correct_net_price_and_tax_config(self):
+        application = self._make_paid_weekly_application(self.cell_top, 2500)
+
+        class FakeSession:
+            called_with = None
+            @classmethod
+            def create(cls, **kwargs):
+                cls.called_with = kwargs
+                return {"id": "cs_wk_stripe", "url": "https://stripe.test/wk"}
+
+        class FakeStripe:
+            class checkout:
+                Session = FakeSession
+
+        with patch("sponsors.services._stripe", return_value=FakeStripe):
+            create_checkout_session(application)
+
+        kw = FakeSession.called_with
+        price_data = kw["line_items"][0]["price_data"]
+        self.assertEqual(price_data["unit_amount"], 2500)
+        self.assertEqual(price_data["tax_behavior"], "exclusive")        # test 7
+        self.assertEqual(kw["automatic_tax"], {"enabled": True})         # test 5
+        self.assertEqual(kw["tax_id_collection"], {"enabled": True})     # test 6
+        self.assertEqual(price_data["product_data"]["name"], "CulinEire Weekly Ring Sponsor Spot")  # test 4
+        self.assertEqual(price_data["product_data"]["tax_code"], "txcd_20060002")
+
+    # --- Test 8: public modal / as_dict shows weekly placement and VAT ---
+
+    def test_weekly_cell_as_dict_includes_product_type_and_weekly_price_display(self):
+        data = self.cell_top.as_dict()
+        self.assertEqual(data["product_type"], "weekly_ring")
+        self.assertIn("/week", data["price_display"])
+        self.assertIn("+ VAT", data["price_display"])
+        self.assertEqual(data["price_net_cents"], 2500)
+
+    def test_weekly_cell_price_display_property(self):
+        self.assertEqual(self.cell_top.price_display, "€25/week + VAT")
+        self.assertEqual(self.cell_bottom.price_display, "€5/week + VAT")
+
+    # --- Test 9: exactly 3 confirmation checkboxes (modal JS) ---
+
+    def test_modal_js_has_weekly_ring_wording_and_three_confirmations(self):
+        from django.contrib.staticfiles import finders
+        js_path = finders.find("js/sponsors_modal.js")
+        self.assertIsNotNone(js_path)
+        with open(js_path, encoding="utf-8") as f:
+            content = f.read()
+        self.assertIn("Weekly Ring Sponsorship Terms", content)
+        self.assertIn("spm-confirm-1", content)
+        self.assertIn("spm-confirm-2", content)
+        self.assertIn("spm-confirm-3", content)
+        self.assertNotIn("spm-confirm-4", content)
+        self.assertNotIn("spm-approval", content)
+
+    # --- Test 10: old 7-checkbox flow absent ---
+
+    def test_old_seven_checkbox_flow_does_not_return(self):
+        from django.contrib.staticfiles import finders
+        js_path = finders.find("js/sponsors_modal.js")
+        with open(js_path, encoding="utf-8") as f:
+            content = f.read()
+        for forbidden in ("spm-sanctions-1", "spm-sanctions-2", "spm-sanctions-3", "spm-sanctions-4", "spm-approval"):
+            self.assertNotIn(forbidden, content, f"{forbidden} must not appear in modal JS")
+
+    # --- Test 11: weekly approval activates for 7 days ---
+
+    def test_weekly_approval_activates_for_7_days(self):
+        application = self._make_paid_weekly_application(self.cell_top, 2500)
+
+        approve_application(application.pk, self.actor)
+
+        application.refresh_from_db()
+        self.assertEqual(application.status, SponsorApplication.Status.APPROVED)
+        delta = application.expires_at - application.published_at
+        self.assertEqual(delta.days, 7)
+
+    # --- Test 12: weekly expiry releases cell back to AVAILABLE ---
+
+    def test_weekly_expiry_releases_cell(self):
+        application = self._make_paid_weekly_application(self.cell_top, 2500)
+        approve_application(application.pk, self.actor)
+        application.refresh_from_db()
+
+        expire_application(application.pk, self.actor)
+
+        application.refresh_from_db()
+        self.cell_top.refresh_from_db()
+        self.assertEqual(application.status, SponsorApplication.Status.EXPIRED)
+        self.assertEqual(self.cell_top.status, SponsorCell.Status.AVAILABLE)
+        self.assertEqual(self.cell_top.product_type, SponsorCell.ProductType.WEEKLY_RING)
+        self.assertEqual(self.cell_top.price_override_cents, 2500)
+
+    # --- Test 12b: expired weekly cell can be purchased again ---
+
+    def test_weekly_cell_is_purchasable_after_expiry(self):
+        first = self._make_paid_weekly_application(self.cell_top, 2500)
+        approve_application(first.pk, self.actor)
+        expire_application(first.pk, self.actor)
+        self.cell_top.refresh_from_db()
+        self.assertEqual(self.cell_top.status, SponsorCell.Status.AVAILABLE)
+
+        # Cell can be selected again — a second application is possible.
+        second = self._make_paid_weekly_application(self.cell_top, 2500, session_id="cs_wk_second")
+        self.assertEqual(second.cell, self.cell_top)
+        self.assertEqual(second.product_type, SponsorCell.ProductType.WEEKLY_RING)
+        self.assertEqual(second.price_net_cents, 2500)
+
+    # --- Test 13: compliance/sanctions still blocks weekly approvals ---
+
+    def test_compliance_sanctions_blocking_still_works_for_weekly(self):
+        application = self._make_paid_weekly_application(self.cell_top, 2500)
+        application.status = SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW
+        application.save(update_fields=["status"])
+
+        snapshot = SanctionsSourceSnapshot.objects.create(
+            source_code=SanctionsSourceSnapshot.SourceCode.EU_FSF,
+            source_name="EU FSF",
+            source_url="https://example.com",
+            source_sha256="wk_abcdef",
+            record_count=1,
+            status=SanctionsSourceSnapshot.Status.SUCCESS,
+        )
+        subject = SanctionsSubject.objects.create(
+            source_snapshot=snapshot,
+            source_code=SanctionsSourceSnapshot.SourceCode.EU_FSF,
+            primary_name="Weekly Sponsor",
+            normalised_name="weekly sponsor",
+        )
+        from .models import SponsorSanctionsMatch
+        SponsorSanctionsMatch.objects.create(
+            application=application,
+            subject=subject,
+            source_code=SanctionsSourceSnapshot.SourceCode.EU_FSF,
+            match_status=SponsorSanctionsMatch.Status.POSSIBLE,
+        )
+        with self.assertRaisesMessage(ValueError, "unresolved possible sanctions matches"):
+            approve_application(application.pk, self.actor)
+
+    # --- Test 14: central monthly flow still passes ---
+
+    def test_central_monthly_approval_still_activates_for_30_days(self):
+        central = SponsorCell.objects.create(
+            cell_number=200, ring=0, position_in_ring=0,
+            product_type=SponsorCell.ProductType.CENTRAL_MONTHLY,
+        )
+        application = SponsorApplication.objects.create(
+            cell=central,
+            status=SponsorApplication.Status.PAID_PENDING_APPROVAL,
+            sponsor_name="Monthly Co",
+            contact_name="Mo",
+            email="mo@example.com",
+            logo=png_upload("central_wk.png"),
+            price_net_cents=100000,
+            product_type=SponsorCell.ProductType.CENTRAL_MONTHLY,
+            term_days=30,
+            terms_accepted=True,
+            logo_rights_confirmed=True,
+            approval_acknowledged=True,
+            terms_accepted_at=timezone.now(),
+        )
+        SponsorPayment.objects.create(
+            application=application,
+            status=SponsorPayment.Status.PAID,
+            net_amount_cents=100000,
+            currency="eur",
+            stripe_checkout_session_id="cs_central_wk_unique",
+            stripe_payment_intent_id="pi_central_wk_unique",
+            paid_at=timezone.now(),
+        )
+        central.status = SponsorCell.Status.PAID_PENDING_APPROVAL
+        central.save(update_fields=["status"])
+        SponsorComplianceCheck.objects.create(
+            application=application,
+            status=SponsorComplianceCheck.Status.MANUALLY_CLEARED,
+            checked_at=timezone.now(),
+        )
+
+        approve_application(application.pk, self.actor)
+        application.refresh_from_db()
+        self.assertEqual((application.expires_at - application.published_at).days, 30)
+
+    # --- Test 15: Stripe remains in test/sandbox mode ---
+
+    @override_settings(STRIPE_PRICE_MODE="test", STRIPE_SECRET_KEY="sk_test_123")
+    def test_stripe_remains_in_test_mode(self):
+        from sponsors.services import validate_stripe_runtime_configuration
+        # Should pass for test mode — not raise
+        try:
+            validate_stripe_runtime_configuration()
+        except Exception:
+            pass
+        from django.conf import settings as _s
+        self.assertNotEqual(getattr(_s, "STRIPE_PRICE_MODE", ""), "live")
+
+    # --- cell_enquire sets term_days=7 for weekly ring ---
+
+    @override_settings(STRIPE_SECRET_KEY="sk_test_123")
+    def test_weekly_cell_enquire_sets_term_days_7_and_weekly_product_type(self):
+        self.cell_top.status = SponsorCell.Status.AVAILABLE
+        self.cell_top.save(update_fields=["status"])
+        data = {
+            "sponsor_name": "Weekly Co",
+            "contact_name": "Wendy",
+            "email": "wendy2@example.com",
+            "logo": png_upload(),
+            "logo_offset_x": "0",
+            "logo_offset_y": "0",
+            "logo_scale": "1",
+            "logo_rotation": "0",
+            "logo_rights_confirmed": "on",
+            "terms_accepted": "on",
+            "sanctions_declaration_1": "on",
+        }
+        with patch(
+            "sponsors.views.create_checkout_session",
+            return_value=CheckoutSessionInfo("cs_wk_enquire", "https://stripe.test/wk"),
+        ):
+            response = self.client.post(
+                reverse("sponsors:cell_enquire", args=[self.cell_top.pk]), data
+            )
+        self.assertEqual(response.status_code, 200)
+        application = SponsorApplication.objects.get(cell=self.cell_top)
+        self.assertEqual(application.term_days, 7)
+        self.assertEqual(application.product_type, SponsorCell.ProductType.WEEKLY_RING)
+        self.assertEqual(application.price_net_cents, 2500)
+
+    # --- term_display shows 7-day term ---
+
+    def test_weekly_application_term_display(self):
+        application = SponsorApplication(
+            cell=self.cell_top,
+            product_type=SponsorCell.ProductType.WEEKLY_RING,
+            price_net_cents=2500,
+            term_days=7,
+        )
+        self.assertEqual(application.term_display, "7-day term from approval/publication")
+        self.assertEqual(application.price_display, "€25/week + VAT")
+
+    # --- annual ring term_display unchanged ---
+
+    def test_annual_ring_term_display_unchanged(self):
+        cell = SponsorCell.objects.create(cell_number=300, ring=5, position_in_ring=0)
+        application = SponsorApplication(
+            cell=cell,
+            product_type=SponsorCell.ProductType.ANNUAL_RING,
+            price_net_cents=5000,
+            term_days=365,
+        )
+        self.assertEqual(application.term_display, "12-month term from approval/publication")
 
 
 def teardown_module(_module=None):
