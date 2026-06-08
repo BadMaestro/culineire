@@ -36,6 +36,19 @@ class TelegramResult:
     response: str = ""
 
 
+def _get_sponsor_of_month() -> str:
+    """Return the active central sponsor name, or empty string if none."""
+    try:
+        from sponsors.models import SponsorCell
+        cell = SponsorCell.objects.filter(
+            ring=0,
+            status__in=[SponsorCell.Status.ACTIVE, SponsorCell.Status.SOLD],
+        ).first()
+        return cell.sponsor_name if cell and cell.sponsor_name else ""
+    except Exception:
+        return ""
+
+
 def build_recipe_telegram_message(recipe) -> str:
     description = (recipe.short_description or "").strip()
     url = recipe.get_absolute_url()
@@ -44,6 +57,9 @@ def build_recipe_telegram_message(recipe) -> str:
     parts = [f"New recipe on CulinEire: {recipe.title}"]
     if description:
         parts.append(description)
+    sponsor = _get_sponsor_of_month()
+    if sponsor:
+        parts.append(f"Sponsored by: {sponsor}")
     parts.append(absolute_url)
     return "\n\n".join(parts)
 
@@ -56,6 +72,9 @@ def build_article_telegram_message(article) -> str:
     parts = [f"New article on CulinEire: {article.title}"]
     if description:
         parts.append(description)
+    sponsor = _get_sponsor_of_month()
+    if sponsor:
+        parts.append(f"Sponsored by: {sponsor}")
     parts.append(absolute_url)
     return "\n\n".join(parts)
 

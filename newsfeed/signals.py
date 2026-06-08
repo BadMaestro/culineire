@@ -14,15 +14,30 @@ def _absolute_image_url(image_field) -> str:
     return f"{site_root}{image_field.url}"
 
 
+def _get_sponsor_of_month() -> str:
+    """Return the active central sponsor name, or empty string if none."""
+    try:
+        from sponsors.models import SponsorCell
+        cell = SponsorCell.objects.filter(
+            ring=0,
+            status__in=[SponsorCell.Status.ACTIVE, SponsorCell.Status.SOLD],
+        ).first()
+        return cell.sponsor_name if cell and cell.sponsor_name else ""
+    except Exception:
+        return ""
+
+
 def _create_recipe_entry(recipe):
     try:
         from newsfeed.models import NewsFeedEntry
         event_key = f"recipe_published:{recipe.pk}"
+        sponsor = _get_sponsor_of_month()
         NewsFeedEntry.objects.update_or_create(
             event_key=event_key,
             defaults={
                 "entry_type": NewsFeedEntry.EntryType.RECIPE_PUBLISHED,
                 "title": f"New recipe published: {recipe.title}",
+                "message": f"Sponsored by: {sponsor}" if sponsor else "",
                 "url": recipe.get_absolute_url(),
                 "image_url": _absolute_image_url(recipe.hero_image),
                 "is_auto": True,
@@ -37,11 +52,13 @@ def _create_article_entry(article):
     try:
         from newsfeed.models import NewsFeedEntry
         event_key = f"article_published:{article.pk}"
+        sponsor = _get_sponsor_of_month()
         NewsFeedEntry.objects.update_or_create(
             event_key=event_key,
             defaults={
                 "entry_type": NewsFeedEntry.EntryType.ARTICLE_PUBLISHED,
                 "title": f"New article published: {article.title}",
+                "message": f"Sponsored by: {sponsor}" if sponsor else "",
                 "url": article.get_absolute_url(),
                 "image_url": _absolute_image_url(article.hero_image),
                 "is_auto": True,
