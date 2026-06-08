@@ -18,13 +18,15 @@
     <meta content="{% block og_title %}CulinEire - Irish Recipes and Food Stories{% endblock %}" property="og:title">
     <meta content="{% block og_description %}CulinEire is a modern Irish culinary platform for recipes, food stories, and classic dishes adapted for the home kitchen.{% endblock %}" property="og:description">
     <meta content="{{ SITE_URL }}{{ request.path }}" property="og:url">
-    <meta content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero.jpg' %}{% endblock %}" property="og:image">
+    <meta content="{% block og_image %}{{ SITE_URL }}{% static 'images/hero.jpg' %}{% endblock %}" property="og:image">
+    <meta content="{% block og_image_secure_url %}{{ SITE_URL }}{% static 'images/hero.jpg' %}{% endblock %}" property="og:image:secure_url">
+    <meta content="{% block og_image_alt %}CulinEire - Irish Recipes and Food Stories{% endblock %}" property="og:image:alt">
 
     <meta content="{% block twitter_card %}summary_large_image{% endblock %}" name="twitter:card">
     <meta content="@culineire_ie" name="twitter:site">
     <meta content="{% block twitter_title %}CulinEire - Irish Recipes and Food Stories{% endblock %}" name="twitter:title">
     <meta content="{% block twitter_description %}CulinEire is a modern Irish culinary platform for recipes, food stories, and classic dishes adapted for the home kitchen.{% endblock %}" name="twitter:description">
-    <meta content="{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero.jpg' %}{% endblock %}" name="twitter:image">
+    <meta content="{% block twitter_image %}{{ SITE_URL }}{% static 'images/hero.jpg' %}{% endblock %}" name="twitter:image">
 
     <link href="https://fonts.googleapis.com" rel="preconnect">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -360,7 +362,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v2.3.8</span>
+                <span class="footer-version">v2.3.9</span>
             </div>
         </div>
     </div>

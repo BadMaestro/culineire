@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load static %}
-{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-contact.png' %}{% endblock %}
+{% block og_image %}{{ SITE_URL }}{% static 'images/hero-contact.png' %}{% endblock %}
+{% block og_image_secure_url %}{{ SITE_URL }}{% static 'images/hero-contact.png' %}{% endblock %}
+{% block twitter_image %}{{ SITE_URL }}{% static 'images/hero-contact.png' %}{% endblock %}
 
 {% block title %}Cookie Policy | CulinEire{% endblock %}
 {% block meta_description %}Cookie Policy for CulinEire. Learn what cookies we use, why, and how to control them.{% endblock %}

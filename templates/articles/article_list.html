@@ -6,10 +6,12 @@
 
 {% block og_title %}Articles | CulinEire{% endblock %}
 {% block og_description %}Explore food stories, cooking notes, practical ideas, and linked recipe articles from the CulinEire kitchen.{% endblock %}
-{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-articles.png' %}{% endblock %}
+{% block og_image %}{{ SITE_URL }}{% static 'images/hero-articles.png' %}{% endblock %}
+{% block og_image_secure_url %}{{ SITE_URL }}{% static 'images/hero-articles.png' %}{% endblock %}
+{% block og_image_alt %}CulinEire Articles - Irish Food Stories{% endblock %}
 {% block twitter_title %}Articles | CulinEire{% endblock %}
 {% block twitter_description %}Explore food stories, cooking notes, practical ideas, and linked recipe articles from the CulinEire kitchen.{% endblock %}
-{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-articles.png' %}{% endblock %}
+{% block twitter_image %}{{ SITE_URL }}{% static 'images/hero-articles.png' %}{% endblock %}
 
 {% block content %}
 <section class="hero hero--home hero--articles">

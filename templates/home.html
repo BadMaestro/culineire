@@ -6,10 +6,12 @@
 
 {% block og_title %}CulinEire | Modern Irish Recipes & Food Stories{% endblock %}
 {% block og_description %}Explore modern Irish recipes, vintage cookbook finds, seasonal cooking ideas, and food stories from the CulinEire kitchen.{% endblock %}
-{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero.png' %}{% endblock %}
+{% block og_image %}{{ SITE_URL }}{% static 'images/hero.png' %}{% endblock %}
+{% block og_image_secure_url %}{{ SITE_URL }}{% static 'images/hero.png' %}{% endblock %}
+{% block og_image_alt %}CulinEire - Irish Recipes and Food Stories{% endblock %}
 {% block twitter_title %}CulinEire | Modern Irish Recipes & Food Stories{% endblock %}
 {% block twitter_description %}Explore modern Irish recipes, vintage cookbook finds, seasonal cooking ideas, and food stories from the CulinEire kitchen.{% endblock %}
-{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero.png' %}{% endblock %}
+{% block twitter_image %}{{ SITE_URL }}{% static 'images/hero.png' %}{% endblock %}
 
 {% block extra_head %}
 <link href="{% static 'css/hero_switcher.css' %}" rel="stylesheet">

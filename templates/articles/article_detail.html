@@ -7,10 +7,11 @@
 {% block og_type %}article{% endblock %}
 {% block og_title %}{{ article.title }} | CulinEire{% endblock %}
 {% block og_description %}{% if article.excerpt %}{{ article.excerpt|striptags|truncatechars:200 }}{% else %}An article about {{ article.title }} on CulinEire.{% endif %}{% endblock %}
-{% block og_image %}{% if gallery_items %}{{ request.scheme }}://{{ request.get_host }}{{ gallery_items.0.src }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block og_image %}{% if gallery_items %}{{ SITE_URL }}{{ gallery_items.0.src }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block og_image_secure_url %}{% if gallery_items %}{{ SITE_URL }}{{ gallery_items.0.src }}{% else %}{{ block.super }}{% endif %}{% endblock %}
 {% block twitter_title %}{{ article.title }} | CulinEire{% endblock %}
 {% block twitter_description %}{% if article.excerpt %}{{ article.excerpt|striptags|truncatechars:200 }}{% else %}An article about {{ article.title }} on CulinEire.{% endif %}{% endblock %}
-{% block twitter_image %}{% if gallery_items %}{{ request.scheme }}://{{ request.get_host }}{{ gallery_items.0.src }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block twitter_image %}{% if gallery_items %}{{ SITE_URL }}{{ gallery_items.0.src }}{% else %}{{ block.super }}{% endif %}{% endblock %}
 
 {% block extra_head %}
 <link href="{% static 'css/detail_page.css' %}" rel="stylesheet">

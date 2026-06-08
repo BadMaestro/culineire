@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load static %}
-{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-messages.png' %}{% endblock %}
+{% block og_image %}{{ SITE_URL }}{% static 'images/hero-messages.png' %}{% endblock %}
+{% block og_image_secure_url %}{{ SITE_URL }}{% static 'images/hero-messages.png' %}{% endblock %}
+{% block twitter_image %}{{ SITE_URL }}{% static 'images/hero-messages.png' %}{% endblock %}
 
 {% block title %}Messages | CulinEire{% endblock %}
 {% block meta_description %}Your CulinEire messages inbox.{% endblock %}

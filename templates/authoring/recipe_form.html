@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load static %}
-{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-recipes.png' %}{% endblock %}
+{% block og_image %}{{ SITE_URL }}{% static 'images/hero-recipes.png' %}{% endblock %}
+{% block og_image_secure_url %}{{ SITE_URL }}{% static 'images/hero-recipes.png' %}{% endblock %}
+{% block twitter_image %}{{ SITE_URL }}{% static 'images/hero-recipes.png' %}{% endblock %}
 
 {% block title %}{% if form_mode == "edit" %}Edit Recipe{% else %}Create Recipe{% endif %} | CulinEire{% endblock %}
 {% block meta_description %}{% if form_mode == "edit" %}Edit your CulinEire recipe from the author studio.{% else %}Create a new CulinEire recipe from the author studio.{% endif %}{% endblock %}

@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% load static %}
-{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-amuse-bouche.png' %}{% endblock %}
+{% block og_image %}{{ SITE_URL }}{% static 'images/hero-amuse-bouche.png' %}{% endblock %}
+{% block og_image_secure_url %}{{ SITE_URL }}{% static 'images/hero-amuse-bouche.png' %}{% endblock %}
+{% block og_image_alt %}Amuse-Bouche - Small Bites from the CulinEire Kitchen{% endblock %}
+{% block twitter_image %}{{ SITE_URL }}{% static 'images/hero-amuse-bouche.png' %}{% endblock %}
 
 {% block title %}Amuse-Bouche | CulinEire{% endblock %}
 {% block meta_description %}Small bites, big ideas from the CulinEire kitchen.{% endblock %}

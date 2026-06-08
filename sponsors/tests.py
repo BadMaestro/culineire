@@ -2403,6 +2403,51 @@ class SponsorLogoTransformTests(TestCase):
                                    msg="logo_rotation must be saved from form submission")
 
 
+@override_settings(**SPONSOR_TEST_SETTINGS)
+class SponsorOgImageTests(TestCase):
+    """Verify that /sponsors/ serves correct Open Graph and Twitter meta tags."""
+
+    def test_og_image_is_not_hero_jpg(self):
+        response = self.client.get(reverse("sponsors:puzzle"))
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode()
+        self.assertNotIn("hero.jpg", content.split('property="og:image"')[0].rsplit('<meta', 1)[-1] if 'property="og:image"' in content else "")
+        self.assertIn("hero-sponsors", content)
+
+    def test_og_image_contains_sponsors_hero(self):
+        response = self.client.get(reverse("sponsors:puzzle"))
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode()
+        self.assertIn('property="og:image"', content)
+        og_meta = [line for line in content.splitlines() if 'property="og:image"' in line and 'secure_url' not in line]
+        self.assertTrue(og_meta, "og:image meta tag not found")
+        self.assertIn("hero-sponsors", og_meta[0])
+
+    def test_og_image_is_absolute_url(self):
+        response = self.client.get(reverse("sponsors:puzzle"))
+        content = response.content.decode()
+        og_meta = [line for line in content.splitlines() if 'property="og:image"' in line and 'secure_url' not in line]
+        self.assertTrue(og_meta)
+        self.assertRegex(og_meta[0], r'https?://', msg="og:image must be an absolute URL")
+
+    def test_twitter_image_contains_sponsors_hero(self):
+        response = self.client.get(reverse("sponsors:puzzle"))
+        content = response.content.decode()
+        twitter_meta = [line for line in content.splitlines() if 'name="twitter:image"' in line]
+        self.assertTrue(twitter_meta, "twitter:image meta tag not found")
+        self.assertIn("hero-sponsors", twitter_meta[0])
+
+    def test_og_image_secure_url_present(self):
+        response = self.client.get(reverse("sponsors:puzzle"))
+        content = response.content.decode()
+        self.assertIn('property="og:image:secure_url"', content)
+
+    def test_og_image_alt_present(self):
+        response = self.client.get(reverse("sponsors:puzzle"))
+        content = response.content.decode()
+        self.assertIn('property="og:image:alt"', content)
+
+
 def teardown_module(_module=None):
     """Remove the temporary media directory created for sponsor tests."""
     shutil.rmtree(_TEMP_MEDIA, ignore_errors=True)

@@ -6,10 +6,11 @@
 
 {% block og_title %}{{ author.name }} | CulinEire{% endblock %}
 {% block og_description %}Browse recipes and articles by {{ author.name }} on CulinEire.{% endblock %}
-{% block og_image %}{% if author.avatar %}{{ request.scheme }}://{{ request.get_host }}{{ author.avatar.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-profile.png' %}{% endif %}{% endblock %}
+{% block og_image %}{% if author.avatar %}{{ SITE_URL }}{{ author.avatar.url }}{% else %}{{ SITE_URL }}{% static 'images/hero-profile.png' %}{% endif %}{% endblock %}
+{% block og_image_secure_url %}{% if author.avatar %}{{ SITE_URL }}{{ author.avatar.url }}{% else %}{{ SITE_URL }}{% static 'images/hero-profile.png' %}{% endif %}{% endblock %}
 {% block twitter_title %}{{ author.name }} | CulinEire{% endblock %}
 {% block twitter_description %}Browse recipes and articles by {{ author.name }} on CulinEire.{% endblock %}
-{% block twitter_image %}{% if author.avatar %}{{ request.scheme }}://{{ request.get_host }}{{ author.avatar.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-profile.png' %}{% endif %}{% endblock %}
+{% block twitter_image %}{% if author.avatar %}{{ SITE_URL }}{{ author.avatar.url }}{% else %}{{ SITE_URL }}{% static 'images/hero-profile.png' %}{% endif %}{% endblock %}
 
 {% block content %}
 <section class="hero hero--home {% if is_god_author %}hero--greenbear{% endif %}">

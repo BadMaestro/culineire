@@ -7,10 +7,11 @@
 {% block og_type %}article{% endblock %}
 {% block og_title %}{{ recipe.title }} | CulinEire{% endblock %}
 {% block og_description %}{% if recipe.short_description %}{{ recipe.short_description }}{% else %}A recipe for {{ recipe.title }} on CulinEire.{% endif %}{% endblock %}
-{% block og_image %}{% if recipe.hero_image %}{{ request.scheme }}://{{ request.get_host }}{{ recipe.hero_image.url }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block og_image %}{% if recipe.hero_image %}{{ SITE_URL }}{{ recipe.hero_image.url }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block og_image_secure_url %}{% if recipe.hero_image %}{{ SITE_URL }}{{ recipe.hero_image.url }}{% else %}{{ block.super }}{% endif %}{% endblock %}
 {% block twitter_title %}{{ recipe.title }} | CulinEire{% endblock %}
 {% block twitter_description %}{% if recipe.short_description %}{{ recipe.short_description }}{% else %}A recipe for {{ recipe.title }} on CulinEire.{% endif %}{% endblock %}
-{% block twitter_image %}{% if recipe.hero_image %}{{ request.scheme }}://{{ request.get_host }}{{ recipe.hero_image.url }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block twitter_image %}{% if recipe.hero_image %}{{ SITE_URL }}{{ recipe.hero_image.url }}{% else %}{{ block.super }}{% endif %}{% endblock %}
 
 {% block extra_head %}
 <link href="{% static 'css/detail_page.css' %}" rel="stylesheet">

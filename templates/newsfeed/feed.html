@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% load static %}
-{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-news.png' %}{% endblock %}
+{% block og_image %}{{ SITE_URL }}{% static 'images/hero-news.png' %}{% endblock %}
+{% block og_image_secure_url %}{{ SITE_URL }}{% static 'images/hero-news.png' %}{% endblock %}
+{% block og_image_alt %}CulinEire News{% endblock %}
+{% block twitter_image %}{{ SITE_URL }}{% static 'images/hero-news.png' %}{% endblock %}
 
 {% block title %}CulinEire News{% endblock %}
 {% block meta_description %}News, new recipes, new articles, site improvements and announcements from the CulinEire kitchen.{% endblock %}
