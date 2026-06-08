@@ -599,6 +599,84 @@
     color: var(--legal-accent);
   }
 
+  .legal-document {
+    max-width: 920px;
+  }
+
+  .legal-document-body {
+    display: grid;
+    gap: 0.85rem;
+  }
+
+  .legal-document .legal-intro {
+    margin-block-end: clamp(0.8rem, 2.5vw, 1.6rem);
+  }
+
+  .legal-document .section-header,
+  .legal-document .page-subtitle,
+  .legal-document .legal-list {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+  }
+
+  .legal-document .section-header {
+    margin-block-start: clamp(0.8rem, 2.2vw, 1.3rem);
+    padding: 1.1rem 1.2rem 0.15rem;
+    border: 1px solid var(--legal-line);
+    border-bottom: 0;
+    border-radius: var(--ce-card-radius) var(--ce-card-radius) 0 0;
+    background: var(--legal-card);
+    box-shadow: 0 8px 20px rgb(33 26 18 / 0.04);
+  }
+
+  .legal-document .section-header h2 {
+    font-size: clamp(1.35rem, 2.2vw, 1.85rem);
+    color: var(--legal-ink);
+  }
+
+  .legal-document .section-header + .page-subtitle,
+  .legal-document .section-header + .legal-list {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+
+  .legal-document .page-subtitle,
+  .legal-document .legal-list {
+    padding: 1rem 1.2rem;
+    border: 1px solid var(--legal-line);
+    border-top: 3px solid var(--legal-accent);
+    border-radius: var(--ce-card-radius);
+    background: var(--legal-card);
+    box-shadow: var(--ce-card-shadow);
+    color: var(--legal-muted);
+    font-size: 0.96rem;
+    line-height: 1.72;
+    overflow-wrap: anywhere;
+  }
+
+  .legal-document .legal-list {
+    padding-inline-start: 2.45rem;
+  }
+
+  .legal-document .page-subtitle a,
+  .legal-document .legal-list a {
+    color: var(--legal-green);
+    font-weight: 700;
+  }
+
+  .legal-document .page-subtitle a:hover,
+  .legal-document .page-subtitle a:focus-visible,
+  .legal-document .legal-list a:hover,
+  .legal-document .legal-list a:focus-visible {
+    color: var(--legal-accent);
+  }
+
+  .legal-document .legal-document-links {
+    margin-block-start: clamp(1rem, 3vw, 2rem);
+    text-align: center;
+  }
+
   @media (max-width: 980px) {
     .legal-card-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -618,6 +696,16 @@
     .legal-card {
       min-height: 9.5rem;
       border-radius: 1.2rem;
+    }
+
+    .legal-document .section-header,
+    .legal-document .page-subtitle,
+    .legal-document .legal-list {
+      padding-inline: 1rem;
+    }
+
+    .legal-document .legal-list {
+      padding-inline-start: 2.1rem;
     }
   }
 

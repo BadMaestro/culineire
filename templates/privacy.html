@@ -6,7 +6,7 @@
 {% block meta_description %}Privacy Policy for CulinEire. How Bearcave Limited collects, uses, and protects your personal data under GDPR.{% endblock %}
 
 {% block content %}
-<section class="hero hero--home">
+<section class="hero hero--home hero--legal">
     <div aria-hidden="true" class="hero__background">
         <img alt="" src="{% static 'images/hero-contact.png' %}">
     </div>
@@ -28,12 +28,12 @@
     </div>
 </section>
 
-<section class="page-section">
-    <div class="container">
+<section class="legal-shell legal-document" aria-labelledby="privacy-policy-title">
+    <div class="legal-document-body">
 
-        <div class="section-header">
-            <span class="section-kicker">Effective date: 28 May 2026</span>
-            <h2>Privacy Policy</h2>
+        <div class="legal-intro">
+            <span class="legal-eyebrow">Effective date: 28 May 2026</span>
+            <h2 id="privacy-policy-title">Privacy Policy</h2>
         </div>
         <p class="page-subtitle">
             This Privacy Policy describes how Bearcave Limited ("we", "us", "our") collects,
@@ -228,7 +228,7 @@
             or write to Bearcave Limited, 2 The Fairways, Tir Cluain, Midleton, Co. Cork, P25 W8W3, Ireland.
         </p>
 
-        <p class="page-subtitle" style="margin-top:3rem;">
+        <p class="page-subtitle legal-document-links">
             <a href="{% url 'legal:legal_hub' %}">Legal Hub</a> &middot;
             <a href="{% url 'legal:terms' %}">Terms of Use</a> &middot;
             <a href="{% url 'legal:cookies' %}">Cookie Policy</a> &middot;
