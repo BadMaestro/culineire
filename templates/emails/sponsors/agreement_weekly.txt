@@ -11,7 +11,7 @@ AGREEMENT DETAILS
 Contract reference: {{ contract_reference }}
 Sponsor:            {{ application.sponsor_name }}
 Status:             Approved
-Placement:          Weekly Ring Sponsor Slot - Ring {{ application.cell.ring }}, Cell #{{ application.cell.cell_number }}
+Placement:          7-Day Ring Sponsor Slot - Ring {{ application.cell.ring }}, Cell #{{ application.cell.cell_number }}
 
 Full placement details, payment information, and agreement terms are contained in the attached PDF.
 

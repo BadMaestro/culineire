@@ -104,12 +104,12 @@ def create_checkout_session(application: SponsorApplication, request=None) -> Ch
     is_weekly = application.product_type == SponsorCell.ProductType.WEEKLY_RING
     product_name = (
         "CulinEire Sponsor of the Month" if is_central
-        else "CulinEire Weekly Ring Sponsor Spot" if is_weekly
+        else "CulinEire 7-Day Ring Sponsor Spot" if is_weekly
         else "CulinEire Annual Sponsor Spot"
     )
     product_description = (
         "Monthly central sponsor placement on the CulinEire Sponsor Puzzle" if is_central
-        else "Weekly ring sponsor placement on the CulinEire Sponsor Puzzle" if is_weekly
+        else "7-day ring sponsor placement on the CulinEire Sponsor Puzzle" if is_weekly
         else "Annual sponsor placement on the CulinEire Sponsor Puzzle"
     )
     session = stripe.checkout.Session.create(
@@ -936,13 +936,13 @@ def generate_contract_pdf(application: SponsorApplication) -> bytes:
     if cell.is_centre:
         placement_label = "Central Sponsor of the Month"
     elif application.product_type == SponsorCell.ProductType.WEEKLY_RING:
-        placement_label = f"Weekly Ring Sponsor Slot - Ring {cell.ring}, Cell #{cell.cell_number}"
+        placement_label = f"7-Day Ring Sponsor Slot - Ring {cell.ring}, Cell #{cell.cell_number}"
     else:
         placement_label = f"Annual Ring Sponsor Slot - Ring {cell.ring}, Cell #{cell.cell_number}"
 
     if application.product_type == SponsorCell.ProductType.WEEKLY_RING:
         term_label = "Weekly - 7 calendar days from activation"
-        net_label = f"{_cents_display(application.price_net_cents)} per week"
+        net_label = f"{_cents_display(application.price_net_cents)} — one 7-day sponsorship period"
     elif application.product_type == SponsorCell.ProductType.CENTRAL_MONTHLY:
         term_label = "Monthly - 30 calendar days from activation"
         net_label = f"{_cents_display(application.price_net_cents)} per month"
@@ -1015,17 +1015,20 @@ def generate_contract_pdf(application: SponsorApplication) -> bytes:
 
     if application.product_type == SponsorCell.ProductType.WEEKLY_RING:
         service_text = (
-            f"Bearcave Limited has approved and activated a Weekly Ring Sponsor Slot on the "
+            f"Bearcave Limited has approved and activated a 7-Day Ring Sponsor Slot on the "
             f"CulinEire Sponsor Puzzle at Ring {_safe(cell.ring)}, Cell #{_safe(cell.cell_number)}. "
             "The sponsor logo or avatar will be displayed on the CulinEire website for "
-            "7 calendar days from the activation date stated above. This is a one-time weekly "
-            "placement with no automatic renewal."
+            "7 calendar days from the activation date stated above. This is a one-off payment for "
+            "a single 7-day sponsorship placement period. It is not a weekly subscription and does "
+            "not renew automatically."
         )
         payment_text = (
             "The net sponsor fee is quoted exclusive of VAT. VAT was calculated at Stripe Checkout "
             "where applicable. Payment reserved the selected sponsor spot for review only. Payment "
             "did not guarantee approval, publication or activation. The sponsorship term starts from "
-            "the activation date confirmed above. There is no automatic renewal for this weekly placement."
+            "the activation date confirmed above. Your payment covers one fixed 7-day sponsorship "
+            "period only. No recurring weekly charge or automatic renewal applies unless you place a "
+            "new order."
         )
         approval_text = (
             "All sponsorship applications are subject to review and approval by Bearcave Limited. "

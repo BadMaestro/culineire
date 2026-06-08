@@ -2307,6 +2307,132 @@ class SponsorContractEmailTests(TestCase):
         application.refresh_from_db()
         self.assertEqual(application.status, SponsorApplication.Status.APPROVED)
 
+    # --- Test 22: branding — email body does not contain "CulinEire Kitchen" ---
+
+    def test_email_body_does_not_contain_culineire_kitchen(self):
+        application = self._make_paid_application(
+            self.weekly_cell, SponsorCell.ProductType.WEEKLY_RING, 500, 7, "cs_brand_wk"
+        )
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            from django.core import mail
+            mail.outbox = []
+            approve_application(application.pk, self.actor)
+        self.assertEqual(len(mail.outbox), 1)
+        msg = mail.outbox[0]
+        self.assertNotIn("CulinEire Kitchen", msg.body)
+        self.assertNotIn("CulinEire Kitchen", msg.alternatives[0][0])
+
+    # --- Test 23: branding — PDF content does not contain "CulinEire Kitchen" ---
+
+    def test_pdf_does_not_contain_culineire_kitchen(self):
+        from .services import generate_contract_pdf
+        application = self._make_paid_application(
+            self.weekly_cell, SponsorCell.ProductType.WEEKLY_RING, 500, 7, "cs_brand_pdf"
+        )
+        application.contract_reference = "CUL-WK-2026-999001"
+        application.save(update_fields=["contract_reference"])
+        pdf_bytes = generate_contract_pdf(application)
+        # PDF text is binary; check for the encoded string
+        self.assertNotIn(b"CulinEire Kitchen", pdf_bytes)
+
+    # --- Test 24: money formatting — email body does not show raw cents ---
+
+    def test_email_body_does_not_show_raw_cents(self):
+        application = self._make_paid_application(
+            self.weekly_cell, SponsorCell.ProductType.WEEKLY_RING, 500, 7, "cs_cents_email"
+        )
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            from django.core import mail
+            mail.outbox = []
+            approve_application(application.pk, self.actor)
+        self.assertEqual(len(mail.outbox), 1)
+        body = mail.outbox[0].body
+        # "500 cents" or "115 cents" or "615 cents" must not appear
+        import re
+        self.assertIsNone(re.search(r'\b\d{2,5}\s+cents\b', body, re.IGNORECASE))
+
+    # --- Test 25: money formatting — PDF shows EUR amounts, not raw cents ---
+
+    def test_pdf_shows_eur_not_raw_cents(self):
+        from .services import generate_contract_pdf
+        import re
+        application = self._make_paid_application(
+            self.weekly_cell, SponsorCell.ProductType.WEEKLY_RING, 500, 7, "cs_cents_pdf"
+        )
+        application.contract_reference = "CUL-WK-2026-999002"
+        application.save(update_fields=["contract_reference"])
+        pdf_bytes = generate_contract_pdf(application)
+        self.assertNotIn(b"reported by Stripe at checkout", pdf_bytes)
+        self.assertIn(b"EUR 5.00", pdf_bytes)
+
+    # --- Test 26: weekly wording — "per week" not in email body or PDF ---
+
+    def test_weekly_email_does_not_say_per_week(self):
+        application = self._make_paid_application(
+            self.weekly_cell, SponsorCell.ProductType.WEEKLY_RING, 500, 7, "cs_perweek_email"
+        )
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            from django.core import mail
+            mail.outbox = []
+            approve_application(application.pk, self.actor)
+        self.assertEqual(len(mail.outbox), 1)
+        body = mail.outbox[0].body
+        self.assertNotIn("per week", body.lower())
+        self.assertNotIn("/week", body.lower())
+
+    def test_weekly_pdf_does_not_say_per_week(self):
+        from .services import generate_contract_pdf
+        application = self._make_paid_application(
+            self.weekly_cell, SponsorCell.ProductType.WEEKLY_RING, 500, 7, "cs_perweek_pdf"
+        )
+        application.contract_reference = "CUL-WK-2026-999003"
+        application.save(update_fields=["contract_reference"])
+        pdf_bytes = generate_contract_pdf(application)
+        self.assertNotIn(b"per week", pdf_bytes.lower())
+        self.assertNotIn(b"/week", pdf_bytes.lower())
+
+    # --- Test 27: one-off wording — email and PDF must say this is a one-off payment ---
+
+    def test_weekly_email_says_one_off_payment(self):
+        application = self._make_paid_application(
+            self.weekly_cell, SponsorCell.ProductType.WEEKLY_RING, 500, 7, "cs_oneoff_email"
+        )
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            from django.core import mail
+            mail.outbox = []
+            approve_application(application.pk, self.actor)
+        self.assertEqual(len(mail.outbox), 1)
+        # Check body or HTML alternative
+        full_text = mail.outbox[0].body + mail.outbox[0].alternatives[0][0]
+        self.assertTrue(
+            "one-off payment" in full_text.lower() or "7-day sponsorship" in full_text.lower(),
+            "Email must mention one-off payment or 7-day sponsorship"
+        )
+
+    def test_weekly_pdf_says_one_off_and_no_subscription(self):
+        from .services import generate_contract_pdf
+        application = self._make_paid_application(
+            self.weekly_cell, SponsorCell.ProductType.WEEKLY_RING, 500, 7, "cs_oneoff_pdf"
+        )
+        application.contract_reference = "CUL-WK-2026-999004"
+        application.save(update_fields=["contract_reference"])
+        pdf_bytes = generate_contract_pdf(application)
+        lowered = pdf_bytes.lower()
+        self.assertIn(b"one-off payment", lowered)
+        self.assertIn(b"does not renew automatically", lowered)
+
+    # --- Test 28: weekly placement label uses "7-Day" not "Weekly Ring" in PDF ---
+
+    def test_weekly_pdf_placement_label_says_7_day(self):
+        from .services import generate_contract_pdf
+        application = self._make_paid_application(
+            self.weekly_cell, SponsorCell.ProductType.WEEKLY_RING, 500, 7, "cs_label_pdf"
+        )
+        application.contract_reference = "CUL-WK-2026-999005"
+        application.save(update_fields=["contract_reference"])
+        pdf_bytes = generate_contract_pdf(application)
+        self.assertIn(b"7-Day Ring Sponsor Slot", pdf_bytes)
+
 
 class _BrokenEmailBackend:
     """Stub email backend that always raises to simulate send failure."""
