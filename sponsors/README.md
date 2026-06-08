@@ -28,7 +28,7 @@ Public data safety rules:
 - Do not expose staff notes, audit logs or Stripe payment identifiers publicly.
 - Telegram sponsor announcements are sent only after Approve and publish.
 
-Still out of scope: automatic Stripe refunds, full AML/KYC, beneficial ownership collection, scheduled re-screening, live Stripe switch and legal/applicant workflow beyond the current sponsor declarations and review process.
+Permanently out of scope for this project: automatic Stripe refunds, full AML/KYC, beneficial ownership collection, scheduled re-screening. These will not be implemented. Manual refund workflow and manual compliance review are the intended design.
 
 ## Sponsors Phase 6: Stripe Live Readiness
 

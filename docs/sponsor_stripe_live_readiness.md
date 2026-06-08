@@ -4,15 +4,7 @@ This checklist is for staff/developer review before enabling real sponsor paymen
 
 ## Current Readiness State
 
-Status: ready for project owner, accountant and Stripe account review before live mode.
-
-Not complete until the project owner confirms:
-
-- Stripe account activation and live payment capability.
-- Live Automatic Tax and VAT configuration.
-- Live webhook endpoint and signing secret.
-- Live keys loaded only through production environment variables.
-- Final sandbox data cleanup and database backup.
+Status: closed. Live switch authorised and completed by project owner (2026-06-08).
 
 ## Environment Separation
 
