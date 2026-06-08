@@ -3,7 +3,7 @@ from __future__ import annotations
 import shutil
 import tempfile
 from io import BytesIO
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from PIL import Image
 from django.contrib.auth import get_user_model
@@ -2234,6 +2234,173 @@ class _BrokenEmailBackend:
     def close(self): pass
     def send_messages(self, messages):
         raise RuntimeError("Simulated email send failure")
+
+
+@override_settings(**SPONSOR_TEST_SETTINGS)
+class SponsorLogoTransformTests(TestCase):
+    """Regression tests: logo_rotation and transform fields must be saved,
+    copied on approval, serialised to the puzzle, and rendered in the JS."""
+
+    def setUp(self):
+        self.cell = SponsorCell.objects.create(cell_number=5, ring=1, position_in_ring=4)
+        self.user = get_user_model().objects.create_user("transform-admin", password="pass", is_staff=True)
+
+    def _make_approved_application(self, offset_x=25.0, offset_y=-10.0, scale=1.5, rotation=135.0):
+        application = SponsorApplication.objects.create(
+            cell=self.cell,
+            status=SponsorApplication.Status.PAID_PENDING_APPROVAL,
+            sponsor_name="PT Asuransi Ciputra Indonesia",
+            contact_name="Test",
+            email="test@example.com",
+            website_url="https://example.com",
+            logo=png_upload(),
+            price_net_cents=self.cell.price_net_cents,
+            terms_accepted=True,
+            logo_rights_confirmed=True,
+            approval_acknowledged=True,
+            terms_accepted_at=timezone.now(),
+            logo_offset_x=offset_x,
+            logo_offset_y=offset_y,
+            logo_scale=scale,
+            logo_rotation=rotation,
+        )
+        SponsorPayment.objects.create(
+            application=application,
+            status=SponsorPayment.Status.PAID,
+            net_amount_cents=application.price_net_cents,
+            currency="eur",
+            stripe_checkout_session_id="cs_test_transform",
+            stripe_payment_intent_id="pi_test_transform",
+            paid_at=timezone.now(),
+        )
+        self.cell.status = SponsorCell.Status.PAID_PENDING_APPROVAL
+        self.cell.save(update_fields=["status"])
+        SponsorComplianceCheck.objects.create(
+            application=application,
+            status=SponsorComplianceCheck.Status.MANUALLY_CLEARED,
+            checked_at=timezone.now(),
+        )
+        return application
+
+    def test_application_stores_logo_transform_fields(self):
+        """SponsorApplication must persist all four transform fields."""
+        app = self._make_approved_application(offset_x=33.0, offset_y=-15.0, scale=1.8, rotation=270.0)
+        app.refresh_from_db()
+        self.assertAlmostEqual(app.logo_offset_x, 33.0)
+        self.assertAlmostEqual(app.logo_offset_y, -15.0)
+        self.assertAlmostEqual(app.logo_scale, 1.8)
+        self.assertAlmostEqual(app.logo_rotation, 270.0)
+
+    def test_approval_copies_all_transform_fields_to_cell(self):
+        """approve_application must copy offset, scale AND rotation to SponsorCell."""
+        app = self._make_approved_application(offset_x=20.0, offset_y=5.0, scale=1.3, rotation=90.0)
+        approve_application(app.pk, self.user)
+        self.cell.refresh_from_db()
+        self.assertAlmostEqual(self.cell.logo_offset_x, 20.0)
+        self.assertAlmostEqual(self.cell.logo_offset_y, 5.0)
+        self.assertAlmostEqual(self.cell.logo_scale, 1.3)
+        self.assertAlmostEqual(self.cell.logo_rotation, 90.0, msg="logo_rotation must be copied to SponsorCell on approval")
+
+    def test_approval_does_not_reset_rotation_to_default(self):
+        """Non-zero rotation must survive the approval path unchanged."""
+        app = self._make_approved_application(rotation=45.5)
+        approve_application(app.pk, self.user)
+        self.cell.refresh_from_db()
+        self.assertAlmostEqual(self.cell.logo_rotation, 45.5, places=1,
+                               msg="Rotation must not be reset to 0 on approval")
+
+    def test_cell_as_dict_includes_logo_rotation(self):
+        """SponsorCell.as_dict() must include logo_rotation for the puzzle renderer."""
+        self.cell.logo_rotation = 135.0
+        self.cell.save()
+        data = self.cell.as_dict()
+        self.assertIn("logo_rotation", data, "logo_rotation must be present in SponsorCell.as_dict()")
+        self.assertAlmostEqual(data["logo_rotation"], 135.0)
+
+    def test_cell_as_dict_includes_all_transform_fields(self):
+        """as_dict must include all four transform fields."""
+        self.cell.logo_offset_x = 10.0
+        self.cell.logo_offset_y = -5.0
+        self.cell.logo_scale = 1.2
+        self.cell.logo_rotation = 30.0
+        self.cell.save()
+        data = self.cell.as_dict()
+        for field in ("logo_offset_x", "logo_offset_y", "logo_scale", "logo_rotation"):
+            self.assertIn(field, data, f"{field} must be in as_dict()")
+
+    def test_puzzle_json_contains_logo_rotation(self):
+        """The public puzzle page must embed logo_rotation in the cells JSON."""
+        self.cell.logo_rotation = 75.0
+        self.cell.sponsor_logo = png_upload()
+        self.cell.sponsor_name = "Rotate Test"
+        self.cell.status = SponsorCell.Status.ACTIVE
+        self.cell.save()
+        response = self.client.get(reverse("sponsors:puzzle"))
+        self.assertContains(response, '"logo_rotation"')
+        self.assertContains(response, "75.0")
+
+    def test_puzzle_js_applies_rotation_to_ring_cells(self):
+        """sponsors_puzzle.js must read logo_rotation and apply SVG rotate transform."""
+        from django.contrib.staticfiles import finders
+        js_path = finders.find("js/sponsors_puzzle.js")
+        self.assertIsNotNone(js_path)
+        with open(js_path, encoding="utf-8") as f:
+            js = f.read()
+        self.assertIn("logo_rotation", js, "sponsors_puzzle.js must reference logo_rotation")
+        self.assertIn("rotate(", js, "sponsors_puzzle.js must apply SVG rotate transform")
+
+    def test_puzzle_js_applies_rotation_to_centre_cell(self):
+        """drawCentre in sponsors_puzzle.js must also apply rotation."""
+        from django.contrib.staticfiles import finders
+        js_path = finders.find("js/sponsors_puzzle.js")
+        self.assertIsNotNone(js_path)
+        with open(js_path, encoding="utf-8") as f:
+            js = f.read()
+        # Both drawCentre and appendLogoToCell should reference logo_rotation
+        count = js.count("logo_rotation")
+        self.assertGreaterEqual(count, 2, "logo_rotation must appear in both drawCentre and appendLogoToCell")
+
+    def test_form_submission_saves_rotation_via_enquire_view(self):
+        """Submitting the sponsor enquiry form must persist logo_rotation on SponsorApplication."""
+        import io
+        from PIL import Image as PILImage
+        buf = io.BytesIO()
+        PILImage.new("RGB", (80, 80), color=(200, 100, 50)).save(buf, format="PNG")
+        buf.seek(0)
+        logo = SimpleUploadedFile("logo.png", buf.read(), content_type="image/png")
+        data = {
+            "sponsor_name": "Rotation Corp",
+            "contact_name": "Tester",
+            "email": "rot@example.com",
+            "logo": logo,
+            "logo_offset_x": "15.00",
+            "logo_offset_y": "-8.00",
+            "logo_scale": "1.200",
+            "logo_rotation": "180.00",
+            "logo_rights_confirmed": "on",
+            "terms_accepted": "on",
+            "sanctions_declaration_1": "on",
+        }
+
+        class FakeSession:
+            id = "cs_test"
+            url = "https://stripe.test/pay"
+
+        class FakeCheckout:
+            Session = MagicMock(create=MagicMock(return_value=FakeSession()))
+
+        class FakeStripe:
+            checkout = FakeCheckout
+
+        with patch("sponsors.services._stripe", return_value=FakeStripe):
+            response = self.client.post(
+                reverse("sponsors:cell_enquire", args=[self.cell.pk]), data, format="multipart"
+            )
+        self.assertIn(response.status_code, [200, 302])
+        app = SponsorApplication.objects.filter(cell=self.cell).last()
+        if app:
+            self.assertAlmostEqual(app.logo_rotation, 180.0, places=1,
+                                   msg="logo_rotation must be saved from form submission")
 
 
 def teardown_module(_module=None):

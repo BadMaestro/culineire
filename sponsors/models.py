@@ -171,6 +171,7 @@ class SponsorCell(models.Model):
             "logo_offset_x": self.logo_offset_x,
             "logo_offset_y": self.logo_offset_y,
             "logo_scale": self.logo_scale,
+            "logo_rotation": self.logo_rotation,
         }
 
 

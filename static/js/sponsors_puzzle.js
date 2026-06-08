@@ -291,23 +291,30 @@
         svgDefs.appendChild(centreClip);
       }
 
-      // Apply admin-set offset and scale (stored as % of R, scale as raw factor)
+      // Apply admin-set offset, scale and rotation (offset stored as % of R)
       var ox      = ((cellData.logo_offset_x || 0) / 100) * R;
       var oy      = ((cellData.logo_offset_y || 0) / 100) * R;
       var sc      = cellData.logo_scale || 1.0;
+      var rot     = cellData.logo_rotation || 0;
       var imgSize = R * 2 * sc;
+      var icx     = CX + ox;
+      var icy     = CY + oy;
 
       // Clip group contains the image so it can move within the octagon
       var clipGroup = svgEl('g', { 'clip-path': 'url(#centre-cell-clip)' });
-      var img = svgEl('image', {
+      var imgAttrs = {
         href                : cellData.sponsor_logo,
-        x                   : (CX + ox - imgSize / 2).toFixed(1),
-        y                   : (CY + oy - imgSize / 2).toFixed(1),
+        x                   : (icx - imgSize / 2).toFixed(1),
+        y                   : (icy - imgSize / 2).toFixed(1),
         width               : imgSize.toFixed(1),
         height              : imgSize.toFixed(1),
         preserveAspectRatio : 'xMidYMid slice',
         'pointer-events'    : 'none',
-      });
+      };
+      if (rot) {
+        imgAttrs.transform = 'rotate(' + rot.toFixed(2) + ',' + icx.toFixed(1) + ',' + icy.toFixed(1) + ')';
+      }
+      var img = svgEl('image', imgAttrs);
       clipGroup.appendChild(img);
       g.appendChild(clipGroup);
 
@@ -423,6 +430,7 @@
     var sc         = cellData.logo_scale || 1.0;
     var ox         = ((cellData.logo_offset_x || 0) / 100) * refRadius;
     var oy         = ((cellData.logo_offset_y || 0) / 100) * refRadius;
+    var rot        = cellData.logo_rotation || 0;
     var size       = Math.max(bounds.width, bounds.height) * sc;
     var cx         = (bounds.minX + bounds.maxX) / 2 + ox;
     var cy         = (bounds.minY + bounds.maxY) / 2 + oy;
@@ -435,7 +443,7 @@
       svgDefs.appendChild(clip);
     }
 
-    var img = svgEl('image', {
+    var imgAttrs = {
       href                : cellData.sponsor_logo,
       x                   : (cx - size / 2).toFixed(1),
       y                   : (cy - size / 2).toFixed(1),
@@ -443,7 +451,11 @@
       height              : size.toFixed(1),
       preserveAspectRatio : 'xMidYMid slice',
       'pointer-events'    : 'none',
-    });
+    };
+    if (rot) {
+      imgAttrs.transform = 'rotate(' + rot.toFixed(2) + ',' + cx.toFixed(1) + ',' + cy.toFixed(1) + ')';
+    }
+    var img = svgEl('image', imgAttrs);
 
     if (svgDefs) {
       var clipped = svgEl('g', { 'clip-path': 'url(#' + clipId + ')' });
