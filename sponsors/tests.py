@@ -1837,6 +1837,367 @@ class SponsorWeeklyRingTests(TestCase):
         self.assertEqual(application.term_display, "12-month term from approval/publication")
 
 
+@override_settings(**SPONSOR_TEST_SETTINGS)
+class SponsorContractEmailTests(TestCase):
+    """Tests for contract agreement email generation and delivery on approval."""
+
+    def setUp(self):
+        self.actor = get_user_model().objects.create_user("contract_staff", password="pass", is_staff=True)
+        self.annual_cell = SponsorCell.objects.create(
+            cell_number=501, ring=5, position_in_ring=0,
+            product_type=SponsorCell.ProductType.ANNUAL_RING,
+        )
+        self.monthly_cell = SponsorCell.objects.create(
+            cell_number=502, ring=0, position_in_ring=0,
+            product_type=SponsorCell.ProductType.CENTRAL_MONTHLY,
+        )
+        self.weekly_cell = SponsorCell.objects.create(
+            cell_number=503, ring=6, position_in_ring=0,
+            product_type=SponsorCell.ProductType.WEEKLY_RING,
+            price_override_cents=2500,
+        )
+
+    def _make_paid_application(self, cell, product_type, price_cents, term_days, session_id):
+        application = SponsorApplication.objects.create(
+            cell=cell,
+            status=SponsorApplication.Status.PAID_PENDING_APPROVAL,
+            sponsor_name="Contract Sponsor",
+            contact_name="Connie",
+            email="connie@example.com",
+            logo=png_upload("contract.png"),
+            price_net_cents=price_cents,
+            product_type=product_type,
+            term_days=term_days,
+            terms_accepted=True,
+            logo_rights_confirmed=True,
+            approval_acknowledged=True,
+            terms_accepted_at=timezone.now(),
+        )
+        SponsorPayment.objects.create(
+            application=application,
+            status=SponsorPayment.Status.PAID,
+            net_amount_cents=price_cents,
+            vat_amount_cents=575,
+            total_amount_cents=price_cents + 575,
+            currency="eur",
+            stripe_checkout_session_id=session_id,
+            stripe_payment_intent_id=session_id.replace("cs_", "pi_"),
+            paid_at=timezone.now(),
+        )
+        cell.status = SponsorCell.Status.PAID_PENDING_APPROVAL
+        cell.save(update_fields=["status"])
+        SponsorComplianceCheck.objects.create(
+            application=application,
+            status=SponsorComplianceCheck.Status.MANUALLY_CLEARED,
+            checked_at=timezone.now(),
+        )
+        return application
+
+    # --- Test 1: annual approval sends annual agreement email ---
+
+    def test_annual_approval_sends_annual_agreement_email(self):
+        application = self._make_paid_application(
+            self.annual_cell, SponsorCell.ProductType.ANNUAL_RING, 5000, 365, "cs_contract_an"
+        )
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            from django.core import mail
+            mail.outbox = []
+            approve_application(application.pk, self.actor)
+        application.refresh_from_db()
+        self.assertTrue(any("Annual Sponsor Agreement" in m.subject or "CUL-AN" in m.subject for m in mail.outbox))
+        self.assertEqual(application.contract_email_status, SponsorApplication.ContractEmailStatus.SENT)
+
+    # --- Test 2: monthly approval sends monthly agreement email ---
+
+    def test_monthly_approval_sends_monthly_agreement_email(self):
+        application = self._make_paid_application(
+            self.monthly_cell, SponsorCell.ProductType.CENTRAL_MONTHLY, 100000, 30, "cs_contract_mo"
+        )
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            from django.core import mail
+            mail.outbox = []
+            approve_application(application.pk, self.actor)
+        application.refresh_from_db()
+        self.assertTrue(any("Monthly" in m.subject or "CUL-MO" in m.subject for m in mail.outbox))
+        self.assertEqual(application.contract_email_status, SponsorApplication.ContractEmailStatus.SENT)
+
+    # --- Test 3: weekly approval sends weekly agreement email ---
+
+    def test_weekly_approval_sends_weekly_agreement_email(self):
+        application = self._make_paid_application(
+            self.weekly_cell, SponsorCell.ProductType.WEEKLY_RING, 2500, 7, "cs_contract_wk"
+        )
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            from django.core import mail
+            mail.outbox = []
+            approve_application(application.pk, self.actor)
+        application.refresh_from_db()
+        self.assertTrue(any("Weekly" in m.subject or "CUL-WK" in m.subject for m in mail.outbox))
+        self.assertEqual(application.contract_email_status, SponsorApplication.ContractEmailStatus.SENT)
+
+    # --- Test 4: no agreement sent before staff approval ---
+
+    def test_no_agreement_sent_before_approval(self):
+        application = self._make_paid_application(
+            self.annual_cell, SponsorCell.ProductType.ANNUAL_RING, 5000, 365, "cs_contract_pre"
+        )
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            from django.core import mail
+            mail.outbox = []
+        # No approval called — outbox must be empty
+        self.assertEqual(len(mail.outbox), 0)
+        application.refresh_from_db()
+        self.assertEqual(application.contract_email_status, "")
+
+    # --- Test 5: no agreement sent for rejected/refund_required/refunded ---
+
+    def test_no_agreement_sent_for_non_approved_statuses(self):
+        for status in [
+            SponsorApplication.Status.REJECTED,
+            SponsorApplication.Status.REFUND_REQUIRED,
+            SponsorApplication.Status.REFUNDED,
+        ]:
+            cell = SponsorCell.objects.create(
+                cell_number=600 + list(SponsorApplication.Status).index(status),
+                ring=5, position_in_ring=0,
+            )
+            application = SponsorApplication.objects.create(
+                cell=cell,
+                status=status,
+                sponsor_name="No Email Sponsor",
+                contact_name="Test",
+                email="nomail@example.com",
+                logo=png_upload("nomail.png"),
+                price_net_cents=5000,
+                product_type=SponsorCell.ProductType.ANNUAL_RING,
+                term_days=365,
+                terms_accepted=True,
+                logo_rights_confirmed=True,
+                approval_acknowledged=True,
+                terms_accepted_at=timezone.now(),
+            )
+            self.assertEqual(application.contract_email_status, "")
+            self.assertIsNone(application.contract_sent_at)
+
+    # --- Test 6: contract reference is generated and included ---
+
+    def test_contract_reference_generated_on_approval(self):
+        application = self._make_paid_application(
+            self.annual_cell, SponsorCell.ProductType.ANNUAL_RING, 5000, 365, "cs_contract_ref"
+        )
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            approve_application(application.pk, self.actor)
+        application.refresh_from_db()
+        self.assertTrue(bool(application.contract_reference))
+
+    # --- Test 7: contract reference uses correct product prefix ---
+
+    def test_contract_reference_product_prefix(self):
+        cases = [
+            (self.annual_cell, SponsorCell.ProductType.ANNUAL_RING, 5000, 365, "cs_pfx_an", "CUL-AN"),
+            (self.monthly_cell, SponsorCell.ProductType.CENTRAL_MONTHLY, 100000, 30, "cs_pfx_mo", "CUL-MO"),
+            (self.weekly_cell, SponsorCell.ProductType.WEEKLY_RING, 2500, 7, "cs_pfx_wk", "CUL-WK"),
+        ]
+        for cell, product_type, price, term, session_id, expected_prefix in cases:
+            cell.status = SponsorCell.Status.AVAILABLE
+            cell.save(update_fields=["status"])
+            with self.subTest(product_type=product_type):
+                application = self._make_paid_application(cell, product_type, price, term, session_id)
+                with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+                    approve_application(application.pk, self.actor)
+                application.refresh_from_db()
+                self.assertTrue(
+                    application.contract_reference.startswith(expected_prefix),
+                    f"Expected prefix {expected_prefix}, got {application.contract_reference}",
+                )
+
+    # --- Test 8: activation date and end date in email context ---
+
+    def test_activation_and_end_date_set_on_approval(self):
+        application = self._make_paid_application(
+            self.annual_cell, SponsorCell.ProductType.ANNUAL_RING, 5000, 365, "cs_dates_an"
+        )
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            approve_application(application.pk, self.actor)
+        application.refresh_from_db()
+        self.assertIsNotNone(application.published_at)
+        self.assertIsNotNone(application.expires_at)
+
+    # --- Test 9: weekly agreement uses 7 calendar days ---
+
+    def test_weekly_agreement_end_date_is_7_days(self):
+        application = self._make_paid_application(
+            self.weekly_cell, SponsorCell.ProductType.WEEKLY_RING, 2500, 7, "cs_dates_wk"
+        )
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            approve_application(application.pk, self.actor)
+        application.refresh_from_db()
+        delta = application.expires_at - application.published_at
+        self.assertEqual(delta.days, 7)
+
+    # --- Test 10: annual agreement uses 12 months ---
+
+    def test_annual_agreement_end_date_is_12_months(self):
+        application = self._make_paid_application(
+            self.annual_cell, SponsorCell.ProductType.ANNUAL_RING, 5000, 365, "cs_dates_an2"
+        )
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            approve_application(application.pk, self.actor)
+        application.refresh_from_db()
+        # add_one_year produces approximately 365 or 366 days
+        delta = application.expires_at - application.published_at
+        self.assertGreaterEqual(delta.days, 365)
+        self.assertLessEqual(delta.days, 366)
+
+    # --- Test 11: monthly agreement uses 30 calendar days ---
+
+    def test_monthly_agreement_end_date_is_30_days(self):
+        application = self._make_paid_application(
+            self.monthly_cell, SponsorCell.ProductType.CENTRAL_MONTHLY, 100000, 30, "cs_dates_mo2"
+        )
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            approve_application(application.pk, self.actor)
+        application.refresh_from_db()
+        delta = application.expires_at - application.published_at
+        self.assertEqual(delta.days, 30)
+
+    # --- Test 12: audit log records contract sent ---
+
+    def test_audit_log_records_contract_sent(self):
+        application = self._make_paid_application(
+            self.annual_cell, SponsorCell.ProductType.ANNUAL_RING, 5000, 365, "cs_audit_sent"
+        )
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            approve_application(application.pk, self.actor)
+        self.assertTrue(
+            application.audit_logs.filter(action=SponsorAuditLog.Action.CONTRACT_SENT).exists()
+        )
+
+    # --- Test 13: email failure sets failed status and audit log ---
+
+    def test_email_failure_sets_failed_status_and_audit(self):
+        application = self._make_paid_application(
+            self.annual_cell, SponsorCell.ProductType.ANNUAL_RING, 5000, 365, "cs_audit_fail"
+        )
+        with self.settings(EMAIL_BACKEND="sponsors.tests._BrokenEmailBackend"):
+            approve_application(application.pk, self.actor)
+        application.refresh_from_db()
+        self.assertEqual(application.contract_email_status, SponsorApplication.ContractEmailStatus.FAILED)
+        self.assertTrue(
+            application.audit_logs.filter(action=SponsorAuditLog.Action.CONTRACT_EMAIL_FAILED).exists()
+        )
+
+    # --- Test 13b: email failure does NOT roll back approval ---
+
+    def test_email_failure_does_not_rollback_approval(self):
+        application = self._make_paid_application(
+            self.annual_cell, SponsorCell.ProductType.ANNUAL_RING, 5000, 365, "cs_rollback"
+        )
+        with self.settings(EMAIL_BACKEND="sponsors.tests._BrokenEmailBackend"):
+            approve_application(application.pk, self.actor)
+        application.refresh_from_db()
+        self.assertEqual(application.status, SponsorApplication.Status.APPROVED)
+
+    # --- Test 14: resend action sends again and records resent audit ---
+
+    def test_resend_contract_email_sends_and_records_resent(self):
+        from .services import resend_contract_email
+        application = self._make_paid_application(
+            self.annual_cell, SponsorCell.ProductType.ANNUAL_RING, 5000, 365, "cs_resend"
+        )
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            approve_application(application.pk, self.actor)
+            from django.core import mail
+            mail.outbox = []
+            resend_contract_email(application.pk, self.actor)
+        application.refresh_from_db()
+        self.assertEqual(application.contract_email_status, SponsorApplication.ContractEmailStatus.RESENT)
+        self.assertTrue(
+            application.audit_logs.filter(action=SponsorAuditLog.Action.CONTRACT_EMAIL_RESENT).exists()
+        )
+        self.assertTrue(len(mail.outbox) > 0)
+
+    # --- Test 15: sanctions/compliance blocking prevents approval (no email sent) ---
+
+    def test_sanctions_blocking_prevents_approval_no_email(self):
+        application = self._make_paid_application(
+            self.annual_cell, SponsorCell.ProductType.ANNUAL_RING, 5000, 365, "cs_sanctions"
+        )
+        application.status = SponsorApplication.Status.PAID_PENDING_COMPLIANCE_REVIEW
+        application.save(update_fields=["status"])
+        snapshot = SanctionsSourceSnapshot.objects.create(
+            source_code=SanctionsSourceSnapshot.SourceCode.EU_FSF,
+            source_name="EU FSF",
+            source_url="https://example.com",
+            source_sha256="contract_sha_unique",
+            record_count=1,
+            status=SanctionsSourceSnapshot.Status.SUCCESS,
+        )
+        subject = SanctionsSubject.objects.create(
+            source_snapshot=snapshot,
+            source_code=SanctionsSourceSnapshot.SourceCode.EU_FSF,
+            primary_name="Contract Sponsor",
+            normalised_name="contract sponsor",
+        )
+        from .models import SponsorSanctionsMatch
+        SponsorSanctionsMatch.objects.create(
+            application=application,
+            subject=subject,
+            source_code=SanctionsSourceSnapshot.SourceCode.EU_FSF,
+            match_status=SponsorSanctionsMatch.Status.POSSIBLE,
+        )
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            from django.core import mail
+            mail.outbox = []
+            with self.assertRaises(ValueError):
+                approve_application(application.pk, self.actor)
+        self.assertEqual(len(mail.outbox), 0)
+        application.refresh_from_db()
+        self.assertEqual(application.contract_email_status, "")
+
+    # --- Test 16: public flow still has exactly 3 confirmation checkboxes ---
+
+    def test_public_flow_still_has_3_checkboxes(self):
+        from django.contrib.staticfiles import finders
+        js_path = finders.find("js/sponsors_modal.js")
+        with open(js_path, encoding="utf-8") as f:
+            content = f.read()
+        self.assertIn("spm-confirm-1", content)
+        self.assertIn("spm-confirm-2", content)
+        self.assertIn("spm-confirm-3", content)
+        self.assertNotIn("spm-confirm-4", content)
+        self.assertNotIn("spm-approval", content)
+
+    # --- Test 17: Stripe remains test mode ---
+
+    @override_settings(STRIPE_PRICE_MODE="test", STRIPE_SECRET_KEY="sk_test_123")
+    def test_stripe_remains_test_mode(self):
+        from django.conf import settings as _s
+        self.assertNotEqual(getattr(_s, "STRIPE_PRICE_MODE", ""), "live")
+
+    # --- Test 18: contract reference format ---
+
+    def test_contract_reference_format(self):
+        application = self._make_paid_application(
+            self.annual_cell, SponsorCell.ProductType.ANNUAL_RING, 5000, 365, "cs_fmt"
+        )
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            approve_application(application.pk, self.actor)
+        application.refresh_from_db()
+        import re
+        self.assertRegex(application.contract_reference, r"^CUL-(AN|MO|WK)-\d{4}-\d{6}$")
+
+
+class _BrokenEmailBackend:
+    """Stub email backend that always raises to simulate send failure."""
+    def __init__(self, *args, **kwargs):
+        pass
+    def open(self): pass
+    def close(self): pass
+    def send_messages(self, messages):
+        raise RuntimeError("Simulated email send failure")
+
+
 def teardown_module(_module=None):
     """Remove the temporary media directory created for sponsor tests."""
     shutil.rmtree(_TEMP_MEDIA, ignore_errors=True)

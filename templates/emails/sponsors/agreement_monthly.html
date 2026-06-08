@@ -1,0 +1,64 @@
+{% extends "emails/base.html" %}
+
+{% block subject %}Your CulinEire Monthly Featured Sponsor Agreement — {{ contract_reference }}{% endblock %}
+
+{% block content %}
+<h1 style="margin:0 0 16px;font-family:'Playfair Display',Georgia,serif;font-size:22px;font-weight:700;color:#1f2c25;line-height:1.3;text-align:center;">Monthly Featured Sponsor Agreement</h1>
+<p style="margin:0 0 16px;font-family:'Inter',system-ui,sans-serif;font-size:15px;color:#42514a;line-height:1.7;">Dear {{ application.contact_name }},</p>
+<p style="margin:0 0 16px;font-family:'Inter',system-ui,sans-serif;font-size:15px;color:#42514a;line-height:1.7;">Thank you for your sponsorship of CulinEire. This email is your copy of the Monthly Featured Sponsor Slot Agreement entered into between Bearcave Limited and {{ application.sponsor_name }}. Please keep this for your records.</p>
+
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 24px;border:1px solid #e0d5c8;border-radius:4px;background:#faf6f0;">
+  <tr><td style="padding:20px 24px;">
+    <p style="margin:0 0 8px;font-family:'Inter',system-ui,sans-serif;font-size:13px;font-weight:600;color:#1f2c25;text-transform:uppercase;letter-spacing:0.04em;">Agreement Summary</p>
+    <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+      <tr><td style="padding:4px 0;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#6b5e52;width:45%;">Reference</td><td style="padding:4px 0;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#1f2c25;font-weight:500;">{{ contract_reference }}</td></tr>
+      <tr><td style="padding:4px 0;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#6b5e52;">Application ID</td><td style="padding:4px 0;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#1f2c25;font-weight:500;">{{ application.reference }}</td></tr>
+      <tr><td style="padding:4px 0;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#6b5e52;">Sponsor</td><td style="padding:4px 0;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#1f2c25;font-weight:500;">{{ application.sponsor_name }}</td></tr>
+      <tr><td style="padding:4px 0;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#6b5e52;">Contact</td><td style="padding:4px 0;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#1f2c25;font-weight:500;">{{ application.contact_name }}</td></tr>
+      {% if application.website_url %}<tr><td style="padding:4px 0;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#6b5e52;">Website / Profile</td><td style="padding:4px 0;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#1f2c25;font-weight:500;">{{ application.website_url }}</td></tr>{% endif %}
+      <tr><td style="padding:4px 0;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#6b5e52;">Sponsor slot</td><td style="padding:4px 0;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#1f2c25;font-weight:500;">Central Sponsor of the Month &mdash; Featured central position</td></tr>
+      <tr><td style="padding:4px 0;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#6b5e52;">Service term</td><td style="padding:4px 0;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#1f2c25;font-weight:500;">30 calendar days from activation</td></tr>
+      <tr><td style="padding:4px 0;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#6b5e52;">Net amount</td><td style="padding:4px 0;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#1f2c25;font-weight:500;">&euro;{{ application.price_net_euros|floatformat:2 }} EUR</td></tr>
+      {% if payment and payment.vat_amount_cents %}<tr><td style="padding:4px 0;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#6b5e52;">VAT</td><td style="padding:4px 0;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#1f2c25;font-weight:500;">{{ payment.vat_amount_cents }} cents (reported by Stripe at checkout)</td></tr>{% endif %}
+      {% if payment and payment.total_amount_cents %}<tr><td style="padding:4px 0;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#6b5e52;">Total paid</td><td style="padding:4px 0;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#1f2c25;font-weight:500;">{{ payment.total_amount_cents }} cents (reported by Stripe at checkout)</td></tr>{% endif %}
+      <tr><td style="padding:4px 0;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#6b5e52;">Activation date</td><td style="padding:4px 0;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#1f2c25;font-weight:500;">{{ activation_date|date:"j F Y" }}</td></tr>
+      <tr><td style="padding:4px 0;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#6b5e52;">End date</td><td style="padding:4px 0;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#1f2c25;font-weight:500;">{{ end_date|date:"j F Y" }}</td></tr>
+    </table>
+  </td></tr>
+</table>
+
+<p style="margin:0 0 8px;font-family:'Inter',system-ui,sans-serif;font-size:13px;font-weight:600;color:#1f2c25;text-transform:uppercase;letter-spacing:0.04em;">Parties</p>
+<p style="margin:0 0 16px;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#42514a;line-height:1.7;"><strong>Service provider:</strong> Bearcave Limited, Company No. 658124, 2 The Fairways, Tir Cluain, Midleton, Co. Cork, P25 W8W3, Ireland. Trading as CulinEire (Business Name No. 786815). VAT number: IE3645402WH.<br><strong>Client / Sponsor:</strong> {{ application.sponsor_name }}, {{ application.contact_name }}, {{ application.email }}</p>
+
+<p style="margin:0 0 8px;font-family:'Inter',system-ui,sans-serif;font-size:13px;font-weight:600;color:#1f2c25;text-transform:uppercase;letter-spacing:0.04em;">Service</p>
+<p style="margin:0 0 16px;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#42514a;line-height:1.7;">Bearcave Limited has approved and activated the Central Sponsor of the Month placement on the CulinEire Sponsor Puzzle. The sponsor logo or avatar will be displayed in the central featured position on the CulinEire website for 30 calendar days from the activation date stated above. This is a one-time placement and is not a recurring subscription or calendar-month product.</p>
+
+<p style="margin:0 0 8px;font-family:'Inter',system-ui,sans-serif;font-size:13px;font-weight:600;color:#1f2c25;text-transform:uppercase;letter-spacing:0.04em;">Payment and VAT</p>
+<p style="margin:0 0 16px;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#42514a;line-height:1.7;">The net sponsor fee was quoted exclusive of VAT. VAT was calculated at Stripe Checkout where applicable. Payment reserved the selected sponsor spot for review only. Payment did not guarantee approval, publication or activation. The sponsorship term starts from the activation date confirmed above.</p>
+
+<p style="margin:0 0 8px;font-family:'Inter',system-ui,sans-serif;font-size:13px;font-weight:600;color:#1f2c25;text-transform:uppercase;letter-spacing:0.04em;">Sponsor Materials Licence</p>
+<p style="margin:0 0 16px;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#42514a;line-height:1.7;">The sponsor confirms they have the right to use the submitted logo, avatar, website or profile link and related materials. The sponsor grants Bearcave Limited a non-exclusive licence to display those materials on CulinEire for the sponsorship term.</p>
+
+<p style="margin:0 0 8px;font-family:'Inter',system-ui,sans-serif;font-size:13px;font-weight:600;color:#1f2c25;text-transform:uppercase;letter-spacing:0.04em;">Content Standards</p>
+<p style="margin:0 0 16px;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#42514a;line-height:1.7;">The sponsor must not use the sponsorship slot to promote unlawful goods or services, defamatory content, misleading claims, infringing materials or anything that violates Irish or EU law. The sponsor must not imply editorial endorsement by CulinEire or Bearcave Limited unless expressly agreed in writing.</p>
+
+<p style="margin:0 0 8px;font-family:'Inter',system-ui,sans-serif;font-size:13px;font-weight:600;color:#1f2c25;text-transform:uppercase;letter-spacing:0.04em;">No Guarantee of Results</p>
+<p style="margin:0 0 16px;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#42514a;line-height:1.7;">Bearcave Limited does not guarantee any particular level of traffic, impressions, clicks or commercial results from the sponsorship placement.</p>
+
+<p style="margin:0 0 8px;font-family:'Inter',system-ui,sans-serif;font-size:13px;font-weight:600;color:#1f2c25;text-transform:uppercase;letter-spacing:0.04em;">Website Changes and Availability</p>
+<p style="margin:0 0 16px;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#42514a;line-height:1.7;">CulinEire is provided on a best-efforts basis. Bearcave Limited may update the website design, layout or features at any time without affecting the sponsor's right to display their approved logo or avatar for the agreed term, except where required by law, safety or compliance obligations.</p>
+
+<p style="margin:0 0 8px;font-family:'Inter',system-ui,sans-serif;font-size:13px;font-weight:600;color:#1f2c25;text-transform:uppercase;letter-spacing:0.04em;">Refunds and Compliance</p>
+<p style="margin:0 0 16px;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#42514a;line-height:1.7;">Once a sponsor image has been published, refunds are not guaranteed unless required by applicable law or agreed in writing by Bearcave Limited. Bearcave Limited may suspend, cancel or remove a sponsorship placement where compliance, sanctions, legal or policy concerns arise.</p>
+
+<p style="margin:0 0 8px;font-family:'Inter',system-ui,sans-serif;font-size:13px;font-weight:600;color:#1f2c25;text-transform:uppercase;letter-spacing:0.04em;">Sanctions and Compliance Declaration</p>
+<p style="margin:0 0 16px;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#42514a;line-height:1.7;">By submitting the sponsor application, the sponsor confirmed that, to the best of their knowledge, neither the sponsor, nor the company or organisation represented, nor any relevant owner, director, beneficial owner or controlling person, is subject to EU, UN, Irish or other applicable financial sanctions.</p>
+
+<p style="margin:0 0 8px;font-family:'Inter',system-ui,sans-serif;font-size:13px;font-weight:600;color:#1f2c25;text-transform:uppercase;letter-spacing:0.04em;">Governing Law</p>
+<p style="margin:0 0 16px;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#42514a;line-height:1.7;">This agreement is governed by the laws of Ireland. Any disputes are subject to the exclusive jurisdiction of the Irish courts, without prejudice to any statutory rights that may apply under Irish or EU law.</p>
+
+<p style="margin:0 0 8px;font-family:'Inter',system-ui,sans-serif;font-size:13px;font-weight:600;color:#1f2c25;text-transform:uppercase;letter-spacing:0.04em;">Electronic Acceptance</p>
+<p style="margin:0 0 24px;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#42514a;line-height:1.7;">This agreement was entered into electronically when the sponsor submitted their application and accepted the CulinEire sponsorship terms via the website on {{ application.terms_accepted_at|date:"j F Y" }}. This email is the provider copy sent on behalf of Bearcave Limited upon activation of the sponsorship.</p>
+
+<p style="margin:0 0 8px;font-family:'Inter',system-ui,sans-serif;font-size:12px;color:#8a7d74;line-height:1.6;text-align:center;">Bearcave Limited &bull; Company No. 658124 &bull; 2 The Fairways, Tir Cluain, Midleton, Co. Cork, Ireland &bull; VAT IE3645402WH<br>Trading as CulinEire (Business Name No. 786815) &bull; culineire@bearcave.ie</p>
+{% endblock %}
