@@ -969,9 +969,9 @@ def generate_contract_pdf(application: SponsorApplication) -> bytes:
         ["Net amount", net_label],
     ]
     if payment and payment.vat_amount_cents:
-        summary_rows.append(["VAT", f"{payment.vat_amount_cents} cents (reported by Stripe at checkout)"])
+        summary_rows.append(["VAT", _cents_display(payment.vat_amount_cents)])
     if payment and payment.total_amount_cents:
-        summary_rows.append(["Total paid", f"{payment.total_amount_cents} cents (reported by Stripe at checkout)"])
+        summary_rows.append(["Total paid", _cents_display(payment.total_amount_cents)])
     summary_rows += [
         ["Activation date", activation_str],
         ["End date", end_str],
