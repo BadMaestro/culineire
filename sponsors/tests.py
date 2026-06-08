@@ -1944,14 +1944,14 @@ class SponsorContractEmailTests(TestCase):
         """Extract readable text from an ASCII85+FlateDecode compressed PDF."""
         import base64, zlib, re as _re
         texts = []
-        for m in _re.finditer(rb'stream\r?\n(.*?)\r?\nendstream', pdf_bytes, _re.DOTALL):
+        # PDF streams end with ~> directly before endstream (no guaranteed newline)
+        for m in _re.finditer(rb'stream\r?\n(.*?~>)', pdf_bytes, _re.DOTALL):
             data = m.group(1).strip()
-            if data.endswith(b'~>'):
-                try:
-                    decoded = base64.a85decode(b'<~' + data, adobe=True)
-                    texts.append(zlib.decompress(decoded).decode('latin-1', errors='replace'))
-                except Exception:
-                    pass
+            try:
+                decoded = base64.a85decode(b'<~' + data, adobe=True)
+                texts.append(zlib.decompress(decoded).decode('latin-1', errors='replace'))
+            except Exception:
+                pass
         return ' '.join(texts)
 
     # --- Test 1: annual approval sends annual agreement email ---
