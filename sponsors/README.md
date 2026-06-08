@@ -1,6 +1,8 @@
-## Sponsors Compliance Summary
+## Sponsors — Status: Complete (2026-06-08)
 
-Completed phases:
+No open tasks. New work requires explicit owner decision.
+
+## Completed Phases
 
 - Phase 1: sponsor declaration before Stripe, paid pending compliance review, manual compliance clear before approval, approve/publish flow and sponsor moderation attention badges.
 - Phase 2: official EU/UN sanctions source ingestion, source snapshots, EU RSS discovery, manual EU file fallback and staff source freshness visibility.
