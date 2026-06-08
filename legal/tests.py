@@ -82,7 +82,9 @@ class LegalPublicAccessTests(TestCase):
         response = self.client.get(reverse("legal:legal_hub"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'class="legal-hero"')
+        self.assertContains(response, 'class="hero hero--home hero--legal"')
+        self.assertContains(response, 'class="container hero__inner"')
+        self.assertContains(response, 'class="hero-copy"')
         self.assertContains(response, 'class="legal-card-grid"')
         self.assertContains(response, 'class="legal-contact-card"')
 

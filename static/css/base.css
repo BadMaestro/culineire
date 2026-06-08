@@ -442,46 +442,6 @@
 
   /* ==== Legal pages ==== */
 
-  .legal-hero {
-    position: relative;
-    isolation: isolate;
-    min-height: clamp(28rem, 56vh, 40rem);
-    display: grid;
-    align-items: center;
-    overflow: hidden;
-    color: #fffaf0;
-    background:
-      radial-gradient(circle at 18% 18%, rgb(180 122 51 / 0.22), transparent 30%),
-      linear-gradient(135deg, #16372d 0%, #214a3e 48%, #6a4c32 100%);
-  }
-
-  .legal-hero .hero__background img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0.34;
-    filter: saturate(0.86) contrast(0.95);
-  }
-
-  .legal-hero .hero__overlay {
-    z-index: 2;
-    background:
-      linear-gradient(90deg, rgb(18 37 31 / 0.88) 0%, rgb(18 37 31 / 0.66) 48%, rgb(84 59 35 / 0.48) 100%),
-      linear-gradient(180deg, rgb(0 0 0 / 0.16), rgb(0 0 0 / 0.28));
-  }
-
-  .legal-hero__inner {
-    position: relative;
-    z-index: 3;
-    width: min(1120px, calc(100% - 2rem));
-    margin-inline: auto;
-    padding-block: clamp(5rem, 10vw, 8rem);
-  }
-
-  .legal-hero__copy {
-    max-width: 44rem;
-  }
-
   .legal-eyebrow {
     display: inline-flex;
     align-items: center;
@@ -494,72 +454,10 @@
     color: #ddb778;
   }
 
-  .legal-hero h1,
   .legal-intro h2 {
     margin: 0;
     font-family: var(--font-serif);
     color: inherit;
-  }
-
-  .legal-hero h1 {
-    max-width: 12ch;
-    font-size: clamp(3rem, 7vw, 5.8rem);
-    line-height: 0.95;
-    letter-spacing: -0.045em;
-  }
-
-  .legal-hero p {
-    max-width: 44rem;
-    margin: 1.25rem 0 0;
-    font-size: clamp(1.05rem, 2vw, 1.32rem);
-    line-height: 1.68;
-    color: rgb(255 250 240 / 0.9);
-  }
-
-  .legal-hero__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.85rem;
-    margin-block-start: 2rem;
-  }
-
-  .legal-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 2.75rem;
-    padding: 0.72rem 1.15rem;
-    border: 1px solid rgb(255 250 240 / 0.34);
-    border-radius: 999px;
-    color: #fffaf0;
-    font-weight: 800;
-    text-decoration: none;
-    background: rgb(255 250 240 / 0.1);
-    box-shadow: 0 14px 28px rgb(0 0 0 / 0.14);
-    backdrop-filter: blur(8px);
-    transition:
-      transform 160ms ease,
-      border-color 160ms ease,
-      background 160ms ease;
-  }
-
-  .legal-button--primary {
-    border-color: rgb(221 183 120 / 0.8);
-    color: #2f251b;
-    background: #ddb778;
-  }
-
-  .legal-button:hover,
-  .legal-button:focus-visible {
-    transform: translateY(-2px);
-    border-color: rgb(255 250 240 / 0.74);
-    background: rgb(255 250 240 / 0.18);
-  }
-
-  .legal-button--primary:hover,
-  .legal-button--primary:focus-visible {
-    background: #e6c894;
-    border-color: #e6c894;
   }
 
   .legal-shell {
@@ -663,13 +561,10 @@
   }
 
   .legal-contact-card {
-    display: grid;
-    justify-items: center;
     margin-block-start: clamp(1.2rem, 3vw, 2rem);
     padding: clamp(1.2rem, 2.5vw, 1.75rem);
     border: 1px solid rgb(24 76 58 / 0.16);
     border-radius: 1.45rem;
-    text-align: center;
     background:
       linear-gradient(135deg, rgb(24 76 58 / 0.08), rgb(180 122 51 / 0.08)),
       var(--legal-paper);
@@ -701,27 +596,6 @@
   }
 
   @media (max-width: 640px) {
-    .legal-hero {
-      min-height: auto;
-    }
-
-    .legal-hero__inner {
-      width: min(100% - 1.25rem, 1120px);
-      padding-block: 4.25rem;
-    }
-
-    .legal-hero h1 {
-      font-size: clamp(2.55rem, 16vw, 4rem);
-    }
-
-    .legal-hero__actions {
-      display: grid;
-    }
-
-    .legal-button {
-      width: 100%;
-    }
-
     .legal-shell {
       width: min(100% - 1.25rem, 1120px);
       margin-block: 2rem;
@@ -3644,5 +3518,12 @@
     flex: 1 1 42%;
     padding-inline: 0.8rem;
   }
+}
+
+/* Legal Hub final alignment: keep the contact notice centred in the shared page rhythm. */
+.legal-contact-card {
+  display: grid;
+  justify-items: center;
+  text-align: center;
 }
 

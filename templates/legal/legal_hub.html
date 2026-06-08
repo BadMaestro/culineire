@@ -6,23 +6,23 @@
 {% block meta_description %}Legal information, company details, content policies, privacy and your rights as a CulinEire user or author.{% endblock %}
 
 {% block content %}
-<section class="legal-hero">
+<section class="hero hero--home hero--legal">
     <div aria-hidden="true" class="hero__background">
         <img alt="" src="{% static 'images/hero-contact.png' %}">
     </div>
     <div aria-hidden="true" class="hero__overlay"></div>
-    <div class="legal-hero__inner">
-        <div class="legal-hero__copy">
-            <span class="legal-eyebrow">Legal</span>
-            <h1>Legal Information</h1>
-            <p>Policies, guidelines, and your rights as a CulinEire user or author.</p>
-            <div class="legal-hero__actions">
+    <div class="container hero__inner">
+        <div class="hero-copy">
+            <span class="pill">Legal</span>
+            <h1 class="hero-title">Legal Information</h1>
+            <p class="hero-subtitle">Policies, guidelines, and your rights as a CulinEire user or author.</p>
+            <div class="hero__actions">
                 {% if can_view_amuse_bouche_public_area %}
-                <a class="legal-button legal-button--primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
+                <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
                 {% endif %}
-                <a class="legal-button" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
-                <a class="legal-button" href="{% url 'articles:article_list' %}">Read Articles</a>
-                <a class="legal-button" href="{% url 'sponsors:puzzle' %}">Sponsors</a>
+                <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
+                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
+                <a class="btn-secondary" href="{% url 'sponsors:puzzle' %}">Sponsors</a>
             </div>
         </div>
     </div>
