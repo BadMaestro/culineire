@@ -136,6 +136,7 @@ INSTALLED_APPS = [
     "sandbox",
     "sponsors",
     "chefs_battle",
+    "agent_discovery",
 ]
 
 MIDDLEWARE = [
@@ -151,6 +152,8 @@ MIDDLEWARE = [
     "config.csp_middleware.CspNonceMiddleware",
     "config.maintenance.MaintenanceModeMiddleware",
     "config.html_cache_middleware.HtmlNoCacheMiddleware",
+    "config.agent_middleware.AgentLinkHeadersMiddleware",
+    "config.agent_middleware.MarkdownNegotiationMiddleware",
 ]
 
 # ── Monitoring ─────────────────────────────────────────────────────────────

@@ -7,6 +7,7 @@ from django.views.generic import RedirectView, TemplateView
 from django.views.static import serve
 
 from accounts import views as accounts_views
+from agent_discovery import views as agent_discovery_views
 from config import pwa_views
 from config import views as config_views
 from recipes import views as recipes_views
@@ -79,6 +80,10 @@ urlpatterns = [
     path("accounts/signup/", accounts_views.SignUpView.as_view(), name="signup"),
     path("accounts/activate/<uidb64>/<token>/", accounts_views.activate_account, name="activate_account"),
     path("accounts/", include("django.contrib.auth.urls")),
+
+    # Agent discovery (well-known endpoints)
+    path(".well-known/", include("agent_discovery.urls", namespace="agent_discovery")),
+    path("auth.md", agent_discovery_views.auth_md, name="auth_md"),
 ]
 
 if not settings.IS_PRODUCTION:
