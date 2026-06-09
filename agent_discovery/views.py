@@ -1,6 +1,9 @@
 import json
+import uuid
 
 from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 
 
 def _json(data, content_type="application/json"):
@@ -104,7 +107,7 @@ def oauth_authorization_server(request):
         "response_types_supported": [],
         "agent_auth": {
             "skill": "https://isitagentready.com/.well-known/agent-skills/auth-md/SKILL.md",
-            "register_uri": None,
+            "register_uri": "https://culineire.ie/agent/identity",
             "identity_types_supported": ["anonymous"],
             "anonymous": {
                 "credential_types_supported": [],
@@ -124,7 +127,7 @@ def auth_md(request):
     content = """---
 agent_auth:
   skill: https://isitagentready.com/.well-known/agent-skills/auth-md/SKILL.md
-  register_uri: null
+  register_uri: https://culineire.ie/agent/identity
   identity_types_supported:
     - anonymous
   anonymous:
@@ -179,3 +182,21 @@ For questions about agent access, contact the site owner via the About page:
 https://culineire.ie/messages/contact/
 """
     return HttpResponse(content, content_type="text/markdown; charset=utf-8")
+
+
+@csrf_exempt
+@require_http_methods(["POST", "GET"])
+def agent_identity(request):
+    """Anonymous identity endpoint for public read-only access."""
+    assertion_id = str(uuid.uuid4())
+    data = {
+        "identity_type": "anonymous",
+        "identity_assertion": assertion_id,
+        "access_type": "public",
+        "scopes": ["public"],
+        "notes": (
+            "CulinEire is a fully public website. "
+            "No credentials are required to access any content."
+        ),
+    }
+    return _json(data)

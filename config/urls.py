@@ -84,6 +84,7 @@ urlpatterns = [
     # Agent discovery (well-known endpoints)
     path(".well-known/", include("agent_discovery.urls", namespace="agent_discovery")),
     path("auth.md", agent_discovery_views.auth_md, name="auth_md"),
+    path("agent/identity", agent_discovery_views.agent_identity, name="agent_identity"),
 ]
 
 if not settings.IS_PRODUCTION:
