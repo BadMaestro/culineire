@@ -135,6 +135,7 @@ INSTALLED_APPS = [
     "newsfeed",
     "sandbox",
     "sponsors",
+    "chefs_battle",
 ]
 
 MIDDLEWARE = [
