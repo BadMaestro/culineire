@@ -115,7 +115,20 @@ def auth_md(request):
 
 ## CulinEire — Agent Access Guide
 
-CulinEire (https://culineire.ie) is a public Irish food and recipe website.
+CulinEire (https://culineire.ie) is a public Irish food and recipe website
+celebrating Irish culinary heritage.
+
+## agent_auth
+
+register_uri: none
+identity_types: none
+credential_types: none
+access_type: public
+registration_required: false
+notes: >
+  CulinEire is a fully public website. No registration, authentication,
+  or credentials are required to access recipes, articles, or any other
+  public content. AI agents may access all public URLs freely.
 
 ## Access Policy
 
@@ -136,6 +149,8 @@ content may be used for training, summarisation, or other purposes.
 | Sitemap | /sitemap.xml | Full content index |
 | API Catalog | /.well-known/api-catalog | Machine-readable resource index |
 | MCP Server Card | /.well-known/mcp/server-card.json | MCP discovery |
+| Agent Skills | /.well-known/agent-skills/index.json | Available agent actions |
+| OAuth Resource | /.well-known/oauth-protected-resource | Resource metadata |
 
 ## Authentication
 
@@ -143,6 +158,7 @@ No authentication is required to access public content.
 
 ## Contact
 
-For questions about agent access, contact the site owner via the About page.
+For questions about agent access, contact the site owner via the About page:
+https://culineire.ie/messages/contact/
 """
     return HttpResponse(content, content_type="text/markdown; charset=utf-8")
