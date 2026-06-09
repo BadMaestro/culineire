@@ -270,7 +270,7 @@
   appearance: none;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   min-height: 44px;
   padding: 0.7rem 0.9rem;
   border-radius: 999px;
