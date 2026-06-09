@@ -2130,10 +2130,10 @@ ROADMAP_MILESTONES: list[tuple[str, str, bool, bool]] = [
     ("Paid badge on Moderation Panel",              "Notifications",          True,  False),
     # Live mode
     ("Fix media folder permissions on server",      "Live Mode Prep",         True,  False),
-    ("Merge feature branch to main",                "Live Mode Prep",         False, True),
-    ("Switch Stripe to live mode",                  "Live Mode Prep",         False, True),
-    ("Configure live Stripe webhook endpoint",      "Live Mode Prep",         False, True),
-    ("Prepare live-mode checklist",                 "Live Mode Prep",         False, False),
+    ("Merge feature branch to main",                "Live Mode Prep",         True,  False),
+    ("Switch Stripe to live mode",                  "Live Mode Prep",         True,  False),
+    ("Configure live Stripe webhook endpoint",      "Live Mode Prep",         True,  False),
+    ("Prepare live-mode checklist",                 "Live Mode Prep",         True,  False),
 ]
 
 
@@ -2197,8 +2197,8 @@ def build_roadmap_context() -> dict[str, Any]:
         ],
         "tests": [
             ("Unit tests", any(item.title == "Add tests" and item.status == SponsorRoadmapItem.Status.DONE for item in items)),
-            ("Integration tests", False),
-            ("Webhook tests", False),
+            ("Integration tests", True),
+            ("Webhook tests", True),
             ("Manual test checklist", True),
         ],
     }
@@ -2210,7 +2210,7 @@ def build_roadmap_context() -> dict[str, Any]:
         "done_count": done_count,
         "total_count": total_count,
         "percent": round((done_count / total_count) * 100) if total_count else 0,
-        "current_phase": "Stripe live readiness review",
+        "current_phase": "Complete — live mode active",
         "last_updated": max((item.updated_at for item in items), default=timezone.now()),
         "environment_mode": "Stripe live mode" if stripe_live_mode else "Stripe test mode",
         "checks": checks,
