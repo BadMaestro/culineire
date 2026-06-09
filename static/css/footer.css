@@ -276,14 +276,6 @@
     justify-content: center;
   }
 
-  /* Nav columns: centered headings + links */
-  .footer-col {
-    text-align: center;
-  }
-
-  .footer-col__nav {
-    align-items: center;
-  }
 
   /* Base strip: stack and centre */
   .footer-base__inner {
