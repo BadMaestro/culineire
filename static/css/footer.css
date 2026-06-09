@@ -277,11 +277,7 @@
   }
 
   .footer-col__nav {
-    align-items: center;
-  }
-
-  .footer-col__nav a {
-    text-align: left;
+    align-items: flex-start;
   }
 
   /* Base strip: stack and centre */
