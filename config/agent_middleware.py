@@ -41,6 +41,7 @@ class MarkdownNegotiationMiddleware:
             md = h.handle(html)
             response.content = md.encode("utf-8")
             response["Content-Type"] = "text/markdown; charset=utf-8"
+            response["X-Markdown-Tokens"] = str(max(1, len(md) // 4))
             if "Content-Length" in response:
                 del response["Content-Length"]
         except ImportError:

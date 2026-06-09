@@ -120,3 +120,5 @@ class MarkdownNegotiationTest(TestCase):
             self.skipTest("html2text not installed")
         r = self.client.get("/", HTTP_ACCEPT="text/markdown")
         self.assertIn("text/markdown", r["Content-Type"])
+        self.assertIn("X-Markdown-Tokens", r)
+        self.assertTrue(int(r["X-Markdown-Tokens"]) > 0)
