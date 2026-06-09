@@ -66,12 +66,14 @@ def agent_skills_index(request):
                 "type": "link",
                 "description": "Browse Irish recipes by category, difficulty, or search term",
                 "url": "https://culineire.ie/recipes/",
+                "sha256": "14e8f91dd2c55bc0a31d0d12fce36401aa7fa67d0c563208bfffc3b672c02b81",
             },
             {
                 "name": "browse-articles",
                 "type": "link",
                 "description": "Read articles about Irish food culture, history, and ingredients",
                 "url": "https://culineire.ie/articles/",
+                "sha256": "3ba168af7d266a3b18a952f304f8d1357796ad95a38c3090876f5fc42a5b135d",
             },
         ],
     }

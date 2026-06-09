@@ -46,6 +46,13 @@ class AgentSkillsIndexTest(TestCase):
         names = [s["name"] for s in data["skills"]]
         self.assertIn("browse-recipes", names)
 
+    def test_skills_have_sha256(self):
+        r = self.client.get("/.well-known/agent-skills/index.json")
+        data = json.loads(r.content)
+        for skill in data["skills"]:
+            self.assertIn("sha256", skill)
+            self.assertEqual(len(skill["sha256"]), 64)
+
 
 class AuthMdTest(TestCase):
     def test_returns_markdown(self):
