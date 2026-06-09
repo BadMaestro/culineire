@@ -246,14 +246,16 @@
     padding: 2rem 0 1.5rem;
   }
 
-  /* Brand spans full width, nav cols sit side-by-side below */
+  /* Brand full-width, nav cols auto-sized and centred as a pair */
   .footer-main__grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 1.75rem 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.75rem 3rem;
   }
 
   .footer-brand {
-    grid-column: 1 / -1;
+    flex: 0 0 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
