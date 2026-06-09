@@ -2,6 +2,9 @@ _LINK_HEADERS = ", ".join([
     '</.well-known/api-catalog>; rel="api-catalog"',
     '</.well-known/mcp/server-card.json>; rel="mcp-server-card"',
     '</.well-known/agent-skills/index.json>; rel="agent-skills"',
+    '</.well-known/oauth-protected-resource>; rel="oauth-protected-resource"',
+    '</.well-known/oauth-authorization-server>; rel="oauth-authorization-server"',
+    '</auth.md>; rel="auth-md"',
 ])
 
 

@@ -109,6 +109,8 @@ class AgentLinkHeadersTest(TestCase):
         link = r["Link"]
         self.assertIn("api-catalog", link)
         self.assertIn("mcp-server-card", link)
+        self.assertIn("oauth-protected-resource", link)
+        self.assertIn("auth-md", link)
 
     def test_link_header_on_404(self):
         r = self.client.get("/this-page-does-not-exist-xyz/")
