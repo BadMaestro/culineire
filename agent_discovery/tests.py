@@ -61,9 +61,11 @@ class AuthMdTest(TestCase):
         self.assertIn("text/markdown", r["Content-Type"])
         self.assertIn(b"CulinEire", r.content)
 
-    def test_has_auth_md_heading(self):
+    def test_has_yaml_frontmatter(self):
         r = self.client.get("/auth.md")
-        self.assertIn(b"# Auth.md", r.content)
+        self.assertTrue(r.content.startswith(b"---"))
+        self.assertIn(b"agent_auth:", r.content)
+        self.assertIn(b"oauth_protected_resource:", r.content)
 
 
 class OAuthProtectedResourceTest(TestCase):

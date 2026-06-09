@@ -121,30 +121,30 @@ def oauth_authorization_server(request):
 
 
 def auth_md(request):
-    content = """# auth.md
+    content = """---
+agent_auth:
+  skill: https://isitagentready.com/.well-known/agent-skills/auth-md/SKILL.md
+  register_uri: null
+  identity_types_supported:
+    - anonymous
+  anonymous:
+    credential_types_supported: []
+    claim_uri: null
+  registration_required: false
+  access_type: public
+  oauth_protected_resource: https://culineire.ie/.well-known/oauth-protected-resource
+  notes: >
+    CulinEire is a fully public website. No registration, authentication,
+    or credentials are required to access recipes, articles, or any other
+    public content. AI agents may access all public URLs freely.
+---
+
+# Auth.md
 
 ## CulinEire — Agent Access Guide
 
 CulinEire (https://culineire.ie) is a public Irish food and recipe website
 celebrating Irish culinary heritage.
-
-## agent_auth
-
-```yaml
-skill: https://isitagentready.com/.well-known/agent-skills/auth-md/SKILL.md
-register_uri: none
-identity_types_supported:
-  - anonymous
-anonymous:
-  credential_types_supported: []
-  claim_uri: none
-registration_required: false
-access_type: public
-notes: >
-  CulinEire is a fully public website. No registration, authentication,
-  or credentials are required to access recipes, articles, or any other
-  public content. AI agents may access all public URLs freely.
-```
 
 ## Access Policy
 
