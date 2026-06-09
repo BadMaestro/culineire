@@ -66,6 +66,7 @@ class AuthMdTest(TestCase):
         self.assertTrue(r.content.startswith(b"---"))
         self.assertIn(b"agent_auth:", r.content)
         self.assertIn(b"oauth_protected_resource:", r.content)
+        self.assertIn(b"# auth.md", r.content)
 
 
 class OAuthProtectedResourceTest(TestCase):

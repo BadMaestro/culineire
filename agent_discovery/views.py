@@ -139,7 +139,7 @@ agent_auth:
     public content. AI agents may access all public URLs freely.
 ---
 
-# Auth.md
+# auth.md
 
 ## CulinEire — Agent Access Guide
 
