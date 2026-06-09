@@ -82,14 +82,12 @@ def oauth_protected_resource(request):
     data = {
         "resource": "https://culineire.ie",
         "resource_name": "CulinEire",
-        "resource_documentation": "https://culineire.ie/about/",
-        "authorization_servers": [],
+        "resource_documentation": "https://culineire.ie/auth.md",
+        "authorization_servers": ["https://culineire.ie"],
         "scopes_supported": [],
-        "bearer_methods_supported": [],
-        "description": (
-            "CulinEire is a public website. All content is accessible without "
-            "authentication. No OAuth tokens are required to read recipes or articles."
-        ),
+        "bearer_methods_supported": ["header"],
+        "introspection_endpoint_auth_methods_supported": [],
+        "dpop_signing_alg_values_supported": [],
     }
     return _json(data)
 
@@ -97,21 +95,31 @@ def oauth_protected_resource(request):
 def oauth_authorization_server(request):
     data = {
         "issuer": "https://culineire.ie",
-        "service_documentation": "https://culineire.ie/about/",
+        "service_documentation": "https://culineire.ie/auth.md",
         "ui_locales_supported": ["en"],
         "op_policy_uri": "https://culineire.ie/privacy/",
         "grant_types_supported": [],
         "response_types_supported": [],
-        "description": (
-            "CulinEire does not operate an OAuth authorization server. "
-            "All public content is freely accessible without authentication."
-        ),
+        "agent_auth": {
+            "skill": "https://isitagentready.com/.well-known/agent-skills/auth-md/SKILL.md",
+            "register_uri": None,
+            "identity_types_supported": ["anonymous"],
+            "anonymous": {
+                "credential_types_supported": [],
+                "claim_uri": None,
+            },
+            "registration_required": False,
+            "notes": (
+                "CulinEire is a fully public website. No registration, authentication, "
+                "or credentials are required. AI agents may access all public URLs freely."
+            ),
+        },
     }
     return _json(data)
 
 
 def auth_md(request):
-    content = """# Auth.md
+    content = """# auth.md
 
 ## CulinEire — Agent Access Guide
 
@@ -120,15 +128,21 @@ celebrating Irish culinary heritage.
 
 ## agent_auth
 
+```yaml
+skill: https://isitagentready.com/.well-known/agent-skills/auth-md/SKILL.md
 register_uri: none
-identity_types: none
-credential_types: none
-access_type: public
+identity_types_supported:
+  - anonymous
+anonymous:
+  credential_types_supported: []
+  claim_uri: none
 registration_required: false
+access_type: public
 notes: >
   CulinEire is a fully public website. No registration, authentication,
   or credentials are required to access recipes, articles, or any other
   public content. AI agents may access all public URLs freely.
+```
 
 ## Access Policy
 
@@ -151,6 +165,7 @@ content may be used for training, summarisation, or other purposes.
 | MCP Server Card | /.well-known/mcp/server-card.json | MCP discovery |
 | Agent Skills | /.well-known/agent-skills/index.json | Available agent actions |
 | OAuth Resource | /.well-known/oauth-protected-resource | Resource metadata |
+| Auth.md | /auth.md | Agent authentication guide |
 
 ## Authentication
 

@@ -66,10 +66,15 @@ class OAuthProtectedResourceTest(TestCase):
         data = json.loads(r.content)
         self.assertEqual(data["resource"], "https://culineire.ie")
 
-    def test_no_auth_servers_declared(self):
+    def test_bearer_methods_includes_header(self):
         r = self.client.get("/.well-known/oauth-protected-resource")
         data = json.loads(r.content)
-        self.assertEqual(data["authorization_servers"], [])
+        self.assertIn("header", data["bearer_methods_supported"])
+
+    def test_authorization_servers_lists_issuer(self):
+        r = self.client.get("/.well-known/oauth-protected-resource")
+        data = json.loads(r.content)
+        self.assertIn("https://culineire.ie", data["authorization_servers"])
 
 
 class OAuthAuthorizationServerTest(TestCase):
@@ -78,6 +83,12 @@ class OAuthAuthorizationServerTest(TestCase):
         self.assertEqual(r.status_code, 200)
         data = json.loads(r.content)
         self.assertIn("issuer", data)
+
+    def test_has_agent_auth_block(self):
+        r = self.client.get("/.well-known/oauth-authorization-server")
+        data = json.loads(r.content)
+        self.assertIn("agent_auth", data)
+        self.assertIn("identity_types_supported", data["agent_auth"])
 
     def test_openid_configuration_alias(self):
         r = self.client.get("/.well-known/openid-configuration")
