@@ -1,5 +1,7 @@
 # External Setup Checklist
 
+**Status: OPEN — pending owner action on third-party accounts.**
+
 These steps require access to third-party accounts. The repository can support
 them, but cannot complete account verification or token creation by itself.
 

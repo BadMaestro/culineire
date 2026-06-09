@@ -1,5 +1,7 @@
 # Month 1 Decisions
 
+**Status: MIXED — Content Automation complete. Structured Data implemented (manual re-checks ongoing). Image Optimisation, Ads, and Affiliate Links deferred pending traffic.**
+
 This document records Month 1 choices that should not be re-litigated by
 external tooling unless the project context changes.
 

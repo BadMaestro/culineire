@@ -1,5 +1,7 @@
 # Stripe Sponsors Manual Test Checklist
 
+**Status: CLOSED — Live switch authorised and completed by project owner (2026-06-08). Test checklist passed. This document is retained as a reference.**
+
 For live readiness and owner/accountant review, also use `docs/sponsor_stripe_live_readiness.md`. This checklist remains the manual smoke-test checklist; it is not the live Stripe switch.
 
 ## Test Mode
