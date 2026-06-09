@@ -252,6 +252,7 @@
 .ce-nav__auth {
   display: grid;
   gap: 0.45rem;
+  justify-items: start;
 }
 
 .ce-nav__separator {
@@ -268,8 +269,8 @@
 .ce-nav__status,
 .ce-nav__button {
   appearance: none;
-  display: flex;
-  width: 100%;
+  display: inline-flex;
+  width: auto;
   align-items: center;
   justify-content: flex-start;
   min-height: 44px;
@@ -702,7 +703,6 @@
   .ce-nav__text,
   .ce-nav__status,
   .ce-nav__button {
-    width: auto;
     min-height: 0;
     padding: 0.42rem 0.52rem;
     font-size: 0.93rem;
