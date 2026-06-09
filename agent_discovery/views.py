@@ -86,7 +86,7 @@ def oauth_protected_resource(request):
         "resource_name": "CulinEire",
         "resource_documentation": "https://culineire.ie/auth.md",
         "authorization_servers": ["https://culineire.ie"],
-        "scopes_supported": [],
+        "scopes_supported": ["public"],
         "bearer_methods_supported": ["header"],
         "introspection_endpoint_auth_methods_supported": [],
         "dpop_signing_alg_values_supported": [],
