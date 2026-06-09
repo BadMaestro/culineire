@@ -250,6 +250,7 @@
   .footer-main__grid {
     grid-template-columns: 1fr 1fr;
     gap: 1.75rem 1.5rem;
+    padding: 0 0.75rem;
   }
 
   .footer-brand {
