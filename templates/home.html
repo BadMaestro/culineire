@@ -51,12 +51,21 @@
             <p class="hero-subtitle">CulinEire brings together heritage dishes, vintage cookbook finds and modern seasonal cooking, all shaped for a real home kitchen.</p>
 
             <div class="hero__actions">
-                {% if can_view_amuse_bouche_public_area %}
-                <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
-                {% endif %}
-                <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
-                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
-                <a class="btn-secondary" href="{% url 'sponsors:puzzle' %}">Sponsors</a>
+                <button aria-expanded="false" aria-label="Show navigation" class="hero__burger" type="button">
+                    <svg aria-hidden="true" fill="none" height="18" viewBox="0 0 20 18" width="20">
+                        <rect fill="currentColor" height="2" rx="1" width="20" y="0"/>
+                        <rect fill="currentColor" height="2" rx="1" width="20" y="8"/>
+                        <rect fill="currentColor" height="2" rx="1" width="20" y="16"/>
+                    </svg>
+                </button>
+                <div class="hero__actions-list">
+                    {% if can_view_amuse_bouche_public_area %}
+                    <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
+                    {% endif %}
+                    <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
+                    <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
+                    <a class="btn-secondary" href="{% url 'sponsors:puzzle' %}">Sponsors</a>
+                </div>
             </div>
         </div>
     </div>
@@ -301,4 +310,16 @@
 
 {% block extra_js %}
 <script src="{% static 'js/hero_switcher.js' %}"></script>
+<script>
+(function () {
+  var btn = document.querySelector('.hero__burger');
+  if (!btn) return;
+  btn.addEventListener('click', function () {
+    var actions = btn.closest('.hero__actions');
+    var open = actions.classList.toggle('is-open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    btn.setAttribute('aria-label', open ? 'Hide navigation' : 'Show navigation');
+  });
+}());
+</script>
 {% endblock %}
