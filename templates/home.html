@@ -310,7 +310,7 @@
 
 {% block extra_js %}
 <script src="{% static 'js/hero_switcher.js' %}"></script>
-<script>
+<script nonce="{{ request.csp_nonce }}">
 (function () {
   var btn = document.querySelector('.hero__burger');
   if (!btn) return;
