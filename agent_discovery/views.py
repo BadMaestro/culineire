@@ -78,8 +78,42 @@ def agent_skills_index(request):
     return _json(data)
 
 
+def oauth_protected_resource(request):
+    data = {
+        "resource": "https://culineire.ie",
+        "resource_name": "CulinEire",
+        "resource_documentation": "https://culineire.ie/about/",
+        "authorization_servers": [],
+        "scopes_supported": [],
+        "bearer_methods_supported": [],
+        "description": (
+            "CulinEire is a public website. All content is accessible without "
+            "authentication. No OAuth tokens are required to read recipes or articles."
+        ),
+    }
+    return _json(data)
+
+
+def oauth_authorization_server(request):
+    data = {
+        "issuer": "https://culineire.ie",
+        "service_documentation": "https://culineire.ie/about/",
+        "ui_locales_supported": ["en"],
+        "op_policy_uri": "https://culineire.ie/privacy/",
+        "grant_types_supported": [],
+        "response_types_supported": [],
+        "description": (
+            "CulinEire does not operate an OAuth authorization server. "
+            "All public content is freely accessible without authentication."
+        ),
+    }
+    return _json(data)
+
+
 def auth_md(request):
-    content = """# CulinEire — Agent Access Guide
+    content = """# Auth.md
+
+## CulinEire — Agent Access Guide
 
 CulinEire (https://culineire.ie) is a public Irish food and recipe website.
 

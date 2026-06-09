@@ -453,5 +453,16 @@
 <script src="{% static 'js/profanity-check.js' %}"></script>
 <script src="{% static 'js/install_app.js' %}"></script>
 {% block extra_scripts %}{% endblock %}
+<script nonce="{{ request.csp_nonce }}">
+if(typeof navigator.modelContext!=='undefined'){
+  navigator.modelContext.provideContext({
+    tools:[
+      {name:"search-recipes",description:"Search Irish recipes on CulinEire by keyword",inputSchema:{type:"object",properties:{query:{type:"string",description:"Search term e.g. 'soda bread' or 'beef stew'"}},required:["query"]},execute:async function(i){window.location.href="/recipes/?q="+encodeURIComponent(i.query);return{success:true};}},
+      {name:"browse-articles",description:"Browse Irish food culture articles on CulinEire",inputSchema:{type:"object",properties:{}},execute:async function(){window.location.href="/articles/";return{success:true};}},
+      {name:"view-recipe",description:"Navigate to a specific recipe by its URL slug",inputSchema:{type:"object",properties:{slug:{type:"string",description:"Recipe URL slug"}},required:["slug"]},execute:async function(i){window.location.href="/recipes/"+i.slug+"/";return{success:true};}}
+    ]
+  });
+}
+</script>
 </body>
 </html>

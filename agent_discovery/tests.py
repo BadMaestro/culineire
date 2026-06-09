@@ -54,6 +54,35 @@ class AuthMdTest(TestCase):
         self.assertIn("text/markdown", r["Content-Type"])
         self.assertIn(b"CulinEire", r.content)
 
+    def test_has_auth_md_heading(self):
+        r = self.client.get("/auth.md")
+        self.assertIn(b"# Auth.md", r.content)
+
+
+class OAuthProtectedResourceTest(TestCase):
+    def test_returns_json(self):
+        r = self.client.get("/.well-known/oauth-protected-resource")
+        self.assertEqual(r.status_code, 200)
+        data = json.loads(r.content)
+        self.assertEqual(data["resource"], "https://culineire.ie")
+
+    def test_no_auth_servers_declared(self):
+        r = self.client.get("/.well-known/oauth-protected-resource")
+        data = json.loads(r.content)
+        self.assertEqual(data["authorization_servers"], [])
+
+
+class OAuthAuthorizationServerTest(TestCase):
+    def test_returns_json(self):
+        r = self.client.get("/.well-known/oauth-authorization-server")
+        self.assertEqual(r.status_code, 200)
+        data = json.loads(r.content)
+        self.assertIn("issuer", data)
+
+    def test_openid_configuration_alias(self):
+        r = self.client.get("/.well-known/openid-configuration")
+        self.assertEqual(r.status_code, 200)
+
 
 class AgentLinkHeadersTest(TestCase):
     def test_link_header_on_homepage(self):
