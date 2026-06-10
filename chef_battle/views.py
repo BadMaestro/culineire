@@ -5,7 +5,6 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError
-from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -18,6 +17,17 @@ from recipes.models import RecipeAuthor
 from .access import chef_battle_guard
 from .forms import BattleChallengeForm, BattleEntryForm
 from .models import Battle, BattleChallenge, BattleEvent, BattleVote, ChefBattleProfile
+from .selectors import (
+    get_active_battles,
+    get_battle_vote_counts,
+    get_expired_active_battles,
+    get_public_events,
+    get_rankings,
+    get_received_challenges,
+    get_recent_completed_battles,
+    get_sent_challenges,
+    get_top_profiles,
+)
 from .services import (
     accept_challenge,
     calculate_battle_result,
@@ -170,30 +180,13 @@ def battlefield_progress(request):
 
 @chef_battle_guard
 def battle_home(request):
-    now = timezone.now()
-    expired_battles = Battle.objects.filter(status__in=[Battle.Status.ACTIVE, Battle.Status.VOTING], end_time__lte=now)
-    for battle in expired_battles[:20]:
+    for battle in get_expired_active_battles():
         calculate_battle_result(battle)
 
-    active_battles = (
-        Battle.objects.select_related("challenger", "opponent", "winner")
-        .filter(status__in=[Battle.Status.ACTIVE, Battle.Status.VOTING, Battle.Status.SCHEDULED])
-        .order_by("end_time")[:12]
-    )
-    recent_battles = (
-        Battle.objects.select_related("challenger", "opponent", "winner")
-        .filter(status=Battle.Status.COMPLETED)
-        .order_by("-updated_at")[:10]
-    )
-    leaders = (
-        ChefBattleProfile.objects.select_related("author")
-        .order_by("-rating", "-wins", "author__name")[:10]
-    )
-    events = (
-        BattleEvent.objects.select_related("battle", "actor", "target")
-        .filter(is_public=True)
-        .order_by("-created_at")[:12]
-    )
+    active_battles = get_active_battles()
+    recent_battles = get_recent_completed_battles()
+    leaders = get_top_profiles()
+    events = get_public_events()
 
     return render(request, "chef_battle/home.html", {
         "active_battles": active_battles,
@@ -211,8 +204,8 @@ def challenge_list(request):
         messages.error(request, "Author profile required before entering Chef Battle.")
         return redirect("home")
 
-    sent = BattleChallenge.objects.select_related("opponent").filter(challenger=author).order_by("-created_at")[:20]
-    received = BattleChallenge.objects.select_related("challenger").filter(opponent=author).order_by("-created_at")[:20]
+    sent = get_sent_challenges(author)
+    received = get_received_challenges(author)
     return render(request, "chef_battle/challenge_list.html", {
         "author": author,
         "sent_challenges": sent,
@@ -295,10 +288,7 @@ def battle_detail(request, pk):
         reveal_entries_if_ready(battle)
         battle.refresh_from_db()
 
-    vote_counts = {
-        row["voted_for"]: row["total"]
-        for row in battle.votes.values("voted_for").annotate(total=Count("id"))
-    }
+    vote_counts = get_battle_vote_counts(battle)
     entries = battle.entries.select_related("author", "recipe", "article").order_by("submitted_at")
     events = battle.events.select_related("actor", "target").filter(is_public=True).order_by("-created_at")[:20]
     viewer_author = get_author_for_user(request.user) if request.user.is_authenticated else None
@@ -413,5 +403,5 @@ def battle_vote(request, pk):
 
 @chef_battle_guard
 def rankings(request):
-    profiles = ChefBattleProfile.objects.select_related("author").order_by("-rating", "-wins", "author__name")[:100]
+    profiles = get_rankings()
     return render(request, "chef_battle/rankings.html", {"profiles": profiles})
