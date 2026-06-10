@@ -287,7 +287,7 @@ class AwardMovesTests(TestCase):
         from .services import award_moves, MOVES_RECIPE_APPROVED
         from .models import BattleMoveTransaction, ChefBattleProfile
         award_moves(self.chef, MOVES_RECIPE_APPROVED, "Recipe approved")
-        profile = ChefBattleProfile.objects.get(chef=self.chef)
+        profile = ChefBattleProfile.objects.get(author=self.chef)
         self.assertEqual(profile.battle_moves, MOVES_RECIPE_APPROVED)
         self.assertEqual(BattleMoveTransaction.objects.filter(chef=self.chef).count(), 1)
 
@@ -296,7 +296,7 @@ class AwardMovesTests(TestCase):
         from .models import ChefBattleProfile
         for i in range(10):
             award_moves(self.chef, 3, "Recipe approved")
-        profile = ChefBattleProfile.objects.get(chef=self.chef)
+        profile = ChefBattleProfile.objects.get(author=self.chef)
         self.assertLessEqual(profile.battle_moves, MOVES_CONTENT_DAILY_CAP)
 
 
@@ -340,7 +340,7 @@ class NotificationsPollViewTests(TestCase):
     def test_poll_requires_login(self):
         url = reverse("chef_battle:notifications_poll")
         resp = self.client.get(url)
-        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.status_code, 404)  # chef_battle_guard returns 404 for anon
 
     def test_poll_returns_json_for_staff(self):
         self.client.login(username="poll-user", password="pw")
