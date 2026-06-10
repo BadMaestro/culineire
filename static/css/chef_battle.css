@@ -352,3 +352,37 @@
     min-width: 42rem;
   }
 }
+
+/* ── Moves ledger ────────────────────────────────────────────────────────── */
+.battle-moves-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.battle-moves-summary__card {
+  background: #f5f0e8;
+  border: 1px solid rgba(160,140,100,.2);
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
+  text-align: center;
+}
+.battle-moves-summary__label {
+  font-size: .78rem;
+  color: #9a8a78;
+  margin: 0 0 .3rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.battle-moves-summary__value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #184c3a;
+  margin: 0;
+}
+.battle-table__head--3col,
+.battle-table__row--3col {
+  grid-template-columns: minmax(8rem, 1fr) minmax(10rem, 2fr) 5rem;
+}
+.battle-moves__positive { color: #184c3a; }
+.battle-moves__negative { color: #a03131; }

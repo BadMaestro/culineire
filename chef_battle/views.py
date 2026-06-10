@@ -420,3 +420,41 @@ def battle_vote(request, pk):
 def rankings(request):
     profiles = get_rankings()
     return render(request, "chef_battle/rankings.html", {"profiles": profiles})
+
+
+@chef_battle_guard
+@login_required
+def my_moves(request):
+    from django.db.models import Sum
+    from .models import BattleMoveTransaction
+    from .services import (
+        MOVES_CONTENT_DAILY_CAP, MOVES_CONTENT_WEEKLY_CAP,
+        _content_moves_total, _CONTENT_REASONS,
+    )
+
+    author = get_author_for_user(request.user)
+    if not author:
+        messages.error(request, "Author profile required.")
+        return redirect("home")
+
+    profile = get_object_or_404(ChefBattleProfile, author=author)
+    transactions = (
+        BattleMoveTransaction.objects
+        .filter(chef=author)
+        .order_by("-created_at")[:100]
+    )
+
+    now = timezone.now()
+    day_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    week_start = (now - timezone.timedelta(days=now.weekday())).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+
+    return render(request, "chef_battle/my_moves.html", {
+        "profile": profile,
+        "transactions": transactions,
+        "daily_earned": _content_moves_total(author, day_start),
+        "weekly_earned": _content_moves_total(author, week_start),
+        "daily_cap": MOVES_CONTENT_DAILY_CAP,
+        "weekly_cap": MOVES_CONTENT_WEEKLY_CAP,
+    })

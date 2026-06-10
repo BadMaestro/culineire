@@ -452,13 +452,67 @@ MOVES_ARTICLE_APPROVED = 2
 MOVES_BATTLE_WIN = 5
 MOVES_BATTLE_PARTICIPATION = 1
 
+# Anti-farming caps: max moves earned from content approval per day/week
+MOVES_CONTENT_DAILY_CAP = 15
+MOVES_CONTENT_WEEKLY_CAP = 50
+_CONTENT_REASONS = {"Recipe approved", "Article approved"}
+
+
+def _content_moves_earned(author, period_start) -> int:
+    """Sum of move amounts from content approval since period_start."""
+    from .models import BattleMoveTransaction
+    return (
+        BattleMoveTransaction.objects.filter(
+            chef=author,
+            reason__in=_CONTENT_REASONS,
+            created_at__gte=period_start,
+        )
+        .values_list("amount", flat=True)
+        .__class__(
+            BattleMoveTransaction.objects.filter(
+                chef=author,
+                reason__in=_CONTENT_REASONS,
+                created_at__gte=period_start,
+            )
+        )
+    )
+
+
+def _content_moves_total(author, period_start) -> int:
+    from django.db.models import Sum
+    from .models import BattleMoveTransaction
+    result = BattleMoveTransaction.objects.filter(
+        chef=author,
+        reason__in=_CONTENT_REASONS,
+        created_at__gte=period_start,
+    ).aggregate(total=Sum("amount"))["total"]
+    return result or 0
+
 
 def award_moves(author, amount: int, reason: str) -> None:
-    """Credit battle moves to a chef and update their profile. Silently no-ops if no profile."""
+    """Credit battle moves to a chef and update their profile.
+
+    Content-approval reasons are capped (daily + weekly anti-farming).
+    Silently no-ops on any error.
+    """
     if amount == 0:
         return
     try:
         from .models import BattleMoveTransaction
+        now = timezone.now()
+
+        if reason in _CONTENT_REASONS:
+            day_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            week_start = now - timezone.timedelta(days=now.weekday())
+            week_start = week_start.replace(hour=0, minute=0, second=0, microsecond=0)
+            daily_earned = _content_moves_total(author, day_start)
+            weekly_earned = _content_moves_total(author, week_start)
+            daily_remaining = max(0, MOVES_CONTENT_DAILY_CAP - daily_earned)
+            weekly_remaining = max(0, MOVES_CONTENT_WEEKLY_CAP - weekly_earned)
+            amount = min(amount, daily_remaining, weekly_remaining)
+            if amount <= 0:
+                return
+
         profile = get_or_create_battle_profile(author)
         profile.battle_moves = max(0, profile.battle_moves + amount)
         profile.save(update_fields=["battle_moves", "updated_at"])

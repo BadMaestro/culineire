@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Battle Moves | CulinEire{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="page-section">
+  <div class="container battle-page">
+    <div class="battle-section-header">
+      <h1>My Battle Moves</h1>
+      <a class="btn btn--secondary" href="{% url 'chef_battle:home' %}">Arena</a>
+    </div>
+
+    <div class="battle-moves-summary">
+      <div class="battle-moves-summary__card">
+        <p class="battle-moves-summary__label">Total moves</p>
+        <p class="battle-moves-summary__value">{{ profile.battle_moves }}</p>
+      </div>
+      <div class="battle-moves-summary__card">
+        <p class="battle-moves-summary__label">Earned today (content)</p>
+        <p class="battle-moves-summary__value">{{ daily_earned }} / {{ daily_cap }}</p>
+      </div>
+      <div class="battle-moves-summary__card">
+        <p class="battle-moves-summary__label">Earned this week (content)</p>
+        <p class="battle-moves-summary__value">{{ weekly_earned }} / {{ weekly_cap }}</p>
+      </div>
+      <div class="battle-moves-summary__card">
+        <p class="battle-moves-summary__label">Rank</p>
+        <p class="battle-moves-summary__value">{{ profile.get_rank_display }}</p>
+      </div>
+    </div>
+
+    <div class="battle-section-header battle-section-header--spaced">
+      <h2>Move History</h2>
+    </div>
+
+    {% if transactions %}
+    <div class="battle-table">
+      <div class="battle-table__head battle-table__head--3col">
+        <span>When</span>
+        <span>Reason</span>
+        <span>Moves</span>
+      </div>
+      {% for tx in transactions %}
+      <div class="battle-table__row battle-table__row--3col">
+        <span>{{ tx.created_at|date:"j M Y H:i" }}</span>
+        <span>{{ tx.reason }}</span>
+        <strong class="{% if tx.amount > 0 %}battle-moves__positive{% else %}battle-moves__negative{% endif %}">
+          {% if tx.amount > 0 %}+{% endif %}{{ tx.amount }}
+        </strong>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <p>No moves yet. Get a recipe or article approved to earn your first battle moves.</p>
+    </div>
+    {% endif %}
+
+    <div class="battle-muted" style="margin-top:1.5rem;font-size:.85rem;">
+      <strong>How to earn moves:</strong>
+      Recipe approved = +3 &nbsp;·&nbsp;
+      Article approved = +2 &nbsp;·&nbsp;
+      Battle participation = +1 &nbsp;·&nbsp;
+      Battle win = +5
+    </div>
+  </div>
+</section>
+{% endblock %}

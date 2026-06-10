@@ -14,4 +14,5 @@ urlpatterns = [
     path("battles/<int:pk>/", views.battle_detail, name="battle_detail"),
     path("battles/<int:pk>/submit/", views.battle_entry_submit, name="battle_entry_submit"),
     path("battles/<int:pk>/vote/", views.battle_vote, name="battle_vote"),
+    path("my-moves/", views.my_moves, name="my_moves"),
 ]
