@@ -121,6 +121,8 @@ def remember_previous_ab_status(sender, instance, **kwargs):
 @receiver(post_save, sender=AmuseBouche)
 def publish_ab_to_telegram_on_approval(sender, instance, **kwargs):
     del sender, kwargs
+    if instance.is_announcement:
+        return
     previous_status = getattr(instance, "_previous_status", None)
     if instance.status != AmuseBouche.Status.APPROVED or previous_status == AmuseBouche.Status.APPROVED:
         return
@@ -144,6 +146,8 @@ def _hide_auto_entry(event_key):
 @receiver(post_save, sender=AmuseBouche)
 def create_newsfeed_entry_on_approval(sender, instance, **kwargs):
     del sender, kwargs
+    if instance.is_announcement:
+        return
     event_key = f"amuse_bouche_published:{instance.pk}"
     if instance.status != AmuseBouche.Status.APPROVED:
         _hide_auto_entry(event_key)
