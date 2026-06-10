@@ -85,8 +85,12 @@ def _find_author_for_user(user):
 def header_author(request):
     user = getattr(request, "user", None)
     flag_on = getattr(settings, "CHEF_BATTLE_ENABLED", False)
+    _author = getattr(user, "recipe_author_profile", None) if user and user.is_authenticated else None
     chef_battle_enabled = flag_on or bool(
-        user and user.is_authenticated and (user.is_staff or user.is_superuser)
+        user and user.is_authenticated and (
+            user.is_staff or user.is_superuser
+            or (_author and _author.has_bearseeker_privileges)
+        )
     )
 
     try:

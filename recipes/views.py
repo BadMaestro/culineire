@@ -30,6 +30,7 @@ from django_ratelimit.decorators import ratelimit
 
 from accounts.views import (
     can_grant_bearseeker_privileges as _can_grant_bearseeker_privileges,
+    can_grant_superuser_privileges as _can_grant_superuser_privileges,
     can_revoke_superuser_privileges as _can_revoke_superuser_privileges,
     is_moderator,
 )
@@ -715,8 +716,12 @@ def home(request):
     active_battles = []
     flag_on = getattr(settings, "CHEF_BATTLE_ENABLED", False)
     user = request.user
+    _author = getattr(user, "recipe_author_profile", None) if user and user.is_authenticated else None
     chef_battle_enabled = flag_on or bool(
-        user and user.is_authenticated and (user.is_staff or user.is_superuser)
+        user and user.is_authenticated and (
+            user.is_staff or user.is_superuser
+            or (_author and _author.has_bearseeker_privileges)
+        )
     )
     if chef_battle_enabled:
         try:
@@ -2222,6 +2227,7 @@ def moderation_panel(request):
         "registered_authors": registered_authors,
         "author_query": author_query,
         "can_grant_bearseeker_privileges": _can_grant_bearseeker_privileges(request.user),
+        "can_grant_superuser_privileges": _can_grant_superuser_privileges(request.user),
         "can_revoke_superuser_privileges": _can_revoke_superuser_privileges(request.user),
         "can_view_site_update_plan": _can_view_site_update_plan(request.user),
         "bearseeker_super_users": bearseeker_super_users,

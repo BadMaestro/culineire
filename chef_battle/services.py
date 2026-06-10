@@ -20,13 +20,26 @@ logger = logging.getLogger(__name__)
 
 
 def _notify_chef(sender_author, recipient_author, subject: str, body: str) -> None:
-    """Send an in-site message notification. Silently skips if users are missing."""
+    """Send an in-site message and email notification. Silently skips if users are missing."""
     try:
         from messaging.models import Message
+        from config.email_utils import build_absolute_url, sanitize_email_subject, send_template_mail
         sender = getattr(sender_author, "user", None)
         recipient = getattr(recipient_author, "user", None)
         if sender and recipient and sender != recipient:
             Message.objects.create(sender=sender, recipient=recipient, subject=subject, body=body)
+            if recipient.email:
+                send_template_mail(
+                    subject=sanitize_email_subject(subject),
+                    template="message_notification",
+                    context={
+                        "subject": subject,
+                        "body": body,
+                        "inbox_url": build_absolute_url(reverse("chef_battle:challenge_list")),
+                    },
+                    recipient_list=[recipient.email],
+                    fail_silently=True,
+                )
     except Exception:
         logger.exception("Failed to send battle notification")
 

@@ -629,6 +629,12 @@
                                             <button class="mod-btn mod-btn--grant" name="action" onclick="return confirm('Grant CulinEire moderation privileges to {{ author.user.username }}?')" type="submit" value="grant_bearseeker">Grant (Bear)seeker Privileges</button>
                                         </form>
                                     {% endif %}
+                                    {% if can_grant_superuser_privileges and not author.user.is_superuser and author.slug != "greenbear" %}
+                                        <form action="{% url 'accounts:manage_author' author.slug %}" class="moderation-author-table-actions__grant" method="post">{% csrf_token %}
+                                            <input name="next" type="hidden" value="{{ request.get_full_path }}">
+                                            <button class="mod-btn mod-btn--delete" name="action" onclick="return confirm('Grant Django superuser privileges to {{ author.user.username }}? This gives full admin access.')" type="submit" value="grant_superuser">Grant Superuser Privileges</button>
+                                        </form>
+                                    {% endif %}
                                 </div>
                                 {% else %}
                                 <span class="moderation-authors-table__self">Current moderator</span>

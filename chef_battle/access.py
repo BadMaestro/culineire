@@ -10,12 +10,17 @@ def is_battle_visible(request) -> bool:
     """
     Chef's Battle is visible when:
     - CHEF_BATTLE_ENABLED is True (public launch), OR
-    - the user is staff or superuser (admin preview in any environment)
+    - the user is staff, superuser, or has bearseeker privileges (admin preview)
     """
     if getattr(settings, "CHEF_BATTLE_ENABLED", False):
         return True
     user = getattr(request, "user", None)
-    return bool(user and user.is_authenticated and (user.is_staff or user.is_superuser))
+    if not user or not user.is_authenticated:
+        return False
+    if user.is_staff or user.is_superuser:
+        return True
+    author = getattr(user, "recipe_author_profile", None)
+    return bool(author and author.has_bearseeker_privileges)
 
 
 def chef_battle_guard(view_func):
