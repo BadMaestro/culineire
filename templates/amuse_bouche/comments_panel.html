@@ -1,10 +1,8 @@
 {% load static %}
 <div class="ab-cmt-panel__header">
-  <h3 class="ab-cmt-panel__title">
+  <h3 class="ab-cmt-panel__title" data-ab-cmt-total="{{ total_count }}">
     Comments
-    {% with total=comments|length %}
-    {% if total %}<span class="ab-cmt-panel__count">{{ total }}</span>{% endif %}
-    {% endwith %}
+    {% if total_count %}<span class="ab-cmt-panel__count">{{ total_count }}</span>{% endif %}
   </h3>
   <button class="ab-cmt-panel__close" type="button"
           data-ab-cmt-close aria-label="Close comments">&#x2715;</button>

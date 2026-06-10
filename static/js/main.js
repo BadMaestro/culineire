@@ -618,7 +618,10 @@ document.addEventListener("DOMContentLoaded", () => {
       })
         .then(function (r) { return r.json(); })
         .then(function (data) {
-          if (data.ok) panel.innerHTML = data.html;
+          if (data.ok) {
+            panel.innerHTML = data.html;
+            updateFeedCount(slug, data.count);
+          }
         })
         .catch(function () {
           panel.innerHTML =

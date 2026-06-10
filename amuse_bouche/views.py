@@ -618,6 +618,7 @@ def comments_panel(request, slug):
             )
             .order_by("created_at")
         )
+    total = AmuseBoucheComment.objects.filter(amuse_bouche=item, is_deleted=False).count()
     html = render_to_string(
         "amuse_bouche/comments_panel.html",
         {
@@ -625,10 +626,10 @@ def comments_panel(request, slug):
             "comments": comments,
             "user": request.user,
             "can_moderate": is_moderator(request.user),
+            "total_count": total,
         },
         request=request,
     )
-    total = AmuseBoucheComment.objects.filter(amuse_bouche=item, is_deleted=False).count()
     return JsonResponse({"ok": True, "html": html, "count": total, "title": item.title})
 
 
