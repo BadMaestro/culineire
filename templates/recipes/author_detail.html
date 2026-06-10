@@ -96,6 +96,7 @@
 
             {% if battle_profile %}
             <div class="author-battle-summary__stats">
+                {% if battle_profile.has_crown %}<span class="author-battle-crown" title="Current Crown Holder">&#x1F451; Crown Holder</span>{% endif %}
                 <span><strong>{{ battle_profile.get_rank_display }}</strong> Rank</span>
                 <span><strong>{{ battle_profile.rating }}</strong> Rating</span>
                 <span><strong>{{ battle_profile.wins }}-{{ battle_profile.losses }}</strong> Wins-Losses</span>

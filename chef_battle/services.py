@@ -310,13 +310,19 @@ def calculate_battle_result(battle: Battle) -> Battle:
         winner_profile = get_or_create_battle_profile(winner)
         loser_profile = get_or_create_battle_profile(loser)
 
+        old_winner_rank = winner_profile.rank
+        old_loser_rank = loser_profile.rank
+
         rating_delta = 25
         winner_profile.wins += 1
         winner_profile.win_streak += 1
+        if winner_profile.win_streak > winner_profile.best_win_streak:
+            winner_profile.best_win_streak = winner_profile.win_streak
         winner_profile.rating += rating_delta
         winner_profile.reputation += 15
         winner_profile.battle_moves += 3
         winner_profile.seasonal_score += 10
+        winner_profile.crown_count += 1
         winner_profile.crown_until = timezone.now() + timezone.timedelta(hours=24)
         winner_profile.rank = rank_for_rating(winner_profile.rating)
         winner_profile.save()
@@ -331,8 +337,9 @@ def calculate_battle_result(battle: Battle) -> Battle:
         battle.winner = winner
         battle.loser = loser
         battle.status = Battle.Status.COMPLETED
+        battle.crown_awarded = True
         battle.result_reason = f"Public vote: {challenger_votes}-{opponent_votes}"
-        battle.save(update_fields=["winner", "loser", "status", "result_reason", "updated_at"])
+        battle.save(update_fields=["winner", "loser", "status", "crown_awarded", "result_reason", "updated_at"])
 
         create_battle_event(
             event_type=BattleEvent.EventType.BATTLE_COMPLETED,
@@ -342,5 +349,28 @@ def calculate_battle_result(battle: Battle) -> Battle:
             message=f"{winner.name} defeated {loser.name} in Chef Battle: {battle.theme}.",
             publish_to_news=True,
         )
+        create_battle_event(
+            event_type=BattleEvent.EventType.CROWN_AWARDED,
+            battle=battle,
+            actor=winner,
+            message=f"{winner.name} holds the Crown after winning: {battle.theme}.",
+            publish_to_news=True,
+        )
+        if winner_profile.rank != old_winner_rank:
+            create_battle_event(
+                event_type=BattleEvent.EventType.RANK_PROMOTED,
+                battle=battle,
+                actor=winner,
+                message=f"{winner.name} reached {winner_profile.get_rank_display()} rank.",
+                publish_to_news=True,
+            )
+        if loser_profile.rank != old_loser_rank:
+            create_battle_event(
+                event_type=BattleEvent.EventType.RANK_PROMOTED,
+                battle=battle,
+                actor=loser,
+                message=f"{loser.name} dropped to {loser_profile.get_rank_display()} rank.",
+                publish_to_news=True,
+            )
 
     return battle

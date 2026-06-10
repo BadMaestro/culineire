@@ -3928,3 +3928,55 @@
     aspect-ratio: 16 / 9;
   }
 }
+
+/* ── Author battle summary (author_detail.html) ─────────────────────────── */
+.author-battle-summary {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: #f5f0e8;
+  border: 1px solid rgba(160,140,100,.2);
+  border-radius: 16px;
+}
+.author-battle-summary__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.author-battle-summary__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6rem 1.4rem;
+  font-size: .9rem;
+  color: #4a3f32;
+}
+.author-battle-crown {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  background: #f0c040;
+  color: #3a2a10;
+  font-size: .78rem;
+  font-weight: 700;
+  padding: .2rem .7rem;
+  border-radius: 999px;
+  letter-spacing: .02em;
+  width: 100%;
+}
+.author-battle-summary__empty { color: #9a8a78; font-size: .9rem; }
+.author-battle-summary__list {
+  margin: .8rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+.author-battle-summary__list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: .85rem;
+  color: #5a4f42;
+}
