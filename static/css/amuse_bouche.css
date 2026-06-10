@@ -1777,6 +1777,16 @@
   margin-right: auto;
 }
 
+.ab-cmt-panel__error {
+  background: #fdf0f0;
+  border: 1px solid #f5c6c6;
+  border-radius: 7px;
+  color: #c0392b;
+  font-size: .82rem;
+  margin: .6rem 0 0;
+  padding: .6rem .8rem;
+}
+
 .ab-cmt-panel__login {
   color: #7a6e5c;
   font-size: .9rem;

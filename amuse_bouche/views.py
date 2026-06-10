@@ -657,6 +657,15 @@ def submit_comment(request, slug):
             return JsonResponse({"ok": False, "error": "too_long"}, status=400)
         messages.error(request, "Comment is too long (maximum 1000 characters).")
         return redirect(item.get_absolute_url())
+    from config.profanity import find_profanity
+    bad_words = find_profanity(body)
+    if bad_words:
+        quoted = ", ".join(f'"{w}"' for w in bad_words)
+        error_text = f"Your comment contains forbidden words: {quoted}. Please remove them."
+        if is_fetch:
+            return JsonResponse({"ok": False, "error": "profanity", "message": error_text}, status=400)
+        messages.error(request, error_text)
+        return redirect(item.get_absolute_url())
     # Optional parent for replies (only one level deep — no replies-to-replies)
     parent = None
     parent_id_raw = request.POST.get("parent_id", "").strip()

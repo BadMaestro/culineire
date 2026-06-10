@@ -1089,3 +1089,82 @@ class AmuseBoucheLegalComplianceTests(TestCase):
         item = AmuseBouche.objects.get(linked_article=self.article)
         edit_url = reverse("amuse_bouche:edit", kwargs={"slug": item.slug})
         self.assertRedirects(response, f"{edit_url}?from_article=1")
+
+
+@override_settings(TELEGRAM_BOT_TOKEN="", TELEGRAM_CHANNEL_ID="", ANTHROPIC_API_KEY="")
+class AmuseBoucheCommentSafetyTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        self.user = user_model.objects.create_user(username="commenter", password="pass")
+        self.author = RecipeAuthor.objects.create(name="Test Author", slug="test-author")
+        self.item = AmuseBouche.objects.create(
+            author=self.author,
+            title="Announcement Host",
+            short_description="A quick bite.",
+            status=AmuseBouche.Status.APPROVED,
+            is_announcement=True,
+            allow_comments=True,
+        )
+        self.submit_url = reverse(
+            "amuse_bouche:submit_comment", kwargs={"slug": self.item.slug}
+        )
+
+    def post_comment(self, body):
+        return self.client.post(
+            self.submit_url, {"body": body}, headers={"X-AB-Fetch": "1"}
+        )
+
+    def test_clean_comment_is_accepted(self):
+        self.client.force_login(self.user)
+        response = self.post_comment("Lovely idea, looking forward to it!")
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["ok"])
+        self.assertEqual(self.item.comments.filter(is_deleted=False).count(), 1)
+
+    def test_profane_comment_is_rejected(self):
+        self.client.force_login(self.user)
+        response = self.post_comment("this is fucking great")
+        self.assertEqual(response.status_code, 400)
+        data = response.json()
+        self.assertFalse(data["ok"])
+        self.assertEqual(data["error"], "profanity")
+        self.assertIn("forbidden words", data["message"])
+        self.assertEqual(self.item.comments.count(), 0)
+
+    def test_moderator_can_delete_other_users_comment(self):
+        from .models import AmuseBoucheComment
+
+        comment = AmuseBoucheComment.objects.create(
+            amuse_bouche=self.item, user=self.user, body="to be removed"
+        )
+        user_model = get_user_model()
+        moderator = user_model.objects.create_user(
+            username="mod", password="pass", is_staff=True
+        )
+        self.client.force_login(moderator)
+        delete_url = reverse(
+            "amuse_bouche:delete_comment",
+            kwargs={"slug": self.item.slug, "comment_id": comment.pk},
+        )
+        response = self.client.post(delete_url, headers={"X-AB-Fetch": "1"})
+        self.assertEqual(response.status_code, 200)
+        comment.refresh_from_db()
+        self.assertTrue(comment.is_deleted)
+
+    def test_regular_user_cannot_delete_other_users_comment(self):
+        from .models import AmuseBoucheComment
+
+        comment = AmuseBoucheComment.objects.create(
+            amuse_bouche=self.item, user=self.user, body="protected"
+        )
+        user_model = get_user_model()
+        stranger = user_model.objects.create_user(username="stranger", password="pass")
+        self.client.force_login(stranger)
+        delete_url = reverse(
+            "amuse_bouche:delete_comment",
+            kwargs={"slug": self.item.slug, "comment_id": comment.pk},
+        )
+        response = self.client.post(delete_url, headers={"X-AB-Fetch": "1"})
+        self.assertEqual(response.status_code, 404)
+        comment.refresh_from_db()
+        self.assertFalse(comment.is_deleted)

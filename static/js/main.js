@@ -759,7 +759,15 @@ document.addEventListener("DOMContentLoaded", () => {
       })
         .then(function (r) { return r.json(); })
         .then(function (data) {
-          if (!data.ok) return;
+          var oldErr = form.querySelector(".ab-cmt-panel__error");
+          if (oldErr) oldErr.remove();
+          if (!data.ok) {
+            var err = document.createElement("p");
+            err.className = "ab-cmt-panel__error";
+            err.textContent = data.message || "Could not post your comment. Please try again.";
+            form.appendChild(err);
+            return;
+          }
           bodyInput.value = "";
           // Hide reply form after posting
           if (form.dataset.replyTo) form.hidden = true;
