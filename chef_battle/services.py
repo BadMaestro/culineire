@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 
+from django.conf import settings
 from django.db import transaction
 from django.db.models import Count
 from django.urls import NoReverseMatch, reverse
@@ -63,7 +64,8 @@ def create_battle_event(
         is_public=is_public,
     )
 
-    if publish_to_news:
+    flag_on = getattr(settings, "CHEF_BATTLE_ENABLED", False)
+    if publish_to_news and flag_on:
         event_key = f"chef_battle:{event.pk}"
         try:
             url = battle.get_absolute_url() if battle else reverse("chef_battle:challenge_list")

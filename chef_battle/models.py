@@ -33,10 +33,14 @@ class ChefBattleProfile(models.Model):
     wins = models.PositiveIntegerField(default=0)
     losses = models.PositiveIntegerField(default=0)
     refused_battles = models.PositiveIntegerField(default=0)
+    ignored_battles = models.PositiveIntegerField(default=0)
     win_streak = models.PositiveIntegerField(default=0)
+    best_win_streak = models.PositiveIntegerField(default=0)
     crown_until = models.DateTimeField(null=True, blank=True)
+    crown_count = models.PositiveIntegerField(default=0)
     battle_moves = models.PositiveIntegerField(default=0)
     seasonal_score = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -56,6 +60,7 @@ class BattleChallenge(models.Model):
         ACCEPTED = "accepted", "Accepted"
         REFUSED = "refused", "Refused"
         EXPIRED = "expired", "Expired"
+        CANCELLED = "cancelled", "Cancelled"
 
     class BattleType(models.TextChoices):
         RECIPE = "recipe", "Recipe Duel"
@@ -73,6 +78,7 @@ class BattleChallenge(models.Model):
     proposed_start_time = models.DateTimeField(null=True, blank=True)
     accepted_at = models.DateTimeField(null=True, blank=True)
     refused_at = models.DateTimeField(null=True, blank=True)
+    cancelled_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["-created_at"]
@@ -91,22 +97,30 @@ class Battle(models.Model):
     class Status(models.TextChoices):
         SCHEDULED = "scheduled", "Scheduled"
         ACTIVE = "active", "Active"
+        AWAITING_SUBMISSIONS = "awaiting_submissions", "Awaiting Submissions"
+        REVEALED = "revealed", "Revealed"
         VOTING = "voting", "Voting"
         COMPLETED = "completed", "Completed"
         CANCELLED = "cancelled", "Cancelled"
+        DISPUTED = "disputed", "Disputed"
 
     challenge = models.OneToOneField(BattleChallenge, on_delete=models.SET_NULL, null=True, blank=True, related_name="battle")
     challenger = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="battles_as_challenger")
     opponent = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="battles_as_opponent")
     theme = models.CharField(max_length=180)
     battle_type = models.CharField(max_length=16, choices=BattleChallenge.BattleType.choices, default=BattleChallenge.BattleType.RECIPE)
-    status = models.CharField(max_length=16, choices=Status.choices, default=Status.ACTIVE, db_index=True)
+    status = models.CharField(max_length=24, choices=Status.choices, default=Status.ACTIVE, db_index=True)
     start_time = models.DateTimeField(default=timezone.now, db_index=True)
     submission_deadline = models.DateTimeField()
+    reveal_time = models.DateTimeField(null=True, blank=True)
+    voting_deadline = models.DateTimeField(null=True, blank=True)
     end_time = models.DateTimeField(db_index=True)
     winner = models.ForeignKey(RecipeAuthor, on_delete=models.SET_NULL, null=True, blank=True, related_name="won_battles")
     loser = models.ForeignKey(RecipeAuthor, on_delete=models.SET_NULL, null=True, blank=True, related_name="lost_battles")
     result_reason = models.CharField(max_length=120, blank=True)
+    rating_delta_challenger = models.IntegerField(default=0)
+    rating_delta_opponent = models.IntegerField(default=0)
+    crown_awarded = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -139,13 +153,28 @@ class Battle(models.Model):
 
 
 class BattleEntry(models.Model):
+    class ModerationStatus(models.TextChoices):
+        PENDING = "pending", "Pending"
+        APPROVED = "approved", "Approved"
+        REJECTED = "rejected", "Rejected"
+        FLAGGED = "flagged", "Flagged"
+
     battle = models.ForeignKey(Battle, on_delete=models.CASCADE, related_name="entries")
     author = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="battle_entries")
     recipe = models.ForeignKey(Recipe, on_delete=models.SET_NULL, null=True, blank=True, related_name="battle_entries")
     article = models.ForeignKey(Article, on_delete=models.SET_NULL, null=True, blank=True, related_name="battle_entries")
-    note = models.TextField(blank=True)
+    battle_statement = models.TextField(blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True)
     is_revealed = models.BooleanField(default=False)
+    is_late = models.BooleanField(default=False)
+    moderation_status = models.CharField(
+        max_length=16,
+        choices=ModerationStatus.choices,
+        default=ModerationStatus.PENDING,
+        db_index=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["submitted_at"]
@@ -178,7 +207,10 @@ class BattleVote(models.Model):
     voted_for = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="battle_votes_received")
     ip_hash = models.CharField(max_length=64, blank=True)
     user_agent_hash = models.CharField(max_length=64, blank=True)
+    session_key_hash = models.CharField(max_length=64, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    is_suspicious = models.BooleanField(default=False)
+    moderation_note = models.TextField(blank=True)
 
     class Meta:
         ordering = ["-created_at"]
@@ -209,11 +241,16 @@ class BattleEvent(models.Model):
         CHALLENGE_CREATED = "challenge_created", "Challenge Created"
         CHALLENGE_ACCEPTED = "challenge_accepted", "Challenge Accepted"
         CHALLENGE_REFUSED = "challenge_refused", "Challenge Refused"
+        CHALLENGE_EXPIRED = "challenge_expired", "Challenge Expired"
         BATTLE_STARTED = "battle_started", "Battle Started"
         ENTRY_SUBMITTED = "entry_submitted", "Entry Submitted"
+        BATTLE_REVEALED = "battle_revealed", "Battle Revealed"
         VOTE_CAST = "vote_cast", "Vote Cast"
+        BATTLE_FINISHED = "battle_finished", "Battle Finished"
         BATTLE_COMPLETED = "battle_completed", "Battle Completed"
-        RANK_PROMOTION = "rank_promotion", "Rank Promotion"
+        CHEF_DEFEATED = "chef_defeated", "Chef Defeated"
+        CROWN_AWARDED = "crown_awarded", "Crown Awarded"
+        RANK_PROMOTED = "rank_promoted", "Rank Promoted"
 
     battle = models.ForeignKey(Battle, null=True, blank=True, on_delete=models.CASCADE, related_name="events")
     challenge = models.ForeignKey(BattleChallenge, null=True, blank=True, on_delete=models.CASCADE, related_name="events")
@@ -221,6 +258,7 @@ class BattleEvent(models.Model):
     actor = models.ForeignKey(RecipeAuthor, null=True, blank=True, on_delete=models.SET_NULL, related_name="battle_events_as_actor")
     target = models.ForeignKey(RecipeAuthor, null=True, blank=True, on_delete=models.SET_NULL, related_name="battle_events_as_target")
     message = models.TextField()
+    payload_json = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     is_public = models.BooleanField(default=True)
 

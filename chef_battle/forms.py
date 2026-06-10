@@ -51,9 +51,9 @@ class BattleEntryForm(forms.ModelForm):
 
     class Meta:
         model = BattleEntry
-        fields = ("content_type", "recipe", "article", "note")
+        fields = ("content_type", "recipe", "article", "battle_statement")
         widgets = {
-            "note": forms.Textarea(attrs={"rows": 3}),
+            "battle_statement": forms.Textarea(attrs={"rows": 3}),
         }
 
     def __init__(self, *args, author=None, battle=None, **kwargs):

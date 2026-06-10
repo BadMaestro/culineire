@@ -15,6 +15,7 @@ from monitoring.tracker import get_client_ip
 from recipes.authoring import get_author_for_user
 from recipes.models import RecipeAuthor
 
+from .access import chef_battle_guard
 from .forms import BattleChallengeForm, BattleEntryForm
 from .models import Battle, BattleChallenge, BattleEvent, BattleVote, ChefBattleProfile
 from .services import (
@@ -154,6 +155,7 @@ def _build_battlefield_progress():
     }
 
 
+@chef_battle_guard
 @login_required
 def battlefield_progress(request):
     if not is_moderator(request.user):
@@ -166,6 +168,7 @@ def battlefield_progress(request):
     )
 
 
+@chef_battle_guard
 def battle_home(request):
     now = timezone.now()
     expired_battles = Battle.objects.filter(status__in=[Battle.Status.ACTIVE, Battle.Status.VOTING], end_time__lte=now)
@@ -200,6 +203,7 @@ def battle_home(request):
     })
 
 
+@chef_battle_guard
 @login_required
 def challenge_list(request):
     author = get_author_for_user(request.user)
@@ -216,6 +220,7 @@ def challenge_list(request):
     })
 
 
+@chef_battle_guard
 @login_required
 def challenge_create(request):
     author = get_author_for_user(request.user)
@@ -249,6 +254,7 @@ def challenge_create(request):
     return render(request, "chef_battle/challenge_form.html", {"form": form})
 
 
+@chef_battle_guard
 @require_POST
 @login_required
 def challenge_respond(request, pk):
@@ -277,6 +283,7 @@ def challenge_respond(request, pk):
     return redirect("chef_battle:challenge_list")
 
 
+@chef_battle_guard
 def battle_detail(request, pk):
     battle = get_object_or_404(
         Battle.objects.select_related("challenger", "opponent", "winner", "loser"),
@@ -319,6 +326,7 @@ def battle_detail(request, pk):
     })
 
 
+@chef_battle_guard
 @login_required
 def battle_entry_submit(request, pk):
     author = get_author_for_user(request.user)
@@ -353,6 +361,7 @@ def battle_entry_submit(request, pk):
     return render(request, "chef_battle/entry_form.html", {"battle": battle, "form": form})
 
 
+@chef_battle_guard
 @require_POST
 def battle_vote(request, pk):
     battle = get_object_or_404(Battle, pk=pk)
@@ -402,6 +411,7 @@ def battle_vote(request, pk):
     return redirect(battle.get_absolute_url())
 
 
+@chef_battle_guard
 def rankings(request):
     profiles = ChefBattleProfile.objects.select_related("author").order_by("-rating", "-wins", "author__name")[:100]
     return render(request, "chef_battle/rankings.html", {"profiles": profiles})

@@ -58,7 +58,10 @@ def _with_query(url: str, **params) -> str:
 
 def header_author(request):
     user = getattr(request, "user", None)
-    chef_battle_enabled = getattr(settings, "CHEF_BATTLE_ENABLED", False)
+    flag_on = getattr(settings, "CHEF_BATTLE_ENABLED", False)
+    chef_battle_enabled = flag_on or bool(
+        user and user.is_authenticated and (user.is_staff or user.is_superuser)
+    )
 
     if not user or not user.is_authenticated:
         return {"chef_battle_enabled": chef_battle_enabled}
@@ -108,7 +111,7 @@ def header_author(request):
         },
     ]
 
-    if chef_battle_enabled:
+    if flag_on or (user and user.is_authenticated and (user.is_staff or user.is_superuser)):
         actions.insert(3, {
             "label": "Chef Battle",
             "url": _reverse_or_empty("chef_battle:challenge_list"),
@@ -127,4 +130,5 @@ def header_author(request):
         "header_author_name": display_name,
         "header_author_actions": actions,
         "chef_battle_enabled": chef_battle_enabled,
+        "chef_battle_flag_on": flag_on,
     }

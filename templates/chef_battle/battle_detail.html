@@ -46,7 +46,7 @@
             <h3><a href="{{ entry.article.get_absolute_url }}">{{ entry.article.title }}</a></h3>
             <p>{{ entry.article.excerpt|default:"Article battle entry." }}</p>
             {% endif %}
-            {% if entry.note %}<p>{{ entry.note }}</p>{% endif %}
+            {% if entry.battle_statement %}<p>{{ entry.battle_statement }}</p>{% endif %}
             {% if battle.status != "completed" %}
             <form action="{% url 'chef_battle:battle_vote' battle.pk %}" method="post">
               {% csrf_token %}
