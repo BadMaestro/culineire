@@ -856,3 +856,72 @@ document.addEventListener("DOMContentLoaded", () => {
   poll();
   setInterval(poll, 45000);
 })();
+
+// ── Chef Battle combat action form ──────────────────────────────────────────
+(function () {
+  var form = document.getElementById("combat-action-form");
+  if (!form) return;
+  var panel = document.getElementById("battle-combat-panel");
+  var url = panel ? panel.dataset.combatUrl : null;
+  if (!url) return;
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var btn = document.getElementById("combat-submit-btn");
+    var errEl = document.getElementById("combat-error");
+    var okEl = document.getElementById("combat-success");
+    if (btn) btn.disabled = true;
+    errEl.hidden = true;
+    okEl.hidden = true;
+
+    var data = new FormData(form);
+    fetch(url, { method: "POST", credentials: "same-origin", body: data })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!d.ok) {
+          errEl.textContent = d.error || "Something went wrong.";
+          errEl.hidden = false;
+          return;
+        }
+        // Update hit counts
+        var ch = document.getElementById("combat-hits-challenger");
+        var op = document.getElementById("combat-hits-opponent");
+        var rn = document.getElementById("combat-round-num");
+        var mv = document.getElementById("combat-moves-left");
+        if (ch) ch.textContent = d.challenger_hits;
+        if (op) op.textContent = d.opponent_hits;
+        if (rn) rn.textContent = d.current_round;
+
+        // Append new log entries
+        var log = document.getElementById("combat-log");
+        if (log && d.rounds && d.rounds.length) {
+          var latest = d.rounds[d.rounds.length - 1];
+          var li = document.createElement("li");
+          li.innerHTML = "<span>Round " + latest.round_number + "</span><span>" + latest.log_message + "</span>";
+          log.appendChild(li);
+          li.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+
+        // Update moves remaining
+        if (mv) {
+          var cur = parseInt(mv.textContent, 10) || 0;
+          var invested = parseInt(data.get("moves_invested"), 10) || 0;
+          mv.textContent = Math.max(0, cur - invested);
+        }
+
+        okEl.textContent = "Move submitted! Waiting for opponent...";
+        okEl.hidden = false;
+        form.reset();
+        // Re-check default
+        var firstRadio = form.querySelector('input[name="action_type"]');
+        if (firstRadio) firstRadio.checked = true;
+      })
+      .catch(function () {
+        errEl.textContent = "Network error. Please try again.";
+        errEl.hidden = false;
+      })
+      .finally(function () {
+        if (btn) btn.disabled = false;
+      });
+  });
+})();

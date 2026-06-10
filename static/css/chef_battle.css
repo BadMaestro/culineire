@@ -386,3 +386,41 @@
 }
 .battle-moves__positive { color: #184c3a; }
 .battle-moves__negative { color: #a03131; }
+
+/* ── Phase 4: Combat panel ───────────────────────────────────────────────── */
+.battle-combat__hits {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: .6rem .8rem;
+  background: var(--surface-soft);
+  border-radius: 8px;
+}
+.battle-combat__hit-bar {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.battle-combat__hit-bar--right {
+  flex-direction: row-reverse;
+}
+.battle-combat__hit-name {
+  font-size: .82rem;
+  color: var(--ink-soft);
+}
+.battle-combat__hit-count {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #184c3a;
+  min-width: 1.8rem;
+  text-align: center;
+}
+.battle-form__input {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: .4rem .6rem;
+  font-size: .95rem;
+  color: var(--ink);
+  background: var(--surface);
+}

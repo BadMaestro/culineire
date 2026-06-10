@@ -84,6 +84,67 @@
         </div>
       </section>
 
+      {% if is_participant and battle.status == "active" %}
+      <section class="battle-panel battle-combat" id="battle-combat-panel"
+               data-combat-url="{% url 'chef_battle:battle_combat_action' battle.pk %}"
+               data-moves="{{ user_battle_moves }}">
+        <h2>Combat Round <span id="combat-round-num">{{ combat_state.current_round }}</span></h2>
+        <p class="battle-muted" style="font-size:.82rem;margin-bottom:.75rem;">
+          Spend moves on attack or defence. Winner is decided by the audience vote — combat adds drama and spends your energy.
+        </p>
+        <div class="battle-combat__hits">
+          <div class="battle-combat__hit-bar">
+            <span class="battle-combat__hit-name">{{ battle.challenger.name }}</span>
+            <span class="battle-combat__hit-count" id="combat-hits-challenger">{{ combat_state.challenger_hits }}</span>
+          </div>
+          <div class="battle-combat__hit-bar battle-combat__hit-bar--right">
+            <span class="battle-combat__hit-count" id="combat-hits-opponent">{{ combat_state.opponent_hits }}</span>
+            <span class="battle-combat__hit-name">{{ battle.opponent.name }}</span>
+          </div>
+        </div>
+        <form class="battle-combat__form" id="combat-action-form">
+          {% csrf_token %}
+          <div class="battle-form__field">
+            <label class="battle-form__label">Your move</label>
+            <div class="battle-form__radio-group">
+              <label class="battle-form__radio-label">
+                <input type="radio" name="action_type" value="attack" checked> &#x2694;&#xFE0F; Attack
+              </label>
+              <label class="battle-form__radio-label">
+                <input type="radio" name="action_type" value="defend"> &#x1F6E1;&#xFE0F; Defend
+              </label>
+            </div>
+          </div>
+          <div class="battle-form__field">
+            <label class="battle-form__label">
+              Moves to invest
+              <span class="battle-form__optional">(you have <strong id="combat-moves-left">{{ user_battle_moves }}</strong>)</span>
+            </label>
+            <input class="battle-form__input" type="number" name="moves_invested" value="1" min="1" max="10" style="width:5rem;">
+          </div>
+          <div class="battle-form__actions">
+            <button class="btn btn--primary" type="submit" id="combat-submit-btn">Make Move</button>
+          </div>
+          <p class="battle-form__error" id="combat-error" hidden></p>
+          <p class="battle-muted" id="combat-success" hidden style="color:#184c3a;font-weight:700;"></p>
+        </form>
+      </section>
+      {% endif %}
+
+      {% if combat_state.rounds %}
+      <section class="battle-panel">
+        <h2>Combat Log</h2>
+        <ol class="battle-events" id="combat-log">
+          {% for round in combat_state.rounds %}
+          <li>
+            <span>Round {{ round.round_number }}</span>
+            <span>{{ round.log_message }}</span>
+          </li>
+          {% endfor %}
+        </ol>
+      </section>
+      {% endif %}
+
       <section class="battle-panel">
         <h2>Battle Log</h2>
         {% if events %}

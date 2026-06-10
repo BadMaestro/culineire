@@ -318,6 +318,14 @@ def battle_detail(request, pk):
         and timezone.now() <= battle.submission_deadline
     )
 
+    from .services import get_combat_state, get_or_create_battle_profile
+    combat_state = get_combat_state(battle)
+    is_participant = bool(viewer_author and battle.author_is_participant(viewer_author))
+    user_battle_moves = 0
+    if is_participant:
+        profile = get_or_create_battle_profile(viewer_author)
+        user_battle_moves = profile.battle_moves
+
     return render(request, "chef_battle/battle_detail.html", {
         "battle": battle,
         "entries": entries,
@@ -328,6 +336,9 @@ def battle_detail(request, pk):
         "viewer_author": viewer_author,
         "viewer_entry": viewer_entry,
         "can_submit": can_submit,
+        "is_participant": is_participant,
+        "combat_state": combat_state,
+        "user_battle_moves": user_battle_moves,
     })
 
 
@@ -488,3 +499,44 @@ def notifications_poll(request):
         items.append({"text": f"{unread_battle_msgs} unread battle message{'s' if unread_battle_msgs != 1 else ''}", "url": "/messages/"})
 
     return JsonResponse({"count": total, "items": items})
+
+
+@chef_battle_guard
+@login_required
+@require_POST
+def battle_combat_action(request, pk):
+    """Chef submits their combat action for the current round."""
+    from django.http import JsonResponse
+    from .services import submit_combat_action, get_combat_state
+
+    battle = get_object_or_404(Battle, pk=pk)
+    author = get_author_for_user(request.user)
+    if not author or not battle.author_is_participant(author):
+        return JsonResponse({"ok": False, "error": "Not a participant."}, status=403)
+
+    action_type = request.POST.get("action_type", "")
+    try:
+        moves_invested = int(request.POST.get("moves_invested", 1))
+    except (ValueError, TypeError):
+        moves_invested = 1
+
+    try:
+        submit_combat_action(battle, author, action_type, moves_invested)
+    except ValueError as e:
+        return JsonResponse({"ok": False, "error": str(e)}, status=400)
+
+    state = get_combat_state(battle)
+    return JsonResponse({
+        "ok": True,
+        "challenger_hits": state["challenger_hits"],
+        "opponent_hits": state["opponent_hits"],
+        "current_round": state["current_round"],
+        "rounds": [
+            {
+                "round_number": r.round_number,
+                "outcome": r.outcome,
+                "log_message": r.log_message,
+            }
+            for r in state["rounds"]
+        ],
+    })

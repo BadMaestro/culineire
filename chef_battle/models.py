@@ -370,3 +370,71 @@ class SeasonStanding(models.Model):
 
     def __str__(self):
         return f"{self.season}: {self.chef}"
+
+
+class BattleCombatAction(models.Model):
+    """A chef's declared combat action for one round (hidden until both are locked)."""
+
+    class ActionType(models.TextChoices):
+        ATTACK = "attack", "Attack"
+        DEFEND = "defend", "Defend"
+
+    battle = models.ForeignKey(Battle, on_delete=models.CASCADE, related_name="combat_actions")
+    chef = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="combat_actions")
+    round_number = models.PositiveSmallIntegerField()
+    action_type = models.CharField(max_length=8, choices=ActionType.choices)
+    moves_invested = models.PositiveSmallIntegerField(default=1)
+    is_locked = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["round_number", "created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["battle", "chef", "round_number"],
+                name="unique_combat_action_per_chef_per_round",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.chef} R{self.round_number}: {self.action_type} ({self.moves_invested} moves)"
+
+
+class BattleRound(models.Model):
+    """Resolved outcome of one combat round."""
+
+    class Outcome(models.TextChoices):
+        FULL_HIT = "full_hit", "Full Hit"
+        PARTIAL_HIT = "partial_hit", "Partial Hit"
+        BLOCKED = "blocked", "Blocked"
+        DRAW = "draw", "Draw"
+
+    battle = models.ForeignKey(Battle, on_delete=models.CASCADE, related_name="combat_rounds")
+    round_number = models.PositiveSmallIntegerField()
+    attacker = models.ForeignKey(
+        RecipeAuthor, on_delete=models.CASCADE, related_name="attack_rounds"
+    )
+    defender = models.ForeignKey(
+        RecipeAuthor, on_delete=models.CASCADE, related_name="defence_rounds"
+    )
+    attack_power = models.PositiveSmallIntegerField()
+    defence_power = models.PositiveSmallIntegerField()
+    outcome = models.CharField(max_length=12, choices=Outcome.choices)
+    # Running totals after this round
+    challenger_hits = models.PositiveSmallIntegerField(default=0)
+    opponent_hits = models.PositiveSmallIntegerField(default=0)
+    log_message = models.CharField(max_length=300, blank=True)
+    resolved_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["round_number"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["battle", "round_number"],
+                name="unique_round_per_battle",
+            ),
+        ]
+
+    def __str__(self):
+        return f"Battle {self.battle_id} R{self.round_number}: {self.outcome}"

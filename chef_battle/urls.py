@@ -16,4 +16,5 @@ urlpatterns = [
     path("battles/<int:pk>/vote/", views.battle_vote, name="battle_vote"),
     path("my-moves/", views.my_moves, name="my_moves"),
     path("poll/", views.notifications_poll, name="notifications_poll"),
+    path("battles/<int:pk>/combat/", views.battle_combat_action, name="battle_combat_action"),
 ]

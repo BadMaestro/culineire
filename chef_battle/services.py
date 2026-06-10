@@ -11,7 +11,10 @@ from django.utils import timezone
 
 from newsfeed.models import NewsFeedEntry
 
-from .models import Battle, BattleChallenge, BattleEntry, BattleEvent, ChefBattleProfile
+from .models import (
+    Battle, BattleChallenge, BattleCombatAction, BattleEntry, BattleEvent,
+    BattleRound, ChefBattleProfile,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -522,3 +525,201 @@ def award_moves(author, amount: int, reason: str) -> None:
         BattleMoveTransaction.objects.create(chef=author, amount=amount, reason=reason)
     except Exception:
         logger.exception("Failed to award moves to author pk=%s", getattr(author, "pk", "?"))
+
+
+# ── Phase 4: Combat mechanics ─────────────────────────────────────────────────
+
+COMBAT_MOVES_MIN = 1
+COMBAT_MOVES_MAX = 10
+COMBAT_HITS_TO_WIN = 3  # not used for victory — just for display drama
+
+
+def get_current_round(battle: Battle) -> int:
+    """Return the next round number (1-based)."""
+    last = battle.combat_rounds.order_by("-round_number").first()
+    return (last.round_number + 1) if last else 1
+
+
+def submit_combat_action(
+    battle: Battle,
+    chef,
+    action_type: str,
+    moves_invested: int,
+) -> BattleCombatAction:
+    """
+    Chef declares their combat action for the current round.
+    Moves are NOT deducted yet — only on resolve.
+    Raises ValueError on invalid input.
+    """
+    if battle.status not in (Battle.Status.ACTIVE, Battle.Status.AWAITING_SUBMISSIONS):
+        raise ValueError("Combat actions are only allowed during an active battle.")
+
+    if not battle.author_is_participant(chef):
+        raise ValueError("You are not a participant in this battle.")
+
+    if action_type not in (BattleCombatAction.ActionType.ATTACK, BattleCombatAction.ActionType.DEFEND):
+        raise ValueError("Invalid action type.")
+
+    moves_invested = max(COMBAT_MOVES_MIN, min(COMBAT_MOVES_MAX, moves_invested))
+
+    profile = get_or_create_battle_profile(chef)
+    if profile.battle_moves < moves_invested:
+        raise ValueError(f"Not enough battle moves. You have {profile.battle_moves}.")
+
+    round_number = get_current_round(battle)
+
+    action, created = BattleCombatAction.objects.get_or_create(
+        battle=battle,
+        chef=chef,
+        round_number=round_number,
+        defaults={"action_type": action_type, "moves_invested": moves_invested},
+    )
+    if not created:
+        if action.is_locked:
+            raise ValueError("Your action for this round is already locked.")
+        action.action_type = action_type
+        action.moves_invested = moves_invested
+        action.save(update_fields=["action_type", "moves_invested", "updated_at"])
+
+    # Auto-resolve if both chefs have submitted
+    other_chef = battle.opponent_for(chef)
+    if other_chef:
+        other_action = BattleCombatAction.objects.filter(
+            battle=battle, chef=other_chef, round_number=round_number
+        ).first()
+        if other_action:
+            _resolve_round(battle, round_number)
+
+    return action
+
+
+def _resolve_round(battle: Battle, round_number: int) -> BattleRound | None:
+    """Resolve a round when both chefs have submitted actions. Deducts moves."""
+    challenger_action = BattleCombatAction.objects.filter(
+        battle=battle, chef=battle.challenger, round_number=round_number
+    ).first()
+    opponent_action = BattleCombatAction.objects.filter(
+        battle=battle, chef=battle.opponent, round_number=round_number
+    ).first()
+
+    if not challenger_action or not opponent_action:
+        return None
+
+    # Determine attacker/defender for this round log
+    # Both can attack simultaneously — resolve each direction
+    # For simplicity: challenger attacks opponent, opponent defends (and vice versa)
+    # Outcome based on net power comparison
+
+    c_power = challenger_action.moves_invested
+    o_power = opponent_action.moves_invested
+
+    # Challenger attacks → opponent defends (and vice versa simultaneously)
+    # We resolve as: whoever invested more in attack vs other's defence
+    c_is_attacker = challenger_action.action_type == BattleCombatAction.ActionType.ATTACK
+    o_is_attacker = opponent_action.action_type == BattleCombatAction.ActionType.ATTACK
+
+    # Get previous round totals
+    prev = battle.combat_rounds.filter(round_number=round_number - 1).first()
+    prev_c_hits = prev.challenger_hits if prev else 0
+    prev_o_hits = prev.opponent_hits if prev else 0
+
+    c_hit_landed = False
+    o_hit_landed = False
+
+    if c_is_attacker and not o_is_attacker:
+        # Challenger attacks, opponent defends
+        if c_power > o_power * 1.5:
+            outcome = BattleRound.Outcome.FULL_HIT
+            c_hit_landed = True
+        elif c_power > o_power:
+            outcome = BattleRound.Outcome.PARTIAL_HIT
+            c_hit_landed = True
+        else:
+            outcome = BattleRound.Outcome.BLOCKED
+        attacker, defender = battle.challenger, battle.opponent
+        attack_power, defence_power = c_power, o_power
+    elif o_is_attacker and not c_is_attacker:
+        # Opponent attacks, challenger defends
+        if o_power > c_power * 1.5:
+            outcome = BattleRound.Outcome.FULL_HIT
+            o_hit_landed = True
+        elif o_power > c_power:
+            outcome = BattleRound.Outcome.PARTIAL_HIT
+            o_hit_landed = True
+        else:
+            outcome = BattleRound.Outcome.BLOCKED
+        attacker, defender = battle.opponent, battle.challenger
+        attack_power, defence_power = o_power, c_power
+    else:
+        # Both attack or both defend — clash
+        if c_power > o_power:
+            outcome = BattleRound.Outcome.FULL_HIT
+            c_hit_landed = True
+            attacker, defender = battle.challenger, battle.opponent
+        elif o_power > c_power:
+            outcome = BattleRound.Outcome.FULL_HIT
+            o_hit_landed = True
+            attacker, defender = battle.opponent, battle.challenger
+        else:
+            outcome = BattleRound.Outcome.DRAW
+            attacker, defender = battle.challenger, battle.opponent
+        attack_power, defence_power = max(c_power, o_power), min(c_power, o_power)
+
+    new_c_hits = prev_c_hits + (1 if c_hit_landed else 0)
+    new_o_hits = prev_o_hits + (1 if o_hit_landed else 0)
+
+    # Build log message
+    outcome_labels = {
+        BattleRound.Outcome.FULL_HIT: "lands a full hit",
+        BattleRound.Outcome.PARTIAL_HIT: "lands a partial hit",
+        BattleRound.Outcome.BLOCKED: "is blocked",
+        BattleRound.Outcome.DRAW: "clash — draw",
+    }
+    log_msg = (
+        f"Round {round_number}: {attacker.name} {outcome_labels.get(outcome, outcome)} "
+        f"on {defender.name}. ({attack_power} vs {defence_power})"
+    )
+
+    with transaction.atomic():
+        # Lock both actions
+        BattleCombatAction.objects.filter(
+            battle=battle, round_number=round_number
+        ).update(is_locked=True)
+
+        # Deduct moves
+        c_profile = get_or_create_battle_profile(battle.challenger)
+        o_profile = get_or_create_battle_profile(battle.opponent)
+        c_profile.battle_moves = max(0, c_profile.battle_moves - challenger_action.moves_invested)
+        o_profile.battle_moves = max(0, o_profile.battle_moves - opponent_action.moves_invested)
+        c_profile.save(update_fields=["battle_moves"])
+        o_profile.save(update_fields=["battle_moves"])
+
+        # Create round record
+        round_obj = BattleRound.objects.create(
+            battle=battle,
+            round_number=round_number,
+            attacker=attacker,
+            defender=defender,
+            attack_power=attack_power,
+            defence_power=defence_power,
+            outcome=outcome,
+            challenger_hits=new_c_hits,
+            opponent_hits=new_o_hits,
+            log_message=log_msg,
+        )
+
+    return round_obj
+
+
+def get_combat_state(battle: Battle) -> dict:
+    """Return combat state dict for the battle room template."""
+    rounds = list(battle.combat_rounds.order_by("round_number"))
+    current_round = get_current_round(battle)
+    last = rounds[-1] if rounds else None
+    return {
+        "rounds": rounds,
+        "current_round": current_round,
+        "challenger_hits": last.challenger_hits if last else 0,
+        "opponent_hits": last.opponent_hits if last else 0,
+        "hits_to_win": COMBAT_HITS_TO_WIN,
+    }
