@@ -62,6 +62,7 @@ def _public_queryset(approved_only=True):
     queryset = AmuseBouche.objects.all()
     if approved_only:
         queryset = queryset.filter(status=AmuseBouche.Status.APPROVED)
+    queryset = queryset.filter(is_announcement=False)
     return (
         queryset
         .select_related("author", "linked_recipe", "linked_article")
@@ -597,8 +598,9 @@ def generate_from_article(request, slug):
 
 def comments_panel(request, slug):
     """AJAX endpoint: return comment panel HTML for a feed card."""
-    _require_public_area_access(request)
     item = get_object_or_404(AmuseBouche, slug=slug, status=AmuseBouche.Status.APPROVED)
+    if not item.is_announcement:
+        _require_public_area_access(request)
     if request.headers.get("X-AB-Fetch") != "1":
         return redirect(item.get_absolute_url())
     comments = []
@@ -635,8 +637,9 @@ def comments_panel(request, slug):
 @ratelimit(key="user", rate="30/h", method="POST", block=False)
 def submit_comment(request, slug):
     """Post a top-level comment or a reply on an Amuse-Bouche item."""
-    _require_public_area_access(request)
     item = get_object_or_404(AmuseBouche, slug=slug, status=AmuseBouche.Status.APPROVED, allow_comments=True)
+    if not item.is_announcement:
+        _require_public_area_access(request)
     is_fetch = request.headers.get("X-AB-Fetch") == "1"
     if getattr(request, "limited", False):
         if is_fetch:
