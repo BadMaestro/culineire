@@ -1,5 +1,113 @@
 RELEASE_JOURNAL = [
     {
+        "version": "feature/chef-battle",
+        "date": "2026-06-10",
+        "commit": "0cfe995",
+        "title": "Chef's Battle — Phase 1 progress: Admin, selectors, expiry, tests",
+        "section": "Chef's Battle / Backend",
+        "summary": (
+            "Four solid sessions of backend groundwork for Chef's Battle. "
+            "Every model is now fully visible in Django Admin with filters, search and read-only timestamps. "
+            "Staff have seven one-click actions to manage battles without touching the database directly. "
+            "All read queries were extracted into a clean selectors.py layer — views no longer build "
+            "QuerySets inline. The system now handles the full no-show scenario: if a chef doesn't submit "
+            "before the deadline, their opponent wins by forfeit; if both miss it, the battle is cancelled. "
+            "A management command covers challenge expiry and no-shows in one scheduled job. "
+            "On top of all that, the public homepage now has an Announcements block teasing Chef's Battle "
+            "to every visitor, and a management command is ready to post the news to the site feed and Telegram. "
+            "The test suite grew from 5 to 20 tests, all green."
+        ),
+        "checklist": [
+            "CB-0013: All 13 chef_battle models registered in Django Admin",
+            "CB-0013: list_display, list_filter, search_fields, readonly_fields on every model",
+            "CB-0013: BattleAdmin fieldsets: Participants / Status+Timing / Result / Timestamps",
+            "CB-0013: BattleEntryInline + BattleEventInline inside BattleAdmin",
+            "CB-0014: cancel_challenges — bulk-cancel pending/expired challenges",
+            "CB-0014: cancel_battles — cancel any non-final battle, emits BATTLE_FINISHED event",
+            "CB-0014: force_reveal_entries — reveal hidden entries, advance to Voting",
+            "CB-0014: force_complete_battles — call calculate_battle_result() on demand",
+            "CB-0014: reset_disputed_battles — return disputed battle to Voting",
+            "CB-0014: mark_votes_suspicious / clear_votes_suspicious — anti-abuse moderation",
+            "Created chef_battle/selectors.py with 9 named read functions",
+            "views.py updated to import from selectors; unused Count/Q imports removed",
+            "services.py: expire_stale_challenges() — marks PENDING challenges past expires_at as EXPIRED",
+            "services.py: handle_no_show_battles() — double no-show → CANCELLED; single no-show → forfeit win",
+            "services.py: submit_battle_entry() — sets is_late=True when deadline passed",
+            "services.py: _award_forfeit_win() — forfeit result helper (rep penalty, no Elo change)",
+            "management/commands/expire_stale_battles.py — run periodically; --dry-run flag",
+            "Permission tests: anon → 404, regular user → 404, staff → 200 (flag off)",
+            "Anti-abuse tests: duplicate vote IntegrityError, self-vote ValidationError, outsider vote ValidationError, suspicious flag persistence",
+            "Expiry tests: stale challenge expires, future challenge untouched, double no-show cancel, forfeit win, is_late flag",
+            "Homepage: public Announcements block added (hero-battle.png, teaser copy, all visitors)",
+            "newsfeed/management/commands/publish_chef_battle_announcement.py — posts to feed + Telegram",
+            "CSS: announcements-grid responsive layout added to base.css",
+            "Tests: 20/20 pass",
+        ],
+        "stats": [
+            "New file: chef_battle/selectors.py",
+            "New file: chef_battle/management/commands/expire_stale_battles.py",
+            "New file: newsfeed/management/commands/publish_chef_battle_announcement.py",
+            "Tests: 20/20 pass (was 5)",
+            "Django check: passed",
+        ],
+        "deployment_status": "feature branch — not yet on production",
+        "notes": (
+            "All work stays in feature/chef-battle. Not deployed to production. "
+            "After merge and migrations: admins can access /chef-battle/ and use all admin actions. "
+            "Homepage Announcements block is visible to everyone immediately after deploy. "
+            "Run 'python manage.py publish_chef_battle_announcement' after deploy to send the news to feed and Telegram. "
+            "Run 'python manage.py expire_stale_battles' periodically (or add to cron). "
+            "Next: Founding Chef programme, 7-day battle timer, battle rules page, full regression test."
+        ),
+    },
+    {
+        "version": "feature/chef-battle",
+        "date": "2026-06-10",
+        "commit": "09178e6",
+        "title": "Chef's Battle — Phase 0: Core model foundation + access control",
+        "section": "Chef's Battle / Backend",
+        "summary": (
+            "We started building Chef's Battle — the new culinary PvP system for CulinEire. "
+            "The full ТЗ was loaded, every gap between the existing code and the spec was identified, "
+            "and all missing model fields were added in one migration. "
+            "A proper access control layer was introduced: Chef's Battle is completely invisible "
+            "to regular and anonymous users until the public launch flag is set. "
+            "Admins and superusers can preview everything as it will look, right now."
+        ),
+        "checklist": [
+            "ChefBattleProfile: added ignored_battles, best_win_streak, crown_count, created_at",
+            "BattleChallenge: added CANCELLED status and cancelled_at timestamp",
+            "Battle: added AWAITING_SUBMISSIONS, REVEALED, DISPUTED statuses",
+            "Battle: added reveal_time, voting_deadline, rating_delta_challenger, rating_delta_opponent, crown_awarded fields",
+            "Battle: increased status max_length to 24 to fit 'awaiting_submissions'",
+            "BattleEntry: renamed note → battle_statement (matches ТЗ field name)",
+            "BattleEntry: added is_late, moderation_status (pending/approved/rejected/flagged), created_at, updated_at",
+            "BattleVote: added session_key_hash, is_suspicious, moderation_note",
+            "BattleEvent: added payload_json field",
+            "BattleEvent: added CHALLENGE_EXPIRED, BATTLE_REVEALED, BATTLE_FINISHED, CHEF_DEFEATED, CROWN_AWARDED, RANK_PROMOTED event types",
+            "Migration 0002_add_missing_fields_phase0 created and verified",
+            "Created chef_battle/access.py: is_battle_visible() and @chef_battle_guard decorator",
+            "Applied @chef_battle_guard to all 8 chef_battle views — non-admins get 404 when flag is off",
+            "config/urls.py: chef_battle URLs now always registered (guard is at view level, not URL level)",
+            "context_processors.py: chef_battle_enabled=True for admins/superusers regardless of flag",
+            "services.py: battle events only published to public newsfeed when CHEF_BATTLE_ENABLED=True",
+            "Updated /chefs-battle/roadmap/ with full Phase 0–7 milestone list (55 items)",
+            "All 5 existing tests pass",
+        ],
+        "stats": [
+            "Migration: chef_battle/migrations/0002_add_missing_fields_phase0.py",
+            "New file: chef_battle/access.py",
+            "Tests: 5/5 pass",
+        ],
+        "deployment_status": "feature branch — not yet on production",
+        "notes": (
+            "feature/chef-battle only. Not deployed to production. "
+            "Admins can access /chef-battle/ on production after this merges and migrations run. "
+            "Regular users and anonymous visitors see nothing. "
+            "Next: CB-0013 admin registration, CB-0014 admin actions, permission and anti-abuse tests."
+        ),
+    },
+    {
         "version": "version pending backfill",
         "date": "2026-06-09",
         "commit": "1d6294f",

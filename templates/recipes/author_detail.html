@@ -82,6 +82,42 @@
             {% endif %}
         </div>
 
+        {% if chef_battle_enabled %}
+        <section class="author-battle-summary" aria-labelledby="author-battle-summary-title">
+            <div class="author-battle-summary__header">
+                <div>
+                    <p class="section-kicker">Chef Battle</p>
+                    <h2 id="author-battle-summary-title">Arena Record</h2>
+                </div>
+                {% if request.user.is_authenticated and not can_manage_author_profile %}
+                <a class="btn-secondary" href="{% url 'chef_battle:challenge_create' %}?opponent={{ author.pk }}">Challenge Chef</a>
+                {% endif %}
+            </div>
+
+            {% if battle_profile %}
+            <div class="author-battle-summary__stats">
+                <span><strong>{{ battle_profile.get_rank_display }}</strong> Rank</span>
+                <span><strong>{{ battle_profile.rating }}</strong> Rating</span>
+                <span><strong>{{ battle_profile.wins }}-{{ battle_profile.losses }}</strong> Wins-Losses</span>
+                <span><strong>{{ battle_profile.battle_moves }}</strong> Moves</span>
+            </div>
+            {% else %}
+            <p class="author-battle-summary__empty">This chef has not entered the arena yet.</p>
+            {% endif %}
+
+            {% if recent_battles %}
+            <ol class="author-battle-summary__list">
+                {% for battle in recent_battles %}
+                <li>
+                    <a href="{{ battle.get_absolute_url }}">{{ battle.theme }}</a>
+                    <span>{{ battle.get_status_display }}{% if battle.winner %} - {{ battle.winner.name }} won{% endif %}</span>
+                </li>
+                {% endfor %}
+            </ol>
+            {% endif %}
+        </section>
+        {% endif %}
+
         {% if private_dashboard or dashboard_recipes or dashboard_articles or dashboard_amuse_bouche %}
         <div class="author-studio-pending">
             <p class="author-studio-pending__title">{% if private_dashboard %}Content Dashboard{% else %}Published Content{% endif %}</p>

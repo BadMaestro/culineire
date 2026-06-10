@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 
+from django.conf import settings
 from django.db import DatabaseError
 from django.urls import NoReverseMatch, reverse
 
@@ -83,6 +84,10 @@ def _find_author_for_user(user):
 
 def header_author(request):
     user = getattr(request, "user", None)
+    flag_on = getattr(settings, "CHEF_BATTLE_ENABLED", False)
+    chef_battle_enabled = flag_on or bool(
+        user and user.is_authenticated and (user.is_staff or user.is_superuser)
+    )
 
     try:
         from amuse_bouche.visibility import can_view_amuse_bouche_public_area
@@ -93,6 +98,7 @@ def header_author(request):
     if not user or not user.is_authenticated:
         return {
             "can_view_amuse_bouche_public_area": can_view_amuse_bouche,
+            "chef_battle_enabled": chef_battle_enabled,
         }
 
     author = _find_author_for_user(user)
@@ -121,6 +127,12 @@ def header_author(request):
         "badge": unread_count if unread_count else None,
     })
 
+    if flag_on or (user and user.is_authenticated and (user.is_staff or user.is_superuser)):
+        actions.insert(3, {
+            "label": "Chef Battle",
+            "url": _reverse_or_empty("chef_battle:challenge_list"),
+        })
+
     if is_moderator:
         pending_count = _pending_moderation_count()
         actions.insert(0, {
@@ -140,4 +152,6 @@ def header_author(request):
         "header_author_name": display_name,
         "header_author_actions": actions,
         "can_view_amuse_bouche_public_area": can_view_amuse_bouche,
+        "chef_battle_enabled": chef_battle_enabled,
+        "chef_battle_flag_on": flag_on,
     }

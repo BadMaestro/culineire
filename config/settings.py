@@ -133,6 +133,7 @@ INSTALLED_APPS = [
     "amuse_bouche",
     "legal",
     "newsfeed",
+    "chef_battle",
     "sandbox",
     "sponsors",
     "chefs_battle",
@@ -319,6 +320,7 @@ TELEGRAM_CHANNEL_ID = os.getenv("TELEGRAM_CHANNEL_ID", "")
 # Always effectively True during test runs because IS_TESTING=True.
 DISABLE_EXTERNAL_NOTIFICATIONS = env_bool("DISABLE_EXTERNAL_NOTIFICATIONS", default=False)
 PRESENCE_EVENT_COOLDOWN_MINUTES = env_int("PRESENCE_EVENT_COOLDOWN_MINUTES", default=5)
+CHEF_BATTLE_ENABLED = env_bool("CHEF_BATTLE_ENABLED", default=False)
 SIGNUP_REQUIRE_EMAIL_CONFIRMATION = env_bool(
     "SIGNUP_REQUIRE_EMAIL_CONFIRMATION",
     default=IS_PRODUCTION,

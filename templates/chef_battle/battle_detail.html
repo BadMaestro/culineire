@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ battle.theme }} | Chef Battle{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero">
+  <div class="container">
+    <p class="battle-kicker">{{ battle.get_status_display }} Chef Battle</p>
+    <h1>{{ battle.theme }}</h1>
+    <p>{{ battle.challenger.name }} vs {{ battle.opponent.name }}</p>
+    <div class="battle-room-meta">
+      <span>Start {{ battle.start_time|date:"j M Y H:i" }}</span>
+      <span>Deadline {{ battle.submission_deadline|date:"j M Y H:i" }}</span>
+      <span>Ends {{ battle.end_time|date:"j M Y H:i" }}</span>
+    </div>
+    {% if battle.winner %}
+    <p class="battle-winner">{{ battle.winner.name }} won · {{ battle.result_reason }}</p>
+    {% elif battle.status == "completed" %}
+    <p class="battle-winner">Draw · {{ battle.result_reason }}</p>
+    {% endif %}
+  </div>
+</section>
+
+<section class="page-section">
+  <div class="container battle-layout">
+    <div class="battle-main">
+      <div class="battle-section-header">
+        <h2>Entries</h2>
+        {% if can_submit %}
+        <a class="btn-primary" href="{% url 'chef_battle:battle_entry_submit' battle.pk %}">Submit Entry</a>
+        {% endif %}
+      </div>
+
+      {% if entries %}
+      <div class="battle-entry-grid">
+        {% for entry in entries %}
+        <article class="battle-entry">
+          <p class="battle-card__status">{{ entry.author.name }}</p>
+          {% if entry.is_revealed or battle.status == "completed" %}
+            {% if entry.recipe %}
+            <h3><a href="{{ entry.recipe.get_absolute_url }}">{{ entry.recipe.title }}</a></h3>
+            <p>{{ entry.recipe.short_description|default:"Recipe battle entry." }}</p>
+            {% elif entry.article %}
+            <h3><a href="{{ entry.article.get_absolute_url }}">{{ entry.article.title }}</a></h3>
+            <p>{{ entry.article.excerpt|default:"Article battle entry." }}</p>
+            {% endif %}
+            {% if entry.battle_statement %}<p>{{ entry.battle_statement }}</p>{% endif %}
+            {% if battle.status != "completed" %}
+            <form action="{% url 'chef_battle:battle_vote' battle.pk %}" method="post">
+              {% csrf_token %}
+              <input name="voted_for" type="hidden" value="{{ entry.author.pk }}">
+              <button class="btn-primary" type="submit">Vote For {{ entry.author.name }}</button>
+            </form>
+            {% endif %}
+          {% else %}
+          <h3>Entry Submitted</h3>
+          <p>This dish is hidden until both chefs submit or the deadline arrives.</p>
+          {% endif %}
+        </article>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state"><p>No entries submitted yet.</p></div>
+      {% endif %}
+    </div>
+
+    <aside class="battle-side">
+      <section class="battle-panel">
+        <h2>Scoreboard</h2>
+        <div class="battle-score-row">
+          <span>{{ battle.challenger.name }}</span>
+          <strong>{{ votes_for_challenger }}</strong>
+        </div>
+        <div class="battle-score-row">
+          <span>{{ battle.opponent.name }}</span>
+          <strong>{{ votes_for_opponent }}</strong>
+        </div>
+      </section>
+
+      <section class="battle-panel">
+        <h2>Battle Log</h2>
+        {% if events %}
+        <ol class="battle-events">
+          {% for event in events %}
+          <li>
+            <span>{{ event.created_at|date:"j M H:i" }}</span>
+            <span>{{ event.message }}</span>
+          </li>
+          {% endfor %}
+        </ol>
+        {% else %}
+        <p class="battle-muted">The log is quiet for now.</p>
+        {% endif %}
+      </section>
+    </aside>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Chef Battle Progress | CulinEire{% endblock %}
+{% block meta_description %}Chef Battle roadmap progress for internal coordination.{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+<link href="{% static 'css/moderation.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="page-section moderation-page automation-page">
+    <div class="container moderation-shell">
+        <a class="mon-back-link" href="{% url 'recipes:moderation_panel' %}">Back to Moderation Panel</a>
+
+        <header class="automation-header">
+            <div>
+                <p class="automation-kicker">Internal battlefield roadmap</p>
+                <h1 class="automation-title">Chef Battle Progress</h1>
+                <p class="automation-summary">{{ battlefield_progress.done_count }}/{{ battlefield_progress.total_count }} checked items complete</p>
+            </div>
+            <div class="automation-meter" aria-label="{{ battlefield_progress.percent }} percent complete">
+                <span style="width: {{ battlefield_progress.percent }}%"></span>
+            </div>
+        </header>
+
+        <section class="moderation-block moderation-block--tools" aria-label="Chef Battle actions">
+            <h2 class="moderation-block__title">Battlefield Actions</h2>
+            <div class="mod-tools-row">
+                <a class="mod-tool-link" href="{% url 'chef_battle:home' %}">
+                    <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M3 12h18"/><path d="M12 3v18"/><circle cx="12" cy="12" r="8"/></svg>
+                    Arena
+                </a>
+                <a class="mod-tool-link" href="{% url 'chef_battle:challenge_list' %}">
+                    <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M4 7h16"/><path d="M4 12h12"/><path d="M4 17h8"/></svg>
+                    My Challenges
+                </a>
+                <a class="mod-tool-link" href="{% url 'chef_battle:challenge_create' %}">
+                    <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                    New Challenge
+                </a>
+                <a class="mod-tool-link" href="{% url 'chef_battle:rankings' %}">
+                    <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M8 21V10"/><path d="M16 21V4"/><path d="M4 21h16"/></svg>
+                    Rankings
+                </a>
+                <a class="mod-tool-link" href="{% url 'newsfeed:feed' %}">
+                    <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h10"/></svg>
+                    News Feed
+                </a>
+            </div>
+        </section>
+
+        <section class="automation-copy" aria-labelledby="battlefield-handoff-heading">
+            <div class="automation-copy__header">
+                <h2 class="moderation-block__title" id="battlefield-handoff-heading">Copy for AI Developer</h2>
+                <span class="automation-copy__hint">Plain text handoff</span>
+            </div>
+            <textarea class="automation-copy__text" readonly rows="16">{{ battlefield_progress.copy_text }}</textarea>
+        </section>
+
+        <section class="automation-tree" aria-labelledby="battlefield-progress-heading">
+            <h2 class="moderation-block__title" id="battlefield-progress-heading">Battlefield Process Tree</h2>
+            {% for phase in battlefield_progress.phases %}
+            <section class="automation-phase">
+                <h3 class="automation-phase__title">{{ phase.title }}</h3>
+                <ul class="automation-list">
+                    {% for item in phase.items %}
+                    {% if item.status != "done" %}
+                    <li class="automation-item automation-item--{{ item.status }}">
+                        <span class="automation-item__state">{{ item.status }}</span>
+                        <span class="automation-item__body">
+                            <strong>{{ item.label }}</strong>
+                            <span>{{ item.detail }}</span>
+                        </span>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                </ul>
+            </section>
+            {% endfor %}
+        </section>
+
+        <details class="automation-completed">
+            <summary>Show completed progress</summary>
+            <div class="automation-completed__grid">
+                {% for item in battlefield_progress.completed_items %}
+                <div class="automation-item automation-item--done">
+                    <span class="automation-item__state">done</span>
+                    <span class="automation-item__body">
+                        <strong>{{ item.label }}</strong>
+                        <span>{{ item.detail }}</span>
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        </details>
+    </div>
+</section>
+{% endblock %}
