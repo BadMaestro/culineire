@@ -3898,7 +3898,8 @@
   flex-shrink: 0;
 }
 
-.announcements-comment-count {
+.announcements-comment-count,
+.announcements-grid__comment-btn .ab-btn__count {
   font-size: 0.75rem;
   font-weight: 700;
   background: rgba(240, 235, 224, 0.18);

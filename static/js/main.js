@@ -597,6 +597,14 @@ document.addEventListener("DOMContentLoaded", () => {
     function openPanel(slug, cardEl) {
       buildPanel();
       activeSlug = slug;
+      // No anchor card (e.g. homepage announcement): open as a centered modal.
+      panel.classList.toggle("ab-cmt-panel--modal", !cardEl);
+      if (!cardEl) {
+        panel.style.top = "";
+        panel.style.left = "";
+        panel.style.width = "";
+        panel.style.height = "";
+      }
       panel.innerHTML =
         '<div style="padding:2rem;text-align:center;color:#9a8a78;font-size:.9rem;">Loading&hellip;</div>';
       positionPanel(cardEl);

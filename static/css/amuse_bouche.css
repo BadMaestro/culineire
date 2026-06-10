@@ -1622,6 +1622,15 @@
   transform: scale(1) translateY(0);
 }
 
+/* Modal mode: no anchor card — centered overlay like the sponsor modal */
+.ab-cmt-panel--modal {
+  height: fit-content;
+  inset: 0;
+  margin: auto;
+  max-height: min(640px, 86vh);
+  width: min(480px, calc(100vw - 2rem));
+}
+
 /* Mobile override: full-width bottom drawer */
 @media (max-width: 639px) {
   .ab-cmt-panel {
