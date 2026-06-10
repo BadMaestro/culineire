@@ -70,7 +70,8 @@ class ChefBattleServiceTests(TestCase):
         self.assertEqual(battle.status, Battle.Status.COMPLETED)
         self.assertEqual(battle.winner, self.chef_a)
         self.assertEqual(winner_profile.wins, 1)
-        self.assertEqual(winner_profile.battle_moves, 3)
+        self.assertEqual(winner_profile.battle_moves, 6)  # MOVES_BATTLE_WIN(5) + MOVES_BATTLE_PARTICIPATION(1)
+        self.assertEqual(loser_profile.battle_moves, 1)   # MOVES_BATTLE_PARTICIPATION(1)
         self.assertEqual(loser_profile.losses, 1)
 
     def test_vote_clean_allows_authenticated_user_without_author_profile(self):
@@ -274,3 +275,78 @@ class ChefBattleExpiryTests(TestCase):
         )
         entry = submit_battle_entry(battle=battle, author=self.chef_a, recipe=recipe)
         self.assertTrue(entry.is_late)
+
+
+class AwardMovesTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user(username="mover", password="pw")
+        self.chef = RecipeAuthor.objects.create(user=self.user, name="Mover Chef", slug="mover-chef")
+
+    def test_award_moves_basic(self):
+        from .services import award_moves, MOVES_RECIPE_APPROVED
+        from .models import BattleMoveTransaction, ChefBattleProfile
+        award_moves(self.chef, MOVES_RECIPE_APPROVED, "Recipe approved")
+        profile = ChefBattleProfile.objects.get(chef=self.chef)
+        self.assertEqual(profile.battle_moves, MOVES_RECIPE_APPROVED)
+        self.assertEqual(BattleMoveTransaction.objects.filter(chef=self.chef).count(), 1)
+
+    def test_award_moves_daily_cap(self):
+        from .services import award_moves, MOVES_CONTENT_DAILY_CAP
+        from .models import ChefBattleProfile
+        for i in range(10):
+            award_moves(self.chef, 3, "Recipe approved")
+        profile = ChefBattleProfile.objects.get(chef=self.chef)
+        self.assertLessEqual(profile.battle_moves, MOVES_CONTENT_DAILY_CAP)
+
+
+class BattleTimerTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.user_a = User.objects.create_user(username="timer-a", password="pw")
+        self.user_b = User.objects.create_user(username="timer-b", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=self.user_a, name="Timer A", slug="timer-a")
+        self.chef_b = RecipeAuthor.objects.create(user=self.user_b, name="Timer B", slug="timer-b")
+
+    def test_battle_has_7_day_window(self):
+        challenge = BattleChallenge.objects.create(
+            challenger=self.chef_a,
+            opponent=self.chef_b,
+            theme="7-day test",
+            expires_at=timezone.now() + timezone.timedelta(hours=24),
+        )
+        battle = accept_challenge(challenge)
+        delta = battle.end_time - battle.start_time
+        self.assertEqual(delta.days, 7)
+
+    def test_submission_deadline_is_5_days(self):
+        challenge = BattleChallenge.objects.create(
+            challenger=self.chef_a,
+            opponent=self.chef_b,
+            theme="5-day sub test",
+            expires_at=timezone.now() + timezone.timedelta(hours=24),
+        )
+        battle = accept_challenge(challenge)
+        delta = battle.submission_deadline - battle.start_time
+        self.assertEqual(delta.days, 5)
+
+
+class NotificationsPollViewTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user(username="poll-user", password="pw", is_staff=True)
+        self.client = Client()
+
+    def test_poll_requires_login(self):
+        url = reverse("chef_battle:notifications_poll")
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 302)
+
+    def test_poll_returns_json_for_staff(self):
+        self.client.login(username="poll-user", password="pw")
+        url = reverse("chef_battle:notifications_poll")
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertIn("count", data)
+        self.assertIn("items", data)
