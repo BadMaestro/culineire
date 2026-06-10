@@ -80,7 +80,7 @@ def _build_battlefield_progress():
                 {"label": "Battle room", "detail": f"{battle_count} battle room(s) created; {active_battles} active/scheduled/voting; {completed_battles} completed.", "status": _battlefield_status(battle_count)},
                 {"label": "Recipe/article submissions", "detail": f"{entry_count} battle(s) currently have at least one submitted entry.", "status": _battlefield_status(entry_count)},
                 {"label": "Public voting", "detail": f"{vote_count} vote(s) recorded. MVP rule: one authenticated vote or protected anonymous session per battle.", "status": _battlefield_status(vote_count)},
-                {"label": "7-day MVP timer", "detail": "Concept 3.0 recommends 7 days for authors and audience; current implementation still needs timer adjustment.", "status": "pending"},
+                {"label": "7-day MVP timer", "detail": "5 days for submissions + 2 days for voting = 7-day total battle window.", "status": "done"},
                 {"label": "Manual battle moderation", "detail": "First 20-30 battles should be manually checked for theme fit, spam, image rights, recipe quality and rule violations.", "status": "pending"},
             ],
         },
@@ -91,7 +91,7 @@ def _build_battlefield_progress():
                 {"label": "Chef profile battle record", "detail": f"{profile_count} chef battle profile(s) exist with rank, rating, wins, losses, refusals and moves.", "status": _battlefield_status(profile_count)},
                 {"label": "Homepage battle block", "detail": "Homepage battle visibility is implemented behind CHEF_BATTLE_ENABLED and should stay sandbox-only until PR approval.", "status": "done"},
                 {"label": "Newsfeed integration", "detail": "Challenge, refusal, battle start, submission and completion events can create site news entries.", "status": "done"},
-                {"label": "Live visitor notifications", "detail": "Optional later layer: surface challenge wins, new crowns and final-hour voting through live pop-ups.", "status": "pending"},
+                {"label": "Live visitor notifications", "detail": "Polling every 45s surfaces pending challenges and unread battle messages as a toast while browsing.", "status": "done"},
             ],
         },
         {
@@ -458,3 +458,33 @@ def my_moves(request):
         "daily_cap": MOVES_CONTENT_DAILY_CAP,
         "weekly_cap": MOVES_CONTENT_WEEKLY_CAP,
     })
+
+
+@chef_battle_guard
+@login_required
+def notifications_poll(request):
+    """Return unread battle notification count for live polling."""
+    from django.http import JsonResponse
+    from messaging.models import Message
+    author = get_author_for_user(request.user)
+
+    unread_battle_msgs = (
+        Message.objects
+        .filter(recipient=request.user, is_read=False, subject__icontains="battle")
+        .count()
+    )
+    pending_challenges = 0
+    if author:
+        pending_challenges = BattleChallenge.objects.filter(
+            opponent=author,
+            status=BattleChallenge.Status.PENDING,
+        ).count()
+
+    total = unread_battle_msgs + pending_challenges
+    items = []
+    if pending_challenges:
+        items.append({"text": f"{pending_challenges} battle challenge{'s' if pending_challenges != 1 else ''} waiting", "url": "/chef-battle/"})
+    if unread_battle_msgs:
+        items.append({"text": f"{unread_battle_msgs} unread battle message{'s' if unread_battle_msgs != 1 else ''}", "url": "/messages/"})
+
+    return JsonResponse({"count": total, "items": items})

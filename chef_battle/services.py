@@ -102,7 +102,9 @@ def accept_challenge(challenge: BattleChallenge) -> Battle:
     now = timezone.now()
     start_time = challenge.proposed_start_time or now
     status = Battle.Status.SCHEDULED if start_time > now else Battle.Status.ACTIVE
-    end_time = start_time + timezone.timedelta(hours=24)
+    submission_deadline = start_time + timezone.timedelta(days=5)
+    voting_deadline = submission_deadline + timezone.timedelta(days=2)
+    end_time = voting_deadline
 
     with transaction.atomic():
         challenge.status = BattleChallenge.Status.ACCEPTED
@@ -117,7 +119,8 @@ def accept_challenge(challenge: BattleChallenge) -> Battle:
             battle_type=challenge.battle_type,
             status=status,
             start_time=start_time,
-            submission_deadline=end_time,
+            submission_deadline=submission_deadline,
+            voting_deadline=voting_deadline,
             end_time=end_time,
         )
 

@@ -3980,3 +3980,49 @@
   font-size: .85rem;
   color: #5a4f42;
 }
+
+/* ── Chef Battle live notification toast ──────────────────────────────────── */
+.battle-toast {
+  position: fixed;
+  bottom: 1.4rem;
+  right: 1.2rem;
+  z-index: 9999;
+  animation: battle-toast-in .3s ease;
+}
+@keyframes battle-toast-in {
+  from { opacity: 0; transform: translateY(1rem); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.battle-toast__inner {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  background: #184c3a;
+  color: #fff8ee;
+  border-radius: 10px;
+  padding: .85rem 1.1rem;
+  box-shadow: 0 4px 18px rgb(0 0 0 / .22);
+  min-width: 14rem;
+  max-width: 22rem;
+  position: relative;
+}
+.battle-toast__item {
+  color: #f8d28a;
+  font-size: .9rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.battle-toast__item:hover { text-decoration: underline; }
+.battle-toast__close {
+  position: absolute;
+  top: .45rem;
+  right: .6rem;
+  background: none;
+  border: none;
+  color: rgb(255 248 238 / .6);
+  font-size: 1.1rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+}
+.battle-toast__close:hover { color: #fff8ee; }

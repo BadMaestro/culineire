@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 {% load static %}
-<html lang="en">
+<html lang="en"{% if chef_battle_enabled and user.is_authenticated %} data-battle-poll-url="{% url 'chef_battle:notifications_poll' %}"{% endif %}>
 <head>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport">
@@ -362,7 +362,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v2.3.18</span>
+                <span class="footer-version">v2.3.19</span>
             </div>
         </div>
     </div>

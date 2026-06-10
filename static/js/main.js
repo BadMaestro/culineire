@@ -811,3 +811,48 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   })();
 });
+
+// ── Chef Battle live notification polling ────────────────────────────────────
+(function () {
+  var pollUrl = document.documentElement.dataset.battlePollUrl;
+  if (!pollUrl) return;
+
+  var lastCount = 0;
+
+  function showBattleToast(items) {
+    var existing = document.getElementById("battle-toast");
+    if (existing) existing.remove();
+
+    var toast = document.createElement("div");
+    toast.id = "battle-toast";
+    toast.className = "battle-toast";
+    var html = '<div class="battle-toast__inner">';
+    items.forEach(function (item) {
+      html += '<a class="battle-toast__item" href="' + item.url + '">' + item.text + '</a>';
+    });
+    html += '<button class="battle-toast__close" aria-label="Dismiss">&times;</button></div>';
+    toast.innerHTML = html;
+    document.body.appendChild(toast);
+
+    toast.querySelector(".battle-toast__close").addEventListener("click", function () {
+      toast.remove();
+    });
+    setTimeout(function () { if (toast.parentNode) toast.remove(); }, 12000);
+  }
+
+  function poll() {
+    fetch(pollUrl, { credentials: "same-origin" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!data) return;
+        if (data.count > lastCount && data.items && data.items.length) {
+          showBattleToast(data.items);
+        }
+        lastCount = data.count;
+      })
+      .catch(function () {});
+  }
+
+  poll();
+  setInterval(poll, 45000);
+})();

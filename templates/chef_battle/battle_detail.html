@@ -16,8 +16,9 @@
     </p>
     <div class="battle-room-meta">
       <span>Start {{ battle.start_time|date:"j M Y H:i" }}</span>
-      <span>Deadline {{ battle.submission_deadline|date:"j M Y H:i" }}</span>
-      <span>Ends {{ battle.end_time|date:"j M Y H:i" }}</span>
+      <span>Submit by {{ battle.submission_deadline|date:"j M Y" }}</span>
+      {% if battle.voting_deadline %}<span>Vote by {{ battle.voting_deadline|date:"j M Y" }}</span>{% endif %}
+      <span>Ends {{ battle.end_time|date:"j M Y" }}</span>
     </div>
     {% if battle.winner %}
     <p class="battle-winner">{{ battle.winner.name }} won · {{ battle.result_reason }}</p>
