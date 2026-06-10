@@ -51,13 +51,15 @@ class Command(BaseCommand):
         created = entry is None
 
         if created:
+            # Create as non-public so the auto-signal doesn't send a Telegram.
+            # We send our own custom message below, then flip is_public=True.
             entry = NewsFeedEntry.objects.create(
                 event_key=_EVENT_KEY,
                 entry_type=NewsFeedEntry.EntryType.SITE_UPDATE,
                 title=_TITLE,
                 message=_MESSAGE,
                 url=_URL,
-                is_public=True,
+                is_public=False,
                 is_auto=False,
                 published_at=timezone.now(),
             )
@@ -65,25 +67,29 @@ class Command(BaseCommand):
             entry.title = _TITLE
             entry.message = _MESSAGE
             entry.url = _URL
-            entry.is_public = True
             entry.published_at = timezone.now()
-            entry.save(update_fields=["title", "message", "url", "is_public", "published_at"])
+            entry.save(update_fields=["title", "message", "url", "published_at"])
 
         action = "Created" if created else "Updated"
         self.stdout.write(self.style.SUCCESS(f"{action} feed entry #{entry.pk}: {entry.title}"))
 
-        if options["skip_telegram"]:
-            self.stdout.write("Telegram push skipped.")
-            return
-
-        result = publish_newsfeed_entry_to_telegram(
-            entry,
-            message=_TELEGRAM_MESSAGE,
-            event_key=f"newsfeed_telegram:{_EVENT_KEY}",
-        )
-        if result.status == "sent":
-            self.stdout.write(self.style.SUCCESS("Telegram: sent"))
-        elif result.ok:
-            self.stdout.write(f"Telegram: {result.status}")
+        if not options["skip_telegram"]:
+            result = publish_newsfeed_entry_to_telegram(
+                entry,
+                message=_TELEGRAM_MESSAGE,
+                event_key=f"newsfeed_telegram:{_EVENT_KEY}",
+            )
+            if result.status == "sent":
+                self.stdout.write(self.style.SUCCESS("Telegram: sent"))
+            elif result.ok:
+                self.stdout.write(f"Telegram: {result.status}")
+            else:
+                self.stdout.write(self.style.ERROR(f"Telegram: {result.status} — {result.response}"))
         else:
-            self.stdout.write(self.style.ERROR(f"Telegram: {result.status} — {result.response}"))
+            self.stdout.write("Telegram push skipped.")
+
+        # Make the entry public after Telegram is handled (update_fields prevents
+        # the post_save signal from firing again since created=False there).
+        if created:
+            entry.is_public = True
+            entry.save(update_fields=["is_public"])
