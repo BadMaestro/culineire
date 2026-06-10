@@ -18,6 +18,7 @@ urlpatterns = [
     path("moderation/generate/poll/", views.generate_recipe_poll, name="generate_recipe_poll"),
     path("moderation/recipe/<slug:slug>/", views.moderate_recipe, name="moderate_recipe"),
     path("moderation/author/<slug:slug>/edit/", views.ModeratorAuthorUpdateView.as_view(), name="moderation_author_edit"),
+    path("moderation/author/<slug:slug>/set-password/", views.moderation_author_set_password, name="moderation_author_set_password"),
     path("moderation/author/<slug:slug>/delete/", views.ModeratorAuthorDeleteView.as_view(), name="moderation_author_delete"),
     path("category/<slug:category_slug>/", views.category_detail, name="category_detail"),
     path("author/<slug:slug>/", views.author_detail, name="author_detail"),

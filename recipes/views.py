@@ -33,6 +33,7 @@ from accounts.views import (
     can_revoke_superuser_privileges as _can_revoke_superuser_privileges,
     is_moderator,
 )
+from config.email_utils import build_absolute_url, send_template_mail
 from articles.models import Article, ArticleImage
 from collection.models import SavedArticle, SavedContent, SavedRecipe
 from config.release_journal import RELEASE_JOURNAL
@@ -1975,7 +1976,75 @@ class ModeratorAuthorUpdateView(UpdateView):
         context["form_intro"] = "Update this author's public profile, bio and avatar."
         context["submit_label"] = "Save Author Profile"
         context["show_profile_privacy_notice"] = False
+        context["can_admin_set_password"] = (
+            _can_grant_bearseeker_privileges(self.request.user)
+            and self.object.user is not None
+        )
         return context
+
+
+@require_POST
+def moderation_author_set_password(request, slug):
+    """Admin-only: manually set a new password for an author's account.
+
+    The new password is emailed to the user automatically. Restricted to
+    superusers and the site owner; protected accounts cannot be targeted.
+    """
+    from django.contrib.auth.password_validation import validate_password
+    from django.core.exceptions import ValidationError
+
+    if not _can_grant_bearseeker_privileges(request.user):
+        raise Http404
+    author = get_object_or_404(RecipeAuthor.objects.select_related("user"), slug=slug)
+    if _is_protected_author_action(author, request.user):
+        raise Http404
+    edit_url = reverse("recipes:moderation_author_edit", kwargs={"slug": author.slug})
+    target = author.user
+    if target is None:
+        messages.error(request, "This author profile has no linked user account.")
+        return redirect(edit_url)
+    if not target.email:
+        messages.error(request, "This user has no email address on file, so the new password cannot be sent.")
+        return redirect(edit_url)
+    password1 = request.POST.get("new_password1", "")
+    password2 = request.POST.get("new_password2", "")
+    if not password1 or password1 != password2:
+        messages.error(request, "Passwords do not match.")
+        return redirect(edit_url)
+    try:
+        validate_password(password1, user=target)
+    except ValidationError as exc:
+        messages.error(request, " ".join(exc.messages))
+        return redirect(edit_url)
+    target.set_password(password1)
+    target.save(update_fields=["password"])
+    from monitoring.tracker import record_security_event
+    record_security_event(request, "admin_password_set")
+    try:
+        send_template_mail(
+            subject="Your CulinEire password has been updated",
+            template="admin_password_set",
+            context={
+                "author_name": author.name or target.get_username(),
+                "username": target.get_username(),
+                "new_password": password1,
+                "login_url": build_absolute_url(reverse("login")),
+            },
+            recipient_list=[target.email],
+            fail_silently=False,
+        )
+    except Exception:
+        logger.exception("Failed to email new password to user pk=%s", target.pk)
+        messages.warning(
+            request,
+            f"Password for {target.get_username()} was changed, but the notification email could not be sent.",
+        )
+        return redirect(edit_url)
+    messages.success(
+        request,
+        f"Password updated for {target.get_username()}. The new password was emailed to {target.email}.",
+    )
+    return redirect(edit_url)
 
 
 class ModeratorAuthorDeleteView(DeleteView):

@@ -67,6 +67,9 @@
                     {% for error in form.password.errors %}
                     <p class="auth-error">{{ error }}</p>
                     {% endfor %}
+                    <p class="auth-forgot">
+                        <a href="{% url 'password_reset' %}">Forgot password?</a>
+                    </p>
                 </div>
 
                 {% if next %}

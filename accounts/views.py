@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.auth.views import LoginView
+from django.contrib.auth.views import LoginView, PasswordResetView
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -88,6 +88,27 @@ class CulinEireLoginView(LoginView):
         from monitoring.tracker import record_security_event
         record_security_event(self.request, "failed_login")
         return super().form_invalid(form)
+
+
+# ── Password reset (self-service) ─────────────────────────────────────────────
+
+class CulinEirePasswordResetView(PasswordResetView):
+    """Branded password reset: CulinEire email templates + rate limiting."""
+
+    email_template_name = "emails/password_reset.txt"
+    html_email_template_name = "emails/password_reset.html"
+    subject_template_name = "emails/password_reset_subject.txt"
+    extra_email_context = {"site_url": f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}"}
+
+    @method_decorator(ratelimit(key="ip", rate="10/h", method="POST", block=False))
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        if getattr(request, "limited", False):
+            messages.error(request, "Too many password reset requests. Please wait an hour and try again.")
+            return redirect("password_reset")
+        return super().post(request, *args, **kwargs)
 
 
 @require_POST

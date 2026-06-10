@@ -79,6 +79,7 @@ urlpatterns = [
     path("accounts/ajax-login/", accounts_views.ajax_login, name="ajax_login"),
     path("accounts/signup/", accounts_views.SignUpView.as_view(), name="signup"),
     path("accounts/activate/<uidb64>/<token>/", accounts_views.activate_account, name="activate_account"),
+    path("accounts/password_reset/", accounts_views.CulinEirePasswordResetView.as_view(), name="password_reset"),
     path("accounts/", include("django.contrib.auth.urls")),
 
     # Agent discovery (well-known endpoints)

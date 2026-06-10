@@ -99,6 +99,31 @@
                 </div>
             </form>
 
+            {% if form_mode == "moderation-edit" and can_admin_set_password %}
+            <div class="auth-admin-section">
+                <p class="auth-admin-section__title">Admin: Set New Password</p>
+                <p class="auth-admin-section__note">
+                    Sets a new password for <strong>{{ author.user.username }}</strong> and emails it to
+                    <strong>{{ author.user.email|default:"(no email on file)" }}</strong> automatically.
+                </p>
+                <form class="auth-form" method="post"
+                      action="{% url 'recipes:moderation_author_set_password' slug=author.slug %}">
+                    {% csrf_token %}
+                    <div class="auth-field">
+                        <label for="id_admin_new_password1">New password:</label>
+                        <input autocomplete="new-password" id="id_admin_new_password1"
+                               name="new_password1" required type="password">
+                    </div>
+                    <div class="auth-field">
+                        <label for="id_admin_new_password2">Confirm new password:</label>
+                        <input autocomplete="new-password" id="id_admin_new_password2"
+                               name="new_password2" required type="password">
+                    </div>
+                    <button class="btn" type="submit">Set Password &amp; Email User</button>
+                </form>
+            </div>
+            {% endif %}
+
             {% if show_profile_privacy_notice %}
             <div class="author-profile-gdpr">
                 <p class="author-profile-gdpr__title">Your Data &amp; Privacy</p>
