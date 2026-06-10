@@ -10,7 +10,7 @@ from django.utils import timezone
 
 from newsfeed.models import NewsFeedEntry
 
-from .models import Battle, BattleChallenge, BattleEvent, ChefBattleProfile
+from .models import Battle, BattleChallenge, BattleEntry, BattleEvent, ChefBattleProfile
 
 
 RANK_THRESHOLDS = [
@@ -146,6 +146,135 @@ def refuse_challenge(challenge: BattleChallenge) -> None:
             message=f"{challenge.opponent.name} refused a Chef Battle challenge from {challenge.challenger.name}: {challenge.theme}.",
             publish_to_news=True,
         )
+
+
+def expire_stale_challenges() -> int:
+    """Mark pending challenges past their deadline as EXPIRED. Returns count."""
+    now = timezone.now()
+    stale = BattleChallenge.objects.filter(
+        status=BattleChallenge.Status.PENDING,
+        expires_at__lte=now,
+    )
+    count = 0
+    for challenge in stale:
+        challenge.status = BattleChallenge.Status.EXPIRED
+        challenge.save(update_fields=["status"])
+        create_battle_event(
+            event_type=BattleEvent.EventType.CHALLENGE_EXPIRED,
+            challenge=challenge,
+            actor=challenge.challenger,
+            target=challenge.opponent,
+            message=(
+                f"Challenge expired: {challenge.opponent.name} did not respond "
+                f"to {challenge.challenger.name}'s battle on '{challenge.theme}'."
+            ),
+            is_public=False,
+        )
+        count += 1
+    return count
+
+
+def handle_no_show_battles() -> int:
+    """
+    Process battles past submission_deadline where one or both chefs
+    have not submitted an entry.
+
+    - Both missing → CANCELLED, result_reason records double no-show.
+    - One missing → the submitting chef wins by forfeit; loser takes a
+      reputation hit, no rating change (forfeit does not affect Elo).
+    """
+    now = timezone.now()
+    battles = Battle.objects.filter(
+        status__in=[Battle.Status.ACTIVE, Battle.Status.AWAITING_SUBMISSIONS],
+        submission_deadline__lte=now,
+    ).select_related("challenger", "opponent")
+
+    count = 0
+    for battle in battles:
+        entries = list(battle.entries.values_list("author_id", flat=True))
+        challenger_submitted = battle.challenger_id in entries
+        opponent_submitted = battle.opponent_id in entries
+
+        with transaction.atomic():
+            if not challenger_submitted and not opponent_submitted:
+                battle.status = Battle.Status.CANCELLED
+                battle.result_reason = "Double no-show: neither chef submitted an entry."
+                battle.save(update_fields=["status", "result_reason", "updated_at"])
+                create_battle_event(
+                    event_type=BattleEvent.EventType.BATTLE_FINISHED,
+                    battle=battle,
+                    message=(
+                        f"Battle cancelled: neither {battle.challenger.name} nor "
+                        f"{battle.opponent.name} submitted an entry for '{battle.theme}'."
+                    ),
+                    is_public=True,
+                    publish_to_news=True,
+                )
+
+            elif not challenger_submitted:
+                _award_forfeit_win(battle, winner=battle.opponent, loser=battle.challenger)
+
+            elif not opponent_submitted:
+                _award_forfeit_win(battle, winner=battle.challenger, loser=battle.opponent)
+
+            else:
+                # Both submitted but deadline passed without voting closing —
+                # advance to voting so the normal result path can run.
+                battle.entries.filter(is_revealed=False).update(is_revealed=True)
+                battle.status = Battle.Status.VOTING
+                battle.save(update_fields=["status", "updated_at"])
+
+        count += 1
+    return count
+
+
+def _award_forfeit_win(battle: Battle, *, winner, loser) -> None:
+    loser_profile = get_or_create_battle_profile(loser)
+    loser_profile.losses += 1
+    loser_profile.win_streak = 0
+    loser_profile.reputation = max(-1000, loser_profile.reputation - 10)
+    loser_profile.rank = rank_for_rating(loser_profile.rating)
+    loser_profile.save(update_fields=["losses", "win_streak", "reputation", "rank", "updated_at"])
+
+    winner_profile = get_or_create_battle_profile(winner)
+    winner_profile.wins += 1
+    winner_profile.win_streak += 1
+    winner_profile.rank = rank_for_rating(winner_profile.rating)
+    winner_profile.save(update_fields=["wins", "win_streak", "rank", "updated_at"])
+
+    battle.winner = winner
+    battle.loser = loser
+    battle.status = Battle.Status.COMPLETED
+    battle.result_reason = f"Forfeit: {loser.name} did not submit an entry."
+    battle.save(update_fields=["winner", "loser", "status", "result_reason", "updated_at"])
+
+    create_battle_event(
+        event_type=BattleEvent.EventType.BATTLE_FINISHED,
+        battle=battle,
+        actor=winner,
+        target=loser,
+        message=(
+            f"{winner.name} wins by forfeit in Chef Battle '{battle.theme}': "
+            f"{loser.name} did not submit an entry."
+        ),
+        is_public=True,
+        publish_to_news=True,
+    )
+
+
+def submit_battle_entry(*, battle: Battle, author, recipe=None, article=None, battle_statement: str = "") -> BattleEntry:
+    """Create a BattleEntry, flagging it as late if the deadline has passed."""
+    now = timezone.now()
+    is_late = now > battle.submission_deadline
+    entry = BattleEntry.objects.create(
+        battle=battle,
+        author=author,
+        recipe=recipe,
+        article=article,
+        battle_statement=battle_statement,
+        is_late=is_late,
+    )
+    return entry
 
 
 def reveal_entries_if_ready(battle: Battle) -> None:

@@ -7,8 +7,15 @@ from django.utils import timezone
 
 from recipes.models import RecipeAuthor
 
-from .models import Battle, BattleChallenge, BattleVote
-from .services import accept_challenge, calculate_battle_result, refuse_challenge
+from .models import Battle, BattleChallenge, BattleEntry, BattleVote
+from .services import (
+    accept_challenge,
+    calculate_battle_result,
+    expire_stale_challenges,
+    handle_no_show_battles,
+    refuse_challenge,
+    submit_battle_entry,
+)
 
 
 class ChefBattleServiceTests(TestCase):
@@ -172,3 +179,98 @@ class ChefBattleAntiAbuseTests(TestCase):
         vote.refresh_from_db()
         self.assertTrue(vote.is_suspicious)
         self.assertEqual(vote.moderation_note, "Rapid repeated voting pattern")
+
+
+class ChefBattleExpiryTests(TestCase):
+    """Tests for challenge expiry and no-show / late submission handling (CB-1402)."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.user_a = User.objects.create_user(username="chef-a-expiry", password="pw")
+        self.user_b = User.objects.create_user(username="chef-b-expiry", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=self.user_a, name="Chef A Exp", slug="chef-a-expiry")
+        self.chef_b = RecipeAuthor.objects.create(user=self.user_b, name="Chef B Exp", slug="chef-b-expiry")
+
+    def _past_challenge(self):
+        return BattleChallenge.objects.create(
+            challenger=self.chef_a,
+            opponent=self.chef_b,
+            theme="Oldest Bread Recipe",
+            expires_at=timezone.now() - timezone.timedelta(hours=1),
+        )
+
+    def _active_battle_past_deadline(self):
+        challenge = BattleChallenge.objects.create(
+            challenger=self.chef_a,
+            opponent=self.chef_b,
+            theme="Best Colcannon",
+            expires_at=timezone.now() + timezone.timedelta(hours=1),
+        )
+        battle = accept_challenge(challenge)
+        past = timezone.now() - timezone.timedelta(hours=1)
+        Battle.objects.filter(pk=battle.pk).update(submission_deadline=past)
+        battle.refresh_from_db()
+        return battle
+
+    def test_expire_stale_challenges_marks_expired(self):
+        self._past_challenge()
+        count = expire_stale_challenges()
+        self.assertEqual(count, 1)
+        self.assertEqual(
+            BattleChallenge.objects.filter(status=BattleChallenge.Status.EXPIRED).count(), 1
+        )
+
+    def test_expire_stale_challenges_leaves_pending_future_alone(self):
+        BattleChallenge.objects.create(
+            challenger=self.chef_a,
+            opponent=self.chef_b,
+            theme="Still Open",
+            expires_at=timezone.now() + timezone.timedelta(hours=24),
+        )
+        count = expire_stale_challenges()
+        self.assertEqual(count, 0)
+
+    def test_no_show_both_cancels_battle(self):
+        battle = self._active_battle_past_deadline()
+        handle_no_show_battles()
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.CANCELLED)
+        self.assertIn("no-show", battle.result_reason.lower())
+
+    def test_no_show_one_side_awards_forfeit_win(self):
+        from recipes.models import Recipe
+        battle = self._active_battle_past_deadline()
+        recipe = Recipe.objects.create(
+            title="Soda Bread",
+            slug="soda-bread-expiry",
+            author=self.chef_a,
+            category="bread",
+            short_description="Test",
+            ingredients="flour",
+            method="mix",
+            status=Recipe.Status.APPROVED,
+        )
+        BattleEntry.objects.create(battle=battle, author=self.chef_a, recipe=recipe)
+        handle_no_show_battles()
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.COMPLETED)
+        self.assertEqual(battle.winner, self.chef_a)
+        self.assertIn("forfeit", battle.result_reason.lower())
+        loser_profile = self.chef_b.battle_profile
+        self.assertEqual(loser_profile.losses, 1)
+
+    def test_late_entry_is_flagged(self):
+        battle = self._active_battle_past_deadline()
+        from recipes.models import Recipe
+        recipe = Recipe.objects.create(
+            title="Late Bread",
+            slug="late-bread-expiry",
+            author=self.chef_a,
+            category="bread",
+            short_description="Test",
+            ingredients="flour",
+            method="mix",
+            status=Recipe.Status.APPROVED,
+        )
+        entry = submit_battle_entry(battle=battle, author=self.chef_a, recipe=recipe)
+        self.assertTrue(entry.is_late)
