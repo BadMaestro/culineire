@@ -5,17 +5,71 @@
 {% block extra_head %}<link href="{% static 'css/chef_battle.css' %}" rel="stylesheet">{% endblock %}
 
 {% block content %}
+<section class="battle-hero">
+  <div class="container battle-hero__inner">
+    <p class="battle-kicker">Chef Battle Arena</p>
+    <h1>Issue a Challenge</h1>
+    <p>Pick your opponent, set the theme and let the arena decide who reigns.</p>
+  </div>
+</section>
+
 <section class="page-section">
-  <div class="container battle-form-shell">
-    <h1>Create Chef Battle Challenge</h1>
-    <form class="battle-form" method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <div class="battle-actions">
-        <button class="btn-primary" type="submit">Send Challenge</button>
-        <a class="btn-secondary" href="{% url 'chef_battle:home' %}">Cancel</a>
-      </div>
-    </form>
+  <div class="container">
+    <div class="battle-form-shell">
+      <form class="battle-form" method="post" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="battle-form__errors">
+          {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="battle-form__field">
+          <label class="battle-form__label" for="{{ form.opponent.id_for_label }}">{{ form.opponent.label }}</label>
+          {{ form.opponent }}
+          {% for e in form.opponent.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
+        </div>
+
+        <div class="battle-form__field">
+          <label class="battle-form__label" for="{{ form.theme.id_for_label }}">{{ form.theme.label }}</label>
+          {{ form.theme }}
+          <p class="battle-form__help">One compelling sentence. The chefs and the audience must feel it instantly.</p>
+          {% for e in form.theme.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
+        </div>
+
+        <div class="battle-form__field">
+          <label class="battle-form__label">{{ form.battle_type.label }}</label>
+          {{ form.battle_type }}
+          {% for e in form.battle_type.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
+        </div>
+
+        <div class="battle-form__field">
+          <label class="battle-form__label" for="{{ form.message.id_for_label }}">
+            {{ form.message.label }}
+            <span class="battle-form__optional">(optional)</span>
+          </label>
+          {{ form.message }}
+          <p class="battle-form__help">A taunt, a backstory, or a reason for the duel. Optional but effective.</p>
+          {% for e in form.message.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
+        </div>
+
+        <div class="battle-form__field">
+          <label class="battle-form__label" for="{{ form.proposed_start_time.id_for_label }}">
+            {{ form.proposed_start_time.label }}
+            <span class="battle-form__optional">(optional)</span>
+          </label>
+          {{ form.proposed_start_time }}
+          <p class="battle-form__help">Leave blank to start immediately once your opponent accepts.</p>
+          {% for e in form.proposed_start_time.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
+        </div>
+
+        <div class="battle-form__actions">
+          <button class="btn" type="submit">Send Challenge</button>
+          <a class="btn btn--secondary" href="{% url 'chef_battle:home' %}">Cancel</a>
+        </div>
+      </form>
+    </div>
   </div>
 </section>
 {% endblock %}

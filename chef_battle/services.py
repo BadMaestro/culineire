@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 
 from django.conf import settings
 from django.db import transaction
@@ -11,6 +12,20 @@ from django.utils import timezone
 from newsfeed.models import NewsFeedEntry
 
 from .models import Battle, BattleChallenge, BattleEntry, BattleEvent, ChefBattleProfile
+
+logger = logging.getLogger(__name__)
+
+
+def _notify_chef(sender_author, recipient_author, subject: str, body: str) -> None:
+    """Send an in-site message notification. Silently skips if users are missing."""
+    try:
+        from messaging.models import Message
+        sender = getattr(sender_author, "user", None)
+        recipient = getattr(recipient_author, "user", None)
+        if sender and recipient and sender != recipient:
+            Message.objects.create(sender=sender, recipient=recipient, subject=subject, body=body)
+    except Exception:
+        logger.exception("Failed to send battle notification")
 
 
 RANK_THRESHOLDS = [
@@ -124,6 +139,19 @@ def accept_challenge(challenge: BattleChallenge) -> Battle:
             publish_to_news=True,
         )
 
+    try:
+        battle_url = battle.get_absolute_url()
+    except NoReverseMatch:
+        battle_url = ""
+    _notify_chef(
+        challenge.opponent, challenge.challenger,
+        subject=f"Your challenge was accepted: {challenge.theme}",
+        body=(
+            f"{challenge.opponent.name} accepted your Chef Battle challenge.\n\n"
+            f"Theme: {challenge.theme}\n"
+            f"Battle room: {settings.SITE_SCHEME}://{settings.SITE_DOMAIN}{battle_url}"
+        ),
+    )
     return battle
 
 
@@ -146,6 +174,16 @@ def refuse_challenge(challenge: BattleChallenge) -> None:
             message=f"{challenge.opponent.name} refused a Chef Battle challenge from {challenge.challenger.name}: {challenge.theme}.",
             publish_to_news=True,
         )
+
+    _notify_chef(
+        challenge.opponent, challenge.challenger,
+        subject=f"Your Chef Battle challenge was refused: {challenge.theme}",
+        body=(
+            f"{challenge.opponent.name} has declined your Chef Battle challenge.\n\n"
+            f"Theme: {challenge.theme}\n\n"
+            f"Challenge another chef and keep fighting for your rank."
+        ),
+    )
 
 
 def expire_stale_challenges() -> int:
@@ -320,7 +358,7 @@ def calculate_battle_result(battle: Battle) -> Battle:
             winner_profile.best_win_streak = winner_profile.win_streak
         winner_profile.rating += rating_delta
         winner_profile.reputation += 15
-        winner_profile.battle_moves += 3
+        winner_profile.battle_moves += MOVES_BATTLE_WIN + MOVES_BATTLE_PARTICIPATION
         winner_profile.seasonal_score += 10
         winner_profile.crown_count += 1
         winner_profile.crown_until = timezone.now() + timezone.timedelta(hours=24)
@@ -331,8 +369,16 @@ def calculate_battle_result(battle: Battle) -> Battle:
         loser_profile.win_streak = 0
         loser_profile.rating = max(0, loser_profile.rating - 15)
         loser_profile.reputation = max(-1000, loser_profile.reputation - 3)
+        loser_profile.battle_moves += MOVES_BATTLE_PARTICIPATION
         loser_profile.rank = rank_for_rating(loser_profile.rating)
         loser_profile.save()
+
+        from .models import BattleMoveTransaction
+        BattleMoveTransaction.objects.bulk_create([
+            BattleMoveTransaction(chef=winner, amount=MOVES_BATTLE_WIN, reason="Battle win"),
+            BattleMoveTransaction(chef=winner, amount=MOVES_BATTLE_PARTICIPATION, reason="Battle participation"),
+            BattleMoveTransaction(chef=loser, amount=MOVES_BATTLE_PARTICIPATION, reason="Battle participation"),
+        ])
 
         battle.winner = winner
         battle.loser = loser
@@ -373,4 +419,49 @@ def calculate_battle_result(battle: Battle) -> Battle:
                 publish_to_news=True,
             )
 
+    try:
+        battle_url = f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}{battle.get_absolute_url()}"
+    except (NoReverseMatch, AttributeError):
+        battle_url = ""
+    _notify_chef(
+        loser, winner,
+        subject=f"You won the Chef Battle: {battle.theme}",
+        body=(
+            f"Congratulations! You defeated {loser.name} in Chef Battle: {battle.theme}.\n\n"
+            f"Result: {battle.result_reason}\n"
+            f"You now hold the Crown for 24 hours.\n\n"
+            f"Battle room: {battle_url}"
+        ),
+    )
+    _notify_chef(
+        winner, loser,
+        subject=f"Chef Battle result: {battle.theme}",
+        body=(
+            f"{winner.name} defeated you in Chef Battle: {battle.theme}.\n\n"
+            f"Result: {battle.result_reason}\n\n"
+            f"Battle room: {battle_url}"
+        ),
+    )
     return battle
+
+
+# ── Phase 3: Battle moves economy ────────────────────────────────────────────
+
+MOVES_RECIPE_APPROVED = 3
+MOVES_ARTICLE_APPROVED = 2
+MOVES_BATTLE_WIN = 5
+MOVES_BATTLE_PARTICIPATION = 1
+
+
+def award_moves(author, amount: int, reason: str) -> None:
+    """Credit battle moves to a chef and update their profile. Silently no-ops if no profile."""
+    if amount == 0:
+        return
+    try:
+        from .models import BattleMoveTransaction
+        profile = get_or_create_battle_profile(author)
+        profile.battle_moves = max(0, profile.battle_moves + amount)
+        profile.save(update_fields=["battle_moves", "updated_at"])
+        BattleMoveTransaction.objects.create(chef=author, amount=amount, reason=reason)
+    except Exception:
+        logger.exception("Failed to award moves to author pk=%s", getattr(author, "pk", "?"))

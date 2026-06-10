@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
@@ -29,6 +30,7 @@ from .selectors import (
     get_top_profiles,
 )
 from .services import (
+    _notify_chef,
     accept_challenge,
     calculate_battle_result,
     create_battle_event,
@@ -234,6 +236,19 @@ def challenge_create(request):
                 target=challenge.opponent,
                 message=f"{author.name} challenged {challenge.opponent.name} to Chef Battle: {challenge.theme}.",
                 publish_to_news=True,
+            )
+            _notify_chef(
+                author, challenge.opponent,
+                subject=f"You have been challenged to a Chef Battle: {challenge.theme}",
+                body=(
+                    f"{author.name} has challenged you to a Chef Battle!\n\n"
+                    f"Theme: {challenge.theme}\n"
+                    f"Battle type: {challenge.get_battle_type_display()}\n"
+                    + (f"\nMessage: {challenge.message}\n" if challenge.message else "")
+                    + f"\nAccept or refuse in your challenges inbox: "
+                    f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}"
+                    + reverse("chef_battle:challenge_list")
+                ),
             )
             messages.success(request, "Chef Battle challenge sent.")
             return redirect("chef_battle:challenge_list")

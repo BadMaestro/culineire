@@ -5,18 +5,84 @@
 {% block extra_head %}<link href="{% static 'css/chef_battle.css' %}" rel="stylesheet">{% endblock %}
 
 {% block content %}
-<section class="page-section">
-  <div class="container battle-form-shell">
+<section class="battle-room-hero">
+  <div class="container">
     <p class="battle-kicker">Battle Entry</p>
     <h1>{{ battle.theme }}</h1>
-    <form class="battle-form" method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <div class="battle-actions">
-        <button class="btn-primary" type="submit">Submit Entry</button>
-        <a class="btn-secondary" href="{{ battle.get_absolute_url }}">Cancel</a>
-      </div>
-    </form>
+    <p>{{ battle.challenger.name }} vs {{ battle.opponent.name }}</p>
   </div>
 </section>
+
+<section class="page-section">
+  <div class="container">
+    <div class="battle-form-shell">
+      <form class="battle-form" method="post" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="battle-form__errors">
+          {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="battle-form__field">
+          <label class="battle-form__label">{{ form.content_type.label }}</label>
+          <div class="battle-form__radio-group">
+            {% for choice in form.content_type %}
+            <label class="battle-form__radio-label">
+              {{ choice.tag }} {{ choice.choice_label }}
+            </label>
+            {% endfor %}
+          </div>
+          {% for e in form.content_type.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
+        </div>
+
+        <div class="battle-form__field" id="field-recipe">
+          <label class="battle-form__label" for="{{ form.recipe.id_for_label }}">{{ form.recipe.label }}</label>
+          {{ form.recipe }}
+          <p class="battle-form__help">Only your approved recipes are shown.</p>
+          {% for e in form.recipe.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
+        </div>
+
+        <div class="battle-form__field" id="field-article">
+          <label class="battle-form__label" for="{{ form.article.id_for_label }}">{{ form.article.label }}</label>
+          {{ form.article }}
+          <p class="battle-form__help">Only your approved articles are shown.</p>
+          {% for e in form.article.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
+        </div>
+
+        <div class="battle-form__field">
+          <label class="battle-form__label" for="{{ form.battle_statement.id_for_label }}">
+            {{ form.battle_statement.label }}
+            <span class="battle-form__optional">(optional)</span>
+          </label>
+          {{ form.battle_statement }}
+          <p class="battle-form__help">Tell the audience why your entry deserves to win. Max 500 characters.</p>
+          {% for e in form.battle_statement.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
+        </div>
+
+        <div class="battle-form__actions">
+          <button class="btn" type="submit">Submit Entry</button>
+          <a class="btn btn--secondary" href="{{ battle.get_absolute_url }}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+  var typeInputs = document.querySelectorAll('input[name="content_type"]');
+  var recipeField = document.getElementById('field-recipe');
+  var articleField = document.getElementById('field-article');
+  function toggle() {
+    var val = document.querySelector('input[name="content_type"]:checked');
+    val = val ? val.value : 'recipe';
+    recipeField.style.display = val === 'recipe' ? '' : 'none';
+    articleField.style.display = val === 'article' ? '' : 'none';
+  }
+  typeInputs.forEach(function (el) { el.addEventListener('change', toggle); });
+  toggle();
+})();
+</script>
 {% endblock %}

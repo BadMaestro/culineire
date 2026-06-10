@@ -115,7 +115,12 @@ def publish_recipe_to_telegram_on_approval(sender, instance, **kwargs):
         publish_recipe_to_telegram(instance)
     except Exception:
         logger.exception("Failed to publish recipe pk=%s to Telegram", instance.pk)
-        return
+    try:
+        from chef_battle.services import award_moves, MOVES_RECIPE_APPROVED
+        if instance.author:
+            award_moves(instance.author, MOVES_RECIPE_APPROVED, "Recipe approved")
+    except Exception:
+        logger.exception("Failed to award battle moves for recipe pk=%s", instance.pk)
 
 
 @receiver(pre_save, sender=RecipeImage)
