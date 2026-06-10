@@ -80,7 +80,7 @@
     </div>
 </section>
 
-<section class="page-section announcements-section">
+<section class="page-section">
     <div class="container">
         <div class="page-header">
             <div>
@@ -88,33 +88,35 @@
                 <h2>Announcements</h2>
             </div>
         </div>
-        <div class="announcements-grid">
-            <div class="announcements-grid__image">
-                <img alt="Chef's Battle — culinary PvP arena" loading="lazy" src="{% static 'images/hero-battle.png' %}">
-            </div>
-            <div class="announcements-grid__body">
-                <p class="announcements-grid__label">Chef's Battle Arena</p>
-                <h3 class="announcements-grid__title">A New Kind of Culinary Competition Is Coming To CulinEire</h3>
-                <p class="announcements-grid__text">
-                    We are building something ambitious: a live culinary duelling arena where chefs challenge each other, cook to a theme, and let the community decide who wins. Ranked battles, seasonal leaderboards, crowns for the best in the kitchen. Watch this space.
-                </p>
-                <p class="announcements-grid__cta-note">No sign-up required to watch. Authors can register when the arena opens.</p>
-                <div class="announcements-grid__footer">
-                    {% if user.is_authenticated %}
-                    <button class="announcements-grid__comment-btn"
-                            type="button"
-                            data-ab-cmt="chefs-battle-announcement-2026"
-                            aria-label="Share your thoughts">
-                        <svg aria-hidden="true" fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                        Share your thoughts
-                        <span class="announcements-comment-count" id="ann-cmt-count" hidden></span>
-                    </button>
-                    {% else %}
-                    <a class="announcements-grid__comment-link" href="{% url 'login' %}?next={{ request.path }}">
-                        <svg aria-hidden="true" fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="16"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                        Sign in to share your thoughts
-                    </a>
-                    {% endif %}
+        <div class="content-showcase announcements-showcase">
+            <p class="content-showcase__eyebrow">Chef's Battle Arena</p>
+            <div class="announcements-grid">
+                <div class="announcements-grid__image">
+                    <img alt="Chef's Battle — culinary PvP arena" loading="lazy" src="{% static 'images/hero-battle.png' %}">
+                </div>
+                <div class="announcements-grid__body">
+                    <h3 class="announcements-grid__title">A New Kind of Culinary Competition Is Coming To CulinEire</h3>
+                    <p class="announcements-grid__text">
+                        We are building something ambitious: a live culinary duelling arena where chefs challenge each other, cook to a theme, and let the community decide who wins. Ranked battles, seasonal leaderboards, crowns for the best in the kitchen. Watch this space.
+                    </p>
+                    <p class="announcements-grid__cta-note">No sign-up required to watch. Authors can register when the arena opens.</p>
+                    <div class="announcements-grid__footer">
+                        {% if user.is_authenticated %}
+                        <button class="announcements-grid__comment-btn"
+                                type="button"
+                                data-ab-cmt="chefs-battle-announcement-2026"
+                                aria-label="Share your thoughts">
+                            <svg aria-hidden="true" fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            Share your thoughts
+                            <span class="announcements-comment-count" id="ann-cmt-count" hidden></span>
+                        </button>
+                        {% else %}
+                        <a class="announcements-grid__comment-link" href="{% url 'login' %}?next={{ request.path }}">
+                            <svg aria-hidden="true" fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="16"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            Sign in to share your thoughts
+                        </a>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
