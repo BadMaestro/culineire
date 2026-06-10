@@ -667,16 +667,21 @@ def submit_comment(request, slug):
             return JsonResponse({"ok": False, "error": "profanity", "message": error_text}, status=400)
         messages.error(request, error_text)
         return redirect(item.get_absolute_url())
-    # Optional parent for replies (only one level deep — no replies-to-replies)
+    # Optional parent for replies — all replies attach to the root comment (flat threading)
     parent = None
     parent_id_raw = request.POST.get("parent_id", "").strip()
     if parent_id_raw:
         try:
-            parent = AmuseBoucheComment.objects.get(
+            target = AmuseBoucheComment.objects.get(
                 pk=int(parent_id_raw),
                 amuse_bouche=item,
                 is_deleted=False,
-                parent__isnull=True,  # only top-level comments can be replied to
+            )
+            # If replying to a reply, attach to its root parent instead
+            parent = target if target.parent_id is None else AmuseBoucheComment.objects.get(
+                pk=target.parent_id,
+                amuse_bouche=item,
+                is_deleted=False,
             )
         except (AmuseBoucheComment.DoesNotExist, ValueError):
             if is_fetch:

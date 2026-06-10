@@ -28,15 +28,15 @@
 
   <p class="ab-cmt__body">{{ comment.body }}</p>
 
-  {% if not is_reply %}
   {% if user.is_authenticated and item.allow_comments %}
+  {% with root_id=comment.parent_id|default:comment.pk %}
   <button class="ab-cmt__reply-btn" type="button"
           data-ab-cmt-reply="{{ comment.pk }}">&#x21A9; Reply</button>
   <form class="ab-cmt__reply-form" hidden
         data-ab-cmt-form="{{ item.slug }}"
-        data-reply-to="{{ comment.pk }}">
+        data-reply-to="{{ root_id }}">
     {% csrf_token %}
-    <input type="hidden" name="parent_id" value="{{ comment.pk }}">
+    <input type="hidden" name="parent_id" value="{{ root_id }}">
     <textarea class="ab-cmt__reply-input" name="body"
               placeholder="Write a reply..." maxlength="1000" rows="2"></textarea>
     <div class="ab-cmt__reply-footer">
@@ -44,7 +44,9 @@
       <button type="button" class="ab-cmt__reply-cancel">Cancel</button>
     </div>
   </form>
+  {% endwith %}
   {% endif %}
+  {% if not is_reply %}
   <div class="ab-cmt__replies" id="ab-cmt-replies-{{ comment.pk }}">
     {% if comment.active_replies %}
     {% for reply in comment.active_replies %}
