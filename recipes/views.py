@@ -713,7 +713,11 @@ def home(request):
 
     battle_events = []
     active_battles = []
-    chef_battle_enabled = getattr(settings, "CHEF_BATTLE_ENABLED", False)
+    flag_on = getattr(settings, "CHEF_BATTLE_ENABLED", False)
+    user = request.user
+    chef_battle_enabled = flag_on or bool(
+        user and user.is_authenticated and (user.is_staff or user.is_superuser)
+    )
     if chef_battle_enabled:
         try:
             from chef_battle.models import Battle, BattleEvent
