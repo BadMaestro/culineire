@@ -562,3 +562,39 @@ def battle_combat_action(request, pk):
             for r in state["rounds"]
         ],
     })
+
+
+@chef_battle_guard
+@login_required
+def battle_state_poll(request, pk):
+    """Lightweight GET endpoint — returns current combat state for auto-poll."""
+    from django.http import JsonResponse
+    from .services import get_combat_state
+    from .models import BattleCombatAction
+
+    battle = get_object_or_404(Battle, pk=pk)
+    author = get_author_for_user(request.user)
+    state = get_combat_state(battle)
+
+    viewer_has_moved = False
+    if author and battle.author_is_participant(author):
+        viewer_has_moved = BattleCombatAction.objects.filter(
+            battle=battle, chef=author, round_number=state["current_round"]
+        ).exists()
+
+    return JsonResponse({
+        "ok": True,
+        "status": battle.status,
+        "challenger_hits": state["challenger_hits"],
+        "opponent_hits": state["opponent_hits"],
+        "current_round": state["current_round"],
+        "viewer_has_moved": viewer_has_moved,
+        "rounds": [
+            {
+                "round_number": r.round_number,
+                "outcome": r.outcome,
+                "log_message": r.log_message,
+            }
+            for r in state["rounds"]
+        ],
+    })

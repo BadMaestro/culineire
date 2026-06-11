@@ -604,3 +604,65 @@
   color: var(--ink);
   background: var(--surface);
 }
+
+/* ── Battle pip — floating corner widget ───────────────────────────────── */
+.battle-pip {
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  z-index: 9999;
+  background: #3a3028;
+  color: #f0ebe0;
+  border-radius: 14px;
+  box-shadow: 0 8px 28px rgba(40,34,30,0.30);
+  padding: .65rem .9rem;
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  min-width: 180px;
+  max-width: 220px;
+  font-size: .82rem;
+  transition: opacity .2s;
+}
+.battle-pip--hidden { display: none; }
+.battle-pip__expand {
+  appearance: none;
+  border: none;
+  background: rgba(255,255,255,.12);
+  color: #f0ebe0;
+  border-radius: 8px;
+  padding: .3rem .6rem;
+  font-size: .78rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+  transition: background .15s;
+}
+.battle-pip__expand:hover { background: rgba(255,255,255,.22); }
+.battle-pip__body {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.battle-pip__theme {
+  flex: 1;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #e8dfd4;
+}
+.battle-pip__score {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #f8d28a;
+  white-space: nowrap;
+}
+.battle-pip__round {
+  font-size: .72rem;
+  color: rgba(240,235,224,.6);
+  white-space: nowrap;
+}
+@media (max-width: 480px) {
+  .battle-pip { bottom: .75rem; right: .75rem; min-width: 160px; }
+}

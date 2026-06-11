@@ -56,6 +56,7 @@
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"CulinEire","url":"{{ SITE_URL }}","logo":"{{ SITE_URL }}{% static 'images/logo.png' %}","sameAs":["https://www.instagram.com/culineire/","https://www.tiktok.com/@culineire.ie","https://t.me/CULINEIRE"]}</script>
 
     {% block extra_head %}{% endblock %}
+    {% if active_battle_pip %}<link href="{% static 'css/chef_battle.css' %}" rel="stylesheet">{% endif %}
 </head>
 <body{% block body_attrs %}{% endblock %}>
 <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -362,7 +363,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v2.3.27</span>
+                <span class="footer-version">v2.3.28</span>
             </div>
         </div>
     </div>
@@ -417,6 +418,93 @@
 <script src="{% static 'js/main.js' %}"></script>
 <script src="{% static 'js/presence.js' %}"></script>
 {% block extra_js %}{% endblock %}
+
+{% if active_battle_pip %}
+<div class="battle-pip" id="battle-pip"
+     data-battle-url="{% url 'chef_battle:battle_detail' active_battle_pip.pk %}"
+     data-state-url="{% url 'chef_battle:battle_state_poll' active_battle_pip.pk %}">
+  <button class="battle-pip__expand" aria-label="Open battle" onclick="location.href=this.closest('.battle-pip').dataset.battleUrl">&#x26694;&#xFE0F; Open Battle</button>
+  <div class="battle-pip__body">
+    <span class="battle-pip__theme">{{ active_battle_pip.theme }}</span>
+    <span class="battle-pip__score">
+      <strong id="pip-challenger-hits">?</strong> : <strong id="pip-opponent-hits">?</strong>
+    </span>
+    <span class="battle-pip__round">Rd <strong id="pip-round">?</strong></span>
+  </div>
+</div>
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+  const pip = document.getElementById('battle-pip');
+  if (!pip) return;
+  const stateUrl = pip.dataset.stateUrl;
+  const onBattlePage = location.pathname.startsWith(pip.dataset.battleUrl.replace(/\/$/, ''));
+
+  function fetchState() {
+    fetch(stateUrl, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+      .then(r => r.json())
+      .then(function (res) {
+        if (!res.ok || res.status === 'completed') { pip.remove(); return; }
+        document.getElementById('pip-challenger-hits').textContent = res.challenger_hits;
+        document.getElementById('pip-opponent-hits').textContent = res.opponent_hits;
+        document.getElementById('pip-round').textContent = res.current_round;
+
+        if (onBattlePage) {
+          updateBattlePage(res);
+        }
+      })
+      .catch(function () {});
+  }
+
+  function updateBattlePage(res) {
+    const chEl = document.getElementById('combat-hits-challenger');
+    const opEl = document.getElementById('combat-hits-opponent');
+    const rdEl = document.getElementById('combat-round-num');
+    const logEl = document.getElementById('combat-log');
+    const turnEl = document.getElementById('combat-turn-indicator');
+    const form = document.getElementById('combat-action-form');
+
+    const prevRound = rdEl ? parseInt(rdEl.textContent, 10) : null;
+    const newRound = res.current_round;
+
+    if (chEl) chEl.textContent = res.challenger_hits;
+    if (opEl) opEl.textContent = res.opponent_hits;
+    if (rdEl) rdEl.textContent = newRound;
+
+    if (logEl && res.rounds && res.rounds.length) {
+      logEl.innerHTML = '';
+      res.rounds.forEach(function (r) {
+        const li = document.createElement('li');
+        li.innerHTML = '<span class="battle-muted">Round ' + r.round_number + '</span><span>' + r.log_message + '</span>';
+        logEl.appendChild(li);
+      });
+    }
+
+    if (prevRound !== null && newRound > prevRound) {
+      if (turnEl) {
+        turnEl.classList.remove('battle-combat__turn--waiting');
+        turnEl.classList.add('battle-combat__turn--yours');
+        turnEl.innerHTML = '&#x1F525; Your move!';
+      }
+      if (form) { form.hidden = false; form.querySelector('button[type="submit"]').disabled = false; }
+      const successEl = document.getElementById('combat-success');
+      if (successEl) successEl.hidden = true;
+    }
+
+    if (res.viewer_has_moved && turnEl) {
+      turnEl.classList.remove('battle-combat__turn--yours');
+      turnEl.classList.add('battle-combat__turn--waiting');
+      turnEl.innerHTML = '&#x23F3; Waiting for opponent&#x2026;';
+      if (form) form.hidden = true;
+    }
+  }
+
+  fetchState();
+  setInterval(fetchState, 5000);
+
+  if (onBattlePage) { pip.classList.add('battle-pip--hidden'); }
+})();
+</script>
+{% endif %}
 {% if messages %}
 <section aria-label="Notifications" class="site-messages">
     {% for message in messages %}

@@ -183,6 +183,7 @@ template_context_processors = [
     "django.contrib.auth.context_processors.auth",
     "django.contrib.messages.context_processors.messages",
     "config.context_processors.site_url",
+    "config.context_processors.active_battle_pip",
     "recipes.context_processors.header_author",
 ]
 if DEBUG:
