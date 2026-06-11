@@ -184,15 +184,15 @@
           {% if combat_state.challenger_hits > combat_state.opponent_hits %}
           <span class="battle-combat-results__trophy">&#x1F3C6;</span>
           <strong class="battle-combat-results__winner-name">{{ battle.challenger.name }}</strong>
-          <span class="battle-combat-results__winner-label">won the combat phase</span>
+          <span class="battle-combat-results__winner-label">Wins the Combat Phase</span>
           {% elif combat_state.opponent_hits > combat_state.challenger_hits %}
           <span class="battle-combat-results__trophy">&#x1F3C6;</span>
           <strong class="battle-combat-results__winner-name">{{ battle.opponent.name }}</strong>
-          <span class="battle-combat-results__winner-label">won the combat phase</span>
+          <span class="battle-combat-results__winner-label">Wins the Combat Phase</span>
           {% else %}
           <span class="battle-combat-results__trophy">&#x1F91D;</span>
           <strong class="battle-combat-results__winner-name">Draw</strong>
-          <span class="battle-combat-results__winner-label">combat ended equal</span>
+          <span class="battle-combat-results__winner-label">Combat Ended Equal</span>
           {% endif %}
         </div>
         {% endif %}
@@ -212,7 +212,7 @@
       {% endif %}
 
       <section class="battle-panel">
-        <details class="battle-combat-results__log" open>
+        <details class="battle-combat-results__log">
           <summary class="battle-panel__title battle-combat-results__log-toggle battle-combat-results__log-toggle--title">&#x1F4DC; Battle Log{% if events %} ({{ events|length }}){% endif %}</summary>
           {% if events %}
           <ol class="battle-events battle-events--log">
