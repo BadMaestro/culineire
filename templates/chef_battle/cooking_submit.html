@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Submit Cooked Dish | {{ battle.theme }}{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero">
+  <div class="container">
+    <p class="battle-kicker">Cooking Phase</p>
+    <h1>Submit Your Cooked Dish</h1>
+    <p class="battle-room-hero__sub">{{ battle.theme }}</p>
+  </div>
+</section>
+
+<div class="container" style="padding-block: 2rem; max-width: 600px;">
+
+  {% if messages %}
+  <div style="margin-block-end: 1.5rem;">
+    {% for msg in messages %}
+    <p style="padding: .6rem 1rem; border-radius: 6px; margin-block-end: .5rem;
+              background: {% if 'error' in msg.tags %}#fde8e8{% elif 'warning' in msg.tags %}#fff3cd{% else %}#e8f5e9{% endif %};">
+      {{ msg }}
+    </p>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if my_entry.cooked_photo %}
+  <div class="biathlon-panel">
+    <h2 class="biathlon-panel__title">Photo Submitted</h2>
+    <p class="biathlon-panel__sub">You have already submitted your cooked dish photo.</p>
+    <img src="{{ my_entry.cooked_photo.url }}" alt="Your cooked dish"
+         style="max-width: 100%; border-radius: 8px; margin-block: 1rem;">
+    <p style="font-size: 0.9rem; color: var(--color-muted);">
+      Submitted: {{ my_entry.cooked_photo_submitted_at|date:"d M Y H:i" }}
+    </p>
+  </div>
+  {% else %}
+  <div class="biathlon-panel">
+    <h2 class="biathlon-panel__title">Upload Your Dish Photo</h2>
+    <p class="biathlon-panel__sub">
+      Take a clear photo of your finished dish and upload it here.
+      Once both chefs submit, the Presentation phase begins and public voting opens.
+    </p>
+    <form method="post" action="{% url 'chef_battle:cooking_submit' battle.pk %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div style="margin-block: 1.5rem;">
+        <label for="cooked_photo" style="display: block; font-weight: 600; margin-block-end: 0.5rem;">
+          Dish Photo
+        </label>
+        <input type="file" id="cooked_photo" name="cooked_photo" accept="image/*"
+               style="width: 100%; padding: 0.5rem; border: 1px solid var(--color-border); border-radius: 6px;">
+        <p style="font-size: 0.85rem; color: var(--color-muted); margin-block-start: 0.4rem;">
+          JPG, PNG or WebP. Max 10 MB. Make sure your dish is clearly visible.
+        </p>
+      </div>
+      <button class="btn-primary" type="submit">Submit Dish Photo</button>
+    </form>
+  </div>
+  {% endif %}
+
+  <div style="margin-block-start: 2rem;">
+    <a class="text-link" href="{{ battle.get_absolute_url }}">&larr; Back to battle</a>
+  </div>
+</div>
+{% endblock %}

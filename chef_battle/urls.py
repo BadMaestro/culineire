@@ -23,4 +23,5 @@ urlpatterns = [
     path("battles/<int:pk>/biathlon/shoot/", views.biathlon_shoot, name="biathlon_shoot"),
     path("moderation/cooking/", views.cooking_moderation, name="cooking_moderation"),
     path("battles/<int:pk>/moderation/cooking/approve/", views.cooking_moderation_approve, name="cooking_moderation_approve"),
+    path("battles/<int:pk>/cooking/submit/", views.cooking_submit, name="cooking_submit"),
 ]

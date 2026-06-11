@@ -965,6 +965,34 @@ def debit_tokens(chef, amount: int, tx_type: str, description: str = "", battle=
         )
 
 
+# ── Cooking phase ─────────────────────────────────────────────────────────────
+
+def submit_cooked_photo(*, battle: Battle, author, photo) -> BattleEntry:
+    """Chef uploads their cooked dish photo. Advances to PRESENTATION when both submitted."""
+    if battle.status != Battle.Status.COOKING:
+        raise ValueError("Battle must be in COOKING status to submit a cooked photo.")
+    entry = BattleEntry.objects.get(battle=battle, author=author)
+    if entry.cooked_photo:
+        raise ValueError("You have already submitted a cooked photo for this battle.")
+    with transaction.atomic():
+        entry.cooked_photo = photo
+        entry.cooked_photo_submitted_at = timezone.now()
+        entry.save(update_fields=["cooked_photo", "cooked_photo_submitted_at", "updated_at"])
+        both_submitted = not BattleEntry.objects.filter(
+            battle=battle, cooked_photo__isnull=True
+        ).exclude(cooked_photo="").exists()
+        if both_submitted:
+            battle.status = Battle.Status.PRESENTATION
+            battle.save(update_fields=["status", "updated_at"])
+            create_battle_event(
+                event_type=BattleEvent.EventType.BATTLE_STARTED,
+                battle=battle,
+                message="Both chefs have submitted their cooked dish photos. Presentation phase begins.",
+                is_public=True,
+            )
+    return entry
+
+
 # ── Viewer gifts ───────────────────────────────────────────────────────────────
 
 def send_battle_artifact(*, sender_user, recipient, battle: Battle, artifact: Artifact) -> ViewerBattleGift:

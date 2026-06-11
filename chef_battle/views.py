@@ -17,7 +17,7 @@ from recipes.models import RecipeAuthor
 
 from .access import chef_battle_guard
 from .forms import BattleChallengeForm, BattleEntryForm
-from .models import Battle, BattleChallenge, BattleEvent, BattleVote, ChefBattleProfile
+from .models import Battle, BattleChallenge, BattleEntry, BattleEvent, BattleVote, ChefBattleProfile
 from .selectors import (
     get_active_battles,
     get_battle_vote_counts,
@@ -45,6 +45,7 @@ from .services import (
     place_ingredient_lock,
     refuse_challenge,
     reveal_entries_if_ready,
+    submit_cooked_photo,
 )
 
 
@@ -697,3 +698,37 @@ def cooking_moderation_approve(request, pk):
     except ValueError as e:
         messages.error(request, str(e))
     return redirect("chef_battle:cooking_moderation")
+
+
+@login_required
+def cooking_submit(request, pk):
+    battle = get_object_or_404(Battle, pk=pk)
+    author = get_author_for_user(request.user)
+    if not author or not battle.author_is_participant(author):
+        raise PermissionDenied
+
+    if battle.status != Battle.Status.COOKING:
+        messages.error(request, "This battle is not in the cooking phase.")
+        return redirect("chef_battle:battle_detail", pk=pk)
+
+    try:
+        my_entry = battle.entries.get(author=author)
+    except BattleEntry.DoesNotExist:
+        raise PermissionDenied
+
+    if request.method == "POST":
+        photo = request.FILES.get("cooked_photo")
+        if not photo:
+            messages.error(request, "Please select a photo to upload.")
+        else:
+            try:
+                submit_cooked_photo(battle=battle, author=author, photo=photo)
+                messages.success(request, "Your cooked dish photo has been submitted!")
+            except ValueError as e:
+                messages.error(request, str(e))
+        return redirect("chef_battle:battle_detail", pk=pk)
+
+    return render(request, "chef_battle/cooking_submit.html", {
+        "battle": battle,
+        "my_entry": my_entry,
+    })

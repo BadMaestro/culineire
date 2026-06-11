@@ -207,6 +207,8 @@ class BattleEntry(models.Model):
     submitted_at = models.DateTimeField(auto_now_add=True)
     is_revealed = models.BooleanField(default=False)
     is_late = models.BooleanField(default=False)
+    cooked_photo = models.ImageField(upload_to="chef_battle/cooked/", null=True, blank=True)
+    cooked_photo_submitted_at = models.DateTimeField(null=True, blank=True)
     moderation_status = models.CharField(
         max_length=16,
         choices=ModerationStatus.choices,
