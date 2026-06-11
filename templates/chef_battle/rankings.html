@@ -27,7 +27,7 @@
         <span>{{ profile.get_rank_display }}</span>
         <strong>{{ profile.rating }}</strong>
         <span>{{ profile.wins }}-{{ profile.losses }}</span>
-        <span>{{ profile.battle_moves }}</span>
+        <span>{% if profile.infinite_moves %}&#x221E;{% else %}{{ profile.battle_moves }}{% endif %}</span>
       </a>
       {% endfor %}
     </div>
