@@ -42,7 +42,7 @@ class ChefBattleServiceTests(TestCase):
         challenge.refresh_from_db()
 
         self.assertEqual(challenge.status, BattleChallenge.Status.ACCEPTED)
-        self.assertEqual(battle.status, Battle.Status.ACTIVE)
+        self.assertEqual(battle.status, Battle.Status.MENU_LOCKED)
         self.assertEqual(battle.challenger, self.chef_a)
         self.assertEqual(battle.opponent, self.chef_b)
         self.assertEqual(battle.events.count(), 2)

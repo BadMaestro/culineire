@@ -242,7 +242,7 @@ def handle_no_show_battles() -> int:
     """
     now = timezone.now()
     battles = Battle.objects.filter(
-        status__in=[Battle.Status.ACTIVE, Battle.Status.AWAITING_SUBMISSIONS],
+        status__in=[Battle.Status.MENU_LOCKED, Battle.Status.ACTIVE, Battle.Status.AWAITING_SUBMISSIONS],
         submission_deadline__lte=now,
     ).select_related("challenger", "opponent")
 
