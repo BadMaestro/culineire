@@ -550,21 +550,24 @@
   margin-block-end: .75rem;
 }
 .battle-combat__turn--yours {
-  background: #3a3028;
-  color: #f0ebe0;
-  animation: battle-turn-pulse 1.6s ease-in-out infinite;
+  background: #d6f5e0;
+  border: 1px solid #6dce8f;
+  color: #1a6b3a;
 }
 .battle-combat__turn--waiting {
   background: var(--surface);
   border: 1px dashed var(--line);
   color: var(--muted);
 }
+.battle-combat__submit:not(:disabled) {
+  animation: battle-turn-pulse 1.6s ease-in-out infinite;
+}
 @keyframes battle-turn-pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(58, 48, 40, 0.5); }
-  50% { box-shadow: 0 0 0 9px rgba(58, 48, 40, 0); }
+  50% { box-shadow: 0 0 0 8px rgba(58, 48, 40, 0); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .battle-combat__turn--yours { animation: none; }
+  .battle-combat__submit { animation: none; }
 }
 
 /* ── Phase 4: Combat panel (legacy, keep for JS refs) ───────────────────── */
@@ -698,14 +701,17 @@
   color: var(--muted);
 }
 .battle-pip__turn--yours {
-  background: #3a3028;
-  color: #f0ebe0;
-  animation: battle-turn-pulse 1.6s ease-in-out infinite;
+  background: #d6f5e0;
+  border: 1px solid #6dce8f;
+  color: #1a6b3a;
 }
 .battle-pip__turn--waiting {
   background: var(--surface-soft);
   border: 1px dashed var(--line);
   color: var(--muted);
+}
+.battle-pip__submit:not(:disabled) {
+  animation: battle-turn-pulse 1.6s ease-in-out infinite;
 }
 
 /* combat form */
