@@ -67,7 +67,8 @@ def get_or_create_battle_profile(author):
         profile.level = 5
         profile.rating = 9999
         profile.wins = 15
-        profile.save(update_fields=["rank", "michelin_stars", "is_hero", "level", "rating", "wins", "updated_at"])
+        profile.infinite_moves = True
+        profile.save(update_fields=["rank", "michelin_stars", "is_hero", "level", "rating", "wins", "infinite_moves", "updated_at"])
     return profile
 
 

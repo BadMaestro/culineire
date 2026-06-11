@@ -232,7 +232,7 @@ def challenge_create(request):
         return redirect("home")
 
     profile = get_or_create_battle_profile(author)
-    if profile.battle_moves < MOVES_MIN_TO_CHALLENGE:
+    if not profile.infinite_moves and profile.battle_moves < MOVES_MIN_TO_CHALLENGE:
         messages.error(
             request,
             f"You need at least {MOVES_MIN_TO_CHALLENGE} energy to issue a challenge. "
