@@ -177,11 +177,11 @@
         {% if battle.status != "active" %}
         <p class="battle-combat-results__verdict">
           {% if combat_state.challenger_hits > combat_state.opponent_hits %}
-            &#x1F3C6; <strong>{{ battle.challenger.name }}</strong> won the combat phase
+            &#x1F3C6; <strong>{{ battle.challenger.name }}</strong> won the combat phase.
           {% elif combat_state.opponent_hits > combat_state.challenger_hits %}
-            &#x1F3C6; <strong>{{ battle.opponent.name }}</strong> won the combat phase
+            &#x1F3C6; <strong>{{ battle.opponent.name }}</strong> won the combat phase.
           {% else %}
-            &#x1F91D; Combat ended in a draw
+            &#x1F91D; Combat ended in a draw.
           {% endif %}
         </p>
         {% endif %}
@@ -191,7 +191,7 @@
           <ol class="battle-events battle-events--compact" id="combat-log">
             {% for round in combat_state.rounds %}
             <li>
-              <span class="battle-muted">Rd {{ round.round_number }}</span>
+              <span class="battle-muted">Rd {{ round.round_number }}:</span>
               <span>{{ round.log_message }}</span>
             </li>
             {% endfor %}
@@ -279,7 +279,7 @@
         combatLog.innerHTML = '';
         res.rounds.forEach(function (r) {
           const li = document.createElement('li');
-          li.innerHTML = '<span class="battle-muted">Round ' + r.round_number + '</span><span>' + r.log_message + '</span>';
+          li.innerHTML = '<span class="battle-muted">Rd ' + r.round_number + ':</span><span>' + r.log_message + '</span>';
           combatLog.appendChild(li);
         });
       }

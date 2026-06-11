@@ -740,6 +740,15 @@ def home(request):
         except Exception:
             logger.exception("Chef Battle homepage data is unavailable.")
 
+    try:
+        from amuse_bouche.models import AmuseBoucheComment
+        announcement_comment_count = AmuseBoucheComment.objects.filter(
+            amuse_bouche__slug="chefs-battle-announcement-2026",
+            is_deleted=False,
+        ).count()
+    except Exception:
+        announcement_comment_count = 0
+
     context = {
         "latest_recipes": latest_recipes,
         "latest_articles": latest_articles,
@@ -750,6 +759,7 @@ def home(request):
         "battle_events": battle_events,
         "active_battles": active_battles,
         "chef_battle_enabled": chef_battle_enabled,
+        "announcement_comment_count": announcement_comment_count,
     }
     return render(request, "home.html", context)
 

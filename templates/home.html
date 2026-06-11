@@ -107,12 +107,12 @@
                                 data-ab-cmt="chefs-battle-announcement-2026"
                                 aria-label="Share your thoughts">
                             <svg aria-hidden="true" fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                            Share your thoughts
+                            Share your thoughts{% if announcement_comment_count %}<span class="ab-btn__count">{{ announcement_comment_count }}</span>{% endif %}
                         </button>
                         {% else %}
                         <a class="announcements-grid__comment-link" href="{% url 'login' %}?next={{ request.path }}">
                             <svg aria-hidden="true" fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="16"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                            Sign in to share your thoughts
+                            Sign in to share your thoughts{% if announcement_comment_count %}<span class="ab-btn__count">{{ announcement_comment_count }}</span>{% endif %}
                         </a>
                         {% endif %}
                     </div>

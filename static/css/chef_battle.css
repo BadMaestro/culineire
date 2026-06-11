@@ -551,6 +551,10 @@
   align-items: center;
   gap: .35rem;
 }
+.battle-combat-results__score .battle-muted {
+  color: rgba(248, 210, 138, 0.45);
+  font-weight: 400;
+}
 .battle-combat-results__verdict {
   font-size: .82rem;
   color: #1a6b3a;
@@ -559,6 +563,13 @@
   border-radius: 6px;
   padding: .35rem .6rem;
   margin-block-end: .6rem;
+}
+.battle-score-row strong {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--ink);
+  min-width: 1.8rem;
+  text-align: right;
 }
 .battle-combat-results__log { margin-block-start: .4rem; }
 .battle-combat-results__log-toggle {

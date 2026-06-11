@@ -687,7 +687,7 @@ def _resolve_round(battle: Battle, round_number: int) -> BattleRound | None:
         BattleRound.Outcome.FULL_HIT: "lands a full hit",
         BattleRound.Outcome.PARTIAL_HIT: "lands a partial hit",
         BattleRound.Outcome.BLOCKED: "is blocked",
-        BattleRound.Outcome.DRAW: "clash — draw",
+        BattleRound.Outcome.DRAW: "clash, draw",
     }
     log_msg = (
         f"Round {round_number}: {attacker.name} {outcome_labels.get(outcome, outcome)} "
@@ -731,7 +731,7 @@ def _resolve_round(battle: Battle, round_number: int) -> BattleRound | None:
                 event_type=BattleEvent.EventType.BATTLE_STARTED,
                 message=(
                     f"Combat phase complete! "
-                    f"{battle.challenger.name} {new_c_hits} — {new_o_hits} {battle.opponent.name}. "
+                    f"{battle.challenger.name} {new_c_hits}:{new_o_hits} {battle.opponent.name}. "
                     f"Chefs now prepare their dishes."
                 ),
             )
