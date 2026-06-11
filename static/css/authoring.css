@@ -497,6 +497,15 @@ textarea.authoring-control {
   justify-content: flex-start;
 }
 
+.authoring-new-gallery--screenshot {
+  max-width: 260px;
+  margin-inline: 0;
+}
+
+.authoring-new-gallery--screenshot .authoring-new-gallery__item {
+  width: 100%;
+}
+
 .authoring-new-gallery__item {
   position: relative;
   display: grid;

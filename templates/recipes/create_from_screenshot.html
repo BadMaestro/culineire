@@ -44,6 +44,7 @@
                             </label>
                             {{ form.screenshot }}
                         </div>
+                        <div class="authoring-new-gallery authoring-new-gallery--single authoring-new-gallery--screenshot" id="screenshot-preview" aria-live="polite"></div>
                         {% for error in form.screenshot.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
                         <small class="authoring-help">If drag and drop opens the image instead of attaching it, use the file picker below. The extractor will not follow instructions inside the image.</small>
                     </div>
@@ -62,4 +63,68 @@
         </form>
     </div>
 </main>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+    var zone = document.querySelector('[data-upload-zone]');
+    if (!zone) return;
+
+    var input = document.getElementById(zone.dataset.uploadInput || '');
+    var previewArea = document.getElementById(zone.dataset.uploadPreview || '');
+    if (!input || !previewArea) return;
+
+    var objectUrl = null;
+
+    function clearPreview() {
+        previewArea.innerHTML = '';
+        if (objectUrl) {
+            URL.revokeObjectURL(objectUrl);
+            objectUrl = null;
+        }
+        zone.classList.remove('authoring-upload-zone--has-files');
+    }
+
+    function renderPreview(file) {
+        clearPreview();
+        if (!file || !file.type || file.type.indexOf('image/') !== 0) return;
+
+        var item = document.createElement('div');
+        item.className = 'authoring-new-gallery__item';
+
+        var badge = document.createElement('span');
+        badge.className = 'authoring-step-badge';
+        badge.textContent = 'Main';
+
+        var thumb = document.createElement('img');
+        thumb.className = 'authoring-new-gallery__thumb';
+        thumb.alt = file.name;
+        objectUrl = URL.createObjectURL(file);
+        thumb.src = objectUrl;
+
+        var meta = document.createElement('div');
+        meta.className = 'authoring-new-gallery__meta';
+
+        var filename = document.createElement('span');
+        filename.className = 'authoring-new-gallery__filename';
+        filename.textContent = file.name;
+        meta.appendChild(filename);
+
+        item.appendChild(badge);
+        item.appendChild(thumb);
+        item.appendChild(meta);
+        previewArea.appendChild(item);
+        zone.classList.add('authoring-upload-zone--has-files');
+    }
+
+    input.addEventListener('change', function () {
+        renderPreview(input.files && input.files[0]);
+    });
+
+    if (input.files && input.files[0]) {
+        renderPreview(input.files[0]);
+    }
+})();
+</script>
 {% endblock %}
