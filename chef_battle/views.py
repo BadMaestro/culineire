@@ -324,7 +324,7 @@ def battle_detail(request, pk):
         viewer_author
         and battle.author_is_participant(viewer_author)
         and not viewer_entry
-        and battle.status in {Battle.Status.ACTIVE, Battle.Status.VOTING}
+        and battle.status in {Battle.Status.MENU_LOCKED, Battle.Status.ACTIVE, Battle.Status.VOTING}
         and timezone.now() <= battle.submission_deadline
     )
 

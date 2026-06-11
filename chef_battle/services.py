@@ -117,7 +117,7 @@ def create_battle_event(
 def accept_challenge(challenge: BattleChallenge) -> Battle:
     now = timezone.now()
     start_time = challenge.proposed_start_time or now
-    status = Battle.Status.SCHEDULED if start_time > now else Battle.Status.ACTIVE
+    status = Battle.Status.SCHEDULED if start_time > now else Battle.Status.MENU_LOCKED
     submission_deadline = start_time + timezone.timedelta(days=5)
     voting_deadline = submission_deadline + timezone.timedelta(days=2)
     end_time = voting_deadline
@@ -336,9 +336,19 @@ def submit_battle_entry(*, battle: Battle, author, recipe=None, article=None, ba
 
 def reveal_entries_if_ready(battle: Battle) -> None:
     entries = list(battle.entries.all())
-    if len(entries) == 2 or timezone.now() >= battle.submission_deadline:
-        battle.entries.filter(is_revealed=False).update(is_revealed=True)
-        if battle.status == Battle.Status.ACTIVE:
+    both_submitted = len(entries) == 2
+    deadline_passed = timezone.now() >= battle.submission_deadline
+
+    if battle.status == Battle.Status.MENU_LOCKED:
+        # Both chefs submitted their recipes — combat can begin
+        if both_submitted or deadline_passed:
+            battle.entries.filter(is_revealed=False).update(is_revealed=True)
+            battle.status = Battle.Status.ACTIVE
+            battle.save(update_fields=["status", "updated_at"])
+    elif battle.status == Battle.Status.ACTIVE:
+        # Both chefs submitted combat actions — move to voting
+        if both_submitted or deadline_passed:
+            battle.entries.filter(is_revealed=False).update(is_revealed=True)
             battle.status = Battle.Status.VOTING
             battle.save(update_fields=["status", "updated_at"])
 
