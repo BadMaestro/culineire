@@ -1,4 +1,4 @@
-# AUDIENCE GIFTS — Viewers Can Gift Artifacts to Chefs
+# AUDIENCE GIFTS — Viewers Can Gift to Chefs
 
 ## Author note
 Defined by project creator.
@@ -7,9 +7,12 @@ Defined by project creator.
 
 ## Concept
 
-Spectators watching a live battle can purchase artifacts from the in-battle
-shop and gift them directly to a chef of their choice. The gifted artifact
-goes into the chef's battle inventory and can be used immediately in combat.
+Spectators watching a live battle can send gifts to a chef of their choice
+using platform tokens. Two gift categories exist:
+
+- **Combat artifacts** — go into the chef's battle inventory, used in combat
+- **Appreciation gifts** — symbolic gestures (flowers, drinks), shown as
+  animated notifications in the battle chat; no combat effect
 
 This creates real-time audience participation and a monetisation layer
 tied to battle excitement.
@@ -35,13 +38,40 @@ tied to battle excitement.
 Gifts are paid with **CulinEire Tokens** (see `token_economy.md`).
 Viewers buy token packages once via Stripe, then spend freely.
 
-| Artifact rarity | Token cost |
-|----------------|------------|
+### Combat artifacts
+| Rarity | Token cost |
+|--------|------------|
 | Common | 10 tokens |
 | Uncommon | 25 tokens |
 | Rare | 60 tokens |
 | Epic | 150 tokens |
 | Legendary | 400 tokens |
+
+### Appreciation artifacts
+A separate artifact category — not combat items. These are collectible
+tokens of appreciation that viewers gift to chefs. They have no combat
+effect but are permanently added to the chef's profile as a display
+collection (trophies from the audience).
+
+| Artifact | Emoji | Token cost | Rarity |
+|----------|-------|------------|--------|
+| Bouquet of Flowers | 💐 | 5 tokens | Common |
+| Cup of Coffee | ☕ | 5 tokens | Common |
+| Pint of Beer | 🍺 | 10 tokens | Common |
+| Cocktail | 🍹 | 15 tokens | Uncommon |
+| Glass of Whiskey | 🥃 | 20 tokens | Uncommon |
+
+**Key distinction from combat artifacts:**
+- Do NOT go into battle inventory
+- Do NOT affect combat in any way
+- ARE permanently added to the chef's profile artifact showcase
+- Appear as a gift notification in battle chat with donor's name
+- Chef can display them on their public profile as audience appreciation
+
+Chat notification: "💐 @username gifted Bouquet of Flowers to Chef X!"
+
+More appreciation artifacts can be added over time (seasonal, special
+events, etc.) — the category is open-ended.
 
 ## Open questions (TBD)
 
