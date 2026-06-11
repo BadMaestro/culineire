@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Create Recipe from Screenshot | CulinEire{% endblock %}
+{% block content %}
+<main class="authoring-page">
+  <section class="authoring-page__header">
+    <h1>Create Recipe from Screenshot</h1>
+    <p>Upload a recipe screenshot and review the extracted draft before it is sent to moderation.</p>
+  </section>
+
+  <section class="authoring-panel">
+    <form method="post" enctype="multipart/form-data" class="authoring-form">
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="authoring-error-list">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="authoring-upload-zone" data-upload-zone>
+        <label class="authoring-upload-drop" for="{{ form.screenshot.id_for_label }}">
+          <strong>Drop image here</strong>
+          <span>or choose a JPG, PNG, or WebP file up to 5 MB.</span>
+        </label>
+        {{ form.screenshot }}
+        {% for error in form.screenshot.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+      </div>
+      <div class="authoring-actions">
+        <button type="submit" class="btn-primary">Extract recipe</button>
+        <a href="{% url 'recipes:recipe_create' %}" class="btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </section>
+</main>
+{% endblock %}

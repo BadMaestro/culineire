@@ -27,6 +27,7 @@ from .admin import RecipeAdmin, RecipeAdminForm
 from .allergens import build_present_allergen_items, parse_selected_allergen_keys, serialize_allergen_keys
 from .forms import RecipeAuthoringForm, RecipeCommentForm
 from .models import Recipe, RecipeAdditionalCategory, RecipeAuthor, RecipeComment, RecipeGenerationTask, RecipeRating
+from .services.screenshot_recipe_importer import ScreenshotExtractionError, normalise_extracted_recipe
 from .validators import validate_image_upload
 from .views import _build_context_paragraphs, _build_ingredient_items, _build_method_steps, _gallery_step_alt, _gallery_step_rows, _image_alt_text, _soft_delete_recipe, _split_text_lines, _update_recipe_gallery_order
 
@@ -498,6 +499,144 @@ class RecipeAdminFormTests(TestCase):
 
         self.assertEqual(recipe.allergens, "milk\ngluten")
         self.assertEqual(recipe.author_commentary, "Best served very hot.")
+
+
+class RecipeScreenshotImportTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        self.user = user_model.objects.create_user(username="shot-author", password="pass")
+        self.author = RecipeAuthor.objects.create(user=self.user, name="Shot Author", slug="shot-author")
+        image = BytesIO()
+        Image.new("RGB", (48, 48), (240, 240, 240)).save(image, format="PNG")
+        self.upload = SimpleUploadedFile("screenshot.png", image.getvalue(), content_type="image/png")
+
+    def valid_extraction(self, **overrides):
+        data = {
+            "title": "Screenshot Colcannon",
+            "short_description": "A draft extracted from a screenshot.",
+            "category": "Traditional Irish Dishes",
+            "additional_categories": ["Everyday Irish Cooking"],
+            "difficulty": "medium",
+            "prep_time_minutes": 20,
+            "cook_time_minutes": 25,
+            "servings": 4,
+            "allergens": ["milk"],
+            "ingredients": "Potatoes\nCabbage\nButter",
+            "method": "Boil the potatoes.\nFold in the cabbage.",
+            "tips": "Serve immediately.",
+            "irish_context": "A homely potato dish.",
+            "commentary": "Seen in a screenshot.",
+            "source": {
+                "source_type": "website",
+                "source_title": "Example Recipe",
+                "source_author": "Example Author",
+                "source_url": "https://example.com/recipe",
+                "source_note": "Recipe information extracted from user-uploaded screenshot. Source requires manual review.",
+            },
+            "tags": ["colcannon", "potatoes"],
+            "hero_image": {"alt_text": "colcannon in bowl", "prompt": "editorial food photo"},
+            "gallery_images": [{"alt_text": "potatoes in pot", "prompt": "step photo"}],
+            "confidence": {"overall": 0.9, "title": 0.9, "ingredients": 0.9, "method": 0.8, "source": 0.7},
+            "warnings": [],
+        }
+        data.update(overrides)
+        return data
+
+    def test_upload_page_requires_login(self):
+        response = self.client.get(reverse("recipes:recipe_create_from_screenshot"))
+        self.assertEqual(response.status_code, 302)
+
+    def test_invalid_file_type_is_rejected(self):
+        self.client.force_login(self.user)
+        bad = SimpleUploadedFile("notes.txt", b"not an image", content_type="text/plain")
+        response = self.client.post(reverse("recipes:recipe_create_from_screenshot"), {"screenshot": bad})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Upload a JPG, PNG, or WebP screenshot.")
+
+    def test_oversized_file_is_rejected(self):
+        self.client.force_login(self.user)
+        too_big = SimpleUploadedFile("screenshot.png", b"x" * (5 * 1024 * 1024 + 1), content_type="image/png")
+        response = self.client.post(reverse("recipes:recipe_create_from_screenshot"), {"screenshot": too_big})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "5 MB or smaller")
+
+    @patch("recipes.views.extract_recipe_from_image", side_effect=ScreenshotExtractionError("Image quality is too poor to extract a recipe."))
+    def test_poor_extraction_does_not_create_recipe(self, extractor):
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("recipes:recipe_create_from_screenshot"),
+            {"screenshot": self.upload},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Image quality is too poor to extract a recipe.")
+        self.assertEqual(Recipe.objects.count(), 0)
+
+    @patch("recipes.views.extract_recipe_from_image", side_effect=ScreenshotExtractionError("AI response was not valid JSON."))
+    def test_invalid_ai_json_does_not_create_recipe(self, extractor):
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("recipes:recipe_create_from_screenshot"),
+            {"screenshot": self.upload},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "AI response was not valid JSON.")
+        self.assertEqual(Recipe.objects.count(), 0)
+
+    @patch("recipes.views.extract_recipe_from_image")
+    def test_valid_extraction_creates_pending_recipe_owned_by_user(self, extractor):
+        extractor.return_value = self.valid_extraction()
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("recipes:recipe_create_from_screenshot"),
+            {"screenshot": self.upload},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Review Extracted Recipe")
+        token = response.context["upload_token"]
+        post_data = {
+            "upload_token": token,
+            "confirm_import": "1",
+            "title": "Edited Screenshot Colcannon",
+            "short_description": "Updated description.",
+            "category": Recipe.Category.TRADITIONAL_IRISH_DISHES,
+            "additional_categories": [Recipe.Category.EVERYDAY_IRISH_COOKING],
+            "difficulty": Recipe.Difficulty.MEDIUM,
+            "prep_time_minutes": "30",
+            "cook_time_minutes": "25",
+            "servings": "4",
+            "ingredients": "Potatoes\nCabbage\nButter",
+            "method": "Boil the potatoes.\nFold in the cabbage.",
+            "tips": "Serve immediately.",
+            "irish_context": "A homely potato dish.",
+            "author_commentary": "Seen in a screenshot.",
+            "source_type": Recipe.SourceType.WEBSITE,
+            "source_title": "Example Recipe",
+            "source_author": "Example Author",
+            "source_url": "https://example.com/recipe",
+            "source_note": "Manual review required.",
+            "allergens": ["milk"],
+            "hero_image_alt_text": "edited alt text",
+            "image_rights_status": Recipe.ImageRightsStatus.NOT_APPLICABLE,
+            "image_rights_note": "",
+        }
+        confirm = self.client.post(reverse("recipes:recipe_create_from_screenshot_confirm"), post_data)
+        self.assertEqual(confirm.status_code, 302)
+        recipe = Recipe.objects.get()
+        self.assertEqual(recipe.title, "Edited Screenshot Colcannon")
+        self.assertEqual(recipe.author, self.author)
+        self.assertEqual(recipe.status, Recipe.Status.PENDING)
+        self.assertEqual(recipe.source_type, Recipe.SourceType.WEBSITE)
+        self.assertFalse(recipe.confirmed_own_work)
+        self.assertFalse(recipe.confirmed_image_rights)
+        self.assertFalse(recipe.confirmed_rules)
+        self.assertEqual(recipe.allergens, "milk")
+
+    def test_normalisation_marks_unclear_source_and_infers_allergens(self):
+        payload = self.valid_extraction(source={"source_type": "original", "source_title": "", "source_author": "", "source_url": "", "source_note": ""}, ingredients="Flour\nMilk\nEggs")
+        normalised = normalise_extracted_recipe(payload)
+        self.assertNotEqual(normalised["source_type"], Recipe.SourceType.ORIGINAL)
+        self.assertIn("milk", normalised["allergens"])
+        self.assertIn("eggs", normalised["allergens"])
 
     def test_authoring_form_saves_additional_categories(self):
         form = RecipeAuthoringForm(

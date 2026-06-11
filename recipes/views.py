@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+import uuid
 from datetime import timedelta
 from pathlib import Path
 from typing import cast
@@ -18,6 +19,7 @@ from django.db import DatabaseError, transaction
 from django.utils import timezone
 from django.db.models import Avg, Case, Count, IntegerField, Prefetch, Q, Value, When
 from django.http import Http404, JsonResponse
+from django.core.files.storage import default_storage
 from django.shortcuts import get_object_or_404, redirect, render
 from django.templatetags.static import static
 from django.urls import reverse, reverse_lazy
@@ -52,10 +54,20 @@ from .forms import (
     RecipeAuthorProfileForm,
     RecipeCommentForm,
     RecipeRatingForm,
+    RecipeScreenshotPreviewForm,
+    RecipeScreenshotUploadForm,
 )
 from .models import Recipe, RecipeAuthor, RecipeComment, RecipeGenerationTask, RecipeImage, RecipeRating
 from .validators import validate_image_upload
 from config.email_utils import build_absolute_url, send_template_mail
+from .services.screenshot_recipe_importer import (
+    ScreenshotExtractionError,
+    build_recipe_initial_data_from_extraction,
+    create_recipe_from_extraction,
+    extract_recipe_from_image,
+    normalise_extracted_recipe,
+    to_recipe_form_data,
+)
 
 POPULAR_CATEGORY_PRIORITY = [
     ("irish_culinary_heritage", "Irish Culinary Heritage"),
@@ -723,9 +735,11 @@ def home(request):
             or (_author and _author.has_bearseeker_privileges)
         )
     )
+    battle_crown_holder = None
     if chef_battle_enabled:
         try:
-            from chef_battle.models import Battle, BattleEvent
+            from django.utils import timezone
+            from chef_battle.models import Battle, BattleEvent, ChefBattleProfile
 
             battle_events = (
                 BattleEvent.objects.select_related("battle", "actor", "target")
@@ -736,6 +750,12 @@ def home(request):
                 Battle.objects.select_related("challenger", "opponent", "winner")
                 .filter(status__in=[Battle.Status.ACTIVE, Battle.Status.VOTING, Battle.Status.SCHEDULED])
                 .order_by("end_time")[:4]
+            )
+            battle_crown_holder = (
+                ChefBattleProfile.objects.select_related("user__recipe_author_profile")
+                .filter(crown_until__gt=timezone.now())
+                .order_by("-crown_until")
+                .first()
             )
         except Exception:
             logger.exception("Chef Battle homepage data is unavailable.")
@@ -758,6 +778,7 @@ def home(request):
         "ab_followed_author_ids": ab_followed_author_ids,
         "battle_events": battle_events,
         "active_battles": active_battles,
+        "battle_crown_holder": battle_crown_holder,
         "chef_battle_enabled": chef_battle_enabled,
         "announcement_comment_count": announcement_comment_count,
     }
@@ -1748,6 +1769,102 @@ class RecipeCreateView(AuthorRequiredMixin, CreateView):
         )
         context["has_openai"] = _can_ai
         return context
+
+
+@login_required
+def recipe_create_from_screenshot(request):
+    author = get_author_for_user(request.user)
+    if not author:
+        messages.error(request, "Author Profile Required. Please Connect This Account To An Author Profile First.")
+        return redirect("home")
+
+    if request.method == "POST":
+        form = RecipeScreenshotUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            uploaded = form.cleaned_data["screenshot"]
+            try:
+                extraction = extract_recipe_from_image(uploaded, request.user)
+                extraction = normalise_extracted_recipe(extraction)
+            except ScreenshotExtractionError as exc:
+                messages.error(request, str(exc))
+                return render(request, "recipes/create_from_screenshot.html", {"form": form, "author": author})
+
+            uploaded.seek(0)
+            temp_name = default_storage.save(f"recipe_screenshot_imports/{uuid.uuid4().hex}{Path(uploaded.name).suffix.lower() or '.png'}", uploaded)
+            extraction["temp_screenshot_path"] = temp_name
+            extraction["temp_screenshot_url"] = default_storage.url(temp_name)
+            token = uuid.uuid4().hex
+            request.session.setdefault("recipe_screenshot_imports", {})
+            request.session["recipe_screenshot_imports"][token] = extraction
+            request.session.modified = True
+            preview_form = RecipeScreenshotPreviewForm(initial=to_recipe_form_data(extraction))
+            return render(
+                request,
+                "recipes/create_from_screenshot_preview.html",
+                {
+                    "author": author,
+                    "screenshot_import": extraction,
+                    "form": preview_form,
+                    "upload_token": token,
+                },
+            )
+    else:
+        form = RecipeScreenshotUploadForm()
+
+    return render(request, "recipes/create_from_screenshot.html", {"form": form, "author": author})
+
+
+@login_required
+def recipe_create_from_screenshot_confirm(request):
+    author = get_author_for_user(request.user)
+    if not author:
+        messages.error(request, "Author Profile Required. Please Connect This Account To An Author Profile First.")
+        return redirect("home")
+    if request.method != "POST":
+        return redirect("recipes:recipe_create_from_screenshot")
+
+    token = request.POST.get("upload_token", "").strip()
+    saved = request.session.get("recipe_screenshot_imports", {}).get(token)
+    if not saved:
+        messages.error(request, "Your screenshot preview expired. Please upload the image again.")
+        return redirect("recipes:recipe_create_from_screenshot")
+
+    form = RecipeScreenshotPreviewForm(request.POST)
+    if not form.is_valid():
+        preview_data = to_recipe_form_data(saved)
+        preview_data.update(request.POST.dict())
+        preview_form = RecipeScreenshotPreviewForm(request.POST)
+        return render(
+            request,
+            "recipes/create_from_screenshot_preview.html",
+            {
+                "author": author,
+                "screenshot_import": saved,
+                "form": preview_form,
+                "upload_token": token,
+            },
+        )
+
+    recipe = form.save(commit=False, confirmed_by=request.user)
+    recipe.author = author
+    recipe.status = Recipe.Status.PENDING
+    recipe.confirmed_own_work = False
+    recipe.confirmed_image_rights = False
+    recipe.confirmed_rules = False
+    recipe.save()
+    form.save_additional_categories(recipe)
+
+    temp_path = saved.get("temp_screenshot_path")
+    if temp_path and default_storage.exists(temp_path):
+        try:
+            default_storage.delete(temp_path)
+        except Exception:
+            pass
+    request.session.get("recipe_screenshot_imports", {}).pop(token, None)
+    request.session.modified = True
+    messages.success(request, "Recipe submitted for review.")
+    _send_recipe_notification(recipe, "pending")
+    return redirect(recipe.get_absolute_url())
 
 
 class RecipeUpdateView(AuthorRequiredMixin, UpdateView):

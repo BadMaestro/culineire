@@ -276,6 +276,52 @@ class RecipeAuthoringForm(forms.ModelForm):
         return instance
 
 
+class RecipeScreenshotUploadForm(forms.Form):
+    screenshot = forms.FileField(
+        label="Recipe screenshot",
+        widget=forms.ClearableFileInput(attrs={"accept": ".jpg,.jpeg,.png,.webp"}),
+    )
+
+    def clean_screenshot(self):
+        uploaded = self.cleaned_data["screenshot"]
+        from .services.screenshot_recipe_importer import validate_screenshot_upload
+
+        validate_screenshot_upload(uploaded)
+        return uploaded
+
+
+class RecipeScreenshotPreviewForm(RecipeAuthoringForm):
+    confirm_import = forms.BooleanField(
+        label="Create recipe",
+        required=True,
+        widget=forms.HiddenInput(),
+        initial=True,
+    )
+
+    class Meta(RecipeAuthoringForm.Meta):
+        fields = RecipeAuthoringForm.Meta.fields
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["confirm_import"].required = False
+        self.fields["confirm_own_work"].required = False
+        self.fields["confirm_image_rights"].required = False
+        self.fields["confirm_rules"].required = False
+        for name in ("confirm_own_work", "confirm_image_rights", "confirm_rules"):
+            self.fields[name].widget = forms.HiddenInput()
+            self.fields[name].initial = True
+
+    def save(self, commit=True, confirmed_by=None):
+        instance = super().save(commit=False, confirmed_by=confirmed_by)
+        instance.confirmed_own_work = True
+        instance.confirmed_image_rights = True
+        instance.confirmed_rules = True
+        if commit:
+            instance.save()
+            self.save_additional_categories(instance)
+        return instance
+
+
 class RecipeAuthorProfileForm(forms.ModelForm):
     class Meta:
         model = RecipeAuthor

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Review Extracted Recipe | CulinEire{% endblock %}
+{% block content %}
+<main class="authoring-page">
+  <section class="authoring-page__header">
+    <h1>Review Extracted Recipe</h1>
+    <p>Edit the extracted fields, then create the recipe for moderation.</p>
+  </section>
+
+  <section class="authoring-panel">
+    <div class="authoring-screenshot-preview">
+      <img src="{{ screenshot_import.temp_screenshot_url }}" alt="Uploaded recipe screenshot">
+    </div>
+
+    {% if screenshot_import.warnings %}
+      <div class="authoring-warning-list">
+        <h2>Warnings</h2>
+        <ul>{% for warning in screenshot_import.warnings %}<li>{{ warning }}</li>{% endfor %}</ul>
+      </div>
+    {% endif %}
+
+    <div class="authoring-confidence">
+      <h2>Confidence</h2>
+      <p>Overall: {{ screenshot_import.confidence.overall|floatformat:2 }}</p>
+      <p>Title: {{ screenshot_import.confidence.title|floatformat:2 }}</p>
+      <p>Ingredients: {{ screenshot_import.confidence.ingredients|floatformat:2 }}</p>
+      <p>Method: {{ screenshot_import.confidence.method|floatformat:2 }}</p>
+      <p>Source: {{ screenshot_import.confidence.source|floatformat:2 }}</p>
+    </div>
+
+    <form method="post" action="{% url 'recipes:recipe_create_from_screenshot_confirm' %}" class="authoring-form">
+      {% csrf_token %}
+      <input type="hidden" name="upload_token" value="{{ upload_token }}">
+      {{ form.confirm_import }}
+      {% for field in form.visible_fields %}
+        <div class="authoring-field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% for error in field.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+        </div>
+      {% endfor %}
+      <div class="authoring-actions">
+        <button type="submit" class="btn-primary">Create Recipe</button>
+        <a href="{% url 'recipes:recipe_create_from_screenshot' %}" class="btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </section>
+</main>
+{% endblock %}
