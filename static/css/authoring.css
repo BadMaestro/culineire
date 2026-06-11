@@ -498,12 +498,37 @@ textarea.authoring-control {
 }
 
 .authoring-new-gallery--screenshot {
-  max-width: 260px;
-  margin-inline: 0;
+  width: 100%;
+  max-width: 100%;
+  justify-content: center;
 }
 
 .authoring-new-gallery--screenshot .authoring-new-gallery__item {
+  width: min(100%, 320px);
+  grid-template-columns: 1fr;
+  justify-items: center;
+  text-align: center;
+  margin-inline: auto;
+}
+
+.authoring-new-gallery--screenshot .authoring-step-badge {
+  justify-self: center;
+}
+
+.authoring-new-gallery--screenshot .authoring-new-gallery__thumb {
+  width: 92px;
+  height: 92px;
+}
+
+.authoring-new-gallery--screenshot .authoring-new-gallery__meta {
+  grid-column: auto;
   width: 100%;
+}
+
+.authoring-new-gallery--screenshot .authoring-new-gallery__filename {
+  white-space: normal;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
 }
 
 .authoring-new-gallery__item {
