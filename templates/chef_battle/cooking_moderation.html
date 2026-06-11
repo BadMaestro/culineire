@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Cooking Phase Moderation | Chef Battle{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero">
+  <div class="container">
+    <p class="battle-kicker">Moderation</p>
+    <h1>Cooking Phase Approval</h1>
+    <p class="battle-room-hero__sub">Battles awaiting moderator sign-off before chefs start cooking</p>
+  </div>
+</section>
+
+<div class="container" style="padding-block: 2rem; max-width: 800px;">
+
+  {% if messages %}
+  <div style="margin-block-end: 1.5rem;">
+    {% for msg in messages %}
+    <p style="padding: .6rem 1rem; border-radius: 6px; margin-block-end: .5rem;
+              background: {% if 'error' in msg.tags %}#fde8e8{% elif 'warning' in msg.tags %}#fff3cd{% else %}#e8f5e9{% endif %};">
+      {{ msg }}
+    </p>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if not battles %}
+  <p style="color: var(--color-muted);">No battles are currently awaiting cooking phase approval.</p>
+  {% else %}
+  {% for battle in battles %}
+  <div class="biathlon-panel" style="margin-block-end: 2rem;">
+    <h2 class="biathlon-panel__title" style="font-size: 1.2rem;">{{ battle.theme }}</h2>
+    <p class="biathlon-panel__sub">
+      {{ battle.challenger.name }} vs {{ battle.opponent.name }}
+    </p>
+
+    <div style="margin-block: 1rem; font-size: 0.9rem; color: var(--color-muted);">
+      Status: <strong>{{ battle.get_status_display }}</strong>
+      &nbsp;|&nbsp; Updated: {{ battle.updated_at|date:"d M Y H:i" }}
+    </div>
+
+    {% with shots=battle.ingredient_shots.all locks=battle.ingredient_locks.all %}
+    {% if shots %}
+    <h3 style="font-size: 1rem; margin-block: 0.75rem 0.5rem;">Biathlon Results</h3>
+    <ul style="list-style: none; padding: 0; margin: 0 0 1rem;">
+      {% for shot in shots %}
+      <li style="padding: .35rem 0; border-bottom: 1px solid var(--color-border);">
+        Shot by <strong>{{ shot.shooter.name }}</strong> at ingredient #{{ shot.target_index }}
+        {% if shot.bounced %}
+        <span style="color: #b45309;">&#x1F6E1; Bounced (hit a lock)</span>
+        {% else %}
+        <span style="color: #dc2626;">&#x1F4A5; Hit</span>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    <h3 style="font-size: 1rem; margin-block: 0.75rem 0.5rem;">Moderation Checklist</h3>
+    <ul style="list-style: none; padding: 0; margin: 0 0 1.25rem; font-size: 0.9rem;">
+      <li style="padding: .3rem 0;">&#x2705; Biathlon completed</li>
+      <li style="padding: .3rem 0;">&#x2705; Ingredient penalties applied</li>
+      <li style="padding: .3rem 0;">&#x2705; Both chefs notified</li>
+      <li style="padding: .3rem 0;">&#x26A0;&#xFE0F; Confirm recipes are valid before approving</li>
+    </ul>
+
+    {% for entry in battle.entries.all %}
+    <div style="margin-block-end: 0.75rem; font-size: 0.9rem;">
+      <strong>{{ entry.chef.name }}</strong>:
+      {% if entry.recipe %}
+      <a class="text-link" href="{{ entry.recipe.get_absolute_url }}" target="_blank">{{ entry.recipe.title }}</a>
+      {% else %}
+      No recipe submitted yet
+      {% endif %}
+    </div>
+    {% endfor %}
+    {% endwith %}
+
+    <form method="post" action="{% url 'chef_battle:cooking_moderation_approve' battle.pk %}">
+      {% csrf_token %}
+      <button class="btn-primary" type="submit"
+              onclick="return confirm('Approve cooking phase for: {{ battle.theme|escapejs }}?')">
+        Approve Cooking Phase
+      </button>
+    </form>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <div style="margin-block-start: 1.5rem;">
+    <a class="text-link" href="{% url 'chef_battle:home' %}">&larr; Back to Battle Arena</a>
+  </div>
+</div>
+{% endblock %}

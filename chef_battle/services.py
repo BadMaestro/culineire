@@ -860,3 +860,30 @@ def get_biathlon_state(battle: Battle) -> dict:
         "loser": loser,
         "winner": winner,
     }
+
+
+# ── Cooking phase moderation ──────────────────────────────────────────────────
+
+def approve_cooking_phase(battle: Battle, moderator) -> Battle:
+    """Moderator approves transition from INGREDIENT_PENALTY to COOKING."""
+    if battle.status != Battle.Status.INGREDIENT_PENALTY:
+        raise ValueError("Battle must be in ingredient_penalty status to approve cooking phase.")
+    with transaction.atomic():
+        battle.status = Battle.Status.COOKING
+        battle.save(update_fields=["status", "updated_at"])
+        _create_battle_event(
+            battle=battle,
+            message=f"Cooking phase approved by moderator. Chefs may now submit their cooked dishes.",
+            actor=None,
+            is_public=True,
+        )
+    return battle
+
+
+def get_battles_awaiting_cooking_approval() -> list:
+    return list(
+        Battle.objects.filter(status=Battle.Status.INGREDIENT_PENALTY)
+        .select_related("challenger", "opponent", "winner", "loser")
+        .prefetch_related("ingredient_shots", "ingredient_locks", "entries__recipe")
+        .order_by("updated_at")
+    )

@@ -33,9 +33,11 @@ from .services import (
     MOVES_MIN_TO_CHALLENGE,
     _notify_chef,
     accept_challenge,
+    approve_cooking_phase,
     calculate_battle_result,
     create_battle_event,
     fire_ingredient_shot,
+    get_battles_awaiting_cooking_approval,
     get_biathlon_state,
     get_or_create_battle_profile,
     hash_request_value,
@@ -668,3 +670,25 @@ def biathlon_shoot(request, pk):
     except (ValueError, TypeError) as e:
         messages.error(request, str(e))
     return redirect("chef_battle:biathlon", pk=pk)
+
+
+@login_required
+def cooking_moderation(request):
+    if not is_moderator(request.user):
+        raise PermissionDenied
+    battles = get_battles_awaiting_cooking_approval()
+    return render(request, "chef_battle/cooking_moderation.html", {"battles": battles})
+
+
+@login_required
+@require_POST
+def cooking_moderation_approve(request, pk):
+    if not is_moderator(request.user):
+        raise PermissionDenied
+    battle = get_object_or_404(Battle, pk=pk)
+    try:
+        approve_cooking_phase(battle, request.user)
+        messages.success(request, f"Cooking phase approved for: {battle.theme}")
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect("chef_battle:cooking_moderation")
