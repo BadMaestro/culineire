@@ -7,23 +7,29 @@
 <link href="{% static 'css/authoring.css' %}" rel="stylesheet">
 {% endblock %}
 {% block content %}
+<section class="hero hero--home hero--recipe-form">
+    <div aria-hidden="true" class="hero__background">
+        <img alt="" src="{% static 'images/hero-recipes.png' %}">
+    </div>
+    <div aria-hidden="true" class="hero__overlay"></div>
+    <div class="container hero__inner">
+        <div class="hero-copy">
+            <span class="pill">Author Studio</span>
+            <h1 class="hero-title">Create Recipe from Screenshot</h1>
+            <p class="hero-subtitle">Upload a recipe screenshot, extract the visible content, and review the draft before it is sent to moderation.</p>
+            {% if request.user.is_staff or request.user.is_superuser %}
+            <div class="hero__actions">
+                <a class="btn-primary" href="{% url 'recipes:recipe_create' %}">Create New Recipe</a>
+                <a class="btn-secondary" href="{% url 'recipes:generate_recipe' %}">Generate AI Recipe</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
 <main class="page-section authoring-page authoring-page--screenshot-upload">
     <div class="container authoring-shell">
         <a class="mon-back-link" href="{% url 'recipes:recipe_create' %}">Back to Create Recipe</a>
-
-        <div class="authoring-header authoring-header--centered">
-            <div class="authoring-header__copy">
-                <span class="eyebrow">Screenshot Import</span>
-                <h1>Create Recipe from Screenshot</h1>
-                <p class="authoring-intro">Upload a recipe screenshot, extract the visible content, and review the draft before it is sent to moderation.</p>
-                {% if request.user.is_staff or request.user.is_superuser %}
-                <div class="authoring-tool-actions">
-                    <a class="btn-secondary" href="{% url 'recipes:recipe_create' %}">Create New Recipe</a>
-                    <a class="btn-secondary" href="{% url 'recipes:generate_recipe' %}">Generate AI Recipe</a>
-                </div>
-                {% endif %}
-            </div>
-        </div>
 
         <div class="authoring-warning" role="alert">
             <strong>Before you upload:</strong> only use screenshots or photos you are allowed to submit. Do not upload watermarked images, copied material without permission, or content that misrepresents the source. You remain responsible for the rights and accuracy of the recipe you submit.

@@ -558,6 +558,22 @@ class RecipeScreenshotImportTests(TestCase):
         response = self.client.get(reverse("recipes:recipe_create_from_screenshot"))
         self.assertEqual(response.status_code, 302)
 
+    def test_upload_page_uses_recipe_creation_hero_for_staff_author(self):
+        self.user.is_staff = True
+        self.user.save(update_fields=["is_staff"])
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("recipes:recipe_create_from_screenshot"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "hero--recipe-form")
+        self.assertContains(response, "images/hero-recipes.png")
+        self.assertContains(response, "Create Recipe from Screenshot")
+        self.assertContains(response, "Create New Recipe")
+        self.assertContains(response, "Generate AI Recipe")
+        self.assertContains(response, reverse("recipes:recipe_create"))
+        self.assertContains(response, reverse("recipes:generate_recipe"))
+
     def test_invalid_file_type_is_rejected(self):
         self.client.force_login(self.user)
         bad = SimpleUploadedFile("notes.txt", b"not an image", content_type="text/plain")
@@ -1106,6 +1122,8 @@ class AuthenticationPageTests(TestCase):
 
         response = self.client.get(reverse("recipes:recipe_create"))
 
+        self.assertContains(response, "hero--recipe-form")
+        self.assertContains(response, "images/hero-recipes.png")
         self.assertContains(response, "Generate AI Recipe")
         self.assertContains(response, "Generate Screen Recipe")
         self.assertContains(response, reverse("recipes:generate_recipe"))
@@ -3664,6 +3682,18 @@ class RecipeGenerationTaskViewTests(TestCase):
             slug="task-mod",
         )
         self.client.force_login(self.moderator_user)
+
+    def test_generate_recipe_page_uses_recipe_creation_hero(self):
+        response = self.client.get(reverse("recipes:generate_recipe"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "hero--recipe-form")
+        self.assertContains(response, "images/hero-recipes.png")
+        self.assertContains(response, "Generate AI Recipe")
+        self.assertContains(response, "Create New Recipe")
+        self.assertContains(response, "Generate Screen Recipe")
+        self.assertContains(response, reverse("recipes:recipe_create"))
+        self.assertContains(response, reverse("recipes:recipe_create_from_screenshot"))
 
     @override_settings(ANTHROPIC_API_KEY="test-key")
     @patch("threading.Thread")
