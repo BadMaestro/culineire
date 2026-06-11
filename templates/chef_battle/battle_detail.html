@@ -115,7 +115,7 @@
     <aside class="battle-side">
 
       <section class="battle-panel battle-panel--votes">
-        <h2 class="battle-panel__title">Votes</h2>
+        <h2 class="battle-panel__title">&#x1F4CA; Votes</h2>
         <div class="battle-score-row">
           <span>{{ battle.challenger.name }}</span>
           <strong>{{ votes_for_challenger }}</strong>
@@ -213,7 +213,7 @@
 
       <section class="battle-panel">
         <details class="battle-combat-results__log" open>
-          <summary class="battle-panel__title battle-combat-results__log-toggle battle-combat-results__log-toggle--title">Battle Log{% if events %} ({{ events|length }}){% endif %}</summary>
+          <summary class="battle-panel__title battle-combat-results__log-toggle battle-combat-results__log-toggle--title">&#x1F4DC; Battle Log{% if events %} ({{ events|length }}){% endif %}</summary>
           {% if events %}
           <ol class="battle-events battle-events--log">
             {% for event in events %}
