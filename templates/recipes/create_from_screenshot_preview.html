@@ -45,6 +45,20 @@
                 </div>
             </fieldset>
 
+            {% if screenshot_import.generated_hero_image_url %}
+            <fieldset class="authoring-section">
+                <legend class="authoring-section__legend">Generated Recipe Image</legend>
+                <div class="authoring-grid">
+                    <div class="authoring-field authoring-field--wide">
+                        <div class="authoring-screenshot-preview">
+                            <img src="{{ screenshot_import.generated_hero_image_url }}" alt="{{ form.hero_image_alt_text.value|default:'Generated recipe image' }}">
+                        </div>
+                        <small class="authoring-help">This AI-generated image will be attached as the recipe image when you create the recipe.</small>
+                    </div>
+                </div>
+            </fieldset>
+            {% endif %}
+
             <fieldset class="authoring-section">
                 <legend class="authoring-section__legend">Legal & Declaration</legend>
                 <div class="authoring-grid authoring-grid--two">

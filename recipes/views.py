@@ -15,6 +15,7 @@ from django.core.cache import cache
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
+from django.core.files.base import ContentFile
 from django.db import DatabaseError, transaction
 from django.utils import timezone
 from django.db.models import Avg, Case, Count, IntegerField, Prefetch, Q, Value, When
@@ -65,6 +66,7 @@ from .services.screenshot_recipe_importer import (
     build_recipe_initial_data_from_extraction,
     create_recipe_from_extraction,
     extract_recipe_from_image,
+    generate_reconstructed_hero_image,
     normalise_extracted_recipe,
     to_recipe_form_data,
 )
@@ -1784,7 +1786,8 @@ def recipe_create_from_screenshot(request):
             uploaded = form.cleaned_data["screenshot"]
             try:
                 extraction = extract_recipe_from_image(uploaded, request.user)
-                extraction = normalise_extracted_recipe(extraction)
+                if "source_type" not in extraction:
+                    extraction = normalise_extracted_recipe(extraction)
             except ScreenshotExtractionError as exc:
                 messages.error(request, str(exc))
                 return render(request, "recipes/create_from_screenshot.html", {"form": form, "author": author})
@@ -1793,6 +1796,14 @@ def recipe_create_from_screenshot(request):
             temp_name = default_storage.save(f"recipe_screenshot_imports/{uuid.uuid4().hex}{Path(uploaded.name).suffix.lower() or '.png'}", uploaded)
             extraction["temp_screenshot_path"] = temp_name
             extraction["temp_screenshot_url"] = default_storage.url(temp_name)
+            try:
+                extraction.update(generate_reconstructed_hero_image(extraction))
+            except Exception as exc:
+                logger.warning("Screenshot image reconstruction failed: %s", exc, exc_info=True)
+                messages.warning(
+                    request,
+                    "Recipe text was extracted, but the replacement image could not be generated. You can continue without it.",
+                )
             token = uuid.uuid4().hex
             request.session.setdefault("recipe_screenshot_imports", {})
             request.session["recipe_screenshot_imports"][token] = extraction
@@ -1812,6 +1823,29 @@ def recipe_create_from_screenshot(request):
         form = RecipeScreenshotUploadForm()
 
     return render(request, "recipes/create_from_screenshot.html", {"form": form, "author": author})
+
+
+def _attach_generated_screenshot_hero(recipe: Recipe, extraction: dict) -> bool:
+    temp_path = (extraction or {}).get("generated_hero_image_path", "")
+    if not temp_path or not default_storage.exists(temp_path):
+        return False
+
+    try:
+        with default_storage.open(temp_path, "rb") as image_file:
+            image_bytes = image_file.read()
+        ext = Path(temp_path).suffix or ".jpg"
+        openai_model = getattr(settings, "OPENAI_IMAGE_MODEL", "gpt-image-1")
+        recipe.image_rights_status = Recipe.ImageRightsStatus.AI_GENERATED
+        recipe.image_rights_note = f"AI-generated image via {openai_model} from the uploaded recipe screenshot."
+        recipe.hero_image.save(f"cover-screenshot{ext}", ContentFile(image_bytes), save=False)
+        try:
+            default_storage.delete(temp_path)
+        except Exception:
+            logger.warning("Could not delete temporary screenshot hero image %r", temp_path, exc_info=True)
+        return True
+    except Exception:
+        logger.error("Could not attach generated screenshot hero image %r", temp_path, exc_info=True)
+        return False
 
 
 @login_required
@@ -1851,6 +1885,9 @@ def recipe_create_from_screenshot_confirm(request):
     recipe.confirmed_own_work = False
     recipe.confirmed_image_rights = False
     recipe.confirmed_rules = False
+    attached_generated_hero = _attach_generated_screenshot_hero(recipe, saved)
+    if saved.get("generated_hero_image_path") and not attached_generated_hero:
+        messages.warning(request, "The generated recipe image could not be attached. The recipe was submitted without it.")
     recipe.save()
     form.save_additional_categories(recipe)
 

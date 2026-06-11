@@ -6,6 +6,7 @@ import logging
 import mimetypes
 import os
 import re
+import uuid
 from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path
@@ -159,6 +160,8 @@ def _extract_prompt() -> str:
         "If the source is unclear, do not mark it as original.\n"
         "If the screenshot appears to be from a website, book, magazine, social media post, or another third-party source, "
         "set source_type to website, cookbook, restaurant, family, or other as appropriate and add a source_note for manual review.\n"
+        "Also analyse the visual food content for image reconstruction. If the upload is only a handwritten recipe or document, "
+        "describe the dish concept from the recipe text instead of copying the paper, handwriting, page layout, logos, or UI.\n"
         "If image quality is too poor to extract a recipe, return an error field and do not invent details.\n\n"
         "Return this JSON schema:\n"
         "{\n"
@@ -178,6 +181,16 @@ def _extract_prompt() -> str:
         '  "commentary": "",\n'
         '  "source": {"source_type": "", "source_title": "", "source_author": "", "source_url": "", "source_note": ""},\n'
         '  "tags": [],\n'
+        '  "visual_description": {\n'
+        '    "dish_type": "",\n'
+        '    "main_visible_ingredients": [],\n'
+        '    "plating_style": "",\n'
+        '    "camera_angle": "",\n'
+        '    "lighting": "",\n'
+        '    "background": "",\n'
+        '    "visual_mood": "",\n'
+        '    "useful_context": ""\n'
+        "  },\n"
         '  "hero_image": {"alt_text": "", "prompt": ""},\n'
         '  "gallery_images": [{"alt_text": "", "prompt": ""}],\n'
         '  "confidence": {"overall": 0.0, "title": 0.0, "ingredients": 0.0, "method": 0.0, "source": 0.0},\n'
@@ -247,6 +260,7 @@ def normalise_extracted_recipe(data: dict[str, Any]) -> dict[str, Any]:
     validate_extracted_recipe_payload(data)
 
     source = data.get("source") if isinstance(data.get("source"), dict) else {}
+    visual = data.get("visual_description") if isinstance(data.get("visual_description"), dict) else {}
     hero_image = data.get("hero_image") if isinstance(data.get("hero_image"), dict) else {}
     gallery_images = data.get("gallery_images") if isinstance(data.get("gallery_images"), list) else []
 
@@ -314,6 +328,16 @@ def normalise_extracted_recipe(data: dict[str, Any]) -> dict[str, Any]:
         "source_url": _sanitize_text(source.get("source_url")),
         "source_note": source_note,
         "tags": [_sanitize_text(tag) for tag in _normalize_list(data.get("tags"))][:12],
+        "visual_description": {
+            "dish_type": _sanitize_text(visual.get("dish_type"))[:160],
+            "main_visible_ingredients": _normalize_list(visual.get("main_visible_ingredients"))[:12],
+            "plating_style": _sanitize_text(visual.get("plating_style"))[:240],
+            "camera_angle": _sanitize_text(visual.get("camera_angle"))[:160],
+            "lighting": _sanitize_text(visual.get("lighting"))[:160],
+            "background": _sanitize_text(visual.get("background"))[:200],
+            "visual_mood": _sanitize_text(visual.get("visual_mood"))[:160],
+            "useful_context": _sanitize_text(visual.get("useful_context"))[:280],
+        },
         "hero_image_alt_text": _sanitize_text(hero_image.get("alt_text"))[:255],
         "hero_image_prompt": _sanitize_text(hero_image.get("prompt"))[:2000],
         "gallery_images": [
@@ -327,6 +351,58 @@ def normalise_extracted_recipe(data: dict[str, Any]) -> dict[str, Any]:
         "confidence": confidence,
         "warnings": warnings,
         "source_is_unclear": source_type != Recipe.SourceType.ORIGINAL,
+    }
+
+
+def build_reconstructed_hero_image_prompt(data: dict[str, Any]) -> str:
+    visual = data.get("visual_description") if isinstance(data.get("visual_description"), dict) else {}
+    visible_ingredients = ", ".join(visual.get("main_visible_ingredients") or [])
+    recipe_ingredients = ", ".join(
+        line.strip()
+        for line in str(data.get("ingredients") or "").splitlines()
+        if line.strip()
+    )[:420]
+    visual_parts = [
+        data.get("hero_image_prompt") or "",
+        f"Dish type: {visual.get('dish_type')}" if visual.get("dish_type") else "",
+        f"Main visible ingredients: {visible_ingredients}" if visible_ingredients else "",
+        f"Recipe ingredients: {recipe_ingredients}" if recipe_ingredients else "",
+        f"Plating style: {visual.get('plating_style')}" if visual.get("plating_style") else "",
+        f"Camera angle: {visual.get('camera_angle')}" if visual.get("camera_angle") else "",
+        f"Lighting: {visual.get('lighting')}" if visual.get("lighting") else "",
+        f"Background: {visual.get('background')}" if visual.get("background") else "",
+        f"Mood: {visual.get('visual_mood')}" if visual.get("visual_mood") else "",
+        f"Context: {visual.get('useful_context')}" if visual.get("useful_context") else "",
+    ]
+    visual_reference = " ".join(part.strip() for part in visual_parts if part and part.strip())
+    if not visual_reference:
+        visual_reference = f"{data.get('title', 'the recipe dish')}. {data.get('short_description', '')}".strip()
+
+    return (
+        "High-quality realistic food photography for an editorial recipe website. "
+        f"Create a clean appetising replacement image for: {data.get('title', 'recipe dish')}. "
+        f"Visual reference: {visual_reference}. "
+        "Use natural light, clean composition, realistic plating, appetising but believable styling, "
+        "and preserve the same dish concept, main ingredients, and approximate visual structure where possible. "
+        "Do not include readable text, handwriting, notebook pages, paper texture, phone shadows, bad lighting, blur, "
+        "watermarks, logos, UI artefacts, document borders, brand names, or people."
+    )
+
+
+def generate_reconstructed_hero_image(data: dict[str, Any]) -> dict[str, str]:
+    from django.core.files.base import ContentFile
+    from django.core.files.storage import default_storage
+    from recipes.management.commands.generate_recipe import _image_extension, fetch_image_bytes
+
+    prompt = build_reconstructed_hero_image_prompt(data)
+    image_bytes = fetch_image_bytes(prompt)
+    ext = _image_extension(image_bytes)
+    filename = f"recipe_images/temp_screenshot_hero_{uuid.uuid4().hex[:12]}{ext}"
+    saved_path = default_storage.save(filename, ContentFile(image_bytes))
+    return {
+        "generated_hero_image_path": saved_path,
+        "generated_hero_image_url": default_storage.url(saved_path),
+        "generated_hero_image_prompt": prompt,
     }
 
 

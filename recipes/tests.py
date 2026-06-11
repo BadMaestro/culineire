@@ -12,6 +12,8 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core import mail
 from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 from django.http import QueryDict
@@ -534,6 +536,16 @@ class RecipeScreenshotImportTests(TestCase):
                 "source_note": "Recipe information extracted from user-uploaded screenshot. Source requires manual review.",
             },
             "tags": ["colcannon", "potatoes"],
+            "visual_description": {
+                "dish_type": "colcannon",
+                "main_visible_ingredients": ["potatoes", "cabbage", "butter"],
+                "plating_style": "served in a bowl",
+                "camera_angle": "three-quarter angle",
+                "lighting": "natural light",
+                "background": "simple kitchen table",
+                "visual_mood": "warm and homely",
+                "useful_context": "Irish potato dish",
+            },
             "hero_image": {"alt_text": "colcannon in bowl", "prompt": "editorial food photo"},
             "gallery_images": [{"alt_text": "potatoes in pot", "prompt": "step photo"}],
             "confidence": {"overall": 0.9, "title": 0.9, "ingredients": 0.9, "method": 0.8, "source": 0.7},
@@ -582,8 +594,9 @@ class RecipeScreenshotImportTests(TestCase):
         self.assertContains(response, "AI response was not valid JSON.")
         self.assertEqual(Recipe.objects.count(), 0)
 
+    @patch("recipes.views.generate_reconstructed_hero_image", return_value={})
     @patch("recipes.views.extract_recipe_from_image")
-    def test_valid_extraction_creates_pending_recipe_owned_by_user(self, extractor):
+    def test_valid_extraction_creates_pending_recipe_owned_by_user(self, extractor, image_generator):
         extractor.return_value = self.valid_extraction()
         self.client.force_login(self.user)
         response = self.client.post(
@@ -630,6 +643,78 @@ class RecipeScreenshotImportTests(TestCase):
         self.assertFalse(recipe.confirmed_image_rights)
         self.assertFalse(recipe.confirmed_rules)
         self.assertEqual(recipe.allergens, "milk")
+
+    @patch("recipes.views.generate_reconstructed_hero_image")
+    @patch("recipes.views.extract_recipe_from_image")
+    def test_generated_screenshot_image_is_attached_to_recipe(self, extractor, image_generator):
+        extractor.return_value = self.valid_extraction()
+        image = BytesIO()
+        Image.new("RGB", (64, 64), (24, 76, 58)).save(image, format="PNG")
+        temp_path = default_storage.save(
+            "recipe_images/temp_screenshot_hero_test.png",
+            ContentFile(image.getvalue()),
+        )
+        image_generator.return_value = {
+            "generated_hero_image_path": temp_path,
+            "generated_hero_image_url": default_storage.url(temp_path),
+            "generated_hero_image_prompt": "High-quality realistic food photography of colcannon.",
+        }
+
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("recipes:recipe_create_from_screenshot"),
+            {"screenshot": self.upload},
+        )
+        token = response.context["upload_token"]
+        post_data = {
+            "upload_token": token,
+            "confirm_import": "1",
+            "title": "Generated Image Colcannon",
+            "short_description": "Updated description.",
+            "category": Recipe.Category.TRADITIONAL_IRISH_DISHES,
+            "additional_categories": [Recipe.Category.EVERYDAY_IRISH_COOKING],
+            "difficulty": Recipe.Difficulty.MEDIUM,
+            "prep_time_minutes": "30",
+            "cook_time_minutes": "25",
+            "servings": "4",
+            "ingredients": "Potatoes\nCabbage\nButter",
+            "method": "Boil the potatoes.\nFold in the cabbage.",
+            "tips": "Serve immediately.",
+            "irish_context": "A homely potato dish.",
+            "author_commentary": "Seen in a screenshot.",
+            "source_type": Recipe.SourceType.WEBSITE,
+            "source_title": "Example Recipe",
+            "source_author": "Example Author",
+            "source_url": "https://example.com/recipe",
+            "source_note": "Manual review required.",
+            "allergens": ["milk"],
+            "hero_image_alt_text": "generated colcannon image",
+            "image_rights_status": Recipe.ImageRightsStatus.NOT_APPLICABLE,
+            "image_rights_note": "",
+        }
+        confirm = self.client.post(reverse("recipes:recipe_create_from_screenshot_confirm"), post_data)
+
+        self.assertEqual(confirm.status_code, 302)
+        recipe = Recipe.objects.get()
+        self.assertTrue(recipe.hero_image.name)
+        self.assertEqual(recipe.image_rights_status, Recipe.ImageRightsStatus.AI_GENERATED)
+        self.assertIn("AI-generated image via", recipe.image_rights_note)
+        self.assertFalse(default_storage.exists(temp_path))
+
+    @patch("recipes.views.generate_reconstructed_hero_image", side_effect=RuntimeError("image generation failed"))
+    @patch("recipes.views.extract_recipe_from_image")
+    def test_image_generation_failure_keeps_text_import_flow(self, extractor, image_generator):
+        extractor.return_value = self.valid_extraction()
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("recipes:recipe_create_from_screenshot"),
+            {"screenshot": self.upload},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Review Extracted Recipe")
+        self.assertContains(response, "replacement image could not be generated")
+        self.assertEqual(Recipe.objects.count(), 0)
 
     def test_normalisation_marks_unclear_source_and_infers_allergens(self):
         payload = self.valid_extraction(source={"source_type": "original", "source_title": "", "source_author": "", "source_url": "", "source_note": ""}, ingredients="Flour\nMilk\nEggs")
