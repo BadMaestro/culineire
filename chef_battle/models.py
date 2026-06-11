@@ -96,13 +96,28 @@ class BattleChallenge(models.Model):
 class Battle(models.Model):
     class Status(models.TextChoices):
         SCHEDULED = "scheduled", "Scheduled"
-        ACTIVE = "active", "Active"
+        MENU_LOCKED = "menu_locked", "Menu Locked"
+        ACTIVE = "active", "Active (Combat)"
         AWAITING_SUBMISSIONS = "awaiting_submissions", "Awaiting Submissions"
         REVEALED = "revealed", "Revealed"
+        COOKING = "cooking", "Cooking"
+        PRESENTATION = "presentation", "Presentation"
         VOTING = "voting", "Voting"
         COMPLETED = "completed", "Completed"
+        INGREDIENT_PENALTY = "ingredient_penalty", "Ingredient Penalty"
         CANCELLED = "cancelled", "Cancelled"
         DISPUTED = "disputed", "Disputed"
+
+    # Statuses that count as "in progress" for homepage panel and selectors
+    ACTIVE_STATUSES = frozenset([
+        Status.SCHEDULED,
+        Status.MENU_LOCKED,
+        Status.ACTIVE,
+        Status.AWAITING_SUBMISSIONS,
+        Status.COOKING,
+        Status.PRESENTATION,
+        Status.VOTING,
+    ])
 
     challenge = models.OneToOneField(BattleChallenge, on_delete=models.SET_NULL, null=True, blank=True, related_name="battle")
     challenger = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="battles_as_challenger")

@@ -9,7 +9,7 @@ from .models import Battle, BattleChallenge, BattleEvent, BattleVote, ChefBattle
 def get_active_battles(limit: int = 12) -> QuerySet:
     return (
         Battle.objects.select_related("challenger", "opponent", "winner")
-        .filter(status__in=[Battle.Status.ACTIVE, Battle.Status.VOTING, Battle.Status.SCHEDULED])
+        .filter(status__in=Battle.ACTIVE_STATUSES)
         .order_by("end_time")[:limit]
     )
 

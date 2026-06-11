@@ -55,7 +55,7 @@ def _build_battlefield_progress():
     pending_challenges = BattleChallenge.objects.filter(status=BattleChallenge.Status.PENDING).count()
     refused_challenges = BattleChallenge.objects.filter(status=BattleChallenge.Status.REFUSED).count()
     battle_count = Battle.objects.count()
-    active_battles = Battle.objects.filter(status__in=[Battle.Status.ACTIVE, Battle.Status.VOTING, Battle.Status.SCHEDULED]).count()
+    active_battles = Battle.objects.filter(status__in=Battle.ACTIVE_STATUSES).count()
     completed_battles = Battle.objects.filter(status=Battle.Status.COMPLETED).count()
     entry_count = Battle.objects.filter(entries__isnull=False).distinct().count()
     vote_count = BattleVote.objects.count()
