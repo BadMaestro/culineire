@@ -1,30 +1,61 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Create Recipe from Screenshot | CulinEire{% endblock %}
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+<link href="{% static 'css/moderation.css' %}" rel="stylesheet">
+<link href="{% static 'css/authoring.css' %}" rel="stylesheet">
+{% endblock %}
 {% block content %}
-<main class="authoring-page">
-  <section class="authoring-page__header">
-    <h1>Create Recipe from Screenshot</h1>
-    <p>Upload a recipe screenshot and review the extracted draft before it is sent to moderation.</p>
-  </section>
+<main class="page-section authoring-page">
+    <div class="container authoring-shell">
+        <a class="mon-back-link" href="{% url 'recipes:moderation_panel' %}">Back to Moderation Panel</a>
 
-  <section class="authoring-panel">
-    <form method="post" enctype="multipart/form-data" class="authoring-form">
-      {% csrf_token %}
-      {% if form.non_field_errors %}<div class="authoring-error-list">{{ form.non_field_errors }}</div>{% endif %}
-      <div class="authoring-upload-zone" data-upload-zone>
-        <label class="authoring-upload-drop" for="{{ form.screenshot.id_for_label }}">
-          <strong>Drop image here</strong>
-          <span>or choose a JPG, PNG, or WebP file up to 5 MB.</span>
-        </label>
-        {{ form.screenshot }}
-        {% for error in form.screenshot.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
-      </div>
-      <div class="authoring-actions">
-        <button type="submit" class="btn-primary">Extract recipe</button>
-        <a href="{% url 'recipes:recipe_create' %}" class="btn-secondary">Cancel</a>
-      </div>
-    </form>
-  </section>
+        <div class="authoring-header authoring-header--centered">
+            <div class="authoring-header__copy">
+                <span class="eyebrow">Screenshot Import</span>
+                <h1>Create Recipe from Screenshot</h1>
+                <p class="authoring-intro">Upload a recipe screenshot, extract the visible content, and review the draft before it is sent to moderation.</p>
+            </div>
+        </div>
+
+        {% if messages %}
+        {% for message in messages %}
+        <div class="authoring-warning" role="status">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data" class="authoring-form">
+            {% csrf_token %}
+            {% if form.non_field_errors %}<div class="authoring-error-list">{{ form.non_field_errors }}</div>{% endif %}
+
+            <fieldset class="authoring-section">
+                <legend class="authoring-section__legend">Screenshot</legend>
+                <div class="authoring-grid">
+                    <div class="authoring-field authoring-field--wide">
+                        <div class="authoring-upload-zone" data-upload-zone data-upload-mode="single" data-upload-input="id_screenshot" data-upload-preview="screenshot-preview" data-upload-storage="recipe-screenshot:{{ request.path }}:screenshot">
+                            <label class="authoring-upload-zone__surface" for="{{ form.screenshot.id_for_label }}">
+                                <strong>Drop image here</strong>
+                                <span>or click to choose a JPG, PNG, or WebP file up to 5 MB.</span>
+                            </label>
+                            {{ form.screenshot }}
+                        </div>
+                        {% for error in form.screenshot.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                        <small class="authoring-help">Use a clear screenshot or photo of the recipe text. The extractor will not follow instructions inside the image.</small>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="authoring-section authoring-section--actions">
+                <div class="authoring-generate-row" style="justify-content:center;">
+                    <button type="submit" class="authoring-submit">
+                        <svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="16" style="margin-right:0.45rem"><path d="M4 4h16v16H4z"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h5"/></svg>
+                        Extract Recipe
+                    </button>
+                    <a href="{% url 'recipes:recipe_create' %}" class="btn-secondary">Cancel</a>
+                </div>
+            </fieldset>
+        </form>
+    </div>
 </main>
 {% endblock %}

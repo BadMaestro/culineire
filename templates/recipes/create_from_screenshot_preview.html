@@ -1,49 +1,201 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Review Extracted Recipe | CulinEire{% endblock %}
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+<link href="{% static 'css/moderation.css' %}" rel="stylesheet">
+<link href="{% static 'css/authoring.css' %}" rel="stylesheet">
+{% endblock %}
 {% block content %}
-<main class="authoring-page">
-  <section class="authoring-page__header">
-    <h1>Review Extracted Recipe</h1>
-    <p>Edit the extracted fields, then create the recipe for moderation.</p>
-  </section>
+<main class="page-section authoring-page">
+    <div class="container authoring-shell">
+        <a class="mon-back-link" href="{% url 'recipes:recipe_create_from_screenshot' %}">Back to Screenshot Upload</a>
 
-  <section class="authoring-panel">
-    <div class="authoring-screenshot-preview">
-      <img src="{{ screenshot_import.temp_screenshot_url }}" alt="Uploaded recipe screenshot">
-    </div>
-
-    {% if screenshot_import.warnings %}
-      <div class="authoring-warning-list">
-        <h2>Warnings</h2>
-        <ul>{% for warning in screenshot_import.warnings %}<li>{{ warning }}</li>{% endfor %}</ul>
-      </div>
-    {% endif %}
-
-    <div class="authoring-confidence">
-      <h2>Confidence</h2>
-      <p>Overall: {{ screenshot_import.confidence.overall|floatformat:2 }}</p>
-      <p>Title: {{ screenshot_import.confidence.title|floatformat:2 }}</p>
-      <p>Ingredients: {{ screenshot_import.confidence.ingredients|floatformat:2 }}</p>
-      <p>Method: {{ screenshot_import.confidence.method|floatformat:2 }}</p>
-      <p>Source: {{ screenshot_import.confidence.source|floatformat:2 }}</p>
-    </div>
-
-    <form method="post" action="{% url 'recipes:recipe_create_from_screenshot_confirm' %}" class="authoring-form">
-      {% csrf_token %}
-      <input type="hidden" name="upload_token" value="{{ upload_token }}">
-      {{ form.confirm_import }}
-      {% for field in form.visible_fields %}
-        <div class="authoring-field">
-          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-          {{ field }}
-          {% for error in field.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+        <div class="authoring-header authoring-header--centered">
+            <div class="authoring-header__copy">
+                <span class="eyebrow">Screenshot Import</span>
+                <h1>Review Extracted Recipe</h1>
+                <p class="authoring-intro">Review the extracted recipe, adjust the fields, and create it for moderation.</p>
+            </div>
         </div>
-      {% endfor %}
-      <div class="authoring-actions">
-        <button type="submit" class="btn-primary">Create Recipe</button>
-        <a href="{% url 'recipes:recipe_create_from_screenshot' %}" class="btn-secondary">Cancel</a>
-      </div>
-    </form>
-  </section>
+
+        {% if messages %}
+        {% for message in messages %}
+        <div class="authoring-warning" role="status">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+
+        <form method="post" action="{% url 'recipes:recipe_create_from_screenshot_confirm' %}" class="authoring-form">
+            {% csrf_token %}
+            <input type="hidden" name="upload_token" value="{{ upload_token }}">
+            {{ form.confirm_import }}
+
+            <fieldset class="authoring-section">
+                <legend class="authoring-section__legend">Screenshot</legend>
+                <div class="authoring-grid">
+                    <div class="authoring-field authoring-field--wide">
+                        <div class="authoring-screenshot-preview">
+                            <img src="{{ screenshot_import.temp_screenshot_url }}" alt="Uploaded recipe screenshot">
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="authoring-section">
+                <legend class="authoring-section__legend">Review Notes</legend>
+                <div class="authoring-grid authoring-grid--two">
+                    <div class="authoring-field">
+                        <label>Overall confidence</label>
+                        <div class="authoring-confidence__meter">{{ screenshot_import.confidence.overall|floatformat:2 }}</div>
+                    </div>
+                    <div class="authoring-field">
+                        <label>Source confidence</label>
+                        <div class="authoring-confidence__meter">{{ screenshot_import.confidence.source|floatformat:2 }}</div>
+                    </div>
+                </div>
+                {% if screenshot_import.warnings %}
+                <div class="authoring-warning-list">
+                    <h2>Warnings</h2>
+                    <ul>{% for warning in screenshot_import.warnings %}<li>{{ warning }}</li>{% endfor %}</ul>
+                </div>
+                {% endif %}
+            </fieldset>
+
+            <fieldset class="authoring-section">
+                <legend class="authoring-section__legend">Recipe Details</legend>
+                <div class="authoring-grid authoring-grid--two">
+                    <div class="authoring-field authoring-field--wide">
+                        <label for="{{ form.title.id_for_label }}">{{ form.title.label }}:</label>
+                        {{ form.title }}
+                        {% for error in form.title.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field authoring-field--wide">
+                        <label for="{{ form.short_description.id_for_label }}">{{ form.short_description.label }}:</label>
+                        {{ form.short_description }}
+                        {% for error in form.short_description.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field">
+                        <label for="{{ form.category.id_for_label }}">{{ form.category.label }}:</label>
+                        {{ form.category }}
+                        {% for error in form.category.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field">
+                        <label for="{{ form.difficulty.id_for_label }}">{{ form.difficulty.label }}:</label>
+                        {{ form.difficulty }}
+                        {% for error in form.difficulty.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field">
+                        <label for="{{ form.prep_time_minutes.id_for_label }}">{{ form.prep_time_minutes.label }}:</label>
+                        {{ form.prep_time_minutes }}
+                        {% for error in form.prep_time_minutes.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field">
+                        <label for="{{ form.cook_time_minutes.id_for_label }}">{{ form.cook_time_minutes.label }}:</label>
+                        {{ form.cook_time_minutes }}
+                        {% for error in form.cook_time_minutes.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field">
+                        <label for="{{ form.servings.id_for_label }}">{{ form.servings.label }}:</label>
+                        {{ form.servings }}
+                        {% for error in form.servings.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field">
+                        <label for="{{ form.calories.id_for_label }}">{{ form.calories.label }}:</label>
+                        {{ form.calories }}
+                        {% for error in form.calories.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field authoring-field--wide">
+                        <label for="{{ form.ingredients.id_for_label }}">{{ form.ingredients.label }}:</label>
+                        {{ form.ingredients }}
+                        {% if form.ingredients.help_text %}<p class="authoring-help">{{ form.ingredients.help_text }}</p>{% endif %}
+                        {% for error in form.ingredients.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field authoring-field--wide">
+                        <label for="{{ form.method.id_for_label }}">{{ form.method.label }}:</label>
+                        {{ form.method }}
+                        {% if form.method.help_text %}<p class="authoring-help">{{ form.method.help_text }}</p>{% endif %}
+                        {% for error in form.method.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field authoring-field--wide">
+                        <label for="{{ form.tips.id_for_label }}">{{ form.tips.label }}:</label>
+                        {{ form.tips }}
+                        {% for error in form.tips.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field authoring-field--wide">
+                        <label for="{{ form.irish_context.id_for_label }}">{{ form.irish_context.label }}:</label>
+                        {{ form.irish_context }}
+                        {% for error in form.irish_context.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field authoring-field--wide">
+                        <label for="{{ form.author_commentary.id_for_label }}">{{ form.author_commentary.label }}:</label>
+                        {{ form.author_commentary }}
+                        {% for error in form.author_commentary.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="authoring-section">
+                <legend class="authoring-section__legend">Source Notes</legend>
+                <div class="authoring-grid authoring-grid--two">
+                    <div class="authoring-field">
+                        <label for="{{ form.source_type.id_for_label }}">{{ form.source_type.label }}:</label>
+                        {{ form.source_type }}
+                        {% for error in form.source_type.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field">
+                        <label for="{{ form.source_title.id_for_label }}">{{ form.source_title.label }}:</label>
+                        {{ form.source_title }}
+                        {% for error in form.source_title.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field">
+                        <label for="{{ form.source_author.id_for_label }}">{{ form.source_author.label }}:</label>
+                        {{ form.source_author }}
+                        {% for error in form.source_author.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field">
+                        <label for="{{ form.source_url.id_for_label }}">{{ form.source_url.label }}:</label>
+                        {{ form.source_url }}
+                        {% for error in form.source_url.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field authoring-field--wide">
+                        <label for="{{ form.source_note.id_for_label }}">{{ form.source_note.label }}:</label>
+                        {{ form.source_note }}
+                        {% for error in form.source_note.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="authoring-section authoring-section--confirmations">
+                <legend>Confirmations</legend>
+                <div class="authoring-confirm-list">
+                    <label class="authoring-confirm-item">
+                        {{ form.confirm_own_work }}
+                        <span class="authoring-confirm-label">{{ form.confirm_own_work.label }}</span>
+                        {% for error in form.confirm_own_work.errors %}<span class="authoring-error authoring-error--block">{{ error }}</span>{% endfor %}
+                    </label>
+                    <label class="authoring-confirm-item">
+                        {{ form.confirm_image_rights }}
+                        <span class="authoring-confirm-label">{{ form.confirm_image_rights.label }}</span>
+                        {% for error in form.confirm_image_rights.errors %}<span class="authoring-error authoring-error--block">{{ error }}</span>{% endfor %}
+                    </label>
+                    <label class="authoring-confirm-item">
+                        {{ form.confirm_rules }}
+                        <span class="authoring-confirm-label">{{ form.confirm_rules.label }}</span>
+                        {% for error in form.confirm_rules.errors %}<span class="authoring-error authoring-error--block">{{ error }}</span>{% endfor %}
+                    </label>
+                </div>
+            </fieldset>
+
+            <fieldset class="authoring-section authoring-section--actions">
+                <div class="authoring-generate-row" style="justify-content:center;">
+                    <button type="submit" class="authoring-submit">
+                        <svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="16" style="margin-right:0.45rem"><path d="M5 12h14"/><path d="M13 5l7 7-7 7"/></svg>
+                        Create Recipe
+                    </button>
+                    <a href="{% url 'recipes:recipe_create_from_screenshot' %}" class="btn-secondary">Cancel</a>
+                </div>
+            </fieldset>
+        </form>
+    </div>
 </main>
 {% endblock %}
