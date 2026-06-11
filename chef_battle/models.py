@@ -22,12 +22,18 @@ class ChefBattleProfile(models.Model):
         EXECUTIVE_CHEF = "executive_chef", "Executive Chef"
         CULINARY_MASTER = "culinary_master", "Culinary Master"
 
+    WINS_PER_LEVEL = 3
+    HERO_WINS_THRESHOLD = 15
+    MAX_LEVEL = 5
+
     author = models.OneToOneField(
         RecipeAuthor,
         on_delete=models.CASCADE,
         related_name="battle_profile",
     )
     rank = models.CharField(max_length=32, choices=Rank.choices, default=Rank.KITCHEN_PORTER)
+    level = models.PositiveSmallIntegerField(default=1, db_index=True)
+    is_hero = models.BooleanField(default=False, db_index=True)
     rating = models.IntegerField(default=1000, db_index=True)
     reputation = models.IntegerField(default=0)
     wins = models.PositiveIntegerField(default=0)
@@ -52,6 +58,25 @@ class ChefBattleProfile(models.Model):
     @property
     def has_crown(self) -> bool:
         return bool(self.crown_until and self.crown_until > timezone.now())
+
+    @property
+    def display_level(self) -> str:
+        if self.is_hero:
+            return "CulinEire Hero"
+        return f"Level {self.level}"
+
+    def recalculate_level(self) -> bool:
+        """Recompute level and is_hero from wins. Returns True if anything changed."""
+        if self.wins >= self.HERO_WINS_THRESHOLD:
+            new_level = self.MAX_LEVEL
+            new_hero = True
+        else:
+            new_level = min(self.MAX_LEVEL, (self.wins // self.WINS_PER_LEVEL) + 1)
+            new_hero = False
+        changed = (self.level != new_level) or (self.is_hero != new_hero)
+        self.level = new_level
+        self.is_hero = new_hero
+        return changed
 
 
 class BattleChallenge(models.Model):

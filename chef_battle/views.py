@@ -35,6 +35,7 @@ from .services import (
     accept_challenge,
     approve_cooking_phase,
     calculate_battle_result,
+    check_level_matchup,
     create_battle_event,
     fire_ingredient_shot,
     get_battles_awaiting_cooking_approval,
@@ -241,6 +242,10 @@ def challenge_create(request):
     if request.method == "POST":
         form = BattleChallengeForm(request.POST, challenger=author)
         if form.is_valid():
+            level_error = check_level_matchup(author, form.cleaned_data["opponent"])
+            if level_error:
+                messages.error(request, level_error)
+                return render(request, "chef_battle/challenge_form.html", {"form": form})
             challenge = form.save()
             get_or_create_battle_profile(author)
             get_or_create_battle_profile(challenge.opponent)
