@@ -46,7 +46,7 @@
                         </div>
                         <div class="authoring-new-gallery authoring-new-gallery--single authoring-new-gallery--screenshot" id="screenshot-preview" aria-live="polite"></div>
                         {% for error in form.screenshot.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
-                        <small class="authoring-help">If drag and drop opens the image instead of attaching it, use the file picker below. The extractor will not follow instructions inside the image.</small>
+                        <small class="authoring-help">You can drop a file anywhere in the upload box or choose it with the picker. The extractor will not follow instructions inside the image.</small>
                     </div>
                 </div>
             </fieldset>
@@ -118,9 +118,38 @@
         zone.classList.add('authoring-upload-zone--has-files');
     }
 
+    function handleDrop(event) {
+        event.preventDefault();
+        zone.classList.remove('authoring-upload-zone--dragover');
+        renderPreview(event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]);
+        if (event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length) {
+            input.files = event.dataTransfer.files;
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    }
+
     input.addEventListener('change', function () {
         renderPreview(input.files && input.files[0]);
     });
+
+    zone.addEventListener('click', function (event) {
+        if (event.target === input) return;
+        input.click();
+    });
+    zone.addEventListener('dragenter', function (event) {
+        event.preventDefault();
+        zone.classList.add('authoring-upload-zone--dragover');
+    });
+    zone.addEventListener('dragover', function (event) {
+        event.preventDefault();
+        zone.classList.add('authoring-upload-zone--dragover');
+    });
+    zone.addEventListener('dragleave', function (event) {
+        if (!zone.contains(event.relatedTarget)) {
+            zone.classList.remove('authoring-upload-zone--dragover');
+        }
+    });
+    zone.addEventListener('drop', handleDrop);
 
     if (input.files && input.files[0]) {
         renderPreview(input.files[0]);
