@@ -7,7 +7,7 @@
 <link href="{% static 'css/authoring.css' %}" rel="stylesheet">
 {% endblock %}
 {% block content %}
-<section class="hero hero--home hero--recipe-form">
+<section class="hero hero--home hero--recipe-form{% if request.user.is_staff or request.user.is_superuser %} hero--recipe-tools{% endif %}">
     <div aria-hidden="true" class="hero__background">
         <img alt="" src="{% static 'images/hero-recipes.png' %}">
     </div>

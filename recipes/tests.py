@@ -34,6 +34,17 @@ from .validators import validate_image_upload
 from .views import _build_context_paragraphs, _build_ingredient_items, _build_method_steps, _gallery_step_alt, _gallery_step_rows, _image_alt_text, _soft_delete_recipe, _split_text_lines, _update_recipe_gallery_order
 
 
+class AuthoringCssTests(SimpleTestCase):
+    def test_recipe_form_hero_uses_stable_height(self):
+        css_path = os.path.join(settings.BASE_DIR, "static", "css", "authoring.css")
+        with open(css_path, encoding="utf-8") as css_file:
+            css = css_file.read()
+
+        self.assertRegex(css, r"\.hero--recipe-tools\s*\{[^}]*height: 410px;[^}]*min-height: 410px;")
+        self.assertRegex(css, r"@media \(max-width: 760px\)\s*\{[^{}]*\.hero--recipe-tools\s*\{[^}]*height: 440px;")
+        self.assertRegex(css, r"@media \(max-width: 540px\)\s*\{[^{}]*\.hero--recipe-tools\s*\{[^}]*height: 460px;")
+
+
 class ImageUploadValidatorTests(SimpleTestCase):
     @staticmethod
     def uploaded_image(name, image_format="PNG"):
@@ -567,6 +578,7 @@ class RecipeScreenshotImportTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "hero--recipe-form")
+        self.assertContains(response, "hero--recipe-tools")
         self.assertContains(response, "images/hero-recipes.png")
         self.assertContains(response, "Create Recipe from Screenshot")
         self.assertContains(response, "Create New Recipe")
@@ -1123,6 +1135,7 @@ class AuthenticationPageTests(TestCase):
         response = self.client.get(reverse("recipes:recipe_create"))
 
         self.assertContains(response, "hero--recipe-form")
+        self.assertContains(response, "hero--recipe-tools")
         self.assertContains(response, "images/hero-recipes.png")
         self.assertContains(response, "Generate AI Recipe")
         self.assertContains(response, "Generate Screen Recipe")
@@ -3688,6 +3701,7 @@ class RecipeGenerationTaskViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "hero--recipe-form")
+        self.assertContains(response, "hero--recipe-tools")
         self.assertContains(response, "images/hero-recipes.png")
         self.assertContains(response, "Generate AI Recipe")
         self.assertContains(response, "Create New Recipe")

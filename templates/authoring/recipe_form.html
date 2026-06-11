@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block content %}
-<section class="hero hero--home hero--recipe-form">
+<section class="hero hero--home hero--recipe-form{% if form_mode != "edit" and request.user.is_authenticated %}{% if request.user.is_staff or request.user.is_superuser %} hero--recipe-tools{% endif %}{% endif %}">
     <div aria-hidden="true" class="hero__background">
         {% if form_mode == "edit" and recipe.hero_image %}
         <img alt="" src="{{ recipe.hero_image.url }}">

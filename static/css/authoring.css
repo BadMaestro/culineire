@@ -8,9 +8,43 @@
   width: 100%;
 }
 
+.hero--recipe-tools {
+  height: 410px;
+  min-height: 410px;
+}
+
+.hero--recipe-tools .hero__inner {
+  justify-content: center;
+  min-height: 0;
+  padding-block: clamp(1.35rem, 2.6vw, 2rem);
+}
+
 .hero--article-form .hero-copy,
 .hero--recipe-form .hero-copy {
   margin-inline: auto;
+}
+
+.hero--recipe-tools .hero-copy {
+  justify-content: center;
+  max-width: min(100%, 760px);
+}
+
+.hero--recipe-tools .pill {
+  margin-block-end: 0.55rem;
+}
+
+.hero--recipe-tools .hero-title {
+  margin-block-end: 0.85rem;
+}
+
+.hero--recipe-tools .hero-subtitle {
+  max-width: 58ch;
+  margin-block-end: 0;
+}
+
+.hero--recipe-tools .hero__actions {
+  margin-block-start: 1.45rem;
+  min-height: 44px;
 }
 
 .authoring-page {
@@ -780,6 +814,19 @@ textarea.authoring-control {
 }
 
 @media (max-width: 760px) {
+  .hero--recipe-tools {
+    height: 440px;
+    min-height: 440px;
+  }
+
+  .hero--recipe-tools .hero__inner {
+    padding-block: 1.25rem;
+  }
+
+  .hero--recipe-tools .hero-subtitle {
+    max-width: 34ch;
+  }
+
   .hero--article-form .hero__actions,
   .hero--recipe-form .hero__actions {
     width: min(100%, 18rem);
@@ -809,6 +856,21 @@ textarea.authoring-control {
 }
 
 @media (max-width: 540px) {
+  .hero--recipe-tools {
+    height: 460px;
+    min-height: 460px;
+  }
+
+  .hero--recipe-tools .hero-title {
+    font-size: clamp(2rem, 9vw, 2.65rem);
+    line-height: 1.02;
+  }
+
+  .hero--recipe-tools .hero-subtitle {
+    font-size: 0.95rem;
+    line-height: 1.55;
+  }
+
   .authoring-grid--two,
   .authoring-grid--four {
     grid-template-columns: 1fr;
