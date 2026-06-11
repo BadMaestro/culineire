@@ -332,9 +332,19 @@ def battle_detail(request, pk):
     combat_state = get_combat_state(battle)
     is_participant = bool(viewer_author and battle.author_is_participant(viewer_author))
     user_battle_moves = 0
+    viewer_has_moved = False
+    opponent_has_moved = False
     if is_participant:
         profile = get_or_create_battle_profile(viewer_author)
         user_battle_moves = profile.battle_moves
+        from .models import BattleCombatAction
+        round_chef_ids = set(
+            BattleCombatAction.objects.filter(
+                battle=battle, round_number=combat_state["current_round"]
+            ).values_list("chef_id", flat=True)
+        )
+        viewer_has_moved = viewer_author.pk in round_chef_ids
+        opponent_has_moved = bool(round_chef_ids - {viewer_author.pk})
 
     return render(request, "chef_battle/battle_detail.html", {
         "battle": battle,
@@ -349,6 +359,8 @@ def battle_detail(request, pk):
         "is_participant": is_participant,
         "combat_state": combat_state,
         "user_battle_moves": user_battle_moves,
+        "viewer_has_moved": viewer_has_moved,
+        "opponent_has_moved": opponent_has_moved,
     })
 
 

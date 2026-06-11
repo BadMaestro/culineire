@@ -538,6 +538,34 @@
   text-align: center;
   margin-top: .5rem;
 }
+.battle-combat__turn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  padding: .5rem .6rem;
+  border-radius: 6px;
+  font-size: .9rem;
+  font-weight: 700;
+  margin-block-end: .75rem;
+}
+.battle-combat__turn--yours {
+  background: #184c3a;
+  color: #fff8ee;
+  animation: battle-turn-pulse 1.6s ease-in-out infinite;
+}
+.battle-combat__turn--waiting {
+  background: var(--surface);
+  border: 1px dashed var(--line);
+  color: var(--muted);
+}
+@keyframes battle-turn-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(24, 76, 58, .45); }
+  50% { box-shadow: 0 0 0 9px rgba(24, 76, 58, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .battle-combat__turn--yours { animation: none; }
+}
 
 /* ── Phase 4: Combat panel (legacy, keep for JS refs) ───────────────────── */
 .battle-combat__hits {
