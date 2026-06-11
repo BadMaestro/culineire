@@ -363,7 +363,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v2.3.28</span>
+                <span class="footer-version">v2.3.29</span>
             </div>
         </div>
     </div>
@@ -422,40 +422,104 @@
 {% if active_battle_pip %}
 <div class="battle-pip" id="battle-pip"
      data-battle-url="{% url 'chef_battle:battle_detail' active_battle_pip.pk %}"
-     data-state-url="{% url 'chef_battle:battle_state_poll' active_battle_pip.pk %}">
-  <button class="battle-pip__expand" aria-label="Open battle" onclick="location.href=this.closest('.battle-pip').dataset.battleUrl">&#x26694;&#xFE0F; Open Battle</button>
-  <div class="battle-pip__body">
-    <span class="battle-pip__theme">{{ active_battle_pip.theme }}</span>
-    <span class="battle-pip__score">
-      <strong id="pip-challenger-hits">?</strong> : <strong id="pip-opponent-hits">?</strong>
-    </span>
-    <span class="battle-pip__round">Rd <strong id="pip-round">?</strong></span>
+     data-state-url="{% url 'chef_battle:battle_state_poll' active_battle_pip.pk %}"
+     data-combat-url="{% url 'chef_battle:battle_combat_action' active_battle_pip.pk %}">
+
+  <div class="battle-pip__header">
+    <span class="battle-pip__theme">&#x2694; {{ active_battle_pip.theme }}</span>
+    <a class="battle-pip__expand-btn" href="{% url 'chef_battle:battle_detail' active_battle_pip.pk %}" aria-label="Open full battle">&#x26F6;</a>
   </div>
+
+  <div class="battle-pip__score-row">
+    <span class="battle-pip__name">{{ active_battle_pip.challenger.display_name }}</span>
+    <span class="battle-pip__score"><strong id="pip-challenger-hits">?</strong> : <strong id="pip-opponent-hits">?</strong></span>
+    <span class="battle-pip__name battle-pip__name--right">{{ active_battle_pip.opponent.display_name }}</span>
+  </div>
+
+  <div class="battle-pip__round-row">
+    <span id="pip-round-label">Round <strong id="pip-round">?</strong></span>
+    <span id="pip-energy-label">&#x26A1; <strong id="pip-energy">?</strong></span>
+  </div>
+
+  <div id="pip-turn" class="battle-pip__turn battle-pip__turn--loading">&#x231B; Loading&#x2026;</div>
+
+  <form id="pip-combat-form" class="battle-pip__form" hidden>
+    <input type="hidden" name="csrfmiddlewaretoken" id="pip-csrf" value="">
+    <div class="battle-pip__actions">
+      <label class="battle-pip__action-btn" id="pip-btn-attack">
+        <input type="radio" name="action_type" value="attack" checked hidden>
+        <span>&#x2694;&#xFE0F;</span> Attack
+      </label>
+      <label class="battle-pip__action-btn" id="pip-btn-defend">
+        <input type="radio" name="action_type" value="defend" hidden>
+        <span>&#x1F6E1;&#xFE0F;</span> Defend
+      </label>
+    </div>
+    <div class="battle-pip__invest">
+      <label class="battle-pip__invest-label">Energy</label>
+      <input class="battle-pip__invest-input" type="number" name="moves_invested" value="1" min="1" max="3">
+    </div>
+    <button class="battle-pip__submit" type="submit">Make Move</button>
+    <p class="battle-pip__error" id="pip-error" hidden></p>
+  </form>
 </div>
+
 <script nonce="{{ request.csp_nonce }}">
 (function () {
   const pip = document.getElementById('battle-pip');
   if (!pip) return;
   const stateUrl = pip.dataset.stateUrl;
-  const onBattlePage = location.pathname.startsWith(pip.dataset.battleUrl.replace(/\/$/, ''));
+  const combatUrl = pip.dataset.combatUrl;
+  const onBattlePage = location.pathname.replace(/\/$/, '') === pip.dataset.battleUrl.replace(/\/$/, '');
+
+  if (onBattlePage) { pip.style.display = 'none'; }
+
+  const csrfCookie = (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '';
+  document.getElementById('pip-csrf').value = csrfCookie;
+
+  let prevRound = null;
 
   function fetchState() {
     fetch(stateUrl, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
       .then(r => r.json())
       .then(function (res) {
-        if (!res.ok || res.status === 'completed') { pip.remove(); return; }
+        if (!res.ok || res.status === 'completed') { pip.style.display = 'none'; return; }
+
         document.getElementById('pip-challenger-hits').textContent = res.challenger_hits;
         document.getElementById('pip-opponent-hits').textContent = res.opponent_hits;
         document.getElementById('pip-round').textContent = res.current_round;
 
-        if (onBattlePage) {
-          updateBattlePage(res);
-        }
+        const roundAdvanced = prevRound !== null && res.current_round > prevRound;
+        prevRound = res.current_round;
+
+        setTurnState(res.viewer_has_moved, roundAdvanced);
+
+        if (!onBattlePage) syncBattlePage(res, roundAdvanced);
       })
       .catch(function () {});
   }
 
-  function updateBattlePage(res) {
+  function setTurnState(hasMoved, roundAdvanced) {
+    const turnEl = document.getElementById('pip-turn');
+    const form = document.getElementById('pip-combat-form');
+    if (hasMoved) {
+      turnEl.className = 'battle-pip__turn battle-pip__turn--waiting';
+      turnEl.innerHTML = '&#x23F3; Waiting for opponent&#x2026;';
+      form.hidden = true;
+    } else {
+      if (roundAdvanced) {
+        const errEl = document.getElementById('pip-error');
+        if (errEl) errEl.hidden = true;
+        const sub = form.querySelector('button[type="submit"]');
+        if (sub) sub.disabled = false;
+      }
+      turnEl.className = 'battle-pip__turn battle-pip__turn--yours';
+      turnEl.innerHTML = '&#x1F525; Your move!';
+      form.hidden = false;
+    }
+  }
+
+  function syncBattlePage(res, roundAdvanced) {
     const chEl = document.getElementById('combat-hits-challenger');
     const opEl = document.getElementById('combat-hits-opponent');
     const rdEl = document.getElementById('combat-round-num');
@@ -463,12 +527,9 @@
     const turnEl = document.getElementById('combat-turn-indicator');
     const form = document.getElementById('combat-action-form');
 
-    const prevRound = rdEl ? parseInt(rdEl.textContent, 10) : null;
-    const newRound = res.current_round;
-
     if (chEl) chEl.textContent = res.challenger_hits;
     if (opEl) opEl.textContent = res.opponent_hits;
-    if (rdEl) rdEl.textContent = newRound;
+    if (rdEl) rdEl.textContent = res.current_round;
 
     if (logEl && res.rounds && res.rounds.length) {
       logEl.innerHTML = '';
@@ -479,17 +540,14 @@
       });
     }
 
-    if (prevRound !== null && newRound > prevRound) {
-      if (turnEl) {
-        turnEl.classList.remove('battle-combat__turn--waiting');
-        turnEl.classList.add('battle-combat__turn--yours');
-        turnEl.innerHTML = '&#x1F525; Your move!';
-      }
-      if (form) { form.hidden = false; form.querySelector('button[type="submit"]').disabled = false; }
+    if (roundAdvanced && turnEl) {
+      turnEl.classList.remove('battle-combat__turn--waiting');
+      turnEl.classList.add('battle-combat__turn--yours');
+      turnEl.innerHTML = '&#x1F525; Your move!';
+      if (form) { form.hidden = false; const s = form.querySelector('button[type="submit"]'); if (s) s.disabled = false; }
       const successEl = document.getElementById('combat-success');
       if (successEl) successEl.hidden = true;
     }
-
     if (res.viewer_has_moved && turnEl) {
       turnEl.classList.remove('battle-combat__turn--yours');
       turnEl.classList.add('battle-combat__turn--waiting');
@@ -498,10 +556,36 @@
     }
   }
 
+  document.getElementById('pip-combat-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const data = new FormData(this);
+    const submitBtn = this.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    const errEl = document.getElementById('pip-error');
+    errEl.hidden = true;
+
+    fetch(combatUrl, {
+      method: 'POST',
+      headers: {'X-CSRFToken': csrfCookie, 'X-Requested-With': 'XMLHttpRequest'},
+      body: data,
+    })
+    .then(r => r.json())
+    .then(function (res) {
+      if (!res.ok) {
+        errEl.textContent = res.error || 'Error';
+        errEl.hidden = false;
+        submitBtn.disabled = false;
+        return;
+      }
+      setTurnState(true, false);
+      document.getElementById('pip-challenger-hits').textContent = res.challenger_hits;
+      document.getElementById('pip-opponent-hits').textContent = res.opponent_hits;
+    })
+    .catch(function () { submitBtn.disabled = false; });
+  });
+
   fetchState();
   setInterval(fetchState, 5000);
-
-  if (onBattlePage) { pip.classList.add('battle-pip--hidden'); }
 })();
 </script>
 {% endif %}
