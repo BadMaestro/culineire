@@ -728,6 +728,7 @@ def _resolve_round(battle: Battle, round_number: int) -> BattleRound | None:
             battle.save(update_fields=["status", "updated_at"])
             create_battle_event(
                 battle=battle,
+                event_type=BattleEvent.EventType.BATTLE_STARTED,
                 message=(
                     f"Combat phase complete! "
                     f"{battle.challenger.name} {new_c_hits} — {new_o_hits} {battle.opponent.name}. "
