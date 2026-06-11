@@ -30,6 +30,7 @@ from .selectors import (
     get_top_profiles,
 )
 from .services import (
+    MOVES_MIN_TO_CHALLENGE,
     _notify_chef,
     accept_challenge,
     calculate_battle_result,
@@ -222,6 +223,15 @@ def challenge_create(request):
     if not author:
         messages.error(request, "Author profile required before creating a Chef Battle challenge.")
         return redirect("home")
+
+    profile = get_or_create_battle_profile(author)
+    if profile.battle_moves < MOVES_MIN_TO_CHALLENGE:
+        messages.error(
+            request,
+            f"You need at least {MOVES_MIN_TO_CHALLENGE} energy to issue a challenge. "
+            f"You have {profile.battle_moves}. Publish recipes or articles to earn more."
+        )
+        return redirect("chef_battle:challenge_list")
 
     if request.method == "POST":
         form = BattleChallengeForm(request.POST, challenger=author)

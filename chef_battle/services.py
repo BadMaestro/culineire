@@ -466,10 +466,11 @@ def calculate_battle_result(battle: Battle) -> Battle:
 
 # ── Phase 3: Battle moves economy ────────────────────────────────────────────
 
-MOVES_RECIPE_APPROVED = 3
+MOVES_RECIPE_APPROVED = 2
 MOVES_ARTICLE_APPROVED = 2
 MOVES_BATTLE_WIN = 5
 MOVES_BATTLE_PARTICIPATION = 1
+MOVES_MIN_TO_CHALLENGE = 10
 
 # Anti-farming caps: max moves earned from content approval per day/week
 MOVES_CONTENT_DAILY_CAP = 15

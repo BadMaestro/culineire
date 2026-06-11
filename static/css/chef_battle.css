@@ -387,7 +387,159 @@
 .battle-moves__positive { color: #184c3a; }
 .battle-moves__negative { color: #a03131; }
 
-/* ── Phase 4: Combat panel ───────────────────────────────────────────────── */
+/* ── Battle VS block (hero) ─────────────────────────────────────────────── */
+.battle-vs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  margin-block: .5rem;
+}
+.battle-vs__chef {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .2rem;
+  text-align: center;
+}
+.battle-vs__chef--right { text-align: center; }
+.battle-vs__name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff8ee;
+  letter-spacing: .02em;
+}
+.battle-vs__votes {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: #f8d28a;
+  line-height: 1;
+}
+.battle-vs__label {
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: rgb(255 248 238 / .55);
+}
+.battle-vs__divider {
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: .15em;
+  color: rgb(255 248 238 / .4);
+  padding-bottom: 1.8rem;
+}
+
+/* ── Battle panel title ─────────────────────────────────────────────────── */
+.battle-panel__title {
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--ink-soft);
+  margin-block-end: .75rem;
+}
+
+/* ── Empty entries ──────────────────────────────────────────────────────── */
+.battle-empty-entries {
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  color: var(--muted);
+  display: grid;
+  gap: .75rem;
+  justify-items: center;
+}
+
+/* ── Final score block ──────────────────────────────────────────────────── */
+.battle-score-final {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-block-end: 1rem;
+}
+.battle-score-final__chef {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .15rem;
+  padding: 1rem;
+  background: var(--surface-soft);
+  border-radius: 8px;
+  text-align: center;
+}
+.battle-score-final__name {
+  font-size: .82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--ink-soft);
+}
+.battle-score-final__num {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #184c3a;
+}
+
+/* ── Combat panel redesign ──────────────────────────────────────────────── */
+.battle-combat__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-block-end: .9rem;
+}
+.battle-combat__header .battle-panel__title { margin: 0; }
+.battle-combat__energy {
+  font-size: .82rem;
+  color: var(--muted);
+}
+.battle-combat__energy strong { color: #184c3a; }
+.battle-combat__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .5rem;
+  margin-block-end: .75rem;
+}
+.battle-combat__action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  padding: .55rem .5rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: .9rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--surface);
+  transition: background .15s, border-color .15s;
+}
+.battle-combat__action-btn:has(input:checked) {
+  background: #184c3a;
+  color: #fff8ee;
+  border-color: #184c3a;
+}
+.battle-combat__invest {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  margin-block-end: .75rem;
+}
+.battle-combat__invest .battle-form__input {
+  width: 4.5rem;
+  text-align: center;
+}
+.battle-combat__submit { width: 100%; justify-content: center; }
+.battle-combat__success {
+  color: #184c3a;
+  font-weight: 700;
+  font-size: .9rem;
+  text-align: center;
+  margin-top: .5rem;
+}
+
+/* ── Phase 4: Combat panel (legacy, keep for JS refs) ───────────────────── */
 .battle-combat__hits {
   display: flex;
   justify-content: space-between;

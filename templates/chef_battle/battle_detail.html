@@ -9,28 +9,45 @@
   <div class="container">
     <p class="battle-kicker">{{ battle.get_status_display }} Chef Battle</p>
     <h1>{{ battle.theme }}</h1>
-    <p>
-      {% if battle.challenger.battle_profile.has_crown %}&#x1F451; {% endif %}{{ battle.challenger.name }}
-      vs
-      {% if battle.opponent.battle_profile.has_crown %}&#x1F451; {% endif %}{{ battle.opponent.name }}
-    </p>
+
+    <div class="battle-vs">
+      <div class="battle-vs__chef">
+        <span class="battle-vs__name">
+          {% if battle.challenger.battle_profile.has_crown %}&#x1F451; {% endif %}{{ battle.challenger.name }}
+        </span>
+        <span class="battle-vs__votes" id="combat-hits-challenger">{{ combat_state.challenger_hits }}</span>
+        <span class="battle-vs__label">hits</span>
+      </div>
+      <div class="battle-vs__divider">VS</div>
+      <div class="battle-vs__chef battle-vs__chef--right">
+        <span class="battle-vs__name">
+          {% if battle.opponent.battle_profile.has_crown %}&#x1F451; {% endif %}{{ battle.opponent.name }}
+        </span>
+        <span class="battle-vs__votes" id="combat-hits-opponent">{{ combat_state.opponent_hits }}</span>
+        <span class="battle-vs__label">hits</span>
+      </div>
+    </div>
+
     <div class="battle-room-meta">
       <span>Start {{ battle.start_time|date:"j M Y H:i" }}</span>
       <span>Submit by {{ battle.submission_deadline|date:"j M Y" }}</span>
       {% if battle.voting_deadline %}<span>Vote by {{ battle.voting_deadline|date:"j M Y" }}</span>{% endif %}
       <span>Ends {{ battle.end_time|date:"j M Y" }}</span>
     </div>
+
     {% if battle.winner %}
-    <p class="battle-winner">{{ battle.winner.name }} won · {{ battle.result_reason }}</p>
+    <p class="battle-winner">&#x1F3C6; {{ battle.winner.name }} won &middot; {{ battle.result_reason }}</p>
     {% elif battle.status == "completed" %}
-    <p class="battle-winner">Draw · {{ battle.result_reason }}</p>
+    <p class="battle-winner">Draw &middot; {{ battle.result_reason }}</p>
     {% endif %}
   </div>
 </section>
 
 <section class="page-section">
   <div class="container battle-layout">
+
     <div class="battle-main">
+
       <div class="battle-section-header">
         <h2>Entries</h2>
         {% if can_submit %}
@@ -47,33 +64,58 @@
             {% if entry.recipe %}
             <h3><a href="{{ entry.recipe.get_absolute_url }}">{{ entry.recipe.title }}</a></h3>
             <p>{{ entry.recipe.short_description|default:"Recipe battle entry." }}</p>
-            {% elif entry.article %}
-            <h3><a href="{{ entry.article.get_absolute_url }}">{{ entry.article.title }}</a></h3>
-            <p>{{ entry.article.excerpt|default:"Article battle entry." }}</p>
             {% endif %}
-            {% if entry.battle_statement %}<p>{{ entry.battle_statement }}</p>{% endif %}
-            {% if battle.status != "completed" %}
-            <form action="{% url 'chef_battle:battle_vote' battle.pk %}" method="post">
+            {% if entry.battle_statement %}<p class="battle-muted">{{ entry.battle_statement }}</p>{% endif %}
+            {% if battle.status == "voting" %}
+            <form action="{% url 'chef_battle:battle_vote' battle.pk %}" method="post" style="margin-top:.75rem;">
               {% csrf_token %}
               <input name="voted_for" type="hidden" value="{{ entry.author.pk }}">
-              <button class="btn-primary" type="submit">Vote For {{ entry.author.name }}</button>
+              <button class="btn-primary" type="submit">Vote for {{ entry.author.name }}</button>
             </form>
             {% endif %}
           {% else %}
           <h3>Entry Submitted</h3>
-          <p>This dish is hidden until both chefs submit or the deadline arrives.</p>
+          <p class="battle-muted">Hidden until both chefs submit or the deadline passes.</p>
           {% endif %}
         </article>
         {% endfor %}
       </div>
+
       {% else %}
-      <div class="empty-state"><p>No entries submitted yet.</p></div>
+      <div class="battle-empty-entries">
+        <p>No entries yet.</p>
+        {% if can_submit %}
+        <a class="btn-primary" href="{% url 'chef_battle:battle_entry_submit' battle.pk %}">Be first to submit</a>
+        {% else %}
+        <p class="battle-muted">The chefs are in the kitchen. Check back soon.</p>
+        {% endif %}
+      </div>
       {% endif %}
+
+      {% if battle.status == "completed" %}
+      <div class="battle-section-header battle-section-header--spaced">
+        <h2>Final Scores</h2>
+      </div>
+      <div class="battle-score-final">
+        <div class="battle-score-final__chef">
+          <span class="battle-score-final__name">{{ battle.challenger.name }}</span>
+          <span class="battle-score-final__num">{{ votes_for_challenger }}</span>
+          <span class="battle-muted">votes</span>
+        </div>
+        <div class="battle-score-final__chef">
+          <span class="battle-score-final__name">{{ battle.opponent.name }}</span>
+          <span class="battle-score-final__num">{{ votes_for_opponent }}</span>
+          <span class="battle-muted">votes</span>
+        </div>
+      </div>
+      {% endif %}
+
     </div>
 
     <aside class="battle-side">
-      <section class="battle-panel">
-        <h2>Scoreboard</h2>
+
+      <section class="battle-panel battle-panel--votes">
+        <h2 class="battle-panel__title">Votes</h2>
         <div class="battle-score-row">
           <span>{{ battle.challenger.name }}</span>
           <strong>{{ votes_for_challenger }}</strong>
@@ -88,56 +130,42 @@
       <section class="battle-panel battle-combat" id="battle-combat-panel"
                data-combat-url="{% url 'chef_battle:battle_combat_action' battle.pk %}"
                data-moves="{{ user_battle_moves }}">
-        <h2>Combat Round <span id="combat-round-num">{{ combat_state.current_round }}</span></h2>
-        <p class="battle-muted" style="font-size:.82rem;margin-bottom:.75rem;">
-          Spend moves on attack or defence. Winner is decided by the audience vote — combat adds drama and spends your energy.
-        </p>
-        <div class="battle-combat__hits">
-          <div class="battle-combat__hit-bar">
-            <span class="battle-combat__hit-name">{{ battle.challenger.name }}</span>
-            <span class="battle-combat__hit-count" id="combat-hits-challenger">{{ combat_state.challenger_hits }}</span>
-          </div>
-          <div class="battle-combat__hit-bar battle-combat__hit-bar--right">
-            <span class="battle-combat__hit-count" id="combat-hits-opponent">{{ combat_state.opponent_hits }}</span>
-            <span class="battle-combat__hit-name">{{ battle.opponent.name }}</span>
-          </div>
+
+        <div class="battle-combat__header">
+          <h2 class="battle-panel__title">Round <span id="combat-round-num">{{ combat_state.current_round }}</span></h2>
+          <span class="battle-combat__energy">&#x26A1; <strong id="combat-moves-left">{{ user_battle_moves }}</strong> energy</span>
         </div>
+
         <form class="battle-combat__form" id="combat-action-form">
           {% csrf_token %}
-          <div class="battle-form__field">
-            <label class="battle-form__label">Your move</label>
-            <div class="battle-form__radio-group">
-              <label class="battle-form__radio-label">
-                <input type="radio" name="action_type" value="attack" checked> &#x2694;&#xFE0F; Attack
-              </label>
-              <label class="battle-form__radio-label">
-                <input type="radio" name="action_type" value="defend"> &#x1F6E1;&#xFE0F; Defend
-              </label>
-            </div>
-          </div>
-          <div class="battle-form__field">
-            <label class="battle-form__label">
-              Moves to invest
-              <span class="battle-form__optional">(you have <strong id="combat-moves-left">{{ user_battle_moves }}</strong>)</span>
+          <div class="battle-combat__actions">
+            <label class="battle-combat__action-btn" id="combat-btn-attack">
+              <input type="radio" name="action_type" value="attack" checked hidden>
+              <span>&#x2694;&#xFE0F;</span> Attack
             </label>
-            <input class="battle-form__input" type="number" name="moves_invested" value="1" min="1" max="10" style="width:5rem;">
+            <label class="battle-combat__action-btn" id="combat-btn-defend">
+              <input type="radio" name="action_type" value="defend" hidden>
+              <span>&#x1F6E1;&#xFE0F;</span> Defend
+            </label>
           </div>
-          <div class="battle-form__actions">
-            <button class="btn btn--primary" type="submit" id="combat-submit-btn">Make Move</button>
+          <div class="battle-combat__invest">
+            <label class="battle-muted">Energy to invest</label>
+            <input class="battle-form__input" type="number" name="moves_invested" value="1" min="1" max="3">
           </div>
+          <button class="btn-primary battle-combat__submit" type="submit" id="combat-submit-btn">Make Move</button>
           <p class="battle-form__error" id="combat-error" hidden></p>
-          <p class="battle-muted" id="combat-success" hidden style="color:#184c3a;font-weight:700;"></p>
+          <p class="battle-combat__success" id="combat-success" hidden></p>
         </form>
       </section>
       {% endif %}
 
       {% if combat_state.rounds %}
       <section class="battle-panel">
-        <h2>Combat Log</h2>
+        <h2 class="battle-panel__title">Combat Log</h2>
         <ol class="battle-events" id="combat-log">
           {% for round in combat_state.rounds %}
           <li>
-            <span>Round {{ round.round_number }}</span>
+            <span class="battle-muted">Round {{ round.round_number }}</span>
             <span>{{ round.log_message }}</span>
           </li>
           {% endfor %}
@@ -146,12 +174,12 @@
       {% endif %}
 
       <section class="battle-panel">
-        <h2>Battle Log</h2>
+        <h2 class="battle-panel__title">Battle Log</h2>
         {% if events %}
         <ol class="battle-events">
           {% for event in events %}
           <li>
-            <span>{{ event.created_at|date:"j M H:i" }}</span>
+            <span class="battle-muted">{{ event.created_at|date:"j M H:i" }}</span>
             <span>{{ event.message }}</span>
           </li>
           {% endfor %}
@@ -160,6 +188,7 @@
         <p class="battle-muted">The log is quiet for now.</p>
         {% endif %}
       </section>
+
     </aside>
   </div>
 </section>
