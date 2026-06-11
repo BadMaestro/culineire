@@ -212,19 +212,21 @@
       {% endif %}
 
       <section class="battle-panel">
-        <h2 class="battle-panel__title">Battle Log</h2>
-        {% if events %}
-        <ol class="battle-events battle-events--log">
-          {% for event in events %}
-          <li>
-            <span class="battle-muted">{{ event.created_at|date:"j M H:i" }}</span>
-            <span>{{ event.message }}</span>
-          </li>
-          {% endfor %}
-        </ol>
-        {% else %}
-        <p class="battle-muted">The log is quiet for now.</p>
-        {% endif %}
+        <details class="battle-combat-results__log" open>
+          <summary class="battle-panel__title battle-combat-results__log-toggle battle-combat-results__log-toggle--title">Battle Log{% if events %} ({{ events|length }}){% endif %}</summary>
+          {% if events %}
+          <ol class="battle-events battle-events--log">
+            {% for event in events %}
+            <li>
+              <span class="battle-muted">{{ event.created_at|date:"j M H:i" }}</span>
+              <span>{{ event.message }}</span>
+            </li>
+            {% endfor %}
+          </ol>
+          {% else %}
+          <p class="battle-muted">The log is quiet for now.</p>
+          {% endif %}
+        </details>
       </section>
 
     </aside>
@@ -239,7 +241,7 @@
   var sb = document.getElementById('combat-scoreboard');
   if (!sb) return;
   sb.classList.add('battle-combat-results__scoreboard--vibrate');
-  setTimeout(function () { sb.classList.remove('battle-combat-results__scoreboard--vibrate'); }, 5200);
+  setTimeout(function () { sb.classList.remove('battle-combat-results__scoreboard--vibrate'); }, 1200);
 })();
 </script>
 {% endif %}

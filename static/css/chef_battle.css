@@ -610,7 +610,7 @@
   90%  { transform: translate(-1px, 0); }
 }
 .battle-combat-results__scoreboard--vibrate {
-  animation: battle-score-shake .52s ease-in-out 10;
+  animation: battle-score-shake .5s ease-in-out 2;
   transform-origin: center;
 }
 .battle-score-row strong {
@@ -641,6 +641,19 @@ details[open] .battle-combat-results__log-toggle::before { content: '\25BC  '; }
   border-block-end: 1px solid var(--line);
 }
 .battle-events--compact li:last-child { border-block-end: 0; }
+
+/* ── Battle Log title toggle ────────────────────────────────────────────── */
+.battle-combat-results__log-toggle--title {
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--ink-soft);
+  padding: 0;
+  margin-block-end: .75rem;
+}
+.battle-combat-results__log-toggle--title::before { content: ''; }
+details[open] .battle-combat-results__log-toggle--title::before { content: ''; }
 
 /* ── Battle Log (same rhythm as round log) ──────────────────────────────── */
 .battle-events--log {
