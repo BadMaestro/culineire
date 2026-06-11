@@ -919,3 +919,228 @@ details[open] .battle-combat-results__log-toggle--title::before { content: ''; }
 @media (max-width: 480px) {
   .battle-pip { bottom: .6rem; right: .6rem; width: 210px; }
 }
+
+/* ── Homepage Battle Arena Hero ─────────────────────────────── */
+.battle-arena-hero {
+  background:
+    linear-gradient(135deg, rgb(18 58 42 / 0.97), rgb(48 34 20 / 0.95)),
+    url("/static/images/hero-battle.png") center/cover;
+  color: #fff8ee;
+  padding-block: clamp(2rem, 5vw, 3.5rem);
+}
+
+.battle-arena-hero__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+}
+
+.battle-arena-hero__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.battle-arena-hero__title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.5rem, 3.5vw, 2.1rem);
+  font-weight: 700;
+  color: #fff;
+  margin: .3rem 0 0;
+  line-height: 1.15;
+}
+
+.battle-arena-hero__sub {
+  font-size: .9rem;
+  color: rgb(255 248 238 / 0.72);
+  margin: .4rem 0 0;
+  max-width: 52ch;
+}
+
+.battle-arena-hero__cta {
+  flex-shrink: 0;
+  align-self: center;
+}
+
+/* 3-column grid */
+.battle-arena-hero__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+/* Base card */
+.battle-arena-card {
+  background: rgb(255 248 238 / 0.06);
+  border: 1px solid rgb(255 248 238 / 0.1);
+  border-radius: 10px;
+  padding: 1.1rem 1.2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+  min-height: 9rem;
+}
+
+.battle-arena-card__label {
+  font-size: .7rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #f8d28a;
+  margin: 0;
+}
+
+/* Live battle card */
+.battle-arena-card__vs {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  text-decoration: none;
+  margin-block: .1rem;
+}
+
+.battle-arena-card__chef {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  flex: 1;
+}
+
+.battle-arena-card__chef:last-child {
+  text-align: right;
+}
+
+.battle-arena-card__sep {
+  font-size: .7rem;
+  font-weight: 900;
+  color: #f8d28a;
+  letter-spacing: .05em;
+  flex-shrink: 0;
+}
+
+.battle-arena-card__theme {
+  font-size: .82rem;
+  color: rgb(255 248 238 / 0.65);
+  margin: 0;
+  font-style: italic;
+}
+
+.battle-arena-card__status {
+  display: inline-block;
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  background: rgb(248 210 138 / 0.15);
+  color: #f8d28a;
+  border-radius: 4px;
+  padding: .15em .55em;
+  align-self: flex-start;
+}
+
+.battle-arena-card__more {
+  font-size: .75rem;
+  color: rgb(255 248 238 / 0.45);
+  margin: 0;
+}
+
+/* Crown card */
+.battle-arena-card__crown-name {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #f8d28a;
+  text-decoration: none;
+  margin: .1rem 0 0;
+}
+
+.battle-arena-card__crown-name:hover {
+  text-decoration: underline;
+}
+
+.battle-arena-card__rank {
+  font-size: .78rem;
+  color: rgb(255 248 238 / 0.6);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.battle-arena-card__stat {
+  font-size: .82rem;
+  font-weight: 700;
+  color: rgb(255 248 238 / 0.85);
+  margin: 0;
+}
+
+/* Empty states */
+.battle-arena-card__empty-msg {
+  font-size: .88rem;
+  color: rgb(255 248 238 / 0.5);
+  margin: .2rem 0 0;
+}
+
+.battle-arena-card__empty-hint {
+  font-size: .78rem;
+  color: rgb(255 248 238 / 0.35);
+  margin: 0;
+}
+
+.battle-arena-card__challenge {
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+/* News card */
+.battle-arena-news {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+
+.battle-arena-news__item {
+  font-size: .8rem;
+  line-height: 1.35;
+  padding-block-end: .4rem;
+  border-block-end: 1px solid rgb(255 248 238 / 0.08);
+}
+
+.battle-arena-news__item:last-child {
+  border-block-end: none;
+  padding-block-end: 0;
+}
+
+.battle-arena-news__item a {
+  color: rgb(255 248 238 / 0.78);
+  text-decoration: none;
+}
+
+.battle-arena-news__item a:hover {
+  color: #f8d28a;
+}
+
+/* Responsive */
+@media (max-width: 720px) {
+  .battle-arena-hero__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .battle-arena-card--news {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 480px) {
+  .battle-arena-hero__grid {
+    grid-template-columns: 1fr;
+  }
+  .battle-arena-hero__head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
