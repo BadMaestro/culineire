@@ -363,7 +363,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v2.3.30</span>
+                <span class="footer-version">v2.3.31</span>
             </div>
         </div>
     </div>
@@ -483,11 +483,16 @@
     fetch(stateUrl, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
       .then(r => r.json())
       .then(function (res) {
-        if (!res.ok || res.status === 'completed') { pip.style.display = 'none'; return; }
+        if (!res.ok || res.status === 'completed' || res.status === 'awaiting_submissions') { pip.style.display = 'none'; return; }
 
         document.getElementById('pip-challenger-hits').textContent = res.challenger_hits;
         document.getElementById('pip-opponent-hits').textContent = res.opponent_hits;
         document.getElementById('pip-round').textContent = res.current_round;
+        if (res.viewer_moves !== undefined) {
+          document.getElementById('pip-energy').textContent = res.viewer_moves;
+          const investInput = document.querySelector('#pip-combat-form .battle-pip__invest-input');
+          if (investInput) investInput.max = Math.max(1, res.viewer_moves);
+        }
 
         const roundAdvanced = prevRound !== null && res.current_round > prevRound;
         prevRound = res.current_round;

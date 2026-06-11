@@ -577,14 +577,18 @@ def battle_state_poll(request, pk):
     state = get_combat_state(battle)
 
     viewer_has_moved = False
+    viewer_moves = 0
     if author and battle.author_is_participant(author):
         viewer_has_moved = BattleCombatAction.objects.filter(
             battle=battle, chef=author, round_number=state["current_round"]
         ).exists()
+        from .services import get_or_create_battle_profile
+        viewer_moves = get_or_create_battle_profile(author).battle_moves
 
     return JsonResponse({
         "ok": True,
         "status": battle.status,
+        "viewer_moves": viewer_moves,
         "challenger_hits": state["challenger_hits"],
         "opponent_hits": state["opponent_hits"],
         "current_round": state["current_round"],

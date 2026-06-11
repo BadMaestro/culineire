@@ -722,6 +722,19 @@ def _resolve_round(battle: Battle, round_number: int) -> BattleRound | None:
             log_message=log_msg,
         )
 
+        # End combat phase when any chef reaches hits_to_win
+        if new_c_hits >= COMBAT_HITS_TO_WIN or new_o_hits >= COMBAT_HITS_TO_WIN:
+            battle.status = Battle.Status.AWAITING_SUBMISSIONS
+            battle.save(update_fields=["status", "updated_at"])
+            create_battle_event(
+                battle=battle,
+                message=(
+                    f"Combat phase complete! "
+                    f"{battle.challenger.name} {new_c_hits} — {new_o_hits} {battle.opponent.name}. "
+                    f"Chefs now prepare their dishes."
+                ),
+            )
+
     return round_obj
 
 
