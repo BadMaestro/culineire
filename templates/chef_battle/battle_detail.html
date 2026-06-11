@@ -193,3 +193,72 @@
   </div>
 </section>
 {% endblock %}
+
+{% block extra_js %}
+{% if is_participant and battle.status == "active" %}
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+  const panel = document.getElementById('battle-combat-panel');
+  if (!panel) return;
+  const combatUrl = panel.dataset.combatUrl;
+  const form = document.getElementById('combat-action-form');
+  const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+  const roundNum = document.getElementById('combat-round-num');
+  const movesLeft = document.getElementById('combat-moves-left');
+  const hitsChallenger = document.getElementById('combat-hits-challenger');
+  const hitsOpponent = document.getElementById('combat-hits-opponent');
+  const combatLog = document.getElementById('combat-log');
+  const errorEl = document.getElementById('combat-error');
+  const successEl = document.getElementById('combat-success');
+  const submitBtn = document.getElementById('combat-submit-btn');
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    errorEl.hidden = true;
+    successEl.hidden = true;
+    submitBtn.disabled = true;
+
+    const data = new FormData(form);
+    fetch(combatUrl, {
+      method: 'POST',
+      headers: {'X-CSRFToken': csrfToken, 'X-Requested-With': 'XMLHttpRequest'},
+      body: data,
+    })
+    .then(r => r.json())
+    .then(function (res) {
+      if (!res.ok) {
+        errorEl.textContent = res.error || 'Something went wrong.';
+        errorEl.hidden = false;
+        submitBtn.disabled = false;
+        return;
+      }
+      successEl.textContent = 'Move submitted! Waiting for opponent…';
+      successEl.hidden = false;
+      submitBtn.disabled = true;
+
+      if (hitsChallenger) hitsChallenger.textContent = res.challenger_hits;
+      if (hitsOpponent) hitsOpponent.textContent = res.opponent_hits;
+      if (roundNum) roundNum.textContent = res.current_round;
+
+      if (combatLog && res.rounds && res.rounds.length) {
+        combatLog.innerHTML = '';
+        res.rounds.forEach(function (r) {
+          const li = document.createElement('li');
+          li.innerHTML = '<span class="battle-muted">Round ' + r.round_number + '</span><span>' + r.log_message + '</span>';
+          combatLog.appendChild(li);
+        });
+      }
+
+      const energyVal = parseInt(movesLeft.textContent, 10) - parseInt(data.get('moves_invested'), 10);
+      if (movesLeft) movesLeft.textContent = Math.max(0, energyVal);
+    })
+    .catch(function () {
+      errorEl.textContent = 'Network error. Try again.';
+      errorEl.hidden = false;
+      submitBtn.disabled = false;
+    });
+  });
+})();
+</script>
+{% endif %}
+{% endblock %}
