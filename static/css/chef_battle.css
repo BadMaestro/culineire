@@ -948,16 +948,17 @@ details[open] .battle-combat-results__log-toggle--title::before { content: ''; }
 .hero-battle-panel {
   flex: 0 0 300px;
   width: 300px;
-  background: rgb(10 28 18 / 0.72);
-  border: 1px solid rgb(248 210 138 / 0.18);
+  background: rgb(10 28 18 / 0.45);
+  border: 1px solid rgb(248 210 138 / 0.15);
   border-radius: 12px;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   padding: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
   color: #f7f2ea;
+  text-align: center;
 }
 
 .hero-battle-panel__kicker {
@@ -970,10 +971,13 @@ details[open] .battle-combat-results__log-toggle--title::before { content: ''; }
 }
 
 .hero-battle-panel__card {
-  background: rgb(255 248 238 / 0.05);
-  border: 1px solid rgb(255 248 238 / 0.08);
+  background: rgb(255 248 238 / 0.04);
+  border: 1px solid rgb(255 248 238 / 0.07);
   border-radius: 8px;
   padding: 0.65rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .hero-battle-panel__label {
@@ -1112,30 +1116,8 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
   .hero-battle-panel {
     flex: 0 0 auto;
     width: 100%;
-    max-width: 500px;
+    max-width: 480px;
     margin-inline: auto;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .hero-battle-panel__kicker {
-    flex: 0 0 100%;
-  }
-
-  .hero-battle-panel__card {
-    flex: 1 1 140px;
-  }
-
-  .hero-battle-panel__cta {
-    flex: 0 0 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  .hero-battle-panel {
-    flex-direction: column;
-    max-width: 100%;
   }
 }
 
