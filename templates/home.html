@@ -18,10 +18,13 @@
 {% if latest_amuse_bouche %}
 <link href="{% static 'css/amuse_bouche.css' %}" rel="stylesheet">
 {% endif %}
+{% if chef_battle_enabled %}
+<link href="{% static 'css/chef_battle.css' %}" rel="stylesheet">
+{% endif %}
 {% endblock %}
 
 {% block content %}
-<section class="hero hero--home">
+<section class="hero hero--home{% if chef_battle_enabled %} hero--has-battle{% endif %}">
     <div aria-hidden="true" class="hero__background">
         <div class="hero__slide is-active">
             <img alt="" fetchpriority="high" loading="eager" src="{% static 'images/hero.png' %}">
@@ -68,6 +71,61 @@
                 </div>
             </div>
         </div>
+
+    {% if chef_battle_enabled %}
+    <div class="hero-battle-panel">
+      <p class="hero-battle-panel__kicker">&#x2694;&#xFE0F; Chef Battle Arena</p>
+
+      <div class="hero-battle-panel__card">
+        {% if active_battles %}
+          {% with b=active_battles.0 %}
+          <p class="hero-battle-panel__label">&#x1F525; Live Now</p>
+          <a class="hero-battle-panel__vs" href="{{ b.get_absolute_url }}">
+            <span>{{ b.challenger.name }}</span>
+            <span class="hero-battle-panel__sep">VS</span>
+            <span>{{ b.opponent.name }}</span>
+          </a>
+          <p class="hero-battle-panel__theme">{{ b.theme }}</p>
+          {% endwith %}
+        {% else %}
+          <p class="hero-battle-panel__label">&#x1F3DF; Arena</p>
+          <p class="hero-battle-panel__empty">No active battles right now.</p>
+          <a class="hero-battle-panel__link" href="{% url 'chef_battle:challenge_create' %}">Issue a Challenge</a>
+        {% endif %}
+      </div>
+
+      <div class="hero-battle-panel__card">
+        <p class="hero-battle-panel__label">&#x1F451; Crown Holder</p>
+        {% if battle_crown_holder %}
+          {% with author=battle_crown_holder.user.recipe_author_profile %}
+          {% if author %}
+          <a class="hero-battle-panel__crown" href="{{ author.get_absolute_url }}">{{ author.name }}</a>
+          {% else %}
+          <p class="hero-battle-panel__crown">{{ battle_crown_holder.user.get_full_name|default:battle_crown_holder.user.username }}</p>
+          {% endif %}
+          {% endwith %}
+          <p class="hero-battle-panel__stat">{{ battle_crown_holder.wins }}W &middot; {{ battle_crown_holder.losses }}L</p>
+        {% else %}
+          <p class="hero-battle-panel__empty">No reigning chef yet.</p>
+        {% endif %}
+      </div>
+
+      <div class="hero-battle-panel__card">
+        <p class="hero-battle-panel__label">&#x1F4E3; Battle News</p>
+        {% if battle_events %}
+        <ol class="hero-battle-panel__news">
+          {% for event in battle_events|slice:":3" %}
+          <li><a href="{% if event.battle %}{{ event.battle.get_absolute_url }}{% else %}{% url 'chef_battle:home' %}{% endif %}">{{ event.message }}</a></li>
+          {% endfor %}
+        </ol>
+        {% else %}
+          <p class="hero-battle-panel__empty">News will appear when the first battle begins.</p>
+        {% endif %}
+      </div>
+
+      <a class="hero-battle-panel__cta" href="{% url 'chef_battle:home' %}">Enter Arena</a>
+    </div>
+    {% endif %}
     </div>
 
     <div aria-label="Choose hero image" class="hero__switcher">
@@ -155,84 +213,6 @@
 </section>
 {% endif %}
 
-{% if chef_battle_enabled %}
-<section class="battle-arena-hero">
-  <div class="container battle-arena-hero__inner">
-
-    <div class="battle-arena-hero__head">
-      <div>
-        <p class="battle-kicker">&#x2694;&#xFE0F; Chef Battle Arena</p>
-        <h2 class="battle-arena-hero__title">Culinary Duels. Public Glory.</h2>
-        <p class="battle-arena-hero__sub">CulinEire chefs challenge rivals, submit real recipes, collect votes and build rank.</p>
-      </div>
-      <a class="btn-primary battle-arena-hero__cta" href="{% url 'chef_battle:home' %}">Enter Arena</a>
-    </div>
-
-    <div class="battle-arena-hero__grid">
-
-      {% if active_battles %}
-      <div class="battle-arena-card battle-arena-card--live">
-        <p class="battle-arena-card__label">&#x1F525; Live Now</p>
-        {% with b=active_battles.0 %}
-        <a class="battle-arena-card__vs" href="{{ b.get_absolute_url }}">
-          <span class="battle-arena-card__chef">{{ b.challenger.name }}</span>
-          <span class="battle-arena-card__sep">VS</span>
-          <span class="battle-arena-card__chef">{{ b.opponent.name }}</span>
-        </a>
-        <p class="battle-arena-card__theme">{{ b.theme }}</p>
-        <span class="battle-arena-card__status">{{ b.get_status_display }}</span>
-        {% endwith %}
-        {% if active_battles|length > 1 %}
-        <p class="battle-arena-card__more">+{{ active_battles|length|add:"-1" }} more battle{{ active_battles|length|add:"-1"|pluralize }}</p>
-        {% endif %}
-      </div>
-      {% else %}
-      <div class="battle-arena-card battle-arena-card--empty">
-        <p class="battle-arena-card__label">&#x1F3DF; Arena</p>
-        <p class="battle-arena-card__empty-msg">No active battles right now.</p>
-        <a class="btn-secondary battle-arena-card__challenge" href="{% url 'chef_battle:challenge_create' %}">Issue a Challenge</a>
-      </div>
-      {% endif %}
-
-      <div class="battle-arena-card battle-arena-card--crown">
-        <p class="battle-arena-card__label">&#x1F451; Crown Holder</p>
-        {% if battle_crown_holder %}
-          {% with author=battle_crown_holder.user.recipe_author_profile %}
-          {% if author %}
-          <a class="battle-arena-card__crown-name" href="{{ author.get_absolute_url }}">{{ author.name }}</a>
-          {% else %}
-          <p class="battle-arena-card__crown-name">{{ battle_crown_holder.user.get_full_name|default:battle_crown_holder.user.username }}</p>
-          {% endif %}
-          {% endwith %}
-          <p class="battle-arena-card__rank">{{ battle_crown_holder.battle_rank }}</p>
-          <p class="battle-arena-card__stat">{{ battle_crown_holder.wins }}W &middot; {{ battle_crown_holder.losses }}L</p>
-        {% else %}
-          <p class="battle-arena-card__empty-msg">No reigning chef yet.</p>
-          <p class="battle-arena-card__empty-hint">Win a battle to claim the crown.</p>
-        {% endif %}
-      </div>
-
-      <div class="battle-arena-card battle-arena-card--news">
-        <p class="battle-arena-card__label">&#x1F4E3; Battle News</p>
-        {% if battle_events %}
-        <ol class="battle-arena-news">
-          {% for event in battle_events|slice:":4" %}
-          <li class="battle-arena-news__item">
-            <a href="{% if event.battle %}{{ event.battle.get_absolute_url }}{% else %}{% url 'chef_battle:home' %}{% endif %}">
-              {{ event.message }}
-            </a>
-          </li>
-          {% endfor %}
-        </ol>
-        {% else %}
-        <p class="battle-arena-card__empty-msg">News will appear when the first battle begins.</p>
-        {% endif %}
-      </div>
-
-    </div>
-  </div>
-</section>
-{% endif %}
 
 <section class="page-section">
     <div class="container">

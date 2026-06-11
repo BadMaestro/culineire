@@ -920,7 +920,226 @@ details[open] .battle-combat-results__log-toggle--title::before { content: ''; }
   .battle-pip { bottom: .6rem; right: .6rem; width: 210px; }
 }
 
-/* ── Homepage Battle Arena Hero ─────────────────────────────── */
+/* ── Homepage Hero Battle Panel ─────────────────────────────── */
+
+/* Two-column hero when battle panel is present */
+.hero--has-battle .hero__inner {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.hero--has-battle .hero-copy {
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: left;
+  align-items: flex-start;
+  margin-inline: 0;
+  max-width: 560px;
+}
+
+.hero--has-battle .hero-title,
+.hero--has-battle .hero-subtitle {
+  text-align: left;
+  margin-inline: 0;
+}
+
+.hero-battle-panel {
+  flex: 0 0 300px;
+  width: 300px;
+  background: rgb(10 28 18 / 0.72);
+  border: 1px solid rgb(248 210 138 / 0.18);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  color: #f7f2ea;
+}
+
+.hero-battle-panel__kicker {
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f8d28a;
+  letter-spacing: 0.04em;
+  margin: 0 0 0.3rem;
+}
+
+.hero-battle-panel__card {
+  background: rgb(255 248 238 / 0.05);
+  border: 1px solid rgb(255 248 238 / 0.08);
+  border-radius: 8px;
+  padding: 0.65rem 0.8rem;
+}
+
+.hero-battle-panel__label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(248 210 138 / 0.75);
+  margin: 0 0 0.35rem;
+}
+
+.hero-battle-panel__vs {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-serif);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #fff8ee;
+  text-decoration: none;
+  flex-wrap: wrap;
+}
+
+.hero-battle-panel__vs:hover { color: #f8d28a; }
+
+.hero-battle-panel__sep {
+  font-size: 0.65rem;
+  color: #f8d28a;
+  letter-spacing: 0.1em;
+}
+
+.hero-battle-panel__theme {
+  font-size: 0.72rem;
+  color: rgb(255 248 238 / 0.6);
+  margin: 0.25rem 0 0;
+}
+
+.hero-battle-panel__empty {
+  font-size: 0.78rem;
+  color: rgb(255 248 238 / 0.55);
+  margin: 0;
+}
+
+.hero-battle-panel__link {
+  display: inline-block;
+  margin-top: 0.4rem;
+  font-size: 0.75rem;
+  color: #f8d28a;
+  text-decoration: none;
+}
+
+.hero-battle-panel__link:hover { text-decoration: underline; }
+
+.hero-battle-panel__crown {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f8d28a;
+  text-decoration: none;
+  margin: 0 0 0.2rem;
+}
+
+a.hero-battle-panel__crown:hover { text-decoration: underline; }
+
+.hero-battle-panel__stat {
+  font-size: 0.72rem;
+  color: rgb(255 248 238 / 0.6);
+  margin: 0;
+}
+
+.hero-battle-panel__news {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.hero-battle-panel__news li {
+  font-size: 0.75rem;
+  color: rgb(255 248 238 / 0.7);
+  border-block-end: 1px solid rgb(255 248 238 / 0.06);
+  padding-block-end: 0.3rem;
+}
+
+.hero-battle-panel__news li:last-child {
+  border-block-end: none;
+  padding-block-end: 0;
+}
+
+.hero-battle-panel__news a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.hero-battle-panel__news a:hover { color: #f8d28a; }
+
+.hero-battle-panel__cta {
+  display: block;
+  text-align: center;
+  margin-top: 0.2rem;
+  padding: 0.5rem 1rem;
+  background: #f8d28a;
+  color: #1a0f00;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  letter-spacing: 0.03em;
+  transition: background 0.15s;
+}
+
+.hero-battle-panel__cta:hover { background: #fde09e; }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .hero--has-battle .hero__inner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hero--has-battle .hero-copy {
+    text-align: center;
+    align-items: center;
+    max-width: 100%;
+    margin-inline: auto;
+  }
+
+  .hero--has-battle .hero-title,
+  .hero--has-battle .hero-subtitle {
+    text-align: center;
+  }
+
+  .hero-battle-panel {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 500px;
+    margin-inline: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .hero-battle-panel__kicker {
+    flex: 0 0 100%;
+  }
+
+  .hero-battle-panel__card {
+    flex: 1 1 140px;
+  }
+
+  .hero-battle-panel__cta {
+    flex: 0 0 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-battle-panel {
+    flex-direction: column;
+    max-width: 100%;
+  }
+}
+
+/* ── OLD Homepage Battle Arena Hero (kept for reference) ──────── */
 .battle-arena-hero {
   background:
     linear-gradient(135deg, rgb(18 58 42 / 0.97), rgb(48 34 20 / 0.95)),
