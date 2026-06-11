@@ -325,13 +325,23 @@ class BattleMoveTransaction(models.Model):
 class Artifact(models.Model):
     class Rarity(models.TextChoices):
         COMMON = "common", "Common"
+        UNCOMMON = "uncommon", "Uncommon"
         RARE = "rare", "Rare"
         EPIC = "epic", "Epic"
         LEGENDARY = "legendary", "Legendary"
 
+    RARITY_TOKEN_COST = {
+        Rarity.COMMON: 10,
+        Rarity.UNCOMMON: 25,
+        Rarity.RARE: 60,
+        Rarity.EPIC: 150,
+        Rarity.LEGENDARY: 400,
+    }
+
     name = models.CharField(max_length=120, unique=True)
     description = models.TextField(blank=True)
     rarity = models.CharField(max_length=16, choices=Rarity.choices, default=Rarity.COMMON)
+    token_cost = models.PositiveIntegerField(default=10)
     effect_type = models.CharField(max_length=64, blank=True)
     effect_value = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
@@ -353,6 +363,62 @@ class ChefArtifact(models.Model):
 
     def __str__(self):
         return f"{self.chef} - {self.artifact}"
+
+
+class ViewerBattleGift(models.Model):
+    """A viewer sends a battle artifact to a chef during an active battle."""
+
+    battle = models.ForeignKey(Battle, on_delete=models.CASCADE, related_name="viewer_gifts")
+    recipient = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="received_battle_gifts")
+    sender = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="sent_battle_gifts"
+    )
+    artifact = models.ForeignKey(Artifact, on_delete=models.CASCADE, related_name="battle_gifts")
+    tokens_spent = models.PositiveIntegerField()
+    sent_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    is_applied = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["-sent_at"]
+
+    def __str__(self):
+        return f"{self.artifact} → {self.recipient} (battle {self.battle_id})"
+
+
+class AppreciationGiftType(models.TextChoices):
+    FLOWERS = "flowers", "Flowers"
+    COFFEE = "coffee", "Coffee"
+    BEER = "beer", "Beer"
+    COCKTAIL = "cocktail", "Cocktail"
+    WHISKEY = "whiskey", "Whiskey"
+
+
+APPRECIATION_GIFT_COST = {
+    AppreciationGiftType.FLOWERS: 5,
+    AppreciationGiftType.COFFEE: 5,
+    AppreciationGiftType.BEER: 10,
+    AppreciationGiftType.COCKTAIL: 15,
+    AppreciationGiftType.WHISKEY: 20,
+}
+
+
+class AppreciationGift(models.Model):
+    """A viewer sends a non-combat appreciation gift to a chef. Stays on profile permanently."""
+
+    recipient = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="appreciation_gifts")
+    sender = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="sent_appreciation_gifts"
+    )
+    gift_type = models.CharField(max_length=16, choices=AppreciationGiftType.choices)
+    tokens_spent = models.PositiveIntegerField()
+    message = models.CharField(max_length=200, blank=True)
+    sent_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-sent_at"]
+
+    def __str__(self):
+        return f"{self.gift_type} → {self.recipient}"
 
 
 class CosmeticItem(models.Model):

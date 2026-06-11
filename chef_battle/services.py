@@ -12,9 +12,9 @@ from django.utils import timezone
 from newsfeed.models import NewsFeedEntry
 
 from .models import (
-    Battle, BattleChallenge, BattleCombatAction, BattleEntry, BattleEvent,
-    BattleRound, ChefBattleProfile, IngredientLock, IngredientShot,
-    TokenTransaction, TokenWallet,
+    APPRECIATION_GIFT_COST, Artifact, Battle, BattleChallenge, BattleCombatAction,
+    BattleEntry, BattleEvent, BattleRound, ChefBattleProfile, IngredientLock,
+    IngredientShot, AppreciationGift, ViewerBattleGift, TokenTransaction, TokenWallet,
 )
 
 logger = logging.getLogger(__name__)
@@ -963,3 +963,68 @@ def debit_tokens(chef, amount: int, tx_type: str, description: str = "", battle=
             description=description,
             related_battle=battle,
         )
+
+
+# ── Viewer gifts ───────────────────────────────────────────────────────────────
+
+def send_battle_artifact(*, sender_user, recipient, battle: Battle, artifact: Artifact) -> ViewerBattleGift:
+    """Viewer spends tokens to send a battle artifact to a chef in an active battle."""
+    if battle.status not in Battle.ACTIVE_STATUSES:
+        raise ValueError("Cannot send battle gifts to a battle that is not active.")
+    if not battle.author_is_participant(recipient):
+        raise ValueError("Recipient must be a participant in this battle.")
+    if not artifact.is_active:
+        raise ValueError("This artifact is not available.")
+
+    sender_author = getattr(sender_user, "recipe_author", None)
+    if sender_author is None:
+        from recipes.models import RecipeAuthor as RA
+        sender_author = RA.objects.filter(user=sender_user).first()
+    if sender_author is None:
+        raise ValueError("Sender must have a chef profile to send gifts.")
+
+    cost = artifact.token_cost
+    with transaction.atomic():
+        debit_tokens(
+            sender_author, cost,
+            tx_type=TokenTransaction.TxType.GIFT_SENT,
+            description=f"Battle gift: {artifact.name} → {recipient.name}",
+            battle=battle,
+        )
+        gift = ViewerBattleGift.objects.create(
+            battle=battle,
+            recipient=recipient,
+            sender=sender_user,
+            artifact=artifact,
+            tokens_spent=cost,
+        )
+    return gift
+
+
+def send_appreciation_gift(*, sender_user, recipient, gift_type: str, message: str = "") -> AppreciationGift:
+    """Viewer spends tokens to send an appreciation gift to a chef (permanent on profile)."""
+    cost = APPRECIATION_GIFT_COST.get(gift_type)
+    if cost is None:
+        raise ValueError(f"Unknown gift type: {gift_type}")
+
+    sender_author = getattr(sender_user, "recipe_author", None)
+    if sender_author is None:
+        from recipes.models import RecipeAuthor as RA
+        sender_author = RA.objects.filter(user=sender_user).first()
+    if sender_author is None:
+        raise ValueError("Sender must have a chef profile to send gifts.")
+
+    with transaction.atomic():
+        debit_tokens(
+            sender_author, cost,
+            tx_type=TokenTransaction.TxType.GIFT_SENT,
+            description=f"Appreciation gift: {gift_type} → {recipient.name}",
+        )
+        gift = AppreciationGift.objects.create(
+            recipient=recipient,
+            sender=sender_user,
+            gift_type=gift_type,
+            tokens_spent=cost,
+            message=message,
+        )
+    return gift
