@@ -9,13 +9,19 @@
 {% block content %}
 <main class="page-section authoring-page authoring-page--screenshot-upload">
     <div class="container authoring-shell">
-        <a class="mon-back-link" href="{% url 'recipes:moderation_panel' %}">Back to Moderation Panel</a>
+        <a class="mon-back-link" href="{% url 'recipes:recipe_create' %}">Back to Create Recipe</a>
 
         <div class="authoring-header authoring-header--centered">
             <div class="authoring-header__copy">
                 <span class="eyebrow">Screenshot Import</span>
                 <h1>Create Recipe from Screenshot</h1>
                 <p class="authoring-intro">Upload a recipe screenshot, extract the visible content, and review the draft before it is sent to moderation.</p>
+                {% if request.user.is_staff or request.user.is_superuser %}
+                <div class="authoring-tool-actions">
+                    <a class="btn-secondary" href="{% url 'recipes:recipe_create' %}">Create New Recipe</a>
+                    <a class="btn-secondary" href="{% url 'recipes:generate_recipe' %}">Generate AI Recipe</a>
+                </div>
+                {% endif %}
             </div>
         </div>
 

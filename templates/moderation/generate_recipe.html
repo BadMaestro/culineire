@@ -13,13 +13,19 @@
 {% block content %}
 <section class="page-section authoring-page">
     <div class="container authoring-shell">
-        <a class="mon-back-link" href="{% url 'recipes:moderation_panel' %}">Back to Moderation Panel</a>
+        <a class="mon-back-link" href="{% url 'recipes:recipe_create' %}">Back to Create Recipe</a>
 
         <div class="authoring-header authoring-header--centered">
             <div class="authoring-header__copy">
                 <span class="eyebrow">AI Generation</span>
                 <h1>Generate AI Recipe</h1>
                 <p class="authoring-intro">Configure parameters and start AI recipe generation. The recipe will appear in the pending queue when ready.</p>
+                {% if request.user.is_staff or request.user.is_superuser %}
+                <div class="authoring-tool-actions">
+                    <a class="btn-secondary" href="{% url 'recipes:recipe_create' %}">Create New Recipe</a>
+                    <a class="btn-secondary" href="{% url 'recipes:recipe_create_from_screenshot' %}">Generate Screen Recipe</a>
+                </div>
+                {% endif %}
             </div>
         </div>
 

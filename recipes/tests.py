@@ -1094,6 +1094,36 @@ class AuthenticationPageTests(TestCase):
         self.assertContains(response, 'data-autosave="true"', html=False)
         self.assertContains(response, "recipe-authoring:/recipes/create/", html=False)
 
+    def test_recipe_create_shows_generation_tools_to_staff_author(self):
+        self.user.is_staff = True
+        self.user.save(update_fields=["is_staff"])
+        RecipeAuthor.objects.create(
+            user=self.user,
+            name="Ciaran",
+            slug="ciaran",
+        )
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("recipes:recipe_create"))
+
+        self.assertContains(response, "Generate AI Recipe")
+        self.assertContains(response, "Generate Screen Recipe")
+        self.assertContains(response, reverse("recipes:generate_recipe"))
+        self.assertContains(response, reverse("recipes:recipe_create_from_screenshot"))
+
+    def test_recipe_create_hides_generation_tools_from_regular_author(self):
+        RecipeAuthor.objects.create(
+            user=self.user,
+            name="Ciaran",
+            slug="ciaran",
+        )
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("recipes:recipe_create"))
+
+        self.assertNotContains(response, "Generate AI Recipe")
+        self.assertNotContains(response, "Generate Screen Recipe")
+
     def test_login_form_does_not_enable_autosave(self):
         response = self.client.get(reverse("login"))
 
