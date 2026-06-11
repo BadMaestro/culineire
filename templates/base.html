@@ -57,6 +57,30 @@
 
     {% block extra_head %}{% endblock %}
     {% if active_battle_pip %}<link href="{% static 'css/chef_battle.css' %}" rel="stylesheet">{% endif %}
+<style>
+.battle-blast { position:fixed; inset:0; z-index:10000; pointer-events:none; display:flex; align-items:center; justify-content:center; }
+.battle-blast.is-active { pointer-events:auto; }
+.battle-blast__wave { position:absolute; width:0; height:0; border-radius:50%; background:transparent; border:6px solid rgba(109,206,143,.0); transform:translate(-50%,-50%); top:50%; left:50%; }
+.battle-blast.is-active .battle-blast__wave { animation:blast-ring 1.4s cubic-bezier(.22,.61,.36,1) forwards; }
+@keyframes blast-ring {
+  0%   { width:0; height:0; border-color:rgba(109,206,143,.85); border-width:10px; }
+  60%  { border-color:rgba(109,206,143,.25); border-width:4px; }
+  100% { width:200vmax; height:200vmax; border-color:rgba(109,206,143,.0); border-width:2px; }
+}
+.battle-blast__card { position:relative; background:#fff; border:2px solid #6dce8f; border-radius:18px; box-shadow:0 12px 48px rgba(40,34,30,.18); padding:1.8rem 2.4rem; text-align:center; max-width:340px; width:90%; opacity:0; transform:scale(.88); transition:opacity .35s ease, transform .35s ease; }
+.battle-blast.is-active .battle-blast__card { opacity:1; transform:scale(1); }
+.battle-blast__badge { font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#1a6b3a; background:#d6f5e0; border-radius:99px; padding:.18rem .7rem; display:inline-block; margin-bottom:.6rem; }
+.battle-blast__title { font-family:var(--font-serif); font-size:1.5rem; font-weight:700; color:#28221e; margin:.0 0 .3rem; }
+.battle-blast__winner { font-size:1.15rem; font-weight:700; color:#1a6b3a; margin:.25rem 0 .15rem; }
+.battle-blast__score { font-size:2rem; font-weight:800; color:#3a3028; letter-spacing:.04em; margin:.1rem 0 .7rem; }
+.battle-blast__dismiss { appearance:none; border:1px solid var(--line); background:var(--surface-soft); color:var(--muted); border-radius:8px; padding:.35rem .9rem; font-size:.78rem; cursor:pointer; transition:background .15s; }
+.battle-blast__dismiss:hover { background:var(--surface-muted); color:var(--ink); }
+.battle-blast__a11y { margin-top:.55rem; font-size:.7rem; color:var(--muted); }
+@media (prefers-reduced-motion: reduce) {
+  .battle-blast.is-active .battle-blast__wave { animation:none; }
+  .battle-blast__card { transition:none; }
+}
+</style>
 </head>
 <body{% block body_attrs %}{% endblock %}>
 <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -363,7 +387,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v2.3.31</span>
+                <span class="footer-version">v2.3.32</span>
             </div>
         </div>
     </div>
@@ -418,6 +442,18 @@
 <script src="{% static 'js/main.js' %}"></script>
 <script src="{% static 'js/presence.js' %}"></script>
 {% block extra_js %}{% endblock %}
+
+<div class="battle-blast" id="battle-blast" role="dialog" aria-modal="true" aria-label="Battle result" hidden>
+  <div class="battle-blast__wave"></div>
+  <div class="battle-blast__card">
+    <span class="battle-blast__badge" id="blast-badge">Combat Phase</span>
+    <p class="battle-blast__title" id="blast-title">Round Finished!</p>
+    <p class="battle-blast__winner" id="blast-winner"></p>
+    <p class="battle-blast__score" id="blast-score"></p>
+    <button class="battle-blast__dismiss" id="blast-dismiss" type="button">Dismiss</button>
+    <p class="battle-blast__a11y">Disable flash effects in your browser's accessibility settings or press Dismiss</p>
+  </div>
+</div>
 
 {% if active_battle_pip %}
 <div class="battle-pip" id="battle-pip"
@@ -478,12 +514,43 @@
   document.getElementById('pip-csrf').value = csrfCookie;
 
   let prevRound = null;
+  let prevStatus = null;
+
+  function triggerBlast(res) {
+    const el = document.getElementById('battle-blast');
+    if (!el) return;
+    document.getElementById('blast-badge').textContent = 'Combat Phase Complete';
+    document.getElementById('blast-title').textContent = 'Round Finished!';
+    document.getElementById('blast-winner').textContent = res.combat_winner && res.combat_winner !== 'Draw'
+      ? '🏆 Winner: ' + res.combat_winner
+      : '🤝 Draw!';
+    document.getElementById('blast-score').textContent = res.challenger_name + '  ' + res.challenger_hits + ' : ' + res.opponent_hits + '  ' + res.opponent_name;
+    el.hidden = false;
+    requestAnimationFrame(function () {
+      el.classList.add('is-active');
+    });
+    const autoClose = setTimeout(function () { closeBlast(el); }, 4000);
+    document.getElementById('blast-dismiss').onclick = function () {
+      clearTimeout(autoClose); closeBlast(el);
+    };
+  }
+
+  function closeBlast(el) {
+    el.classList.remove('is-active');
+    setTimeout(function () { el.hidden = true; }, 400);
+  }
 
   function fetchState() {
     fetch(stateUrl, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
       .then(r => r.json())
       .then(function (res) {
-        if (!res.ok || res.status === 'completed' || res.status === 'awaiting_submissions') { pip.style.display = 'none'; return; }
+        if (!res.ok) return;
+
+        const justEnded = prevStatus === 'active' && res.status === 'awaiting_submissions';
+        prevStatus = res.status;
+
+        if (justEnded) { triggerBlast(res); }
+        if (res.status === 'completed' || res.status === 'awaiting_submissions') { pip.style.display = 'none'; return; }
 
         document.getElementById('pip-challenger-hits').textContent = res.challenger_hits;
         document.getElementById('pip-opponent-hits').textContent = res.opponent_hits;

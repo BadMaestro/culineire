@@ -585,14 +585,28 @@ def battle_state_poll(request, pk):
         from .services import get_or_create_battle_profile
         viewer_moves = get_or_create_battle_profile(author).battle_moves
 
+    combat_winner = None
+    if battle.status == Battle.Status.AWAITING_SUBMISSIONS:
+        ch = state["challenger_hits"]
+        op = state["opponent_hits"]
+        if ch > op:
+            combat_winner = battle.challenger.name
+        elif op > ch:
+            combat_winner = battle.opponent.name
+        else:
+            combat_winner = "Draw"
+
     return JsonResponse({
         "ok": True,
         "status": battle.status,
         "viewer_moves": viewer_moves,
         "challenger_hits": state["challenger_hits"],
         "opponent_hits": state["opponent_hits"],
+        "challenger_name": battle.challenger.name,
+        "opponent_name": battle.opponent.name,
         "current_round": state["current_round"],
         "viewer_has_moved": viewer_has_moved,
+        "combat_winner": combat_winner,
         "rounds": [
             {
                 "round_number": r.round_number,
