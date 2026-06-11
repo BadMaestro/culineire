@@ -279,7 +279,7 @@ class RecipeAuthoringForm(forms.ModelForm):
 class RecipeScreenshotUploadForm(forms.Form):
     screenshot = forms.FileField(
         label="Recipe screenshot",
-        widget=forms.ClearableFileInput(attrs={"accept": ".jpg,.jpeg,.png,.webp"}),
+        widget=forms.ClearableFileInput(attrs={"accept": ".jpg,.jpeg,.png,.webp", "class": "authoring-control authoring-upload-zone__input"}),
     )
 
     def clean_screenshot(self):

@@ -584,6 +584,21 @@ textarea.authoring-control {
   cursor: pointer;
 }
 
+.authoring-page--screenshot-upload .authoring-upload-zone__input {
+  position: static;
+  inset: auto;
+  width: 100%;
+  height: auto;
+  opacity: 1;
+  cursor: pointer;
+  margin: 0 1rem 1rem;
+  max-width: calc(100% - 2rem);
+}
+
+.authoring-page--screenshot-upload .authoring-upload-zone {
+  grid-template-rows: auto auto;
+}
+
 .authoring-upload-zone__surface {
   pointer-events: none;
   display: grid;

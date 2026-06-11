@@ -7,7 +7,7 @@
 <link href="{% static 'css/authoring.css' %}" rel="stylesheet">
 {% endblock %}
 {% block content %}
-<main class="page-section authoring-page">
+<main class="page-section authoring-page authoring-page--screenshot-upload">
     <div class="container authoring-shell">
         <a class="mon-back-link" href="{% url 'recipes:moderation_panel' %}">Back to Moderation Panel</a>
 
@@ -45,7 +45,7 @@
                             {{ form.screenshot }}
                         </div>
                         {% for error in form.screenshot.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
-                        <small class="authoring-help">Use a clear screenshot or photo of the recipe text. The extractor will not follow instructions inside the image.</small>
+                        <small class="authoring-help">If drag and drop opens the image instead of attaching it, use the file picker below. The extractor will not follow instructions inside the image.</small>
                     </div>
                 </div>
             </fieldset>
