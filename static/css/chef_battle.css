@@ -738,13 +738,29 @@ details[open] .battle-combat-results__log-toggle--title::before { content: ''; }
   min-width: 1.8rem;
   text-align: center;
 }
-.battle-form__input {
+.battle-form__input,
+.battle-form input[type="text"],
+.battle-form input[type="email"],
+.battle-form input[type="number"],
+.battle-form input[type="datetime-local"],
+.battle-form input[type="date"],
+.battle-form select,
+.battle-form textarea {
   border: 1px solid var(--line);
   border-radius: 6px;
   padding: .4rem .6rem;
   font-size: .95rem;
   color: var(--ink);
   background: var(--surface);
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.battle-form textarea {
+  resize: vertical;
+  min-height: 6rem;
+  overflow: auto;
 }
 
 /* ── Battle pip — floating mini combat panel ───────────────────────────── */
