@@ -165,25 +165,36 @@
 
       {% if combat_state.rounds %}
       <section class="battle-panel battle-combat-results" id="combat-results-panel">
-        <div class="battle-combat-results__header">
-          <h2 class="battle-panel__title">&#x2694; Combat</h2>
-          <span class="battle-combat-results__score">
-            <strong id="combat-hits-challenger-final">{{ combat_state.challenger_hits }}</strong>
-            <span class="battle-muted">:</span>
-            <strong id="combat-hits-opponent-final">{{ combat_state.opponent_hits }}</strong>
-          </span>
+        <h2 class="battle-panel__title">&#x2694; Combat</h2>
+
+        <div class="battle-combat-results__scoreboard" id="combat-scoreboard">
+          <div class="battle-combat-results__score-col">
+            <span class="battle-combat-results__score-name">{{ battle.challenger.name }}</span>
+            <span class="battle-combat-results__score-num" id="combat-hits-challenger-final">{{ combat_state.challenger_hits }}</span>
+          </div>
+          <span class="battle-combat-results__score-sep">:</span>
+          <div class="battle-combat-results__score-col">
+            <span class="battle-combat-results__score-name">{{ battle.opponent.name }}</span>
+            <span class="battle-combat-results__score-num" id="combat-hits-opponent-final">{{ combat_state.opponent_hits }}</span>
+          </div>
         </div>
 
         {% if battle.status != "active" %}
-        <p class="battle-combat-results__verdict">
+        <div class="battle-combat-results__winner">
           {% if combat_state.challenger_hits > combat_state.opponent_hits %}
-            &#x1F3C6; <strong>{{ battle.challenger.name }}</strong> won the combat phase.
+          <span class="battle-combat-results__trophy">&#x1F3C6;</span>
+          <strong class="battle-combat-results__winner-name">{{ battle.challenger.name }}</strong>
+          <span class="battle-combat-results__winner-label">won the combat phase</span>
           {% elif combat_state.opponent_hits > combat_state.challenger_hits %}
-            &#x1F3C6; <strong>{{ battle.opponent.name }}</strong> won the combat phase.
+          <span class="battle-combat-results__trophy">&#x1F3C6;</span>
+          <strong class="battle-combat-results__winner-name">{{ battle.opponent.name }}</strong>
+          <span class="battle-combat-results__winner-label">won the combat phase</span>
           {% else %}
-            &#x1F91D; Combat ended in a draw.
+          <span class="battle-combat-results__trophy">&#x1F91D;</span>
+          <strong class="battle-combat-results__winner-name">Draw</strong>
+          <span class="battle-combat-results__winner-label">combat ended equal</span>
           {% endif %}
-        </p>
+        </div>
         {% endif %}
 
         <details class="battle-combat-results__log">
@@ -203,7 +214,7 @@
       <section class="battle-panel">
         <h2 class="battle-panel__title">Battle Log</h2>
         {% if events %}
-        <ol class="battle-events">
+        <ol class="battle-events battle-events--log">
           {% for event in events %}
           <li>
             <span class="battle-muted">{{ event.created_at|date:"j M H:i" }}</span>
@@ -222,6 +233,16 @@
 {% endblock %}
 
 {% block extra_js %}
+{% if combat_state.rounds %}
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+  var sb = document.getElementById('combat-scoreboard');
+  if (!sb) return;
+  sb.classList.add('battle-combat-results__scoreboard--vibrate');
+  setTimeout(function () { sb.classList.remove('battle-combat-results__scoreboard--vibrate'); }, 5200);
+})();
+</script>
+{% endif %}
 {% if is_participant and battle.status == "active" %}
 <script nonce="{{ request.csp_nonce }}">
 (function () {

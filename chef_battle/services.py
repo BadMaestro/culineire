@@ -690,7 +690,7 @@ def _resolve_round(battle: Battle, round_number: int) -> BattleRound | None:
         BattleRound.Outcome.DRAW: "clash, draw",
     }
     log_msg = (
-        f"Round {round_number}: {attacker.name} {outcome_labels.get(outcome, outcome)} "
+        f"{attacker.name} {outcome_labels.get(outcome, outcome)} "
         f"on {defender.name}. ({attack_power} vs {defence_power})"
     )
 

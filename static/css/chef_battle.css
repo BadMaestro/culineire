@@ -532,37 +532,86 @@
 }
 .battle-combat__submit { width: 100%; justify-content: center; }
 
-/* ── Combat results panel (persists after combat phase) ─────────────────── */
-.battle-combat-results__header {
-  display: flex;
+/* ── Combat results panel ───────────────────────────────────────────────── */
+.battle-combat-results__scoreboard {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
-  margin-block-end: .5rem;
-}
-.battle-combat-results__header .battle-panel__title { margin: 0; }
-.battle-combat-results__score {
-  font-size: 1.4rem;
-  font-weight: 800;
-  color: #f8d28a;
   background: #3a3028;
-  border-radius: 8px;
-  padding: .1rem .65rem;
+  border-radius: 12px;
+  padding: 1rem .75rem .85rem;
+  margin-block: .65rem .5rem;
+}
+.battle-combat-results__score-col {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: .35rem;
+  gap: .25rem;
 }
-.battle-combat-results__score .battle-muted {
-  color: rgba(248, 210, 138, 0.45);
+.battle-combat-results__score-name {
+  font-family: var(--font-sans);
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: rgba(248, 210, 138, 0.5);
+}
+.battle-combat-results__score-num {
+  font-family: var(--font-serif);
+  font-size: 2.6rem;
+  font-weight: 700;
+  color: #f8d28a;
+  line-height: 1;
+}
+.battle-combat-results__score-sep {
+  font-family: var(--font-serif);
+  font-size: 1.6rem;
   font-weight: 400;
+  color: rgba(248, 210, 138, 0.25);
+  line-height: 1;
+  padding-block-start: 1.35rem;
+  padding-inline: .4rem;
 }
-.battle-combat-results__verdict {
-  font-size: .82rem;
-  color: #1a6b3a;
-  background: #d6f5e0;
-  border: 1px solid #6dce8f;
-  border-radius: 6px;
-  padding: .35rem .6rem;
-  margin-block-end: .6rem;
+.battle-combat-results__winner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: .6rem 0 .25rem;
+  gap: .15rem;
+}
+.battle-combat-results__trophy {
+  font-size: 2rem;
+  line-height: 1;
+  display: block;
+  margin-block-end: .2rem;
+}
+.battle-combat-results__winner-name {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.battle-combat-results__winner-label {
+  font-family: var(--font-sans);
+  font-size: .76rem;
+  color: var(--muted);
+}
+@keyframes battle-score-shake {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  10%  { transform: translate(-5px, 0) rotate(-.5deg); }
+  20%  { transform: translate(5px, 0) rotate(.5deg); }
+  30%  { transform: translate(-4px, 0) rotate(-.4deg); }
+  40%  { transform: translate(4px, 0) rotate(.4deg); }
+  50%  { transform: translate(-3px, 0); }
+  60%  { transform: translate(3px, 0); }
+  70%  { transform: translate(-2px, 0); }
+  80%  { transform: translate(2px, 0); }
+  90%  { transform: translate(-1px, 0); }
+}
+.battle-combat-results__scoreboard--vibrate {
+  animation: battle-score-shake .52s ease-in-out 10;
+  transform-origin: center;
 }
 .battle-score-row strong {
   font-size: 1.05rem;
@@ -571,23 +620,42 @@
   min-width: 1.8rem;
   text-align: right;
 }
-.battle-combat-results__log { margin-block-start: .4rem; }
+.battle-combat-results__log { margin-block-start: .5rem; }
 .battle-combat-results__log-toggle {
+  font-family: var(--font-sans);
   font-size: .78rem;
   font-weight: 600;
   color: var(--muted);
   cursor: pointer;
   list-style: none;
-  padding: .25rem 0;
+  padding: .3rem 0;
   user-select: none;
 }
 .battle-combat-results__log-toggle::-webkit-details-marker { display: none; }
-.battle-combat-results__log-toggle::before { content: '▶ '; font-size: .65rem; }
-details[open] .battle-combat-results__log-toggle::before { content: '▼ '; }
+.battle-combat-results__log-toggle::before { content: '\25B6  '; font-size: .62rem; }
+details[open] .battle-combat-results__log-toggle::before { content: '\25BC  '; }
 .battle-events--compact li {
-  font-size: .76rem;
-  padding-block: .2rem;
-  gap: .4rem;
+  font-size: .75rem;
+  padding-block: .28rem;
+  gap: .28rem;
+  border-block-end: 1px solid var(--line);
+}
+.battle-events--compact li:last-child { border-block-end: 0; }
+
+/* ── Battle Log (same rhythm as round log) ──────────────────────────────── */
+.battle-events--log {
+  gap: 0;
+}
+.battle-events--log li {
+  font-size: .82rem;
+  padding-block: .6rem;
+  gap: .2rem;
+  border-block-end: 1px solid var(--line);
+}
+.battle-events--log li:last-child { border-block-end: 0; }
+.battle-events--log .battle-muted {
+  font-size: .72rem;
+  letter-spacing: .02em;
 }
 .battle-combat__success {
   color: #184c3a;
