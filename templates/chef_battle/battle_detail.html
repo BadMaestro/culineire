@@ -164,16 +164,39 @@
       {% endif %}
 
       {% if combat_state.rounds %}
-      <section class="battle-panel">
-        <h2 class="battle-panel__title">Combat Log</h2>
-        <ol class="battle-events" id="combat-log">
-          {% for round in combat_state.rounds %}
-          <li>
-            <span class="battle-muted">Round {{ round.round_number }}</span>
-            <span>{{ round.log_message }}</span>
-          </li>
-          {% endfor %}
-        </ol>
+      <section class="battle-panel battle-combat-results" id="combat-results-panel">
+        <div class="battle-combat-results__header">
+          <h2 class="battle-panel__title">&#x2694; Combat</h2>
+          <span class="battle-combat-results__score">
+            <strong id="combat-hits-challenger-final">{{ combat_state.challenger_hits }}</strong>
+            <span class="battle-muted">:</span>
+            <strong id="combat-hits-opponent-final">{{ combat_state.opponent_hits }}</strong>
+          </span>
+        </div>
+
+        {% if battle.status != "active" %}
+        <p class="battle-combat-results__verdict">
+          {% if combat_state.challenger_hits > combat_state.opponent_hits %}
+            &#x1F3C6; <strong>{{ battle.challenger.name }}</strong> won the combat phase
+          {% elif combat_state.opponent_hits > combat_state.challenger_hits %}
+            &#x1F3C6; <strong>{{ battle.opponent.name }}</strong> won the combat phase
+          {% else %}
+            &#x1F91D; Combat ended in a draw
+          {% endif %}
+        </p>
+        {% endif %}
+
+        <details class="battle-combat-results__log">
+          <summary class="battle-combat-results__log-toggle">Round log ({{ combat_state.rounds|length }})</summary>
+          <ol class="battle-events battle-events--compact" id="combat-log">
+            {% for round in combat_state.rounds %}
+            <li>
+              <span class="battle-muted">Rd {{ round.round_number }}</span>
+              <span>{{ round.log_message }}</span>
+            </li>
+            {% endfor %}
+          </ol>
+        </details>
       </section>
       {% endif %}
 
