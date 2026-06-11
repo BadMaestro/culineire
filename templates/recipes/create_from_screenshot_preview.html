@@ -46,26 +46,6 @@
             </fieldset>
 
             <fieldset class="authoring-section">
-                <legend class="authoring-section__legend">Review Notes</legend>
-                <div class="authoring-grid authoring-grid--two">
-                    <div class="authoring-field">
-                        <label>Overall confidence</label>
-                        <div class="authoring-confidence__meter">{{ screenshot_import.confidence.overall|floatformat:2 }}</div>
-                    </div>
-                    <div class="authoring-field">
-                        <label>Source confidence</label>
-                        <div class="authoring-confidence__meter">{{ screenshot_import.confidence.source|floatformat:2 }}</div>
-                    </div>
-                </div>
-                {% if screenshot_import.warnings %}
-                <div class="authoring-warning-list">
-                    <h2>Warnings</h2>
-                    <ul>{% for warning in screenshot_import.warnings %}<li>{{ warning }}</li>{% endfor %}</ul>
-                </div>
-                {% endif %}
-            </fieldset>
-
-            <fieldset class="authoring-section">
                 <legend class="authoring-section__legend">Legal & Declaration</legend>
                 <div class="authoring-grid authoring-grid--two">
                     <div class="authoring-field">
@@ -193,22 +173,13 @@
 
             <fieldset class="authoring-section authoring-section--confirmations">
                 <legend>Confirmations</legend>
-                <div class="authoring-confirm-list">
-                    <label class="authoring-confirm-item">
-                        {{ form.confirm_own_work }}
-                        <span class="authoring-confirm-label">{{ form.confirm_own_work.label }}</span>
-                        {% for error in form.confirm_own_work.errors %}<span class="authoring-error authoring-error--block">{{ error }}</span>{% endfor %}
-                    </label>
-                    <label class="authoring-confirm-item">
-                        {{ form.confirm_image_rights }}
-                        <span class="authoring-confirm-label">{{ form.confirm_image_rights.label }}</span>
-                        {% for error in form.confirm_image_rights.errors %}<span class="authoring-error authoring-error--block">{{ error }}</span>{% endfor %}
-                    </label>
-                    <label class="authoring-confirm-item">
-                        {{ form.confirm_rules }}
-                        <span class="authoring-confirm-label">{{ form.confirm_rules.label }}</span>
-                        {% for error in form.confirm_rules.errors %}<span class="authoring-error authoring-error--block">{{ error }}</span>{% endfor %}
-                    </label>
+                <div class="authoring-warning-list">
+                    <h2>Declaration checks</h2>
+                    <ul>
+                        <li>{{ form.confirm_own_work.label|safe }}</li>
+                        <li>{{ form.confirm_image_rights.label|safe }}</li>
+                        <li>{{ form.confirm_rules.label|safe }}</li>
+                    </ul>
                 </div>
             </fieldset>
 
