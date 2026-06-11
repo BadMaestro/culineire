@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Biathlon: {{ battle.theme }} | Chef Battle{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero">
+  <div class="container">
+    <p class="battle-kicker">Ingredient Biathlon</p>
+    <h1>{{ battle.theme }}</h1>
+    <p class="battle-room-hero__sub">
+      {{ state.winner.name }} vs {{ state.loser.name }}
+    </p>
+  </div>
+</section>
+
+<div class="container" style="padding-block: 2rem; max-width: 700px;">
+
+  {% if messages %}
+  <div class="biathlon-messages" style="margin-block-end: 1.5rem;">
+    {% for msg in messages %}
+    <p class="biathlon-msg biathlon-msg--{{ msg.tags }}"
+       style="padding: .6rem 1rem; border-radius: 6px; margin-block-end: .5rem;
+              background: {% if 'error' in msg.tags %}#fde8e8{% elif 'warning' in msg.tags %}#fff3cd{% else %}#e8f5e9{% endif %};">
+      {{ msg }}
+    </p>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if is_loser %}
+  {# ── LOSER: place locks ── #}
+  <div class="biathlon-panel">
+    <h2 class="biathlon-panel__title">Your Ingredient Locks</h2>
+    <p class="biathlon-panel__sub">
+      Choose <strong>{{ state.max_locks }}</strong> ingredients to lock.
+      Locks are hidden from your opponent.
+      Shots that hit a lock bounce off.
+    </p>
+    <p class="biathlon-panel__count">
+      Locks placed: {{ state.locks_placed }} / {{ state.max_locks }}
+    </p>
+
+    {% if not state.loser_locks_done %}
+    <ol class="biathlon-ingredient-list">
+      {% for ingredient in state.ingredients %}
+      {% with forloop.counter0 as idx %}
+      <li class="biathlon-ingredient{% if idx in state.locks %} biathlon-ingredient--locked{% endif %}">
+        <span class="biathlon-ingredient__text">{{ ingredient }}</span>
+        {% if idx in state.locks %}
+        <span class="biathlon-ingredient__badge">&#x1F512; Locked</span>
+        {% else %}
+        <form method="post" action="{% url 'chef_battle:biathlon_lock' battle.pk %}" style="display:inline;">
+          {% csrf_token %}
+          <input type="hidden" name="ingredient_index" value="{{ idx }}">
+          <button class="btn-secondary biathlon-ingredient__btn" type="submit">Lock</button>
+        </form>
+        {% endif %}
+      </li>
+      {% endwith %}
+      {% endfor %}
+    </ol>
+    {% else %}
+    <p class="biathlon-done">All locks placed. Waiting for the winner to fire shots.</p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if is_winner %}
+  {# ── WINNER: fire shots ── #}
+  <div class="biathlon-panel">
+    <h2 class="biathlon-panel__title">Fire Your Shots</h2>
+    <p class="biathlon-panel__sub">
+      You have <strong>{{ state.max_shots }}</strong> shots.
+      {{ state.loser.name }}'s ingredient locks are hidden.
+    </p>
+    <p class="biathlon-panel__count">
+      Shots fired: {{ state.shots_fired }} / {{ state.max_shots }}
+    </p>
+
+    {% if not state.loser_locks_done %}
+    <p class="biathlon-waiting">Waiting for {{ state.loser.name }} to place their locks first.</p>
+    {% elif not state.winner_shots_done %}
+    <ol class="biathlon-ingredient-list">
+      {% for ingredient in state.ingredients %}
+      {% with forloop.counter0 as idx %}
+      <li class="biathlon-ingredient{% if idx in state.shot_indices %} biathlon-ingredient--shot{% endif %}">
+        <span class="biathlon-ingredient__text">{{ ingredient }}</span>
+        {% if idx in state.shot_indices %}
+          {% for shot in state.shots %}
+          {% if shot.target_index == idx %}
+            {% if shot.bounced %}
+            <span class="biathlon-ingredient__badge biathlon-ingredient__badge--bounce">&#x1F6E1; Bounced</span>
+            {% else %}
+            <span class="biathlon-ingredient__badge biathlon-ingredient__badge--hit">&#x1F4A5; Hit</span>
+            {% endif %}
+          {% endif %}
+          {% endfor %}
+        {% else %}
+        <form method="post" action="{% url 'chef_battle:biathlon_shoot' battle.pk %}" style="display:inline;">
+          {% csrf_token %}
+          <input type="hidden" name="target_index" value="{{ idx }}">
+          <button class="btn-secondary biathlon-ingredient__btn" type="submit">Shoot</button>
+        </form>
+        {% endif %}
+      </li>
+      {% endwith %}
+      {% endfor %}
+    </ol>
+    {% else %}
+    <p class="biathlon-done">All shots fired.</p>
+    <h3 style="margin-block: 1rem 0.5rem;">Results</h3>
+    <ol class="biathlon-ingredient-list">
+      {% for ingredient in state.ingredients %}
+      {% with forloop.counter0 as idx %}
+      <li class="biathlon-ingredient{% if idx in state.shot_indices %} biathlon-ingredient--shot{% endif %}">
+        <span class="biathlon-ingredient__text">{{ ingredient }}</span>
+        {% if idx in state.shot_indices %}
+          {% for shot in state.shots %}{% if shot.target_index == idx %}
+          {% if shot.bounced %}
+          <span class="biathlon-ingredient__badge biathlon-ingredient__badge--bounce">&#x1F6E1; Blocked by lock</span>
+          {% else %}
+          <span class="biathlon-ingredient__badge biathlon-ingredient__badge--hit">&#x1F4A5; Hit</span>
+          {% endif %}
+          {% endif %}{% endfor %}
+        {% elif idx in state.locks %}
+        <span class="biathlon-ingredient__badge">&#x1F512; Lock (not hit)</span>
+        {% endif %}
+      </li>
+      {% endwith %}
+      {% endfor %}
+    </ol>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div style="margin-block-start: 2rem;">
+    <a class="text-link" href="{{ battle.get_absolute_url }}">&larr; Back to battle</a>
+  </div>
+</div>
+{% endblock %}

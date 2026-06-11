@@ -35,8 +35,11 @@ from .services import (
     accept_challenge,
     calculate_battle_result,
     create_battle_event,
+    fire_ingredient_shot,
+    get_biathlon_state,
     get_or_create_battle_profile,
     hash_request_value,
+    place_ingredient_lock,
     refuse_challenge,
     reveal_entries_if_ready,
 )
@@ -616,3 +619,52 @@ def battle_state_poll(request, pk):
             for r in state["rounds"]
         ],
     })
+
+
+@login_required
+def biathlon(request, pk):
+    battle = get_object_or_404(Battle, pk=pk)
+    if battle.status != Battle.Status.INGREDIENT_PENALTY:
+        messages.error(request, "The biathlon phase is not active for this battle.")
+        return redirect(battle.get_absolute_url())
+    viewer_author = get_author_for_user(request.user)
+    if not battle.author_is_participant(viewer_author):
+        raise PermissionDenied
+    state = get_biathlon_state(battle)
+    return render(request, "chef_battle/biathlon.html", {
+        "battle": battle,
+        "state": state,
+        "is_winner": viewer_author and battle.winner_id == viewer_author.pk,
+        "is_loser": viewer_author and battle.loser_id == viewer_author.pk,
+    })
+
+
+@login_required
+@require_POST
+def biathlon_lock(request, pk):
+    battle = get_object_or_404(Battle, pk=pk)
+    viewer_author = get_author_for_user(request.user)
+    try:
+        index = int(request.POST.get("ingredient_index", -1))
+        place_ingredient_lock(battle=battle, chef=viewer_author, ingredient_index=index)
+        messages.success(request, "Lock placed.")
+    except (ValueError, TypeError) as e:
+        messages.error(request, str(e))
+    return redirect("chef_battle:biathlon", pk=pk)
+
+
+@login_required
+@require_POST
+def biathlon_shoot(request, pk):
+    battle = get_object_or_404(Battle, pk=pk)
+    viewer_author = get_author_for_user(request.user)
+    try:
+        index = int(request.POST.get("target_index", -1))
+        shot = fire_ingredient_shot(battle=battle, shooter=viewer_author, target_index=index)
+        if shot.bounced:
+            messages.warning(request, "Your shot bounced off a lock!")
+        else:
+            messages.success(request, "Direct hit!")
+    except (ValueError, TypeError) as e:
+        messages.error(request, str(e))
+    return redirect("chef_battle:biathlon", pk=pk)

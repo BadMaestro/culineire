@@ -13,7 +13,7 @@ from newsfeed.models import NewsFeedEntry
 
 from .models import (
     Battle, BattleChallenge, BattleCombatAction, BattleEntry, BattleEvent,
-    BattleRound, ChefBattleProfile,
+    BattleRound, ChefBattleProfile, IngredientLock, IngredientShot,
 )
 
 logger = logging.getLogger(__name__)
@@ -760,4 +760,103 @@ def get_combat_state(battle: Battle) -> dict:
         "challenger_hits": last.challenger_hits if last else 0,
         "opponent_hits": last.opponent_hits if last else 0,
         "hits_to_win": COMBAT_HITS_TO_WIN,
+    }
+
+
+# ── Biathlon ─────────────────────────────────────────────────────────────────
+
+def place_ingredient_lock(*, battle: Battle, chef, ingredient_index: int) -> IngredientLock:
+    """Loser places a hidden lock on one of their ingredient lines."""
+    if battle.status != Battle.Status.INGREDIENT_PENALTY:
+        raise ValueError("Locks can only be placed during the ingredient penalty phase.")
+    if battle.loser_id != chef.pk:
+        raise ValueError("Only the loser can place ingredient locks.")
+    existing = battle.ingredient_locks.filter(chef=chef).count()
+    if existing >= IngredientLock.MAX_LOCKS:
+        raise ValueError(f"You can only place {IngredientLock.MAX_LOCKS} locks.")
+    loser_entry = battle.entries.filter(author=chef).select_related("recipe").first()
+    if not loser_entry or not loser_entry.recipe:
+        raise ValueError("No recipe found for this entry.")
+    ingredients = [line for line in loser_entry.recipe.ingredients.splitlines() if line.strip()]
+    if ingredient_index < 0 or ingredient_index >= len(ingredients):
+        raise ValueError("Invalid ingredient index.")
+    lock, created = IngredientLock.objects.get_or_create(
+        battle=battle, chef=chef, ingredient_index=ingredient_index
+    )
+    if not created:
+        raise ValueError("This ingredient is already locked.")
+    return lock
+
+
+def fire_ingredient_shot(*, battle: Battle, shooter, target_index: int) -> IngredientShot:
+    """Winner fires one shot at a loser's ingredient line. Bounces off locks."""
+    if battle.status != Battle.Status.INGREDIENT_PENALTY:
+        raise ValueError("Shots can only be fired during the ingredient penalty phase.")
+    if battle.winner_id != shooter.pk:
+        raise ValueError("Only the winner can fire ingredient shots.")
+    loser = battle.loser
+    if not loser:
+        raise ValueError("No loser found for this battle.")
+    existing_shots = battle.ingredient_shots.filter(shooter=shooter).count()
+    if existing_shots >= IngredientShot.MAX_SHOTS:
+        raise ValueError(f"You can only fire {IngredientShot.MAX_SHOTS} shots.")
+    loser_entry = battle.entries.filter(author=loser).select_related("recipe").first()
+    if not loser_entry or not loser_entry.recipe:
+        raise ValueError("No loser recipe found.")
+    ingredients = [line for line in loser_entry.recipe.ingredients.splitlines() if line.strip()]
+    if target_index < 0 or target_index >= len(ingredients):
+        raise ValueError("Invalid ingredient index.")
+    locked_indices = set(
+        battle.ingredient_locks.filter(chef=loser).values_list("ingredient_index", flat=True)
+    )
+    bounced = target_index in locked_indices
+    shot = IngredientShot.objects.create(
+        battle=battle,
+        shooter=shooter,
+        target_index=target_index,
+        bounced=bounced,
+    )
+    _post_biathlon_event(battle, shot, ingredients[target_index], bounced)
+    return shot
+
+
+def _post_biathlon_event(battle: Battle, shot: IngredientShot, ingredient_name: str, bounced: bool) -> None:
+    if bounced:
+        message = f"{battle.winner.name}'s shot at '{ingredient_name}' bounced off a lock."
+    else:
+        message = f"{battle.winner.name}'s shot hit '{ingredient_name}'."
+    _create_battle_event(battle=battle, message=message, actor=battle.winner, is_public=True)
+
+
+def get_biathlon_state(battle: Battle) -> dict:
+    """Return the full biathlon state for the template."""
+    if battle.status != Battle.Status.INGREDIENT_PENALTY:
+        return {}
+    loser = battle.loser
+    winner = battle.winner
+    loser_entry = battle.entries.filter(author=loser).select_related("recipe").first() if loser else None
+    ingredients = []
+    if loser_entry and loser_entry.recipe:
+        ingredients = [line for line in loser_entry.recipe.ingredients.splitlines() if line.strip()]
+    locks = list(battle.ingredient_locks.filter(chef=loser).values_list("ingredient_index", flat=True))
+    shots = list(battle.ingredient_shots.filter(shooter=winner).values("target_index", "bounced", "fired_at"))
+    shot_indices = {s["target_index"] for s in shots}
+    loser_locked_own = list(battle.ingredient_locks.filter(chef=loser).values_list("ingredient_index", flat=True))
+    locks_placed = len(loser_locked_own)
+    shots_fired = len(shots)
+    loser_locks_done = locks_placed >= IngredientLock.MAX_LOCKS
+    winner_shots_done = shots_fired >= IngredientShot.MAX_SHOTS
+    return {
+        "ingredients": ingredients,
+        "locks": locks,
+        "shots": shots,
+        "shot_indices": shot_indices,
+        "locks_placed": locks_placed,
+        "shots_fired": shots_fired,
+        "max_locks": IngredientLock.MAX_LOCKS,
+        "max_shots": IngredientShot.MAX_SHOTS,
+        "loser_locks_done": loser_locks_done,
+        "winner_shots_done": winner_shots_done,
+        "loser": loser,
+        "winner": winner,
     }

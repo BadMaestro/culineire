@@ -453,3 +453,46 @@ class BattleRound(models.Model):
 
     def __str__(self):
         return f"Battle {self.battle_id} R{self.round_number}: {self.outcome}"
+
+
+class IngredientLock(models.Model):
+    """Loser's hidden lock on one ingredient line (placed at submission, revealed after biathlon)."""
+
+    MAX_LOCKS = 2
+
+    battle = models.ForeignKey(Battle, on_delete=models.CASCADE, related_name="ingredient_locks")
+    chef = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="ingredient_locks")
+    ingredient_index = models.PositiveSmallIntegerField(help_text="Zero-based line index in recipe.ingredients")
+    is_revealed = models.BooleanField(default=False)
+    placed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["placed_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["battle", "chef", "ingredient_index"],
+                name="unique_lock_per_ingredient",
+            ),
+        ]
+
+    def __str__(self):
+        return f"Lock by {self.chef} on ingredient #{self.ingredient_index} (battle {self.battle_id})"
+
+
+class IngredientShot(models.Model):
+    """Winner's shot at one of the loser's ingredient lines."""
+
+    MAX_SHOTS = 3
+
+    battle = models.ForeignKey(Battle, on_delete=models.CASCADE, related_name="ingredient_shots")
+    shooter = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="ingredient_shots")
+    target_index = models.PositiveSmallIntegerField(help_text="Zero-based line index in loser's recipe.ingredients")
+    bounced = models.BooleanField(default=False, help_text="True if the shot hit a lock and bounced")
+    fired_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["fired_at"]
+
+    def __str__(self):
+        result = "bounced" if self.bounced else "hit"
+        return f"Shot by {self.shooter} at #{self.target_index} ({result}, battle {self.battle_id})"
