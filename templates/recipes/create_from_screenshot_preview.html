@@ -19,6 +19,10 @@
             </div>
         </div>
 
+        <div class="authoring-warning" role="alert">
+            <strong>Check rights and source first:</strong> if the screenshot contains someone else's recipe, image, or text, you need permission or a valid licence. Do not submit watermarked, stolen, or misleading content. If the recipe came from another source, fill in the source details below so moderators can verify it.
+        </div>
+
         {% if messages %}
         {% for message in messages %}
         <div class="authoring-warning" role="status">{{ message }}</div>
@@ -59,6 +63,28 @@
                     <ul>{% for warning in screenshot_import.warnings %}<li>{{ warning }}</li>{% endfor %}</ul>
                 </div>
                 {% endif %}
+            </fieldset>
+
+            <fieldset class="authoring-section">
+                <legend class="authoring-section__legend">Legal & Declaration</legend>
+                <div class="authoring-grid authoring-grid--two">
+                    <div class="authoring-field">
+                        <label for="{{ form.image_rights_status.id_for_label }}">{{ form.image_rights_status.label }}:</label>
+                        {{ form.image_rights_status }}
+                        {% for error in form.image_rights_status.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field">
+                        <label for="{{ form.image_rights_note.id_for_label }}">{{ form.image_rights_note.label }}:</label>
+                        {{ form.image_rights_note }}
+                        {% if form.image_rights_note.help_text %}<p class="authoring-help">{{ form.image_rights_note.help_text }}</p>{% endif %}
+                        {% for error in form.image_rights_note.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="authoring-field authoring-field--wide">
+                        <div class="authoring-warning" role="alert">
+                            <strong>Image rule:</strong> Do not upload watermarked images even if the watermark has been cropped out. Only submit photos you took yourself, correctly licensed stock images, or public domain images. See the <a href="{% url 'legal:copyright_image_rights_guide' %}" target="_blank" rel="noopener">Copyright and Image Rights Guide</a>.
+                        </div>
+                    </div>
+                </div>
             </fieldset>
 
             <fieldset class="authoring-section">
