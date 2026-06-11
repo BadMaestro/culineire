@@ -34,6 +34,7 @@ class ChefBattleProfile(models.Model):
     rank = models.CharField(max_length=32, choices=Rank.choices, default=Rank.KITCHEN_PORTER)
     level = models.PositiveSmallIntegerField(default=1, db_index=True)
     is_hero = models.BooleanField(default=False, db_index=True)
+    michelin_stars = models.PositiveSmallIntegerField(default=0)
     rating = models.IntegerField(default=1000, db_index=True)
     reputation = models.IntegerField(default=0)
     wins = models.PositiveIntegerField(default=0)
@@ -64,6 +65,10 @@ class ChefBattleProfile(models.Model):
         if self.is_hero:
             return "CulinEire Hero"
         return f"Level {self.level}"
+
+    @property
+    def michelin_stars_display(self) -> str:
+        return "★" * self.michelin_stars if self.michelin_stars else ""
 
     def recalculate_level(self) -> bool:
         """Recompute level and is_hero from wins. Returns True if anything changed."""
