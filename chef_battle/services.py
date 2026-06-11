@@ -14,6 +14,7 @@ from newsfeed.models import NewsFeedEntry
 from .models import (
     Battle, BattleChallenge, BattleCombatAction, BattleEntry, BattleEvent,
     BattleRound, ChefBattleProfile, IngredientLock, IngredientShot,
+    TokenTransaction, TokenWallet,
 )
 
 logger = logging.getLogger(__name__)
@@ -913,3 +914,52 @@ def get_battles_awaiting_cooking_approval() -> list:
         .prefetch_related("ingredient_shots", "ingredient_locks", "entries__recipe")
         .order_by("updated_at")
     )
+
+
+# ── Token economy ──────────────────────────────────────────────────────────────
+
+def get_or_create_wallet(chef) -> TokenWallet:
+    wallet, _ = TokenWallet.objects.get_or_create(chef=chef)
+    return wallet
+
+
+def credit_tokens(chef, amount: int, tx_type: str, description: str = "", battle=None) -> TokenTransaction:
+    """Add tokens to a chef's wallet. Returns the transaction."""
+    if amount <= 0:
+        raise ValueError("Credit amount must be positive.")
+    with transaction.atomic():
+        wallet = get_or_create_wallet(chef)
+        wallet.balance += amount
+        wallet.total_purchased += amount
+        wallet.save(update_fields=["balance", "total_purchased", "updated_at"])
+        return TokenTransaction.objects.create(
+            wallet=wallet,
+            tx_type=tx_type,
+            amount=amount,
+            balance_after=wallet.balance,
+            description=description,
+            related_battle=battle,
+        )
+
+
+def debit_tokens(chef, amount: int, tx_type: str, description: str = "", battle=None) -> TokenTransaction:
+    """Deduct tokens from a chef's wallet. Raises ValueError if insufficient balance."""
+    if amount <= 0:
+        raise ValueError("Debit amount must be positive.")
+    with transaction.atomic():
+        wallet = get_or_create_wallet(chef)
+        if wallet.balance < amount:
+            raise ValueError(
+                f"Insufficient tokens: need {amount}T, have {wallet.balance}T."
+            )
+        wallet.balance -= amount
+        wallet.total_spent += amount
+        wallet.save(update_fields=["balance", "total_spent", "updated_at"])
+        return TokenTransaction.objects.create(
+            wallet=wallet,
+            tx_type=tx_type,
+            amount=-amount,
+            balance_after=wallet.balance,
+            description=description,
+            related_battle=battle,
+        )

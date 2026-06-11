@@ -521,3 +521,62 @@ class IngredientShot(models.Model):
     def __str__(self):
         result = "bounced" if self.bounced else "hit"
         return f"Shot by {self.shooter} at #{self.target_index} ({result}, battle {self.battle_id})"
+
+
+class TokenPackage(models.Model):
+    """Purchasable token bundle shown in the shop."""
+
+    name = models.CharField(max_length=60, unique=True)
+    tokens = models.PositiveIntegerField()
+    price_eur = models.DecimalField(max_digits=8, decimal_places=2)
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ["sort_order", "tokens"]
+
+    def __str__(self):
+        return f"{self.name} ({self.tokens}T / €{self.price_eur})"
+
+
+class TokenWallet(models.Model):
+    """One wallet per chef — tracks current token balance."""
+
+    chef = models.OneToOneField(RecipeAuthor, on_delete=models.CASCADE, related_name="token_wallet")
+    balance = models.PositiveIntegerField(default=0)
+    total_purchased = models.PositiveIntegerField(default=0)
+    total_spent = models.PositiveIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.chef}: {self.balance}T"
+
+
+class TokenTransaction(models.Model):
+    """Immutable ledger entry for every token movement."""
+
+    class TxType(models.TextChoices):
+        PURCHASE = "purchase", "Purchase"
+        GIFT_SENT = "gift_sent", "Gift Sent"
+        GIFT_RECEIVED = "gift_received", "Gift Received"
+        ARTIFACT_BOUGHT = "artifact_bought", "Artifact Bought"
+        REFUND = "refund", "Refund"
+        ADMIN_GRANT = "admin_grant", "Admin Grant"
+        ADMIN_DEDUCT = "admin_deduct", "Admin Deduct"
+
+    wallet = models.ForeignKey(TokenWallet, on_delete=models.CASCADE, related_name="transactions")
+    tx_type = models.CharField(max_length=20, choices=TxType.choices, db_index=True)
+    amount = models.IntegerField(help_text="Positive = credit, negative = debit")
+    balance_after = models.PositiveIntegerField()
+    description = models.CharField(max_length=200, blank=True)
+    related_battle = models.ForeignKey(
+        Battle, null=True, blank=True, on_delete=models.SET_NULL, related_name="token_transactions"
+    )
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        sign = "+" if self.amount >= 0 else ""
+        return f"{self.wallet.chef}: {sign}{self.amount}T ({self.tx_type})"
