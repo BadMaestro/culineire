@@ -83,26 +83,26 @@
   }
 
   @keyframes bc-knife-stroke {
-    /* Side A — heel at top, begin stroke */
-    0%   { transform: translateY(6px)  scaleX(1);
+    /* Side A — heel at steel, full blade travels tip→out */
+    0%   { transform: translateY(10px)  scaleX(1);
            animation-timing-function: ease-in-out; }
-    /* tip swept through */
-    46%  { transform: translateY(-7px) scaleX(1);
+    /* tip swept all the way through */
+    46%  { transform: translateY(-26px) scaleX(1);
            animation-timing-function: linear; }
     /* hold at tip */
-    49%  { transform: translateY(-7px) scaleX(1);
+    49%  { transform: translateY(-26px) scaleX(1);
            animation-timing-function: steps(1, end); }
-    /* instant: lift + flip to side B + return to heel */
-    50%  { transform: translateY(6px)  scaleX(-1);
+    /* instant: snap to side B, heel back at steel */
+    50%  { transform: translateY(10px)  scaleX(-1);
            animation-timing-function: ease-in-out; }
-    /* Side B — tip swept through */
-    96%  { transform: translateY(-7px) scaleX(-1);
+    /* Side B — tip swept all the way through */
+    96%  { transform: translateY(-26px) scaleX(-1);
            animation-timing-function: linear; }
     /* hold at tip */
-    99%  { transform: translateY(-7px) scaleX(-1);
+    99%  { transform: translateY(-26px) scaleX(-1);
            animation-timing-function: steps(1, end); }
-    /* instant: lift + flip to side A + return to heel for next loop */
-    100% { transform: translateY(6px)  scaleX(1); }
+    /* instant: snap back to side A for next loop */
+    100% { transform: translateY(10px)  scaleX(1); }
   }
 
   /* ── Spark fires twice per cycle — midpoint of each stroke ── */
