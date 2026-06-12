@@ -399,6 +399,20 @@
   100% { transform: scale(10); opacity: 0; }
 }
 
+.battle-nav-reveal {
+  position: fixed;
+  inset: 0;
+  z-index: 9997;
+  background: rgba(92, 40, 16, 0.5);
+  pointer-events: none;
+  animation: battle-nav-reveal-out 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes battle-nav-reveal-out {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 .ce-nav__status {
   max-width: 100%;
   overflow: hidden;

@@ -391,7 +391,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v2.3.47</span>
+                <span class="footer-version">v2.3.48</span>
             </div>
         </div>
     </div>
@@ -714,6 +714,16 @@ if(typeof navigator.modelContext!=='undefined'){
 </script>
 <script nonce="{{ request.csp_nonce }}">
 (function () {
+  /* ── Arrival: reveal from dark overlay if we navigated via battle wave ── */
+  if (sessionStorage.getItem('battle-wave-nav')) {
+    sessionStorage.removeItem('battle-wave-nav');
+    var rev = document.createElement('div');
+    rev.className = 'battle-nav-reveal';
+    document.body.appendChild(rev);
+    rev.addEventListener('animationend', function () { rev.remove(); }, { once: true });
+  }
+
+  /* ── Departure: wave expands, navigate mid-wave ── */
   document.addEventListener('click', function (e) {
     var link = e.target.closest('.ce-nav__link--battle');
     if (!link) return;
@@ -731,10 +741,10 @@ if(typeof navigator.modelContext!=='undefined'){
     wave.style.left   = (cx - size / 2) + 'px';
     wave.style.top    = (cy - size / 2) + 'px';
     document.body.appendChild(wave);
-    wave.addEventListener('animationend', function () {
-      wave.remove();
+    setTimeout(function () {
+      sessionStorage.setItem('battle-wave-nav', '1');
       window.location.href = href;
-    }, { once: true });
+    }, 300);
   });
 })();
 </script>

@@ -745,8 +745,8 @@ def home(request):
 
             battle_events = (
                 BattleEvent.objects.select_related("battle", "actor", "target")
-                .filter(is_public=True)
-                .order_by("-created_at")[:5]
+                .filter(is_public=True, event_type=BattleEvent.EventType.CHALLENGE_ACCEPTED)
+                .order_by("-created_at")[:3]
             )
             active_battles = (
                 Battle.objects.select_related("challenger", "opponent", "winner")
