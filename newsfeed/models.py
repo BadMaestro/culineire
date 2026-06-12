@@ -13,6 +13,7 @@ class NewsFeedEntry(models.Model):
         SECURITY_UPDATE = "security_update", "Security Update"
         VERSION_RELEASE = "version_release", "Version Release"
         ADMIN_NOTE = "admin_note", "Admin Note"
+        BATTLE_EVENT = "battle_event", "Chef Battle Event"
 
     entry_type = models.CharField(
         max_length=30,

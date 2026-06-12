@@ -114,8 +114,17 @@
         <p class="hero-battle-panel__label">&#x1F4E3; Battle News</p>
         {% if battle_events %}
         <ol class="hero-battle-panel__news">
-          {% for event in battle_events|slice:":3" %}
-          <li><a href="{% if event.battle %}{{ event.battle.get_absolute_url }}{% else %}{% url 'chef_battle:home' %}{% endif %}">{{ event.message }}</a></li>
+          {% for event in battle_events %}
+          <li>
+            <span class="hero-battle-panel__icon">
+              {% if event.event_type == 'crown_awarded' %}&#x1F451;
+              {% elif event.event_type == 'battle_finished' %}&#x2694;&#xFE0F;
+              {% elif event.event_type == 'rank_promoted' %}&#x2B06;
+              {% elif event.event_type == 'battle_started' %}&#x1F525;
+              {% else %}&#x1F941;{% endif %}
+            </span>
+            <a href="{% if event.battle %}{{ event.battle.get_absolute_url }}{% else %}{% url 'chef_battle:home' %}{% endif %}">{{ event.message }}</a>
+          </li>
           {% endfor %}
         </ol>
         {% else %}

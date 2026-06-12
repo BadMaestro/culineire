@@ -114,7 +114,7 @@ def create_battle_event(
         except NoReverseMatch:
             url = ""
         NewsFeedEntry.objects.create(
-            entry_type=NewsFeedEntry.EntryType.SITE_UPDATE,
+            entry_type=NewsFeedEntry.EntryType.BATTLE_EVENT,
             title=message,
             url=url,
             is_auto=True,
