@@ -145,3 +145,48 @@
     transition: none;
   }
 }
+
+/* ------------------------------------------------------------------
+   Arrow buttons — desktop only, flanking the dot row
+   ------------------------------------------------------------------ */
+
+.hero__arrow {
+  -webkit-appearance: none;
+  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.28);
+  background: rgba(250, 246, 240, 0.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: rgba(255, 255, 255, 0.82);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.1s;
+}
+
+.hero__arrow:hover {
+  background: rgba(200, 169, 110, 0.22);
+  border-color: rgb(200, 169, 110);
+  color: rgb(200, 169, 110);
+}
+
+.hero__arrow:active {
+  transform: scale(0.92);
+}
+
+.hero__arrow:focus-visible {
+  outline: 2px solid rgb(200, 169, 110);
+  outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .hero__arrow {
+    display: none;
+  }
+}

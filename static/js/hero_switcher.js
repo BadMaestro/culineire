@@ -36,6 +36,11 @@
     goTo((current - 1 + slides.length) % slides.length);
   }
 
+  var prevBtn = hero.querySelector('.hero__arrow--prev');
+  var nextBtn = hero.querySelector('.hero__arrow--next');
+  if (prevBtn) prevBtn.addEventListener('click', goPrevious);
+  if (nextBtn) nextBtn.addEventListener('click', goNext);
+
   dots.forEach(function (dot, i) {
     dot.addEventListener('click', function () { goTo(i); });
     dot.addEventListener('keydown', function (e) {
