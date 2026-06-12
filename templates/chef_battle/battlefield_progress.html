@@ -90,6 +90,7 @@
                     <span class="automation-item__body">
                         <strong>{{ item.label }}</strong>
                         <span>{{ item.detail }}</span>
+                        {% if item.completed_at %}<span style="font-size:0.75rem;color:var(--muted);margin-top:0.2rem;display:block;">Completed: {{ item.completed_at }}</span>{% endif %}
                     </span>
                 </div>
                 {% endfor %}
