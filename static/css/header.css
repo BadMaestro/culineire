@@ -429,6 +429,26 @@
   z-index: 2;
 }
 
+/* ── Shared background shorthand (reused in every state) ── */
+.ce-nav__link--battle,
+.ce-nav__link--battle:visited,
+.ce-nav__link--battle:hover,
+.ce-nav__link--battle:focus-visible,
+.ce-nav__link--battle:active,
+.ce-nav__link--battle.ce-nav__link--active,
+.ce-nav__link--battle.ce-nav__link--active:visited,
+.ce-nav__link--battle.ce-nav__link--active:hover,
+.ce-nav__link--battle.ce-nav__link--active:focus-visible {
+  background: linear-gradient(
+    145deg,
+    #1a0e06 0%,
+    #2c1808 35%,
+    #38200e 65%,
+    #221208 100%
+  ) !important;
+  color: #f0dfc0 !important;
+}
+
 /* ── Hover / focus ── */
 .ce-nav__link--battle:hover,
 .ce-nav__link--battle:focus-visible {
