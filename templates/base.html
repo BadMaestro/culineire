@@ -228,6 +228,7 @@
                     <summary class="ce-author-panel__summary">
                         <span class="ce-author-panel__avatar-wrap" aria-hidden="true">
                             {% if header_author %}
+                            {# DEV-ONLY: blast-trigger removed after Chef Battle public launch #}
                             <img alt="" class="ce-author-panel__avatar{% if request.user.is_superuser %} ce-avatar--blast-trigger{% endif %}" src="{{ header_author.display_avatar_url }}">
                             {% endif %}
                         </span>
