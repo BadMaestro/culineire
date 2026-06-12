@@ -73,3 +73,20 @@ def get_rankings(limit: int = 100) -> QuerySet:
         ChefBattleProfile.objects.select_related("author")
         .order_by("-rating", "-wins", "author__name")[:limit]
     )
+
+
+def get_hall_of_fame_battles(limit: int = 10) -> QuerySet:
+    return (
+        Battle.objects.select_related("challenger", "opponent", "winner", "loser")
+        .filter(status=Battle.Status.COMPLETED, winner__isnull=False)
+        .prefetch_related("entries__recipe", "votes")
+        .order_by("updated_at")[:limit]
+    )
+
+
+def get_hall_of_fame_chefs(limit: int = 20) -> QuerySet:
+    return (
+        ChefBattleProfile.objects.select_related("author")
+        .filter(wins__gt=0)
+        .order_by("-wins", "-rating", "-crown_count", "author__name")[:limit]
+    )

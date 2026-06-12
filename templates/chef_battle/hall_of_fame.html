@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Hall of Fame | Chef Battle{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero">
+  <div class="container">
+    <p class="battle-kicker">Chef Battle Arena</p>
+    <h1>Hall of Fame</h1>
+    <p class="battle-room-hero__sub">The battles and chefs that shaped the arena</p>
+  </div>
+</section>
+
+<div class="container" style="padding-block: 2.5rem; max-width: 900px;">
+
+  {# ── Legendary Battles ── #}
+  <h2 style="font-family: var(--font-serif); font-size: 1.75rem; margin-block-end: 1.25rem;">
+    Legendary Battles
+  </h2>
+
+  {% if battles %}
+  <div style="display: grid; gap: 1rem; margin-block-end: 3rem;">
+    {% for battle in battles %}
+    <a class="battle-table__row" href="{{ battle.get_absolute_url }}"
+       style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; align-items: center; gap: 1rem; text-decoration: none;">
+      <span>
+        <strong style="display: block; font-family: var(--font-serif);">{{ battle.theme }}</strong>
+        <span style="font-size: 0.85rem; color: var(--color-muted);">
+          {{ battle.challenger.name }} vs {{ battle.opponent.name }}
+        </span>
+      </span>
+      <span style="font-size: 0.9rem;">
+        {% if battle.winner %}
+        <strong>{{ battle.winner.name }}</strong> won
+        {% else %}
+        Draw
+        {% endif %}
+      </span>
+      <span style="font-size: 0.85rem; color: var(--color-muted);">
+        {{ battle.votes.count }} vote{{ battle.votes.count|pluralize }}
+      </span>
+      <span style="font-size: 0.85rem; color: var(--color-muted);">
+        {{ battle.updated_at|date:"d M Y" }}
+      </span>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p style="color: var(--color-muted); margin-block-end: 3rem;">
+    No completed battles yet. The first legendary battle will be remembered here forever.
+  </p>
+  {% endif %}
+
+  {# ── Hall of Fame Chefs ── #}
+  <h2 style="font-family: var(--font-serif); font-size: 1.75rem; margin-block-end: 1.25rem;">
+    Hall of Fame Chefs
+  </h2>
+
+  {% if chefs %}
+  <div class="battle-table">
+    <div class="battle-table__head">
+      <span>#</span>
+      <span>Chef</span>
+      <span>Rank</span>
+      <span>Wins</span>
+      <span>Crowns</span>
+      <span>Rating</span>
+    </div>
+    {% for profile in chefs %}
+    <a class="battle-table__row" href="{{ profile.author.get_absolute_url }}">
+      <span style="color: var(--color-muted); font-size: 0.85rem;">{{ forloop.counter }}</span>
+      <span>
+        {% if profile.has_crown %}&#x1F451; {% endif %}
+        {% if profile.is_hero %}<strong>{% endif %}
+        {{ profile.author.name }}
+        {% if profile.is_hero %}</strong>{% endif %}
+        {% if profile.michelin_stars %}
+        <span style="color: #b45309; font-size: 0.8rem; margin-inline-start: 0.3rem;">{{ profile.michelin_stars_display }}</span>
+        {% endif %}
+      </span>
+      <span>{{ profile.get_rank_display }}</span>
+      <strong>{{ profile.wins }}</strong>
+      <span>{{ profile.crown_count }}</span>
+      <span>{{ profile.rating }}</span>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p style="color: var(--color-muted);">
+    No victories recorded yet. Be the first chef to win a battle and claim your place here.
+  </p>
+  {% endif %}
+
+  <div style="margin-block-start: 2.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+    <a class="btn-primary" href="{% url 'chef_battle:rankings' %}">Full Rankings</a>
+    <a class="text-link" href="{% url 'chef_battle:home' %}">&larr; Back to Arena</a>
+  </div>
+</div>
+{% endblock %}

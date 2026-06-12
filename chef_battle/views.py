@@ -22,6 +22,8 @@ from .selectors import (
     get_active_battles,
     get_battle_vote_counts,
     get_expired_active_battles,
+    get_hall_of_fame_battles,
+    get_hall_of_fame_chefs,
     get_public_events,
     get_rankings,
     get_received_challenges,
@@ -731,4 +733,14 @@ def cooking_submit(request, pk):
     return render(request, "chef_battle/cooking_submit.html", {
         "battle": battle,
         "my_entry": my_entry,
+    })
+
+
+@chef_battle_guard
+def hall_of_fame(request):
+    battles = get_hall_of_fame_battles(limit=10)
+    chefs = get_hall_of_fame_chefs(limit=20)
+    return render(request, "chef_battle/hall_of_fame.html", {
+        "battles": battles,
+        "chefs": chefs,
     })

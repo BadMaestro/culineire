@@ -24,4 +24,5 @@ urlpatterns = [
     path("moderation/cooking/", views.cooking_moderation, name="cooking_moderation"),
     path("battles/<int:pk>/moderation/cooking/approve/", views.cooking_moderation_approve, name="cooking_moderation_approve"),
     path("battles/<int:pk>/cooking/submit/", views.cooking_submit, name="cooking_submit"),
+    path("hall-of-fame/", views.hall_of_fame, name="hall_of_fame"),
 ]
