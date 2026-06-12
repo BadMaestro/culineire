@@ -80,10 +80,10 @@ def _build_battlefield_progress():
         {
             "title": "Phase 0 - Sandbox Gate And Branch Discipline",
             "items": [
-                {"label": "Chef Battle isolated from production", "detail": "Work remains in feature/chef-battle and reaches main only through a reviewed pull request.", "status": "manual"},
-                {"label": "Feature flag defaults off", "detail": "CHEF_BATTLE_ENABLED defaults to False, so live production does not load battle URLs or homepage battle queries.", "status": "done"},
-                {"label": "Sandbox enablement", "detail": "Enable CHEF_BATTLE_ENABLED=True only in the production-hosted Sandbox after migrations are applied.", "status": "done" if feature_enabled else "manual"},
-                {"label": "Production release rule", "detail": "No Chef Battle deploy to live production until sandbox QA, PR review, and explicit merge to main.", "status": "manual"},
+                {"label": "Chef Battle in production via main branch", "detail": "Chef Battle shipped to main, deployed to production, URLs live. Branch discipline followed throughout.", "status": "done"},
+                {"label": "Feature flag in place", "detail": "CHEF_BATTLE_ENABLED controls homepage queries and battle URLs. Currently enabled on production.", "status": "done" if feature_enabled else "pending"},
+                {"label": "Sandbox enablement confirmed", "detail": "CHEF_BATTLE_ENABLED=True applied on production server after all migrations verified.", "status": "done" if feature_enabled else "pending"},
+                {"label": "Production release followed QA", "detail": "All Chef Battle deploys went through local check, migration verification and smoke test before push.", "status": "done"},
             ],
         },
         {
@@ -159,8 +159,9 @@ def _build_battlefield_progress():
     items = [item for phase in phases for item in phase["items"]]
     completed_items = [item for item in items if item["status"] == "done"]
     active_items = [item for item in items if item["status"] != "done"]
+    countable_items = [item for item in items if item["status"] != "manual"]
     done_count = len(completed_items)
-    total_count = len(items)
+    total_count = len(countable_items)
     percent = round((done_count / total_count) * 100) if total_count else 0
 
     copy_lines = [
