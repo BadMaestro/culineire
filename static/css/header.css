@@ -912,7 +912,7 @@
   }
 
   .ce-nav__menu {
-    flex: 1 1 auto;
+    flex: 1;
     justify-content: center;
     min-width: 0;
     padding-bottom: 0;
