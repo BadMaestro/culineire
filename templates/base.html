@@ -228,7 +228,7 @@
                     <summary class="ce-author-panel__summary">
                         <span class="ce-author-panel__avatar-wrap" aria-hidden="true">
                             {% if header_author %}
-                            <img alt="" class="ce-author-panel__avatar" src="{{ header_author.display_avatar_url }}">
+                            <img alt="" class="ce-author-panel__avatar{% if request.user.is_superuser %} ce-avatar--blast-trigger{% endif %}" src="{{ header_author.display_avatar_url }}">
                             {% endif %}
                         </span>
                         <span class="ce-author-panel__copy">
@@ -747,6 +747,28 @@ if(typeof navigator.modelContext!=='undefined'){
     }, 300);
   });
 })();
+</script>
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+  var trigger = document.querySelector('.ce-avatar--blast-trigger');
+  if (!trigger) return;
+  trigger.style.cursor = 'crosshair';
+  trigger.addEventListener('click', function (e) {
+    e.stopPropagation();
+    var el = document.getElementById('battle-blast');
+    if (!el) return;
+    el.querySelector('.battle-blast__card').style.display = 'none';
+    el.hidden = false;
+    requestAnimationFrame(function () { el.classList.add('is-active'); });
+    setTimeout(function () {
+      el.classList.remove('is-active');
+      setTimeout(function () {
+        el.hidden = true;
+        el.querySelector('.battle-blast__card').style.display = '';
+      }, 400);
+    }, 1500);
+  });
+}());
 </script>
 </body>
 </html>
