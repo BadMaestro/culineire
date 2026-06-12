@@ -1,9 +1,9 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from chef_battle.models import Battle, BattleChallenge, BattleEvent
+from chef_battle.models import Battle, BattleChallenge
 from chef_battle.services import (
-    create_battle_event,
+    calculate_battle_result,
     expire_stale_challenges,
     handle_no_show_battles,
 )
@@ -49,3 +49,21 @@ class Command(BaseCommand):
         else:
             handled = handle_no_show_battles()
             self.stdout.write(self.style.SUCCESS(f"Processed {handled} no-show battle(s)."))
+
+        # --- Auto-complete expired voting battles (CB-1402) ---
+        expired_voting = Battle.objects.filter(
+            status=Battle.Status.VOTING,
+            voting_deadline__lte=now,
+        )
+        voting_count = expired_voting.count()
+        if dry:
+            self.stdout.write(f"[dry-run] Would complete {voting_count} expired voting battle(s).")
+        else:
+            completed = 0
+            for battle in expired_voting:
+                try:
+                    calculate_battle_result(battle)
+                    completed += 1
+                except Exception as exc:
+                    self.stderr.write(f"Error completing battle {battle.pk}: {exc}")
+            self.stdout.write(self.style.SUCCESS(f"Completed {completed} expired voting battle(s)."))

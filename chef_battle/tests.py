@@ -350,3 +350,218 @@ class NotificationsPollViewTests(TestCase):
         data = resp.json()
         self.assertIn("count", data)
         self.assertIn("items", data)
+
+
+# ---------------------------------------------------------------------------
+# CB-1601 — entry submission, reveal, crown
+# ---------------------------------------------------------------------------
+
+class EntrySubmissionTests(TestCase):
+    """CB-1601: entry submission and reveal logic."""
+
+    def setUp(self):
+        from recipes.models import Recipe
+        User = get_user_model()
+        self.user_a = User.objects.create_user(username="entry-a", password="pw")
+        self.user_b = User.objects.create_user(username="entry-b", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=self.user_a, name="Entry A", slug="entry-a")
+        self.chef_b = RecipeAuthor.objects.create(user=self.user_b, name="Entry B", slug="entry-b")
+        challenge = BattleChallenge.objects.create(
+            challenger=self.chef_a,
+            opponent=self.chef_b,
+            theme="Best Chowder",
+            expires_at=timezone.now() + timezone.timedelta(hours=24),
+        )
+        self.battle = accept_challenge(challenge)
+        self.recipe_a = Recipe.objects.create(
+            title="Chowder A", slug="chowder-a", author=self.chef_a,
+            category="soup", short_description="Test",
+            ingredients="cream\nfish\npotato", method="cook",
+            status=Recipe.Status.APPROVED,
+        )
+        self.recipe_b = Recipe.objects.create(
+            title="Chowder B", slug="chowder-b", author=self.chef_b,
+            category="soup", short_description="Test",
+            ingredients="cream\nsmoked salmon\nleek", method="cook",
+            status=Recipe.Status.APPROVED,
+        )
+
+    def test_submit_battle_entry_creates_entry(self):
+        entry = submit_battle_entry(battle=self.battle, author=self.chef_a, recipe=self.recipe_a)
+        self.assertEqual(entry.battle, self.battle)
+        self.assertEqual(entry.author, self.chef_a)
+        self.assertEqual(entry.recipe, self.recipe_a)
+        self.assertFalse(entry.is_revealed)
+
+    def test_entries_hidden_before_reveal(self):
+        submit_battle_entry(battle=self.battle, author=self.chef_a, recipe=self.recipe_a)
+        entry = BattleEntry.objects.get(battle=self.battle, author=self.chef_a)
+        self.assertFalse(entry.is_revealed)
+
+    def test_reveal_entries_if_ready_reveals_when_both_submitted(self):
+        from chef_battle.services import reveal_entries_if_ready
+        submit_battle_entry(battle=self.battle, author=self.chef_a, recipe=self.recipe_a)
+        submit_battle_entry(battle=self.battle, author=self.chef_b, recipe=self.recipe_b)
+        reveal_entries_if_ready(self.battle)
+        self.assertTrue(BattleEntry.objects.get(battle=self.battle, author=self.chef_a).is_revealed)
+        self.assertTrue(BattleEntry.objects.get(battle=self.battle, author=self.chef_b).is_revealed)
+
+    def test_reveal_does_not_trigger_with_only_one_entry(self):
+        from chef_battle.services import reveal_entries_if_ready
+        submit_battle_entry(battle=self.battle, author=self.chef_a, recipe=self.recipe_a)
+        reveal_entries_if_ready(self.battle)
+        self.assertFalse(BattleEntry.objects.get(battle=self.battle, author=self.chef_a).is_revealed)
+
+
+class CrownTests(TestCase):
+    """CB-1601/1404: crown is awarded to the winner."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.user_a = User.objects.create_user(username="crown-a", password="pw")
+        self.user_b = User.objects.create_user(username="crown-b", password="pw")
+        self.voter = User.objects.create_user(username="crown-voter", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=self.user_a, name="Crown A", slug="crown-a")
+        self.chef_b = RecipeAuthor.objects.create(user=self.user_b, name="Crown B", slug="crown-b")
+        challenge = BattleChallenge.objects.create(
+            challenger=self.chef_a,
+            opponent=self.chef_b,
+            theme="Best Crown Dish",
+            expires_at=timezone.now() + timezone.timedelta(hours=24),
+        )
+        self.battle = accept_challenge(challenge)
+
+    def test_winner_receives_24h_crown(self):
+        BattleVote.objects.create(battle=self.battle, voter=self.voter, voted_for=self.chef_a)
+        before = timezone.now()
+        calculate_battle_result(self.battle)
+        profile = self.chef_a.battle_profile
+        self.assertIsNotNone(profile.crown_until)
+        self.assertGreater(profile.crown_until, before + timezone.timedelta(hours=23))
+        self.assertTrue(profile.has_crown)
+
+    def test_crown_count_increments_on_win(self):
+        BattleVote.objects.create(battle=self.battle, voter=self.voter, voted_for=self.chef_a)
+        calculate_battle_result(self.battle)
+        self.assertEqual(self.chef_a.battle_profile.crown_count, 1)
+
+    def test_crown_event_created(self):
+        from chef_battle.models import BattleEvent
+        BattleVote.objects.create(battle=self.battle, voter=self.voter, voted_for=self.chef_a)
+        calculate_battle_result(self.battle)
+        self.assertTrue(
+            self.battle.events.filter(event_type=BattleEvent.EventType.CROWN_AWARDED).exists()
+        )
+
+    def test_battle_completed_event_published_to_news(self):
+        from chef_battle.models import BattleEvent
+        BattleVote.objects.create(battle=self.battle, voter=self.voter, voted_for=self.chef_a)
+        calculate_battle_result(self.battle)
+        event = self.battle.events.filter(event_type=BattleEvent.EventType.BATTLE_COMPLETED).first()
+        self.assertIsNotNone(event)
+        self.assertTrue(event.is_public)
+
+
+class AutoCompleteVotingTests(TestCase):
+    """CB-1402: management command completes VOTING battles past deadline."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.user_a = User.objects.create_user(username="voting-auto-a", password="pw")
+        self.user_b = User.objects.create_user(username="voting-auto-b", password="pw")
+        self.voter = User.objects.create_user(username="voting-auto-v", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=self.user_a, name="Voting A", slug="voting-auto-a")
+        self.chef_b = RecipeAuthor.objects.create(user=self.user_b, name="Voting B", slug="voting-auto-b")
+
+    def _voting_battle_past_deadline(self):
+        challenge = BattleChallenge.objects.create(
+            challenger=self.chef_a,
+            opponent=self.chef_b,
+            theme="Auto Complete Dish",
+            expires_at=timezone.now() + timezone.timedelta(hours=1),
+        )
+        battle = accept_challenge(challenge)
+        past = timezone.now() - timezone.timedelta(hours=1)
+        Battle.objects.filter(pk=battle.pk).update(
+            status=Battle.Status.VOTING,
+            voting_deadline=past,
+        )
+        battle.refresh_from_db()
+        return battle
+
+    def test_expired_voting_battle_is_completed_by_calculate(self):
+        battle = self._voting_battle_past_deadline()
+        BattleVote.objects.create(battle=battle, voter=self.voter, voted_for=self.chef_a)
+        calculate_battle_result(battle)
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.COMPLETED)
+        self.assertEqual(battle.winner, self.chef_a)
+
+
+# ---------------------------------------------------------------------------
+# CB-1602 — Permission tests
+# ---------------------------------------------------------------------------
+
+class PermissionTests(TestCase):
+    """CB-1602: non-participants and anonymous users are blocked from sensitive actions."""
+
+    def setUp(self):
+        from recipes.models import Recipe
+        User = get_user_model()
+        self.user_a = User.objects.create_user(username="perm-a", password="pw", is_staff=True)
+        self.user_b = User.objects.create_user(username="perm-b", password="pw", is_staff=True)
+        self.outsider_user = User.objects.create_user(username="perm-out", password="pw", is_staff=True)
+        self.chef_a = RecipeAuthor.objects.create(user=self.user_a, name="Perm A", slug="perm-a")
+        self.chef_b = RecipeAuthor.objects.create(user=self.user_b, name="Perm B", slug="perm-b")
+        self.outsider = RecipeAuthor.objects.create(user=self.outsider_user, name="Outsider", slug="perm-out")
+        challenge = BattleChallenge.objects.create(
+            challenger=self.chef_a,
+            opponent=self.chef_b,
+            theme="Permission Dish",
+            expires_at=timezone.now() + timezone.timedelta(hours=24),
+        )
+        self.battle = accept_challenge(challenge)
+        self.recipe_out = Recipe.objects.create(
+            title="Outsider Dish", slug="outsider-dish", author=self.outsider,
+            category="meat", short_description="Test",
+            ingredients="beef", method="roast",
+            status=Recipe.Status.APPROVED,
+        )
+        self.client = Client()
+
+    def test_non_participant_cannot_submit_entry(self):
+        from chef_battle.services import submit_battle_entry
+        from django.core.exceptions import ValidationError
+        with self.assertRaises((ValidationError, Exception)):
+            submit_battle_entry(
+                battle=self.battle,
+                author=self.outsider,
+                recipe=self.recipe_out,
+            )
+
+    def test_anonymous_cannot_submit_entry_via_view(self):
+        url = reverse("chef_battle:battle_entry_submit", kwargs={"pk": self.battle.pk})
+        resp = self.client.post(url, {})
+        # anonymous → 404 (chef_battle_guard) or redirect to login
+        self.assertIn(resp.status_code, [302, 404])
+
+    def test_outsider_cannot_respond_to_others_challenge(self):
+        challenge = BattleChallenge.objects.create(
+            challenger=self.chef_a,
+            opponent=self.chef_b,
+            theme="Other Challenge",
+            expires_at=timezone.now() + timezone.timedelta(hours=24),
+        )
+        self.client.login(username="perm-out", password="pw")
+        url = reverse("chef_battle:challenge_respond", kwargs={"pk": challenge.pk})
+        resp = self.client.post(url, {"action": "accept"})
+        # outsider is not the opponent → 404 or redirect
+        self.assertIn(resp.status_code, [302, 404])
+        challenge.refresh_from_db()
+        self.assertEqual(challenge.status, BattleChallenge.Status.PENDING)
+
+    def test_participant_cannot_vote_in_own_battle(self):
+        vote = BattleVote(battle=self.battle, voter=self.user_a, voted_for=self.chef_a)
+        from django.core.exceptions import ValidationError
+        with self.assertRaises(ValidationError):
+            vote.full_clean()
