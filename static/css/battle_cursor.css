@@ -105,33 +105,52 @@
     100% { transform: translateY(4px)  rotate(0deg); }
   }
 
-  /* ── Steel alternates sides ──
-     scaleX(-1) flips the rod to the other face of the knife.
-     transform-origin at the crossing point (36,36 in local space) so the
-     rod mirrors around the contact line, not around the handle. */
-  .battle-cutlery-cursor.is-visible .bc-steel-slide {
-    animation: bc-steel-bob 1.52s ease-in-out infinite;
+  /* ── Steel alternates z-order ──
+     bc-steel-behind: drawn before knife in DOM = knife visually on top (stroke A).
+     bc-steel-front:  drawn after  knife in DOM = steel visually on top (stroke B).
+     Both animate identically; only opacity alternates (instant snap via steps). */
+  .battle-cutlery-cursor.is-visible .bc-steel-behind,
+  .battle-cutlery-cursor.is-visible .bc-steel-front {
+    animation: bc-steel-move 1.52s ease-in-out infinite;
     transform-origin: 36px 36px;
   }
+  .battle-cutlery-cursor.is-visible .bc-steel-behind {
+    animation-name: bc-steel-move, bc-steel-behind-vis;
+  }
+  .battle-cutlery-cursor.is-visible .bc-steel-front {
+    animation-name: bc-steel-move, bc-steel-front-vis;
+  }
 
-  @keyframes bc-steel-bob {
-    /* Stroke A — steel on face A, upright */
-    0%   { transform: translateY(4px)  scaleX(1)  rotate(0deg);
+  @keyframes bc-steel-move {
+    0%   { transform: translateY(4px)  rotate(0deg);
            animation-timing-function: ease-in-out; }
-    /* rod slides, yields 10° as blade reaches tip */
-    46%  { transform: translateY(-4px) scaleX(1)  rotate(10deg);
+    46%  { transform: translateY(-4px) rotate(10deg);
            animation-timing-function: linear; }
-    49%  { transform: translateY(-4px) scaleX(1)  rotate(10deg);
+    49%  { transform: translateY(-4px) rotate(10deg);
            animation-timing-function: steps(1, end); }
-    /* instant: flip to face B for stroke B */
-    50%  { transform: translateY(4px)  scaleX(-1) rotate(0deg);
+    50%  { transform: translateY(4px)  rotate(0deg);
            animation-timing-function: ease-in-out; }
-    96%  { transform: translateY(-4px) scaleX(-1) rotate(10deg);
+    96%  { transform: translateY(-4px) rotate(10deg);
            animation-timing-function: linear; }
-    99%  { transform: translateY(-4px) scaleX(-1) rotate(10deg);
+    99%  { transform: translateY(-4px) rotate(10deg);
            animation-timing-function: steps(1, end); }
-    /* flip back to face A */
-    100% { transform: translateY(4px)  scaleX(1)  rotate(0deg); }
+    100% { transform: translateY(4px)  rotate(0deg); }
+  }
+
+  /* Stroke A (0-49%): behind visible, front hidden */
+  @keyframes bc-steel-behind-vis {
+    0%  { opacity: 1; }
+    49% { opacity: 1; animation-timing-function: steps(1, end); }
+    50% { opacity: 0; }
+    100%{ opacity: 0; }
+  }
+  /* Stroke B (50-99%): front visible, behind hidden */
+  @keyframes bc-steel-front-vis {
+    0%  { opacity: 0; }
+    49% { opacity: 0; animation-timing-function: steps(1, end); }
+    50% { opacity: 1; }
+    99% { opacity: 1; animation-timing-function: steps(1, end); }
+    100%{ opacity: 0; }
   }
 
   /* ── Spark fires twice per cycle — midpoint of each stroke ── */
@@ -170,11 +189,13 @@
     }
     .battle-cutlery-cursor__shine,
     .battle-cutlery-cursor.is-visible .bc-knife-slide,
-    .battle-cutlery-cursor.is-visible .bc-steel-slide,
+    .battle-cutlery-cursor.is-visible .bc-steel-behind,
+    .battle-cutlery-cursor.is-visible .bc-steel-front,
     .battle-cutlery-cursor.is-visible .bc-spark,
     .battle-cutlery-cursor.is-visible .bc-spark--outer {
       animation: none;
     }
     .bc-spark { opacity: 0; }
+    .bc-steel-front { opacity: 0; }
   }
 }
