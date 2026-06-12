@@ -57,7 +57,7 @@
 
     {% block extra_head %}{% endblock %}
     {% if active_battle_pip %}<link href="{% static 'css/chef_battle.css' %}" rel="stylesheet">{% endif %}
-    {% if chef_battle_enabled or request.user.is_superuser %}<link href="{% static 'css/battle_vfx.css' %}" rel="stylesheet">{% endif %}
+    {% if chef_battle_enabled %}<link href="{% static 'css/battle_vfx.css' %}" rel="stylesheet">{% endif %}
 <style>
 .battle-blast { position:fixed; inset:0; z-index:10000; pointer-events:none; display:flex; align-items:center; justify-content:center; }
 .battle-blast.is-active { pointer-events:auto; }
@@ -229,8 +229,7 @@
                     <summary class="ce-author-panel__summary">
                         <span class="ce-author-panel__avatar-wrap" aria-hidden="true">
                             {% if header_author %}
-                            {# DEV-ONLY: blast-trigger removed after Chef Battle public launch #}
-                            <img alt="" class="ce-author-panel__avatar{% if request.user.is_superuser %} ce-avatar--blast-trigger{% endif %}" src="{{ header_author.display_avatar_url }}">
+                            <img alt="" class="ce-author-panel__avatar" src="{{ header_author.display_avatar_url }}">
                             {% endif %}
                         </span>
                         <span class="ce-author-panel__copy">
@@ -393,7 +392,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v2.3.49</span>
+                <span class="footer-version">v2.3.50</span>
             </div>
         </div>
     </div>
@@ -685,7 +684,7 @@
 })();
 </script>
 {% endif %}
-{% if chef_battle_enabled or request.user.is_superuser %}<script src="{% static 'js/battle_vfx.js' %}"></script>{% endif %}
+{% if chef_battle_enabled %}<script src="{% static 'js/battle_vfx.js' %}"></script>{% endif %}
 <script src="{% static 'js/buttons.js' %}"></script>
 <script src="{% static 'js/form-validator.js' %}"></script>
 <script src="{% static 'js/form-autosave.js' %}"></script>
@@ -715,13 +714,14 @@ if(typeof navigator.modelContext!=='undefined'){
     rev.addEventListener('animationend', function () { rev.remove(); }, { once: true });
   }
 
-  /* ── Departure: wave expands, navigate mid-wave ── */
+  /* ── Departure: VFX cloud + dark wave overlay, navigate mid-wave ── */
   document.addEventListener('click', function (e) {
     var link = e.target.closest('.ce-nav__link--battle');
     if (!link) return;
     var href = link.getAttribute('href');
     if (!href) return;
     e.preventDefault();
+    if (window.CulinEireBattleVFX) { window.CulinEireBattleVFX.showWaveOnly(); }
     var rect = link.getBoundingClientRect();
     var cx = rect.left + rect.width / 2;
     var cy = rect.top + rect.height / 2;
@@ -739,19 +739,6 @@ if(typeof navigator.modelContext!=='undefined'){
     }, 300);
   });
 })();
-</script>
-<script nonce="{{ request.csp_nonce }}">
-(function () {
-  var trigger = document.querySelector('.ce-avatar--blast-trigger');
-  if (!trigger) return;
-  trigger.style.cursor = 'crosshair';
-  trigger.addEventListener('click', function (e) {
-    e.stopPropagation();
-    if (window.CulinEireBattleVFX) {
-      window.CulinEireBattleVFX.showWaveOnly();
-    }
-  });
-}());
 </script>
 </body>
 </html>
