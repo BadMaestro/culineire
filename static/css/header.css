@@ -953,7 +953,7 @@
   .ce-nav__status,
   .ce-nav__button {
     min-height: 0;
-    padding: 0.42rem 0.25rem;
+    padding: 0.42rem 0.1rem;
     font-size: 0.93rem;
     line-height: 1.2;
   }
