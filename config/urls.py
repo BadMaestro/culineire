@@ -68,8 +68,6 @@ urlpatterns = [
     # Sponsors puzzle
     path("sponsors/", include("sponsors.urls", namespace="sponsors")),
 
-    # Chefs Battle
-    path("chefs-battle/", include("chefs_battle.urls", namespace="chefs_battle")),
 
     # Accounts (user management)
     path("accounts/", include("accounts.urls", namespace="accounts")),

@@ -136,7 +136,7 @@ INSTALLED_APPS = [
     "chef_battle",
     "sandbox",
     "sponsors",
-    "chefs_battle",
+
     "agent_discovery",
 ]
 

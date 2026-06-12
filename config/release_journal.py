@@ -351,3 +351,82 @@ RELEASE_JOURNAL = [
         "notes": "Phase 5 is wording, UI clarity and documentation only. It does not change Stripe payment/webhook semantics, Telegram trigger behaviour, sanctions source ingestion or sanctions matching logic.",
     },
 ]
+
+
+import re
+import subprocess
+
+
+def _detect_section(subject: str, body: str) -> str:
+    text = (subject + " " + body).lower()
+    if "chef" in text and "battle" in text:
+        return "Chef's Battle"
+    if "recipe" in text:
+        return "Recipes"
+    if "article" in text:
+        return "Articles"
+    if "account" in text or "auth" in text or "login" in text:
+        return "Accounts"
+    if "newsfeed" in text or "news" in text:
+        return "Newsfeed"
+    if "sponsor" in text or "stripe" in text:
+        return "Sponsors"
+    if "migration" in text or "migrate" in text:
+        return "Database"
+    if "static" in text or "css" in text or "js" in text or "template" in text:
+        return "Frontend"
+    if "deploy" in text or "version" in text or "bump" in text:
+        return "Deploy"
+    if "test" in text:
+        return "Tests"
+    return "General"
+
+
+def _parse_git_log(repo_path: str, limit: int = 60) -> list[dict]:
+    try:
+        raw = subprocess.check_output(
+            ["git", "log", f"--max-count={limit}", "--format=%x00%H%x01%h%x01%ad%x01%s%x01%b", "--date=short"],
+            cwd=repo_path,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+    except Exception:
+        return []
+
+    entries = []
+    for block in raw.split("\x00"):
+        block = block.strip()
+        if not block:
+            continue
+        parts = block.split("\x01", 4)
+        if len(parts) < 4:
+            continue
+        full_hash, short_hash, date, subject = parts[0], parts[1], parts[2], parts[3]
+        body = parts[4].strip() if len(parts) == 5 else ""
+
+        body_lines = [ln.rstrip() for ln in body.splitlines() if ln.strip()]
+        checklist = [ln.lstrip("-• ") for ln in body_lines if ln.lstrip().startswith("-") or re.match(r"^CB-\d+", ln.lstrip())]
+        summary_lines = [ln for ln in body_lines if not ln.lstrip().startswith("-") and not re.match(r"^CB-\d+", ln.lstrip()) and "Co-Authored-By" not in ln]
+        summary = " ".join(summary_lines) if summary_lines else subject
+
+        entries.append({
+            "version": short_hash,
+            "date": date,
+            "commit": short_hash,
+            "title": subject,
+            "section": _detect_section(subject, body),
+            "summary": summary,
+            "checklist": checklist,
+            "stats": [],
+            "notes": "",
+            "deployment_status": "Deployed",
+        })
+
+    return entries
+
+
+def build_git_journal(repo_path: str, limit: int = 60) -> list[dict]:
+    git_entries = _parse_git_log(repo_path, limit=limit)
+    if not git_entries:
+        return list(reversed(RELEASE_JOURNAL))
+    return git_entries

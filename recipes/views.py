@@ -40,7 +40,7 @@ from accounts.views import (
 from config.email_utils import build_absolute_url, send_template_mail
 from articles.models import Article, ArticleImage
 from collection.models import SavedArticle, SavedContent, SavedRecipe
-from config.release_journal import RELEASE_JOURNAL
+from config.release_journal import build_git_journal
 from config.turnstile import verify_turnstile
 from monitoring.tracker import get_client_ip, hash_ip, track_event
 from .allergens import build_present_allergen_items
@@ -2578,7 +2578,7 @@ def deployment_journal(request):
     return render(
         request,
         "moderation/deployment_journal.html",
-        {"release_journal": RELEASE_JOURNAL},
+        {"release_journal": build_git_journal(settings.BASE_DIR)},
     )
 
 
