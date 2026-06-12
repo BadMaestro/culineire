@@ -157,7 +157,11 @@ def _build_battlefield_progress():
     ]
 
     items = [item for phase in phases for item in phase["items"]]
-    completed_items = [item for item in items if item["status"] == "done"]
+    completed_items = sorted(
+        [item for item in items if item["status"] == "done"],
+        key=lambda x: x.get("completed_at", ""),
+        reverse=True,
+    )
     active_items = [item for item in items if item["status"] != "done"]
     countable_items = [item for item in items if item["status"] != "manual"]
     done_count = len(completed_items)
