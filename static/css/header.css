@@ -924,7 +924,7 @@
     flex: 0 0 auto;
     width: 1px;
     height: 18px;
-    margin-inline: 0.05rem;
+    margin-inline: 0.03rem;
     background: rgb(58 44 30 / 0.18);
   }
 
@@ -939,8 +939,8 @@
 
   .ce-nav__auth--author {
     position: relative;
-    flex-basis: clamp(160px, 14vw, 190px);
-    max-width: clamp(160px, 14vw, 190px);
+    flex-basis: clamp(176px, 21vw, 220px);
+    max-width: clamp(176px, 21vw, 220px);
     z-index: 70;
   }
 
