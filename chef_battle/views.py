@@ -17,7 +17,7 @@ from recipes.models import RecipeAuthor
 
 from .access import chef_battle_guard
 from .forms import BattleChallengeForm, BattleEntryForm
-from .models import Battle, BattleChallenge, BattleEntry, BattleEvent, BattleVote, ChefBattleProfile
+from .models import Artifact, Battle, BattleChatMessage, BattleChallenge, BattleEntry, BattleEvent, BattleVote, ChefBattleProfile, TokenWallet
 from .selectors import (
     get_active_battles,
     get_battle_vote_counts,
@@ -70,6 +70,10 @@ def _build_battlefield_progress():
     vote_count = BattleVote.objects.count()
     event_count = BattleEvent.objects.filter(is_public=True).count()
     profile_count = ChefBattleProfile.objects.count()
+    artifact_count = Artifact.objects.count()
+    chat_message_count = BattleChatMessage.objects.count()
+    wallet_count = TokenWallet.objects.count()
+    hero_count = ChefBattleProfile.objects.filter(is_hero=True).count()
     feature_enabled = getattr(settings, "CHEF_BATTLE_ENABLED", False)
 
     phases = [
@@ -88,9 +92,9 @@ def _build_battlefield_progress():
                 {"label": "Battle data model", "detail": "Profiles, challenges, battles, entries, votes, events, moves, artifacts and seasons have an initial schema.", "status": "done"},
                 {"label": "Challenge flow", "detail": f"{challenge_count} challenge(s) created; {pending_challenges} pending; {refused_challenges} refused.", "status": _battlefield_status(challenge_count)},
                 {"label": "Battle room", "detail": f"{battle_count} battle room(s) created; {active_battles} active/scheduled/voting; {completed_battles} completed.", "status": _battlefield_status(battle_count)},
-                {"label": "Recipe/article submissions", "detail": f"{entry_count} battle(s) currently have at least one submitted entry.", "status": _battlefield_status(entry_count)},
-                {"label": "Public voting", "detail": f"{vote_count} vote(s) recorded. MVP rule: one authenticated vote or protected anonymous session per battle.", "status": _battlefield_status(vote_count)},
-                {"label": "7-day MVP timer", "detail": "5 days for submissions + 2 days for voting = 7-day total battle window.", "status": "done"},
+                {"label": "Recipe submissions", "detail": f"{entry_count} battle(s) currently have at least one submitted entry.", "status": _battlefield_status(entry_count)},
+                {"label": "Public voting", "detail": f"{vote_count} vote(s) recorded. One authenticated vote or protected anonymous session per battle.", "status": _battlefield_status(vote_count)},
+                {"label": "7-day battle timer", "detail": "5 days for submissions + 2 days for voting = 7-day total battle window.", "status": "done"},
                 {"label": "Manual battle moderation", "detail": "First 20-30 battles should be manually checked for theme fit, spam, image rights, recipe quality and rule violations.", "status": "pending"},
             ],
         },
@@ -115,11 +119,39 @@ def _build_battlefield_progress():
             ],
         },
         {
-            "title": "Later Phases - Deliberately Not MVP",
+            "title": "Phase 4 - Combat Mechanics",
             "items": [
-                {"label": "Attacks, blocks and battle moves", "detail": "Keep this out of MVP until basic voting battles have real participation data.", "status": "manual"},
-                {"label": "Artifacts and cosmetics", "detail": "Artifacts should be earned through gameplay; cosmetics can become non-pay-to-win monetisation later.", "status": "manual"},
-                {"label": "Seasons and tournaments", "detail": "Add only after ordinary battles produce history, rivals, winners and audience interest.", "status": "manual"},
+                {"label": "Full battle status lifecycle", "detail": "menu_locked, active, biathlon, ingredient_penalty, cooking, presentation, voting, completed phases all wired.", "status": "done"},
+                {"label": "Biathlon mechanic", "detail": "Winner of cooking submission shoots up to 3 times at opponent ingredients. Locks protect chosen items.", "status": "done"},
+                {"label": "Ingredient combat (locks and hits)", "detail": "Each chef locks 2 ingredients before combat; hits land on unlocked slots; killed ingredients replaced or removed.", "status": "done"},
+                {"label": "Cooking phase with photo upload", "detail": "After biathlon, chefs photograph finished dishes. Moderator approves before presentation.", "status": "done"},
+                {"label": "Cooking moderation", "detail": "Moderator checklist confirms real cooking happened, image rights are clear and rules were followed.", "status": "done"},
+                {"label": "Chef levels (1-5 + CulinEire Hero)", "detail": f"Level system live: 3 wins per level, Hero at 15+ wins. {hero_count} CulinEire Hero chef(s) currently.", "status": "done"},
+                {"label": "Level matchup guard", "detail": "Challenges between chefs more than 1 level apart are blocked to protect newer chefs.", "status": "done"},
+                {"label": "Hall of Fame", "detail": f"Top 10 battles and top 20 chefs visible at /chef-battle/hall-of-fame/. {completed_battles} completed battle(s) recorded.", "status": "done"},
+                {"label": "Visual asset set", "detail": "SVG icons for all 5 levels, CulinEire Hero, 5 rarities, attack/defence types, crown, Michelin star and token.", "status": "done"},
+            ],
+        },
+        {
+            "title": "Phase 5 - Economy And Audience Engagement",
+            "items": [
+                {"label": "Token economy", "detail": f"TokenWallet, TokenTransaction and TokenPackage models live. {wallet_count} wallet(s) created.", "status": "done"},
+                {"label": "200 combat artifacts", "detail": f"{artifact_count} artifact(s) loaded: 100 attack and 100 defence across 5 rarities (Common 10T to Legendary 400T).", "status": "done" if artifact_count >= 200 else _battlefield_status(artifact_count)},
+                {"label": "Viewer gifts and appreciation", "detail": "Audience can send flowers, coffee, beer, whiskey and cocktails (5-20T). Battle artifact gifts also supported.", "status": "done"},
+                {"label": "Battle live chat", "detail": f"Live chat on battle pages with 8s polling. {chat_message_count} message(s) sent so far. Works for logged-in and anonymous viewers.", "status": "done"},
+                {"label": "Token package pricing", "detail": "100T=10 EUR up to 1400T=80 EUR. Packages defined, Stripe integration pending.", "status": "active"},
+                {"label": "Stripe token purchase", "detail": "Stripe checkout flow for token packages not yet wired. Requires Stripe live key and webhook.", "status": "pending"},
+                {"label": "Artifact gifting UI", "detail": "Backend service for artifact and appreciation gift sending is built. Battle detail UI panel not yet exposed.", "status": "pending"},
+            ],
+        },
+        {
+            "title": "Phase 6 - Seasons, Clans And Sponsorship",
+            "items": [
+                {"label": "Seasons and leaderboards", "detail": "Add only after ordinary battles produce history, rivals, winners and audience interest.", "status": "pending"},
+                {"label": "Clan / team battles", "detail": "Team-based battle formats after individual battle mechanics are stable and tested.", "status": "pending"},
+                {"label": "Sponsor battle integration", "detail": "Named sponsor battles, branded themes and sponsor landing pages after AllFresh pilot.", "status": "pending"},
+                {"label": "Cosmetics and prestige items", "detail": "Profile frames, animated banners and crowns as non-pay-to-win prestige cosmetics.", "status": "pending"},
+                {"label": "TikTok / Instagram live integration", "detail": "Stream cooking phase live. Requires platform account verification and API approval.", "status": "pending"},
             ],
         },
     ]
@@ -134,17 +166,17 @@ def _build_battlefield_progress():
     copy_lines = [
         "CulinEire Chef Battle battlefield handoff",
         f"Progress: {done_count}/{total_count} items complete ({percent}%).",
-        "Branch rule: Codex works only in feature/chef-battle; main is production-only and receives Chef Battle only through reviewed PR.",
-        "MVP rule: keep the first launch simple - chef profile, challenge, battle room, two submissions, 7-day timer, voting, result, events.",
-        "Do not add attacks, blocks, artifacts, paid energy, seasons or tournaments to MVP.",
         "",
         "Current metrics:",
-        f"- Chef profiles: {profile_count}",
+        f"- Chef profiles: {profile_count} ({hero_count} CulinEire Hero)",
         f"- Challenges: {challenge_count} ({pending_challenges} pending, {refused_challenges} refused)",
-        f"- Battles: {battle_count} ({active_battles} active/scheduled/voting, {completed_battles} completed)",
+        f"- Battles: {battle_count} ({active_battles} active, {completed_battles} completed)",
         f"- Battles with entries: {entry_count}",
         f"- Votes: {vote_count}",
         f"- Public events: {event_count}",
+        f"- Artifacts loaded: {artifact_count}",
+        f"- Token wallets: {wallet_count}",
+        f"- Chat messages: {chat_message_count}",
         "",
         "Open / manual work:",
     ]
@@ -167,11 +199,15 @@ def _build_battlefield_progress():
         "copy_text": "\n".join(copy_lines),
         "metrics": {
             "profile_count": profile_count,
+            "hero_count": hero_count,
             "challenge_count": challenge_count,
             "battle_count": battle_count,
             "completed_battles": completed_battles,
             "vote_count": vote_count,
             "event_count": event_count,
+            "artifact_count": artifact_count,
+            "wallet_count": wallet_count,
+            "chat_message_count": chat_message_count,
             "feature_enabled": feature_enabled,
         },
     }
