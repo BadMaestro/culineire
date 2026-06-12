@@ -70,6 +70,49 @@
     50%      { opacity: 0.65; }
   }
 
+  /* ── Knife sharpening stroke ── */
+  /* Knife slides along its own axis (inside the rotate(-38) group, so
+     translateY is "along the blade": negative = toward tip, positive = toward heel) */
+  .battle-cutlery-cursor.is-visible .bc-knife-slide {
+    animation: bc-knife-stroke 0.82s cubic-bezier(0.4, 0, 0.3, 1) infinite;
+    transform-origin: 36px 33px;
+  }
+
+  @keyframes bc-knife-stroke {
+    /* heel near contact, ready */
+    0%   { transform: translateY(6px); }
+    /* sweep: heel through tip across the steel */
+    40%  { transform: translateY(-7px); }
+    /* brief pause at tip */
+    52%  { transform: translateY(-7px); }
+    /* lift and return */
+    95%  { transform: translateY(6px); }
+    100% { transform: translateY(6px); }
+  }
+
+  /* ── Spark at the crossing point ── */
+  .bc-spark {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .battle-cutlery-cursor.is-visible .bc-spark {
+    animation: bc-spark-glow 0.82s ease-out infinite;
+  }
+  .battle-cutlery-cursor.is-visible .bc-spark--outer {
+    animation: bc-spark-ring 0.82s ease-out infinite;
+  }
+
+  @keyframes bc-spark-glow {
+    0%, 33%, 58%, 100% { opacity: 0;    transform: scale(1);   }
+    44%                { opacity: 0.92; transform: scale(1.3); }
+  }
+
+  @keyframes bc-spark-ring {
+    0%, 33%, 58%, 100% { opacity: 0;   transform: scale(0.8); }
+    44%                { opacity: 0.5; transform: scale(1.8); }
+    54%                { opacity: 0;   transform: scale(2.2); }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .battle-cutlery-cursor__inner {
       transition: opacity 120ms linear;
@@ -78,8 +121,12 @@
     .battle-cutlery-cursor.is-visible .battle-cutlery-cursor__inner {
       transform: none;
     }
-    .battle-cutlery-cursor__shine {
+    .battle-cutlery-cursor__shine,
+    .battle-cutlery-cursor.is-visible .bc-knife-slide,
+    .battle-cutlery-cursor.is-visible .bc-spark,
+    .battle-cutlery-cursor.is-visible .bc-spark--outer {
       animation: none;
     }
+    .bc-spark { opacity: 0; }
   }
 }

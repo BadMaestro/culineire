@@ -801,19 +801,24 @@ if(typeof navigator.modelContext!=='undefined'){
         <!-- ===== KNIFE : top-left to bottom-right ===== -->
         <!-- Chef's knife profile: straight spine (right), belly-curve edge (left). -->
         <g transform="rotate(-38 36 36)">
-          <path d="M32.7 34.6 L39.3 34.6 L38.9 53 Q38.9 56 36 56 Q33.1 56 33.1 53 Z" fill="url(#bcWood)" stroke="#241307" stroke-width="0.5"/>
-          <rect x="34" y="37" width="1.5" height="15" rx="0.75" fill="#b9885a" opacity="0.5"/>
-          <!-- blade drawn first so bolster paints over the heel edge -->
-          <path d="M38 -2 C32 -1 32 12 32 31 L42 31 C42.5 19 41.5 5 38 -2 Z" fill="url(#bcSteel)" stroke="#6a757f" stroke-width="0.35"/>
-          <!-- bolster on top — covers heel junction completely -->
-          <rect x="31.5" y="30.3" width="11.0" height="4.7" rx="1.5" fill="url(#bcSteel)" stroke="#5e6a74" stroke-width="0.3"/>
-          <!-- shine along spine (now left side) -->
-          <path class="battle-cutlery-cursor__shine" d="M33.2 4 L33.2 28" fill="none" stroke="#ffffff" stroke-width="0.7" stroke-linecap="round" opacity="0.45"/>
-          <circle cx="36" cy="38" r="1.05" fill="url(#bcRivet)" stroke="#3a2c20" stroke-width="0.25"/>
-          <circle cx="36" cy="44" r="1.05" fill="url(#bcRivet)" stroke="#3a2c20" stroke-width="0.25"/>
-          <circle cx="36" cy="50" r="1.05" fill="url(#bcRivet)" stroke="#3a2c20" stroke-width="0.25"/>
+          <g class="bc-knife-slide">
+            <path d="M32.7 34.6 L39.3 34.6 L38.9 53 Q38.9 56 36 56 Q33.1 56 33.1 53 Z" fill="url(#bcWood)" stroke="#241307" stroke-width="0.5"/>
+            <rect x="34" y="37" width="1.5" height="15" rx="0.75" fill="#b9885a" opacity="0.5"/>
+            <!-- blade drawn first so bolster paints over the heel edge -->
+            <path d="M38 -2 C32 -1 32 12 32 31 L42 31 C42.5 19 41.5 5 38 -2 Z" fill="url(#bcSteel)" stroke="#6a757f" stroke-width="0.35"/>
+            <!-- bolster on top — covers heel junction completely -->
+            <rect x="31.5" y="30.3" width="11.0" height="4.7" rx="1.5" fill="url(#bcSteel)" stroke="#5e6a74" stroke-width="0.3"/>
+            <!-- shine along spine (now left side) -->
+            <path class="battle-cutlery-cursor__shine" d="M33.2 4 L33.2 28" fill="none" stroke="#ffffff" stroke-width="0.7" stroke-linecap="round" opacity="0.45"/>
+            <circle cx="36" cy="38" r="1.05" fill="url(#bcRivet)" stroke="#3a2c20" stroke-width="0.25"/>
+            <circle cx="36" cy="44" r="1.05" fill="url(#bcRivet)" stroke="#3a2c20" stroke-width="0.25"/>
+            <circle cx="36" cy="50" r="1.05" fill="url(#bcRivet)" stroke="#3a2c20" stroke-width="0.25"/>
+          </g>
         </g>
       </g>
+      <!-- spark at knife-steel contact point -->
+      <circle class="bc-spark" cx="36" cy="33" r="3" fill="#ffe566" transform-origin="36px 33px"/>
+      <circle class="bc-spark bc-spark--outer" cx="36" cy="33" r="5" fill="none" stroke="#ffb300" stroke-width="0.9" transform-origin="36px 33px"/>
     </svg>
   </div>
 </div>
