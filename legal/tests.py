@@ -69,6 +69,27 @@ class LegalPublicAccessTests(TestCase):
     def test_cookies_public(self):
         self._assert_public("legal:cookies")
 
+    def test_cookies_page_uses_document_layout(self):
+        response = self.client.get(reverse("legal:cookies"))
+        html = response.content.decode("utf-8")
+        hero = html.split('<section class="hero hero--home hero--legal"', 1)[1].split("</section>", 1)[0]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="legal-shell legal-shell--cookies"')
+        self.assertContains(response, 'class="legal-summary-panel"')
+        self.assertContains(response, 'class="legal-mobile-jump"')
+        self.assertContains(response, 'class="legal-document-layout"')
+        self.assertContains(response, 'class="legal-toc"')
+        self.assertContains(response, 'class="legal-card-grid legal-card-grid--document legal-document-main"')
+        self.assertContains(response, 'class="legal-cookie-table-wrap"')
+        self.assertContains(response, 'class="legal-cookie-table"')
+        self.assertIn(reverse("legal:legal_hub"), hero)
+        self.assertIn(reverse("privacy"), hero)
+        self.assertIn(reverse("legal:terms"), hero)
+        self.assertIn('href="#contact"', hero)
+        self.assertNotIn("Explore Recipes", hero)
+        self.assertNotIn("Sponsors", hero)
+
     def test_company_information_public(self):
         self._assert_public("legal:company_information")
 
