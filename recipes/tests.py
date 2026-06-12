@@ -45,6 +45,25 @@ class AuthoringCssTests(SimpleTestCase):
         self.assertRegex(css, r"@media \(max-width: 540px\)\s*\{[^{}]*\.hero--recipe-tools\s*\{[^}]*height: 460px;")
 
 
+class HeaderCssTests(SimpleTestCase):
+    def test_author_panel_constrains_long_names(self):
+        css_path = os.path.join(settings.BASE_DIR, "static", "css", "header.css")
+        with open(css_path, encoding="utf-8") as css_file:
+            css = css_file.read()
+
+        self.assertRegex(css, r"\.ce-nav\s*\{[^}]*min-width: 0;")
+        self.assertRegex(
+            css,
+            r"\.ce-author-panel__copy\s*\{[^}]*min-width: 0;[^}]*width: 100%;[^}]*max-width: 100%;",
+        )
+        self.assertRegex(
+            css,
+            r"\.ce-author-panel__name\s*\{[^}]*display: block;[^}]*overflow: hidden;"
+            r"[^}]*max-width: 100%;[^}]*text-overflow: ellipsis;[^}]*white-space: nowrap;",
+        )
+        self.assertRegex(css, r"\.ce-nav__auth--author\s*\{[^}]*max-width: clamp")
+
+
 class ImageUploadValidatorTests(SimpleTestCase):
     @staticmethod
     def uploaded_image(name, image_format="PNG"):
