@@ -89,19 +89,19 @@
     0%   { transform: translateY(4px)  scaleX(1)  rotate(0deg);
            animation-timing-function: ease-in-out; }
     /* tip (body y≈0) reaches the rod, wrist tilted ~10° */
-    46%  { transform: translateY(36px) scaleX(1)  rotate(-10deg);
+    46%  { transform: translateY(36px) scaleX(1)  rotate(10deg);
            animation-timing-function: linear; }
     /* hold at tip */
-    49%  { transform: translateY(36px) scaleX(1)  rotate(-10deg);
+    49%  { transform: translateY(36px) scaleX(1)  rotate(10deg);
            animation-timing-function: steps(1, end); }
     /* instant: snap to side B, heel back at the rod */
     50%  { transform: translateY(4px)  scaleX(-1) rotate(0deg);
            animation-timing-function: ease-in-out; }
     /* Side B — tip swept through with mirrored tilt */
-    96%  { transform: translateY(36px) scaleX(-1) rotate(-10deg);
+    96%  { transform: translateY(36px) scaleX(-1) rotate(10deg);
            animation-timing-function: linear; }
     /* hold at tip */
-    99%  { transform: translateY(36px) scaleX(-1) rotate(-10deg);
+    99%  { transform: translateY(36px) scaleX(-1) rotate(10deg);
            animation-timing-function: steps(1, end); }
     /* instant: snap back to side A for next loop */
     100% { transform: translateY(4px)  scaleX(1)  rotate(0deg); }
