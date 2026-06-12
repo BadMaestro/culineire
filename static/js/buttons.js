@@ -49,6 +49,20 @@
         el.addEventListener('animationend', function () { el.remove(); });
     }
 
+    /* ── Chef Battle rim-glint: vary speed + direction between cycles ── */
+    (function () {
+        var btn = document.querySelector('.ce-nav__link--battle');
+        if (!btn) return;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        function cycle() {
+            var dur = (2.0 + Math.random() * 2.4).toFixed(1);
+            btn.style.setProperty('--ce-glint-dur', dur + 's');
+            /* Wait two alternation passes (CW + CCW) plus a random rest */
+            setTimeout(cycle, parseFloat(dur) * 2000 + 600 + Math.random() * 2200);
+        }
+        setTimeout(cycle, 400 + Math.random() * 800);
+    }());
+
     document.addEventListener('click', function (e) {
         /* Enter Arena button — amber */
         if (e.target.closest('.hero-battle-panel__cta')) {

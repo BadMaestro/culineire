@@ -321,67 +321,189 @@
   font-weight: 500;
 }
 
-/* ── Chef Battle nav link ── */
+/* ── Chef Battle CTA — premium bronze/copper pill ── */
+
+/* Animatable CSS custom property for rim-glint */
+@property --ce-glint-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
 .ce-nav__link--battle {
-  background: linear-gradient(120deg, #5c2810 0%, #7a3b1e 50%, #8b3325 100%);
-  background-size: 200% 100%;
-  color: #f5e6d3 !important;
+  /* Deep espresso / dark bronze background */
+  background:
+    linear-gradient(
+      145deg,
+      #1a0e06 0%,
+      #2c1808 35%,
+      #38200e 65%,
+      #221208 100%
+    );
+  /* Copper border */
+  border: 1.5px solid rgba(185, 128, 45, 0.65);
+  /* Raised surface: inner top highlight + bottom shadow */
+  box-shadow:
+    0 1px 0 rgba(255, 215, 120, 0.14) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.32) inset,
+    0 4px 18px rgba(35, 16, 4, 0.55),
+    0 1px 5px rgba(35, 16, 4, 0.4);
+  color: #f0dfc0 !important;
   font-weight: 700;
-  cursor: url('../images/battle_cursor.svg') 20 20, crosshair;
-  letter-spacing: 0.04em;
-  gap: 0.35rem;
+  letter-spacing: 0.055em;
+  gap: 0.42rem;
+  padding: 0.5rem 1.05rem;
+  border-radius: 999px;
   position: relative;
   overflow: visible;
-  box-shadow: 0 2px 8px rgba(92, 40, 16, 0.35);
-  animation: battle-nav-flow 5s ease-in-out infinite;
-  transition: box-shadow 0.2s ease, transform 0.15s ease, color 0.1s;
+  cursor: url('../images/battle_cursor.svg') 20 20, crosshair;
+  transition:
+    box-shadow 0.22s ease,
+    border-color 0.22s ease,
+    transform 0.15s ease;
+  /* no animation on the element itself — glint lives on ::after */
 }
 
-@keyframes battle-nav-flow {
-  0%, 100% { background-position: 0% 50%; }
-  50%       { background-position: 100% 50%; }
-}
-
-.ce-nav__link--battle:hover,
-.ce-nav__link--battle:focus-visible {
-  background-position: 100% 50%;
-  color: #fff8f0 !important;
-  box-shadow: 0 3px 14px rgba(139, 51, 37, 0.5), 0 0 0 2px rgba(180, 100, 50, 0.4);
-  transform: scale(1.05);
-}
-
+/* Inner surface — very subtle warm sheen */
 .ce-nav__link--battle::before {
   content: '';
   position: absolute;
-  inset: -3px;
+  inset: 0;
   border-radius: 999px;
-  border: 2px solid rgba(180, 100, 50, 0.85);
-  opacity: 0;
+  background: linear-gradient(
+    170deg,
+    rgba(255, 215, 120, 0.09) 0%,
+    transparent 55%
+  );
   pointer-events: none;
+  z-index: 0;
 }
 
-.ce-nav__link--battle:hover::before,
-.ce-nav__link--battle:focus-visible::before {
-  animation: battle-shockwave 0.55s ease-out forwards;
+/* Rim glint — conic-gradient arc masked to border only */
+.ce-nav__link--battle::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 999px;
+  background: conic-gradient(
+    from var(--ce-glint-angle),
+    transparent        0deg,
+    transparent      315deg,
+    rgba(200,150,45,0.0) 318deg,
+    rgba(235,185,70,0.72) 328deg,
+    rgba(255,228,130,1.0) 335deg,
+    rgba(235,185,70,0.72) 342deg,
+    rgba(200,150,45,0.0) 348deg,
+    transparent      351deg,
+    transparent      360deg
+  );
+  /* Hollow mask: show only the 2px rim, hide interior */
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  padding: 2px;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.65;
+  animation: ce-glint-spin var(--ce-glint-dur, 3.2s) linear infinite alternate;
 }
 
-@keyframes battle-shockwave {
-  0%   { transform: scale(1);    opacity: 1; }
-  100% { transform: scale(1.55); opacity: 0; }
+@keyframes ce-glint-spin {
+  from { --ce-glint-angle: 0deg;   }
+  to   { --ce-glint-angle: 360deg; }
 }
 
-.ce-nav__link--battle.ce-nav__link--active {
-  background: linear-gradient(120deg, #8b3325 0%, #7a3b1e 50%, #5c2810 100%);
-  background-size: 200% 100%;
-  box-shadow: 0 2px 10px rgba(139, 51, 37, 0.45);
-  animation: battle-nav-flow 3s ease-in-out infinite;
-}
-
-.battle-nav-icon {
+/* Icon + label */
+.chef-battle-cta__icon {
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
-  opacity: 0.92;
+  opacity: 0.85;
+  position: relative;
+  z-index: 2;
+}
+
+.chef-battle-cta__label {
+  position: relative;
+  z-index: 2;
+}
+
+/* ── Hover / focus ── */
+.ce-nav__link--battle:hover,
+.ce-nav__link--battle:focus-visible {
+  border-color: rgba(215, 158, 58, 0.9);
+  box-shadow:
+    0 1px 0 rgba(255, 215, 120, 0.22) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.38) inset,
+    0 6px 24px rgba(170, 105, 20, 0.52),
+    0 2px 8px rgba(35, 16, 4, 0.45),
+    0 0 0 1px rgba(200, 148, 48, 0.22);
+  transform: translateY(-1px) scale(1.03);
+  color: #fff5e0 !important;
+}
+
+.ce-nav__link--battle:hover::after,
+.ce-nav__link--battle:focus-visible::after {
+  opacity: 1;
+}
+
+/* ── Active / pressed ── */
+.ce-nav__link--battle:active {
+  transform: translateY(0px) scale(1);
+  box-shadow:
+    0 0 0 rgba(255, 215, 120, 0.08) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.38) inset,
+    0 2px 8px rgba(35, 16, 4, 0.5);
+}
+
+/* ── Focus ring ── */
+.ce-nav__link--battle:focus-visible {
+  outline: 2px solid rgba(205, 150, 50, 0.8);
+  outline-offset: 3px;
+}
+
+/* ── Active page state ── */
+.ce-nav__link--battle.ce-nav__link--active {
+  border-color: rgba(200, 145, 48, 0.78);
+  box-shadow:
+    0 1px 0 rgba(255, 215, 120, 0.16) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.32) inset,
+    0 3px 14px rgba(35, 16, 4, 0.5),
+    0 0 0 1px rgba(200, 145, 48, 0.18);
+}
+
+/* ── Hover shockwave ring (keeps existing VFX hook) ── */
+@keyframes battle-shockwave {
+  0%   { transform: scale(1);    opacity: 1; }
+  100% { transform: scale(1.6);  opacity: 0; }
+}
+
+/* ── Mobile: don't stretch to grid full-width ── */
+@media (max-width: 1099px) {
+  .ce-nav__link--battle {
+    align-self: center;
+    font-size: 1.0rem;
+  }
+}
+
+/* ── Reduced motion: static warm border, no glint spin ── */
+@media (prefers-reduced-motion: reduce) {
+  .ce-nav__link--battle {
+    transition: none;
+  }
+  .ce-nav__link--battle::after {
+    animation: none;
+    background: conic-gradient(
+      from 40deg,
+      transparent 0deg,
+      rgba(220, 170, 60, 0.4) 45deg,
+      transparent 90deg,
+      transparent 360deg
+    );
+    opacity: 0.45;
+  }
 }
 
 /* ── Battle nav click wave ── */

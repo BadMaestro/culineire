@@ -21,6 +21,20 @@ class PublicTechnicalPagesTests(TestCase):
 
             self.assertEqual(response.status_code, 200)
 
+    def test_about_page_uses_story_layout(self):
+        response = self.client.get(reverse("about"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="hero hero--home hero--about"')
+        self.assertContains(response, 'class="about-story"')
+        self.assertContains(response, 'class="about-story__summary"')
+        self.assertContains(response, 'class="about-story__mobile-jump"')
+        self.assertContains(response, 'class="about-story__layout"')
+        self.assertContains(response, 'class="about-story__toc"')
+        self.assertContains(response, "Keep Irish cooking useful, findable and alive.")
+        self.assertNotContains(response, "data-about-deck")
+        self.assertNotContains(response, "about-deck__viewport")
+
     def test_robots_txt_points_to_sitemap_and_blocks_private_paths(self):
         response = self.client.get(reverse("robots_txt"))
 
