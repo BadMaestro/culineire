@@ -964,11 +964,11 @@ details[open] .battle-combat-results__log-toggle--title::before { content: ''; }
 .hero-battle-panel {
   flex: 0 0 260px;
   width: 260px;
-  background: rgb(11 76 58 / 0.22);
-  border: 1px solid rgb(11 76 58 / 0.45);
+  background: rgb(250 246 240 / 0.12);
+  border: 1px solid rgb(226 217 204 / 0.28);
   border-radius: 8px;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   padding: 0.85rem;
   display: flex;
   flex-direction: column;
@@ -987,8 +987,8 @@ details[open] .battle-combat-results__log-toggle--title::before { content: ''; }
 }
 
 .hero-battle-panel__card {
-  background: rgb(11 76 58 / 0.18);
-  border: 1px solid rgb(11 76 58 / 0.35);
+  background: rgb(250 246 240 / 0.08);
+  border: 1px solid rgb(226 217 204 / 0.18);
   border-radius: 6px;
   padding: 0.55rem 0.7rem;
   display: flex;
