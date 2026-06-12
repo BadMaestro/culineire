@@ -261,6 +261,10 @@
   display: none;
 }
 
+.ce-nav__group {
+  display: contents;
+}
+
 .ce-nav__menu {
   padding-bottom: 0;
   border-bottom: 0;
@@ -919,12 +923,20 @@
     border-bottom: 0;
   }
 
+  .ce-nav__group {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+  }
+
   .ce-nav__separator {
     display: inline-block;
     flex: 0 0 auto;
     width: 1px;
     height: 18px;
-    margin-inline: 0.03rem;
+    margin-inline: 0.35rem;
     background: rgb(58 44 30 / 0.18);
   }
 
@@ -953,7 +965,7 @@
   .ce-nav__status,
   .ce-nav__button {
     min-height: 0;
-    padding: 0.42rem 0.1rem;
+    padding: 0.42rem 0.45rem;
     font-size: 0.93rem;
     line-height: 1.2;
   }
