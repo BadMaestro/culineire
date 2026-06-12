@@ -924,7 +924,7 @@
     flex: 0 0 auto;
     width: 1px;
     height: 18px;
-    margin-inline: 0.4rem;
+    margin-inline: 0.08rem;
     background: rgb(58 44 30 / 0.18);
   }
 
@@ -953,7 +953,7 @@
   .ce-nav__status,
   .ce-nav__button {
     min-height: 0;
-    padding: 0.42rem 0.52rem;
+    padding: 0.42rem 0.25rem;
     font-size: 0.93rem;
     line-height: 1.2;
   }
