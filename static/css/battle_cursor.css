@@ -82,61 +82,56 @@
     transform-origin: 36px 33px;
   }
 
-  /* rotate() pivots at the bolster (origin 36,33) = wrist tilt while the blade
-     sweeps; scaleX(-1) is applied after rotate, so side B mirrors the tilt too */
+  /* Knife always moves identically — no flip. Just stroke + wrist tilt.
+     The steel alternates sides between strokes (correct honing technique:
+     knife stays consistent, steel changes face). */
   @keyframes bc-knife-stroke {
-    /* Side A — edge heel (body y≈32) at the rod, wrist neutral */
-    0%   { transform: translateY(4px)  scaleX(1)  rotate(0deg);
+    /* heel at rod, wrist neutral */
+    0%   { transform: translateY(4px)  rotate(0deg);
            animation-timing-function: ease-in-out; }
-    /* tip (body y≈0) reaches the rod, wrist tilted ~10° */
-    46%  { transform: translateY(36px) scaleX(1)  rotate(10deg);
+    /* tip swept through, wrist yielded 10° */
+    46%  { transform: translateY(36px) rotate(10deg);
            animation-timing-function: linear; }
     /* hold at tip */
-    49%  { transform: translateY(36px) scaleX(1)  rotate(10deg);
+    49%  { transform: translateY(36px) rotate(10deg);
            animation-timing-function: steps(1, end); }
-    /* instant: snap to side B, heel back at the rod */
-    50%  { transform: translateY(4px)  scaleX(-1) rotate(0deg);
+    /* instant: return to heel for stroke B — same motion */
+    50%  { transform: translateY(4px)  rotate(0deg);
            animation-timing-function: ease-in-out; }
-    /* Side B — tip swept through with mirrored tilt */
-    96%  { transform: translateY(36px) scaleX(-1) rotate(10deg);
+    96%  { transform: translateY(36px) rotate(10deg);
            animation-timing-function: linear; }
-    /* hold at tip */
-    99%  { transform: translateY(36px) scaleX(-1) rotate(10deg);
+    99%  { transform: translateY(36px) rotate(10deg);
            animation-timing-function: steps(1, end); }
-    /* instant: snap back to side A for next loop */
-    100% { transform: translateY(4px)  scaleX(1)  rotate(0deg); }
+    100% { transform: translateY(4px)  rotate(0deg); }
   }
 
-  /* ── Steel counter-motion ──
-     translateY inside the rotated steel group = slide along the rod's own axis
-     (±4px ≈ 25% of the blade). rotate() pivots at the handle (origin 36,45) —
-     the off-hand yields ~10° as the blade sweeps, snapping back with the flip */
+  /* ── Steel alternates sides ──
+     scaleX(-1) flips the rod to the other face of the knife.
+     transform-origin at the crossing point (36,36 in local space) so the
+     rod mirrors around the contact line, not around the handle. */
   .battle-cutlery-cursor.is-visible .bc-steel-slide {
     animation: bc-steel-bob 1.52s ease-in-out infinite;
-    transform-origin: 36px 45px;
+    transform-origin: 36px 36px;
   }
 
   @keyframes bc-steel-bob {
-    /* stroke A begins — rod high, upright */
-    0%   { transform: translateY(4px)  rotate(0deg);
+    /* Stroke A — steel on face A, upright */
+    0%   { transform: translateY(4px)  scaleX(1)  rotate(0deg);
            animation-timing-function: ease-in-out; }
-    /* blade reaches the tip — rod slid down, yielded 10° */
-    46%  { transform: translateY(-4px) rotate(10deg);
+    /* rod slides, yields 10° as blade reaches tip */
+    46%  { transform: translateY(-4px) scaleX(1)  rotate(10deg);
            animation-timing-function: linear; }
-    /* hold while the knife holds */
-    49%  { transform: translateY(-4px) rotate(10deg);
+    49%  { transform: translateY(-4px) scaleX(1)  rotate(10deg);
            animation-timing-function: steps(1, end); }
-    /* snap back in sync with the knife flip */
-    50%  { transform: translateY(4px)  rotate(0deg);
+    /* instant: flip to face B for stroke B */
+    50%  { transform: translateY(4px)  scaleX(-1) rotate(0deg);
            animation-timing-function: ease-in-out; }
-    /* stroke B — same yield */
-    96%  { transform: translateY(-4px) rotate(10deg);
+    96%  { transform: translateY(-4px) scaleX(-1) rotate(10deg);
            animation-timing-function: linear; }
-    /* hold */
-    99%  { transform: translateY(-4px) rotate(10deg);
+    99%  { transform: translateY(-4px) scaleX(-1) rotate(10deg);
            animation-timing-function: steps(1, end); }
-    /* snap back for next loop */
-    100% { transform: translateY(4px)  rotate(0deg); }
+    /* flip back to face A */
+    100% { transform: translateY(4px)  scaleX(1)  rotate(0deg); }
   }
 
   /* ── Spark fires twice per cycle — midpoint of each stroke ── */
