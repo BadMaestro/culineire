@@ -1917,6 +1917,24 @@
   }
 }
 
+/* ── Floating ripple — expands beyond button boundary (sponsors-style) ── */
+
+.ui-floating-ripple {
+  position: fixed;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9990;
+  transform: translate(-50%, -50%) scale(0);
+  animation: ui-floating-ripple-expand 0.45s ease-out forwards;
+}
+
+@keyframes ui-floating-ripple-expand {
+  from { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+  to   { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+}
+
 /* ── Skip link (WCAG 2.4.1) ── */
 
 .skip-link {

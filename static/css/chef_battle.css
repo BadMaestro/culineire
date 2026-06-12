@@ -1095,8 +1095,6 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
 
 .hero-battle-panel__cta {
   display: block;
-  position: relative;
-  overflow: hidden;
   text-align: center;
   margin-top: 0.2rem;
   padding: 0.5rem 1rem;

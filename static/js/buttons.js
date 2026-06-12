@@ -1,6 +1,7 @@
 (function () {
     'use strict';
 
+    /* ── Internal ripple (clipped inside button) ── */
     var SELECTOR = [
         '.btn',
         '.btn-primary',
@@ -17,7 +18,6 @@
         '.spm-visit-btn',
         '.spm-admin-approve',
         '.spm-admin-reject',
-        '.hero-battle-panel__cta',
     ].join(', ');
 
     document.addEventListener('click', function (e) {
@@ -36,5 +36,31 @@
 
         btn.appendChild(ripple);
         ripple.addEventListener('animationend', function () { ripple.remove(); });
+    });
+
+    /* ── Floating ripple (expands beyond button, sponsors-style) ── */
+    function fireFloatingRipple(x, y, color) {
+        var el = document.createElement('div');
+        el.className = 'ui-floating-ripple';
+        el.style.left       = x + 'px';
+        el.style.top        = y + 'px';
+        el.style.background = color;
+        document.body.appendChild(el);
+        el.addEventListener('animationend', function () { el.remove(); });
+    }
+
+    document.addEventListener('click', function (e) {
+        /* Enter Arena button — amber */
+        if (e.target.closest('.hero-battle-panel__cta')) {
+            fireFloatingRipple(e.clientX, e.clientY, 'rgba(248, 210, 138, 0.5)');
+            return;
+        }
+        /* Header nav links — warm brown, skip Chef Battle */
+        var navEl = e.target.closest(
+            '.ce-nav__link:not(.ce-nav__link--battle), .ce-nav__button, .ce-nav__text'
+        );
+        if (navEl) {
+            fireFloatingRipple(e.clientX, e.clientY, 'rgba(139, 115, 85, 0.22)');
+        }
     });
 }());
