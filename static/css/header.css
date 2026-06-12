@@ -6,6 +6,7 @@
   background: #ebe2d5;
   border-bottom: 1px solid rgb(31 44 37 / 0.14);
   color: #1f2c25;
+  --container: 1280px;
 }
 
 .ce-header .container {
@@ -965,7 +966,7 @@
   .ce-nav__status,
   .ce-nav__button {
     min-height: 0;
-    padding: 0.42rem 0.45rem;
+    padding: 0.42rem 0.52rem;
     font-size: 0.93rem;
     line-height: 1.2;
   }
