@@ -458,14 +458,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.key === "Escape") closeAllSheets();
   });
 
-  // ==== AB hero actions burger (mobile) ====
+  // ==== Hero actions burger (all pages with .hero__burger) ====
   document.addEventListener("click", (e) => {
-    const toggle = e.target.closest(".ab-hero-toggle");
-    if (!toggle) return;
-    const actions = toggle.closest(".ab-hero-actions");
+    const btn = e.target.closest(".hero__burger");
+    if (!btn) return;
+    const actions = btn.closest(".hero__actions");
     if (!actions) return;
-    const isOpen = actions.classList.toggle("is-open");
-    toggle.setAttribute("aria-expanded", String(isOpen));
+    const open = actions.classList.toggle("is-open");
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+    btn.setAttribute("aria-label", open ? "Hide navigation" : "Show navigation");
   });
 
   // ==== Amuse-Bouche like / save — AJAX toggle (no page reload, no scroll reset) ====

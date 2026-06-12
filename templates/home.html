@@ -417,16 +417,4 @@
 
 {% block extra_js %}
 <script src="{% static 'js/hero_switcher.js' %}"></script>
-<script nonce="{{ request.csp_nonce }}">
-(function () {
-  var btn = document.querySelector('.hero__burger');
-  if (!btn) return;
-  btn.addEventListener('click', function () {
-    var actions = btn.closest('.hero__actions');
-    var open = actions.classList.toggle('is-open');
-    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-    btn.setAttribute('aria-label', open ? 'Hide navigation' : 'Show navigation');
-  });
-}());
-</script>
 {% endblock %}
