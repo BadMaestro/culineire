@@ -2450,14 +2450,23 @@
 
 /* ── Checklist ── */
 .dj-entry__checklist {
-  display: grid;
-  gap: 0.2rem;
-  margin: 0.1rem 0 0;
-  padding-left: 1.1rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.2rem 1.5rem;
+  margin: 0.1rem auto 0;
+  padding: 0;
   color: var(--ink);
   font-size: 0.8rem;
   line-height: 1.45;
-  list-style: disc;
+  list-style: none;
+  text-align: center;
+}
+
+.dj-entry__checklist li::before {
+  content: '· ';
+  color: var(--dj-color, var(--ink-soft));
+  font-weight: 700;
 }
 
 /* ── Stats ── */
