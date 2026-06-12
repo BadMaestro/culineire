@@ -2355,111 +2355,138 @@
   background: var(--surface);
 }
 
-.dj-header,
-.dj-backfill-note,
-.dj-entry {
+.dj-header {
   padding: 1rem;
   border: 1px solid rgb(58 44 30 / 0.1);
   border-radius: 10px;
   background: #fff;
 }
 
-.dj-backfill-note {
-  margin: 0;
-  color: var(--ink-soft);
-  font-size: 0.86rem;
-  line-height: 1.55;
-}
+/* ── Section colour tokens ── */
+.dj-entry--s-battle    { --dj-color: #dc2626; --dj-bg: #fef2f2; }
+.dj-entry--s-recipes   { --dj-color: #0b4c3a; --dj-bg: #f0fdf4; }
+.dj-entry--s-articles  { --dj-color: #d97706; --dj-bg: #fffbeb; }
+.dj-entry--s-deploy    { --dj-color: #1d4ed8; --dj-bg: #eff6ff; }
+.dj-entry--s-tests     { --dj-color: #ea580c; --dj-bg: #fff7ed; }
+.dj-entry--s-frontend  { --dj-color: #7c3aed; --dj-bg: #f5f3ff; }
+.dj-entry--s-database  { --dj-color: #0369a1; --dj-bg: #f0f9ff; }
+.dj-entry--s-accounts  { --dj-color: #0d9488; --dj-bg: #f0fdfa; }
+.dj-entry--s-newsfeed  { --dj-color: #4338ca; --dj-bg: #eef2ff; }
+.dj-entry--s-sponsors  { --dj-color: #b45309; --dj-bg: #fefce8; }
+.dj-entry--s-general   { --dj-color: #6b7280; --dj-bg: #f9fafb; }
 
+/* ── Entry card ── */
 .dj-entries {
   display: grid;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .dj-entry {
   display: grid;
-  gap: 0.75rem;
+  gap: 0.4rem;
+  padding: 0.75rem 0.9rem 0.75rem 1rem;
+  border: 1px solid rgb(58 44 30 / 0.08);
+  border-left: 3px solid var(--dj-color, #9ca3af);
+  border-radius: 0 8px 8px 0;
+  background: var(--dj-bg, #fff);
 }
 
 .dj-entry--latest {
-  border-color: rgb(11 76 58 / 0.22);
-  box-shadow: 0 10px 28px rgb(11 76 58 / 0.08);
+  border-left-width: 4px;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.06);
 }
 
-.dj-entry__meta {
+/* ── Dateline: date · section · commit ── */
+.dj-entry__dateline {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.35rem 0.55rem;
-  color: var(--ink-soft);
-  font-size: 0.74rem;
-  font-weight: 700;
+  gap: 0.3rem 0.6rem;
 }
 
+.dj-entry__date {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--dj-color, var(--ink-soft));
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+}
+
+.dj-entry__section-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--dj-color, var(--ink-soft));
+  opacity: 0.75;
+}
+
+.dj-entry__commit {
+  font-size: 0.7rem;
+  font-family: var(--font-mono, monospace);
+  color: var(--ink-soft);
+  background: rgb(58 44 30 / 0.07);
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+}
+
+/* ── Title: calm, not screaming ── */
 .dj-entry__title {
   margin: 0;
   color: var(--ink);
-  font-family: var(--font-display);
-  font-size: clamp(1.35rem, 3vw, 2rem);
-  line-height: 1.1;
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.35;
 }
 
-.dj-entry__summary,
-.dj-entry__notes {
+/* ── Body text ── */
+.dj-entry__summary {
   margin: 0;
   color: var(--ink-soft);
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   line-height: 1.55;
 }
 
-.dj-entry__grid {
+/* ── Checklist ── */
+.dj-entry__checklist {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.62fr);
-  gap: 0.75rem;
-}
-
-.dj-entry__grid section {
-  display: grid;
-  gap: 0.45rem;
-  padding: 0.75rem;
-  border: 1px solid rgb(58 44 30 / 0.08);
-  border-radius: 8px;
-  background: rgb(255 252 246 / 0.9);
-}
-
-.dj-entry__grid h3 {
-  margin: 0;
-  color: #0b4c3a;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.dj-entry__checklist,
-.dj-entry__stats {
-  display: grid;
-  gap: 0.35rem;
-  margin: 0;
-  padding-left: 1rem;
+  gap: 0.2rem;
+  margin: 0.1rem 0 0;
+  padding-left: 1.1rem;
   color: var(--ink);
-  font-size: 0.84rem;
+  font-size: 0.8rem;
   line-height: 1.45;
+  list-style: disc;
 }
 
+/* ── Stats ── */
 .dj-entry__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.8rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
   color: var(--ink-soft);
+  font-size: 0.75rem;
+  font-family: var(--font-mono, monospace);
 }
 
+.dj-entry__stats li::before {
+  content: '↳ ';
+  opacity: 0.5;
+}
+
+/* ── Notes ── */
 .dj-entry__notes {
-  padding: 0.65rem 0.75rem;
-  border-left: 3px solid rgb(11 76 58 / 0.45);
-  border-radius: 0 6px 6px 0;
-  background: rgb(11 76 58 / 0.05);
-}
-
-@media (max-width: 720px) {
-  .dj-entry__grid {
-    grid-template-columns: 1fr;
-  }
+  margin: 0;
+  padding: 0.5rem 0.65rem;
+  border-left: 2px solid var(--dj-color, rgb(11 76 58 / 0.4));
+  border-radius: 0 4px 4px 0;
+  background: rgb(255 255 255 / 0.6);
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  font-style: italic;
 }
