@@ -919,6 +919,7 @@
   .ce-nav__menu {
     flex: 1;
     justify-content: center;
+    gap: 0.6rem;
     min-width: 0;
     padding-bottom: 0;
     border-bottom: 0;
@@ -926,9 +927,8 @@
 
   .ce-nav__group {
     display: flex;
-    flex: 1;
+    flex: 0 0 auto;
     align-items: center;
-    justify-content: center;
     gap: 0;
   }
 

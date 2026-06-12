@@ -118,13 +118,28 @@ class LegalPublicAccessTests(TestCase):
 
     def test_legal_hub_preserves_links_and_visual_layout(self):
         response = self.client.get(reverse("legal:legal_hub"))
+        html = response.content.decode("utf-8")
+        hero = html.split('<section class="hero hero--home hero--legal"', 1)[1].split("</section>", 1)[0]
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'class="hero hero--home hero--legal"')
         self.assertContains(response, 'class="container hero__inner"')
         self.assertContains(response, 'class="hero-copy"')
-        self.assertContains(response, 'class="legal-card-grid"')
-        self.assertContains(response, 'class="legal-contact-card"')
+        self.assertContains(response, 'class="legal-shell legal-shell--hub"')
+        self.assertContains(response, 'class="legal-summary-panel legal-summary-panel--hub"')
+        self.assertContains(response, 'class="legal-mobile-jump"')
+        self.assertContains(response, 'class="legal-document-layout legal-hub-layout"')
+        self.assertContains(response, 'class="legal-toc"')
+        self.assertContains(response, 'class="legal-card-grid legal-card-grid--hub"')
+        self.assertContains(response, 'class="legal-contact-card legal-contact-card--hub"')
+        self.assertIn(reverse("legal:terms"), hero)
+        self.assertIn(reverse("privacy"), hero)
+        self.assertIn(reverse("legal:cookies"), hero)
+        self.assertIn(reverse("legal:report_content"), hero)
+        self.assertNotIn("Explore Recipes", hero)
+        self.assertNotIn("Sponsors", hero)
+        for anchor in ["#platform-rules", "#data-privacy", "#author-content", "#company-reporting"]:
+            self.assertContains(response, f'href="{anchor}"')
 
         expected_links = [
             (reverse("legal:terms"), "Terms of Use"),
