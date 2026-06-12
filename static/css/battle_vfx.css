@@ -1,6 +1,17 @@
 /* ================================================================
    CulinEire Battle VFX — Cinematic Shockwave Cloud
    Triggered by window.CulinEireBattleVFX.showBattleResult()
+
+   PHASE 1 (current — production)
+   This file owns all Phase 1 styles: cloud layers, result card,
+   body micro-impact, and reduced-motion toast fallback.
+
+   PHASE 2 — Premium WebGL Shockwave Distortion [NOT YET IMPLEMENTED]
+   Phase 2 will add an optional <canvas> overlay with a WebGL
+   displacement/refraction shader. It runs in parallel with Phase 1
+   as progressive enhancement — this file is unchanged by Phase 2.
+   See battle_vfx.js for the full Phase 2 specification and
+   integration sketch.
    ================================================================ */
 
 /* ── Body micro-impact (brief shake + flash) ── */
