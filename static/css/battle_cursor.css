@@ -1,0 +1,85 @@
+/* ==========================================================================
+   CulinEire — Chef Battle cutlery hover cursor
+   --------------------------------------------------------------------------
+   Decorative custom-cursor overlay for the Chef Battle nav CTA: a crossed
+   carving knife & fork that follows the mouse while hovering the button.
+
+   Isolated feature — to remove entirely, delete:
+     - this file and its <link> in base.html
+     - static/js/battle_cursor.js and its <script> in base.html
+     - the <div class="battle-cutlery-cursor"> element in base.html
+     - the .battle-cursor-target classes on the nav button(s)
+
+   Desktop / fine-pointer only. Touch + coarse pointers never see it.
+   ========================================================================== */
+
+@media (hover: hover) and (pointer: fine) {
+
+  .battle-cutlery-cursor {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 72px;
+    height: 72px;
+    pointer-events: none;          /* never blocks clicks / hover / focus */
+    z-index: 9999;
+    /* JS drives position via translate3d; start far off-screen */
+    transform: translate3d(-999px, -999px, 0);
+    will-change: transform;
+  }
+
+  /* inner wrapper carries the entrance + shimmer so JS can own the outer
+     transform (position) without fighting the CSS transition */
+  .battle-cutlery-cursor__inner {
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transform: scale(0.8) rotate(-7deg);
+    transform-origin: 50% 50%;
+    transition: opacity 150ms ease,
+                transform 260ms cubic-bezier(0.2, 0.85, 0.3, 1.25);
+    will-change: transform, opacity;
+  }
+
+  .battle-cutlery-cursor.is-visible .battle-cutlery-cursor__inner {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+
+  .battle-cutlery-cursor__svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Hide the native cursor only while the overlay is actually active.
+     JS adds .is-battle-cursor-active on pointerenter and removes it on
+     leave, so if JS never runs the native cursor is preserved. */
+  .battle-cursor-target.is-battle-cursor-active,
+  .battle-cursor-target.is-battle-cursor-active * {
+    cursor: none;
+  }
+
+  /* tasteful idle metal shimmer */
+  .battle-cutlery-cursor__shine {
+    animation: bc-shimmer 2.6s ease-in-out infinite;
+  }
+
+  @keyframes bc-shimmer {
+    0%, 100% { opacity: 0.2; }
+    50%      { opacity: 0.65; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .battle-cutlery-cursor__inner {
+      transition: opacity 120ms linear;
+      transform: none;
+    }
+    .battle-cutlery-cursor.is-visible .battle-cutlery-cursor__inner {
+      transform: none;
+    }
+    .battle-cutlery-cursor__shine {
+      animation: none;
+    }
+  }
+}

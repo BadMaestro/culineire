@@ -356,7 +356,6 @@
   border-radius: 999px;
   position: relative;
   overflow: visible;
-  cursor: url('../images/battle_cursor.svg') 20 20, crosshair;
   transition:
     box-shadow 0.22s ease,
     border-color 0.22s ease,

@@ -58,6 +58,7 @@
     {% block extra_head %}{% endblock %}
     {% if active_battle_pip %}<link href="{% static 'css/chef_battle.css' %}" rel="stylesheet">{% endif %}
     {% if chef_battle_enabled %}<link href="{% static 'css/battle_vfx.css' %}" rel="stylesheet">{% endif %}
+    {% if chef_battle_enabled %}<link href="{% static 'css/battle_cursor.css' %}" rel="stylesheet">{% endif %}
 <style>
 .battle-blast { position:fixed; inset:0; z-index:10000; pointer-events:none; display:flex; align-items:center; justify-content:center; }
 .battle-blast.is-active { pointer-events:auto; }
@@ -176,12 +177,12 @@
                 {% if chef_battle_url %}
                 <span aria-hidden="true" class="ce-nav__separator"></span>
                 {% if namespace == 'chef_battle' %}
-                <a class="ce-nav__link ce-nav__link--battle ce-nav__link--active" href="{{ chef_battle_url }}" aria-current="page">
+                <a class="ce-nav__link ce-nav__link--battle ce-nav__link--active battle-cursor-target js-battle-cursor-target" href="{{ chef_battle_url }}" aria-current="page">
                     <span class="chef-battle-cta__icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><line x1="2" y1="2" x2="14" y2="14"/><line x1="3" y1="5" x2="5" y2="3"/><line x1="11" y1="13" x2="13" y2="11"/><line x1="14" y1="2" x2="2" y2="14"/><line x1="11" y1="3" x2="13" y2="5"/><line x1="3" y1="11" x2="5" y2="13"/></svg></span>
                     <span class="chef-battle-cta__label">Chef Battle</span>
                 </a>
                 {% else %}
-                <a class="ce-nav__link ce-nav__link--battle" href="{{ chef_battle_url }}">
+                <a class="ce-nav__link ce-nav__link--battle battle-cursor-target js-battle-cursor-target" href="{{ chef_battle_url }}">
                     <span class="chef-battle-cta__icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><line x1="2" y1="2" x2="14" y2="14"/><line x1="3" y1="5" x2="5" y2="3"/><line x1="11" y1="13" x2="13" y2="11"/><line x1="14" y1="2" x2="2" y2="14"/><line x1="11" y1="3" x2="13" y2="5"/><line x1="3" y1="11" x2="5" y2="13"/></svg></span>
                     <span class="chef-battle-cta__label">Chef Battle</span>
                 </a>
@@ -390,7 +391,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v2.3.52</span>
+                <span class="footer-version">v2.3.53</span>
             </div>
         </div>
     </div>
@@ -738,5 +739,75 @@ if(typeof navigator.modelContext!=='undefined'){
   });
 })();
 </script>
+{% if chef_battle_enabled %}
+<div class="battle-cutlery-cursor" aria-hidden="true">
+  <div class="battle-cutlery-cursor__inner">
+    <svg class="battle-cutlery-cursor__svg" viewBox="0 0 72 72" width="72" height="72" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id="bcSteel" x1="0" y1="0" x2="1" y2="0.15">
+          <stop offset="0" stop-color="#dfe6ed"/>
+          <stop offset="0.25" stop-color="#fdfeff"/>
+          <stop offset="0.5" stop-color="#c6d0da"/>
+          <stop offset="0.72" stop-color="#a7b2bd"/>
+          <stop offset="1" stop-color="#d6dee6"/>
+        </linearGradient>
+        <linearGradient id="bcWood" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#34200f"/>
+          <stop offset="0.32" stop-color="#7c4a25"/>
+          <stop offset="0.54" stop-color="#90592f"/>
+          <stop offset="0.78" stop-color="#5a3417"/>
+          <stop offset="1" stop-color="#2f1c0d"/>
+        </linearGradient>
+        <radialGradient id="bcRivet" cx="0.35" cy="0.3" r="0.85">
+          <stop offset="0" stop-color="#ffffff"/>
+          <stop offset="0.5" stop-color="#c2ccd5"/>
+          <stop offset="1" stop-color="#828d97"/>
+        </radialGradient>
+        <filter id="bcEdge" x="-45%" y="-45%" width="190%" height="190%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="1.15" result="b"/>
+          <feOffset in="b" dx="0" dy="1.25" result="o"/>
+          <feFlood flood-color="#19110a" flood-opacity="0.5" result="sc"/>
+          <feComposite in="sc" in2="o" operator="in" result="shadow"/>
+          <feMorphology in="SourceAlpha" operator="dilate" radius="0.7" result="dil"/>
+          <feFlood flood-color="#fbf6ec" flood-opacity="0.9" result="hc"/>
+          <feComposite in="hc" in2="dil" operator="in" result="halo"/>
+          <feMerge>
+            <feMergeNode in="shadow"/>
+            <feMergeNode in="halo"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
+      <g filter="url(#bcEdge)">
+        <!-- ===== FORK : top-right to bottom-left ===== -->
+        <g transform="rotate(38 36 36)">
+          <path d="M32.7 34.6 L39.3 34.6 L38.9 60 Q38.9 63.2 36 63.2 Q33.1 63.2 33.1 60 Z" fill="url(#bcWood)" stroke="#241307" stroke-width="0.5"/>
+          <rect x="34" y="37" width="1.5" height="22" rx="0.75" fill="#b9885a" opacity="0.5"/>
+          <rect x="32.3" y="30.3" width="7.4" height="4.7" rx="1.5" fill="url(#bcSteel)" stroke="#5e6a74" stroke-width="0.3"/>
+          <path d="M33 31 L39 31 L40 23 Q40 22 39 22 L33 22 Q32 22 32 23 Z" fill="url(#bcSteel)" stroke="#6a757f" stroke-width="0.3"/>
+          <path d="M34 5.2 C34.95 8.5 35 14 35 22 L33 22 C33 14 33.05 8.5 34 5.2 Z" fill="url(#bcSteel)" stroke="#6a757f" stroke-width="0.3"/>
+          <path d="M38 5.2 C38.95 8.5 39 14 39 22 L37 22 C37 14 37.05 8.5 38 5.2 Z" fill="url(#bcSteel)" stroke="#6a757f" stroke-width="0.3"/>
+          <path class="battle-cutlery-cursor__shine" d="M34.2 7 C34.7 11 34.75 16 34.75 21" fill="none" stroke="#ffffff" stroke-width="0.6" stroke-linecap="round" opacity="0.4"/>
+          <path class="battle-cutlery-cursor__shine" d="M38.2 7 C38.7 11 38.75 16 38.75 21" fill="none" stroke="#ffffff" stroke-width="0.6" stroke-linecap="round" opacity="0.4"/>
+          <circle cx="36" cy="42" r="1.05" fill="url(#bcRivet)" stroke="#3a2c20" stroke-width="0.25"/>
+          <circle cx="36" cy="52" r="1.05" fill="url(#bcRivet)" stroke="#3a2c20" stroke-width="0.25"/>
+        </g>
+        <!-- ===== KNIFE : top-left to bottom-right ===== -->
+        <g transform="rotate(-38 36 36)">
+          <path d="M32.7 34.6 L39.3 34.6 L38.9 60 Q38.9 63.2 36 63.2 Q33.1 63.2 33.1 60 Z" fill="url(#bcWood)" stroke="#241307" stroke-width="0.5"/>
+          <rect x="34" y="37" width="1.5" height="22" rx="0.75" fill="#b9885a" opacity="0.5"/>
+          <rect x="32.3" y="30.3" width="7.4" height="4.7" rx="1.5" fill="url(#bcSteel)" stroke="#5e6a74" stroke-width="0.3"/>
+          <path d="M36 5 C38 10 38.7 20 38.6 31 L33.4 31 C33.4 19 34.1 9.5 36 5 Z" fill="url(#bcSteel)" stroke="#6a757f" stroke-width="0.35"/>
+          <path class="battle-cutlery-cursor__shine" d="M36.6 8 C37.7 13 37.95 21 37.9 30" fill="none" stroke="#ffffff" stroke-width="0.7" stroke-linecap="round" opacity="0.45"/>
+          <circle cx="36" cy="40" r="1.05" fill="url(#bcRivet)" stroke="#3a2c20" stroke-width="0.25"/>
+          <circle cx="36" cy="47" r="1.05" fill="url(#bcRivet)" stroke="#3a2c20" stroke-width="0.25"/>
+          <circle cx="36" cy="54" r="1.05" fill="url(#bcRivet)" stroke="#3a2c20" stroke-width="0.25"/>
+        </g>
+      </g>
+    </svg>
+  </div>
+</div>
+<script src="{% static 'js/battle_cursor.js' %}"></script>
+{% endif %}
 </body>
 </html>
