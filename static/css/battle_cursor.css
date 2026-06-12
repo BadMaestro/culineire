@@ -82,27 +82,41 @@
     transform-origin: 36px 33px;
   }
 
+  /* rotate() pivots at the bolster (origin 36,33) = wrist tilt while the blade
+     sweeps; scaleX(-1) is applied after rotate, so side B mirrors the tilt too */
   @keyframes bc-knife-stroke {
-    /* Side A — heel (bolster y≈32) at steel contact (y≈33), stroke toward tip */
-    0%   { transform: translateY(1px)   scaleX(1);
+    /* Side A — edge heel (body y≈32) at the rod, wrist neutral */
+    0%   { transform: translateY(4px)  scaleX(1)  rotate(0deg);
            animation-timing-function: ease-in-out; }
-    /* tip (y≈-2) swept all the way to steel level: +35px brings tip to y=33 */
-    46%  { transform: translateY(35px)  scaleX(1);
+    /* tip (body y≈0) reaches the rod, wrist tilted ~10° */
+    46%  { transform: translateY(36px) scaleX(1)  rotate(-10deg);
            animation-timing-function: linear; }
     /* hold at tip */
-    49%  { transform: translateY(35px)  scaleX(1);
+    49%  { transform: translateY(36px) scaleX(1)  rotate(-10deg);
            animation-timing-function: steps(1, end); }
-    /* instant: snap to side B, heel back at steel */
-    50%  { transform: translateY(1px)   scaleX(-1);
+    /* instant: snap to side B, heel back at the rod */
+    50%  { transform: translateY(4px)  scaleX(-1) rotate(0deg);
            animation-timing-function: ease-in-out; }
-    /* Side B — tip swept all the way through */
-    96%  { transform: translateY(35px)  scaleX(-1);
+    /* Side B — tip swept through with mirrored tilt */
+    96%  { transform: translateY(36px) scaleX(-1) rotate(-10deg);
            animation-timing-function: linear; }
     /* hold at tip */
-    99%  { transform: translateY(35px)  scaleX(-1);
+    99%  { transform: translateY(36px) scaleX(-1) rotate(-10deg);
            animation-timing-function: steps(1, end); }
     /* instant: snap back to side A for next loop */
-    100% { transform: translateY(1px)   scaleX(1); }
+    100% { transform: translateY(4px)  scaleX(1)  rotate(0deg); }
+  }
+
+  /* ── Steel counter-motion ──
+     translateY inside the rotated steel group = slide along the rod's own axis.
+     ±4px ≈ 25% of the blade; one gentle pump per two strokes, flips at the snaps */
+  .battle-cutlery-cursor.is-visible .bc-steel-slide {
+    animation: bc-steel-bob 1.52s ease-in-out infinite;
+  }
+
+  @keyframes bc-steel-bob {
+    0%, 100% { transform: translateY(4px); }
+    50%      { transform: translateY(-4px); }
   }
 
   /* ── Spark fires twice per cycle — midpoint of each stroke ── */
@@ -141,6 +155,7 @@
     }
     .battle-cutlery-cursor__shine,
     .battle-cutlery-cursor.is-visible .bc-knife-slide,
+    .battle-cutlery-cursor.is-visible .bc-steel-slide,
     .battle-cutlery-cursor.is-visible .bc-spark,
     .battle-cutlery-cursor.is-visible .bc-spark--outer {
       animation: none;

@@ -392,7 +392,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v2.3.57</span>
+                <span class="footer-version">v2.3.58</span>
             </div>
         </div>
     </div>
@@ -777,26 +777,30 @@ if(typeof navigator.modelContext!=='undefined'){
       </defs>
       <g filter="url(#bcEdge)">
         <!-- ===== HONING STEEL : top-right to bottom-left ===== -->
-        <g transform="rotate(38 36 36)">
-          <!-- handle -->
-          <path d="M32.7 34.6 L39.3 34.6 L38.9 53 Q38.9 56 36 56 Q33.1 56 33.1 53 Z" fill="url(#bcWood)" stroke="#241307" stroke-width="0.5"/>
-          <rect x="34" y="37" width="1.5" height="13" rx="0.75" fill="#b9885a" opacity="0.5"/>
-          <!-- guard disc — wider than handle -->
-          <rect x="30.0" y="31.5" width="12.0" height="3.5" rx="1.75" fill="url(#bcSteel)" stroke="#5e6a74" stroke-width="0.45"/>
-          <path class="battle-cutlery-cursor__shine" d="M30.5 32.8 Q36 31.5 41.5 32.8" fill="none" stroke="#ffffff" stroke-width="0.55" stroke-linecap="round" opacity="0.45"/>
-          <!-- steel rod — thin cylinder tapering to tip -->
-          <path d="M36 1 C36.8 2 37.2 4 37.2 7 L37.2 31.5 L34.8 31.5 L34.8 7 C34.8 4 35.2 2 36 1 Z" fill="url(#bcSteel)" stroke="#6a757f" stroke-width="0.3"/>
-          <!-- grooves (horizontal hatching on rod) -->
-          <line x1="34.85" y1="11" x2="37.15" y2="11" stroke="#8a9aa8" stroke-width="0.35" opacity="0.7"/>
-          <line x1="34.85" y1="15" x2="37.15" y2="15" stroke="#8a9aa8" stroke-width="0.35" opacity="0.7"/>
-          <line x1="34.85" y1="19" x2="37.15" y2="19" stroke="#8a9aa8" stroke-width="0.35" opacity="0.7"/>
-          <line x1="34.85" y1="23" x2="37.15" y2="23" stroke="#8a9aa8" stroke-width="0.35" opacity="0.7"/>
-          <line x1="34.85" y1="27" x2="37.15" y2="27" stroke="#8a9aa8" stroke-width="0.35" opacity="0.7"/>
-          <!-- shine on rod -->
-          <path class="battle-cutlery-cursor__shine" d="M36.5 3 L36.5 30" fill="none" stroke="#ffffff" stroke-width="0.55" stroke-linecap="round" opacity="0.45"/>
-          <!-- rivets -->
-          <circle cx="36" cy="40" r="1.05" fill="url(#bcRivet)" stroke="#3a2c20" stroke-width="0.25"/>
-          <circle cx="36" cy="48" r="1.05" fill="url(#bcRivet)" stroke="#3a2c20" stroke-width="0.25"/>
+        <!-- translate(0 20) slides the steel along its own axis so the knife
+             crossing point (screen 36,36) lands mid-rod (body y=16, rod 1..31.5) -->
+        <g transform="rotate(38 36 36) translate(0 20)">
+          <g class="bc-steel-slide">
+            <!-- handle -->
+            <path d="M32.7 34.6 L39.3 34.6 L38.9 53 Q38.9 56 36 56 Q33.1 56 33.1 53 Z" fill="url(#bcWood)" stroke="#241307" stroke-width="0.5"/>
+            <rect x="34" y="37" width="1.5" height="13" rx="0.75" fill="#b9885a" opacity="0.5"/>
+            <!-- guard disc — wider than handle -->
+            <rect x="30.0" y="31.5" width="12.0" height="3.5" rx="1.75" fill="url(#bcSteel)" stroke="#5e6a74" stroke-width="0.45"/>
+            <path class="battle-cutlery-cursor__shine" d="M30.5 32.8 Q36 31.5 41.5 32.8" fill="none" stroke="#ffffff" stroke-width="0.55" stroke-linecap="round" opacity="0.45"/>
+            <!-- steel rod — thin cylinder tapering to tip -->
+            <path d="M36 1 C36.8 2 37.2 4 37.2 7 L37.2 31.5 L34.8 31.5 L34.8 7 C34.8 4 35.2 2 36 1 Z" fill="url(#bcSteel)" stroke="#6a757f" stroke-width="0.3"/>
+            <!-- grooves (horizontal hatching on rod) -->
+            <line x1="34.85" y1="11" x2="37.15" y2="11" stroke="#8a9aa8" stroke-width="0.35" opacity="0.7"/>
+            <line x1="34.85" y1="15" x2="37.15" y2="15" stroke="#8a9aa8" stroke-width="0.35" opacity="0.7"/>
+            <line x1="34.85" y1="19" x2="37.15" y2="19" stroke="#8a9aa8" stroke-width="0.35" opacity="0.7"/>
+            <line x1="34.85" y1="23" x2="37.15" y2="23" stroke="#8a9aa8" stroke-width="0.35" opacity="0.7"/>
+            <line x1="34.85" y1="27" x2="37.15" y2="27" stroke="#8a9aa8" stroke-width="0.35" opacity="0.7"/>
+            <!-- shine on rod -->
+            <path class="battle-cutlery-cursor__shine" d="M36.5 3 L36.5 30" fill="none" stroke="#ffffff" stroke-width="0.55" stroke-linecap="round" opacity="0.45"/>
+            <!-- rivets -->
+            <circle cx="36" cy="40" r="1.05" fill="url(#bcRivet)" stroke="#3a2c20" stroke-width="0.25"/>
+            <circle cx="36" cy="48" r="1.05" fill="url(#bcRivet)" stroke="#3a2c20" stroke-width="0.25"/>
+          </g>
         </g>
         <!-- ===== KNIFE : top-left to bottom-right ===== -->
         <!-- Chef's knife profile: straight spine (right), belly-curve edge (left). -->
@@ -816,9 +820,9 @@ if(typeof navigator.modelContext!=='undefined'){
           </g>
         </g>
       </g>
-      <!-- spark at knife-steel contact point -->
-      <circle class="bc-spark" cx="36" cy="33" r="3" fill="#ffe566" transform-origin="36px 33px"/>
-      <circle class="bc-spark bc-spark--outer" cx="36" cy="33" r="5" fill="none" stroke="#ffb300" stroke-width="0.9" transform-origin="36px 33px"/>
+      <!-- spark at knife-steel contact point (axes cross at 36,36; edge sits a hair above) -->
+      <circle class="bc-spark" cx="36" cy="35" r="3" fill="#ffe566" transform-origin="36px 35px"/>
+      <circle class="bc-spark bc-spark--outer" cx="36" cy="35" r="5" fill="none" stroke="#ffb300" stroke-width="0.9" transform-origin="36px 35px"/>
     </svg>
   </div>
 </div>
