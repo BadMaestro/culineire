@@ -1467,7 +1467,15 @@ def author_detail(request, slug):
 
     battle_profile = None
     recent_battles = []
-    chef_battle_enabled = getattr(settings, "CHEF_BATTLE_ENABLED", False)
+    _flag_on = getattr(settings, "CHEF_BATTLE_ENABLED", False)
+    _u = request.user
+    _ap = getattr(_u, "recipe_author_profile", None) if _u and _u.is_authenticated else None
+    chef_battle_enabled = _flag_on or bool(
+        _u and _u.is_authenticated and (
+            _u.is_staff or _u.is_superuser
+            or (_ap and _ap.has_bearseeker_privileges)
+        )
+    )
 
     if chef_battle_enabled:
         try:
