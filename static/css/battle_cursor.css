@@ -108,15 +108,35 @@
   }
 
   /* ── Steel counter-motion ──
-     translateY inside the rotated steel group = slide along the rod's own axis.
-     ±4px ≈ 25% of the blade; one gentle pump per two strokes, flips at the snaps */
+     translateY inside the rotated steel group = slide along the rod's own axis
+     (±4px ≈ 25% of the blade). rotate() pivots at the handle (origin 36,45) —
+     the off-hand yields ~10° as the blade sweeps, snapping back with the flip */
   .battle-cutlery-cursor.is-visible .bc-steel-slide {
     animation: bc-steel-bob 1.52s ease-in-out infinite;
+    transform-origin: 36px 45px;
   }
 
   @keyframes bc-steel-bob {
-    0%, 100% { transform: translateY(4px); }
-    50%      { transform: translateY(-4px); }
+    /* stroke A begins — rod high, upright */
+    0%   { transform: translateY(4px)  rotate(0deg);
+           animation-timing-function: ease-in-out; }
+    /* blade reaches the tip — rod slid down, yielded 10° */
+    46%  { transform: translateY(-4px) rotate(10deg);
+           animation-timing-function: linear; }
+    /* hold while the knife holds */
+    49%  { transform: translateY(-4px) rotate(10deg);
+           animation-timing-function: steps(1, end); }
+    /* snap back in sync with the knife flip */
+    50%  { transform: translateY(4px)  rotate(0deg);
+           animation-timing-function: ease-in-out; }
+    /* stroke B — same yield */
+    96%  { transform: translateY(-4px) rotate(10deg);
+           animation-timing-function: linear; }
+    /* hold */
+    99%  { transform: translateY(-4px) rotate(10deg);
+           animation-timing-function: steps(1, end); }
+    /* snap back for next loop */
+    100% { transform: translateY(4px)  rotate(0deg); }
   }
 
   /* ── Spark fires twice per cycle — midpoint of each stroke ── */
