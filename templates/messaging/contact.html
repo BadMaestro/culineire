@@ -8,51 +8,82 @@
 {% block meta_description %}Get in touch with the CulinEire team. Send us a message directly.{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/auth.css' %}" rel="stylesheet">
+<link href="{% static 'css/auth.css' %}?v=20260612-contact-layout" rel="stylesheet">
 <script async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js" nonce="{{ request.csp_nonce }}"></script>
 {% endblock %}
 
 {% block content %}
-<section class="hero hero--home hero--login">
+<section class="hero hero--home hero--contact">
     <div aria-hidden="true" class="hero__background">
         <img alt="" src="{% static 'images/hero-contact.png' %}">
     </div>
     <div aria-hidden="true" class="hero__overlay"></div>
-    <div class="container hero__inner hero__inner--login">
-        <div class="hero-copy hero-copy--login">
+    <div class="container hero__inner">
+        <div class="hero-copy">
+            <span class="pill">Contact</span>
             <h1 class="hero-title">Get in Touch</h1>
-            <p class="hero-subtitle">Have a question, suggestion or just want to say hello? We'd love to hear from
-                you.</p>
+            <p class="hero-subtitle">Send a clear message to the CulinEire team, or use the right route for legal, sponsor, or content concerns.</p>
             <div class="hero__actions">
-                {% if can_view_amuse_bouche_public_area %}
-                <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
-                {% endif %}
-                {% include "includes/author_dashboard_back_button.html" %}
-                <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
-                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
+                <a class="btn-primary" href="#contact-panel">Send a Message</a>
+                <a class="btn-secondary" href="{% url 'legal:legal_hub' %}">Legal Hub</a>
+                <a class="btn-secondary" href="{% url 'legal:report_content' %}">Report Content</a>
                 <a class="btn-secondary" href="{% url 'sponsors:puzzle' %}">Sponsors</a>
             </div>
         </div>
+    </div>
+</section>
 
-        <div class="auth-card auth-card--hero">
-            <div class="auth-copy">
-                <p class="eyebrow">CulinEire Kitchen</p>
+<section class="contact-shell" aria-labelledby="contact-page-title">
+    <div class="contact-layout">
+        <aside class="contact-info-panel" aria-label="Contact routes">
+            <span class="contact-eyebrow">CulinEire Kitchen</span>
+            <h2 id="contact-page-title">Choose the right route</h2>
+            <p>
+                Use the message form for ordinary questions, account help, suggestions, or feedback.
+                For formal content reports or legal information, use the dedicated routes below.
+            </p>
+
+            <div class="contact-route-list">
+                <a class="contact-route" href="{% url 'legal:report_content' %}">
+                    <span>Content concern</span>
+                    <strong>Report copyright, rights, or policy issues.</strong>
+                </a>
+                <a class="contact-route" href="{% url 'legal:legal_hub' %}">
+                    <span>Legal information</span>
+                    <strong>Review terms, privacy, cookies, and author rules.</strong>
+                </a>
+                <a class="contact-route" href="{% url 'sponsors:puzzle' %}">
+                    <span>Sponsors</span>
+                    <strong>Explore sponsor options and current sponsor areas.</strong>
+                </a>
+            </div>
+
+            <div class="contact-response-note">
+                <span>Response note</span>
+                <p>Messages go to the site team. Please include enough context for us to act on the request.</p>
+            </div>
+        </aside>
+
+        <div class="contact-panel" id="contact-panel">
+            <div class="auth-copy contact-panel__header">
+                <p class="eyebrow">Direct message</p>
                 <h2>Contact Us</h2>
+                <p class="auth-intro">Signed-in users can send a direct message to the CulinEire team.</p>
             </div>
 
             {% if user.is_authenticated %}
 
             {% if is_greenbear %}
-            <p class="auth-note" style="padding: 1rem 0;">This is the contact form for visitors to reach you. You cannot send a message to yourself.</p>
-            <div style="text-align: center; margin-block-start: 0.5rem;">
+            <div class="contact-state contact-state--owner">
+                <p class="auth-note">This is the contact form for visitors to reach you. You cannot send a message to yourself.</p>
                 <a class="btn" href="{% url 'messaging:inbox' %}">Go to Inbox</a>
             </div>
 
             {% elif sent %}
 
             <div class="contact-sent">
-                <p class="contact-sent__heading">Message sent ✓</p>
-                <p class="contact-sent__note">Thank you — we'll get back to you as soon as possible.</p>
+                <p class="contact-sent__heading">Message sent</p>
+                <p class="contact-sent__note">Thank you. We'll get back to you as soon as possible.</p>
             </div>
 
             {% if message_history %}
@@ -73,14 +104,14 @@
             </div>
             {% endif %}
 
-            <div style="text-align: center; margin-block-start: 1rem;">
+            <div class="contact-actions">
                 <a class="btn" href="{% url 'messaging:contact' %}">Send Another Message</a>
             </div>
 
             {% elif greenbear_available %}
-            <form class="auth-form" data-validate method="post">
+            <form class="auth-form contact-form" data-validate method="post">
                 {% csrf_token %}
-                <input type="text" name="website" style="display:none;" tabindex="-1" autocomplete="off">
+                <input class="contact-honeypot" type="text" name="website" tabindex="-1" autocomplete="off">
 
                 {% if error %}
                 <div class="auth-errors" role="alert"><p>{{ error }}</p></div>
@@ -108,7 +139,7 @@
                             data-profanity
                             id="id_body"
                             name="body"
-                            placeholder="Write your message here…"
+                            placeholder="Write your message here..."
                             required
                             rows="6"
                     ></textarea>
@@ -121,24 +152,24 @@
                 <button class="btn" type="submit">Send Message</button>
             </form>
             {% else %}
-            <p class="auth-note">Contact is temporarily unavailable. Please try again later.</p>
+            <div class="contact-state contact-state--unavailable">
+                <p class="auth-note">Contact is temporarily unavailable. Please try again later.</p>
+            </div>
             {% endif %}
 
             {% else %}
 
-            <p style="color: var(--ink-soft); font-size: 0.95rem; line-height: 1.6; margin-block-end: 1.25rem;">
-                To send us a message directly, please sign in or create a free account.
-                Your message will go straight to our team.
-            </p>
-            <div style="display: flex; flex-direction: column; gap: 0.65rem;">
-                <a class="btn" href="{% url 'login' %}?next={% url 'messaging:contact' %}">Sign In</a>
-                <a class="btn" href="{% url 'signup' %}"
-                   style="background: transparent; border: 1px solid var(--line-strong); color: var(--ink);">Create
-                    Account</a>
+            <div class="contact-login-panel">
+                <p>
+                    To send us a message directly, please sign in or create a free account.
+                    Your message will go straight to our team.
+                </p>
+                <div class="contact-auth-actions">
+                    <a class="btn" href="{% url 'login' %}?next={% url 'messaging:contact' %}">Sign In</a>
+                    <a class="btn btn--secondary" href="{% url 'signup' %}">Create Account</a>
+                </div>
+                <p class="auth-note">Already have an account? Signing in takes seconds.</p>
             </div>
-            <p class="auth-note" style="margin-block-start: 1rem;">
-                Already have an account? Signing in takes seconds.
-            </p>
 
             {% endif %}
         </div>
