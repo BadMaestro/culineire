@@ -327,6 +327,7 @@
   background-size: 200% 100%;
   color: #f5e6d3 !important;
   font-weight: 700;
+  cursor: url('../images/battle_cursor.svg') 20 20, crosshair;
   letter-spacing: 0.04em;
   gap: 0.35rem;
   position: relative;
