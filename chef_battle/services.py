@@ -349,8 +349,7 @@ def _award_forfeit_win(battle: Battle, *, winner, loser) -> None:
 
 def submit_battle_entry(*, battle: Battle, author, recipe=None, article=None, battle_statement: str = "") -> BattleEntry:
     """Create a BattleEntry, flagging it as late if the deadline has passed."""
-    participants = {battle.chef_a_id, battle.chef_b_id}
-    if author.pk not in participants:
+    if not battle.author_is_participant(author):
         from django.core.exceptions import ValidationError
         raise ValidationError("Only battle participants can submit entries.")
     now = timezone.now()
