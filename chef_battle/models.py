@@ -597,6 +597,25 @@ class IngredientShot(models.Model):
         return f"Shot by {self.shooter} at #{self.target_index} ({result}, battle {self.battle_id})"
 
 
+class BattleChatMessage(models.Model):
+    """Live viewer chat message on a battle page."""
+
+    battle = models.ForeignKey(Battle, on_delete=models.CASCADE, related_name="chat_messages")
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="battle_chat_messages"
+    )
+    display_name = models.CharField(max_length=60)
+    body = models.CharField(max_length=300)
+    is_hidden = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def __str__(self):
+        return f"{self.display_name}: {self.body[:60]}"
+
+
 class TokenPackage(models.Model):
     """Purchasable token bundle shown in the shop."""
 

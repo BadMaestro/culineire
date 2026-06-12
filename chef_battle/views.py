@@ -744,3 +744,51 @@ def hall_of_fame(request):
         "battles": battles,
         "chefs": chefs,
     })
+
+
+@require_POST
+def battle_chat_send(request, pk):
+    battle = get_object_or_404(Battle, pk=pk)
+    if battle.status not in Battle.ACTIVE_STATUSES | {Battle.Status.COMPLETED}:
+        return redirect("chef_battle:battle_detail", pk=pk)
+
+    from .models import BattleChatMessage
+    body = request.POST.get("body", "").strip()[:300]
+    if not body:
+        return redirect("chef_battle:battle_detail", pk=pk)
+
+    if request.user.is_authenticated:
+        display_name = request.user.get_full_name() or request.user.username
+    else:
+        display_name = request.POST.get("display_name", "").strip()[:60] or "Anonymous"
+
+    BattleChatMessage.objects.create(
+        battle=battle,
+        author=request.user if request.user.is_authenticated else None,
+        display_name=display_name,
+        body=body,
+    )
+    return redirect("chef_battle:battle_detail", pk=pk)
+
+
+def battle_chat_poll(request, pk):
+    from django.http import JsonResponse
+    from .models import BattleChatMessage
+    battle = get_object_or_404(Battle, pk=pk)
+    since_id = int(request.GET.get("since", 0))
+    msgs = (
+        BattleChatMessage.objects
+        .filter(battle=battle, id__gt=since_id, is_hidden=False)
+        .order_by("created_at")[:40]
+    )
+    return JsonResponse({
+        "messages": [
+            {
+                "id": m.id,
+                "display_name": m.display_name,
+                "body": m.body,
+                "created_at": m.created_at.strftime("%H:%M"),
+            }
+            for m in msgs
+        ]
+    })
