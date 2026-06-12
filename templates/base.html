@@ -57,6 +57,7 @@
 
     {% block extra_head %}{% endblock %}
     {% if active_battle_pip %}<link href="{% static 'css/chef_battle.css' %}" rel="stylesheet">{% endif %}
+    {% if chef_battle_enabled or request.user.is_superuser %}<link href="{% static 'css/battle_vfx.css' %}" rel="stylesheet">{% endif %}
 <style>
 .battle-blast { position:fixed; inset:0; z-index:10000; pointer-events:none; display:flex; align-items:center; justify-content:center; }
 .battle-blast.is-active { pointer-events:auto; }
@@ -392,7 +393,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v2.3.48</span>
+                <span class="footer-version">v2.3.49</span>
             </div>
         </div>
     </div>
@@ -522,27 +523,16 @@
   let prevStatus = null;
 
   function triggerBlast(res) {
-    const el = document.getElementById('battle-blast');
-    if (!el) return;
-    document.getElementById('blast-badge').textContent = 'Combat Phase Complete';
-    document.getElementById('blast-title').textContent = 'Round Finished!';
-    document.getElementById('blast-winner').textContent = res.combat_winner && res.combat_winner !== 'Draw'
-      ? '🏆 Winner: ' + res.combat_winner
-      : '🤝 Draw!';
-    document.getElementById('blast-score').textContent = res.challenger_name + '  ' + res.challenger_hits + ' : ' + res.opponent_hits + '  ' + res.opponent_name;
-    el.hidden = false;
-    requestAnimationFrame(function () {
-      el.classList.add('is-active');
-    });
-    const autoClose = setTimeout(function () { closeBlast(el); }, 4000);
-    document.getElementById('blast-dismiss').onclick = function () {
-      clearTimeout(autoClose); closeBlast(el);
-    };
-  }
-
-  function closeBlast(el) {
-    el.classList.remove('is-active');
-    setTimeout(function () { el.hidden = true; }, 400);
+    if (window.CulinEireBattleVFX) {
+      window.CulinEireBattleVFX.showBattleResult({
+        title: 'Combat Phase Complete',
+        message: 'Round Finished!',
+        winner: res.combat_winner && res.combat_winner !== 'Draw'
+          ? '🏆 Winner: ' + res.combat_winner
+          : '🤝 Draw!',
+        score: res.challenger_name + '  ' + res.challenger_hits + ' : ' + res.opponent_hits + '  ' + res.opponent_name,
+      });
+    }
   }
 
   function fetchState() {
@@ -695,6 +685,7 @@
 })();
 </script>
 {% endif %}
+{% if chef_battle_enabled or request.user.is_superuser %}<script src="{% static 'js/battle_vfx.js' %}"></script>{% endif %}
 <script src="{% static 'js/buttons.js' %}"></script>
 <script src="{% static 'js/form-validator.js' %}"></script>
 <script src="{% static 'js/form-autosave.js' %}"></script>
@@ -756,18 +747,9 @@ if(typeof navigator.modelContext!=='undefined'){
   trigger.style.cursor = 'crosshair';
   trigger.addEventListener('click', function (e) {
     e.stopPropagation();
-    var el = document.getElementById('battle-blast');
-    if (!el) return;
-    el.querySelector('.battle-blast__card').style.display = 'none';
-    el.hidden = false;
-    requestAnimationFrame(function () { el.classList.add('is-active'); });
-    setTimeout(function () {
-      el.classList.remove('is-active');
-      setTimeout(function () {
-        el.hidden = true;
-        el.querySelector('.battle-blast__card').style.display = '';
-      }, 400);
-    }, 1500);
+    if (window.CulinEireBattleVFX) {
+      window.CulinEireBattleVFX.showWaveOnly();
+    }
   });
 }());
 </script>

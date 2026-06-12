@@ -1,0 +1,231 @@
+/* ================================================================
+   CulinEire Battle VFX — Cinematic Shockwave Cloud
+   Triggered by window.CulinEireBattleVFX.showBattleResult()
+   ================================================================ */
+
+/* ── Body micro-impact (brief shake + flash) ── */
+.ce-vfx-impact {
+  animation: vfx-body-impact 0.14s ease-out forwards;
+}
+
+@keyframes vfx-body-impact {
+  0%   { filter: brightness(1.35) blur(1px); transform: scale(1.004); }
+  45%  { filter: brightness(0.92); transform: scale(0.998); }
+  100% { filter: brightness(1); transform: scale(1); }
+}
+
+/* ── Overlay container ── */
+.ce-battle-vfx {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* ── Cloud layers ── */
+.ce-battle-vfx__layer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 50%;
+  transform-origin: center center;
+  will-change: transform, opacity;
+}
+
+/* Layer 1 — copper/amber core, fastest */
+.ce-battle-vfx__layer--1 {
+  width: 100vmax;
+  height: 100vmax;
+  margin: -50vmax 0 0 -50vmax;
+  border-radius: 62% 38% 54% 46% / 44% 58% 42% 56%;
+  background: radial-gradient(
+    ellipse 58% 48% at 50% 50%,
+    rgba(200, 148, 55, 0.52) 0%,
+    rgba(220, 175, 85, 0.38) 22%,
+    rgba(190, 145, 65, 0.22) 48%,
+    rgba(160, 115, 45, 0.08) 68%,
+    transparent 82%
+  );
+  filter: blur(22px);
+  animation: vfx-layer-1 1.75s cubic-bezier(0.2, 0.8, 0.35, 1) forwards;
+}
+
+/* Layer 2 — ivory haze, medium */
+.ce-battle-vfx__layer--2 {
+  width: 155vmax;
+  height: 155vmax;
+  margin: -77.5vmax 0 0 -77.5vmax;
+  border-radius: 47% 53% 61% 39% / 56% 44% 56% 44%;
+  background: radial-gradient(
+    ellipse 62% 52% at 48% 52%,
+    rgba(238, 218, 170, 0.28) 0%,
+    rgba(215, 192, 138, 0.2) 28%,
+    rgba(195, 170, 115, 0.1) 54%,
+    rgba(160, 140, 90, 0.04) 72%,
+    transparent 85%
+  );
+  filter: blur(36px);
+  animation: vfx-layer-2 1.9s cubic-bezier(0.16, 0.88, 0.3, 1) forwards;
+}
+
+/* Layer 3 — smoke charcoal, slowest */
+.ce-battle-vfx__layer--3 {
+  width: 210vmax;
+  height: 210vmax;
+  margin: -105vmax 0 0 -105vmax;
+  border-radius: 53% 47% 43% 57% / 60% 40% 60% 40%;
+  background: radial-gradient(
+    ellipse 68% 58% at 52% 48%,
+    rgba(52, 38, 24, 0.2) 0%,
+    rgba(75, 55, 35, 0.13) 30%,
+    rgba(48, 34, 20, 0.06) 58%,
+    transparent 78%
+  );
+  filter: blur(55px);
+  animation: vfx-layer-3 2.05s cubic-bezier(0.12, 0.85, 0.28, 1) forwards;
+}
+
+/* Layer 4 — gold dust shimmer pulse */
+.ce-battle-vfx__layer--4 {
+  width: 60vmax;
+  height: 60vmax;
+  margin: -30vmax 0 0 -30vmax;
+  border-radius: 70% 30% 65% 35% / 38% 62% 38% 62%;
+  background: radial-gradient(
+    ellipse 55% 45% at 50% 50%,
+    rgba(255, 235, 140, 0.45) 0%,
+    rgba(240, 200, 90, 0.25) 35%,
+    transparent 65%
+  );
+  filter: blur(12px);
+  animation: vfx-layer-4 0.9s cubic-bezier(0.3, 0.9, 0.4, 1) forwards;
+}
+
+@keyframes vfx-layer-1 {
+  0%   { transform: scale(0);    opacity: 0; }
+  6%   { transform: scale(0.1);  opacity: 1; }
+  40%  { transform: scale(0.82); opacity: 0.95; }
+  68%  { transform: scale(1);    opacity: 0.75; }
+  100% { transform: scale(1.06); opacity: 0; }
+}
+
+@keyframes vfx-layer-2 {
+  0%   { transform: scale(0);    opacity: 0; }
+  8%   { transform: scale(0.07); opacity: 0.88; }
+  44%  { transform: scale(0.78); opacity: 0.6; }
+  72%  { transform: scale(1);    opacity: 0.38; }
+  100% { transform: scale(1.09); opacity: 0; }
+}
+
+@keyframes vfx-layer-3 {
+  0%   { transform: scale(0);    opacity: 0; }
+  10%  { transform: scale(0.04); opacity: 0.72; }
+  48%  { transform: scale(0.74); opacity: 0.38; }
+  76%  { transform: scale(1);    opacity: 0.18; }
+  100% { transform: scale(1.12); opacity: 0; }
+}
+
+@keyframes vfx-layer-4 {
+  0%   { transform: scale(0);   opacity: 0; }
+  12%  { transform: scale(0.3); opacity: 1; }
+  55%  { transform: scale(0.9); opacity: 0.5; }
+  100% { transform: scale(1.1); opacity: 0; }
+}
+
+/* ── Result card ── */
+.ce-battle-vfx__card {
+  position: relative;
+  z-index: 2;
+  background: rgba(255, 252, 246, 0.94);
+  border: 1.5px solid rgba(184, 134, 55, 0.35);
+  border-radius: 18px;
+  box-shadow:
+    0 10px 44px rgba(40, 25, 8, 0.28),
+    0 0 0 1px rgba(255, 238, 190, 0.4) inset;
+  padding: 1.6rem 2.2rem;
+  text-align: center;
+  max-width: 320px;
+  width: 90%;
+  opacity: 0;
+  transform: scale(0.88) translateY(10px);
+  animation: vfx-card-in 0.38s ease-out 0.48s forwards;
+}
+
+@keyframes vfx-card-in {
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.ce-battle-vfx--dissolving .ce-battle-vfx__card {
+  animation: vfx-card-out 0.45s ease-in forwards;
+}
+
+@keyframes vfx-card-out {
+  to { opacity: 0; transform: scale(0.94) translateY(-8px); }
+}
+
+.ce-battle-vfx__badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #7a4a0e;
+  background: rgba(184, 134, 55, 0.14);
+  border-radius: 99px;
+  padding: 0.18rem 0.72rem;
+  margin-bottom: 0.55rem;
+}
+
+.ce-battle-vfx__title {
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #1f2c25;
+  margin: 0 0 0.3rem;
+  line-height: 1.2;
+}
+
+.ce-battle-vfx__winner {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #7a4a0e;
+  margin: 0.2rem 0 0.1rem;
+}
+
+.ce-battle-vfx__score {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #3a3028;
+  letter-spacing: 0.04em;
+  margin: 0.1rem 0 0;
+}
+
+/* ── Reduced motion — simple bottom-right toast ── */
+.ce-battle-vfx--toast {
+  position: fixed;
+  inset: auto 1.25rem 1.75rem auto;
+  z-index: 10000;
+  pointer-events: none;
+  display: block;
+  animation: vfx-toast-in 0.3s ease-out forwards, vfx-toast-out 0.3s ease-in 2.2s forwards;
+}
+
+.ce-battle-vfx--toast .ce-battle-vfx__card {
+  opacity: 1;
+  transform: none;
+  animation: none;
+  max-width: 280px;
+}
+
+@keyframes vfx-toast-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes vfx-toast-out {
+  to { opacity: 0; }
+}

@@ -19,22 +19,20 @@
             <h1 class="hero-title">Privacy Policy</h1>
             <p class="hero-subtitle">How CulinEire collects, uses, and protects your personal data.</p>
             <div class="hero__actions">
-                {% if can_view_amuse_bouche_public_area %}
-                <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
-                {% endif %}
-                <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
-                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
-                <a class="btn-secondary" href="{% url 'sponsors:puzzle' %}">Sponsors</a>
+                <a class="btn-primary" href="{% url 'legal:legal_hub' %}">Legal Hub</a>
+                <a class="btn-secondary" href="{% url 'legal:terms' %}">Terms of Use</a>
+                <a class="btn-secondary" href="{% url 'legal:cookies' %}">Cookie Policy</a>
+                <a class="btn-secondary" href="#contact">Contact</a>
             </div>
         </div>
     </div>
 </section>
 
-<section class="legal-shell" aria-labelledby="privacy-policy-title">
+<section class="legal-shell legal-shell--privacy" aria-labelledby="privacy-policy-title">
 
-    <div class="legal-intro">
+    <div class="legal-intro legal-intro--policy">
         <span class="legal-eyebrow">Effective date: 28 May 2026</span>
-        <h2 id="privacy-policy-title">Privacy Policy</h2>
+        <h2 id="privacy-policy-title">Your Data at CulinEire</h2>
         <p>
             This Privacy Policy describes how Bearcave Limited (&ldquo;we&rdquo;, &ldquo;us&rdquo;, &ldquo;our&rdquo;) collects,
             uses, and protects personal data in connection with the CulinEire website at
@@ -45,66 +43,68 @@
         </p>
     </div>
 
-    <nav class="legal-card-grid" aria-label="Jump to a Privacy Policy section">
-        <a class="legal-card legal-card--primary" href="#data-controller">
-            <h3>Data Controller</h3>
-            <p>Who is responsible for your data.</p>
-        </a>
-        <a class="legal-card legal-card--primary" href="#what-we-collect">
-            <h3>What We Collect</h3>
-            <p>Personal data we may hold about you.</p>
-        </a>
-        <a class="legal-card legal-card--primary" href="#how-we-use">
-            <h3>How We Use It</h3>
-            <p>Purposes for processing your data.</p>
-        </a>
-        <a class="legal-card legal-card--primary" href="#legal-bases">
-            <h3>Legal Bases</h3>
-            <p>GDPR Article 6 grounds for processing.</p>
-        </a>
-        <a class="legal-card" href="#cookies">
-            <h3>Cookies and Tracking</h3>
-            <p>Our essential-only cookie approach.</p>
-        </a>
-        <a class="legal-card" href="#data-sharing">
-            <h3>Data Sharing</h3>
-            <p>Third parties we work with.</p>
-        </a>
-        <a class="legal-card" href="#retention">
-            <h3>Data Retention</h3>
-            <p>How long we keep your data.</p>
-        </a>
-        <a class="legal-card" href="#your-rights">
-            <h3>Your Rights</h3>
-            <p>Your rights under GDPR explained.</p>
-        </a>
-        <a class="legal-card" href="#complain">
-            <h3>Right to Complain</h3>
-            <p>How to contact the DPC of Ireland.</p>
-        </a>
-        <a class="legal-card" href="#security">
-            <h3>Data Security</h3>
-            <p>How we protect your personal data.</p>
-        </a>
-        <a class="legal-card" href="#children">
-            <h3>Children&rsquo;s Privacy</h3>
-            <p>Our policy for under-16 data.</p>
-        </a>
-        <a class="legal-card" href="#transfers">
-            <h3>International Transfers</h3>
-            <p>EEA data transfer safeguards.</p>
-        </a>
-        <a class="legal-card" href="#changes">
-            <h3>Policy Changes</h3>
-            <p>How we notify you of updates.</p>
-        </a>
-        <a class="legal-card" href="#contact">
-            <h3>Contact Us</h3>
-            <p>Privacy enquiries and data requests.</p>
-        </a>
-    </nav>
+    <div class="legal-summary-panel" aria-label="Privacy policy summary">
+        <div class="legal-summary-item">
+            <span>Controller</span>
+            <strong>Bearcave Limited</strong>
+        </div>
+        <div class="legal-summary-item">
+            <span>Jurisdiction</span>
+            <strong>Ireland / GDPR</strong>
+        </div>
+        <div class="legal-summary-item">
+            <span>Cookie approach</span>
+            <strong>Essential only</strong>
+        </div>
+        <div class="legal-summary-item">
+            <span>Data requests</span>
+            <strong><a href="mailto:culineire@bearcave.ie">culineire@bearcave.ie</a></strong>
+        </div>
+    </div>
 
-    <div class="legal-card-grid legal-card-grid--document">
+    <details class="legal-mobile-jump">
+        <summary>Jump to a Privacy Policy section</summary>
+        <div class="legal-mobile-jump__links">
+            <a href="#data-controller">Data Controller</a>
+            <a href="#what-we-collect">What We Collect</a>
+            <a href="#how-we-use">How We Use It</a>
+            <a href="#legal-bases">Legal Bases</a>
+            <a href="#cookies">Cookies and Tracking</a>
+            <a href="#data-sharing">Data Sharing</a>
+            <a href="#retention">Data Retention</a>
+            <a href="#your-rights">Your Rights</a>
+            <a href="#complain">Right to Complain</a>
+            <a href="#security">Data Security</a>
+            <a href="#children">Children&rsquo;s Privacy</a>
+            <a href="#transfers">International Transfers</a>
+            <a href="#changes">Policy Changes</a>
+            <a href="#contact">Contact Us</a>
+        </div>
+    </details>
+
+    <div class="legal-document-layout">
+        <aside class="legal-toc" aria-label="Privacy Policy sections">
+            <span class="legal-toc__label">On this page</span>
+            <nav>
+                <a href="#data-controller">Data Controller</a>
+                <a href="#what-we-collect">What We Collect</a>
+                <a href="#how-we-use">How We Use It</a>
+                <a href="#legal-bases">Legal Bases</a>
+                <a href="#cookies">Cookies and Tracking</a>
+                <a href="#data-sharing">Data Sharing</a>
+                <a href="#retention">Data Retention</a>
+                <a href="#your-rights">Your Rights</a>
+                <a href="#complain">Right to Complain</a>
+                <a href="#security">Data Security</a>
+                <a href="#children">Children&rsquo;s Privacy</a>
+                <a href="#transfers">International Transfers</a>
+                <a href="#changes">Policy Changes</a>
+                <a href="#contact">Contact Us</a>
+            </nav>
+            <p>No advertising, analytics, behavioural tracking, or profiling cookies.</p>
+        </aside>
+
+        <div class="legal-card-grid legal-card-grid--document legal-document-main">
 
         <article class="legal-card legal-card--section" id="data-controller">
             <div class="section-header">
@@ -344,6 +344,7 @@
             </div>
         </article>
 
+        </div>
     </div>
 
     <aside class="legal-contact-card" aria-label="Related legal pages">
