@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <rect x="4" y="4" width="40" height="40" rx="6" fill="#1e3a5f" stroke="#60a5fa" stroke-width="2"/>
+  <polygon points="24,8 28,19 40,19 30,26 34,38 24,31 14,38 18,26 8,19 20,19" fill="#60a5fa" opacity="0.25"/>
+  <polygon points="24,8 28,19 40,19 30,26 34,38 24,31 14,38 18,26 8,19 20,19" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linejoin="round"/>
+  <text x="24" y="44" text-anchor="middle" font-family="Georgia,serif" font-size="7" fill="#60a5fa" font-weight="bold">RARE</text>
+</svg>

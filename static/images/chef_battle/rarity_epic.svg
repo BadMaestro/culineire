@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <rect x="4" y="4" width="40" height="40" rx="6" fill="#2e1065" stroke="#a78bfa" stroke-width="2"/>
+  <polygon points="24,8 28,19 40,19 30,26 34,38 24,31 14,38 18,26 8,19 20,19" fill="#7c3aed" opacity="0.4"/>
+  <polygon points="24,8 28,19 40,19 30,26 34,38 24,31 14,38 18,26 8,19 20,19" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linejoin="round"/>
+  <!-- Second inner star for epic shine -->
+  <polygon points="24,14 26,20 32,20 27,24 29,30 24,27 19,30 21,24 16,20 22,20" fill="#a78bfa" opacity="0.5"/>
+  <text x="24" y="44" text-anchor="middle" font-family="Georgia,serif" font-size="7" fill="#a78bfa" font-weight="bold">EPIC</text>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <rect x="4" y="4" width="40" height="40" rx="6" fill="#0a1f0a" stroke="#22c55e" stroke-width="2"/>
+  <!-- Shield shape -->
+  <path d="M24 10 L36 15 L36 26 Q36 35 24 40 Q12 35 12 26 L12 15 Z" fill="#22c55e" opacity="0.2" stroke="#22c55e" stroke-width="2" stroke-linejoin="round"/>
+  <!-- Cross on shield -->
+  <line x1="24" y1="17" x2="24" y2="33" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="17" y1="24" x2="31" y2="24" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round"/>
+  <text x="24" y="46" text-anchor="middle" font-family="Georgia,serif" font-size="6" fill="#22c55e" font-weight="bold">DEFENCE</text>
+</svg>

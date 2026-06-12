@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <rect x="4" y="4" width="40" height="40" rx="6" fill="#1f0a0a" stroke="#ef4444" stroke-width="2"/>
+  <!-- Sword / chef knife shape -->
+  <line x1="14" y1="34" x2="34" y2="14" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+  <polygon points="34,14 30,14 34,10 38,14 34,18" fill="#ef4444"/>
+  <!-- Guard -->
+  <line x1="20" y1="28" x2="26" y2="22" stroke="#fca5a5" stroke-width="4" stroke-linecap="round"/>
+  <!-- Handle -->
+  <rect x="11" y="31" width="8" height="4" rx="2" fill="#9ca3af" transform="rotate(-45 15 33)"/>
+  <text x="24" y="45" text-anchor="middle" font-family="Georgia,serif" font-size="7" fill="#ef4444" font-weight="bold">ATTACK</text>
+</svg>
