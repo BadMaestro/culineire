@@ -17,6 +17,7 @@
         '.spm-visit-btn',
         '.spm-admin-approve',
         '.spm-admin-reject',
+        '.hero-battle-panel__cta',
     ].join(', ');
 
     document.addEventListener('click', function (e) {

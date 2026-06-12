@@ -1095,6 +1095,8 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
 
 .hero-battle-panel__cta {
   display: block;
+  position: relative;
+  overflow: hidden;
   text-align: center;
   margin-top: 0.2rem;
   padding: 0.5rem 1rem;
@@ -1105,10 +1107,11 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
   font-weight: 700;
   text-decoration: none;
   letter-spacing: 0.03em;
-  transition: background 0.15s;
+  transition: background 0.15s, transform 0.1s;
 }
 
 .hero-battle-panel__cta:hover { background: #fde09e; }
+.hero-battle-panel__cta:active { transform: scale(0.96); }
 
 /* Responsive */
 @media (max-width: 900px) {
