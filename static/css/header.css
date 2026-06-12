@@ -321,6 +321,68 @@
   font-weight: 500;
 }
 
+/* ── Chef Battle nav link ── */
+.ce-nav__link--battle {
+  background: linear-gradient(120deg, #7c2d12 0%, #b45309 45%, #dc2626 100%);
+  background-size: 200% 100%;
+  color: #fff8e7 !important;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  gap: 0.35rem;
+  position: relative;
+  overflow: visible;
+  box-shadow: 0 2px 10px rgba(180, 83, 9, 0.4);
+  animation: battle-nav-flow 4s ease-in-out infinite;
+  transition: box-shadow 0.2s ease, transform 0.15s ease, color 0.1s;
+}
+
+@keyframes battle-nav-flow {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+
+.ce-nav__link--battle:hover,
+.ce-nav__link--battle:focus-visible {
+  background-position: 100% 50%;
+  color: #ffffff !important;
+  box-shadow: 0 4px 20px rgba(220, 38, 38, 0.6), 0 0 0 2px rgba(245, 158, 11, 0.5);
+  transform: scale(1.05);
+}
+
+.ce-nav__link--battle::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 999px;
+  border: 2px solid rgba(245, 158, 11, 0.9);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ce-nav__link--battle:hover::before,
+.ce-nav__link--battle:focus-visible::before {
+  animation: battle-shockwave 0.55s ease-out forwards;
+}
+
+@keyframes battle-shockwave {
+  0%   { transform: scale(1);    opacity: 1; }
+  100% { transform: scale(1.55); opacity: 0; }
+}
+
+.ce-nav__link--battle.ce-nav__link--active {
+  background: linear-gradient(120deg, #dc2626 0%, #b45309 50%, #7c2d12 100%);
+  background-size: 200% 100%;
+  box-shadow: 0 2px 14px rgba(220, 38, 38, 0.55);
+  animation: battle-nav-flow 2s ease-in-out infinite;
+}
+
+.battle-nav-icon {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  opacity: 0.92;
+}
+
 .ce-nav__status {
   max-width: 100%;
   overflow: hidden;
