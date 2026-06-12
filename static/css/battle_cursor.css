@@ -13,9 +13,14 @@
    Desktop / fine-pointer only. Touch + coarse pointers never see it.
    ========================================================================== */
 
+.battle-cutlery-cursor {
+  display: none;
+}
+
 @media (hover: hover) and (pointer: fine) {
 
   .battle-cutlery-cursor {
+    display: block;
     position: fixed;
     left: 0;
     top: 0;
