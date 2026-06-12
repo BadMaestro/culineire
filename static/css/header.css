@@ -323,16 +323,16 @@
 
 /* ── Chef Battle nav link ── */
 .ce-nav__link--battle {
-  background: linear-gradient(120deg, #7c2d12 0%, #b45309 45%, #dc2626 100%);
+  background: linear-gradient(120deg, #5c2810 0%, #7a3b1e 50%, #8b3325 100%);
   background-size: 200% 100%;
-  color: #fff8e7 !important;
+  color: #f5e6d3 !important;
   font-weight: 700;
   letter-spacing: 0.04em;
   gap: 0.35rem;
   position: relative;
   overflow: visible;
-  box-shadow: 0 2px 10px rgba(180, 83, 9, 0.4);
-  animation: battle-nav-flow 4s ease-in-out infinite;
+  box-shadow: 0 2px 8px rgba(92, 40, 16, 0.35);
+  animation: battle-nav-flow 5s ease-in-out infinite;
   transition: box-shadow 0.2s ease, transform 0.15s ease, color 0.1s;
 }
 
@@ -344,8 +344,8 @@
 .ce-nav__link--battle:hover,
 .ce-nav__link--battle:focus-visible {
   background-position: 100% 50%;
-  color: #ffffff !important;
-  box-shadow: 0 4px 20px rgba(220, 38, 38, 0.6), 0 0 0 2px rgba(245, 158, 11, 0.5);
+  color: #fff8f0 !important;
+  box-shadow: 0 3px 14px rgba(139, 51, 37, 0.5), 0 0 0 2px rgba(180, 100, 50, 0.4);
   transform: scale(1.05);
 }
 
@@ -354,7 +354,7 @@
   position: absolute;
   inset: -3px;
   border-radius: 999px;
-  border: 2px solid rgba(245, 158, 11, 0.9);
+  border: 2px solid rgba(180, 100, 50, 0.85);
   opacity: 0;
   pointer-events: none;
 }
@@ -370,10 +370,10 @@
 }
 
 .ce-nav__link--battle.ce-nav__link--active {
-  background: linear-gradient(120deg, #dc2626 0%, #b45309 50%, #7c2d12 100%);
+  background: linear-gradient(120deg, #8b3325 0%, #7a3b1e 50%, #5c2810 100%);
   background-size: 200% 100%;
-  box-shadow: 0 2px 14px rgba(220, 38, 38, 0.55);
-  animation: battle-nav-flow 2s ease-in-out infinite;
+  box-shadow: 0 2px 10px rgba(139, 51, 37, 0.45);
+  animation: battle-nav-flow 3s ease-in-out infinite;
 }
 
 .battle-nav-icon {
@@ -381,6 +381,22 @@
   align-items: center;
   flex-shrink: 0;
   opacity: 0.92;
+}
+
+/* ── Battle nav click wave ── */
+.battle-nav-wave-overlay {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9997;
+  background: radial-gradient(circle, rgba(92, 40, 16, 0.55) 0%, rgba(139, 51, 37, 0.3) 45%, transparent 70%);
+  animation: battle-nav-wave-expand 0.48s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes battle-nav-wave-expand {
+  0%   { transform: scale(0); opacity: 1; }
+  60%  { opacity: 0.6; }
+  100% { transform: scale(10); opacity: 0; }
 }
 
 .ce-nav__status {

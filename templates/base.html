@@ -712,5 +712,31 @@ if(typeof navigator.modelContext!=='undefined'){
   });
 }
 </script>
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+  document.addEventListener('click', function (e) {
+    var link = e.target.closest('.ce-nav__link--battle');
+    if (!link) return;
+    var href = link.getAttribute('href');
+    if (!href) return;
+    e.preventDefault();
+    var rect = link.getBoundingClientRect();
+    var cx = rect.left + rect.width / 2;
+    var cy = rect.top + rect.height / 2;
+    var size = Math.max(window.innerWidth, window.innerHeight) * 2.8;
+    var wave = document.createElement('div');
+    wave.className = 'battle-nav-wave-overlay';
+    wave.style.width  = size + 'px';
+    wave.style.height = size + 'px';
+    wave.style.left   = (cx - size / 2) + 'px';
+    wave.style.top    = (cy - size / 2) + 'px';
+    document.body.appendChild(wave);
+    wave.addEventListener('animationend', function () {
+      wave.remove();
+      window.location.href = href;
+    }, { once: true });
+  });
+})();
+</script>
 </body>
 </html>
