@@ -27,4 +27,5 @@ urlpatterns = [
     path("hall-of-fame/", views.hall_of_fame, name="hall_of_fame"),
     path("battles/<int:pk>/chat/send/", views.battle_chat_send, name="battle_chat_send"),
     path("battles/<int:pk>/chat/poll/", views.battle_chat_poll, name="battle_chat_poll"),
+    path("profile/<slug:slug>/", views.chef_battle_profile, name="chef_profile"),
 ]

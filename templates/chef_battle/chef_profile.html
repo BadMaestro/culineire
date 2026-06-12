@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ author.name }} | Chef Battle Profile{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero">
+  <div class="container">
+    <p class="battle-kicker">Chef Battle Arena</p>
+    <h1>{{ author.name }}</h1>
+    <p class="battle-room-hero__sub">{{ profile.get_rank_display }}{% if profile.has_crown %} &middot; Crown Holder{% endif %}</p>
+  </div>
+</section>
+
+<div class="container" style="padding-block: 2.5rem; max-width: 900px;">
+
+  {# ── Stats ── #}
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; margin-block-end: 2.5rem;">
+
+    <div class="battle-stat-card">
+      <span class="battle-stat-card__label">Rating</span>
+      <strong class="battle-stat-card__value">{{ profile.rating }}</strong>
+    </div>
+
+    <div class="battle-stat-card">
+      <span class="battle-stat-card__label">Wins</span>
+      <strong class="battle-stat-card__value" style="color: var(--color-success, #1a6b3a);">{{ profile.wins }}</strong>
+    </div>
+
+    <div class="battle-stat-card">
+      <span class="battle-stat-card__label">Losses</span>
+      <strong class="battle-stat-card__value" style="color: var(--color-danger, #b91c1c);">{{ profile.losses }}</strong>
+    </div>
+
+    <div class="battle-stat-card">
+      <span class="battle-stat-card__label">Win Streak</span>
+      <strong class="battle-stat-card__value">{{ profile.win_streak }}</strong>
+    </div>
+
+    <div class="battle-stat-card">
+      <span class="battle-stat-card__label">Crowns</span>
+      <strong class="battle-stat-card__value">{{ profile.crown_count }}</strong>
+    </div>
+
+    <div class="battle-stat-card">
+      <span class="battle-stat-card__label">Battle Moves</span>
+      <strong class="battle-stat-card__value">{% if profile.infinite_moves %}&#x221E;{% else %}{{ profile.battle_moves }}{% endif %}</strong>
+    </div>
+
+  </div>
+
+  {% if profile.has_crown %}
+  <div class="battle-crown-banner" style="margin-block-end: 2rem;">
+    <span>&#x1F451; Current Crown Holder</span>
+    <span style="font-size: 0.85rem; color: var(--color-muted);">Until {{ profile.crown_until|date:"d M Y, H:i" }}</span>
+  </div>
+  {% endif %}
+
+  {# ── Battle History ── #}
+  <h2 style="font-family: var(--font-serif); font-size: 1.5rem; margin-block-end: 1rem;">Battle History</h2>
+
+  {% if battles %}
+  <div style="display: grid; gap: 0.75rem; margin-block-end: 2.5rem;">
+    {% for battle in battles %}
+    {% with opponent=battle.opponent_for author %}
+    <a class="battle-table__row" href="{{ battle.get_absolute_url }}"
+       style="display: grid; grid-template-columns: 2fr 1fr 1fr; align-items: center; gap: 1rem; text-decoration: none;">
+      <span>
+        <strong style="display: block; font-size: 0.95rem; font-family: var(--font-serif);">{{ battle.theme }}</strong>
+        <span style="font-size: 0.82rem; color: var(--color-muted);">vs {% if opponent %}{{ opponent.name }}{% else %}TBD{% endif %}</span>
+      </span>
+      <span style="font-size: 0.88rem;">
+        {% if battle.status == 'completed' %}
+          {% if battle.winner_id == author.pk %}
+            <span style="color: var(--color-success, #1a6b3a); font-weight: 600;">Won</span>
+          {% elif battle.winner %}
+            <span style="color: var(--color-danger, #b91c1c);">Lost</span>
+          {% else %}
+            <span style="color: var(--color-muted);">Draw</span>
+          {% endif %}
+        {% else %}
+          <span style="color: var(--color-muted);">{{ battle.get_status_display }}</span>
+        {% endif %}
+      </span>
+      <span style="font-size: 0.82rem; color: var(--color-muted); text-align: right;">{{ battle.created_at|date:"d M Y" }}</span>
+    </a>
+    {% endwith %}
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state"><p>No battles yet. Step into the arena.</p></div>
+  {% endif %}
+
+  {# ── Actions ── #}
+  <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+    {% if is_own_profile %}
+    <a class="btn-primary" href="{% url 'chef_battle:my_moves' %}">My Moves</a>
+    {% else %}
+    <a class="btn-primary" href="{% url 'chef_battle:challenge_create' %}?opponent={{ author.slug }}">Challenge This Chef</a>
+    {% endif %}
+    <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
+    <a class="btn-secondary" href="{{ author.get_absolute_url }}">View Recipe Profile</a>
+  </div>
+
+</div>
+{% endblock %}

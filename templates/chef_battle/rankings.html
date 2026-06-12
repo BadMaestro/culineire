@@ -22,7 +22,7 @@
         <span>Moves</span>
       </div>
       {% for profile in profiles %}
-      <a class="battle-table__row" href="{{ profile.author.get_absolute_url }}">
+      <a class="battle-table__row" href="{% url 'chef_battle:chef_profile' slug=profile.author.slug %}">
         <span>{% if profile.has_crown %}Crown · {% endif %}{{ profile.author.name }}</span>
         <span>{{ profile.get_rank_display }}</span>
         <strong>{{ profile.rating }}</strong>

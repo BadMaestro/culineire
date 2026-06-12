@@ -829,3 +829,22 @@ def battle_chat_poll(request, pk):
             for m in msgs
         ]
     })
+
+
+def chef_battle_profile(request, slug):
+    from django.db.models import Q
+    author = get_object_or_404(RecipeAuthor, slug=slug)
+    profile = get_object_or_404(ChefBattleProfile, author=author)
+    battles = (
+        Battle.objects
+        .filter(Q(challenger=author) | Q(opponent=author))
+        .select_related("challenger", "opponent", "challenge")
+        .order_by("-created_at")[:20]
+    )
+    viewer_author = get_author_for_user(request.user) if request.user.is_authenticated else None
+    return render(request, "chef_battle/chef_profile.html", {
+        "profile": profile,
+        "author": author,
+        "battles": battles,
+        "is_own_profile": viewer_author and viewer_author.pk == author.pk,
+    })
