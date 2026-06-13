@@ -9,14 +9,58 @@
   <div class="container battle-hero__inner">
     <p class="battle-kicker">Chef Battle Arena</p>
     <h1>Issue a Challenge</h1>
-    <p>Pick your opponent, set the theme and let the arena decide who reigns.</p>
+    <p>Choose the opponent, define the brief, and send a clear challenge that can move straight into the arena.</p>
+    <div class="battle-actions">
+      <a class="btn-secondary" href="{% url 'chef_battle:home' %}">Arena Home</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:challenge_list' %}">My Challenges</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:rules' %}">Rules</a>
+    </div>
   </div>
 </section>
 
-<section class="page-section">
-  <div class="container">
-    <div class="battle-form-shell">
-      <form class="battle-form" method="post" novalidate>
+<section class="page-section battle-challenge-page">
+  <div class="container battle-challenge-layout">
+    <aside class="battle-challenge-guide" aria-label="Challenge guidance">
+      <p class="battle-kicker">Before You Send</p>
+      <h2>Challenge checklist</h2>
+      <ol class="battle-guide-list">
+        <li>
+          <span>1</span>
+          <div>
+            <strong>Pick the right opponent</strong>
+            <p>The list only includes authors with active user accounts. Choose someone who can respond and enter the battle.</p>
+          </div>
+        </li>
+        <li>
+          <span>2</span>
+          <div>
+            <strong>Write a focused theme</strong>
+            <p>Keep it specific enough for both chefs to understand the dish, article, or mixed challenge brief.</p>
+          </div>
+        </li>
+        <li>
+          <span>3</span>
+          <div>
+            <strong>Set fair timing</strong>
+            <p>Leave the start time blank for an immediate battle after acceptance, or schedule a future start.</p>
+          </div>
+        </li>
+      </ol>
+      <div class="battle-guide-note">
+        <strong>Arena checks</strong>
+        <p>You need at least 10 battle energy to issue a challenge. Pending challenges expire after 48 hours.</p>
+      </div>
+    </aside>
+
+    <div class="battle-form-shell battle-form-shell--challenge">
+      <div class="battle-form-heading">
+        <p class="battle-kicker">Challenge Details</p>
+        <h2>Build the battle brief</h2>
+        <p>These details are shown to the opponent before they accept or refuse the challenge.</p>
+      </div>
+
+      <form class="battle-form battle-form--challenge" method="post" novalidate>
         {% csrf_token %}
 
         {% if form.non_field_errors %}
@@ -25,48 +69,61 @@
         </div>
         {% endif %}
 
-        <div class="battle-form__field">
-          <label class="battle-form__label" for="{{ form.opponent.id_for_label }}">{{ form.opponent.label }}</label>
-          {{ form.opponent }}
-          {% for e in form.opponent.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
+        <div class="battle-form-section">
+          <p class="battle-form-section__title">Opponent and format</p>
+          <div class="battle-form__row">
+            <div class="battle-form__field">
+              <label class="battle-form__label" for="{{ form.opponent.id_for_label }}">{{ form.opponent.label }}</label>
+              {{ form.opponent }}
+              <p class="battle-form__help">Select one eligible CulinEire author.</p>
+              {% for e in form.opponent.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
+            </div>
+
+            <div class="battle-form__field">
+              <label class="battle-form__label" for="{{ form.battle_type.id_for_label }}">{{ form.battle_type.label }}</label>
+              {{ form.battle_type }}
+              <p class="battle-form__help">Recipe duel, article duel, or either format.</p>
+              {% for e in form.battle_type.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
+            </div>
+          </div>
         </div>
 
-        <div class="battle-form__field">
-          <label class="battle-form__label" for="{{ form.theme.id_for_label }}">{{ form.theme.label }}</label>
-          {{ form.theme }}
-          <p class="battle-form__help">One compelling sentence. The chefs and the audience must feel it instantly.</p>
-          {% for e in form.theme.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
+        <div class="battle-form-section">
+          <p class="battle-form-section__title">Theme and message</p>
+          <div class="battle-form__field">
+            <label class="battle-form__label" for="{{ form.theme.id_for_label }}">{{ form.theme.label }}</label>
+            {{ form.theme }}
+            <p class="battle-form__help">One compelling sentence. The chefs and audience should understand the challenge instantly.</p>
+            {% for e in form.theme.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
+          </div>
+
+          <div class="battle-form__field">
+            <label class="battle-form__label" for="{{ form.message.id_for_label }}">
+              {{ form.message.label }}
+              <span class="battle-form__optional">(optional)</span>
+            </label>
+            {{ form.message }}
+            <p class="battle-form__help">Add context, a friendly rivalry note, or a reason for the duel.</p>
+            {% for e in form.message.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
+          </div>
         </div>
 
-        <div class="battle-form__field">
-          <label class="battle-form__label">{{ form.battle_type.label }}</label>
-          {{ form.battle_type }}
-          {% for e in form.battle_type.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
+        <div class="battle-form-section">
+          <p class="battle-form-section__title">Timing</p>
+          <div class="battle-form__field">
+            <label class="battle-form__label" for="{{ form.proposed_start_time.id_for_label }}">
+              {{ form.proposed_start_time.label }}
+              <span class="battle-form__optional">(optional)</span>
+            </label>
+            {{ form.proposed_start_time }}
+            <p class="battle-form__help">Leave blank to start immediately once your opponent accepts.</p>
+            {% for e in form.proposed_start_time.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
+          </div>
         </div>
 
-        <div class="battle-form__field">
-          <label class="battle-form__label" for="{{ form.message.id_for_label }}">
-            {{ form.message.label }}
-            <span class="battle-form__optional">(optional)</span>
-          </label>
-          {{ form.message }}
-          <p class="battle-form__help">A taunt, a backstory, or a reason for the duel. Optional but effective.</p>
-          {% for e in form.message.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
-        </div>
-
-        <div class="battle-form__field">
-          <label class="battle-form__label" for="{{ form.proposed_start_time.id_for_label }}">
-            {{ form.proposed_start_time.label }}
-            <span class="battle-form__optional">(optional)</span>
-          </label>
-          {{ form.proposed_start_time }}
-          <p class="battle-form__help">Leave blank to start immediately once your opponent accepts.</p>
-          {% for e in form.proposed_start_time.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
-        </div>
-
-        <div class="battle-form__actions">
+        <div class="battle-form__actions battle-form__actions--challenge">
           <button class="btn" type="submit">Send Challenge</button>
-          <a class="btn btn--secondary" href="{% url 'chef_battle:home' %}">Cancel</a>
+          <a class="btn btn--secondary" href="{% url 'chef_battle:challenge_list' %}">Cancel</a>
         </div>
       </form>
     </div>

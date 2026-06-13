@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from recipes.models import RecipeAuthor
 
-from .models import Battle, BattleChallenge, BattleEntry, BattleVote
+from .models import Battle, BattleChallenge, BattleEntry, BattleVote, ChefBattleProfile
 from .services import (
     accept_challenge,
     calculate_battle_result,
@@ -120,6 +120,30 @@ class ChefBattleAccessTests(TestCase):
         # challenge_list redirects non-authenticated via @login_required to login;
         # anonymous users hit @chef_battle_guard first → 404
         self.assertEqual(response.status_code, 404)
+
+
+class ChefBattleChallengeCreateViewTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.client = Client()
+        self.user = User.objects.create_user(username="challenge-owner", password="pw", is_staff=True)
+        self.opponent_user = User.objects.create_user(username="challenge-opponent", password="pw")
+        self.author = RecipeAuthor.objects.create(user=self.user, name="Challenge Owner", slug="challenge-owner")
+        self.opponent = RecipeAuthor.objects.create(user=self.opponent_user, name="Challenge Opponent", slug="challenge-opponent")
+        ChefBattleProfile.objects.create(author=self.author, battle_moves=10)
+
+    def test_challenge_create_page_renders_guided_form_layout(self):
+        self.client.login(username="challenge-owner", password="pw")
+
+        response = self.client.get(reverse("chef_battle:challenge_create"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "battle-challenge-layout")
+        self.assertContains(response, "Challenge checklist")
+        self.assertContains(response, "Pending challenges expire after 48 hours.")
+        self.assertContains(response, "Challenge Opponent")
+        self.assertContains(response, 'name="opponent"', html=False)
+        self.assertContains(response, 'name="battle_type"', html=False)
 
 
 class ChefBattleAntiAbuseTests(TestCase):
