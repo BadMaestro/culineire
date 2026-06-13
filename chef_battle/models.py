@@ -402,7 +402,7 @@ class AppreciationGiftType(models.TextChoices):
 
 
 APPRECIATION_GIFT_COST = {
-    AppreciationGiftType.FLOWERS: 5,
+    AppreciationGiftType.FLOWERS: 20,
     AppreciationGiftType.COFFEE: 5,
     AppreciationGiftType.BEER: 10,
     AppreciationGiftType.COCKTAIL: 15,
