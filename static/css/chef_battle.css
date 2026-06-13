@@ -52,6 +52,35 @@
   gap: 0.7rem;
 }
 
+.battle-hero .battle-actions .btn-primary,
+.battle-hero .battle-actions .btn-secondary {
+  min-height: 44px;
+  padding: 0.42rem 0.82rem;
+  border: 1px solid rgb(255 255 255 / 0.16);
+  border-radius: var(--radius-pill);
+  background: rgb(247 242 234 / 0.03);
+  color: #fff8ee;
+  box-shadow: none;
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  transition:
+    background-color 0.32s ease,
+    border-color 0.32s ease,
+    color 0.32s ease;
+}
+
+.battle-hero .battle-actions .btn-primary:hover,
+.battle-hero .battle-actions .btn-primary:focus-visible,
+.battle-hero .battle-actions .btn-secondary:hover,
+.battle-hero .battle-actions .btn-secondary:focus-visible {
+  background: rgb(247 242 234 / 0.26);
+  border-color: rgb(255 255 255 / 0.24);
+  color: #ffffff;
+  transform: none;
+}
+
 .battle-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.36fr);
