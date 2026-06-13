@@ -7,6 +7,7 @@ app_name = "chef_battle"
 urlpatterns = [
     path("", views.battle_home, name="home"),
     path("rules/", views.battle_rules, name="rules"),
+    path("tokens/", views.token_shop, name="token_shop"),
     path("roadmap/", views.battlefield_progress, name="battlefield_progress"),
     path("rankings/", views.rankings, name="rankings"),
     path("challenges/", views.challenge_list, name="challenge_list"),

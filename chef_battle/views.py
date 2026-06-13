@@ -232,6 +232,21 @@ def battlefield_progress(request):
 
 
 @chef_battle_guard
+def token_shop(request):
+    from .models import TokenPackage
+    packages = TokenPackage.objects.filter(is_active=True).order_by("sort_order", "tokens")
+    viewer_author = get_author_for_user(request.user)
+    wallet = None
+    if viewer_author:
+        from .models import TokenWallet
+        wallet = TokenWallet.objects.filter(chef=viewer_author).first()
+    return render(request, "chef_battle/token_shop.html", {
+        "packages": packages,
+        "wallet": wallet,
+    })
+
+
+@chef_battle_guard
 def battle_rules(request):
     from .services import _DROP_WEIGHTS_WINNER
     from django.templatetags.static import static

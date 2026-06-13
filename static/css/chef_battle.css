@@ -1473,6 +1473,93 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
   margin: 0;
 }
 
+/* ── Token shop ─────────────────────────────────────────────────────────── */
+.token-shop-balance {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  margin-block-end: 2rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface-muted, #f5f5f5);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.token-shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1.25rem;
+  margin-block-end: 2rem;
+}
+.token-shop-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem 1rem 1.25rem;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  text-align: center;
+}
+.token-shop-card--featured {
+  border-color: var(--color-success, #1a6b3a);
+  box-shadow: 0 0 0 2px var(--color-success, #1a6b3a);
+}
+.token-shop-card__badge {
+  position: absolute;
+  top: -0.65rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-success, #1a6b3a);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.65rem;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+.token-shop-card__name {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.token-shop-card__tokens {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+.token-shop-card__price {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-success, #1a6b3a);
+}
+.token-shop-card__value {
+  font-size: 0.78rem;
+  color: var(--color-muted);
+}
+.token-shop-card__btn {
+  margin-top: 0.5rem;
+  width: 100%;
+}
+.token-shop-notice {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  line-height: 1.6;
+  padding: 1rem;
+  background: var(--surface-muted, #f5f5f5);
+  border-radius: 8px;
+  margin-block-end: 2rem;
+}
+.token-shop-notice p { margin: 0 0 0.4rem; }
+.token-shop-notice p:last-child { margin: 0; }
+
 /* ── Rules page ─────────────────────────────────────────────────────────── */
 .battle-rules-section {
   margin-block-end: 2.5rem;
