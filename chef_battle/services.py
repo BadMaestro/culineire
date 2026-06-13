@@ -1131,7 +1131,7 @@ def drop_battle_artifacts(battle: Battle) -> list:
     if winner:
         participants.append((winner, _DROP_WEIGHTS_WINNER, True))
     if loser and random.random() < 0.50:
-        participants.append((loser, _DROP_WEIGHTS_LOSER, False))
+        participants.append((loser, _DROP_WEIGHTS_WINNER, False))
 
     for chef, weights, guaranteed in participants:
         artifact = _pick_artifact(chef, weights, guaranteed=guaranteed)

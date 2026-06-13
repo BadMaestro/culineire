@@ -233,13 +233,12 @@ def battlefield_progress(request):
 
 @chef_battle_guard
 def battle_rules(request):
-    from .services import _DROP_WEIGHTS_WINNER, _DROP_WEIGHTS_LOSER
+    from .services import _DROP_WEIGHTS_WINNER
     from django.templatetags.static import static
     drop_table = [
         {
             "rarity": rarity,
-            "winner_pct": _DROP_WEIGHTS_WINNER[rarity],
-            "loser_pct": _DROP_WEIGHTS_LOSER[rarity],
+            "pct": _DROP_WEIGHTS_WINNER[rarity],
             "icon": static(f"images/chef_battle/rarity_{rarity}.svg"),
         }
         for rarity in ["common", "uncommon", "rare", "epic", "legendary"]

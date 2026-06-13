@@ -148,8 +148,9 @@
       <thead>
         <tr>
           <th>Rarity</th>
-          <th>Winner (guaranteed)</th>
-          <th>Loser (50% chance)</th>
+          <th>Drop chance</th>
+          <th>Winner</th>
+          <th>Loser</th>
         </tr>
       </thead>
       <tbody>
@@ -160,14 +161,15 @@
                  style="vertical-align:middle; margin-right:0.3rem;">
             {{ row.rarity|capfirst }}
           </td>
-          <td>{{ row.winner_pct }}%</td>
-          <td>{{ row.loser_pct }}%</td>
+          <td>{{ row.pct }}%</td>
+          <td style="color: var(--color-success, #1a6b3a); font-weight: 600;">Guaranteed</td>
+          <td style="color: var(--color-muted);">50% chance</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
     <p style="font-size: 0.85rem; color: var(--color-muted); margin-top: 0.5rem;">
-      Percentages show the rarity of the drop <em>if</em> a drop occurs. Winner always drops. Loser drops in half of all battles.
+      Both chefs draw from the same rarity table. The winner always receives a drop. The loser receives a drop in 50% of battles.
     </p>
   </section>
 
