@@ -139,17 +139,17 @@
     <h2>11. Artifact Drops</h2>
     <p>After every completed battle, chefs receive a random artifact from the arena vault.</p>
     <ul>
-      <li>The winner always receives a drop.</li>
-      <li>The loser has a 50% chance of receiving a consolation drop.</li>
-      <li>Artifacts cannot be duplicated. If all artifacts of a given rarity are already owned, the system draws from another rarity.</li>
+      <li><strong>Winner: guaranteed drop.</strong> The winner always receives at least one artifact. If all artifacts of the selected rarity are already owned, the system picks from any remaining rarity.</li>
+      <li><strong>Loser: 50% chance</strong> of a consolation drop. Nothing is guaranteed for the losing chef.</li>
+      <li>Artifacts cannot be duplicated. A chef cannot receive an artifact they already own.</li>
       <li>Artifacts are displayed permanently on the chef's profile.</li>
     </ul>
     <table class="battle-rules-table" style="margin-top: 1rem;">
       <thead>
         <tr>
           <th>Rarity</th>
-          <th>Winner drop chance</th>
-          <th>Loser drop chance</th>
+          <th>Winner (guaranteed)</th>
+          <th>Loser (50% chance)</th>
         </tr>
       </thead>
       <tbody>
@@ -166,6 +166,9 @@
         {% endfor %}
       </tbody>
     </table>
+    <p style="font-size: 0.85rem; color: var(--color-muted); margin-top: 0.5rem;">
+      Percentages show the rarity of the drop <em>if</em> a drop occurs. Winner always drops. Loser drops in half of all battles.
+    </p>
   </section>
 
   {# ── 12. Artifacts ── #}

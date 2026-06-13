@@ -1089,8 +1089,12 @@ _DROP_WEIGHTS_LOSER = {
 }
 
 
-def _pick_artifact(chef, weights: dict):
-    """Pick a random artifact the chef doesn't already own, weighted by rarity."""
+def _pick_artifact(chef, weights: dict, guaranteed: bool = False):
+    """Pick a random artifact the chef doesn't already own, weighted by rarity.
+
+    If guaranteed=True and weighted sampling fails (rarity pool exhausted),
+    fall back to any unowned artifact so the winner always receives a drop.
+    """
     import random
     rarities = list(weights.keys())
     rarity_weights = list(weights.values())
@@ -1104,11 +1108,20 @@ def _pick_artifact(chef, weights: dict):
         )
         if candidates:
             return random.choice(candidates)
+    if guaranteed:
+        # Fallback: pick any unowned active artifact
+        fallback = list(Artifact.objects.filter(is_active=True).exclude(id__in=owned_ids))
+        if fallback:
+            return random.choice(fallback)
     return None
 
 
 def drop_battle_artifacts(battle: Battle) -> list:
-    """Award random artifact drops to participants after a completed battle."""
+    """Award random artifact drops to participants after a completed battle.
+
+    Winner always receives a drop (guaranteed=True).
+    Loser has a 50% chance of a consolation drop.
+    """
     import random
     drops = []
     winner = battle.winner
@@ -1116,12 +1129,12 @@ def drop_battle_artifacts(battle: Battle) -> list:
 
     participants = []
     if winner:
-        participants.append((winner, _DROP_WEIGHTS_WINNER))
+        participants.append((winner, _DROP_WEIGHTS_WINNER, True))
     if loser and random.random() < 0.50:
-        participants.append((loser, _DROP_WEIGHTS_LOSER))
+        participants.append((loser, _DROP_WEIGHTS_LOSER, False))
 
-    for chef, weights in participants:
-        artifact = _pick_artifact(chef, weights)
+    for chef, weights, guaranteed in participants:
+        artifact = _pick_artifact(chef, weights, guaranteed=guaranteed)
         if artifact is None:
             continue
         ca = ChefArtifact.objects.create(
