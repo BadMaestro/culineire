@@ -13,155 +13,216 @@
 {% endblock %}
 
 {% block content %}
-<section class="hero hero--home">
+<section class="hero hero--home hero--legal">
     <div aria-hidden="true" class="hero__background">
         <img alt="" src="{% static 'images/hero-contact.png' %}">
     </div>
     <div aria-hidden="true" class="hero__overlay"></div>
     <div class="container hero__inner">
         <div class="hero-copy">
-            <span class="pill">Legal</span>
+            <span class="pill">Report</span>
             <h1 class="hero-title">Report Content</h1>
-            <p class="hero-subtitle">Report copyright infringement or a content policy violation.</p>
+            <p class="hero-subtitle">Report copyright infringement, stolen images, privacy concerns, or policy violations.</p>
             <div class="hero__actions">
-                {% if can_view_amuse_bouche_public_area %}
-                <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
-                {% endif %}
-                <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
-                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
-                <a class="btn-secondary" href="{% url 'sponsors:puzzle' %}">Sponsors</a>
+                <a class="btn-primary" href="{% url 'legal:legal_hub' %}">Legal Hub</a>
+                <a class="btn-secondary" href="{% url 'legal:copyright_image_rights_guide' %}">Image Rights</a>
+                <a class="btn-secondary" href="{% url 'legal:content_publishing_rules' %}">Publishing Rules</a>
+                <a class="btn-secondary" href="{% url 'legal:company_information' %}">Company Info</a>
             </div>
         </div>
     </div>
 </section>
 
-<section class="page-section authoring-page">
-    <div class="container authoring-shell">
+<section class="legal-shell legal-shell--report" aria-labelledby="report-content-title">
 
-        {% if rate_limited %}
-        <div class="authoring-errors" role="alert" style="margin-bottom:2rem;">
-            <p>Too many submissions from your IP address. Please wait before trying again.</p>
+    <div class="legal-intro legal-intro--policy">
+        <span class="legal-eyebrow">Copyright and policy issues</span>
+        <h2 id="report-content-title">Submit a Clear Report</h2>
+        <p>
+            Use this form to report copyright infringement, watermarked or stolen images,
+            uncredited recipes, privacy concerns, impersonation, spam, or other content that violates
+            CulinEire's policies. We treat reports seriously and review them within a reasonable timeframe.
+        </p>
+    </div>
+
+    <div class="legal-summary-panel" aria-label="Report content summary">
+        <div class="legal-summary-item">
+            <span>Best for</span>
+            <strong>Copyright and policy issues</strong>
         </div>
-        {% endif %}
+        <div class="legal-summary-item">
+            <span>Evidence</span>
+            <strong>URLs and source links help</strong>
+        </div>
+        <div class="legal-summary-item">
+            <span>Declaration</span>
+            <strong>Good faith required</strong>
+        </div>
+        <div class="legal-summary-item">
+            <span>Follow-up</span>
+            <strong>Email may be used</strong>
+        </div>
+    </div>
 
-        {% if submitted %}
-        <div class="authoring-section" style="text-align:center;padding:3rem 1rem;">
-            <p style="font-size:1.1rem;font-weight:600;color:var(--brand);">Your report has been received.</p>
-            <p style="margin-top:0.75rem;color:var(--text-muted);">
+    {% if rate_limited %}
+    <div class="legal-report-alert" role="alert">
+        <strong>Too many submissions.</strong>
+        <span>Please wait before trying again.</span>
+    </div>
+    {% endif %}
+
+    {% if submitted %}
+    <article class="legal-card legal-card--section legal-report-success" aria-live="polite">
+        <div class="section-header">
+            <h2>Your Report Has Been Received</h2>
+        </div>
+        <div class="legal-card__content">
+            <p class="page-subtitle">
                 We will review it and take appropriate action. You may receive a follow-up email if we need more information.
             </p>
-            <p style="margin-top:1.5rem;">
+            <p class="legal-report-success__actions">
                 <a class="btn-primary" href="{% url 'legal:legal_hub' %}">Back to Legal</a>
+                <a class="btn-secondary" href="{% url 'legal:report_content' %}">Submit Another Report</a>
             </p>
         </div>
-        {% else %}
+    </article>
+    {% else %}
 
-        <div class="section-header">
-            <span class="section-kicker">Copyright and Policy Issues</span>
-            <h2>Submit a Report</h2>
+    <details class="legal-mobile-jump">
+        <summary>What to include in your report</summary>
+        <div class="legal-mobile-jump__links">
+            <a href="#report-guidance">Guidance</a>
+            <a href="#report-form">Report Form</a>
+            <a href="#declaration">Declaration</a>
         </div>
-        <p class="page-subtitle">
-            Use this form to report copyright infringement, watermarked or stolen images,
-            uncredited recipes, privacy concerns, or other content that violates CulinEire's policies.
-            We treat reports seriously and will review them within a reasonable timeframe.
-        </p>
-        <p class="page-subtitle">
-            If you are a rights holder submitting a formal takedown request, please include
-            your name, the original source of the work, and the URL of the infringing content.
-            For privacy-related complaints you may also contact us at
-            <a href="mailto:culineire@bearcave.ie">culineire@bearcave.ie</a>.
-        </p>
+    </details>
 
-        <form class="authoring-form" data-validate method="post" style="margin-top:2rem;">
-            {% csrf_token %}
-            {{ form.website }}
-
-            {% if form.non_field_errors %}
-            <div class="authoring-errors" role="alert">
-                {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+    <div class="legal-document-layout legal-report-layout">
+        <aside class="legal-report-guide" id="report-guidance" aria-label="Report content guidance">
+            <span class="legal-toc__label">Before you submit</span>
+            <div class="legal-report-guide__section">
+                <h3>What you can report</h3>
+                <ul class="legal-list">
+                    <li>Copyright infringement or copied recipe text.</li>
+                    <li>Watermarked, stolen, or unlicensed images.</li>
+                    <li>Privacy, impersonation, defamation, food safety, spam, or abuse concerns.</li>
+                </ul>
             </div>
-            {% endif %}
-
-            <fieldset class="authoring-section">
-                <legend>Your Details</legend>
-                <div class="authoring-grid authoring-grid--two">
-                    <div class="authoring-field">
-                        <label for="{{ form.reporter_name.id_for_label }}">{{ form.reporter_name.label }}:</label>
-                        {{ form.reporter_name }}
-                        {% for error in form.reporter_name.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
-                    </div>
-                    <div class="authoring-field">
-                        <label for="{{ form.reporter_email.id_for_label }}">{{ form.reporter_email.label }}:</label>
-                        {{ form.reporter_email }}
-                        {% for error in form.reporter_email.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
-                    </div>
-                    <div class="authoring-field authoring-field--wide">
-                        <label for="{{ form.organisation.id_for_label }}">{{ form.organisation.label }}:</label>
-                        {{ form.organisation }}
-                        {% for error in form.organisation.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
-                    </div>
-                </div>
-            </fieldset>
-
-            <fieldset class="authoring-section">
-                <legend>The Issue</legend>
-                <div class="authoring-grid authoring-grid--two">
-                    <div class="authoring-field">
-                        <label for="{{ form.report_type.id_for_label }}">{{ form.report_type.label }}:</label>
-                        {{ form.report_type }}
-                        {% for error in form.report_type.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
-                    </div>
-                    <div class="authoring-field">
-                        <label for="{{ form.reported_url.id_for_label }}">{{ form.reported_url.label }}:</label>
-                        {{ form.reported_url }}
-                        {% for error in form.reported_url.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
-                    </div>
-                    <div class="authoring-field">
-                        <label for="{{ form.evidence_url.id_for_label }}">{{ form.evidence_url.label }}:</label>
-                        {{ form.evidence_url }}
-                        {% for error in form.evidence_url.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
-                    </div>
-                    <div class="authoring-field authoring-field--wide">
-                        <label for="{{ form.description.id_for_label }}">{{ form.description.label }}:</label>
-                        {{ form.description }}
-                        {% if form.description.help_text %}<p class="authoring-help">{{ form.description.help_text }}</p>{% endif %}
-                        {% for error in form.description.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
-                    </div>
-                </div>
-            </fieldset>
-
-            <fieldset class="authoring-section">
-                <legend>Declaration</legend>
-                <div class="authoring-field">
-                    <label class="authoring-checkbox-label">
-                        {{ form.good_faith_confirmed }}
-                        <span>{{ form.good_faith_confirmed.label }}</span>
-                    </label>
-                    {% for error in form.good_faith_confirmed.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
-                </div>
-                <p class="authoring-help" style="margin-top:0.5rem;">
-                    Submitting a false or malicious report may constitute a breach of CulinEire's policies
-                    and could have legal consequences under Irish and EU law.
-                </p>
-            </fieldset>
-
-            {% if turnstile_error %}
-            <div class="authoring-errors" role="alert">
-                <p>Security check failed. Please try again.</p>
+            <div class="legal-report-guide__section">
+                <h3>Useful evidence</h3>
+                <ul class="legal-list">
+                    <li>The CulinEire page URL you are reporting.</li>
+                    <li>The original source URL or permission reference if available.</li>
+                    <li>A clear explanation of what appears to be wrong.</li>
+                </ul>
             </div>
-            {% endif %}
+            <p>
+                If you are a rights holder submitting a formal takedown request, include your name,
+                the original source of the work, and the URL of the content you believe is infringing.
+            </p>
+        </aside>
 
-            <div class="authoring-actions">
-                {% if turnstile_site_key %}
-                <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="light"></div>
+        <div class="legal-report-form-column" id="report-form">
+            <div class="section-header">
+                <span class="section-kicker">Report form</span>
+                <h2>Content Report Details</h2>
+            </div>
+            <p class="page-subtitle">
+                For privacy-related complaints you may also contact us directly at
+                <a href="mailto:culineire@bearcave.ie">culineire@bearcave.ie</a>.
+            </p>
+
+            <form class="authoring-form legal-report-form" data-validate method="post">
+                {% csrf_token %}
+                {{ form.website }}
+
+                {% if form.non_field_errors %}
+                <div class="authoring-errors" role="alert">
+                    {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+                </div>
                 {% endif %}
-                <div class="authoring-actions__buttons">
-                    <a class="authoring-link" href="{% url 'legal:legal_hub' %}">Cancel</a>
-                    <button class="authoring-submit" type="submit">Submit Report</button>
+
+                <fieldset class="authoring-section">
+                    <legend>Your Details</legend>
+                    <div class="authoring-grid authoring-grid--two">
+                        <div class="authoring-field">
+                            <label for="{{ form.reporter_name.id_for_label }}">{{ form.reporter_name.label }}:</label>
+                            {{ form.reporter_name }}
+                            {% for error in form.reporter_name.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                        </div>
+                        <div class="authoring-field">
+                            <label for="{{ form.reporter_email.id_for_label }}">{{ form.reporter_email.label }}:</label>
+                            {{ form.reporter_email }}
+                            {% for error in form.reporter_email.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                        </div>
+                        <div class="authoring-field authoring-field--wide">
+                            <label for="{{ form.organisation.id_for_label }}">{{ form.organisation.label }}:</label>
+                            {{ form.organisation }}
+                            {% for error in form.organisation.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset class="authoring-section">
+                    <legend>The Issue</legend>
+                    <div class="authoring-grid authoring-grid--two">
+                        <div class="authoring-field">
+                            <label for="{{ form.report_type.id_for_label }}">{{ form.report_type.label }}:</label>
+                            {{ form.report_type }}
+                            {% for error in form.report_type.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                        </div>
+                        <div class="authoring-field">
+                            <label for="{{ form.reported_url.id_for_label }}">{{ form.reported_url.label }}:</label>
+                            {{ form.reported_url }}
+                            {% for error in form.reported_url.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                        </div>
+                        <div class="authoring-field">
+                            <label for="{{ form.evidence_url.id_for_label }}">{{ form.evidence_url.label }}:</label>
+                            {{ form.evidence_url }}
+                            {% for error in form.evidence_url.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                        </div>
+                        <div class="authoring-field authoring-field--wide">
+                            <label for="{{ form.description.id_for_label }}">{{ form.description.label }}:</label>
+                            {{ form.description }}
+                            {% if form.description.help_text %}<p class="authoring-help">{{ form.description.help_text }}</p>{% endif %}
+                            {% for error in form.description.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset class="authoring-section" id="declaration">
+                    <legend>Declaration</legend>
+                    <div class="authoring-field">
+                        <label class="authoring-checkbox-label">
+                            {{ form.good_faith_confirmed }}
+                            <span>{{ form.good_faith_confirmed.label }}</span>
+                        </label>
+                        {% for error in form.good_faith_confirmed.errors %}<p class="authoring-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <p class="authoring-help">
+                        Submitting a false or malicious report may constitute a breach of CulinEire's policies
+                        and could have legal consequences under Irish and EU law.
+                    </p>
+                </fieldset>
+
+                {% if turnstile_error %}
+                <div class="authoring-errors" role="alert">
+                    <p>Security check failed. Please try again.</p>
                 </div>
-            </div>
-        </form>
-        {% endif %}
+                {% endif %}
+
+                <div class="authoring-actions">
+                    {% if turnstile_site_key %}
+                    <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="light"></div>
+                    {% endif %}
+                    <div class="authoring-actions__buttons">
+                        <a class="authoring-link" href="{% url 'legal:legal_hub' %}">Cancel</a>
+                        <button class="authoring-submit" type="submit">Submit Report</button>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
+    {% endif %}
 </section>
 {% endblock %}

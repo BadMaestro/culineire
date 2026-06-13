@@ -824,6 +824,7 @@
   .legal-shell--terms,
   .legal-shell--cookies,
   .legal-shell--company,
+  .legal-shell--report,
   .legal-shell--hub {
     width: min(1180px, calc(100% - 2rem));
   }
@@ -832,6 +833,7 @@
   .legal-shell--terms .legal-intro--policy,
   .legal-shell--cookies .legal-intro--policy,
   .legal-shell--company .legal-intro--policy,
+  .legal-shell--report .legal-intro--policy,
   .legal-shell--hub .legal-intro--hub {
     max-width: 78ch;
     padding: clamp(1.2rem, 2.6vw, 1.8rem);
@@ -1041,7 +1043,8 @@
   .legal-shell--privacy .legal-card-grid--document,
   .legal-shell--terms .legal-card-grid--document,
   .legal-shell--cookies .legal-card-grid--document,
-  .legal-shell--company .legal-card-grid--document {
+  .legal-shell--company .legal-card-grid--document,
+  .legal-shell--report .legal-card-grid--document {
     counter-reset: legal-section;
     grid-template-columns: 1fr;
     gap: 0.8rem;
@@ -1051,7 +1054,8 @@
   .legal-shell--privacy .legal-card--section,
   .legal-shell--terms .legal-card--section,
   .legal-shell--cookies .legal-card--section,
-  .legal-shell--company .legal-card--section {
+  .legal-shell--company .legal-card--section,
+  .legal-shell--report .legal-card--section {
     counter-increment: legal-section;
     min-height: auto;
     padding: clamp(1.05rem, 2vw, 1.45rem) clamp(1.05rem, 2vw, 1.55rem);
@@ -1067,21 +1071,24 @@
   .legal-shell--privacy .legal-card--section-wide,
   .legal-shell--terms .legal-card--section-wide,
   .legal-shell--cookies .legal-card--section-wide,
-  .legal-shell--company .legal-card--section-wide {
+  .legal-shell--company .legal-card--section-wide,
+  .legal-shell--report .legal-card--section-wide {
     grid-column: auto;
   }
 
   .legal-shell--privacy .legal-card--section .section-header,
   .legal-shell--terms .legal-card--section .section-header,
   .legal-shell--cookies .legal-card--section .section-header,
-  .legal-shell--company .legal-card--section .section-header {
+  .legal-shell--company .legal-card--section .section-header,
+  .legal-shell--report .legal-card--section .section-header {
     padding-block-end: 0.55rem;
   }
 
   .legal-shell--privacy .legal-card--section .section-header h2,
   .legal-shell--terms .legal-card--section .section-header h2,
   .legal-shell--cookies .legal-card--section .section-header h2,
-  .legal-shell--company .legal-card--section .section-header h2 {
+  .legal-shell--company .legal-card--section .section-header h2,
+  .legal-shell--report .legal-card--section .section-header h2 {
     display: flex;
     align-items: baseline;
     gap: 0.7rem;
@@ -1091,7 +1098,8 @@
   .legal-shell--privacy .legal-card--section .section-header h2::before,
   .legal-shell--terms .legal-card--section .section-header h2::before,
   .legal-shell--cookies .legal-card--section .section-header h2::before,
-  .legal-shell--company .legal-card--section .section-header h2::before {
+  .legal-shell--company .legal-card--section .section-header h2::before,
+  .legal-shell--report .legal-card--section .section-header h2::before {
     content: counter(legal-section, decimal-leading-zero);
     flex: 0 0 auto;
     color: var(--legal-accent);
@@ -1104,7 +1112,8 @@
   .legal-shell--privacy .legal-card__content,
   .legal-shell--terms .legal-card__content,
   .legal-shell--cookies .legal-card__content,
-  .legal-shell--company .legal-card__content {
+  .legal-shell--company .legal-card__content,
+  .legal-shell--report .legal-card__content {
     max-width: 76ch;
   }
 
@@ -1164,6 +1173,127 @@
     line-height: 1.62;
   }
 
+  .legal-report-alert {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.55rem;
+    margin-block-start: clamp(1rem, 2.2vw, 1.4rem);
+    padding: 0.9rem 1rem;
+    border: 1px solid rgb(122 51 44 / 0.18);
+    border-left: 4px solid rgb(122 51 44 / 0.58);
+    border-radius: 0.85rem;
+    color: #7a332c;
+    background: rgb(122 51 44 / 0.07);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .legal-report-alert strong,
+  .legal-report-alert span {
+    display: inline-block;
+  }
+
+  .legal-report-layout {
+    grid-template-columns: minmax(15rem, 17.5rem) minmax(0, 1fr);
+  }
+
+  .legal-report-guide {
+    position: sticky;
+    top: 5.25rem;
+    display: grid;
+    gap: 0.95rem;
+    padding: 1rem;
+    border: 1px solid var(--legal-line);
+    border-radius: var(--ce-card-radius);
+    background: rgb(250 248 244 / 0.92);
+    box-shadow: var(--ce-card-shadow);
+  }
+
+  .legal-report-guide__section {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .legal-report-guide h3 {
+    margin: 0;
+    color: var(--legal-ink);
+    font-size: 0.92rem;
+    line-height: 1.35;
+  }
+
+  .legal-report-guide .legal-list {
+    padding-inline-start: 1rem;
+  }
+
+  .legal-report-guide .legal-list li,
+  .legal-report-guide p {
+    margin: 0;
+    color: var(--legal-muted);
+    font-size: 0.8rem;
+    line-height: 1.58;
+  }
+
+  .legal-report-form-column {
+    min-width: 0;
+  }
+
+  .legal-report-form-column > .section-header {
+    margin: 0 0 0.75rem;
+    padding: 0 0 0.55rem;
+    border-bottom: 1px solid var(--legal-line);
+    background: transparent;
+    box-shadow: none;
+    text-align: left;
+  }
+
+  .legal-report-form-column > .section-header h2 {
+    margin: 0;
+    color: var(--legal-ink);
+    font-size: clamp(1.2rem, 1.8vw, 1.48rem);
+    text-align: left;
+  }
+
+  .legal-report-form-column > .page-subtitle {
+    margin: 0 0 1rem;
+    color: var(--legal-muted);
+    font-size: 0.9rem;
+    line-height: 1.65;
+    text-align: left;
+  }
+
+  .legal-report-form {
+    margin: 0;
+  }
+
+  .legal-report-form .authoring-checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    color: #1f2c25;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.5;
+    cursor: pointer;
+  }
+
+  .legal-report-form .authoring-checkbox-label input {
+    flex: 0 0 auto;
+    margin-top: 0.18rem;
+    accent-color: #0b4c3a;
+  }
+
+  .legal-report-success {
+    max-width: 760px;
+    margin: clamp(1.5rem, 3vw, 2.2rem) auto 0;
+  }
+
+  .legal-report-success__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    margin: 0;
+  }
+
   @media (max-width: 980px) {
     .legal-card-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1180,6 +1310,10 @@
     .legal-toc,
     .legal-document-layout > .legal-toc {
       display: none;
+    }
+
+    .legal-report-guide {
+      position: static;
     }
 
     .legal-mobile-jump {
@@ -1246,6 +1380,7 @@
     .legal-shell--terms,
     .legal-shell--cookies,
     .legal-shell--company,
+    .legal-shell--report,
     .legal-shell--hub {
       width: min(100% - 1.25rem, 1180px);
     }
@@ -1254,6 +1389,7 @@
     .legal-shell--terms .legal-intro--policy,
     .legal-shell--cookies .legal-intro--policy,
     .legal-shell--company .legal-intro--policy,
+    .legal-shell--report .legal-intro--policy,
     .legal-shell--hub .legal-intro--hub {
       padding: 1rem;
       text-align: left;
@@ -1271,15 +1407,22 @@
     .legal-shell--privacy .legal-card--section .section-header h2,
     .legal-shell--terms .legal-card--section .section-header h2,
     .legal-shell--cookies .legal-card--section .section-header h2,
-    .legal-shell--company .legal-card--section .section-header h2 {
+    .legal-shell--company .legal-card--section .section-header h2,
+    .legal-shell--report .legal-card--section .section-header h2 {
       gap: 0.55rem;
     }
 
     .legal-shell--privacy .legal-card__content,
     .legal-shell--terms .legal-card__content,
     .legal-shell--cookies .legal-card__content,
-    .legal-shell--company .legal-card__content {
+    .legal-shell--company .legal-card__content,
+    .legal-shell--report .legal-card__content {
       max-width: none;
+    }
+
+    .legal-report-success__actions {
+      flex-direction: column;
+      align-items: stretch;
     }
 
     .legal-card-grid--hub {

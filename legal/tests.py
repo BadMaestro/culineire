@@ -133,6 +133,25 @@ class LegalPublicAccessTests(TestCase):
         # Must not redirect to login page
         self.assertNotIn("/accounts/login/", response.get("Location", ""))
 
+    def test_report_content_page_uses_report_layout(self):
+        response = self.client.get(reverse("legal:report_content"))
+        html = response.content.decode("utf-8")
+        hero = html.split('<section class="hero hero--home hero--legal"', 1)[1].split("</section>", 1)[0]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="legal-shell legal-shell--report"')
+        self.assertContains(response, 'class="legal-summary-panel"')
+        self.assertContains(response, 'class="legal-mobile-jump"')
+        self.assertContains(response, 'class="legal-document-layout legal-report-layout"')
+        self.assertContains(response, 'class="legal-report-guide"')
+        self.assertContains(response, 'class="authoring-form legal-report-form"')
+        self.assertIn(reverse("legal:legal_hub"), hero)
+        self.assertIn(reverse("legal:copyright_image_rights_guide"), hero)
+        self.assertIn(reverse("legal:content_publishing_rules"), hero)
+        self.assertIn(reverse("legal:company_information"), hero)
+        self.assertNotIn("Explore Recipes", hero)
+        self.assertNotIn("Sponsors", hero)
+
     def test_privacy_public(self):
         response = self.client.get(reverse("privacy"))
         self.assertEqual(response.status_code, 200)
