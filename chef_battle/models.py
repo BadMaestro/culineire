@@ -24,19 +24,19 @@ class ChefBattleProfile(models.Model):
 
     class PrestigeTitle(models.TextChoices):
         NONE = "", "None"
-        CHALLENGER = "challenger", "The Challenger"
-        VETERAN = "veteran", "The Veteran"
-        IRON_CHEF = "iron_chef", "The Iron Chef"
-        MASTER = "master", "The Master"
-        LEGEND = "legend", "The Legend"
+        KITCHEN_PORTER = "kitchen_porter", "Kitchen Porter"
+        COMMIS_CHEF = "commis_chef", "Commis Chef"
+        CHEF_DE_PARTIE = "chef_de_partie", "Chef de Partie"
+        SOUS_CHEF = "sous_chef", "Sous Chef"
+        HEAD_CHEF = "head_chef", "Head Chef"
 
     # wins threshold for each prestige title
     PRESTIGE_THRESHOLDS = [
-        (15, PrestigeTitle.LEGEND),
-        (10, PrestigeTitle.MASTER),
-        (6, PrestigeTitle.IRON_CHEF),
-        (3, PrestigeTitle.VETERAN),
-        (1, PrestigeTitle.CHALLENGER),
+        (15, PrestigeTitle.HEAD_CHEF),
+        (10, PrestigeTitle.SOUS_CHEF),
+        (6, PrestigeTitle.CHEF_DE_PARTIE),
+        (3, PrestigeTitle.COMMIS_CHEF),
+        (1, PrestigeTitle.KITCHEN_PORTER),
     ]
 
     WINS_PER_LEVEL = 3
