@@ -13,7 +13,7 @@ from newsfeed.models import NewsFeedEntry
 
 from .models import (
     APPRECIATION_GIFT_COST, Artifact, Battle, BattleChallenge, BattleCombatAction,
-    BattleEntry, BattleEvent, BattleRound, ChefBattleProfile, IngredientLock,
+    BattleEntry, BattleEvent, BattleRound, ChefArtifact, ChefBattleProfile, IngredientLock,
     IngredientShot, AppreciationGift, ViewerBattleGift, TokenTransaction, TokenWallet,
 )
 
@@ -511,6 +511,7 @@ def calculate_battle_result(battle: Battle) -> Battle:
             f"Battle room: {battle_url}"
         ),
     )
+    drop_battle_artifacts(battle)
     return battle
 
 
@@ -1069,3 +1070,71 @@ def send_appreciation_gift(*, sender_user, recipient, gift_type: str, message: s
             message=message,
         )
     return gift
+
+
+# Rarity weights for artifact drops
+_DROP_WEIGHTS_WINNER = {
+    "common": 35,
+    "uncommon": 30,
+    "rare": 25,
+    "epic": 8,
+    "legendary": 2,
+}
+_DROP_WEIGHTS_LOSER = {
+    "common": 50,
+    "uncommon": 30,
+    "rare": 15,
+    "epic": 4,
+    "legendary": 1,
+}
+
+
+def _pick_artifact(chef, weights: dict):
+    """Pick a random artifact the chef doesn't already own, weighted by rarity."""
+    import random
+    rarities = list(weights.keys())
+    rarity_weights = list(weights.values())
+    owned_ids = set(
+        ChefArtifact.objects.filter(chef=chef).values_list("artifact_id", flat=True)
+    )
+    for _ in range(10):
+        rarity = random.choices(rarities, weights=rarity_weights, k=1)[0]
+        candidates = list(
+            Artifact.objects.filter(rarity=rarity, is_active=True).exclude(id__in=owned_ids)
+        )
+        if candidates:
+            return random.choice(candidates)
+    return None
+
+
+def drop_battle_artifacts(battle: Battle) -> list:
+    """Award random artifact drops to participants after a completed battle."""
+    import random
+    drops = []
+    winner = battle.winner
+    loser = battle.loser
+
+    participants = []
+    if winner:
+        participants.append((winner, _DROP_WEIGHTS_WINNER))
+    if loser and random.random() < 0.50:
+        participants.append((loser, _DROP_WEIGHTS_LOSER))
+
+    for chef, weights in participants:
+        artifact = _pick_artifact(chef, weights)
+        if artifact is None:
+            continue
+        ca = ChefArtifact.objects.create(
+            chef=chef,
+            artifact=artifact,
+            source=ChefArtifact.Source.DROP,
+        )
+        drops.append(ca)
+        create_battle_event(
+            event_type=BattleEvent.EventType.ARTIFACT_DROPPED,
+            battle=battle,
+            actor=chef,
+            message=f"{chef.name} received a {artifact.get_rarity_display()} artifact drop: {artifact.name}.",
+            publish_to_news=False,
+        )
+    return drops

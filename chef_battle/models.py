@@ -299,6 +299,7 @@ class BattleEvent(models.Model):
         CHEF_DEFEATED = "chef_defeated", "Chef Defeated"
         CROWN_AWARDED = "crown_awarded", "Crown Awarded"
         RANK_PROMOTED = "rank_promoted", "Rank Promoted"
+        ARTIFACT_DROPPED = "artifact_dropped", "Artifact Dropped"
 
     battle = models.ForeignKey(Battle, null=True, blank=True, on_delete=models.CASCADE, related_name="events")
     challenge = models.ForeignKey(BattleChallenge, null=True, blank=True, on_delete=models.CASCADE, related_name="events")
@@ -359,10 +360,16 @@ class Artifact(models.Model):
 
 
 class ChefArtifact(models.Model):
+    class Source(models.TextChoices):
+        PURCHASED = "purchased", "Purchased"
+        GIFTED = "gifted", "Gifted"
+        DROP = "drop", "Battle Drop"
+
     chef = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="chef_artifacts")
     artifact = models.ForeignKey(Artifact, on_delete=models.CASCADE, related_name="chef_artifacts")
     earned_at = models.DateTimeField(auto_now_add=True)
     equipped = models.BooleanField(default=False)
+    source = models.CharField(max_length=16, choices=Source.choices, default=Source.PURCHASED)
 
     class Meta:
         constraints = [
