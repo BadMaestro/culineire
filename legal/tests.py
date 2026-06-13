@@ -93,6 +93,25 @@ class LegalPublicAccessTests(TestCase):
     def test_company_information_public(self):
         self._assert_public("legal:company_information")
 
+    def test_company_information_page_uses_document_layout(self):
+        response = self.client.get(reverse("legal:company_information"))
+        html = response.content.decode("utf-8")
+        hero = html.split('<section class="hero hero--home hero--legal"', 1)[1].split("</section>", 1)[0]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="legal-shell legal-shell--company"')
+        self.assertContains(response, 'class="legal-summary-panel"')
+        self.assertContains(response, 'class="legal-mobile-jump"')
+        self.assertContains(response, 'class="legal-document-layout"')
+        self.assertContains(response, 'class="legal-toc"')
+        self.assertContains(response, 'class="legal-card-grid legal-card-grid--document legal-document-main"')
+        self.assertIn(reverse("legal:legal_hub"), hero)
+        self.assertIn(reverse("privacy"), hero)
+        self.assertIn(reverse("legal:terms"), hero)
+        self.assertIn('href="#contact-details"', hero)
+        self.assertNotIn("Explore Recipes", hero)
+        self.assertNotIn("Sponsors", hero)
+
     def test_content_publishing_rules_public(self):
         self._assert_public("legal:content_publishing_rules")
 

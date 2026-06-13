@@ -8,98 +8,173 @@
 {% block meta_description %}Legal notice and company information for CulinEire, operated by Bearcave Limited, registered in Ireland.{% endblock %}
 
 {% block content %}
-<section class="hero hero--home">
+<section class="hero hero--home hero--legal">
     <div aria-hidden="true" class="hero__background">
         <img alt="" src="{% static 'images/hero-contact.png' %}">
     </div>
     <div aria-hidden="true" class="hero__overlay"></div>
     <div class="container hero__inner">
         <div class="hero-copy">
-            <span class="pill">Legal</span>
+            <span class="pill">Company</span>
             <h1 class="hero-title">Company Information</h1>
             <p class="hero-subtitle">Legal notice and registered company details for CulinEire.</p>
             <div class="hero__actions">
-                {% if can_view_amuse_bouche_public_area %}
-                <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
-                {% endif %}
-                <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
-                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
-                <a class="btn-secondary" href="{% url 'sponsors:puzzle' %}">Sponsors</a>
+                <a class="btn-primary" href="{% url 'legal:legal_hub' %}">Legal Hub</a>
+                <a class="btn-secondary" href="{% url 'privacy' %}">Privacy Policy</a>
+                <a class="btn-secondary" href="{% url 'legal:terms' %}">Terms of Use</a>
+                <a class="btn-secondary" href="#contact-details">Contact</a>
             </div>
         </div>
     </div>
 </section>
 
-<section class="page-section">
-    <div class="container">
+<section class="legal-shell legal-shell--company" aria-labelledby="company-information-title">
 
-        <div class="section-header">
-            <span class="section-kicker">Legal Notice</span>
-            <h2>About This Website</h2>
-        </div>
-        <p class="page-subtitle">
-            CulinEire (culineire.ie) is owned and operated by <strong>Bearcave Limited</strong>,
-            a private limited company incorporated in Ireland.
+    <div class="legal-intro legal-intro--policy">
+        <span class="legal-eyebrow">Legal notice</span>
+        <h2 id="company-information-title">About This Website</h2>
+        <p>
+            CulinEire at <a href="https://culineire.ie">culineire.ie</a> is owned and operated by
+            <strong>Bearcave Limited</strong>, a private limited company incorporated in Ireland.
+            This page sets out the registered company details, trading name information,
+            contact routes, and data controller details for the platform.
         </p>
-
-        <div class="section-header">
-            <span class="section-kicker">Registered company</span>
-            <h2>Bearcave Limited</h2>
-        </div>
-        <ul class="legal-list">
-            <li><strong>Company name:</strong> Bearcave Limited</li>
-            <li><strong>Company number:</strong> 658124</li>
-            <li><strong>Registered address:</strong> 2 The Fairways, Tir Cluain, Midleton, Co. Cork, P25 W8W3, Ireland</li>
-            <li><strong>Country of incorporation:</strong> Ireland</li>
-            <li><strong>Registered with:</strong> Companies Registration Office (CRO), Ireland</li>
-        </ul>
-
-        <div class="section-header">
-            <span class="section-kicker">Trading name</span>
-            <h2>CulinEire</h2>
-        </div>
-        <ul class="legal-list">
-            <li><strong>Business name:</strong> CulinEire</li>
-            <li><strong>Business Name Registration No.:</strong> 786815</li>
-            <li><strong>Date of registration:</strong> 28 May 2026</li>
-            <li><strong>Registered with:</strong> Companies Registration Office (CRO), Ireland</li>
-            <li><strong>Website:</strong> <a href="https://culineire.ie">culineire.ie</a></li>
-        </ul>
-
-        <div class="section-header">
-            <span class="section-kicker">Get in touch</span>
-            <h2>Contact Details</h2>
-        </div>
-        <ul class="legal-list">
-            <li><strong>Email:</strong> <a href="mailto:culineire@bearcave.ie">culineire@bearcave.ie</a></li>
-            <li><strong>Postal address:</strong> Bearcave Limited, 2 The Fairways, Tir Cluain, Midleton, Co. Cork, P25 W8W3, Ireland</li>
-        </ul>
-        <p class="page-subtitle">
-            For general enquiries, sponsorship, content reports, or data protection requests, please use the email address above
-            or the <a href="{% url 'messaging:contact' %}">contact form</a> on this website.
-        </p>
-
-        <div class="section-header">
-            <span class="section-kicker">Data protection</span>
-            <h2>Data Controller</h2>
-        </div>
-        <p class="page-subtitle">
-            Bearcave Limited is the data controller for personal data processed through CulinEire.
-            For data protection enquiries, including requests to access, correct, or erase your personal data,
-            please contact <a href="mailto:culineire@bearcave.ie">culineire@bearcave.ie</a>.
-        </p>
-        <p class="page-subtitle">
-            You have the right to lodge a complaint with the Data Protection Commission (DPC) of Ireland
-            if you believe your personal data has been processed in a manner that does not comply with the GDPR.
-            The DPC can be reached at <a href="https://www.dataprotection.ie" rel="noopener noreferrer" target="_blank">www.dataprotection.ie</a>.
-        </p>
-
-        <p class="page-subtitle" style="margin-top:3rem;">
-            <a href="{% url 'legal:legal_hub' %}">Back to Legal</a> &middot;
-            <a href="{% url 'privacy' %}">Privacy Policy</a> &middot;
-            <a href="{% url 'legal:terms' %}">Terms of Use</a>
-        </p>
-
     </div>
+
+    <div class="legal-summary-panel" aria-label="Company information summary">
+        <div class="legal-summary-item">
+            <span>Operator</span>
+            <strong>Bearcave Limited</strong>
+        </div>
+        <div class="legal-summary-item">
+            <span>Company number</span>
+            <strong>658124</strong>
+        </div>
+        <div class="legal-summary-item">
+            <span>Business name</span>
+            <strong>CulinEire / 786815</strong>
+        </div>
+        <div class="legal-summary-item">
+            <span>Jurisdiction</span>
+            <strong>Ireland</strong>
+        </div>
+    </div>
+
+    <details class="legal-mobile-jump">
+        <summary>Jump to a Company Information section</summary>
+        <div class="legal-mobile-jump__links">
+            <a href="#about-this-website">About This Website</a>
+            <a href="#bearcave-limited">Bearcave Limited</a>
+            <a href="#trading-name">Trading Name</a>
+            <a href="#contact-details">Contact Details</a>
+            <a href="#data-controller">Data Controller</a>
+        </div>
+    </details>
+
+    <div class="legal-document-layout">
+        <aside class="legal-toc" aria-label="Company Information sections">
+            <span class="legal-toc__label">On this page</span>
+            <nav>
+                <a href="#about-this-website">About This Website</a>
+                <a href="#bearcave-limited">Bearcave Limited</a>
+                <a href="#trading-name">Trading Name</a>
+                <a href="#contact-details">Contact Details</a>
+                <a href="#data-controller">Data Controller</a>
+            </nav>
+            <p>Company, contact, and data controller details for CulinEire and Bearcave Limited.</p>
+        </aside>
+
+        <div class="legal-card-grid legal-card-grid--document legal-document-main">
+
+            <article class="legal-card legal-card--section" id="about-this-website">
+                <div class="section-header">
+                    <h2>About This Website</h2>
+                </div>
+                <div class="legal-card__content">
+                    <p class="page-subtitle">
+                        CulinEire (culineire.ie) is owned and operated by <strong>Bearcave Limited</strong>,
+                        a private limited company incorporated in Ireland.
+                    </p>
+                </div>
+            </article>
+
+            <article class="legal-card legal-card--section legal-card--section-wide" id="bearcave-limited">
+                <div class="section-header">
+                    <h2>Bearcave Limited</h2>
+                </div>
+                <div class="legal-card__content">
+                    <ul class="legal-list">
+                        <li><strong>Company name:</strong> Bearcave Limited</li>
+                        <li><strong>Company number:</strong> 658124</li>
+                        <li><strong>Registered address:</strong> 2 The Fairways, Tir Cluain, Midleton, Co. Cork, P25 W8W3, Ireland</li>
+                        <li><strong>Country of incorporation:</strong> Ireland</li>
+                        <li><strong>Registered with:</strong> Companies Registration Office (CRO), Ireland</li>
+                    </ul>
+                </div>
+            </article>
+
+            <article class="legal-card legal-card--section legal-card--section-wide" id="trading-name">
+                <div class="section-header">
+                    <h2>CulinEire Trading Name</h2>
+                </div>
+                <div class="legal-card__content">
+                    <ul class="legal-list">
+                        <li><strong>Business name:</strong> CulinEire</li>
+                        <li><strong>Business Name Registration No.:</strong> 786815</li>
+                        <li><strong>Date of registration:</strong> 28 May 2026</li>
+                        <li><strong>Registered with:</strong> Companies Registration Office (CRO), Ireland</li>
+                        <li><strong>Website:</strong> <a href="https://culineire.ie">culineire.ie</a></li>
+                    </ul>
+                </div>
+            </article>
+
+            <article class="legal-card legal-card--section" id="contact-details">
+                <div class="section-header">
+                    <h2>Contact Details</h2>
+                </div>
+                <div class="legal-card__content">
+                    <ul class="legal-list">
+                        <li><strong>Email:</strong> <a href="mailto:culineire@bearcave.ie">culineire@bearcave.ie</a></li>
+                        <li><strong>Postal address:</strong> Bearcave Limited, 2 The Fairways, Tir Cluain, Midleton, Co. Cork, P25 W8W3, Ireland</li>
+                    </ul>
+                    <p class="page-subtitle">
+                        For general enquiries, sponsorship, content reports, or data protection requests, please use the email address above
+                        or the <a href="{% url 'messaging:contact' %}">contact form</a> on this website.
+                    </p>
+                </div>
+            </article>
+
+            <article class="legal-card legal-card--section legal-card--section-wide" id="data-controller">
+                <div class="section-header">
+                    <h2>Data Controller</h2>
+                </div>
+                <div class="legal-card__content">
+                    <p class="page-subtitle">
+                        Bearcave Limited is the data controller for personal data processed through CulinEire.
+                        For data protection enquiries, including requests to access, correct, or erase your personal data,
+                        please contact <a href="mailto:culineire@bearcave.ie">culineire@bearcave.ie</a>.
+                    </p>
+                    <p class="page-subtitle">
+                        You have the right to lodge a complaint with the Data Protection Commission (DPC) of Ireland
+                        if you believe your personal data has been processed in a manner that does not comply with the GDPR.
+                        The DPC can be reached at <a href="https://www.dataprotection.ie" rel="noopener noreferrer" target="_blank">www.dataprotection.ie</a>.
+                    </p>
+                </div>
+            </article>
+
+        </div>
+    </div>
+
+    <aside class="legal-contact-card" aria-label="Related legal pages">
+        <div>
+            <p>
+                <a href="{% url 'legal:legal_hub' %}">Back to Legal</a> &middot;
+                <a href="{% url 'privacy' %}">Privacy Policy</a> &middot;
+                <a href="{% url 'legal:terms' %}">Terms of Use</a> &middot;
+                <a href="{% url 'legal:cookies' %}">Cookie Policy</a>
+            </p>
+        </div>
+    </aside>
+
 </section>
 {% endblock %}
