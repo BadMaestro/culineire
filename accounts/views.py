@@ -329,31 +329,6 @@ def manage_author(request, slug):
         except Exception:
             messages.error(request, f'"{author.name}" has no battle profile.')
 
-    elif action == "grant_incognito":
-        if not can_grant_bearseeker_privileges(request.user):
-            raise Http404
-        try:
-            from chef_battle.models import ChefBattleProfile
-            bp, _ = ChefBattleProfile.objects.get_or_create(author=author)
-            bp.prestige_title = ChefBattleProfile.PrestigeTitle.EXECUTIVE_CHEF
-            bp.save(update_fields=["prestige_title"])
-            messages.success(request, f'"{author.name}" is now Executive Chef.')
-        except Exception:
-            messages.error(request, f'Could not set Incognito for "{author.name}".')
-
-    elif action == "revoke_incognito":
-        if not can_grant_bearseeker_privileges(request.user):
-            raise Http404
-        try:
-            from chef_battle.models import ChefBattleProfile
-            bp = ChefBattleProfile.objects.get(author=author)
-            bp.prestige_title = ChefBattleProfile.PrestigeTitle.NONE
-            bp.recalculate_prestige_title()
-            bp.save(update_fields=["prestige_title"])
-            messages.warning(request, f'Incognito removed from "{author.name}".')
-        except Exception:
-            messages.error(request, f'"{author.name}" has no battle profile.')
-
     elif author.slug == settings.OWNER_SLUG or user.is_superuser:
         raise Http404
 
