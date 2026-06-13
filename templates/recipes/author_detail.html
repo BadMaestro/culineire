@@ -89,9 +89,12 @@
                     <p class="section-kicker">Chef Battle</p>
                     <h2 id="author-battle-summary-title">Arena Record</h2>
                 </div>
+                <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+                <a class="btn-secondary" href="{% url 'chef_battle:chef_profile' slug=author.slug %}">Battle Profile</a>
                 {% if request.user.is_authenticated and not can_manage_author_profile %}
                 <a class="btn-secondary" href="{% url 'chef_battle:challenge_create' %}?opponent={{ author.pk }}">Challenge Chef</a>
                 {% endif %}
+                </div>
             </div>
 
             {% if battle_profile %}

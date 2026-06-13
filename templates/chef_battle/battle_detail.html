@@ -12,17 +12,17 @@
 
     <div class="battle-vs">
       <div class="battle-vs__chef">
-        <span class="battle-vs__name">
+        <a class="battle-vs__name" href="{% url 'chef_battle:chef_profile' slug=battle.challenger.slug %}">
           {% if battle.challenger.battle_profile.has_crown %}&#x1F451; {% endif %}{{ battle.challenger.name }}
-        </span>
+        </a>
         <span class="battle-vs__votes" id="combat-hits-challenger">{{ combat_state.challenger_hits }}</span>
         <span class="battle-vs__label">hits</span>
       </div>
       <div class="battle-vs__divider">VS</div>
       <div class="battle-vs__chef battle-vs__chef--right">
-        <span class="battle-vs__name">
+        <a class="battle-vs__name" href="{% url 'chef_battle:chef_profile' slug=battle.opponent.slug %}">
           {% if battle.opponent.battle_profile.has_crown %}&#x1F451; {% endif %}{{ battle.opponent.name }}
-        </span>
+        </a>
         <span class="battle-vs__votes" id="combat-hits-opponent">{{ combat_state.opponent_hits }}</span>
         <span class="battle-vs__label">hits</span>
       </div>
