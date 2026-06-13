@@ -70,7 +70,7 @@
         <ol class="battle-ranking-mini">
           {% for profile in leaders %}
           <li>
-            <span>{% if profile.has_crown %}&#x1F451; {% endif %}{% if profile.is_founding_chef %}&#x2B50; {% endif %}{{ profile.author.name }}{% executive_badge profile.author %}</span>
+            <span>{% if profile.has_crown %}&#x1F451; {% endif %}{% if profile.is_founding_chef %}&#x2B50; {% endif %}{{ profile.author.name }}{% executive_badge profile.author %}<small class="battle-rank-label">{{ profile.get_rank_display }}</small></span>
             <strong>{{ profile.rating }}</strong>
           </li>
           {% endfor %}

@@ -205,6 +205,14 @@
   list-style: none;
 }
 
+.battle-rank-label {
+  display: block;
+  font-size: 0.72em;
+  color: var(--text-muted, #888);
+  font-weight: 400;
+  line-height: 1.2;
+}
+
 .battle-events {
   display: grid;
   gap: 0.75rem;
