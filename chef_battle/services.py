@@ -1080,14 +1080,6 @@ _DROP_WEIGHTS_WINNER = {
     "epic": 15,
     "legendary": 8,
 }
-_DROP_WEIGHTS_LOSER = {
-    "common": 50,
-    "uncommon": 30,
-    "rare": 15,
-    "epic": 4,
-    "legendary": 1,
-}
-
 
 def _pick_artifact(chef, weights: dict, guaranteed: bool = False):
     """Pick a random artifact the chef doesn't already own, weighted by rarity.

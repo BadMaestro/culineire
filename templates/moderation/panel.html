@@ -625,6 +625,21 @@
                                             <button class="mod-btn mod-btn--delete" name="action" onclick="return confirm('Grant Django superuser privileges to {{ author.user.username }}? This gives full admin access.')" type="submit" value="grant_superuser">Grant Superuser Privileges</button>
                                         </form>
                                     {% endif %}
+                                    {% if can_grant_bearseeker_privileges %}
+                                        {% with bp=author.battle_profile.first %}
+                                        {% if bp and not bp.is_founding_chef %}
+                                        <form action="{% url 'accounts:manage_author' author.slug %}" class="moderation-author-table-actions__grant" method="post">{% csrf_token %}
+                                            <input name="next" type="hidden" value="{{ request.get_full_path }}">
+                                            <button class="mod-btn mod-btn--grant" name="action" onclick="return confirm('Mark {{ author.name }} as Founding Chef?')" type="submit" value="grant_founding_chef">&#x2B50; Founding Chef</button>
+                                        </form>
+                                        {% elif bp and bp.is_founding_chef %}
+                                        <form action="{% url 'accounts:manage_author' author.slug %}" class="moderation-author-table-actions__grant" method="post">{% csrf_token %}
+                                            <input name="next" type="hidden" value="{{ request.get_full_path }}">
+                                            <button class="mod-btn mod-btn--warn" name="action" onclick="return confirm('Remove Founding Chef status from {{ author.name }}?')" type="submit" value="revoke_founding_chef">Revoke Founding Chef</button>
+                                        </form>
+                                        {% endif %}
+                                        {% endwith %}
+                                    {% endif %}
                                 </div>
                                 {% else %}
                                 <span class="moderation-authors-table__self">Current moderator</span>

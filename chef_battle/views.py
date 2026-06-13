@@ -112,8 +112,8 @@ def _build_battlefield_progress():
             "title": "Phase 3 - Sandbox Launch Preparation",
             "items": [
                 {"label": "First 5-10 sandbox battles", "detail": f"{completed_battles}/5 completed sandbox-style battles. Public launch should not feel empty.", "status": _battlefield_status(completed_battles, target=5)},
-                {"label": "Founding Chef programme", "detail": "Define Founding Chef criteria, profile marker, invite copy and founder visibility rules.", "status": "pending"},
-                {"label": "Battle rules and moderation checklist", "detail": "Write public rules for challenges, refusals, image rights, vote abuse, spam and respectful rivalry.", "status": "pending"},
+                {"label": "Founding Chef programme", "detail": "is_founding_chef flag on ChefBattleProfile. Star badge on rankings, battle room and chef profile. Granted from moderation panel.", "status": "done", "completed_at": "2026-06-13"},
+                {"label": "Battle rules and moderation checklist", "detail": "Full rules page at /chef-battle/rules/ with 12 sections covering challenge, combat, voting, drops, gifts and artifacts.", "status": "done", "completed_at": "2026-06-13"},
                 {"label": "Outreach list", "detail": "Prepare 30-50 Irish food creators, local chefs, students and bloggers for direct invite outreach.", "status": "pending"},
                 {"label": "AllFresh / sponsor pilot", "detail": "Draft one sponsor-ready battle concept, value proposition and sample landing copy.", "status": "pending"},
             ],

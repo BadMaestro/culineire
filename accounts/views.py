@@ -305,6 +305,30 @@ def manage_author(request, slug):
         user.save(update_fields=["is_superuser", "is_staff", "is_active"])
         messages.warning(request, f'Superuser privileges revoked from "{author.name}".')
 
+    elif action == "grant_founding_chef":
+        if not can_grant_bearseeker_privileges(request.user):
+            raise Http404
+        try:
+            from chef_battle.models import ChefBattleProfile
+            bp = ChefBattleProfile.objects.get(author=author)
+            bp.is_founding_chef = True
+            bp.save(update_fields=["is_founding_chef"])
+            messages.success(request, f'"{author.name}" is now a Founding Chef.')
+        except Exception:
+            messages.error(request, f'"{author.name}" has no battle profile.')
+
+    elif action == "revoke_founding_chef":
+        if not can_grant_bearseeker_privileges(request.user):
+            raise Http404
+        try:
+            from chef_battle.models import ChefBattleProfile
+            bp = ChefBattleProfile.objects.get(author=author)
+            bp.is_founding_chef = False
+            bp.save(update_fields=["is_founding_chef"])
+            messages.warning(request, f'Founding Chef status removed from "{author.name}".')
+        except Exception:
+            messages.error(request, f'"{author.name}" has no battle profile.')
+
     elif author.slug == settings.OWNER_SLUG or user.is_superuser:
         raise Http404
 

@@ -48,6 +48,7 @@ class ChefBattleProfile(models.Model):
     crown_count = models.PositiveIntegerField(default=0)
     battle_moves = models.PositiveIntegerField(default=0)
     seasonal_score = models.IntegerField(default=0)
+    is_founding_chef = models.BooleanField(default=False, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True)
 

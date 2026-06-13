@@ -9,7 +9,7 @@
   <div class="container">
     <p class="battle-kicker">Chef Battle Arena</p>
     <h1>{{ author.name }}</h1>
-    <p class="battle-room-hero__sub">{{ profile.get_rank_display }}{% if profile.has_crown %} &middot; Crown Holder{% endif %}</p>
+    <p class="battle-room-hero__sub">{{ profile.get_rank_display }}{% if profile.has_crown %} &middot; &#x1F451; Crown Holder{% endif %}{% if profile.is_founding_chef %} &middot; <span class="badge-founding">&#x2B50; Founding Chef</span>{% endif %}</p>
   </div>
 </section>
 

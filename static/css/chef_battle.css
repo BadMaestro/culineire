@@ -1473,6 +1473,23 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
   margin: 0;
 }
 
+/* ── Founding Chef badge ────────────────────────────────────────────────── */
+.badge-founding {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #7c5c00;
+  background: #fff8e1;
+  border: 1px solid #f0c040;
+  border-radius: 99px;
+  padding: 0.1rem 0.5rem;
+  white-space: nowrap;
+}
+
 /* ── Token shop ─────────────────────────────────────────────────────────── */
 .token-shop-balance {
   display: flex;
