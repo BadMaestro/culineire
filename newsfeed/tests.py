@@ -307,6 +307,53 @@ class FeedPageTest(TestCase):
         response = self.client.get(self.url)
         self.assertContains(response, "Version 1.4.3 released")
 
+    def test_news_feed_uses_ledger_layout_and_filters(self):
+        NewsFeedEntry.objects.create(
+            entry_type="recipe_published",
+            title="Recipe update",
+            is_public=True,
+        )
+        NewsFeedEntry.objects.create(
+            entry_type="battle_event",
+            title="Battle update",
+            is_public=True,
+        )
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="nf-summary"')
+        self.assertContains(response, 'class="nf-toolbar"')
+        self.assertContains(response, 'class="nf-filter')
+        self.assertContains(response, 'class="nf-ledger"')
+        self.assertContains(response, 'href="?type=recipes"')
+        self.assertContains(response, 'href="?type=battle"')
+        self.assertContains(response, "Chef Battle")
+        self.assertContains(response, "Recipe update")
+        self.assertContains(response, "Battle update")
+        self.assertNotContains(response, "Back to My Dashboard")
+
+    def test_news_feed_type_filter_limits_entries(self):
+        NewsFeedEntry.objects.create(
+            entry_type="recipe_published",
+            title="Recipe update",
+            is_public=True,
+        )
+        for index in range(31):
+            NewsFeedEntry.objects.create(
+                entry_type="battle_event",
+                title=f"Battle update {index}",
+                is_public=True,
+            )
+
+        response = self.client.get(self.url, {"type": "battle"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Battle update")
+        self.assertNotContains(response, "Recipe update")
+        self.assertContains(response, 'href="?type=battle" aria-current="page"')
+        self.assertContains(response, 'href="?type=battle&amp;page=2"')
+
     def test_long_news_feed_collapses_extra_entries(self):
         for index in range(6):
             NewsFeedEntry.objects.create(

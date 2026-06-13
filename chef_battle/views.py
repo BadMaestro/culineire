@@ -149,7 +149,7 @@ def _build_battlefield_progress():
         {
             "title": "Phase 6 - Seasons, Clans And Sponsorship",
             "items": [
-                {"label": "Seasons and leaderboards", "detail": "Add only after ordinary battles produce history, rivals, winners and audience interest.", "status": "pending"},
+                {"label": "Seasons and leaderboards", "detail": "Season 1 leaderboard live at /chef-battle/season/. Seasonal score earned per win (+10). Resets each season.", "status": "done", "completed_at": "2026-06-13"},
                 {"label": "Clan / team battles", "detail": "Team-based battle formats after individual battle mechanics are stable and tested.", "status": "pending"},
                 {"label": "Sponsor battle integration", "detail": "Named sponsor battles, branded themes and sponsor landing pages after AllFresh pilot.", "status": "pending"},
                 {"label": "Cosmetics and prestige items", "detail": "Profile frames, animated banners and crowns as non-pay-to-win prestige cosmetics.", "status": "pending"},
@@ -231,6 +231,22 @@ def battlefield_progress(request):
         "chef_battle/battlefield_progress.html",
         {"battlefield_progress": _build_battlefield_progress()},
     )
+
+
+@chef_battle_guard
+def season_leaderboard(request):
+    from django.utils import timezone
+    season_start = timezone.datetime(2026, 6, 1, tzinfo=timezone.get_current_timezone())
+    profiles = (
+        ChefBattleProfile.objects.select_related("author")
+        .filter(seasonal_score__gt=0)
+        .order_by("-seasonal_score", "-wins", "author__name")[:50]
+    )
+    return render(request, "chef_battle/season_leaderboard.html", {
+        "profiles": profiles,
+        "season_start": season_start,
+        "season_name": "Season 1 &mdash; Summer 2026",
+    })
 
 
 @chef_battle_guard

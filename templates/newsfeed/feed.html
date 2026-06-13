@@ -11,7 +11,7 @@
 {% block og_description %}News, new recipes, new articles, site improvements and announcements from the CulinEire kitchen.{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/newsfeed.css' %}" rel="stylesheet">
+<link href="{% static 'css/newsfeed.css' %}?v=20260613-news-ledger" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -25,83 +25,136 @@
     <div class="hero-copy hero-copy--center">
       <span class="pill">Latest News</span>
       <h1 class="hero-title">CulinEire News</h1>
-      <p class="hero-subtitle">New recipes, articles, site improvements and announcements from the kitchen.</p>
+      <p class="hero-subtitle">Recipes, articles, Chef Battle events, release notes and site announcements.</p>
       <div class="hero__actions">
-        {% if can_view_amuse_bouche_public_area %}
-        <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
-        {% endif %}
-        {% include "includes/author_dashboard_back_button.html" %}
-        <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
-        <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
-        <a class="btn-secondary" href="{% url 'sponsors:puzzle' %}">Sponsors</a>
+        <a class="btn-primary" href="#news-feed">Latest Updates</a>
+        <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Recipes</a>
+        <a class="btn-secondary" href="{% url 'articles:article_list' %}">Articles</a>
+        <a class="btn-secondary" href="{% url 'chef_battle:home' %}">Chef Battle</a>
       </div>
     </div>
   </div>
 </section>
 
-<section class="page-section nf-section">
+<section class="page-section nf-section" aria-labelledby="news-feed-title">
   <div class="container nf-shell">
 
-    {% if page_obj.object_list %}
-
-    <ol class="nf-feed" data-news-feed>
-      {% for entry in page_obj.object_list %}
-      <li class="nf-entry{% if forloop.counter > 5 %} nf-entry--extra{% endif %}"{% if forloop.counter > 5 %} hidden{% endif %}>
-
-        <div class="nf-entry__side">
-          <time class="nf-entry__date" datetime="{{ entry.published_at|date:'c' }}">
-            {{ entry.published_at|date:"j M Y" }}
-          </time>
-          <span class="nf-entry__dot nf-entry__dot--{{ entry.entry_type }}"></span>
-        </div>
-
-        <div class="nf-entry__content">
-          <span class="nf-badge nf-badge--{{ entry.entry_type }}">{{ entry.get_entry_type_display }}</span>
-          {% if entry.url %}
-          <a class="nf-entry__title" href="{{ entry.url }}">{{ entry.title }}</a>
-          {% else %}
-          <p class="nf-entry__title nf-entry__title--plain">{{ entry.title }}</p>
-          {% endif %}
-          {% if entry.message and entry.message != entry.title %}
-          <p class="nf-entry__message">{{ entry.message }}</p>
-          {% endif %}
-          {% if entry.version %}
-          <p class="nf-entry__version">Version {{ entry.version }}</p>
-          {% endif %}
-          <p class="nf-entry__time">{{ entry.published_at|date:"H:i" }}</p>
-        </div>
-
-      </li>
-      {% endfor %}
-    </ol>
-
-    {% if page_obj.object_list|length > 5 %}
-    <div class="nf-toggle-wrap">
-      <button aria-expanded="false" class="category-nav-toggle nf-toggle" data-news-toggle type="button">
-        <span aria-hidden="true" class="category-nav-toggle__icon category-nav-toggle__icon--left">&#8964;</span>
-        <span class="category-nav-toggle__label" data-news-toggle-label>View All News</span>
-        <span aria-hidden="true" class="category-nav-toggle__icon">&#8964;</span>
-      </button>
+    <div class="nf-intro">
+      <span class="section-kicker">Public site journal</span>
+      <h2 id="news-feed-title">What Changed Recently</h2>
+      <p>
+        A chronological record of public content, platform updates and Chef Battle activity.
+        Use the filters to focus the feed without leaving the page.
+      </p>
     </div>
-    {% endif %}
 
-    {% if page_obj.has_other_pages %}
-    <nav class="nf-pagination" aria-label="Feed pages">
-      {% if page_obj.has_previous %}
-      <a class="btn-secondary" href="?page={{ page_obj.previous_page_number }}" aria-label="Newer news, page {{ page_obj.previous_page_number }}">Newer</a>
-      {% endif %}
-      <span class="nf-pagination__info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-      {% if page_obj.has_next %}
-      <a class="btn-secondary" href="?page={{ page_obj.next_page_number }}" aria-label="Older news, page {{ page_obj.next_page_number }}">Older</a>
-      {% endif %}
-    </nav>
-    {% endif %}
-
-    {% else %}
-    <div class="empty-state">
-      <p>No news yet. Check back soon.</p>
+    <div class="nf-summary" aria-label="News summary">
+      <div class="nf-summary__item">
+        <span>Total updates</span>
+        <strong>{{ summary.total }}</strong>
+      </div>
+      <div class="nf-summary__item">
+        <span>Food stories</span>
+        <strong>{{ summary.stories }}</strong>
+      </div>
+      <div class="nf-summary__item">
+        <span>Site updates</span>
+        <strong>{{ summary.site_updates }}</strong>
+      </div>
+      <div class="nf-summary__item">
+        <span>Battle events</span>
+        <strong>{{ summary.battle_events }}</strong>
+      </div>
     </div>
-    {% endif %}
+
+    <div class="nf-toolbar" aria-label="News feed filters">
+      <div class="nf-toolbar__latest">
+        <span>Latest</span>
+        {% if latest_entry %}
+        <strong>{{ latest_entry.published_at|date:"j M Y" }}</strong>
+        {% else %}
+        <strong>No entries yet</strong>
+        {% endif %}
+      </div>
+      <nav class="nf-filters" aria-label="Filter news by type">
+        {% for filter in feed_filters %}
+        <a class="nf-filter{% if filter.is_active %} nf-filter--active{% endif %}" href="{{ filter.url }}"{% if filter.is_active %} aria-current="page"{% endif %}>
+          <span>{{ filter.label }}</span>
+          <strong>{{ filter.count }}</strong>
+        </a>
+        {% endfor %}
+      </nav>
+    </div>
+
+    <div class="nf-ledger" id="news-feed">
+      {% if page_obj.object_list %}
+
+      <ol class="nf-feed" data-news-feed>
+        {% for entry in page_obj.object_list %}
+        <li class="nf-entry{% if forloop.counter > 5 %} nf-entry--extra{% endif %}"{% if forloop.counter > 5 %} hidden{% endif %}>
+
+          <div class="nf-entry__side">
+            <time class="nf-entry__date" datetime="{{ entry.published_at|date:'c' }}">
+              <span>{{ entry.published_at|date:"j M Y" }}</span>
+              <strong>{{ entry.published_at|date:"H:i" }}</strong>
+            </time>
+            <span class="nf-entry__dot nf-entry__dot--{{ entry.entry_type }}"></span>
+          </div>
+
+          <article class="nf-entry__content">
+            <div class="nf-entry__meta">
+              <span class="nf-badge nf-badge--{{ entry.entry_type }}">{{ entry.get_entry_type_display }}</span>
+              {% if entry.version %}
+              <span class="nf-entry__version">Version {{ entry.version }}</span>
+              {% endif %}
+            </div>
+            {% if entry.url %}
+            <a class="nf-entry__title" href="{{ entry.url }}">{{ entry.title }}</a>
+            {% else %}
+            <p class="nf-entry__title nf-entry__title--plain">{{ entry.title }}</p>
+            {% endif %}
+            {% if entry.message and entry.message != entry.title %}
+            <p class="nf-entry__message">{{ entry.message }}</p>
+            {% endif %}
+          </article>
+
+        </li>
+        {% endfor %}
+      </ol>
+
+      {% if page_obj.object_list|length > 5 %}
+      <div class="nf-toggle-wrap">
+        <button aria-expanded="false" class="category-nav-toggle nf-toggle" data-news-toggle type="button">
+          <span aria-hidden="true" class="category-nav-toggle__icon category-nav-toggle__icon--left">&#8964;</span>
+          <span class="category-nav-toggle__label" data-news-toggle-label>View All News</span>
+          <span aria-hidden="true" class="category-nav-toggle__icon">&#8964;</span>
+        </button>
+      </div>
+      {% endif %}
+
+      {% if page_obj.has_other_pages %}
+      <nav class="nf-pagination" aria-label="Feed pages">
+        {% if page_obj.has_previous %}
+        <a class="btn-secondary" href="{{ pagination_prefix }}{{ page_obj.previous_page_number }}" aria-label="Newer news, page {{ page_obj.previous_page_number }}">Newer</a>
+        {% endif %}
+        <span class="nf-pagination__info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a class="btn-secondary" href="{{ pagination_prefix }}{{ page_obj.next_page_number }}" aria-label="Older news, page {{ page_obj.next_page_number }}">Older</a>
+        {% endif %}
+      </nav>
+      {% endif %}
+
+      {% else %}
+      <div class="empty-state nf-empty">
+        {% if active_filter == "all" %}
+        <p>No news yet. Check back soon.</p>
+        {% else %}
+        <p>No updates in this filter yet.</p>
+        <a class="btn-secondary" href="?">View All News</a>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
 
   </div>
 </section>
