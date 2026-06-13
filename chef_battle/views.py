@@ -152,7 +152,7 @@ def _build_battlefield_progress():
                 {"label": "Seasons and leaderboards", "detail": "Season 1 leaderboard live at /chef-battle/season/. Seasonal score earned per win (+10). Resets each season.", "status": "done", "completed_at": "2026-06-13"},
                 {"label": "Clan / team battles", "detail": "Team-based battle formats after individual battle mechanics are stable and tested.", "status": "pending"},
                 {"label": "Sponsor battle integration", "detail": "Named sponsor battles, branded themes and sponsor landing pages after AllFresh pilot.", "status": "pending"},
-                {"label": "Cosmetics and prestige items", "detail": "Profile frames, animated banners and crowns as non-pay-to-win prestige cosmetics.", "status": "pending"},
+                {"label": "Cosmetics and prestige items", "detail": "Prestige titles (Challenger/Veteran/Iron Chef/Master/Legend) auto-assigned by wins milestone. Displayed on profile and rankings pages.", "status": "done", "completed_at": "2026-06-13"},
                 {"label": "TikTok / Instagram live integration", "detail": "Stream cooking phase live. Requires platform account verification and API approval.", "status": "pending"},
             ],
         },
