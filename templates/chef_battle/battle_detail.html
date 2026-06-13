@@ -399,7 +399,7 @@
       <span class="battle-gift-panel__balance">Your balance: {{ viewer_token_balance }}T</span>
     </summary>
     <div class="battle-gift-panel__body">
-      {% for chef in battle.challenger, battle.opponent %}
+      {% for chef in battle_participants %}
       <div class="battle-gift-panel__chef">
         <strong class="battle-gift-panel__chef-name">{{ chef.name }}</strong>
         <div class="battle-gift-panel__gifts">

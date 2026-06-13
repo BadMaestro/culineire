@@ -431,6 +431,7 @@ def battle_detail(request, pk):
         "appreciation_gifts": appreciation_gifts,
         "viewer_token_balance": viewer_token_balance,
         "active_statuses": Battle.ACTIVE_STATUSES,
+        "battle_participants": [battle.challenger, battle.opponent],
     })
 
 
