@@ -1400,3 +1400,75 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
   font-weight: 600;
   color: #713f12;
 }
+
+/* ── Appreciation Gift Panel ── */
+.battle-gift-panel {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.battle-gift-panel__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1.25rem;
+  cursor: pointer;
+  font-weight: 600;
+  background: var(--surface-soft);
+  list-style: none;
+  user-select: none;
+}
+.battle-gift-panel__toggle::-webkit-details-marker { display: none; }
+.battle-gift-panel__balance {
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+.battle-gift-panel__body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.battle-gift-panel__chef-name {
+  display: block;
+  font-size: 0.9rem;
+  margin-block-end: 0.5rem;
+  color: var(--ink);
+}
+.battle-gift-panel__gifts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.battle-gift-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.battle-gift-btn:hover:not(:disabled) {
+  background: var(--surface-muted);
+  border-color: var(--ink-soft);
+}
+.battle-gift-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.battle-gift-btn__cost {
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+.battle-gift-panel__hint {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin: 0;
+}

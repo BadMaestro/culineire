@@ -389,4 +389,37 @@
 })();
 </script>
 {% endif %}
+
+{# ── Appreciation Gifts ── #}
+{% if request.user.is_authenticated and appreciation_gifts and battle.status in active_statuses %}
+<div class="container" style="max-width: 700px; padding-block: 0 2rem;">
+  <details class="battle-gift-panel">
+    <summary class="battle-gift-panel__toggle">
+      🎁 Send a Gift to a Chef
+      <span class="battle-gift-panel__balance">Your balance: {{ viewer_token_balance }}T</span>
+    </summary>
+    <div class="battle-gift-panel__body">
+      {% for chef in battle.challenger, battle.opponent %}
+      <div class="battle-gift-panel__chef">
+        <strong class="battle-gift-panel__chef-name">{{ chef.name }}</strong>
+        <div class="battle-gift-panel__gifts">
+          {% for gift in appreciation_gifts %}
+          <form method="post" action="{% url 'chef_battle:send_appreciation_gift' battle.pk %}" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="recipient_slug" value="{{ chef.slug }}">
+            <input type="hidden" name="gift_type" value="{{ gift.type }}">
+            <button type="submit" class="battle-gift-btn"
+                    {% if viewer_token_balance < gift.cost %}disabled title="Not enough tokens"{% endif %}>
+              {{ gift.emoji }} {{ gift.label }}<span class="battle-gift-btn__cost">{{ gift.cost }}T</span>
+            </button>
+          </form>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+      <p class="battle-gift-panel__hint">Gifts are permanent on the chef's profile. Tokens required.</p>
+    </div>
+  </details>
+</div>
+{% endif %}
 {% endblock %}

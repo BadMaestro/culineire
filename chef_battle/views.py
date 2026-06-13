@@ -400,6 +400,19 @@ def battle_detail(request, pk):
         viewer_has_moved = viewer_author.pk in round_chef_ids
         opponent_has_moved = bool(round_chef_ids - {viewer_author.pk})
 
+    from .models import AppreciationGiftType, APPRECIATION_GIFT_COST
+    appreciation_gifts = [
+        {"type": k, "label": AppreciationGiftType(k).label, "cost": v, "emoji": {
+            "flowers": "💐", "coffee": "☕", "beer": "🍺", "cocktail": "🍹", "whiskey": "🥃",
+        }.get(k, "🎁")}
+        for k, v in APPRECIATION_GIFT_COST.items()
+    ]
+    viewer_token_balance = 0
+    if viewer_author:
+        from .models import TokenWallet
+        wallet = TokenWallet.objects.filter(author=viewer_author).first()
+        viewer_token_balance = wallet.balance if wallet else 0
+
     return render(request, "chef_battle/battle_detail.html", {
         "battle": battle,
         "entries": entries,
@@ -415,6 +428,9 @@ def battle_detail(request, pk):
         "user_battle_moves": user_battle_moves,
         "viewer_has_moved": viewer_has_moved,
         "opponent_has_moved": opponent_has_moved,
+        "appreciation_gifts": appreciation_gifts,
+        "viewer_token_balance": viewer_token_balance,
+        "active_statuses": Battle.ACTIVE_STATUSES,
     })
 
 
@@ -833,6 +849,31 @@ def battle_chat_poll(request, pk):
             for m in msgs
         ]
     })
+
+
+@login_required
+@require_POST
+def send_appreciation_gift_view(request, pk):
+    from .models import AppreciationGiftType
+    from .services import send_appreciation_gift
+    battle = get_object_or_404(Battle, pk=pk)
+    recipient_slug = request.POST.get("recipient_slug", "")
+    gift_type = request.POST.get("gift_type", "")
+    recipient = get_object_or_404(RecipeAuthor, slug=recipient_slug)
+    if not battle.author_is_participant(recipient):
+        messages.error(request, "Invalid recipient.")
+        return redirect("chef_battle:battle_detail", pk=pk)
+    try:
+        send_appreciation_gift(
+            sender_user=request.user,
+            recipient=recipient,
+            gift_type=gift_type,
+            message=request.POST.get("message", ""),
+        )
+        messages.success(request, f"Gift sent to {recipient.name}!")
+    except Exception as exc:
+        messages.error(request, str(exc))
+    return redirect("chef_battle:battle_detail", pk=pk)
 
 
 def chef_battle_profile(request, slug):
