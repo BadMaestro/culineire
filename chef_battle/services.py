@@ -531,26 +531,6 @@ MOVES_CONTENT_WEEKLY_CAP = 50
 _CONTENT_REASONS = {"Recipe approved", "Article approved"}
 
 
-def _content_moves_earned(author, period_start) -> int:
-    """Sum of move amounts from content approval since period_start."""
-    from .models import BattleMoveTransaction
-    return (
-        BattleMoveTransaction.objects.filter(
-            chef=author,
-            reason__in=_CONTENT_REASONS,
-            created_at__gte=period_start,
-        )
-        .values_list("amount", flat=True)
-        .__class__(
-            BattleMoveTransaction.objects.filter(
-                chef=author,
-                reason__in=_CONTENT_REASONS,
-                created_at__gte=period_start,
-            )
-        )
-    )
-
-
 def _content_moves_total(author, period_start) -> int:
     from django.db.models import Sum
     from .models import BattleMoveTransaction
@@ -868,7 +848,7 @@ def _post_biathlon_event(battle: Battle, shot: IngredientShot, ingredient_name: 
         message = f"{battle.winner.name}'s shot at '{ingredient_name}' bounced off a lock."
     else:
         message = f"{battle.winner.name}'s shot hit '{ingredient_name}'."
-    _create_battle_event(battle=battle, message=message, actor=battle.winner, is_public=True)
+    create_battle_event(battle=battle, event_type=BattleEvent.EventType.BATTLE_STARTED, message=message, actor=battle.winner, is_public=True)
 
 
 def get_biathlon_state(battle: Battle) -> dict:
@@ -914,9 +894,10 @@ def approve_cooking_phase(battle: Battle, moderator) -> Battle:
     with transaction.atomic():
         battle.status = Battle.Status.COOKING
         battle.save(update_fields=["status", "updated_at"])
-        _create_battle_event(
+        create_battle_event(
+            event_type=BattleEvent.EventType.BATTLE_STARTED,
             battle=battle,
-            message=f"Cooking phase approved by moderator. Chefs may now submit their cooked dishes.",
+            message="Cooking phase approved by moderator. Chefs may now submit their cooked dishes.",
             actor=None,
             is_public=True,
         )

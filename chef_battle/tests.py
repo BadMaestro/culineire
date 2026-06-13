@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -88,6 +88,7 @@ class ChefBattleServiceTests(TestCase):
             vote.full_clean()
 
 
+@override_settings(SECURE_SSL_REDIRECT=False)
 class ChefBattleAccessTests(TestCase):
     """Permission tests: anonymous users and non-admins see 404 when flag is off."""
 
@@ -122,6 +123,7 @@ class ChefBattleAccessTests(TestCase):
         self.assertEqual(response.status_code, 404)
 
 
+@override_settings(SECURE_SSL_REDIRECT=False)
 class ChefBattleChallengeCreateViewTests(TestCase):
     def setUp(self):
         User = get_user_model()
@@ -355,6 +357,7 @@ class BattleTimerTests(TestCase):
         self.assertEqual(delta.days, 5)
 
 
+@override_settings(SECURE_SSL_REDIRECT=False)
 class NotificationsPollViewTests(TestCase):
     def setUp(self):
         User = get_user_model()
@@ -526,6 +529,7 @@ class AutoCompleteVotingTests(TestCase):
 # CB-1602 — Permission tests
 # ---------------------------------------------------------------------------
 
+@override_settings(SECURE_SSL_REDIRECT=False)
 class PermissionTests(TestCase):
     """CB-1602: non-participants and anonymous users are blocked from sensitive actions."""
 
