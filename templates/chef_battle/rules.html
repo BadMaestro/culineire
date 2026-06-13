@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Chef Battle Rules | CulinEire{% endblock %}
+{% block meta_description %}Official rules for CulinEire Chef Battle: challenges, voting, artifact drops, token economy and ranking system.{% endblock %}
+
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero">
+  <div class="container">
+    <p class="battle-kicker">Chef Battle Arena</p>
+    <h1>Rules of the Arena</h1>
+    <p class="battle-room-hero__sub">How Chef Battle works, from challenge to crown.</p>
+  </div>
+</section>
+
+<div class="container" style="max-width: 860px; padding-block: 2.5rem;">
+
+  {# ── 1. The Challenge ── #}
+  <section class="battle-rules-section">
+    <h2>1. The Challenge</h2>
+    <ul>
+      <li>Any chef with an active profile can challenge another chef.</li>
+      <li>Challenges can only be sent between chefs within one level of each other. A Level 1 chef cannot challenge a Level 3 chef.</li>
+      <li>The challenged chef has 48 hours to accept or refuse.</li>
+      <li>Refusing a challenge costs 2 Battle Moves. Repeated refusals are recorded on the public profile.</li>
+      <li>An accepted challenge opens a Battle Room with a shared theme set by the challenger.</li>
+    </ul>
+  </section>
+
+  {# ── 2. The Battle ── #}
+  <section class="battle-rules-section">
+    <h2>2. The Battle</h2>
+    <ul>
+      <li>Each chef has 5 days to submit a recipe as their battle entry.</li>
+      <li>Entries must be original recipes created specifically for the battle theme.</li>
+      <li>Only one entry per chef per battle is allowed.</li>
+      <li>After both entries are submitted, the Combat Phase begins.</li>
+    </ul>
+  </section>
+
+  {# ── 3. Combat Phase ── #}
+  <section class="battle-rules-section">
+    <h2>3. Combat Phase</h2>
+    <ul>
+      <li>Each chef selects a menu of ingredients from their recipe. Both menus are equal in size.</li>
+      <li>Each chef locks 2 ingredients to protect them from attack.</li>
+      <li>Chefs exchange hits targeting unlocked ingredients in the opponent's menu.</li>
+      <li>A hit ingredient is marked as defeated and must be replaced or removed from the final recipe.</li>
+    </ul>
+  </section>
+
+  {# ── 4. Biathlon ── #}
+  <section class="battle-rules-section">
+    <h2>4. Biathlon</h2>
+    <ul>
+      <li>The chef who submitted their recipe first fires up to 3 blind shots at the opponent's ingredient list.</li>
+      <li>A shot that lands on a locked ingredient bounces back and counts as a wasted shot.</li>
+      <li>Results: 1 to 3 successful hits depending on aim and opponent's locks.</li>
+      <li>Killed ingredients must be swapped or removed before cooking begins.</li>
+    </ul>
+  </section>
+
+  {# ── 5. Cooking Phase ── #}
+  <section class="battle-rules-section">
+    <h2>5. Cooking Phase</h2>
+    <ul>
+      <li>After combat, both chefs cook their final recipes using the surviving ingredient list.</li>
+      <li>Each chef photographs the finished dish and uploads it to the battle room.</li>
+      <li>A CulinEire moderator reviews the photo to confirm the dish is real, follows the rules, and image rights are clear.</li>
+      <li>Once both entries are approved, the battle moves to public voting.</li>
+    </ul>
+  </section>
+
+  {# ── 6. Voting ── #}
+  <section class="battle-rules-section">
+    <h2>6. Voting</h2>
+    <ul>
+      <li>The public votes for their favourite dish. Voting is open for 2 days.</li>
+      <li>Each visitor gets one vote per battle. No account required to vote.</li>
+      <li>The chef with the most votes wins the battle and receives the Crown.</li>
+      <li>In the event of a tie, the battle is recorded as a draw and no crown is awarded.</li>
+      <li>The Crown is held for 24 hours and is visible on the winner's public profile.</li>
+    </ul>
+  </section>
+
+  {# ── 7. Ranking ── #}
+  <section class="battle-rules-section">
+    <h2>7. Ranking and Levels</h2>
+    <ul>
+      <li>Winning a battle earns +25 rating points. Losing costs 15 rating points (minimum 0).</li>
+      <li>Chefs progress through 5 levels. Each level requires 3 wins. Level 5 chefs with 15 or more wins can reach CulinEire Hero status.</li>
+      <li>Ranks are calculated from rating: Commis, Chef de Partie, Sous Chef, Head Chef, Executive Chef, Michelin Chef.</li>
+      <li>A win streak bonus tracks consecutive wins on the public profile.</li>
+    </ul>
+  </section>
+
+  {# ── 8. Battle Moves ── #}
+  <section class="battle-rules-section">
+    <h2>8. Battle Moves</h2>
+    <ul>
+      <li>Battle Moves are earned by winning battles, having recipes and articles approved, and reaching milestones.</li>
+      <li>A minimum of 10 Battle Moves is required to issue a challenge.</li>
+      <li>New chefs receive starting moves to enter the arena.</li>
+    </ul>
+  </section>
+
+  {# ── 9. Tokens ── #}
+  <section class="battle-rules-section">
+    <h2>9. Tokens</h2>
+    <ul>
+      <li>Tokens (T) are the arena currency. They are purchased in packages or earned through drops.</li>
+      <li>Tokens are used to send appreciation gifts to chefs and to purchase combat artifacts.</li>
+      <li>Tokens have no cash value and cannot be withdrawn.</li>
+    </ul>
+  </section>
+
+  {# ── 10. Audience Gifts ── #}
+  <section class="battle-rules-section">
+    <h2>10. Audience Gifts</h2>
+    <p>Viewers can send appreciation gifts to chefs during a battle. Gifts are permanent on the chef's profile.</p>
+    <table class="battle-rules-table">
+      <thead>
+        <tr><th>Gift</th><th>Cost</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>&#x1F337; Flowers</td><td>20T</td></tr>
+        <tr><td>&#x2615; Coffee</td><td>20T</td></tr>
+        <tr><td>&#x1F37A; Beer</td><td>30T</td></tr>
+        <tr><td>&#x1F943; Whiskey</td><td>50T</td></tr>
+        <tr><td>&#x1F378; Cocktail</td><td>80T</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  {# ── 11. Artifact Drops ── #}
+  <section class="battle-rules-section">
+    <h2>11. Artifact Drops</h2>
+    <p>After every completed battle, chefs receive a random artifact from the arena vault.</p>
+    <ul>
+      <li>The winner always receives a drop.</li>
+      <li>The loser has a 50% chance of receiving a consolation drop.</li>
+      <li>Artifacts cannot be duplicated. If all artifacts of a given rarity are already owned, the system draws from another rarity.</li>
+      <li>Artifacts are displayed permanently on the chef's profile.</li>
+    </ul>
+    <table class="battle-rules-table" style="margin-top: 1rem;">
+      <thead>
+        <tr>
+          <th>Rarity</th>
+          <th>Winner drop chance</th>
+          <th>Loser drop chance</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in drop_table %}
+        <tr>
+          <td>
+            <img src="{{ row.icon }}" alt="{{ row.rarity }}" width="18" height="18"
+                 style="vertical-align:middle; margin-right:0.3rem;">
+            {{ row.rarity|capfirst }}
+          </td>
+          <td>{{ row.winner_pct }}%</td>
+          <td>{{ row.loser_pct }}%</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  {# ── 12. Artifacts ── #}
+  <section class="battle-rules-section">
+    <h2>12. Combat Artifacts</h2>
+    <ul>
+      <li>There are 200 combat artifacts: 100 attack and 100 defence, across 5 rarities.</li>
+      <li>Artifacts can also be purchased in the arena shop using tokens.</li>
+      <li>Rarity determines token cost: Common 10T, Uncommon 25T, Rare 60T, Epic 150T, Legendary 400T.</li>
+      <li>Artifacts affect combat mechanics. Attack artifacts target opponent ingredients. Defence artifacts protect your own.</li>
+    </ul>
+  </section>
+
+  {# ── Nav ── #}
+  <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:2.5rem;">
+    <a class="btn-primary" href="{% url 'chef_battle:home' %}">Enter Arena</a>
+    <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
+    <a class="btn-secondary" href="{% url 'chef_battle:hall_of_fame' %}">Hall of Fame</a>
+  </div>
+
+</div>
+{% endblock %}

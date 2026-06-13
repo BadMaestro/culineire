@@ -141,7 +141,7 @@ def _build_battlefield_progress():
                 {"label": "Battle live chat", "detail": f"Live chat on battle pages with 8s polling. {chat_message_count} message(s) sent so far. Works for logged-in and anonymous viewers.", "status": "done", "completed_at": "2026-06-12"},
                 {"label": "Token package pricing", "detail": "100T=10 EUR up to 1400T=80 EUR. Packages defined, Stripe integration pending.", "status": "active"},
                 {"label": "Stripe token purchase", "detail": "Stripe checkout flow for token packages not yet wired. Requires Stripe live key and webhook.", "status": "pending"},
-                {"label": "Artifact gifting UI", "detail": "Backend service for artifact and appreciation gift sending is built. Battle detail UI panel not yet exposed.", "status": "pending"},
+                {"label": "Artifact gifting UI", "detail": "Gift panel on battle detail page: send flowers, coffee, beer, whiskey and cocktails to either chef. Gifts shown permanently on chef profile.", "status": "done", "completed_at": "2026-06-13"},
             ],
         },
         {
@@ -229,6 +229,22 @@ def battlefield_progress(request):
         "chef_battle/battlefield_progress.html",
         {"battlefield_progress": _build_battlefield_progress()},
     )
+
+
+@chef_battle_guard
+def battle_rules(request):
+    from .services import _DROP_WEIGHTS_WINNER, _DROP_WEIGHTS_LOSER
+    from django.templatetags.static import static
+    drop_table = [
+        {
+            "rarity": rarity,
+            "winner_pct": _DROP_WEIGHTS_WINNER[rarity],
+            "loser_pct": _DROP_WEIGHTS_LOSER[rarity],
+            "icon": static(f"images/chef_battle/rarity_{rarity}.svg"),
+        }
+        for rarity in ["common", "uncommon", "rare", "epic", "legendary"]
+    ]
+    return render(request, "chef_battle/rules.html", {"drop_table": drop_table})
 
 
 @chef_battle_guard
