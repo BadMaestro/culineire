@@ -29,6 +29,10 @@ class ChefBattleProfile(models.Model):
         CHEF_DE_PARTIE = "chef_de_partie", "Chef de Partie"
         SOUS_CHEF = "sous_chef", "Sous Chef"
         HEAD_CHEF = "head_chef", "Head Chef"
+        INCOGNITO = "incognito", "Incognito"
+
+    # reserved titles that are manually granted and must not be overwritten by auto-logic
+    RESERVED_TITLES = {"incognito"}
 
     # wins threshold for each prestige title
     PRESTIGE_THRESHOLDS = [
@@ -106,7 +110,10 @@ class ChefBattleProfile(models.Model):
         return changed
 
     def recalculate_prestige_title(self) -> bool:
-        """Assign highest earned prestige title based on wins. Returns True if changed."""
+        """Assign highest earned prestige title based on wins. Returns True if changed.
+        Reserved titles (e.g. Incognito) are never overwritten by auto-logic."""
+        if self.prestige_title in self.RESERVED_TITLES:
+            return False
         new_title = self.PrestigeTitle.NONE
         for threshold, title in self.PRESTIGE_THRESHOLDS:
             if self.wins >= threshold:
