@@ -877,7 +877,8 @@ def send_appreciation_gift_view(request, pk):
 
 
 def chef_battle_profile(request, slug):
-    from django.db.models import Q
+    from django.db.models import Q, Count
+    from .models import AppreciationGiftType, APPRECIATION_GIFT_COST
     author = get_object_or_404(RecipeAuthor, slug=slug)
     profile = get_object_or_404(ChefBattleProfile, author=author)
     battles = (
@@ -886,10 +887,27 @@ def chef_battle_profile(request, slug):
         .select_related("challenger", "opponent", "challenge")
         .order_by("-created_at")[:20]
     )
+    # Aggregate gifts by type
+    gift_counts = (
+        author.appreciation_gifts
+        .values("gift_type")
+        .annotate(total=Count("id"))
+        .order_by("-total")
+    )
+    gift_display = [
+        {
+            "type": g["gift_type"],
+            "label": AppreciationGiftType(g["gift_type"]).label,
+            "count": g["total"],
+            "emoji": {"flowers": "💐", "coffee": "☕", "beer": "🍺", "cocktail": "🍹", "whiskey": "🥃"}.get(g["gift_type"], "🎁"),
+        }
+        for g in gift_counts
+    ]
     viewer_author = get_author_for_user(request.user) if request.user.is_authenticated else None
     return render(request, "chef_battle/chef_profile.html", {
         "profile": profile,
         "author": author,
         "battles": battles,
+        "gift_display": gift_display,
         "is_own_profile": viewer_author and viewer_author.pk == author.pk,
     })
