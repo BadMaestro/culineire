@@ -1074,11 +1074,11 @@ def send_appreciation_gift(*, sender_user, recipient, gift_type: str, message: s
 
 # Rarity weights for artifact drops
 _DROP_WEIGHTS_WINNER = {
-    "common": 35,
-    "uncommon": 30,
-    "rare": 25,
-    "epic": 8,
-    "legendary": 2,
+    "common": 27,
+    "uncommon": 20,
+    "rare": 30,
+    "epic": 15,
+    "legendary": 8,
 }
 _DROP_WEIGHTS_LOSER = {
     "common": 50,
