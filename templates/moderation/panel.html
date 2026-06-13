@@ -638,15 +638,15 @@
                                             <button class="mod-btn mod-btn--warn" name="action" onclick="return confirm('Remove Founding Chef status from {{ author.name }}?')" type="submit" value="revoke_founding_chef">Revoke Founding Chef</button>
                                         </form>
                                         {% endif %}
-                                        {% if bp and bp.prestige_title != "incognito" %}
+                                        {% if bp and bp.prestige_title != "executive_chef" %}
                                         <form action="{% url 'accounts:manage_author' author.slug %}" class="moderation-author-table-actions__grant" method="post">{% csrf_token %}
                                             <input name="next" type="hidden" value="{{ request.get_full_path }}">
-                                            <button class="mod-btn mod-btn--grant" name="action" onclick="return confirm('Set {{ author.name }} as Incognito?')" type="submit" value="grant_incognito">Incognito</button>
+                                            <button class="mod-btn mod-btn--grant" name="action" onclick="return confirm('Set {{ author.name }} as Executive Chef?')" type="submit" value="grant_incognito">Executive Chef</button>
                                         </form>
-                                        {% elif bp and bp.prestige_title == "incognito" %}
+                                        {% elif bp and bp.prestige_title == "executive_chef" %}
                                         <form action="{% url 'accounts:manage_author' author.slug %}" class="moderation-author-table-actions__grant" method="post">{% csrf_token %}
                                             <input name="next" type="hidden" value="{{ request.get_full_path }}">
-                                            <button class="mod-btn mod-btn--warn" name="action" onclick="return confirm('Remove Incognito from {{ author.name }}?')" type="submit" value="revoke_incognito">Revoke Incognito</button>
+                                            <button class="mod-btn mod-btn--warn" name="action" onclick="return confirm('Remove Executive Chef from {{ author.name }}?')" type="submit" value="revoke_incognito">Revoke Incognito</button>
                                         </form>
                                         {% endif %}
                                         {% endwith %}

@@ -335,9 +335,9 @@ def manage_author(request, slug):
         try:
             from chef_battle.models import ChefBattleProfile
             bp, _ = ChefBattleProfile.objects.get_or_create(author=author)
-            bp.prestige_title = ChefBattleProfile.PrestigeTitle.INCOGNITO
+            bp.prestige_title = ChefBattleProfile.PrestigeTitle.EXECUTIVE_CHEF
             bp.save(update_fields=["prestige_title"])
-            messages.success(request, f'"{author.name}" is now Incognito.')
+            messages.success(request, f'"{author.name}" is now Executive Chef.')
         except Exception:
             messages.error(request, f'Could not set Incognito for "{author.name}".')
 

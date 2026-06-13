@@ -29,10 +29,10 @@ class ChefBattleProfile(models.Model):
         CHEF_DE_PARTIE = "chef_de_partie", "Chef de Partie"
         SOUS_CHEF = "sous_chef", "Sous Chef"
         HEAD_CHEF = "head_chef", "Head Chef"
-        INCOGNITO = "incognito", "Incognito"
+        EXECUTIVE_CHEF = "executive_chef", "Executive Chef"
 
     # reserved titles that are manually granted and must not be overwritten by auto-logic
-    RESERVED_TITLES = {"incognito"}
+    RESERVED_TITLES = {"executive_chef"}
 
     # wins threshold for each prestige title
     PRESTIGE_THRESHOLDS = [
