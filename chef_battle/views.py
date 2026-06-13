@@ -410,7 +410,7 @@ def battle_detail(request, pk):
     viewer_token_balance = 0
     if viewer_author:
         from .models import TokenWallet
-        wallet = TokenWallet.objects.filter(author=viewer_author).first()
+        wallet = TokenWallet.objects.filter(chef=viewer_author).first()
         viewer_token_balance = wallet.balance if wallet else 0
 
     return render(request, "chef_battle/battle_detail.html", {
