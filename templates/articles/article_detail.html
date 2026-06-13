@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static article_filters %}
+{% load static article_filters author_tags %}
 
 {% block title %}{{ article.title }} | CulinEire{% endblock %}
 {% block meta_description %}{% if article.excerpt %}{{ article.excerpt|striptags|truncatechars:160 }}{% else %}Read {{ article.title }} on CulinEire, with Irish food stories, cooking context, and recipe notes.{% endif %}{% endblock %}
@@ -69,7 +69,7 @@
                                      class="detail-page__author-avatar"
                                      height="40" src="{{ article.author.display_avatar_url }}"
                                      width="40">
-                                <span class="detail-page__author-name">{{ article.author.name }}</span>
+                                <span class="detail-page__author-name">{{ article.author.name }}{% executive_badge article.author %}</span>
                             </a>
                         </p>
                         {% endif %}

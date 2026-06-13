@@ -142,6 +142,11 @@ class RecipeAuthor(models.Model):
         return reverse("recipes:author_detail", kwargs={"slug": self.slug})
 
     @property
+    def is_owner(self) -> bool:
+        from django.conf import settings
+        return self.slug == settings.OWNER_SLUG
+
+    @property
     def display_avatar_url(self):
         if self.avatar:
             return self.avatar.url

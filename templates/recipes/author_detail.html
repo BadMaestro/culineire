@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static author_tags %}
 
 {% block title %}{% if private_dashboard %}Author Dashboard{% else %}{{ author.name }}{% endif %} | CulinEire{% endblock %}
 {% block meta_description %}{% if private_dashboard %}Manage recipes, articles and author content in your CulinEire dashboard.{% else %}Browse recipes and articles by {{ author.name }} on CulinEire.{% endif %}{% endblock %}
@@ -25,6 +25,7 @@
                 <img alt="{{ author.name }}" class="hero-author-avatar" src="{{ author.display_avatar_url }}">
             </div>
             <h1 class="hero-title {% if is_god_author %}author-name--greenbear{% endif %}">{% if private_dashboard %}Author Dashboard{% elif is_god_author %}{{ author.name }}{% else %}Author's Profile{% endif %}</h1>
+            {% if is_god_author %}<p class="hero-subtitle" style="margin-top:0;">{% executive_badge author %}</p>{% endif %}
             {% if author.bio %}
             <p class="hero-subtitle">{{ author.bio }}</p>
             {% endif %}

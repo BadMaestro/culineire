@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static author_tags %}
 
 {% block title %}Hall of Fame | Chef Battle{% endblock %}
 {% block extra_head %}<link href="{% static 'css/chef_battle.css' %}" rel="stylesheet">{% endblock %}
@@ -28,12 +28,12 @@
       <span>
         <strong style="display: block; font-family: var(--font-serif);">{{ battle.theme }}</strong>
         <span style="font-size: 0.85rem; color: var(--color-muted);">
-          {{ battle.challenger.name }} vs {{ battle.opponent.name }}
+          {{ battle.challenger.name }}{% executive_badge battle.challenger %} vs {{ battle.opponent.name }}{% executive_badge battle.opponent %}
         </span>
       </span>
       <span style="font-size: 0.9rem;">
         {% if battle.winner %}
-        <strong>{{ battle.winner.name }}</strong> won
+        <strong>{{ battle.winner.name }}{% executive_badge battle.winner %}</strong> won
         {% else %}
         Draw
         {% endif %}
@@ -74,7 +74,7 @@
       <span>
         {% if profile.has_crown %}&#x1F451; {% endif %}
         {% if profile.is_hero %}<strong>{% endif %}
-        {{ profile.author.name }}
+        {{ profile.author.name }}{% executive_badge profile.author %}
         {% if profile.is_hero %}</strong>{% endif %}
         {% if profile.michelin_stars %}
         <span style="color: #b45309; font-size: 0.8rem; margin-inline-start: 0.3rem;">{{ profile.michelin_stars_display }}</span>

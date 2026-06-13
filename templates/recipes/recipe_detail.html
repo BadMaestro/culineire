@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static recipe_schema %}
+{% load static recipe_schema author_tags %}
 
 {% block title %}{{ recipe.title }} | CulinEire{% endblock %}
 {% block meta_description %}{% if recipe.short_description %}{{ recipe.short_description }}{% else %}A home-cooking recipe for {{ recipe.title }} on CulinEire.{% endif %}{% endblock %}
@@ -343,7 +343,7 @@
                     <h2>Author Commentary</h2>
                     <div class="source-header source-header--left">
                         <span class="source-badge source-badge--amber">Chef's Note</span>
-                        {% if recipe.author %}<span class="source-header__author">{{ recipe.author.name }}</span>{% endif %}
+                        {% if recipe.author %}<span class="source-header__author">{{ recipe.author.name }}{% executive_badge recipe.author %}</span>{% endif %}
                     </div>
                     <div class="detail-page__card-copy">
                         <blockquote class="source-note" style="margin-bottom:0;">

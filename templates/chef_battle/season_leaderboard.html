@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static author_tags %}
 
 {% block title %}Season Leaderboard | Chef Battle | CulinEire{% endblock %}
 {% block meta_description %}Chef Battle seasonal leaderboard. Top chefs ranked by season score earned through victories, crowns and milestones.{% endblock %}
@@ -43,7 +43,7 @@
       <span>
         {% if profile.has_crown %}&#x1F451; {% endif %}
         {% if profile.is_founding_chef %}<span class="badge-founding">&#x2B50; Founding</span> {% endif %}
-        {{ profile.author.name }}
+        {{ profile.author.name }}{% executive_badge profile.author %}
         {% if profile.is_hero %}<span style="font-size:0.75rem; color:var(--color-muted);">CulinEire Hero</span>{% endif %}
       </span>
       <strong style="color: var(--color-success, #1a6b3a);">{{ profile.seasonal_score }} pts</strong>
