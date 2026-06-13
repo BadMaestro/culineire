@@ -325,7 +325,8 @@ def _award_forfeit_win(battle: Battle, *, winner, loser) -> None:
     winner_profile.win_streak += 1
     winner_profile.rank = rank_for_rating(winner_profile.rating)
     winner_profile.recalculate_level()
-    winner_profile.save(update_fields=["wins", "win_streak", "rank", "level", "is_hero", "updated_at"])
+    winner_profile.recalculate_prestige_title()
+    winner_profile.save(update_fields=["wins", "win_streak", "rank", "level", "is_hero", "prestige_title", "updated_at"])
 
     battle.winner = winner
     battle.loser = loser
@@ -424,6 +425,7 @@ def calculate_battle_result(battle: Battle) -> Battle:
         winner_profile.crown_until = timezone.now() + timezone.timedelta(hours=24)
         winner_profile.rank = rank_for_rating(winner_profile.rating)
         level_changed = winner_profile.recalculate_level()
+        winner_profile.recalculate_prestige_title()
         winner_profile.save()
 
         loser_profile.losses += 1

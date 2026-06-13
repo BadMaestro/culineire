@@ -22,6 +22,23 @@ class ChefBattleProfile(models.Model):
         EXECUTIVE_CHEF = "executive_chef", "Executive Chef"
         CULINARY_MASTER = "culinary_master", "Culinary Master"
 
+    class PrestigeTitle(models.TextChoices):
+        NONE = "", "None"
+        CHALLENGER = "challenger", "The Challenger"
+        VETERAN = "veteran", "The Veteran"
+        IRON_CHEF = "iron_chef", "The Iron Chef"
+        MASTER = "master", "The Master"
+        LEGEND = "legend", "The Legend"
+
+    # wins threshold for each prestige title
+    PRESTIGE_THRESHOLDS = [
+        (15, PrestigeTitle.LEGEND),
+        (10, PrestigeTitle.MASTER),
+        (6, PrestigeTitle.IRON_CHEF),
+        (3, PrestigeTitle.VETERAN),
+        (1, PrestigeTitle.CHALLENGER),
+    ]
+
     WINS_PER_LEVEL = 3
     HERO_WINS_THRESHOLD = 15
     MAX_LEVEL = 5
@@ -48,6 +65,9 @@ class ChefBattleProfile(models.Model):
     crown_count = models.PositiveIntegerField(default=0)
     battle_moves = models.PositiveIntegerField(default=0)
     seasonal_score = models.IntegerField(default=0)
+    prestige_title = models.CharField(
+        max_length=16, choices=PrestigeTitle.choices, default=PrestigeTitle.NONE, blank=True
+    )
     is_founding_chef = models.BooleanField(default=False, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -83,6 +103,17 @@ class ChefBattleProfile(models.Model):
         changed = (self.level != new_level) or (self.is_hero != new_hero)
         self.level = new_level
         self.is_hero = new_hero
+        return changed
+
+    def recalculate_prestige_title(self) -> bool:
+        """Assign highest earned prestige title based on wins. Returns True if changed."""
+        new_title = self.PrestigeTitle.NONE
+        for threshold, title in self.PRESTIGE_THRESHOLDS:
+            if self.wins >= threshold:
+                new_title = title
+                break
+        changed = self.prestige_title != new_title
+        self.prestige_title = new_title
         return changed
 
 

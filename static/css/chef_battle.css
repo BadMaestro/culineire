@@ -322,6 +322,127 @@
   color: #3a3028;
 }
 
+.battle-challenge-page {
+  background:
+    radial-gradient(circle at 16% 12%, rgb(248 210 138 / 0.15), transparent 30rem),
+    var(--paper);
+}
+
+.battle-challenge-layout {
+  display: grid;
+  grid-template-columns: minmax(16rem, 0.34fr) minmax(0, 1fr);
+  gap: 1.1rem;
+  align-items: start;
+}
+
+.battle-challenge-guide {
+  display: grid;
+  gap: 1rem;
+  padding: 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.74), var(--surface));
+  box-shadow: var(--shadow-sm);
+}
+
+.battle-challenge-guide h2,
+.battle-form-heading h2 {
+  margin: 0;
+  text-align: left;
+}
+
+.battle-guide-list {
+  display: grid;
+  gap: 0.85rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.battle-guide-list li {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.battle-guide-list li > span {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid rgb(24 76 58 / 0.22);
+  border-radius: 999px;
+  background: rgb(24 76 58 / 0.08);
+  color: #184c3a;
+  font-weight: 800;
+}
+
+.battle-guide-list strong,
+.battle-guide-note strong {
+  color: var(--ink);
+}
+
+.battle-guide-list p,
+.battle-guide-note p,
+.battle-form-heading p {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+
+.battle-guide-note {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.9rem;
+  border-inline-start: 3px solid #184c3a;
+  border-radius: 0 8px 8px 0;
+  background: rgb(24 76 58 / 0.07);
+}
+
+.battle-form-shell--challenge {
+  padding: 1.25rem;
+}
+
+.battle-form-heading {
+  display: grid;
+  gap: 0.45rem;
+  margin-block-end: 1rem;
+}
+
+.battle-form--challenge {
+  max-width: none;
+}
+
+.battle-form-section {
+  display: grid;
+  gap: 0.9rem;
+  padding-block: 1rem;
+  border-block-start: 1px solid var(--line);
+}
+
+.battle-form-section__title {
+  margin: 0;
+  color: var(--brand);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.battle-form__row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.battle-form__actions--challenge {
+  justify-content: center;
+  padding-block-start: 0.35rem;
+  border-block-start: 1px solid var(--line);
+}
+
 .battle-table {
   overflow: hidden;
 }
@@ -356,6 +477,7 @@
 
 @media (max-width: 880px) {
   .battle-layout,
+  .battle-challenge-layout,
   .battle-card-grid,
   .battle-entry-grid,
   .battle-two-col {
@@ -379,6 +501,10 @@
   .battle-table__head,
   .battle-table__row {
     min-width: 42rem;
+  }
+
+  .battle-form__row {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1525,6 +1651,21 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
   color: #7c5c00;
   background: #fff8e1;
   border: 1px solid #f0c040;
+  border-radius: 99px;
+  padding: 0.1rem 0.5rem;
+  white-space: nowrap;
+}
+
+.badge-prestige {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #1a3a5c;
+  background: #e8f0fb;
+  border: 1px solid #9bb8e8;
   border-radius: 99px;
   padding: 0.1rem 0.5rem;
   white-space: nowrap;

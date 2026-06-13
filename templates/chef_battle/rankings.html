@@ -23,7 +23,7 @@
       </div>
       {% for profile in profiles %}
       <a class="battle-table__row" href="{% url 'chef_battle:chef_profile' slug=profile.author.slug %}">
-        <span>{% if profile.has_crown %}&#x1F451; {% endif %}{% if profile.is_founding_chef %}<span class="badge-founding" title="Founding Chef">&#x2B50;</span> {% endif %}{{ profile.author.name }}</span>
+        <span>{% if profile.has_crown %}&#x1F451; {% endif %}{% if profile.is_founding_chef %}<span class="badge-founding" title="Founding Chef">&#x2B50;</span> {% endif %}{{ profile.author.name }}{% if profile.prestige_title %} <span class="badge-prestige">{{ profile.get_prestige_title_display }}</span>{% endif %}</span>
         <span>{{ profile.get_rank_display }}</span>
         <strong>{{ profile.rating }}</strong>
         <span>{{ profile.wins }}-{{ profile.losses }}</span>
