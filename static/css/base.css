@@ -824,6 +824,7 @@
   .legal-shell--terms,
   .legal-shell--cookies,
   .legal-shell--company,
+  .legal-shell--purchases,
   .legal-shell--report,
   .legal-shell--hub,
   .legal-shell--rules,
@@ -835,6 +836,7 @@
   .legal-shell--terms .legal-intro--policy,
   .legal-shell--cookies .legal-intro--policy,
   .legal-shell--company .legal-intro--policy,
+  .legal-shell--purchases .legal-intro--policy,
   .legal-shell--report .legal-intro--policy,
   .legal-shell--hub .legal-intro--hub,
   .legal-shell--rules .legal-intro--policy,
@@ -1403,6 +1405,7 @@
     .legal-shell--terms,
     .legal-shell--cookies,
     .legal-shell--company,
+    .legal-shell--purchases,
     .legal-shell--report,
     .legal-shell--hub {
       width: min(100% - 1.25rem, 1180px);
@@ -1412,6 +1415,7 @@
     .legal-shell--terms .legal-intro--policy,
     .legal-shell--cookies .legal-intro--policy,
     .legal-shell--company .legal-intro--policy,
+    .legal-shell--purchases .legal-intro--policy,
     .legal-shell--report .legal-intro--policy,
     .legal-shell--hub .legal-intro--hub {
       padding: 1rem;
@@ -1431,6 +1435,7 @@
     .legal-shell--terms .legal-card--section .section-header h2,
     .legal-shell--cookies .legal-card--section .section-header h2,
     .legal-shell--company .legal-card--section .section-header h2,
+    .legal-shell--purchases .legal-card--section .section-header h2,
     .legal-shell--report .legal-card--section .section-header h2 {
       gap: 0.55rem;
     }
@@ -1439,6 +1444,7 @@
     .legal-shell--terms .legal-card__content,
     .legal-shell--cookies .legal-card__content,
     .legal-shell--company .legal-card__content,
+    .legal-shell--purchases .legal-card__content,
     .legal-shell--report .legal-card__content {
       max-width: none;
     }
