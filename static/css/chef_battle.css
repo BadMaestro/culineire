@@ -1785,6 +1785,80 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
 .token-shop-notice p { margin: 0 0 0.4rem; }
 .token-shop-notice p:last-child { margin: 0; }
 
+/* ── Arena Guide page ───────────────────────────────────────────────────── */
+.battle-guide-search {
+  margin-block-end: 2rem;
+}
+.battle-guide-search input {
+  width: 100%;
+  padding: 0.75rem 1.1rem;
+  font-size: 1rem;
+  font-family: var(--font-sans);
+  border: 1.5px solid var(--color-border, #d4c9b8);
+  border-radius: 8px;
+  background: var(--surface-muted, #f5f5f5);
+  color: var(--color-text);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.battle-guide-search input:focus {
+  border-color: var(--color-success, #1a6b3a);
+  background: #fff;
+}
+.battle-guide-sections { display: flex; flex-direction: column; gap: 2.5rem; }
+.battle-guide-section__heading {
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  margin-block: 0 0.25rem;
+}
+.battle-guide-section__intro {
+  font-size: 0.88rem;
+  color: var(--color-muted);
+  margin-block: 0 1rem;
+}
+.battle-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+.battle-guide-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 1rem 1.1rem;
+  background: var(--surface-card, #fff);
+  border: 1px solid var(--color-border, #d4c9b8);
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--color-text);
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+.battle-guide-card:hover {
+  border-color: var(--color-success, #1a6b3a);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.07);
+}
+.battle-guide-card--primary {
+  border-color: var(--color-success, #1a6b3a);
+}
+.battle-guide-card__label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-success, #1a6b3a);
+}
+.battle-guide-card h3 {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  margin: 0;
+}
+.battle-guide-card p {
+  font-size: 0.82rem;
+  color: var(--color-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
 /* ── Rules page ─────────────────────────────────────────────────────────── */
 .battle-rules-section {
   margin-block-end: 2.5rem;

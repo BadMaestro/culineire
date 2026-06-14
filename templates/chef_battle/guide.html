@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Chef Battle Guide | CulinEire{% endblock %}
+{% block meta_description %}Everything you need to know about the CulinEire Chef Battle Arena: rules, tokens, purchases, rankings, artifacts, gifts and legal information.{% endblock %}
+
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260614e" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero">
+  <div class="container">
+    <p class="battle-kicker">Chef Battle Arena</p>
+    <h1>Arena Guide</h1>
+    <p class="battle-room-hero__sub">Everything you need to know about the Chef Battle Arena, from rules and tokens to legal information.</p>
+  </div>
+</section>
+
+<div class="container" style="max-width: 900px; padding-block: 2.5rem;">
+
+  <div class="battle-guide-search">
+    <input
+      id="guide-search"
+      type="search"
+      placeholder="Search the guide..."
+      autocomplete="off"
+      aria-label="Search Chef Battle guide"
+    >
+  </div>
+
+  <p id="guide-no-results" style="display:none; color:var(--color-muted); text-align:center; margin-block:2rem;">No results found. Try a different search term.</p>
+
+  <div class="battle-guide-sections">
+
+    <section class="battle-guide-section" id="getting-started" data-section="Getting Started">
+      <h2 class="battle-guide-section__heading">Getting Started</h2>
+      <p class="battle-guide-section__intro">New to the arena? Start here for an overview of how Chef Battle works.</p>
+      <div class="battle-guide-grid">
+        <a class="battle-guide-card" href="{% url 'chef_battle:home' %}" data-keywords="arena home overview what is chef battle">
+          <span class="battle-guide-card__label">Overview</span>
+          <h3>Arena Home</h3>
+          <p>Live battles, active challenges and the current season standings.</p>
+        </a>
+        <a class="battle-guide-card" href="{% url 'chef_battle:rules' %}#1" data-keywords="challenge how to issue a challenge start a battle">
+          <span class="battle-guide-card__label">Step 1</span>
+          <h3>Issuing a Challenge</h3>
+          <p>How to send a challenge to another chef and what happens when they accept.</p>
+        </a>
+        <a class="battle-guide-card" href="{% url 'chef_battle:rules' %}#2" data-keywords="battle phases how battle works overview">
+          <span class="battle-guide-card__label">Step 2</span>
+          <h3>How a Battle Works</h3>
+          <p>The full lifecycle of a battle from challenge to final result.</p>
+        </a>
+        <a class="battle-guide-card" href="{% url 'chef_battle:battlefield_progress' %}" data-keywords="roadmap progress arena features phases">
+          <span class="battle-guide-card__label">Roadmap</span>
+          <h3>Arena Progress</h3>
+          <p>What features are live, what is in development and what is coming next.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="battle-guide-section" id="battle-rules" data-section="Battle Rules">
+      <h2 class="battle-guide-section__heading">Battle Rules</h2>
+      <p class="battle-guide-section__intro">The complete rulebook for competing in the Chef Battle Arena.</p>
+      <div class="battle-guide-grid">
+        <a class="battle-guide-card battle-guide-card--primary" href="{% url 'chef_battle:rules' %}" data-keywords="rules all complete full rulebook">
+          <span class="battle-guide-card__label">Full rules</span>
+          <h3>Complete Rulebook</h3>
+          <p>All 13 sections of the official Chef Battle rules in one place.</p>
+        </a>
+        <a class="battle-guide-card" href="{% url 'chef_battle:rules' %}#3" data-keywords="combat phase attack defense moves">
+          <span class="battle-guide-card__label">Section 3</span>
+          <h3>Combat Phase</h3>
+          <p>Attack and defence mechanics during active combat.</p>
+        </a>
+        <a class="battle-guide-card" href="{% url 'chef_battle:rules' %}#4" data-keywords="biathlon shooting ingredients lock">
+          <span class="battle-guide-card__label">Section 4</span>
+          <h3>Biathlon</h3>
+          <p>Locking ingredients and shooting blind at your opponent's menu.</p>
+        </a>
+        <a class="battle-guide-card" href="{% url 'chef_battle:rules' %}#5" data-keywords="cooking phase photo webcam submit dish">
+          <span class="battle-guide-card__label">Section 5</span>
+          <h3>Cooking Phase</h3>
+          <p>Submitting your cooked dish via photo or webcam after the biathlon.</p>
+        </a>
+        <a class="battle-guide-card" href="{% url 'chef_battle:rules' %}#6" data-keywords="voting audience vote winner result">
+          <span class="battle-guide-card__label">Section 6</span>
+          <h3>Voting</h3>
+          <p>How the audience votes and how the winner is decided.</p>
+        </a>
+        <a class="battle-guide-card" href="{% url 'chef_battle:rules' %}#8" data-keywords="moves battle moves what can i do">
+          <span class="battle-guide-card__label">Section 8</span>
+          <h3>Battle Moves</h3>
+          <p>The full list of actions available to chefs during combat.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="battle-guide-section" id="tokens-purchases" data-section="Tokens and Purchases">
+      <h2 class="battle-guide-section__heading">Tokens &amp; Purchases</h2>
+      <p class="battle-guide-section__intro">Everything about arena tokens, what they are used for, how to buy them and VAT.</p>
+      <div class="battle-guide-grid">
+        <a class="battle-guide-card battle-guide-card--primary" href="{% url 'chef_battle:token_shop' %}" data-keywords="buy tokens purchase token shop packages price">
+          <span class="battle-guide-card__label">Token Shop</span>
+          <h3>Buy Tokens</h3>
+          <p>Token packages from 100T to 12,800T. Powered by Stripe.</p>
+        </a>
+        <a class="battle-guide-card" href="{% url 'chef_battle:rules' %}#9" data-keywords="what are tokens arena currency how tokens work">
+          <span class="battle-guide-card__label">Section 9</span>
+          <h3>What Are Tokens?</h3>
+          <p>Tokens are the arena currency. How they are earned, purchased and used.</p>
+        </a>
+        <a class="battle-guide-card" href="{% url 'chef_battle:rules' %}#10" data-keywords="appreciation gifts flowers coffee beer whiskey cocktail">
+          <span class="battle-guide-card__label">Section 10</span>
+          <h3>Appreciation Gifts</h3>
+          <p>Send flowers, coffee, beer, whiskey or cocktails to chefs during a battle.</p>
+        </a>
+        <a class="battle-guide-card" href="{% url 'chef_battle:rules' %}#11" data-keywords="battle gifts artifact delivery in battle send">
+          <span class="battle-guide-card__label">Section 11</span>
+          <h3>Battle Gifts</h3>
+          <p>Send a combat artifact directly to a chef mid-battle, including delivery fee explained.</p>
+        </a>
+        <a class="battle-guide-card" href="{% url 'legal:purchases_and_vat' %}" data-keywords="vat tax 23% stripe checkout price payment invoice refund">
+          <span class="battle-guide-card__label">Legal</span>
+          <h3>Purchases &amp; VAT</h3>
+          <p>How VAT is applied at checkout, refund rules, and payment information.</p>
+        </a>
+        <a class="battle-guide-card" href="{% url 'legal:purchases_and_vat' %}#tokens" data-keywords="tokens no cash value non-refundable can i withdraw">
+          <span class="battle-guide-card__label">Legal</span>
+          <h3>Token Rules</h3>
+          <p>Tokens have no cash value, cannot be withdrawn, transferred or refunded after use.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="battle-guide-section" id="artifacts" data-section="Artifacts">
+      <h2 class="battle-guide-section__heading">Artifacts</h2>
+      <p class="battle-guide-section__intro">Combat artifacts power your attack and defence in the arena.</p>
+      <div class="battle-guide-grid">
+        <a class="battle-guide-card battle-guide-card--primary" href="{% url 'chef_battle:rules' %}#13" data-keywords="artifacts combat list all artifacts rarities">
+          <span class="battle-guide-card__label">Section 13</span>
+          <h3>Combat Artifacts</h3>
+          <p>200 unique kitchen artifacts across 5 rarities. How they work and how to use them.</p>
+        </a>
+        <a class="battle-guide-card" href="{% url 'chef_battle:rules' %}#12" data-keywords="artifact drop winner loser consolation rarity chance">
+          <span class="battle-guide-card__label">Section 12</span>
+          <h3>Artifact Drops</h3>
+          <p>After every completed battle chefs receive random artifact drops from the vault.</p>
+        </a>
+        <a class="battle-guide-card" href="{% url 'chef_battle:my_moves' %}" data-keywords="my artifacts my inventory owned artifacts moves">
+          <span class="battle-guide-card__label">Inventory</span>
+          <h3>My Artifacts</h3>
+          <p>View and manage the artifacts you own and are ready to use in combat.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="battle-guide-section" id="rankings" data-section="Rankings and Levels">
+      <h2 class="battle-guide-section__heading">Rankings &amp; Levels</h2>
+      <p class="battle-guide-section__intro">How chef levels, ranking, and the season standings work.</p>
+      <div class="battle-guide-grid">
+        <a class="battle-guide-card" href="{% url 'chef_battle:rankings' %}" data-keywords="rankings leaderboard top chefs list">
+          <span class="battle-guide-card__label">Live</span>
+          <h3>Rankings</h3>
+          <p>Current arena rankings across all competing chefs.</p>
+        </a>
+        <a class="battle-guide-card" href="{% url 'chef_battle:season_leaderboard' %}" data-keywords="season leaderboard current season standings">
+          <span class="battle-guide-card__label">Season</span>
+          <h3>Season Leaderboard</h3>
+          <p>Season standings and points for the current active season.</p>
+        </a>
+        <a class="battle-guide-card" href="{% url 'chef_battle:rules' %}#7" data-keywords="levels ranking chef level how to level up wins">
+          <span class="battle-guide-card__label">Section 7</span>
+          <h3>Chef Levels</h3>
+          <p>Five chef levels from Apprentice to CulinEire Hero. How wins advance your rank.</p>
+        </a>
+        <a class="battle-guide-card" href="{% url 'chef_battle:hall_of_fame' %}" data-keywords="hall of fame legendary chefs history past battles">
+          <span class="battle-guide-card__label">History</span>
+          <h3>Hall of Fame</h3>
+          <p>The first 10 battles and 20 chefs permanently commemorated in the arena.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="battle-guide-section" id="legal" data-section="Legal and Policies">
+      <h2 class="battle-guide-section__heading">Legal &amp; Policies</h2>
+      <p class="battle-guide-section__intro">Policies and legal documents that apply to Chef Battle Arena participation and purchases.</p>
+      <div class="battle-guide-grid">
+        <a class="battle-guide-card" href="{% url 'legal:purchases_and_vat' %}" data-keywords="purchases vat tax payment stripe invoice refund legal">
+          <span class="battle-guide-card__label">Payments</span>
+          <h3>Purchases &amp; VAT</h3>
+          <p>Full legal information on token purchases, VAT, payment processing and refunds.</p>
+        </a>
+        <a class="battle-guide-card" href="{% url 'legal:terms' %}" data-keywords="terms of use rules platform agreement user">
+          <span class="battle-guide-card__label">Platform</span>
+          <h3>Terms of Use</h3>
+          <p>The rules governing your use of CulinEire, including the arena.</p>
+        </a>
+        <a class="battle-guide-card" href="{% url 'privacy' %}" data-keywords="privacy gdpr data personal information">
+          <span class="battle-guide-card__label">GDPR</span>
+          <h3>Privacy Policy</h3>
+          <p>How your personal data is collected, stored and used under GDPR.</p>
+        </a>
+        <a class="battle-guide-card" href="{% url 'legal:company_information' %}" data-keywords="company bearcave limited registered ireland vat number">
+          <span class="battle-guide-card__label">Company</span>
+          <h3>Company Information</h3>
+          <p>Bearcave Limited, Company No. 658124, VAT IE3645402WH, registered in Ireland.</p>
+        </a>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="token-shop-notice" style="text-align:center; margin-block-start: 2.5rem;">
+    <p>Can't find what you're looking for? <a href="{% url 'messaging:contact' %}">Contact us</a> and we'll help.</p>
+  </div>
+
+</div>
+
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+  var input = document.getElementById('guide-search');
+  var noResults = document.getElementById('guide-no-results');
+  var sections = document.querySelectorAll('.battle-guide-section');
+
+  input.addEventListener('input', function () {
+    var q = input.value.trim().toLowerCase();
+    var anyVisible = false;
+
+    sections.forEach(function (section) {
+      var cards = section.querySelectorAll('.battle-guide-card');
+      var sectionName = (section.dataset.section || '').toLowerCase();
+      var sectionHeading = (section.querySelector('h2') ? section.querySelector('h2').textContent : '').toLowerCase();
+      var sectionMatch = !q || sectionName.includes(q) || sectionHeading.includes(q);
+      var visibleCards = 0;
+
+      cards.forEach(function (card) {
+        var text = [
+          card.dataset.keywords || '',
+          card.querySelector('h3') ? card.querySelector('h3').textContent : '',
+          card.querySelector('p') ? card.querySelector('p').textContent : '',
+          card.querySelector('.battle-guide-card__label') ? card.querySelector('.battle-guide-card__label').textContent : '',
+        ].join(' ').toLowerCase();
+
+        var match = !q || sectionMatch || text.includes(q);
+        card.style.display = match ? '' : 'none';
+        if (match) visibleCards++;
+      });
+
+      var show = visibleCards > 0;
+      section.style.display = show ? '' : 'none';
+      if (show) anyVisible = true;
+    });
+
+    noResults.style.display = anyVisible ? 'none' : 'block';
+  });
+}());
+</script>
+{% endblock %}

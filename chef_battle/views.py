@@ -384,6 +384,11 @@ def battle_rules(request):
 
 
 @chef_battle_guard
+def battle_guide(request):
+    return render(request, "chef_battle/guide.html")
+
+
+@chef_battle_guard
 def battle_home(request):
     for battle in get_expired_active_battles():
         calculate_battle_result(battle)
