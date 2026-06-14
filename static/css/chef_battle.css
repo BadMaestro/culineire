@@ -1892,15 +1892,16 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
 }
 .battle-rules-table th,
 .battle-rules-table td {
-  padding: 0.55rem 1.25rem 0.55rem 0.75rem;
-  text-align: left;
+  padding: 0.55rem 1rem;
+  text-align: center;
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
   vertical-align: middle;
 }
-.battle-rules-table th:last-child,
-.battle-rules-table td:last-child {
-  padding-inline-end: 0.75rem;
+.battle-rules-table th:first-child,
+.battle-rules-table td:first-child {
+  text-align: left;
+  padding-inline-start: 0.75rem;
 }
 .battle-rules-table thead th {
   font-weight: 600;
