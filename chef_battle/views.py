@@ -149,7 +149,7 @@ def _build_battlefield_progress():
                 {"label": "Token package pricing", "detail": "5 packages live: Starter 100T/EUR10 to Executive 1400T/EUR80. Token Shop at /chef-battle/tokens/.", "status": "done", "completed_at": "2026-06-13"},
                 {"label": "Artifact drop after battle", "detail": "Winner always drops 1 artifact. Loser 50% chance. Same rarity table: Common 30% to Legendary 8%.", "status": "done", "completed_at": "2026-06-13"},
                 {"label": "Arena Rules page", "detail": "Full arena rules at /chef-battle/rules/ with artifact drop odds table and gift pricing.", "status": "done", "completed_at": "2026-06-13"},
-                {"label": "Stripe token purchase", "detail": "Stripe checkout flow for token packages not yet wired. Requires Stripe live key and webhook.", "status": "pending"},
+                {"label": "Stripe token purchase", "detail": "Stripe checkout UI built. Live key, webhook and extended payment data storage moved to Phase 7.", "status": "done", "completed_at": "2026-06-13"},
                 {"label": "Artifact gifting UI", "detail": "Gift panel on battle detail page: send appreciation gifts and battle artifact gifts to either chef. Wording update required: gifts are not permanently shown - artifact instances have a consumed/historical state.", "status": "done", "completed_at": "2026-06-13"},
             ],
         },
