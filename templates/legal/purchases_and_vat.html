@@ -64,9 +64,10 @@
     </div>
 
     <details class="legal-mobile-jump">
-        <summary>Jump to a section</summary>
+        <summary>Jump to a Purchases &amp; VAT section</summary>
         <div class="legal-mobile-jump__links">
-            <a href="#vat">VAT, Payments &amp; Refunds</a>
+            <a href="#vat">VAT &amp; Payments</a>
+            <a href="#refunds">Refunds</a>
             <a href="#tokens">Arena Tokens</a>
             <a href="#cbr-lsr">CBR &amp; LSR Rewards</a>
             <a href="#digital-items">Digital Items</a>
@@ -80,7 +81,8 @@
         <aside class="legal-toc" aria-label="Purchases &amp; VAT sections">
             <span class="legal-toc__label">On this page</span>
             <nav>
-                <a href="#vat">VAT, Payments &amp; Refunds</a>
+                <a href="#vat">VAT &amp; Payments</a>
+                <a href="#refunds">Refunds</a>
                 <a href="#tokens">Arena Tokens</a>
                 <a href="#cbr-lsr">CBR &amp; LSR Rewards</a>
                 <a href="#digital-items">Digital Items</a>
@@ -94,22 +96,27 @@
         <div class="legal-card-grid legal-card-grid--document legal-document-main">
 
             <article class="legal-card legal-card--section legal-card--section-wide" id="vat">
-                <div class="section-header"><h2>VAT, Payments &amp; Refunds</h2></div>
+                <div class="section-header">
+                    <h2>VAT &amp; Payment Processing</h2>
+                </div>
                 <div class="legal-card__content">
-                    <h3 style="font-size:0.9rem;font-weight:700;margin:0 0 0.35rem;">VAT</h3>
                     <ul class="legal-list">
-                        <li>Token prices in the <a href="{% url 'chef_battle:token_shop' %}">Token Shop</a> are displayed <strong>inclusive of 23% Irish VAT</strong>.</li>
+                        <li>Token prices in the <a href="{% url 'chef_battle:token_shop' %}">Token Shop</a> are displayed <strong>inclusive of 23% Irish VAT</strong>. No additional charges are added at checkout for token purchases.</li>
                         <li>Sponsorship prices are quoted <strong>exclusive of VAT</strong>. VAT is added at checkout.</li>
                         <li>Bearcave Limited is VAT-registered in Ireland: VAT number <strong>IE3645402WH</strong>.</li>
                         <li>Where VAT does not apply, Stripe will determine this at checkout based on your location.</li>
-                    </ul>
-                    <h3 style="font-size:0.9rem;font-weight:700;margin:0.75rem 0 0.35rem;" id="payment-processing">Payment Processing</h3>
-                    <ul class="legal-list">
                         <li>All payments are handled by <strong>Stripe</strong>. CulinEire does not store card details.</li>
                         <li>Stripe may apply additional verification steps under Strong Customer Authentication (SCA) / PSD2.</li>
                         <li>Payments are denominated in <strong>Euro (&euro;)</strong>.</li>
                     </ul>
-                    <h3 style="font-size:0.9rem;font-weight:700;margin:0.75rem 0 0.35rem;" id="refunds">Refunds</h3>
+                </div>
+            </article>
+
+            <article class="legal-card legal-card--section" id="refunds">
+                <div class="section-header">
+                    <h2>Refunds</h2>
+                </div>
+                <div class="legal-card__content">
                     <ul class="legal-list">
                         <li>Token purchases are non-refundable once credited to your wallet, except where required by Irish consumer protection law.</li>
                         <li>Sponsorship refund conditions are in the <a href="{% url 'sponsors:annual_contract' %}#cancellation">Sponsor Agreement</a>.</li>
@@ -118,34 +125,34 @@
                 </div>
             </article>
 
-            <article class="legal-card legal-card--section legal-card--section-wide" id="tokens">
-                <div class="section-header"><h2>Arena Tokens</h2></div>
+            <article class="legal-card legal-card--section" id="tokens">
+                <div class="section-header">
+                    <h2>Arena Tokens</h2>
+                </div>
                 <div class="legal-card__content">
                     <p class="page-subtitle">
-                        Arena Tokens are the virtual currency of the CulinEire Chef Battle Arena. They are purchased
-                        in packages and credited to your token wallet instantly after a successful payment.
-                        Tokens operate as a <strong>closed-loop digital currency</strong> and have no monetary value
-                        outside the arena.
+                        Arena Tokens are the virtual currency of the CulinEire Chef Battle Arena.
+                        They operate as a <strong>closed-loop digital currency</strong> and have no monetary value outside the arena.
                     </p>
                     <ul class="legal-list">
-                        <li>Token prices in the Token Shop are shown <strong>inclusive of 23% Irish VAT</strong>. No additional charges are added at checkout for token purchases.</li>
-                        <li>Tokens are credited to your account wallet instantly after payment is confirmed by Stripe.</li>
-                        <li><strong>Tokens have no cash value.</strong> They cannot be withdrawn, transferred to another account, sold, exchanged for cash, or redeemed for any goods or services outside the arena.</li>
-                        <li>Tokens are non-refundable once credited to your wallet, except where required by Irish consumer protection law or other applicable law.</li>
-                        <li>Tokens can only be spent within the arena: sending appreciation gifts, purchasing combat artifacts, and sending battle gifts to chefs during active battles.</li>
+                        <li>Tokens are credited to your wallet instantly after payment is confirmed by Stripe.</li>
+                        <li><strong>Tokens have no cash value.</strong> They cannot be withdrawn, transferred, sold, exchanged for cash, or redeemed for any goods or services outside the arena.</li>
+                        <li>Tokens are non-refundable once credited to your wallet, except where required by applicable law.</li>
+                        <li>Tokens can only be spent within the arena: appreciation gifts, combat artifacts, and battle gifts to chefs.</li>
                         <li>Unused tokens remain in your wallet while your account is active. Balances on accounts inactive for more than 24 months may be expired at CulinEire's discretion.</li>
-                        <li>All token transactions are recorded in an immutable audit ledger. Once recorded, a transaction cannot be reversed except under the refund rules below.</li>
+                        <li>All token transactions are recorded in an immutable audit ledger and cannot be reversed except under the refund rules above.</li>
                         <li>You must be <strong>18 years of age or older</strong> to purchase tokens or send gifts in the arena.</li>
                     </ul>
                 </div>
             </article>
 
-            <article class="legal-card legal-card--section legal-card--section-wide" id="cbr-lsr">
-                <div class="section-header"><h2>CBR &amp; LSR Rewards</h2></div>
+            <article class="legal-card legal-card--section" id="cbr-lsr">
+                <div class="section-header">
+                    <h2>CBR &amp; LSR Rewards</h2>
+                </div>
                 <div class="legal-card__content">
                     <p class="page-subtitle">
-                        CulinEire may issue discretionary token grants to chefs and live supporters as recognition
-                        of activity in the arena.
+                        CulinEire may issue discretionary token grants to chefs and live supporters as recognition of activity in the arena.
                     </p>
                     <ul class="legal-list">
                         <li><strong>Chef Battle Rewards (CBR)</strong> are token grants issued to chefs who win battles, reach level milestones, or are recognised for outstanding performance.</li>
@@ -158,7 +165,9 @@
             </article>
 
             <article class="legal-card legal-card--section legal-card--section-wide" id="digital-items">
-                <div class="section-header"><h2>Digital Items (Gifts &amp; Artifacts)</h2></div>
+                <div class="section-header">
+                    <h2>Digital Items (Gifts &amp; Artifacts)</h2>
+                </div>
                 <div class="legal-card__content">
                     <ul class="legal-list">
                         <li>Appreciation gifts and combat artifacts are <strong>digital items only</strong>. No physical goods are supplied.</li>
@@ -170,7 +179,9 @@
             </article>
 
             <article class="legal-card legal-card--section legal-card--section-wide" id="operator-gifted-artifacts">
-                <div class="section-header"><h2>Operator-Issued Artifacts</h2></div>
+                <div class="section-header">
+                    <h2>Operator-Issued Artifacts</h2>
+                </div>
                 <div class="legal-card__content">
                     <p class="page-subtitle">
                         The Arena Operator may, at their sole discretion, grant artifacts directly to chefs as recognition awards,
@@ -187,23 +198,26 @@
             </article>
 
             <article class="legal-card legal-card--section" id="sponsorships">
-                <div class="section-header"><h2>Sponsorships</h2></div>
+                <div class="section-header">
+                    <h2>Sponsorships</h2>
+                </div>
                 <div class="legal-card__content">
                     <p class="page-subtitle">
                         CulinEire offers paid sponsor placements on the Sponsor Puzzle. Prices are quoted exclusive of VAT.
-                        Full terms, placement rules, and refund conditions are set out in the
-                        <a href="{% url 'sponsors:annual_contract' %}">Sponsor Agreement</a>.
+                        Full terms are set out in the <a href="{% url 'sponsors:annual_contract' %}">Sponsor Agreement</a>.
                     </p>
                     <ul class="legal-list">
                         <li>Sponsorship payments are processed through Stripe Checkout.</li>
-                        <li>Payment reserves a sponsor slot for compliance review and staff approval. It does not guarantee publication or activation.</li>
-                        <li>A VAT invoice is issued by Bearcave Limited and sent to the sponsor's email address upon activation.</li>
+                        <li>Payment reserves a slot for compliance review and staff approval. It does not guarantee publication.</li>
+                        <li>A VAT invoice is issued by Bearcave Limited upon activation.</li>
                     </ul>
                 </div>
             </article>
 
             <article class="legal-card legal-card--section" id="contact">
-                <div class="section-header"><h2>Contact</h2></div>
+                <div class="section-header">
+                    <h2>Contact</h2>
+                </div>
                 <div class="legal-card__content">
                     <p class="page-subtitle">
                         For billing queries, VAT invoices, or any question about a payment, please use
