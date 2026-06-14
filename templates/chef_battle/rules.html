@@ -299,8 +299,10 @@
               {% for row in drop_table %}
               <tr>
                 <td>
-                  <img src="{{ row.icon }}" alt="{{ row.rarity }}" width="16" height="16" style="vertical-align:middle; margin-right:0.3rem;">
-                  {{ row.rarity|capfirst }}
+                  <span style="display:inline-flex;align-items:center;gap:0.4rem;white-space:nowrap;">
+                    <img src="{{ row.icon }}" alt="" width="16" height="16">
+                    {{ row.rarity|capfirst }}
+                  </span>
                 </td>
                 <td>{{ row.pct }}%</td>
                 <td style="color:var(--color-success,#1a6b3a); font-weight:600;">Guaranteed</td>
