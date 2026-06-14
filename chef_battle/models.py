@@ -705,12 +705,13 @@ class TokenWallet(models.Model):
 
     chef = models.OneToOneField(RecipeAuthor, on_delete=models.CASCADE, related_name="token_wallet")
     balance = models.PositiveIntegerField(default=0)
+    infinite_balance = models.BooleanField(default=False)
     total_purchased = models.PositiveIntegerField(default=0)
     total_spent = models.PositiveIntegerField(default=0)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.chef}: {self.balance}T"
+        return f"{self.chef}: {'∞' if self.infinite_balance else self.balance}T"
 
 
 class TokenTransaction(models.Model):

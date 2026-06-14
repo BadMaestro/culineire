@@ -20,7 +20,7 @@
   {% if wallet %}
   <div class="token-shop-balance">
     <img src="{% static 'images/chef_battle/icon_token.svg' %}" alt="Token" width="24" height="24">
-    <span>Your balance: <strong>{{ wallet.balance }}T</strong></span>
+    <span>Your balance: <strong>{% if wallet.infinite_balance %}&#x221E;{% else %}{{ wallet.balance }}T{% endif %}</strong></span>
   </div>
   {% endif %}
 
