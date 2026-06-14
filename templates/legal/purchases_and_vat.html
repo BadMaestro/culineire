@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% load static %}
+{% block og_image %}{{ SITE_URL }}{% static 'images/hero-contact.png' %}{% endblock %}
+{% block og_image_secure_url %}{{ SITE_URL }}{% static 'images/hero-contact.png' %}{% endblock %}
+{% block twitter_image %}{{ SITE_URL }}{% static 'images/hero-contact.png' %}{% endblock %}
+
+{% block title %}Purchases &amp; VAT | CulinEire{% endblock %}
+{% block meta_description %}How purchases work on CulinEire, including VAT, token purchases, sponsorship payments, and Stripe checkout. Operated by Bearcave Limited, VAT IE3645402WH.{% endblock %}
+
+{% block content %}
+<section class="hero hero--home hero--legal">
+    <div aria-hidden="true" class="hero__background">
+        <img alt="" src="{% static 'images/hero-contact.png' %}">
+    </div>
+    <div aria-hidden="true" class="hero__overlay"></div>
+    <div class="container hero__inner">
+        <div class="hero-copy">
+            <span class="pill">Legal</span>
+            <h1 class="hero-title">Purchases &amp; VAT</h1>
+            <p class="hero-subtitle">How payments, VAT, and purchased items work on CulinEire.</p>
+            <div class="hero__actions">
+                <a class="btn-primary" href="{% url 'legal:legal_hub' %}">Legal Hub</a>
+                <a class="btn-secondary" href="{% url 'legal:terms' %}">Terms of Use</a>
+                <a class="btn-secondary" href="{% url 'legal:company_information' %}">Company Info</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="legal-shell legal-shell--purchases" aria-labelledby="purchases-title">
+
+    <div class="legal-intro legal-intro--policy">
+        <span class="legal-eyebrow">Effective date: 14 June 2026</span>
+        <h2 id="purchases-title">How Purchases Work</h2>
+        <p>
+            CulinEire is operated by <strong>Bearcave Limited</strong> (Company No. 658124, VAT IE3645402WH),
+            registered in Ireland. All paid features on the platform are processed securely through
+            <strong>Stripe</strong>. This page explains what you can buy, how VAT is applied, and the
+            rules that govern purchased items.
+        </p>
+    </div>
+
+    <div class="legal-summary-panel" aria-label="Purchases summary">
+        <div class="legal-summary-item">
+            <span>Operator</span>
+            <strong>Bearcave Limited</strong>
+        </div>
+        <div class="legal-summary-item">
+            <span>VAT number</span>
+            <strong>IE3645402WH</strong>
+        </div>
+        <div class="legal-summary-item">
+            <span>Payment processor</span>
+            <strong>Stripe</strong>
+        </div>
+        <div class="legal-summary-item">
+            <span>VAT rate</span>
+            <strong>23% (Ireland)</strong>
+        </div>
+        <div class="legal-summary-item">
+            <span>Currency</span>
+            <strong>Euro (&euro;)</strong>
+        </div>
+    </div>
+
+    <div class="legal-body">
+
+        <h3 id="vat">VAT</h3>
+        <ul>
+            <li>All prices displayed on CulinEire are quoted <strong>exclusive of VAT</strong>.</li>
+            <li>VAT at the applicable rate is calculated automatically by Stripe and added at checkout before payment is taken.</li>
+            <li>The applicable rate for customers in Ireland is <strong>23%</strong>.</li>
+            <li>Bearcave Limited is VAT-registered in Ireland: VAT number <strong>IE3645402WH</strong>.</li>
+            <li>Where VAT does not apply (for example, for customers in certain jurisdictions), Stripe will determine this at checkout based on your location.</li>
+        </ul>
+
+        <h3 id="tokens">Arena Tokens</h3>
+        <p>
+            Arena Tokens are the virtual currency of the CulinEire Chef Battle Arena. They are purchased
+            in packages and credited to your token wallet instantly after a successful payment.
+        </p>
+        <ul>
+            <li>Token package prices shown in the <a href="{% url 'chef_battle:token_shop' %}">Token Shop</a> are exclusive of VAT. The final price including 23% VAT is shown at Stripe checkout.</li>
+            <li>Tokens are credited to your account wallet instantly after payment is confirmed by Stripe.</li>
+            <li><strong>Tokens have no cash value.</strong> They cannot be withdrawn, transferred, sold, exchanged for cash, or converted into any withdrawable reward.</li>
+            <li>Tokens are non-refundable once credited to your wallet, except where required by applicable law.</li>
+            <li>Tokens can be used to send appreciation gifts, purchase combat artifacts, and send battle gifts to chefs during active battles.</li>
+            <li>Unused tokens remain in your wallet indefinitely and do not expire.</li>
+        </ul>
+
+        <h3 id="sponsorships">Sponsorships</h3>
+        <p>
+            CulinEire offers paid sponsor placements on the Sponsor Puzzle. Prices are quoted exclusive of VAT.
+            Full terms, placement rules, and refund conditions are set out in the
+            <a href="{% url 'sponsors:annual_contract' %}">Sponsor Agreement</a>.
+        </p>
+        <ul>
+            <li>Sponsorship payments are processed through Stripe Checkout.</li>
+            <li>Payment reserves a sponsor slot for compliance review and staff approval. It does not guarantee publication or activation.</li>
+            <li>A VAT invoice is issued by Bearcave Limited and sent to the sponsor's email address upon activation.</li>
+        </ul>
+
+        <h3 id="payment-processing">Payment Processing</h3>
+        <ul>
+            <li>All payments are handled by <strong>Stripe</strong>. CulinEire does not store card details.</li>
+            <li>Stripe may apply additional verification steps at checkout in accordance with Strong Customer Authentication (SCA) requirements under PSD2.</li>
+            <li>Payments are denominated in <strong>Euro (&euro;)</strong>.</li>
+        </ul>
+
+        <h3 id="refunds">Refunds</h3>
+        <ul>
+            <li>Token purchases are non-refundable once tokens have been credited to your wallet, except where required by Irish consumer protection law.</li>
+            <li>Sponsorship refund conditions are described in the <a href="{% url 'sponsors:annual_contract' %}#cancellation">Sponsor Agreement</a>.</li>
+            <li>If you believe a charge was made in error, contact us at <a href="{% url 'messaging:contact' %}">the contact page</a>.</li>
+        </ul>
+
+        <h3 id="contact">Contact</h3>
+        <p>
+            For billing queries, VAT invoices, or any question about a payment, please use
+            <a href="{% url 'messaging:contact' %}">the contact form</a>.
+            Include your order reference or the email address used at checkout.
+        </p>
+
+    </div>
+
+</section>
+{% endblock %}

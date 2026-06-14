@@ -12,6 +12,7 @@ urlpatterns = [
     path("terms/", views.TermsView.as_view(), name="terms"),
     path("cookies/", views.CookiePolicyView.as_view(), name="cookies"),
     path("company-information/", views.CompanyInformationView.as_view(), name="company_information"),
+    path("purchases-and-vat/", views.PurchasesAndVATView.as_view(), name="purchases_and_vat"),
     path("report-content/", views.report_content, name="report_content"),
     path("reports/", views.reports_list, name="reports_list"),
     path("reports/<int:pk>/", views.report_detail, name="report_detail"),

@@ -47,6 +47,10 @@ class CompanyInformationView(TemplateView):
     template_name = "legal/company_information.html"
 
 
+class PurchasesAndVATView(TemplateView):
+    template_name = "legal/purchases_and_vat.html"
+
+
 def _send_report_notification(report):
     notify_email = getattr(settings, "REPORT_NOTIFY_EMAIL", None) or getattr(settings, "EMAIL_HOST_USER", None)
     if not notify_email:
