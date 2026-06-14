@@ -309,9 +309,6 @@
                 {% if recipe.irish_context %}
                 <section class="detail-page__card detail-page__card--context">
                     <h2>Irish Context</h2>
-                    <div class="source-header source-header--left">
-                        <span class="source-badge source-badge--slate">Irish Heritage</span>
-                    </div>
                     <div class="detail-page__card-copy">
                         {% for paragraph in irish_context_paragraphs %}
                         <p>{{ paragraph }}</p>
@@ -325,9 +322,6 @@
                 {% if recipe.tips %}
                 <section class="detail-page__card detail-page__card--tips">
                     <h2>Tips</h2>
-                    <div class="source-header source-header--left">
-                        <span class="source-badge">Kitchen Tips</span>
-                    </div>
                     <div class="detail-page__card-copy">
                         {% for paragraph in tips_paragraphs %}
                         <p>{{ paragraph }}</p>
@@ -342,7 +336,6 @@
                 <section class="detail-page__card detail-page__card--author-commentary">
                     <h2>Author Commentary</h2>
                     <div class="source-header source-header--left">
-                        <span class="source-badge source-badge--amber">Chef's Note</span>
                         {% if recipe.author %}<span class="source-header__author">{{ recipe.author.name }}{% executive_badge recipe.author %}</span>{% endif %}
                     </div>
                     <div class="detail-page__card-copy">
