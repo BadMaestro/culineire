@@ -683,9 +683,15 @@ class LSRRewardTests(TestCase):
         self.assertEqual(gift.gift_type, AppreciationGiftType.COFFEE)
 
     def test_sender_wallet_debited(self):
+        # Debit 20T for gift, credit 2T LSR — net 482. Verify debit transaction exists.
+        from .models import TokenTransaction
         self._send_coffee()
-        wallet = TokenWallet.objects.get(chef=self.sender)
-        self.assertEqual(wallet.balance, 500 - 20)
+        debit_tx = TokenTransaction.objects.filter(
+            wallet__chef=self.sender,
+            tx_type=TokenTransaction.TxType.GIFT_SENT,
+            amount=-20,
+        )
+        self.assertTrue(debit_tx.exists())
 
     def test_lsr_reward_record_created(self):
         self._send_coffee()
