@@ -314,7 +314,7 @@
           </ul>
           <table class="battle-rules-table" style="margin-block-start:0.85rem;">
             <thead>
-              <tr><th>Rarity</th><th>Drop chance</th><th>Winner</th><th>Defeated</th></tr>
+              <tr><th>Rarity</th><th>Winner</th><th>Defeated</th></tr>
             </thead>
             <tbody>
               {% for row in drop_table %}
@@ -325,13 +325,13 @@
                     {{ row.rarity|capfirst }}
                   </span>
                 </td>
-                <td>{{ row.pct }}%</td>
-                <td style="color:var(--color-success,#1a6b3a); font-weight:600;">Guaranteed</td>
-                <td style="color:var(--color-muted);">50% chance</td>
+                <td style="color:var(--color-success,#1a6b3a); font-weight:600;">{{ row.winner_pct }}%</td>
+                <td>{{ row.defeated_pct }}%</td>
               </tr>
               {% endfor %}
             </tbody>
           </table>
+          <p style="margin-block-start:0.5rem; font-size:0.82rem; color:var(--ink-soft);">Winner receives a guaranteed artifact drop. Defeated player has a 50% chance of receiving a drop. Percentages show the probability of each rarity being awarded.</p>
         </div>
       </div>
 
