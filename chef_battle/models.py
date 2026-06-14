@@ -914,7 +914,7 @@ class ContentReport(models.Model):
 
     reporter = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
-        related_name="content_reports",
+        related_name="arena_content_reports",
     )
     content_kind = models.CharField(max_length=20, choices=ContentKind.choices, db_index=True)
     object_id = models.PositiveIntegerField()
