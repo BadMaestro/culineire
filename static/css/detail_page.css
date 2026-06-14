@@ -2632,6 +2632,16 @@
     }
 
     /* article arrow overrides removed — base is now edge-anchored for all galleries */
+
+    .allergen-list {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .allergen-check {
+      width: 100%;
+      justify-content: flex-start;
+    }
   }
 
   @media (max-width: 520px) {
