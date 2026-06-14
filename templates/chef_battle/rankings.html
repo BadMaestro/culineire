@@ -5,12 +5,21 @@
 {% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260614b" rel="stylesheet">{% endblock %}
 
 {% block content %}
+<section class="battle-room-hero">
+  <div class="container">
+    <p class="battle-kicker">Chef Battle Arena</p>
+    <h1>Rankings</h1>
+    <p class="battle-room-hero__sub">All-time standings across every competing chef in the arena.</p>
+    <div class="battle-actions">
+      <a class="btn-primary" href="{% url 'chef_battle:challenge_create' %}">Challenge A Chef</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:season_leaderboard' %}">Season Leaderboard</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:hall_of_fame' %}">Hall of Fame</a>
+    </div>
+  </div>
+</section>
+
 <section class="page-section">
   <div class="container battle-page">
-    <div class="battle-section-header">
-      <h1>Chef Battle Rankings</h1>
-      <a class="btn-primary" href="{% url 'chef_battle:challenge_create' %}">Challenge A Chef</a>
-    </div>
 
     {% if profiles %}
     <div class="battle-table">

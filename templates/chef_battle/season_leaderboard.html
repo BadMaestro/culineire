@@ -12,6 +12,11 @@
     <p class="battle-kicker">Chef Battle Arena</p>
     <h1>Season Leaderboard</h1>
     <p class="battle-room-hero__sub">{{ season_name|safe }} &middot; Resets each season</p>
+    <div class="battle-actions">
+      <a class="btn-primary" href="{% url 'chef_battle:home' %}">Enter Arena</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">All-Time Rankings</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:hall_of_fame' %}">Hall of Fame</a>
+    </div>
   </div>
 </section>
 

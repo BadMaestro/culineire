@@ -10,6 +10,11 @@
     <p class="battle-kicker">Chef Battle Arena</p>
     <h1>Hall of Fame</h1>
     <p class="battle-room-hero__sub">The battles and chefs that shaped the arena</p>
+    <div class="battle-actions">
+      <a class="btn-primary" href="{% url 'chef_battle:home' %}">Enter Arena</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:guide' %}">Arena Guide</a>
+    </div>
   </div>
 </section>
 
