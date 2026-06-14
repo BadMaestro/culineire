@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/chef_battle.css' %}">{% endblock %}
 {% block og_image %}{{ SITE_URL }}{% static 'images/hero-battle.png' %}{% endblock %}
 {% block og_image_secure_url %}{{ SITE_URL }}{% static 'images/hero-battle.png' %}{% endblock %}
 {% block twitter_image %}{{ SITE_URL }}{% static 'images/hero-battle.png' %}{% endblock %}
