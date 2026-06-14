@@ -53,7 +53,9 @@
 }
 
 .battle-hero .battle-actions .btn-primary,
-.battle-hero .battle-actions .btn-secondary {
+.battle-hero .battle-actions .btn-secondary,
+.battle-room-hero .battle-actions .btn-primary,
+.battle-room-hero .battle-actions .btn-secondary {
   min-height: 44px;
   padding: 0.42rem 0.82rem;
   border: 1px solid rgb(255 255 255 / 0.16);
@@ -74,7 +76,11 @@
 .battle-hero .battle-actions .btn-primary:hover,
 .battle-hero .battle-actions .btn-primary:focus-visible,
 .battle-hero .battle-actions .btn-secondary:hover,
-.battle-hero .battle-actions .btn-secondary:focus-visible {
+.battle-hero .battle-actions .btn-secondary:focus-visible,
+.battle-room-hero .battle-actions .btn-primary:hover,
+.battle-room-hero .battle-actions .btn-primary:focus-visible,
+.battle-room-hero .battle-actions .btn-secondary:hover,
+.battle-room-hero .battle-actions .btn-secondary:focus-visible {
   background: rgb(247 242 234 / 0.26);
   border-color: rgb(255 255 255 / 0.24);
   color: #ffffff;
