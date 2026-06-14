@@ -1,37 +1,75 @@
 {% extends "base.html" %}
 {% load static %}
+{% block og_image %}{{ SITE_URL }}{% static 'images/hero-battle.png' %}{% endblock %}
+{% block og_image_secure_url %}{{ SITE_URL }}{% static 'images/hero-battle.png' %}{% endblock %}
+{% block twitter_image %}{{ SITE_URL }}{% static 'images/hero-battle.png' %}{% endblock %}
 
 {% block title %}Token Shop | Chef Battle | CulinEire{% endblock %}
 {% block meta_description %}Buy tokens to send gifts, purchase combat artifacts and support chefs in the CulinEire arena.{% endblock %}
 
-{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260614d" rel="stylesheet">{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260614f" rel="stylesheet">{% endblock %}
 
 {% block content %}
-<section class="battle-room-hero">
-  <div class="container">
-    <p class="battle-kicker">Chef Battle Arena</p>
-    <h1>Token Shop</h1>
-    <p class="battle-room-hero__sub">Tokens power the arena. Send gifts, buy artifacts, support your favourite chef.</p>
-    <div class="battle-actions">
-      <a class="btn-primary" href="{% url 'chef_battle:home' %}">Enter Arena</a>
-      <a class="btn-secondary" href="{% url 'chef_battle:rules' %}">Rules</a>
-      <a class="btn-secondary" href="{% url 'chef_battle:guide' %}">Arena Guide</a>
+<section class="hero hero--home hero--legal">
+  <div aria-hidden="true" class="hero__background">
+    <img alt="" src="{% static 'images/hero-battle.png' %}">
+  </div>
+  <div aria-hidden="true" class="hero__overlay"></div>
+  <div class="container hero__inner">
+    <div class="hero-copy">
+      <span class="pill">Chef Battle Arena</span>
+      <h1 class="hero-title">Token Shop</h1>
+      <p class="hero-subtitle">Tokens power the arena. Send gifts, buy combat artifacts and support your favourite chef.</p>
+      <div class="hero__actions">
+        <a class="btn-primary" href="{% url 'chef_battle:home' %}">Enter Arena</a>
+        <a class="btn-secondary" href="{% url 'chef_battle:rules' %}">Rules &amp; Guide</a>
+        <a class="btn-secondary" href="{% url 'legal:purchases_and_vat' %}">Purchases &amp; VAT</a>
+      </div>
     </div>
   </div>
 </section>
 
-<div class="container" style="max-width: 860px; padding-block: 2.5rem;">
+<section class="legal-shell legal-shell--token-shop" aria-labelledby="token-shop-title">
+
+  <div class="legal-intro legal-intro--policy">
+    <span class="legal-eyebrow">Arena currency</span>
+    <h2 id="token-shop-title">Buy Tokens</h2>
+    <p>
+      Tokens (T) are the official currency of the Chef Battle Arena.
+      Use them to send appreciation gifts, purchase combat artifacts and send battle gifts during live fights.
+      Tokens are credited to your wallet instantly after purchase.
+    </p>
+  </div>
+
+  <div class="legal-summary-panel" aria-label="Token shop summary">
+    <div class="legal-summary-item">
+      <span>Payment</span>
+      <strong>Stripe &mdash; secure checkout</strong>
+    </div>
+    <div class="legal-summary-item">
+      <span>VAT</span>
+      <strong>23% added at checkout</strong>
+    </div>
+    <div class="legal-summary-item">
+      <span>Credited</span>
+      <strong>Instantly after purchase</strong>
+    </div>
+    <div class="legal-summary-item">
+      <span>Cash value</span>
+      <strong>None &mdash; non-withdrawable</strong>
+    </div>
+  </div>
 
   {% if wallet %}
-  <div class="token-shop-balance">
+  <div class="token-shop-balance" style="margin-block-start: clamp(1rem,2.5vw,1.5rem);">
     <img src="{% static 'images/chef_battle/icon_token.svg' %}" alt="Token" width="24" height="24">
     <span>Your balance: <strong>{% if wallet.infinite_balance %}&#x221E;{% else %}{{ wallet.balance }}T{% endif %}</strong></span>
   </div>
   {% endif %}
 
-  <div id="token-shop-error" style="display:none; color:var(--color-danger,#b91c1c); margin-block-end:1rem; font-size:0.9rem;"></div>
+  <div id="token-shop-error" style="display:none; color:var(--color-danger,#b91c1c); margin-block: 1rem 0; font-size:0.9rem;"></div>
 
-  <div class="token-shop-grid">
+  <div class="token-shop-grid" style="margin-block-start: clamp(1.25rem,3vw,2rem);">
     {% for pkg in packages %}
     <div class="token-shop-card{% if forloop.counter == 4 %} token-shop-card--featured{% endif %}">
       {% if forloop.counter == 4 %}<span class="token-shop-card__badge">Best Value</span>{% endif %}
@@ -64,33 +102,44 @@
     {% endfor %}
   </div>
 
-  <div class="token-shop-notice">
-    <p>Tokens are credited to your wallet instantly after purchase. Powered by Stripe.</p>
-    <p><strong><a href="{% url 'legal:purchases_and_vat' %}#vat" style="color:inherit; text-decoration:none;">Prices shown exclude VAT. 23% VAT is calculated and added automatically at checkout by Stripe.</a></strong></p>
-    <p>Tokens have no cash value and cannot be withdrawn, transferred, sold, exchanged for cash, or converted into withdrawable reward tokens.</p>
-    <p><a href="{% url 'chef_battle:rules' %}#12">How artifact drops work</a> &middot; <a href="{% url 'chef_battle:home' %}">Back to Arena</a></p>
+  {# ── What tokens are used for ── #}
+  <div style="margin-block-start: clamp(2rem,4vw,3rem);">
+    <div class="legal-hub-section">
+      <div class="section-header"><h2>What Tokens Are Used For</h2></div>
+      <p class="legal-hub-section__intro">Three ways to spend tokens in the arena.</p>
+      <div class="legal-card-grid legal-card-grid--hub" style="grid-template-columns: repeat(auto-fill, minmax(220px,1fr));">
+        <a class="legal-card legal-card--hub" href="{% url 'chef_battle:rules' %}#s10">
+          <span class="legal-card__label">20T &ndash; 80T</span>
+          <h3>Appreciation Gifts</h3>
+          <p>Send flowers, coffee, beer, whiskey or cocktails to chefs during a battle. Permanent on their profile.</p>
+        </a>
+        <a class="legal-card legal-card--hub" href="{% url 'chef_battle:rules' %}#s13">
+          <span class="legal-card__label">10T &ndash; 400T</span>
+          <h3>Combat Artifacts</h3>
+          <p>Purchase attack or defence artifacts to use in combat. 200 unique artifacts across 5 rarities.</p>
+        </a>
+        <a class="legal-card legal-card--hub" href="{% url 'chef_battle:rules' %}#s11">
+          <span class="legal-card__label">Artifact cost + delivery</span>
+          <h3>Battle Gifts</h3>
+          <p>Send a combat artifact directly to a chef during an active battle. Delivered instantly, mid-fight.</p>
+        </a>
+      </div>
+    </div>
   </div>
 
-  <h2 style="font-family: var(--font-serif); font-size: 1.25rem; margin-block: 2rem 1rem; text-align: center;">What tokens are used for</h2>
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-    <div class="battle-stat-card" style="text-align:center;">
-      <span class="battle-stat-card__label">Appreciation Gifts</span>
-      <p style="font-size:0.85rem; margin:0.4rem 0 0;">Send flowers, coffee, beer, whiskey or cocktails to chefs during a battle. Permanent on their profile.</p>
-      <p style="font-size:0.8rem; color:var(--color-muted); margin:0.3rem 0 0;">20T &ndash; 80T per gift</p>
-    </div>
-    <div class="battle-stat-card" style="text-align:center;">
-      <span class="battle-stat-card__label">Combat Artifacts</span>
-      <p style="font-size:0.85rem; margin:0.4rem 0 0;">Purchase attack or defence artifacts to use in combat. 200 unique artifacts across 5 rarities.</p>
-      <p style="font-size:0.8rem; color:var(--color-muted); margin:0.3rem 0 0;">10T &ndash; 400T per artifact</p>
-    </div>
-    <div class="battle-stat-card" style="text-align:center;">
-      <span class="battle-stat-card__label">Battle Gifts</span>
-      <p style="font-size:0.85rem; margin:0.4rem 0 0;">Send a combat artifact directly to a chef during an active battle.</p>
-      <p style="font-size:0.8rem; color:var(--color-muted); margin:0.3rem 0 0;">Artifact cost + delivery</p>
-    </div>
-  </div>
+  {# ── Legal notice ── #}
+  <aside class="legal-contact-card legal-contact-card--hub" style="margin-block-start: clamp(1.5rem,3vw,2rem);" aria-label="Token legal notice">
+    <span>Legal &amp; Payment Information</span>
+    <p>
+      Tokens are credited instantly after Stripe confirms payment.
+      <strong><a href="{% url 'legal:purchases_and_vat' %}#vat">Prices shown exclude VAT. 23% Irish VAT is added automatically at checkout.</a></strong>
+      Tokens have no cash value and cannot be withdrawn, transferred, sold or exchanged for cash.
+      See the full <a href="{% url 'legal:purchases_and_vat' %}">Purchases &amp; VAT</a> policy for refund rules and legal terms.
+      Questions? <a href="{% url 'messaging:contact' %}">Contact us</a>.
+    </p>
+  </aside>
 
-</div>
+</section>
 
 <script nonce="{{ request.csp_nonce }}">
 (function () {

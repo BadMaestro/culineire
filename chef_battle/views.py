@@ -385,7 +385,7 @@ def battle_rules(request):
 
 @chef_battle_guard
 def battle_guide(request):
-    return render(request, "chef_battle/guide.html")
+    return redirect("chef_battle:rules")
 
 
 @chef_battle_guard
