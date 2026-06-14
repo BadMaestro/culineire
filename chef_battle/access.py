@@ -3,7 +3,9 @@ from __future__ import annotations
 from functools import wraps
 
 from django.conf import settings
+from django.contrib import messages
 from django.http import Http404
+from django.shortcuts import redirect
 
 
 def is_battle_visible(request) -> bool:
@@ -26,11 +28,25 @@ def is_battle_visible(request) -> bool:
 def chef_battle_guard(view_func):
     """
     View decorator: raises Http404 for any user who cannot see Chef's Battle.
+    Suspended accounts are redirected with an error message on POST actions.
     Apply to every chef_battle view.
     """
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         if not is_battle_visible(request):
             raise Http404
+        user = getattr(request, "user", None)
+        if user and user.is_authenticated and request.method == "POST":
+            try:
+                profile = user.recipe_author_profile.battle_profile
+                if profile.is_suspended:
+                    messages.error(
+                        request,
+                        "Your arena account is currently suspended. "
+                        "Please contact us if you believe this is an error.",
+                    )
+                    return redirect(request.path)
+            except Exception:
+                pass
         return view_func(request, *args, **kwargs)
     return wrapper

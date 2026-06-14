@@ -450,6 +450,19 @@ def calculate_battle_result(battle: Battle) -> Battle:
         battle.result_reason = f"Public vote: {challenger_votes}-{opponent_votes}"
         battle.save(update_fields=["winner", "loser", "status", "crown_awarded", "result_reason", "updated_at"])
 
+        from .models import LedgerEvent
+        LedgerEvent.objects.create(
+            event_type=LedgerEvent.EventType.BATTLE_COMPLETED,
+            actor=winner,
+            target=loser,
+            related_battle=battle,
+            payload={
+                "challenger_votes": challenger_votes,
+                "opponent_votes": opponent_votes,
+                "result_reason": battle.result_reason,
+            },
+        )
+
         create_battle_event(
             event_type=BattleEvent.EventType.BATTLE_COMPLETED,
             battle=battle,
@@ -1027,7 +1040,7 @@ def send_battle_artifact(*, sender_user, recipient, battle: Battle, artifact: Ar
 
 
 def send_appreciation_gift(*, sender_user, recipient, gift_type: str, message: str = "") -> AppreciationGift:
-    """Viewer spends tokens to send an appreciation gift to a chef (permanent on profile)."""
+    """Viewer spends tokens to send an appreciation gift to a chef. All gifts are digital items only."""
     cost = APPRECIATION_GIFT_COST.get(gift_type)
     if cost is None:
         raise ValueError(f"Unknown gift type: {gift_type}")
@@ -1052,6 +1065,35 @@ def send_appreciation_gift(*, sender_user, recipient, gift_type: str, message: s
             tokens_spent=cost,
             message=message,
         )
+
+        from .models import LedgerEvent, RewardRecord
+        LedgerEvent.objects.create(
+            event_type=LedgerEvent.EventType.GIFT_SENT,
+            actor=sender_author,
+            target=recipient,
+            payload={"gift_type": gift_type, "tokens_spent": cost},
+        )
+
+        # LSR: sender earns 10% of the gift cost back as a Live Support Reward
+        lsr_amount = max(1, cost // 10)
+        reward = RewardRecord.objects.create(
+            recipient=sender_author,
+            reward_type=RewardRecord.RewardType.LSR,
+            tokens_granted=lsr_amount,
+            reason=f"LSR for sending {gift_type} to {recipient.name}",
+            related_gift=gift,
+        )
+        credit_tokens(
+            sender_author, lsr_amount,
+            tx_type=TokenTransaction.TxType.ADMIN_GRANT,
+            description=f"LSR reward for gift to {recipient.name}",
+        )
+        LedgerEvent.objects.create(
+            event_type=LedgerEvent.EventType.LSR_GRANTED,
+            actor=sender_author,
+            payload={"tokens_granted": lsr_amount, "reward_id": reward.pk, "gift_type": gift_type},
+        )
+
     return gift
 
 

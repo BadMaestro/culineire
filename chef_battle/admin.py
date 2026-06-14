@@ -2,6 +2,7 @@ from django.contrib import admin, messages
 from django.utils import timezone
 
 from .models import (
+    AppreciationGift,
     Artifact,
     Battle,
     BattleChallenge,
@@ -12,9 +13,18 @@ from .models import (
     ChefArtifact,
     ChefBattleProfile,
     ChefCosmetic,
+    ContentReport,
     CosmeticItem,
+    LedgerEvent,
+    ProcessedTokenStripeEvent,
+    RewardRecord,
     Season,
     SeasonStanding,
+    TokenOrder,
+    TokenPackage,
+    TokenTransaction,
+    TokenWallet,
+    ViewerBattleGift,
 )
 from .services import create_battle_event
 
@@ -227,10 +237,10 @@ class ArtifactAdmin(admin.ModelAdmin):
 
 @admin.register(ChefArtifact)
 class ChefArtifactAdmin(admin.ModelAdmin):
-    list_display = ("chef", "artifact", "equipped", "earned_at")
-    list_filter = ("equipped",)
+    list_display = ("chef", "artifact", "source", "status", "equipped", "earned_at", "consumed_at")
+    list_filter = ("equipped", "source", "status")
     search_fields = ("chef__name", "artifact__name")
-    readonly_fields = ("earned_at",)
+    readonly_fields = ("earned_at", "consumed_at")
     ordering = ("-earned_at",)
 
 
@@ -264,3 +274,106 @@ class SeasonStandingAdmin(admin.ModelAdmin):
     list_filter = ("season",)
     search_fields = ("chef__name",)
     ordering = ("season", "rank_position")
+
+
+@admin.register(AppreciationGift)
+class AppreciationGiftAdmin(admin.ModelAdmin):
+    list_display = ("gift_type", "recipient", "sender", "tokens_spent", "sent_at")
+    list_filter = ("gift_type",)
+    search_fields = ("recipient__name",)
+    readonly_fields = ("sent_at",)
+    ordering = ("-sent_at",)
+
+
+@admin.register(ViewerBattleGift)
+class ViewerBattleGiftAdmin(admin.ModelAdmin):
+    list_display = ("artifact", "recipient", "battle", "tokens_spent", "is_applied", "sent_at")
+    list_filter = ("is_applied",)
+    search_fields = ("recipient__name", "artifact__name")
+    readonly_fields = ("sent_at",)
+    ordering = ("-sent_at",)
+
+
+@admin.register(TokenPackage)
+class TokenPackageAdmin(admin.ModelAdmin):
+    list_display = ("name", "key", "tokens", "price_eur", "discount_percent", "is_active", "sort_order")
+    list_filter = ("is_active",)
+    search_fields = ("name", "key")
+    ordering = ("sort_order",)
+
+
+@admin.register(TokenWallet)
+class TokenWalletAdmin(admin.ModelAdmin):
+    list_display = ("chef", "balance", "infinite_balance", "total_purchased", "total_spent", "updated_at")
+    list_filter = ("infinite_balance",)
+    search_fields = ("chef__name",)
+    readonly_fields = ("updated_at",)
+
+
+@admin.register(TokenTransaction)
+class TokenTransactionAdmin(admin.ModelAdmin):
+    list_display = ("wallet", "tx_type", "amount", "balance_after", "description", "created_at")
+    list_filter = ("tx_type",)
+    search_fields = ("wallet__chef__name", "description")
+    readonly_fields = ("created_at",)
+    ordering = ("-created_at",)
+
+
+@admin.register(TokenOrder)
+class TokenOrderAdmin(admin.ModelAdmin):
+    list_display = ("wallet", "package", "tokens", "amount_eur_cents", "status", "created_at")
+    list_filter = ("status",)
+    search_fields = ("wallet__chef__name", "stripe_checkout_session_id")
+    readonly_fields = ("created_at", "updated_at")
+    ordering = ("-created_at",)
+
+
+@admin.register(ProcessedTokenStripeEvent)
+class ProcessedTokenStripeEventAdmin(admin.ModelAdmin):
+    list_display = ("event_id", "event_type", "received_at")
+    readonly_fields = ("event_id", "event_type", "received_at")
+    ordering = ("-received_at",)
+
+
+@admin.register(RewardRecord)
+class RewardRecordAdmin(admin.ModelAdmin):
+    list_display = ("recipient", "reward_type", "tokens_granted", "reason", "granted_by", "created_at")
+    list_filter = ("reward_type",)
+    search_fields = ("recipient__name", "reason")
+    readonly_fields = ("created_at",)
+    ordering = ("-created_at",)
+
+
+@admin.register(LedgerEvent)
+class LedgerEventAdmin(admin.ModelAdmin):
+    list_display = ("event_type", "actor", "target", "related_battle", "created_at")
+    list_filter = ("event_type",)
+    search_fields = ("actor__name", "target__name")
+    readonly_fields = ("event_type", "actor", "target", "related_battle", "payload", "created_at")
+    ordering = ("-created_at",)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(ContentReport)
+class ContentReportAdmin(admin.ModelAdmin):
+    list_display = ("content_kind", "object_id", "reporter", "status", "created_at", "reviewed_at")
+    list_filter = ("content_kind", "status")
+    search_fields = ("reason", "moderator_note")
+    readonly_fields = ("created_at",)
+    ordering = ("-created_at",)
+    fieldsets = (
+        ("Report", {
+            "fields": ("reporter", "content_kind", "object_id", "reason", "status", "created_at"),
+        }),
+        ("Moderation", {
+            "fields": ("reviewed_by", "reviewed_at", "moderator_note"),
+        }),
+    )
