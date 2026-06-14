@@ -8,7 +8,7 @@
 {% block meta_description %}A practical guide to using images legally on CulinEire. Learn about licences, watermarks, and Creative Commons.{% endblock %}
 
 {% block content %}
-<section class="hero hero--home">
+<section class="hero hero--home hero--legal">
     <div aria-hidden="true" class="hero__background">
         <img alt="" src="{% static 'images/hero-contact.png' %}">
     </div>
@@ -16,147 +16,208 @@
     <div class="container hero__inner">
         <div class="hero-copy">
             <span class="pill">Legal</span>
-            <h1 class="hero-title">Copyright and Image Rights Guide</h1>
+            <h1 class="hero-title">Copyright &amp; Image Rights</h1>
             <p class="hero-subtitle">A practical guide to images, licences, and your rights as a CulinEire author.</p>
+            <div class="hero__actions">
+                <a class="btn-primary" href="{% url 'legal:legal_hub' %}">Legal Hub</a>
+                <a class="btn-secondary" href="{% url 'legal:content_publishing_rules' %}">Publishing Rules</a>
+                <a class="btn-secondary" href="{% url 'legal:author_submission_agreement' %}">Submission Agreement</a>
+                <a class="btn-secondary" href="{% url 'legal:report_content' %}">Report Content</a>
+            </div>
         </div>
     </div>
 </section>
 
-<section class="page-section">
-    <div class="container">
+<section class="legal-shell legal-shell--copyright" aria-labelledby="copyright-guide-title">
 
-        <div class="section-header">
-            <span class="section-kicker">The Basics</span>
-            <h2>Why Image Rights Matter</h2>
-        </div>
-        <p class="page-subtitle">
+    <div class="legal-intro legal-intro--policy">
+        <span class="legal-eyebrow">Last updated: May 2026</span>
+        <h2 id="copyright-guide-title">Why Image Rights Matter</h2>
+        <p>
             Every photograph is automatically protected by copyright under Irish and EU law from the moment
             it is created. Using a photograph without the copyright holder's permission is an infringement,
-            even if the image was found freely available online.
-        </p>
-        <p class="page-subtitle">
-            CulinEire takes image rights seriously. Publishing unlicensed images exposes both the author
-            and the platform to legal liability under the Copyright and Related Rights Act 2000 (Ireland)
-            and the EU Copyright Directive (2019/790).
-        </p>
-
-        <div class="section-header">
-            <span class="section-kicker">Watermarks</span>
-            <h2>Never Submit Watermarked Images</h2>
-        </div>
-        <p class="page-subtitle">
-            A watermark is a visible copyright notice. It means the image belongs to someone else.
-        </p>
-        <ul class="legal-list">
-            <li>Do not upload watermarked images, even if the watermark has been cropped out of the visible area. Cropping does not transfer rights.</li>
-            <li>Watermarks from services such as Getty Images, Shutterstock, Alamy, or similar indicate that the image is licensed commercial stock photography and requires a paid licence to use.</li>
-            <li>If you found an image on Google Images, Pinterest, or a recipe blog, this does not mean you have rights to use it.</li>
-            <li>Submitting a watermarked or unlicensed image may result in immediate content removal and account suspension.</li>
-        </ul>
-
-        <div class="section-header">
-            <span class="section-kicker">Your Own Photos</span>
-            <h2>Using Photos You Took Yourself</h2>
-        </div>
-        <p class="page-subtitle">
-            The safest choice is to use your own original photographs. As the photographer, you own the copyright automatically.
-        </p>
-        <ul class="legal-list">
-            <li>Select "My own photo" as the Image Rights option when submitting your recipe.</li>
-            <li>No additional credit is required for your own work.</li>
-        </ul>
-
-        <div class="section-header">
-            <span class="section-kicker">Creative Commons</span>
-            <h2>Using Licensed Images</h2>
-        </div>
-        <p class="page-subtitle">
-            Some photographers make their work available under Creative Commons or other open licences.
-            You can use these images if you comply with the licence terms.
-        </p>
-        <ul class="legal-list">
-            <li><strong>CC BY</strong> (Attribution): You may use the image if you credit the photographer and source. This is the most permissive licence.</li>
-            <li><strong>CC BY-SA</strong> (Attribution-ShareAlike): You may use the image with credit, and any derivatives must use the same licence.</li>
-            <li><strong>CC BY-NC</strong> (Attribution-NonCommercial): Use permitted for non-commercial purposes with credit.</li>
-            <li><strong>CC BY-ND</strong> (Attribution-NoDerivatives): Use permitted with credit, but no modifications.</li>
-            <li><strong>CC0</strong> (Public Domain Dedication): No restrictions; no credit required, though crediting is good practice.</li>
-        </ul>
-        <p class="page-subtitle">
-            When using a Creative Commons image, include the licence name and photographer credit in the
-            Image Credit / Licence field when submitting your recipe.
-        </p>
-
-        <div class="section-header">
-            <span class="section-kicker">Public Domain</span>
-            <h2>Public Domain Images</h2>
-        </div>
-        <p class="page-subtitle">
-            Works enter the public domain when their copyright expires (typically 70 years after the author's death
-            under Irish and EU law) or when the creator explicitly dedicates them to the public domain.
-        </p>
-        <ul class="legal-list">
-            <li>Public domain images may be used freely.</li>
-            <li>Check the source carefully. Some platforms claim images are public domain when they are not.</li>
-            <li>Reliable sources include Wikimedia Commons (CC0-marked images), the Library of Congress digital collections, and the National Library of Ireland digital collections.</li>
-        </ul>
-
-        <div class="section-header">
-            <span class="section-kicker">Stock Photography</span>
-            <h2>Stock Images</h2>
-        </div>
-        <ul class="legal-list">
-            <li>Stock images from Unsplash, Pexels, or Pixabay that are marked as free for commercial use may be used on CulinEire. Check the individual licence for each image.</li>
-            <li>Images from paid stock libraries (Getty, Shutterstock, iStock) may only be used if you hold an appropriate licence. Do not use watermarked preview versions.</li>
-        </ul>
-
-        <div class="section-header">
-            <span class="section-kicker">AI Generated Images</span>
-            <h2>Using AI Generated Images</h2>
-        </div>
-        <p class="page-subtitle">
-            AI generated images are permitted on CulinEire provided they are declared correctly.
-            When submitting a recipe with an AI generated image, select "AI generated image" as the Image Rights option.
-            Images submitted under this setting will be marked with an "AI" label visible to all readers.
-        </p>
-        <ul class="legal-list">
-            <li>You must select "AI generated image" in the Image Rights field. Submitting an AI generated image under any other category is a violation of CulinEire's publishing rules.</li>
-            <li>The copyright status of AI-generated images may be uncertain and can depend on the level of human creative input, the tool used, and the applicable licence terms. On CulinEire, AI-generated images must never be presented as original photography and must be clearly declared as AI-generated.</li>
-            <li>The image must still be appropriate and relevant to the recipe. Misleading, offensive, or unrelated AI images will be removed.</li>
-        </ul>
-
-        <div class="section-header">
-            <span class="section-kicker">EU AI Act</span>
-            <h2>EU AI Act and Transparency</h2>
-        </div>
-        <p class="page-subtitle">
-            The EU Artificial Intelligence Act (Regulation 2024/1689), which entered into force in August 2024,
-            requires that AI generated content be disclosed when it could be mistaken for real photographs or authentic material.
-            CulinEire complies with this obligation by automatically labelling all images submitted as AI generated.
-        </p>
-        <ul class="legal-list">
-            <li>Authors are responsible for correctly declaring AI generated images at the point of submission.</li>
-            <li>Submitting an AI generated image without declaring it is a breach of both CulinEire policy and EU law.</li>
-            <li>CulinEire reserves the right to remove undisclosed AI generated images and suspend the accounts responsible.</li>
-        </ul>
-
-        <div class="section-header">
-            <span class="section-kicker">Reporting</span>
-            <h2>If You See an Infringement</h2>
-        </div>
-        <p class="page-subtitle">
-            If you believe content on CulinEire infringes your copyright or another person's rights,
-            please use the <a href="{% url 'legal:report_content' %}">Report Content</a> form.
-            CulinEire will review verified complaints and take appropriate action within a reasonable timeframe.
-        </p>
-
-        <p class="page-subtitle" style="margin-top:2.5rem;">
-            Last updated: May 2026. This guide does not constitute legal advice.
-            For specific legal questions, consult a qualified Irish or EU intellectual property solicitor.
-        </p>
-
-        <p class="page-subtitle">
-            <a href="{% url 'legal:legal_hub' %}">&larr; Back to Legal</a>
+            even if the image was found freely available online. CulinEire takes image rights seriously.
+            This guide does not constitute legal advice.
         </p>
     </div>
+
+    <div class="legal-summary-panel" aria-label="Image rights summary">
+        <div class="legal-summary-item">
+            <span>Safe choice</span>
+            <strong>Your own photos</strong>
+        </div>
+        <div class="legal-summary-item">
+            <span>Licensed images</span>
+            <strong>Credit required</strong>
+        </div>
+        <div class="legal-summary-item">
+            <span>AI images</span>
+            <strong>Must be declared</strong>
+        </div>
+        <div class="legal-summary-item">
+            <span>Watermarked</span>
+            <strong>Never permitted</strong>
+        </div>
+    </div>
+
+    <details class="legal-mobile-jump">
+        <summary>Jump to a section</summary>
+        <div class="legal-mobile-jump__links">
+            <a href="#watermarks">Watermarks</a>
+            <a href="#own-photos">Your Own Photos</a>
+            <a href="#creative-commons">Creative Commons</a>
+            <a href="#public-domain">Public Domain</a>
+            <a href="#stock">Stock Photography</a>
+            <a href="#ai-images">AI Generated Images</a>
+            <a href="#eu-ai-act">EU AI Act</a>
+            <a href="#reporting">Reporting Infringements</a>
+        </div>
+    </details>
+
+    <div class="legal-document-layout">
+        <aside class="legal-toc" aria-label="Image rights sections">
+            <span class="legal-toc__label">On this page</span>
+            <nav>
+                <a href="#watermarks">Watermarks</a>
+                <a href="#own-photos">Your Own Photos</a>
+                <a href="#creative-commons">Creative Commons</a>
+                <a href="#public-domain">Public Domain</a>
+                <a href="#stock">Stock Photography</a>
+                <a href="#ai-images">AI Generated Images</a>
+                <a href="#eu-ai-act">EU AI Act</a>
+                <a href="#reporting">Reporting Infringements</a>
+            </nav>
+            <p>This guide covers how to use images legally on CulinEire.</p>
+        </aside>
+
+        <div class="legal-card-grid legal-card-grid--document legal-document-main">
+
+            <article class="legal-card legal-card--section legal-card--section-wide" id="watermarks">
+                <div class="section-header">
+                    <h2>Never Submit Watermarked Images</h2>
+                </div>
+                <div class="legal-card__content">
+                    <p class="page-subtitle">A watermark is a visible copyright notice. It means the image belongs to someone else.</p>
+                    <ul class="legal-list">
+                        <li>Do not upload watermarked images, even if the watermark has been cropped out of the visible area. Cropping does not transfer rights.</li>
+                        <li>Watermarks from services such as Getty Images, Shutterstock, Alamy, or similar indicate that the image is licensed commercial stock photography and requires a paid licence to use.</li>
+                        <li>If you found an image on Google Images, Pinterest, or a recipe blog, this does not mean you have rights to use it.</li>
+                        <li>Submitting a watermarked or unlicensed image may result in immediate content removal and account suspension.</li>
+                    </ul>
+                </div>
+            </article>
+
+            <article class="legal-card legal-card--section" id="own-photos">
+                <div class="section-header">
+                    <h2>Using Photos You Took Yourself</h2>
+                </div>
+                <div class="legal-card__content">
+                    <p class="page-subtitle">The safest choice is to use your own original photographs. As the photographer, you own the copyright automatically.</p>
+                    <ul class="legal-list">
+                        <li>Select "My own photo" as the Image Rights option when submitting your recipe.</li>
+                        <li>No additional credit is required for your own work.</li>
+                    </ul>
+                </div>
+            </article>
+
+            <article class="legal-card legal-card--section" id="creative-commons">
+                <div class="section-header">
+                    <h2>Creative Commons Licences</h2>
+                </div>
+                <div class="legal-card__content">
+                    <p class="page-subtitle">Some photographers make their work available under Creative Commons or other open licences. You can use these images if you comply with the licence terms.</p>
+                    <ul class="legal-list">
+                        <li><strong>CC BY</strong> (Attribution): You may use the image if you credit the photographer and source.</li>
+                        <li><strong>CC BY-SA</strong> (Attribution-ShareAlike): You may use the image with credit, and any derivatives must use the same licence.</li>
+                        <li><strong>CC BY-NC</strong> (Attribution-NonCommercial): Use permitted for non-commercial purposes with credit.</li>
+                        <li><strong>CC BY-ND</strong> (Attribution-NoDerivatives): Use permitted with credit, but no modifications.</li>
+                        <li><strong>CC0</strong> (Public Domain Dedication): No restrictions; no credit required, though crediting is good practice.</li>
+                    </ul>
+                    <p class="page-subtitle">When using a Creative Commons image, include the licence name and photographer credit in the Image Credit field when submitting your recipe.</p>
+                </div>
+            </article>
+
+            <article class="legal-card legal-card--section" id="public-domain">
+                <div class="section-header">
+                    <h2>Public Domain Images</h2>
+                </div>
+                <div class="legal-card__content">
+                    <p class="page-subtitle">Works enter the public domain when their copyright expires (typically 70 years after the author's death under Irish and EU law) or when the creator explicitly dedicates them to the public domain.</p>
+                    <ul class="legal-list">
+                        <li>Public domain images may be used freely.</li>
+                        <li>Check the source carefully. Some platforms claim images are public domain when they are not.</li>
+                        <li>Reliable sources include Wikimedia Commons (CC0-marked images), the Library of Congress digital collections, and the National Library of Ireland digital collections.</li>
+                    </ul>
+                </div>
+            </article>
+
+            <article class="legal-card legal-card--section" id="stock">
+                <div class="section-header">
+                    <h2>Stock Photography</h2>
+                </div>
+                <div class="legal-card__content">
+                    <ul class="legal-list">
+                        <li>Stock images from Unsplash, Pexels, or Pixabay that are marked as free for commercial use may be used on CulinEire. Check the individual licence for each image.</li>
+                        <li>Images from paid stock libraries (Getty, Shutterstock, iStock) may only be used if you hold an appropriate licence. Do not use watermarked preview versions.</li>
+                    </ul>
+                </div>
+            </article>
+
+            <article class="legal-card legal-card--section legal-card--section-wide" id="ai-images">
+                <div class="section-header">
+                    <h2>AI Generated Images</h2>
+                </div>
+                <div class="legal-card__content">
+                    <p class="page-subtitle">AI generated images are permitted on CulinEire provided they are declared correctly. When submitting a recipe with an AI generated image, select "AI generated image" as the Image Rights option. Images submitted under this setting will be marked with an "AI" label visible to all readers.</p>
+                    <ul class="legal-list">
+                        <li>You must select "AI generated image" in the Image Rights field. Submitting an AI generated image under any other category is a violation of CulinEire's publishing rules.</li>
+                        <li>The copyright status of AI-generated images may be uncertain and can depend on the level of human creative input, the tool used, and the applicable licence terms. On CulinEire, AI-generated images must never be presented as original photography and must be clearly declared as AI-generated.</li>
+                        <li>The image must still be appropriate and relevant to the recipe. Misleading, offensive, or unrelated AI images will be removed.</li>
+                    </ul>
+                </div>
+            </article>
+
+            <article class="legal-card legal-card--section legal-card--section-wide" id="eu-ai-act">
+                <div class="section-header">
+                    <h2>EU AI Act and Transparency</h2>
+                </div>
+                <div class="legal-card__content">
+                    <p class="page-subtitle">The EU Artificial Intelligence Act (Regulation 2024/1689), which entered into force in August 2024, requires that AI generated content be disclosed when it could be mistaken for real photographs or authentic material. CulinEire complies with this obligation by automatically labelling all images submitted as AI generated.</p>
+                    <ul class="legal-list">
+                        <li>Authors are responsible for correctly declaring AI generated images at the point of submission.</li>
+                        <li>Submitting an AI generated image without declaring it is a breach of both CulinEire policy and EU law.</li>
+                        <li>CulinEire reserves the right to remove undisclosed AI generated images and suspend the accounts responsible.</li>
+                    </ul>
+                </div>
+            </article>
+
+            <article class="legal-card legal-card--section" id="reporting">
+                <div class="section-header">
+                    <h2>If You See an Infringement</h2>
+                </div>
+                <div class="legal-card__content">
+                    <p class="page-subtitle">
+                        If you believe content on CulinEire infringes your copyright or another person's rights,
+                        please use the <a href="{% url 'legal:report_content' %}">Report Content</a> form.
+                        CulinEire will review verified complaints and take appropriate action within a reasonable timeframe.
+                        This guide does not constitute legal advice. For specific legal questions, consult a qualified Irish or EU intellectual property solicitor.
+                    </p>
+                </div>
+            </article>
+
+        </div>
+    </div>
+
+    <aside class="legal-contact-card" aria-label="Related legal pages">
+        <div>
+            <p>
+                <a href="{% url 'legal:legal_hub' %}">Back to Legal</a> &middot;
+                <a href="{% url 'legal:content_publishing_rules' %}">Publishing Rules</a> &middot;
+                <a href="{% url 'legal:author_submission_agreement' %}">Submission Agreement</a> &middot;
+                <a href="{% url 'legal:report_content' %}">Report Content</a>
+            </p>
+        </div>
+    </aside>
+
 </section>
 {% endblock %}

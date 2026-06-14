@@ -8,7 +8,7 @@
 {% block meta_description %}Rules for submitting recipes and articles to CulinEire. Read before publishing content.{% endblock %}
 
 {% block content %}
-<section class="hero hero--home">
+<section class="hero hero--home hero--legal">
     <div aria-hidden="true" class="hero__background">
         <img alt="" src="{% static 'images/hero-contact.png' %}">
     </div>
@@ -19,107 +19,176 @@
             <h1 class="hero-title">Content Publishing Rules</h1>
             <p class="hero-subtitle">What you may and may not submit to CulinEire.</p>
             <div class="hero__actions">
-                {% if can_view_amuse_bouche_public_area %}
-                <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
-                {% endif %}
-                <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
-                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
-                <a class="btn-secondary" href="{% url 'sponsors:puzzle' %}">Sponsors</a>
+                <a class="btn-primary" href="{% url 'legal:legal_hub' %}">Legal Hub</a>
+                <a class="btn-secondary" href="{% url 'legal:author_submission_agreement' %}">Submission Agreement</a>
+                <a class="btn-secondary" href="{% url 'legal:copyright_image_rights_guide' %}">Image Rights</a>
+                <a class="btn-secondary" href="{% url 'legal:report_content' %}">Report Content</a>
             </div>
         </div>
     </div>
 </section>
 
-<section class="page-section">
-    <div class="container">
+<section class="legal-shell legal-shell--publishing" aria-labelledby="publishing-rules-title">
 
-        <div class="section-header">
-            <span class="section-kicker">General</span>
-            <h2>What We Accept</h2>
-        </div>
-        <p class="page-subtitle">
+    <div class="legal-intro legal-intro--policy">
+        <span class="legal-eyebrow">Last updated: May 2026</span>
+        <h2 id="publishing-rules-title">What We Accept</h2>
+        <p>
             CulinEire publishes recipes and food articles that are original, family-based,
             or properly credited adaptations. All content must be submitted in good faith
             by the person whose name it will appear under.
         </p>
-        <ul class="legal-list">
-            <li>Original recipes created by the submitting author.</li>
-            <li>Family or personal recipes that the author has the right to share publicly.</li>
-            <li>Adaptations of other recipes, provided the original source is clearly credited in the Source Notes field.</li>
-            <li>Food articles, food history pieces, and culinary commentary written by the submitting author.</li>
-        </ul>
-
-        <div class="section-header">
-            <span class="section-kicker">Prohibited Content</span>
-            <h2>What Is Not Permitted</h2>
-        </div>
-        <ul class="legal-list">
-            <li>Recipes or text copied verbatim from cookbooks, websites, magazines or other publications without explicit written permission from the rights holder.</li>
-            <li>Content submitted under a name that is not the author's own (impersonation).</li>
-            <li>Images you do not own, have not licensed, or for which you have not received written permission.</li>
-            <li>Watermarked images, even if the watermark is cropped out. The presence of a watermark indicates the image belongs to someone else.</li>
-            <li>AI-generated images claimed as original photography.</li>
-            <li>Content that is defamatory, obscene, or in breach of Irish law.</li>
-            <li>Spam, commercial promotions, or affiliate content submitted without prior agreement.</li>
-        </ul>
-
-        <div class="section-header">
-            <span class="section-kicker">Images</span>
-            <h2>Image Standards</h2>
-        </div>
-        <p class="page-subtitle">
-            Images on CulinEire must meet the following minimum standards.
-        </p>
-        <ul class="legal-list">
-            <li>The image must be your own photograph, a correctly licensed stock or Creative Commons image, or a public domain image.</li>
-            <li>You must be able to demonstrate ownership or licensing rights if asked.</li>
-            <li>Images must not contain visible watermarks, copyright notices from other services, or branding from third-party platforms.</li>
-            <li>Cropping out a watermark does not transfer rights. Do not submit watermarked images.</li>
-            <li>Where a licence applies (e.g. Creative Commons), include the licence name and credit in the Image Credit field when submitting.</li>
-        </ul>
-
-        <div class="section-header">
-            <span class="section-kicker">Food Safety and Allergens</span>
-            <h2>Food Safety and Allergen Responsibilities</h2>
-        </div>
-        <p class="page-subtitle">
-            Authors are responsible for the accuracy and safety of all food content they submit.
-            CulinEire publishes content for informational and inspirational purposes and does not
-            provide professional dietary, nutritional, or medical advice.
-        </p>
-        <ul class="legal-list">
-            <li>You must accurately declare all known allergens in every recipe you submit, using the allergen fields provided in the submission form.</li>
-            <li>The 14 major allergens required under EU Regulation No 1169/2011 on food information to consumers must be identified where present: cereals containing gluten, crustaceans, eggs, fish, peanuts, soybeans, milk, nuts, celery, mustard, sesame seeds, sulphur dioxide and sulphites, lupin, and molluscs.</li>
-            <li>Do not make medical or health claims about recipes (for example, claiming a recipe treats, prevents, or cures any condition). Such claims may constitute a breach of EU health claims regulations.</li>
-            <li>If a recipe involves techniques that require particular care (for example, canning, fermentation, or raw meat preparation), include clear safety guidance in the method or tips fields.</li>
-            <li>Do not instruct readers to feed content to infants, young children, or vulnerable groups without appropriate safety warnings.</li>
-            <li>Allergen information must reflect the ingredients as listed. If a substitution changes the allergen profile, this must be stated clearly in the recipe.</li>
-        </ul>
-        <p class="page-subtitle">
-            CulinEire cannot guarantee that allergen information submitted by authors is complete or current,
-            as ingredient formulations and labelling can change. Readers with food allergies or intolerances
-            should always verify ingredients independently before preparing a recipe.
-        </p>
-
-        <div class="section-header">
-            <span class="section-kicker">Enforcement</span>
-            <h2>Consequences of Rule Violations</h2>
-        </div>
-        <ul class="legal-list">
-            <li>Content found to be in breach of these rules will be removed without notice.</li>
-            <li>Repeated or serious violations may result in account suspension.</li>
-            <li>CulinEire will cooperate with rights holders and relevant authorities in the event of verified copyright infringement.</li>
-            <li>Reports of policy violations or copyright infringement can be submitted via the <a href="{% url 'legal:report_content' %}">Report Content</a> form.</li>
-        </ul>
-
-        <p class="page-subtitle" style="margin-top:2.5rem;">
-            Last updated: May 2026. These rules are governed by Irish law, including the
-            Copyright and Related Rights Act 2000 and applicable EU regulations.
-        </p>
-
-        <p class="page-subtitle">
-            <a href="{% url 'legal:legal_hub' %}">&larr; Back to Legal</a>
-        </p>
     </div>
+
+    <div class="legal-summary-panel" aria-label="Publishing rules summary">
+        <div class="legal-summary-item">
+            <span>Content types</span>
+            <strong>Recipes &amp; articles</strong>
+        </div>
+        <div class="legal-summary-item">
+            <span>Images</span>
+            <strong>Own, licensed, or AI (declared)</strong>
+        </div>
+        <div class="legal-summary-item">
+            <span>Moderation</span>
+            <strong>All content reviewed</strong>
+        </div>
+        <div class="legal-summary-item">
+            <span>Governing law</span>
+            <strong>Ireland / EU</strong>
+        </div>
+    </div>
+
+    <details class="legal-mobile-jump">
+        <summary>Jump to a section</summary>
+        <div class="legal-mobile-jump__links">
+            <a href="#accepted">What We Accept</a>
+            <a href="#prohibited">Prohibited Content</a>
+            <a href="#images">Image Standards</a>
+            <a href="#food-safety">Food Safety &amp; Allergens</a>
+            <a href="#enforcement">Enforcement</a>
+        </div>
+    </details>
+
+    <div class="legal-document-layout">
+        <aside class="legal-toc" aria-label="Publishing rules sections">
+            <span class="legal-toc__label">On this page</span>
+            <nav>
+                <a href="#accepted">What We Accept</a>
+                <a href="#prohibited">Prohibited Content</a>
+                <a href="#images">Image Standards</a>
+                <a href="#food-safety">Food Safety &amp; Allergens</a>
+                <a href="#enforcement">Enforcement</a>
+            </nav>
+            <p>These rules apply to all recipes and articles submitted to CulinEire.</p>
+        </aside>
+
+        <div class="legal-card-grid legal-card-grid--document legal-document-main">
+
+            <article class="legal-card legal-card--section" id="accepted">
+                <div class="section-header">
+                    <h2>What We Accept</h2>
+                </div>
+                <div class="legal-card__content">
+                    <ul class="legal-list">
+                        <li>Original recipes created by the submitting author.</li>
+                        <li>Family or personal recipes that the author has the right to share publicly.</li>
+                        <li>Adaptations of other recipes, provided the original source is clearly credited in the Source Notes field.</li>
+                        <li>Food articles, food history pieces, and culinary commentary written by the submitting author.</li>
+                    </ul>
+                </div>
+            </article>
+
+            <article class="legal-card legal-card--section" id="prohibited">
+                <div class="section-header">
+                    <h2>What Is Not Permitted</h2>
+                </div>
+                <div class="legal-card__content">
+                    <ul class="legal-list">
+                        <li>Recipes or text copied verbatim from cookbooks, websites, magazines or other publications without explicit written permission from the rights holder.</li>
+                        <li>Content submitted under a name that is not the author's own (impersonation).</li>
+                        <li>Images you do not own, have not licensed, or for which you have not received written permission.</li>
+                        <li>Watermarked images, even if the watermark is cropped out. The presence of a watermark indicates the image belongs to someone else.</li>
+                        <li>AI-generated images claimed as original photography.</li>
+                        <li>Content that is defamatory, obscene, or in breach of Irish law.</li>
+                        <li>Spam, commercial promotions, or affiliate content submitted without prior agreement.</li>
+                    </ul>
+                </div>
+            </article>
+
+            <article class="legal-card legal-card--section" id="images">
+                <div class="section-header">
+                    <h2>Image Standards</h2>
+                </div>
+                <div class="legal-card__content">
+                    <p class="page-subtitle">Images on CulinEire must meet the following minimum standards.</p>
+                    <ul class="legal-list">
+                        <li>The image must be your own photograph, a correctly licensed stock or Creative Commons image, or a public domain image.</li>
+                        <li>You must be able to demonstrate ownership or licensing rights if asked.</li>
+                        <li>Images must not contain visible watermarks, copyright notices from other services, or branding from third-party platforms.</li>
+                        <li>Cropping out a watermark does not transfer rights. Do not submit watermarked images.</li>
+                        <li>Where a licence applies (e.g. Creative Commons), include the licence name and credit in the Image Credit field when submitting.</li>
+                    </ul>
+                </div>
+            </article>
+
+            <article class="legal-card legal-card--section legal-card--section-wide" id="food-safety">
+                <div class="section-header">
+                    <h2>Food Safety and Allergen Responsibilities</h2>
+                </div>
+                <div class="legal-card__content">
+                    <p class="page-subtitle">
+                        Authors are responsible for the accuracy and safety of all food content they submit.
+                        CulinEire publishes content for informational and inspirational purposes and does not
+                        provide professional dietary, nutritional, or medical advice.
+                    </p>
+                    <ul class="legal-list">
+                        <li>You must accurately declare all known allergens in every recipe you submit, using the allergen fields provided in the submission form.</li>
+                        <li>The 14 major allergens required under EU Regulation No 1169/2011 on food information to consumers must be identified where present: cereals containing gluten, crustaceans, eggs, fish, peanuts, soybeans, milk, nuts, celery, mustard, sesame seeds, sulphur dioxide and sulphites, lupin, and molluscs.</li>
+                        <li>Do not make medical or health claims about recipes (for example, claiming a recipe treats, prevents, or cures any condition). Such claims may constitute a breach of EU health claims regulations.</li>
+                        <li>If a recipe involves techniques that require particular care (for example, canning, fermentation, or raw meat preparation), include clear safety guidance in the method or tips fields.</li>
+                        <li>Do not instruct readers to feed content to infants, young children, or vulnerable groups without appropriate safety warnings.</li>
+                        <li>Allergen information must reflect the ingredients as listed. If a substitution changes the allergen profile, this must be stated clearly in the recipe.</li>
+                    </ul>
+                    <p class="page-subtitle">
+                        CulinEire cannot guarantee that allergen information submitted by authors is complete or current,
+                        as ingredient formulations and labelling can change. Readers with food allergies or intolerances
+                        should always verify ingredients independently before preparing a recipe.
+                    </p>
+                </div>
+            </article>
+
+            <article class="legal-card legal-card--section" id="enforcement">
+                <div class="section-header">
+                    <h2>Consequences of Rule Violations</h2>
+                </div>
+                <div class="legal-card__content">
+                    <ul class="legal-list">
+                        <li>Content found to be in breach of these rules will be removed without notice.</li>
+                        <li>Repeated or serious violations may result in account suspension.</li>
+                        <li>CulinEire will cooperate with rights holders and relevant authorities in the event of verified copyright infringement.</li>
+                        <li>Reports of policy violations or copyright infringement can be submitted via the <a href="{% url 'legal:report_content' %}">Report Content</a> form.</li>
+                    </ul>
+                    <p class="page-subtitle">
+                        Last updated: May 2026. These rules are governed by Irish law, including the
+                        Copyright and Related Rights Act 2000 and applicable EU regulations.
+                    </p>
+                </div>
+            </article>
+
+        </div>
+    </div>
+
+    <aside class="legal-contact-card" aria-label="Related legal pages">
+        <div>
+            <p>
+                <a href="{% url 'legal:legal_hub' %}">Back to Legal</a> &middot;
+                <a href="{% url 'legal:author_submission_agreement' %}">Submission Agreement</a> &middot;
+                <a href="{% url 'legal:copyright_image_rights_guide' %}">Image Rights Guide</a> &middot;
+                <a href="{% url 'legal:report_content' %}">Report Content</a>
+            </p>
+        </div>
+    </aside>
+
 </section>
 {% endblock %}

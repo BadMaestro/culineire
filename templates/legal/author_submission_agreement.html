@@ -8,7 +8,7 @@
 {% block meta_description %}The agreement all CulinEire authors accept when submitting recipes or articles for publication.{% endblock %}
 
 {% block content %}
-<section class="hero hero--home">
+<section class="hero hero--home hero--legal">
     <div aria-hidden="true" class="hero__background">
         <img alt="" src="{% static 'images/hero-contact.png' %}">
     </div>
@@ -18,95 +18,164 @@
             <span class="pill">Legal</span>
             <h1 class="hero-title">Author Submission Agreement</h1>
             <p class="hero-subtitle">What you agree to when you submit content to CulinEire.</p>
+            <div class="hero__actions">
+                <a class="btn-primary" href="{% url 'legal:legal_hub' %}">Legal Hub</a>
+                <a class="btn-secondary" href="{% url 'legal:content_publishing_rules' %}">Publishing Rules</a>
+                <a class="btn-secondary" href="{% url 'legal:copyright_image_rights_guide' %}">Image Rights</a>
+            </div>
         </div>
     </div>
 </section>
 
-<section class="page-section">
-    <div class="container">
+<section class="legal-shell legal-shell--author" aria-labelledby="author-agreement-title">
 
-        <div class="section-header">
-            <span class="section-kicker">Overview</span>
-            <h2>Your Agreement with CulinEire</h2>
-        </div>
-        <p class="page-subtitle">
+    <div class="legal-intro legal-intro--policy">
+        <span class="legal-eyebrow">Last updated: May 2026</span>
+        <h2 id="author-agreement-title">Your Agreement with CulinEire</h2>
+        <p>
             By submitting a recipe or article to CulinEire, you confirm that you have read and
             understood this agreement and that you are submitting content in compliance with it.
             This agreement is between you ("the Author") and Bearcave Limited ("CulinEire").
         </p>
-
-        <div class="section-header">
-            <span class="section-kicker">Ownership</span>
-            <h2>You Retain Your Rights</h2>
-        </div>
-        <p class="page-subtitle">
-            You remain the owner of the content you submit. Submitting content to CulinEire does not
-            transfer copyright ownership to Bearcave Limited.
-        </p>
-        <ul class="legal-list">
-            <li>You retain full copyright in your original recipes, articles, and photographs.</li>
-            <li>You may publish your content elsewhere, including on your own website or blog.</li>
-            <li>You may request removal of your content from CulinEire at any time by contacting us.</li>
-        </ul>
-
-        <div class="section-header">
-            <span class="section-kicker">Licence</span>
-            <h2>What You Grant to CulinEire</h2>
-        </div>
-        <p class="page-subtitle">
-            By submitting content, you grant Bearcave Limited a non-exclusive, royalty-free licence to:
-        </p>
-        <ul class="legal-list">
-            <li>Publish and display your content on the CulinEire website.</li>
-            <li>Use your content for promotional purposes related to CulinEire, such as social media posts, newsletters, and site features, with appropriate attribution.</li>
-            <li>Store and back up your content as required for site operation.</li>
-        </ul>
-        <p class="page-subtitle">
-            This licence does not permit CulinEire to sell your content, sub-licence it to third parties,
-            or use it in ways unrelated to the CulinEire platform without your prior consent.
-        </p>
-
-        <div class="section-header">
-            <span class="section-kicker">Your Responsibilities</span>
-            <h2>What You Confirm When Submitting</h2>
-        </div>
-        <ul class="legal-list">
-            <li>The content is your own original work, a properly credited adaptation, or a family recipe you have the right to share publicly.</li>
-            <li>You have not copied text verbatim from cookbooks, websites, or other publications without explicit permission from the rights holder.</li>
-            <li>All images you submit are either your own photographs, correctly licensed (e.g. Creative Commons, stock with appropriate licence), or in the public domain.</li>
-            <li>You have not submitted watermarked images, stolen images, or images you found online without verifying their licence status.</li>
-            <li>The content does not infringe the intellectual property rights of any third party.</li>
-            <li>The content does not contain defamatory, obscene, or unlawful material.</li>
-        </ul>
-
-        <div class="section-header">
-            <span class="section-kicker">Moderation</span>
-            <h2>Review and Removal</h2>
-        </div>
-        <ul class="legal-list">
-            <li>All submitted content is subject to moderation review before publication.</li>
-            <li>CulinEire reserves the right to reject or remove content that does not meet its editorial or legal standards.</li>
-            <li>Authors will be notified of rejection where reasonably practicable.</li>
-            <li>In the event of a verified copyright complaint, content may be removed immediately and the Author's account may be suspended.</li>
-        </ul>
-
-        <div class="section-header">
-            <span class="section-kicker">Governing Law</span>
-            <h2>Legal Framework</h2>
-        </div>
-        <p class="page-subtitle">
-            This agreement is governed by the laws of Ireland, including the Copyright and Related Rights Act 2000
-            and applicable EU regulations. Any disputes arising under this agreement shall be subject to the
-            jurisdiction of the Irish courts.
-        </p>
-
-        <p class="page-subtitle" style="margin-top:2.5rem;">
-            Last updated: May 2026.
-        </p>
-
-        <p class="page-subtitle">
-            <a href="{% url 'legal:legal_hub' %}">&larr; Back to Legal</a>
-        </p>
     </div>
+
+    <div class="legal-summary-panel" aria-label="Author agreement summary">
+        <div class="legal-summary-item">
+            <span>Your rights</span>
+            <strong>You retain copyright</strong>
+        </div>
+        <div class="legal-summary-item">
+            <span>Licence granted</span>
+            <strong>Non-exclusive, royalty-free</strong>
+        </div>
+        <div class="legal-summary-item">
+            <span>Moderation</span>
+            <strong>All content reviewed</strong>
+        </div>
+        <div class="legal-summary-item">
+            <span>Governing law</span>
+            <strong>Ireland / EU</strong>
+        </div>
+    </div>
+
+    <details class="legal-mobile-jump">
+        <summary>Jump to a section</summary>
+        <div class="legal-mobile-jump__links">
+            <a href="#ownership">Your Rights</a>
+            <a href="#licence">Licence to CulinEire</a>
+            <a href="#responsibilities">Your Responsibilities</a>
+            <a href="#moderation">Moderation</a>
+            <a href="#governing-law">Governing Law</a>
+        </div>
+    </details>
+
+    <div class="legal-document-layout">
+        <aside class="legal-toc" aria-label="Author agreement sections">
+            <span class="legal-toc__label">On this page</span>
+            <nav>
+                <a href="#ownership">Your Rights</a>
+                <a href="#licence">Licence to CulinEire</a>
+                <a href="#responsibilities">Your Responsibilities</a>
+                <a href="#moderation">Moderation</a>
+                <a href="#governing-law">Governing Law</a>
+            </nav>
+            <p>This agreement applies every time you submit a recipe or article to CulinEire.</p>
+        </aside>
+
+        <div class="legal-card-grid legal-card-grid--document legal-document-main">
+
+            <article class="legal-card legal-card--section" id="ownership">
+                <div class="section-header">
+                    <h2>You Retain Your Rights</h2>
+                </div>
+                <div class="legal-card__content">
+                    <p class="page-subtitle">
+                        You remain the owner of the content you submit. Submitting content to CulinEire does not
+                        transfer copyright ownership to Bearcave Limited.
+                    </p>
+                    <ul class="legal-list">
+                        <li>You retain full copyright in your original recipes, articles, and photographs.</li>
+                        <li>You may publish your content elsewhere, including on your own website or blog.</li>
+                        <li>You may request removal of your content from CulinEire at any time by contacting us.</li>
+                    </ul>
+                </div>
+            </article>
+
+            <article class="legal-card legal-card--section" id="licence">
+                <div class="section-header">
+                    <h2>What You Grant to CulinEire</h2>
+                </div>
+                <div class="legal-card__content">
+                    <p class="page-subtitle">
+                        By submitting content, you grant Bearcave Limited a non-exclusive, royalty-free licence to:
+                    </p>
+                    <ul class="legal-list">
+                        <li>Publish and display your content on the CulinEire website.</li>
+                        <li>Use your content for promotional purposes related to CulinEire, such as social media posts, newsletters, and site features, with appropriate attribution.</li>
+                        <li>Store and back up your content as required for site operation.</li>
+                    </ul>
+                    <p class="page-subtitle">
+                        This licence does not permit CulinEire to sell your content, sub-licence it to third parties,
+                        or use it in ways unrelated to the CulinEire platform without your prior consent.
+                    </p>
+                </div>
+            </article>
+
+            <article class="legal-card legal-card--section legal-card--section-wide" id="responsibilities">
+                <div class="section-header">
+                    <h2>What You Confirm When Submitting</h2>
+                </div>
+                <div class="legal-card__content">
+                    <ul class="legal-list">
+                        <li>The content is your own original work, a properly credited adaptation, or a family recipe you have the right to share publicly.</li>
+                        <li>You have not copied text verbatim from cookbooks, websites, or other publications without explicit permission from the rights holder.</li>
+                        <li>All images you submit are either your own photographs, correctly licensed (e.g. Creative Commons, stock with appropriate licence), or in the public domain.</li>
+                        <li>You have not submitted watermarked images, stolen images, or images you found online without verifying their licence status.</li>
+                        <li>The content does not infringe the intellectual property rights of any third party.</li>
+                        <li>The content does not contain defamatory, obscene, or unlawful material.</li>
+                    </ul>
+                </div>
+            </article>
+
+            <article class="legal-card legal-card--section" id="moderation">
+                <div class="section-header">
+                    <h2>Review and Removal</h2>
+                </div>
+                <div class="legal-card__content">
+                    <ul class="legal-list">
+                        <li>All submitted content is subject to moderation review before publication.</li>
+                        <li>CulinEire reserves the right to reject or remove content that does not meet its editorial or legal standards.</li>
+                        <li>Authors will be notified of rejection where reasonably practicable.</li>
+                        <li>In the event of a verified copyright complaint, content may be removed immediately and the Author's account may be suspended.</li>
+                    </ul>
+                </div>
+            </article>
+
+            <article class="legal-card legal-card--section" id="governing-law">
+                <div class="section-header">
+                    <h2>Governing Law</h2>
+                </div>
+                <div class="legal-card__content">
+                    <p class="page-subtitle">
+                        This agreement is governed by the laws of Ireland, including the Copyright and Related Rights Act 2000
+                        and applicable EU regulations. Any disputes arising under this agreement shall be subject to the
+                        jurisdiction of the Irish courts.
+                    </p>
+                </div>
+            </article>
+
+        </div>
+    </div>
+
+    <aside class="legal-contact-card" aria-label="Related legal pages">
+        <div>
+            <p>
+                <a href="{% url 'legal:legal_hub' %}">Back to Legal</a> &middot;
+                <a href="{% url 'legal:content_publishing_rules' %}">Publishing Rules</a> &middot;
+                <a href="{% url 'legal:copyright_image_rights_guide' %}">Image Rights Guide</a>
+            </p>
+        </div>
+    </aside>
+
 </section>
 {% endblock %}

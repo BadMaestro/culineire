@@ -825,6 +825,9 @@
   .legal-shell--cookies,
   .legal-shell--company,
   .legal-shell--purchases,
+  .legal-shell--author,
+  .legal-shell--publishing,
+  .legal-shell--copyright,
   .legal-shell--report,
   .legal-shell--hub,
   .legal-shell--rules,
@@ -837,6 +840,9 @@
   .legal-shell--cookies .legal-intro--policy,
   .legal-shell--company .legal-intro--policy,
   .legal-shell--purchases .legal-intro--policy,
+  .legal-shell--author .legal-intro--policy,
+  .legal-shell--publishing .legal-intro--policy,
+  .legal-shell--copyright .legal-intro--policy,
   .legal-shell--report .legal-intro--policy,
   .legal-shell--hub .legal-intro--hub,
   .legal-shell--rules .legal-intro--policy,
@@ -1052,6 +1058,9 @@
   .legal-shell--cookies .legal-card-grid--document,
   .legal-shell--company .legal-card-grid--document,
   .legal-shell--purchases .legal-card-grid--document,
+  .legal-shell--author .legal-card-grid--document,
+  .legal-shell--publishing .legal-card-grid--document,
+  .legal-shell--copyright .legal-card-grid--document,
   .legal-shell--report .legal-card-grid--document,
   .legal-shell--rules .legal-card-grid--document {
     counter-reset: legal-section;
@@ -1065,6 +1074,9 @@
   .legal-shell--cookies .legal-card--section,
   .legal-shell--company .legal-card--section,
   .legal-shell--purchases .legal-card--section,
+  .legal-shell--author .legal-card--section,
+  .legal-shell--publishing .legal-card--section,
+  .legal-shell--copyright .legal-card--section,
   .legal-shell--report .legal-card--section,
   .legal-shell--rules .legal-card--section {
     counter-increment: legal-section;
@@ -1084,6 +1096,9 @@
   .legal-shell--cookies .legal-card--section-wide,
   .legal-shell--company .legal-card--section-wide,
   .legal-shell--purchases .legal-card--section-wide,
+  .legal-shell--author .legal-card--section-wide,
+  .legal-shell--publishing .legal-card--section-wide,
+  .legal-shell--copyright .legal-card--section-wide,
   .legal-shell--report .legal-card--section-wide {
     grid-column: auto;
   }
@@ -1093,6 +1108,9 @@
   .legal-shell--cookies .legal-card--section .section-header,
   .legal-shell--company .legal-card--section .section-header,
   .legal-shell--purchases .legal-card--section .section-header,
+  .legal-shell--author .legal-card--section .section-header,
+  .legal-shell--publishing .legal-card--section .section-header,
+  .legal-shell--copyright .legal-card--section .section-header,
   .legal-shell--report .legal-card--section .section-header,
   .legal-shell--rules .legal-card--section .section-header {
     padding-block-end: 0.55rem;
@@ -1103,6 +1121,9 @@
   .legal-shell--cookies .legal-card--section .section-header h2,
   .legal-shell--company .legal-card--section .section-header h2,
   .legal-shell--purchases .legal-card--section .section-header h2,
+  .legal-shell--author .legal-card--section .section-header h2,
+  .legal-shell--publishing .legal-card--section .section-header h2,
+  .legal-shell--copyright .legal-card--section .section-header h2,
   .legal-shell--report .legal-card--section .section-header h2,
   .legal-shell--rules .legal-card--section .section-header h2 {
     display: flex;
@@ -1116,6 +1137,9 @@
   .legal-shell--cookies .legal-card--section .section-header h2::before,
   .legal-shell--company .legal-card--section .section-header h2::before,
   .legal-shell--purchases .legal-card--section .section-header h2::before,
+  .legal-shell--author .legal-card--section .section-header h2::before,
+  .legal-shell--publishing .legal-card--section .section-header h2::before,
+  .legal-shell--copyright .legal-card--section .section-header h2::before,
   .legal-shell--report .legal-card--section .section-header h2::before,
   .legal-shell--rules .legal-card--section .section-header h2::before {
     content: counter(legal-section, decimal-leading-zero);
@@ -1132,6 +1156,9 @@
   .legal-shell--cookies .legal-card__content,
   .legal-shell--company .legal-card__content,
   .legal-shell--purchases .legal-card__content,
+  .legal-shell--author .legal-card__content,
+  .legal-shell--publishing .legal-card__content,
+  .legal-shell--copyright .legal-card__content,
   .legal-shell--report .legal-card__content,
   .legal-shell--rules .legal-card__content {
     max-width: 76ch;
@@ -1406,6 +1433,9 @@
     .legal-shell--cookies,
     .legal-shell--company,
     .legal-shell--purchases,
+    .legal-shell--author,
+    .legal-shell--publishing,
+    .legal-shell--copyright,
     .legal-shell--report,
     .legal-shell--hub {
       width: min(100% - 1.25rem, 1180px);
@@ -1416,6 +1446,9 @@
     .legal-shell--cookies .legal-intro--policy,
     .legal-shell--company .legal-intro--policy,
     .legal-shell--purchases .legal-intro--policy,
+    .legal-shell--author .legal-intro--policy,
+    .legal-shell--publishing .legal-intro--policy,
+    .legal-shell--copyright .legal-intro--policy,
     .legal-shell--report .legal-intro--policy,
     .legal-shell--hub .legal-intro--hub {
       padding: 1rem;
@@ -1436,6 +1469,9 @@
     .legal-shell--cookies .legal-card--section .section-header h2,
     .legal-shell--company .legal-card--section .section-header h2,
     .legal-shell--purchases .legal-card--section .section-header h2,
+    .legal-shell--author .legal-card--section .section-header h2,
+    .legal-shell--publishing .legal-card--section .section-header h2,
+    .legal-shell--copyright .legal-card--section .section-header h2,
     .legal-shell--report .legal-card--section .section-header h2 {
       gap: 0.55rem;
     }
@@ -1445,6 +1481,9 @@
     .legal-shell--cookies .legal-card__content,
     .legal-shell--company .legal-card__content,
     .legal-shell--purchases .legal-card__content,
+    .legal-shell--author .legal-card__content,
+    .legal-shell--publishing .legal-card__content,
+    .legal-shell--copyright .legal-card__content,
     .legal-shell--report .legal-card__content {
       max-width: none;
     }
