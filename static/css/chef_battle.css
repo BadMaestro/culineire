@@ -1889,14 +1889,23 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
+  table-layout: fixed;
 }
 .battle-rules-table th,
 .battle-rules-table td {
-  padding: 0.5rem 0.75rem;
+  padding: 0.55rem 0.75rem;
   text-align: left;
   border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  vertical-align: middle;
 }
 .battle-rules-table thead th {
   font-weight: 600;
   background: var(--surface-muted, #f5f5f5);
+}
+.battle-rules-table td:first-child {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
 }
