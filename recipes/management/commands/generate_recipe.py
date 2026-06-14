@@ -61,6 +61,8 @@ def _sanitise_generated_text(text: str) -> str:
     # Tidy up any comma run-ons produced by the replacements above
     text = re.sub(r",\s*,+", ",", text)
     text = re.sub(r",\s{2,}", ", ", text)
+    # Remove any space that ended up before punctuation (e.g. "pot , a" → "pot, a")
+    text = re.sub(r"\s+([,;:!?])", r"\1", text)
     return text.strip(", ").strip()
 
 

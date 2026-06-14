@@ -617,6 +617,8 @@ def _build_method_steps(method_text: str) -> list[dict]:
         cleaned = line.strip()
         cleaned = METHOD_STEP_PREFIX_RE.sub("", cleaned)
         cleaned = cleaned.strip()
+        # Normalise space-before-punctuation that AI generation can produce
+        cleaned = re.sub(r"\s+([,;:!?])", r"\1", cleaned)
 
         if not cleaned or cleaned.isdigit():
             continue
