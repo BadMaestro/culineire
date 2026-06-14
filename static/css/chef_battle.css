@@ -1781,6 +1781,7 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
   background: var(--surface-muted, #f5f5f5);
   border-radius: 8px;
   margin-block-end: 2rem;
+  text-align: center;
 }
 .token-shop-notice p { margin: 0 0 0.4rem; }
 .token-shop-notice p:last-child { margin: 0; }
