@@ -27,11 +27,11 @@
       </div>
       <div class="battle-moves-summary__card">
         <p class="battle-moves-summary__label">Earned today (content)</p>
-        <p class="battle-moves-summary__value">{{ daily_earned }} / {{ daily_cap }}</p>
+        <p class="battle-moves-summary__value">{% if profile.infinite_moves %}No limit{% else %}{{ daily_earned }} / {{ daily_cap }}{% endif %}</p>
       </div>
       <div class="battle-moves-summary__card">
         <p class="battle-moves-summary__label">Earned this week (content)</p>
-        <p class="battle-moves-summary__value">{{ weekly_earned }} / {{ weekly_cap }}</p>
+        <p class="battle-moves-summary__value">{% if profile.infinite_moves %}No limit{% else %}{{ weekly_earned }} / {{ weekly_cap }}{% endif %}</p>
       </div>
       <div class="battle-moves-summary__card">
         <p class="battle-moves-summary__label">Rank</p>

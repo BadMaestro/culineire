@@ -61,7 +61,7 @@ def get_or_create_battle_profile(author):
     from django.conf import settings as _settings
     profile, created = ChefBattleProfile.objects.get_or_create(author=author)
     if created and getattr(author, "slug", None) == getattr(_settings, "OWNER_SLUG", None):
-        profile.rank = ChefBattleProfile.Rank.HEAD_CHEF
+        profile.rank = ChefBattleProfile.Rank.EXECUTIVE_CHEF
         profile.michelin_stars = 3
         profile.is_hero = True
         profile.level = 5
@@ -423,7 +423,8 @@ def calculate_battle_result(battle: Battle) -> Battle:
         winner_profile.seasonal_score += 10
         winner_profile.crown_count += 1
         winner_profile.crown_until = timezone.now() + timezone.timedelta(hours=24)
-        winner_profile.rank = rank_for_rating(winner_profile.rating)
+        if not winner_profile.infinite_moves:
+            winner_profile.rank = rank_for_rating(winner_profile.rating)
         level_changed = winner_profile.recalculate_level()
         winner_profile.recalculate_prestige_title()
         winner_profile.save()
@@ -433,7 +434,8 @@ def calculate_battle_result(battle: Battle) -> Battle:
         loser_profile.rating = max(0, loser_profile.rating - 15)
         loser_profile.reputation = max(-1000, loser_profile.reputation - 3)
         loser_profile.battle_moves += MOVES_BATTLE_PARTICIPATION
-        loser_profile.rank = rank_for_rating(loser_profile.rating)
+        if not loser_profile.infinite_moves:
+            loser_profile.rank = rank_for_rating(loser_profile.rating)
         loser_profile.save()
 
         from .models import BattleMoveTransaction
@@ -567,7 +569,9 @@ def award_moves(author, amount: int, reason: str) -> None:
         from .models import BattleMoveTransaction
         now = timezone.now()
 
-        if reason in _CONTENT_REASONS:
+        profile = get_or_create_battle_profile(author)
+
+        if reason in _CONTENT_REASONS and not profile.infinite_moves:
             day_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
             week_start = now - timezone.timedelta(days=now.weekday())
             week_start = week_start.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -578,8 +582,6 @@ def award_moves(author, amount: int, reason: str) -> None:
             amount = min(amount, daily_remaining, weekly_remaining)
             if amount <= 0:
                 return
-
-        profile = get_or_create_battle_profile(author)
         profile.battle_moves = max(0, profile.battle_moves + amount)
         profile.save(update_fields=["battle_moves", "updated_at"])
         BattleMoveTransaction.objects.create(chef=author, amount=amount, reason=reason)
