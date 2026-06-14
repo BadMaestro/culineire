@@ -223,7 +223,7 @@
                 </div>
                 {% endif %}
                 <div class="recipe-stat recipe-stat--rating">
-                    <span class="recipe-stat__label">Rating: <span class="recipe-stat__value--inline">{% if ratings_count %}{{ average_rating_value|floatformat:1 }}/5{% else %}—{% endif %}</span></span>
+                    <span class="recipe-stat__label">Rating:{% if ratings_count %} <span class="recipe-stat__value--inline">{{ average_rating_value|floatformat:1 }}/5</span>{% endif %}</span>
                     <div aria-label="Average recipe rating" class="rating-overview">
                         <div aria-hidden="true" class="rating-overview__stars">
                             <span class="rating-overview__stars-base">★★★★★</span>
