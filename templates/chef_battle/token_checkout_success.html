@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Tokens Purchased | Chef Battle | CulinEire{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260614b" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero">
+  <div class="container">
+    <p class="battle-kicker">Chef Battle Arena</p>
+    <h1>Tokens Added</h1>
+    <p class="battle-room-hero__sub">Your purchase was successful. Tokens are in your wallet.</p>
+  </div>
+</section>
+
+<div class="container" style="max-width: 560px; padding-block: 3rem; text-align: center;">
+
+  <div style="font-size: 3rem; margin-block-end: 1rem;">&#x1F3C6;</div>
+
+  {% if order %}
+  <p style="font-size: 1.1rem; margin-block-end: 0.5rem;">
+    <strong>+{{ order.tokens }}T</strong> have been credited to your wallet.
+  </p>
+  <p style="color: var(--color-muted); font-size: 0.9rem; margin-block-end: 2rem;">
+    Package: {{ order.package.name }}
+  </p>
+  {% else %}
+  <p style="margin-block-end: 2rem;">Your tokens have been credited to your wallet.</p>
+  {% endif %}
+
+  {% if wallet %}
+  <div class="token-shop-balance" style="justify-content: center; margin-block-end: 2rem;">
+    <img src="{% static 'images/chef_battle/icon_token.svg' %}" alt="Token" width="24" height="24">
+    <span>New balance: <strong>{{ wallet.balance }}T</strong></span>
+  </div>
+  {% endif %}
+
+  <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+    <a class="btn-primary" href="{% url 'chef_battle:home' %}">Enter Arena</a>
+    <a class="btn-secondary" href="{% url 'chef_battle:token_shop' %}">Token Shop</a>
+  </div>
+
+</div>
+{% endblock %}

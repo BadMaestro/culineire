@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Purchase Cancelled | Chef Battle | CulinEire{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260614b" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero">
+  <div class="container">
+    <p class="battle-kicker">Chef Battle Arena</p>
+    <h1>Purchase Cancelled</h1>
+    <p class="battle-room-hero__sub">No payment was taken. You can return to the shop any time.</p>
+  </div>
+</section>
+
+<div class="container" style="max-width: 560px; padding-block: 3rem; text-align: center;">
+
+  <div style="font-size: 3rem; margin-block-end: 1rem;">&#x1F6AB;</div>
+
+  {% if order %}
+  <p style="color: var(--color-muted); font-size: 0.9rem; margin-block-end: 2rem;">
+    Order for {{ order.package.name }} was cancelled. No charge was made.
+  </p>
+  {% else %}
+  <p style="color: var(--color-muted); margin-block-end: 2rem;">No charge was made.</p>
+  {% endif %}
+
+  <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+    <a class="btn-primary" href="{% url 'chef_battle:token_shop' %}">Back to Token Shop</a>
+    <a class="btn-secondary" href="{% url 'chef_battle:home' %}">Arena</a>
+  </div>
+
+</div>
+{% endblock %}

@@ -719,3 +719,40 @@ class TokenTransaction(models.Model):
     def __str__(self):
         sign = "+" if self.amount >= 0 else ""
         return f"{self.wallet.chef}: {sign}{self.amount}T ({self.tx_type})"
+
+
+class TokenOrder(models.Model):
+    """Tracks a Stripe checkout session for a token purchase."""
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        COMPLETED = "completed", "Completed"
+        EXPIRED = "expired", "Expired"
+        CANCELLED = "cancelled", "Cancelled"
+
+    wallet = models.ForeignKey(TokenWallet, on_delete=models.CASCADE, related_name="orders")
+    package = models.ForeignKey(TokenPackage, on_delete=models.PROTECT, related_name="orders")
+    tokens = models.PositiveIntegerField()
+    amount_eur_cents = models.PositiveIntegerField()
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.PENDING, db_index=True)
+    stripe_checkout_session_id = models.CharField(max_length=255, blank=True, db_index=True)
+    stripe_payment_intent_id = models.CharField(max_length=255, blank=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Order #{self.pk} — {self.wallet.chef} — {self.tokens}T ({self.status})"
+
+
+class ProcessedTokenStripeEvent(models.Model):
+    """Idempotency guard — prevents double-processing Stripe webhook events."""
+
+    event_id = models.CharField(max_length=255, unique=True, db_index=True)
+    event_type = models.CharField(max_length=100)
+    received_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.event_type} / {self.event_id}"

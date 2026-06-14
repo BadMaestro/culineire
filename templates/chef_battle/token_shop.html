@@ -24,6 +24,8 @@
   </div>
   {% endif %}
 
+  <div id="token-shop-error" style="display:none; color:var(--color-danger,#b91c1c); margin-block-end:1rem; font-size:0.9rem;"></div>
+
   <div class="token-shop-grid">
     {% for pkg in packages %}
     <div class="token-shop-card{% if forloop.counter == 3 %} token-shop-card--featured{% endif %}">
@@ -37,15 +39,23 @@
       <div class="token-shop-card__value">
         &#x20AC;{{ pkg.price_eur }} &middot; {{ pkg.tokens }} tokens
       </div>
-      <button class="btn-primary token-shop-card__btn" disabled title="Coming soon">
-        Buy &mdash; Coming Soon
+      {% if user.is_authenticated %}
+      <button class="btn-primary token-shop-card__btn js-token-buy"
+              data-package-id="{{ pkg.pk }}"
+              data-checkout-url="{% url 'chef_battle:token_checkout_create' %}">
+        Buy &#x20AC;{{ pkg.price_eur }}
       </button>
+      {% else %}
+      <a class="btn-primary token-shop-card__btn" href="{% url 'accounts:login' %}?next={{ request.path }}">
+        Sign in to buy
+      </a>
+      {% endif %}
     </div>
     {% endfor %}
   </div>
 
   <div class="token-shop-notice">
-    <p>Stripe payment integration is coming soon. Tokens will be credited to your wallet instantly after purchase.</p>
+    <p>Tokens are credited to your wallet instantly after purchase. Powered by Stripe.</p>
     <p>Tokens have no cash value and cannot be withdrawn or transferred.</p>
     <p><a href="{% url 'chef_battle:rules' %}#11">How artifact drops work</a> &middot; <a href="{% url 'chef_battle:home' %}">Back to Arena</a></p>
   </div>
@@ -70,4 +80,46 @@
   </div>
 
 </div>
+
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+  var errorEl = document.getElementById('token-shop-error');
+
+  document.querySelectorAll('.js-token-buy').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var packageId = btn.dataset.packageId;
+      var url = btn.dataset.checkoutUrl;
+      btn.disabled = true;
+      btn.textContent = 'Redirecting...';
+      errorEl.style.display = 'none';
+
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '',
+        },
+        body: JSON.stringify({ package_id: parseInt(packageId, 10) }),
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data.ok && data.checkout_url) {
+            window.location.href = data.checkout_url;
+          } else {
+            errorEl.textContent = data.error || 'Something went wrong. Please try again.';
+            errorEl.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Try again';
+          }
+        })
+        .catch(function () {
+          errorEl.textContent = 'Network error. Please try again.';
+          errorEl.style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = 'Try again';
+        });
+    });
+  });
+}());
+</script>
 {% endblock %}

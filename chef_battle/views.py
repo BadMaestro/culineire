@@ -1,14 +1,21 @@
 from __future__ import annotations
 
 from django.conf import settings
+import json
+import logging
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+
+logger = logging.getLogger(__name__)
 
 from accounts.views import is_moderator
 from monitoring.tracker import get_client_ip
@@ -256,12 +263,109 @@ def token_shop(request):
     viewer_author = get_author_for_user(request.user)
     wallet = None
     if viewer_author:
-        from .models import TokenWallet
-        wallet = TokenWallet.objects.filter(chef=viewer_author).first()
+        wallet, _ = TokenWallet.objects.get_or_create(chef=viewer_author)
     return render(request, "chef_battle/token_shop.html", {
         "packages": packages,
         "wallet": wallet,
+        "stripe_publishable_key": getattr(__import__("django.conf", fromlist=["settings"]).settings, "STRIPE_PUBLISHABLE_KEY", ""),
     })
+
+
+@require_POST
+@login_required
+def token_checkout_create(request):
+    from .models import TokenPackage, TokenWallet
+    from .stripe_services import (
+        TokenStripeConfigurationError,
+        create_token_checkout_session,
+    )
+
+    author = get_author_for_user(request.user)
+    if not author:
+        return JsonResponse({"error": "No chef profile found."}, status=403)
+
+    try:
+        data = json.loads(request.body)
+        package_id = int(data.get("package_id", 0))
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "Invalid request."}, status=400)
+
+    try:
+        package = TokenPackage.objects.get(pk=package_id, is_active=True)
+    except TokenPackage.DoesNotExist:
+        return JsonResponse({"error": "Package not found."}, status=404)
+
+    wallet, _ = TokenWallet.objects.get_or_create(chef=author)
+
+    try:
+        session_info = create_token_checkout_session(package, wallet, request=request)
+    except TokenStripeConfigurationError as exc:
+        logger.warning("Token checkout config error: %s", exc)
+        return JsonResponse({"error": "Payment system not configured. Please try again later."}, status=503)
+    except Exception:
+        logger.exception("Token checkout creation failed for package %s", package_id)
+        return JsonResponse({"error": "Could not create checkout session."}, status=500)
+
+    return JsonResponse({"ok": True, "checkout_url": session_info.checkout_url})
+
+
+@chef_battle_guard
+def token_checkout_success(request):
+    from .models import TokenOrder, TokenWallet
+    session_id = request.GET.get("session_id", "")
+    order = None
+    if session_id:
+        order = TokenOrder.objects.filter(stripe_checkout_session_id=session_id).select_related("package", "wallet").first()
+    author = get_author_for_user(request.user)
+    wallet = TokenWallet.objects.filter(chef=author).first() if author else None
+    return render(request, "chef_battle/token_checkout_success.html", {
+        "order": order,
+        "wallet": wallet,
+    })
+
+
+@chef_battle_guard
+def token_checkout_cancel(request):
+    from .models import TokenOrder
+    order_id = request.GET.get("order", "")
+    order = None
+    if order_id:
+        order = TokenOrder.objects.filter(pk=order_id).select_related("package").first()
+    if order and order.status == "pending":
+        order.status = "cancelled"
+        order.save(update_fields=["status", "updated_at"])
+    return render(request, "chef_battle/token_checkout_cancel.html", {"order": order})
+
+
+@csrf_exempt
+@require_POST
+def token_stripe_webhook(request):
+    from .stripe_services import (
+        TokenStripeConfigurationError,
+        TokenPaymentVerificationError,
+        construct_stripe_event,
+        handle_stripe_event,
+    )
+    signature = request.META.get("HTTP_STRIPE_SIGNATURE", "")
+    try:
+        event = construct_stripe_event(request.body, signature)
+    except TokenStripeConfigurationError as exc:
+        logger.warning("Token webhook config error: %s", exc)
+        return JsonResponse({"error": "Webhook not configured."}, status=503)
+    except Exception:
+        logger.warning("Token webhook signature verification failed.")
+        return JsonResponse({"error": "Invalid Stripe signature."}, status=400)
+
+    try:
+        result = handle_stripe_event(event)
+    except TokenPaymentVerificationError as exc:
+        logger.warning("Token webhook verification failed: %s", exc)
+        return JsonResponse({"error": "Payment verification failed."}, status=400)
+    except Exception:
+        logger.exception("Token webhook processing failed.")
+        return JsonResponse({"error": "Webhook processing failed."}, status=500)
+
+    return JsonResponse({"ok": True, "duplicate": result.get("duplicate", False)})
 
 
 @chef_battle_guard
