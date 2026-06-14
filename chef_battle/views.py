@@ -628,11 +628,9 @@ def battle_detail(request, pk):
         viewer_has_moved = viewer_author.pk in round_chef_ids
         opponent_has_moved = bool(round_chef_ids - {viewer_author.pk})
 
-    from .models import AppreciationGiftType, APPRECIATION_GIFT_COST
+    from .models import AppreciationGiftType, APPRECIATION_GIFT_COST, APPRECIATION_GIFT_EMOJI
     appreciation_gifts = [
-        {"type": k, "label": AppreciationGiftType(k).label, "cost": v, "emoji": {
-            "flowers": "💐", "coffee": "☕", "beer": "🍺", "cocktail": "🍹", "whiskey": "🥃",
-        }.get(k, "🎁")}
+        {"type": k, "label": AppreciationGiftType(k).label, "cost": v, "emoji": APPRECIATION_GIFT_EMOJI.get(k, "🎁")}
         for k, v in APPRECIATION_GIFT_COST.items()
     ]
     viewer_token_balance = 0
@@ -1107,7 +1105,7 @@ def send_appreciation_gift_view(request, pk):
 
 def chef_battle_profile(request, slug):
     from django.db.models import Q, Count
-    from .models import AppreciationGiftType, APPRECIATION_GIFT_COST
+    from .models import AppreciationGiftType, APPRECIATION_GIFT_COST, APPRECIATION_GIFT_EMOJI
     author = get_object_or_404(RecipeAuthor, slug=slug)
     profile = get_object_or_404(ChefBattleProfile, author=author)
     battles = (
@@ -1128,7 +1126,7 @@ def chef_battle_profile(request, slug):
             "type": g["gift_type"],
             "label": AppreciationGiftType(g["gift_type"]).label,
             "count": g["total"],
-            "emoji": {"flowers": "💐", "coffee": "☕", "beer": "🍺", "cocktail": "🍹", "whiskey": "🥃"}.get(g["gift_type"], "🎁"),
+            "emoji": APPRECIATION_GIFT_EMOJI.get(g["gift_type"], "🎁"),
         }
         for g in gift_counts
     ]

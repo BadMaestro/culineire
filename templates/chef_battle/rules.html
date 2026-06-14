@@ -123,6 +123,7 @@
     <aside class="legal-toc" aria-label="Rules sections">
       <span class="legal-toc__label">Contents</span>
       <nav>
+        <a href="#s0">0. Eligibility</a>
         <a href="#s1">1. The Challenge</a>
         <a href="#s2">2. The Battle</a>
         <a href="#s3">3. Combat Phase</a>
@@ -136,11 +137,28 @@
         <a href="#s11">11. Battle Gifts</a>
         <a href="#s12">12. Artifact Drops</a>
         <a href="#s13">13. Combat Artifacts</a>
+        <a href="#s14">14. Closed-Loop Token Model</a>
+        <a href="#s15">15. CBR &amp; LSR Rewards</a>
+        <a href="#s16">16. Next Battle Unlock</a>
+        <a href="#s17">17. Anti-Gambling</a>
       </nav>
       <p>Rules apply to all battles. Tokens and artifacts are governed by the Purchases &amp; VAT policy.</p>
     </aside>
 
     <div class="legal-card-grid legal-card-grid--document">
+
+      <div class="legal-card legal-card--section" id="s0">
+        <div class="section-header"><h2>Eligibility</h2></div>
+        <div class="legal-card__content">
+          <ul>
+            <li>You must be <strong>18 years of age or older</strong> to participate in Chef's Battle, send appreciation gifts, or purchase tokens.</li>
+            <li>By creating a Chef Battle profile or making any purchase in the arena, you confirm that you are at least 18 years old.</li>
+            <li>CulinEire reserves the right to request age verification at any time. Accounts where verification fails will be suspended.</li>
+            <li>Battle profiles and token balances are personal and non-transferable. Account sharing or transfer is not permitted.</li>
+            <li>You must have a valid CulinEire account in good standing to enter the arena.</li>
+          </ul>
+        </div>
+      </div>
 
       <div class="legal-card legal-card--section" id="s1">
         <div class="section-header"><h2>The Challenge</h2></div>
@@ -253,15 +271,16 @@
       <div class="legal-card legal-card--section" id="s10">
         <div class="section-header"><h2>Audience Gifts</h2></div>
         <div class="legal-card__content">
-          <p>Viewers can send appreciation gifts to chefs during a battle. Gifts are permanent on the chef's profile.</p>
+          <p>Viewers can send digital appreciation gifts to chefs during or after a battle. All gifts are digital items only. No physical goods are supplied.</p>
           <table class="battle-rules-table" style="margin-block-start:0.85rem;">
             <thead><tr><th>Gift</th><th>Cost</th></tr></thead>
             <tbody>
-              <tr><td>&#x1F337; Flowers</td><td>20T</td></tr>
               <tr><td>&#x2615; Coffee</td><td>20T</td></tr>
-              <tr><td>&#x1F37A; Beer</td><td>30T</td></tr>
-              <tr><td>&#x1F943; Whiskey</td><td>50T</td></tr>
-              <tr><td>&#x1F378; Cocktail</td><td>80T</td></tr>
+              <tr><td>&#x1F37A; Virtual Beer Toast</td><td>30T</td></tr>
+              <tr><td>&#x1F943; Virtual Whiskey Toast</td><td>50T</td></tr>
+              <tr><td>&#x1F337; Flowers</td><td>80T</td></tr>
+              <tr><td>&#x1F378; Celebration Cocktail</td><td>80T</td></tr>
+              <tr><td>&#x1F37E; Virtual Champagne Bottle</td><td>100T</td></tr>
             </tbody>
           </table>
         </div>
@@ -275,8 +294,9 @@
             <li>You choose any artifact from the shop and select the chef you want to send it to.</li>
             <li>The cost is the artifact's token price plus a <strong>delivery fee</strong> &mdash; a small surcharge for real-time in-battle delivery.</li>
             <li>The recipient chef receives the artifact in their inventory immediately, even mid-combat.</li>
-            <li>Battle Gifts are permanent: the artifact stays on the chef's profile after the battle ends.</li>
+            <li>The artifact stays on the chef's profile after the battle ends, unless it was consumed during combat.</li>
             <li>You cannot send a duplicate artifact to a chef who already owns it.</li>
+            <li>Battle Gifts are digital items only. No physical goods are supplied.</li>
           </ul>
         </div>
       </div>
@@ -322,6 +342,59 @@
             <li>Artifacts can be purchased in the <a href="{% url 'chef_battle:token_shop' %}">Token Shop</a> using tokens.</li>
             <li>Rarity determines token cost: Common 10T, Uncommon 25T, Rare 60T, Epic 150T, Legendary 400T.</li>
             <li>Attack artifacts target opponent ingredients. Defence artifacts protect your own.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="legal-card legal-card--section" id="s14">
+        <div class="section-header"><h2>Closed-Loop Token Model</h2></div>
+        <div class="legal-card__content">
+          <ul>
+            <li>Tokens are a closed-loop digital currency. They can only be spent within the Chef's Battle arena on appreciation gifts and combat artifacts.</li>
+            <li>Tokens have no monetary value and cannot be exchanged for cash, transferred to another account, or redeemed for goods or services outside the arena.</li>
+            <li>Token balances do not expire while your account remains active, but CulinEire reserves the right to expire unused balances after 24 months of account inactivity.</li>
+            <li>All token transactions are recorded in an immutable ledger. Once recorded, a transaction cannot be reversed except under the refund policy in <a href="{% url 'legal:purchases_and_vat' %}">Purchases &amp; VAT</a>.</li>
+            <li>Token packages are priced inclusive of applicable VAT. The VAT breakdown is shown at checkout.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="legal-card legal-card--section" id="s15">
+        <div class="section-header"><h2>CBR &amp; LSR Rewards</h2></div>
+        <div class="legal-card__content">
+          <p>CulinEire may issue discretionary rewards to chefs and live supporters as recognition of contribution to the arena community.</p>
+          <ul>
+            <li><strong>Chef Battle Rewards (CBR)</strong> are token grants awarded to chefs who win battles, reach level milestones, or are recognised for outstanding performance.</li>
+            <li><strong>Live Support Rewards (LSR)</strong> are token grants issued to viewers who send qualifying appreciation gifts during live battles.</li>
+            <li>CBR and LSR are issued at CulinEire's sole discretion. They are not guaranteed and do not constitute a contractual entitlement.</li>
+            <li>Rewards are issued as arena tokens and are subject to the same closed-loop restrictions as purchased tokens.</li>
+            <li>Reward amounts and eligibility criteria may change at any time without notice.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="legal-card legal-card--section" id="s16">
+        <div class="section-header"><h2>Next Battle Unlock</h2></div>
+        <div class="legal-card__content">
+          <ul>
+            <li>After completing a battle, both chefs enter a <strong>cooldown period</strong> before they can issue or accept a new challenge.</li>
+            <li>The cooldown is <strong>24 hours</strong> from the moment the battle result is confirmed.</li>
+            <li>Chefs who have active challenge requests or pending battles cannot issue additional challenges until those are resolved.</li>
+            <li>The cooldown period may be reduced or extended by CulinEire at season or event boundaries.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="legal-card legal-card--section" id="s17">
+        <div class="section-header"><h2>Anti-Gambling</h2></div>
+        <div class="legal-card__content">
+          <ul>
+            <li>Chef's Battle is a <strong>skill-based cooking competition</strong>. It is not a gambling product.</li>
+            <li>Tokens are not stakes. Purchasing tokens or sending gifts does not constitute placing a bet and does not entitle the sender to any prize or monetary return.</li>
+            <li>Voting determines the winner based on the quality of submitted recipes, not on token spending or artifact use.</li>
+            <li>Artifact combat is an entertainment mechanic during the cooking phase. It does not directly determine the battle outcome.</li>
+            <li>CulinEire does not operate under a gambling licence and does not offer odds, prize pools, or cash winnings.</li>
+            <li>If you are concerned about your spending in the arena, contact us at any time via the <a href="{% url 'messaging:contact' %}">contact form</a>.</li>
           </ul>
         </div>
       </div>

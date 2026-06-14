@@ -440,30 +440,41 @@ class ViewerBattleGift(models.Model):
 
 
 class AppreciationGiftType(models.TextChoices):
-    FLOWERS = "flowers", "Flowers"
     COFFEE = "coffee", "Coffee"
-    BEER = "beer", "Beer"
-    COCKTAIL = "cocktail", "Cocktail"
-    WHISKEY = "whiskey", "Whiskey"
+    VIRTUAL_BEER_TOAST = "virtual_beer_toast", "Virtual Beer Toast"
+    VIRTUAL_WHISKEY_TOAST = "virtual_whiskey_toast", "Virtual Whiskey Toast"
+    FLOWERS = "flowers", "Flowers"
+    CELEBRATION_COCKTAIL = "celebration_cocktail", "Celebration Cocktail"
+    VIRTUAL_CHAMPAGNE_BOTTLE = "virtual_champagne_bottle", "Virtual Champagne Bottle"
 
+
+APPRECIATION_GIFT_EMOJI = {
+    AppreciationGiftType.COFFEE: "☕",
+    AppreciationGiftType.VIRTUAL_BEER_TOAST: "🍺",
+    AppreciationGiftType.VIRTUAL_WHISKEY_TOAST: "🥃",
+    AppreciationGiftType.FLOWERS: "🌷",
+    AppreciationGiftType.CELEBRATION_COCKTAIL: "🍸",
+    AppreciationGiftType.VIRTUAL_CHAMPAGNE_BOTTLE: "🍾",
+}
 
 APPRECIATION_GIFT_COST = {
-    AppreciationGiftType.FLOWERS: 20,
-    AppreciationGiftType.COFFEE: 5,
-    AppreciationGiftType.BEER: 10,
-    AppreciationGiftType.COCKTAIL: 15,
-    AppreciationGiftType.WHISKEY: 20,
+    AppreciationGiftType.COFFEE: 20,
+    AppreciationGiftType.VIRTUAL_BEER_TOAST: 30,
+    AppreciationGiftType.VIRTUAL_WHISKEY_TOAST: 50,
+    AppreciationGiftType.FLOWERS: 80,
+    AppreciationGiftType.CELEBRATION_COCKTAIL: 80,
+    AppreciationGiftType.VIRTUAL_CHAMPAGNE_BOTTLE: 100,
 }
 
 
 class AppreciationGift(models.Model):
-    """A viewer sends a non-combat appreciation gift to a chef. Stays on profile permanently."""
+    """A viewer sends a non-combat digital appreciation gift to a chef. All gifts are digital items only."""
 
     recipient = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="appreciation_gifts")
     sender = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="sent_appreciation_gifts"
     )
-    gift_type = models.CharField(max_length=16, choices=AppreciationGiftType.choices)
+    gift_type = models.CharField(max_length=32, choices=AppreciationGiftType.choices)
     tokens_spent = models.PositiveIntegerField()
     message = models.CharField(max_length=200, blank=True)
     sent_at = models.DateTimeField(auto_now_add=True, db_index=True)

@@ -91,7 +91,7 @@
       <button class="btn-primary token-shop-card__btn js-token-buy"
               data-package-id="{{ pkg.pk }}"
               data-checkout-url="{% url 'chef_battle:token_checkout_create' %}">
-        Buy &#x20AC;{{ pkg.price_eur }}
+        Buy &#x20AC;{{ pkg.price_eur }} + VAT
       </button>
       {% else %}
       <a class="btn-primary token-shop-card__btn" href="{% url 'accounts:login' %}?next={{ request.path }}">
