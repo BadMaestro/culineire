@@ -75,7 +75,7 @@ if not SECRET_KEY:
 
 DJANGO_ENV = os.getenv("DJANGO_ENV", "production").strip().lower()
 IS_PRODUCTION = DJANGO_ENV == "production"
-IS_TESTING = "test" in sys.argv
+IS_TESTING = "test" in sys.argv or os.getenv("DJANGO_IS_TESTING") == "1"
 
 DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() == "true"
 SERVE_STATIC_LOCALLY = env_bool(
