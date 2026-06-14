@@ -481,7 +481,7 @@
     --legal-accent: var(--ce-card-accent);
     --legal-green: var(--brand);
     width: min(1120px, calc(100% - 2rem));
-    margin: clamp(2.5rem, 7vw, 5rem) auto;
+    margin: clamp(1.5rem, 3.5vw, 2.5rem) auto;
     color: var(--legal-ink);
   }
 
@@ -852,12 +852,13 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
     gap: 0.5rem;
-    margin-block-start: clamp(1rem, 2.8vw, 1.65rem);
+    margin-block-start: clamp(1rem, 2vw, 1.5rem);
   }
 
   .legal-summary-item {
     min-width: 0;
     padding: 0.55rem 0.8rem;
+    text-align: center;
     border: 1px solid var(--legal-line);
     border-radius: var(--ce-card-radius);
     background: var(--legal-card);
@@ -995,7 +996,7 @@
     grid-template-columns: minmax(13rem, 16rem) minmax(0, 1fr);
     gap: clamp(1.1rem, 2.6vw, 1.8rem);
     align-items: start;
-    margin-block-start: clamp(1.5rem, 3.8vw, 2.4rem);
+    margin-block-start: clamp(1rem, 2vw, 1.5rem);
   }
 
   .legal-toc {
