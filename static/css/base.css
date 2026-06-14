@@ -1049,6 +1049,7 @@
   .legal-shell--terms .legal-card-grid--document,
   .legal-shell--cookies .legal-card-grid--document,
   .legal-shell--company .legal-card-grid--document,
+  .legal-shell--purchases .legal-card-grid--document,
   .legal-shell--report .legal-card-grid--document,
   .legal-shell--rules .legal-card-grid--document {
     counter-reset: legal-section;
@@ -1061,6 +1062,7 @@
   .legal-shell--terms .legal-card--section,
   .legal-shell--cookies .legal-card--section,
   .legal-shell--company .legal-card--section,
+  .legal-shell--purchases .legal-card--section,
   .legal-shell--report .legal-card--section,
   .legal-shell--rules .legal-card--section {
     counter-increment: legal-section;
@@ -1079,6 +1081,7 @@
   .legal-shell--terms .legal-card--section-wide,
   .legal-shell--cookies .legal-card--section-wide,
   .legal-shell--company .legal-card--section-wide,
+  .legal-shell--purchases .legal-card--section-wide,
   .legal-shell--report .legal-card--section-wide {
     grid-column: auto;
   }
@@ -1087,6 +1090,7 @@
   .legal-shell--terms .legal-card--section .section-header,
   .legal-shell--cookies .legal-card--section .section-header,
   .legal-shell--company .legal-card--section .section-header,
+  .legal-shell--purchases .legal-card--section .section-header,
   .legal-shell--report .legal-card--section .section-header,
   .legal-shell--rules .legal-card--section .section-header {
     padding-block-end: 0.55rem;
@@ -1096,6 +1100,7 @@
   .legal-shell--terms .legal-card--section .section-header h2,
   .legal-shell--cookies .legal-card--section .section-header h2,
   .legal-shell--company .legal-card--section .section-header h2,
+  .legal-shell--purchases .legal-card--section .section-header h2,
   .legal-shell--report .legal-card--section .section-header h2,
   .legal-shell--rules .legal-card--section .section-header h2 {
     display: flex;
@@ -1108,6 +1113,7 @@
   .legal-shell--terms .legal-card--section .section-header h2::before,
   .legal-shell--cookies .legal-card--section .section-header h2::before,
   .legal-shell--company .legal-card--section .section-header h2::before,
+  .legal-shell--purchases .legal-card--section .section-header h2::before,
   .legal-shell--report .legal-card--section .section-header h2::before,
   .legal-shell--rules .legal-card--section .section-header h2::before {
     content: counter(legal-section, decimal-leading-zero);
@@ -1123,6 +1129,7 @@
   .legal-shell--terms .legal-card__content,
   .legal-shell--cookies .legal-card__content,
   .legal-shell--company .legal-card__content,
+  .legal-shell--purchases .legal-card__content,
   .legal-shell--report .legal-card__content,
   .legal-shell--rules .legal-card__content {
     max-width: 76ch;
