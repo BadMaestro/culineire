@@ -73,6 +73,16 @@ class ChefBattleProfile(models.Model):
         max_length=16, choices=PrestigeTitle.choices, default=PrestigeTitle.NONE, blank=True
     )
     is_founding_chef = models.BooleanField(default=False, db_index=True)
+    # 18+ compliance
+    age_verified = models.BooleanField(default=False)
+    age_confirmed_at = models.DateTimeField(null=True, blank=True)
+    # fraud / compliance flags
+    is_suspended = models.BooleanField(default=False, db_index=True)
+    suspended_at = models.DateTimeField(null=True, blank=True)
+    suspension_reason = models.CharField(max_length=200, blank=True)
+    fraud_flag = models.BooleanField(default=False, db_index=True)
+    fraud_flag_note = models.CharField(max_length=200, blank=True)
+    dsa_reported_count = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -404,11 +414,20 @@ class ChefArtifact(models.Model):
         GIFTED = "gifted", "Gifted"
         DROP = "drop", "Battle Drop"
 
+    class Status(models.TextChoices):
+        ACTIVE = "active", "Active"
+        CONSUMED = "consumed", "Consumed"
+
     chef = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="chef_artifacts")
     artifact = models.ForeignKey(Artifact, on_delete=models.CASCADE, related_name="chef_artifacts")
     earned_at = models.DateTimeField(auto_now_add=True)
     equipped = models.BooleanField(default=False)
     source = models.CharField(max_length=16, choices=Source.choices, default=Source.PURCHASED)
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.ACTIVE, db_index=True)
+    consumed_at = models.DateTimeField(null=True, blank=True)
+    consumed_in_battle = models.ForeignKey(
+        "Battle", null=True, blank=True, on_delete=models.SET_NULL, related_name="consumed_artifacts"
+    )
 
     class Meta:
         constraints = [
@@ -790,3 +809,129 @@ class ProcessedTokenStripeEvent(models.Model):
 
     def __str__(self):
         return f"{self.event_type} / {self.event_id}"
+
+
+class RewardRecord(models.Model):
+    """Discretionary CBR or LSR token grant issued to a chef or supporter."""
+
+    class RewardType(models.TextChoices):
+        CBR = "cbr", "Chef Battle Reward"
+        LSR = "lsr", "Live Support Reward"
+
+    recipient = models.ForeignKey(
+        RecipeAuthor, on_delete=models.CASCADE, related_name="reward_records"
+    )
+    reward_type = models.CharField(max_length=8, choices=RewardType.choices, db_index=True)
+    tokens_granted = models.PositiveIntegerField()
+    reason = models.CharField(max_length=200)
+    related_battle = models.ForeignKey(
+        Battle, null=True, blank=True, on_delete=models.SET_NULL, related_name="reward_records"
+    )
+    related_gift = models.ForeignKey(
+        AppreciationGift, null=True, blank=True, on_delete=models.SET_NULL, related_name="reward_records"
+    )
+    granted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="granted_reward_records",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.get_reward_type_display()} → {self.recipient}: {self.tokens_granted}T"
+
+
+class LedgerEvent(models.Model):
+    """Immutable audit log for every significant arena event. Never update or delete rows."""
+
+    class EventType(models.TextChoices):
+        TOKEN_PURCHASE = "token_purchase", "Token Purchase"
+        GIFT_SENT = "gift_sent", "Gift Sent"
+        GIFT_RECEIVED = "gift_received", "Gift Received"
+        BATTLE_GIFT_SENT = "battle_gift_sent", "Battle Gift Sent"
+        ARTIFACT_PURCHASED = "artifact_purchased", "Artifact Purchased"
+        ARTIFACT_DROPPED = "artifact_dropped", "Artifact Dropped"
+        ARTIFACT_CONSUMED = "artifact_consumed", "Artifact Consumed"
+        CBR_GRANTED = "cbr_granted", "CBR Granted"
+        LSR_GRANTED = "lsr_granted", "LSR Granted"
+        REFUND_ISSUED = "refund_issued", "Refund Issued"
+        CHALLENGE_CREATED = "challenge_created", "Challenge Created"
+        CHALLENGE_ACCEPTED = "challenge_accepted", "Challenge Accepted"
+        CHALLENGE_REFUSED = "challenge_refused", "Challenge Refused"
+        BATTLE_STARTED = "battle_started", "Battle Started"
+        BATTLE_COMPLETED = "battle_completed", "Battle Completed"
+        VOTE_CAST = "vote_cast", "Vote Cast"
+        RANK_PROMOTED = "rank_promoted", "Rank Promoted"
+        LEVEL_UP = "level_up", "Level Up"
+        FRAUD_FLAG = "fraud_flag", "Fraud Flag"
+        ACCOUNT_SUSPENDED = "account_suspended", "Account Suspended"
+
+    event_type = models.CharField(max_length=32, choices=EventType.choices, db_index=True)
+    actor = models.ForeignKey(
+        RecipeAuthor, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="ledger_events_as_actor",
+    )
+    target = models.ForeignKey(
+        RecipeAuthor, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="ledger_events_as_target",
+    )
+    related_battle = models.ForeignKey(
+        Battle, null=True, blank=True, on_delete=models.SET_NULL, related_name="ledger_events"
+    )
+    payload = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.event_type} @ {self.created_at:%Y-%m-%d %H:%M}"
+
+    def save(self, *args, **kwargs):
+        if self.pk is not None:
+            raise ValueError("LedgerEvent is immutable and cannot be updated.")
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValueError("LedgerEvent is immutable and cannot be deleted.")
+
+
+class ContentReport(models.Model):
+    """DSA content report submitted by a user against arena content."""
+
+    class ContentKind(models.TextChoices):
+        BATTLE_CHAT = "battle_chat", "Battle Chat Message"
+        BATTLE_ENTRY = "battle_entry", "Battle Entry"
+        CHEF_PROFILE = "chef_profile", "Chef Profile"
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending Review"
+        REVIEWED = "reviewed", "Reviewed"
+        ACTIONED = "actioned", "Actioned"
+        DISMISSED = "dismissed", "Dismissed"
+
+    reporter = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="content_reports",
+    )
+    content_kind = models.CharField(max_length=20, choices=ContentKind.choices, db_index=True)
+    object_id = models.PositiveIntegerField()
+    reason = models.CharField(max_length=300)
+    status = models.CharField(
+        max_length=12, choices=Status.choices, default=Status.PENDING, db_index=True
+    )
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="reviewed_content_reports",
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    moderator_note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Report #{self.pk}: {self.content_kind} #{self.object_id} ({self.status})"
