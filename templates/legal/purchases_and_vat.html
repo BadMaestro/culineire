@@ -66,14 +66,12 @@
     <details class="legal-mobile-jump">
         <summary>Jump to a section</summary>
         <div class="legal-mobile-jump__links">
-            <a href="#vat">VAT</a>
+            <a href="#vat">VAT, Payments &amp; Refunds</a>
             <a href="#tokens">Arena Tokens</a>
             <a href="#cbr-lsr">CBR &amp; LSR Rewards</a>
             <a href="#digital-items">Digital Items</a>
             <a href="#operator-gifted-artifacts">Operator-Issued Artifacts</a>
             <a href="#sponsorships">Sponsorships</a>
-            <a href="#payment-processing">Payment Processing</a>
-            <a href="#refunds">Refunds</a>
             <a href="#contact">Contact</a>
         </div>
     </details>
@@ -82,14 +80,12 @@
         <aside class="legal-toc" aria-label="Purchases &amp; VAT sections">
             <span class="legal-toc__label">On this page</span>
             <nav>
-                <a href="#vat">VAT</a>
+                <a href="#vat">VAT, Payments &amp; Refunds</a>
                 <a href="#tokens">Arena Tokens</a>
                 <a href="#cbr-lsr">CBR &amp; LSR Rewards</a>
                 <a href="#digital-items">Digital Items</a>
                 <a href="#operator-gifted-artifacts">Operator-Issued Artifacts</a>
                 <a href="#sponsorships">Sponsorships</a>
-                <a href="#payment-processing">Payment Processing</a>
-                <a href="#refunds">Refunds</a>
                 <a href="#contact">Contact</a>
             </nav>
             <p>This policy sits alongside the Terms of Use and Privacy Policy.</p>
@@ -98,14 +94,26 @@
         <div class="legal-card-grid legal-card-grid--document legal-document-main">
 
             <article class="legal-card legal-card--section" id="vat">
-                <div class="section-header"><h2>VAT</h2></div>
+                <div class="section-header"><h2>VAT, Payments &amp; Refunds</h2></div>
                 <div class="legal-card__content">
+                    <h3 style="font-size:0.9rem;font-weight:700;margin:0 0 0.35rem;">VAT</h3>
                     <ul class="legal-list">
-                        <li>Token prices shown in the <a href="{% url 'chef_battle:token_shop' %}">Token Shop</a> are displayed <strong>inclusive of 23% Irish VAT</strong>.</li>
+                        <li>Token prices in the <a href="{% url 'chef_battle:token_shop' %}">Token Shop</a> are displayed <strong>inclusive of 23% Irish VAT</strong>.</li>
                         <li>Sponsorship prices are quoted <strong>exclusive of VAT</strong>. VAT is added at checkout.</li>
-                        <li>The applicable rate for customers in Ireland is <strong>23%</strong>.</li>
                         <li>Bearcave Limited is VAT-registered in Ireland: VAT number <strong>IE3645402WH</strong>.</li>
-                        <li>Where VAT does not apply (for example, for customers in certain jurisdictions), Stripe will determine this at checkout based on your location.</li>
+                        <li>Where VAT does not apply, Stripe will determine this at checkout based on your location.</li>
+                    </ul>
+                    <h3 style="font-size:0.9rem;font-weight:700;margin:0.75rem 0 0.35rem;" id="payment-processing">Payment Processing</h3>
+                    <ul class="legal-list">
+                        <li>All payments are handled by <strong>Stripe</strong>. CulinEire does not store card details.</li>
+                        <li>Stripe may apply additional verification steps under Strong Customer Authentication (SCA) / PSD2.</li>
+                        <li>Payments are denominated in <strong>Euro (&euro;)</strong>.</li>
+                    </ul>
+                    <h3 style="font-size:0.9rem;font-weight:700;margin:0.75rem 0 0.35rem;" id="refunds">Refunds</h3>
+                    <ul class="legal-list">
+                        <li>Token purchases are non-refundable once credited to your wallet, except where required by Irish consumer protection law.</li>
+                        <li>Sponsorship refund conditions are in the <a href="{% url 'sponsors:annual_contract' %}#cancellation">Sponsor Agreement</a>.</li>
+                        <li>If you believe a charge was made in error, contact us via the <a href="{% url 'messaging:contact' %}">contact page</a>.</li>
                     </ul>
                 </div>
             </article>
@@ -190,28 +198,6 @@
                         <li>Sponsorship payments are processed through Stripe Checkout.</li>
                         <li>Payment reserves a sponsor slot for compliance review and staff approval. It does not guarantee publication or activation.</li>
                         <li>A VAT invoice is issued by Bearcave Limited and sent to the sponsor's email address upon activation.</li>
-                    </ul>
-                </div>
-            </article>
-
-            <article class="legal-card legal-card--section" id="payment-processing">
-                <div class="section-header"><h2>Payment Processing</h2></div>
-                <div class="legal-card__content">
-                    <ul class="legal-list">
-                        <li>All payments are handled by <strong>Stripe</strong>. CulinEire does not store card details.</li>
-                        <li>Stripe may apply additional verification steps at checkout in accordance with Strong Customer Authentication (SCA) requirements under PSD2.</li>
-                        <li>Payments are denominated in <strong>Euro (&euro;)</strong>.</li>
-                    </ul>
-                </div>
-            </article>
-
-            <article class="legal-card legal-card--section" id="refunds">
-                <div class="section-header"><h2>Refunds</h2></div>
-                <div class="legal-card__content">
-                    <ul class="legal-list">
-                        <li>Token purchases are non-refundable once tokens have been credited to your wallet, except where required by Irish consumer protection law.</li>
-                        <li>Sponsorship refund conditions are described in the <a href="{% url 'sponsors:annual_contract' %}#cancellation">Sponsor Agreement</a>.</li>
-                        <li>If you believe a charge was made in error, contact us at <a href="{% url 'messaging:contact' %}">the contact page</a>.</li>
                     </ul>
                 </div>
             </article>
