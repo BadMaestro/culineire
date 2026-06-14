@@ -28,17 +28,22 @@
 
   <div class="token-shop-grid">
     {% for pkg in packages %}
-    <div class="token-shop-card{% if forloop.counter == 3 %} token-shop-card--featured{% endif %}">
-      {% if forloop.counter == 3 %}<span class="token-shop-card__badge">Most Popular</span>{% endif %}
+    <div class="token-shop-card{% if forloop.counter == 4 %} token-shop-card--featured{% endif %}">
+      {% if forloop.counter == 4 %}<span class="token-shop-card__badge">Best Value</span>{% endif %}
+      {% if pkg.discount_percent > 0 %}
+      <span class="token-shop-card__discount">-{{ pkg.discount_percent }}%</span>
+      {% endif %}
       <div class="token-shop-card__name">{{ pkg.name }}</div>
       <div class="token-shop-card__tokens">
         <img src="{% static 'images/chef_battle/icon_token.svg' %}" alt="" width="20" height="20">
         {{ pkg.tokens }}T
       </div>
       <div class="token-shop-card__price">&#x20AC;{{ pkg.price_eur }}</div>
-      <div class="token-shop-card__value">
-        &#x20AC;{{ pkg.price_eur }} &middot; {{ pkg.tokens }} tokens
-      </div>
+      {% if pkg.discount_percent > 0 %}
+      <div class="token-shop-card__standard-price">&#x20AC;{{ pkg.standard_price_eur }}</div>
+      {% else %}
+      <div class="token-shop-card__value">Standard rate</div>
+      {% endif %}
       {% if user.is_authenticated %}
       <button class="btn-primary token-shop-card__btn js-token-buy"
               data-package-id="{{ pkg.pk }}"

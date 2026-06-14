@@ -1750,6 +1750,31 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
   font-size: 0.78rem;
   color: var(--color-muted);
 }
+.token-shop-card__discount {
+  position: absolute;
+  top: -0.65rem;
+  right: 0.75rem;
+  background: #b45309;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.55rem;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+.token-shop-card--featured .token-shop-card__discount {
+  right: auto;
+  left: 50%;
+  transform: translateX(-50%);
+  top: -2rem;
+}
+.token-shop-card__standard-price {
+  font-size: 0.78rem;
+  color: var(--color-muted);
+  text-decoration: line-through;
+}
 .token-shop-card__btn {
   margin-top: 0.5rem;
   width: 100%;

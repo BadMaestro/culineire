@@ -663,11 +663,18 @@ class BattleChatMessage(models.Model):
 
 
 class TokenPackage(models.Model):
-    """Purchasable token bundle shown in the shop."""
+    """Purchasable token bundle shown in the shop.
 
+    Populated and kept in sync from chef_battle.token_config.TOKEN_PACKAGES
+    via data migration. Do not add packages manually — update token_config.py
+    and run a new data migration.
+    """
+
+    key = models.CharField(max_length=40, unique=True, blank=True)
     name = models.CharField(max_length=60, unique=True)
     tokens = models.PositiveIntegerField()
-    price_eur = models.DecimalField(max_digits=8, decimal_places=2)
+    price_eur = models.DecimalField(max_digits=8, decimal_places=2, help_text="Final (discounted) price in EUR")
+    discount_percent = models.PositiveSmallIntegerField(default=0)
     is_active = models.BooleanField(default=True)
     sort_order = models.PositiveSmallIntegerField(default=0)
 
@@ -676,6 +683,21 @@ class TokenPackage(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.tokens}T / €{self.price_eur})"
+
+    @property
+    def standard_price_cents(self) -> int:
+        """Standard price before discount, in cents (100T = €10.00)."""
+        return self.tokens * 10
+
+    @property
+    def final_price_cents(self) -> int:
+        """Final price in cents, as stored in price_eur."""
+        return int(self.price_eur * 100)
+
+    @property
+    def standard_price_eur(self):
+        from decimal import Decimal
+        return Decimal(self.standard_price_cents) / Decimal(100)
 
 
 class TokenWallet(models.Model):
