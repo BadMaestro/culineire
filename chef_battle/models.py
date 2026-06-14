@@ -729,6 +729,11 @@ class TokenPackage(models.Model):
         from decimal import Decimal
         return Decimal(self.standard_price_cents) / Decimal(100)
 
+    @property
+    def price_with_vat(self):
+        from decimal import Decimal, ROUND_HALF_UP
+        return (self.price_eur * Decimal("1.23")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
 
 class TokenWallet(models.Model):
     """One wallet per chef — tracks current token balance."""

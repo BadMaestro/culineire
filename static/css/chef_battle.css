@@ -1699,9 +1699,15 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
 }
 .token-shop-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 1.25rem;
   margin-block-end: 2rem;
+}
+@media (max-width: 900px) {
+  .token-shop-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 500px) {
+  .token-shop-grid { grid-template-columns: 1fr; }
 }
 .token-shop-card {
   position: relative;
@@ -1777,6 +1783,32 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
 .token-shop-card__btn {
   margin-top: 0.5rem;
   width: 100%;
+}
+.token-shop-buy-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  padding: 0.6rem 1rem;
+  background: var(--brand, #2d6a4f);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+  line-height: 1.2;
+}
+.token-shop-buy-btn:hover { background: var(--brand-dark, #1b4332); }
+.token-shop-buy-btn__label {
+  font-size: 0.78rem;
+  font-weight: 500;
+  opacity: 0.85;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.token-shop-buy-btn__price {
+  font-size: 1rem;
+  font-weight: 700;
 }
 .token-shop-notice {
   font-size: 0.85rem;

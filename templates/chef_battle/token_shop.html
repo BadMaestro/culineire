@@ -48,7 +48,7 @@
     </div>
     <div class="legal-summary-item">
       <span>VAT</span>
-      <strong>23% added at checkout</strong>
+      <strong>23% Irish VAT included</strong>
     </div>
     <div class="legal-summary-item">
       <span>Credited</span>
@@ -60,7 +60,7 @@
     </div>
   </div>
 
-  {% if wallet %}
+  {% if wallet and request.user.username != 'greenbear' %}
   <div class="token-shop-balance" style="margin-block-start: clamp(1rem,2.5vw,1.5rem);">
     <img src="{% static 'images/chef_battle/icon_token.svg' %}" alt="Token" width="24" height="24">
     <span>Your balance: <strong>{% if wallet.infinite_balance %}&#x221E;{% else %}{{ wallet.balance }}T{% endif %}</strong></span>
@@ -88,10 +88,11 @@
       <div class="token-shop-card__value">Standard rate</div>
       {% endif %}
       {% if user.is_authenticated %}
-      <button class="btn-primary token-shop-card__btn js-token-buy"
+      <button class="token-shop-card__btn token-shop-buy-btn js-token-buy"
               data-package-id="{{ pkg.pk }}"
               data-checkout-url="{% url 'chef_battle:token_checkout_create' %}">
-        Buy &#x20AC;{{ pkg.price_eur }} + VAT
+        <span class="token-shop-buy-btn__label">Buy now</span>
+        <span class="token-shop-buy-btn__price">&#x20AC;{{ pkg.price_with_vat }} incl. VAT</span>
       </button>
       {% else %}
       <a class="btn-primary token-shop-card__btn" href="{% url 'accounts:login' %}?next={{ request.path }}">
@@ -132,7 +133,7 @@
     <span>Legal &amp; Payment Information</span>
     <p>
       Tokens are credited instantly after Stripe confirms payment.
-      <strong><a href="{% url 'legal:purchases_and_vat' %}#vat">Prices shown exclude VAT. 23% Irish VAT is added automatically at checkout.</a></strong>
+      <strong><a href="{% url 'legal:purchases_and_vat' %}#vat">Prices shown include 23% Irish VAT.</a></strong>
       Tokens have no cash value and cannot be withdrawn, transferred, sold or exchanged for cash.
       See the full <a href="{% url 'legal:purchases_and_vat' %}">Purchases &amp; VAT</a> policy for refund rules and legal terms.
       Questions? <a href="{% url 'messaging:contact' %}">Contact us</a>.
