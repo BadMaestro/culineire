@@ -1910,4 +1910,8 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
 .battle-rules-table thead th {
   font-weight: 600;
   background: var(--surface-muted, #f5f5f5);
+  text-align: center;
+}
+.battle-rules-table thead th:first-child {
+  text-align: left;
 }
