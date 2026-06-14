@@ -448,7 +448,7 @@ def battle_rules(request):
         {
             "rarity": rarity,
             "winner_pct": _DROP_WEIGHTS_WINNER[rarity],
-            "defeated_pct": _DROP_WEIGHTS_WINNER[rarity] / 2,
+            "defeated_pct": _DROP_WEIGHTS_WINNER[rarity] / 2 if _DROP_WEIGHTS_WINNER[rarity] % 2 else _DROP_WEIGHTS_WINNER[rarity] // 2,
             "icon": static(f"images/chef_battle/rarity_{rarity}.svg"),
         }
         for rarity in ["common", "uncommon", "rare", "epic", "legendary"]
