@@ -368,7 +368,6 @@ def token_stripe_webhook(request):
     return JsonResponse({"ok": True, "duplicate": result.get("duplicate", False)})
 
 
-@chef_battle_guard
 def battle_rules(request):
     from .services import _DROP_WEIGHTS_WINNER
     from django.templatetags.static import static
@@ -383,7 +382,6 @@ def battle_rules(request):
     return render(request, "chef_battle/rules.html", {"drop_table": drop_table})
 
 
-@chef_battle_guard
 def battle_guide(request):
     return redirect("chef_battle:rules")
 
