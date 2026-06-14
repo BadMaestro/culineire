@@ -7,7 +7,20 @@ from django.utils import timezone
 
 from recipes.models import RecipeAuthor
 
-from .models import Battle, BattleChallenge, BattleEntry, BattleVote, ChefBattleProfile
+from .models import (
+    AppreciationGiftType,
+    APPRECIATION_GIFT_COST,
+    Battle,
+    BattleChallenge,
+    BattleEntry,
+    BattleVote,
+    ChefArtifact,
+    ChefBattleProfile,
+    ContentReport,
+    LedgerEvent,
+    RewardRecord,
+    TokenWallet,
+)
 from .services import (
     accept_challenge,
     calculate_battle_result,
@@ -593,3 +606,299 @@ class PermissionTests(TestCase):
         from django.core.exceptions import ValidationError
         with self.assertRaises(ValidationError):
             vote.full_clean()
+
+
+# ---------------------------------------------------------------------------
+# CB-17xx: Phase 7 — Gift catalogue & token model
+# ---------------------------------------------------------------------------
+
+class AppreciationGiftCatalogueTests(TestCase):
+    """CB-1701 – CB-1704: gift types, costs, and keys are correct."""
+
+    def test_six_gift_types_exist(self):
+        types = list(AppreciationGiftType)
+        self.assertEqual(len(types), 6)
+
+    def test_gift_type_keys_match_cost_dict(self):
+        for gt in AppreciationGiftType:
+            self.assertIn(gt.value, APPRECIATION_GIFT_COST,
+                          f"{gt.value} missing from APPRECIATION_GIFT_COST")
+
+    def test_coffee_costs_20(self):
+        self.assertEqual(APPRECIATION_GIFT_COST[AppreciationGiftType.COFFEE], 20)
+
+    def test_virtual_beer_toast_costs_30(self):
+        self.assertEqual(APPRECIATION_GIFT_COST[AppreciationGiftType.VIRTUAL_BEER_TOAST], 30)
+
+    def test_virtual_whiskey_toast_costs_50(self):
+        self.assertEqual(APPRECIATION_GIFT_COST[AppreciationGiftType.VIRTUAL_WHISKEY_TOAST], 50)
+
+    def test_flowers_costs_80(self):
+        self.assertEqual(APPRECIATION_GIFT_COST[AppreciationGiftType.FLOWERS], 80)
+
+    def test_celebration_cocktail_costs_80(self):
+        self.assertEqual(APPRECIATION_GIFT_COST[AppreciationGiftType.CELEBRATION_COCKTAIL], 80)
+
+    def test_virtual_champagne_bottle_costs_100(self):
+        self.assertEqual(APPRECIATION_GIFT_COST[AppreciationGiftType.VIRTUAL_CHAMPAGNE_BOTTLE], 100)
+
+    def test_gift_type_max_length_fits_longest_key(self):
+        longest = max(len(gt.value) for gt in AppreciationGiftType)
+        field = AppreciationGiftType.__mro__  # just check the known worst case
+        self.assertLessEqual(longest, 32, "gift_type key exceeds max_length=32")
+
+
+# ---------------------------------------------------------------------------
+# CB-18xx: Phase 8 — LSR auto-creation and LedgerEvent on gift send
+# ---------------------------------------------------------------------------
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class LSRRewardTests(TestCase):
+    """CB-1801 – CB-1804: sending appreciation gift creates LSR and LedgerEvents."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.sender_user = User.objects.create_user(username="sender", password="pw")
+        self.recipient_user = User.objects.create_user(username="recipient", password="pw")
+        self.sender = RecipeAuthor.objects.create(
+            user=self.sender_user, name="Sender Chef", slug="sender-chef"
+        )
+        self.recipient = RecipeAuthor.objects.create(
+            user=self.recipient_user, name="Recipient Chef", slug="recipient-chef"
+        )
+        TokenWallet.objects.create(chef=self.sender, balance=500)
+        TokenWallet.objects.create(chef=self.recipient, balance=0)
+
+    def _send_coffee(self):
+        from .services import send_appreciation_gift
+        return send_appreciation_gift(
+            sender_user=self.sender_user,
+            recipient=self.recipient,
+            gift_type=AppreciationGiftType.COFFEE,
+        )
+
+    def test_gift_is_created(self):
+        gift = self._send_coffee()
+        self.assertIsNotNone(gift.pk)
+        self.assertEqual(gift.gift_type, AppreciationGiftType.COFFEE)
+
+    def test_sender_wallet_debited(self):
+        self._send_coffee()
+        wallet = TokenWallet.objects.get(chef=self.sender)
+        self.assertEqual(wallet.balance, 500 - 20)
+
+    def test_lsr_reward_record_created(self):
+        self._send_coffee()
+        records = RewardRecord.objects.filter(
+            recipient=self.sender,
+            reward_type=RewardRecord.RewardType.LSR,
+        )
+        self.assertEqual(records.count(), 1)
+
+    def test_lsr_amount_is_10_percent_of_gift_cost(self):
+        self._send_coffee()
+        reward = RewardRecord.objects.get(recipient=self.sender, reward_type=RewardRecord.RewardType.LSR)
+        self.assertEqual(reward.tokens_granted, 2)
+
+    def test_lsr_credited_to_sender_wallet(self):
+        self._send_coffee()
+        wallet = TokenWallet.objects.get(chef=self.sender)
+        # debit 20, credit 2 LSR → net 482
+        self.assertEqual(wallet.balance, 482)
+
+    def test_ledger_event_gift_sent_created(self):
+        self._send_coffee()
+        self.assertTrue(
+            LedgerEvent.objects.filter(
+                event_type=LedgerEvent.EventType.GIFT_SENT,
+                actor=self.sender,
+                target=self.recipient,
+            ).exists()
+        )
+
+    def test_ledger_event_lsr_granted_created(self):
+        self._send_coffee()
+        self.assertTrue(
+            LedgerEvent.objects.filter(
+                event_type=LedgerEvent.EventType.LSR_GRANTED,
+                actor=self.sender,
+            ).exists()
+        )
+
+    def test_unknown_gift_type_raises_value_error(self):
+        from .services import send_appreciation_gift
+        with self.assertRaises(ValueError):
+            send_appreciation_gift(
+                sender_user=self.sender_user,
+                recipient=self.recipient,
+                gift_type="invalid_type",
+            )
+
+
+# ---------------------------------------------------------------------------
+# CB-19xx: Phase 8 — LedgerEvent immutability
+# ---------------------------------------------------------------------------
+
+class LedgerEventImmutabilityTests(TestCase):
+    """CB-1901 – CB-1902: LedgerEvent cannot be updated or deleted."""
+
+    def setUp(self):
+        self.event = LedgerEvent.objects.create(
+            event_type=LedgerEvent.EventType.VOTE_CAST,
+            payload={"battle_id": 1},
+        )
+
+    def test_save_on_existing_ledger_event_raises(self):
+        with self.assertRaises(ValueError):
+            self.event.payload = {"tampered": True}
+            self.event.save()
+
+    def test_delete_on_ledger_event_raises(self):
+        with self.assertRaises(ValueError):
+            self.event.delete()
+
+    def test_new_ledger_event_saves_normally(self):
+        new_event = LedgerEvent(
+            event_type=LedgerEvent.EventType.VOTE_CAST,
+            payload={},
+        )
+        new_event.save()
+        self.assertIsNotNone(new_event.pk)
+
+
+# ---------------------------------------------------------------------------
+# CB-20xx: Phase 8 — ContentReport DSA flow
+# ---------------------------------------------------------------------------
+
+class ContentReportTests(TestCase):
+    """CB-2001 – CB-2003: DSA content report model behaviour."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.reporter_user = User.objects.create_user(username="reporter", password="pw")
+
+    def test_report_created_with_pending_status(self):
+        report = ContentReport.objects.create(
+            reporter=self.reporter_user,
+            content_kind=ContentReport.ContentKind.BATTLE_CHAT,
+            object_id=42,
+            reason="Offensive language",
+        )
+        self.assertEqual(report.status, ContentReport.Status.PENDING)
+
+    def test_report_can_be_actioned(self):
+        report = ContentReport.objects.create(
+            reporter=self.reporter_user,
+            content_kind=ContentReport.ContentKind.BATTLE_ENTRY,
+            object_id=7,
+            reason="Plagiarism",
+        )
+        report.status = ContentReport.Status.ACTIONED
+        report.moderator_note = "Entry removed."
+        report.save()
+        report.refresh_from_db()
+        self.assertEqual(report.status, ContentReport.Status.ACTIONED)
+
+    def test_reporter_can_be_anonymous(self):
+        report = ContentReport.objects.create(
+            reporter=None,
+            content_kind=ContentReport.ContentKind.CHEF_PROFILE,
+            object_id=99,
+            reason="Spam",
+        )
+        self.assertIsNone(report.reporter)
+
+
+# ---------------------------------------------------------------------------
+# CB-21xx: Phase 8 — Compliance flags on ChefBattleProfile
+# ---------------------------------------------------------------------------
+
+class ComplianceFlagTests(TestCase):
+    """CB-2101 – CB-2103: is_suspended and fraud_flag defaults and behaviour."""
+
+    def setUp(self):
+        User = get_user_model()
+        user = User.objects.create_user(username="compliancechef", password="pw")
+        chef = RecipeAuthor.objects.create(user=user, name="Compliance Chef", slug="compliance-chef")
+        self.profile = ChefBattleProfile.objects.create(author=chef)
+
+    def test_new_profile_is_not_suspended(self):
+        self.assertFalse(self.profile.is_suspended)
+
+    def test_new_profile_has_no_fraud_flag(self):
+        self.assertFalse(self.profile.fraud_flag)
+
+    def test_new_profile_age_not_verified(self):
+        self.assertFalse(self.profile.age_verified)
+
+    def test_suspend_profile(self):
+        self.profile.is_suspended = True
+        self.profile.suspension_reason = "Repeated vote manipulation"
+        self.profile.save()
+        self.profile.refresh_from_db()
+        self.assertTrue(self.profile.is_suspended)
+        self.assertEqual(self.profile.suspension_reason, "Repeated vote manipulation")
+
+
+# ---------------------------------------------------------------------------
+# CB-22xx: Phase 8 — Suspension gate on arena POST actions
+# ---------------------------------------------------------------------------
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class SuspensionGateTests(TestCase):
+    """CB-2201: suspended profiles cannot POST to arena views."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user(username="suspendedchef", password="pw")
+        chef = RecipeAuthor.objects.create(user=self.user, name="Suspended Chef", slug="suspended-chef")
+        profile = ChefBattleProfile.objects.create(author=chef)
+        profile.is_suspended = True
+        profile.save()
+        self.client = Client()
+        self.client.login(username="suspendedchef", password="pw")
+
+    def test_suspended_user_post_to_send_gift_is_redirected(self):
+        url = reverse("chef_battle:send_appreciation_gift", kwargs={"pk": 1})
+        response = self.client.post(url, {"gift_type": "coffee"})
+        # redirect, not 200 or 403
+        self.assertIn(response.status_code, [301, 302])
+
+
+# ---------------------------------------------------------------------------
+# CB-23xx: Phase 8 — Battle completion writes LedgerEvent
+# ---------------------------------------------------------------------------
+
+class BattleCompletionLedgerTests(TestCase):
+    """CB-2301: calculate_battle_result writes BATTLE_COMPLETED LedgerEvent."""
+
+    def setUp(self):
+        User = get_user_model()
+        user_a = User.objects.create_user(username="ledger-a", password="pw")
+        user_b = User.objects.create_user(username="ledger-b", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=user_a, name="Ledger A", slug="ledger-a")
+        self.chef_b = RecipeAuthor.objects.create(user=user_b, name="Ledger B", slug="ledger-b")
+
+    def _make_battle(self):
+        return Battle.objects.create(
+            challenger=self.chef_a,
+            opponent=self.chef_b,
+            theme="Ledger Battle",
+            status=Battle.Status.VOTING,
+            start_time=timezone.now() - timezone.timedelta(days=6),
+            submission_deadline=timezone.now() - timezone.timedelta(days=1),
+            end_time=timezone.now() + timezone.timedelta(days=1),
+        )
+
+    def test_ledger_event_created_on_battle_complete(self):
+        battle = self._make_battle()
+        BattleVote.objects.create(battle=battle, voted_for=self.chef_a, ip_hash="x1", user_agent_hash="y1")
+        BattleVote.objects.create(battle=battle, voted_for=self.chef_a, ip_hash="x2", user_agent_hash="y2")
+        calculate_battle_result(battle)
+        self.assertTrue(
+            LedgerEvent.objects.filter(
+                event_type=LedgerEvent.EventType.BATTLE_COMPLETED,
+                related_battle=battle,
+                actor=self.chef_a,
+            ).exists()
+        )
