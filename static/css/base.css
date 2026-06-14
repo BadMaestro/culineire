@@ -1127,6 +1127,11 @@
     max-width: 76ch;
   }
 
+  .legal-shell--rules .legal-toc {
+    max-height: calc(100vh - 7rem);
+    overflow-y: auto;
+  }
+
   .legal-cookie-table-wrap {
     width: 100%;
     max-width: 100%;
