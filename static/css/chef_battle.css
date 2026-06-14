@@ -1764,12 +1764,6 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
   border-radius: 99px;
   white-space: nowrap;
 }
-.token-shop-card--featured .token-shop-card__discount {
-  right: auto;
-  left: 50%;
-  transform: translateX(-50%);
-  top: -2rem;
-}
 .token-shop-card__standard-price {
   font-size: 0.78rem;
   color: var(--color-muted);
