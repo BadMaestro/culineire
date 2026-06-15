@@ -1459,23 +1459,49 @@ def artifact_generate_image(request, pk):
     artifact = get_object_or_404(Artifact, pk=pk)
     feedback = request.POST.get("feedback", "").strip()
 
-    rarity_colours = {
-        "common":    "grey and white tones, subtle silver accent",
-        "uncommon":  "vivid green accent, glowing green highlight",
-        "rare":      "vivid blue accent, glowing blue highlight",
-        "epic":      "vivid purple accent, glowing purple highlight",
-        "legendary": "gold and orange accent, radiant golden glow, dramatic shimmer",
+    rarity_styles = {
+        "common": {
+            "border": "thin silver-grey rounded-square border",
+            "glow":   "subtle silver rim light",
+            "object": "grey and silver tones, muted metallic sheen",
+            "bg":     "solid flat dark navy-blue",
+        },
+        "uncommon": {
+            "border": "glowing green rounded-square border",
+            "glow":   "soft green inner glow around the object",
+            "object": "vivid green color accents, green metallic highlights",
+            "bg":     "solid flat dark navy-blue",
+        },
+        "rare": {
+            "border": "glowing electric-blue rounded-square border",
+            "glow":   "bright blue inner glow around the object",
+            "object": "vivid blue color accents, blue metallic highlights",
+            "bg":     "solid flat dark navy-blue",
+        },
+        "epic": {
+            "border": "glowing purple rounded-square border",
+            "glow":   "intense purple inner glow and sparkles around the object",
+            "object": "vivid purple and violet color accents, purple metallic highlights",
+            "bg":     "solid flat dark navy-blue",
+        },
+        "legendary": {
+            "border": "thick radiant golden rounded-square border with ornate corner details",
+            "glow":   "dramatic golden radiant glow and golden sparkles around the object",
+            "object": "gold and amber color accents dominate the object, golden metallic sheen",
+            "bg":     "solid flat dark navy-blue",
+        },
     }
-    rarity_color_palette = rarity_colours.get(artifact.rarity, "neutral tones")
+    rs = rarity_styles.get(artifact.rarity, rarity_styles["common"])
     item_name = artifact.name
-    fixed_style = (
-        f"A 2D game asset icon of {item_name}. Hard-edged vector digital illustration, "
-        "solo object centered in the frame. Inside a simple, thin, dark grey rounded-square border. "
-        "Solid flat dark navy-blue background filling the entire screen. Consistent mobile game UI asset style, "
-        "highly stylized, vibrant saturated colors, no gradients on the background, "
-        "no realistic shadows, no text, no watermarks, clean sharp edges."
+    prompt = (
+        f"A 2D game asset icon of {item_name}. "
+        f"The object is rendered with {rs['object']}. "
+        f"Hard-edged vector digital illustration, solo object centered in the frame. "
+        f"{rs['border']}. {rs['bg']} background filling the entire screen. "
+        f"{rs['glow']}. "
+        "Consistent mobile game UI asset style, highly stylized, vibrant saturated colors, "
+        "no gradients on the background, no realistic shadows, no text, no watermarks, clean sharp edges."
     )
-    prompt = f"{fixed_style} Rarity color accent: {rarity_color_palette}."
     if feedback:
         prompt += f" Important: Apply the following adjustment while strictly maintaining the 2D vector asset style: {feedback}."
 
