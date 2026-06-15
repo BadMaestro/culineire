@@ -40,4 +40,5 @@ urlpatterns = [
     path("battles/<int:pk>/gift/appreciation/", views.send_appreciation_gift_view, name="send_appreciation_gift"),
     path("payout/", views.payout_statement, name="payout_statement"),
     path("payout/agreement/", views.reward_agreement, name="reward_agreement"),
+    path("report/", views.content_report_submit, name="content_report_submit"),
 ]

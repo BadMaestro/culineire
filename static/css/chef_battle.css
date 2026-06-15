@@ -2033,3 +2033,41 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
 .reward-agreement-form {
   margin-block-start: 0.5rem;
 }
+
+/* ── DSA Content Report ─────────────────────────────────────────────── */
+.report-content-bar {
+  text-align: center;
+  padding: 0.75rem 0 1.5rem;
+}
+
+.report-content-btn,
+.btn-ghost {
+  background: none;
+  border: 1px solid color-mix(in srgb, var(--color-muted, #888) 50%, transparent);
+  color: var(--color-muted, #888);
+  border-radius: 0.375rem;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.report-content-btn:hover,
+.btn-ghost:hover { border-color: var(--color-error, #8b1a1a); color: var(--color-error, #8b1a1a); }
+
+.report-dialog {
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  width: min(90vw, 28rem);
+  background: var(--color-surface, #fff);
+  color: inherit;
+  box-shadow: 0 8px 32px rgb(0 0 0 / 0.18);
+}
+.report-dialog::backdrop { background: rgb(0 0 0 / 0.45); }
+.report-dialog__title { margin: 0 0 1rem; font-size: 1.1rem; }
+.report-dialog__label { display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.9rem; }
+.report-dialog__label textarea { resize: vertical; border: 1px solid var(--color-border, #ddd); border-radius: 0.375rem; padding: 0.5rem; font: inherit; }
+.report-dialog__hint { font-size: 0.78rem; opacity: 0.65; }
+.report-dialog__actions { display: flex; gap: 0.75rem; margin-top: 1rem; }
+.report-dialog__msg { margin: 0.75rem 0 0; font-size: 0.85rem; }
+.report-dialog__msg--ok  { color: var(--color-success, #2d6a2d); }
+.report-dialog__msg--err { color: var(--color-error, #8b1a1a); }

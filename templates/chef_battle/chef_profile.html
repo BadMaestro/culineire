@@ -115,7 +115,57 @@
     {% endif %}
     <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
     <a class="btn-secondary" href="{{ author.get_absolute_url }}">View Recipe Profile</a>
+    {% if user.is_authenticated and not is_own_profile %}
+    <button class="btn-ghost report-content-btn" type="button" data-kind="chef_profile" data-object="{{ profile.pk }}">Report</button>
+    {% endif %}
   </div>
 
 </div>
+
+{% if user.is_authenticated and not is_own_profile %}
+<dialog id="report-dialog" class="report-dialog">
+  <form id="report-form" method="dialog">
+    <h2 class="report-dialog__title">Report Profile</h2>
+    <label class="report-dialog__label">Reason <span class="report-dialog__hint">(required, max 300 chars)</span>
+      <textarea id="report-reason" name="reason" maxlength="300" rows="3" required></textarea>
+    </label>
+    <div class="report-dialog__actions">
+      <button type="button" id="report-submit" class="btn-primary">Submit Report</button>
+      <button type="button" id="report-cancel" class="btn-secondary">Cancel</button>
+    </div>
+    <p id="report-msg" class="report-dialog__msg" hidden></p>
+  </form>
+</dialog>
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+  var dialog = document.getElementById('report-dialog');
+  var pendingKind = '', pendingId = '';
+  document.querySelectorAll('[data-kind]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      pendingKind = btn.dataset.kind; pendingId = btn.dataset.object;
+      document.getElementById('report-reason').value = '';
+      document.getElementById('report-msg').hidden = true;
+      dialog.showModal();
+    });
+  });
+  document.getElementById('report-cancel').addEventListener('click', function () { dialog.close(); });
+  document.getElementById('report-submit').addEventListener('click', function () {
+    var reason = document.getElementById('report-reason').value.trim();
+    if (!reason) return;
+    var msg = document.getElementById('report-msg');
+    fetch('{% url "chef_battle:content_report_submit" %}', {
+      method: 'POST',
+      headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'content_kind=' + encodeURIComponent(pendingKind) + '&object_id=' + encodeURIComponent(pendingId) + '&reason=' + encodeURIComponent(reason),
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      msg.hidden = false;
+      if (data.ok) { msg.textContent = 'Report submitted. Thank you.'; msg.className = 'report-dialog__msg report-dialog__msg--ok'; setTimeout(function () { dialog.close(); }, 1500); }
+      else { msg.textContent = data.error || 'Could not submit report.'; msg.className = 'report-dialog__msg report-dialog__msg--err'; }
+    });
+  });
+})();
+</script>
+{% endif %}
 {% endblock %}

@@ -236,7 +236,7 @@ def _build_battlefield_progress():
                 {"label": "Admin artifact grant with audit", "detail": "AdminArtifactGrantForm + grant_artifact_view in ChefArtifactAdmin (admin.py). Mandatory reason field. Creates ChefArtifact with source=admin_grant + LedgerEvent(ARTIFACT_GRANTED). Never creates CBR/LSR. Template: chef_battle/admin_grant_artifact.html.", "status": "done", "completed_at": "2026-06-15"},
                 {"label": "Next Battle Unlock logic", "detail": "check_next_battle_unlock() and run_next_battle_unlock_for_chef() in services.py. Eligible battle = COMPLETED + both entries + chef's cooked photo moderation_status=APPROVED + no suspension/fraud flag. Automatically called after calculate_battle_result().", "status": "done", "completed_at": "2026-06-15"},
                 {"label": "Refund / chargeback lock behaviour", "detail": "handle_token_order_chargeback() in services.py: marks order refunded/disputed, deducts tokens from wallet, reverses PENDING/QUEUED rewards linked to gifts, flags gifts (is_flagged), sets ChefBattleProfile.payout_blocked=True, creates CHARGEBACK_LOCK ledger event. Wired into Stripe charge.refunded and charge.dispute.created webhooks in stripe_services.py.", "status": "done", "completed_at": "2026-06-15"},
-                {"label": "DSA / content reporting flow", "detail": "submit_content_report() service in services.py. ContentReport model: content_kind (battle_chat/battle_entry/chef_profile), object_id, reason, status (pending/reviewed/actioned/dismissed), reviewed_by, moderator_note. LedgerEvent(CONTENT_REPORT) written on every report. Admin via ContentReportAdmin.", "status": "done", "completed_at": "2026-06-15"},
+                {"label": "DSA / content reporting flow", "detail": "ContentReport model + submit_content_report() service + ContentReportAdmin. Frontend: /chef-battle/report/ POST endpoint (content_report_submit view). Report button + <dialog> modal on battle_detail and chef_profile. LedgerEvent(CONTENT_REPORT) on every submission.", "status": "done", "completed_at": "2026-06-15"},
             ],
         },
         {
@@ -1390,3 +1390,39 @@ def payout_statement(request):
         "payout_rate": "€0.025",
         "min_tokens": 2000,
     })
+
+
+@login_required
+@require_POST
+def content_report_submit(request):
+    """DSA content reporting endpoint (POST-only). Returns JSON."""
+    from .models import ContentReport
+    from .services import submit_content_report
+
+    content_kind = request.POST.get("content_kind", "").strip()
+    object_id_raw = request.POST.get("object_id", "").strip()
+    reason = request.POST.get("reason", "").strip()
+
+    valid_kinds = {k.value for k in ContentReport.ContentKind}
+    if content_kind not in valid_kinds:
+        return JsonResponse({"ok": False, "error": "Invalid content kind."}, status=400)
+    try:
+        object_id = int(object_id_raw)
+        assert object_id > 0
+    except (ValueError, AssertionError):
+        return JsonResponse({"ok": False, "error": "Invalid object ID."}, status=400)
+    if not reason or len(reason) > 300:
+        return JsonResponse({"ok": False, "error": "Reason is required (max 300 chars)."}, status=400)
+
+    try:
+        submit_content_report(
+            reporter=request.user,
+            content_kind=content_kind,
+            object_id=object_id,
+            reason=reason,
+        )
+    except Exception:
+        logger.exception("content_report_submit failed for user %s", request.user.pk)
+        return JsonResponse({"ok": False, "error": "Could not submit report. Please try again."}, status=500)
+
+    return JsonResponse({"ok": True})

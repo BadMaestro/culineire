@@ -1339,3 +1339,194 @@ class AgeVerificationGateTests(TestCase):
             data={"recipient_slug": other_author.slug, "gift_type": "flowers", "message": ""},
         )
         self.assertIn(resp.status_code, [301, 302])
+
+
+# CB-21xx: Phase 9 — Payout, reward agreement, forbidden claims, content report
+
+
+class ForbiddenClaimsTests(TestCase):
+    """CB-2101 to CB-2105: check_forbidden_claims service."""
+
+    def test_clean_text_returns_empty(self):
+        from .services import check_forbidden_claims
+        self.assertEqual(check_forbidden_claims("Lovely Irish stew with potatoes."), [])
+
+    def test_detects_allergy_claim(self):
+        from .services import check_forbidden_claims
+        hits = check_forbidden_claims("This dish is safe for all allergy sufferers.")
+        self.assertIn("safe for all allerg", hits)
+
+    def test_case_insensitive(self):
+        from .services import check_forbidden_claims
+        hits = check_forbidden_claims("CLINICALLY PROVEN to boost energy.")
+        self.assertIn("clinically proven", hits)
+
+    def test_detects_multiple_phrases(self):
+        from .services import check_forbidden_claims
+        hits = check_forbidden_claims("100% safe for everyone. Cures diabetes.")
+        self.assertGreaterEqual(len(hits), 2)
+
+    def test_empty_text_returns_empty(self):
+        from .services import check_forbidden_claims
+        self.assertEqual(check_forbidden_claims(""), [])
+        self.assertEqual(check_forbidden_claims(None), [])
+
+
+class RewardAgreementTests(TestCase):
+    """CB-2110 to CB-2113: accept_reward_agreement service."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user("payout_chef", password="pass")
+        from recipes.models import RecipeAuthor
+        self.author = RecipeAuthor.objects.create(user=self.user, name="Payout Chef", slug="payout-chef")
+        from .models import ChefBattleProfile
+        self.profile = ChefBattleProfile.objects.create(author=self.author)
+
+    def test_accept_creates_agreement_record(self):
+        from .models import ChefRewardAgreement
+        from .services import accept_reward_agreement
+        accept_reward_agreement(self.author, ip_address="1.2.3.4", user_agent="TestBrowser/1.0")
+        self.assertEqual(ChefRewardAgreement.objects.filter(chef=self.author).count(), 1)
+
+    def test_accept_sets_profile_flag(self):
+        from .services import accept_reward_agreement
+        accept_reward_agreement(self.author)
+        self.profile.refresh_from_db()
+        self.assertTrue(self.profile.reward_agreement_accepted)
+
+    def test_accept_stores_consent_snapshot(self):
+        from .models import ChefRewardAgreement
+        from .services import accept_reward_agreement, REWARD_AGREEMENT_TEXT_v1
+        accept_reward_agreement(self.author)
+        record = ChefRewardAgreement.objects.get(chef=self.author)
+        self.assertEqual(record.consent_text_snapshot, REWARD_AGREEMENT_TEXT_v1)
+
+    def test_accept_stores_version(self):
+        from .models import ChefRewardAgreement
+        from .services import accept_reward_agreement
+        accept_reward_agreement(self.author)
+        record = ChefRewardAgreement.objects.get(chef=self.author)
+        self.assertEqual(record.agreement_version, "1.0")
+
+
+class PayoutEligibilityTests(TestCase):
+    """CB-2120 to CB-2125: check_payout_eligibility service."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user("elig_chef", password="pass")
+        from recipes.models import RecipeAuthor
+        self.author = RecipeAuthor.objects.create(user=self.user, name="Elig Chef", slug="elig-chef")
+        from .models import ChefBattleProfile
+        self.profile = ChefBattleProfile.objects.create(
+            author=self.author,
+            age_verified=True,
+            reward_agreement_accepted=True,
+            stripe_connect_onboarded=True,
+        )
+
+    def _add_approved_tokens(self, amount):
+        from .models import RewardRecord
+        RewardRecord.objects.create(
+            recipient=self.author,
+            reward_type=RewardRecord.RewardType.CBR,
+            status=RewardRecord.Status.APPROVED,
+            tokens_granted=amount,
+            reason="Test grant",
+        )
+
+    def test_not_eligible_without_profile(self):
+        from recipes.models import RecipeAuthor
+        User = get_user_model()
+        u = User.objects.create_user("noprofile", password="pass")
+        a = RecipeAuthor.objects.create(user=u, name="No Profile", slug="no-profile")
+        from .services import check_payout_eligibility
+        result = check_payout_eligibility(a)
+        self.assertFalse(result["eligible"])
+
+    def test_not_eligible_below_minimum_tokens(self):
+        from .services import check_payout_eligibility
+        self._add_approved_tokens(500)
+        result = check_payout_eligibility(self.author)
+        self.assertFalse(result["eligible"])
+        self.assertTrue(any("2000" in r for r in result["reasons"]))
+
+    def test_eligible_with_enough_tokens(self):
+        from .services import check_payout_eligibility
+        self._add_approved_tokens(2000)
+        result = check_payout_eligibility(self.author)
+        self.assertTrue(result["eligible"])
+        self.assertEqual(result["reasons"], [])
+
+    def test_not_eligible_when_payout_blocked(self):
+        from .services import check_payout_eligibility
+        self.profile.payout_blocked = True
+        self.profile.save(update_fields=["payout_blocked"])
+        self._add_approved_tokens(2000)
+        result = check_payout_eligibility(self.author)
+        self.assertFalse(result["eligible"])
+
+    def test_not_eligible_when_age_not_verified(self):
+        from .services import check_payout_eligibility
+        self.profile.age_verified = False
+        self.profile.save(update_fields=["age_verified"])
+        self._add_approved_tokens(2000)
+        result = check_payout_eligibility(self.author)
+        self.assertFalse(result["eligible"])
+
+    def test_open_request_blocks_eligibility(self):
+        from .models import PayoutRequest
+        from .services import check_payout_eligibility
+        self._add_approved_tokens(2000)
+        PayoutRequest.objects.create(
+            chef=self.author,
+            amount_reward_tokens=2000,
+            gross_payout_eur="50.00",
+            status=PayoutRequest.Status.PENDING,
+        )
+        result = check_payout_eligibility(self.author)
+        self.assertFalse(result["eligible"])
+
+
+class ContentReportViewTests(TestCase):
+    """CB-2130 to CB-2133: content_report_submit view."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user("reporter", password="pass")
+
+    def test_submit_creates_report(self):
+        from .models import ContentReport
+        self.client.force_login(self.user)
+        resp = self.client.post(
+            reverse("chef_battle:content_report_submit"),
+            data={"content_kind": "battle_entry", "object_id": "42", "reason": "Fake image"},
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(resp.json()["ok"])
+        self.assertEqual(ContentReport.objects.filter(reporter=self.user).count(), 1)
+
+    def test_submit_requires_login(self):
+        resp = self.client.post(
+            reverse("chef_battle:content_report_submit"),
+            data={"content_kind": "battle_entry", "object_id": "1", "reason": "test"},
+        )
+        self.assertIn(resp.status_code, [301, 302])
+
+    def test_invalid_kind_returns_400(self):
+        self.client.force_login(self.user)
+        resp = self.client.post(
+            reverse("chef_battle:content_report_submit"),
+            data={"content_kind": "invalid_kind", "object_id": "1", "reason": "test"},
+        )
+        self.assertEqual(resp.status_code, 400)
+        self.assertFalse(resp.json()["ok"])
+
+    def test_missing_reason_returns_400(self):
+        self.client.force_login(self.user)
+        resp = self.client.post(
+            reverse("chef_battle:content_report_submit"),
+            data={"content_kind": "chef_profile", "object_id": "1", "reason": ""},
+        )
+        self.assertEqual(resp.status_code, 400)
