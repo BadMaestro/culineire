@@ -24,6 +24,20 @@ from recipes.models import RecipeAuthor
 
 from .access import chef_battle_guard
 from .forms import BattleChallengeForm, BattleEntryForm
+from .fraud import (
+    gate_account_age,
+    gate_challenge_spam,
+    gate_duplicate_device,
+    gate_fraud_flagged,
+    gate_gift_velocity,
+    gate_participant_vote,
+    gate_repeat_challenge_cooldown,
+    gate_self_vote,
+    gate_suspended_account,
+    gate_vote_rate_ip,
+    gate_withdrawal_consent,
+    run_fraud_gates,
+)
 from .models import Artifact, Battle, BattleChatMessage, BattleChallenge, BattleEntry, BattleEvent, BattleVote, ChefBattleProfile, TokenWallet
 from .selectors import (
     get_active_battles,
@@ -371,9 +385,20 @@ def token_checkout_create(request):
     except (ValueError, TypeError):
         return JsonResponse({"error": "Invalid request."}, status=400)
 
-    if not withdrawal_waived:
+    fraud_result = run_fraud_gates([
+        (gate_suspended_account, (author,), {}),
+        (gate_fraud_flagged, (author,), {}),
+        (gate_withdrawal_consent, (withdrawal_waived,), {}),
+    ])
+    if not fraud_result.passed:
+        first_fail = next(g for g in fraud_result.gates if not g.passed)
+        _CHECKOUT_FRAUD_MESSAGES = {
+            "suspended_account": "Your account is suspended.",
+            "fraud_flagged": "Your account has been flagged. Please contact support.",
+            "withdrawal_consent": "You must confirm the digital content consent before purchasing tokens.",
+        }
         return JsonResponse(
-            {"error": "You must confirm the digital content consent before purchasing tokens."},
+            {"error": _CHECKOUT_FRAUD_MESSAGES.get(first_fail.gate, "Purchase not accepted.")},
             status=400,
         )
 
@@ -533,10 +558,29 @@ def challenge_create(request):
     if request.method == "POST":
         form = BattleChallengeForm(request.POST, challenger=author)
         if form.is_valid():
-            level_error = check_level_matchup(author, form.cleaned_data["opponent"])
+            opponent = form.cleaned_data["opponent"]
+            level_error = check_level_matchup(author, opponent)
             if level_error:
                 messages.error(request, level_error)
                 return render(request, "chef_battle/challenge_form.html", {"form": form})
+
+            fraud_result = run_fraud_gates([
+                (gate_suspended_account, (author,), {}),
+                (gate_fraud_flagged, (author,), {}),
+                (gate_challenge_spam, (author,), {}),
+                (gate_repeat_challenge_cooldown, (author, opponent), {}),
+            ])
+            if not fraud_result.passed:
+                first_fail = next(g for g in fraud_result.gates if not g.passed)
+                _CHALLENGE_FRAUD_MESSAGES = {
+                    "suspended_account": "Your account is suspended.",
+                    "fraud_flagged": "Your account has been flagged. Please contact support.",
+                    "challenge_spam": "You have sent too many challenges today. Please wait before sending another.",
+                    "repeat_challenge_cooldown": "You have recently challenged this chef. Please wait before challenging again.",
+                }
+                messages.error(request, _CHALLENGE_FRAUD_MESSAGES.get(first_fail.gate, "Challenge not accepted."))
+                return render(request, "chef_battle/challenge_form.html", {"form": form})
+
             challenge = form.save()
             get_or_create_battle_profile(author)
             get_or_create_battle_profile(challenge.opponent)
@@ -733,12 +777,30 @@ def battle_vote(request, pk):
 
     user = request.user if request.user.is_authenticated else None
     voter_author = get_author_for_user(user) if user else None
-    if voter_author and voter_author.pk == voted_for.pk:
-        messages.error(request, "Chefs cannot vote for themselves.")
-        return redirect(battle.get_absolute_url())
 
     ip_hash = hash_request_value(get_client_ip(request) or "")
     ua_hash = hash_request_value(request.META.get("HTTP_USER_AGENT", ""))
+
+    fraud_result = run_fraud_gates([
+        (gate_self_vote, (voter_author, voted_for), {}),
+        (gate_participant_vote, (voter_author, battle), {}),
+        (gate_suspended_account, (voter_author,), {}),
+        (gate_fraud_flagged, (voter_author,), {}),
+        (gate_duplicate_device, (ip_hash, ua_hash, battle.pk), {}),
+        (gate_vote_rate_ip, (ip_hash, battle.pk), {}),
+    ])
+    if not fraud_result.passed:
+        first_fail = next(g for g in fraud_result.gates if not g.passed)
+        _VOTE_FRAUD_MESSAGES = {
+            "self_vote": "Chefs cannot vote for themselves.",
+            "participant_vote": "Battle participants cannot vote in their own battle.",
+            "suspended_account": "Your account is suspended.",
+            "fraud_flagged": "Your account has been flagged. Please contact support.",
+            "duplicate_device": "Your vote for this battle has already been recorded.",
+            "vote_rate_ip": "Too many votes from this connection. Please try again later.",
+        }
+        messages.error(request, _VOTE_FRAUD_MESSAGES.get(first_fail.gate, "Vote not accepted."))
+        return redirect(battle.get_absolute_url())
     vote = BattleVote(
         battle=battle,
         voter=user,
@@ -1109,6 +1171,23 @@ def send_appreciation_gift_view(request, pk):
     if not battle.author_is_participant(recipient):
         messages.error(request, "Invalid recipient.")
         return redirect("chef_battle:battle_detail", pk=pk)
+
+    sender_author = get_author_for_user(request.user)
+    fraud_result = run_fraud_gates([
+        (gate_suspended_account, (sender_author,), {}),
+        (gate_fraud_flagged, (sender_author,), {}),
+        (gate_gift_velocity, (request.user, recipient), {}),
+    ])
+    if not fraud_result.passed:
+        first_fail = next(g for g in fraud_result.gates if not g.passed)
+        _GIFT_FRAUD_MESSAGES = {
+            "suspended_account": "Your account is suspended.",
+            "fraud_flagged": "Your account has been flagged. Please contact support.",
+            "gift_velocity": "You have sent too many gifts recently. Please wait before sending another.",
+        }
+        messages.error(request, _GIFT_FRAUD_MESSAGES.get(first_fail.gate, "Gift not accepted."))
+        return redirect("chef_battle:battle_detail", pk=pk)
+
     try:
         send_appreciation_gift(
             sender_user=request.user,
