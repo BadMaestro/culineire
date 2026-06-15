@@ -1301,7 +1301,7 @@ class AgeVerificationGateTests(TestCase):
             data=json.dumps({"package_id": pkg.pk, "withdrawal_consent": True}),
             content_type="application/json",
         )
-        self.assertEqual(resp.status_code, 403)
+        self.assertEqual(resp.status_code, 400)
         data = resp.json()
         self.assertIn("error", data)
 
