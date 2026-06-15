@@ -213,7 +213,7 @@ def _build_battlefield_progress():
                 {"label": "AI-assisted content notice in recipe template (§29)", "detail": "recipe_detail.html: notice added inside source_type=='ai_assisted' block: 'This recipe may include AI-assisted text or imagery...' Styled with .ai-content-notice in detail_page.css.", "status": "done", "completed_at": "2026-06-15"},
                 {"label": "AI-assisted content notice in article template (§29)", "detail": "article_detail.html: notice added for source_type in [ai_assisted, human_reviewed_ai]: 'This article may include AI-assisted text or imagery...' Same .ai-content-notice CSS class.", "status": "done", "completed_at": "2026-06-15"},
                 {"label": "Forbidden claims check in moderation (§30)", "detail": "Moderation checklist for recipes/articles should flag forbidden health/safety claims. Manual admin check in Phase 1/2; automated flagging deferred.", "status": "pending"},
-                {"label": "Post-purchase durable confirmation email (§10)", "detail": "After successful token purchase (Stripe webhook), send email to buyer containing durable consent confirmation text: 'You expressly consented to the immediate supply of digital content...' Currently only success page shown.", "status": "pending"},
+                {"label": "Post-purchase durable confirmation email (§10)", "detail": "stripe_services._send_purchase_confirmation() sends email with EU CRD Article 16(m) consent text after checkout.session.completed webhook credits tokens. fail_silently=True so payment never rolls back on email failure.", "status": "done", "completed_at": "2026-06-15"},
             ],
         },
         {

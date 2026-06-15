@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from django.conf import settings
+from django.core.mail import send_mail
 from django.db import transaction
 from django.urls import reverse
 from django.utils import timezone
@@ -233,7 +234,42 @@ def _handle_checkout_completed(session) -> Any:
     ])
 
     logger.info("Token purchase completed: order %s, wallet %s, +%sT", order.pk, wallet.pk, order.tokens)
+
+    _send_purchase_confirmation(order, wallet)
+
     return order
+
+
+def _send_purchase_confirmation(order, wallet) -> None:
+    """Send durable post-purchase consent confirmation email (PDF v6 §10)."""
+    try:
+        user = wallet.chef.user
+        email = user.email
+        if not email:
+            return
+        name = user.get_full_name() or user.username
+        subject = f"Your CulinEire Token purchase — {order.tokens}T credited"
+        body = (
+            f"Hi {name},\n\n"
+            f"Thank you for your purchase. {order.tokens} CulinEire Tokens have been credited "
+            f"to your Token Balance.\n\n"
+            f"--- Consent Confirmation ---\n\n"
+            f"By completing this purchase you expressly consented to the immediate supply of "
+            f"digital content and acknowledged that you lose your right of withdrawal once the "
+            f"CulinEire Tokens are credited to your TokenAccount. This email serves as your "
+            f"durable confirmation of that consent in accordance with Article 16(m) of the "
+            f"EU Consumer Rights Directive and Section 7 of our Terms and Conditions.\n\n"
+            f"Order reference: #{order.pk}\n"
+            f"Package: {order.package.name}\n"
+            f"Tokens credited: {order.tokens}T\n"
+            f"Amount charged: €{order.amount_eur_cents / 100:.2f}\n\n"
+            f"If you have any questions please contact us at support@culineire.ie\n\n"
+            f"CulinEire — Real Irish Food, Real Competition."
+        )
+        from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@culineire.ie")
+        send_mail(subject, body, from_email, [email], fail_silently=True)
+    except Exception:
+        logger.exception("Failed to send purchase confirmation email for order %s", order.pk)
 
 
 def _handle_checkout_expired(session) -> Any:
