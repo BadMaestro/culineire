@@ -2085,9 +2085,9 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
 
 .artifact-card { background: var(--color-surface, #fff); border: 1px solid var(--color-border, #ddd); border-radius: 0.625rem; padding: 1rem; display: flex; flex-direction: column; gap: 0.4rem; }
 .artifact-card--common    { border-left: 4px solid #6b7280; }
-.artifact-card--uncommon  { border-left: 4px solid #16a34a; }
-.artifact-card--rare      { border-left: 4px solid #2563eb; }
-.artifact-card--epic      { border-left: 4px solid #7c3aed; }
+.artifact-card--uncommon  { border-left: 4px solid #16a34a; background: linear-gradient(135deg, var(--color-surface, #fff) 80%, #dcfce7 100%); }
+.artifact-card--rare      { border-left: 4px solid #2563eb; background: linear-gradient(135deg, var(--color-surface, #fff) 80%, #dbeafe 100%); }
+.artifact-card--epic      { border-left: 4px solid #7c3aed; background: linear-gradient(135deg, var(--color-surface, #fff) 80%, #ede9fe 100%); }
 .artifact-card--legendary { border-left: 4px solid #d97706; background: linear-gradient(135deg, var(--color-surface, #fff) 80%, #fef3c7 100%); }
 
 .artifact-card__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem; }
