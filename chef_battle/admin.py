@@ -21,6 +21,7 @@ from .models import (
     CosmeticItem,
     DAC7Record,
     LedgerEvent,
+    LiveBattleAgreement,
     LiveBroadcast,
     LiveBroadcastReport,
     LiveStreamSession,
@@ -846,3 +847,21 @@ class LiveBroadcastReportAdmin(admin.ModelAdmin):
     search_fields = ("broadcast__session__chef__name",)
     readonly_fields = ("reported_at",)
     ordering = ("-reported_at",)
+
+
+@admin.register(LiveBattleAgreement)
+class LiveBattleAgreementAdmin(admin.ModelAdmin):
+    list_display = ("chef", "agreement_version", "accepted_at", "ip_address")
+    list_filter = ("agreement_version",)
+    search_fields = ("chef__name",)
+    readonly_fields = ("chef", "accepted_at", "agreement_version", "consent_text_snapshot", "ip_address", "user_agent")
+    ordering = ("-accepted_at",)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

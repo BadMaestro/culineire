@@ -1340,3 +1340,25 @@ class LiveBroadcastReport(models.Model):
 
     def __str__(self):
         return f"Report #{self.pk}: {self.category} on broadcast #{self.broadcast_id}"
+
+
+class LiveBattleAgreement(models.Model):
+    """Immutable record of a chef accepting the Live Battle Agreement before their first live stream.
+
+    This agreement covers: minors, safety, prohibited content, alcohol, brands,
+    privacy, copyright, defamation, and platform termination rights.
+    Stored once per agreement version; a new version requires a new acceptance.
+    """
+
+    chef = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="live_battle_agreements")
+    accepted_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    agreement_version = models.CharField(max_length=20, default="1.0")
+    consent_text_snapshot = models.TextField(help_text="Full agreement text shown to chef, frozen for audit")
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.CharField(max_length=512, blank=True)
+
+    class Meta:
+        ordering = ["-accepted_at"]
+
+    def __str__(self):
+        return f"LiveBattleAgreement v{self.agreement_version} — {self.chef} @ {self.accepted_at:%Y-%m-%d}"
