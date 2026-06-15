@@ -16,9 +16,12 @@ from .models import (
     ChefArtifact,
     ChefBattleProfile,
     ChefCosmetic,
+    ChefRewardAgreement,
     ContentReport,
     CosmeticItem,
+    DAC7Record,
     LedgerEvent,
+    PayoutRequest,
     ProcessedTokenStripeEvent,
     RewardRecord,
     Season,
@@ -669,3 +672,72 @@ class ContentReportAdmin(admin.ModelAdmin):
             "fields": ("reviewed_by", "reviewed_at", "moderator_note"),
         }),
     )
+
+
+@admin.register(ChefRewardAgreement)
+class ChefRewardAgreementAdmin(admin.ModelAdmin):
+    list_display = ("chef", "agreement_version", "accepted_at", "ip_address")
+    list_filter = ("agreement_version",)
+    search_fields = ("chef__name",)
+    readonly_fields = ("chef", "accepted_at", "agreement_version", "consent_text_snapshot", "ip_address", "user_agent")
+    ordering = ("-accepted_at",)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(DAC7Record)
+class DAC7RecordAdmin(admin.ModelAdmin):
+    list_display = ("chef", "legal_name", "country_of_tax_residence", "verification_status", "verified_at")
+    list_filter = ("verification_status", "country_of_tax_residence")
+    search_fields = ("chef__name", "legal_name", "tax_identification_number")
+    readonly_fields = ("created_at", "updated_at")
+    ordering = ("-created_at",)
+    fieldsets = (
+        ("Chef", {"fields": ("chef",)}),
+        ("Identity", {"fields": ("legal_name", "date_of_birth", "primary_address", "country_of_tax_residence", "tax_identification_number")}),
+        ("Business", {"fields": ("business_name", "business_registration_number")}),
+        ("Stripe & Verification", {"fields": ("stripe_connect_account_id", "verification_status", "verified_at")}),
+        ("Timestamps", {"fields": ("created_at", "updated_at")}),
+    )
+
+
+@admin.register(PayoutRequest)
+class PayoutRequestAdmin(admin.ModelAdmin):
+    list_display = (
+        "chef", "amount_reward_tokens", "gross_payout_eur", "currency",
+        "status", "requested_at", "reviewed_by", "paid_at",
+    )
+    list_filter = ("status", "currency")
+    search_fields = ("chef__name", "stripe_transfer_id")
+    readonly_fields = (
+        "chef", "dac7_record", "reward_agreement",
+        "amount_reward_tokens", "payout_rate_snapshot", "gross_payout_eur",
+        "currency", "stripe_connect_account_id", "stripe_transfer_id",
+        "requested_at", "updated_at",
+    )
+    ordering = ("-requested_at",)
+    fieldsets = (
+        ("Chef & Request", {
+            "fields": ("chef", "dac7_record", "reward_agreement", "requested_at"),
+        }),
+        ("Amounts (Immutable)", {
+            "fields": ("amount_reward_tokens", "payout_rate_snapshot", "gross_payout_eur", "currency"),
+        }),
+        ("Stripe", {
+            "fields": ("stripe_connect_account_id", "stripe_transfer_id"),
+        }),
+        ("Review", {
+            "fields": ("status", "reviewed_by", "reviewed_at", "paid_at", "rejection_reason", "compliance_flags"),
+        }),
+        ("Timestamps", {"fields": ("updated_at",)}),
+    )
+
+    def has_add_permission(self, request):
+        return False

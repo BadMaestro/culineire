@@ -84,6 +84,8 @@ class ChefBattleProfile(models.Model):
     fraud_flag_note = models.CharField(max_length=200, blank=True)
     dsa_reported_count = models.PositiveIntegerField(default=0)
     payout_blocked = models.BooleanField(default=False, db_index=True, help_text="Payout blocked pending compliance review")
+    reward_agreement_accepted = models.BooleanField(default=False, help_text="Chef has accepted the Chef Reward Agreement")
+    stripe_connect_onboarded = models.BooleanField(default=False, db_index=True, help_text="Stripe Connect onboarding completed")
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -1092,3 +1094,115 @@ class ContentReport(models.Model):
 
     def __str__(self):
         return f"Report #{self.pk}: {self.content_kind} #{self.object_id} ({self.status})"
+
+
+class ChefRewardAgreement(models.Model):
+    """Immutable record of a chef accepting the Chef Reward Agreement before becoming payout-eligible."""
+
+    chef = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="reward_agreements")
+    accepted_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    agreement_version = models.CharField(max_length=20, default="1.0")
+    consent_text_snapshot = models.TextField(help_text="Full agreement text shown to chef at acceptance, frozen for audit")
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.CharField(max_length=512, blank=True)
+
+    class Meta:
+        ordering = ["-accepted_at"]
+
+    def __str__(self):
+        return f"RewardAgreement v{self.agreement_version} — {self.chef} @ {self.accepted_at:%Y-%m-%d}"
+
+
+class DAC7Record(models.Model):
+    """DAC7/MRDP seller data collected for annual revenue reporting obligations.
+
+    EU Directive 2021/514 (DAC7) requires platforms to collect and report income
+    earned by sellers (chefs) above the reporting threshold (EUR 2 000 / 30 transactions).
+    Data is retained for 10 years per Irish Revenue requirements.
+    """
+
+    class VerificationStatus(models.TextChoices):
+        UNVERIFIED = "unverified", "Unverified"
+        PENDING = "pending", "Pending Verification"
+        VERIFIED = "verified", "Verified"
+        FAILED = "failed", "Verification Failed"
+
+    chef = models.OneToOneField(RecipeAuthor, on_delete=models.PROTECT, related_name="dac7_record")
+    legal_name = models.CharField(max_length=200)
+    date_of_birth = models.DateField(null=True, blank=True)
+    primary_address = models.TextField(blank=True)
+    country_of_tax_residence = models.CharField(max_length=2, help_text="ISO 3166-1 alpha-2 country code")
+    tax_identification_number = models.CharField(max_length=50, blank=True)
+    business_name = models.CharField(max_length=200, blank=True)
+    business_registration_number = models.CharField(max_length=100, blank=True)
+    stripe_connect_account_id = models.CharField(max_length=100, blank=True, db_index=True)
+    verification_status = models.CharField(
+        max_length=12, choices=VerificationStatus.choices, default=VerificationStatus.UNVERIFIED, db_index=True
+    )
+    verified_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"DAC7: {self.legal_name} ({self.chef})"
+
+
+class PayoutRequest(models.Model):
+    """A chef's request to convert approved reward tokens into a real-money payout via Stripe Connect.
+
+    Lifecycle: PENDING → UNDER_REVIEW → APPROVED / REJECTED / ON_HOLD
+    Approved requests trigger a Stripe Connect transfer; amounts are immutable after approval.
+    """
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending Review"
+        UNDER_REVIEW = "under_review", "Under Review"
+        APPROVED = "approved", "Approved"
+        REJECTED = "rejected", "Rejected"
+        ON_HOLD = "on_hold", "On Hold — Compliance"
+        PAID = "paid", "Paid Out"
+        REVERSED = "reversed", "Reversed"
+
+    PAYOUT_RATE_EUR_PER_TOKEN = "0.025"  # €0.025 per approved reward token
+
+    chef = models.ForeignKey(RecipeAuthor, on_delete=models.PROTECT, related_name="payout_requests")
+    dac7_record = models.ForeignKey(
+        DAC7Record, on_delete=models.PROTECT, related_name="payout_requests",
+        null=True, blank=True,
+    )
+    reward_agreement = models.ForeignKey(
+        ChefRewardAgreement, on_delete=models.PROTECT, related_name="payout_requests",
+        null=True, blank=True,
+    )
+    amount_reward_tokens = models.PositiveIntegerField(help_text="Number of approved reward tokens being redeemed")
+    payout_rate_snapshot = models.DecimalField(
+        max_digits=8, decimal_places=5, default="0.02500",
+        help_text="EUR per token at request time — locked and immutable after creation",
+    )
+    gross_payout_eur = models.DecimalField(
+        max_digits=10, decimal_places=2,
+        help_text="Gross payout before any deductions (tokens × rate)",
+    )
+    currency = models.CharField(max_length=3, default="eur")
+    stripe_connect_account_id = models.CharField(max_length=100, blank=True, db_index=True)
+    stripe_transfer_id = models.CharField(max_length=100, blank=True, db_index=True)
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.PENDING, db_index=True)
+    requested_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="reviewed_payout_requests",
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
+    rejection_reason = models.TextField(blank=True)
+    compliance_flags = models.JSONField(default=dict, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-requested_at"]
+
+    def __str__(self):
+        return f"PayoutRequest #{self.pk}: {self.chef} — {self.amount_reward_tokens}T / €{self.gross_payout_eur} ({self.status})"
