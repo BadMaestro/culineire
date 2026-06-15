@@ -674,7 +674,7 @@ class BattleEventFeedTest(TestCase):
             status=BattleChallenge.Status.ACCEPTED,
             expires_at=timezone.now() + timezone.timedelta(hours=24),
         )
-        return Battle.objects.create(challenge=challenge, status=Battle.Status.COMBAT)
+        return Battle.objects.create(challenge=challenge, status=Battle.Status.ACTIVE)
 
     @override_settings(CHEF_BATTLE_ENABLED=True)
     def test_create_battle_event_with_publish_creates_newsfeed_entry(self):
