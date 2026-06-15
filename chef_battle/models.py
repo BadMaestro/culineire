@@ -1206,3 +1206,70 @@ class PayoutRequest(models.Model):
 
     def __str__(self):
         return f"PayoutRequest #{self.pk}: {self.chef} — {self.amount_reward_tokens}T / €{self.gross_payout_eur} ({self.status})"
+
+
+# ---------------------------------------------------------------------------
+# Phase 10 — Live Video
+# ---------------------------------------------------------------------------
+
+PRE_LIVE_CHECKLIST_ITEMS = [
+    "I confirm I am 18 years of age or older.",
+    "I am an approved CulinEire Chef.",
+    "No minors are present in the filming area or visible on camera.",
+    "I am streaming from a cooking area only — no bedrooms, bathrooms, or private spaces.",
+    "No personal documents, ID cards, bank cards, or passwords are visible on camera.",
+    "I am not broadcasting any copyrighted music, video, or images.",
+    "My kitchen area is safe, clean, and fire-safe.",
+    "I understand that injuries are my own responsibility and CulinEire is not liable.",
+    "I understand that this stream may be recorded and reviewed by CulinEire staff.",
+    "I understand that CulinEire may end my stream at any time without notice.",
+    "I will not make false health or medical claims during the stream.",
+    "I will not consume alcohol to excess or use any illegal substances during the stream.",
+    "I understand that this stream is subject to the CulinEire Chef Battle Rules.",
+    "I accept that violations may result in stream termination and account suspension.",
+]
+
+
+class LiveStreamSession(models.Model):
+    """Metadata record for a chef's live stream tied to a battle."""
+
+    class Status(models.TextChoices):
+        SCHEDULED = "scheduled", "Scheduled"
+        LIVE = "live", "Live"
+        ENDED = "ended", "Ended"
+        TERMINATED = "terminated", "Terminated by Platform"
+        FAILED = "failed", "Failed / Technical Error"
+
+    class Provider(models.TextChoices):
+        NONE = "", "Not configured"
+        MUX = "mux", "Mux"
+        AGORA = "agora", "Agora"
+        LIVEKIT = "livekit", "LiveKit"
+        OTHER = "other", "Other"
+
+    battle = models.ForeignKey(
+        Battle, on_delete=models.CASCADE, related_name="live_streams",
+        null=True, blank=True,
+    )
+    chef = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="live_stream_sessions")
+    provider = models.CharField(max_length=16, choices=Provider.choices, default=Provider.NONE, blank=True)
+    provider_stream_id = models.CharField(max_length=200, blank=True, db_index=True)
+    provider_playback_url = models.URLField(max_length=500, blank=True)
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.SCHEDULED, db_index=True)
+    checklist_confirmed = models.BooleanField(default=False)
+    checklist_confirmed_at = models.DateTimeField(null=True, blank=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    ended_at = models.DateTimeField(null=True, blank=True)
+    terminated_reason = models.CharField(max_length=300, blank=True)
+    terminated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="terminated_streams",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Stream #{self.pk}: {self.chef} / battle #{self.battle_id} ({self.status})"

@@ -21,6 +21,7 @@ from .models import (
     CosmeticItem,
     DAC7Record,
     LedgerEvent,
+    LiveStreamSession,
     PayoutRequest,
     ProcessedTokenStripeEvent,
     RewardRecord,
@@ -771,3 +772,29 @@ class PayoutRequestAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return False
+
+
+@admin.action(description="Terminate selected live streams")
+def terminate_streams(modeladmin, request, queryset):
+    count = queryset.filter(status=LiveStreamSession.Status.LIVE).update(
+        status=LiveStreamSession.Status.TERMINATED,
+        terminated_reason=f"Terminated by {request.user.username} via admin",
+        terminated_by=request.user,
+    )
+    modeladmin.message_user(request, f"{count} stream(s) terminated.", messages.WARNING)
+
+
+@admin.register(LiveStreamSession)
+class LiveStreamSessionAdmin(admin.ModelAdmin):
+    list_display = ("chef", "battle", "provider", "status", "checklist_confirmed", "started_at", "ended_at")
+    list_filter = ("status", "provider", "checklist_confirmed")
+    search_fields = ("chef__name", "provider_stream_id")
+    readonly_fields = ("created_at", "updated_at", "checklist_confirmed_at", "started_at", "ended_at")
+    ordering = ("-created_at",)
+    actions = [terminate_streams]
+    fieldsets = (
+        ("Stream", {"fields": ("chef", "battle", "provider", "provider_stream_id", "provider_playback_url", "status")}),
+        ("Checklist", {"fields": ("checklist_confirmed", "checklist_confirmed_at")}),
+        ("Lifecycle", {"fields": ("started_at", "ended_at", "terminated_reason", "terminated_by")}),
+        ("Timestamps", {"fields": ("created_at", "updated_at")}),
+    )
