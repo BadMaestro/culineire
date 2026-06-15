@@ -1114,3 +1114,134 @@ class LedgerEventHashChainTests(TestCase):
         e = self._make_event()
         with self.assertRaises(ValueError):
             e.delete()
+
+
+# ── CB-2005  Anti-fraud pipeline ────────────────────────────────────────────
+
+class FraudGateTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.user_a = User.objects.create_user(username="fg-a", password="pw")
+        self.user_b = User.objects.create_user(username="fg-b", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=self.user_a, name="FG Chef A", slug="fg-chef-a")
+        self.chef_b = RecipeAuthor.objects.create(user=self.user_b, name="FG Chef B", slug="fg-chef-b")
+
+    def _make_battle(self):
+        return Battle.objects.create(
+            challenger=self.chef_a,
+            opponent=self.chef_b,
+            theme="Fraud Test Battle",
+            status=Battle.Status.VOTING,
+            start_time=timezone.now() - timezone.timedelta(hours=2),
+            submission_deadline=timezone.now() - timezone.timedelta(hours=1),
+            end_time=timezone.now() + timezone.timedelta(hours=1),
+        )
+
+    def test_gate_account_age_passes_old_account(self):
+        from .fraud import gate_account_age
+        # user_a was just created but age check with min_days=0 should pass
+        r = gate_account_age(self.user_a, min_days=0)
+        self.assertTrue(r.passed)
+
+    def test_gate_account_age_fails_brand_new_account(self):
+        from .fraud import gate_account_age
+        r = gate_account_age(self.user_a, min_days=999)
+        self.assertFalse(r.passed)
+        self.assertIn("account_age", r.gate)
+
+    def test_gate_self_vote_fails(self):
+        from .fraud import gate_self_vote
+        r = gate_self_vote(self.chef_a, self.chef_a)
+        self.assertFalse(r.passed)
+
+    def test_gate_self_vote_passes_different_chefs(self):
+        from .fraud import gate_self_vote
+        r = gate_self_vote(self.chef_a, self.chef_b)
+        self.assertTrue(r.passed)
+
+    def test_gate_participant_vote_fails_for_participant(self):
+        from .fraud import gate_participant_vote
+        battle = self._make_battle()
+        r = gate_participant_vote(self.chef_a, battle)
+        self.assertFalse(r.passed)
+
+    def test_gate_participant_vote_passes_for_third_party(self):
+        from .fraud import gate_participant_vote
+        User = get_user_model()
+        third_user = User.objects.create_user(username="fg-third", password="pw")
+        third_chef = RecipeAuthor.objects.create(user=third_user, name="Third", slug="fg-third")
+        battle = self._make_battle()
+        r = gate_participant_vote(third_chef, battle)
+        self.assertTrue(r.passed)
+
+    def test_gate_suspended_account_fails(self):
+        from .fraud import gate_suspended_account
+        from .services import get_or_create_battle_profile
+        profile = get_or_create_battle_profile(self.chef_a)
+        profile.is_suspended = True
+        profile.suspension_reason = "Test suspension"
+        profile.save(update_fields=["is_suspended", "suspension_reason"])
+        r = gate_suspended_account(self.chef_a)
+        self.assertFalse(r.passed)
+
+    def test_gate_suspended_account_passes_normal(self):
+        from .fraud import gate_suspended_account
+        r = gate_suspended_account(self.chef_b)
+        self.assertTrue(r.passed)
+
+    def test_gate_withdrawal_consent_fails_without_waiver(self):
+        from .fraud import gate_withdrawal_consent
+        r = gate_withdrawal_consent(False)
+        self.assertFalse(r.passed)
+
+    def test_gate_withdrawal_consent_passes_with_waiver(self):
+        from .fraud import gate_withdrawal_consent
+        r = gate_withdrawal_consent(True)
+        self.assertTrue(r.passed)
+
+    def test_gate_challenge_spam_blocks_excess(self):
+        from .fraud import gate_challenge_spam
+        for _ in range(3):
+            BattleChallenge.objects.create(
+                challenger=self.chef_a,
+                opponent=self.chef_b,
+                theme="Spam challenge",
+                expires_at=timezone.now() + timezone.timedelta(hours=1),
+            )
+        r = gate_challenge_spam(self.chef_a, max_per_day=3)
+        self.assertFalse(r.passed)
+
+    def test_gate_challenge_spam_allows_under_limit(self):
+        from .fraud import gate_challenge_spam
+        r = gate_challenge_spam(self.chef_a, max_per_day=3)
+        self.assertTrue(r.passed)
+
+    @override_settings(ENABLE_AI_IMAGE_REVIEW_PROVIDER=False)
+    def test_gate_ai_image_review_passes_when_disabled(self):
+        from .fraud import gate_ai_image_review
+        r = gate_ai_image_review(None)
+        self.assertTrue(r.passed)
+
+    @override_settings(ENABLE_LIVE_VIDEO=False)
+    def test_gate_live_video_safety_passes_when_disabled(self):
+        from .fraud import gate_live_video_safety
+        r = gate_live_video_safety(None)
+        self.assertTrue(r.passed)
+
+    def test_run_fraud_gates_all_pass(self):
+        from .fraud import run_fraud_gates, gate_self_vote, gate_withdrawal_consent
+        result = run_fraud_gates([
+            (gate_self_vote, (self.chef_a, self.chef_b), {}),
+            (gate_withdrawal_consent, (True,), {}),
+        ])
+        self.assertTrue(result.passed)
+        self.assertEqual(len(result.failed_gates), 0)
+
+    def test_run_fraud_gates_one_fails(self):
+        from .fraud import run_fraud_gates, gate_self_vote, gate_withdrawal_consent
+        result = run_fraud_gates([
+            (gate_self_vote, (self.chef_a, self.chef_a), {}),
+            (gate_withdrawal_consent, (True,), {}),
+        ])
+        self.assertFalse(result.passed)
+        self.assertIn("self_vote", result.failed_gates)
