@@ -780,7 +780,14 @@ class TokenTransaction(models.Model):
 
 
 class TokenOrder(models.Model):
-    """Tracks a Stripe checkout session for a token purchase."""
+    """Tracks a Stripe checkout session for a token purchase.
+
+    EU compliance notes:
+    - amount_net_cents + vat_amount_cents = amount_eur_cents (total charged).
+    - Under EU/Irish digital content rules, the buyer must explicitly waive the
+      14-day right of withdrawal before instant delivery. This waiver must be
+      recorded server-side with the exact consent text shown at purchase time.
+    """
 
     class Status(models.TextChoices):
         PENDING = "pending", "Pending"
@@ -791,7 +798,23 @@ class TokenOrder(models.Model):
     wallet = models.ForeignKey(TokenWallet, on_delete=models.CASCADE, related_name="orders")
     package = models.ForeignKey(TokenPackage, on_delete=models.PROTECT, related_name="orders")
     tokens = models.PositiveIntegerField()
-    amount_eur_cents = models.PositiveIntegerField()
+    amount_eur_cents = models.PositiveIntegerField(help_text="Total charged (net + VAT), in cents")
+    amount_net_cents = models.PositiveIntegerField(default=0, help_text="Pre-VAT amount in cents")
+    vat_amount_cents = models.PositiveIntegerField(default=0, help_text="VAT portion in cents")
+    vat_rate = models.DecimalField(
+        max_digits=5, decimal_places=4, default="0.2300",
+        help_text="VAT rate applied at time of purchase (e.g. 0.2300 for 23%)"
+    )
+    # EU right-of-withdrawal consent (Digital Content Directive / Irish Consumer Rights Act 2022)
+    right_of_withdrawal_waived = models.BooleanField(
+        default=False,
+        help_text="Buyer explicitly waived 14-day right of withdrawal before instant token delivery"
+    )
+    withdrawal_consent_at = models.DateTimeField(null=True, blank=True)
+    consent_text_snapshot = models.TextField(
+        blank=True,
+        help_text="Exact consent text shown to the buyer at purchase time, frozen for audit"
+    )
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.PENDING, db_index=True)
     stripe_checkout_session_id = models.CharField(max_length=255, blank=True, db_index=True)
     stripe_payment_intent_id = models.CharField(max_length=255, blank=True, db_index=True)
@@ -817,16 +840,37 @@ class ProcessedTokenStripeEvent(models.Model):
 
 
 class RewardRecord(models.Model):
-    """Discretionary CBR or LSR token grant issued to a chef or supporter."""
+    """Discretionary CBR or LSR token grant issued to a chef or supporter.
+
+    CBR/LSR are NOT money, NOT user funds, NOT e-money. They are discretionary
+    platform rewards that may be converted to tokens at the platform's sole discretion.
+    Never describe them as "earned funds", "withdrawable balance", or "cash balance".
+    """
 
     class RewardType(models.TextChoices):
         CBR = "cbr", "Chef Battle Reward"
         LSR = "lsr", "Live Support Reward"
 
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        QUEUED = "queued", "Queued for Review"
+        APPROVED = "approved", "Approved"
+        ISSUED = "issued", "Issued to Wallet"
+        ACKNOWLEDGED = "acknowledged", "Acknowledged by Recipient"
+        USED = "used", "Used"
+        EXPIRED = "expired", "Expired"
+        REVERSED = "reversed", "Reversed"
+        DISPUTED = "disputed", "Under Dispute"
+        VOIDED = "voided", "Voided"
+        ARCHIVED = "archived", "Archived"
+
     recipient = models.ForeignKey(
         RecipeAuthor, on_delete=models.CASCADE, related_name="reward_records"
     )
     reward_type = models.CharField(max_length=8, choices=RewardType.choices, db_index=True)
+    status = models.CharField(
+        max_length=16, choices=Status.choices, default=Status.PENDING, db_index=True
+    )
     tokens_granted = models.PositiveIntegerField()
     reason = models.CharField(max_length=200)
     related_battle = models.ForeignKey(
@@ -839,17 +883,33 @@ class RewardRecord(models.Model):
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
         related_name="granted_reward_records",
     )
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="reviewed_reward_records",
+    )
+    issued_at = models.DateTimeField(null=True, blank=True)
+    acknowledged_at = models.DateTimeField(null=True, blank=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    reversed_at = models.DateTimeField(null=True, blank=True)
+    status_note = models.CharField(max_length=300, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.get_reward_type_display()} → {self.recipient}: {self.tokens_granted}T"
+        return f"{self.get_reward_type_display()} → {self.recipient}: {self.tokens_granted}T ({self.status})"
 
 
 class LedgerEvent(models.Model):
-    """Immutable audit log for every significant arena event. Never update or delete rows."""
+    """Immutable audit log for every significant arena event. Never update or delete rows.
+
+    Hash chain integrity: each event records the SHA-256 hash of the previous event's
+    hash (prev_hash) and then hashes its own canonical content into event_hash.
+    Any direct DB tampering breaks the chain, making it detectable.
+    Use LedgerEvent.verify_chain() to check integrity.
+    """
 
     class EventType(models.TextChoices):
         TOKEN_PURCHASE = "token_purchase", "Token Purchase"
@@ -886,6 +946,9 @@ class LedgerEvent(models.Model):
         Battle, null=True, blank=True, on_delete=models.SET_NULL, related_name="ledger_events"
     )
     payload = models.JSONField(default=dict, blank=True)
+    # SHA-256 hash chain — prev_hash is "" for the first event ever
+    prev_hash = models.CharField(max_length=64, blank=True, default="")
+    event_hash = models.CharField(max_length=64, blank=True, default="", db_index=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
@@ -894,13 +957,48 @@ class LedgerEvent(models.Model):
     def __str__(self):
         return f"{self.event_type} @ {self.created_at:%Y-%m-%d %H:%M}"
 
+    def _compute_hash(self) -> str:
+        import hashlib
+        import json
+        canonical = json.dumps({
+            "id": self.pk,
+            "event_type": self.event_type,
+            "actor_id": self.actor_id,
+            "target_id": self.target_id,
+            "related_battle_id": self.related_battle_id,
+            "payload": self.payload,
+            "prev_hash": self.prev_hash,
+            "created_at": self.created_at.isoformat() if self.created_at else "",
+        }, sort_keys=True, separators=(",", ":"))
+        return hashlib.sha256(canonical.encode()).hexdigest()
+
     def save(self, *args, **kwargs):
         if self.pk is not None:
             raise ValueError("LedgerEvent is immutable and cannot be updated.")
+        # Compute prev_hash from most recent event before saving
+        last = LedgerEvent.objects.order_by("-pk").first()
+        self.prev_hash = last.event_hash if last else ""
         super().save(*args, **kwargs)
+        # Compute event_hash after save (pk and created_at are now set)
+        self.event_hash = self._compute_hash()
+        LedgerEvent.objects.filter(pk=self.pk).update(event_hash=self.event_hash)
 
     def delete(self, *args, **kwargs):
         raise ValueError("LedgerEvent is immutable and cannot be deleted.")
+
+    @classmethod
+    def verify_chain(cls) -> tuple[bool, int | None]:
+        """Verify the integrity of the entire hash chain.
+        Returns (True, None) if intact, or (False, first_broken_pk) if tampered."""
+        events = list(cls.objects.order_by("pk").values("pk", "event_hash", "prev_hash"))
+        if not events:
+            return True, None
+        if events[0]["prev_hash"] != "":
+            return False, events[0]["pk"]
+        for i in range(1, len(events)):
+            if events[i]["prev_hash"] != events[i - 1]["event_hash"]:
+                return False, events[i]["pk"]
+        return True, None
 
 
 class ContentReport(models.Model):

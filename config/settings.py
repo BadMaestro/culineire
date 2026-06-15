@@ -322,6 +322,13 @@ TELEGRAM_CHANNEL_ID = os.getenv("TELEGRAM_CHANNEL_ID", "")
 DISABLE_EXTERNAL_NOTIFICATIONS = env_bool("DISABLE_EXTERNAL_NOTIFICATIONS", default=False)
 PRESENCE_EVENT_COOLDOWN_MINUTES = env_int("PRESENCE_EVENT_COOLDOWN_MINUTES", default=5)
 CHEF_BATTLE_ENABLED = env_bool("CHEF_BATTLE_ENABLED", default=False)
+# Feature flags — must remain False until external review is complete:
+# ENABLE_STRIPE_CONNECT_PAYOUTS: requires legal/accounting sign-off before enabling.
+# ENABLE_LIVE_VIDEO: requires video provider infrastructure + content-safety legal review.
+# ENABLE_AI_IMAGE_REVIEW_PROVIDER: requires AI provider configuration + moderation policy.
+ENABLE_STRIPE_CONNECT_PAYOUTS = env_bool("ENABLE_STRIPE_CONNECT_PAYOUTS", default=False)
+ENABLE_LIVE_VIDEO = env_bool("ENABLE_LIVE_VIDEO", default=False)
+ENABLE_AI_IMAGE_REVIEW_PROVIDER = env_bool("ENABLE_AI_IMAGE_REVIEW_PROVIDER", default=False)
 SIGNUP_REQUIRE_EMAIL_CONFIRMATION = env_bool(
     "SIGNUP_REQUIRE_EMAIL_CONFIRMATION",
     default=IS_PRODUCTION,
