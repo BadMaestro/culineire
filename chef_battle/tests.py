@@ -1015,6 +1015,7 @@ class TokenOrderVatConsentTests(TestCase):
         User = get_user_model()
         self.user = User.objects.create_user(username="shop-chef", password="pw")
         self.chef = RecipeAuthor.objects.create(user=self.user, name="Shop Chef", slug="shop-chef")
+        ChefBattleProfile.objects.create(author=self.chef, age_verified=True)
         self.wallet, _ = TokenWallet.objects.get_or_create(chef=self.chef)
         from .models import TokenPackage
         self.package = TokenPackage.objects.create(
