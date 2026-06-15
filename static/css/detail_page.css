@@ -2089,6 +2089,15 @@
     padding-block-start: 0.75rem;
   }
 
+  .ai-content-notice {
+    margin-block-start: 0.75rem;
+    font-size: 0.8rem;
+    color: var(--detail-text-secondary);
+    line-height: 1.5;
+    border-left: 3px solid var(--detail-border, #e5e0d8);
+    padding-inline-start: 0.75rem;
+  }
+
   .detail-page__card p:last-child {
     margin-block-end: 0;
   }

@@ -280,6 +280,9 @@
                             </div>
                             {% endif %}
                         </div>
+                        {% if article.source_type == 'ai_assisted' or article.source_type == 'human_reviewed_ai' %}
+                        <p class="ai-content-notice">This article may include AI-assisted text or imagery. It is provided for information and inspiration only. Please verify any facts, recipes or advice before acting on them.</p>
+                        {% endif %}
                     </section>
                 </aside>
             </div>
