@@ -908,3 +908,209 @@ class BattleCompletionLedgerTests(TestCase):
                 actor=self.chef_a,
             ).exists()
         )
+
+
+# ── CB-2001  Feature flags ──────────────────────────────────────────────────
+
+class FeatureFlagTests(TestCase):
+    def test_stripe_connect_payouts_flag_defaults_false(self):
+        from django.conf import settings
+        self.assertFalse(getattr(settings, "ENABLE_STRIPE_CONNECT_PAYOUTS", True))
+
+    def test_live_video_flag_defaults_false(self):
+        from django.conf import settings
+        self.assertFalse(getattr(settings, "ENABLE_LIVE_VIDEO", True))
+
+    def test_ai_image_review_flag_defaults_false(self):
+        from django.conf import settings
+        self.assertFalse(getattr(settings, "ENABLE_AI_IMAGE_REVIEW_PROVIDER", True))
+
+
+# ── CB-2002  RewardRecord lifecycle ────────────────────────────────────────
+
+class RewardRecordLifecycleTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user(username="rr-chef", password="pw")
+        self.chef = RecipeAuthor.objects.create(user=self.user, name="RR Chef", slug="rr-chef")
+
+    def _make_reward(self, tokens=50):
+        return RewardRecord.objects.create(
+            recipient=self.chef,
+            reward_type=RewardRecord.RewardType.CBR,
+            tokens_granted=tokens,
+            reason="Test reward",
+        )
+
+    def test_new_reward_defaults_to_pending(self):
+        reward = self._make_reward()
+        self.assertEqual(reward.status, RewardRecord.Status.PENDING)
+
+    def test_issue_reward_credits_wallet_and_sets_issued(self):
+        from .services import issue_reward
+        reward = self._make_reward(tokens=100)
+        issue_reward(reward.pk)
+        reward.refresh_from_db()
+        self.assertEqual(reward.status, RewardRecord.Status.ISSUED)
+        self.assertIsNotNone(reward.issued_at)
+        wallet = TokenWallet.objects.get(chef=self.chef)
+        self.assertEqual(wallet.balance, 100)
+
+    def test_issue_reward_creates_ledger_event(self):
+        from .services import issue_reward
+        initial_count = LedgerEvent.objects.count()
+        reward = self._make_reward(tokens=50)
+        issue_reward(reward.pk)
+        self.assertEqual(LedgerEvent.objects.count(), initial_count + 1)
+        self.assertTrue(
+            LedgerEvent.objects.filter(event_type=LedgerEvent.EventType.CBR_GRANTED).exists()
+        )
+
+    def test_issue_reward_twice_raises(self):
+        from .services import issue_reward
+        reward = self._make_reward()
+        issue_reward(reward.pk)
+        with self.assertRaises(ValueError):
+            issue_reward(reward.pk)
+
+    def test_reverse_reward_deducts_wallet_and_sets_reversed(self):
+        from .services import issue_reward, reverse_reward
+        reward = self._make_reward(tokens=80)
+        issue_reward(reward.pk)
+        reverse_reward(reward.pk, note="Test reversal")
+        reward.refresh_from_db()
+        self.assertEqual(reward.status, RewardRecord.Status.REVERSED)
+        self.assertIsNotNone(reward.reversed_at)
+        self.assertEqual(reward.status_note, "Test reversal")
+        wallet = TokenWallet.objects.get(chef=self.chef)
+        self.assertEqual(wallet.balance, 0)
+
+    def test_expire_rewards_marks_expired(self):
+        from .services import issue_reward, expire_rewards
+        reward = self._make_reward(tokens=10)
+        issue_reward(reward.pk)
+        reward.expires_at = timezone.now() - timezone.timedelta(hours=1)
+        reward.save(update_fields=["expires_at", "updated_at"])
+        count = expire_rewards()
+        self.assertEqual(count, 1)
+        reward.refresh_from_db()
+        self.assertEqual(reward.status, RewardRecord.Status.EXPIRED)
+
+    def test_expire_rewards_ignores_non_expired(self):
+        from .services import issue_reward, expire_rewards
+        reward = self._make_reward(tokens=10)
+        issue_reward(reward.pk)
+        reward.expires_at = timezone.now() + timezone.timedelta(days=7)
+        reward.save(update_fields=["expires_at", "updated_at"])
+        count = expire_rewards()
+        self.assertEqual(count, 0)
+
+
+# ── CB-2003  TokenOrder VAT & consent fields ────────────────────────────────
+
+class TokenOrderVatConsentTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user(username="shop-chef", password="pw")
+        self.chef = RecipeAuthor.objects.create(user=self.user, name="Shop Chef", slug="shop-chef")
+        self.wallet, _ = TokenWallet.objects.get_or_create(chef=self.chef)
+        from .models import TokenPackage
+        self.package = TokenPackage.objects.create(
+            key="test_pkg",
+            name="Test Package",
+            tokens=100,
+            price_eur="10.00",
+            discount_percent=0,
+            sort_order=99,
+        )
+
+    @override_settings(
+        STRIPE_SECRET_KEY="sk_test_fake",
+        STRIPE_WEBHOOK_SECRET="whsec_fake",
+        STRIPE_PRICE_MODE="test",
+    )
+    def test_checkout_requires_withdrawal_consent(self):
+        self.client.force_login(self.user)
+        import json
+        url = reverse("chef_battle:token_checkout_create")
+        resp = self.client.post(
+            url,
+            data=json.dumps({"package_id": self.package.pk, "withdrawal_consent": False}),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, 400)
+        data = resp.json()
+        self.assertIn("consent", data.get("error", "").lower())
+
+    def test_token_order_stores_vat_breakdown(self):
+        from decimal import Decimal
+        from .models import TokenOrder
+        order = TokenOrder.objects.create(
+            wallet=self.wallet,
+            package=self.package,
+            tokens=100,
+            amount_eur_cents=1000,
+            amount_net_cents=813,
+            vat_amount_cents=187,
+            vat_rate=Decimal("0.2300"),
+            right_of_withdrawal_waived=True,
+            withdrawal_consent_at=timezone.now(),
+            consent_text_snapshot="Test consent text",
+        )
+        order.refresh_from_db()
+        self.assertEqual(order.amount_net_cents, 813)
+        self.assertEqual(order.vat_amount_cents, 187)
+        self.assertEqual(order.vat_rate, Decimal("0.2300"))
+        self.assertTrue(order.right_of_withdrawal_waived)
+        self.assertIsNotNone(order.withdrawal_consent_at)
+        self.assertEqual(order.consent_text_snapshot, "Test consent text")
+
+
+# ── CB-2004  LedgerEvent hash chain ────────────────────────────────────────
+
+class LedgerEventHashChainTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        user = User.objects.create_user(username="hc-chef", password="pw")
+        self.chef = RecipeAuthor.objects.create(user=user, name="HC Chef", slug="hc-chef")
+
+    def _make_event(self):
+        return LedgerEvent.objects.create(
+            event_type=LedgerEvent.EventType.VOTE_CAST,
+            actor=self.chef,
+            payload={"test": True},
+        )
+
+    def test_first_event_has_empty_prev_hash(self):
+        e = self._make_event()
+        self.assertEqual(e.prev_hash, "")
+
+    def test_event_hash_is_64_hex_chars(self):
+        e = self._make_event()
+        self.assertEqual(len(e.event_hash), 64)
+        self.assertRegex(e.event_hash, r"^[0-9a-f]{64}$")
+
+    def test_second_event_prev_hash_equals_first_event_hash(self):
+        e1 = self._make_event()
+        e2 = self._make_event()
+        e2.refresh_from_db()
+        self.assertEqual(e2.prev_hash, e1.event_hash)
+
+    def test_verify_chain_returns_true_when_intact(self):
+        self._make_event()
+        self._make_event()
+        self._make_event()
+        ok, broken_pk = LedgerEvent.verify_chain()
+        self.assertTrue(ok)
+        self.assertIsNone(broken_pk)
+
+    def test_ledger_event_immutable_update_raises(self):
+        e = self._make_event()
+        with self.assertRaises(ValueError):
+            e.event_type = LedgerEvent.EventType.FRAUD_FLAG
+            e.save()
+
+    def test_ledger_event_immutable_delete_raises(self):
+        e = self._make_event()
+        with self.assertRaises(ValueError):
+            e.delete()
