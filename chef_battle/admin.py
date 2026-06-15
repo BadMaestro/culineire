@@ -21,6 +21,8 @@ from .models import (
     CosmeticItem,
     DAC7Record,
     LedgerEvent,
+    LiveBroadcast,
+    LiveBroadcastReport,
     LiveStreamSession,
     PayoutRequest,
     ProcessedTokenStripeEvent,
@@ -798,3 +800,49 @@ class LiveStreamSessionAdmin(admin.ModelAdmin):
         ("Lifecycle", {"fields": ("started_at", "ended_at", "terminated_reason", "terminated_by")}),
         ("Timestamps", {"fields": ("created_at", "updated_at")}),
     )
+
+
+@admin.action(description="Approve selected broadcasts for publication")
+def approve_broadcasts(modeladmin, request, queryset):
+    count = queryset.update(
+        moderation_status=LiveBroadcast.ModerationStatus.APPROVED,
+        reviewed_by=request.user,
+        reviewed_at=timezone.now(),
+    )
+    modeladmin.message_user(request, f"{count} broadcast(s) approved.", messages.SUCCESS)
+
+
+@admin.action(description="Reject selected broadcasts")
+def reject_broadcasts(modeladmin, request, queryset):
+    count = queryset.update(
+        moderation_status=LiveBroadcast.ModerationStatus.REJECTED,
+        reviewed_by=request.user,
+        reviewed_at=timezone.now(),
+    )
+    modeladmin.message_user(request, f"{count} broadcast(s) rejected.", messages.WARNING)
+
+
+@admin.register(LiveBroadcast)
+class LiveBroadcastAdmin(admin.ModelAdmin):
+    list_display = ("session", "moderation_status", "stopped_by_staff", "report_count", "reviewed_by", "reviewed_at")
+    list_filter = ("moderation_status", "stopped_by_staff", "safety_delay_enabled")
+    search_fields = ("session__chef__name", "recording_reference")
+    readonly_fields = ("created_at", "updated_at", "report_count")
+    ordering = ("-created_at",)
+    actions = [approve_broadcasts, reject_broadcasts]
+    fieldsets = (
+        ("Session", {"fields": ("session", "recording_reference", "safety_delay_enabled")}),
+        ("Moderation", {"fields": ("moderation_status", "reviewed_by", "reviewed_at", "moderation_note")}),
+        ("Staff Stop", {"fields": ("stopped_by_staff", "stop_reason")}),
+        ("Reports", {"fields": ("report_count",)}),
+        ("Timestamps", {"fields": ("created_at", "updated_at")}),
+    )
+
+
+@admin.register(LiveBroadcastReport)
+class LiveBroadcastReportAdmin(admin.ModelAdmin):
+    list_display = ("broadcast", "reporter", "category", "reported_at")
+    list_filter = ("category",)
+    search_fields = ("broadcast__session__chef__name",)
+    readonly_fields = ("reported_at",)
+    ordering = ("-reported_at",)

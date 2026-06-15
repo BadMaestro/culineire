@@ -1273,3 +1273,70 @@ class LiveStreamSession(models.Model):
 
     def __str__(self):
         return f"Stream #{self.pk}: {self.chef} / battle #{self.battle_id} ({self.status})"
+
+
+class LiveBroadcast(models.Model):
+    """Full moderation record for a chef's live stream broadcast during a battle.
+
+    Extends LiveStreamSession with moderation, reporting, and safety-delay metadata.
+    """
+
+    class ModerationStatus(models.TextChoices):
+        PENDING = "pending", "Pending Review"
+        APPROVED = "approved", "Approved for Publication"
+        REJECTED = "rejected", "Rejected"
+        UNDER_REVIEW = "under_review", "Under Review"
+
+    session = models.OneToOneField(
+        LiveStreamSession, on_delete=models.CASCADE, related_name="broadcast"
+    )
+    recording_reference = models.CharField(max_length=300, blank=True)
+    moderation_status = models.CharField(
+        max_length=16, choices=ModerationStatus.choices, default=ModerationStatus.PENDING, db_index=True
+    )
+    safety_delay_enabled = models.BooleanField(default=True, help_text="30-60s broadcast delay applied")
+    stopped_by_staff = models.BooleanField(default=False)
+    stop_reason = models.CharField(max_length=300, blank=True)
+    report_count = models.PositiveIntegerField(default=0)
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="reviewed_broadcasts",
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    moderation_note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Broadcast #{self.pk} — {self.session.chef} ({self.moderation_status})"
+
+
+class LiveBroadcastReport(models.Model):
+    """Viewer report against a live broadcast."""
+
+    class ReportCategory(models.TextChoices):
+        CHILD_SAFETY = "child_safety", "Child Safety"
+        PRIVACY_BREACH = "privacy_breach", "Privacy Breach"
+        PROHIBITED_CONTENT = "prohibited_content", "Prohibited Content"
+        ALCOHOL_DRUG = "alcohol_drug", "Alcohol / Drug Misuse"
+        ILLEGAL_CONTENT = "illegal_content", "Illegal Content"
+        COPYRIGHT = "copyright", "Copyright Breach"
+        OTHER = "other", "Other"
+
+    broadcast = models.ForeignKey(LiveBroadcast, on_delete=models.CASCADE, related_name="reports")
+    reporter = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="live_broadcast_reports",
+    )
+    category = models.CharField(max_length=24, choices=ReportCategory.choices, db_index=True)
+    description = models.CharField(max_length=500, blank=True)
+    reported_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-reported_at"]
+
+    def __str__(self):
+        return f"Report #{self.pk}: {self.category} on broadcast #{self.broadcast_id}"
