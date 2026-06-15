@@ -655,6 +655,109 @@ class TelegramNotificationGuardTests(TestCase):
         self.assertEqual(result.status, "sent")
 
 
+class BattleEventFeedTest(TestCase):
+    """NewsFeedEntry creation and sub_type propagation via create_battle_event."""
+
+    def setUp(self):
+        self.author = _make_author()
+
+    def _make_battle(self):
+        from chef_battle.models import BattleChallenge, Battle
+        User = get_user_model()
+        from recipes.models import RecipeAuthor
+        user2 = User.objects.create_user(username="opponent", password="pass", email="b@b.com")
+        opponent, _ = RecipeAuthor.objects.get_or_create(user=user2, defaults={"name": "Opponent"})
+        challenge = BattleChallenge.objects.create(
+            challenger=self.author,
+            opponent=opponent,
+            status=BattleChallenge.Status.ACCEPTED,
+        )
+        return Battle.objects.create(challenge=challenge, status=Battle.Status.COMBAT)
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_create_battle_event_with_publish_creates_newsfeed_entry(self):
+        from chef_battle.services import create_battle_event
+        from chef_battle.models import BattleEvent
+        battle = self._make_battle()
+        create_battle_event(
+            event_type=BattleEvent.EventType.BATTLE_COMPLETED,
+            message="Battle finished",
+            battle=battle,
+            publish_to_news=True,
+        )
+        entry = NewsFeedEntry.objects.get(entry_type=NewsFeedEntry.EntryType.BATTLE_EVENT)
+        self.assertEqual(entry.title, "Battle finished")
+        self.assertEqual(entry.sub_type, BattleEvent.EventType.BATTLE_COMPLETED)
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_crown_awarded_event_gets_crown_sub_type(self):
+        from chef_battle.services import create_battle_event
+        from chef_battle.models import BattleEvent
+        battle = self._make_battle()
+        create_battle_event(
+            event_type=BattleEvent.EventType.CROWN_AWARDED,
+            message="New crown holder",
+            battle=battle,
+            publish_to_news=True,
+        )
+        entry = NewsFeedEntry.objects.get(entry_type=NewsFeedEntry.EntryType.BATTLE_EVENT)
+        self.assertEqual(entry.sub_type, BattleEvent.EventType.CROWN_AWARDED)
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_publish_false_does_not_create_newsfeed_entry(self):
+        from chef_battle.services import create_battle_event
+        from chef_battle.models import BattleEvent
+        battle = self._make_battle()
+        create_battle_event(
+            event_type=BattleEvent.EventType.BATTLE_COMPLETED,
+            message="Hidden event",
+            battle=battle,
+            publish_to_news=False,
+        )
+        self.assertFalse(NewsFeedEntry.objects.filter(entry_type=NewsFeedEntry.EntryType.BATTLE_EVENT).exists())
+
+    @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_publish_to_news_ignored_when_chef_battle_flag_off(self):
+        from chef_battle.services import create_battle_event
+        from chef_battle.models import BattleEvent
+        battle = self._make_battle()
+        create_battle_event(
+            event_type=BattleEvent.EventType.BATTLE_COMPLETED,
+            message="Should not appear",
+            battle=battle,
+            publish_to_news=True,
+        )
+        self.assertFalse(NewsFeedEntry.objects.filter(entry_type=NewsFeedEntry.EntryType.BATTLE_EVENT).exists())
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_feed_page_renders_crown_awarded_badge(self):
+        NewsFeedEntry.objects.create(
+            entry_type=NewsFeedEntry.EntryType.BATTLE_EVENT,
+            title="Crown awarded to GreenBear",
+            sub_type="crown_awarded",
+            is_public=True,
+        )
+        client = Client()
+        response = client.get(reverse("newsfeed:feed"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Crown Awarded")
+        self.assertContains(response, "nf-badge--crown_awarded")
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_feed_page_renders_rank_promoted_badge(self):
+        NewsFeedEntry.objects.create(
+            entry_type=NewsFeedEntry.EntryType.BATTLE_EVENT,
+            title="Chef promoted to rank 2",
+            sub_type="rank_promoted",
+            is_public=True,
+        )
+        client = Client()
+        response = client.get(reverse("newsfeed:feed"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Rank Change")
+        self.assertContains(response, "nf-badge--rank_promoted")
+
+
 @override_settings(
     IS_TESTING=False,
     DISABLE_EXTERNAL_NOTIFICATIONS=False,
