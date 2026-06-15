@@ -918,3 +918,249 @@ Most important instruction:
 Do not treat Chef’s Battle as a simple contest feature.
 Treat it as a production-grade culinary PvP retention engine that must make CulinEire feel alive.
 ```
+
+---
+
+## Legal and Product Rules — PDF v6 (15 June 2026)
+
+This section records mandatory requirements from the official internal legal/product document
+`CulinEire_Chef_Battle_Full_Legal_Product_Rules_RU_v6_PRINT_READY.pdf` (Bearcave Limited, 15 June 2026).
+These rules have priority over earlier ТЗ documents in `docs/chef_battle/`.
+When in conflict, the PDF v6 rules win.
+
+---
+
+### §7 — TokenAccount Terminology and Wallet Ban
+
+The system MUST NOT use the following terms in any new UI, API, template, email or admin screen:
+
+BANNED: `UserWallet`, `Wallet`, `WalletLedger`, `WalletTransaction`,
+`Withdraw from Wallet`, `Cash out Wallet`, `withdrawable balance`,
+`available cash`, `earned money`
+
+REQUIRED terminology in new code:
+- Backend model names: `TokenAccount`, `TokenLedger`, `TokenTransaction`
+- User-facing UI: **My Tokens**, **Token Balance**, **CulinEire Tokens**, **Spendable Tokens**
+
+Note: If legacy code already uses `TokenWallet` model name internally, do NOT rename it
+globally without a separate review decision. But all NEW logic and all templates must use
+the safe terms.
+
+Current violations to fix:
+- `templates/chef_battle/token_checkout_success.html` — "your wallet", "credited to your wallet"
+- `templates/chef_battle/token_shop.html` — "credited to your wallet instantly"
+
+---
+
+### §8 — VAT, Stripe, Contract and Invoice
+
+- All token purchases must go through Stripe Checkout
+- VAT must be calculated and shown at checkout
+- After payment, VAT must appear on receipt/invoice
+- VAT is NOT included in CBR/LSR/reward calculations
+- If price shown without VAT, interface must make clear it is not the final consumer price
+- Allowed: show price with VAT, show price without VAT with "Stripe calculates VAT", use
+  "Continue to checkout" or "Buy €10.00 + VAT"
+- NOT allowed: show only "Buy €10.00" if €10.00 is not the VAT-inclusive final price
+
+---
+
+### §10 — EU/Irish Digital Content Consent Before Token Purchase
+
+- Before Stripe Checkout, user must tick an unchecked checkbox consenting to immediate supply
+  and loss of withdrawal right
+- Required text: "I expressly consent to the immediate supply of digital content and
+  acknowledge that I lose my right of withdrawal once the CulinEire Tokens are credited
+  to my TokenAccount."
+- CulinEire must store: consent fact, date/time, exact consent text, version, IP, user agent,
+  and whether confirmation email was sent
+- Storing only a Boolean without text and context is NOT allowed
+- After Stripe webhook confirmation, user email/receipt/invoice must contain durable
+  confirmation: "You expressly consented to the immediate supply of digital content and
+  acknowledged that you lose your right of withdrawal once the CulinEire Tokens are
+  credited to your TokenAccount."
+
+Current gap: No post-purchase confirmation email is sent. Receipt only shown on success page.
+
+---
+
+### §29 — AI Content Governance for Recipes and Articles
+
+CulinEire may use AI tools to create, improve, structure, translate and visually support
+culinary content. The site must remain transparent, human-reviewed where required, and
+protected from misleading claims and AI-generated misinformation.
+
+**Required labels** (must be stored on Recipe and Article models and shown in templates):
+
+| Label key | Display name |
+|---|---|
+| `human_created` | Human-created content |
+| `ai_assisted` | AI-assisted content |
+| `ai_generated_image` | AI-generated image |
+| `ai_enhanced_image` | AI-enhanced image |
+| `human_reviewed_ai` | Human-reviewed AI-assisted content |
+| `unverified_submitted` | Unverified user-submitted content |
+
+Current state on Recipe model: `SourceType` has `ORIGINAL` and `AI_ASSISTED` only.
+Current state on Article model: `SourceType` has `ORIGINAL`, `ADAPTED`, `INSPIRED` — no AI label.
+
+**Required notices on recipe/article pages:**
+
+AI-assisted content notice (near recipe meta or article source block):
+> "This recipe may include AI-assisted text or imagery. It is provided for information
+> and cooking inspiration only. Please check ingredients, allergens, product labels,
+> cooking temperatures, equipment suitability and your own circumstances before cooking."
+
+Allergen guidance notice (near allergen section on every recipe):
+> "Allergen information is provided as guidance only and may not be complete. Always
+> check product labels and ingredients before cooking or serving."
+
+**AI content must NOT receive public `approved` status without human review**, unless the
+existing editorial policy explicitly allows a different mode and the UI marks the content
+as unverified.
+
+**Forbidden or flag-required claims on recipes/articles:**
+- safe for all allergy sufferers
+- allergen-free without verified assessment
+- cures diabetes / prevents cancer / guarantees weight loss
+- safe for all children
+- safe for pregnancy
+- replaces medical treatment
+- professionally certified HACCP method without proof
+- unsafe advice about raw/undercooked poultry, meat, seafood or eggs
+- invented historical/source/nutrition facts
+- defamatory claims
+
+---
+
+### §31 — Chef Battle Real-Photo-Only Evidence Rule
+
+All Chef Battle cooking evidence images MUST be real photographs.
+
+**Applies to:** battle entry images, step images, process images, final dish images,
+evidence images, and any image used as proof of cooking progress or battle result.
+
+**Allowed:** real photos taken by participating Chef or their authorised helper during
+actual battle preparation. Normal non-deceptive adjustments only: cropping, exposure,
+contrast, white balance, minor sharpening, resizing, watermarking.
+
+**Strictly forbidden:**
+- AI-generated dish images
+- AI-generated step/process images
+- AI-enhanced food images that improve or alter food appearance
+- generative fill
+- AI upscaling/beautification that changes food appearance
+- misleading AI background replacement
+- synthetic dish images
+- composite fake results
+- stock photos
+- stolen images
+- AI-agent images
+- AI photo-editor alterations that improve or alter food appearance
+
+---
+
+### §32 — Battle Evidence Moderation and Sanctions
+
+**Required checkbox at cooking submission** (exact text):
+> "I confirm that all Chef Battle images I submit are real photographs of my own battle
+> preparation and final dish. I have not used AI-generated images, AI-enhancement,
+> generative fill, stock images or deceptive image editing to create or improve the
+> battle evidence."
+
+**Required moderation statuses on BattleEntry.ModerationStatus:**
+
+| Status | Meaning |
+|---|---|
+| `pending` | Awaiting review |
+| `approved` | Approved |
+| `rejected` | Rejected |
+| `needs_changes` | Returned for correction |
+| `suspected_ai` | Suspected AI-generated image |
+| `suspected_stock` | Suspected stock photo |
+| `duplicate` | Duplicate image detected |
+
+Current state: only `pending`, `approved`, `rejected`, `flagged` — missing `needs_changes`,
+`suspected_ai`, `suspected_stock`, `duplicate`.
+
+**Required fields on BattleEntry (cooking evidence):**
+- `photo_hash` — SHA-256 or perceptual hash of uploaded cooked_photo for duplicate detection
+- `moderation_note` — reviewer note (stub accepted in Phase 1/2)
+- `reviewed_by` — FK to User who reviewed
+- `reviewed_at` — datetime of review
+- `real_photo_confirmed` — BooleanField, set True when chef checks the declaration checkbox
+
+**Sanctions for violations:** entry rejection, request to replace image, moderation hold,
+technical loss, disqualification, removal of votes, result cancellation, CBR/LSR lock,
+CBR/LSR reversal, Battle Rating penalty, Culinary Reputation penalty, Chef status review,
+temporary/permanent Chef Battle ban, payout block and audit/compliance review.
+
+Note: In Phase 1/2, no real OpenAI/CLIP/computer vision required. Manual admin review +
+photo hashes + duplicate detection + optional mock/stub interface is sufficient.
+External AI provider may be used only behind `ENABLE_AI_IMAGE_REVIEW_PROVIDER` flag.
+
+---
+
+### §39 — Safe Launch Roadmap (PDF v6 phases)
+
+The correct phase order per PDF v6:
+
+| PDF Phase | Description | Our Roadmap Phase |
+|---|---|---|
+| Phase 1 | Public rules + token UI | Phase 7 (done) |
+| Phase 2 | Economy protection + ledger | Phase 8 (done) |
+| **Phase 3** | **AI Governance + real-photo evidence** | **MISSING — must be added** |
+| Phase 4 | Stripe Connect payout preparation | Phase 9 (done) |
+| Phase 5 | Live Video Round 2 safety skeleton | Phase 10 (done) |
+| Phase 6 | Solicitor/accountant review | Phase 11 (done) |
+
+Phase 3 items to implement:
+1. AI content label fields on Recipe and Article models
+2. AI-assisted content notices in recipe/article templates
+3. Allergen guidance notice on every recipe page
+4. Forbidden claims — check/flag in moderation
+5. Real-photo declaration checkbox at cooking submission
+6. BattleEntry moderation statuses: needs_changes, suspected_ai, suspected_stock, duplicate
+7. BattleEntry fields: photo_hash, reviewed_by, reviewed_at, real_photo_confirmed
+8. Fix Wallet → My Tokens / Token Balance in templates
+9. Post-purchase confirmation email with durable consent confirmation
+
+---
+
+### §40 — Final Readiness Criteria (hard gates before public launch)
+
+Chef Battle is NOT ready for safe public launch unless ALL of the following are true:
+
+- [ ] Rules match actual token/reward/artifact/payout model
+- [ ] 18+ enforced technically
+- [ ] VAT treatment confirmed by accountant
+- [ ] Tokens are closed-loop (cannot become cash directly)
+- [ ] Gifts create LSR only through platform logic
+- [ ] Artifacts are one-use and non-cash
+- [ ] CBR/LSR become payout-eligible only after unlock, fraud checks, compliance, admin approval
+- [ ] Stripe Connect remains controlled (not live until accountant/solicitor review)
+- [ ] DAC7/MRDP planning exists
+- [ ] Anti-gambling restrictions enforced
+- [ ] AI content is transparent (label or notice where required)
+- [ ] Chef Battle evidence is real-photo-only
+- [ ] Live Video has provider-safe controls OR remains disabled
+- [ ] Final wording reviewed by solicitor/accountant
+
+Any deviation from these criteria must be stopped and put to product/legal/accounting review
+before development or public launch.
+
+---
+
+### Source of Truth Order (updated)
+
+```
+1. User’s latest direct instruction
+2. PDF v6 legal/product rules (CulinEire_Chef_Battle_Full_Legal_Product_Rules_RU_v6)
+3. Current assigned task brief
+4. Claude master prompt (this document)
+5. Operational Constraints / Production Workflow Rules
+6. Chef Battle ТЗ documents in docs/chef_battle/ (older, may conflict with PDF v6)
+7. Backlog and model artifacts
+```
+
+If docs/chef_battle/ ТЗ documents conflict with PDF v6, **PDF v6 wins**.
