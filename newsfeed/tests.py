@@ -666,7 +666,7 @@ class BattleEventFeedTest(TestCase):
         User = get_user_model()
         from recipes.models import RecipeAuthor
         user2 = User.objects.create_user(username="opponent", password="pass", email="b@b.com")
-        opponent, _ = RecipeAuthor.objects.get_or_create(user=user2, defaults={"name": "Opponent"})
+        opponent = RecipeAuthor.objects.create(user=user2, name="Opponent", slug="opponent")
         challenge = BattleChallenge.objects.create(
             challenger=self.author,
             opponent=opponent,
@@ -729,7 +729,7 @@ class BattleEventFeedTest(TestCase):
         )
         self.assertFalse(NewsFeedEntry.objects.filter(entry_type=NewsFeedEntry.EntryType.BATTLE_EVENT).exists())
 
-    @override_settings(CHEF_BATTLE_ENABLED=True)
+    @override_settings(CHEF_BATTLE_ENABLED=True, SECURE_SSL_REDIRECT=False)
     def test_feed_page_renders_crown_awarded_badge(self):
         NewsFeedEntry.objects.create(
             entry_type=NewsFeedEntry.EntryType.BATTLE_EVENT,
@@ -743,7 +743,7 @@ class BattleEventFeedTest(TestCase):
         self.assertContains(response, "Crown Awarded")
         self.assertContains(response, "nf-badge--crown_awarded")
 
-    @override_settings(CHEF_BATTLE_ENABLED=True)
+    @override_settings(CHEF_BATTLE_ENABLED=True, SECURE_SSL_REDIRECT=False)
     def test_feed_page_renders_rank_promoted_badge(self):
         NewsFeedEntry.objects.create(
             entry_type=NewsFeedEntry.EntryType.BATTLE_EVENT,
