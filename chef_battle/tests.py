@@ -1328,7 +1328,7 @@ class AgeVerificationGateTests(TestCase):
             opponent=other_author,
             challenge=challenge,
             status=Battle.Status.VOTING,
-            voting_ends_at=timezone.now() + timezone.timedelta(hours=1),
+            voting_deadline=timezone.now() + timezone.timedelta(hours=1),
         )
         self.client.force_login(self.user)
         resp = self.client.post(
