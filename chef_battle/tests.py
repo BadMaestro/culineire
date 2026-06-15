@@ -1255,6 +1255,7 @@ class AgeVerificationGateTests(TestCase):
     """gate_age_verified enforces 18+ before paid arena actions (CB-2006)."""
 
     def setUp(self):
+        User = get_user_model()
         self.user = User.objects.create_user("age_tester", password="pass")
         from recipes.models import RecipeAuthor
         self.author = RecipeAuthor.objects.create(user=self.user, name="Age Tester", slug="age-tester")
@@ -1282,7 +1283,7 @@ class AgeVerificationGateTests(TestCase):
     def test_gate_fails_when_profile_missing(self):
         from .fraud import gate_age_verified
         from recipes.models import RecipeAuthor
-        no_profile_user = User.objects.create_user("no_profile_age", password="pass")
+        no_profile_user = get_user_model().objects.create_user("no_profile_age", password="pass")
         author = RecipeAuthor.objects.create(user=no_profile_user, name="No Profile", slug="no-profile-age")
         r = gate_age_verified(author)
         self.assertFalse(r.passed)
@@ -1307,7 +1308,7 @@ class AgeVerificationGateTests(TestCase):
     def test_send_gift_blocked_when_age_not_verified(self):
         """POST to send_appreciation_gift redirects with error when age not verified."""
         from .models import Battle, BattleChallenge, TokenWallet
-        other_user = User.objects.create_user("gift_recipient_age", password="pass")
+        other_user = get_user_model().objects.create_user("gift_recipient_age", password="pass")
         from recipes.models import RecipeAuthor
         other_author = RecipeAuthor.objects.create(
             user=other_user, name="Gift Recipient Age", slug="gift-recipient-age"
