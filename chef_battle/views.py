@@ -1164,6 +1164,22 @@ def battle_chat_poll(request, pk):
 def send_appreciation_gift_view(request, pk):
     from .models import AppreciationGiftType
     from .services import send_appreciation_gift
+
+    # Check suspension/fraud before any DB fetch so suspended users get a clean redirect
+    sender_author = get_author_for_user(request.user)
+    early_fraud = run_fraud_gates([
+        (gate_suspended_account, (sender_author,), {}),
+        (gate_fraud_flagged, (sender_author,), {}),
+    ])
+    if not early_fraud.passed:
+        first_fail = next(g for g in early_fraud.gates if not g.passed)
+        _GIFT_FRAUD_MESSAGES = {
+            "suspended_account": "Your account is suspended.",
+            "fraud_flagged": "Your account has been flagged. Please contact support.",
+        }
+        messages.error(request, _GIFT_FRAUD_MESSAGES.get(first_fail.gate, "Gift not accepted."))
+        return redirect("chef_battle:battle_detail", pk=pk)
+
     battle = get_object_or_404(Battle, pk=pk)
     recipient_slug = request.POST.get("recipient_slug", "")
     gift_type = request.POST.get("gift_type", "")
@@ -1172,20 +1188,11 @@ def send_appreciation_gift_view(request, pk):
         messages.error(request, "Invalid recipient.")
         return redirect("chef_battle:battle_detail", pk=pk)
 
-    sender_author = get_author_for_user(request.user)
-    fraud_result = run_fraud_gates([
-        (gate_suspended_account, (sender_author,), {}),
-        (gate_fraud_flagged, (sender_author,), {}),
+    velocity_result = run_fraud_gates([
         (gate_gift_velocity, (request.user, recipient), {}),
     ])
-    if not fraud_result.passed:
-        first_fail = next(g for g in fraud_result.gates if not g.passed)
-        _GIFT_FRAUD_MESSAGES = {
-            "suspended_account": "Your account is suspended.",
-            "fraud_flagged": "Your account has been flagged. Please contact support.",
-            "gift_velocity": "You have sent too many gifts recently. Please wait before sending another.",
-        }
-        messages.error(request, _GIFT_FRAUD_MESSAGES.get(first_fail.gate, "Gift not accepted."))
+    if not velocity_result.passed:
+        messages.error(request, "You have sent too many gifts recently. Please wait before sending another.")
         return redirect("chef_battle:battle_detail", pk=pk)
 
     try:
