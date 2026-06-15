@@ -114,13 +114,16 @@
 
             <article class="legal-card legal-card--section" id="refunds">
                 <div class="section-header">
-                    <h2>Refunds</h2>
+                    <h2>Refunds &amp; Chargebacks</h2>
                 </div>
                 <div class="legal-card__content">
                     <ul class="legal-list">
-                        <li>Token purchases are non-refundable once credited to your wallet, except where required by Irish consumer protection law.</li>
+                        <li>Token purchases are <strong>non-refundable once credited to your wallet</strong>, except where required by Irish consumer protection law or confirmed as a technical or billing error by CulinEire.</li>
+                        <li>By purchasing tokens and using them in the arena, you waive your EU right of withdrawal for that digital content, as confirmed at checkout.</li>
+                        <li>If you believe a charge was made in error, contact us via the <a href="{% url 'messaging:contact' %}">contact page</a> before initiating a chargeback with your card issuer.</li>
+                        <li><strong>Chargeback consequences:</strong> if a payment is reversed or charged back, CulinEire will review all token credits and rewards associated with that purchase. Related token balances may be reduced, pending reward records may be reversed or voided, and the account may be placed under compliance review. CulinEire reserves the right to suspend arena access pending resolution.</li>
+                        <li>Financial records (token transactions, reward records, ledger events) are never silently deleted. All adjustments are recorded in the immutable audit ledger with a reason.</li>
                         <li>Sponsorship refund conditions are in the <a href="{% url 'sponsors:annual_contract' %}#cancellation">Sponsor Agreement</a>.</li>
-                        <li>If you believe a charge was made in error, contact us via the <a href="{% url 'messaging:contact' %}">contact page</a>.</li>
                     </ul>
                 </div>
             </article>

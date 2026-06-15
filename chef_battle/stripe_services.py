@@ -7,6 +7,7 @@ from typing import Any
 from django.conf import settings
 from django.db import transaction
 from django.urls import reverse
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -219,7 +220,13 @@ def _handle_checkout_completed(session) -> Any:
 
     order.status = TokenOrder.Status.COMPLETED
     order.stripe_payment_intent_id = _get(session, "payment_intent", "") or ""
-    order.save(update_fields=["status", "stripe_payment_intent_id", "updated_at"])
+    order.stripe_customer_id = _get(session, "customer", "") or ""
+    order.currency = (_get(session, "currency", "") or "eur").lower()[:3]
+    order.credited_at = timezone.now()
+    order.save(update_fields=[
+        "status", "stripe_payment_intent_id", "stripe_customer_id",
+        "currency", "credited_at", "updated_at",
+    ])
 
     logger.info("Token purchase completed: order %s, wallet %s, +%sT", order.pk, wallet.pk, order.tokens)
     return order

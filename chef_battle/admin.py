@@ -396,10 +396,15 @@ class TokenOrderAdmin(admin.ModelAdmin):
     )
     list_filter = ("status", "right_of_withdrawal_waived")
     search_fields = ("wallet__chef__name", "stripe_checkout_session_id")
+    list_display = (
+        "wallet", "package", "tokens", "amount_eur_cents",
+        "vat_amount_cents", "currency", "right_of_withdrawal_waived", "status", "credited_at", "created_at",
+    )
     readonly_fields = (
-        "created_at", "updated_at", "withdrawal_consent_at",
+        "created_at", "updated_at", "withdrawal_consent_at", "credited_at",
         "amount_net_cents", "vat_amount_cents", "vat_rate",
-        "consent_text_snapshot",
+        "consent_text_snapshot", "stripe_customer_id", "stripe_invoice_id",
+        "stripe_checkout_session_id", "stripe_payment_intent_id",
     )
     ordering = ("-created_at",)
     fieldsets = (
@@ -409,7 +414,7 @@ class TokenOrderAdmin(admin.ModelAdmin):
         ("Pricing & VAT", {
             "fields": (
                 "amount_eur_cents", "amount_net_cents",
-                "vat_amount_cents", "vat_rate",
+                "vat_amount_cents", "vat_rate", "currency",
             ),
         }),
         ("EU Consent", {
@@ -419,11 +424,14 @@ class TokenOrderAdmin(admin.ModelAdmin):
             ),
         }),
         ("Stripe", {
-            "fields": ("stripe_checkout_session_id", "stripe_payment_intent_id"),
+            "fields": (
+                "stripe_checkout_session_id", "stripe_payment_intent_id",
+                "stripe_customer_id", "stripe_invoice_id",
+            ),
             "classes": ("collapse",),
         }),
         ("Timestamps", {
-            "fields": ("created_at", "updated_at"),
+            "fields": ("created_at", "credited_at", "updated_at"),
             "classes": ("collapse",),
         }),
     )

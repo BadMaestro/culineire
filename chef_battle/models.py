@@ -794,6 +794,8 @@ class TokenOrder(models.Model):
         COMPLETED = "completed", "Completed"
         EXPIRED = "expired", "Expired"
         CANCELLED = "cancelled", "Cancelled"
+        REFUNDED = "refunded", "Refunded"
+        DISPUTED = "disputed", "Under Dispute"
 
     wallet = models.ForeignKey(TokenWallet, on_delete=models.CASCADE, related_name="orders")
     package = models.ForeignKey(TokenPackage, on_delete=models.PROTECT, related_name="orders")
@@ -805,6 +807,7 @@ class TokenOrder(models.Model):
         max_digits=5, decimal_places=4, default="0.2300",
         help_text="VAT rate applied at time of purchase (e.g. 0.2300 for 23%)"
     )
+    currency = models.CharField(max_length=3, default="eur", help_text="ISO 4217 currency code")
     # EU right-of-withdrawal consent (Digital Content Directive / Irish Consumer Rights Act 2022)
     right_of_withdrawal_waived = models.BooleanField(
         default=False,
@@ -818,6 +821,9 @@ class TokenOrder(models.Model):
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.PENDING, db_index=True)
     stripe_checkout_session_id = models.CharField(max_length=255, blank=True, db_index=True)
     stripe_payment_intent_id = models.CharField(max_length=255, blank=True, db_index=True)
+    stripe_customer_id = models.CharField(max_length=255, blank=True, db_index=True, help_text="Stripe Customer ID")
+    stripe_invoice_id = models.CharField(max_length=255, blank=True, help_text="Stripe Invoice ID if issued")
+    credited_at = models.DateTimeField(null=True, blank=True, help_text="When tokens were credited to the wallet")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
