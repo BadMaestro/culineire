@@ -529,6 +529,15 @@ def calculate_battle_result(battle: Battle) -> Battle:
         ),
     )
     drop_battle_artifacts(battle)
+
+    # Next Battle Unlock: after battle completes, check if any pending CBR/LSR
+    # for both participants can now be queued for review.
+    try:
+        run_next_battle_unlock_for_chef(winner)
+        run_next_battle_unlock_for_chef(loser)
+    except Exception:
+        logger.exception("Next Battle Unlock check failed for battle %s", battle.pk)
+
     return battle
 
 
@@ -1298,3 +1307,94 @@ def reverse_reward(reward_id: int, note: str = "", reversed_by=None) -> "RewardR
         record.save(update_fields=["status", "reversed_at", "status_note", "reviewed_by", "updated_at"])
 
     return record
+
+
+# ── Next Battle Unlock ──────────────────────────────────────────────────────
+
+def _is_eligible_battle(battle, chef) -> bool:
+    """Return True if this battle qualifies as an unlock battle for the chef's CBR/LSR.
+
+    Eligible = completed, both entries submitted, chef's entry cooking-photo approved
+    by a moderator, voting done, not cancelled/disputed/fraud-flagged.
+    """
+    from .models import Battle, BattleEntry
+
+    if battle.status != Battle.Status.COMPLETED:
+        return False
+    if battle.status in (Battle.Status.CANCELLED, Battle.Status.DISPUTED):
+        return False
+
+    # Chef must have been a participant
+    if chef not in (battle.challenger, battle.opponent):
+        return False
+
+    # Both entries must exist
+    entries = list(battle.entries.select_related("author").all())
+    if len(entries) < 2:
+        return False
+
+    # Chef's own entry must have moderation_status=APPROVED (cooking photo confirmed)
+    chef_entry = next((e for e in entries if e.author_id == chef.pk), None)
+    if chef_entry is None:
+        return False
+    if chef_entry.moderation_status != BattleEntry.ModerationStatus.APPROVED:
+        return False
+
+    # No fraud / suspension on chef profile at this point
+    from .models import ChefBattleProfile
+    profile = ChefBattleProfile.objects.filter(author=chef).first()
+    if profile and (profile.is_suspended or profile.fraud_flag):
+        return False
+
+    return True
+
+
+def check_next_battle_unlock(chef, reward_record) -> bool:
+    """Check whether a chef has completed an eligible battle AFTER the reward record was created.
+
+    Returns True if the unlock condition is met and the reward_record is now QUEUED for review.
+    """
+    from .models import Battle, RewardRecord
+    from django.db.models import Q
+
+    if reward_record.status not in (RewardRecord.Status.PENDING,):
+        return reward_record.status in (
+            RewardRecord.Status.QUEUED,
+            RewardRecord.Status.APPROVED,
+            RewardRecord.Status.ISSUED,
+        )
+
+    completed_after = Battle.objects.filter(
+        Q(challenger=chef) | Q(opponent=chef),
+        status=Battle.Status.COMPLETED,
+        end_time__gt=reward_record.created_at,
+    ).order_by("end_time")
+
+    for battle in completed_after:
+        if _is_eligible_battle(battle, chef):
+            with transaction.atomic():
+                rr = RewardRecord.objects.select_for_update().get(pk=reward_record.pk)
+                if rr.status == RewardRecord.Status.PENDING:
+                    rr.status = RewardRecord.Status.QUEUED
+                    rr.status_note = f"Unlocked by battle #{battle.pk}"
+                    rr.save(update_fields=["status", "status_note", "updated_at"])
+            return True
+
+    return False
+
+
+def run_next_battle_unlock_for_chef(chef) -> int:
+    """Check all PENDING reward records for a chef and queue any that are now unlocked.
+
+    Returns the count of records moved to QUEUED status.
+    Called after calculate_battle_result() to unlock rewards from previous battles.
+    """
+    from .models import RewardRecord
+    pending = RewardRecord.objects.filter(
+        recipient=chef, status=RewardRecord.Status.PENDING
+    ).order_by("created_at")
+    count = 0
+    for record in pending:
+        if check_next_battle_unlock(chef, record):
+            count += 1
+    return count
