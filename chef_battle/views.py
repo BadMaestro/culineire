@@ -209,6 +209,7 @@ def _build_battlefield_progress():
                 {"label": "Immutable event ledger with hash chain", "detail": "LedgerEvent with 20 event types. SHA-256 hash chain: each row hashes its own content + prev_hash. verify_chain() classmethod detects tampered rows. Append-only; signals block silent update/delete.", "status": "done", "completed_at": "2026-06-14"},
                 {"label": "Fraud and compliance flags", "detail": "ChefBattleProfile: fraud_flag, fraud_flag_note, is_suspended, suspended_at, suspension_reason, dsa_reported_count. Admin actions: suspend/unsuspend, set/clear fraud flag. 15-gate fraud pipeline (run_fraud_gates).", "status": "done", "completed_at": "2026-06-14"},
                 {"label": "18+ technical gate", "detail": "gate_age_verified() in fraud pipeline. Blocks token purchase, appreciation gift send, and challenge create when ChefBattleProfile.age_verified=False.", "status": "done", "completed_at": "2026-06-15"},
+                {"label": "Age verification UI", "detail": "Self-service page at /chef-battle/age-verification/. Chef ticks 18+ checkbox; ChefBattleProfile.age_verified=True + age_confirmed_at timestamp written. Token shop error message adds link to this page when age gate fires. @login_required, redirects away if already verified.", "status": "done", "completed_at": "2026-06-15"},
                 {"label": "Suspicious vote detection", "detail": "gate_self_vote, gate_participant_vote, gate_vote_rate_ip (3/hr), gate_duplicate_device (session+UA hash) — all wired into battle_vote view via run_fraud_gates.", "status": "done", "completed_at": "2026-06-14"},
                 {"label": "Gift reward-eligibility flag", "detail": "APPRECIATION_GIFT_REWARD_ELIGIBLE and APPRECIATION_GIFT_REWARD_BASIS dicts added to models.py. All 6 appreciation gifts are eligible (non-artifact). Artifact gifts never create LSR.", "status": "done", "completed_at": "2026-06-15"},
                 {"label": "Artifact consumption tracking", "detail": "ChefArtifact extended with statuses: available/reserved/consumed/expired/reversed. New fields: reserved_in_battle, expired_at, reversed_at. Data migration moves existing 'active' rows to 'available'. Source extended with admin_grant.", "status": "done", "completed_at": "2026-06-15"},
@@ -228,6 +229,7 @@ def _build_battlefield_progress():
                 {"label": "Payout request flow", "detail": "check_payout_eligibility() + create_payout_request() in services.py. Eligibility: 18+, reward_agreement_accepted, stripe_connect_onboarded, not suspended/fraud/payout_blocked, ≥2000 APPROVED tokens, no open request. create_payout_request() locks APPROVED records to ISSUED atomically and freezes rate snapshot.", "status": "done", "completed_at": "2026-06-15"},
                 {"label": "Admin payout approval", "detail": "approve_payout_request() + reject_payout_request() services. Reject moves ISSUED records back to APPROVED. Approve triggers _execute_stripe_connect_transfer(). Admin actions: approve, mark_under_review, hold in PayoutRequestAdmin. All events written to immutable LedgerEvent.", "status": "done", "completed_at": "2026-06-15"},
                 {"label": "Payout ledger and statements", "detail": "get_chef_payout_statement() in services.py: reward_summary per status, payout_history (last 20), eligibility check. All payout events (request/approve/reject/paid) written to LedgerEvent as ADMIN_NOTE with full payload.", "status": "done", "completed_at": "2026-06-15"},
+                {"label": "Payout statement page (chef-facing)", "detail": "Frontend page for eligible chefs to view APPROVED reward totals, payout history, eligibility status, and trigger create_payout_request(). Requires Stripe Connect onboarding to be active before real payouts can be initiated.", "status": "pending"},
             ],
         },
         {
@@ -347,6 +349,39 @@ def season_leaderboard(request):
     })
 
 
+@login_required
+def age_verification(request):
+    """Allow a chef to self-certify they are 18+ before paid Arena features."""
+    from .models import ChefBattleProfile
+    author = get_author_for_user(request.user)
+    if author is None:
+        from django.contrib import messages as _msg
+        _msg.error(request, "You need a chef profile to access this page.")
+        return redirect("chef_battle:home")
+
+    profile, _ = ChefBattleProfile.objects.get_or_create(author=author)
+
+    if profile.age_verified:
+        return redirect(request.GET.get("next") or "chef_battle:home")
+
+    error = None
+    if request.method == "POST":
+        if request.POST.get("confirm_age") == "1":
+            profile.age_verified = True
+            profile.age_confirmed_at = timezone.now()
+            profile.save(update_fields=["age_verified", "age_confirmed_at"])
+            from django.contrib import messages as _msg
+            _msg.success(request, "Age confirmed. You can now use Arena paid features.")
+            return redirect(request.GET.get("next") or "chef_battle:token_shop")
+        else:
+            error = "Please tick the checkbox to confirm you are 18 or older."
+
+    return render(request, "chef_battle/age_verification.html", {
+        "error": error,
+        "next": request.GET.get("next", ""),
+    })
+
+
 @chef_battle_guard
 def token_shop(request):
     from .models import TokenPackage
@@ -403,10 +438,11 @@ def token_checkout_create(request):
             "age_verified": "You must confirm that you are 18 or older before purchasing tokens.",
             "withdrawal_consent": "You must confirm the digital content consent before purchasing tokens.",
         }
-        return JsonResponse(
-            {"error": _CHECKOUT_FRAUD_MESSAGES.get(first_fail.gate, "Purchase not accepted.")},
-            status=400,
-        )
+        from django.urls import reverse
+        resp = {"error": _CHECKOUT_FRAUD_MESSAGES.get(first_fail.gate, "Purchase not accepted.")}
+        if first_fail.gate == "age_verified":
+            resp["age_verify_url"] = reverse("chef_battle:age_verification") + "?next=" + reverse("chef_battle:token_shop")
+        return JsonResponse(resp, status=400)
 
     try:
         package = TokenPackage.objects.get(pk=package_id, is_active=True)

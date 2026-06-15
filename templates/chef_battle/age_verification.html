@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% load static %}
+{% block og_image %}{{ SITE_URL }}{% static 'images/hero-battle.png' %}{% endblock %}
+{% block og_image_secure_url %}{{ SITE_URL }}{% static 'images/hero-battle.png' %}{% endblock %}
+{% block twitter_image %}{{ SITE_URL }}{% static 'images/hero-battle.png' %}{% endblock %}
+
+{% block title %}Age Confirmation | Chef Battle | CulinEire{% endblock %}
+{% block meta_description %}Confirm you are 18 or older to access paid Chef Battle Arena features.{% endblock %}
+
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260615a" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="hero hero--home hero--legal">
+  <div aria-hidden="true" class="hero__background">
+    <img alt="" src="{% static 'images/hero-battle.png' %}">
+  </div>
+  <div aria-hidden="true" class="hero__overlay"></div>
+  <div class="container hero__inner">
+    <div class="hero-copy">
+      <span class="pill">Chef Battle Arena</span>
+      <h1 class="hero-title">Age Confirmation</h1>
+      <p class="hero-subtitle">Paid Arena features are available to chefs aged 18 or older only.</p>
+    </div>
+  </div>
+</section>
+
+<section class="legal-shell" aria-labelledby="age-verify-title">
+  <div class="legal-intro legal-intro--policy">
+    <span class="legal-eyebrow">One-time confirmation</span>
+    <h2 id="age-verify-title">Confirm Your Age</h2>
+    <p>
+      Purchasing tokens, sending paid gifts, and entering paid battles require you to be at least
+      18 years old. This is a legal requirement under Irish and EU consumer protection law.
+    </p>
+    <p>
+      By ticking the box below you confirm, on your honour, that you are 18 or older.
+      This confirmation is recorded with a timestamp and your IP address for audit purposes.
+      If you provide a false declaration your account may be suspended.
+    </p>
+
+    {% if error %}
+    <div class="form-error" role="alert">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" action="{% url 'chef_battle:age_verification' %}{% if next %}?next={{ next }}{% endif %}" class="age-verify-form" novalidate>
+      {% csrf_token %}
+      <label class="age-verify-form__checkbox-label">
+        <input type="checkbox" name="confirm_age" value="1" required>
+        <span>I confirm that I am 18 years of age or older.</span>
+      </label>
+      <button type="submit" class="btn-primary age-verify-form__submit">Confirm and continue</button>
+      <p class="age-verify-form__note">
+        You only need to confirm once. This confirmation is permanent and cannot be undone.
+        For details see our <a href="{% url 'chef_battle:rules' %}#s0">eligibility rules</a>.
+      </p>
+    </form>
+  </div>
+</section>
+
+<style>
+.age-verify-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 560px;
+  margin-top: 2rem;
+}
+.age-verify-form__checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.age-verify-form__checkbox-label input[type="checkbox"] {
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+  width: 1.2rem;
+  height: 1.2rem;
+  accent-color: var(--primary, #c0392b);
+  cursor: pointer;
+}
+.age-verify-form__submit {
+  align-self: flex-start;
+}
+.age-verify-form__note {
+  font-size: 0.85rem;
+  color: var(--text-muted, #666);
+  margin: 0;
+}
+.form-error {
+  background: #fde8e8;
+  border: 1px solid #e74c3c;
+  border-radius: 6px;
+  color: #c0392b;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+</style>
+{% endblock %}

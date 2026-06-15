@@ -206,6 +206,9 @@
         .then(function (data) {
           if (data.ok && data.checkout_url) {
             window.location.href = data.checkout_url;
+          } else if (data.age_verify_url) {
+            errorEl.innerHTML = (data.error || 'Age confirmation required.') + ' <a href="' + data.age_verify_url + '">Confirm your age</a>.';
+            errorEl.style.display = 'block';
           } else {
             errorEl.textContent = data.error || 'Something went wrong. Please try again.';
             errorEl.style.display = 'block';
