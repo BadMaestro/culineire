@@ -2071,3 +2071,38 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
 .report-dialog__msg { margin: 0.75rem 0 0; font-size: 0.85rem; }
 .report-dialog__msg--ok  { color: var(--color-success, #2d6a2d); }
 .report-dialog__msg--err { color: var(--color-error, #8b1a1a); }
+
+/* Artifact gallery */
+.artifact-rarity-group { margin-bottom: 3rem; }
+.artifact-rarity-group__title { font-size: 1.25rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--color-border, #ddd); }
+.artifact-rarity-group--common .artifact-rarity-group__title   { color: #6b7280; border-color: #6b7280; }
+.artifact-rarity-group--uncommon .artifact-rarity-group__title { color: #16a34a; border-color: #16a34a; }
+.artifact-rarity-group--rare .artifact-rarity-group__title     { color: #2563eb; border-color: #2563eb; }
+.artifact-rarity-group--epic .artifact-rarity-group__title     { color: #7c3aed; border-color: #7c3aed; }
+.artifact-rarity-group--legendary .artifact-rarity-group__title{ color: #d97706; border-color: #d97706; }
+
+.artifact-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+
+.artifact-card { background: var(--color-surface, #fff); border: 1px solid var(--color-border, #ddd); border-radius: 0.625rem; padding: 1rem; display: flex; flex-direction: column; gap: 0.4rem; }
+.artifact-card--common    { border-left: 4px solid #6b7280; }
+.artifact-card--uncommon  { border-left: 4px solid #16a34a; }
+.artifact-card--rare      { border-left: 4px solid #2563eb; }
+.artifact-card--epic      { border-left: 4px solid #7c3aed; }
+.artifact-card--legendary { border-left: 4px solid #d97706; background: linear-gradient(135deg, var(--color-surface, #fff) 80%, #fef3c7 100%); }
+
+.artifact-card__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem; }
+.artifact-card__rarity  { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.65; }
+.artifact-card__cost    { font-size: 0.8rem; font-weight: 700; background: var(--color-accent, #1a1a1a); color: #fff; border-radius: 999px; padding: 0.1rem 0.55rem; }
+.artifact-card__name    { font-size: 0.95rem; font-weight: 700; margin: 0; }
+.artifact-card__desc    { font-size: 0.82rem; opacity: 0.75; margin: 0; }
+.artifact-card__effect  { font-size: 0.78rem; margin: 0; opacity: 0.8; }
+.artifact-card__effect-label { font-weight: 600; }
+
+/* Manual tasks checklist */
+.manual-tasks { margin-top: 2rem; }
+.manual-tasks__list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.manual-tasks__item { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.75rem 1rem; background: var(--color-surface, #fff); border: 1px solid var(--color-border, #ddd); border-radius: 0.5rem; cursor: pointer; }
+.manual-tasks__item input[type="checkbox"] { margin-top: 0.15rem; flex-shrink: 0; width: 1.1rem; height: 1.1rem; cursor: pointer; }
+.manual-tasks__item label { cursor: pointer; font-size: 0.9rem; line-height: 1.4; }
+.manual-tasks__item--done { opacity: 0.55; background: var(--color-surface-alt, #f8f8f8); }
+.manual-tasks__item--done label { text-decoration: line-through; }

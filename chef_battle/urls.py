@@ -41,4 +41,5 @@ urlpatterns = [
     path("payout/", views.payout_statement, name="payout_statement"),
     path("payout/agreement/", views.reward_agreement, name="reward_agreement"),
     path("report/", views.content_report_submit, name="content_report_submit"),
+    path("artifacts/", views.artifact_gallery, name="artifact_gallery"),
 ]

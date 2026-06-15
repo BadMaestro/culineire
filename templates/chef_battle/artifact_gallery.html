@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Combat Artifact Gallery | Chef Battle | CulinEire{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260615" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero">
+  <div class="container">
+    <p class="battle-kicker">Chef Battle Arena</p>
+    <h1>Combat Artifact Gallery</h1>
+    <p class="battle-room-hero__sub">{{ total }} active artifact{{ total|pluralize }} across 5 rarity tiers. Use them in battle to gain an edge.</p>
+    <div class="battle-actions">
+      <a class="btn-primary" href="{% url 'chef_battle:token_shop' %}">Get Tokens</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:home' %}">Arena Home</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:rules' %}">Rules</a>
+    </div>
+  </div>
+</section>
+
+<section class="page-section">
+  <div class="container battle-page">
+
+    {% for rarity_label, artifacts in grouped.items %}
+    <section class="artifact-rarity-group artifact-rarity-group--{{ rarity_label|lower }}">
+      <h2 class="artifact-rarity-group__title">{{ rarity_label }}</h2>
+      <div class="artifact-grid">
+        {% for artifact in artifacts %}
+        <article class="artifact-card artifact-card--{{ artifact.rarity }}">
+          <div class="artifact-card__header">
+            <span class="artifact-card__rarity">{{ artifact.get_rarity_display }}</span>
+            <span class="artifact-card__cost">{{ artifact.token_cost }}T</span>
+          </div>
+          <h3 class="artifact-card__name">{{ artifact.name }}</h3>
+          {% if artifact.description %}<p class="artifact-card__desc">{{ artifact.description }}</p>{% endif %}
+          {% if artifact.effect_type %}
+          <p class="artifact-card__effect">
+            <span class="artifact-card__effect-label">Effect:</span> {{ artifact.effect_type }}{% if artifact.effect_value %} ({{ artifact.effect_value }}){% endif %}
+          </p>
+          {% endif %}
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+    {% empty %}
+    <div class="empty-state"><p>No artifacts loaded yet. The armory is being stocked.</p></div>
+    {% endfor %}
+
+  </div>
+</section>
+{% endblock %}

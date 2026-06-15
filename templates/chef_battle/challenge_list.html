@@ -2,15 +2,24 @@
 {% load static %}
 
 {% block title %}My Chef Battle Challenges | CulinEire{% endblock %}
-{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260614b" rel="stylesheet">{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260615" rel="stylesheet">{% endblock %}
 
 {% block content %}
+<section class="battle-room-hero">
+  <div class="container">
+    <p class="battle-kicker">Chef Battle Arena</p>
+    <h1>My Challenges</h1>
+    <p class="battle-room-hero__sub">Challenges you have sent and received.</p>
+    <div class="battle-actions">
+      <a class="btn-primary" href="{% url 'chef_battle:challenge_create' %}">New Challenge</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:home' %}">Arena Home</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
+    </div>
+  </div>
+</section>
+
 <section class="page-section">
   <div class="container battle-page">
-    <div class="battle-section-header">
-      <h1>My Chef Battle Challenges</h1>
-      <a class="btn-primary" href="{% url 'chef_battle:challenge_create' %}">New Challenge</a>
-    </div>
 
     <div class="battle-two-col">
       <section>

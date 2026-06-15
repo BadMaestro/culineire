@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}Create Chef Battle Challenge | CulinEire{% endblock %}
-{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260614b" rel="stylesheet">{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260615" rel="stylesheet">{% endblock %}
 
 {% block content %}
 <section class="battle-hero">
@@ -122,8 +122,8 @@
         </div>
 
         <div class="battle-form__actions battle-form__actions--challenge">
-          <button class="btn" type="submit">Send Challenge</button>
-          <a class="btn btn--secondary" href="{% url 'chef_battle:challenge_list' %}">Cancel</a>
+          <button class="btn-primary" type="submit">Send Challenge</button>
+          <a class="btn-secondary" href="{% url 'chef_battle:challenge_list' %}">Cancel</a>
         </div>
       </form>
     </div>

@@ -44,6 +44,10 @@
                     <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M8 21V10"/><path d="M16 21V4"/><path d="M4 21h16"/></svg>
                     Rankings
                 </a>
+                <a class="mod-tool-link" href="{% url 'chef_battle:artifact_gallery' %}">
+                    <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                    Artifacts
+                </a>
                 <a class="mod-tool-link" href="{% url 'newsfeed:feed' %}">
                     <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h10"/></svg>
                     News Feed
@@ -81,6 +85,73 @@
             {% endfor %}
         </section>
 
+        <section class="moderation-block manual-tasks" aria-labelledby="manual-tasks-heading">
+            <h2 class="moderation-block__title" id="manual-tasks-heading">Manual Test Checklist</h2>
+            <p style="font-size:0.85rem;opacity:0.7;margin:0 0 1rem;">Tick items as you test them. State is saved in your browser.</p>
+            <ul class="manual-tasks__list" id="manual-tasks-list">
+                <li class="manual-tasks__item" data-key="mt-stripe-purchase">
+                    <input type="checkbox" id="mt-stripe-purchase">
+                    <label for="mt-stripe-purchase"><strong>Stripe token purchase</strong> — complete a real Starter Pack purchase in Stripe test mode; confirm wallet is credited and confirmation email arrives.</label>
+                </li>
+                <li class="manual-tasks__item" data-key="mt-stripe-webhook">
+                    <input type="checkbox" id="mt-stripe-webhook">
+                    <label for="mt-stripe-webhook"><strong>Stripe webhook delivery</strong> — verify Stripe dashboard shows webhook delivery success for checkout.session.completed.</label>
+                </li>
+                <li class="manual-tasks__item" data-key="mt-challenge-flow">
+                    <input type="checkbox" id="mt-challenge-flow">
+                    <label for="mt-challenge-flow"><strong>Challenge full flow</strong> — send a challenge, accept it, confirm a battle is created and both chefs see it in My Challenges.</label>
+                </li>
+                <li class="manual-tasks__item" data-key="mt-battle-entry">
+                    <input type="checkbox" id="mt-battle-entry">
+                    <label for="mt-battle-entry"><strong>Battle entry submission</strong> — submit a recipe as a battle entry from the battle detail page, confirm it appears for both sides.</label>
+                </li>
+                <li class="manual-tasks__item" data-key="mt-biathlon">
+                    <input type="checkbox" id="mt-biathlon">
+                    <label for="mt-biathlon"><strong>Biathlon phase</strong> — complete a biathlon: lock 2 ingredients, shoot 3 times, confirm hit/miss counts and ingredient state update.</label>
+                </li>
+                <li class="manual-tasks__item" data-key="mt-cooking-photo">
+                    <input type="checkbox" id="mt-cooking-photo">
+                    <label for="mt-cooking-photo"><strong>Cooking photo upload</strong> — upload a cooking photo during the cooking phase; confirm real-photo declaration checkbox is required.</label>
+                </li>
+                <li class="manual-tasks__item" data-key="mt-voting">
+                    <input type="checkbox" id="mt-voting">
+                    <label for="mt-voting"><strong>Audience voting</strong> — cast a vote during the voting phase as both authenticated and anonymous users; confirm one-vote-per-battle rule.</label>
+                </li>
+                <li class="manual-tasks__item" data-key="mt-artifact-gift">
+                    <input type="checkbox" id="mt-artifact-gift">
+                    <label for="mt-artifact-gift"><strong>Artifact gift sending</strong> — send an artifact gift to a chef during a battle; confirm token deduction and gift appears in the gift panel.</label>
+                </li>
+                <li class="manual-tasks__item" data-key="mt-appreciation-gift">
+                    <input type="checkbox" id="mt-appreciation-gift">
+                    <label for="mt-appreciation-gift"><strong>Appreciation gift sending</strong> — send an appreciation gift (Flower / Coffee / Pint etc.); confirm token deduction and gift log entry.</label>
+                </li>
+                <li class="manual-tasks__item" data-key="mt-payout-agreement">
+                    <input type="checkbox" id="mt-payout-agreement">
+                    <label for="mt-payout-agreement"><strong>Payout reward agreement</strong> — complete the reward agreement flow; confirm ChefRewardAgreement record is created and profile flag set.</label>
+                </li>
+                <li class="manual-tasks__item" data-key="mt-payout-statement">
+                    <input type="checkbox" id="mt-payout-statement">
+                    <label for="mt-payout-statement"><strong>Payout statement page</strong> — navigate to /chef-battle/payout/ and verify eligibility check, approved records table, and payout request button.</label>
+                </li>
+                <li class="manual-tasks__item" data-key="mt-dsa-report">
+                    <input type="checkbox" id="mt-dsa-report">
+                    <label for="mt-dsa-report"><strong>DSA content report</strong> — submit a report from the battle detail page; confirm ContentReport record is created in the DB.</label>
+                </li>
+                <li class="manual-tasks__item" data-key="mt-age-verify">
+                    <input type="checkbox" id="mt-age-verify">
+                    <label for="mt-age-verify"><strong>Age verification</strong> — complete age verification flow as a chef; confirm ChefBattleProfile.age_verified is set and gate removed.</label>
+                </li>
+                <li class="manual-tasks__item" data-key="mt-combat-action">
+                    <input type="checkbox" id="mt-combat-action">
+                    <label for="mt-combat-action"><strong>Combat action (artifact use)</strong> — use a combat artifact from the battle detail combat panel; confirm moves are deducted and event logged.</label>
+                </li>
+                <li class="manual-tasks__item" data-key="mt-live-video">
+                    <input type="checkbox" id="mt-live-video">
+                    <label for="mt-live-video"><strong>Live video pre-live checklist</strong> — check that the pre-live checklist UI appears and all 14 items must be ticked before going live.</label>
+                </li>
+            </ul>
+        </section>
+
         <details class="automation-completed">
             <summary>Show completed progress</summary>
             <div class="automation-completed__grid">
@@ -98,4 +169,31 @@
         </details>
     </div>
 </section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+  var list = document.getElementById('manual-tasks-list');
+  if (!list) return;
+  list.querySelectorAll('.manual-tasks__item').forEach(function (li) {
+    var key = li.dataset.key;
+    var cb = li.querySelector('input[type="checkbox"]');
+    if (!key || !cb) return;
+    if (localStorage.getItem(key) === '1') {
+      cb.checked = true;
+      li.classList.add('manual-tasks__item--done');
+    }
+    cb.addEventListener('change', function () {
+      if (cb.checked) {
+        localStorage.setItem(key, '1');
+        li.classList.add('manual-tasks__item--done');
+      } else {
+        localStorage.removeItem(key);
+        li.classList.remove('manual-tasks__item--done');
+      }
+    });
+  });
+})();
+</script>
 {% endblock %}
