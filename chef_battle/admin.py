@@ -108,17 +108,86 @@ def clear_votes_suspicious(modeladmin, request, queryset):
 # CB-0013 Model admin registrations
 # ---------------------------------------------------------------------------
 
+@admin.action(description="Suspend selected profiles")
+def suspend_profiles(modeladmin, request, queryset):
+    count = 0
+    for profile in queryset.filter(is_suspended=False):
+        profile.is_suspended = True
+        profile.suspended_at = timezone.now()
+        profile.suspension_reason = f"Suspended by {request.user.username}"
+        profile.save(update_fields=["is_suspended", "suspended_at", "suspension_reason"])
+        from .models import LedgerEvent
+        LedgerEvent.objects.create(
+            event_type=LedgerEvent.EventType.ACCOUNT_SUSPENDED,
+            actor=profile.author,
+            payload={"suspended_by": request.user.username, "reason": profile.suspension_reason},
+        )
+        count += 1
+    modeladmin.message_user(request, f"{count} profile(s) suspended.", messages.WARNING)
+
+
+@admin.action(description="Unsuspend selected profiles")
+def unsuspend_profiles(modeladmin, request, queryset):
+    count = queryset.filter(is_suspended=True).update(
+        is_suspended=False, suspended_at=None, suspension_reason=""
+    )
+    modeladmin.message_user(request, f"{count} profile(s) unsuspended.", messages.SUCCESS)
+
+
+@admin.action(description="Set fraud flag on selected profiles")
+def set_fraud_flag(modeladmin, request, queryset):
+    count = queryset.filter(fraud_flag=False).update(
+        fraud_flag=True,
+        fraud_flag_note=f"Flagged by {request.user.username} on {timezone.now().date()}",
+    )
+    modeladmin.message_user(request, f"{count} profile(s) fraud-flagged.", messages.WARNING)
+
+
+@admin.action(description="Clear fraud flag on selected profiles")
+def clear_fraud_flag(modeladmin, request, queryset):
+    count = queryset.filter(fraud_flag=True).update(fraud_flag=False, fraud_flag_note="")
+    modeladmin.message_user(request, f"{count} profile(s) fraud flag cleared.", messages.SUCCESS)
+
+
 @admin.register(ChefBattleProfile)
 class ChefBattleProfileAdmin(admin.ModelAdmin):
     list_display = (
         "author", "rank", "rating", "wins", "losses", "win_streak",
         "best_win_streak", "refused_battles", "ignored_battles",
         "crown_count", "battle_moves", "seasonal_score",
+        "is_suspended", "fraud_flag",
     )
-    list_filter = ("rank",)
+    list_filter = ("rank", "is_suspended", "fraud_flag", "is_hero")
     search_fields = ("author__name", "author__slug")
-    readonly_fields = ("created_at", "updated_at")
+    readonly_fields = ("created_at", "updated_at", "suspended_at")
+    actions = [suspend_profiles, unsuspend_profiles, set_fraud_flag, clear_fraud_flag]
     ordering = ("-rating",)
+    fieldsets = (
+        ("Chef", {
+            "fields": ("author", "rank", "level", "is_hero", "rating", "reputation"),
+        }),
+        ("Stats", {
+            "fields": (
+                "wins", "losses", "win_streak", "best_win_streak",
+                "refused_battles", "ignored_battles", "crown_count",
+                "crown_until", "michelin_stars",
+            ),
+        }),
+        ("Moves & Tokens", {
+            "fields": ("battle_moves", "seasonal_score", "infinite_moves", "prestige_title"),
+        }),
+        ("Compliance", {
+            "fields": (
+                "age_verified", "age_confirmed_at",
+                "is_suspended", "suspended_at", "suspension_reason",
+                "fraud_flag", "fraud_flag_note", "dsa_reported_count",
+            ),
+        }),
+        ("Timestamps", {
+            "fields": ("created_at", "updated_at"),
+            "classes": ("collapse",),
+        }),
+    )
 
 
 @admin.register(BattleChallenge)
