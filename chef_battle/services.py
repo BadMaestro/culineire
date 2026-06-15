@@ -121,6 +121,7 @@ def create_battle_event(
             is_auto=True,
             is_public=is_public,
             event_key=event_key,
+            sub_type=event_type,
         )
 
     return event

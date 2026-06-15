@@ -954,6 +954,35 @@ def my_moves(request):
 
 @chef_battle_guard
 @login_required
+def notifications_inbox(request):
+    """Personal battle notification inbox for the logged-in chef."""
+    from django.db.models import Q
+    from .models import BattleEvent, BattleChallenge
+    author = get_author_for_user(request.user)
+    if not author:
+        return render(request, "chef_battle/notifications_inbox.html", {"events": [], "pending_challenges": []})
+
+    events = (
+        BattleEvent.objects
+        .filter(is_public=True)
+        .filter(Q(actor=author) | Q(target=author))
+        .select_related("battle", "actor", "target")
+        .order_by("-created_at")[:60]
+    )
+    pending_challenges = (
+        BattleChallenge.objects
+        .filter(opponent=author, status=BattleChallenge.Status.PENDING)
+        .select_related("challenger")
+        .order_by("expires_at")
+    )
+    return render(request, "chef_battle/notifications_inbox.html", {
+        "events": events,
+        "pending_challenges": pending_challenges,
+    })
+
+
+@chef_battle_guard
+@login_required
 def notifications_poll(request):
     """Return unread battle notification count for live polling."""
     from django.http import JsonResponse

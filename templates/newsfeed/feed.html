@@ -101,9 +101,14 @@
             <span class="nf-entry__dot nf-entry__dot--{{ entry.entry_type }}"></span>
           </div>
 
-          <article class="nf-entry__content">
+          <article class="nf-entry__content{% if entry.sub_type %} nf-entry__content--{{ entry.sub_type }}{% endif %}">
             <div class="nf-entry__meta">
-              <span class="nf-badge nf-badge--{{ entry.entry_type }}">{{ entry.get_entry_type_display }}</span>
+              <span class="nf-badge nf-badge--{{ entry.entry_type }}{% if entry.sub_type %} nf-badge--{{ entry.sub_type }}{% endif %}">
+                {% if entry.sub_type == "crown_awarded" %}👑 Crown Awarded
+                {% elif entry.sub_type == "rank_promoted" %}⬆ Rank Change
+                {% elif entry.sub_type == "battle_completed" %}⚔ Battle Result
+                {% else %}{{ entry.get_entry_type_display }}{% endif %}
+              </span>
               {% if entry.version %}
               <span class="nf-entry__version">Version {{ entry.version }}</span>
               {% endif %}

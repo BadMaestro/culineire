@@ -343,6 +343,31 @@
   background: rgb(122 47 18 / 0.1);
 }
 
+/* Battle event sub-type card accents */
+.nf-entry__content--crown_awarded {
+  border-left-color: #d97706;
+  background: linear-gradient(135deg, rgb(255 253 248 / 0.9) 80%, rgb(217 119 6 / 0.06) 100%);
+}
+.nf-badge--crown_awarded {
+  color: #92400e;
+  background: rgb(217 119 6 / 0.12);
+}
+.nf-entry__content--rank_promoted {
+  border-left-color: #2563eb;
+  background: linear-gradient(135deg, rgb(255 253 248 / 0.9) 80%, rgb(37 99 235 / 0.05) 100%);
+}
+.nf-badge--rank_promoted {
+  color: #1e40af;
+  background: rgb(37 99 235 / 0.1);
+}
+.nf-entry__content--battle_completed {
+  border-left-color: #7a2f12;
+}
+.nf-badge--battle_completed {
+  color: #7a2f12;
+  background: rgb(122 47 18 / 0.12);
+}
+
 .nf-entry__title {
   margin: 0;
   color: var(--ink, #1f2c25);

@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Battle Notifications | Chef Battle | CulinEire{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260615e" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero">
+  <div class="container">
+    <p class="battle-kicker">Chef Battle Arena</p>
+    <h1>My Notifications</h1>
+    <p class="battle-room-hero__sub">Challenges, battle results, rank changes and crown events involving you.</p>
+    <div class="battle-actions">
+      <a class="btn-secondary" href="{% url 'chef_battle:home' %}">Arena Home</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:my_moves' %}">My Moves</a>
+    </div>
+  </div>
+</section>
+
+<section class="legal-shell legal-shell--hub">
+  <div class="legal-document-layout legal-hub-layout">
+
+    <aside class="legal-toc" aria-label="Notification sections">
+      <span class="legal-toc__label">Sections</span>
+      <nav>
+        <a href="#pending-challenges">Pending Challenges</a>
+        <a href="#recent-events">Recent Events</a>
+      </nav>
+      <p>Events are shown for battles where you were a participant, actor, or target.</p>
+    </aside>
+
+    <div>
+
+      {% if pending_challenges %}
+      <section id="pending-challenges" class="notif-section">
+        <h2 class="notif-section__title">Pending Challenges</h2>
+        <ul class="notif-list">
+          {% for challenge in pending_challenges %}
+          <li class="notif-item notif-item--challenge">
+            <div class="notif-item__icon">⚔</div>
+            <div class="notif-item__body">
+              <p class="notif-item__text"><strong>{{ challenge.challenger.name }}</strong> challenged you to a battle{% if challenge.theme %}: <em>{{ challenge.theme }}</em>{% endif %}</p>
+              <time class="notif-item__time">Expires {{ challenge.expires_at|date:"j M Y H:i" }}</time>
+            </div>
+            <a class="btn-primary notif-item__cta" href="{% url 'chef_battle:challenge_respond' challenge.pk %}">Respond</a>
+          </li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+
+      <section id="recent-events" class="notif-section">
+        <h2 class="notif-section__title">Recent Events</h2>
+        {% if events %}
+        <ul class="notif-list">
+          {% for event in events %}
+          <li class="notif-item notif-item--{{ event.event_type }}">
+            <div class="notif-item__icon">
+              {% if event.event_type == "crown_awarded" %}👑
+              {% elif event.event_type == "rank_promoted" %}⬆
+              {% elif event.event_type == "battle_completed" %}🏆
+              {% elif event.event_type == "challenge_created" or event.event_type == "challenge_accepted" %}⚔
+              {% elif event.event_type == "chef_defeated" %}💀
+              {% else %}🔔{% endif %}
+            </div>
+            <div class="notif-item__body">
+              <p class="notif-item__text">{{ event.message }}</p>
+              <time class="notif-item__time">{{ event.created_at|date:"j M Y H:i" }}</time>
+            </div>
+            {% if event.battle %}
+            <a class="btn-secondary notif-item__cta" href="{% url 'chef_battle:battle_detail' event.battle.pk %}">View Battle</a>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty-state">
+          <p>No battle events yet. Accept a challenge to get started.</p>
+          <a class="btn-primary" href="{% url 'chef_battle:challenge_list' %}">See Challenges</a>
+        </div>
+        {% endif %}
+      </section>
+
+    </div>
+  </div>
+</section>
+{% endblock %}

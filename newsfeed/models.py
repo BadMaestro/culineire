@@ -37,6 +37,8 @@ class NewsFeedEntry(models.Model):
     image_url = models.CharField(max_length=500, blank=True)
     # Null for manual entries; unique string for auto entries prevents duplicates.
     event_key = models.CharField(max_length=200, unique=True, null=True, blank=True)
+    # For battle_event entries: stores the BattleEvent.event_type value for visual styling.
+    sub_type = models.CharField(max_length=50, blank=True)
 
     class Meta:
         ordering = ["-published_at"]

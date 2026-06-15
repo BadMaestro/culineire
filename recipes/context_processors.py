@@ -136,6 +136,10 @@ def header_author(request):
             "label": "Chef Battle",
             "url": _reverse_or_empty("chef_battle:challenge_list"),
         })
+        actions.insert(4, {
+            "label": "My Notifications",
+            "url": _reverse_or_empty("chef_battle:notifications_inbox"),
+        })
 
     if is_moderator:
         pending_count = _pending_moderation_count()
