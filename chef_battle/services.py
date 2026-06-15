@@ -421,7 +421,6 @@ def calculate_battle_result(battle: Battle) -> Battle:
             winner_profile.best_win_streak = winner_profile.win_streak
         winner_profile.rating += rating_delta
         winner_profile.reputation += 15
-        winner_profile.battle_moves += MOVES_BATTLE_WIN + MOVES_BATTLE_PARTICIPATION
         winner_profile.seasonal_score += 10
         winner_profile.crown_count += 1
         winner_profile.crown_until = timezone.now() + timezone.timedelta(hours=24)
@@ -435,16 +434,28 @@ def calculate_battle_result(battle: Battle) -> Battle:
         loser_profile.win_streak = 0
         loser_profile.rating = max(0, loser_profile.rating - 15)
         loser_profile.reputation = max(-1000, loser_profile.reputation - 3)
-        loser_profile.battle_moves += MOVES_BATTLE_PARTICIPATION
         if not loser_profile.infinite_moves:
             loser_profile.rank = rank_for_rating(loser_profile.rating)
         loser_profile.save()
 
+        # Award moves with typed transaction records
         from .models import BattleMoveTransaction
+        TxType = BattleMoveTransaction.TxType
+        from .energy_service import ENERGY_CAP
+        winner_profile.battle_moves = min(
+            ENERGY_CAP,
+            winner_profile.battle_moves + MOVES_BATTLE_WIN + MOVES_BATTLE_PARTICIPATION,
+        )
+        loser_profile.battle_moves = min(
+            ENERGY_CAP,
+            loser_profile.battle_moves + MOVES_BATTLE_PARTICIPATION,
+        )
+        winner_profile.save(update_fields=["battle_moves", "updated_at"])
+        loser_profile.save(update_fields=["battle_moves", "updated_at"])
         BattleMoveTransaction.objects.bulk_create([
-            BattleMoveTransaction(chef=winner, amount=MOVES_BATTLE_WIN, reason="Battle win"),
-            BattleMoveTransaction(chef=winner, amount=MOVES_BATTLE_PARTICIPATION, reason="Battle participation"),
-            BattleMoveTransaction(chef=loser, amount=MOVES_BATTLE_PARTICIPATION, reason="Battle participation"),
+            BattleMoveTransaction(chef=winner, amount=MOVES_BATTLE_WIN, transaction_type=TxType.BATTLE_WON),
+            BattleMoveTransaction(chef=winner, amount=MOVES_BATTLE_PARTICIPATION, transaction_type=TxType.BATTLE_PARTICIPATION),
+            BattleMoveTransaction(chef=loser, amount=MOVES_BATTLE_PARTICIPATION, transaction_type=TxType.BATTLE_PARTICIPATION),
         ])
 
         battle.winner = winner
@@ -545,57 +556,40 @@ def calculate_battle_result(battle: Battle) -> Battle:
 
 # ── Phase 3: Battle moves economy ────────────────────────────────────────────
 
-MOVES_RECIPE_APPROVED = 2
-MOVES_ARTICLE_APPROVED = 2
-MOVES_BATTLE_WIN = 5
-MOVES_BATTLE_PARTICIPATION = 1
+from .energy_service import (  # noqa: E402
+    EARN_RECIPE_PUBLISHED as MOVES_RECIPE_APPROVED,
+    EARN_ARTICLE_PUBLISHED as MOVES_ARTICLE_APPROVED,
+    EARN_BATTLE_WON as MOVES_BATTLE_WIN,
+    EARN_BATTLE_PARTICIPATION as MOVES_BATTLE_PARTICIPATION,
+    ENERGY_CAP,
+    award_moves as _energy_award_moves,
+    spend_moves as _energy_spend_moves,
+    InsufficientEnergy,
+)
+
 MOVES_MIN_TO_CHALLENGE = 10
 
-# Anti-farming caps: max moves earned from content approval per day/week
-MOVES_CONTENT_DAILY_CAP = 15
-MOVES_CONTENT_WEEKLY_CAP = 50
-_CONTENT_REASONS = {"Recipe approved", "Article approved"}
-
-
-def _content_moves_total(author, period_start) -> int:
-    from django.db.models import Sum
-    from .models import BattleMoveTransaction
-    result = BattleMoveTransaction.objects.filter(
-        chef=author,
-        reason__in=_CONTENT_REASONS,
-        created_at__gte=period_start,
-    ).aggregate(total=Sum("amount"))["total"]
-    return result or 0
+# Legacy cap constants kept for backward compatibility with existing tests
+MOVES_CONTENT_DAILY_CAP = ENERGY_CAP
+MOVES_CONTENT_WEEKLY_CAP = ENERGY_CAP
 
 
 def award_moves(author, amount: int, reason: str) -> None:
-    """Credit battle moves to a chef and update their profile.
+    """Backward-compatible wrapper used by existing signals.
 
-    Content-approval reasons are capped (daily + weekly anti-farming).
-    Silently no-ops on any error.
+    Delegates to energy_service.award_moves with a best-guess transaction_type.
     """
-    if amount == 0:
-        return
+    from .models import BattleMoveTransaction
+    TxType = BattleMoveTransaction.TxType
+    _reason_map = {
+        "Recipe approved": TxType.RECIPE_PUBLISHED,
+        "Article approved": TxType.ARTICLE_PUBLISHED,
+        "Battle win": TxType.BATTLE_WON,
+        "Battle participation": TxType.BATTLE_PARTICIPATION,
+    }
+    tx_type = _reason_map.get(reason, TxType.ADMIN_ADJUSTMENT)
     try:
-        from .models import BattleMoveTransaction
-        now = timezone.now()
-
-        profile = get_or_create_battle_profile(author)
-
-        if reason in _CONTENT_REASONS and not profile.infinite_moves:
-            day_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-            week_start = now - timezone.timedelta(days=now.weekday())
-            week_start = week_start.replace(hour=0, minute=0, second=0, microsecond=0)
-            daily_earned = _content_moves_total(author, day_start)
-            weekly_earned = _content_moves_total(author, week_start)
-            daily_remaining = max(0, MOVES_CONTENT_DAILY_CAP - daily_earned)
-            weekly_remaining = max(0, MOVES_CONTENT_WEEKLY_CAP - weekly_earned)
-            amount = min(amount, daily_remaining, weekly_remaining)
-            if amount <= 0:
-                return
-        profile.battle_moves = max(0, profile.battle_moves + amount)
-        profile.save(update_fields=["battle_moves", "updated_at"])
-        BattleMoveTransaction.objects.create(chef=author, amount=amount, reason=reason)
+        _energy_award_moves(author, amount, tx_type)
     except Exception:
         logger.exception("Failed to award moves to author pk=%s", getattr(author, "pk", "?"))
 
@@ -759,13 +753,11 @@ def _resolve_round(battle: Battle, round_number: int) -> BattleRound | None:
             battle=battle, round_number=round_number
         ).update(is_locked=True)
 
-        # Deduct moves
-        c_profile = get_or_create_battle_profile(battle.challenger)
-        o_profile = get_or_create_battle_profile(battle.opponent)
-        c_profile.battle_moves = max(0, c_profile.battle_moves - challenger_action.moves_invested)
-        o_profile.battle_moves = max(0, o_profile.battle_moves - opponent_action.moves_invested)
-        c_profile.save(update_fields=["battle_moves"])
-        o_profile.save(update_fields=["battle_moves"])
+        # Deduct moves via energy_service to create typed transaction records
+        from .models import BattleMoveTransaction
+        TxType = BattleMoveTransaction.TxType
+        _energy_spend_moves(battle.challenger, challenger_action.moves_invested, TxType.COMBAT_ACTION_SPENT)
+        _energy_spend_moves(battle.opponent, opponent_action.moves_invested, TxType.COMBAT_ACTION_SPENT)
 
         # Create round record
         round_obj = BattleRound.objects.create(

@@ -102,9 +102,15 @@ def publish_article_to_telegram_on_approval(sender, instance, **kwargs):
     except Exception:
         logger.exception("Failed to publish article pk=%s to Telegram", instance.pk)
     try:
-        from chef_battle.services import award_moves, MOVES_ARTICLE_APPROVED
+        from chef_battle.energy_service import award_moves, EARN_ARTICLE_PUBLISHED
+        from chef_battle.models import BattleMoveTransaction
         if instance.author:
-            award_moves(instance.author, MOVES_ARTICLE_APPROVED, "Article approved")
+            award_moves(
+                instance.author,
+                EARN_ARTICLE_PUBLISHED,
+                BattleMoveTransaction.TxType.ARTICLE_PUBLISHED,
+                reference=instance,
+            )
     except Exception:
         logger.exception("Failed to award battle moves for article pk=%s", instance.pk)
 

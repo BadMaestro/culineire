@@ -84,9 +84,11 @@ class ChefBattleServiceTests(TestCase):
 
         self.assertEqual(battle.status, Battle.Status.COMPLETED)
         self.assertEqual(battle.winner, self.chef_a)
+        winner_profile.refresh_from_db()
+        loser_profile.refresh_from_db()
         self.assertEqual(winner_profile.wins, 1)
-        self.assertEqual(winner_profile.battle_moves, 6)  # MOVES_BATTLE_WIN(5) + MOVES_BATTLE_PARTICIPATION(1)
-        self.assertEqual(loser_profile.battle_moves, 1)   # MOVES_BATTLE_PARTICIPATION(1)
+        self.assertEqual(winner_profile.battle_moves, 11)  # MOVES_BATTLE_WIN(10) + MOVES_BATTLE_PARTICIPATION(1)
+        self.assertEqual(loser_profile.battle_moves, 1)    # MOVES_BATTLE_PARTICIPATION(1)
         self.assertEqual(loser_profile.losses, 1)
 
     def test_vote_clean_allows_authenticated_user_without_author_profile(self):
@@ -339,6 +341,87 @@ class AwardMovesTests(TestCase):
             award_moves(self.chef, 3, "Recipe approved")
         profile = ChefBattleProfile.objects.get(author=self.chef)
         self.assertLessEqual(profile.battle_moves, MOVES_CONTENT_DAILY_CAP)
+
+
+class EnergyServiceTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user(username="energy-chef", password="pw")
+        self.chef = RecipeAuthor.objects.create(user=self.user, name="Energy Chef", slug="energy-chef")
+        self.user2 = User.objects.create_user(username="energy-source", password="pw")
+        self.source = RecipeAuthor.objects.create(user=self.user2, name="Source Chef", slug="energy-source")
+
+    def test_award_moves_correct_rates(self):
+        from .energy_service import (
+            award_moves, EARN_RECIPE_PUBLISHED, EARN_ARTICLE_PUBLISHED,
+            EARN_BATTLE_WON, EARN_BATTLE_PARTICIPATION,
+        )
+        from .models import BattleMoveTransaction, ChefBattleProfile
+        TxType = BattleMoveTransaction.TxType
+        award_moves(self.chef, EARN_RECIPE_PUBLISHED, TxType.RECIPE_PUBLISHED)
+        profile = ChefBattleProfile.objects.get(author=self.chef)
+        self.assertEqual(profile.battle_moves, 5)
+        tx = BattleMoveTransaction.objects.get(chef=self.chef)
+        self.assertEqual(tx.transaction_type, TxType.RECIPE_PUBLISHED)
+        self.assertEqual(tx.amount, 5)
+
+    def test_award_moves_enforces_energy_cap(self):
+        from .energy_service import award_moves, ENERGY_CAP
+        from .models import BattleMoveTransaction, ChefBattleProfile
+        TxType = BattleMoveTransaction.TxType
+        # Give 90 moves first
+        award_moves(self.chef, 90, TxType.ADMIN_ADJUSTMENT)
+        # Now award 20 more — should be capped at ENERGY_CAP=100, so only 10 awarded
+        awarded = award_moves(self.chef, 20, TxType.ADMIN_ADJUSTMENT)
+        profile = ChefBattleProfile.objects.get(author=self.chef)
+        self.assertEqual(profile.battle_moves, ENERGY_CAP)
+        self.assertEqual(awarded, 10)
+
+    def test_award_moves_zero_when_at_cap(self):
+        from .energy_service import award_moves, ENERGY_CAP
+        from .models import BattleMoveTransaction, ChefBattleProfile
+        TxType = BattleMoveTransaction.TxType
+        award_moves(self.chef, ENERGY_CAP, TxType.ADMIN_ADJUSTMENT)
+        awarded = award_moves(self.chef, 5, TxType.ADMIN_ADJUSTMENT)
+        self.assertEqual(awarded, 0)
+        profile = ChefBattleProfile.objects.get(author=self.chef)
+        self.assertEqual(profile.battle_moves, ENERGY_CAP)
+
+    def test_like_anti_farming(self):
+        from .energy_service import award_moves, LIKE_ANTI_FARM_MAX_PER_SOURCE
+        from .models import BattleMoveTransaction, ChefBattleProfile
+        TxType = BattleMoveTransaction.TxType
+        for _ in range(LIKE_ANTI_FARM_MAX_PER_SOURCE):
+            award_moves(self.chef, 1, TxType.LIKE_RECEIVED, source_author=self.source)
+        # 4th like from same source should be blocked
+        awarded = award_moves(self.chef, 1, TxType.LIKE_RECEIVED, source_author=self.source)
+        self.assertEqual(awarded, 0)
+        profile = ChefBattleProfile.objects.get(author=self.chef)
+        self.assertEqual(profile.battle_moves, LIKE_ANTI_FARM_MAX_PER_SOURCE)
+
+    def test_spend_moves_deducts_balance(self):
+        from .energy_service import award_moves, spend_moves
+        from .models import BattleMoveTransaction, ChefBattleProfile
+        TxType = BattleMoveTransaction.TxType
+        award_moves(self.chef, 20, TxType.ADMIN_ADJUSTMENT)
+        spend_moves(self.chef, 8, TxType.COMBAT_ACTION_SPENT)
+        profile = ChefBattleProfile.objects.get(author=self.chef)
+        self.assertEqual(profile.battle_moves, 12)
+
+    def test_spend_moves_raises_on_insufficient(self):
+        from .energy_service import spend_moves, InsufficientEnergy
+        from .models import BattleMoveTransaction
+        TxType = BattleMoveTransaction.TxType
+        with self.assertRaises(InsufficientEnergy):
+            spend_moves(self.chef, 50, TxType.COMBAT_ACTION_SPENT)
+
+    def test_transaction_type_stored_on_battle_win(self):
+        from .energy_service import award_moves
+        from .models import BattleMoveTransaction
+        TxType = BattleMoveTransaction.TxType
+        award_moves(self.chef, 10, TxType.BATTLE_WON)
+        tx = BattleMoveTransaction.objects.get(chef=self.chef, transaction_type=TxType.BATTLE_WON)
+        self.assertEqual(tx.amount, 10)
 
 
 class BattleTimerTests(TestCase):

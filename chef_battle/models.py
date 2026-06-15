@@ -385,16 +385,37 @@ class BattleEvent(models.Model):
 
 
 class BattleMoveTransaction(models.Model):
+    class TxType(models.TextChoices):
+        RECIPE_PUBLISHED = "recipe_published", "Recipe Publication"
+        ARTICLE_PUBLISHED = "article_published", "Article Publication"
+        LIKE_RECEIVED = "like_received", "Verified Like Received"
+        BATTLE_WON = "battle_won", "Victory Bonus"
+        BATTLE_PARTICIPATION = "battle_participation", "Battle Participation"
+        COMBAT_ACTION_SPENT = "combat_action_spent", "Spent on Tactical Turn"
+        ADMIN_ADJUSTMENT = "admin_adjustment", "Admin Manual Fix"
+
     chef = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="battle_move_transactions")
     amount = models.IntegerField()
-    reason = models.CharField(max_length=120)
+    transaction_type = models.CharField(
+        max_length=30,
+        choices=TxType.choices,
+        default=TxType.ADMIN_ADJUSTMENT,
+    )
+    reason = models.CharField(max_length=120, blank=True)
+    reference_content_type = models.ForeignKey(
+        "contenttypes.ContentType",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    reference_object_id = models.PositiveIntegerField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.chef}: {self.amount} moves"
+        return f"{self.chef}: {self.amount} moves ({self.transaction_type})"
 
 
 class Artifact(models.Model):
