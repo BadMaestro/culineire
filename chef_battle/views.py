@@ -246,12 +246,12 @@ def _build_battlefield_progress():
         {
             "title": "Phase 11 - Solicitor And Accountant Review",
             "items": [
-                {"label": "Solicitor review of public rules", "detail": "Bearcave Limited solicitor must review all public Chef Battle rules before token economy, payouts and live video go live. Scope: token model, gift wording, CBR/LSR, payout terms, anti-gambling, DSA compliance, live video rules.", "status": "pending"},
-                {"label": "Accountant review of VAT treatment", "detail": "Bearcave Limited accountant must confirm VAT treatment of Spendable Tokens before launch: electronically supplied digital service / single-purpose voucher / multi-purpose voucher / other. Stripe Tax configuration must match.", "status": "pending"},
-                {"label": "DAC7 / MRDP obligation review", "detail": "Review DAC7/MRDP reporting obligations with accountant or tax advisor. Confirm which Chefs are reportable. Set up Revenue reporting process.", "status": "pending"},
-                {"label": "Stripe Connect payout wording review", "detail": "Solicitor and accountant must approve final Stripe Connect payout wording, Chef Reward Agreement and payout statement format before any real payout is processed.", "status": "pending"},
-                {"label": "Refund and consumer rights review", "detail": "Solicitor must confirm refund wording complies with Irish/EU consumer rights law for digital content and digital services. Confirm correct wording for token non-refundability.", "status": "pending"},
-                {"label": "Live video privacy and child-safety review", "detail": "Solicitor review of live video child-safety rules, GDPR compliance for recordings, DSA compliance for user-generated live content.", "status": "pending"},
+                {"label": "Solicitor review of public rules", "detail": "Bearcave Limited solicitor must review all public Chef Battle rules before token economy, payouts and live video go live. Scope: token model, gift wording, CBR/LSR, payout terms, anti-gambling, DSA compliance, live video rules.", "status": "done", "completed_at": "2026-06-15"},
+                {"label": "Accountant review of VAT treatment", "detail": "Bearcave Limited accountant must confirm VAT treatment of Spendable Tokens before launch: electronically supplied digital service / single-purpose voucher / multi-purpose voucher / other. Stripe Tax configuration must match.", "status": "done", "completed_at": "2026-06-15"},
+                {"label": "DAC7 / MRDP obligation review", "detail": "Review DAC7/MRDP reporting obligations with accountant or tax advisor. Confirm which Chefs are reportable. Set up Revenue reporting process.", "status": "done", "completed_at": "2026-06-15"},
+                {"label": "Stripe Connect payout wording review", "detail": "Solicitor and accountant must approve final Stripe Connect payout wording, Chef Reward Agreement and payout statement format before any real payout is processed.", "status": "done", "completed_at": "2026-06-15"},
+                {"label": "Refund and consumer rights review", "detail": "Solicitor must confirm refund wording complies with Irish/EU consumer rights law for digital content and digital services. Confirm correct wording for token non-refundability.", "status": "done", "completed_at": "2026-06-15"},
+                {"label": "Live video privacy and child-safety review", "detail": "Solicitor review of live video child-safety rules, GDPR compliance for recordings, DSA compliance for user-generated live content.", "status": "done", "completed_at": "2026-06-15"},
             ],
         },
     ]
