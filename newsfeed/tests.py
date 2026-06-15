@@ -687,9 +687,11 @@ class BattleEventFeedTest(TestCase):
             battle=battle,
             publish_to_news=True,
         )
-        entry = NewsFeedEntry.objects.get(entry_type=NewsFeedEntry.EntryType.BATTLE_EVENT)
+        entry = NewsFeedEntry.objects.get(
+            entry_type=NewsFeedEntry.EntryType.BATTLE_EVENT,
+            sub_type=BattleEvent.EventType.BATTLE_COMPLETED,
+        )
         self.assertEqual(entry.title, "Battle finished")
-        self.assertEqual(entry.sub_type, BattleEvent.EventType.BATTLE_COMPLETED)
 
     @override_settings(CHEF_BATTLE_ENABLED=True)
     def test_crown_awarded_event_gets_crown_sub_type(self):
@@ -702,8 +704,11 @@ class BattleEventFeedTest(TestCase):
             battle=battle,
             publish_to_news=True,
         )
-        entry = NewsFeedEntry.objects.get(entry_type=NewsFeedEntry.EntryType.BATTLE_EVENT)
-        self.assertEqual(entry.sub_type, BattleEvent.EventType.CROWN_AWARDED)
+        entry = NewsFeedEntry.objects.get(
+            entry_type=NewsFeedEntry.EntryType.BATTLE_EVENT,
+            sub_type=BattleEvent.EventType.CROWN_AWARDED,
+        )
+        self.assertEqual(entry.title, "New crown holder")
 
     @override_settings(CHEF_BATTLE_ENABLED=True)
     def test_publish_false_does_not_create_newsfeed_entry(self):
@@ -711,12 +716,17 @@ class BattleEventFeedTest(TestCase):
         from chef_battle.models import BattleEvent
         battle = self._make_battle()
         create_battle_event(
-            event_type=BattleEvent.EventType.BATTLE_COMPLETED,
-            message="Hidden event",
+            event_type=BattleEvent.EventType.CROWN_AWARDED,
+            message="Hidden crown event",
             battle=battle,
             publish_to_news=False,
         )
-        self.assertFalse(NewsFeedEntry.objects.filter(entry_type=NewsFeedEntry.EntryType.BATTLE_EVENT).exists())
+        self.assertFalse(
+            NewsFeedEntry.objects.filter(
+                entry_type=NewsFeedEntry.EntryType.BATTLE_EVENT,
+                sub_type=BattleEvent.EventType.CROWN_AWARDED,
+            ).exists()
+        )
 
     @override_settings(CHEF_BATTLE_ENABLED=False)
     def test_publish_to_news_ignored_when_chef_battle_flag_off(self):
