@@ -106,7 +106,7 @@
       <button class="token-shop-card__btn token-shop-buy-btn js-token-buy"
               data-package-id="{{ pkg.pk }}"
               data-checkout-url="{% url 'chef_battle:token_checkout_create' %}">
-        <span class="token-shop-buy-btn__label">Buy now</span>
+        <span class="token-shop-buy-btn__label">Continue to checkout</span>
         <span class="token-shop-buy-btn__price">&#x20AC;{{ pkg.price_with_vat }} incl. VAT</span>
       </button>
       {% else %}
