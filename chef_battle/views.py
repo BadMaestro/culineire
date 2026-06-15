@@ -1446,6 +1446,53 @@ def content_report_submit(request):
     return JsonResponse({"ok": True})
 
 
+@login_required
+@require_POST
+def artifact_generate_image(request, pk):
+    from django.core.files.base import ContentFile
+    from .models import Artifact
+    from recipes.management.commands.generate_recipe import fetch_image_bytes
+
+    if not (is_moderator(request.user) or request.user.is_staff):
+        return JsonResponse({"success": False, "error": "Not authorized"}, status=403)
+
+    artifact = get_object_or_404(Artifact, pk=pk)
+    feedback = request.POST.get("feedback", "").strip()
+
+    rarity_colours = {
+        "common":    "grey-white palette, plain border",
+        "uncommon":  "green palette, glowing green border",
+        "rare":      "blue palette, glowing blue border",
+        "epic":      "purple palette, glowing purple border",
+        "legendary": "gold-orange palette, radiant golden border, dramatic glow",
+    }
+    style = (
+        "flat digital illustration, game item icon style, square format, "
+        "rich saturated colours, dark navy background, centered composition, "
+        "no text, no watermarks, no people, clean edges"
+    )
+    colour = rarity_colours.get(artifact.rarity, "")
+    prompt = (
+        f"Kitchen battle game artifact: {artifact.description or artifact.name}. "
+        f"{artifact.rarity} rarity, {colour}. "
+        f"Square icon, centered, dramatic game art style, dark navy background, "
+        f"no text, no watermarks, flat digital illustration, bold outlines, vivid colours. {style}"
+    )
+    if feedback:
+        prompt += f" Important: {feedback}."
+
+    try:
+        image_bytes = fetch_image_bytes(prompt)
+        import os
+        slug = artifact.name.lower().replace(" ", "-").replace("'", "")[:50]
+        filename = f"{slug}-{artifact.pk}.png"
+        artifact.image.save(filename, ContentFile(image_bytes), save=True)
+        return JsonResponse({"success": True, "url": artifact.image.url})
+    except Exception as exc:
+        logger.error("artifact_generate_image failed for pk=%s: %s", pk, exc, exc_info=True)
+        return JsonResponse({"success": False, "error": str(exc)}, status=500)
+
+
 def artifact_gallery(request):
     from .models import Artifact
 
@@ -1465,7 +1512,11 @@ def artifact_gallery(request):
         if group:
             grouped[rarity_labels[rarity]] = group
 
+    can_generate = request.user.is_authenticated and (
+        request.user.is_staff or is_moderator(request.user)
+    )
     return render(request, "chef_battle/artifact_gallery.html", {
         "grouped": grouped,
         "total": artifacts.count(),
+        "can_generate": can_generate,
     })

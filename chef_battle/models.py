@@ -420,6 +420,7 @@ class Artifact(models.Model):
     effect_type = models.CharField(max_length=64, blank=True)
     effect_value = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
+    image = models.ImageField(upload_to="chef_battle/artifacts/", blank=True)
 
     def __str__(self):
         return self.name

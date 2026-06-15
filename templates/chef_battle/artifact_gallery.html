@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}Combat Artifact Gallery | Chef Battle | CulinEire{% endblock %}
-{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260615" rel="stylesheet">{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260615b" rel="stylesheet">{% endblock %}
 
 {% block content %}
 <section class="battle-room-hero">
@@ -27,6 +27,15 @@
       <div class="artifact-grid">
         {% for artifact in artifacts %}
         <article class="artifact-card artifact-card--{{ artifact.rarity }}">
+          <div class="artifact-card__image-wrap" id="artifact-img-wrap-{{ artifact.pk }}">
+            {% if artifact.image %}
+            <img alt="{{ artifact.name }}" class="artifact-card__image" id="artifact-img-{{ artifact.pk }}" src="{{ artifact.image.url }}">
+            {% else %}
+            <div class="artifact-card__image-placeholder" id="artifact-img-{{ artifact.pk }}">
+              <span>No image</span>
+            </div>
+            {% endif %}
+          </div>
           <div class="artifact-card__header">
             <span class="artifact-card__rarity">{{ artifact.get_rarity_display }}</span>
             <span class="artifact-card__cost">{{ artifact.token_cost }}T</span>
@@ -38,6 +47,17 @@
             <span class="artifact-card__effect-label">Effect:</span> {{ artifact.effect_type }}{% if artifact.effect_value %} ({{ artifact.effect_value }}){% endif %}
           </p>
           {% endif %}
+          {% if can_generate %}
+          <button class="artifact-card__regen-btn authoring-step-regen"
+                  type="button"
+                  data-regen-url="{% url 'chef_battle:artifact_generate_image' artifact.pk %}"
+                  data-label="{{ artifact.name }}"
+                  data-thumb-id="artifact-img-{{ artifact.pk }}"
+                  data-wrap-id="artifact-img-wrap-{{ artifact.pk }}"
+                  data-artifact-pk="{{ artifact.pk }}">
+            {% if artifact.image %}Regenerate{% else %}Generate Image{% endif %}
+          </button>
+          {% endif %}
         </article>
         {% endfor %}
       </div>
@@ -48,4 +68,114 @@
 
   </div>
 </section>
+
+{% if can_generate %}
+{% csrf_token %}
+<div aria-modal="true" class="regen-modal" id="artifact-regen-modal" role="dialog" style="display:none">
+  <div class="regen-modal__backdrop"></div>
+  <div class="regen-modal__box">
+    <button aria-label="Close" class="regen-modal__close" id="artifact-regen-close" type="button">&times;</button>
+    <h2 class="regen-modal__title">Generate image: <span id="artifact-regen-label"></span></h2>
+    <p class="regen-modal__hint">Leave blank to use the artifact description as the prompt, or add feedback to refine the result.</p>
+    <textarea class="regen-modal__feedback" id="artifact-regen-feedback" maxlength="500" placeholder="e.g. More dramatic, darker tones, glowing edges..."></textarea>
+    <div class="regen-modal__error" id="artifact-regen-error" role="alert" style="display:none"></div>
+    <div class="regen-modal__actions">
+      <button class="authoring-link" id="artifact-regen-cancel" type="button">Cancel</button>
+      <button class="authoring-submit" id="artifact-regen-submit" type="button">Generate</button>
+    </div>
+    <div class="regen-modal__loading" id="artifact-regen-loading" style="display:none">
+      <span class="regen-modal__spinner"></span> Generating image, please wait...
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+{% if can_generate %}
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+  var modal     = document.getElementById('artifact-regen-modal');
+  if (!modal) return;
+
+  var labelEl   = document.getElementById('artifact-regen-label');
+  var feedback  = document.getElementById('artifact-regen-feedback');
+  var errorEl   = document.getElementById('artifact-regen-error');
+  var loading   = document.getElementById('artifact-regen-loading');
+  var submitBtn = document.getElementById('artifact-regen-submit');
+  var activeBtn = null;
+
+  function openModal(btn) {
+    activeBtn = btn;
+    labelEl.textContent = btn.dataset.label || 'artifact';
+    feedback.value = '';
+    errorEl.style.display = 'none';
+    loading.style.display = 'none';
+    submitBtn.disabled = false;
+    modal.style.display = 'flex';
+    feedback.focus();
+  }
+
+  function closeModal() {
+    modal.style.display = 'none';
+    activeBtn = null;
+  }
+
+  document.querySelectorAll('.artifact-card__regen-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () { openModal(btn); });
+  });
+
+  document.getElementById('artifact-regen-close').addEventListener('click', closeModal);
+  document.getElementById('artifact-regen-cancel').addEventListener('click', closeModal);
+  modal.querySelector('.regen-modal__backdrop').addEventListener('click', closeModal);
+
+  document.getElementById('artifact-regen-submit').addEventListener('click', function () {
+    if (!activeBtn) return;
+    var url     = activeBtn.dataset.regenUrl;
+    var thumbId = activeBtn.dataset.thumbId;
+    var wrapId  = activeBtn.dataset.wrapId;
+    var fb      = feedback.value.trim();
+
+    errorEl.style.display = 'none';
+    loading.style.display = 'block';
+    submitBtn.disabled = true;
+
+    var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    var body = new URLSearchParams({ feedback: fb });
+
+    fetch(url, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrfToken, 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString()
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      loading.style.display = 'none';
+      if (data.success) {
+        var wrap = document.getElementById(wrapId);
+        if (wrap) {
+          wrap.innerHTML = '<img alt="' + (activeBtn.dataset.label || '') + '" class="artifact-card__image" id="' + thumbId + '" src="' + data.url + '?t=' + Date.now() + '">';
+        }
+        activeBtn.textContent = 'Regenerate';
+        closeModal();
+      } else {
+        errorEl.textContent = data.error || 'Generation failed. Please try again.';
+        errorEl.style.display = 'block';
+        submitBtn.disabled = false;
+      }
+    })
+    .catch(function () {
+      loading.style.display = 'none';
+      errorEl.textContent = 'Network error. Please try again.';
+      errorEl.style.display = 'block';
+      submitBtn.disabled = false;
+    });
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && modal.style.display !== 'none') closeModal();
+  });
+})();
+</script>
+{% endif %}
 {% endblock %}
