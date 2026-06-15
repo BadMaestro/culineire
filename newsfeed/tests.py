@@ -663,7 +663,8 @@ class BattleEventFeedTest(TestCase):
 
     def _make_battle(self):
         from django.utils import timezone
-        from chef_battle.models import BattleChallenge, Battle
+        from chef_battle.models import BattleChallenge
+        from chef_battle.services import accept_challenge
         User = get_user_model()
         from recipes.models import RecipeAuthor
         user2 = User.objects.create_user(username="opponent", password="pass", email="b@b.com")
@@ -671,10 +672,9 @@ class BattleEventFeedTest(TestCase):
         challenge = BattleChallenge.objects.create(
             challenger=self.author,
             opponent=opponent,
-            status=BattleChallenge.Status.ACCEPTED,
             expires_at=timezone.now() + timezone.timedelta(hours=24),
         )
-        return Battle.objects.create(challenge=challenge, status=Battle.Status.ACTIVE)
+        return accept_challenge(challenge)
 
     @override_settings(CHEF_BATTLE_ENABLED=True)
     def test_create_battle_event_with_publish_creates_newsfeed_entry(self):
