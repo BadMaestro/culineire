@@ -82,6 +82,7 @@
       <a href="#s15">15. CBR &amp; LSR Rewards</a>
       <a href="#s16">16. Next Battle Unlock</a>
       <a href="#s17">17. Anti-Gambling</a>
+      <a href="#s18">18. Tax &amp; DAC7</a>
     </div>
   </details>
 
@@ -147,6 +148,7 @@
         <a href="#s15">15. CBR &amp; LSR Rewards</a>
         <a href="#s16">16. Next Battle Unlock</a>
         <a href="#s17">17. Anti-Gambling</a>
+        <a href="#s18">18. Tax &amp; DAC7</a>
       </nav>
       <p>Rules apply to all battles. Tokens and artifacts are governed by the Purchases &amp; VAT policy.</p>
     </aside>
@@ -289,6 +291,11 @@
               <tr><td>&#x1F37E; Virtual Champagne Bottle</td><td>100T</td></tr>
             </tbody>
           </table>
+          <p style="margin-block-start:0.85rem; font-size:0.85rem; color:var(--color-text-muted);">
+            Alcohol-themed gifts (Virtual Beer Toast, Virtual Whiskey Toast, Celebration Cocktail, Virtual Champagne Bottle) are virtual entertainment items only.
+            No alcohol, beverages or physical goods of any kind are supplied or delivered.
+            You must be 18 or older to send or receive appreciation gifts.
+          </p>
         </div>
       </article>
 
@@ -300,8 +307,8 @@
             <li>You choose any artifact from the shop and select the chef you want to send it to.</li>
             <li>The cost is the artifact's token price plus a <strong>virtual delivery fee</strong>, a small surcharge for real-time in-battle delivery.</li>
             <li>The recipient chef receives the artifact in their inventory immediately, even mid-combat.</li>
-            <li>The artifact stays on the chef's profile after the battle ends, unless it was consumed during combat.</li>
-            <li>You cannot send a duplicate artifact to a chef who already owns it.</li>
+            <li>Battle Gift artifacts are one-use digital combat items. If used in combat, the artifact is consumed and cannot be used again. A historical record may remain on the chef profile or battle log.</li>
+            <li>You cannot send a duplicate artifact to a chef who already owns an unused copy of it.</li>
             <li>Battle Gifts are digital items only. No physical goods are supplied.</li>
           </ul>
         </div>
@@ -371,11 +378,14 @@
         <div class="legal-card__content">
           <p class="page-subtitle">CulinEire may issue discretionary rewards to chefs and live supporters as recognition of contribution to the arena community.</p>
           <ul class="legal-list">
-            <li><strong>Chef Battle Rewards (CBR)</strong> are token grants awarded to chefs who win battles, reach level milestones, or are recognised for outstanding performance.</li>
-            <li><strong>Live Support Rewards (LSR)</strong> are token grants issued to viewers who send qualifying appreciation gifts during live battles.</li>
-            <li>CBR and LSR are issued at CulinEire's sole discretion. They are not guaranteed and do not constitute a contractual entitlement.</li>
-            <li>Rewards are issued as arena tokens and are subject to the same closed-loop restrictions as purchased tokens.</li>
-            <li>Reward amounts and eligibility criteria may change at any time without notice.</li>
+            <li><strong>Chef Battle Rewards (CBR)</strong> are internal reward records granted to chefs who win battles, reach level milestones, or are recognised for outstanding performance.</li>
+            <li><strong>Live Support Rewards (LSR)</strong> are internal reward records issued to viewers who send qualifying appreciation gifts.</li>
+            <li>CBR and LSR are not tokens, not money, and not e-money. They are discretionary platform reward records held internally by CulinEire until approved for payout. They are not guaranteed and do not constitute a contractual entitlement.</li>
+            <li>Each reward record passes through up to 11 lifecycle stages: Pending, Queued, Approved, Issued, Acknowledged, Used, Expired, Reversed, Disputed, Voided, Archived. Only Approved records are eligible for payout.</li>
+            <li>Winning a battle does not automatically create a payout. The Next Battle Unlock condition must be met first (see section 16).</li>
+            <li>If a Stripe Connect payout account is set up and all conditions are met, a chef may request a payout at a rate of <strong>1 approved reward token = €0.025</strong>. Minimum payout: €50 (2,000 tokens). Payouts are subject to admin review and are not automatic.</li>
+            <li>Reward amounts, eligibility criteria and payout rates may change at any time without notice.</li>
+            <li>The following language is never used in connection with CBR/LSR: "chef funds", "earned money", "withdrawable balance", "guaranteed payout", "money owed", "cash balance".</li>
           </ul>
         </div>
       </article>
@@ -384,8 +394,9 @@
         <div class="section-header"><h2>Next Battle Unlock</h2></div>
         <div class="legal-card__content">
           <ul class="legal-list">
-            <li>After completing a battle, both chefs enter a <strong>cooldown period</strong> before they can issue or accept a new challenge.</li>
-            <li>The cooldown is <strong>24 hours</strong> from the moment the battle result is confirmed.</li>
+            <li>CBR/LSR reward records from Battle N are <strong>not payout-eligible</strong> until the chef completes a subsequent eligible battle (Battle N+1).</li>
+            <li>An eligible battle requires: challenge accepted, recipe submitted, combat completed, cooking phase completed, dish photo uploaded, moderator approved, voting completed. Abandoned, disqualified, cancelled or fraud-flagged battles do not qualify.</li>
+            <li>After completing a battle, both chefs also enter a <strong>24-hour cooldown</strong> before they can issue or accept a new challenge.</li>
             <li>Chefs who have active challenge requests or pending battles cannot issue additional challenges until those are resolved.</li>
             <li>The cooldown period may be reduced or extended by CulinEire at season or event boundaries.</li>
           </ul>
@@ -398,10 +409,25 @@
           <ul class="legal-list">
             <li>Chef's Battle is a <strong>skill-based cooking competition</strong>. It is not a gambling product.</li>
             <li>Tokens are not stakes. Purchasing tokens or sending gifts does not constitute placing a bet and does not entitle the sender to any prize or monetary return.</li>
+            <li>Tokens may not be staked. Battle outcome does not transfer tokens between users. CBR/LSR are only created through approved platform logic.</li>
             <li>Voting determines the winner based on the quality of submitted recipes, not on token spending or artifact use.</li>
             <li>Artifact combat is an entertainment mechanic during the cooking phase. It does not directly determine the battle outcome.</li>
-            <li>CulinEire does not operate under a gambling licence and does not offer odds, prize pools, or cash winnings.</li>
+            <li>CulinEire does not operate under a gambling licence and does not offer odds, prize pools, jackpots, or cash winnings.</li>
             <li>If you are concerned about your spending in the arena, contact us at any time via the <a href="{% url 'messaging:contact' %}">contact form</a>.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="legal-card legal-card--section" id="s18">
+        <div class="section-header"><h2>Tax &amp; DAC7</h2></div>
+        <div class="legal-card__content">
+          <ul class="legal-list">
+            <li>Chefs are solely responsible for their own tax affairs in relation to any CBR/LSR payouts received from CulinEire.</li>
+            <li>CBR/LSR payouts may constitute taxable income under Irish and EU tax law. CulinEire does not provide tax advice.</li>
+            <li>Under DAC7 / EU Mandatory Disclosure rules (MRDP), CulinEire may be required to collect and report certain information about chefs who receive qualifying payouts to Revenue Commissioners (Ireland) or other competent tax authorities.</li>
+            <li>Before any payout is processed, CulinEire will collect required data including: legal name, date of birth, address, country of tax residence, and tax identification number.</li>
+            <li>If you receive CBR/LSR payouts above applicable reporting thresholds, CulinEire may be legally required to report this to Revenue. You will be informed if this applies to you.</li>
+            <li>CulinEire reserves the right to withhold payouts pending collection of required tax identification information.</li>
           </ul>
         </div>
       </article>
