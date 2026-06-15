@@ -1293,7 +1293,7 @@ class AgeVerificationGateTests(TestCase):
         from .models import TokenPackage, TokenWallet
         TokenWallet.objects.create(chef=self.author, balance=0)
         pkg = TokenPackage.objects.create(
-            name="Starter", slug="starter", tokens=100, price_cents=500, is_active=True
+            key="starter_age_test", name="Starter Age Test", tokens=100, price_eur="5.00", is_active=True
         )
         self.client.force_login(self.user)
         resp = self.client.post(
