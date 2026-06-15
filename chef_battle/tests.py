@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
@@ -1245,3 +1247,90 @@ class FraudGateTests(TestCase):
         ])
         self.assertFalse(result.passed)
         self.assertIn("self_vote", result.failed_gates)
+
+
+# ── CB-2006 — Age verification gate ──────────────────────────────────────────
+
+class AgeVerificationGateTests(TestCase):
+    """gate_age_verified enforces 18+ before paid arena actions (CB-2006)."""
+
+    def setUp(self):
+        self.user = User.objects.create_user("age_tester", password="pass")
+        from recipes.models import RecipeAuthor
+        self.author = RecipeAuthor.objects.create(user=self.user, name="Age Tester", slug="age-tester")
+        from .models import ChefBattleProfile
+        self.profile = ChefBattleProfile.objects.create(author=self.author, age_verified=False)
+
+    def test_gate_fails_when_age_not_verified(self):
+        from .fraud import gate_age_verified
+        r = gate_age_verified(self.author)
+        self.assertFalse(r.passed)
+        self.assertEqual(r.gate, "age_verified")
+
+    def test_gate_passes_when_age_verified(self):
+        from .fraud import gate_age_verified
+        self.profile.age_verified = True
+        self.profile.save()
+        r = gate_age_verified(self.author)
+        self.assertTrue(r.passed)
+
+    def test_gate_fails_when_author_is_none(self):
+        from .fraud import gate_age_verified
+        r = gate_age_verified(None)
+        self.assertFalse(r.passed)
+
+    def test_gate_fails_when_profile_missing(self):
+        from .fraud import gate_age_verified
+        from recipes.models import RecipeAuthor
+        no_profile_user = User.objects.create_user("no_profile_age", password="pass")
+        author = RecipeAuthor.objects.create(user=no_profile_user, name="No Profile", slug="no-profile-age")
+        r = gate_age_verified(author)
+        self.assertFalse(r.passed)
+
+    def test_token_checkout_blocked_when_age_not_verified(self):
+        """POST to token_checkout_create returns 403 JSON when age not verified."""
+        from .models import TokenPackage, TokenWallet
+        TokenWallet.objects.create(chef=self.author, balance=0)
+        pkg = TokenPackage.objects.create(
+            name="Starter", slug="starter", tokens=100, price_cents=500, is_active=True
+        )
+        self.client.force_login(self.user)
+        resp = self.client.post(
+            reverse("chef_battle:token_checkout_create"),
+            data=json.dumps({"package_id": pkg.pk, "withdrawal_consent": True}),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, 403)
+        data = resp.json()
+        self.assertIn("error", data)
+
+    def test_send_gift_blocked_when_age_not_verified(self):
+        """POST to send_appreciation_gift redirects with error when age not verified."""
+        from .models import Battle, BattleChallenge, TokenWallet
+        other_user = User.objects.create_user("gift_recipient_age", password="pass")
+        from recipes.models import RecipeAuthor
+        other_author = RecipeAuthor.objects.create(
+            user=other_user, name="Gift Recipient Age", slug="gift-recipient-age"
+        )
+        from .models import ChefBattleProfile
+        ChefBattleProfile.objects.create(author=other_author, age_verified=True)
+        TokenWallet.objects.create(chef=self.author, balance=500)
+        challenge = BattleChallenge.objects.create(
+            challenger=self.author,
+            opponent=other_author,
+            theme="Test",
+            expires_at=timezone.now() + timezone.timedelta(hours=1),
+        )
+        battle = Battle.objects.create(
+            challenger=self.author,
+            opponent=other_author,
+            challenge=challenge,
+            status=Battle.Status.VOTING,
+            voting_ends_at=timezone.now() + timezone.timedelta(hours=1),
+        )
+        self.client.force_login(self.user)
+        resp = self.client.post(
+            reverse("chef_battle:send_appreciation_gift", kwargs={"pk": battle.pk}),
+            data={"recipient_slug": other_author.slug, "gift_type": "flowers", "message": ""},
+        )
+        self.assertIn(resp.status_code, [301, 302])

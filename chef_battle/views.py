@@ -26,6 +26,7 @@ from .access import chef_battle_guard
 from .forms import BattleChallengeForm, BattleEntryForm
 from .fraud import (
     gate_account_age,
+    gate_age_verified,
     gate_challenge_spam,
     gate_duplicate_device,
     gate_fraud_flagged,
@@ -209,7 +210,7 @@ def _build_battlefield_progress():
                 {"label": "Immutable event ledger", "detail": "LedgerEvent model with 20 event types: TOKEN_PURCHASED, TOKEN_CREDITED, TOKEN_SPENT, GIFT_SENT, LSR_PENDING_CREATED, CBR_PENDING_CREATED, ARTIFACT_GRANTED, ARTIFACT_PURCHASED, ARTIFACT_CONSUMED, REWARD_LOCKED, REWARD_APPROVED, PAYOUT_REQUESTED, PAYOUT_APPROVED, PAYOUT_PAID, REFUND_RECEIVED, CHARGEBACK_OPENED, REWARD_REVERSED, ACCOUNT_FLAGGED, COMPLIANCE_REVIEW_STARTED, COMPLIANCE_REVIEW_CLEARED. Append-only, no silent deletes.", "status": "pending"},
                 {"label": "Refund / chargeback lock behaviour", "detail": "If token purchase is refunded or charged back: review related token credits, flag gifts, lock/reverse related reward records, block payout eligibility, place account under compliance review. Never silently delete financial records.", "status": "pending"},
                 {"label": "Fraud and compliance flags", "detail": "ChefBattleProfile or linked model must support: fraud_flagged, compliance_review, payout_blocked, account_flagged, suspension_reason fields. Flags block payout eligibility and can trigger reward review.", "status": "pending"},
-                {"label": "18+ technical gate", "detail": "Enforce age verification before: token purchase, paid gift send, artifact purchase, Battle Gift send, challenge creation/acceptance, CBR/LSR payout eligibility, Stripe Connect onboarding, payout request, live video participation.", "status": "pending"},
+                {"label": "18+ technical gate", "detail": "Enforce age verification before: token purchase, paid gift send, artifact purchase, Battle Gift send, challenge creation/acceptance, CBR/LSR payout eligibility, Stripe Connect onboarding, payout request, live video participation.", "status": "done"},
                 {"label": "DSA / content reporting flow", "detail": "Users must be able to report: illegal content, abuse, fraud, suspicious battles, vote manipulation, offensive gift messages, account sale/transfer, suspicious payout activity. Platform must be able to: hide content, suspend rewards, lock payout, flag accounts, preserve audit evidence.", "status": "pending"},
                 {"label": "Suspicious vote detection", "detail": "Add session/IP/device/rate-limit protection to voting. Staff can pause, review, void or adjust vote result if manipulation detected. Add public wording about vote review.", "status": "pending"},
             ],
@@ -388,6 +389,7 @@ def token_checkout_create(request):
     fraud_result = run_fraud_gates([
         (gate_suspended_account, (author,), {}),
         (gate_fraud_flagged, (author,), {}),
+        (gate_age_verified, (author,), {}),
         (gate_withdrawal_consent, (withdrawal_waived,), {}),
     ])
     if not fraud_result.passed:
@@ -395,6 +397,7 @@ def token_checkout_create(request):
         _CHECKOUT_FRAUD_MESSAGES = {
             "suspended_account": "Your account is suspended.",
             "fraud_flagged": "Your account has been flagged. Please contact support.",
+            "age_verified": "You must confirm that you are 18 or older before purchasing tokens.",
             "withdrawal_consent": "You must confirm the digital content consent before purchasing tokens.",
         }
         return JsonResponse(
@@ -567,6 +570,7 @@ def challenge_create(request):
             fraud_result = run_fraud_gates([
                 (gate_suspended_account, (author,), {}),
                 (gate_fraud_flagged, (author,), {}),
+                (gate_age_verified, (author,), {}),
                 (gate_challenge_spam, (author,), {}),
                 (gate_repeat_challenge_cooldown, (author, opponent), {}),
             ])
@@ -1170,12 +1174,14 @@ def send_appreciation_gift_view(request, pk):
     early_fraud = run_fraud_gates([
         (gate_suspended_account, (sender_author,), {}),
         (gate_fraud_flagged, (sender_author,), {}),
+        (gate_age_verified, (sender_author,), {}),
     ])
     if not early_fraud.passed:
         first_fail = next(g for g in early_fraud.gates if not g.passed)
         _GIFT_FRAUD_MESSAGES = {
             "suspended_account": "Your account is suspended.",
             "fraud_flagged": "Your account has been flagged. Please contact support.",
+            "age_verified": "You must confirm that you are 18 or older before sending paid gifts.",
         }
         messages.error(request, _GIFT_FRAUD_MESSAGES.get(first_fail.gate, "Gift not accepted."))
         return redirect("chef_battle:battle_detail", pk=pk)

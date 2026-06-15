@@ -282,6 +282,26 @@ def gate_withdrawal_consent(withdrawal_waived: bool) -> GateResult:
 
 
 # ---------------------------------------------------------------------------
+# Gate 13b — Age verification (18+)
+# ---------------------------------------------------------------------------
+
+def gate_age_verified(author) -> GateResult:
+    """Require the chef profile to have age_verified=True before paid actions."""
+    if author is None:
+        return GateResult("age_verified", False, "No chef profile found.")
+    profile = getattr(author, "_battle_profile_cache", None)
+    if profile is None:
+        from .models import ChefBattleProfile
+        profile = ChefBattleProfile.objects.filter(author=author).first()
+    if profile is None or not profile.age_verified:
+        return GateResult(
+            "age_verified", False,
+            "You must confirm that you are 18 or older before using paid Arena features."
+        )
+    return GateResult("age_verified", True)
+
+
+# ---------------------------------------------------------------------------
 # Gate 14 — AI image review (stub — only active if ENABLE_AI_IMAGE_REVIEW_PROVIDER)
 # ---------------------------------------------------------------------------
 
