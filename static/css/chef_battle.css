@@ -2073,6 +2073,11 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
 .report-dialog__msg--err { color: var(--color-error, #8b1a1a); }
 
 /* Artifact gallery */
+.artifact-filter-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 2rem; }
+.artifact-filter-btn { background: none; border: 1px solid var(--line); border-radius: var(--radius-pill); padding: 0.35rem 1.1rem; font-size: 0.85rem; font-weight: 600; color: var(--ink-soft); cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+.artifact-filter-btn:hover { background: var(--surface-soft); color: var(--ink); }
+.artifact-filter-btn.is-active { background: var(--brand); border-color: var(--brand); color: #fff; }
+
 .artifact-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.25rem; }
 
 .artifact-rarity-group { margin-bottom: 2.5rem; }

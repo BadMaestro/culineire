@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}Combat Artifact Gallery | Chef Battle | CulinEire{% endblock %}
-{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260615c" rel="stylesheet">{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260615d" rel="stylesheet">{% endblock %}
 
 {% block content %}
 <section class="battle-room-hero">
@@ -21,12 +21,19 @@
 <section class="page-section">
   <div class="container battle-page">
 
+    <div class="artifact-filter-bar" role="tablist" aria-label="Filter by effect type">
+      <button class="artifact-filter-btn is-active" data-filter="all" role="tab" aria-selected="true" type="button">All</button>
+      <button class="artifact-filter-btn" data-filter="attack" role="tab" aria-selected="false" type="button">Attack</button>
+      <button class="artifact-filter-btn" data-filter="defence" role="tab" aria-selected="false" type="button">Defence</button>
+      <button class="artifact-filter-btn" data-filter="boost" role="tab" aria-selected="false" type="button">Boost</button>
+    </div>
+
     {% for rarity_label, artifacts in grouped.items %}
     <section class="artifact-rarity-group artifact-rarity-group--{{ rarity_label|lower }}">
       <h2 class="artifact-rarity-group__title">{{ rarity_label }}</h2>
       <div class="artifact-grid">
         {% for artifact in artifacts %}
-        <article class="artifact-card artifact-card--{{ artifact.rarity }}">
+        <article class="artifact-card artifact-card--{{ artifact.rarity }}" data-effect="{{ artifact.effect_type|default:'' }}">
           <div class="artifact-card__image-wrap" id="artifact-img-wrap-{{ artifact.pk }}">
             {% if artifact.image %}
             <img alt="{{ artifact.name }}" class="artifact-card__image" id="artifact-img-{{ artifact.pk }}" src="{{ artifact.image.url }}">
@@ -92,6 +99,34 @@
 {% endblock %}
 
 {% block extra_scripts %}
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+  var btns  = document.querySelectorAll('.artifact-filter-btn');
+  var cards = document.querySelectorAll('.artifact-card');
+  var groups = document.querySelectorAll('.artifact-rarity-group');
+
+  btns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      btns.forEach(function (b) { b.classList.remove('is-active'); b.setAttribute('aria-selected', 'false'); });
+      btn.classList.add('is-active');
+      btn.setAttribute('aria-selected', 'true');
+
+      var filter = btn.dataset.filter;
+      cards.forEach(function (card) {
+        var match = filter === 'all' || card.dataset.effect === filter;
+        card.style.display = match ? '' : 'none';
+      });
+
+      // Hide rarity group headings that have no visible cards
+      groups.forEach(function (group) {
+        var visible = group.querySelectorAll('.artifact-card[style=""], .artifact-card:not([style])');
+        var anyVisible = Array.from(group.querySelectorAll('.artifact-card')).some(function (c) { return c.style.display !== 'none'; });
+        group.style.display = anyVisible ? '' : 'none';
+      });
+    });
+  });
+})();
+</script>
 {% if can_generate %}
 <script nonce="{{ request.csp_nonce }}">
 (function () {
