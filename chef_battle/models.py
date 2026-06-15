@@ -83,6 +83,7 @@ class ChefBattleProfile(models.Model):
     fraud_flag = models.BooleanField(default=False, db_index=True)
     fraud_flag_note = models.CharField(max_length=200, blank=True)
     dsa_reported_count = models.PositiveIntegerField(default=0)
+    payout_blocked = models.BooleanField(default=False, db_index=True, help_text="Payout blocked pending compliance review")
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -413,21 +414,40 @@ class ChefArtifact(models.Model):
         PURCHASED = "purchased", "Purchased"
         GIFTED = "gifted", "Gifted"
         DROP = "drop", "Battle Drop"
+        ADMIN_GRANT = "admin_grant", "Admin Grant"
 
     class Status(models.TextChoices):
-        ACTIVE = "active", "Active"
+        AVAILABLE = "available", "Available"
+        RESERVED = "reserved", "Reserved (in active battle)"
         CONSUMED = "consumed", "Consumed"
+        EXPIRED = "expired", "Expired"
+        REVERSED = "reversed", "Reversed"
 
     chef = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="chef_artifacts")
     artifact = models.ForeignKey(Artifact, on_delete=models.CASCADE, related_name="chef_artifacts")
     earned_at = models.DateTimeField(auto_now_add=True)
     equipped = models.BooleanField(default=False)
     source = models.CharField(max_length=16, choices=Source.choices, default=Source.PURCHASED)
-    status = models.CharField(max_length=10, choices=Status.choices, default=Status.ACTIVE, db_index=True)
+    status = models.CharField(
+        max_length=10, choices=Status.choices, default=Status.AVAILABLE, db_index=True
+    )
     consumed_at = models.DateTimeField(null=True, blank=True)
     consumed_in_battle = models.ForeignKey(
         "Battle", null=True, blank=True, on_delete=models.SET_NULL, related_name="consumed_artifacts"
     )
+    reserved_in_battle = models.ForeignKey(
+        "Battle", null=True, blank=True, on_delete=models.SET_NULL, related_name="reserved_artifacts"
+    )
+    expired_at = models.DateTimeField(null=True, blank=True)
+    reversed_at = models.DateTimeField(null=True, blank=True)
+    # Admin grant audit
+    admin_granted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name="admin_granted_artifacts",
+    )
+    admin_grant_reason = models.TextField(blank=True)
 
     class Meta:
         constraints = [
@@ -520,6 +540,7 @@ class AppreciationGift(models.Model):
     tokens_spent = models.PositiveIntegerField()
     message = models.CharField(max_length=200, blank=True)
     sent_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    is_flagged = models.BooleanField(default=False, db_index=True, help_text="Flagged for compliance review")
 
     class Meta:
         ordering = ["-sent_at"]
@@ -961,6 +982,10 @@ class LedgerEvent(models.Model):
         LEVEL_UP = "level_up", "Level Up"
         FRAUD_FLAG = "fraud_flag", "Fraud Flag"
         ACCOUNT_SUSPENDED = "account_suspended", "Account Suspended"
+        ADMIN_NOTE = "admin_note", "Admin Note"
+        ARTIFACT_GRANTED = "artifact_granted", "Artifact Granted (Admin)"
+        CHARGEBACK_LOCK = "chargeback_lock", "Chargeback Lock"
+        CONTENT_REPORT = "content_report", "Content Report"
 
     event_type = models.CharField(max_length=32, choices=EventType.choices, db_index=True)
     actor = models.ForeignKey(

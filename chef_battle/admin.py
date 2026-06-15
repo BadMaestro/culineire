@@ -1,4 +1,7 @@
+from django import forms
 from django.contrib import admin, messages
+from django.shortcuts import redirect, render
+from django.urls import path
 from django.utils import timezone
 
 from .models import (
@@ -304,13 +307,107 @@ class ArtifactAdmin(admin.ModelAdmin):
     search_fields = ("name",)
 
 
+class AdminArtifactGrantForm(forms.Form):
+    chef = forms.ModelChoiceField(
+        queryset=None,
+        label="Chef (RecipeAuthor)",
+        help_text="The chef who will receive the artifact.",
+    )
+    artifact = forms.ModelChoiceField(
+        queryset=None,
+        label="Artifact",
+    )
+    reason = forms.CharField(
+        widget=forms.Textarea(attrs={"rows": 3}),
+        label="Grant reason (mandatory)",
+        help_text="Explain why this artifact is being granted. This is immutable audit data.",
+        min_length=10,
+    )
+
+    def __init__(self, *args, **kwargs):
+        from recipes.models import RecipeAuthor
+        from .models import Artifact
+        super().__init__(*args, **kwargs)
+        self.fields["chef"].queryset = RecipeAuthor.objects.order_by("name")
+        self.fields["artifact"].queryset = Artifact.objects.filter(is_active=True).order_by("name")
+
+
 @admin.register(ChefArtifact)
 class ChefArtifactAdmin(admin.ModelAdmin):
-    list_display = ("chef", "artifact", "source", "status", "equipped", "earned_at", "consumed_at")
+    list_display = (
+        "chef", "artifact", "source", "status", "equipped",
+        "earned_at", "consumed_at", "admin_granted_by",
+    )
     list_filter = ("equipped", "source", "status")
     search_fields = ("chef__name", "artifact__name")
-    readonly_fields = ("earned_at", "consumed_at")
+    readonly_fields = (
+        "earned_at", "consumed_at", "reserved_in_battle",
+        "expired_at", "reversed_at", "admin_granted_by", "admin_grant_reason",
+    )
     ordering = ("-earned_at",)
+    fieldsets = (
+        (None, {"fields": ("chef", "artifact", "source", "status", "equipped")}),
+        ("Consumption", {"fields": ("consumed_at", "consumed_in_battle", "reserved_in_battle")}),
+        ("Lifecycle", {"fields": ("expired_at", "reversed_at")}),
+        ("Admin Grant Audit", {"fields": ("admin_granted_by", "admin_grant_reason")}),
+        ("Timestamps", {"fields": ("earned_at",)}),
+    )
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom = [
+            path(
+                "grant-artifact/",
+                self.admin_site.admin_view(self.grant_artifact_view),
+                name="chef_battle_chefartifact_grant",
+            )
+        ]
+        return custom + urls
+
+    def grant_artifact_view(self, request):
+        if not request.user.is_staff:
+            from django.contrib.auth.views import redirect_to_login
+            return redirect_to_login(request.get_full_path())
+
+        form = AdminArtifactGrantForm(request.POST or None)
+        if request.method == "POST" and form.is_valid():
+            chef = form.cleaned_data["chef"]
+            artifact = form.cleaned_data["artifact"]
+            reason = form.cleaned_data["reason"]
+
+            if ChefArtifact.objects.filter(chef=chef, artifact=artifact).exists():
+                messages.error(request, f"{chef} already has {artifact}. Each artifact can only be held once.")
+            else:
+                instance = ChefArtifact.objects.create(
+                    chef=chef,
+                    artifact=artifact,
+                    source=ChefArtifact.Source.ADMIN_GRANT,
+                    status=ChefArtifact.Status.AVAILABLE,
+                    admin_granted_by=request.user,
+                    admin_grant_reason=reason,
+                )
+                LedgerEvent.objects.create(
+                    event_type=LedgerEvent.EventType.ARTIFACT_GRANTED,
+                    actor=chef,
+                    payload={
+                        "action": "admin_artifact_grant",
+                        "artifact_id": artifact.pk,
+                        "artifact_name": artifact.name,
+                        "granted_by": request.user.username,
+                        "reason": reason,
+                        "chef_artifact_id": instance.pk,
+                    },
+                )
+                messages.success(request, f"Artifact '{artifact}' granted to {chef}. Audit entry created.")
+                return redirect("../")
+
+        context = dict(
+            self.admin_site.each_context(request),
+            form=form,
+            title="Admin: Grant Artifact to Chef",
+            opts=self.model._meta,
+        )
+        return render(request, "chef_battle/admin_grant_artifact.html", context)
 
 
 @admin.register(CosmeticItem)

@@ -1398,3 +1398,147 @@ def run_next_battle_unlock_for_chef(chef) -> int:
         if check_next_battle_unlock(chef, record):
             count += 1
     return count
+
+
+def handle_token_order_chargeback(token_order_id: int, chargeback: bool = False) -> dict:
+    """Lock a token order and reverse related rewards when a refund or chargeback occurs.
+
+    - Marks the TokenOrder as refunded (or disputed if chargeback=True).
+    - Reverses any PENDING/QUEUED reward records linked to gifts funded by this order.
+    - Flags all related AppreciationGift records.
+    - Suspends the chef's payout eligibility flag.
+    - Creates an immutable ledger entry for the compliance record.
+    - Never silently deletes any records.
+
+    Returns a summary dict with counts of affected records.
+    """
+    from .models import (
+        AppreciationGift, LedgerEvent, RewardRecord, TokenOrder, TokenWallet, TokenTransaction,
+    )
+
+    with transaction.atomic():
+        try:
+            order = TokenOrder.objects.select_for_update().select_related("wallet__owner").get(pk=token_order_id)
+        except TokenOrder.DoesNotExist:
+            logger.error("handle_token_order_chargeback: TokenOrder %s not found", token_order_id)
+            return {"error": "TokenOrder not found"}
+
+        buyer_author = getattr(order.wallet, "owner", None)
+
+        new_status = TokenOrder.Status.DISPUTED if chargeback else TokenOrder.Status.REFUNDED
+        order.status = new_status
+        order.save(update_fields=["status", "updated_at"])
+
+        # Deduct tokens from buyer's wallet if they were credited
+        deducted_tokens = 0
+        if buyer_author and order.tokens and order.tokens > 0:
+            wallet = TokenWallet.objects.filter(owner=buyer_author).select_for_update().first()
+            if wallet:
+                actual_deduct = min(wallet.balance, order.tokens)
+                if actual_deduct > 0:
+                    wallet.balance -= actual_deduct
+                    wallet.save(update_fields=["balance"])
+                    TokenTransaction.objects.create(
+                        wallet=wallet,
+                        amount=-actual_deduct,
+                        reason=f"{'Chargeback' if chargeback else 'Refund'} — order #{order.pk}",
+                    )
+                    deducted_tokens = actual_deduct
+
+        # Reverse PENDING/QUEUED rewards linked to gifts sent after this order's purchase
+        reversed_rewards = 0
+        buyer_user = getattr(buyer_author, "user", None) if buyer_author else None
+        if buyer_user:
+            reversible_statuses = [RewardRecord.Status.PENDING, RewardRecord.Status.QUEUED]
+            gifts = AppreciationGift.objects.filter(
+                sender=buyer_user,
+                sent_at__gte=order.created_at,
+            ).values_list("pk", flat=True)
+
+            rewards_qs = RewardRecord.objects.select_for_update().filter(
+                related_gift__in=gifts,
+                status__in=reversible_statuses,
+            )
+            for rr in rewards_qs:
+                rr.status = RewardRecord.Status.REVERSED
+                rr.status_note = f"Reversed: {'chargeback' if chargeback else 'refund'} on order #{order.pk}"
+                rr.save(update_fields=["status", "status_note", "updated_at"])
+                reversed_rewards += 1
+
+        # Flag related gifts for compliance review
+        flagged_gifts = 0
+        if buyer_user:
+            flagged_gifts = AppreciationGift.objects.filter(
+                sender=buyer_user,
+                sent_at__gte=order.created_at,
+                is_flagged=False,
+            ).update(is_flagged=True)
+
+        # Flag the buyer's profile for compliance review
+        if buyer_author:
+            profile = ChefBattleProfile.objects.filter(author=buyer_author).first()
+            if profile and not profile.payout_blocked:
+                profile.payout_blocked = True
+                profile.save(update_fields=["payout_blocked"])
+
+        action = "chargeback" if chargeback else "refund"
+        LedgerEvent.objects.create(
+            event_type=LedgerEvent.EventType.CHARGEBACK_LOCK,
+            actor=buyer_author,
+            payload={
+                "action": action,
+                "token_order_id": token_order_id,
+                "new_status": new_status,
+                "deducted_tokens": deducted_tokens,
+                "reversed_rewards": reversed_rewards,
+                "flagged_gifts": flagged_gifts,
+            },
+        )
+        logger.info(
+            "handle_token_order_chargeback: order=%s action=%s deducted=%s reversed=%s flagged=%s",
+            token_order_id, action, deducted_tokens, reversed_rewards, flagged_gifts,
+        )
+        return {
+            "order_id": token_order_id,
+            "new_status": new_status,
+            "deducted_tokens": deducted_tokens,
+            "reversed_rewards": reversed_rewards,
+            "flagged_gifts": flagged_gifts,
+        }
+
+
+def submit_content_report(
+    reporter,
+    content_kind: str,
+    object_id: int,
+    reason: str,
+) -> "ContentReport":
+    """Create a DSA/platform content report.
+
+    reporter: the User (not RecipeAuthor) submitting the report.
+    content_kind: one of ContentReport.ContentKind values.
+    object_id: PK of the reported object.
+    reason: free-text reason (shown to moderators).
+    Returns the created ContentReport.
+    """
+    from .models import ContentReport, LedgerEvent
+
+    report = ContentReport.objects.create(
+        reporter=reporter,
+        content_kind=content_kind,
+        object_id=object_id,
+        reason=reason,
+        status=ContentReport.Status.PENDING,
+    )
+
+    reporter_author = getattr(reporter, "recipe_author", None)
+    LedgerEvent.objects.create(
+        event_type=LedgerEvent.EventType.CONTENT_REPORT,
+        actor=reporter_author,
+        payload={
+            "report_id": report.pk,
+            "content_kind": content_kind,
+            "object_id": object_id,
+        },
+    )
+    return report

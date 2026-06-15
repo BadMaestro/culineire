@@ -166,6 +166,10 @@ def handle_stripe_event(event) -> dict[str, Any]:
             order = _handle_checkout_completed(_get(event, "data", {}).get("object", {}))
         elif event_type == "checkout.session.expired":
             order = _handle_checkout_expired(_get(event, "data", {}).get("object", {}))
+        elif event_type == "charge.refunded":
+            order = _handle_charge_refunded(_get(event, "data", {}).get("object", {}))
+        elif event_type == "charge.dispute.created":
+            order = _handle_charge_dispute(_get(event, "data", {}).get("object", {}))
 
         return {"duplicate": False, "event_type": event_type, "order_id": order.pk if order else None}
 
@@ -249,4 +253,38 @@ def _handle_checkout_expired(session) -> Any:
         order.status = TokenOrder.Status.EXPIRED
         order.save(update_fields=["status", "updated_at"])
 
+    return order
+
+
+def _handle_charge_refunded(charge) -> Any:
+    """Handle Stripe charge.refunded webhook — lock order and reverse related credits."""
+    from .models import TokenOrder
+    from .services import handle_token_order_chargeback
+
+    payment_intent = _get(charge, "payment_intent", "") or ""
+    if not payment_intent:
+        return None
+
+    order = TokenOrder.objects.filter(stripe_payment_intent_id=payment_intent).first()
+    if order is None:
+        return None
+
+    handle_token_order_chargeback(order.pk, chargeback=False)
+    return order
+
+
+def _handle_charge_dispute(dispute) -> Any:
+    """Handle Stripe charge.dispute.created webhook — lock order and reverse credits."""
+    from .models import TokenOrder
+    from .services import handle_token_order_chargeback
+
+    payment_intent = _get(dispute, "payment_intent", "") or ""
+    if not payment_intent:
+        return None
+
+    order = TokenOrder.objects.filter(stripe_payment_intent_id=payment_intent).first()
+    if order is None:
+        return None
+
+    handle_token_order_chargeback(order.pk, chargeback=True)
     return order

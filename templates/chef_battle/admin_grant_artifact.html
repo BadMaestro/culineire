@@ -1,0 +1,22 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}Grant Artifact — Chef Battle Admin{% endblock %}
+
+{% block content %}
+<h1>Grant Artifact to Chef</h1>
+<p>
+    Use this form to grant a battle artifact to a chef as a staff action.
+    The grant reason is mandatory and is written to the immutable audit ledger.
+    This action does <strong>not</strong> create any CBR, LSR, or token credit.
+</p>
+
+<form method="post">
+    {% csrf_token %}
+    <table>{{ form.as_table }}</table>
+    <p>
+        <input type="submit" value="Grant Artifact" class="default">
+        <a href="../" style="margin-left: 1rem;">Cancel</a>
+    </p>
+</form>
+{% endblock %}
