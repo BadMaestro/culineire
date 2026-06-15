@@ -1323,13 +1323,15 @@ class AgeVerificationGateTests(TestCase):
             theme="Test",
             expires_at=timezone.now() + timezone.timedelta(hours=1),
         )
+        now = timezone.now()
         battle = Battle.objects.create(
             challenger=self.author,
             opponent=other_author,
             challenge=challenge,
             status=Battle.Status.VOTING,
-            submission_deadline=timezone.now() + timezone.timedelta(hours=1),
-            voting_deadline=timezone.now() + timezone.timedelta(hours=2),
+            submission_deadline=now + timezone.timedelta(hours=1),
+            voting_deadline=now + timezone.timedelta(hours=2),
+            end_time=now + timezone.timedelta(hours=3),
         )
         self.client.force_login(self.user)
         resp = self.client.post(
