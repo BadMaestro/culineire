@@ -1460,26 +1460,24 @@ def artifact_generate_image(request, pk):
     feedback = request.POST.get("feedback", "").strip()
 
     rarity_colours = {
-        "common":    "grey-white palette, plain border",
-        "uncommon":  "green palette, glowing green border",
-        "rare":      "blue palette, glowing blue border",
-        "epic":      "purple palette, glowing purple border",
-        "legendary": "gold-orange palette, radiant golden border, dramatic glow",
+        "common":    "grey and white tones, subtle silver accent",
+        "uncommon":  "vivid green accent, glowing green highlight",
+        "rare":      "vivid blue accent, glowing blue highlight",
+        "epic":      "vivid purple accent, glowing purple highlight",
+        "legendary": "gold and orange accent, radiant golden glow, dramatic shimmer",
     }
-    style = (
-        "flat digital illustration, game item icon style, square format, "
-        "rich saturated colours, dark navy background, centered composition, "
-        "no text, no watermarks, no people, clean edges"
+    rarity_color_palette = rarity_colours.get(artifact.rarity, "neutral tones")
+    item_name = artifact.name
+    fixed_style = (
+        f"A 2D game asset icon of {item_name}. Hard-edged vector digital illustration, "
+        "solo object centered in the frame. Inside a simple, thin, dark grey rounded-square border. "
+        "Solid flat dark navy-blue background filling the entire screen. Consistent mobile game UI asset style, "
+        "highly stylized, vibrant saturated colors, no gradients on the background, "
+        "no realistic shadows, no text, no watermarks, clean sharp edges."
     )
-    colour = rarity_colours.get(artifact.rarity, "")
-    prompt = (
-        f"Kitchen battle game artifact: {artifact.description or artifact.name}. "
-        f"{artifact.rarity} rarity, {colour}. "
-        f"Square icon, centered, dramatic game art style, dark navy background, "
-        f"no text, no watermarks, flat digital illustration, bold outlines, vivid colours. {style}"
-    )
+    prompt = f"{fixed_style} Rarity color accent: {rarity_color_palette}."
     if feedback:
-        prompt += f" Important: {feedback}."
+        prompt += f" Important: Apply the following adjustment while strictly maintaining the 2D vector asset style: {feedback}."
 
     try:
         image_bytes = fetch_image_bytes(prompt)
