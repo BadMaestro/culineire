@@ -1170,3 +1170,103 @@ def drop_battle_artifacts(battle: Battle) -> list:
             publish_to_news=False,
         )
     return drops
+
+
+# ── RewardRecord lifecycle ──────────────────────────────────────────────────
+
+def issue_reward(reward_id: int, reviewed_by=None) -> "RewardRecord":
+    """Approve a PENDING/QUEUED RewardRecord and credit tokens to the recipient's wallet.
+    Raises ValueError if the record is not in an issuable state."""
+    from .models import RewardRecord, TokenWallet, TokenTransaction, LedgerEvent
+    from django.utils import timezone
+
+    with transaction.atomic():
+        record = RewardRecord.objects.select_for_update().get(pk=reward_id)
+        if record.status not in (RewardRecord.Status.PENDING, RewardRecord.Status.QUEUED, RewardRecord.Status.APPROVED):
+            raise ValueError(f"RewardRecord {reward_id} is in status '{record.status}' and cannot be issued.")
+
+        wallet, _ = TokenWallet.objects.get_or_create(chef=record.recipient)
+        new_balance = wallet.balance + record.tokens_granted
+        wallet.balance = new_balance
+        wallet.save(update_fields=["balance", "updated_at"])
+
+        TokenTransaction.objects.create(
+            wallet=wallet,
+            tx_type=TokenTransaction.TxType.ADMIN_GRANT,
+            amount=record.tokens_granted,
+            balance_after=new_balance,
+            description=f"{record.get_reward_type_display()}: {record.reason}",
+        )
+
+        record.status = RewardRecord.Status.ISSUED
+        record.issued_at = timezone.now()
+        if reviewed_by is not None:
+            record.reviewed_by = reviewed_by
+        record.save(update_fields=["status", "issued_at", "reviewed_by", "updated_at"])
+
+        event_type = (
+            LedgerEvent.EventType.CBR_GRANTED
+            if record.reward_type == RewardRecord.RewardType.CBR
+            else LedgerEvent.EventType.LSR_GRANTED
+        )
+        LedgerEvent.objects.create(
+            event_type=event_type,
+            actor=record.recipient,
+            payload={
+                "reward_record_id": record.pk,
+                "tokens_granted": record.tokens_granted,
+                "reason": record.reason,
+            },
+        )
+
+    return record
+
+
+def expire_rewards() -> int:
+    """Mark all ISSUED RewardRecords past their expires_at as EXPIRED. Returns count."""
+    from .models import RewardRecord
+    from django.utils import timezone
+
+    now = timezone.now()
+    qs = RewardRecord.objects.filter(
+        status=RewardRecord.Status.ISSUED,
+        expires_at__isnull=False,
+        expires_at__lt=now,
+    )
+    count = qs.update(status=RewardRecord.Status.EXPIRED)
+    return count
+
+
+def reverse_reward(reward_id: int, note: str = "", reversed_by=None) -> "RewardRecord":
+    """Reverse an ISSUED reward: deduct tokens from wallet and mark as REVERSED."""
+    from .models import RewardRecord, TokenWallet, TokenTransaction
+    from django.utils import timezone
+
+    with transaction.atomic():
+        record = RewardRecord.objects.select_for_update().get(pk=reward_id)
+        if record.status != RewardRecord.Status.ISSUED:
+            raise ValueError(f"Only ISSUED rewards can be reversed; this one is '{record.status}'.")
+
+        wallet = TokenWallet.objects.select_for_update().filter(chef=record.recipient).first()
+        if wallet:
+            deduct = min(record.tokens_granted, wallet.balance)
+            if deduct > 0:
+                new_balance = wallet.balance - deduct
+                wallet.balance = new_balance
+                wallet.save(update_fields=["balance", "updated_at"])
+                TokenTransaction.objects.create(
+                    wallet=wallet,
+                    tx_type=TokenTransaction.TxType.ADMIN_DEDUCT,
+                    amount=-deduct,
+                    balance_after=new_balance,
+                    description=f"Reward reversal: {record.reason}",
+                )
+
+        record.status = RewardRecord.Status.REVERSED
+        record.reversed_at = timezone.now()
+        record.status_note = note
+        if reversed_by is not None:
+            record.reviewed_by = reversed_by
+        record.save(update_fields=["status", "reversed_at", "status_note", "reviewed_by", "updated_at"])
+
+    return record

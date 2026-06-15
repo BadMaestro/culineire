@@ -344,6 +344,13 @@ def token_shop(request):
     })
 
 
+WITHDRAWAL_CONSENT_TEXT = (
+    "I understand that CulinEire Arena Tokens are a digital item delivered immediately upon purchase. "
+    "By proceeding, I expressly request immediate delivery and acknowledge that I lose my right of "
+    "withdrawal under EU/Irish consumer law (Consumer Rights Act 2022, Digital Content Directive)."
+)
+
+
 @require_POST
 @login_required
 def token_checkout_create(request):
@@ -360,8 +367,15 @@ def token_checkout_create(request):
     try:
         data = json.loads(request.body)
         package_id = int(data.get("package_id", 0))
+        withdrawal_waived = bool(data.get("withdrawal_consent", False))
     except (ValueError, TypeError):
         return JsonResponse({"error": "Invalid request."}, status=400)
+
+    if not withdrawal_waived:
+        return JsonResponse(
+            {"error": "You must confirm the digital content consent before purchasing tokens."},
+            status=400,
+        )
 
     try:
         package = TokenPackage.objects.get(pk=package_id, is_active=True)
@@ -371,7 +385,11 @@ def token_checkout_create(request):
     wallet, _ = TokenWallet.objects.get_or_create(chef=author)
 
     try:
-        session_info = create_token_checkout_session(package, wallet, request=request)
+        session_info = create_token_checkout_session(
+            package, wallet, request=request,
+            withdrawal_waived=True,
+            consent_text=WITHDRAWAL_CONSENT_TEXT,
+        )
     except TokenStripeConfigurationError as exc:
         logger.warning("Token checkout config error: %s", exc)
         return JsonResponse({"error": "Payment system not configured. Please try again later."}, status=503)

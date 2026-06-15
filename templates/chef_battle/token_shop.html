@@ -69,6 +69,21 @@
 
   <div id="token-shop-error" style="display:none; color:var(--color-danger,#b91c1c); margin-block: 1rem 0; font-size:0.9rem;"></div>
 
+  {# EU right-of-withdrawal consent — must be checked before any purchase can proceed #}
+  {% if user.is_authenticated %}
+  <div class="token-shop-consent" style="margin-block: clamp(1rem,2.5vw,1.5rem) 0; padding: 1rem 1.25rem; border: 1px solid var(--color-border, #d1d5db); border-radius: 8px; background: var(--color-surface-alt, #f9fafb);">
+    <label style="display:flex; gap:0.75rem; align-items:flex-start; cursor:pointer; font-size:0.9rem; line-height:1.5;">
+      <input type="checkbox" id="js-withdrawal-consent" style="margin-top:0.2em; flex-shrink:0; accent-color:var(--color-primary,#b45309);">
+      <span>
+        I understand that CulinEire Arena Tokens are a digital item delivered immediately upon purchase.
+        By proceeding I expressly request immediate delivery and acknowledge that I lose my right of withdrawal
+        under EU/Irish consumer law
+        (<a href="{% url 'legal:purchases_and_vat' %}" target="_blank" rel="noopener">Consumer Rights Act 2022</a>).
+      </span>
+    </label>
+  </div>
+  {% endif %}
+
   <div class="token-shop-grid" style="margin-block-start: clamp(1.25rem,3vw,2rem);">
     {% for pkg in packages %}
     <div class="token-shop-card{% if forloop.counter == 4 %} token-shop-card--featured{% endif %}">
@@ -145,9 +160,31 @@
 <script nonce="{{ request.csp_nonce }}">
 (function () {
   var errorEl = document.getElementById('token-shop-error');
+  var consentBox = document.getElementById('js-withdrawal-consent');
+  var buyBtns = document.querySelectorAll('.js-token-buy');
 
-  document.querySelectorAll('.js-token-buy').forEach(function (btn) {
+  function syncButtons() {
+    var checked = consentBox && consentBox.checked;
+    buyBtns.forEach(function (btn) {
+      btn.disabled = !checked;
+      btn.style.opacity = checked ? '' : '0.45';
+      btn.style.cursor = checked ? '' : 'not-allowed';
+    });
+  }
+
+  if (consentBox) {
+    consentBox.addEventListener('change', syncButtons);
+    syncButtons();
+  }
+
+  buyBtns.forEach(function (btn) {
     btn.addEventListener('click', function () {
+      if (consentBox && !consentBox.checked) {
+        errorEl.textContent = 'Please confirm the digital content consent above before purchasing.';
+        errorEl.style.display = 'block';
+        consentBox.focus();
+        return;
+      }
       var packageId = btn.dataset.packageId;
       var url = btn.dataset.checkoutUrl;
       btn.disabled = true;
@@ -160,7 +197,10 @@
           'Content-Type': 'application/json',
           'X-CSRFToken': (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '',
         },
-        body: JSON.stringify({ package_id: parseInt(packageId, 10) }),
+        body: JSON.stringify({
+          package_id: parseInt(packageId, 10),
+          withdrawal_consent: true,
+        }),
       })
         .then(function (r) { return r.json(); })
         .then(function (data) {

@@ -64,7 +64,13 @@ def _site_base_url(request=None) -> str:
     return site_url or "https://culineire.ie"
 
 
-def create_token_checkout_session(package, wallet, request=None) -> CheckoutSessionInfo:
+def create_token_checkout_session(
+    package, wallet, request=None,
+    withdrawal_waived: bool = False,
+    consent_text: str = "",
+) -> CheckoutSessionInfo:
+    from decimal import Decimal, ROUND_HALF_UP
+    from django.utils import timezone
     from .models import TokenOrder
 
     stripe = _stripe()
@@ -72,11 +78,22 @@ def create_token_checkout_session(package, wallet, request=None) -> CheckoutSess
 
     price_cents = int(package.price_eur * 100)
 
+    # VAT breakdown — Irish standard rate 23%
+    vat_rate = Decimal("0.2300")
+    amount_net_cents = int((Decimal(price_cents) / (1 + vat_rate)).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+    vat_amount_cents = price_cents - amount_net_cents
+
     order = TokenOrder.objects.create(
         wallet=wallet,
         package=package,
         tokens=package.tokens,
         amount_eur_cents=price_cents,
+        amount_net_cents=amount_net_cents,
+        vat_amount_cents=vat_amount_cents,
+        vat_rate=vat_rate,
+        right_of_withdrawal_waived=withdrawal_waived,
+        withdrawal_consent_at=timezone.now() if withdrawal_waived else None,
+        consent_text_snapshot=consent_text if withdrawal_waived else "",
     )
 
     metadata = {
