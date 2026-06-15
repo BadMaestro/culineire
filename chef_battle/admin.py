@@ -26,7 +26,7 @@ from .models import (
     TokenWallet,
     ViewerBattleGift,
 )
-from .services import create_battle_event
+from .services import create_battle_event, issue_reward, reverse_reward
 
 
 # ---------------------------------------------------------------------------
@@ -321,11 +321,43 @@ class TokenTransactionAdmin(admin.ModelAdmin):
 
 @admin.register(TokenOrder)
 class TokenOrderAdmin(admin.ModelAdmin):
-    list_display = ("wallet", "package", "tokens", "amount_eur_cents", "status", "created_at")
-    list_filter = ("status",)
+    list_display = (
+        "wallet", "package", "tokens", "amount_eur_cents",
+        "vat_amount_cents", "right_of_withdrawal_waived", "status", "created_at",
+    )
+    list_filter = ("status", "right_of_withdrawal_waived")
     search_fields = ("wallet__chef__name", "stripe_checkout_session_id")
-    readonly_fields = ("created_at", "updated_at")
+    readonly_fields = (
+        "created_at", "updated_at", "withdrawal_consent_at",
+        "amount_net_cents", "vat_amount_cents", "vat_rate",
+        "consent_text_snapshot",
+    )
     ordering = ("-created_at",)
+    fieldsets = (
+        ("Order", {
+            "fields": ("wallet", "package", "tokens", "status"),
+        }),
+        ("Pricing & VAT", {
+            "fields": (
+                "amount_eur_cents", "amount_net_cents",
+                "vat_amount_cents", "vat_rate",
+            ),
+        }),
+        ("EU Consent", {
+            "fields": (
+                "right_of_withdrawal_waived", "withdrawal_consent_at",
+                "consent_text_snapshot",
+            ),
+        }),
+        ("Stripe", {
+            "fields": ("stripe_checkout_session_id", "stripe_payment_intent_id"),
+            "classes": ("collapse",),
+        }),
+        ("Timestamps", {
+            "fields": ("created_at", "updated_at"),
+            "classes": ("collapse",),
+        }),
+    )
 
 
 @admin.register(ProcessedTokenStripeEvent)
@@ -335,22 +367,108 @@ class ProcessedTokenStripeEventAdmin(admin.ModelAdmin):
     ordering = ("-received_at",)
 
 
+@admin.action(description="Issue selected rewards (credit tokens to wallets)")
+def issue_selected_rewards(modeladmin, request, queryset):
+    issuable = queryset.filter(status__in=[
+        RewardRecord.Status.PENDING,
+        RewardRecord.Status.QUEUED,
+        RewardRecord.Status.APPROVED,
+    ])
+    count = 0
+    errors = 0
+    for record in issuable:
+        try:
+            issue_reward(record.pk, reviewed_by=request.user)
+            count += 1
+        except Exception as exc:
+            modeladmin.message_user(request, f"Error issuing reward #{record.pk}: {exc}", messages.ERROR)
+            errors += 1
+    if count:
+        modeladmin.message_user(request, f"{count} reward(s) issued successfully.", messages.SUCCESS)
+
+
+@admin.action(description="Reverse selected rewards (deduct tokens)")
+def reverse_selected_rewards(modeladmin, request, queryset):
+    reversible = queryset.filter(status=RewardRecord.Status.ISSUED)
+    count = 0
+    for record in reversible:
+        try:
+            reverse_reward(record.pk, note="Reversed by staff", reversed_by=request.user)
+            count += 1
+        except Exception as exc:
+            modeladmin.message_user(request, f"Error reversing reward #{record.pk}: {exc}", messages.ERROR)
+    if count:
+        modeladmin.message_user(request, f"{count} reward(s) reversed.", messages.WARNING)
+
+
 @admin.register(RewardRecord)
 class RewardRecordAdmin(admin.ModelAdmin):
-    list_display = ("recipient", "reward_type", "tokens_granted", "reason", "granted_by", "created_at")
-    list_filter = ("reward_type",)
+    list_display = (
+        "recipient", "reward_type", "status", "tokens_granted",
+        "reason", "granted_by", "issued_at", "created_at",
+    )
+    list_filter = ("reward_type", "status")
     search_fields = ("recipient__name", "reason")
-    readonly_fields = ("created_at",)
+    readonly_fields = (
+        "created_at", "updated_at", "issued_at", "acknowledged_at",
+        "reversed_at", "reviewed_by",
+    )
+    actions = [issue_selected_rewards, reverse_selected_rewards]
     ordering = ("-created_at",)
+    fieldsets = (
+        ("Reward", {
+            "fields": (
+                "recipient", "reward_type", "status", "tokens_granted",
+                "reason", "expires_at",
+            ),
+        }),
+        ("Links", {
+            "fields": ("related_battle", "related_gift"),
+        }),
+        ("Lifecycle", {
+            "fields": (
+                "granted_by", "reviewed_by", "issued_at",
+                "acknowledged_at", "reversed_at", "status_note",
+            ),
+            "classes": ("collapse",),
+        }),
+        ("Timestamps", {
+            "fields": ("created_at", "updated_at"),
+            "classes": ("collapse",),
+        }),
+    )
+
+
+@admin.action(description="Verify hash chain integrity")
+def verify_ledger_chain(modeladmin, request, queryset):
+    ok, broken_pk = LedgerEvent.verify_chain()
+    if ok:
+        modeladmin.message_user(
+            request, "Hash chain integrity check PASSED. No tampering detected.", messages.SUCCESS
+        )
+    else:
+        modeladmin.message_user(
+            request,
+            f"Hash chain BROKEN at LedgerEvent pk={broken_pk}. Possible tampering — investigate immediately.",
+            messages.ERROR,
+        )
 
 
 @admin.register(LedgerEvent)
 class LedgerEventAdmin(admin.ModelAdmin):
-    list_display = ("event_type", "actor", "target", "related_battle", "created_at")
+    list_display = ("event_type", "actor", "target", "related_battle", "short_hash", "created_at")
     list_filter = ("event_type",)
     search_fields = ("actor__name", "target__name")
-    readonly_fields = ("event_type", "actor", "target", "related_battle", "payload", "created_at")
+    readonly_fields = (
+        "event_type", "actor", "target", "related_battle",
+        "payload", "prev_hash", "event_hash", "created_at",
+    )
+    actions = [verify_ledger_chain]
     ordering = ("-created_at",)
+
+    @admin.display(description="Hash")
+    def short_hash(self, obj):
+        return obj.event_hash[:12] + "…" if obj.event_hash else ""
 
     def has_add_permission(self, request):
         return False
