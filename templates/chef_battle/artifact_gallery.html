@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}Combat Artifact Gallery | Chef Battle | CulinEire{% endblock %}
-{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260615d" rel="stylesheet">{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260615e" rel="stylesheet">{% endblock %}
 
 {% block content %}
 <section class="battle-room-hero">
@@ -18,61 +18,68 @@
   </div>
 </section>
 
-<section class="page-section">
-  <div class="container battle-page">
+<section class="legal-shell legal-shell--hub">
 
-    <div class="artifact-filter-bar" role="tablist" aria-label="Filter by effect type">
-      <button class="artifact-filter-btn is-active" data-filter="all" role="tab" aria-selected="true" type="button">All</button>
-      <button class="artifact-filter-btn" data-filter="attack" role="tab" aria-selected="false" type="button">Attack</button>
-      <button class="artifact-filter-btn" data-filter="defence" role="tab" aria-selected="false" type="button">Defence</button>
-      <button class="artifact-filter-btn" data-filter="boost" role="tab" aria-selected="false" type="button">Boost</button>
-    </div>
+  <div class="legal-document-layout legal-hub-layout">
 
-    {% for rarity_label, artifacts in grouped.items %}
-    <section class="artifact-rarity-group artifact-rarity-group--{{ rarity_label|lower }}">
-      <h2 class="artifact-rarity-group__title">{{ rarity_label }}</h2>
-      <div class="artifact-grid">
-        {% for artifact in artifacts %}
-        <article class="artifact-card artifact-card--{{ artifact.rarity }}" data-effect="{{ artifact.effect_type|default:'' }}">
-          <div class="artifact-card__image-wrap" id="artifact-img-wrap-{{ artifact.pk }}">
-            {% if artifact.image %}
-            <img alt="{{ artifact.name }}" class="artifact-card__image" id="artifact-img-{{ artifact.pk }}" src="{{ artifact.image.url }}">
-            {% else %}
-            <div class="artifact-card__image-placeholder" id="artifact-img-{{ artifact.pk }}">
-              <span>No image</span>
+    <aside class="legal-toc" aria-label="Filter by effect type">
+      <span class="legal-toc__label">Filter</span>
+      <nav id="artifact-filter-nav">
+        <a href="#" class="artifact-filter-link is-active" data-filter="all">All Artifacts</a>
+        <a href="#" class="artifact-filter-link" data-filter="attack">Attack</a>
+        <a href="#" class="artifact-filter-link" data-filter="defence">Defence</a>
+        <a href="#" class="artifact-filter-link" data-filter="boost">Boost</a>
+      </nav>
+      <p>Artifacts grant combat advantages in battle. Rarer artifacts carry stronger effects and higher costs.</p>
+    </aside>
+
+    <div class="artifact-gallery-content">
+
+      {% for rarity_label, artifacts in grouped.items %}
+      <section class="artifact-rarity-group artifact-rarity-group--{{ rarity_label|lower }}">
+        <h2 class="artifact-rarity-group__title">{{ rarity_label }}</h2>
+        <div class="artifact-grid">
+          {% for artifact in artifacts %}
+          <article class="artifact-card artifact-card--{{ artifact.rarity }}" data-effect="{{ artifact.effect_type|default:'' }}">
+            <div class="artifact-card__image-wrap" id="artifact-img-wrap-{{ artifact.pk }}">
+              {% if artifact.image %}
+              <img alt="{{ artifact.name }}" class="artifact-card__image" loading="lazy" id="artifact-img-{{ artifact.pk }}" src="{{ artifact.image.url }}">
+              {% else %}
+              <div class="artifact-card__image-placeholder" id="artifact-img-{{ artifact.pk }}">
+                <span>No image</span>
+              </div>
+              {% endif %}
             </div>
+            <div class="artifact-card__header">
+              <span class="artifact-card__rarity">{{ artifact.get_rarity_display }}</span>
+              <span class="artifact-card__cost">{{ artifact.token_cost }}T</span>
+            </div>
+            <h3 class="artifact-card__name">{{ artifact.name }}</h3>
+            {% if artifact.effect_type %}
+            <p class="artifact-card__effect">
+              <span class="artifact-card__effect-label">Effect:</span> {{ artifact.effect_type }}{% if artifact.effect_value %} ({{ artifact.effect_value }}){% endif %}
+            </p>
             {% endif %}
-          </div>
-          <div class="artifact-card__header">
-            <span class="artifact-card__rarity">{{ artifact.get_rarity_display }}</span>
-            <span class="artifact-card__cost">{{ artifact.token_cost }}T</span>
-          </div>
-          <h3 class="artifact-card__name">{{ artifact.name }}</h3>
-          {% if artifact.description %}<p class="artifact-card__desc">{{ artifact.description }}</p>{% endif %}
-          {% if artifact.effect_type %}
-          <p class="artifact-card__effect">
-            <span class="artifact-card__effect-label">Effect:</span> {{ artifact.effect_type }}{% if artifact.effect_value %} ({{ artifact.effect_value }}){% endif %}
-          </p>
-          {% endif %}
-          {% if can_generate %}
-          <button class="artifact-card__regen-btn authoring-step-regen"
-                  type="button"
-                  data-regen-url="{% url 'chef_battle:artifact_generate_image' artifact.pk %}"
-                  data-label="{{ artifact.name }}"
-                  data-thumb-id="artifact-img-{{ artifact.pk }}"
-                  data-wrap-id="artifact-img-wrap-{{ artifact.pk }}"
-                  data-artifact-pk="{{ artifact.pk }}">
-            {% if artifact.image %}Regenerate{% else %}Generate Image{% endif %}
-          </button>
-          {% endif %}
-        </article>
-        {% endfor %}
-      </div>
-    </section>
-    {% empty %}
-    <div class="empty-state"><p>No artifacts loaded yet. The armory is being stocked.</p></div>
-    {% endfor %}
+            {% if can_generate %}
+            <button class="artifact-card__regen-btn authoring-step-regen"
+                    type="button"
+                    data-regen-url="{% url 'chef_battle:artifact_generate_image' artifact.pk %}"
+                    data-label="{{ artifact.name }}"
+                    data-thumb-id="artifact-img-{{ artifact.pk }}"
+                    data-wrap-id="artifact-img-wrap-{{ artifact.pk }}"
+                    data-artifact-pk="{{ artifact.pk }}">
+              {% if artifact.image %}Regenerate{% else %}Generate Image{% endif %}
+            </button>
+            {% endif %}
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+      {% empty %}
+      <div class="empty-state"><p>No artifacts loaded yet. The armory is being stocked.</p></div>
+      {% endfor %}
 
+    </div>
   </div>
 </section>
 
@@ -83,7 +90,7 @@
   <div class="regen-modal__box">
     <button aria-label="Close" class="regen-modal__close" id="artifact-regen-close" type="button">&times;</button>
     <h2 class="regen-modal__title">Generate image: <span id="artifact-regen-label"></span></h2>
-    <p class="regen-modal__hint">Leave blank to use the artifact description as the prompt, or add feedback to refine the result.</p>
+    <p class="regen-modal__hint">Leave blank to use the artifact name as the prompt, or add feedback to refine the result.</p>
     <textarea class="regen-modal__feedback" id="artifact-regen-feedback" maxlength="500" placeholder="e.g. More dramatic, darker tones, glowing edges..."></textarea>
     <div class="regen-modal__error" id="artifact-regen-error" role="alert" style="display:none"></div>
     <div class="regen-modal__actions">
@@ -101,25 +108,22 @@
 {% block extra_scripts %}
 <script nonce="{{ request.csp_nonce }}">
 (function () {
-  var btns  = document.querySelectorAll('.artifact-filter-btn');
-  var cards = document.querySelectorAll('.artifact-card');
+  var links  = document.querySelectorAll('.artifact-filter-link');
+  var cards  = document.querySelectorAll('.artifact-card');
   var groups = document.querySelectorAll('.artifact-rarity-group');
 
-  btns.forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      btns.forEach(function (b) { b.classList.remove('is-active'); b.setAttribute('aria-selected', 'false'); });
-      btn.classList.add('is-active');
-      btn.setAttribute('aria-selected', 'true');
+  links.forEach(function (link) {
+    link.addEventListener('click', function (e) {
+      e.preventDefault();
+      links.forEach(function (l) { l.classList.remove('is-active'); });
+      link.classList.add('is-active');
 
-      var filter = btn.dataset.filter;
+      var filter = link.dataset.filter;
       cards.forEach(function (card) {
-        var match = filter === 'all' || card.dataset.effect === filter;
-        card.style.display = match ? '' : 'none';
+        card.style.display = (filter === 'all' || card.dataset.effect === filter) ? '' : 'none';
       });
 
-      // Hide rarity group headings that have no visible cards
       groups.forEach(function (group) {
-        var visible = group.querySelectorAll('.artifact-card[style=""], .artifact-card:not([style])');
         var anyVisible = Array.from(group.querySelectorAll('.artifact-card')).some(function (c) { return c.style.display !== 'none'; });
         group.style.display = anyVisible ? '' : 'none';
       });
