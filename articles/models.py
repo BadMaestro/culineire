@@ -78,6 +78,8 @@ class Article(models.Model):
         ORIGINAL = "original", "Original writing"
         ADAPTED = "adapted", "Adapted from a source"
         INSPIRED = "inspired", "Inspired by a source"
+        AI_ASSISTED = "ai_assisted", "AI-assisted content"
+        HUMAN_REVIEWED_AI = "human_reviewed_ai", "Human-reviewed AI-assisted content"
 
     class Category(models.TextChoices):
         BAKING = "baking", "Baking"

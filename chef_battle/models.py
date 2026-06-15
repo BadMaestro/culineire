@@ -256,6 +256,10 @@ class BattleEntry(models.Model):
         APPROVED = "approved", "Approved"
         REJECTED = "rejected", "Rejected"
         FLAGGED = "flagged", "Flagged"
+        NEEDS_CHANGES = "needs_changes", "Needs Changes"
+        SUSPECTED_AI = "suspected_ai", "Suspected AI Image"
+        SUSPECTED_STOCK = "suspected_stock", "Suspected Stock Photo"
+        DUPLICATE = "duplicate", "Duplicate Image"
 
     battle = models.ForeignKey(Battle, on_delete=models.CASCADE, related_name="entries")
     author = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="battle_entries")
@@ -267,12 +271,22 @@ class BattleEntry(models.Model):
     is_late = models.BooleanField(default=False)
     cooked_photo = models.ImageField(upload_to="chef_battle/cooked/", null=True, blank=True)
     cooked_photo_submitted_at = models.DateTimeField(null=True, blank=True)
+    real_photo_confirmed = models.BooleanField(default=False, help_text="Chef confirmed cooked photo is a real photograph (§32)")
+    photo_hash = models.CharField(max_length=64, blank=True, help_text="SHA-256 of cooked_photo for duplicate detection")
     moderation_status = models.CharField(
         max_length=16,
         choices=ModerationStatus.choices,
         default=ModerationStatus.PENDING,
         db_index=True,
     )
+    moderation_note = models.TextField(blank=True)
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name="reviewed_battle_entries",
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True)
 

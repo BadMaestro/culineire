@@ -9,7 +9,7 @@
   <div class="container">
     <p class="battle-kicker">Chef Battle Arena</p>
     <h1>Tokens Added</h1>
-    <p class="battle-room-hero__sub">Your purchase was successful. Tokens are in your wallet.</p>
+    <p class="battle-room-hero__sub">Your purchase was successful. Tokens have been added to your Token Balance.</p>
     <div class="battle-actions">
       <a class="btn-primary" href="{% url 'chef_battle:home' %}">Enter Arena</a>
       <a class="btn-secondary" href="{% url 'chef_battle:token_shop' %}">Token Shop</a>
@@ -23,13 +23,13 @@
 
   {% if order %}
   <p style="font-size: 1.1rem; margin-block-end: 0.5rem;">
-    <strong>+{{ order.tokens }}T</strong> have been credited to your wallet.
+    <strong>+{{ order.tokens }}T</strong> have been credited to your Token Balance.
   </p>
   <p style="color: var(--color-muted); font-size: 0.9rem; margin-block-end: 2rem;">
     Package: {{ order.package.name }}
   </p>
   {% else %}
-  <p style="margin-block-end: 2rem;">Your tokens have been credited to your wallet.</p>
+  <p style="margin-block-end: 2rem;">Your tokens have been credited to your Token Balance.</p>
   {% endif %}
 
   {% if wallet %}

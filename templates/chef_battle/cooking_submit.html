@@ -55,7 +55,17 @@
           JPG, PNG or WebP. Max 10 MB. Make sure your dish is clearly visible.
         </p>
       </div>
-      <button class="btn-primary" type="submit">Submit Dish Photo</button>
+
+      <div class="real-photo-declaration">
+        <label class="real-photo-declaration__label">
+          <input type="checkbox" name="real_photo_confirmed" value="1" required
+                 id="real_photo_confirmed"
+                 style="width:1.1rem;height:1.1rem;margin-top:0.15rem;flex-shrink:0;accent-color:var(--color-primary,#b45309);">
+          <span>I confirm that all Chef Battle images I submit are real photographs of my own battle preparation and final dish. I have not used AI-generated images, AI-enhancement, generative fill, stock images or deceptive image editing to create or improve the battle evidence.</span>
+        </label>
+      </div>
+
+      <button class="btn-primary" type="submit" style="margin-block-start:1rem;">Submit Dish Photo</button>
     </form>
   </div>
   {% endif %}

@@ -989,17 +989,30 @@ def debit_tokens(chef, amount: int, tx_type: str, description: str = "", battle=
 
 # ── Cooking phase ─────────────────────────────────────────────────────────────
 
-def submit_cooked_photo(*, battle: Battle, author, photo) -> BattleEntry:
+def submit_cooked_photo(*, battle: Battle, author, photo, real_photo_confirmed: bool = False) -> BattleEntry:
     """Chef uploads their cooked dish photo. Advances to PRESENTATION when both submitted."""
+    import hashlib
     if battle.status != Battle.Status.COOKING:
         raise ValueError("Battle must be in COOKING status to submit a cooked photo.")
     entry = BattleEntry.objects.get(battle=battle, author=author)
     if entry.cooked_photo:
         raise ValueError("You have already submitted a cooked photo for this battle.")
+    photo_hash = ""
+    try:
+        photo.seek(0)
+        photo_hash = hashlib.sha256(photo.read()).hexdigest()
+        photo.seek(0)
+    except Exception:
+        pass
     with transaction.atomic():
         entry.cooked_photo = photo
         entry.cooked_photo_submitted_at = timezone.now()
-        entry.save(update_fields=["cooked_photo", "cooked_photo_submitted_at", "updated_at"])
+        entry.real_photo_confirmed = real_photo_confirmed
+        entry.photo_hash = photo_hash
+        entry.save(update_fields=[
+            "cooked_photo", "cooked_photo_submitted_at",
+            "real_photo_confirmed", "photo_hash", "updated_at",
+        ])
         both_submitted = not BattleEntry.objects.filter(
             battle=battle, cooked_photo__isnull=True
         ).exclude(cooked_photo="").exists()

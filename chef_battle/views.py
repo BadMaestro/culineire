@@ -202,6 +202,21 @@ def _build_battlefield_progress():
             ],
         },
         {
+            "title": "Phase 3 (PDF) - AI Governance And Real-Photo Evidence",
+            "items": [
+                {"label": "Wallet terminology fix (§7)", "detail": "token_checkout_success.html and token_shop.html: 'wallet' replaced with 'Token Balance' in all user-facing text. Template variables named 'wallet' are internal Django context names, not UI text — these are legacy and do not require rename per PDF v6.", "status": "done", "completed_at": "2026-06-15"},
+                {"label": "Allergen guidance notice on recipes (§30)", "detail": "Notice added below allergen list in recipe_detail.html: 'Allergen information is provided as guidance only and may not be complete. Always check product labels and ingredients before cooking or serving.' Styled with .allergen-guidance-notice in detail_page.css.", "status": "done", "completed_at": "2026-06-15"},
+                {"label": "Real-photo declaration checkbox at cooking submit (§32)", "detail": "Mandatory unchecked checkbox in cooking_submit.html with exact PDF v6 text. View validates checkbox before accepting photo. real_photo_confirmed=True stored on BattleEntry. .real-photo-declaration CSS in chef_battle.css.", "status": "done", "completed_at": "2026-06-15"},
+                {"label": "BattleEntry evidence moderation statuses (§32)", "detail": "ModerationStatus extended: needs_changes, suspected_ai, suspected_stock, duplicate added. max_length kept at 16 (suspected_stock=15). Migration 0036.", "status": "done", "completed_at": "2026-06-15"},
+                {"label": "BattleEntry evidence fields (§32)", "detail": "New fields: real_photo_confirmed (BooleanField), photo_hash (SHA-256 of cooked_photo, computed in submit_cooked_photo()), moderation_note (TextField), reviewed_by (FK User), reviewed_at (DateTimeField). Migration 0036.", "status": "done", "completed_at": "2026-06-15"},
+                {"label": "Article model AI source labels (§29)", "detail": "Article.SourceType extended: AI_ASSISTED ('ai_assisted'), HUMAN_REVIEWED_AI ('human_reviewed_ai') added. CharField only — no migration required.", "status": "done", "completed_at": "2026-06-15"},
+                {"label": "AI-assisted content notice in recipe template (§29)", "detail": "recipe_detail.html already has source_type=='ai_assisted' block. Standard PDF v6 AI content notice text to be added in next sub-task.", "status": "pending"},
+                {"label": "AI-assisted content notice in article template (§29)", "detail": "article_detail.html shows source_type display only. AI content notice text required for ai_assisted and human_reviewed_ai source types.", "status": "pending"},
+                {"label": "Forbidden claims check in moderation (§30)", "detail": "Moderation checklist for recipes/articles should flag forbidden health/safety claims. Manual admin check in Phase 1/2; automated flagging deferred.", "status": "pending"},
+                {"label": "Post-purchase durable confirmation email (§10)", "detail": "After successful token purchase (Stripe webhook), send email to buyer containing durable consent confirmation text: 'You expressly consented to the immediate supply of digital content...' Currently only success page shown.", "status": "pending"},
+            ],
+        },
+        {
             "title": "Phase 8 - Economy Protection (CBR / LSR / Ledger)",
             "items": [
                 {"label": "RewardRecord model (CBR and LSR)", "detail": "11-status lifecycle: PENDING→QUEUED→APPROVED→ISSUED→ACKNOWLEDGED→USED→EXPIRED→REVERSED→DISPUTED→VOIDED→ARCHIVED. issue_reward(), expire_rewards(), reverse_reward() services. expire_rewards cron every 30 min.", "status": "done", "completed_at": "2026-06-14"},
@@ -1128,11 +1143,15 @@ def cooking_submit(request, pk):
 
     if request.method == "POST":
         photo = request.FILES.get("cooked_photo")
+        real_photo_confirmed = request.POST.get("real_photo_confirmed") == "1"
         if not photo:
             messages.error(request, "Please select a photo to upload.")
+        elif not real_photo_confirmed:
+            messages.error(request, "Please confirm that your photo is a real photograph before submitting.")
         else:
             try:
-                submit_cooked_photo(battle=battle, author=author, photo=photo)
+                submit_cooked_photo(battle=battle, author=author, photo=photo,
+                                    real_photo_confirmed=True)
                 messages.success(request, "Your cooked dish photo has been submitted!")
             except ValueError as e:
                 messages.error(request, str(e))
