@@ -708,6 +708,35 @@ class DAC7RecordAdmin(admin.ModelAdmin):
     )
 
 
+@admin.action(description="Approve selected payout requests")
+def approve_payout_requests(modeladmin, request, queryset):
+    from .services import approve_payout_request
+    count = 0
+    for payout in queryset.filter(status__in=[PayoutRequest.Status.PENDING, PayoutRequest.Status.UNDER_REVIEW]):
+        try:
+            approve_payout_request(payout.pk, request.user)
+            count += 1
+        except Exception as e:
+            modeladmin.message_user(request, f"PayoutRequest #{payout.pk}: {e}", messages.ERROR)
+    modeladmin.message_user(request, f"{count} payout request(s) approved.", messages.SUCCESS)
+
+
+@admin.action(description="Put selected payout requests under review")
+def mark_under_review(modeladmin, request, queryset):
+    count = queryset.filter(status=PayoutRequest.Status.PENDING).update(
+        status=PayoutRequest.Status.UNDER_REVIEW
+    )
+    modeladmin.message_user(request, f"{count} payout request(s) marked under review.", messages.SUCCESS)
+
+
+@admin.action(description="Put selected payout requests on hold (compliance)")
+def hold_payout_requests(modeladmin, request, queryset):
+    count = queryset.exclude(
+        status__in=[PayoutRequest.Status.PAID, PayoutRequest.Status.REVERSED]
+    ).update(status=PayoutRequest.Status.ON_HOLD)
+    modeladmin.message_user(request, f"{count} payout request(s) placed on hold.", messages.WARNING)
+
+
 @admin.register(PayoutRequest)
 class PayoutRequestAdmin(admin.ModelAdmin):
     list_display = (
@@ -723,6 +752,7 @@ class PayoutRequestAdmin(admin.ModelAdmin):
         "requested_at", "updated_at",
     )
     ordering = ("-requested_at",)
+    actions = [approve_payout_requests, mark_under_review, hold_payout_requests]
     fieldsets = (
         ("Chef & Request", {
             "fields": ("chef", "dac7_record", "reward_agreement", "requested_at"),

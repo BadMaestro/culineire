@@ -5,7 +5,8 @@ import logging
 
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Count
+from django.db import models
+from django.db.models import Count, Sum
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 
@@ -1505,6 +1506,267 @@ def handle_token_order_chargeback(token_order_id: int, chargeback: bool = False)
             "reversed_rewards": reversed_rewards,
             "flagged_gifts": flagged_gifts,
         }
+
+
+def check_payout_eligibility(chef) -> dict:
+    """Return a dict of {eligible: bool, reasons: list[str]} for payout request validation.
+
+    Checks (all must pass):
+    1. Chef profile exists and age_verified=True
+    2. reward_agreement_accepted=True
+    3. stripe_connect_onboarded=True
+    4. not is_suspended and not fraud_flag and not payout_blocked
+    5. Minimum 2000 APPROVED reward tokens (across all RewardRecord)
+    6. No open PayoutRequest (PENDING or UNDER_REVIEW)
+    """
+    from .models import ChefBattleProfile, PayoutRequest, RewardRecord
+
+    reasons = []
+
+    profile = ChefBattleProfile.objects.filter(author=chef).first()
+    if profile is None:
+        return {"eligible": False, "reasons": ["No Chef Battle profile found."]}
+
+    if not profile.age_verified:
+        reasons.append("You must confirm you are 18 or older.")
+    if not profile.reward_agreement_accepted:
+        reasons.append("You must accept the Chef Reward Agreement before requesting a payout.")
+    if not profile.stripe_connect_onboarded:
+        reasons.append("Stripe Connect onboarding is not complete.")
+    if profile.is_suspended:
+        reasons.append("Your account is currently suspended.")
+    if profile.fraud_flag:
+        reasons.append("Your account has an active fraud flag under review.")
+    if profile.payout_blocked:
+        reasons.append("Your payout eligibility is blocked pending compliance review.")
+
+    approved_tokens = RewardRecord.objects.filter(
+        recipient=chef, status=RewardRecord.Status.APPROVED
+    ).aggregate(total=Sum("tokens_granted"))["total"] or 0
+    MIN_TOKENS = 2000
+    if approved_tokens < MIN_TOKENS:
+        reasons.append(
+            f"Minimum {MIN_TOKENS} approved reward tokens required. You have {approved_tokens}."
+        )
+
+    open_request = PayoutRequest.objects.filter(
+        chef=chef, status__in=[PayoutRequest.Status.PENDING, PayoutRequest.Status.UNDER_REVIEW]
+    ).exists()
+    if open_request:
+        reasons.append("You already have a payout request under review.")
+
+    return {"eligible": len(reasons) == 0, "reasons": reasons, "approved_tokens": approved_tokens}
+
+
+def create_payout_request(chef, request_http=None) -> "PayoutRequest":
+    """Create a PayoutRequest for a chef after eligibility checks pass.
+
+    Locks all APPROVED reward records to ISSUED status immediately so they
+    cannot be double-spent. Rate snapshot is frozen at creation time.
+    Raises ValueError if not eligible.
+    """
+    from decimal import Decimal
+    from .models import ChefBattleProfile, ChefRewardAgreement, DAC7Record, LedgerEvent, PayoutRequest, RewardRecord
+
+    eligibility = check_payout_eligibility(chef)
+    if not eligibility["eligible"]:
+        raise ValueError(" ".join(eligibility["reasons"]))
+
+    profile = ChefBattleProfile.objects.get(author=chef)
+    dac7 = DAC7Record.objects.filter(chef=chef).first()
+    agreement = ChefRewardAgreement.objects.filter(chef=chef).order_by("-accepted_at").first()
+
+    rate = Decimal(PayoutRequest.PAYOUT_RATE_EUR_PER_TOKEN)
+
+    with transaction.atomic():
+        approved_records = RewardRecord.objects.select_for_update().filter(
+            recipient=chef, status=RewardRecord.Status.APPROVED
+        )
+        total_tokens = sum(r.tokens_granted for r in approved_records)
+        if total_tokens < 2000:
+            raise ValueError("Not enough approved tokens.")
+
+        gross_eur = (Decimal(total_tokens) * rate).quantize(Decimal("0.01"))
+
+        payout = PayoutRequest.objects.create(
+            chef=chef,
+            dac7_record=dac7,
+            reward_agreement=agreement,
+            amount_reward_tokens=total_tokens,
+            payout_rate_snapshot=rate,
+            gross_payout_eur=gross_eur,
+            stripe_connect_account_id=dac7.stripe_connect_account_id if dac7 else "",
+        )
+
+        # Move approved records to ISSUED (locked for this payout)
+        for record in approved_records:
+            record.status = RewardRecord.Status.ISSUED
+            record.status_note = f"Locked for PayoutRequest #{payout.pk}"
+            record.save(update_fields=["status", "status_note", "updated_at"])
+
+        LedgerEvent.objects.create(
+            event_type=LedgerEvent.EventType.ADMIN_NOTE,
+            actor=chef,
+            payload={
+                "action": "payout_request_created",
+                "payout_request_id": payout.pk,
+                "total_tokens": total_tokens,
+                "gross_eur": str(gross_eur),
+                "rate": str(rate),
+            },
+        )
+
+    logger.info("Payout request #%s created for %s: %sT / €%s", payout.pk, chef, total_tokens, gross_eur)
+    return payout
+
+
+def approve_payout_request(payout_request_id: int, reviewed_by_user) -> "PayoutRequest":
+    """Admin: approve a PayoutRequest and trigger Stripe Connect transfer.
+
+    Sets status to APPROVED (then PAID after transfer). Moves ISSUED reward records to ACKNOWLEDGED.
+    """
+    from .models import LedgerEvent, PayoutRequest, RewardRecord
+
+    with transaction.atomic():
+        try:
+            payout = PayoutRequest.objects.select_for_update().get(pk=payout_request_id)
+        except PayoutRequest.DoesNotExist:
+            raise ValueError(f"PayoutRequest #{payout_request_id} not found.")
+
+        if payout.status not in (PayoutRequest.Status.PENDING, PayoutRequest.Status.UNDER_REVIEW):
+            raise ValueError(f"PayoutRequest #{payout_request_id} is in status '{payout.status}' and cannot be approved.")
+
+        payout.status = PayoutRequest.Status.APPROVED
+        payout.reviewed_by = reviewed_by_user
+        payout.reviewed_at = timezone.now()
+        payout.save(update_fields=["status", "reviewed_by", "reviewed_at", "updated_at"])
+
+        LedgerEvent.objects.create(
+            event_type=LedgerEvent.EventType.ADMIN_NOTE,
+            actor=payout.chef,
+            payload={
+                "action": "payout_approved",
+                "payout_request_id": payout.pk,
+                "approved_by": reviewed_by_user.username,
+                "gross_eur": str(payout.gross_payout_eur),
+            },
+        )
+
+    # Attempt Stripe Connect transfer outside the atomic block
+    try:
+        _execute_stripe_connect_transfer(payout)
+    except Exception:
+        logger.exception("Stripe Connect transfer failed for PayoutRequest #%s", payout_request_id)
+        # Leave as APPROVED — admin can retry
+
+    return payout
+
+
+def reject_payout_request(payout_request_id: int, reviewed_by_user, reason: str) -> "PayoutRequest":
+    """Admin: reject a PayoutRequest. Moves ISSUED reward records back to APPROVED."""
+    from .models import LedgerEvent, PayoutRequest, RewardRecord
+
+    with transaction.atomic():
+        try:
+            payout = PayoutRequest.objects.select_for_update().get(pk=payout_request_id)
+        except PayoutRequest.DoesNotExist:
+            raise ValueError(f"PayoutRequest #{payout_request_id} not found.")
+
+        if payout.status not in (PayoutRequest.Status.PENDING, PayoutRequest.Status.UNDER_REVIEW, PayoutRequest.Status.APPROVED):
+            raise ValueError(f"PayoutRequest #{payout_request_id} cannot be rejected from status '{payout.status}'.")
+
+        payout.status = PayoutRequest.Status.REJECTED
+        payout.reviewed_by = reviewed_by_user
+        payout.reviewed_at = timezone.now()
+        payout.rejection_reason = reason
+        payout.save(update_fields=["status", "reviewed_by", "reviewed_at", "rejection_reason", "updated_at"])
+
+        # Return ISSUED records to APPROVED so chef can re-request
+        RewardRecord.objects.filter(
+            recipient=payout.chef,
+            status=RewardRecord.Status.ISSUED,
+            status_note__contains=f"PayoutRequest #{payout.pk}",
+        ).update(status=RewardRecord.Status.APPROVED, status_note="Returned: payout rejected")
+
+        LedgerEvent.objects.create(
+            event_type=LedgerEvent.EventType.ADMIN_NOTE,
+            actor=payout.chef,
+            payload={
+                "action": "payout_rejected",
+                "payout_request_id": payout.pk,
+                "rejected_by": reviewed_by_user.username,
+                "reason": reason,
+            },
+        )
+
+    return payout
+
+
+def _execute_stripe_connect_transfer(payout: "PayoutRequest") -> None:
+    """Attempt a Stripe Connect transfer for an approved payout. Updates status to PAID on success."""
+    from decimal import Decimal
+    from .models import LedgerEvent, PayoutRequest
+
+    if not payout.stripe_connect_account_id:
+        logger.error("No Stripe Connect account ID on PayoutRequest #%s", payout.pk)
+        return
+
+    try:
+        import stripe
+        stripe.api_key = __import__("django.conf", fromlist=["settings"]).settings.STRIPE_SECRET_KEY
+        transfer = stripe.Transfer.create(
+            amount=int(payout.gross_payout_eur * 100),
+            currency=payout.currency or "eur",
+            destination=payout.stripe_connect_account_id,
+            metadata={"payout_request_id": str(payout.pk), "chef": str(payout.chef_id)},
+        )
+        transfer_id = transfer.get("id", "")
+        with transaction.atomic():
+            pr = PayoutRequest.objects.select_for_update().get(pk=payout.pk)
+            pr.status = PayoutRequest.Status.PAID
+            pr.stripe_transfer_id = transfer_id
+            pr.paid_at = timezone.now()
+            pr.save(update_fields=["status", "stripe_transfer_id", "paid_at", "updated_at"])
+            LedgerEvent.objects.create(
+                event_type=LedgerEvent.EventType.ADMIN_NOTE,
+                actor=payout.chef,
+                payload={
+                    "action": "payout_paid",
+                    "payout_request_id": payout.pk,
+                    "stripe_transfer_id": transfer_id,
+                    "gross_eur": str(payout.gross_payout_eur),
+                },
+            )
+        logger.info("PayoutRequest #%s paid: transfer %s", payout.pk, transfer_id)
+    except ImportError:
+        logger.error("stripe package not installed — cannot execute transfer for PayoutRequest #%s", payout.pk)
+    except Exception:
+        logger.exception("Stripe transfer failed for PayoutRequest #%s", payout.pk)
+        raise
+
+
+def get_chef_payout_statement(chef) -> dict:
+    """Return a summary dict for a chef's reward/payout ledger page.
+
+    Used in the chef profile payout statement view.
+    """
+    from .models import PayoutRequest, RewardRecord
+
+    reward_summary = {}
+    for status in RewardRecord.Status:
+        reward_summary[status.value] = RewardRecord.objects.filter(
+            recipient=chef, status=status
+        ).aggregate(total=Sum("tokens_granted"), count=Count("pk"))
+
+    payout_history = PayoutRequest.objects.filter(chef=chef).order_by("-requested_at")[:20]
+
+    eligibility = check_payout_eligibility(chef)
+
+    return {
+        "reward_summary": reward_summary,
+        "payout_history": payout_history,
+        "eligibility": eligibility,
+    }
 
 
 def submit_content_report(
