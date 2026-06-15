@@ -55,12 +55,17 @@ from .selectors import (
 )
 from .services import (
     MOVES_MIN_TO_CHALLENGE,
+    REWARD_AGREEMENT_TEXT_v1,
     _notify_chef,
     accept_challenge,
+    accept_reward_agreement,
     approve_cooking_phase,
     calculate_battle_result,
+    check_forbidden_claims,
     check_level_matchup,
+    check_payout_eligibility,
     create_battle_event,
+    create_payout_request,
     fire_ingredient_shot,
     get_battles_awaiting_cooking_approval,
     get_biathlon_state,
@@ -212,7 +217,7 @@ def _build_battlefield_progress():
                 {"label": "Article model AI source labels (§29)", "detail": "Article.SourceType extended: AI_ASSISTED ('ai_assisted'), HUMAN_REVIEWED_AI ('human_reviewed_ai') added. CharField only — no migration required.", "status": "done", "completed_at": "2026-06-15"},
                 {"label": "AI-assisted content notice in recipe template (§29)", "detail": "recipe_detail.html: notice added inside source_type=='ai_assisted' block: 'This recipe may include AI-assisted text or imagery...' Styled with .ai-content-notice in detail_page.css.", "status": "done", "completed_at": "2026-06-15"},
                 {"label": "AI-assisted content notice in article template (§29)", "detail": "article_detail.html: notice added for source_type in [ai_assisted, human_reviewed_ai]: 'This article may include AI-assisted text or imagery...' Same .ai-content-notice CSS class.", "status": "done", "completed_at": "2026-06-15"},
-                {"label": "Forbidden claims check in moderation (§30)", "detail": "Moderation checklist for recipes/articles should flag forbidden health/safety claims. Manual admin check in Phase 1/2; automated flagging deferred.", "status": "pending"},
+                {"label": "Forbidden claims check in moderation (§30)", "detail": "check_forbidden_claims() in services.py scans recipe/article text for 18 forbidden health/safety phrases. Moderation panel annotates each pending item with .forbidden_claims_hits and shows ⚠ warning inline.", "status": "done", "completed_at": "2026-06-15"},
                 {"label": "Post-purchase durable confirmation email (§10)", "detail": "stripe_services._send_purchase_confirmation() sends email with EU CRD Article 16(m) consent text after checkout.session.completed webhook credits tokens. fail_silently=True so payment never rolls back on email failure.", "status": "done", "completed_at": "2026-06-15"},
             ],
         },
@@ -244,7 +249,7 @@ def _build_battlefield_progress():
                 {"label": "Payout request flow", "detail": "check_payout_eligibility() + create_payout_request() in services.py. Eligibility: 18+, reward_agreement_accepted, stripe_connect_onboarded, not suspended/fraud/payout_blocked, ≥2000 APPROVED tokens, no open request. create_payout_request() locks APPROVED records to ISSUED atomically and freezes rate snapshot.", "status": "done", "completed_at": "2026-06-15"},
                 {"label": "Admin payout approval", "detail": "approve_payout_request() + reject_payout_request() services. Reject moves ISSUED records back to APPROVED. Approve triggers _execute_stripe_connect_transfer(). Admin actions: approve, mark_under_review, hold in PayoutRequestAdmin. All events written to immutable LedgerEvent.", "status": "done", "completed_at": "2026-06-15"},
                 {"label": "Payout ledger and statements", "detail": "get_chef_payout_statement() in services.py: reward_summary per status, payout_history (last 20), eligibility check. All payout events (request/approve/reject/paid) written to LedgerEvent as ADMIN_NOTE with full payload.", "status": "done", "completed_at": "2026-06-15"},
-                {"label": "Payout statement page (chef-facing)", "detail": "Frontend page for eligible chefs to view APPROVED reward totals, payout history, eligibility status, and trigger create_payout_request(). Requires Stripe Connect onboarding to be active before real payouts can be initiated.", "status": "pending"},
+                {"label": "Payout statement page (chef-facing)", "detail": "/chef-battle/payout/ — eligibility panel, approved reward records, payout history, request button. /chef-battle/payout/agreement/ — reward agreement acceptance flow (v1.0 text, consent snapshot, DAC7 disclosure). accept_reward_agreement() service stores ChefRewardAgreement record. Stripe Connect onboarding required for real transfers.", "status": "done", "completed_at": "2026-06-15"},
             ],
         },
         {
@@ -1306,4 +1311,82 @@ def chef_battle_profile(request, slug):
         "battles": battles,
         "gift_display": gift_display,
         "is_own_profile": viewer_author and viewer_author.pk == author.pk,
+    })
+
+
+@login_required
+def reward_agreement(request):
+    """GET: show agreement text. POST: accept it and redirect to payout statement."""
+    author = get_author_for_user(request.user)
+    if author is None:
+        raise PermissionDenied
+
+    profile = get_or_create_battle_profile(author)
+    if profile.reward_agreement_accepted:
+        return redirect("chef_battle:payout_statement")
+
+    if request.method == "POST":
+        if request.POST.get("accept") == "1":
+            accept_reward_agreement(
+                author,
+                ip_address=get_client_ip(request),
+                user_agent=request.META.get("HTTP_USER_AGENT", ""),
+            )
+            messages.success(request, "Chef Reward Agreement accepted.")
+            return redirect("chef_battle:payout_statement")
+        messages.error(request, "You must check the box to accept the agreement.")
+
+    return render(request, "chef_battle/reward_agreement.html", {
+        "agreement_text": REWARD_AGREEMENT_TEXT_v1,
+        "profile": profile,
+    })
+
+
+@login_required
+def payout_statement(request):
+    """Payout statement page: eligibility, approved tokens, payout history, request button."""
+    from django.db.models import Sum
+    from .models import PayoutRequest, RewardRecord
+
+    author = get_author_for_user(request.user)
+    if author is None:
+        raise PermissionDenied
+
+    profile = get_or_create_battle_profile(author)
+
+    if not profile.reward_agreement_accepted:
+        return redirect("chef_battle:reward_agreement")
+
+    eligibility = check_payout_eligibility(author)
+
+    approved_records = RewardRecord.objects.filter(
+        recipient=author, status=RewardRecord.Status.APPROVED
+    ).order_by("-created_at")
+
+    payout_history = PayoutRequest.objects.filter(
+        chef=author
+    ).order_by("-requested_at")[:20]
+
+    if request.method == "POST":
+        if not eligibility["eligible"]:
+            messages.error(request, "You are not currently eligible for a payout.")
+            return redirect("chef_battle:payout_statement")
+        try:
+            payout = create_payout_request(author, request_http=request)
+            messages.success(
+                request,
+                f"Payout request #{payout.pk} submitted for {payout.amount_reward_tokens}T "
+                f"(€{payout.gross_payout_eur:.2f}). Our team will review it within 5 business days."
+            )
+        except ValueError as exc:
+            messages.error(request, str(exc))
+        return redirect("chef_battle:payout_statement")
+
+    return render(request, "chef_battle/payout_statement.html", {
+        "profile": profile,
+        "eligibility": eligibility,
+        "approved_records": approved_records,
+        "payout_history": payout_history,
+        "payout_rate": "€0.025",
+        "min_tokens": 2000,
     })

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Chef Reward Agreement | CulinEire{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260615" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero">
+  <div class="container">
+    <p class="battle-kicker">Chef Battle Arena</p>
+    <h1>Chef Reward Agreement</h1>
+    <p class="battle-room-hero__sub">Review and accept the reward terms to become payout eligible.</p>
+  </div>
+</section>
+
+<section class="page-section">
+  <div class="container battle-page">
+
+    {% if messages %}
+    <ul class="battle-messages">
+      {% for m in messages %}<li class="battle-message battle-message--{{ m.tags }}">{{ m }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+
+    <div class="battle-section-header">
+      <h2>Agreement Text</h2>
+    </div>
+    <div class="reward-agreement-text">
+      <pre>{{ agreement_text }}</pre>
+    </div>
+
+    <form method="post" class="reward-agreement-form">
+      {% csrf_token %}
+      <label class="real-photo-declaration__label">
+        <input type="checkbox" name="accept" value="1" required>
+        <span>I have read and I accept the Chef Battle Reward Agreement in full.</span>
+      </label>
+      <div class="battle-actions" style="margin-top:1.5rem">
+        <button type="submit" class="btn-primary">Accept and Continue</button>
+        <a class="btn-secondary" href="{% url 'chef_battle:home' %}">Cancel</a>
+      </div>
+    </form>
+
+  </div>
+</section>
+{% endblock %}

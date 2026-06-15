@@ -1817,3 +1817,76 @@ def submit_content_report(
         },
     )
     return report
+
+
+# ── Reward Agreement ─────────────────────────────────────────────────────────
+
+REWARD_AGREEMENT_TEXT_v1 = """CHEF BATTLE REWARD AGREEMENT — VERSION 1.0
+
+By accepting this agreement you confirm that you have read and understood the following terms.
+
+1. NATURE OF REWARDS
+CulinEire Chef Battle Rewards (CBR) and Live Support Rewards (LSR) are discretionary platform rewards granted at the sole discretion of CulinEire. They are not money, not user funds, not e-money, and confer no legal right to payment.
+
+2. CONVERSION AND PAYOUT
+Approved reward tokens may be converted to real-money payouts at a rate of €0.025 per token, subject to a minimum threshold of 2,000 approved reward tokens. The payout rate may change for future reward grants; the rate is locked at request time.
+
+3. ELIGIBILITY CONDITIONS
+Payout requests are subject to: (a) age verification (18+); (b) completion of Stripe Connect onboarding; (c) no active fraud flags, suspensions, or compliance holds; and (d) acceptance of this agreement.
+
+4. REVERSAL AND FORFEITURE
+The platform reserves the right to reverse, void, or expire rewards at any time for breach of Chef Battle rules, fraudulent activity, chargebacks, or material policy violations.
+
+5. TAX AND REPORTING (DAC7)
+Payouts are subject to EU Directive 2021/514 (DAC7 / MRDP) reporting obligations. By accepting, you consent to the collection of your identity and income data and its annual reporting to Irish Revenue where applicable thresholds are met. Data is retained for 10 years.
+
+6. GOVERNING LAW
+This agreement is governed by the laws of Ireland. Disputes are subject to the exclusive jurisdiction of the Irish courts.
+
+CulinEire is a trading name of Bearcave Limited, registered in Ireland."""
+
+
+def accept_reward_agreement(chef, ip_address: str = "", user_agent: str = "") -> "ChefRewardAgreement":
+    """Record a chef's acceptance of the Chef Reward Agreement and set the profile flag."""
+    from .models import ChefBattleProfile, ChefRewardAgreement
+
+    agreement = ChefRewardAgreement.objects.create(
+        chef=chef,
+        agreement_version="1.0",
+        consent_text_snapshot=REWARD_AGREEMENT_TEXT_v1,
+        ip_address=ip_address or None,
+        user_agent=user_agent[:512] if user_agent else "",
+    )
+    ChefBattleProfile.objects.filter(author=chef).update(reward_agreement_accepted=True)
+    logger.info("Chef %s accepted Reward Agreement v1.0", chef)
+    return agreement
+
+
+# ── Forbidden claims detection (PDF v6 §30) ──────────────────────────────────
+
+_FORBIDDEN_PHRASES = [
+    "safe for all allerg",
+    "free from all allerg",
+    "suitable for all allerg",
+    "cures diabetes",
+    "cures cancer",
+    "prevents disease",
+    "eliminates disease",
+    "clinically proven",
+    "medically proven",
+    "doctor recommended",
+    "guaranteed weight loss",
+    "burn fat fast",
+    "detox your body",
+    "cleanse your body",
+    "boost your immune system",
+    "no risk",
+    "100% safe",
+    "completely safe for",
+]
+
+
+def check_forbidden_claims(text: str) -> list[str]:
+    """Return list of forbidden phrases found in text (case-insensitive). Empty list = clean."""
+    lower = (text or "").lower()
+    return [phrase for phrase in _FORBIDDEN_PHRASES if phrase in lower]

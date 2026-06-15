@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Payout Statement | CulinEire{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260615" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero">
+  <div class="container">
+    <p class="battle-kicker">Chef Battle Arena</p>
+    <h1>Payout Statement</h1>
+    <p class="battle-room-hero__sub">Your approved reward tokens and payout history.</p>
+    <div class="battle-actions">
+      <a class="btn-secondary" href="{% url 'chef_battle:home' %}">Enter Arena</a>
+    </div>
+  </div>
+</section>
+
+<section class="page-section">
+  <div class="container battle-page">
+
+    {% if messages %}
+    <ul class="battle-messages">
+      {% for m in messages %}<li class="battle-message battle-message--{{ m.tags }}">{{ m }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+
+    <div class="battle-moves-summary">
+      <div class="battle-moves-summary__card">
+        <p class="battle-moves-summary__label">Approved reward tokens</p>
+        <p class="battle-moves-summary__value">{{ eligibility.approved_tokens }}T</p>
+      </div>
+      <div class="battle-moves-summary__card">
+        <p class="battle-moves-summary__label">Payout rate</p>
+        <p class="battle-moves-summary__value">{{ payout_rate }} / token</p>
+      </div>
+      <div class="battle-moves-summary__card">
+        <p class="battle-moves-summary__label">Estimated gross payout</p>
+        <p class="battle-moves-summary__value">
+          {% if eligibility.approved_tokens >= min_tokens %}
+            €{{ eligibility.approved_tokens|floatformat:0 }}<!-- calc below -->
+            <span class="payout-calc" data-tokens="{{ eligibility.approved_tokens }}"></span>
+          {% else %}
+            &mdash;
+          {% endif %}
+        </p>
+      </div>
+      <div class="battle-moves-summary__card">
+        <p class="battle-moves-summary__label">Minimum to request</p>
+        <p class="battle-moves-summary__value">{{ min_tokens }}T</p>
+      </div>
+    </div>
+
+    <div class="battle-section-header battle-section-header--spaced">
+      <h2>Eligibility</h2>
+    </div>
+
+    {% if eligibility.eligible %}
+    <p class="payout-eligible-notice">You are eligible to submit a payout request.</p>
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn-primary">Request Payout</button>
+    </form>
+    {% else %}
+    <div class="payout-ineligible-notice">
+      <p>You are not currently eligible for a payout. Please resolve the following:</p>
+      <ul>
+        {% for reason in eligibility.reasons %}
+        <li>{{ reason }}</li>
+        {% endfor %}
+      </ul>
+      {% if not profile.stripe_connect_onboarded %}
+      <p class="payout-stripe-note">Stripe Connect onboarding is required before payouts can be initiated. This will be available once the payout programme opens publicly.</p>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="battle-section-header battle-section-header--spaced">
+      <h2>Approved Reward Records</h2>
+    </div>
+
+    {% if approved_records %}
+    <div class="battle-table">
+      <div class="battle-table__head battle-table__head--4col">
+        <span>Date</span>
+        <span>Type</span>
+        <span>Reason</span>
+        <span>Tokens</span>
+      </div>
+      {% for r in approved_records %}
+      <div class="battle-table__row battle-table__row--4col">
+        <span>{{ r.created_at|date:"j M Y" }}</span>
+        <span>{{ r.get_reward_type_display }}</span>
+        <span>{{ r.reason }}</span>
+        <strong class="battle-moves__positive">{{ r.tokens_granted }}T</strong>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="battle-empty">No approved reward tokens yet. Win battles and receive appreciation gifts to earn rewards.</p>
+    {% endif %}
+
+    <div class="battle-section-header battle-section-header--spaced">
+      <h2>Payout History</h2>
+    </div>
+
+    {% if payout_history %}
+    <div class="battle-table">
+      <div class="battle-table__head battle-table__head--4col">
+        <span>Date</span>
+        <span>Tokens</span>
+        <span>Gross (EUR)</span>
+        <span>Status</span>
+      </div>
+      {% for p in payout_history %}
+      <div class="battle-table__row battle-table__row--4col">
+        <span>{{ p.requested_at|date:"j M Y" }}</span>
+        <span>{{ p.amount_reward_tokens }}T</span>
+        <span>€{{ p.gross_payout_eur }}</span>
+        <span class="payout-status payout-status--{{ p.status }}">{{ p.get_status_display }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="battle-empty">No payout requests yet.</p>
+    {% endif %}
+
+    <div class="payout-legal-notice">
+      <p>Chef Battle Rewards (CBR) and Live Support Rewards (LSR) are discretionary platform rewards. They are not money, not user funds, and not e-money. Payout eligibility and rates are at CulinEire's sole discretion. Payouts are subject to DAC7/MRDP reporting obligations under EU Directive 2021/514.</p>
+    </div>
+
+  </div>
+</section>
+
+<script nonce="{{ request.csp_nonce }}">
+document.querySelectorAll('.payout-calc').forEach(function(el) {
+  var tokens = parseInt(el.dataset.tokens, 10);
+  if (!isNaN(tokens)) {
+    el.closest('.battle-moves-summary__value').textContent = '€' + (tokens * 0.025).toFixed(2);
+  }
+});
+</script>
+{% endblock %}

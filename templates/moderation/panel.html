@@ -287,6 +287,7 @@
                     <h3 class="moderation-card__title">
                         <a href="{{ recipe.get_absolute_url }}">{{ recipe.title }}</a>
                     </h3>
+                    {% if recipe.forbidden_claims_hits %}<p class="mod-claims-warning">&#9888; Possible forbidden claims: {{ recipe.forbidden_claims_hits|join:", " }}</p>{% endif %}
                 </div>
                 <div class="moderation-card__actions">
                     <a class="mod-btn mod-btn--view" href="{{ recipe.get_absolute_url }}" target="_blank">View</a>
@@ -393,6 +394,7 @@
                     <h3 class="moderation-card__title">
                         <a href="{{ article.get_absolute_url }}">{{ article.title }}</a>
                     </h3>
+                    {% if article.forbidden_claims_hits %}<p class="mod-claims-warning">&#9888; Possible forbidden claims: {{ article.forbidden_claims_hits|join:", " }}</p>{% endif %}
                 </div>
                 <div class="moderation-card__actions">
                     <a class="mod-btn mod-btn--view" href="{{ article.get_absolute_url }}" target="_blank">View</a>

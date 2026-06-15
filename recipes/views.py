@@ -2384,8 +2384,17 @@ def moderation_panel(request):
         .order_by("owner_priority", "name", "user__username")
     )
 
+    from chef_battle.services import check_forbidden_claims
     from config.maintenance import read_maintenance_flag
     from sponsors.attention import get_sponsor_moderation_attention_breakdown, get_sponsor_moderation_attention_count
+
+    # Forbidden claims flags (PDF v6 §30) — annotate each object directly
+    for r in list(pending_recipes) + list(needs_changes_recipes):
+        r.forbidden_claims_hits = check_forbidden_claims(" ".join(filter(None, [
+            r.short_description, r.ingredients, r.method, r.tips, r.irish_context,
+        ])))
+    for a in list(pending_articles) + list(needs_changes_articles):
+        a.forbidden_claims_hits = check_forbidden_claims(" ".join(filter(None, [a.excerpt, a.body])))
 
     maintenance_flag = read_maintenance_flag()
     maintenance_web_active = maintenance_flag is not None and maintenance_flag.get("active", False)
