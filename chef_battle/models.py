@@ -485,6 +485,29 @@ APPRECIATION_GIFT_COST = {
     AppreciationGiftType.VIRTUAL_CHAMPAGNE_BOTTLE: 100,
 }
 
+# Whether sending this gift creates a pending LSR RewardRecord for the recipient chef.
+# Per spec: artifact cost must never create LSR; only the support component of a gift can.
+# All appreciation gifts (non-artifact) are eligible.
+APPRECIATION_GIFT_REWARD_ELIGIBLE = {
+    AppreciationGiftType.COFFEE: True,
+    AppreciationGiftType.VIRTUAL_BEER_TOAST: True,
+    AppreciationGiftType.VIRTUAL_WHISKEY_TOAST: True,
+    AppreciationGiftType.FLOWERS: True,
+    AppreciationGiftType.CELEBRATION_COCKTAIL: True,
+    AppreciationGiftType.VIRTUAL_CHAMPAGNE_BOTTLE: True,
+}
+
+# Pending LSR tokens awarded to the chef (recipient) per gift.
+# 1 token spent = 1 pending LSR (internal reward record, not immediate credit).
+APPRECIATION_GIFT_REWARD_BASIS = {
+    AppreciationGiftType.COFFEE: 20,
+    AppreciationGiftType.VIRTUAL_BEER_TOAST: 30,
+    AppreciationGiftType.VIRTUAL_WHISKEY_TOAST: 50,
+    AppreciationGiftType.FLOWERS: 80,
+    AppreciationGiftType.CELEBRATION_COCKTAIL: 80,
+    AppreciationGiftType.VIRTUAL_CHAMPAGNE_BOTTLE: 100,
+}
+
 
 class AppreciationGift(models.Model):
     """A viewer sends a non-combat digital appreciation gift to a chef. All gifts are digital items only."""

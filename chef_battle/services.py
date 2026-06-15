@@ -1042,7 +1042,13 @@ def send_battle_artifact(*, sender_user, recipient, battle: Battle, artifact: Ar
 
 
 def send_appreciation_gift(*, sender_user, recipient, gift_type: str, message: str = "") -> AppreciationGift:
-    """Viewer spends tokens to send an appreciation gift to a chef. All gifts are digital items only."""
+    """Viewer spends tokens to send an appreciation gift to a chef. All gifts are digital items only.
+
+    Creates two LSR records:
+    - Sender gets 10% of cost back immediately (issued to wallet).
+    - Recipient chef gets a pending LSR equal to full gift cost (not credited until approved + Next Battle Unlock).
+    """
+    from .models import APPRECIATION_GIFT_REWARD_ELIGIBLE, APPRECIATION_GIFT_REWARD_BASIS
     cost = APPRECIATION_GIFT_COST.get(gift_type)
     if cost is None:
         raise ValueError(f"Unknown gift type: {gift_type}")
@@ -1095,6 +1101,28 @@ def send_appreciation_gift(*, sender_user, recipient, gift_type: str, message: s
             actor=sender_author,
             payload={"tokens_granted": lsr_amount, "reward_id": reward.pk, "gift_type": gift_type},
         )
+
+        # LSR for recipient chef: pending reward record (not credited until approved + Next Battle Unlock)
+        if APPRECIATION_GIFT_REWARD_ELIGIBLE.get(gift_type, False):
+            chef_lsr_amount = APPRECIATION_GIFT_REWARD_BASIS.get(gift_type, cost)
+            chef_reward = RewardRecord.objects.create(
+                recipient=recipient,
+                reward_type=RewardRecord.RewardType.LSR,
+                tokens_granted=chef_lsr_amount,
+                reason=f"LSR: {sender_author.name} sent {gift_type}",
+                related_gift=gift,
+            )
+            LedgerEvent.objects.create(
+                event_type=LedgerEvent.EventType.LSR_GRANTED,
+                actor=recipient,
+                payload={
+                    "source": "appreciation_gift",
+                    "gift_type": gift_type,
+                    "tokens_pending": chef_lsr_amount,
+                    "reward_record_id": chef_reward.pk,
+                    "from": sender_author.slug,
+                },
+            )
 
     return gift
 
