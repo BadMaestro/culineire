@@ -662,6 +662,7 @@ class BattleEventFeedTest(TestCase):
         self.author = _make_author()
 
     def _make_battle(self):
+        from django.utils import timezone
         from chef_battle.models import BattleChallenge, Battle
         User = get_user_model()
         from recipes.models import RecipeAuthor
@@ -671,6 +672,7 @@ class BattleEventFeedTest(TestCase):
             challenger=self.author,
             opponent=opponent,
             status=BattleChallenge.Status.ACCEPTED,
+            expires_at=timezone.now() + timezone.timedelta(hours=24),
         )
         return Battle.objects.create(challenge=challenge, status=Battle.Status.COMBAT)
 
