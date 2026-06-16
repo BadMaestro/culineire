@@ -7,7 +7,7 @@
 {% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616c" rel="stylesheet">{% endblock %}
 
 {% block content %}
-<section class="battle-room-hero">
+<section class="battle-room-hero battle-room-hero--has-panel">
   <div class="container">
     <p class="battle-kicker">Chef Battle Arena</p>
     <h1>Season Leaderboard</h1>
@@ -17,6 +17,7 @@
       <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">All-Time Rankings</a>
       <a class="btn-secondary" href="{% url 'chef_battle:hall_of_fame' %}">Hall of Fame</a>
     </div>
+    {% include '_hero_battle_panel.html' %}
   </div>
 </section>
 

@@ -15,6 +15,35 @@
   gap: 0.9rem;
 }
 
+/* Panel alongside battle heroes */
+.battle-hero--has-panel .battle-hero__inner,
+.battle-room-hero--has-panel .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  text-align: left;
+  gap: 2rem;
+}
+.battle-hero--has-panel .battle-hero__inner .battle-kicker,
+.battle-room-hero--has-panel .container .battle-kicker,
+.battle-hero--has-panel .battle-hero__inner .battle-actions,
+.battle-room-hero--has-panel .container .battle-actions {
+  justify-content: flex-start;
+  text-align: left;
+}
+.battle-hero--has-panel .battle-hero__inner > :not(.hero-battle-panel),
+.battle-room-hero--has-panel .container > :not(.hero-battle-panel) {
+  text-align: left;
+}
+@media (max-width: 768px) {
+  .battle-hero--has-panel .battle-hero__inner,
+  .battle-room-hero--has-panel .container {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}
+
 .battle-hero h1,
 .battle-room-hero h1 {
   max-width: 14ch;

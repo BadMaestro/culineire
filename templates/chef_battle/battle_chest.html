@@ -5,7 +5,7 @@
 {% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616c" rel="stylesheet">{% endblock %}
 
 {% block content %}
-<section class="battle-room-hero">
+<section class="battle-room-hero battle-room-hero--has-panel">
   <div class="container">
     <p class="battle-kicker">Chef Battle Arena</p>
     <h1>&#x1F4BC; Battle Chest</h1>
@@ -16,6 +16,7 @@
       <a class="btn-secondary" href="{% url 'chef_battle:changing_room' %}">Changing Room</a>
       <a class="btn-secondary" href="{% url 'chef_battle:token_shop' %}">Get Tokens</a>
     </div>
+    {% include '_hero_battle_panel.html' %}
   </div>
 </section>
 

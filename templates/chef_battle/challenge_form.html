@@ -5,7 +5,7 @@
 {% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616c" rel="stylesheet">{% endblock %}
 
 {% block content %}
-<section class="battle-hero">
+<section class="battle-hero battle-hero--has-panel">
   <div class="container battle-hero__inner">
     <p class="battle-kicker">Chef Battle Arena</p>
     <h1>Issue a Challenge</h1>
@@ -16,6 +16,7 @@
       <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
       <a class="btn-secondary" href="{% url 'chef_battle:rules' %}">Rules</a>
     </div>
+    {% include '_hero_battle_panel.html' %}
   </div>
 </section>
 

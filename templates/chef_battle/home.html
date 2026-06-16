@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block content %}
-<section class="battle-hero">
+<section class="battle-hero battle-hero--has-panel">
   <div class="container battle-hero__inner">
     <p class="battle-kicker">CulinEire Chef Battle</p>
     <h1 class="battle-hero__headline">Real Recipes, Real Chefs,<br>Real Public Rivalry, Real Rewards!</h1>
@@ -25,6 +25,7 @@
       <a class="btn-secondary" href="{% url 'chef_battle:changing_room' %}">Changing Room</a>
       <a class="btn-primary" href="{% url 'chef_battle:challenge_create' %}">Create Challenge</a>
     </div>
+    {% include '_hero_battle_panel.html' %}
   </div>
 </section>
 

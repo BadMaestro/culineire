@@ -10,7 +10,7 @@
 {% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616c" rel="stylesheet">{% endblock %}
 
 {% block content %}
-<section class="hero hero--home hero--legal">
+<section class="hero hero--home hero--legal{% if chef_battle_enabled %} hero--has-battle{% endif %}">
   <div aria-hidden="true" class="hero__background">
     <img alt="" src="{% static 'images/hero-battle.png' %}">
   </div>
@@ -26,6 +26,7 @@
         <a class="btn-secondary" href="{% url 'legal:purchases_and_vat' %}">Purchases &amp; VAT</a>
       </div>
     </div>
+    {% include '_hero_battle_panel.html' %}
   </div>
 </section>
 
