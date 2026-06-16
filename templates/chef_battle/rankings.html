@@ -2,7 +2,7 @@
 {% load static author_tags %}
 
 {% block title %}Chef Battle Rankings | CulinEire{% endblock %}
-{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260615" rel="stylesheet">{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616a" rel="stylesheet">{% endblock %}
 
 {% block content %}
 <section class="battle-room-hero">
@@ -20,6 +20,53 @@
 
 <section class="page-section">
   <div class="container battle-page">
+
+    <div class="rank-ladder" aria-label="Rank progression ladder">
+      <h2 class="rank-ladder__title">Rank Ladder</h2>
+      <p class="rank-ladder__sub">Rating rises and falls with each battle result.</p>
+      <div class="rank-ladder__tiers">
+        <div class="rank-tier rank-tier--master">
+          <span class="rank-tier__icon">&#x1F451;</span>
+          <span class="rank-tier__name">Culinary Master</span>
+          <span class="rank-tier__pts">1800+</span>
+        </div>
+        <div class="rank-tier rank-tier--executive">
+          <span class="rank-tier__icon">&#x2B50;</span>
+          <span class="rank-tier__name">Executive Chef</span>
+          <span class="rank-tier__pts">1600</span>
+        </div>
+        <div class="rank-tier rank-tier--head">
+          <span class="rank-tier__icon">&#x1F525;</span>
+          <span class="rank-tier__name">Head Chef</span>
+          <span class="rank-tier__pts">1450</span>
+        </div>
+        <div class="rank-tier rank-tier--sous">
+          <span class="rank-tier__icon">&#x1F9C0;</span>
+          <span class="rank-tier__name">Sous Chef</span>
+          <span class="rank-tier__pts">1300</span>
+        </div>
+        <div class="rank-tier rank-tier--partie">
+          <span class="rank-tier__icon">&#x1F52A;</span>
+          <span class="rank-tier__name">Chef de Partie</span>
+          <span class="rank-tier__pts">1180</span>
+        </div>
+        <div class="rank-tier rank-tier--commis">
+          <span class="rank-tier__icon">&#x1F373;</span>
+          <span class="rank-tier__name">Commis Chef</span>
+          <span class="rank-tier__pts">1080</span>
+        </div>
+        <div class="rank-tier rank-tier--prep">
+          <span class="rank-tier__icon">&#x1F954;</span>
+          <span class="rank-tier__name">Prep Cook</span>
+          <span class="rank-tier__pts">1000</span>
+        </div>
+        <div class="rank-tier rank-tier--porter">
+          <span class="rank-tier__icon">&#x1F9FA;</span>
+          <span class="rank-tier__name">Kitchen Porter</span>
+          <span class="rank-tier__pts">Start</span>
+        </div>
+      </div>
+    </div>
 
     {% if profiles %}
     <div class="battle-table">

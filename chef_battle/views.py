@@ -268,9 +268,9 @@ def _build_battlefield_progress():
         {
             "title": "Phase FE - Frontend, Design And Visualisation",
             "items": [
-                {"label": "Artifact gallery public page", "detail": "Public browseable gallery at /chef-battle/artifacts/ listing all 200 combat artifacts grouped by rarity with name, description, effect and token cost. Hero-style header, consistent battle design.", "status": "todo"},
+                {"label": "Artifact gallery public page", "detail": "Public browseable gallery at /chef-battle/artifacts/ listing all 200 combat artifacts grouped by rarity with name, description, effect and token cost. Hero-style header, consistent battle design.", "status": "done", "completed_at": "2026-06-16"},
                 {"label": "Battle homepage hero image", "detail": "Commission or generate a strong hero image for /chef-battle/ — two chefs facing off in a kitchen arena, bold colours, site brand style.", "status": "todo"},
-                {"label": "Rankings page infographic", "detail": "Rank-tier infographic showing the 8 ranks (Kitchen Apprentice → CulinEire Hero) with icons and point thresholds. Displayed above the rankings table.", "status": "todo"},
+                {"label": "Rankings page infographic", "detail": "Rank-tier infographic showing the 8 ranks (Kitchen Apprentice → CulinEire Hero) with icons and point thresholds. Displayed above the rankings table.", "status": "done", "completed_at": "2026-06-16"},
                 {"label": "Battle energy (moves) explainer graphic", "detail": "Visual explainer of the moves / battle-energy system for the guide page: earn moves, spend moves, infinite-moves for CulinEire Hero.", "status": "todo"},
                 {"label": "Chef level badges — 5 levels + Hero", "detail": "SVG or PNG badge artwork for Chef Level 1-5 and CulinEire Hero. Used on chef profile, my-moves and rankings. Size: 64x64 and 128x128.", "status": "todo"},
                 {"label": "Rarity tier icons — 5 rarities", "detail": "Icon set for Common / Uncommon / Rare / Epic / Legendary used in artifact gallery and gift panels. Colour-coded: grey/green/blue/purple/gold.", "status": "todo"},
@@ -280,7 +280,7 @@ def _build_battlefield_progress():
                 {"label": "Biathlon page visual", "detail": "Ingredient grid visual for the biathlon phase, showing locked (shield) and unlocked ingredients, hit effects. Either SVG or CSS-based.", "status": "todo"},
                 {"label": "Gift panel thumbnails", "detail": "Thumbnail images for each appreciation gift (Flower, Coffee, Pint, Whiskey, Cocktail) and at least the 5 rarity tiers of artifact gifts.", "status": "todo"},
                 {"label": "Chef profile avatar placeholder", "detail": "Branded placeholder avatar for chefs without a photo, using arena/kitchen motif.", "status": "todo"},
-                {"label": "Manual tasks checklist for roadmap", "detail": "Add persistent checkbox list at the bottom of the roadmap page for manual-test items. State saved to localStorage.", "status": "in_progress"},
+                {"label": "Manual tasks checklist for roadmap", "detail": "Add persistent checkbox list at the bottom of the roadmap page for manual-test items. State saved to localStorage.", "status": "done", "completed_at": "2026-06-16"},
             ],
         },
         {

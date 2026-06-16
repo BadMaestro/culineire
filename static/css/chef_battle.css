@@ -2153,3 +2153,30 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
 .manual-tasks__item label { cursor: pointer; font-size: 0.9rem; line-height: 1.4; }
 .manual-tasks__item--done { opacity: 0.55; background: var(--color-surface-alt, #f8f8f8); }
 .manual-tasks__item--done label { text-decoration: line-through; }
+
+/* Rank ladder infographic */
+.rank-ladder { margin-bottom: 2.5rem; }
+.rank-ladder__title { font-size: 1.1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin: 0 0 0.25rem; }
+.rank-ladder__sub { font-size: 0.85rem; color: var(--muted); margin: 0 0 1.25rem; }
+.rank-ladder__tiers { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.6rem; }
+.rank-tier { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; padding: 0.85rem 0.5rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--line); text-align: center; }
+.rank-tier__icon { font-size: 1.6rem; line-height: 1; }
+.rank-tier__name { font-size: 0.78rem; font-weight: 700; line-height: 1.2; color: var(--ink); }
+.rank-tier__pts { font-size: 0.72rem; font-weight: 600; border-radius: 999px; padding: 0.1rem 0.5rem; margin-top: 0.1rem; }
+.rank-tier--porter  { background: #f5f5f4; border-color: #d6d3d1; }
+.rank-tier--porter .rank-tier__pts  { background: #d6d3d1; color: #44403c; }
+.rank-tier--prep    { background: #f0fdf4; border-color: #bbf7d0; }
+.rank-tier--prep .rank-tier__pts    { background: #bbf7d0; color: #14532d; }
+.rank-tier--commis  { background: #f0fdfa; border-color: #99f6e4; }
+.rank-tier--commis .rank-tier__pts  { background: #99f6e4; color: #134e4a; }
+.rank-tier--partie  { background: #eff6ff; border-color: #bfdbfe; }
+.rank-tier--partie .rank-tier__pts  { background: #bfdbfe; color: #1e3a8a; }
+.rank-tier--sous    { background: #f5f3ff; border-color: #ddd6fe; }
+.rank-tier--sous .rank-tier__pts    { background: #ddd6fe; color: #4c1d95; }
+.rank-tier--head    { background: #fff7ed; border-color: #fed7aa; }
+.rank-tier--head .rank-tier__pts    { background: #fed7aa; color: #7c2d12; }
+.rank-tier--executive { background: #fffbeb; border-color: #fde68a; }
+.rank-tier--executive .rank-tier__pts { background: #fde68a; color: #78350f; }
+.rank-tier--master  { background: linear-gradient(135deg, #fef9c3 0%, #fef3c7 100%); border-color: #fbbf24; box-shadow: 0 0 0 1px #fbbf2440; }
+.rank-tier--master .rank-tier__pts  { background: #fbbf24; color: #451a03; }
+@media (max-width: 600px) { .rank-ladder__tiers { grid-template-columns: repeat(2, 1fr); } }
