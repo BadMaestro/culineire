@@ -423,6 +423,74 @@ class EnergyServiceTests(TestCase):
         tx = BattleMoveTransaction.objects.get(chef=self.chef, transaction_type=TxType.BATTLE_WON)
         self.assertEqual(tx.amount, 10)
 
+    def test_like_signal_awards_move_to_content_author(self):
+        from collection.models import ContentReaction
+        from django.contrib.contenttypes.models import ContentType
+        from amuse_bouche.models import AmuseBouche
+        from chef_battle.models import BattleMoveTransaction, ChefBattleProfile
+        item = AmuseBouche.objects.create(
+            author=self.chef,
+            title="Test Bite",
+            slug="test-bite-energy",
+            short_description="yum",
+            status=AmuseBouche.Status.APPROVED,
+        )
+        ct = ContentType.objects.get_for_model(AmuseBouche)
+        ContentReaction.objects.create(
+            user=self.user2,
+            content_type=ct,
+            object_id=item.pk,
+            reaction=ContentReaction.Reaction.LIKE,
+        )
+        profile = ChefBattleProfile.objects.get(author=self.chef)
+        self.assertEqual(profile.battle_moves, 1)
+        self.assertTrue(
+            BattleMoveTransaction.objects.filter(
+                chef=self.chef,
+                transaction_type=BattleMoveTransaction.TxType.LIKE_RECEIVED,
+                amount=1,
+            ).exists()
+        )
+
+    def test_like_signal_anti_farming(self):
+        from collection.models import ContentReaction
+        from django.contrib.contenttypes.models import ContentType
+        from amuse_bouche.models import AmuseBouche
+        from chef_battle.models import ChefBattleProfile
+        from chef_battle.energy_service import LIKE_ANTI_FARM_MAX_PER_SOURCE
+        item = AmuseBouche.objects.create(
+            author=self.chef,
+            title="Test Bite 2",
+            slug="test-bite-energy-2",
+            short_description="yum",
+            status=AmuseBouche.Status.APPROVED,
+        )
+        ct = ContentType.objects.get_for_model(AmuseBouche)
+        # Create max allowed likes
+        for i in range(LIKE_ANTI_FARM_MAX_PER_SOURCE):
+            item2 = AmuseBouche.objects.create(
+                author=self.chef,
+                title=f"Bite {i}",
+                slug=f"bite-af-{i}",
+                short_description="yum",
+                status=AmuseBouche.Status.APPROVED,
+            )
+            ContentReaction.objects.create(
+                user=self.user2,
+                content_type=ct,
+                object_id=item2.pk,
+                reaction=ContentReaction.Reaction.LIKE,
+            )
+        # 4th like from same user should be blocked
+        ContentReaction.objects.create(
+            user=self.user2,
+            content_type=ct,
+            object_id=item.pk,
+            reaction=ContentReaction.Reaction.LIKE,
+        )
+        profile = ChefBattleProfile.objects.get(author=self.chef)
+        self.assertEqual(profile.battle_moves, LIKE_ANTI_FARM_MAX_PER_SOURCE)
+
 
 class BattleTimerTests(TestCase):
     def setUp(self):
