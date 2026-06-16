@@ -316,7 +316,7 @@
 </main>
 {% if chef_battle_enabled %}
 <template id="hbp-tpl">{% include '_hero_battle_panel.html' %}</template>
-<script>
+<script nonce="{{ request.csp_nonce }}">
 (function(){
   var tpl = document.getElementById('hbp-tpl');
   if (!tpl || !tpl.content) return;

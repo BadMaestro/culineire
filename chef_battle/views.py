@@ -1616,7 +1616,7 @@ def battle_chest(request):
     all_owned = (
         ChefArtifact.objects.filter(chef=author)
         .select_related("artifact")
-        .order_by("-acquired_at")
+        .order_by("-earned_at")
     )
 
     available = [c for c in all_owned if c.status == "available"]
