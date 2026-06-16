@@ -15,15 +15,15 @@
     <h1 class="battle-hero__headline">Real Recipes, Real Chefs,<br>Real Public Rivalry, Real Rewards!</h1>
     <p>Challenge another chef, submit a recipe or article, let the audience vote, and build a public battle record across CulinEire.</p>
     <div class="battle-actions">
-      <a class="btn-primary" href="{% url 'chef_battle:challenge_create' %}">Create Challenge</a>
-      <a class="btn-secondary" href="{% url 'chef_battle:changing_room' %}">Changing Room</a>
-      <a class="btn-secondary" href="{% url 'chef_battle:battle_chest' %}">Battle Chest</a>
-      <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
-      <a class="btn-secondary" href="{% url 'chef_battle:season_leaderboard' %}">Season</a>
-      <a class="btn-secondary" href="{% url 'chef_battle:token_shop' %}">Token Shop</a>
-      <a class="btn-secondary" href="{% url 'chef_battle:artifact_gallery' %}">Artifacts</a>
-      <a class="btn-secondary" href="{% url 'chef_battle:appreciation_gallery' %}">Gifts</a>
       <a class="btn-secondary" href="{% url 'chef_battle:rules' %}">Rules</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:season_leaderboard' %}">Season</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:appreciation_gallery' %}">Gifts</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:artifact_gallery' %}">Artifacts</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:token_shop' %}">Token Shop</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:battle_chest' %}">Battle Chest</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:changing_room' %}">Changing Room</a>
+      <a class="btn-primary" href="{% url 'chef_battle:challenge_create' %}">Create Challenge</a>
     </div>
   </div>
 </section>
@@ -71,34 +71,38 @@
       <section class="battle-panel">
         <h2>Top Chefs</h2>
         {% if leaders %}
+        <div class="battle-ranking-mini__head">
+          <span>Chef</span><span>Rating</span>
+        </div>
         <ol class="battle-ranking-mini">
           {% for profile in leaders %}
           <li>
-            <span>{% if profile.has_crown %}&#x1F451; {% endif %}{% if profile.is_founding_chef %}&#x2B50; {% endif %}{{ profile.author.name }}{% executive_badge profile.author %}<small class="battle-rank-label">{{ profile.get_rank_display }}</small></span>
+            <span>{% if profile.has_crown %}&#x1F451; {% endif %}{% if profile.is_founding_chef %}&#x2B50; {% endif %}{{ profile.author.name }}<small class="battle-rank-label">{{ profile.get_rank_display }}</small></span>
             <strong>{{ profile.rating }}</strong>
           </li>
           {% endfor %}
         </ol>
+        <a class="text-link" style="font-size:0.82rem;" href="{% url 'chef_battle:rankings' %}">Full rankings &rarr;</a>
         {% else %}
         <p class="battle-muted">Rankings start after chefs enter the arena.</p>
         {% endif %}
       </section>
 
       <section class="battle-panel">
-        <h2>Battle Pulse</h2>
+        <h2>Battle Pulse &#x26A1;</h2>
         {% if events %}
-        <ol class="battle-events">
+        <ul class="battle-pulse-list">
           {% for event in events %}
-          <li>
-            <span>{{ event.created_at|date:"j M H:i" }}</span>
+          <li class="battle-pulse-item">
+            <span class="battle-pulse-item__time">{{ event.created_at|date:"j M H:i" }}</span>
             {% if event.battle %}
-            <a href="{{ event.battle.get_absolute_url }}">{{ event.message }}</a>
+            <a class="battle-pulse-item__msg" href="{{ event.battle.get_absolute_url }}">{{ event.message }}</a>
             {% else %}
-            <span>{{ event.message }}</span>
+            <span class="battle-pulse-item__msg">{{ event.message }}</span>
             {% endif %}
           </li>
           {% endfor %}
-        </ol>
+        </ul>
         {% else %}
         <p class="battle-muted">Battle news will appear here.</p>
         {% endif %}

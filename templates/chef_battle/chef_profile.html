@@ -2,11 +2,12 @@
 {% load static author_tags %}
 
 {% block title %}{{ author.name }} | Chef Battle Profile{% endblock %}
-{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616c?v=20260615" rel="stylesheet">{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616c" rel="stylesheet">{% endblock %}
 
 {% block content %}
 <section class="battle-room-hero">
   <div class="container">
+    <a class="battle-back-link" href="{% url 'chef_battle:home' %}">&larr; Arena</a>
     <p class="battle-kicker">Chef Battle Arena</p>
     <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
       {% if author.profile_image %}

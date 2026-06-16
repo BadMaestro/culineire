@@ -2,11 +2,12 @@
 {% load static %}
 
 {% block title %}Submit Cooked Dish | {{ battle.theme }}{% endblock %}
-{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616c?v=20260615" rel="stylesheet">{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616c" rel="stylesheet">{% endblock %}
 
 {% block content %}
 <section class="battle-room-hero">
   <div class="container">
+    <a class="battle-back-link" href="{% url 'chef_battle:home' %}">&larr; Arena</a>
     <p class="battle-kicker">Cooking Phase</p>
     <h1>Submit Your Cooked Dish</h1>
     <p class="battle-room-hero__sub">{{ battle.theme }}</p>

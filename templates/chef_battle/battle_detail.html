@@ -2,11 +2,12 @@
 {% load static author_tags %}
 
 {% block title %}{{ battle.theme }} | Chef Battle{% endblock %}
-{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616c?v=20260615" rel="stylesheet">{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616c" rel="stylesheet">{% endblock %}
 
 {% block content %}
 <section class="battle-room-hero">
   <div class="container">
+    <a class="battle-back-link" href="{% url 'chef_battle:home' %}">&larr; Arena</a>
     <p class="battle-kicker">{{ battle.get_status_display }} Chef Battle</p>
     <h1>{{ battle.theme }}</h1>
 

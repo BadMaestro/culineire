@@ -2271,3 +2271,58 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
 
 /* Token shop package tier icons */
 .token-shop-card__tier-icon { font-size: 2rem; line-height: 1; margin-block-end: 0.25rem; display: block; }
+
+/* Top Chefs mini ranking header */
+.battle-ranking-mini__head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted, #6b7280);
+  padding: 0 0 0.35rem 0;
+  border-bottom: 1px solid var(--line, #e5e7eb);
+  margin-block-end: 0.4rem;
+}
+
+/* Battle Pulse list */
+.battle-pulse-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+.battle-pulse-item {
+  display: grid;
+  grid-template-columns: 5rem 1fr;
+  gap: 0.5rem;
+  align-items: start;
+  font-size: 0.82rem;
+}
+.battle-pulse-item__time {
+  color: var(--muted, #6b7280);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  padding-top: 0.1rem;
+}
+.battle-pulse-item__msg {
+  color: var(--ink, #1a1a1a);
+  text-decoration: none;
+  line-height: 1.35;
+}
+a.battle-pulse-item__msg:hover {
+  color: var(--brand, #b45309);
+}
+
+/* Back to Arena link in hero sections */
+.battle-back-link {
+  display: inline-block;
+  font-size: 0.8rem;
+  color: rgba(255,248,238,0.7);
+  text-decoration: none;
+  margin-block-end: 0.5rem;
+  letter-spacing: 0.03em;
+}
+.battle-back-link:hover { color: #fff; }
