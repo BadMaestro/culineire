@@ -7,18 +7,20 @@
 {% block og_image %}{{ SITE_URL }}{% static 'images/hero-battle.png' %}{% endblock %}
 {% block og_image_secure_url %}{{ SITE_URL }}{% static 'images/hero-battle.png' %}{% endblock %}
 {% block og_image_alt %}Combat Artifact Gallery - Chef Battle Arena | CulinEire{% endblock %}
-{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616c" rel="stylesheet">{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">{% endblock %}
 
 {% block content %}
 <section class="battle-room-hero battle-room-hero--has-panel">
   <div class="container">
-    <p class="battle-kicker">Chef Battle Arena</p>
-    <h1>Combat Artifact Gallery</h1>
-    <p class="battle-room-hero__sub">{{ total }} active artifact{{ total|pluralize }} across 5 rarity tiers. Use them in battle to gain an edge.</p>
-    <div class="battle-actions">
-      <a class="btn-primary" href="{% url 'chef_battle:token_shop' %}">Get Tokens</a>
-      <a class="btn-secondary" href="{% url 'chef_battle:home' %}">Arena Home</a>
-      <a class="btn-secondary" href="{% url 'chef_battle:rules' %}">Rules</a>
+    <div class="battle-room-hero__copy">
+      <p class="battle-kicker">Chef Battle Arena</p>
+      <h1>Combat Artifact Gallery</h1>
+      <p class="battle-room-hero__sub">{{ total }} active artifact{{ total|pluralize }} across 5 rarity tiers. Use them in battle to gain an edge.</p>
+      <div class="battle-actions">
+        <a class="btn-primary" href="{% url 'chef_battle:token_shop' %}">Get Tokens</a>
+        <a class="btn-secondary" href="{% url 'chef_battle:home' %}">Arena Home</a>
+        <a class="btn-secondary" href="{% url 'chef_battle:rules' %}">Rules</a>
+      </div>
     </div>
     {% include '_hero_battle_panel.html' %}
   </div>

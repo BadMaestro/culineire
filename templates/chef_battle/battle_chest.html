@@ -2,19 +2,21 @@
 {% load static %}
 
 {% block title %}Battle Chest | Chef Battle | CulinEire{% endblock %}
-{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616c" rel="stylesheet">{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">{% endblock %}
 
 {% block content %}
 <section class="battle-room-hero battle-room-hero--has-panel">
   <div class="container">
-    <p class="battle-kicker">Chef Battle Arena</p>
-    <h1>&#x1F4BC; Battle Chest</h1>
-    <p class="battle-room-hero__sub">Your personal artifact inventory. {{ total }} item{{ total|pluralize }} owned.</p>
-    <div class="battle-actions">
-      <a class="btn-ghost" href="{% url 'chef_battle:home' %}">&larr; Arena</a>
-      <a class="btn-primary" href="{% url 'chef_battle:artifact_gallery' %}">Browse Artifacts</a>
-      <a class="btn-secondary" href="{% url 'chef_battle:changing_room' %}">Changing Room</a>
-      <a class="btn-secondary" href="{% url 'chef_battle:token_shop' %}">Get Tokens</a>
+    <div class="battle-room-hero__copy">
+      <p class="battle-kicker">Chef Battle Arena</p>
+      <h1>&#x1F4BC; Battle Chest</h1>
+      <p class="battle-room-hero__sub">Your personal artifact inventory. {{ total }} item{{ total|pluralize }} owned.</p>
+      <div class="battle-actions">
+        <a class="btn-ghost" href="{% url 'chef_battle:home' %}">&larr; Arena</a>
+        <a class="btn-primary" href="{% url 'chef_battle:artifact_gallery' %}">Browse Artifacts</a>
+        <a class="btn-secondary" href="{% url 'chef_battle:changing_room' %}">Changing Room</a>
+        <a class="btn-secondary" href="{% url 'chef_battle:token_shop' %}">Get Tokens</a>
+      </div>
     </div>
     {% include '_hero_battle_panel.html' %}
   </div>

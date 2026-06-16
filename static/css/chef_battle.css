@@ -24,15 +24,16 @@
   text-align: left;
   gap: 2rem;
 }
-.battle-hero--has-panel .battle-hero__inner .battle-kicker,
-.battle-room-hero--has-panel .container .battle-kicker,
-.battle-hero--has-panel .battle-hero__inner .battle-actions,
-.battle-room-hero--has-panel .container .battle-actions {
-  justify-content: flex-start;
+.battle-room-hero__copy {
+  display: grid;
+  gap: 0.9rem;
   text-align: left;
+  flex: 1 1 0;
+  min-width: 0;
 }
-.battle-hero--has-panel .battle-hero__inner > :not(.hero-battle-panel),
-.battle-room-hero--has-panel .container > :not(.hero-battle-panel) {
+.battle-room-hero__copy .battle-kicker,
+.battle-room-hero__copy .battle-actions {
+  justify-content: flex-start;
   text-align: left;
 }
 @media (max-width: 768px) {
@@ -40,6 +41,14 @@
   .battle-room-hero--has-panel .container {
     flex-direction: column;
     align-items: center;
+    text-align: center;
+  }
+  .battle-room-hero__copy {
+    text-align: center;
+  }
+  .battle-room-hero__copy .battle-kicker,
+  .battle-room-hero__copy .battle-actions {
+    justify-content: center;
     text-align: center;
   }
 }

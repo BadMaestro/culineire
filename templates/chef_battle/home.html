@@ -5,25 +5,27 @@
 {% block meta_description %}Chef Battle is the CulinEire culinary arena where chefs challenge, publish, vote and build status.{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/chef_battle.css' %}?v=20260616c" rel="stylesheet">
+<link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
 <section class="battle-hero battle-hero--has-panel">
   <div class="container battle-hero__inner">
-    <p class="battle-kicker">CulinEire Chef Battle</p>
-    <h1 class="battle-hero__headline">Real Recipes, Real Chefs,<br>Real Public Rivalry, Real Rewards!</h1>
-    <p>Challenge another chef, submit a recipe or article, let the audience vote, and build a public battle record across CulinEire.</p>
-    <div class="battle-actions">
-      <a class="btn-secondary" href="{% url 'chef_battle:rules' %}">Rules</a>
-      <a class="btn-secondary" href="{% url 'chef_battle:season_leaderboard' %}">Season</a>
-      <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
-      <a class="btn-secondary" href="{% url 'chef_battle:appreciation_gallery' %}">Gifts</a>
-      <a class="btn-secondary" href="{% url 'chef_battle:artifact_gallery' %}">Artifacts</a>
-      <a class="btn-secondary" href="{% url 'chef_battle:token_shop' %}">Token Shop</a>
-      <a class="btn-secondary" href="{% url 'chef_battle:battle_chest' %}">Battle Chest</a>
-      <a class="btn-secondary" href="{% url 'chef_battle:changing_room' %}">Changing Room</a>
-      <a class="btn-primary" href="{% url 'chef_battle:challenge_create' %}">Create Challenge</a>
+    <div class="battle-room-hero__copy">
+      <p class="battle-kicker">CulinEire Chef Battle</p>
+      <h1 class="battle-hero__headline">Real Recipes, Real Chefs,<br>Real Public Rivalry, Real Rewards!</h1>
+      <p>Challenge another chef, submit a recipe or article, let the audience vote, and build a public battle record across CulinEire.</p>
+      <div class="battle-actions">
+        <a class="btn-secondary" href="{% url 'chef_battle:rules' %}">Rules</a>
+        <a class="btn-secondary" href="{% url 'chef_battle:season_leaderboard' %}">Season</a>
+        <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
+        <a class="btn-secondary" href="{% url 'chef_battle:appreciation_gallery' %}">Gifts</a>
+        <a class="btn-secondary" href="{% url 'chef_battle:artifact_gallery' %}">Artifacts</a>
+        <a class="btn-secondary" href="{% url 'chef_battle:token_shop' %}">Token Shop</a>
+        <a class="btn-secondary" href="{% url 'chef_battle:battle_chest' %}">Battle Chest</a>
+        <a class="btn-secondary" href="{% url 'chef_battle:changing_room' %}">Changing Room</a>
+        <a class="btn-primary" href="{% url 'chef_battle:challenge_create' %}">Create Challenge</a>
+      </div>
     </div>
     {% include '_hero_battle_panel.html' %}
   </div>
