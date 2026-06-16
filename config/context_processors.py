@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.core.cache import cache
 
 
 def active_battle_pip(request):
@@ -20,37 +19,6 @@ def active_battle_pip(request):
         return {"active_battle_pip": battle}
     except Exception:
         return {"active_battle_pip": None}
-
-
-def chef_battle_widget(request):
-    """Inject compact battle widget data into every template (cached 60 s)."""
-    from chef_battle.access import is_battle_visible
-    if not is_battle_visible(request):
-        return {"battle_widget": None}
-    CACHE_KEY = "chef_battle_widget_v1"
-    data = cache.get(CACHE_KEY)
-    if data is None:
-        try:
-            from chef_battle.models import Battle, ChefBattleProfile, BattleEvent
-            active = list(
-                Battle.objects.filter(status__in=Battle.ACTIVE_STATUSES)
-                .select_related("challenger", "opponent")
-                .order_by("-created_at")[:3]
-            )
-            leaders = list(
-                ChefBattleProfile.objects.filter(is_suspended=False)
-                .select_related("author")
-                .order_by("-rating")[:5]
-            )
-            events = list(
-                BattleEvent.objects.select_related("battle")
-                .order_by("-created_at")[:5]
-            )
-            data = {"active": active, "leaders": leaders, "events": events}
-        except Exception:
-            data = {"active": [], "leaders": [], "events": []}
-        cache.set(CACHE_KEY, data, 60)
-    return {"battle_widget": data}
 
 
 def site_url(request):
