@@ -157,106 +157,133 @@
 
 </section>
 
+<style>
+@keyframes ce-gate-fade { from { opacity:0; } to { opacity:1; } }
+@keyframes ce-gate-up   { from { transform:translateY(16px); opacity:.6; } to { transform:translateY(0); opacity:1; } }
+</style>
 {% if user.is_authenticated %}
 <div id="ce-token-gate" role="dialog" aria-modal="true" aria-labelledby="ce-token-gate-heading"
-     style="position:fixed;inset:0;z-index:99999;display:flex;align-items:flex-start;justify-content:center;
+     style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;
             background:rgba(15,25,16,0.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
-            padding:1.5rem 1rem;overflow-y:auto;
-            opacity:0;transition:opacity 250ms ease;pointer-events:none;">
-  <div style="width:100%;max-width:620px;margin:auto;
-              background:#fffdf8;border-radius:22px;
+            padding:1rem;overflow-y:auto;animation:ce-gate-fade .15s ease;">
+  <div style="position:relative;background:#fffdf8;border-radius:22px;
               border:1px solid rgba(200,185,150,0.28);
               box-shadow:0 32px 72px rgba(15,20,10,0.20),0 6px 20px rgba(15,20,10,0.10),inset 0 1px 0 rgba(255,252,240,0.8);
-              padding:clamp(1.75rem,6vw,3rem) clamp(1.25rem,5vw,2.5rem);
-              text-align:center;">
+              width:100%;max-width:480px;animation:ce-gate-up .18s ease;">
 
-    <p style="font-family:'Playfair Display',Georgia,serif;font-size:clamp(1.6rem,6vw,2.4rem);
-               font-weight:700;color:#184c3a;margin:0 0 .15rem;letter-spacing:-.01em;">CulinEire</p>
-    <p style="font-size:.72rem;color:#66746d;margin:0 0 2rem;letter-spacing:.1em;text-transform:uppercase;">
-      Token Shop &mdash; Access Notice</p>
-
-    <div style="width:48px;height:2px;background:#184c3a;border-radius:2px;margin:0 auto 2rem;"></div>
-
-    <h2 id="ce-token-gate-heading"
-        style="font-family:'Playfair Display',Georgia,serif;font-size:clamp(1.1rem,4vw,1.5rem);
-               font-weight:700;color:#1f2c25;line-height:1.3;margin:0 0 1.5rem;">
-      Important Notice &mdash; Please Read Before Continuing
-    </h2>
-
-    <div style="font-family:'Inter',system-ui,sans-serif;font-size:.875rem;line-height:1.75;
-                color:#42514a;text-align:left;margin:0 0 1.5rem;">
-
-      <p style="margin:0 0 1rem;font-weight:600;color:#1f2c25;">Age &amp; Eligibility</p>
-
-      <p style="margin:0 0 .75rem;">
-        You must be <strong>18 years of age or older</strong> to purchase Arena Tokens,
-        send gifts or register as a Chef on CulinEire.
-      </p>
-      <p style="margin:0 0 .75rem;">
-        All other platform features &mdash; recipes, articles, Amuse-Bouche, Fridge Raid,
-        community participation and content browsing &mdash; are open to all users.
-      </p>
-
-      <div style="height:1px;background:#e2d9cc;margin:.875rem 0;"></div>
-
-      <p style="margin:0 0 .75rem;font-weight:600;color:#1f2c25;">Arena Tokens</p>
-      <ul style="margin:0 0 .75rem;padding-inline-start:1.25rem;display:flex;flex-direction:column;gap:.3rem;">
-        <li>Tokens are credited to your wallet instantly after Stripe confirms payment.</li>
-        <li><strong>Tokens have no cash value.</strong> They cannot be withdrawn, transferred, sold or exchanged for cash.</li>
-        <li>Tokens are non-refundable once credited, except where required by law.</li>
-        <li>All token transactions are recorded in an immutable audit ledger.</li>
-      </ul>
-
-      <div style="height:1px;background:#e2d9cc;margin:.875rem 0;"></div>
-
-      <p style="margin:0 0 .75rem;font-weight:600;color:#1f2c25;">Platform Rules &amp; Compliance</p>
-      <p style="margin:0 0 .75rem;">
-        Participation in Chef Battle, token rewards, CBR, LSR, artifacts, rankings and prize eligibility
-        is subject to moderation, anti-abuse systems, platform rules, Irish law and EU regulations.
-      </p>
-      <p style="margin:0;font-size:.8rem;color:#66746d;">
-        CulinEire cooperates with payment providers and relevant authorities in cases of fraud, abuse or illegal activity.
-        Full terms: <a href="{% url 'legal:purchases_and_vat' %}" target="_blank" rel="noopener" style="color:#184c3a;">Purchases &amp; VAT</a>
-        &middot; <a href="{% url 'legal:terms' %}" target="_blank" rel="noopener" style="color:#184c3a;">Terms of Service</a>
-        &middot; <a href="{% url 'chef_battle:rules' %}" target="_blank" rel="noopener" style="color:#184c3a;">Chef Battle Rules</a>
-      </p>
+    {# Header row — mirrored from spm-panel-header #}
+    <div style="display:flex;justify-content:flex-end;padding:.75rem .85rem .35rem;border-radius:22px 22px 0 0;">
+      <a href="{% url 'chef_battle:home' %}"
+         aria-label="Return to Arena"
+         style="display:flex;align-items:center;justify-content:center;
+                width:36px;height:36px;border-radius:50%;
+                background:rgba(244,241,236,0.9);border:1px solid rgba(180,165,140,0.22);
+                color:#7a6e5c;font-size:1.15rem;text-decoration:none;line-height:1;
+                transition:background .18s,color .18s;"
+         onmouseover="this.style.background='#e4ddd1';this.style.color='#28221e'"
+         onmouseout="this.style.background='rgba(244,241,236,0.9)';this.style.color='#7a6e5c'">&#x2715;</a>
     </div>
 
-    <div style="height:1px;background:#e2d9cc;margin:0 0 1.75rem;"></div>
+    {# Body — mirrored from #sponsor-modal-body padding #}
+    <div style="padding:.25rem 1.75rem 1.75rem;">
 
-    <div style="display:flex;flex-direction:column;gap:.75rem;">
-      <button type="button" id="ce-token-gate-agree"
-              style="width:100%;padding:1rem;background:#184c3a;border:2px solid #184c3a;
-                     border-radius:10px;color:#ffffff;
-                     font-family:'Inter',system-ui,sans-serif;
-                     font-size:.95rem;font-weight:600;letter-spacing:.02em;
-                     cursor:pointer;transition:background 180ms;">
-        I am 18 or older &mdash; enter the Token Shop
-      </button>
-      <a href="{% url 'chef_battle:home' %}"
-         style="display:block;text-align:center;width:100%;padding:1rem;background:transparent;
-                box-sizing:border-box;
-                border:2px solid #e2d9cc;border-radius:10px;color:#66746d;
-                font-family:'Inter',system-ui,sans-serif;
-                font-size:.9rem;font-weight:500;letter-spacing:.01em;text-decoration:none;">
-        I am under 18 &mdash; return to the Arena
-      </a>
+      {# Header block — mirrored from .spm-header #}
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem;
+                  margin-bottom:1.25rem;padding-bottom:1rem;
+                  border-bottom:1px solid rgba(200,185,150,0.22);flex-wrap:wrap;">
+        <span style="font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.12em;
+                     color:#3a3028;padding:.25em .7em;border-radius:6px;
+                     background:rgba(58,48,40,0.06);">Token Shop</span>
+        <span style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+                     padding:.3em .8em;border-radius:99px;border:1px solid rgba(30,110,62,0.15);
+                     background:#eaf3ec;color:#1e5c30;">Access Notice</span>
+      </div>
+
+      <h2 id="ce-token-gate-heading"
+          style="font-family:'Playfair Display',Georgia,serif;font-size:1.35rem;
+                 font-weight:700;color:#28221e;line-height:1.3;margin:0 0 1.1rem;">
+        Please Read Before Continuing
+      </h2>
+
+      {# Section label — mirrored from .spm-form-section-label #}
+      <p style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+                color:#9a9080;margin:0 0 .6rem;display:flex;align-items:center;gap:.5rem;">
+        Age &amp; Eligibility
+        <span style="flex:1;height:1px;background:#e8e4dc;display:block;"></span>
+      </p>
+      <p style="font-size:.85rem;color:#7a6e5c;line-height:1.6;margin:0 0 .65rem;">
+        You must be <strong style="color:#3a3028;">18 years of age or older</strong> to purchase Arena Tokens,
+        send gifts or register as a Chef. All other CulinEire features (recipes, articles,
+        Amuse-Bouche, Fridge Raid and content browsing) are open to all users.
+      </p>
+
+      <p style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+                color:#9a9080;margin:.9rem 0 .6rem;display:flex;align-items:center;gap:.5rem;">
+        Arena Tokens
+        <span style="flex:1;height:1px;background:#e8e4dc;display:block;"></span>
+      </p>
+      <ul style="font-size:.85rem;color:#7a6e5c;line-height:1.6;margin:0 0 .65rem;
+                 padding-inline-start:1.1rem;display:flex;flex-direction:column;gap:.25rem;">
+        <li>Credited instantly after Stripe confirms payment.</li>
+        <li><strong style="color:#3a3028;">No cash value.</strong> Cannot be withdrawn, transferred, sold or exchanged for cash.</li>
+        <li>Non-refundable once credited, except where required by law.</li>
+        <li>All transactions recorded in an immutable audit ledger.</li>
+      </ul>
+
+      <p style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+                color:#9a9080;margin:.9rem 0 .6rem;display:flex;align-items:center;gap:.5rem;">
+        Platform Rules
+        <span style="flex:1;height:1px;background:#e8e4dc;display:block;"></span>
+      </p>
+      <p style="font-size:.85rem;color:#7a6e5c;line-height:1.6;margin:0 0 .9rem;">
+        Participation in Chef Battle, CBR, LSR, artifacts and rankings is subject to moderation,
+        anti-abuse systems, Irish law and EU regulations. CulinEire cooperates with payment providers
+        and authorities in cases of fraud or abuse.
+      </p>
+
+      {# Actions — mirrored from .spm-actions + .spm-buy-btn #}
+      <div style="margin-top:1.25rem;display:flex;flex-direction:column;gap:.65rem;">
+        <button type="button" id="ce-token-gate-agree"
+                style="display:flex;align-items:center;justify-content:center;width:100%;
+                       padding:.82rem 1.15rem;background:#3a3028;color:#f0ebe0;border:none;
+                       border-radius:999px;font-size:.96rem;font-weight:600;font-family:inherit;
+                       cursor:pointer;box-shadow:0 4px 14px rgba(40,34,30,0.20);
+                       transition:background .18s,transform .18s;"
+                onmouseover="this.style.background='#28201a';this.style.transform='translateY(-1px)'"
+                onmouseout="this.style.background='#3a3028';this.style.transform=''">
+          I am 18 or older, enter the Token Shop
+        </button>
+        <a href="{% url 'chef_battle:home' %}"
+           style="display:flex;align-items:center;justify-content:center;width:100%;
+                  padding:.75rem 1rem;background:transparent;color:#8b3a1e;
+                  border:1.5px solid #e4c9b5;border-radius:999px;
+                  font-size:.88rem;font-weight:600;font-family:inherit;text-decoration:none;
+                  transition:background .18s,border-color .18s;"
+           onmouseover="this.style.background='#fdf0e8';this.style.borderColor='#d4a890'"
+           onmouseout="this.style.background='transparent';this.style.borderColor='#e4c9b5'">
+          I am under 18, return to the Arena
+        </a>
+      </div>
+
+      <p style="font-size:.75rem;color:#9a9080;text-align:center;margin:.6rem 0 0;line-height:1.5;">
+        <a href="{% url 'legal:purchases_and_vat' %}" target="_blank" rel="noopener" style="color:#3a3028;">Purchases &amp; VAT</a>
+        &middot;
+        <a href="{% url 'legal:terms' %}" target="_blank" rel="noopener" style="color:#3a3028;">Terms of Service</a>
+        &middot;
+        <a href="{% url 'chef_battle:rules' %}" target="_blank" rel="noopener" style="color:#3a3028;">Chef Battle Rules</a>
+      </p>
     </div>
   </div>
 </div>
 <script nonce="{{ request.csp_nonce }}">
 (function () {
-  var el = document.getElementById('ce-token-gate');
   document.body.style.overflow = 'hidden';
-  requestAnimationFrame(function () {
-    el.style.pointerEvents = 'auto';
-    el.style.opacity = '1';
-  });
   document.getElementById('ce-token-gate-agree').addEventListener('click', function () {
+    var el = document.getElementById('ce-token-gate');
     el.style.opacity = '0';
-    el.style.pointerEvents = 'none';
+    el.style.transition = 'opacity .15s ease';
     document.body.style.overflow = '';
-    setTimeout(function () { el.style.display = 'none'; }, 260);
+    setTimeout(function () { el.style.display = 'none'; }, 160);
   });
 }());
 </script>
