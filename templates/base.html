@@ -41,6 +41,7 @@
     <link href="{% static 'css/base.css' %}?v=20260613-report-docs" rel="stylesheet">
     <link href="{% static 'css/header.css' %}" rel="stylesheet">
     <link href="{% static 'css/footer.css' %}" rel="stylesheet">
+    <link href="{% static 'css/battle_widget.css' %}" rel="stylesheet">
     <link href="{% static 'css/messaging.css' %}" rel="stylesheet">
     <link href="{% static 'css/presence.css' %}" rel="stylesheet">
     <link href="{% static 'css/pwa.css' %}" rel="stylesheet">
@@ -314,6 +315,10 @@
 <main id="main-content">
     {% block content %}{% endblock %}
 </main>
+
+{% with namespace=request.resolver_match.namespace %}
+{% if namespace != 'legal' %}{% include 'chef_battle/_widget.html' %}{% endif %}
+{% endwith %}
 
 <footer class="site-footer">
 
