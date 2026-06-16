@@ -2957,13 +2957,14 @@ def recipe_studio_view(request):
         # Collect dynamic method steps
         step_count = int(request.POST.get("step_count", "0") or 0)
         step_texts = []
-        step_images = []
+        step_images = []   # (file_obj, ai_temp_path)
         for i in range(1, step_count + 1):
             text = request.POST.get(f"step_text_{i}", "").strip()
             image = request.FILES.get(f"step_image_{i}")
+            ai_image_path = request.POST.get(f"step_ai_image_{i}", "").strip()
             if text:
                 step_texts.append(text)
-                step_images.append(image)
+                step_images.append((image, ai_image_path))
 
         method = "\n".join(step_texts)
 
@@ -3041,7 +3042,8 @@ def recipe_studio_view(request):
         recipe.save()
 
         # Step images → RecipeImage
-        for idx, (text, img_file) in enumerate(zip(step_texts, step_images), start=1):
+        import os as _os
+        for idx, (text, (img_file, ai_img_path)) in enumerate(zip(step_texts, step_images), start=1):
             if img_file:
                 RecipeImage.objects.create(
                     recipe=recipe,
@@ -3050,6 +3052,15 @@ def recipe_studio_view(request):
                     alt_text=text[:200],
                     caption=f"Step {idx}",
                 )
+            elif ai_img_path and default_storage.exists(ai_img_path):
+                img_bytes = default_storage.open(ai_img_path).read()
+                ext = _os.path.splitext(ai_img_path)[1] or ".jpg"
+                ri = RecipeImage(recipe=recipe, sort_order=idx, alt_text=text[:200], caption=f"Step {idx}")
+                ri.image.save(f"recipe_images/step-{idx}{ext}", ContentFile(img_bytes), save=True)
+                try:
+                    default_storage.delete(ai_img_path)
+                except Exception:
+                    pass
 
         # Additional categories
         extra_cats = request.POST.getlist("additional_categories")

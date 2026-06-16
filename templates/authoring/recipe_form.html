@@ -293,16 +293,19 @@
                              {% if form_mode == "edit" %}data-auto-clean="true"{% endif %}>
                             <p class="editorial-tools__title">Recipe Formatting Tools</p>
                             <div class="editorial-tools__actions">
-                                <button class="editorial-tools__btn" id="rf-clean-btn" type="button">Clean Recipe Text</button>
                                 <button class="editorial-tools__btn editorial-tools__btn--secondary" id="rf-preview-btn" type="button">Preview Recipe Structure</button>
+                                <button class="editorial-tools__btn editorial-tools__btn--secondary" id="rf-clean-btn" type="button">Clean Recipe Text</button>
                                 <button class="editorial-tools__btn editorial-tools__btn--secondary" id="rf-sanitize-btn" type="button">Sanitize Text</button>
+                                <button class="editorial-tools__btn editorial-tools__btn--apply" id="rf-apply-btn" type="button" disabled>Apply Changes</button>
                             </div>
                             <div class="editorial-tools__preview" id="rf-preview-pane" hidden>
                                 <p class="editorial-tools__preview-label">Preview</p>
                                 <div class="editorial-tools__preview-inner" id="rf-preview-inner"></div>
                             </div>
-                            <button class="editorial-tools__btn editorial-tools__btn--apply" id="rf-apply-btn" type="button" hidden>Apply Cleaned Text</button>
                             <p class="editorial-tools__status" id="rf-status" aria-live="polite"></p>
+                            <div class="editorial-tools__apply-bottom">
+                                <button class="editorial-tools__btn editorial-tools__btn--apply" id="rf-apply-btn-2" type="button" disabled>Apply Changes</button>
+                            </div>
                         </div>
                     </div>
                 </div>

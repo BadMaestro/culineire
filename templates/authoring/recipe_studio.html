@@ -51,6 +51,8 @@ textarea.studio-control { resize: vertical; min-height: 80px; }
 .studio-step__image-drop:hover, .studio-step__image-drop.dragover { border-color: var(--color-primary, #0b4c3a); color: var(--color-primary); }
 .studio-step__thumb { max-width: 100%; max-height: 120px; border-radius: 5px; margin-top: 0.4rem; display: none; }
 .studio-step__file { display: none; }
+.studio-step__ai-bar { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.5rem; }
+.studio-step__ai-status { font-size: 0.78rem; color: var(--color-muted); }
 
 /* ── Add step button ── */
 .studio-add-step { display: flex; align-items: center; gap: 0.4rem; background: none; border: 1px dashed var(--border-color, #d1d5db); border-radius: 8px; padding: 0.65rem 1.25rem; font-size: 0.85rem; color: var(--color-muted); cursor: pointer; width: 100%; justify-content: center; transition: border-color .15s, color .15s; }
@@ -244,8 +246,15 @@ textarea.studio-control { resize: vertical; min-height: 80px; }
           <div class="studio-step__image-drop" data-step-drop="{{ step_num }}" tabindex="0" role="button" aria-label="Upload photo for step {{ step_num }}">
             &#x1F4F7; Add photo for this step (optional)
             <input accept=".jpg,.jpeg,.png,.webp" class="studio-step__file" name="step_image_{{ step_num }}" type="file">
+            <input name="step_ai_image_{{ step_num }}" type="hidden" class="studio-step__ai-path">
             <img alt="Step {{ step_num }} photo" class="studio-step__thumb" data-step-thumb="{{ step_num }}">
           </div>
+          {% if has_openai %}
+          <div class="studio-step__ai-bar">
+            <button class="btn-secondary studio-step__gen-btn" type="button">&#x1F3A8; Generate with AI</button>
+            <span class="studio-step__ai-status"></span>
+          </div>
+          {% endif %}
         </div>
         {% endwith %}
         {% endfor %}
@@ -370,6 +379,9 @@ textarea.studio-control { resize: vertical; min-height: 80px; }
     });
   }
 
+  var hasOpenAI = {{ has_openai|yesno:"true,false" }};
+  var genHeroUrl = '{% url "recipes:recipe_ai_generate_hero" %}';
+
   // ── Dynamic steps ──────────────────────────────────────────────────────────
   var stepsContainer = q('studio-steps');
   var stepCountEl    = q('studio-step-count');
@@ -389,6 +401,8 @@ textarea.studio-control { resize: vertical; min-height: 80px; }
       if (ta) ta.name = 'step_text_' + n;
       var fi = step.querySelector('.studio-step__file');
       if (fi) fi.name = 'step_image_' + n;
+      var aipi = step.querySelector('.studio-step__ai-path');
+      if (aipi) aipi.name = 'step_ai_image_' + n;
       var drop = step.querySelector('[data-step-drop]');
       if (drop) drop.setAttribute('data-step-drop', n);
       var thumb = step.querySelector('[data-step-thumb]');
@@ -411,8 +425,10 @@ textarea.studio-control { resize: vertical; min-height: 80px; }
       '<div class="studio-step__image-drop" data-step-drop="' + n + '" tabindex="0" role="button" aria-label="Upload photo for step ' + n + '">' +
         '&#x1F4F7; Add photo for this step (optional)' +
         '<input accept=".jpg,.jpeg,.png,.webp" class="studio-step__file" name="step_image_' + n + '" type="file">' +
+        '<input name="step_ai_image_' + n + '" type="hidden" class="studio-step__ai-path">' +
         '<img alt="Step ' + n + ' photo" class="studio-step__thumb" data-step-thumb="' + n + '">' +
-      '</div>';
+      '</div>' +
+      (hasOpenAI ? '<div class="studio-step__ai-bar"><button class="btn-secondary studio-step__gen-btn" type="button">&#x1F3A8; Generate with AI</button><span class="studio-step__ai-status"></span></div>' : '');
     wireStep(div);
     return div;
   }
@@ -458,6 +474,48 @@ textarea.studio-control { resize: vertical; min-height: 80px; }
       var after = e.clientY > rect.top + rect.height / 2;
       stepsContainer.insertBefore(dragging, after ? stepEl.nextSibling : stepEl);
     });
+
+    // AI generate image for this step
+    var genBtn    = stepEl.querySelector('.studio-step__gen-btn');
+    var aiStatus  = stepEl.querySelector('.studio-step__ai-status');
+    var aiPath    = stepEl.querySelector('.studio-step__ai-path');
+    if (genBtn) {
+      genBtn.addEventListener('click', function () {
+        var ta       = stepEl.querySelector('textarea');
+        var stepText = ta ? ta.value.trim() : '';
+        var title    = (q('id_title') || {}).value || '';
+        var subject  = stepText || title;
+        if (!subject) { alert('Enter a step description or recipe title first.'); return; }
+        genBtn.disabled = true;
+        genBtn.textContent = 'Generating…';
+        if (aiStatus) aiStatus.textContent = '';
+        fetch(genHeroUrl, {
+          method: 'POST',
+          headers: { 'X-CSRFToken': getCsrf(), 'X-Requested-With': 'XMLHttpRequest' },
+          body: new URLSearchParams({ title: subject, alt_text: stepText, feedback: stepText }),
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data.success) {
+            if (aiPath) aiPath.value = data.temp_filename || '';
+            var stepThumb = stepEl.querySelector('.studio-step__thumb');
+            if (stepThumb) { stepThumb.src = data.url; stepThumb.style.display = 'block'; }
+            var dropZone = stepEl.querySelector('.studio-step__image-drop');
+            if (dropZone) dropZone.classList.add('has-thumb');
+            if (aiStatus) aiStatus.textContent = 'Generated.';
+            genBtn.textContent = '🎨 Regenerate';
+          } else {
+            if (aiStatus) aiStatus.textContent = 'Failed: ' + (data.error || 'unknown error');
+            genBtn.textContent = '🎨 Generate with AI';
+          }
+        })
+        .catch(function () {
+          if (aiStatus) aiStatus.textContent = 'Network error.';
+          genBtn.textContent = '🎨 Generate with AI';
+        })
+        .finally(function () { genBtn.disabled = false; });
+      });
+    }
   }
 
   // Wire existing steps

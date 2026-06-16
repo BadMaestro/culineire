@@ -1188,15 +1188,25 @@ textarea.authoring-control {
 }
 
 .editorial-tools__btn--apply {
-  margin-block-start: 0.65rem;
   background: #166645;
   border-color: #166645;
   color: #fff;
+  font-weight: 600;
 }
 
 .editorial-tools__btn--apply:hover:not(:disabled) {
   background: #0f4d33;
   border-color: #0f4d33;
+}
+
+.editorial-tools__btn--apply:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+.editorial-tools__apply-bottom {
+  margin-block-start: 1rem;
+  text-align: center;
 }
 
 .editorial-tools__preview {
