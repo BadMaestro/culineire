@@ -2440,6 +2440,7 @@ def generate_recipe_view(request):
         status = request.POST.get("status", Recipe.Status.PENDING)
         no_image = request.POST.get("no_image") == "1"
         category = request.POST.get("category", "").strip()
+        custom_prompt = request.POST.get("custom_prompt", "").strip()
 
         valid_categories = {c.value for c in Recipe.Category}
         if category not in valid_categories:
@@ -2485,7 +2486,7 @@ def generate_recipe_view(request):
             close_old_connections()
 
             try:
-                kwargs = {"author_slug": author_slug, "status": status, "no_image": no_image, "dry_run": False, "limit": 0, "batch": None, "task_id": task_id, "category": category}
+                kwargs = {"author_slug": author_slug, "status": status, "no_image": no_image, "dry_run": False, "limit": 0, "batch": None, "task_id": task_id, "category": category, "custom_prompt": custom_prompt}
                 call_command("generate_recipe", dish_name, **kwargs)
             except Exception as exc:
                 logger.error("generate_recipe background thread failed for %r: %s", dish_name, exc, exc_info=True)
@@ -2771,6 +2772,57 @@ def recipe_regenerate_image(request, slug):
 
     except Exception as exc:
         logger.error("recipe_regenerate_image failed for %r: %s", recipe.slug, exc, exc_info=True)
+        return JsonResponse({"success": False, "error": str(exc)}, status=500)
+
+
+# ── Regenerate full recipe text content in-place ──────────────────────────────
+
+@require_POST
+@login_required
+def recipe_regenerate_text(request, slug):
+    """Re-run AI generation for an existing recipe, overwriting its text fields.
+
+    Accepts POST: custom_prompt (optional additional instructions).
+    Runs synchronously — only moderators may call this.
+    Returns JSON: {success, redirect_url} or {success:false, error}.
+    """
+    from .management.commands.generate_recipe import _call_anthropic, _normalise_recipe_payload, _map_additional_categories
+
+    recipe = get_object_or_404(Recipe, slug=slug)
+    if not (is_moderator(request.user) or user_can_manage_author(request.user, recipe.author)):
+        return JsonResponse({"success": False, "error": "Not authorized"}, status=403)
+
+    if not getattr(settings, "ANTHROPIC_API_KEY", ""):
+        return JsonResponse({"success": False, "error": "ANTHROPIC_API_KEY is not configured."}, status=500)
+
+    custom_prompt = request.POST.get("custom_prompt", "").strip()
+    hint_category = recipe.category if recipe.category else ""
+
+    try:
+        payload = _call_anthropic(recipe.title, hint_category=hint_category, custom_prompt=custom_prompt)
+        fields = _normalise_recipe_payload(payload, recipe.title, recipe.status)
+        additional_categories = _map_additional_categories(payload.get("additional_categories"), fields["category"])
+
+        text_fields = [
+            "short_description", "category", "difficulty",
+            "prep_time_minutes", "cook_time_minutes", "servings", "calories",
+            "ingredients", "method", "tips", "irish_context", "author_commentary", "allergens",
+        ]
+        for f in text_fields:
+            if f in fields:
+                setattr(recipe, f, fields[f])
+        recipe.save(update_fields=text_fields)
+
+        from recipes.models import RecipeAdditionalCategory
+        RecipeAdditionalCategory.objects.filter(recipe=recipe).delete()
+        for cat in additional_categories:
+            RecipeAdditionalCategory.objects.create(recipe=recipe, category=cat)
+
+        logger.info("recipe_regenerate_text: regenerated text for %r by %s", recipe.slug, request.user.username)
+        return JsonResponse({"success": True, "redirect_url": recipe.get_absolute_url()})
+
+    except Exception as exc:
+        logger.error("recipe_regenerate_text failed for %r: %s", recipe.slug, exc, exc_info=True)
         return JsonResponse({"success": False, "error": str(exc)}, status=500)
 
 

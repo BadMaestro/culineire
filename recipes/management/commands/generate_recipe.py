@@ -219,10 +219,14 @@ WRITING_RULES = (
 )
 
 
-def _prompt_for_recipe(dish_name: str, hint_category: str = "") -> str:
+def _prompt_for_recipe(dish_name: str, hint_category: str = "", custom_prompt: str = "") -> str:
     categories = ", ".join(choice.value for choice in Recipe.Category)
     allergen_pairs = ", ".join(f"{key} ({label})" for key, label in ALLERGEN_CHOICES)
     category_hint = f' Use "{hint_category}" as the primary category.' if hint_category else ""
+    custom_hint = (
+        f"\n\nEDITOR NOTES — follow these instructions precisely:\n{custom_prompt.strip()}"
+        if custom_prompt and custom_prompt.strip() else ""
+    )
     return (
         f'Create an original CulinEire recipe draft for "{dish_name}". '
         "Return strict JSON only with these keys: "
@@ -241,6 +245,7 @@ def _prompt_for_recipe(dish_name: str, hint_category: str = "") -> str:
         "Do not include image URLs. "
         "This recipe is an original creation for human review before publishing. "
         + WRITING_RULES
+        + custom_hint
     )
 
 
@@ -581,14 +586,14 @@ def _generate_step_photos(recipe: Recipe, method_text: str) -> list[RecipeImage]
     return created
 
 
-def _call_anthropic(dish_name: str, hint_category: str = "") -> dict:
+def _call_anthropic(dish_name: str, hint_category: str = "", custom_prompt: str = "") -> dict:
     api_key = getattr(settings, "ANTHROPIC_API_KEY", "")
     if not api_key:
         raise CommandError("ANTHROPIC_API_KEY is not configured.")
     payload = {
         "model": getattr(settings, "ANTHROPIC_MODEL", "claude-sonnet-4-6"),
         "max_tokens": 4000,
-        "messages": [{"role": "user", "content": _prompt_for_recipe(dish_name, hint_category=hint_category)}],
+        "messages": [{"role": "user", "content": _prompt_for_recipe(dish_name, hint_category=hint_category, custom_prompt=custom_prompt)}],
     }
     last_exc: Exception | None = None
     for attempt in range(1, 4):  # up to 3 attempts
@@ -657,6 +662,7 @@ class Command(BaseCommand):
         parser.add_argument("--no-image", action="store_true", help="Skip image generation even if OPENAI_API_KEY is set.")
         parser.add_argument("--task-id", default="", help="Optional RecipeGenerationTask UUID to update on success.")
         parser.add_argument("--category", default="", help="Override/hint the primary category for the generated recipe.")
+        parser.add_argument("--custom-prompt", default="", help="Additional instructions appended to the AI prompt.")
 
     def handle(self, *args, **options):
         dish_names = self._dish_names(options)
@@ -684,9 +690,11 @@ class Command(BaseCommand):
         if hint_category and hint_category not in valid_categories:
             hint_category = ""
 
+        custom_prompt = options.get("custom_prompt", "").strip()
+
         for dish_name in dish_names:
             try:
-                payload = _call_anthropic(dish_name, hint_category=hint_category)
+                payload = _call_anthropic(dish_name, hint_category=hint_category, custom_prompt=custom_prompt)
                 fields = _normalise_recipe_payload(payload, dish_name, options["status"])
                 if hint_category:
                     fields["category"] = hint_category

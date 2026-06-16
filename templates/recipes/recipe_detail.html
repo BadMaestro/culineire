@@ -767,8 +767,24 @@
         </form>
         {% endif %}
 
+        {% if recipe.source_type == 'ai_assisted' %}
+        <button class="mod-bar__btn mod-bar__btn--message" id="mod-bar-regen-toggle" type="button">&#x21BB; Regenerate</button>
+        {% endif %}
+
         <a class="mod-bar__btn mod-bar__btn--back" href="{% url 'recipes:moderation_panel' %}">← Panel</a>
     </div>
+
+    {% if recipe.source_type == 'ai_assisted' %}
+    <div class="mod-bar__inner">
+        <div class="mod-bar__message-panel" id="mod-bar-regen-panel">
+            <form id="mod-bar-regen-form" style="display:flex;gap:0.5rem;flex:1;align-items:flex-start;">
+                {% csrf_token %}
+                <textarea id="mod-bar-regen-prompt" name="custom_prompt" placeholder="Optional: paste a source recipe or add instructions to guide the regeneration. Leave blank to regenerate freely." rows="3"></textarea>
+                <button class="mod-bar__btn mod-bar__btn--message" id="mod-bar-regen-submit" type="submit">Regenerate Recipe</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
 
     <div class="mod-bar__inner">
         <div class="mod-bar__message-panel" id="mod-bar-changes-panel">
@@ -847,6 +863,50 @@
                 var opening = !msgPanel.classList.contains('is-open');
                 closeAll();
                 if (opening) { msgPanel.classList.add('is-open'); msgToggle.textContent = 'Cancel'; }
+            });
+        }
+
+        var regenToggle = document.getElementById('mod-bar-regen-toggle');
+        var regenPanel  = document.getElementById('mod-bar-regen-panel');
+        if (regenToggle && regenPanel) {
+            regenToggle.addEventListener('click', function(){
+                var opening = !regenPanel.classList.contains('is-open');
+                closeAll();
+                if (opening) { regenPanel.classList.add('is-open'); regenToggle.textContent = 'Cancel'; }
+            });
+        }
+
+        var regenForm   = document.getElementById('mod-bar-regen-form');
+        var regenSubmit = document.getElementById('mod-bar-regen-submit');
+        if (regenForm) {
+            regenForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                if (!confirm('This will overwrite the recipe text with a new AI generation. Images are kept. Continue?')) return;
+                regenSubmit.disabled = true;
+                regenSubmit.textContent = 'Regenerating…';
+                var formData = new FormData(regenForm);
+                formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+                fetch('{% url "recipes:recipe_regenerate_text" recipe.slug %}', {
+                    method: 'POST',
+                    headers: {'X-Requested-With': 'XMLHttpRequest'},
+                    body: formData,
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.success) {
+                        regenSubmit.textContent = 'Done! Reloading…';
+                        window.location.href = data.redirect_url || window.location.href;
+                    } else {
+                        regenSubmit.disabled = false;
+                        regenSubmit.textContent = 'Regenerate Recipe';
+                        alert('Regeneration failed: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(function() {
+                    regenSubmit.disabled = false;
+                    regenSubmit.textContent = 'Regenerate Recipe';
+                    alert('Network error. Please try again.');
+                });
             });
         }
     })();
