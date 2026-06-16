@@ -14,7 +14,7 @@
 {% block twitter_image %}{{ SITE_URL }}{% static 'images/hero-articles.png' %}{% endblock %}
 
 {% block content %}
-<section class="hero hero--home hero--articles">
+<section class="hero hero--home hero--articles{% if chef_battle_enabled %} hero--has-battle{% endif %}">
     <div aria-hidden="true" class="hero__background">
         {% if selected_author %}<img alt="" src="{% static 'images/my-hero-articles.png' %}">
         {% else %}<img alt="" src="{% static 'images/hero-articles.png' %}">{% endif %}
@@ -56,6 +56,7 @@
             </div>
             {% endif %}
         </div>
+    {% include '_hero_battle_panel.html' %}
     </div>
 </section>
 

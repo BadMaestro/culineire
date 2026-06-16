@@ -32,7 +32,7 @@
 {% endblock %}
 
 {% block content %}
-<section class="hero hero--home hero--login">
+<section class="hero hero--home hero--login{% if chef_battle_enabled %} hero--has-battle{% endif %}">
     <div aria-hidden="true" class="hero__background">
         <img alt="" src="{% static 'images/hero-profile.png' %}">
     </div>
@@ -137,6 +137,7 @@
             </div>
             {% endif %}
         </div>
+    {% include '_hero_battle_panel.html' %}
     </div>
 </section>
 {% endblock %}

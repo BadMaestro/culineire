@@ -12,7 +12,7 @@
 {% endblock %}
 
 {% block content %}
-<section class="hero hero--home hero--login">
+<section class="hero hero--home hero--login{% if chef_battle_enabled %} hero--has-battle{% endif %}">
     <div aria-hidden="true" class="hero__background">
         <img alt="" src="{% static 'images/hero-join.png' %}">
     </div>
@@ -29,6 +29,7 @@
             </div>
             <p>This link has expired or has already been used. Please <a href="{% url 'signup' %}">create a new account</a> to receive a fresh confirmation email.</p>
         </div>
+    {% include '_hero_battle_panel.html' %}
     </div>
 </section>
 {% endblock %}

@@ -13,7 +13,7 @@
 
 {% block content %}
 
-<section class="hero hero--home hero--monitoring">
+<section class="hero hero--home hero--monitoring{% if chef_battle_enabled %} hero--has-battle{% endif %}">
     <div aria-hidden="true" class="hero__background">
         <img alt="" src="{% static 'images/hero-monitoring.png' %}">
     </div>
@@ -32,6 +32,7 @@
                 <a class="btn-secondary" href="{% url 'sponsors:puzzle' %}">Sponsors</a>
             </div>
         </div>
+    {% include '_hero_battle_panel.html' %}
     </div>
 </section>
 

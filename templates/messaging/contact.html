@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block content %}
-<section class="hero hero--home hero--contact">
+<section class="hero hero--home hero--contact{% if chef_battle_enabled %} hero--has-battle{% endif %}">
     <div aria-hidden="true" class="hero__background">
         <img alt="" src="{% static 'images/hero-contact.png' %}">
     </div>
@@ -30,6 +30,7 @@
                 <a class="btn-secondary" href="{% url 'sponsors:puzzle' %}">Sponsors</a>
             </div>
         </div>
+    {% include '_hero_battle_panel.html' %}
     </div>
 </section>
 

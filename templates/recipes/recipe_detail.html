@@ -26,7 +26,7 @@
 {% endblock %}
 
 {% block content %}
-<section class="hero hero--home hero--recipe-detail">
+<section class="hero hero--home hero--recipe-detail{% if chef_battle_enabled %} hero--has-battle{% endif %}">
     <div aria-hidden="true" class="hero__background">
         {% if recipe.hero_image %}<img alt="{{ recipe.title }} image" src="{{ recipe.hero_image.url }}" loading="eager" fetchpriority="high" decoding="async">
         {% else %}<img alt="" src="{% static 'images/hero.jpg' %}" loading="eager" fetchpriority="high" decoding="async">{% endif %}
@@ -63,6 +63,7 @@
         </div>
     {% if recipe.image_rights_status == 'ai_generated' %}<span aria-label="AI generated image" class="ai-image-badge ai-image-badge--watermark">AI</span>{% endif %}
     {% if recipe.image_rights_status == 'own' or recipe.image_rights_status == 'ai_generated' %}<span aria-hidden="true" class="culineire-watermark">www.culineire.ie</span>{% endif %}
+    {% include '_hero_battle_panel.html' %}
     </div>
 </section>
 

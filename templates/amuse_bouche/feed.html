@@ -14,7 +14,7 @@
 {% block content %}
 
 {# ── Hero ── #}
-<section class="hero hero--home hero--amuse-bouche">
+<section class="hero hero--home hero--amuse-bouche{% if chef_battle_enabled %} hero--has-battle{% endif %}">
     <div aria-hidden="true" class="hero__background">
         <img alt="" src="{% static 'images/hero-amuse-bouche.png' %}">
     </div>
@@ -47,6 +47,7 @@
             </div>
             {% endif %}
         </div>
+    {% include '_hero_battle_panel.html' %}
     </div>
 </section>
 
