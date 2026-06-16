@@ -1229,6 +1229,7 @@ def hall_of_fame(request):
     })
 
 
+@chef_battle_guard
 @require_POST
 def battle_chat_send(request, pk):
     battle = get_object_or_404(Battle, pk=pk)
