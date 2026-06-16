@@ -150,12 +150,17 @@ textarea.studio-control { resize: vertical; min-height: 80px; }
         <input accept=".jpg,.jpeg,.png,.webp" id="id_hero_image" name="hero_image" style="display:none" type="file">
         <img alt="Hero preview" class="studio-hero-preview" id="studio-hero-preview">
       </div>
-      <div class="studio-hero-actions">
-        {% if has_openai %}
+      {% if has_openai %}
+      <div style="margin-top:0.75rem;">
+        <label class="studio-label" for="studio-hero-gen-prompt">Image generation prompt <span class="studio-opt">(optional — describe exactly what you want the AI to draw)</span></label>
+        <textarea class="studio-control" id="studio-hero-gen-prompt" placeholder="e.g. Close-up of braised pork ribs glazed with dark sauce, resting on a bed of wilted cabbage, rustic ceramic plate, soft natural light, overhead angle" rows="2" style="margin-top:0.3rem;"></textarea>
+        <p class="studio-help" style="margin-top:0.25rem;">Leave blank to generate from the recipe title. The more specific you are, the better the result.</p>
+      </div>
+      <div class="studio-hero-actions" style="margin-top:0.6rem;">
         <button class="btn-secondary" id="studio-gen-hero-btn" type="button">&#x1F3A8; Generate with AI</button>
         <span id="studio-hero-ai-status" style="font-size:0.78rem;color:var(--color-muted);align-self:center;"></span>
-        {% endif %}
       </div>
+      {% endif %}
       <div class="studio-grid" style="margin-top:0.75rem;">
         <div class="studio-field studio-field--wide">
           <label class="studio-label" for="id_hero_image_alt_text">Image alt text <span class="studio-opt">(optional)</span></label>
@@ -338,15 +343,17 @@ textarea.studio-control { resize: vertical; min-height: 80px; }
   var genHeroStatus = q('studio-hero-ai-status');
   if (genHeroBtn) {
     genHeroBtn.addEventListener('click', function () {
-      var title   = (q('id_title') || {}).value || '';
-      var altText = (q('id_hero_image_alt_text') || {}).value || '';
-      if (!title) { alert('Enter a title first so the AI knows what to generate.'); return; }
+      var title      = (q('id_title') || {}).value || '';
+      var altText    = (q('id_hero_image_alt_text') || {}).value || '';
+      var genPrompt  = (q('studio-hero-gen-prompt') || {}).value || '';
+      var subject    = genPrompt.trim() || title.trim();
+      if (!subject) { alert('Enter a title or an image generation prompt first.'); return; }
       genHeroBtn.disabled = true;
       if (genHeroStatus) genHeroStatus.textContent = 'Generating...';
       fetch('{% url "recipes:recipe_ai_generate_hero" %}', {
         method: 'POST',
         headers: { 'X-CSRFToken': getCsrf(), 'X-Requested-With': 'XMLHttpRequest' },
-        body: new URLSearchParams({ title: title, alt_text: altText }),
+        body: new URLSearchParams({ title: subject, alt_text: altText, feedback: genPrompt.trim() }),
       })
       .then(function (r) { return r.json(); })
       .then(function (data) {
