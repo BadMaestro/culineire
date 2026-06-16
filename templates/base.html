@@ -85,6 +85,149 @@
 </style>
 </head>
 <body{% block body_attrs %}{% endblock %}>
+
+{# ── Site-wide entry disclaimer — shown once per browser, hidden by JS if accepted ── #}
+<div id="ce-disclaimer" role="dialog" aria-modal="true" aria-labelledby="ce-disclaimer-heading"
+     style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;
+            background:#090909;padding:1.25rem;overflow-y:auto;opacity:0;
+            transition:opacity 250ms ease;pointer-events:none;">
+  <div style="width:100%;max-width:640px;text-align:center;">
+
+    {# Branding #}
+    <p style="font-family:'Playfair Display',serif;font-size:42px;font-weight:700;
+               color:#ffffff;margin:0 0 .2rem;letter-spacing:-.01em;">CulinEire</p>
+    <p style="font-size:.9rem;color:#a7a7a7;margin:0 0 2.5rem;letter-spacing:.06em;text-transform:uppercase;">
+      Professional Culinary Community Platform</p>
+
+    {# Heading #}
+    <h1 id="ce-disclaimer-heading"
+        style="font-size:clamp(1.4rem,5vw,2.1rem);font-weight:800;color:#ffffff;
+               text-transform:uppercase;letter-spacing:.04em;line-height:1.2;margin:0 0 2rem;">
+      Important Notice<br>Please Read Before Entering
+    </h1>
+
+    {# Legal body #}
+    <div style="font-size:clamp(.95rem,2.5vw,1.1rem);line-height:1.8;color:#d8d8d8;
+                margin:0 0 2rem;text-align:center;">
+      <p style="margin:0 0 1rem;">
+        CulinEire contains recipes, articles, AI-assisted culinary content,
+        Chef Battle competitions, Fridge Raid events, live community features,
+        reward systems, token mechanics and interactive public participation.
+      </p>
+      <p style="margin:0 0 1rem;">
+        By entering this website, you confirm that you are at least 18 years of age
+        where required by applicable laws or for participation in restricted platform features.
+      </p>
+      <p style="margin:0 0 1rem;">
+        You understand that all recipes, AI-generated suggestions, images,
+        cooking guidance and nutritional information are provided for educational,
+        informational and inspirational purposes only.
+      </p>
+      <p style="margin:0 0 .75rem;">You remain solely responsible for checking:</p>
+      <ul style="list-style:none;padding:0;margin:0 0 1rem;display:inline-block;text-align:left;">
+        <li style="padding:.15rem 0;">&#x2022; allergens</li>
+        <li style="padding:.15rem 0;">&#x2022; ingredient labels</li>
+        <li style="padding:.15rem 0;">&#x2022; food safety</li>
+        <li style="padding:.15rem 0;">&#x2022; cooking temperatures</li>
+        <li style="padding:.15rem 0;">&#x2022; storage requirements</li>
+        <li style="padding:.15rem 0;">&#x2022; dietary restrictions</li>
+        <li style="padding:.15rem 0;">&#x2022; personal medical conditions</li>
+      </ul>
+      <p style="margin:0 0 1rem;">
+        Participation in Chef Battle, Fridge Raid, Live Battle, token rewards,
+        CBR, LSR, artifacts, rankings and prize eligibility is subject to moderation,
+        compliance review, anti-abuse systems, platform rules, Irish law and EU regulations.
+      </p>
+      <p style="margin:0;">
+        Fake content, manipulated images, AI-generated battle evidence, abuse, fraud
+        or rule violations may result in permanent account suspension,
+        reward cancellation, eligibility removal and legal action where appropriate.
+      </p>
+    </div>
+
+    {# Warning block #}
+    <p style="font-size:.8rem;font-weight:700;color:#c97a17;text-transform:uppercase;
+               letter-spacing:.07em;line-height:1.6;margin:0 0 2.5rem;">
+      CulinEire actively cooperates with moderation staff,
+      payment providers and relevant authorities in cases of fraud,
+      platform abuse or illegal activity.
+    </p>
+
+    {# Buttons #}
+    <div style="display:flex;flex-direction:column;gap:.875rem;margin:0 0 1.5rem;">
+      <button id="ce-disclaimer-agree" type="button"
+              style="width:100%;height:72px;background:#303030;
+                     border:4px solid #c97a17;border-radius:8px;
+                     color:#ffffff;font-size:1rem;font-weight:700;
+                     letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
+                     transition:border-color 200ms,box-shadow 200ms;"
+              onmouseover="this.style.borderColor='#ffb13a';this.style.boxShadow='0 0 18px rgba(255,177,58,.35)'"
+              onmouseout="this.style.borderColor='#c97a17';this.style.boxShadow=''">
+        I am 18+ and I agree
+      </button>
+      <button id="ce-disclaimer-exit" type="button"
+              style="width:100%;height:72px;background:#303030;
+                     border:4px solid #c97a17;border-radius:8px;
+                     color:#ffffff;font-size:1rem;font-weight:700;
+                     letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
+                     transition:border-color 200ms,box-shadow 200ms;"
+              onmouseover="this.style.borderColor='#ffb13a';this.style.boxShadow='0 0 18px rgba(255,177,58,.35)'"
+              onmouseout="this.style.borderColor='#c97a17';this.style.boxShadow=''">
+        Exit this website
+      </button>
+    </div>
+
+    {# Footer #}
+    <p style="font-size:.78rem;color:#a7a7a7;line-height:1.7;margin:0;">
+      By continuing, you acknowledge the CulinEire Terms of Service, Privacy Policy,
+      AI Content Rules, Chef Battle Rules, Reward Rules and Community Guidelines.
+    </p>
+  </div>
+</div>
+
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+  var COOKIE = 'culineire_disclaimer_v1';
+  var LS_KEY = 'culineire_disclaimer_v1';
+
+  function isAccepted() {
+    try { if (localStorage.getItem(LS_KEY) === '1') return true; } catch(e) {}
+    return document.cookie.split(';').some(function(c){ return c.trim().startsWith(COOKIE + '=1'); });
+  }
+
+  function accept() {
+    try { localStorage.setItem(LS_KEY, '1'); } catch(e) {}
+    var exp = new Date(Date.now() + 365*24*60*60*1000).toUTCString();
+    document.cookie = COOKIE + '=1; path=/; expires=' + exp + '; SameSite=Lax';
+  }
+
+  var el = document.getElementById('ce-disclaimer');
+
+  if (isAccepted()) {
+    el.style.display = 'none';
+    return;
+  }
+
+  document.body.style.overflow = 'hidden';
+  requestAnimationFrame(function(){
+    el.style.pointerEvents = 'auto';
+    el.style.opacity = '1';
+  });
+
+  document.getElementById('ce-disclaimer-agree').addEventListener('click', function () {
+    accept();
+    el.style.opacity = '0';
+    el.style.pointerEvents = 'none';
+    document.body.style.overflow = '';
+    setTimeout(function(){ el.style.display = 'none'; }, 260);
+  });
+
+  document.getElementById('ce-disclaimer-exit').addEventListener('click', function () {
+    window.location.href = 'https://www.google.com';
+  });
+}());
+</script>
+
 <a class="skip-link" href="#main-content">Skip to main content</a>
 <header class="ce-header">
     <div class="ce-header__social-strip">
