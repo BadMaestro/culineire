@@ -157,6 +157,54 @@
 
 </section>
 
+{% if user.is_authenticated and not age_verified %}
+<div id="age-gate-overlay" role="dialog" aria-modal="true" aria-labelledby="age-gate-title"
+     style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;
+            background:rgba(0,0,0,0.72);padding:1rem;">
+  <div style="background:var(--color-surface,#fff);border-radius:12px;max-width:480px;width:100%;
+              padding:clamp(1.5rem,5vw,2.5rem);box-shadow:0 8px 40px rgba(0,0,0,0.35);
+              max-height:90vh;overflow-y:auto;">
+    <div style="text-align:center;margin-block-end:1.25rem;">
+      <span style="font-size:2.5rem;" aria-hidden="true">🔞</span>
+      <h2 id="age-gate-title" style="margin-block:.5rem 0;font-size:1.3rem;">Age Verification Required</h2>
+      <p style="color:var(--color-text-muted,#6b7280);font-size:.9rem;margin-block:.5rem 0;">
+        The Token Shop contains paid features for adults only.
+      </p>
+    </div>
+    <div style="background:var(--color-surface-alt,#f9fafb);border:1px solid var(--color-border,#e5e7eb);
+                border-radius:8px;padding:1rem 1.25rem;font-size:.875rem;line-height:1.6;
+                margin-block-end:1.5rem;">
+      <p style="margin:0 0 .75rem;"><strong>Before you continue, please confirm:</strong></p>
+      <ul style="margin:0;padding-inline-start:1.25rem;display:flex;flex-direction:column;gap:.4rem;">
+        <li>I am 18 years of age or older.</li>
+        <li>I understand that CulinEire Arena Tokens are a digital item delivered immediately upon purchase and have no cash value.</li>
+        <li>By purchasing, I expressly request immediate delivery and acknowledge that I lose my right of withdrawal under EU/Irish consumer law
+          (<a href="{% url 'legal:purchases_and_vat' %}" target="_blank" rel="noopener">Consumer Rights Act 2022</a>).</li>
+        <li>Tokens cannot be withdrawn, transferred, sold or exchanged for cash.</li>
+      </ul>
+    </div>
+    <form method="post" action="{% url 'chef_battle:age_verification' %}?next={{ request.path }}">
+      {% csrf_token %}
+      <input type="hidden" name="confirm_age" value="1">
+      <div style="display:flex;flex-direction:column;gap:.75rem;">
+        <button type="submit"
+                style="width:100%;padding:.875rem 1rem;background:var(--color-primary,#b45309);
+                       color:#fff;border:none;border-radius:8px;font-size:1rem;font-weight:600;
+                       cursor:pointer;letter-spacing:.01em;">
+          Yes, I confirm I am 18 or older
+        </button>
+        <a href="{% url 'chef_battle:home' %}"
+           style="display:block;text-align:center;padding:.75rem 1rem;
+                  border:1px solid var(--color-border,#e5e7eb);border-radius:8px;
+                  font-size:.9rem;color:var(--color-text-muted,#6b7280);text-decoration:none;">
+          No, I am under 18 &mdash; take me back
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
 <script nonce="{{ request.csp_nonce }}">
 (function () {
   var errorEl = document.getElementById('token-shop-error');

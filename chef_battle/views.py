@@ -422,15 +422,19 @@ def age_verification(request):
 
 @chef_battle_guard
 def token_shop(request):
-    from .models import TokenPackage
+    from .models import TokenPackage, ChefBattleProfile
     packages = TokenPackage.objects.filter(is_active=True).order_by("sort_order", "tokens")
     viewer_author = get_author_for_user(request.user)
     wallet = None
+    age_verified = False
     if viewer_author:
         wallet, _ = TokenWallet.objects.get_or_create(chef=viewer_author)
+        profile, _ = ChefBattleProfile.objects.get_or_create(author=viewer_author)
+        age_verified = profile.age_verified
     return render(request, "chef_battle/token_shop.html", {
         "packages": packages,
         "wallet": wallet,
+        "age_verified": age_verified,
         "stripe_publishable_key": getattr(__import__("django.conf", fromlist=["settings"]).settings, "STRIPE_PUBLISHABLE_KEY", ""),
     })
 
