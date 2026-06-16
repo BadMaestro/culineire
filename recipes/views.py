@@ -2924,3 +2924,229 @@ def recipe_format_preview(request):
         data = request.POST.dict()
     preview_html = render_recipe_preview(data)
     return JsonResponse({"preview_html": preview_html})
+
+
+# ── Recipe Studio (Premium form) ───────────────────────────────────────────────
+
+@login_required
+def recipe_studio_view(request):
+    """Premium unified recipe creation form for staff/superusers."""
+    if not (request.user.is_staff or request.user.is_superuser):
+        raise Http404
+
+    from .models import ALLERGEN_CHOICES, RecipeAdditionalCategory
+    from .management.commands.generate_recipe import _unique_slug
+
+    authors = RecipeAuthor.objects.filter(user__isnull=False).order_by("name")
+    default_author = RecipeAuthor.objects.filter(user=request.user).first()
+
+    if request.method == "POST":
+        title = request.POST.get("title", "").strip()
+        if not title:
+            messages.error(request, "Title is required.")
+            return redirect("recipes:recipe_studio")
+
+        author_slug = request.POST.get("author_slug", "").strip()
+        author = RecipeAuthor.objects.filter(slug=author_slug).first()
+        if not author:
+            author = default_author
+        if not author:
+            messages.error(request, "No author found. Please select one.")
+            return redirect("recipes:recipe_studio")
+
+        # Collect dynamic method steps
+        step_count = int(request.POST.get("step_count", "0") or 0)
+        step_texts = []
+        step_images = []
+        for i in range(1, step_count + 1):
+            text = request.POST.get(f"step_text_{i}", "").strip()
+            image = request.FILES.get(f"step_image_{i}")
+            if text:
+                step_texts.append(text)
+                step_images.append(image)
+
+        method = "\n".join(step_texts)
+
+        # Allergens
+        allergen_keys = request.POST.getlist("allergens")
+        valid_allergen_keys = {k for k, _ in ALLERGEN_CHOICES}
+        allergens = ",".join(k for k in allergen_keys if k in valid_allergen_keys)
+
+        # Category
+        category = request.POST.get("category", "").strip()
+        valid_categories = {c.value for c in Recipe.Category}
+        if category not in valid_categories:
+            category = Recipe.Category.EVERYDAY_IRISH_COOKING
+
+        status = request.POST.get("status", Recipe.Status.PENDING)
+        if status not in (Recipe.Status.DRAFT, Recipe.Status.PENDING, Recipe.Status.APPROVED):
+            status = Recipe.Status.PENDING
+        if status == Recipe.Status.APPROVED and not (request.user.is_staff or request.user.is_superuser):
+            status = Recipe.Status.PENDING
+
+        def _safe_int(key, default=0, minimum=0):
+            try:
+                return max(int(request.POST.get(key, default) or default), minimum)
+            except (TypeError, ValueError):
+                return default
+
+        slug = _unique_slug(title)
+
+        recipe = Recipe(
+            title=title,
+            slug=slug,
+            short_description=request.POST.get("short_description", "").strip(),
+            author=author,
+            category=category,
+            difficulty=request.POST.get("difficulty", Recipe.Difficulty.EASY),
+            prep_time_minutes=_safe_int("prep_time_minutes"),
+            cook_time_minutes=_safe_int("cook_time_minutes"),
+            servings=_safe_int("servings", default=4, minimum=1),
+            calories=_safe_int("calories") or None,
+            ingredients=request.POST.get("ingredients", "").strip(),
+            method=method,
+            tips=request.POST.get("tips", "").strip(),
+            irish_context=request.POST.get("irish_context", "").strip(),
+            author_commentary=request.POST.get("author_commentary", "").strip(),
+            allergens=allergens,
+            hero_image_alt_text=request.POST.get("hero_image_alt_text", "").strip(),
+            source_type=request.POST.get("source_type", Recipe.SourceType.ORIGINAL),
+            image_rights_status=Recipe.ImageRightsStatus.OWN,
+            confirmed_own_work=True,
+            confirmed_image_rights=True,
+            confirmed_rules=True,
+            status=status,
+        )
+
+        hero_image = request.FILES.get("hero_image")
+        if hero_image:
+            recipe.hero_image = hero_image
+
+        # AI-generated hero image (temp path from studio AI generate)
+        ai_hero_path = request.POST.get("ai_hero_image_path", "").strip()
+        if ai_hero_path and not hero_image:
+            import os
+            if default_storage.exists(ai_hero_path):
+                image_bytes = default_storage.open(ai_hero_path).read()
+                ext = os.path.splitext(ai_hero_path)[1] or ".jpg"
+                recipe.image_rights_status = Recipe.ImageRightsStatus.AI_GENERATED
+                openai_model = getattr(settings, "OPENAI_IMAGE_MODEL", "gpt-image-1")
+                recipe.image_rights_note = f"AI-generated image via {openai_model}."
+                recipe.hero_image.save(f"recipe_images/studio-cover{ext}", ContentFile(image_bytes), save=False)
+                try:
+                    default_storage.delete(ai_hero_path)
+                except Exception:
+                    pass
+
+        recipe.save()
+
+        # Step images → RecipeImage
+        for idx, (text, img_file) in enumerate(zip(step_texts, step_images), start=1):
+            if img_file:
+                RecipeImage.objects.create(
+                    recipe=recipe,
+                    image=img_file,
+                    sort_order=idx,
+                    alt_text=text[:200],
+                    caption=f"Step {idx}",
+                )
+
+        # Additional categories
+        extra_cats = request.POST.getlist("additional_categories")
+        for cat in extra_cats:
+            if cat in valid_categories and cat != category:
+                RecipeAdditionalCategory.objects.get_or_create(recipe=recipe, category=cat)
+
+        logger.info("recipe_studio: created recipe %r by %s", recipe.slug, request.user.username)
+
+        if status == Recipe.Status.APPROVED:
+            messages.success(request, "Recipe published.")
+        elif status == Recipe.Status.DRAFT:
+            messages.success(request, "Recipe saved as draft.")
+        else:
+            messages.success(request, "Recipe submitted for review.")
+            _send_recipe_notification(recipe, "pending")
+
+        return redirect(recipe.get_absolute_url())
+
+    return render(request, "authoring/recipe_studio.html", {
+        "authors": authors,
+        "default_author": default_author,
+        "category_choices": Recipe.Category.choices,
+        "difficulty_choices": Recipe.Difficulty.choices,
+        "allergen_choices": ALLERGEN_CHOICES,
+        "status_choices": [
+            (Recipe.Status.PENDING, "Submit for review"),
+            (Recipe.Status.DRAFT, "Save as draft"),
+            (Recipe.Status.APPROVED, "Publish immediately"),
+        ],
+        "has_openai": bool(getattr(settings, "OPENAI_API_KEY", "")),
+        "default_step_count": 3,
+    })
+
+
+@require_POST
+@login_required
+def recipe_studio_ai_fill(request):
+    """Synchronous AI fill for the Premium Studio form.
+
+    POST JSON: {dish_name, custom_prompt, category}
+    Returns JSON with all recipe text fields pre-filled.
+    """
+    if not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({"success": False, "error": "Not authorized"}, status=403)
+
+    if not getattr(settings, "ANTHROPIC_API_KEY", ""):
+        return JsonResponse({"success": False, "error": "ANTHROPIC_API_KEY is not configured."}, status=500)
+
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        data = request.POST.dict()
+
+    dish_name = (data.get("dish_name") or "").strip()
+    custom_prompt = (data.get("custom_prompt") or "").strip()
+    hint_category = (data.get("category") or "").strip()
+
+    if not dish_name:
+        return JsonResponse({"success": False, "error": "dish_name is required."}, status=400)
+
+    valid_categories = {c.value for c in Recipe.Category}
+    if hint_category not in valid_categories:
+        hint_category = ""
+
+    try:
+        from .management.commands.generate_recipe import (
+            _call_anthropic, _normalise_recipe_payload, _map_additional_categories,
+        )
+        payload = _call_anthropic(dish_name, hint_category=hint_category, custom_prompt=custom_prompt)
+        fields = _normalise_recipe_payload(payload, dish_name, Recipe.Status.DRAFT)
+        additional = _map_additional_categories(payload.get("additional_categories"), fields["category"])
+
+        # Split method into individual steps
+        method_steps = [s.strip() for s in (fields.get("method") or "").splitlines() if s.strip()]
+
+        return JsonResponse({
+            "success": True,
+            "fields": {
+                "title": fields.get("title", ""),
+                "short_description": fields.get("short_description", ""),
+                "category": fields.get("category", ""),
+                "difficulty": fields.get("difficulty", ""),
+                "prep_time_minutes": fields.get("prep_time_minutes", ""),
+                "cook_time_minutes": fields.get("cook_time_minutes", ""),
+                "servings": fields.get("servings", ""),
+                "calories": fields.get("calories", "") or "",
+                "ingredients": fields.get("ingredients", ""),
+                "method_steps": method_steps,
+                "tips": fields.get("tips", ""),
+                "irish_context": fields.get("irish_context", ""),
+                "author_commentary": fields.get("author_commentary", ""),
+                "allergens": (fields.get("allergens") or "").split(","),
+                "hero_image_alt_text": payload.get("hero_image_alt_text", ""),
+                "additional_categories": additional,
+            },
+        })
+    except Exception as exc:
+        logger.error("recipe_studio_ai_fill failed: %s", exc, exc_info=True)
+        return JsonResponse({"success": False, "error": str(exc)}, status=500)

@@ -1,0 +1,585 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Recipe Studio | CulinEire{% endblock %}
+{% block meta_description %}Premium recipe creation studio.{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+<link href="{% static 'css/authoring.css' %}" rel="stylesheet">
+<link href="{% static 'css/moderation.css' %}" rel="stylesheet">
+<style nonce="{{ request.csp_nonce }}">
+/* ── Studio layout ── */
+.studio-shell { max-width: 860px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+.studio-section { background: var(--surface-1, #fff); border: 1px solid var(--border-color, #e5e7eb); border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem; }
+.studio-section__legend { font-weight: 700; font-size: 0.78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--color-muted, #6b7280); margin-bottom: 1rem; display: block; }
+.studio-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.studio-grid--three { grid-template-columns: 1fr 1fr 1fr; }
+.studio-field { display: flex; flex-direction: column; gap: 0.3rem; }
+.studio-field--wide { grid-column: 1 / -1; }
+.studio-label { font-size: 0.82rem; font-weight: 600; color: var(--color-ink, #1a1a1a); }
+.studio-label .studio-opt { font-weight: 400; color: var(--color-muted); font-size: 0.78rem; }
+.studio-control { width: 100%; padding: 0.5rem 0.7rem; border: 1px solid var(--border-color, #d1d5db); border-radius: 6px; font-size: 0.9rem; background: var(--surface-0, #fafafa); color: var(--color-ink); }
+.studio-control:focus { outline: 2px solid var(--color-primary, #0b4c3a); outline-offset: 1px; }
+textarea.studio-control { resize: vertical; min-height: 80px; }
+.studio-help { font-size: 0.75rem; color: var(--color-muted); margin: 0; }
+.studio-error { font-size: 0.78rem; color: var(--color-error, #c0392b); margin: 0; }
+
+/* ── AI fill panel ── */
+.studio-ai-bar { display: flex; align-items: flex-start; gap: 0.75rem; padding: 1rem 1.25rem; background: var(--color-primary-light, #f0f9f4); border: 1px solid var(--color-primary-faint, #c6e8d8); border-radius: 10px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.studio-ai-bar__title { font-size: 0.78rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--color-primary, #0b4c3a); white-space: nowrap; padding-top: 0.45rem; }
+.studio-ai-bar__inputs { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; min-width: 200px; }
+.studio-ai-bar__actions { display: flex; flex-direction: column; gap: 0.4rem; padding-top: 0.1rem; }
+.studio-ai-status { font-size: 0.78rem; color: var(--color-muted); margin: 0.25rem 0 0; }
+.studio-ai-status--error { color: var(--color-error, #c0392b); }
+
+/* ── Hero image drop zone ── */
+.studio-hero-drop { border: 2px dashed var(--border-color, #d1d5db); border-radius: 10px; padding: 2rem; text-align: center; cursor: pointer; transition: border-color .2s, background .2s; position: relative; }
+.studio-hero-drop:hover, .studio-hero-drop.dragover { border-color: var(--color-primary, #0b4c3a); background: var(--color-primary-light, #f0f9f4); }
+.studio-hero-drop__label { font-size: 0.85rem; color: var(--color-muted); pointer-events: none; }
+.studio-hero-preview { max-width: 100%; max-height: 240px; border-radius: 8px; margin-top: 0.75rem; display: none; }
+.studio-hero-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; }
+
+/* ── Steps ── */
+.studio-steps { display: flex; flex-direction: column; gap: 1rem; }
+.studio-step { border: 1px solid var(--border-color, #e5e7eb); border-radius: 8px; padding: 1rem; position: relative; background: var(--surface-0, #fafafa); }
+.studio-step__header { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.75rem; }
+.studio-step__num { font-size: 0.75rem; font-weight: 700; color: var(--color-primary, #0b4c3a); background: var(--color-primary-light, #f0f9f4); padding: 0.2rem 0.55rem; border-radius: 4px; white-space: nowrap; }
+.studio-step__remove { margin-left: auto; font-size: 0.75rem; color: var(--color-error, #c0392b); background: none; border: none; cursor: pointer; padding: 0.2rem 0.5rem; }
+.studio-step__remove:hover { text-decoration: underline; }
+.studio-step__image-drop { border: 1px dashed var(--border-color, #d1d5db); border-radius: 6px; padding: 0.75rem 1rem; text-align: center; font-size: 0.78rem; color: var(--color-muted); cursor: pointer; margin-top: 0.6rem; transition: border-color .15s; }
+.studio-step__image-drop:hover, .studio-step__image-drop.dragover { border-color: var(--color-primary, #0b4c3a); color: var(--color-primary); }
+.studio-step__thumb { max-width: 100%; max-height: 120px; border-radius: 5px; margin-top: 0.4rem; display: none; }
+.studio-step__file { display: none; }
+
+/* ── Add step button ── */
+.studio-add-step { display: flex; align-items: center; gap: 0.4rem; background: none; border: 1px dashed var(--border-color, #d1d5db); border-radius: 8px; padding: 0.65rem 1.25rem; font-size: 0.85rem; color: var(--color-muted); cursor: pointer; width: 100%; justify-content: center; transition: border-color .15s, color .15s; }
+.studio-add-step:hover { border-color: var(--color-primary, #0b4c3a); color: var(--color-primary); }
+
+/* ── Allergen checkboxes ── */
+.studio-allergen-grid { display: flex; flex-wrap: wrap; gap: 0.4rem 0.75rem; }
+.studio-allergen-grid label { font-size: 0.82rem; display: flex; align-items: center; gap: 0.3rem; cursor: pointer; }
+
+/* ── Submit row ── */
+.studio-submit-row { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; justify-content: flex-end; padding-top: 0.5rem; }
+
+@media (max-width: 640px) {
+  .studio-grid { grid-template-columns: 1fr; }
+  .studio-grid--three { grid-template-columns: 1fr 1fr; }
+  .studio-ai-bar { flex-direction: column; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="hero hero--home hero--recipe-form{% if chef_battle_enabled %} hero--has-battle{% endif %}">
+  <div aria-hidden="true" class="hero__background"><img alt="" src="{% static 'images/hero-recipes.png' %}"></div>
+  <div aria-hidden="true" class="hero__overlay"></div>
+  <div class="container hero__inner">
+    <div class="hero-copy">
+      <span class="pill">Premium Studio</span>
+      <h1 class="hero-title">Recipe Studio</h1>
+      <p class="hero-subtitle">Full control: AI fill, custom steps with photos, drag & drop images.</p>
+      <div class="hero__actions">
+        <a class="btn-secondary" href="{% url 'recipes:recipe_create' %}">Standard Form</a>
+        <a class="btn-secondary" href="{% url 'recipes:generate_recipe' %}">Auto Generate</a>
+        <a class="btn-secondary" href="{% url 'recipes:recipe_create_from_screenshot' %}">From Screenshot</a>
+      </div>
+    </div>
+    {% include '_hero_battle_panel.html' %}
+  </div>
+</section>
+
+<div class="studio-shell">
+
+  {% if messages %}
+  {% for message in messages %}
+  <div class="authoring-warning" role="status">{{ message }}</div>
+  {% endfor %}
+  {% endif %}
+
+  {# ── AI Fill bar ── #}
+  {% if has_openai %}
+  <div class="studio-ai-bar" id="studio-ai-bar">
+    <span class="studio-ai-bar__title">&#x2728; AI Fill</span>
+    <div class="studio-ai-bar__inputs">
+      <input class="studio-control" id="studio-dish-name" placeholder="Dish name (e.g. Irish Beef Stew)" type="text">
+      <textarea class="studio-control" id="studio-custom-prompt" placeholder="Optional: paste a source recipe or add specific instructions for the AI..." rows="2"></textarea>
+      <p class="studio-ai-status" id="studio-ai-status" aria-live="polite"></p>
+    </div>
+    <div class="studio-ai-bar__actions">
+      <button class="btn-primary" id="studio-ai-fill-btn" type="button">Fill with AI</button>
+      <button class="btn-secondary" id="studio-ai-clear-btn" type="button" style="font-size:0.8rem;">Clear</button>
+    </div>
+  </div>
+  {% endif %}
+
+  <form action="{% url 'recipes:recipe_studio' %}" enctype="multipart/form-data" id="studio-form" method="post">
+    {% csrf_token %}
+    <input id="studio-step-count" name="step_count" type="hidden" value="{{ default_step_count }}">
+    <input id="ai_hero_image_path" name="ai_hero_image_path" type="hidden" value="">
+
+    {# ── Author ── #}
+    <div class="studio-section">
+      <span class="studio-section__legend">Attribution</span>
+      <div class="studio-grid">
+        <div class="studio-field">
+          <label class="studio-label" for="studio-author">Author</label>
+          <select class="studio-control" id="studio-author" name="author_slug">
+            {% for author in authors %}
+            <option value="{{ author.slug }}"{% if default_author and author.slug == default_author.slug %} selected{% endif %}>{{ author.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="studio-field">
+          <label class="studio-label" for="studio-status">Status</label>
+          <select class="studio-control" id="studio-status" name="status">
+            {% for value, label in status_choices %}
+            <option value="{{ value }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+
+    {# ── Hero image ── #}
+    <div class="studio-section">
+      <span class="studio-section__legend">Hero Image</span>
+      <div id="studio-hero-drop" class="studio-hero-drop" tabindex="0" role="button" aria-label="Upload hero image">
+        <p class="studio-hero-drop__label">&#x1F4F7; Drag & drop a photo here, or click to browse</p>
+        <input accept=".jpg,.jpeg,.png,.webp" id="id_hero_image" name="hero_image" style="display:none" type="file">
+        <img alt="Hero preview" class="studio-hero-preview" id="studio-hero-preview">
+      </div>
+      <div class="studio-hero-actions">
+        {% if has_openai %}
+        <button class="btn-secondary" id="studio-gen-hero-btn" type="button">&#x1F3A8; Generate with AI</button>
+        <span id="studio-hero-ai-status" style="font-size:0.78rem;color:var(--color-muted);align-self:center;"></span>
+        {% endif %}
+      </div>
+      <div class="studio-grid" style="margin-top:0.75rem;">
+        <div class="studio-field studio-field--wide">
+          <label class="studio-label" for="id_hero_image_alt_text">Image alt text <span class="studio-opt">(optional)</span></label>
+          <input class="studio-control" id="id_hero_image_alt_text" maxlength="200" name="hero_image_alt_text" placeholder="e.g. Irish beef stew in a ceramic bowl, overhead shot" type="text">
+        </div>
+      </div>
+    </div>
+
+    {# ── Basic info ── #}
+    <div class="studio-section">
+      <span class="studio-section__legend">Recipe Info</span>
+      <div class="studio-grid">
+        <div class="studio-field studio-field--wide">
+          <label class="studio-label" for="id_title">Title <span style="color:var(--color-error)">*</span></label>
+          <input class="studio-control" id="id_title" maxlength="200" name="title" placeholder="Full dish name" required type="text">
+        </div>
+        <div class="studio-field studio-field--wide">
+          <label class="studio-label" for="id_short_description">Short description</label>
+          <textarea class="studio-control" id="id_short_description" name="short_description" placeholder="One or two sentences describing the dish." rows="2"></textarea>
+        </div>
+        <div class="studio-field">
+          <label class="studio-label" for="id_category">Category</label>
+          <select class="studio-control" id="id_category" name="category">
+            {% for value, label in category_choices %}
+            <option value="{{ value }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="studio-field">
+          <label class="studio-label" for="id_difficulty">Difficulty</label>
+          <select class="studio-control" id="id_difficulty" name="difficulty">
+            {% for value, label in difficulty_choices %}
+            <option value="{{ value }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="studio-grid studio-grid--three" style="margin-top:1rem;">
+        <div class="studio-field">
+          <label class="studio-label" for="id_prep_time_minutes">Prep (min)</label>
+          <input class="studio-control" id="id_prep_time_minutes" min="0" name="prep_time_minutes" placeholder="15" type="number">
+        </div>
+        <div class="studio-field">
+          <label class="studio-label" for="id_cook_time_minutes">Cook (min)</label>
+          <input class="studio-control" id="id_cook_time_minutes" min="0" name="cook_time_minutes" placeholder="45" type="number">
+        </div>
+        <div class="studio-field">
+          <label class="studio-label" for="id_servings">Serves</label>
+          <input class="studio-control" id="id_servings" min="1" name="servings" placeholder="4" type="number">
+        </div>
+        <div class="studio-field">
+          <label class="studio-label" for="id_calories">Calories <span class="studio-opt">(optional)</span></label>
+          <input class="studio-control" id="id_calories" min="0" name="calories" placeholder="450" type="number">
+        </div>
+      </div>
+    </div>
+
+    {# ── Ingredients ── #}
+    <div class="studio-section">
+      <span class="studio-section__legend">Ingredients</span>
+      <div class="studio-field">
+        <label class="studio-label" for="id_ingredients">One ingredient per line, with exact metric quantities</label>
+        <textarea class="studio-control" id="id_ingredients" name="ingredients" placeholder="200g plain flour&#10;1 tsp baking powder&#10;250ml whole milk" rows="8" style="min-height:160px;font-family:monospace;font-size:0.85rem;"></textarea>
+      </div>
+    </div>
+
+    {# ── Method Steps ── #}
+    <div class="studio-section">
+      <span class="studio-section__legend">Method Steps</span>
+      <p class="studio-help" style="margin-bottom:1rem;">Each step is a separate field. Add a photo to any step. Drag to reorder.</p>
+
+      <div class="studio-steps" id="studio-steps">
+        {% for n in "123" %}
+        {% with forloop.counter as step_num %}
+        <div class="studio-step" data-step="{{ step_num }}" draggable="true">
+          <div class="studio-step__header">
+            <span class="studio-step__num">Step {{ step_num }}</span>
+            <button class="studio-step__remove" data-remove-step type="button" title="Remove this step">&#x2715; Remove</button>
+          </div>
+          <textarea class="studio-control" name="step_text_{{ step_num }}" placeholder="Describe this step in detail..." rows="3"></textarea>
+          <div class="studio-step__image-drop" data-step-drop="{{ step_num }}" tabindex="0" role="button" aria-label="Upload photo for step {{ step_num }}">
+            &#x1F4F7; Add photo for this step (optional)
+            <input accept=".jpg,.jpeg,.png,.webp" class="studio-step__file" name="step_image_{{ step_num }}" type="file">
+            <img alt="Step {{ step_num }} photo" class="studio-step__thumb" data-step-thumb="{{ step_num }}">
+          </div>
+        </div>
+        {% endwith %}
+        {% endfor %}
+      </div>
+
+      <button class="studio-add-step" id="studio-add-step" type="button">&#x002B; Add Step</button>
+    </div>
+
+    {# ── Supporting text ── #}
+    <div class="studio-section">
+      <span class="studio-section__legend">Tips & Context</span>
+      <div class="studio-grid">
+        <div class="studio-field studio-field--wide">
+          <label class="studio-label" for="id_tips">Tips <span class="studio-opt">(optional)</span></label>
+          <textarea class="studio-control" id="id_tips" name="tips" placeholder="Practical advice, substitutions, storage..." rows="3"></textarea>
+        </div>
+        <div class="studio-field studio-field--wide">
+          <label class="studio-label" for="id_irish_context">Irish context <span class="studio-opt">(optional)</span></label>
+          <textarea class="studio-control" id="id_irish_context" name="irish_context" placeholder="Why this dish matters in Irish cooking..." rows="3"></textarea>
+        </div>
+        <div class="studio-field studio-field--wide">
+          <label class="studio-label" for="id_author_commentary">Author commentary <span class="studio-opt">(optional)</span></label>
+          <textarea class="studio-control" id="id_author_commentary" name="author_commentary" placeholder="Personal notes, variations you enjoy..." rows="3"></textarea>
+        </div>
+      </div>
+    </div>
+
+    {# ── Allergens ── #}
+    <div class="studio-section">
+      <span class="studio-section__legend">Allergens</span>
+      <div class="studio-allergen-grid" id="studio-allergens">
+        {% for key, label in allergen_choices %}
+        <label><input name="allergens" type="checkbox" value="{{ key }}"> {{ label }}</label>
+        {% endfor %}
+      </div>
+    </div>
+
+    {# ── Submit ── #}
+    <div class="studio-submit-row">
+      <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}">Cancel</a>
+      <button class="btn-primary" name="action" type="submit" value="submit">Save Recipe</button>
+    </div>
+
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+  'use strict';
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function q(id) { return document.getElementById(id); }
+  function getCsrf() { var el = document.querySelector('[name=csrfmiddlewaretoken]'); return el ? el.value : ''; }
+
+  function showThumb(imgEl, file) {
+    if (!file || !imgEl) return;
+    var reader = new FileReader();
+    reader.onload = function (e) { imgEl.src = e.target.result; imgEl.style.display = 'block'; };
+    reader.readAsDataURL(file);
+  }
+
+  // ── Hero image drop zone ───────────────────────────────────────────────────
+  var heroDrop    = q('studio-hero-drop');
+  var heroInput   = q('id_hero_image');
+  var heroPreview = q('studio-hero-preview');
+
+  if (heroDrop && heroInput) {
+    heroDrop.addEventListener('click', function () { heroInput.click(); });
+    heroDrop.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') heroInput.click(); });
+    heroDrop.addEventListener('dragover', function (e) { e.preventDefault(); heroDrop.classList.add('dragover'); });
+    heroDrop.addEventListener('dragleave', function () { heroDrop.classList.remove('dragover'); });
+    heroDrop.addEventListener('drop', function (e) {
+      e.preventDefault();
+      heroDrop.classList.remove('dragover');
+      var file = e.dataTransfer.files[0];
+      if (file) { setHeroFile(file); }
+    });
+    heroInput.addEventListener('change', function () {
+      if (heroInput.files[0]) setHeroFile(heroInput.files[0]);
+    });
+  }
+
+  function setHeroFile(file) {
+    var dt = new DataTransfer();
+    dt.items.add(file);
+    heroInput.files = dt.files;
+    showThumb(heroPreview, file);
+    q('ai_hero_image_path').value = '';
+  }
+
+  // ── AI hero generate ───────────────────────────────────────────────────────
+  var genHeroBtn    = q('studio-gen-hero-btn');
+  var genHeroStatus = q('studio-hero-ai-status');
+  if (genHeroBtn) {
+    genHeroBtn.addEventListener('click', function () {
+      var title   = (q('id_title') || {}).value || '';
+      var altText = (q('id_hero_image_alt_text') || {}).value || '';
+      if (!title) { alert('Enter a title first so the AI knows what to generate.'); return; }
+      genHeroBtn.disabled = true;
+      if (genHeroStatus) genHeroStatus.textContent = 'Generating...';
+      fetch('{% url "recipes:recipe_ai_generate_hero" %}', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCsrf(), 'X-Requested-With': 'XMLHttpRequest' },
+        body: new URLSearchParams({ title: title, alt_text: altText }),
+      })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.success) {
+          q('ai_hero_image_path').value = data.temp_filename || '';
+          if (heroPreview) { heroPreview.src = data.url; heroPreview.style.display = 'block'; }
+          if (genHeroStatus) genHeroStatus.textContent = 'Generated.';
+        } else {
+          if (genHeroStatus) genHeroStatus.textContent = 'Failed: ' + (data.error || 'unknown error');
+        }
+      })
+      .catch(function () { if (genHeroStatus) genHeroStatus.textContent = 'Network error.'; })
+      .finally(function () { genHeroBtn.disabled = false; });
+    });
+  }
+
+  // ── Dynamic steps ──────────────────────────────────────────────────────────
+  var stepsContainer = q('studio-steps');
+  var stepCountEl    = q('studio-step-count');
+  var addStepBtn     = q('studio-add-step');
+
+  function getStepCount() { return stepsContainer ? stepsContainer.querySelectorAll('.studio-step').length : 0; }
+
+  function reindexSteps() {
+    if (!stepsContainer) return;
+    var steps = stepsContainer.querySelectorAll('.studio-step');
+    steps.forEach(function (step, idx) {
+      var n = idx + 1;
+      step.setAttribute('data-step', n);
+      var numEl = step.querySelector('.studio-step__num');
+      if (numEl) numEl.textContent = 'Step ' + n;
+      var ta = step.querySelector('textarea');
+      if (ta) ta.name = 'step_text_' + n;
+      var fi = step.querySelector('.studio-step__file');
+      if (fi) fi.name = 'step_image_' + n;
+      var drop = step.querySelector('[data-step-drop]');
+      if (drop) drop.setAttribute('data-step-drop', n);
+      var thumb = step.querySelector('[data-step-thumb]');
+      if (thumb) { thumb.setAttribute('data-step-thumb', n); thumb.alt = 'Step ' + n + ' photo'; }
+    });
+    if (stepCountEl) stepCountEl.value = steps.length;
+  }
+
+  function buildStep(n) {
+    var div = document.createElement('div');
+    div.className = 'studio-step';
+    div.setAttribute('data-step', n);
+    div.draggable = true;
+    div.innerHTML =
+      '<div class="studio-step__header">' +
+        '<span class="studio-step__num">Step ' + n + '</span>' +
+        '<button class="studio-step__remove" data-remove-step type="button" title="Remove">&#x2715; Remove</button>' +
+      '</div>' +
+      '<textarea class="studio-control" name="step_text_' + n + '" placeholder="Describe this step..." rows="3"></textarea>' +
+      '<div class="studio-step__image-drop" data-step-drop="' + n + '" tabindex="0" role="button" aria-label="Upload photo for step ' + n + '">' +
+        '&#x1F4F7; Add photo for this step (optional)' +
+        '<input accept=".jpg,.jpeg,.png,.webp" class="studio-step__file" name="step_image_' + n + '" type="file">' +
+        '<img alt="Step ' + n + ' photo" class="studio-step__thumb" data-step-thumb="' + n + '">' +
+      '</div>';
+    wireStep(div);
+    return div;
+  }
+
+  function wireStep(stepEl) {
+    var removeBtn = stepEl.querySelector('[data-remove-step]');
+    if (removeBtn) {
+      removeBtn.addEventListener('click', function () {
+        if (getStepCount() <= 1) { alert('At least one step is required.'); return; }
+        stepEl.remove();
+        reindexSteps();
+      });
+    }
+
+    var drop  = stepEl.querySelector('[data-step-drop]');
+    var input = stepEl.querySelector('.studio-step__file');
+    var thumb = stepEl.querySelector('.studio-step__thumb');
+    if (drop && input) {
+      drop.addEventListener('click', function () { input.click(); });
+      drop.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') input.click(); });
+      drop.addEventListener('dragover', function (e) { e.preventDefault(); drop.classList.add('dragover'); });
+      drop.addEventListener('dragleave', function () { drop.classList.remove('dragover'); });
+      drop.addEventListener('drop', function (e) {
+        e.preventDefault();
+        drop.classList.remove('dragover');
+        var file = e.dataTransfer.files[0];
+        if (file) {
+          var dt = new DataTransfer(); dt.items.add(file); input.files = dt.files;
+          showThumb(thumb, file);
+        }
+      });
+      input.addEventListener('change', function () { if (input.files[0]) showThumb(thumb, input.files[0]); });
+    }
+
+    // Drag to reorder
+    stepEl.addEventListener('dragstart', function (e) { stepEl.classList.add('is-dragging'); e.dataTransfer.effectAllowed = 'move'; });
+    stepEl.addEventListener('dragend', function () { stepEl.classList.remove('is-dragging'); reindexSteps(); });
+    stepEl.addEventListener('dragover', function (e) {
+      e.preventDefault();
+      var dragging = stepsContainer.querySelector('.is-dragging');
+      if (!dragging || dragging === stepEl) return;
+      var rect = stepEl.getBoundingClientRect();
+      var after = e.clientY > rect.top + rect.height / 2;
+      stepsContainer.insertBefore(dragging, after ? stepEl.nextSibling : stepEl);
+    });
+  }
+
+  // Wire existing steps
+  if (stepsContainer) {
+    stepsContainer.querySelectorAll('.studio-step').forEach(function (step) { wireStep(step); });
+  }
+
+  if (addStepBtn) {
+    addStepBtn.addEventListener('click', function () {
+      var n = getStepCount() + 1;
+      var newStep = buildStep(n);
+      stepsContainer.appendChild(newStep);
+      if (stepCountEl) stepCountEl.value = n;
+      newStep.querySelector('textarea').focus();
+    });
+  }
+
+  // ── AI Fill ────────────────────────────────────────────────────────────────
+  var aiFillBtn    = q('studio-ai-fill-btn');
+  var aiClearBtn   = q('studio-ai-clear-btn');
+  var aiStatusEl   = q('studio-ai-status');
+  var aiFillUrl    = '{% url "recipes:recipe_studio_ai_fill" %}';
+
+  function setAiStatus(msg, isErr) {
+    if (!aiStatusEl) return;
+    aiStatusEl.textContent = msg;
+    aiStatusEl.className = 'studio-ai-status' + (isErr ? ' studio-ai-status--error' : '');
+  }
+
+  function setVal(id, val) {
+    var el = q(id);
+    if (el) { el.value = val !== null && val !== undefined ? val : ''; }
+  }
+
+  function fillAllergens(keys) {
+    var checks = document.querySelectorAll('[name=allergens]');
+    checks.forEach(function (c) { c.checked = keys && keys.indexOf(c.value) !== -1; });
+  }
+
+  function fillSteps(steps) {
+    if (!stepsContainer || !Array.isArray(steps)) return;
+    // Remove all existing steps
+    stepsContainer.innerHTML = '';
+    // Add one step per item
+    steps.forEach(function (text, idx) {
+      var n = idx + 1;
+      var stepEl = buildStep(n);
+      stepsContainer.appendChild(stepEl);
+      var ta = stepEl.querySelector('textarea');
+      if (ta) ta.value = text;
+    });
+    if (stepCountEl) stepCountEl.value = steps.length;
+    // Ensure at least 1 step
+    if (steps.length === 0) {
+      var stepEl = buildStep(1);
+      stepsContainer.appendChild(stepEl);
+      if (stepCountEl) stepCountEl.value = 1;
+    }
+  }
+
+  if (aiFillBtn) {
+    aiFillBtn.addEventListener('click', function () {
+      var dishName = (q('studio-dish-name') || {}).value || '';
+      if (!dishName.trim()) { setAiStatus('Enter a dish name first.', true); return; }
+
+      var catEl = q('id_category');
+      var category = catEl ? catEl.value : '';
+      var customPrompt = (q('studio-custom-prompt') || {}).value || '';
+
+      aiFillBtn.disabled = true;
+      setAiStatus('Calling AI… this takes 15–30 seconds.', false);
+
+      fetch(aiFillUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+        body: JSON.stringify({ dish_name: dishName, custom_prompt: customPrompt, category: category }),
+      })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data.success) { setAiStatus('Error: ' + (data.error || 'unknown'), true); return; }
+        var f = data.fields;
+        setVal('id_title', f.title);
+        setVal('id_short_description', f.short_description);
+        setVal('id_ingredients', f.ingredients);
+        setVal('id_tips', f.tips);
+        setVal('id_irish_context', f.irish_context);
+        setVal('id_author_commentary', f.author_commentary);
+        setVal('id_hero_image_alt_text', f.hero_image_alt_text);
+        if (f.prep_time_minutes) setVal('id_prep_time_minutes', f.prep_time_minutes);
+        if (f.cook_time_minutes) setVal('id_cook_time_minutes', f.cook_time_minutes);
+        if (f.servings) setVal('id_servings', f.servings);
+        if (f.calories) setVal('id_calories', f.calories);
+        // Category
+        if (f.category && catEl) {
+          for (var i = 0; i < catEl.options.length; i++) {
+            if (catEl.options[i].value === f.category) { catEl.selectedIndex = i; break; }
+          }
+        }
+        // Difficulty
+        var diffEl = q('id_difficulty');
+        if (f.difficulty && diffEl) {
+          for (var j = 0; j < diffEl.options.length; j++) {
+            if (diffEl.options[j].value === f.difficulty) { diffEl.selectedIndex = j; break; }
+          }
+        }
+        // Steps
+        if (f.method_steps) fillSteps(f.method_steps);
+        // Allergens
+        if (f.allergens) fillAllergens(f.allergens);
+
+        setAiStatus('Done! Review and edit the fields below before saving.', false);
+      })
+      .catch(function () { setAiStatus('Network error. Please try again.', true); })
+      .finally(function () { aiFillBtn.disabled = false; });
+    });
+  }
+
+  if (aiClearBtn) {
+    aiClearBtn.addEventListener('click', function () {
+      var ids = ['id_title','id_short_description','id_ingredients','id_tips','id_irish_context','id_author_commentary','id_hero_image_alt_text','id_prep_time_minutes','id_cook_time_minutes','id_servings','id_calories'];
+      ids.forEach(function (id) { setVal(id, ''); });
+      fillAllergens([]);
+      fillSteps([]);
+      if (heroPreview) { heroPreview.src = ''; heroPreview.style.display = 'none'; }
+      q('ai_hero_image_path').value = '';
+      setAiStatus('', false);
+    });
+  }
+
+}());
+</script>
+{% endblock %}
