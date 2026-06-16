@@ -22,7 +22,15 @@
       {% endif %}
       <div>
         <h1 style="margin:0;">{{ author.name }}{% executive_badge author %}</h1>
-        <p class="battle-room-hero__sub" style="margin:0.25rem 0 0;">{{ profile.get_rank_display }}{% if profile.has_crown %} &middot; &#x1F451; Crown Holder{% endif %}{% if profile.prestige_title %} &middot; <span class="badge-prestige">{{ profile.get_prestige_title_display }}</span>{% endif %}{% if profile.is_founding_chef %} &middot; <span class="badge-founding">&#x2B50; Founding Chef</span>{% endif %}</p>
+        <p class="battle-room-hero__sub" style="margin:0.25rem 0 0; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+          {% if profile.is_hero %}<img src="{% static 'images/chef_battle/level_hero.svg' %}" alt="CulinEire Hero" width="28" height="28">
+          {% elif profile.level == 5 %}<img src="{% static 'images/chef_battle/level_5.svg' %}" alt="Level 5" width="28" height="28">
+          {% elif profile.level == 4 %}<img src="{% static 'images/chef_battle/level_4.svg' %}" alt="Level 4" width="28" height="28">
+          {% elif profile.level == 3 %}<img src="{% static 'images/chef_battle/level_3.svg' %}" alt="Level 3" width="28" height="28">
+          {% elif profile.level == 2 %}<img src="{% static 'images/chef_battle/level_2.svg' %}" alt="Level 2" width="28" height="28">
+          {% else %}<img src="{% static 'images/chef_battle/level_1.svg' %}" alt="Level 1" width="28" height="28">
+          {% endif %}
+          {{ profile.get_rank_display }}{% if profile.has_crown %} &middot; &#x1F451; Crown Holder{% endif %}{% if profile.prestige_title %} &middot; <span class="badge-prestige">{{ profile.get_prestige_title_display }}</span>{% endif %}{% if profile.is_founding_chef %} &middot; <span class="badge-founding">&#x2B50; Founding Chef</span>{% endif %}</p>
       </div>
     </div>
   </div>

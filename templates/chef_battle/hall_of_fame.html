@@ -2,11 +2,19 @@
 {% load static author_tags %}
 
 {% block title %}Hall of Fame | Chef Battle{% endblock %}
-{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260615" rel="stylesheet">{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616c" rel="stylesheet">{% endblock %}
 
 {% block content %}
-<section class="battle-room-hero">
+<section class="battle-room-hero hof-hero">
   <div class="container">
+    <div class="hof-banner" aria-hidden="true">
+      <svg viewBox="0 0 640 72" xmlns="http://www.w3.org/2000/svg" class="hof-banner__svg">
+        <rect width="640" height="72" rx="6" fill="rgba(0,0,0,0.35)"/>
+        <text x="320" y="44" text-anchor="middle" font-family="Georgia,serif" font-size="28" fill="#f5c842" letter-spacing="6">&#x2605; HALL OF FAME &#x2605;</text>
+        <line x1="40" y1="56" x2="600" y2="56" stroke="#f5c842" stroke-width="1" stroke-dasharray="4 6" opacity="0.5"/>
+        <text x="320" y="68" text-anchor="middle" font-family="Georgia,serif" font-size="10" fill="rgba(245,200,66,0.7)" letter-spacing="3">CHEF BATTLE ARENA</text>
+      </svg>
+    </div>
     <p class="battle-kicker">Chef Battle Arena</p>
     <h1>Hall of Fame</h1>
     <p class="battle-room-hero__sub">The battles and chefs that shaped the arena</p>

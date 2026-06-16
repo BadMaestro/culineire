@@ -2263,3 +2263,11 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
 /* Chef profile avatar placeholder */
 .chef-avatar-placeholder { display: flex; align-items: center; justify-content: center; width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 2px solid #bbf7d0; flex-shrink: 0; }
 .chef-avatar-placeholder svg { width: 44px; height: 44px; color: #16a34a; }
+
+/* Hall of Fame banner */
+.hof-hero { position: relative; }
+.hof-banner { margin-block-end: 1rem; }
+.hof-banner__svg { width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto; }
+
+/* Token shop package tier icons */
+.token-shop-card__tier-icon { font-size: 2rem; line-height: 1; margin-block-end: 0.25rem; display: block; }

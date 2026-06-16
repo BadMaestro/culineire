@@ -91,6 +91,7 @@
       {% if pkg.discount_percent > 0 %}
       <span class="token-shop-card__discount">-{{ pkg.discount_percent }}%</span>
       {% endif %}
+      <span class="token-shop-card__tier-icon">{% if forloop.counter == 1 %}&#x1F7EB;{% elif forloop.counter == 2 %}&#x1F7E9;{% elif forloop.counter == 3 %}&#x1F535;{% elif forloop.counter == 4 %}&#x1F7E3;{% else %}&#x1F7E1;{% endif %}</span>
       <div class="token-shop-card__name">{{ pkg.name }}</div>
       <div class="token-shop-card__tokens">
         <img src="{% static 'images/chef_battle/icon_token.svg' %}" alt="" width="20" height="20">

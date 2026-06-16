@@ -7,7 +7,7 @@
 {% block og_image %}{{ SITE_URL }}{% static 'images/hero-battle.png' %}{% endblock %}
 {% block og_image_secure_url %}{{ SITE_URL }}{% static 'images/hero-battle.png' %}{% endblock %}
 {% block og_image_alt %}Combat Artifact Gallery - Chef Battle Arena | CulinEire{% endblock %}
-{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260615e" rel="stylesheet">{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616c" rel="stylesheet">{% endblock %}
 
 {% block content %}
 <section class="battle-room-hero">
@@ -42,7 +42,15 @@
 
       {% for rarity_label, artifacts in grouped.items %}
       <section class="artifact-rarity-group artifact-rarity-group--{{ rarity_label|lower }}">
-        <h2 class="artifact-rarity-group__title">{{ rarity_label }}</h2>
+        <h2 class="artifact-rarity-group__title">
+          {% if rarity_label == "Common" %}<img src="{% static 'images/chef_battle/rarity_common.svg' %}" alt="" width="28" height="28" style="vertical-align:middle;margin-right:0.4rem;">
+          {% elif rarity_label == "Uncommon" %}<img src="{% static 'images/chef_battle/rarity_uncommon.svg' %}" alt="" width="28" height="28" style="vertical-align:middle;margin-right:0.4rem;">
+          {% elif rarity_label == "Rare" %}<img src="{% static 'images/chef_battle/rarity_rare.svg' %}" alt="" width="28" height="28" style="vertical-align:middle;margin-right:0.4rem;">
+          {% elif rarity_label == "Epic" %}<img src="{% static 'images/chef_battle/rarity_epic.svg' %}" alt="" width="28" height="28" style="vertical-align:middle;margin-right:0.4rem;">
+          {% elif rarity_label == "Legendary" %}<img src="{% static 'images/chef_battle/rarity_legendary.svg' %}" alt="" width="28" height="28" style="vertical-align:middle;margin-right:0.4rem;">
+          {% endif %}
+          {{ rarity_label }}
+        </h2>
         <div class="artifact-grid">
           {% for artifact in artifacts %}
           <article class="artifact-card artifact-card--{{ artifact.rarity }}" data-effect="{{ artifact.effect_type|default:'' }}">
