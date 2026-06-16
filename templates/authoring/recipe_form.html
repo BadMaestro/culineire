@@ -32,6 +32,7 @@
                 {% if request.user.is_staff or request.user.is_superuser %}
                 <a class="btn-primary" href="{% url 'recipes:generate_recipe' %}">Generate AI Recipe</a>
                 <a class="btn-secondary" href="{% url 'recipes:recipe_create_from_screenshot' %}">Generate Screen Recipe</a>
+                <a class="btn-secondary" href="{% url 'recipes:recipe_studio' %}">&#x2728; Recipe Studio</a>
                 {% else %}
                 {% if can_view_amuse_bouche_public_area %}
                 <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
