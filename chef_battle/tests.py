@@ -391,9 +391,10 @@ class EnergyServiceTests(TestCase):
         from .energy_service import award_moves, LIKE_ANTI_FARM_MAX_PER_SOURCE
         from .models import BattleMoveTransaction, ChefBattleProfile
         TxType = BattleMoveTransaction.TxType
+        # Same source_author gives max allowed likes to the chef
         for _ in range(LIKE_ANTI_FARM_MAX_PER_SOURCE):
             award_moves(self.chef, 1, TxType.LIKE_RECEIVED, source_author=self.source)
-        # 4th like from same source should be blocked
+        # Next move from the same source should be blocked
         awarded = award_moves(self.chef, 1, TxType.LIKE_RECEIVED, source_author=self.source)
         self.assertEqual(awarded, 0)
         profile = ChefBattleProfile.objects.get(author=self.chef)
@@ -453,39 +454,40 @@ class EnergyServiceTests(TestCase):
         )
 
     def test_like_signal_anti_farming(self):
+        """Same user liking multiple items of the same chef is blocked after LIKE_ANTI_FARM_MAX_PER_SOURCE."""
         from collection.models import ContentReaction
         from django.contrib.contenttypes.models import ContentType
         from amuse_bouche.models import AmuseBouche
         from chef_battle.models import ChefBattleProfile
         from chef_battle.energy_service import LIKE_ANTI_FARM_MAX_PER_SOURCE
-        item = AmuseBouche.objects.create(
-            author=self.chef,
-            title="Test Bite 2",
-            slug="test-bite-energy-2",
-            short_description="yum",
-            status=AmuseBouche.Status.APPROVED,
-        )
         ct = ContentType.objects.get_for_model(AmuseBouche)
-        # Create max allowed likes
+        # Same liker (self.user2 / self.source) likes LIKE_ANTI_FARM_MAX_PER_SOURCE items — all awarded
         for i in range(LIKE_ANTI_FARM_MAX_PER_SOURCE):
-            item2 = AmuseBouche.objects.create(
+            item = AmuseBouche.objects.create(
                 author=self.chef,
-                title=f"Bite {i}",
-                slug=f"bite-af-{i}",
+                title=f"Bite AF {i}",
+                slug=f"bite-af2-{i}",
                 short_description="yum",
                 status=AmuseBouche.Status.APPROVED,
             )
             ContentReaction.objects.create(
                 user=self.user2,
                 content_type=ct,
-                object_id=item2.pk,
+                object_id=item.pk,
                 reaction=ContentReaction.Reaction.LIKE,
             )
-        # 4th like from same user should be blocked
+        # One more like from the SAME user — should be blocked (per-source cap reached)
+        extra_item = AmuseBouche.objects.create(
+            author=self.chef,
+            title="Extra Bite",
+            slug="bite-af-extra",
+            short_description="yum",
+            status=AmuseBouche.Status.APPROVED,
+        )
         ContentReaction.objects.create(
             user=self.user2,
             content_type=ct,
-            object_id=item.pk,
+            object_id=extra_item.pk,
             reaction=ContentReaction.Reaction.LIKE,
         )
         profile = ChefBattleProfile.objects.get(author=self.chef)

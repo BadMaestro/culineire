@@ -39,7 +39,7 @@ def _get_profile(author):
 
 
 def _anti_farm_like_count(author, source_author) -> int:
-    """How many like_received events from source_author to author in last 24 h."""
+    """How many like_received moves this source_author has given to author in last 24 h."""
     from chef_battle.models import BattleMoveTransaction
     since = timezone.now() - timezone.timedelta(hours=LIKE_ANTI_FARM_WINDOW_HOURS)
     return BattleMoveTransaction.objects.filter(
@@ -78,7 +78,7 @@ def award_moves(
     from chef_battle.models import BattleMoveTransaction
     TxType = BattleMoveTransaction.TxType
 
-    # Anti-farming gate for likes
+    # Anti-farming: max LIKE_ANTI_FARM_MAX_PER_SOURCE moves per unique liker per day
     if transaction_type == TxType.LIKE_RECEIVED and source_author is not None:
         if _anti_farm_like_count(author, source_author) >= LIKE_ANTI_FARM_MAX_PER_SOURCE:
             return 0
