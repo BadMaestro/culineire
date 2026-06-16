@@ -56,7 +56,7 @@
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"CulinEire","url":"{{ SITE_URL }}","logo":"{{ SITE_URL }}{% static 'images/logo.png' %}","sameAs":["https://www.instagram.com/culineire/","https://www.tiktok.com/@culineire.ie","https://t.me/CULINEIRE"]}</script>
 
     {% block extra_head %}{% endblock %}
-    {% if active_battle_pip %}<link href="{% static 'css/chef_battle.css' %}?v=20260614b" rel="stylesheet">{% endif %}
+    {% if chef_battle_enabled %}<link href="{% static 'css/chef_battle.css' %}?v=20260616c" rel="stylesheet">{% endif %}
     {% if chef_battle_enabled %}<link href="{% static 'css/battle_vfx.css' %}" rel="stylesheet">{% endif %}
     {% if chef_battle_enabled %}<link href="{% static 'css/battle_cursor.css' %}" rel="stylesheet">{% endif %}
 <style>
@@ -314,6 +314,22 @@
 <main id="main-content">
     {% block content %}{% endblock %}
 </main>
+{% if chef_battle_enabled %}
+<template id="hbp-tpl">{% include '_hero_battle_panel.html' %}</template>
+<script>
+(function(){
+  var tpl = document.getElementById('hbp-tpl');
+  if (!tpl || !tpl.content) return;
+  var inner = document.querySelector('.hero__inner');
+  if (!inner) return;
+  var hero = inner.closest('.hero');
+  if (!hero || hero.classList.contains('hero--legal')) return;
+  if (inner.querySelector('.hero-battle-panel')) return;
+  inner.appendChild(tpl.content.cloneNode(true));
+  hero.classList.add('hero--has-battle');
+})();
+</script>
+{% endif %}
 
 <footer class="site-footer">
 
