@@ -357,6 +357,7 @@
             <div class="footer-col">
                 <p class="footer-col__heading">Explore</p>
                 <nav aria-label="Footer explore" class="footer-col__nav">
+                    <a href="{% url 'about' %}">About</a>
                     <a href="{% url 'home' %}">Home</a>
                     {% if can_view_amuse_bouche_public_area %}
                     <a href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
@@ -372,7 +373,6 @@
             <div class="footer-col">
                 <p class="footer-col__heading">Company</p>
                 <nav aria-label="Footer company" class="footer-col__nav">
-                    <a href="{% url 'about' %}">About</a>
                     <a href="{% url 'messaging:contact' %}">Contact</a>
                     <a href="{% url 'legal:legal_hub' %}">Legal</a>
                     <a href="{% url 'privacy' %}">Privacy Policy</a>
