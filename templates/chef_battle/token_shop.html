@@ -157,7 +157,7 @@
 
 </section>
 
-{% if user.is_authenticated and not age_verified %}
+{% if user.is_authenticated %}
 <div id="ce-token-gate" role="dialog" aria-modal="true" aria-labelledby="ce-token-gate-heading"
      style="position:fixed;inset:0;z-index:99999;display:flex;align-items:flex-start;justify-content:center;
             background:rgba(18,60,45,0.82);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
@@ -169,7 +169,6 @@
               padding:clamp(1.75rem,6vw,3rem) clamp(1.25rem,5vw,2.5rem);
               text-align:center;">
 
-    {# Logo / branding #}
     <p style="font-family:'Playfair Display',Georgia,serif;font-size:clamp(1.6rem,6vw,2.4rem);
                font-weight:700;color:#184c3a;margin:0 0 .15rem;letter-spacing:-.01em;">CulinEire</p>
     <p style="font-size:.72rem;color:#66746d;margin:0 0 2rem;letter-spacing:.1em;text-transform:uppercase;">
@@ -190,19 +189,18 @@
         and reward mechanics linked to Chef Battle competitions.
       </p>
       <p style="margin:0 0 .875rem;">
-        By proceeding, you confirm that you are <strong>at least 18 years of age</strong>
-        where required by applicable laws, and that you understand tokens are a digital item
-        delivered immediately upon purchase with no cash value.
+        <strong>Purchasing tokens and registering as a Chef require you to be at least 18 years of age.</strong>
+        All other CulinEire features &mdash; browsing recipes and articles, Amuse-Bouche,
+        Fridge Raid, community participation and reading content &mdash; are open to all users.
       </p>
-      <p style="margin:0 0 .75rem;">You remain solely responsible for:</p>
-      <ul style="margin:0 0 .875rem;padding-inline-start:1.25rem;display:flex;flex-direction:column;gap:.25rem;">
-        <li>allergens, ingredient labels and food safety</li>
-        <li>dietary restrictions and personal medical conditions</li>
-        <li>compliance with platform rules, Irish law and EU regulations</li>
-      </ul>
+      <p style="margin:0 0 .875rem;">
+        By proceeding to purchase, you confirm you are 18 or older and understand that tokens
+        are a digital item delivered immediately upon purchase with no cash value and
+        cannot be withdrawn, transferred or exchanged for cash.
+      </p>
       <p style="margin:0 0 .875rem;">
         Participation in battles, token rewards, CBR, LSR, artifacts and rankings
-        is subject to moderation, anti-abuse systems and compliance review.
+        is subject to moderation, anti-abuse systems, platform rules, Irish law and EU regulations.
       </p>
       <p style="margin:0;font-size:.8rem;color:#66746d;">
         CulinEire cooperates with payment providers and relevant authorities
@@ -212,28 +210,24 @@
 
     <div style="height:1px;background:#e2d9cc;margin:0 0 1.75rem;"></div>
 
-    <form method="post" action="{% url 'chef_battle:age_verification' %}?next={{ request.path }}">
-      {% csrf_token %}
-      <input type="hidden" name="confirm_age" value="1">
-      <div style="display:flex;flex-direction:column;gap:.75rem;">
-        <button type="submit"
-                style="width:100%;padding:1rem;background:#184c3a;border:2px solid #184c3a;
-                       border-radius:10px;color:#ffffff;
-                       font-family:'Inter',system-ui,sans-serif;
-                       font-size:.95rem;font-weight:600;letter-spacing:.02em;
-                       cursor:pointer;transition:background 180ms,border-color 180ms;">
-          I am 18 or older &mdash; continue to Token Shop
-        </button>
-        <button type="button" id="ce-token-gate-exit"
-                style="width:100%;padding:1rem;background:transparent;
-                       border:2px solid #e2d9cc;border-radius:10px;color:#66746d;
-                       font-family:'Inter',system-ui,sans-serif;
-                       font-size:.9rem;font-weight:500;letter-spacing:.01em;
-                       cursor:pointer;transition:border-color 180ms,color 180ms;">
-          I am under 18 &mdash; leave this page
-        </button>
-      </div>
-    </form>
+    <div style="display:flex;flex-direction:column;gap:.75rem;">
+      <button type="button" id="ce-token-gate-agree"
+              style="width:100%;padding:1rem;background:#184c3a;border:2px solid #184c3a;
+                     border-radius:10px;color:#ffffff;
+                     font-family:'Inter',system-ui,sans-serif;
+                     font-size:.95rem;font-weight:600;letter-spacing:.02em;
+                     cursor:pointer;transition:background 180ms;">
+        I am 18 or older &mdash; continue to Token Shop
+      </button>
+      <button type="button" id="ce-token-gate-exit"
+              style="width:100%;padding:1rem;background:transparent;
+                     border:2px solid #e2d9cc;border-radius:10px;color:#66746d;
+                     font-family:'Inter',system-ui,sans-serif;
+                     font-size:.9rem;font-weight:500;letter-spacing:.01em;
+                     cursor:pointer;transition:border-color 180ms,color 180ms;">
+        I am under 18 &mdash; close this website
+      </button>
+    </div>
 
     <p style="font-size:.72rem;color:#8b7355;line-height:1.6;margin:1.25rem 0 0;">
       By continuing you acknowledge the CulinEire
@@ -250,8 +244,15 @@
     el.style.pointerEvents = 'auto';
     el.style.opacity = '1';
   });
+  document.getElementById('ce-token-gate-agree').addEventListener('click', function () {
+    el.style.opacity = '0';
+    el.style.pointerEvents = 'none';
+    document.body.style.overflow = '';
+    setTimeout(function () { el.style.display = 'none'; }, 260);
+  });
   document.getElementById('ce-token-gate-exit').addEventListener('click', function () {
-    window.location.href = 'https://www.google.com';
+    window.close();
+    setTimeout(function () { window.location.href = 'about:blank'; }, 200);
   });
 }());
 </script>
