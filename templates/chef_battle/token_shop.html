@@ -178,6 +178,7 @@
   }
 
   buyBtns.forEach(function (btn) {
+    var originalHTML = btn.innerHTML;
     btn.addEventListener('click', function () {
       if (consentBox && !consentBox.checked) {
         errorEl.textContent = 'Please confirm the digital content consent above before purchasing.';
@@ -188,8 +189,13 @@
       var packageId = btn.dataset.packageId;
       var url = btn.dataset.checkoutUrl;
       btn.disabled = true;
-      btn.textContent = 'Redirecting...';
+      btn.innerHTML = 'Redirecting&hellip;';
       errorEl.style.display = 'none';
+
+      function restoreBtn() {
+        btn.innerHTML = originalHTML;
+        syncButtons();
+      }
 
       fetch(url, {
         method: 'POST',
@@ -209,18 +215,17 @@
           } else if (data.age_verify_url) {
             errorEl.innerHTML = (data.error || 'Age confirmation required.') + ' <a href="' + data.age_verify_url + '">Confirm your age</a>.';
             errorEl.style.display = 'block';
+            restoreBtn();
           } else {
             errorEl.textContent = data.error || 'Something went wrong. Please try again.';
             errorEl.style.display = 'block';
-            btn.disabled = false;
-            btn.textContent = 'Try again';
+            restoreBtn();
           }
         })
         .catch(function () {
           errorEl.textContent = 'Network error. Please try again.';
           errorEl.style.display = 'block';
-          btn.disabled = false;
-          btn.textContent = 'Try again';
+          restoreBtn();
         });
     });
   });
