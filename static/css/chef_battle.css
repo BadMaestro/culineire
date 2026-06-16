@@ -2212,3 +2212,50 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
 .artifact-grid--compact .artifact-card { font-size: 0.85rem; }
 @media (max-width: 700px) { .changing-room-layout { grid-template-columns: 1fr; } .cr-stat-grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 400px) { .appreciation-gift-grid { grid-template-columns: repeat(2, 1fr); } }
+
+/* Season leaderboard podium */
+.season-podium { display: flex; align-items: flex-end; justify-content: center; gap: 0.75rem; margin-bottom: 2.5rem; padding: 1.5rem 1rem 0; }
+.season-podium__slot { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; flex: 0 0 auto; width: 140px; }
+.season-podium__crown { font-size: 1.6rem; line-height: 1; }
+.season-podium__chef-name { font-size: 0.78rem; font-weight: 700; text-align: center; color: var(--ink); line-height: 1.3; }
+.season-podium__chef-name--1 { font-size: 0.85rem; }
+.season-podium__score { font-size: 0.72rem; color: var(--muted); font-weight: 600; }
+.season-podium__block { width: 100%; border-radius: 8px 8px 0 0; display: flex; align-items: center; justify-content: center; }
+.season-podium__block--1 { height: 90px; background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%); box-shadow: 0 -3px 12px rgba(251,191,36,0.4); }
+.season-podium__block--2 { height: 66px; background: linear-gradient(180deg, #94a3b8 0%, #64748b 100%); }
+.season-podium__block--3 { height: 50px; background: linear-gradient(180deg, #b45309 0%, #92400e 100%); opacity: 0.8; }
+.season-podium__place { font-size: 1.3rem; font-weight: 900; color: rgba(255,255,255,0.9); }
+@media (max-width: 480px) { .season-podium__slot { width: 100px; } .season-podium__block--1 { height: 70px; } .season-podium__block--2 { height: 52px; } .season-podium__block--3 { height: 40px; } }
+
+/* Biathlon ingredient grid (visual upgrade) */
+.biathlon-ingredient-list { list-style: none; padding: 0; margin: 1rem 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.65rem; }
+.biathlon-ingredient { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; padding: 0.85rem 0.6rem 0.75rem; background: var(--surface); border: 2px solid var(--line); border-radius: 10px; text-align: center; position: relative; transition: border-color 0.15s; }
+.biathlon-ingredient__text { font-size: 0.85rem; font-weight: 600; color: var(--ink); word-break: break-word; line-height: 1.3; }
+.biathlon-ingredient__badge { font-size: 0.72rem; font-weight: 700; border-radius: 999px; padding: 0.15rem 0.5rem; white-space: nowrap; }
+.biathlon-ingredient--locked { border-color: #2563eb; background: #eff6ff; }
+.biathlon-ingredient--locked .biathlon-ingredient__text { color: #1e3a8a; }
+.biathlon-ingredient--shot { border-color: #dc2626; background: #fef2f2; }
+.biathlon-ingredient__badge--bounce { background: #dbeafe; color: #1e40af; }
+.biathlon-ingredient__badge--hit    { background: #fee2e2; color: #991b1b; }
+.biathlon-ingredient__btn { font-size: 0.78rem; padding: 0.25rem 0.7rem; }
+.biathlon-done { text-align: center; color: var(--muted); padding: 1rem; background: var(--surface); border-radius: 8px; border: 1px solid var(--line); }
+
+/* Energy explainer block */
+.energy-explainer { margin: 2rem 0 1rem; }
+.energy-explainer__title { font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin: 0 0 0.75rem; }
+.energy-explainer__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.energy-explainer__col { }
+.energy-explainer__col-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 0.5rem; padding-bottom: 0.35rem; border-bottom: 2px solid; }
+.energy-explainer__col--earn .energy-explainer__col-title { color: #15803d; border-color: #86efac; }
+.energy-explainer__col--spend .energy-explainer__col-title { color: #b91c1c; border-color: #fca5a5; }
+.energy-explainer__row { display: flex; justify-content: space-between; align-items: center; padding: 0.35rem 0; border-bottom: 1px solid var(--line); font-size: 0.82rem; gap: 0.5rem; }
+.energy-explainer__row:last-child { border-bottom: none; }
+.energy-explainer__label { color: var(--ink-soft); }
+.energy-explainer__val--earn  { font-weight: 700; color: #15803d; white-space: nowrap; }
+.energy-explainer__val--spend { font-weight: 700; color: #b91c1c; white-space: nowrap; }
+.energy-explainer__cap-note { margin-top: 0.75rem; font-size: 0.78rem; color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 0.5rem 0.75rem; }
+@media (max-width: 480px) { .energy-explainer__grid { grid-template-columns: 1fr; } }
+
+/* Chef profile avatar placeholder */
+.chef-avatar-placeholder { display: flex; align-items: center; justify-content: center; width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 2px solid #bbf7d0; flex-shrink: 0; }
+.chef-avatar-placeholder svg { width: 44px; height: 44px; color: #16a34a; }

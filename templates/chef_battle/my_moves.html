@@ -67,12 +67,24 @@
     </div>
     {% endif %}
 
-    <div class="battle-muted" style="margin-top:1.5rem;font-size:.85rem;">
-      <strong>How to earn moves:</strong>
-      Recipe approved = +3 &nbsp;·&nbsp;
-      Article approved = +2 &nbsp;·&nbsp;
-      Battle participation = +1 &nbsp;·&nbsp;
-      Battle win = +5
+    <div class="energy-explainer">
+      <p class="energy-explainer__title">How Battle Moves Work</p>
+      <div class="energy-explainer__grid">
+        <div class="energy-explainer__col energy-explainer__col--earn">
+          <p class="energy-explainer__col-title">&#x2B06; Earn</p>
+          <div class="energy-explainer__row"><span class="energy-explainer__label">Recipe approved</span><span class="energy-explainer__val--earn">+5</span></div>
+          <div class="energy-explainer__row"><span class="energy-explainer__label">Article approved</span><span class="energy-explainer__val--earn">+3</span></div>
+          <div class="energy-explainer__row"><span class="energy-explainer__label">Battle participation</span><span class="energy-explainer__val--earn">+1</span></div>
+          <div class="energy-explainer__row"><span class="energy-explainer__label">Battle win</span><span class="energy-explainer__val--earn">+10</span></div>
+          <div class="energy-explainer__row"><span class="energy-explainer__label">Like received</span><span class="energy-explainer__val--earn">+1</span></div>
+        </div>
+        <div class="energy-explainer__col energy-explainer__col--spend">
+          <p class="energy-explainer__col-title">&#x2B07; Spend</p>
+          <div class="energy-explainer__row"><span class="energy-explainer__label">Issue challenge</span><span class="energy-explainer__val--spend">10 min.</span></div>
+          <div class="energy-explainer__row"><span class="energy-explainer__label">Combat round (artifact)</span><span class="energy-explainer__val--spend">1-3</span></div>
+        </div>
+      </div>
+      <p class="energy-explainer__cap-note">Balance cap: 100 moves maximum. CulinEire Hero: unlimited &#x221E;. Likes: max 3 from the same author per 24 h.</p>
     </div>
   </div>
 </section>

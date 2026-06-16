@@ -8,8 +8,23 @@
 <section class="battle-room-hero">
   <div class="container">
     <p class="battle-kicker">Chef Battle Arena</p>
-    <h1>{{ author.name }}{% executive_badge author %}</h1>
-    <p class="battle-room-hero__sub">{{ profile.get_rank_display }}{% if profile.has_crown %} &middot; &#x1F451; Crown Holder{% endif %}{% if profile.prestige_title %} &middot; <span class="badge-prestige">{{ profile.get_prestige_title_display }}</span>{% endif %}{% if profile.is_founding_chef %} &middot; <span class="badge-founding">&#x2B50; Founding Chef</span>{% endif %}</p>
+    <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+      {% if author.profile_image %}
+      <img src="{{ author.profile_image.url }}" alt="{{ author.name }}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,0.25);flex-shrink:0;">
+      {% else %}
+      <div class="chef-avatar-placeholder" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2C9.5 2 8 4 8 6c0 1.5.7 2.8 1.7 3.6C7.1 10.5 6 12.6 6 15h12c0-2.4-1.1-4.5-3.7-5.4C15.3 8.8 16 7.5 16 6c0-2-1.5-4-4-4z"/>
+          <rect x="8" y="15" width="8" height="2" rx="1"/>
+          <rect x="7" y="17" width="10" height="3" rx="1"/>
+        </svg>
+      </div>
+      {% endif %}
+      <div>
+        <h1 style="margin:0;">{{ author.name }}{% executive_badge author %}</h1>
+        <p class="battle-room-hero__sub" style="margin:0.25rem 0 0;">{{ profile.get_rank_display }}{% if profile.has_crown %} &middot; &#x1F451; Crown Holder{% endif %}{% if profile.prestige_title %} &middot; <span class="badge-prestige">{{ profile.get_prestige_title_display }}</span>{% endif %}{% if profile.is_founding_chef %} &middot; <span class="badge-founding">&#x2B50; Founding Chef</span>{% endif %}</p>
+      </div>
+    </div>
   </div>
 </section>
 

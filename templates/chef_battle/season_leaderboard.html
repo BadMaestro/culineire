@@ -27,6 +27,53 @@
     Rankings reset at the start of each new season.
   </div>
 
+  {# ── Podium graphic ── #}
+  {% if profiles %}
+  <div class="season-podium" aria-label="Top 3 season standings">
+    {% with profiles|slice:":3" as top3 %}
+
+    {# 2nd place — left #}
+    {% if top3|length >= 2 %}
+    {% with top3.1 as p %}
+    <div class="season-podium__slot season-podium__slot--2">
+      <div class="season-podium__chef-name">&#x1F948; {{ p.author.name|truncatechars:18 }}</div>
+      <div class="season-podium__score">{{ p.seasonal_score }} pts</div>
+      <div class="season-podium__block season-podium__block--2">
+        <span class="season-podium__place">2</span>
+      </div>
+    </div>
+    {% endwith %}
+    {% endif %}
+
+    {# 1st place — centre #}
+    {% with top3.0 as p %}
+    <div class="season-podium__slot season-podium__slot--1">
+      <div class="season-podium__crown">&#x1F947;</div>
+      <div class="season-podium__chef-name season-podium__chef-name--1">{{ p.author.name|truncatechars:18 }}</div>
+      <div class="season-podium__score">{{ p.seasonal_score }} pts</div>
+      <div class="season-podium__block season-podium__block--1">
+        <span class="season-podium__place">1</span>
+      </div>
+    </div>
+    {% endwith %}
+
+    {# 3rd place — right #}
+    {% if top3|length >= 3 %}
+    {% with top3.2 as p %}
+    <div class="season-podium__slot season-podium__slot--3">
+      <div class="season-podium__chef-name">&#x1F949; {{ p.author.name|truncatechars:18 }}</div>
+      <div class="season-podium__score">{{ p.seasonal_score }} pts</div>
+      <div class="season-podium__block season-podium__block--3">
+        <span class="season-podium__place">3</span>
+      </div>
+    </div>
+    {% endwith %}
+    {% endif %}
+
+    {% endwith %}
+  </div>
+  {% endif %}
+
   {% if profiles %}
   <div class="battle-table">
     <div class="battle-table__head">
