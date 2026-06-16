@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% load static author_tags %}
+
+{% block title %}Changing Room | Chef Battle | CulinEire{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616b" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero">
+  <div class="container">
+    <p class="battle-kicker">Chef Battle Arena</p>
+    <h1>&#x1F45A; Changing Room</h1>
+    <p class="battle-room-hero__sub">Prepare before entering the arena. Review your stats, loadout and active battles.</p>
+    <div class="battle-actions">
+      <a class="btn-primary" href="{% url 'chef_battle:challenge_create' %}">Issue Challenge</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:battle_chest' %}">Battle Chest</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:home' %}">Arena</a>
+    </div>
+  </div>
+</section>
+
+<section class="page-section">
+  <div class="container battle-page">
+
+    <div class="changing-room-layout">
+
+      {# ── Stats Panel ── #}
+      <div class="changing-room-stats">
+        <h2 class="chest-section__title">Chef Status</h2>
+
+        <div class="cr-stat-grid">
+          <div class="cr-stat">
+            <span class="cr-stat__label">Rank</span>
+            <span class="cr-stat__value">
+              {% if profile.prestige_title %}{{ profile.get_prestige_title_display }}{% else %}{{ profile.get_rank_display }}{% endif %}
+              {% if profile.is_hero %} &#x1F451;{% endif %}
+            </span>
+          </div>
+          <div class="cr-stat">
+            <span class="cr-stat__label">Rating</span>
+            <span class="cr-stat__value">{{ profile.rating }}</span>
+          </div>
+          <div class="cr-stat">
+            <span class="cr-stat__label">Level</span>
+            <span class="cr-stat__value">{{ profile.level }}{% if profile.is_hero %} / Hero{% else %} / 5{% endif %}</span>
+          </div>
+          <div class="cr-stat">
+            <span class="cr-stat__label">Win Streak</span>
+            <span class="cr-stat__value">{{ profile.win_streak }}</span>
+          </div>
+          <div class="cr-stat">
+            <span class="cr-stat__label">Wins / Losses</span>
+            <span class="cr-stat__value">{{ profile.wins }}-{{ profile.losses }}</span>
+          </div>
+          <div class="cr-stat">
+            <span class="cr-stat__label">Battle Moves</span>
+            <span class="cr-stat__value">
+              {% if profile.infinite_moves %}&#x221E;{% else %}{{ profile.battle_moves }} / {{ energy_cap }}{% endif %}
+            </span>
+          </div>
+          {% if wallet %}
+          <div class="cr-stat">
+            <span class="cr-stat__label">Tokens</span>
+            <span class="cr-stat__value">{{ wallet.balance }}T</span>
+          </div>
+          {% endif %}
+          {% if profile.has_crown %}
+          <div class="cr-stat cr-stat--crown">
+            <span class="cr-stat__label">Crown</span>
+            <span class="cr-stat__value">&#x1F451; Active until {{ profile.crown_until|date:"j M H:i" }}</span>
+          </div>
+          {% endif %}
+        </div>
+
+        {% if not profile.infinite_moves and profile.battle_moves < moves_min_to_challenge %}
+        <div class="battle-info-box" style="margin-top:1rem;border-left-color:#d97706;">
+          <p style="font-size:0.82rem;margin:0;color:var(--ink-soft);">
+            You need at least <strong>{{ moves_min_to_challenge }} moves</strong> to issue a challenge.
+            You have <strong>{{ profile.battle_moves }}</strong>. Publish approved recipes or articles to earn more.
+          </p>
+        </div>
+        {% endif %}
+
+        <div style="margin-top:1.25rem;display:flex;flex-wrap:wrap;gap:0.5rem;">
+          <a class="btn-secondary" href="{% url 'chef_battle:my_moves' %}">Move History</a>
+          <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
+          {% if profile.author.slug %}
+          <a class="btn-secondary" href="{% url 'chef_battle:chef_profile' slug=profile.author.slug %}">My Profile</a>
+          {% endif %}
+        </div>
+      </div>
+
+      {# ── Loadout ── #}
+      <div class="changing-room-loadout">
+        <h2 class="chest-section__title">Active Loadout</h2>
+
+        {% if available_artifacts %}
+        <p style="font-size:0.85rem;color:var(--muted);margin:0 0 1rem;">
+          {{ available_artifacts|length }} artifact{{ available_artifacts|length|pluralize }} ready for battle.
+        </p>
+        <div class="artifact-grid artifact-grid--compact">
+          {% for ca in available_artifacts %}
+          <article class="artifact-card artifact-card--{{ ca.artifact.rarity }}">
+            <div class="artifact-card__image-wrap">
+              {% if ca.artifact.image %}
+              <img src="{{ ca.artifact.image.url }}" alt="{{ ca.artifact.name }}" class="artifact-card__image" loading="lazy">
+              {% else %}
+              <div class="artifact-card__placeholder">{{ ca.artifact.effect_type|slice:":1"|upper }}</div>
+              {% endif %}
+            </div>
+            <div class="artifact-card__body">
+              <p class="artifact-card__rarity">{{ ca.artifact.get_rarity_display }}</p>
+              <h3 class="artifact-card__name">{{ ca.artifact.name }}</h3>
+              <p class="artifact-card__effect"><span class="artifact-card__effect-label">Effect:</span> {{ ca.artifact.effect }}</p>
+              <span class="artifact-card__cost">{{ ca.artifact.token_cost }}T</span>
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+          <p>No artifacts in your chest. Win battles or receive gifts to build your loadout.</p>
+          <a class="btn-secondary" style="margin-top:0.75rem;display:inline-block;" href="{% url 'chef_battle:artifact_gallery' %}">Browse Artifacts</a>
+        </div>
+        {% endif %}
+      </div>
+
+    </div>{# /changing-room-layout #}
+
+    {# ── Active Battles ── #}
+    {% if my_active_battles %}
+    <div style="margin-top:2.5rem;">
+      <h2 class="chest-section__title">Your Active Battles</h2>
+      <div class="battle-list" style="margin-top:0.75rem;">
+        {% for battle in my_active_battles %}
+        <a class="battle-list__item" href="{{ battle.get_absolute_url }}">
+          <span>{{ battle.theme }}</span>
+          <span style="font-size:0.8rem;color:var(--muted);">vs {% if battle.challenger == profile.author %}{{ battle.opponent.name }}{% else %}{{ battle.challenger.name }}{% endif %}</span>
+          <strong style="font-size:0.82rem;">{{ battle.get_status_display }}</strong>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}

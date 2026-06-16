@@ -2180,3 +2180,35 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
 .rank-tier--master  { background: linear-gradient(135deg, #fef9c3 0%, #fef3c7 100%); border-color: #fbbf24; box-shadow: 0 0 0 1px #fbbf2440; }
 .rank-tier--master .rank-tier__pts  { background: #fbbf24; color: #451a03; }
 @media (max-width: 600px) { .rank-ladder__tiers { grid-template-columns: repeat(2, 1fr); } }
+
+/* Appreciation gift gallery */
+.appreciation-gift-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; }
+.appreciation-gift-card { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; padding: 1.25rem 1rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); text-align: center; }
+.appreciation-gift-card__emoji { font-size: 2.4rem; line-height: 1; }
+.appreciation-gift-card__name { font-size: 0.9rem; font-weight: 700; color: var(--ink); margin: 0; }
+.appreciation-gift-card__cost { font-size: 0.82rem; font-weight: 700; background: var(--brand); color: #fff; border-radius: 999px; padding: 0.15rem 0.65rem; }
+.appreciation-gift-card__note { font-size: 0.75rem; color: var(--muted); margin: 0; }
+.battle-info-box { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--brand); border-radius: var(--radius-sm); padding: 1rem 1.1rem; }
+
+/* Battle chest */
+.chest-section { margin-bottom: 2.5rem; }
+.chest-section__title { font-size: 0.95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin: 0 0 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.chest-status-dot { display: inline-block; width: 0.55rem; height: 0.55rem; border-radius: 50%; flex-shrink: 0; }
+.chest-status-dot--available { background: #22c55e; }
+.chest-status-dot--reserved  { background: #f59e0b; }
+.chest-status-dot--consumed  { background: #94a3b8; }
+.artifact-card--reserved { opacity: 0.75; border-style: dashed; }
+.artifact-card--consumed { opacity: 0.45; }
+.battle-wallet-strip { display: flex; align-items: center; gap: 0.75rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 0.6rem 1rem; margin-bottom: 1.5rem; font-size: 0.9rem; color: var(--ink-soft); }
+.battle-wallet-strip strong { font-size: 1rem; color: var(--ink); }
+
+/* Changing room */
+.changing-room-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+.cr-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+.cr-stat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 0.6rem 0.8rem; }
+.cr-stat--crown { grid-column: span 2; }
+.cr-stat__label { display: block; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 0.15rem; }
+.cr-stat__value { font-size: 0.95rem; font-weight: 700; color: var(--ink); }
+.artifact-grid--compact .artifact-card { font-size: 0.85rem; }
+@media (max-width: 700px) { .changing-room-layout { grid-template-columns: 1fr; } .cr-stat-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 400px) { .appreciation-gift-grid { grid-template-columns: repeat(2, 1fr); } }

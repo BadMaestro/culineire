@@ -44,4 +44,7 @@ urlpatterns = [
     path("report/", views.content_report_submit, name="content_report_submit"),
     path("artifacts/", views.artifact_gallery, name="artifact_gallery"),
     path("artifacts/<int:pk>/generate/", views.artifact_generate_image, name="artifact_generate_image"),
+    path("gifts/", views.appreciation_gallery, name="appreciation_gallery"),
+    path("chest/", views.battle_chest, name="battle_chest"),
+    path("changing-room/", views.changing_room, name="changing_room"),
 ]

@@ -1577,3 +1577,107 @@ def artifact_gallery(request):
         "total": artifacts.count(),
         "can_generate": can_generate,
     })
+
+
+def appreciation_gallery(request):
+    """Public gallery of all appreciation gift types with cost and description."""
+    from .models import (
+        AppreciationGiftType,
+        APPRECIATION_GIFT_COST,
+        APPRECIATION_GIFT_EMOJI,
+    )
+
+    gifts = [
+        {
+            "key": gt.value,
+            "label": gt.label,
+            "emoji": APPRECIATION_GIFT_EMOJI.get(gt, "🎁"),
+            "cost": APPRECIATION_GIFT_COST.get(gt, 0),
+        }
+        for gt in AppreciationGiftType
+    ]
+
+    return render(request, "chef_battle/appreciation_gallery.html", {
+        "gifts": gifts,
+    })
+
+
+@login_required
+def battle_chest(request):
+    """Chef's personal artifact inventory (backpack / chest)."""
+    from .models import ChefArtifact
+
+    author = get_author_for_user(request.user)
+    if not author:
+        messages.error(request, "You need an author profile to access your Battle Chest.")
+        return redirect("chef_battle:home")
+
+    all_owned = (
+        ChefArtifact.objects.filter(chef=author)
+        .select_related("artifact")
+        .order_by("-acquired_at")
+    )
+
+    available = [c for c in all_owned if c.status == "available"]
+    reserved  = [c for c in all_owned if c.status == "reserved"]
+    consumed  = [c for c in all_owned if c.status in ("consumed", "expired", "reversed")]
+
+    wallet = None
+    try:
+        wallet = TokenWallet.objects.get(chef=author)
+    except TokenWallet.DoesNotExist:
+        pass
+
+    return render(request, "chef_battle/battle_chest.html", {
+        "available": available,
+        "reserved": reserved,
+        "consumed": consumed,
+        "total": all_owned.count(),
+        "wallet": wallet,
+    })
+
+
+@login_required
+def changing_room(request):
+    """
+    Pre-battle preparation area: chef sees their stats, available artifacts,
+    active battles, and can navigate to relevant actions.
+    """
+    from .models import ChefArtifact
+
+    author = get_author_for_user(request.user)
+    if not author:
+        messages.error(request, "You need an author profile to access the Changing Room.")
+        return redirect("chef_battle:home")
+
+    profile, _ = ChefBattleProfile.objects.get_or_create(author=author)
+
+    available_artifacts = (
+        ChefArtifact.objects.filter(chef=author, status="available")
+        .select_related("artifact")
+        .order_by("artifact__rarity", "artifact__name")
+    )
+
+    from django.db import models as db_models
+    my_active_battles = Battle.objects.filter(
+        status__in=["active", "awaiting_submissions", "cooking", "biathlon", "menu_locked"],
+    ).filter(
+        db_models.Q(challenger=author) | db_models.Q(opponent=author)
+    ).select_related("challenger", "opponent").order_by("-created_at")[:5]
+
+    wallet = None
+    try:
+        wallet = TokenWallet.objects.get(chef=author)
+    except TokenWallet.DoesNotExist:
+        pass
+
+    from chef_battle.energy_service import ENERGY_CAP
+
+    return render(request, "chef_battle/changing_room.html", {
+        "profile": profile,
+        "available_artifacts": available_artifacts,
+        "my_active_battles": my_active_battles,
+        "wallet": wallet,
+        "energy_cap": ENERGY_CAP,
+        "moves_min_to_challenge": MOVES_MIN_TO_CHALLENGE,
+    })

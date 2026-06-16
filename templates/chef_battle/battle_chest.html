@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Battle Chest | Chef Battle | CulinEire{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616b" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero">
+  <div class="container">
+    <p class="battle-kicker">Chef Battle Arena</p>
+    <h1>&#x1F4BC; Battle Chest</h1>
+    <p class="battle-room-hero__sub">Your personal artifact inventory. {{ total }} item{{ total|pluralize }} owned.</p>
+    <div class="battle-actions">
+      <a class="btn-primary" href="{% url 'chef_battle:artifact_gallery' %}">Browse Artifacts</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:changing_room' %}">Changing Room</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:token_shop' %}">Get Tokens</a>
+    </div>
+  </div>
+</section>
+
+<section class="page-section">
+  <div class="container battle-page">
+
+    {% if wallet %}
+    <div class="battle-wallet-strip">
+      <span>Token balance:</span>
+      <strong>{{ wallet.balance }}T</strong>
+    </div>
+    {% endif %}
+
+    <div class="chest-section">
+      <h2 class="chest-section__title">
+        <span class="chest-status-dot chest-status-dot--available"></span>
+        Available ({{ available|length }})
+      </h2>
+      {% if available %}
+      <div class="artifact-grid">
+        {% for ca in available %}
+        <article class="artifact-card artifact-card--{{ ca.artifact.rarity }}">
+          <div class="artifact-card__image-wrap">
+            {% if ca.artifact.image %}
+            <img src="{{ ca.artifact.image.url }}" alt="{{ ca.artifact.name }}" class="artifact-card__image" loading="lazy">
+            {% else %}
+            <div class="artifact-card__placeholder">{{ ca.artifact.effect_type|slice:":1"|upper }}</div>
+            {% endif %}
+          </div>
+          <div class="artifact-card__body">
+            <p class="artifact-card__rarity">{{ ca.artifact.get_rarity_display }}</p>
+            <h3 class="artifact-card__name">{{ ca.artifact.name }}</h3>
+            <p class="artifact-card__desc">{{ ca.artifact.description }}</p>
+            <p class="artifact-card__effect"><span class="artifact-card__effect-label">Effect:</span> {{ ca.artifact.effect }}</p>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state"><p>No artifacts available. Visit the <a href="{% url 'chef_battle:artifact_gallery' %}">artifact gallery</a> to see what you can earn.</p></div>
+      {% endif %}
+    </div>
+
+    {% if reserved %}
+    <div class="chest-section">
+      <h2 class="chest-section__title">
+        <span class="chest-status-dot chest-status-dot--reserved"></span>
+        Reserved in Battle ({{ reserved|length }})
+      </h2>
+      <div class="artifact-grid">
+        {% for ca in reserved %}
+        <article class="artifact-card artifact-card--{{ ca.artifact.rarity }} artifact-card--reserved">
+          <div class="artifact-card__image-wrap">
+            {% if ca.artifact.image %}
+            <img src="{{ ca.artifact.image.url }}" alt="{{ ca.artifact.name }}" class="artifact-card__image" loading="lazy">
+            {% else %}
+            <div class="artifact-card__placeholder">{{ ca.artifact.effect_type|slice:":1"|upper }}</div>
+            {% endif %}
+          </div>
+          <div class="artifact-card__body">
+            <p class="artifact-card__rarity">{{ ca.artifact.get_rarity_display }}</p>
+            <h3 class="artifact-card__name">{{ ca.artifact.name }}</h3>
+            <p class="artifact-card__desc">{{ ca.artifact.description }}</p>
+            <p style="font-size:0.78rem;color:var(--muted);margin:0.3rem 0 0;">Reserved for active battle</p>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if consumed %}
+    <div class="chest-section">
+      <h2 class="chest-section__title">
+        <span class="chest-status-dot chest-status-dot--consumed"></span>
+        Used / Expired ({{ consumed|length }})
+      </h2>
+      <div class="artifact-grid">
+        {% for ca in consumed %}
+        <article class="artifact-card artifact-card--{{ ca.artifact.rarity }} artifact-card--consumed">
+          <div class="artifact-card__image-wrap">
+            {% if ca.artifact.image %}
+            <img src="{{ ca.artifact.image.url }}" alt="{{ ca.artifact.name }}" class="artifact-card__image" loading="lazy" style="opacity:0.45;">
+            {% else %}
+            <div class="artifact-card__placeholder" style="opacity:0.45;">{{ ca.artifact.effect_type|slice:":1"|upper }}</div>
+            {% endif %}
+          </div>
+          <div class="artifact-card__body">
+            <p class="artifact-card__rarity">{{ ca.artifact.get_rarity_display }}</p>
+            <h3 class="artifact-card__name" style="opacity:0.6;">{{ ca.artifact.name }}</h3>
+            <p style="font-size:0.78rem;color:var(--muted);margin:0;">{{ ca.get_status_display }}</p>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if not total %}
+    <div class="empty-state" style="margin-top:3rem;">
+      <p>Your chest is empty. Win battles or receive gifts to earn combat artifacts.</p>
+      <div style="margin-top:1rem;">
+        <a class="btn-primary" href="{% url 'chef_battle:artifact_gallery' %}">View All Artifacts</a>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}
