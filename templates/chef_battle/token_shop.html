@@ -182,29 +182,42 @@
       Important Notice &mdash; Please Read Before Continuing
     </h2>
 
-    <div style="font-family:'Inter',system-ui,sans-serif;font-size:.9rem;line-height:1.75;
+    <div style="font-family:'Inter',system-ui,sans-serif;font-size:.875rem;line-height:1.75;
                 color:#42514a;text-align:left;margin:0 0 1.5rem;">
-      <p style="margin:0 0 .875rem;">
-        The Token Shop contains paid platform features including Arena Tokens, combat artifacts
-        and reward mechanics linked to Chef Battle competitions.
+
+      <p style="margin:0 0 1rem;font-weight:600;color:#1f2c25;">Age &amp; Eligibility</p>
+
+      <p style="margin:0 0 .75rem;">
+        You must be <strong>18 years of age or older</strong> to purchase Arena Tokens,
+        send gifts or register as a Chef on CulinEire.
       </p>
-      <p style="margin:0 0 .875rem;">
-        <strong>Purchasing tokens and registering as a Chef require you to be at least 18 years of age.</strong>
-        All other CulinEire features &mdash; browsing recipes and articles, Amuse-Bouche,
-        Fridge Raid, community participation and reading content &mdash; are open to all users.
+      <p style="margin:0 0 .75rem;">
+        All other platform features &mdash; recipes, articles, Amuse-Bouche, Fridge Raid,
+        community participation and content browsing &mdash; are open to all users.
       </p>
-      <p style="margin:0 0 .875rem;">
-        By proceeding to purchase, you confirm you are 18 or older and understand that tokens
-        are a digital item delivered immediately upon purchase with no cash value and
-        cannot be withdrawn, transferred or exchanged for cash.
-      </p>
-      <p style="margin:0 0 .875rem;">
-        Participation in battles, token rewards, CBR, LSR, artifacts and rankings
+
+      <div style="height:1px;background:#e2d9cc;margin:.875rem 0;"></div>
+
+      <p style="margin:0 0 .75rem;font-weight:600;color:#1f2c25;">Arena Tokens</p>
+      <ul style="margin:0 0 .75rem;padding-inline-start:1.25rem;display:flex;flex-direction:column;gap:.3rem;">
+        <li>Tokens are credited to your wallet instantly after Stripe confirms payment.</li>
+        <li><strong>Tokens have no cash value.</strong> They cannot be withdrawn, transferred, sold or exchanged for cash.</li>
+        <li>Tokens are non-refundable once credited, except where required by law.</li>
+        <li>All token transactions are recorded in an immutable audit ledger.</li>
+      </ul>
+
+      <div style="height:1px;background:#e2d9cc;margin:.875rem 0;"></div>
+
+      <p style="margin:0 0 .75rem;font-weight:600;color:#1f2c25;">Platform Rules &amp; Compliance</p>
+      <p style="margin:0 0 .75rem;">
+        Participation in Chef Battle, token rewards, CBR, LSR, artifacts, rankings and prize eligibility
         is subject to moderation, anti-abuse systems, platform rules, Irish law and EU regulations.
       </p>
       <p style="margin:0;font-size:.8rem;color:#66746d;">
-        CulinEire cooperates with payment providers and relevant authorities
-        in cases of fraud, abuse or illegal activity.
+        CulinEire cooperates with payment providers and relevant authorities in cases of fraud, abuse or illegal activity.
+        Full terms: <a href="{% url 'legal:purchases_and_vat' %}" target="_blank" rel="noopener" style="color:#184c3a;">Purchases &amp; VAT</a>
+        &middot; <a href="{% url 'legal:terms' %}" target="_blank" rel="noopener" style="color:#184c3a;">Terms of Service</a>
+        &middot; <a href="{% url 'chef_battle:rules' %}" target="_blank" rel="noopener" style="color:#184c3a;">Chef Battle Rules</a>
       </p>
     </div>
 
@@ -217,23 +230,17 @@
                      font-family:'Inter',system-ui,sans-serif;
                      font-size:.95rem;font-weight:600;letter-spacing:.02em;
                      cursor:pointer;transition:background 180ms;">
-        I am 18 or older &mdash; continue to Token Shop
+        I am 18 or older &mdash; enter the Token Shop
       </button>
-      <button type="button" id="ce-token-gate-exit"
-              style="width:100%;padding:1rem;background:transparent;
-                     border:2px solid #e2d9cc;border-radius:10px;color:#66746d;
-                     font-family:'Inter',system-ui,sans-serif;
-                     font-size:.9rem;font-weight:500;letter-spacing:.01em;
-                     cursor:pointer;transition:border-color 180ms,color 180ms;">
-        I am under 18 &mdash; close this website
-      </button>
+      <a href="{% url 'chef_battle:home' %}"
+         style="display:block;text-align:center;width:100%;padding:1rem;background:transparent;
+                box-sizing:border-box;
+                border:2px solid #e2d9cc;border-radius:10px;color:#66746d;
+                font-family:'Inter',system-ui,sans-serif;
+                font-size:.9rem;font-weight:500;letter-spacing:.01em;text-decoration:none;">
+        I am under 18 &mdash; return to the Arena
+      </a>
     </div>
-
-    <p style="font-size:.72rem;color:#8b7355;line-height:1.6;margin:1.25rem 0 0;">
-      By continuing you acknowledge the CulinEire
-      <a href="{% url 'legal:purchases_and_vat' %}" style="color:#184c3a;">Terms of Service</a>,
-      Privacy Policy, Chef Battle Rules and Reward Rules.
-    </p>
   </div>
 </div>
 <script nonce="{{ request.csp_nonce }}">
@@ -249,10 +256,6 @@
     el.style.pointerEvents = 'none';
     document.body.style.overflow = '';
     setTimeout(function () { el.style.display = 'none'; }, 260);
-  });
-  document.getElementById('ce-token-gate-exit').addEventListener('click', function () {
-    window.close();
-    setTimeout(function () { window.location.href = 'about:blank'; }, 200);
   });
 }());
 </script>
