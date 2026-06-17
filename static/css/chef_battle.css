@@ -64,6 +64,12 @@
   white-space: nowrap;
 }
 
+@media (max-width: 768px) {
+  .battle-hero .battle-hero__headline {
+    white-space: normal;
+  }
+}
+
 .battle-hero p,
 .battle-room-hero p {
   max-width: 62ch;

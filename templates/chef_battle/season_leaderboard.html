@@ -4,7 +4,7 @@
 {% block title %}Season Leaderboard | Chef Battle | CulinEire{% endblock %}
 {% block meta_description %}Chef Battle seasonal leaderboard. Top chefs ranked by season score earned through victories, crowns and milestones.{% endblock %}
 
-{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260618-hero-menu" rel="stylesheet">{% endblock %}
 
 {% block content %}
 <section class="battle-room-hero battle-room-hero--has-panel">
@@ -13,10 +13,19 @@
       <p class="battle-kicker">Chef Battle Arena</p>
       <h1>Season Leaderboard</h1>
       <p class="battle-room-hero__sub">{{ season_name|safe }} &middot; Resets each season</p>
-      <div class="battle-actions">
-        <a class="btn-primary" href="{% url 'chef_battle:home' %}">Enter Arena</a>
-        <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">All-Time Rankings</a>
-        <a class="btn-secondary" href="{% url 'chef_battle:hall_of_fame' %}">Hall of Fame</a>
+      <div class="battle-actions hero__actions">
+        <button aria-expanded="false" aria-label="Show navigation" class="hero__burger" type="button">
+          <svg aria-hidden="true" fill="none" height="18" viewBox="0 0 20 18" width="20">
+            <rect fill="currentColor" height="2" rx="1" width="20" y="0"/>
+            <rect fill="currentColor" height="2" rx="1" width="20" y="8"/>
+            <rect fill="currentColor" height="2" rx="1" width="20" y="16"/>
+          </svg>
+        </button>
+        <div class="hero__actions-list">
+          <a class="btn-primary" href="{% url 'chef_battle:home' %}">Enter Arena</a>
+          <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">All-Time Rankings</a>
+          <a class="btn-secondary" href="{% url 'chef_battle:hall_of_fame' %}">Hall of Fame</a>
+        </div>
       </div>
     </div>
     {% include '_hero_battle_panel.html' %}

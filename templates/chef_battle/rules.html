@@ -1,6 +1,6 @@
 ﻿{% extends "base.html" %}
 {% load static %}
-{% block extra_head %}<link rel="stylesheet" href="{% static 'css/chef_battle.css' %}?v=20260616d">{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/chef_battle.css' %}?v=20260618-hero-menu">{% endblock %}
 {% block og_image %}{{ SITE_URL }}{% static 'images/hero-battle.png' %}{% endblock %}
 {% block og_image_secure_url %}{{ SITE_URL }}{% static 'images/hero-battle.png' %}{% endblock %}
 {% block twitter_image %}{{ SITE_URL }}{% static 'images/hero-battle.png' %}{% endblock %}
@@ -20,10 +20,19 @@
       <h1 class="hero-title">Rules &amp; Guide</h1>
       <p class="hero-subtitle">Everything about the Chef Battle Arena: how battles work, tokens, artifacts, rankings and legal information.</p>
       <div class="hero__actions">
-        <a class="btn-primary" href="{% url 'chef_battle:home' %}">Enter Arena</a>
-        <a class="btn-secondary" href="{% url 'chef_battle:token_shop' %}">Token Shop</a>
-        <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
-        <a class="btn-secondary" href="{% url 'legal:purchases_and_vat' %}">Purchases &amp; VAT</a>
+        <button aria-expanded="false" aria-label="Show navigation" class="hero__burger" type="button">
+          <svg aria-hidden="true" fill="none" height="18" viewBox="0 0 20 18" width="20">
+            <rect fill="currentColor" height="2" rx="1" width="20" y="0"/>
+            <rect fill="currentColor" height="2" rx="1" width="20" y="8"/>
+            <rect fill="currentColor" height="2" rx="1" width="20" y="16"/>
+          </svg>
+        </button>
+        <div class="hero__actions-list">
+          <a class="btn-primary" href="{% url 'chef_battle:home' %}">Enter Arena</a>
+          <a class="btn-secondary" href="{% url 'chef_battle:token_shop' %}">Token Shop</a>
+          <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
+          <a class="btn-secondary" href="{% url 'legal:purchases_and_vat' %}">Purchases &amp; VAT</a>
+        </div>
       </div>
     </div>
     {% include '_hero_battle_panel.html' %}
