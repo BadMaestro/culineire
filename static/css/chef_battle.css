@@ -2,9 +2,13 @@
 .battle-room-hero {
   background:
     linear-gradient(135deg, rgb(11 24 18 / 0.72), rgb(11 24 18 / 0.52)),
-    url("../images/hero-battle.png") center/cover;
+    url("../images/hero-battle.png") center 70% / cover;
   color: #fff8ee;
-  padding-block: clamp(2.2rem, 7vw, 5.4rem);
+  min-height: var(--site-hero-h, clamp(300px, 42vw, 460px));
+  display: flex;
+  align-items: center;
+  padding-block: clamp(1.35rem, 3.8vw, 2.5rem);
+  box-sizing: border-box;
 }
 
 .battle-hero__inner,
@@ -13,14 +17,15 @@
   justify-items: center;
   text-align: center;
   gap: 0.9rem;
+  width: 100%;
 }
 
-/* Panel alongside battle heroes */
+/* Panel alongside battle heroes — widget always sits right of the text */
 .battle-hero--has-panel .battle-hero__inner,
 .battle-room-hero--has-panel .container {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   text-align: left;
   gap: 2rem;
 }
@@ -36,7 +41,13 @@
   justify-content: flex-start;
   text-align: left;
 }
-@media (max-width: 768px) {
+/* Pills inside battle heroes always centre, even in the two-column layout */
+.battle-hero .pill,
+.battle-room-hero .pill {
+  align-self: center;
+  margin-inline: auto;
+}
+@media (max-width: 640px) {
   .battle-hero--has-panel .battle-hero__inner,
   .battle-room-hero--has-panel .container {
     flex-direction: column;
@@ -62,6 +73,11 @@
 .battle-hero .battle-hero__headline {
   max-width: none;
   white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .battle-hero .battle-hero__headline {
+    white-space: normal;
+  }
 }
 
 .battle-hero p,
@@ -1322,8 +1338,8 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
 .hero-battle-panel__cta:hover { background: #fde09e; }
 .hero-battle-panel__cta:active { transform: scale(0.96); }
 
-/* Responsive */
-@media (max-width: 900px) {
+/* Responsive — widget stays to the right of the text column until mobile */
+@media (max-width: 640px) {
   .hero--has-battle .hero__inner {
     flex-direction: column;
     align-items: stretch;

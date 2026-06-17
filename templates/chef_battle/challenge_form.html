@@ -11,11 +11,20 @@
       <p class="battle-kicker">Chef Battle Arena</p>
       <h1>Issue a Challenge</h1>
       <p>Choose the opponent, define the brief, and send a clear challenge that can move straight into the arena.</p>
-      <div class="battle-actions">
-        <a class="btn-secondary" href="{% url 'chef_battle:home' %}">Arena Home</a>
-        <a class="btn-secondary" href="{% url 'chef_battle:challenge_list' %}">My Challenges</a>
-        <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
-        <a class="btn-secondary" href="{% url 'chef_battle:rules' %}">Rules</a>
+      <div class="battle-actions hero__actions">
+        <button aria-expanded="false" aria-label="Show navigation" class="hero__burger" type="button">
+          <svg aria-hidden="true" fill="none" height="18" viewBox="0 0 20 18" width="20">
+            <rect fill="currentColor" height="2" rx="1" width="20" y="0"/>
+            <rect fill="currentColor" height="2" rx="1" width="20" y="8"/>
+            <rect fill="currentColor" height="2" rx="1" width="20" y="16"/>
+          </svg>
+        </button>
+        <div class="hero__actions-list">
+          <a class="btn-secondary" href="{% url 'chef_battle:home' %}">Arena Home</a>
+          <a class="btn-secondary" href="{% url 'chef_battle:challenge_list' %}">My Challenges</a>
+          <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
+          <a class="btn-secondary" href="{% url 'chef_battle:rules' %}">Rules</a>
+        </div>
       </div>
     </div>
     {% include '_hero_battle_panel.html' %}

@@ -63,6 +63,11 @@
     --radius-lg: 28px;
     --radius-pill: 999px;
 
+    /* Unified hero image height — used across all main-section pages
+       (home, recipes, articles, amuse-bouche, news, sponsors, contact,
+       dashboard, profile, and all Chef Battle pages) */
+    --site-hero-h: clamp(300px, 42vw, 460px);
+
     /* Layout */
     --container: 1120px;
     --bmc-bar-reserved-space: 0px; /* BMC moved to header */
@@ -1682,7 +1687,7 @@
   }
 
   .hero--home {
-    min-height: clamp(250px, 38vw, 410px);
+    min-height: var(--site-hero-h, clamp(300px, 42vw, 460px));
     padding: 0;
     display: flex;
     align-items: flex-start;
@@ -1704,6 +1709,9 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    /* Raise the crop to favour foreground detail (table, dish) over
+       background/horizon — pulls the visible frame downward into the image */
+    object-position: center 70%;
   }
 
   /* Recipe detail: taller hero so more of the food photo is visible,
@@ -1910,6 +1918,7 @@
   .pill {
     display: inline-flex;
     align-items: center;
+    align-self: center;
     gap: 0.3rem;
     padding: 0.42rem 0.82rem;
     border-radius: var(--radius-pill);
@@ -1919,7 +1928,7 @@
     background: rgb(247 242 234 / 0.03);
     border: 1px solid rgb(255 255 255 / 0.16);
     color: #fff8ee;
-    margin-inline: 0;
+    margin-inline: auto;
     margin-block-end: 0.55rem;
   }
 
