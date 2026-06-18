@@ -2,7 +2,7 @@
 .battle-room-hero {
   background:
     linear-gradient(135deg, rgb(11 24 18 / 0.72), rgb(11 24 18 / 0.52)),
-    url("../images/hero-battle.png") center/cover;
+    url("../images/hero-battle.png") center 78% / cover;
   color: #fff8ee;
   padding-block: clamp(2.2rem, 7vw, 5.4rem);
 }
