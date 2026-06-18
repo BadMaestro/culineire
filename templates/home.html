@@ -24,22 +24,22 @@
 <section class="hero hero--home{% if chef_battle_enabled %} hero--has-battle{% endif %}">
     <div aria-hidden="true" class="hero__background">
         <div class="hero__slide is-active">
-            <img alt="" fetchpriority="high" loading="eager" src="{% static 'images/hero.png' %}">
+            <picture><source srcset="{% static 'images/hero.webp' %}" type="image/webp"><img alt="" fetchpriority="high" loading="eager" width="1916" height="821" src="{% static 'images/hero.png' %}"></picture>
         </div>
         <div class="hero__slide">
-            <img alt="" loading="lazy" src="{% static 'images/hero-amuse-bouche.png' %}">
+            <picture><source srcset="{% static 'images/hero-amuse-bouche.webp' %}" type="image/webp"><img alt="" loading="lazy" width="1672" height="941" src="{% static 'images/hero-amuse-bouche.png' %}"></picture>
         </div>
         <div class="hero__slide">
-            <img alt="" loading="lazy" src="{% static 'images/hero-recipes.png' %}">
+            <picture><source srcset="{% static 'images/hero-recipes.webp' %}" type="image/webp"><img alt="" loading="lazy" width="1672" height="941" src="{% static 'images/hero-recipes.png' %}"></picture>
         </div>
         <div class="hero__slide">
-            <img alt="" loading="lazy" src="{% static 'images/hero-articles.png' %}">
+            <picture><source srcset="{% static 'images/hero-articles.webp' %}" type="image/webp"><img alt="" loading="lazy" width="1672" height="941" src="{% static 'images/hero-articles.png' %}"></picture>
         </div>
         <div class="hero__slide">
-            <img alt="" loading="lazy" src="{% static 'images/hero-sponsors.png' %}">
+            <picture><source srcset="{% static 'images/hero-sponsors.webp' %}" type="image/webp"><img alt="" loading="lazy" width="1672" height="941" src="{% static 'images/hero-sponsors.png' %}"></picture>
         </div>
         <div class="hero__slide">
-            <img alt="" loading="lazy" src="{% static 'images/hero-battle.png' %}">
+            <picture><source srcset="{% static 'images/hero-battle.webp' %}" type="image/webp"><img alt="" loading="lazy" width="1672" height="941" src="{% static 'images/hero-battle.png' %}"></picture>
         </div>
     </div>
     <div aria-hidden="true" class="hero__overlay"></div>
@@ -100,7 +100,7 @@
             <p class="content-showcase__eyebrow">Chef's Battle Arena</p>
             <div class="announcements-grid">
                 <div class="announcements-grid__image">
-                    <img alt="Chef's Battle — culinary PvP arena" loading="lazy" src="{% static 'images/hero-battle.png' %}">
+                    <picture><source srcset="{% static 'images/hero-battle.webp' %}" type="image/webp"><img alt="Chef's Battle — culinary PvP arena" loading="lazy" width="1672" height="941" src="{% static 'images/hero-battle.png' %}"></picture>
                 </div>
                 <div class="announcements-grid__body">
                     <h3 class="announcements-grid__title">A New Kind of Culinary Competition Is Coming To CulinEire</h3>
@@ -192,7 +192,7 @@
                             {% if recipe.hero_image %}
                             <img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="eager" decoding="async">
                             {% else %}
-                            <img alt="{{ recipe.title }}" src="{% static 'images/hero.png' %}" loading="eager" decoding="async">
+                            <picture><source srcset="{% static 'images/hero.webp' %}" type="image/webp"><img alt="{{ recipe.title }}" loading="eager" decoding="async" width="1916" height="821" src="{% static 'images/hero.png' %}"></picture>
                             {% endif %}
                         </a>
 
@@ -296,7 +296,7 @@
                             {% if article.card_image %}
                             <img alt="{{ article.title }}" src="{{ article.card_image.url }}" loading="eager" decoding="async">
                             {% else %}
-                            <img alt="{{ article.title }}" src="{% static 'images/hero.png' %}" loading="eager" decoding="async">
+                            <picture><source srcset="{% static 'images/hero.webp' %}" type="image/webp"><img alt="{{ article.title }}" loading="eager" decoding="async" width="1916" height="821" src="{% static 'images/hero.png' %}"></picture>
                             {% endif %}
                         </a>
 

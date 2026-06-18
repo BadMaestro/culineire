@@ -16,7 +16,7 @@
 
 <section class="hero hero--home hero--news{% if chef_battle_enabled %} hero--has-battle{% endif %}">
   <div aria-hidden="true" class="hero__background">
-    <img alt="" src="{% static 'images/hero-news.png' %}">
+    <picture><source srcset="{% static 'images/hero-news.webp' %}" type="image/webp"><img alt="" width="1672" height="941" src="{% static 'images/hero-news.png' %}"></picture>
   </div>
   <div aria-hidden="true" class="hero__overlay"></div>
   <div class="container hero__inner">
