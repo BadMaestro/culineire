@@ -40,10 +40,10 @@
 
     <link href="{% static 'css/base.css' %}?v=20260613-report-docs" rel="stylesheet">
     <link href="{% static 'css/header.css' %}" rel="stylesheet">
-    <link href="{% static 'css/footer.css' %}" rel="stylesheet">
-    <link href="{% static 'css/messaging.css' %}" rel="stylesheet">
-    <link href="{% static 'css/presence.css' %}" rel="stylesheet">
-    <link href="{% static 'css/pwa.css' %}" rel="stylesheet">
+    <link id="css-deferred-footer" href="{% static 'css/footer.css' %}" rel="stylesheet" media="print">
+    <link id="css-deferred-messaging" href="{% static 'css/messaging.css' %}" rel="stylesheet" media="print">
+    <link id="css-deferred-presence" href="{% static 'css/presence.css' %}" rel="stylesheet" media="print">
+    <link id="css-deferred-pwa" href="{% static 'css/pwa.css' %}" rel="stylesheet" media="print">
 
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#123c2d">
@@ -446,8 +446,8 @@
     </div>
 </div>
 
-<script src="{% static 'js/main.js' %}"></script>
-<script src="{% static 'js/presence.js' %}"></script>
+<script defer src="{% static 'js/main.js' %}"></script>
+<script defer src="{% static 'js/presence.js' %}"></script>
 {% block extra_js %}{% endblock %}
 
 <div class="battle-blast" id="battle-blast" role="dialog" aria-modal="true" aria-label="Battle result" hidden>
@@ -686,13 +686,13 @@
 })();
 </script>
 {% endif %}
-{% if chef_battle_enabled %}<script src="{% static 'js/battle_vfx.js' %}"></script>{% endif %}
-<script src="{% static 'js/buttons.js' %}"></script>
-<script src="{% static 'js/form-validator.js' %}"></script>
-<script src="{% static 'js/form-autosave.js' %}"></script>
+{% if chef_battle_enabled %}<script defer src="{% static 'js/battle_vfx.js' %}"></script>{% endif %}
+<script defer src="{% static 'js/buttons.js' %}"></script>
+<script defer src="{% static 'js/form-validator.js' %}"></script>
+<script defer src="{% static 'js/form-autosave.js' %}"></script>
 <script nonce="{{ request.csp_nonce }}">if(document.querySelector("[data-profanity]")){window.PROFANITY_WORDS_URL="{% url 'monitoring:profanity_words_api' %}";}</script>
-<script src="{% static 'js/profanity-check.js' %}"></script>
-<script src="{% static 'js/install_app.js' %}"></script>
+<script defer src="{% static 'js/profanity-check.js' %}"></script>
+<script defer src="{% static 'js/install_app.js' %}"></script>
 {% block extra_scripts %}{% endblock %}
 <script nonce="{{ request.csp_nonce }}">
 if(typeof navigator.modelContext!=='undefined'){
@@ -834,7 +834,9 @@ if(typeof navigator.modelContext!=='undefined'){
     </svg>
   </div>
 </div>
-<script src="{% static 'js/battle_cursor.js' %}"></script>
+<script defer src="{% static 'js/battle_cursor.js' %}"></script>
 {% endif %}
+
+<script nonce="{{ request.csp_nonce }}">(function(){var ids=["css-deferred-footer","css-deferred-messaging","css-deferred-presence","css-deferred-pwa"];function load(){ids.forEach(function(id){var el=document.getElementById(id);if(el)el.media="all";});}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",load);}else{load();}})();</script>
 </body>
 </html>
