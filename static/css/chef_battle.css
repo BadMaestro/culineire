@@ -2379,14 +2379,10 @@ a.battle-pulse-item__msg:hover {
 
 /* --- Hero: warm chocolate arena overlay --- */
 .battle-home {
-  background: url("../images/hero-battle.png") center / cover no-repeat;
   padding-block: 0;
 }
 
-/* Override the default battle-hero background when home class present */
-.battle-home.battle-hero {
-  background: url("../images/hero-battle.png") center / cover no-repeat;
-}
+
 
 /* --- Wordmark block --- */
 .battle-home__wordmark {
