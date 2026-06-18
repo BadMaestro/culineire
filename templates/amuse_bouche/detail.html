@@ -3,13 +3,13 @@
 
 {% block title %}{% if item.seo_title %}{{ item.seo_title }}{% else %}{{ item.title }}{% endif %} | Amuse-Bouche{% endblock %}
 {% block meta_description %}{{ item.public_description }}{% endblock %}
-{% block og_title %}{{ item.public_description|truncatechars:160 }}{% endblock %}
+{% block og_title %}{% if item.seo_title %}{{ item.seo_title }}{% else %}{{ item.title }}{% endif %}{% endblock %}
 {% block og_type %}article{% endblock %}
-{% block og_description %}{% endblock %}
+{% block og_description %}{{ item.public_description|truncatechars:160 }}{% endblock %}
 {% block og_image %}{{ telegram_preview_image.url }}{% endblock %}
 {% block twitter_card %}summary{% endblock %}
-{% block twitter_title %}{{ item.public_description|truncatechars:160 }}{% endblock %}
-{% block twitter_description %}{% endblock %}
+{% block twitter_title %}{% if item.seo_title %}{{ item.seo_title }}{% else %}{{ item.title }}{% endif %}{% endblock %}
+{% block twitter_description %}{{ item.public_description|truncatechars:160 }}{% endblock %}
 {% block twitter_image %}{{ telegram_preview_image.url }}{% endblock %}
 {% block extra_head %}
 {% if telegram_preview_image.width and telegram_preview_image.height %}
