@@ -766,6 +766,9 @@ class Command(BaseCommand):
                         logger.info("generate_recipe: hero image generated and saved for %r", recipe.title)
                     except Exception as exc:
                         logger.error("generate_recipe: hero image generation failed for %r: %s", recipe.title, exc)
+                        if ai_alt_text:
+                            recipe.hero_image_alt_text = ai_alt_text
+                            recipe.save(update_fields=["hero_image_alt_text"])
 
                     # Step photos
                     try:

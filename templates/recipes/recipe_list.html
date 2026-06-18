@@ -363,8 +363,8 @@
                 <a class="category-tile" href="{{ category.url }}">
                     <div class="category-tile__copy"><h3 class="category-tile__title">{{ category.label }}</h3></div>
                     <div class="category-tile__media">
-                        {% if category.image_url %}<img alt="" src="{{ category.image_url }}">
-                        {% else %}<img alt="" src="{% static 'images/hero.jpg' %}">{% endif %}
+                        {% if category.image_url %}<img alt="{{ category.label }}" src="{{ category.image_url }}">
+                        {% else %}<img alt="{{ category.label }}" src="{% static 'images/hero.jpg' %}">{% endif %}
                     </div>
                 </a>
                 {% endfor %}
