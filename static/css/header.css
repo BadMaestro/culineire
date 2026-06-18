@@ -507,7 +507,7 @@
 }
 
 /* ── Mobile: don't stretch to grid full-width ── */
-@media (max-width: 1099px) {
+@media (max-width: 1279px) {
   .ce-nav__link--battle {
     align-self: center;
     font-size: 1.0rem;
@@ -869,7 +869,7 @@
   justify-content: center;
 }
 
-@media (min-width: 1100px) {
+@media (min-width: 1280px) {
   .ce-header__inner {
     display: flex;
     align-items: center;
@@ -1149,11 +1149,11 @@
 }
 
 /* ── Desktop: battle button overrides (must come after the desktop media block) ──
-   The @media (min-width:1100px) block resets padding on all .ce-nav__link and
+   The @media (min-width:1280px) block resets padding on all .ce-nav__link and
    paints .ce-nav__link--active with a parchment background — both rules share
    (0,1,0) specificity with .ce-nav__link--battle but appear later in the sheet,
    so they would win. These rules restore the correct battle button appearance. */
-@media (min-width: 1100px) {
+@media (min-width: 1280px) {
   /* restore custom padding/size that the general desktop reset would override */
   .ce-nav__link--battle {
     padding: 0.5rem 1.05rem;
