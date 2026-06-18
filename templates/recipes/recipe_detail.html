@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static recipe_schema author_tags %}
 
-{% block title %}{{ recipe.title }} | CulinEire{% endblock %}
+{% block title %}{{ recipe.title }} - Traditional Irish Recipe | CulinEire{% endblock %}
 {% block meta_description %}{% if recipe.short_description %}{{ recipe.short_description }}{% else %}A home-cooking recipe for {{ recipe.title }} on CulinEire.{% endif %}{% endblock %}
 
 {% block og_type %}article{% endblock %}
