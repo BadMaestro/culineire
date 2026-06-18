@@ -19,7 +19,7 @@ from django.core.files.base import ContentFile
 from django.db import DatabaseError, transaction
 from django.utils import timezone
 from django.db.models import Avg, Case, Count, IntegerField, Prefetch, Q, Value, When
-from django.http import Http404, JsonResponse
+from django.http import Http404, HttpResponseGone, JsonResponse
 from django.core.files.storage import default_storage
 from django.shortcuts import get_object_or_404, redirect, render
 from django.templatetags.static import static
@@ -1018,7 +1018,7 @@ def recipe_detail(request, slug):
     )
 
     if recipe.is_deleted:
-        raise Http404
+        return HttpResponseGone()
 
     if recipe.status != Recipe.Status.APPROVED:
         if not is_moderator(request.user):
