@@ -5,9 +5,9 @@
   <div class="ab-home-card__photo">
     {% if item.card_image %}
     <img alt="{% if item.cover_image_alt %}{{ item.cover_image_alt }}{% else %}{{ item.title }}{% endif %}"
-         src="{{ item.card_image.url }}" loading="lazy">
+         src="{{ item.card_image.url }}" loading="lazy" width="1" height="1">
     {% else %}
-    <img alt="{{ item.title }}" src="{% static 'images/hero.jpg' %}" loading="lazy">
+    <img alt="{{ item.title }}" src="{% static 'images/hero.jpg' %}" loading="lazy" width="1" height="1">
     {% endif %}
     <a class="ab-card__cover-link" href="{{ item.get_absolute_url }}"
        tabindex="-1" aria-hidden="true"></a>
