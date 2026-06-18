@@ -120,7 +120,7 @@
     {% with url_name=request.resolver_match.url_name namespace=request.resolver_match.namespace %}
     <div class="container ce-header__inner">
         <a aria-label="Go to homepage" class="ce-header__logo ce-header__logo--full" href="{% url 'home' %}">
-            <img alt="CulinEire" src="{% static 'images/logo2.png' %}">
+            <img alt="CulinEire" src="{% static 'images/logo2.png' %}" width="80" height="80">
             <span class="ce-header__logo-copy">
                 <span class="ce-header__logo-text">CulinÉire</span>
                 <span class="ce-header__logo-slogan">Honouring Irish Culinary Heritage</span>
@@ -328,7 +328,7 @@
 
             <div class="footer-brand">
                 <a aria-label="CulinEire home" class="footer-brand__logo" href="{% url 'home' %}">
-                    <img alt="" src="{% static 'images/logo2.png' %}">
+                    <img alt="" src="{% static 'images/logo2.png' %}" width="80" height="80">
                     <span class="footer-brand__logo-text">CulinÉire</span>
                 </a>
                 <p class="footer-brand__tagline">Honouring Irish Culinary Heritage</p>

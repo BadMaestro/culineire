@@ -190,7 +190,7 @@
                     <article class="recipe-card">
                         <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
                             {% if recipe.hero_image %}
-                            <img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="eager" decoding="async">
+                            <img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="eager" decoding="async" width="1" height="1">
                             {% else %}
                             <picture><source srcset="{% static 'images/hero.webp' %}" type="image/webp"><img alt="{{ recipe.title }}" loading="eager" decoding="async" width="1916" height="821" src="{% static 'images/hero.png' %}"></picture>
                             {% endif %}
@@ -294,7 +294,7 @@
                     <article class="recipe-card recipe-card--article">
                         <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">
                             {% if article.card_image %}
-                            <img alt="{{ article.title }}" src="{{ article.card_image.url }}" loading="eager" decoding="async">
+                            <img alt="{{ article.title }}" src="{{ article.card_image.url }}" loading="eager" decoding="async" width="1" height="1">
                             {% else %}
                             <picture><source srcset="{% static 'images/hero.webp' %}" type="image/webp"><img alt="{{ article.title }}" loading="eager" decoding="async" width="1916" height="821" src="{% static 'images/hero.png' %}"></picture>
                             {% endif %}
