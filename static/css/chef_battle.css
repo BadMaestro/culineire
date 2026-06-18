@@ -2904,3 +2904,41 @@ a.battle-home__pulse-msg:hover {
     justify-content: center;
   }
 }
+
+/* Wordmark title as link on sub-pages */
+.battle-home__title--link {
+  margin: 0;
+}
+
+.battle-home__title--link a {
+  color: #fff;
+  text-decoration: none;
+  font-family: var(--font-serif);
+  font-size: clamp(3.2rem, 8vw, 7rem);
+  font-weight: 900;
+  line-height: 0.88;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  text-shadow: 0 4px 48px rgb(0 0 0 / 0.55);
+}
+
+.battle-home__title--link a:hover {
+  color: rgb(240 225 200 / 0.85);
+}
+
+/* On sub-pages, fix wordmark alignment inside battle-room-hero */
+.battle-room-hero.battle-home .battle-home__wordmark {
+  text-align: center;
+  padding-block: clamp(1.5rem, 4vw, 2.8rem) 0;
+}
+
+.battle-room-hero.battle-home .battle-home__pre-title {
+  margin-bottom: 0.3rem;
+}
+
+/* Wordmark container must not inherit the has-panel flex layout */
+.battle-room-hero--has-panel .battle-home__wordmark .container {
+  display: block;
+  text-align: center;
+  justify-items: unset;
+}

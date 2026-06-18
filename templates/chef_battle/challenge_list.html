@@ -5,7 +5,8 @@
 {% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">{% endblock %}
 
 {% block content %}
-<section class="battle-room-hero">
+<section class="battle-room-hero battle-home">
+{% include "chef_battle/_battle_wordmark.html" %}
   <div class="container">
     <p class="battle-kicker">Chef Battles Arena</p>
     <h1>My Challenges</h1>
