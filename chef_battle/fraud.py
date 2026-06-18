@@ -1,4 +1,4 @@
-"""Anti-fraud pipeline for Chef Battle arena.
+"""Anti-fraud pipeline for Chefs' Battle arena.
 
 Each gate is a standalone function that returns (passed: bool, reason: str).
 run_fraud_gates() runs all applicable gates and returns an aggregated result.

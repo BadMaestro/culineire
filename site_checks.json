@@ -1,0 +1,136 @@
+{
+  "summary": {
+    "pass": 9,
+    "fail": 0,
+    "warn": 5,
+    "total": 14
+  },
+  "checks": [
+    {
+      "priority": 1,
+      "check": "410 Gone for soft-deleted recipe",
+      "status": "WARN",
+      "detail": "Django not available",
+      "expected": "410",
+      "actual": "N/A",
+      "timestamp": "2026-06-18T13:42:21.737310"
+    },
+    {
+      "priority": 2,
+      "check": "noindex on /recipes/?page=2",
+      "status": "PASS",
+      "detail": "noindex meta tag found",
+      "expected": "noindex",
+      "actual": "present",
+      "timestamp": "2026-06-18T13:42:22.249307"
+    },
+    {
+      "priority": 3,
+      "check": "Canonical tag on recipe page",
+      "status": "WARN",
+      "detail": "Django not available",
+      "expected": "canonical",
+      "actual": "N/A",
+      "timestamp": "2026-06-18T13:42:22.249345"
+    },
+    {
+      "priority": 4,
+      "check": "Email obfuscation on /legal/privacy/",
+      "status": "WARN",
+      "detail": "/legal/privacy/ returned 404",
+      "expected": "200",
+      "actual": "404",
+      "timestamp": "2026-06-18T13:42:22.329539"
+    },
+    {
+      "priority": 4,
+      "check": "Email obfuscation on /legal/terms/",
+      "status": "WARN",
+      "detail": "Raw email visible (may be obfuscated by CF)",
+      "expected": "obfuscated",
+      "actual": "raw",
+      "timestamp": "2026-06-18T13:42:22.375293"
+    },
+    {
+      "priority": 4,
+      "check": "Email obfuscation on /sponsors/",
+      "status": "WARN",
+      "detail": "Raw email visible (may be obfuscated by CF)",
+      "expected": "obfuscated",
+      "actual": "raw",
+      "timestamp": "2026-06-18T13:42:22.648609"
+    },
+    {
+      "priority": 5,
+      "check": "WebP images on homepage",
+      "status": "PASS",
+      "detail": "WebP image references found",
+      "expected": "webp",
+      "actual": "present",
+      "timestamp": "2026-06-18T13:42:22.842588"
+    },
+    {
+      "priority": 5,
+      "check": "<picture> element on homepage",
+      "status": "PASS",
+      "detail": "<picture> element found",
+      "expected": "picture",
+      "actual": "present",
+      "timestamp": "2026-06-18T13:42:22.842627"
+    },
+    {
+      "priority": 6,
+      "check": "CSS deferred via media=print",
+      "status": "PASS",
+      "detail": "media=\"print\" deferred CSS found",
+      "expected": "deferred",
+      "actual": "present",
+      "timestamp": "2026-06-18T13:42:23.036507"
+    },
+    {
+      "priority": 6,
+      "check": "JS scripts deferred",
+      "status": "PASS",
+      "detail": "defer attribute found on scripts",
+      "expected": "defer",
+      "actual": "present",
+      "timestamp": "2026-06-18T13:42:23.036538"
+    },
+    {
+      "priority": 7,
+      "check": "Title tag on /",
+      "status": "PASS",
+      "detail": "Title: \"CulinEire | Modern Irish Recipes & Food Stories\"",
+      "expected": "CulinEire",
+      "actual": "CulinEire | Modern Irish Recipes & Food Stories",
+      "timestamp": "2026-06-18T13:42:23.230019"
+    },
+    {
+      "priority": 7,
+      "check": "Title tag on /recipes/",
+      "status": "PASS",
+      "detail": "Title: \"Recipes | CulinEire\"",
+      "expected": "Recipe",
+      "actual": "Recipes | CulinEire",
+      "timestamp": "2026-06-18T13:42:23.478169"
+    },
+    {
+      "priority": 7,
+      "check": "Title tag on /articles/",
+      "status": "PASS",
+      "detail": "Title: \"Articles | CulinEire\"",
+      "expected": "Article",
+      "actual": "Articles | CulinEire",
+      "timestamp": "2026-06-18T13:42:23.605880"
+    },
+    {
+      "priority": 8,
+      "check": "CLS img width/height on homepage",
+      "status": "PASS",
+      "detail": "All 70 images have width+height",
+      "expected": "all",
+      "actual": "70/70",
+      "timestamp": "2026-06-18T13:42:23.781124"
+    }
+  ]
+}

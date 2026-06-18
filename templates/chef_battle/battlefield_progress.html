@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Chef Battle Progress | CulinEire{% endblock %}
-{% block meta_description %}Chef Battle roadmap progress for internal coordination.{% endblock %}
+{% block title %}Chefs' Battle Progress | CulinEire{% endblock %}
+{% block meta_description %}Chefs' Battle roadmap progress for internal coordination.{% endblock %}
 
 {% block extra_head %}
 <meta name="robots" content="noindex, nofollow">
@@ -17,7 +17,7 @@
         <header class="automation-header">
             <div>
                 <p class="automation-kicker">Internal battlefield roadmap</p>
-                <h1 class="automation-title">Chef Battle Progress</h1>
+                <h1 class="automation-title">Chefs' Battle Progress</h1>
                 <p class="automation-summary">{{ battlefield_progress.done_count }}/{{ battlefield_progress.total_count }} checked items complete</p>
             </div>
             <div class="automation-meter" aria-label="{{ battlefield_progress.percent }} percent complete">
@@ -25,7 +25,7 @@
             </div>
         </header>
 
-        <section class="moderation-block moderation-block--tools" aria-label="Chef Battle actions">
+        <section class="moderation-block moderation-block--tools" aria-label="Chefs' Battle actions">
             <h2 class="moderation-block__title">Battlefield Actions</h2>
             <div class="mod-tools-row">
                 <a class="mod-tool-link" href="{% url 'chef_battle:home' %}">

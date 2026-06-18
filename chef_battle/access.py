@@ -10,7 +10,7 @@ from django.shortcuts import redirect
 
 def is_battle_visible(request) -> bool:
     """
-    Chef's Battle is visible when:
+    Chefs' Battle is visible when:
     - CHEF_BATTLE_ENABLED is True (public launch), OR
     - the user is staff, superuser, or has bearseeker privileges (admin preview)
     """
@@ -27,7 +27,7 @@ def is_battle_visible(request) -> bool:
 
 def chef_battle_guard(view_func):
     """
-    View decorator: raises Http404 for any user who cannot see Chef's Battle.
+    View decorator: raises Http404 for any user who cannot see Chefs' Battle.
     Suspended accounts are redirected with an error message on POST actions.
     Apply to every chef_battle view.
     """

@@ -1,0 +1,15 @@
+priority,check,status,detail,expected,actual,timestamp
+1,410 Gone for soft-deleted recipe,WARN,Django not available,410,N/A,2026-06-18T13:42:21.737310
+2,noindex on /recipes/?page=2,PASS,noindex meta tag found,noindex,present,2026-06-18T13:42:22.249307
+3,Canonical tag on recipe page,WARN,Django not available,canonical,N/A,2026-06-18T13:42:22.249345
+4,Email obfuscation on /legal/privacy/,WARN,/legal/privacy/ returned 404,200,404,2026-06-18T13:42:22.329539
+4,Email obfuscation on /legal/terms/,WARN,Raw email visible (may be obfuscated by CF),obfuscated,raw,2026-06-18T13:42:22.375293
+4,Email obfuscation on /sponsors/,WARN,Raw email visible (may be obfuscated by CF),obfuscated,raw,2026-06-18T13:42:22.648609
+5,WebP images on homepage,PASS,WebP image references found,webp,present,2026-06-18T13:42:22.842588
+5,<picture> element on homepage,PASS,<picture> element found,picture,present,2026-06-18T13:42:22.842627
+6,CSS deferred via media=print,PASS,"media=""print"" deferred CSS found",deferred,present,2026-06-18T13:42:23.036507
+6,JS scripts deferred,PASS,defer attribute found on scripts,defer,present,2026-06-18T13:42:23.036538
+7,Title tag on /,PASS,"Title: ""CulinEire | Modern Irish Recipes & Food Stories""",CulinEire,CulinEire | Modern Irish Recipes & Food Stories,2026-06-18T13:42:23.230019
+7,Title tag on /recipes/,PASS,"Title: ""Recipes | CulinEire""",Recipe,Recipes | CulinEire,2026-06-18T13:42:23.478169
+7,Title tag on /articles/,PASS,"Title: ""Articles | CulinEire""",Article,Articles | CulinEire,2026-06-18T13:42:23.605880
+8,CLS img width/height on homepage,PASS,All 70 images have width+height,all,70/70,2026-06-18T13:42:23.781124

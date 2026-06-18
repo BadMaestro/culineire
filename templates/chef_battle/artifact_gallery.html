@@ -1,19 +1,19 @@
 ﻿{% extends "base.html" %}
 {% load static %}
 
-{% block title %}Combat Artifact Gallery | Chef Battle | CulinEire{% endblock %}
-{% block og_title %}Combat Artifact Gallery | Chef Battle Arena | CulinEire{% endblock %}
-{% block og_description %}212 combat artifacts across 5 rarity tiers. Attack, defence, and boost items used in Chef Battle Arena fights on CulinEire.{% endblock %}
+{% block title %}Combat Artifact Gallery | Chefs' Battle | CulinEire{% endblock %}
+{% block og_title %}Combat Artifact Gallery | Chefs' Battle Arena | CulinEire{% endblock %}
+{% block og_description %}212 combat artifacts across 5 rarity tiers. Attack, defence, and boost items used in Chefs' Battle Arena fights on CulinEire.{% endblock %}
 {% block og_image %}{{ SITE_URL }}{% static 'images/hero-battle.png' %}{% endblock %}
 {% block og_image_secure_url %}{{ SITE_URL }}{% static 'images/hero-battle.png' %}{% endblock %}
-{% block og_image_alt %}Combat Artifact Gallery - Chef Battle Arena | CulinEire{% endblock %}
+{% block og_image_alt %}Combat Artifact Gallery - Chefs' Battle Arena | CulinEire{% endblock %}
 {% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260618-hero-menu" rel="stylesheet">{% endblock %}
 
 {% block content %}
 <section class="battle-room-hero battle-room-hero--has-panel">
   <div class="container">
     <div class="battle-room-hero__copy">
-      <p class="battle-kicker">Chef Battle Arena</p>
+      <p class="battle-kicker">Chefs' Battle Arena</p>
       <h1>Combat Artifact Gallery</h1>
       <p class="battle-room-hero__sub">{{ total }} active artifact{{ total|pluralize }} across 5 rarity tiers. Use them in battle to gain an edge.</p>
       <div class="battle-actions hero__actions">

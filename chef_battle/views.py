@@ -107,10 +107,10 @@ def _build_battlefield_progress():
         {
             "title": "Phase 0 - Sandbox Gate And Branch Discipline",
             "items": [
-                {"label": "Chef Battle in production via main branch", "detail": "Chef Battle shipped to main, deployed to production, URLs live. Branch discipline followed throughout.", "status": "done", "completed_at": "2026-06-10"},
+                {"label": "Chefs' Battle in production via main branch", "detail": "Chefs' Battle shipped to main, deployed to production, URLs live. Branch discipline followed throughout.", "status": "done", "completed_at": "2026-06-10"},
                 {"label": "Feature flag in place", "detail": "CHEF_BATTLE_ENABLED controls homepage queries and battle URLs. Currently enabled on production.", "status": "done" if feature_enabled else "pending", "completed_at": "2026-06-10"},
                 {"label": "Sandbox enablement confirmed", "detail": "CHEF_BATTLE_ENABLED=True applied on production server after all migrations verified.", "status": "done" if feature_enabled else "pending", "completed_at": "2026-06-10"},
-                {"label": "Production release followed QA", "detail": "All Chef Battle deploys went through local check, migration verification and smoke test before push.", "status": "done", "completed_at": "2026-06-10"},
+                {"label": "Production release followed QA", "detail": "All Chefs' Battle deploys went through local check, migration verification and smoke test before push.", "status": "done", "completed_at": "2026-06-10"},
             ],
         },
         {
@@ -286,7 +286,7 @@ def _build_battlefield_progress():
         {
             "title": "Phase 11 - Solicitor And Accountant Review",
             "items": [
-                {"label": "Solicitor review of public rules", "detail": "Bearcave Limited solicitor must review all public Chef Battle rules before token economy, payouts and live video go live. Scope: token model, gift wording, CBR/LSR, payout terms, anti-gambling, DSA compliance, live video rules.", "status": "done", "completed_at": "2026-06-15"},
+                {"label": "Solicitor review of public rules", "detail": "Bearcave Limited solicitor must review all public Chefs' Battle rules before token economy, payouts and live video go live. Scope: token model, gift wording, CBR/LSR, payout terms, anti-gambling, DSA compliance, live video rules.", "status": "done", "completed_at": "2026-06-15"},
                 {"label": "Accountant review of VAT treatment", "detail": "Bearcave Limited accountant must confirm VAT treatment of Spendable Tokens before launch: electronically supplied digital service / single-purpose voucher / multi-purpose voucher / other. Stripe Tax configuration must match.", "status": "done", "completed_at": "2026-06-15"},
                 {"label": "DAC7 / MRDP obligation review", "detail": "Review DAC7/MRDP reporting obligations with accountant or tax advisor. Confirm which Chefs are reportable. Set up Revenue reporting process.", "status": "done", "completed_at": "2026-06-15"},
                 {"label": "Stripe Connect payout wording review", "detail": "Solicitor and accountant must approve final Stripe Connect payout wording, Chef Reward Agreement and payout statement format before any real payout is processed.", "status": "done", "completed_at": "2026-06-15"},
@@ -309,7 +309,7 @@ def _build_battlefield_progress():
     percent = round((done_count / total_count) * 100) if total_count else 0
 
     copy_lines = [
-        "CulinEire Chef Battle battlefield handoff",
+        "CulinEire Chefs' Battle battlefield handoff",
         f"Progress: {done_count}/{total_count} items complete ({percent}%).",
         "",
         "Current metrics:",
@@ -610,7 +610,7 @@ def battle_home(request):
 def challenge_list(request):
     author = get_author_for_user(request.user)
     if not author:
-        messages.error(request, "Author profile required before entering Chef Battle.")
+        messages.error(request, "Author profile required before entering Chefs' Battle.")
         return redirect("home")
 
     sent = get_sent_challenges(author)
@@ -627,7 +627,7 @@ def challenge_list(request):
 def challenge_create(request):
     author = get_author_for_user(request.user)
     if not author:
-        messages.error(request, "Author profile required before creating a Chef Battle challenge.")
+        messages.error(request, "Author profile required before creating a Chefs' Battle challenge.")
         return redirect("home")
 
     profile = get_or_create_battle_profile(author)
@@ -674,14 +674,14 @@ def challenge_create(request):
                 challenge=challenge,
                 actor=author,
                 target=challenge.opponent,
-                message=f"{author.name} challenged {challenge.opponent.name} to Chef Battle: {challenge.theme}.",
+                message=f"{author.name} challenged {challenge.opponent.name} to Chefs' Battle: {challenge.theme}.",
                 publish_to_news=True,
             )
             _notify_chef(
                 author, challenge.opponent,
-                subject=f"You have been challenged to a Chef Battle: {challenge.theme}",
+                subject=f"You have been challenged to a Chefs' Battle: {challenge.theme}",
                 body=(
-                    f"{author.name} has challenged you to a Chef Battle!\n\n"
+                    f"{author.name} has challenged you to a Chefs' Battle!\n\n"
                     f"Theme: {challenge.theme}\n"
                     f"Battle type: {challenge.get_battle_type_display()}\n"
                     + (f"\nMessage: {challenge.message}\n" if challenge.message else "")
@@ -690,7 +690,7 @@ def challenge_create(request):
                     + reverse("chef_battle:challenge_list")
                 ),
             )
-            messages.success(request, "Chef Battle challenge sent.")
+            messages.success(request, "Chefs' Battle challenge sent.")
             return redirect("chef_battle:challenge_list")
     else:
         initial = {}
@@ -833,7 +833,7 @@ def battle_entry_submit(request, pk):
                 battle=battle,
                 actor=author,
                 target=battle.opponent_for(author),
-                message=f"{author.name} submitted an entry for Chef Battle: {battle.theme}.",
+                message=f"{author.name} submitted an entry for Chefs' Battle: {battle.theme}.",
                 publish_to_news=True,
             )
             messages.success(request, "Battle entry submitted.")
@@ -905,7 +905,7 @@ def battle_vote(request, pk):
         battle=battle,
         actor=None,
         target=voted_for,
-        message=f"A vote landed for {voted_for.name} in Chef Battle: {battle.theme}.",
+        message=f"A vote landed for {voted_for.name} in Chefs' Battle: {battle.theme}.",
         is_public=False,
     )
     messages.success(request, "Vote recorded.")

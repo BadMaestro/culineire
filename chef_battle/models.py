@@ -936,7 +936,7 @@ class RewardRecord(models.Model):
     """
 
     class RewardType(models.TextChoices):
-        CBR = "cbr", "Chef Battle Reward"
+        CBR = "cbr", "Chefs' Battle Reward"
         LSR = "lsr", "Live Support Reward"
 
     class Status(models.TextChoices):
@@ -1261,7 +1261,7 @@ PRE_LIVE_CHECKLIST_ITEMS = [
     "I understand that CulinEire may end my stream at any time without notice.",
     "I will not make false health or medical claims during the stream.",
     "I will not consume alcohol to excess or use any illegal substances during the stream.",
-    "I understand that this stream is subject to the CulinEire Chef Battle Rules.",
+    "I understand that this stream is subject to the CulinEire Chefs' Battle Rules.",
     "I accept that violations may result in stream termination and account suspension.",
 ]
 

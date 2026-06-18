@@ -1,5 +1,5 @@
 """
-Generate all static image assets for Chef's Battle.
+Generate all static image assets for Chefs' Battle.
 
 Usage:
   python manage.py generate_battle_assets               # everything
@@ -310,7 +310,7 @@ def _build_artifact_prompt(name: str, item_type: str, rarity: str, description: 
 
 
 class Command(BaseCommand):
-    help = "Generate static image assets for Chef's Battle via OpenAI"
+    help = "Generate static image assets for Chefs' Battle via OpenAI"
 
     def add_arguments(self, parser):
         parser.add_argument(

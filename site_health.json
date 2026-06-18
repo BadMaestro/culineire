@@ -1,0 +1,180 @@
+{
+  "timestamp": "2026-06-18 17:44 UTC",
+  "base_url": "https://culineire.ie",
+  "summary": {
+    "total": 21,
+    "passed": 21,
+    "failed": 0
+  },
+  "results": [
+    {
+      "path": "/",
+      "description": "Homepage",
+      "status": 200,
+      "ms": 433,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "path": "/recipes/",
+      "description": "Recipe list",
+      "status": 200,
+      "ms": 254,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "path": "/recipes/?page=2",
+      "description": "Recipe list page 2",
+      "status": 200,
+      "ms": 305,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "path": "/articles/",
+      "description": "Article list",
+      "status": 200,
+      "ms": 115,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "path": "/amuse-bouche/",
+      "description": "Amuse-bouche feed",
+      "status": 200,
+      "ms": 244,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "path": "/news/",
+      "description": "Newsfeed",
+      "status": 200,
+      "ms": 98,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "path": "/sponsors/",
+      "description": "Sponsors puzzle",
+      "status": 200,
+      "ms": 128,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "path": "/chef-battle/",
+      "description": "Chef Battle (disabled when feature off)",
+      "status": 404,
+      "ms": 56,
+      "expected": null,
+      "pass": true
+    },
+    {
+      "path": "/accounts/login/",
+      "description": "Login page",
+      "status": 200,
+      "ms": 69,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "path": "/accounts/signup/",
+      "description": "Signup page",
+      "status": 200,
+      "ms": 61,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "path": "/legal/terms/",
+      "description": "Terms",
+      "status": 200,
+      "ms": 58,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "path": "/legal/cookies/",
+      "description": "Cookies",
+      "status": 200,
+      "ms": 58,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "path": "/manifest.json",
+      "description": "PWA manifest",
+      "status": 200,
+      "ms": 39,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "path": "/robots.txt",
+      "description": "robots.txt",
+      "status": 200,
+      "ms": 28,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "path": "/sitemap.xml",
+      "description": "Sitemap",
+      "status": 200,
+      "ms": 67,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "path": "/.well-known/api-catalog",
+      "description": "Agent discovery catalog",
+      "status": 200,
+      "ms": 35,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "path": "/.well-known/mcp/server-card.json",
+      "description": "MCP server card",
+      "status": 200,
+      "ms": 35,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "path": "/recipes/this-slug-does-not-exist-xyz/",
+      "description": "Non-existent recipe (expect 404/410)",
+      "status": 404,
+      "ms": 46,
+      "expected": null,
+      "pass": true
+    },
+    {
+      "path": "/messages/",
+      "description": "Messages (expect redirect)",
+      "status": 200,
+      "ms": 94,
+      "expected": null,
+      "pass": true
+    },
+    {
+      "path": "/collection/",
+      "description": "Collection (expect redirect)",
+      "status": 200,
+      "ms": 83,
+      "expected": null,
+      "pass": true
+    },
+    {
+      "path": "/recipes/studio/create/",
+      "description": "Recipe studio (expect redirect)",
+      "status": 200,
+      "ms": 96,
+      "expected": null,
+      "pass": true
+    }
+  ],
+  "failures": []
+}
