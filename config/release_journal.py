@@ -1,5 +1,46 @@
 RELEASE_JOURNAL = [
     {
+        "version": "feature/chef-battle-home-redesign",
+        "date": "2026-06-19",
+        "commit": "70a47ea",
+        "title": "Chef's Battle Home Page — Visual Redesign",
+        "section": "Chef's Battle / Frontend",
+        "summary": (
+            "Full visual redesign of the /chef-battle/ home page. "
+            "The page now carries a warm arena identity: chocolate-toned hero gradient, "
+            "centred CHEF'S BATTLE wordmark in Playfair Display, crossed-swords divider, "
+            "and a structured CTA row (orange primary + ghost secondary buttons). "
+            "Active Battles use arena cards with an orange status border and VS notation. "
+            "An empty-state card holds arena-flavoured copy when no battles are live. "
+            "The sidebar gained gold/silver/bronze position circles for Top Chefs and an "
+            "icon-and-timestamp layout for Battle Pulse. "
+            "Palette: cream #faf6f0, chocolate overlay, orange #e8630a — no dark green. "
+            "All JS hooks preserved (hero__burger / hero__actions-list). Mobile-responsive."
+        ),
+        "checklist": [
+            "Added battle-home scoped CSS block (~350 lines) to chef_battle.css",
+            "New wordmark block: pre-title + CHEF'S BATTLE h1 + swords divider",
+            "Hero: dark chocolate gradient overlay on hero-battle.png",
+            "CTA row: orange pill primary + ghost secondary buttons",
+            "More burger nav: pill-style secondary links (Season, Gifts, Artifacts, etc.)",
+            "Active Battles section: battle-home__card with orange left-border status",
+            "Empty arena state: dashed-border card with inline Issue a Challenge CTA",
+            "Recent Results: themed row layout",
+            "Top Chefs: gold (#c8941a) / silver (#9ca0a4) / bronze (#a06840) rank circles",
+            "Battle Pulse: icon + message link + time layout",
+            "Pulsing live dot animation on Active Battles header",
+            "Responsive breakpoint at 768px: centred CTA and nav rows",
+            "collectstatic run — manifest hash 9b810bed59b8",
+            "NGINX Unit restarted to clear compiled template cache",
+        ],
+        "stats": [
+            "2 files changed: templates/chef_battle/home.html + static/css/chef_battle.css",
+            "724 insertions, 125 deletions",
+        ],
+        "notes": "CHEF_BATTLE_ENABLED remains False — home redesign is first step of frontend rollout.",
+        "deployment_status": "deployed",
+    },
+    {
         "version": "feature/chef-battle",
         "date": "2026-06-10",
         "commit": "0cfe995",
