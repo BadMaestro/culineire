@@ -2370,3 +2370,550 @@ a.battle-pulse-item__msg:hover {
   letter-spacing: 0.03em;
 }
 .battle-back-link:hover { color: #fff; }
+
+/* ============================================================
+   CHEF BATTLE HOME PAGE — Visual Redesign
+   Palette: cream / sand / cappuccino / chocolate / orange
+   Bearcave Claude — 2026-06-19
+   ============================================================ */
+
+/* --- Hero: warm chocolate arena overlay --- */
+.battle-home {
+  background:
+    linear-gradient(160deg,
+      rgb(42 18 6 / 0.88) 0%,
+      rgb(78 38 8 / 0.72) 45%,
+      rgb(42 18 6 / 0.82) 100%),
+    url("../images/hero-battle.png") center / cover no-repeat;
+  padding-block: 0;
+}
+
+/* Override the default battle-hero background when home class present */
+.battle-home.battle-hero {
+  background:
+    linear-gradient(160deg,
+      rgb(42 18 6 / 0.88) 0%,
+      rgb(78 38 8 / 0.72) 45%,
+      rgb(42 18 6 / 0.82) 100%),
+    url("../images/hero-battle.png") center / cover no-repeat;
+}
+
+/* --- Wordmark block --- */
+.battle-home__wordmark {
+  padding-block: clamp(2rem, 5vw, 3.8rem) 0;
+  text-align: center;
+}
+
+.battle-home__pre-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgb(232 99 10 / 0.85);
+}
+
+.battle-home__title {
+  font-family: var(--font-serif);
+  font-size: clamp(3.2rem, 8vw, 7rem);
+  font-weight: 900;
+  line-height: 0.88;
+  letter-spacing: 0.03em;
+  color: #fff;
+  text-transform: uppercase;
+  margin: 0;
+  text-shadow: 0 4px 48px rgb(0 0 0 / 0.55);
+}
+
+.battle-home__divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding-block: 1.1rem 1.8rem;
+}
+
+.battle-home__divider-line {
+  display: block;
+  width: clamp(48px, 10vw, 140px);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(232 99 10 / 0.55), transparent);
+}
+
+.battle-home__divider-icon {
+  font-size: 1rem;
+}
+
+/* --- Hero body layout --- */
+.battle-home .battle-hero__inner {
+  padding-block-start: 0;
+  padding-block-end: clamp(2.4rem, 6vw, 4.5rem);
+}
+
+/* --- Tagline + sub --- */
+.battle-home__tagline {
+  font-family: var(--font-serif);
+  font-size: clamp(1.35rem, 3vw, 2.1rem);
+  font-weight: 700;
+  line-height: 1.22;
+  color: #fff;
+  margin: 0 0 0.65rem;
+}
+
+.battle-home__sub {
+  font-size: 0.96rem;
+  line-height: 1.65;
+  color: rgb(240 225 200 / 0.82);
+  max-width: 46ch;
+  margin: 0 0 1.5rem;
+}
+
+/* --- Primary CTA row --- */
+.battle-home__cta-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  margin-block-end: 0.9rem;
+}
+
+.battle-home__cta-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.7rem 1.45rem;
+  border-radius: var(--radius-pill);
+  background: #e8630a;
+  color: #fff;
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-decoration: none;
+  transition: background 0.2s ease, transform 0.15s ease;
+  border: none;
+}
+
+.battle-home__cta-primary:hover,
+.battle-home__cta-primary:focus-visible {
+  background: #d45508;
+  transform: translateY(-1px);
+  color: #fff;
+}
+
+.battle-home__cta-primary--sm {
+  font-size: 0.86rem;
+  padding: 0.55rem 1.1rem;
+}
+
+.battle-home__cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.64rem 1.05rem;
+  border: 1px solid rgb(255 255 255 / 0.26);
+  border-radius: var(--radius-pill);
+  background: rgb(255 255 255 / 0.05);
+  color: rgb(240 225 200 / 0.88);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.battle-home__cta-secondary:hover,
+.battle-home__cta-secondary:focus-visible {
+  background: rgb(255 255 255 / 0.12);
+  border-color: rgb(255 255 255 / 0.42);
+  color: #fff;
+}
+
+/* --- More nav row --- */
+.battle-home__nav-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.battle-home__burger {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.42rem 0.85rem !important;
+  border: 1px solid rgb(255 255 255 / 0.18) !important;
+  border-radius: var(--radius-pill) !important;
+  background: transparent !important;
+  color: rgb(240 225 200 / 0.72) !important;
+  font-size: 0.8rem !important;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.battle-home__nav-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.38rem;
+}
+
+.battle-home__nav-link {
+  padding: 0.36rem 0.7rem;
+  border: 1px solid rgb(255 255 255 / 0.13);
+  border-radius: var(--radius-pill);
+  background: rgb(255 255 255 / 0.04);
+  color: rgb(240 225 200 / 0.72);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.18s, color 0.18s, border-color 0.18s;
+}
+
+.battle-home__nav-link:hover,
+.battle-home__nav-link:focus-visible {
+  background: rgb(255 255 255 / 0.1);
+  border-color: rgb(255 255 255 / 0.26);
+  color: #fff;
+}
+
+/* --- Content area background --- */
+.battle-home__content {
+  background: #faf6f0;
+}
+
+/* --- Section headers --- */
+.battle-home__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-block-end: 1rem;
+}
+
+.battle-home__section-header--spaced {
+  margin-block-start: 2.2rem;
+}
+
+.battle-home__section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #2d1e0e;
+  letter-spacing: -0.01em;
+}
+
+/* Pulsing live dot */
+.battle-home__live-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #e8630a;
+  box-shadow: 0 0 0 3px rgb(232 99 10 / 0.18);
+  animation: bh-pulse 1.8s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes bh-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgb(232 99 10 / 0.18); }
+  50%       { box-shadow: 0 0 0 7px rgb(232 99 10 / 0.05); }
+}
+
+/* --- Battle cards for home --- */
+.battle-home__card {
+  border: 1px solid #e2d9cc;
+  background: #fffdf9;
+  border-radius: 10px;
+  padding: 1.1rem 1.2rem;
+  display: grid;
+  gap: 0.42rem;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.battle-home__card:hover {
+  box-shadow: 0 4px 20px rgb(42 18 6 / 0.1);
+  border-color: #c8b09a;
+}
+
+.battle-home__card-status {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8b6438;
+  border-left: 3px solid #e8630a;
+  padding-left: 0.5rem;
+  line-height: 1.4;
+}
+
+.battle-home__card-theme {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.battle-home__card-theme a {
+  color: #2d1e0e;
+  text-decoration: none;
+}
+
+.battle-home__card-theme a:hover {
+  color: #e8630a;
+}
+
+.battle-home__card-vs {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.88rem;
+  flex-wrap: wrap;
+}
+
+.battle-home__card-chef {
+  font-weight: 600;
+  color: #3d2010;
+}
+
+.battle-home__card-sep {
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  color: #e8630a;
+  background: rgb(232 99 10 / 0.1);
+  padding: 0.14rem 0.42rem;
+  border-radius: 4px;
+}
+
+.battle-home__card-meta {
+  font-size: 0.76rem;
+  color: #8b7355;
+  margin: 0;
+}
+
+/* --- Empty states --- */
+.battle-home__empty {
+  display: grid;
+  justify-items: center;
+  gap: 0.55rem;
+  padding: 2.2rem 1.5rem;
+  border: 1px dashed #d8cfc4;
+  border-radius: 10px;
+  text-align: center;
+  background: #faf8f4;
+}
+
+.battle-home__empty--sm {
+  padding: 1.2rem;
+}
+
+.battle-home__empty-headline {
+  font-family: var(--font-serif);
+  font-size: 1.12rem;
+  font-weight: 700;
+  color: #2d1e0e;
+  margin: 0;
+}
+
+.battle-home__empty-sub {
+  font-size: 0.87rem;
+  color: #8b7355;
+  max-width: 44ch;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* --- Results list --- */
+.battle-home__result-row {
+  color: inherit;
+}
+
+.battle-home__result-theme {
+  color: #3d2010;
+  font-weight: 500;
+  font-size: 0.93rem;
+}
+
+.battle-home__result-winner {
+  color: #8b6438;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+/* --- Sidebar panels --- */
+.battle-home__panel {
+  border: 1px solid #e2d9cc;
+  border-radius: 10px;
+  background: #fffdf9;
+  padding: 1.2rem;
+  margin-block-end: 1.1rem;
+}
+
+.battle-home__panel:last-child {
+  margin-block-end: 0;
+}
+
+.battle-home__panel-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8b6438;
+  margin: 0 0 0.9rem;
+  padding-block-end: 0.7rem;
+  border-block-end: 1px solid #ede5d8;
+}
+
+.battle-home__panel-link {
+  display: inline-block;
+  margin-block-start: 0.85rem;
+  font-size: 0.81rem;
+  color: #8b6438;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.battle-home__panel-link:hover {
+  color: #e8630a;
+}
+
+/* --- Top Chefs ranking --- */
+.battle-home__ranking {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+}
+
+.battle-home__ranking-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding-block: 0.58rem;
+  border-block-end: 1px solid #f0e8de;
+}
+
+.battle-home__ranking-row:last-child {
+  border-block-end: 0;
+}
+
+.battle-home__ranking-pos {
+  width: 1.55rem;
+  height: 1.55rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 800;
+  background: #f0e8de;
+  color: #8b7355;
+  flex-shrink: 0;
+}
+
+.battle-home__ranking-row--top1 .battle-home__ranking-pos {
+  background: #c8941a;
+  color: #fff;
+}
+
+.battle-home__ranking-row--top2 .battle-home__ranking-pos {
+  background: #9ca0a4;
+  color: #fff;
+}
+
+.battle-home__ranking-row--top3 .battle-home__ranking-pos {
+  background: #a06840;
+  color: #fff;
+}
+
+.battle-home__ranking-name {
+  flex: 1;
+  font-size: 0.87rem;
+  font-weight: 600;
+  color: #2d1e0e;
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.battle-home__crown {
+  font-size: 0.75rem;
+  margin-right: 0.1rem;
+}
+
+.battle-home__ranking-score {
+  font-size: 0.87rem;
+  font-weight: 800;
+  color: #8b6438;
+  flex-shrink: 0;
+}
+
+/* --- Battle Pulse --- */
+.battle-home__pulse {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+}
+
+.battle-home__pulse-item {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  padding-block: 0.6rem;
+  border-block-end: 1px solid #f0e8de;
+}
+
+.battle-home__pulse-item:last-child {
+  border-block-end: 0;
+}
+
+.battle-home__pulse-icon {
+  font-size: 0.88rem;
+  flex-shrink: 0;
+  margin-top: 0.08rem;
+}
+
+.battle-home__pulse-body {
+  display: grid;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.battle-home__pulse-msg {
+  font-size: 0.84rem;
+  color: #2d1e0e;
+  text-decoration: none;
+  line-height: 1.42;
+}
+
+a.battle-home__pulse-msg:hover {
+  color: #e8630a;
+}
+
+.battle-home__pulse-time {
+  font-size: 0.72rem;
+  color: #a09080;
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  .battle-home__title {
+    font-size: clamp(2.6rem, 13vw, 4.2rem);
+  }
+
+  .battle-home__tagline {
+    font-size: 1.18rem;
+    text-align: center;
+  }
+
+  .battle-home__sub {
+    text-align: center;
+    max-width: 100%;
+  }
+
+  .battle-home__cta-row {
+    justify-content: center;
+  }
+
+  .battle-home__nav-row {
+    justify-content: center;
+  }
+}
