@@ -1,17 +1,17 @@
 ﻿{% extends "base.html" %}
 {% load static %}
 
-{% block title %}Chefs' Battle Guide | CulinEire{% endblock %}
-{% block meta_description %}Everything you need to know about the CulinEire Chefs' Battle Arena: rules, tokens, purchases, rankings, artifacts, gifts and legal information.{% endblock %}
+{% block title %}Chef Battles Guide | CulinEire{% endblock %}
+{% block meta_description %}Everything you need to know about the CulinEire Chef Battles Arena: rules, tokens, purchases, rankings, artifacts, gifts and legal information.{% endblock %}
 
 {% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">{% endblock %}
 
 {% block content %}
 <section class="battle-room-hero">
   <div class="container">
-    <p class="battle-kicker">Chefs' Battle Arena</p>
+    <p class="battle-kicker">Chef Battles Arena</p>
     <h1>Arena Guide</h1>
-    <p class="battle-room-hero__sub">Everything you need to know about the Chefs' Battle Arena, from rules and tokens to legal information.</p>
+    <p class="battle-room-hero__sub">Everything you need to know about the Chef Battles Arena, from rules and tokens to legal information.</p>
     <div class="battle-actions">
       <a class="btn-primary" href="{% url 'chef_battle:home' %}">Enter Arena</a>
       <a class="btn-secondary" href="{% url 'chef_battle:rules' %}">Rules</a>
@@ -28,7 +28,7 @@
       type="search"
       placeholder="Search the guide..."
       autocomplete="off"
-      aria-label="Search Chefs' Battle guide"
+      aria-label="Search Chef Battles guide"
     >
   </div>
 
@@ -38,7 +38,7 @@
 
     <section class="battle-guide-section" id="getting-started" data-section="Getting Started">
       <h2 class="battle-guide-section__heading">Getting Started</h2>
-      <p class="battle-guide-section__intro">New to the arena? Start here for an overview of how Chefs' Battle works.</p>
+      <p class="battle-guide-section__intro">New to the arena? Start here for an overview of how Chef Battles works.</p>
       <div class="battle-guide-grid">
         <a class="battle-guide-card" href="{% url 'chef_battle:home' %}" data-keywords="arena home overview what is chef battle">
           <span class="battle-guide-card__label">Overview</span>
@@ -65,12 +65,12 @@
 
     <section class="battle-guide-section" id="battle-rules" data-section="Battle Rules">
       <h2 class="battle-guide-section__heading">Battle Rules</h2>
-      <p class="battle-guide-section__intro">The complete rulebook for competing in the Chefs' Battle Arena.</p>
+      <p class="battle-guide-section__intro">The complete rulebook for competing in the Chef Battles Arena.</p>
       <div class="battle-guide-grid">
         <a class="battle-guide-card battle-guide-card--primary" href="{% url 'chef_battle:rules' %}" data-keywords="rules all complete full rulebook">
           <span class="battle-guide-card__label">Full rules</span>
           <h3>Complete Rulebook</h3>
-          <p>All 13 sections of the official Chefs' Battle rules in one place.</p>
+          <p>All 13 sections of the official Chef Battles rules in one place.</p>
         </a>
         <a class="battle-guide-card" href="{% url 'chef_battle:rules' %}#3" data-keywords="combat phase attack defense moves">
           <span class="battle-guide-card__label">Section 3</span>
@@ -188,7 +188,7 @@
 
     <section class="battle-guide-section" id="legal" data-section="Legal and Policies">
       <h2 class="battle-guide-section__heading">Legal &amp; Policies</h2>
-      <p class="battle-guide-section__intro">Policies and legal documents that apply to Chefs' Battle Arena participation and purchases.</p>
+      <p class="battle-guide-section__intro">Policies and legal documents that apply to Chef Battles Arena participation and purchases.</p>
       <div class="battle-guide-grid">
         <a class="battle-guide-card" href="{% url 'legal:purchases_and_vat' %}" data-keywords="purchases vat tax payment stripe invoice refund legal">
           <span class="battle-guide-card__label">Payments</span>

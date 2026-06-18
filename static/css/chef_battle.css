@@ -2379,6 +2379,7 @@ a.battle-pulse-item__msg:hover {
 
 /* --- Hero: warm chocolate arena overlay --- */
 .battle-home {
+  background-position: center 78%;
   padding-block: 0;
 }
 

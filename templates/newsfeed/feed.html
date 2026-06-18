@@ -25,12 +25,12 @@
     <div class="hero-copy hero-copy--center">
       <span class="pill">Latest News</span>
       <h1 class="hero-title">CulinEire News</h1>
-      <p class="hero-subtitle">Recipes, articles, Chefs' Battle events, release notes and site announcements.</p>
+      <p class="hero-subtitle">Recipes, articles, Chef Battles events, release notes and site announcements.</p>
       <div class="hero__actions">
         <a class="btn-primary" href="#news-feed">Latest Updates</a>
         <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Recipes</a>
         <a class="btn-secondary" href="{% url 'articles:article_list' %}">Articles</a>
-        <a class="btn-secondary" href="{% url 'chef_battle:home' %}">Chefs' Battle</a>
+        <a class="btn-secondary" href="{% url 'chef_battle:home' %}">Chef Battles</a>
       </div>
     </div>
     {% include '_hero_battle_panel.html' %}
@@ -44,7 +44,7 @@
       <span class="section-kicker">Public site journal</span>
       <h2 id="news-feed-title">What Changed Recently</h2>
       <p>
-        A chronological record of public content, platform updates and Chefs' Battle activity.
+        A chronological record of public content, platform updates and Chef Battles activity.
         Use the filters to focus the feed without leaving the page.
       </p>
     </div>

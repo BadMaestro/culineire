@@ -3,8 +3,8 @@ RELEASE_JOURNAL = [
         "version": "feature/chef-battle-home-redesign",
         "date": "2026-06-19",
         "commit": "70a47ea",
-        "title": "Chefs' Battle Home Page — Visual Redesign",
-        "section": "Chefs' Battle / Frontend",
+        "title": "Chef Battles Home Page — Visual Redesign",
+        "section": "Chef Battles / Frontend",
         "summary": (
             "Full visual redesign of the /chef-battle/ home page. "
             "The page now carries a warm arena identity: chocolate-toned hero gradient, "
@@ -44,17 +44,17 @@ RELEASE_JOURNAL = [
         "version": "feature/chef-battle",
         "date": "2026-06-10",
         "commit": "0cfe995",
-        "title": "Chefs' Battle — Phase 1 progress: Admin, selectors, expiry, tests",
-        "section": "Chefs' Battle / Backend",
+        "title": "Chef Battles — Phase 1 progress: Admin, selectors, expiry, tests",
+        "section": "Chef Battles / Backend",
         "summary": (
-            "Four solid sessions of backend groundwork for Chefs' Battle. "
+            "Four solid sessions of backend groundwork for Chef Battles. "
             "Every model is now fully visible in Django Admin with filters, search and read-only timestamps. "
             "Staff have seven one-click actions to manage battles without touching the database directly. "
             "All read queries were extracted into a clean selectors.py layer — views no longer build "
             "QuerySets inline. The system now handles the full no-show scenario: if a chef doesn't submit "
             "before the deadline, their opponent wins by forfeit; if both miss it, the battle is cancelled. "
             "A management command covers challenge expiry and no-shows in one scheduled job. "
-            "On top of all that, the public homepage now has an Announcements block teasing Chefs' Battle "
+            "On top of all that, the public homepage now has an Announcements block teasing Chef Battles "
             "to every visitor, and a management command is ready to post the news to the site feed and Telegram. "
             "The test suite grew from 5 to 20 tests, all green."
         ),
@@ -105,13 +105,13 @@ RELEASE_JOURNAL = [
         "version": "feature/chef-battle",
         "date": "2026-06-10",
         "commit": "09178e6",
-        "title": "Chefs' Battle — Phase 0: Core model foundation + access control",
-        "section": "Chefs' Battle / Backend",
+        "title": "Chef Battles — Phase 0: Core model foundation + access control",
+        "section": "Chef Battles / Backend",
         "summary": (
-            "We started building Chefs' Battle — the new culinary PvP system for CulinEire. "
+            "We started building Chef Battles — the new culinary PvP system for CulinEire. "
             "The full ТЗ was loaded, every gap between the existing code and the spec was identified, "
             "and all missing model fields were added in one migration. "
-            "A proper access control layer was introduced: Chefs' Battle is completely invisible "
+            "A proper access control layer was introduced: Chef Battles is completely invisible "
             "to regular and anonymous users until the public launch flag is set. "
             "Admins and superusers can preview everything as it will look, right now."
         ),
@@ -401,7 +401,7 @@ import subprocess
 def _detect_section(subject: str, body: str) -> str:
     text = (subject + " " + body).lower()
     if "chef" in text and "battle" in text:
-        return "Chefs' Battle"
+        return "Chef Battles"
     if "recipe" in text:
         return "Recipes"
     if "article" in text:

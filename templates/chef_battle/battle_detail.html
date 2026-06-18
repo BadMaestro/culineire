@@ -1,14 +1,14 @@
 ﻿{% extends "base.html" %}
 {% load static author_tags %}
 
-{% block title %}{{ battle.theme }} | Chefs' Battle{% endblock %}
+{% block title %}{{ battle.theme }} | Chef Battles{% endblock %}
 {% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">{% endblock %}
 
 {% block content %}
 <section class="battle-room-hero">
   <div class="container">
     <a class="battle-back-link" href="{% url 'chef_battle:home' %}">&larr; Arena</a>
-    <p class="battle-kicker">{{ battle.get_status_display }} Chefs' Battle</p>
+    <p class="battle-kicker">{{ battle.get_status_display }} Chef Battles</p>
     <h1>{{ battle.theme }}</h1>
 
     <div class="battle-vs">
