@@ -338,7 +338,7 @@ def publish_ab_to_telegram(ab) -> TelegramResult:
     except Exception:
         logger.exception("Failed to prepare Pinch Telegram preview image for pk=%s", getattr(ab, "pk", None))
     return _publish_to_telegram(
-        event_key=f"amuse_bouche_published:{ab.pk}",
+        event_key=f"pinch_published:{ab.pk}",
         message=build_ab_direct_telegram_message(ab),
         target_url=ab.get_absolute_url(),
         _send_fn=lambda text: send_telegram_message_with_link_preview(text, preview_url=preview_url),
@@ -399,7 +399,7 @@ def publish_sponsor_to_telegram(application) -> TelegramResult:
 
 def publish_newsfeed_entry_to_telegram(entry, *, message: str | None = None, event_key: str | None = None) -> TelegramResult:
     from newsfeed.models import NewsFeedEntry as _NewsFeedEntry
-    if entry.entry_type == _NewsFeedEntry.EntryType.AMUSE_BOUCHE_PUBLISHED:
+    if entry.entry_type == _NewsFeedEntry.EntryType.PINCH_PUBLISHED:
         return _publish_to_telegram(
             event_key=event_key or f"newsfeed_entry:{entry.pk}",
             message=message or build_ab_telegram_message(entry),

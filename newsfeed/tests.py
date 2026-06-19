@@ -390,7 +390,7 @@ class PinchTelegramMessageTest(TestCase):
     def _make_entry(self, title="Tuna, Egg and Potato Salad", url="/pinch/tuna-egg-and-potato-salad/"):
         from newsfeed.models import NewsFeedEntry
         return NewsFeedEntry(
-            entry_type=NewsFeedEntry.EntryType.AMUSE_BOUCHE_PUBLISHED,
+            entry_type=NewsFeedEntry.EntryType.PINCH_PUBLISHED,
             title=title,
             message="GreenBear: A simple layered salad of tender potatoes.",
             url=url,

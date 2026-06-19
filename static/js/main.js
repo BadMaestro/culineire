@@ -343,7 +343,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ==== Amuse-Bouche 3-dot menus ====
+  // ==== Pinch 3-dot menus ====
   document.querySelectorAll("[data-ab-menu]").forEach((menu) => {
     const trigger = menu.querySelector(".ab-menu__trigger");
     const list = menu.querySelector(".ab-menu__list");
@@ -391,7 +391,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // ==== Amuse-Bouche share buttons ====
+  // ==== Pinch share buttons ====
   document.querySelectorAll("[data-ab-share]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const url = btn.dataset.abShare;
@@ -407,7 +407,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // ==== Amuse-Bouche bottom sheet (slide-up) ====
+  // ==== Pinch bottom sheet (slide-up) ====
   const closeAllSheets = () => {
     document.querySelectorAll(".ab-card__sheet.is-open").forEach((s) => {
       s.classList.remove("is-open");
@@ -469,7 +469,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.setAttribute("aria-label", open ? "Hide navigation" : "Show navigation");
   });
 
-  // ==== Amuse-Bouche like / save — AJAX toggle (no page reload, no scroll reset) ====
+  // ==== Pinch like / save — AJAX toggle (no page reload, no scroll reset) ====
   document.addEventListener("submit", (e) => {
     const form = e.target.closest(".ab-action-form");
     if (!form) return;

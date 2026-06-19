@@ -65,7 +65,7 @@ class PinchAdmin(admin.ModelAdmin):
 
 @admin.register(PinchGalleryImage)
 class PinchGalleryImageAdmin(admin.ModelAdmin):
-    list_display = ("amuse_bouche", "sort_order", "is_active", "created_at")
+    list_display = ("pinch", "sort_order", "is_active", "created_at")
     list_filter = ("is_active", "created_at")
-    search_fields = ("amuse_bouche__title", "alt_text", "caption")
-    autocomplete_fields = ("amuse_bouche",)
+    search_fields = ("pinch__title", "alt_text", "caption")
+    autocomplete_fields = ("pinch",)

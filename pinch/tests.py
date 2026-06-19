@@ -1135,7 +1135,7 @@ class PinchCommentSafetyTests(TestCase):
         from .models import PinchComment
 
         comment = PinchComment.objects.create(
-            amuse_bouche=self.item, user=self.user, body="to be removed"
+            pinch=self.item, user=self.user, body="to be removed"
         )
         user_model = get_user_model()
         moderator = user_model.objects.create_user(
@@ -1155,7 +1155,7 @@ class PinchCommentSafetyTests(TestCase):
         from .models import PinchComment
 
         comment = PinchComment.objects.create(
-            amuse_bouche=self.item, user=self.user, body="protected"
+            pinch=self.item, user=self.user, body="protected"
         )
         user_model = get_user_model()
         stranger = user_model.objects.create_user(username="stranger", password="pass")

@@ -17,8 +17,8 @@ _FEED_FILTERS = (
         "pinch",
         "Pinch",
         (
-            NewsFeedEntry.EntryType.AMUSE_BOUCHE_PUBLISHED,
-            NewsFeedEntry.EntryType.AMUSE_BOUCHE_FEATURED,
+            NewsFeedEntry.EntryType.PINCH_PUBLISHED,
+            NewsFeedEntry.EntryType.PINCH_FEATURED,
         ),
     ),
     ("battle", "Chef Battle", (NewsFeedEntry.EntryType.BATTLE_EVENT,)),
@@ -73,8 +73,8 @@ def feed(request):
         for entry_type in (
             NewsFeedEntry.EntryType.RECIPE_PUBLISHED,
             NewsFeedEntry.EntryType.ARTICLE_PUBLISHED,
-            NewsFeedEntry.EntryType.AMUSE_BOUCHE_PUBLISHED,
-            NewsFeedEntry.EntryType.AMUSE_BOUCHE_FEATURED,
+            NewsFeedEntry.EntryType.PINCH_PUBLISHED,
+            NewsFeedEntry.EntryType.PINCH_FEATURED,
         )
     )
     site_update_count = sum(

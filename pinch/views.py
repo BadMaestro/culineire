@@ -197,7 +197,7 @@ def detail(request, slug):
     can_moderate = is_moderator(request.user)
     can_edit = can_moderate or user_can_manage_author(request.user, item.author)
     comments = (
-        PinchComment.objects.filter(amuse_bouche=item, is_deleted=False)
+        PinchComment.objects.filter(pinch=item, is_deleted=False)
         .select_related("user", "user__recipe_author_profile")
         .order_by("created_at")
         if item.allow_comments else []
@@ -606,7 +606,7 @@ def comments_panel(request, slug):
     comments = []
     if item.allow_comments:
         comments = list(
-            PinchComment.objects.filter(amuse_bouche=item, is_deleted=False, parent__isnull=True)
+            PinchComment.objects.filter(pinch=item, is_deleted=False, parent__isnull=True)
             .select_related("user", "user__recipe_author_profile")
             .prefetch_related(
                 Prefetch(
@@ -618,7 +618,7 @@ def comments_panel(request, slug):
             )
             .order_by("created_at")
         )
-    total = PinchComment.objects.filter(amuse_bouche=item, is_deleted=False).count()
+    total = PinchComment.objects.filter(pinch=item, is_deleted=False).count()
     html = render_to_string(
         "pinch/comments_panel.html",
         {
@@ -674,19 +674,19 @@ def submit_comment(request, slug):
         try:
             target = PinchComment.objects.get(
                 pk=int(parent_id_raw),
-                amuse_bouche=item,
+                pinch=item,
                 is_deleted=False,
             )
             # If replying to a reply, attach to its root parent instead
             parent = target if target.parent_id is None else PinchComment.objects.get(
                 pk=target.parent_id,
-                amuse_bouche=item,
+                pinch=item,
                 is_deleted=False,
             )
         except (PinchComment.DoesNotExist, ValueError):
             if is_fetch:
                 return JsonResponse({"ok": False, "error": "invalid_parent"}, status=400)
-    comment = PinchComment.objects.create(amuse_bouche=item, user=request.user, body=body, parent=parent)
+    comment = PinchComment.objects.create(pinch=item, user=request.user, body=body, parent=parent)
     track_event(request, "pinch_comment", object_type="pinch", object_id=item.pk, object_title=item.title)
     if is_fetch:
         comment_html = render_to_string(
@@ -700,7 +700,7 @@ def submit_comment(request, slug):
             },
             request=request,
         )
-        total = PinchComment.objects.filter(amuse_bouche=item, is_deleted=False).count()
+        total = PinchComment.objects.filter(pinch=item, is_deleted=False).count()
         return JsonResponse({
             "ok": True,
             "comment_html": comment_html,
@@ -716,14 +716,14 @@ def submit_comment(request, slug):
 def delete_comment(request, slug, comment_id):
     """Soft-delete a comment. Only the commenter or a moderator can delete."""
     item = get_object_or_404(Pinch, slug=slug)
-    comment = get_object_or_404(PinchComment, pk=comment_id, amuse_bouche=item, is_deleted=False)
+    comment = get_object_or_404(PinchComment, pk=comment_id, pinch=item, is_deleted=False)
     if comment.user != request.user and not is_moderator(request.user):
         raise Http404
     comment.is_deleted = True
     comment.save(update_fields=["is_deleted"])
     is_fetch = request.headers.get("X-AB-Fetch") == "1"
     if is_fetch:
-        total = PinchComment.objects.filter(amuse_bouche=item, is_deleted=False).count()
+        total = PinchComment.objects.filter(pinch=item, is_deleted=False).count()
         return JsonResponse({"ok": True, "comment_id": comment_id, "count": total})
     messages.success(request, "Comment removed.")
     return redirect(item.get_absolute_url())

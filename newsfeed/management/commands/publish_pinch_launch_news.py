@@ -2,12 +2,12 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from newsfeed.launch_copy import (
-    AMUSE_BOUCHE_LAUNCH_EVENT_KEY,
-    AMUSE_BOUCHE_LAUNCH_MESSAGE,
-    AMUSE_BOUCHE_LAUNCH_TELEGRAM_MESSAGE,
-    AMUSE_BOUCHE_LAUNCH_TITLE,
-    AMUSE_BOUCHE_LAUNCH_URL,
-    AMUSE_BOUCHE_LAUNCH_VERSION,
+    PINCH_LAUNCH_EVENT_KEY,
+    PINCH_LAUNCH_MESSAGE,
+    PINCH_LAUNCH_TELEGRAM_MESSAGE,
+    PINCH_LAUNCH_TITLE,
+    PINCH_LAUNCH_URL,
+    PINCH_LAUNCH_VERSION,
 )
 from newsfeed.models import NewsFeedEntry
 from newsfeed.telegram import publish_newsfeed_entry_to_telegram
@@ -24,27 +24,27 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        entry = NewsFeedEntry.objects.filter(event_key=AMUSE_BOUCHE_LAUNCH_EVENT_KEY).first()
+        entry = NewsFeedEntry.objects.filter(event_key=PINCH_LAUNCH_EVENT_KEY).first()
         created = entry is None
 
         if created:
             entry = NewsFeedEntry.objects.create(
-                event_key=AMUSE_BOUCHE_LAUNCH_EVENT_KEY,
+                event_key=PINCH_LAUNCH_EVENT_KEY,
                 entry_type=NewsFeedEntry.EntryType.VERSION_RELEASE,
-                title=AMUSE_BOUCHE_LAUNCH_TITLE,
-                message=AMUSE_BOUCHE_LAUNCH_MESSAGE,
-                url=AMUSE_BOUCHE_LAUNCH_URL,
-                version=AMUSE_BOUCHE_LAUNCH_VERSION,
+                title=PINCH_LAUNCH_TITLE,
+                message=PINCH_LAUNCH_MESSAGE,
+                url=PINCH_LAUNCH_URL,
+                version=PINCH_LAUNCH_VERSION,
                 is_public=False,
                 is_auto=False,
                 published_at=timezone.now(),
             )
         else:
             entry.entry_type = NewsFeedEntry.EntryType.VERSION_RELEASE
-            entry.title = AMUSE_BOUCHE_LAUNCH_TITLE
-            entry.message = AMUSE_BOUCHE_LAUNCH_MESSAGE
-            entry.url = AMUSE_BOUCHE_LAUNCH_URL
-            entry.version = AMUSE_BOUCHE_LAUNCH_VERSION
+            entry.title = PINCH_LAUNCH_TITLE
+            entry.message = PINCH_LAUNCH_MESSAGE
+            entry.url = PINCH_LAUNCH_URL
+            entry.version = PINCH_LAUNCH_VERSION
             entry.is_auto = False
 
         entry.is_public = True
@@ -71,8 +71,8 @@ class Command(BaseCommand):
 
         result = publish_newsfeed_entry_to_telegram(
             entry,
-            message=AMUSE_BOUCHE_LAUNCH_TELEGRAM_MESSAGE,
-            event_key=f"newsfeed_launch:{AMUSE_BOUCHE_LAUNCH_EVENT_KEY}",
+            message=PINCH_LAUNCH_TELEGRAM_MESSAGE,
+            event_key=f"newsfeed_launch:{PINCH_LAUNCH_EVENT_KEY}",
         )
         if result.status == "sent":
             self.stdout.write(self.style.SUCCESS("Telegram status: sent"))

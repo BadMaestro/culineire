@@ -166,7 +166,7 @@ def create_newsfeed_entry_on_approval(sender, instance, **kwargs):
         NewsFeedEntry.objects.update_or_create(
             event_key=event_key,
             defaults={
-                "entry_type": NewsFeedEntry.EntryType.AMUSE_BOUCHE_PUBLISHED,
+                "entry_type": NewsFeedEntry.EntryType.PINCH_PUBLISHED,
                 "title": instance.title,
                 "message": message,
                 "url": instance.get_absolute_url(),

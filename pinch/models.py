@@ -142,7 +142,7 @@ class Pinch(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="moderated_amuse_bouche_items",
+        related_name="moderated_pinch_items",
     )
     moderated_at = models.DateTimeField(null=True, blank=True)
 
@@ -192,7 +192,7 @@ class Pinch(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="confirmed_amuse_bouche_items",
+        related_name="confirmed_pinch_items",
         verbose_name="Confirmed by",
         editable=False,
     )
@@ -218,7 +218,6 @@ class Pinch(models.Model):
         ]
         verbose_name = "Pinch"
         verbose_name_plural = "Pinch"
-        db_table = "amuse_bouche_amusebouche"
 
     def __str__(self) -> str:
         return self.title
@@ -332,7 +331,7 @@ class Pinch(models.Model):
 
 
 class PinchGalleryImage(models.Model):
-    amuse_bouche = models.ForeignKey(
+    pinch = models.ForeignKey(
         Pinch,
         on_delete=models.CASCADE,
         related_name="gallery_images",
@@ -348,10 +347,9 @@ class PinchGalleryImage(models.Model):
         ordering = ["sort_order", "id"]
         verbose_name = "Pinch gallery image"
         verbose_name_plural = "Pinch gallery images"
-        db_table = "amuse_bouche_amusebouchegalleryimage"
 
     def __str__(self) -> str:
-        return f"{self.amuse_bouche.title} - image {self.id}"
+        return f"{self.pinch.title} - image {self.id}"
 
 
 class PinchComment(models.Model):
@@ -361,7 +359,7 @@ class PinchComment(models.Model):
     has access to the Pinch public area.
     """
 
-    amuse_bouche = models.ForeignKey(
+    pinch = models.ForeignKey(
         Pinch,
         on_delete=models.CASCADE,
         related_name="comments",
@@ -385,11 +383,10 @@ class PinchComment(models.Model):
     class Meta:
         ordering = ["created_at"]
         indexes = [
-            models.Index(fields=["amuse_bouche", "is_deleted", "created_at"]),
+            models.Index(fields=["pinch", "is_deleted", "created_at"]),
         ]
         verbose_name = "Pinch comment"
         verbose_name_plural = "Pinch comments"
-        db_table = "amuse_bouche_amusebouchecomment"
 
     def __str__(self) -> str:
-        return f"{self.user} on {self.amuse_bouche.title[:40]}"
+        return f"{self.user} on {self.pinch.title[:40]}"

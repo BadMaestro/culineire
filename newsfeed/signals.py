@@ -105,7 +105,7 @@ def on_article_delete(sender, instance, **kwargs):
     _hide_auto_entry(f"article_published:{instance.pk}")
 
 
-_DIRECT_TELEGRAM_ENTRY_TYPES = {"recipe_published", "article_published", "amuse_bouche_published"}
+_DIRECT_TELEGRAM_ENTRY_TYPES = {"recipe_published", "article_published", "pinch_published"}
 
 
 def on_newsfeed_entry_save(sender, instance, created, **kwargs):

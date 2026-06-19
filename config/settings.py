@@ -174,7 +174,7 @@ MONITORING_EXCLUDED_PATH_PREFIXES = [
     "/presence/",
 ]
 
-PINCH_PUBLIC = env_bool("AMUSE_BOUCHE_PUBLIC", default=True)  # env var name kept for backwards compat
+PINCH_PUBLIC = env_bool("PINCH_PUBLIC", default=True)
 
 ROOT_URLCONF = "config.urls"
 

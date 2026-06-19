@@ -7,8 +7,8 @@ class NewsFeedEntry(models.Model):
     class EntryType(models.TextChoices):
         RECIPE_PUBLISHED = "recipe_published", "Recipe Published"
         ARTICLE_PUBLISHED = "article_published", "Article Published"
-        AMUSE_BOUCHE_PUBLISHED = "amuse_bouche_published", "Pinch Published"
-        AMUSE_BOUCHE_FEATURED = "amuse_bouche_featured", "Pinch Featured"
+        PINCH_PUBLISHED = "pinch_published", "Pinch Published"
+        PINCH_FEATURED = "pinch_featured", "Pinch Featured"
         SITE_UPDATE = "site_update", "Site Update"
         SECURITY_UPDATE = "security_update", "Security Update"
         VERSION_RELEASE = "version_release", "Version Release"

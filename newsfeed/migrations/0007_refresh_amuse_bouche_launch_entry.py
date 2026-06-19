@@ -2,24 +2,24 @@ from django.db import migrations
 from django.utils import timezone
 
 from newsfeed.launch_copy import (
-    AMUSE_BOUCHE_LAUNCH_EVENT_KEY,
-    AMUSE_BOUCHE_LAUNCH_MESSAGE,
-    AMUSE_BOUCHE_LAUNCH_TITLE,
-    AMUSE_BOUCHE_LAUNCH_URL,
-    AMUSE_BOUCHE_LAUNCH_VERSION,
+    PINCH_LAUNCH_EVENT_KEY,
+    PINCH_LAUNCH_MESSAGE,
+    PINCH_LAUNCH_TITLE,
+    PINCH_LAUNCH_URL,
+    PINCH_LAUNCH_VERSION,
 )
 
 
 def refresh_amuse_bouche_launch_entry(apps, schema_editor):
     NewsFeedEntry = apps.get_model("newsfeed", "NewsFeedEntry")
     NewsFeedEntry.objects.update_or_create(
-        event_key=AMUSE_BOUCHE_LAUNCH_EVENT_KEY,
+        event_key=PINCH_LAUNCH_EVENT_KEY,
         defaults={
             "entry_type": "version_release",
-            "title": AMUSE_BOUCHE_LAUNCH_TITLE,
-            "message": AMUSE_BOUCHE_LAUNCH_MESSAGE,
-            "url": AMUSE_BOUCHE_LAUNCH_URL,
-            "version": AMUSE_BOUCHE_LAUNCH_VERSION,
+            "title": PINCH_LAUNCH_TITLE,
+            "message": PINCH_LAUNCH_MESSAGE,
+            "url": PINCH_LAUNCH_URL,
+            "version": PINCH_LAUNCH_VERSION,
             "is_public": True,
             "is_auto": False,
             "published_at": timezone.now(),
