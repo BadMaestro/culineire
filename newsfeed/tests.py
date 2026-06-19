@@ -6,7 +6,7 @@ from django.core.management import call_command
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
-from newsfeed.launch_copy import AMUSE_BOUCHE_LAUNCH_EVENT_KEY, AMUSE_BOUCHE_LAUNCH_TITLE
+from newsfeed.launch_copy import PINCH_LAUNCH_EVENT_KEY, PINCH_LAUNCH_TITLE
 from newsfeed.models import NewsFeedEntry, SocialPostLog
 from newsfeed.telegram import TelegramResult
 
@@ -547,10 +547,10 @@ class PinchLaunchNewsCommandTest(TestCase):
     def test_command_creates_public_news_and_pushes_telegram_once(self, send_telegram_message):
         send_telegram_message.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
 
-        call_command("publish_amuse_bouche_launch_news")
+        call_command("publish_pinch_launch_news")
 
-        entry = NewsFeedEntry.objects.get(event_key=AMUSE_BOUCHE_LAUNCH_EVENT_KEY)
-        self.assertEqual(entry.title, AMUSE_BOUCHE_LAUNCH_TITLE)
+        entry = NewsFeedEntry.objects.get(event_key=PINCH_LAUNCH_EVENT_KEY)
+        self.assertEqual(entry.title, PINCH_LAUNCH_TITLE)
         self.assertTrue(entry.is_public)
         self.assertFalse(entry.is_auto)
         self.assertIn("mobile-first feed", entry.message)
@@ -559,12 +559,12 @@ class PinchLaunchNewsCommandTest(TestCase):
         self.assertTrue(
             SocialPostLog.objects.filter(
                 platform=SocialPostLog.Platform.TELEGRAM,
-                event_key=f"newsfeed_launch:{AMUSE_BOUCHE_LAUNCH_EVENT_KEY}",
+                event_key=f"newsfeed_launch:{PINCH_LAUNCH_EVENT_KEY}",
                 status=SocialPostLog.Status.SENT,
             ).exists()
         )
 
-        call_command("publish_amuse_bouche_launch_news")
+        call_command("publish_pinch_launch_news")
 
         self.assertEqual(send_telegram_message.call_count, 1)
 
