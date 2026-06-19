@@ -41,8 +41,10 @@ urlpatterns = [
     # Articles
     path("articles/", include("articles.urls", namespace="articles")),
 
-    # Amuse-Bouche
-    path("amuse-bouche/", include("amuse_bouche.urls", namespace="amuse_bouche")),
+    # Pinch (was Pinch)
+    path("pinch/", include("pinch.urls", namespace="pinch")),
+    path("amuse-bouche/", RedirectView.as_view(url="/pinch/", permanent=True)),
+    re_path(r"^amuse-bouche/(?P<rest>.+)$", lambda req, rest: __import__("django.http", fromlist=["HttpResponsePermanentRedirect"]).HttpResponsePermanentRedirect(f"/pinch/{rest}")),
 
     # Messaging
     path("messages/", include("messaging.urls", namespace="messaging")),

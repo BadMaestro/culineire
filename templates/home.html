@@ -15,8 +15,8 @@
 
 {% block extra_head %}
 <link href="{% static 'css/hero_switcher.css' %}" rel="stylesheet">
-{% if latest_amuse_bouche %}
-<link href="{% static 'css/amuse_bouche.css' %}" rel="stylesheet">
+{% if latest_pinch %}
+<link href="{% static 'css/pinch.css' %}" rel="stylesheet">
 {% endif %}
 {% endblock %}
 
@@ -27,7 +27,7 @@
             <picture><source srcset="{% static 'images/hero.webp' %}" type="image/webp"><img alt="" fetchpriority="high" loading="eager" width="1916" height="821" src="{% static 'images/hero.png' %}"></picture>
         </div>
         <div class="hero__slide">
-            <picture><source srcset="{% static 'images/hero-amuse-bouche.webp' %}" type="image/webp"><img alt="" loading="lazy" width="1672" height="941" src="{% static 'images/hero-amuse-bouche.png' %}"></picture>
+            <picture><source srcset="{% static 'images/hero-pinch.webp' %}" type="image/webp"><img alt="" loading="lazy" width="1672" height="941" src="{% static 'images/hero-pinch.png' %}"></picture>
         </div>
         <div class="hero__slide">
             <picture><source srcset="{% static 'images/hero-recipes.webp' %}" type="image/webp"><img alt="" loading="lazy" width="1672" height="941" src="{% static 'images/hero-recipes.png' %}"></picture>
@@ -59,8 +59,8 @@
                     </svg>
                 </button>
                 <div class="hero__actions-list">
-                    {% if can_view_amuse_bouche_public_area %}
-                    <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
+                    {% if can_view_pinch_public_area %}
+                    <a class="btn-primary" href="{% url 'pinch:feed' %}">Pinch</a>
                     {% endif %}
                     <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
                     <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
@@ -105,7 +105,7 @@
                 <div class="announcements-grid__body">
                     <h3 class="announcements-grid__title">A New Kind of Culinary Competition Is Coming To CulinEire</h3>
                     <p class="announcements-grid__text">
-                        We are building something ambitious: a live culinary duelling arena where chefs challenge each other, cook to a theme, and let the community decide who wins. Ranked battles, seasonal leaderboards, crowns for the best in the kitchen. Watch this space.
+                        We are building something ambitious: a live culinary duelling arena where Chefs challenge each other, cook to a theme, and let the community decide who wins. Ranked battles, seasonal leaderboards, crowns for the best in the kitchen. Watch this space.
                     </p>
                     <p class="announcements-grid__cta-note">No sign-up required to watch. Authors can register when the arena opens.</p>
                     <div class="announcements-grid__footer">
@@ -130,28 +130,28 @@
     </div>
 </section>
 
-{% if latest_amuse_bouche %}
+{% if latest_pinch %}
 <section class="page-section">
     <div class="container">
         <div class="page-header">
             <div>
                 <h2>Quick Bites From The Kitchen</h2>
             </div>
-            {% if can_view_amuse_bouche_public_area %}
-            <a class="text-link" href="{% url 'amuse_bouche:feed' %}">See all</a>
+            {% if can_view_pinch_public_area %}
+            <a class="text-link" href="{% url 'pinch:feed' %}">See all</a>
             {% endif %}
         </div>
-        <p class="page-subtitle">Irish bites, chef tricks and quick ideas from the CulinEire kitchen.</p>
+        <p class="page-subtitle">Irish bites, Chef tricks and quick ideas from the CulinEire kitchen.</p>
 
         <div class="content-showcase content-showcase--carousel" data-card-carousel>
-            <p class="content-showcase__eyebrow">Latest From Amuse-Bouche</p>
+            <p class="content-showcase__eyebrow">Latest From Pinch</p>
             <div class="content-carousel">
                 <button aria-label="Scroll bites left" class="content-carousel__button content-carousel__button--prev" data-carousel-prev type="button">
                     <svg aria-hidden="true" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="11 6 5 12 11 18"/></svg>
                 </button>
                 <div class="ab-home-carousel" data-carousel-track>
-                    {% for bite in latest_amuse_bouche %}
-                    {% include "amuse_bouche/item_card_home.html" with item=bite %}
+                    {% for bite in latest_pinch %}
+                    {% include "pinch/item_card_home.html" with item=bite %}
                     {% endfor %}
                 </div>
                 <button aria-label="Scroll bites right" class="content-carousel__button content-carousel__button--next" data-carousel-next type="button">

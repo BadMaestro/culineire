@@ -1,32 +1,32 @@
 {% extends "base.html" %}
 {% load static %}
-{% block og_image %}{{ SITE_URL }}{% static 'images/hero-amuse-bouche.png' %}{% endblock %}
-{% block og_image_secure_url %}{{ SITE_URL }}{% static 'images/hero-amuse-bouche.png' %}{% endblock %}
-{% block og_image_alt %}Amuse-Bouche - Small Bites from the CulinEire Kitchen{% endblock %}
-{% block twitter_image %}{{ SITE_URL }}{% static 'images/hero-amuse-bouche.png' %}{% endblock %}
+{% block og_image %}{{ SITE_URL }}{% static 'images/hero-pinch.png' %}{% endblock %}
+{% block og_image_secure_url %}{{ SITE_URL }}{% static 'images/hero-pinch.png' %}{% endblock %}
+{% block og_image_alt %}Pinch - Small Bites from the CulinEire Kitchen{% endblock %}
+{% block twitter_image %}{{ SITE_URL }}{% static 'images/hero-pinch.png' %}{% endblock %}
 
-{% block title %}Amuse-Bouche | CulinEire{% endblock %}
+{% block title %}Pinch | CulinEire{% endblock %}
 {% block meta_description %}Small bites, big ideas from the CulinEire kitchen.{% endblock %}
 {% block extra_head %}
-<link href="{% static 'css/amuse_bouche.css' %}" rel="stylesheet">
+<link href="{% static 'css/pinch.css' %}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
 
 {# ── Hero ── #}
-<section class="hero hero--home hero--amuse-bouche{% if chef_battle_enabled %} hero--has-battle{% endif %}">
+<section class="hero hero--home hero--pinch{% if chef_battle_enabled %} hero--has-battle{% endif %}">
     <div aria-hidden="true" class="hero__background">
-        <picture><source srcset="{% static 'images/hero-amuse-bouche.webp' %}" type="image/webp"><img alt="" width="1672" height="941" src="{% static 'images/hero-amuse-bouche.png' %}"></picture>
+        <picture><source srcset="{% static 'images/hero-pinch.webp' %}" type="image/webp"><img alt="" width="1672" height="941" src="{% static 'images/hero-pinch.png' %}"></picture>
     </div>
     <div aria-hidden="true" class="hero__overlay"></div>
     <div class="container hero__inner">
         <div class="hero-copy">
             <span class="pill">Kitchen Notes</span>
-            <h1 class="hero-title">Amuse-Bouche</h1>
+            <h1 class="hero-title">Pinch</h1>
             <p class="hero-subtitle">Shorts for food ideas. A recipe, article or author note can become a quick bite: a sauce, plating idea, drink, kitchen trick or Irish food spark. Short, clear, useful.</p>
             {% if show_author_create_action %}
             <div class="hero__actions">
-                <a class="btn-primary" href="{% url 'amuse_bouche:create' %}">Create Amuse-Bouche</a>
+                <a class="btn-primary" href="{% url 'pinch:create' %}">Create Pinch</a>
                 {% include "includes/author_dashboard_back_button.html" %}
             </div>
             {% else %}
@@ -59,11 +59,11 @@
         {% if content_type_choices %}
         <div class="category-nav-block" data-category-toggle>
             <div class="category-nav-wrap" data-category-wrap>
-                <nav aria-label="Amuse-Bouche categories" class="category-nav" data-category-nav>
+                <nav aria-label="Pinch categories" class="category-nav" data-category-nav>
                     {% if not active_content_type %}
                     <span class="category-nav__item category-nav__item--active">All</span>
                     {% else %}
-                    <a class="category-nav__item category-nav__link" href="{% url 'amuse_bouche:feed' %}">All</a>
+                    <a class="category-nav__item category-nav__link" href="{% url 'pinch:feed' %}">All</a>
                     {% endif %}
                     {% for value, label in content_type_choices %}
                     <span aria-hidden="true" class="category-nav__separator">&middot;</span>
@@ -107,7 +107,7 @@
         {% else %}
         <div class="empty-state">
             <h2>No bites yet</h2>
-            <p>No approved Amuse-Bouche posts yet. Be the first to share a small kitchen idea.</p>
+            <p>No approved Pinch posts yet. Be the first to share a small kitchen idea.</p>
         </div>
         {% endif %}
 

@@ -54,7 +54,7 @@ def _initial_status_fields(author, actor):
 
 def _created_message(item, pending_message):
     if item.status == AmuseBouche.Status.APPROVED:
-        return f'Amuse-Bouche "{item.title}" approved and is now live.'
+        return f'Pinch "{item.title}" approved and is now live.'
     return pending_message
 
 
@@ -234,7 +234,7 @@ class AmuseBoucheCreateView(AuthorRequiredMixin, CreateView):
         item.save()
         messages.success(
             self.request,
-            _created_message(item, "Your Amuse-Bouche was submitted for review."),
+            _created_message(item, "Your Pinch post was submitted for review."),
         )
         return redirect(item.get_absolute_url())
 
@@ -270,7 +270,7 @@ class AmuseBoucheUpdateView(AuthorRequiredMixin, UpdateView):
         if item.status == AmuseBouche.Status.APPROVED and not is_moderator(self.request.user):
             item.status = AmuseBouche.Status.PENDING
         item.save()
-        messages.success(self.request, "Amuse-Bouche updated.")
+        messages.success(self.request, "Pinch updated.")
         return redirect(item.get_absolute_url())
 
     def get_context_data(self, **kwargs):
@@ -306,17 +306,17 @@ class AmuseBoucheDeleteView(AuthorRequiredMixin, DeleteView):
         return AmuseBouche.objects.filter(author=self.author)
 
     def form_valid(self, form):
-        messages.success(self.request, "Amuse-Bouche deleted.")
+        messages.success(self.request, "Pinch deleted.")
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["author"] = self.author
-        ctx["delete_title"] = "Delete Amuse-Bouche"
+        ctx["delete_title"] = "Delete Pinch"
         ctx["delete_intro"] = (
             f'You are about to delete "{self.object.title}". This action cannot be undone.'
         )
-        ctx["delete_label"] = "Delete Amuse-Bouche"
+        ctx["delete_label"] = "Delete Pinch"
         ctx["cancel_url"] = self.object.get_absolute_url()
         return ctx
 

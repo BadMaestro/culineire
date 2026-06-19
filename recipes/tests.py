@@ -24,7 +24,7 @@ from PIL import Image
 
 from articles.models import Article, ArticleImage
 from collection.models import SavedRecipe
-from config.release_journal import RELEASE_JOURNAL
+from config.release_journal import RELEASE_JOURNAL, build_git_journal
 from .admin import RecipeAdmin, RecipeAdminForm
 from .allergens import build_present_allergen_items, parse_selected_allergen_keys, serialize_allergen_keys
 from .forms import RecipeAuthoringForm, RecipeCommentForm
@@ -288,7 +288,7 @@ class ModerationPanelRoleTests(TestCase):
         self.assertContains(response, "@catwithtail")
         self.assertContains(response, "Revoke Superuser Privileges", count=1)
         self.assertContains(response, "Automation Progress")
-        self.assertNotContains(response, "Amuse-Bouche Roadmap")
+        self.assertNotContains(response, "Pinch Roadmap")
         self.assertNotContains(response, "Month 1 Update Progress")
 
     @override_settings(TELEGRAM_BOT_TOKEN="token", TELEGRAM_CHANNEL_ID="@culineire", ANTHROPIC_API_KEY="anthropic-key")
@@ -403,7 +403,7 @@ class ModerationPanelRoleTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Deployment Journal")
-        self.assertEqual(response.context["release_journal"], RELEASE_JOURNAL)
+        self.assertEqual(response.context["release_journal"], build_git_journal(settings.BASE_DIR))
 
     def test_moderation_panel_links_to_deployment_journal(self):
         self.client.force_login(self.owner)
@@ -598,7 +598,7 @@ class RecipeScreenshotImportTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "hero--recipe-form")
         self.assertContains(response, "hero--recipe-tools")
-        self.assertContains(response, "images/hero-recipes.png")
+        self.assertContains(response, "images/hero-recipes")
         self.assertContains(response, "Create Recipe from Screenshot")
         self.assertContains(response, "Create New Recipe")
         self.assertContains(response, "Generate AI Recipe")
@@ -1057,7 +1057,7 @@ class AuthenticationPageTests(TestCase):
         self.assertContains(response, "Moderation Panel")
         self.assertContains(response, reverse("recipes:moderation_panel"))
         self.assertNotContains(response, "My Recipes")
-        self.assertNotContains(response, "My Amuse-Bouche")
+        self.assertNotContains(response, "My Pinch")
         self.assertNotContains(response, "My Articles")
         self.assertNotContains(response, "My Collection")
         self.assertNotContains(response, "Profile")
@@ -1155,7 +1155,7 @@ class AuthenticationPageTests(TestCase):
 
         self.assertContains(response, "hero--recipe-form")
         self.assertContains(response, "hero--recipe-tools")
-        self.assertContains(response, "images/hero-recipes.png")
+        self.assertContains(response, "images/hero-recipes")
         self.assertContains(response, "Generate AI Recipe")
         self.assertContains(response, "Generate Screen Recipe")
         self.assertContains(response, reverse("recipes:generate_recipe"))
@@ -1802,8 +1802,8 @@ class RecipeDetailAccessibilityMarkupTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("Edit Recipe", hero_actions)
         self.assertIn("Delete Recipe", hero_actions)
-        self.assertIn("Generate Amuse-Bouche", hero_actions)
-        self.assertNotIn(">Amuse-Bouche</a>", hero_actions)
+        self.assertIn("Generate Pinch", hero_actions)
+        self.assertNotIn(">Pinch</a>", hero_actions)
         self.assertNotIn("Explore Recipes", hero_actions)
         self.assertNotIn("Read Articles", hero_actions)
 
@@ -1939,31 +1939,31 @@ class PublicImagePerformanceHintTests(TestCase):
         self.assertContains(response, 'loading="eager"')
         self.assertContains(response, 'decoding="async"')
 
-    @override_settings(AMUSE_BOUCHE_PUBLIC=True)
-    def test_home_amuse_bouche_carousel_orders_newest_first(self):
-        from amuse_bouche.models import AmuseBouche
+    @override_settings(PINCH_PUBLIC=True)
+    def test_home_pinch_carousel_orders_newest_first(self):
+        from pinch.models import Pinch
 
-        older_featured = AmuseBouche.objects.create(
+        older_featured = Pinch.objects.create(
             author=self.author,
             title="Older Featured Bite",
             short_description="Older bite.",
-            status=AmuseBouche.Status.APPROVED,
+            status=Pinch.Status.APPROVED,
             is_featured=True,
         )
-        newest = AmuseBouche.objects.create(
+        newest = Pinch.objects.create(
             author=self.author,
             title="Newest Bite",
             short_description="Newer bite.",
-            status=AmuseBouche.Status.APPROVED,
+            status=Pinch.Status.APPROVED,
         )
         now = timezone.now()
-        AmuseBouche.objects.filter(pk=older_featured.pk).update(published_at=now - timedelta(days=2))
-        AmuseBouche.objects.filter(pk=newest.pk).update(published_at=now)
+        Pinch.objects.filter(pk=older_featured.pk).update(published_at=now - timedelta(days=2))
+        Pinch.objects.filter(pk=newest.pk).update(published_at=now)
 
         response = self.client.get(reverse("home"))
 
         self.assertEqual(
-            [item.title for item in response.context["latest_amuse_bouche"][:2]],
+            [item.title for item in response.context["latest_pinch"][:2]],
             ["Newest Bite", "Older Featured Bite"],
         )
 
@@ -2004,13 +2004,13 @@ class PublicImagePerformanceHintTests(TestCase):
         self.assertNotContains(response, "Back to My Dashboard")
         self.assertNotContains(response, reverse("recipes:author_dashboard"))
 
-    @override_settings(AMUSE_BOUCHE_PUBLIC=True)
+    @override_settings(PINCH_PUBLIC=True)
     def test_public_main_sections_do_not_show_dashboard_back_button(self):
         self.client.force_login(self.user)
         urls = (
             reverse("recipes:recipe_list"),
             reverse("articles:article_list"),
-            reverse("amuse_bouche:feed"),
+            reverse("pinch:feed"),
             reverse("newsfeed:feed"),
             reverse("sponsors:puzzle"),
             reverse("messaging:contact"),
@@ -2023,7 +2023,7 @@ class PublicImagePerformanceHintTests(TestCase):
                 self.assertNotContains(response, "Back to My Dashboard")
                 self.assertNotContains(response, "author-dashboard-back-button")
 
-    @override_settings(AMUSE_BOUCHE_PUBLIC=True)
+    @override_settings(PINCH_PUBLIC=True)
     def test_public_section_heroes_hide_author_create_actions(self):
         self.client.force_login(self.user)
 
@@ -2032,7 +2032,7 @@ class PublicImagePerformanceHintTests(TestCase):
         self.assertNotIn("Create Recipe", recipe_hero)
         self.assertNotIn(reverse("recipes:recipe_create"), recipe_hero)
         self.assertNotIn("Back to My Dashboard", recipe_hero)
-        self.assertIn("Amuse-Bouche", recipe_hero)
+        self.assertIn("Pinch", recipe_hero)
         self.assertNotIn("Explore Recipes", recipe_hero)
         self.assertIn("Read Articles", recipe_hero)
         self.assertIn("Sponsors", recipe_hero)
@@ -2042,29 +2042,29 @@ class PublicImagePerformanceHintTests(TestCase):
         self.assertNotIn("Create Article", article_hero)
         self.assertNotIn(reverse("articles:article_create"), article_hero)
         self.assertNotIn("Back to My Dashboard", article_hero)
-        self.assertIn("Amuse-Bouche", article_hero)
+        self.assertIn("Pinch", article_hero)
         self.assertIn("Explore Recipes", article_hero)
         self.assertNotIn("Read Articles", article_hero)
         self.assertIn("Sponsors", article_hero)
 
-        amuse_bouche_response = self.client.get(reverse("amuse_bouche:feed"))
-        amuse_bouche_hero = amuse_bouche_response.content.decode().split('<div class="hero__actions ab-hero-actions">', 1)[1].split("</div>", 1)[0]
-        self.assertNotIn("Create Amuse-Bouche", amuse_bouche_hero)
-        self.assertNotIn(reverse("amuse_bouche:create"), amuse_bouche_hero)
-        self.assertNotIn("Back to My Dashboard", amuse_bouche_hero)
-        self.assertIn("Explore Recipes", amuse_bouche_hero)
-        self.assertIn("Read Articles", amuse_bouche_hero)
-        self.assertIn("Sponsors", amuse_bouche_hero)
-        self.assertNotIn("Share a Bite +", amuse_bouche_hero)
+        pinch_response = self.client.get(reverse("pinch:feed"))
+        pinch_hero = pinch_response.content.decode().split('<div class="hero__actions">', 1)[1].split("</div>", 1)[0]
+        self.assertNotIn("Create Pinch", pinch_hero)
+        self.assertNotIn(reverse("pinch:create"), pinch_hero)
+        self.assertNotIn("Back to My Dashboard", pinch_hero)
+        self.assertIn("Explore Recipes", pinch_hero)
+        self.assertIn("Read Articles", pinch_hero)
+        self.assertIn("Sponsors", pinch_hero)
+        self.assertNotIn("Share a Bite +", pinch_hero)
 
-    @override_settings(AMUSE_BOUCHE_PUBLIC=True)
+    @override_settings(PINCH_PUBLIC=True)
     def test_author_filtered_heroes_show_page_create_action_only(self):
         self.client.force_login(self.user)
 
         cases = [
             (self.client.get(f'{reverse("recipes:recipe_list")}?author={self.author.slug}'), "Create Recipe"),
             (self.client.get(f'{reverse("articles:article_list")}?author={self.author.slug}'), "Create Article"),
-            (self.client.get(f'{reverse("amuse_bouche:feed")}?author={self.author.slug}'), "Create Amuse-Bouche"),
+            (self.client.get(f'{reverse("pinch:feed")}?author={self.author.slug}'), "Create Pinch"),
         ]
 
         for response, expected_label in cases:
@@ -2700,38 +2700,38 @@ class RecipePhase3AuthorDashboardTests(TestCase):
             status=Article.Status.NEEDS_CHANGES,
             moderation_note="Article needs clearer source attribution.",
         )
-        from amuse_bouche.models import AmuseBouche
+        from pinch.models import Pinch
 
-        self.approved_bite = AmuseBouche.objects.create(
+        self.approved_bite = Pinch.objects.create(
             title="Approved Bite",
             author=self.author,
-            short_description="Published amuse-bouche.",
-            status=AmuseBouche.Status.APPROVED,
+            short_description="Published pinch.",
+            status=Pinch.Status.APPROVED,
         )
-        self.draft_bite = AmuseBouche.objects.create(
+        self.draft_bite = Pinch.objects.create(
             title="Draft Bite",
             author=self.author,
-            short_description="Draft amuse-bouche.",
-            status=AmuseBouche.Status.DRAFT,
+            short_description="Draft pinch.",
+            status=Pinch.Status.DRAFT,
         )
-        self.pending_bite = AmuseBouche.objects.create(
+        self.pending_bite = Pinch.objects.create(
             title="Pending Bite",
             author=self.author,
-            short_description="Pending amuse-bouche.",
-            status=AmuseBouche.Status.PENDING,
+            short_description="Pending pinch.",
+            status=Pinch.Status.PENDING,
         )
-        self.rejected_bite = AmuseBouche.objects.create(
+        self.rejected_bite = Pinch.objects.create(
             title="Rejected Bite",
             author=self.author,
-            short_description="Rejected amuse-bouche.",
-            status=AmuseBouche.Status.REJECTED,
+            short_description="Rejected pinch.",
+            status=Pinch.Status.REJECTED,
             moderation_note="Bite needs clearer attribution.",
         )
-        self.needs_changes_bite = AmuseBouche.objects.create(
+        self.needs_changes_bite = Pinch.objects.create(
             title="Needs Changes Bite",
             author=self.author,
-            short_description="Needs changes amuse-bouche.",
-            status=AmuseBouche.Status.NEEDS_CHANGES,
+            short_description="Needs changes pinch.",
+            status=Pinch.Status.NEEDS_CHANGES,
             moderation_note="Bite needs clearer source note.",
         )
         self.url = reverse("recipes:author_detail", kwargs={"slug": self.author.slug})
@@ -2752,11 +2752,11 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertIn(self.pending_article, response.context["dashboard_articles"])
         self.assertIn(self.needs_changes_article, response.context["dashboard_articles"])
         self.assertIn(self.rejected_article, response.context["dashboard_articles"])
-        self.assertIn(self.approved_bite, response.context["dashboard_amuse_bouche"])
-        self.assertIn(self.draft_bite, response.context["dashboard_amuse_bouche"])
-        self.assertIn(self.pending_bite, response.context["dashboard_amuse_bouche"])
-        self.assertIn(self.needs_changes_bite, response.context["dashboard_amuse_bouche"])
-        self.assertIn(self.rejected_bite, response.context["dashboard_amuse_bouche"])
+        self.assertIn(self.approved_bite, response.context["dashboard_pinch"])
+        self.assertIn(self.draft_bite, response.context["dashboard_pinch"])
+        self.assertIn(self.pending_bite, response.context["dashboard_pinch"])
+        self.assertIn(self.needs_changes_bite, response.context["dashboard_pinch"])
+        self.assertIn(self.rejected_bite, response.context["dashboard_pinch"])
 
     def test_recipe_card_shows_author_workspace_attention_count(self):
         self.client.force_login(self.author_user)
@@ -2776,7 +2776,7 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertContains(response, "category-nav author-studio-filter-row")
         self.assertContains(response, "category-nav__item category-nav__link")
         self.assertNotIn("All Types", filter_nav)
-        self.assertIn("Amuse-Bouche", filter_nav)
+        self.assertIn("Pinch", filter_nav)
         self.assertIn("Recipes", filter_nav)
         self.assertIn("Articles", filter_nav)
         self.assertIn("Draft", filter_nav)
@@ -2798,7 +2798,7 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertIn(self.approved_recipe, response.context["dashboard_recipes"])
         self.assertIn(self.draft_recipe, response.context["dashboard_recipes"])
         self.assertEqual(response.context["dashboard_articles"], [])
-        self.assertEqual(response.context["dashboard_amuse_bouche"], [])
+        self.assertEqual(response.context["dashboard_pinch"], [])
         self.assertContains(response, "content=recipes&amp;status=draft")
 
     def test_dashboard_content_filter_articles_returns_only_articles(self):
@@ -2810,9 +2810,9 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertEqual(response.context["dashboard_recipes"], [])
         self.assertIn(self.approved_article, response.context["dashboard_articles"])
         self.assertIn(self.draft_article, response.context["dashboard_articles"])
-        self.assertEqual(response.context["dashboard_amuse_bouche"], [])
+        self.assertEqual(response.context["dashboard_pinch"], [])
 
-    def test_dashboard_content_filter_ab_returns_only_amuse_bouche(self):
+    def test_dashboard_content_filter_ab_returns_only_pinch(self):
         self.client.force_login(self.author_user)
 
         response = self.client.get(self.url + "?content=ab")
@@ -2820,8 +2820,8 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertEqual(response.context["content_filter"], "ab")
         self.assertEqual(response.context["dashboard_recipes"], [])
         self.assertEqual(response.context["dashboard_articles"], [])
-        self.assertIn(self.approved_bite, response.context["dashboard_amuse_bouche"])
-        self.assertIn(self.draft_bite, response.context["dashboard_amuse_bouche"])
+        self.assertIn(self.approved_bite, response.context["dashboard_pinch"])
+        self.assertIn(self.draft_bite, response.context["dashboard_pinch"])
 
     def test_dashboard_content_filter_preserves_status_filter(self):
         self.client.force_login(self.author_user)
@@ -2833,7 +2833,7 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertIn(self.draft_recipe, response.context["dashboard_recipes"])
         self.assertNotIn(self.approved_recipe, response.context["dashboard_recipes"])
         self.assertEqual(response.context["dashboard_articles"], [])
-        self.assertEqual(response.context["dashboard_amuse_bouche"], [])
+        self.assertEqual(response.context["dashboard_pinch"], [])
         self.assertContains(response, "content=articles&amp;status=draft")
         self.assertContains(response, "content=recipes")
 
@@ -2856,14 +2856,14 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertContains(response, "Author Dashboard")
         self.assertContains(response, reverse("recipes:recipe_create"))
         self.assertContains(response, reverse("articles:article_create"))
-        self.assertContains(response, reverse("amuse_bouche:create"))
+        self.assertContains(response, reverse("pinch:create"))
         hero = response.content.decode().split("<section class=\"hero", 1)[1].split("</section>", 1)[0]
         self.assertNotIn("hero-author-cabinet", hero)
         self.assertIn("Create Recipe", hero)
         self.assertIn("Create Article", hero)
-        self.assertIn("Create Amuse-Bouche", hero)
+        self.assertIn("Create Pinch", hero)
         self.assertIn("Edit Profile", hero)
-        self.assertLess(hero.index("Create Amuse-Bouche"), hero.index("Create Recipe"))
+        self.assertLess(hero.index("Create Pinch"), hero.index("Create Recipe"))
         self.assertLess(hero.index("Create Recipe"), hero.index("Create Article"))
         self.assertLess(hero.index("Create Article"), hero.index("Edit Profile"))
         self.assertNotIn("Explore Recipes", hero)
@@ -3010,11 +3010,11 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertNotIn(self.draft_article, response.context["dashboard_articles"])
         self.assertNotIn(self.needs_changes_article, response.context["dashboard_articles"])
         self.assertNotIn(self.rejected_article, response.context["dashboard_articles"])
-        self.assertIn(self.pending_bite, response.context["dashboard_amuse_bouche"])
-        self.assertNotIn(self.approved_bite, response.context["dashboard_amuse_bouche"])
-        self.assertNotIn(self.draft_bite, response.context["dashboard_amuse_bouche"])
-        self.assertNotIn(self.needs_changes_bite, response.context["dashboard_amuse_bouche"])
-        self.assertNotIn(self.rejected_bite, response.context["dashboard_amuse_bouche"])
+        self.assertIn(self.pending_bite, response.context["dashboard_pinch"])
+        self.assertNotIn(self.approved_bite, response.context["dashboard_pinch"])
+        self.assertNotIn(self.draft_bite, response.context["dashboard_pinch"])
+        self.assertNotIn(self.needs_changes_bite, response.context["dashboard_pinch"])
+        self.assertNotIn(self.rejected_bite, response.context["dashboard_pinch"])
 
     def test_status_filter_needs_changes_returns_only_needs_changes(self):
         self.client.force_login(self.author_user)
@@ -3031,11 +3031,11 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertNotIn(self.draft_article, response.context["dashboard_articles"])
         self.assertNotIn(self.pending_article, response.context["dashboard_articles"])
         self.assertNotIn(self.rejected_article, response.context["dashboard_articles"])
-        self.assertIn(self.needs_changes_bite, response.context["dashboard_amuse_bouche"])
-        self.assertNotIn(self.approved_bite, response.context["dashboard_amuse_bouche"])
-        self.assertNotIn(self.draft_bite, response.context["dashboard_amuse_bouche"])
-        self.assertNotIn(self.pending_bite, response.context["dashboard_amuse_bouche"])
-        self.assertNotIn(self.rejected_bite, response.context["dashboard_amuse_bouche"])
+        self.assertIn(self.needs_changes_bite, response.context["dashboard_pinch"])
+        self.assertNotIn(self.approved_bite, response.context["dashboard_pinch"])
+        self.assertNotIn(self.draft_bite, response.context["dashboard_pinch"])
+        self.assertNotIn(self.pending_bite, response.context["dashboard_pinch"])
+        self.assertNotIn(self.rejected_bite, response.context["dashboard_pinch"])
 
     def test_public_status_filter_cannot_reveal_needs_changes_content(self):
         response = self.client.get(self.url + "?status=needs_changes")
@@ -3061,10 +3061,10 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertNotIn(self.approved_article, response.context["dashboard_articles"])
         self.assertNotIn(self.pending_article, response.context["dashboard_articles"])
         self.assertNotIn(self.rejected_article, response.context["dashboard_articles"])
-        self.assertIn(self.draft_bite, response.context["dashboard_amuse_bouche"])
-        self.assertNotIn(self.approved_bite, response.context["dashboard_amuse_bouche"])
-        self.assertNotIn(self.pending_bite, response.context["dashboard_amuse_bouche"])
-        self.assertNotIn(self.rejected_bite, response.context["dashboard_amuse_bouche"])
+        self.assertIn(self.draft_bite, response.context["dashboard_pinch"])
+        self.assertNotIn(self.approved_bite, response.context["dashboard_pinch"])
+        self.assertNotIn(self.pending_bite, response.context["dashboard_pinch"])
+        self.assertNotIn(self.rejected_bite, response.context["dashboard_pinch"])
 
     def test_public_status_filter_cannot_reveal_draft_content(self):
         response = self.client.get(self.url + "?status=draft")
@@ -3090,10 +3090,10 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertNotIn(self.pending_article, response.context["dashboard_articles"])
         self.assertNotIn(self.draft_article, response.context["dashboard_articles"])
         self.assertNotIn(self.rejected_article, response.context["dashboard_articles"])
-        self.assertIn(self.approved_bite, response.context["dashboard_amuse_bouche"])
-        self.assertNotIn(self.pending_bite, response.context["dashboard_amuse_bouche"])
-        self.assertNotIn(self.draft_bite, response.context["dashboard_amuse_bouche"])
-        self.assertNotIn(self.rejected_bite, response.context["dashboard_amuse_bouche"])
+        self.assertIn(self.approved_bite, response.context["dashboard_pinch"])
+        self.assertNotIn(self.pending_bite, response.context["dashboard_pinch"])
+        self.assertNotIn(self.draft_bite, response.context["dashboard_pinch"])
+        self.assertNotIn(self.rejected_bite, response.context["dashboard_pinch"])
 
     def test_invalid_status_filter_is_ignored(self):
         self.client.force_login(self.author_user)
@@ -3103,7 +3103,7 @@ class RecipePhase3AuthorDashboardTests(TestCase):
         self.assertEqual(response.context["status_filter"], "")
         self.assertEqual(len(response.context["dashboard_recipes"]), 5)
         self.assertEqual(len(response.context["dashboard_articles"]), 5)
-        self.assertEqual(len(response.context["dashboard_amuse_bouche"]), 5)
+        self.assertEqual(len(response.context["dashboard_pinch"]), 5)
 
 
 class RecipePhase3RelatedArticlesTests(TestCase):
@@ -3471,10 +3471,10 @@ class RecipeSoftDeleteTests(TestCase):
         recipe_slugs = [r.slug for r in response.context.get("default_recent_recipes", [])]
         self.assertNotIn(self.recipe.slug, recipe_slugs)
 
-    def test_deleted_approved_recipe_direct_url_returns_404(self):
+    def test_deleted_approved_recipe_direct_url_returns_410(self):
         _soft_delete_recipe(self.recipe, self.owner_user)
         response = self.client.get(self.recipe.get_absolute_url())
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 410)
 
     def test_deleted_recipe_hidden_from_category_page(self):
         self.recipe.category = Recipe.Category.DINNER
@@ -3630,7 +3630,7 @@ class GenerateRecipeCommandTests(TestCase):
         recipe = Recipe.objects.get(title="Irish Colcannon")
         self.assertEqual(recipe.status, Recipe.Status.DRAFT)
         self.assertEqual(recipe.category, Recipe.Category.TRADITIONAL_IRISH_DISHES)
-        self.assertEqual(recipe.image_rights_status, Recipe.ImageRightsStatus.NOT_APPLICABLE)
+        self.assertEqual(recipe.image_rights_status, Recipe.ImageRightsStatus.AI_GENERATED)
         self.assertEqual(recipe.source_type, Recipe.SourceType.AI_ASSISTED)
         self.assertEqual(recipe.source_title, "Created specially for CulinEire")
         self.assertEqual(recipe.source_author, "CulinEire Creative Studio")
@@ -3721,7 +3721,7 @@ class RecipeGenerationTaskViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "hero--recipe-form")
         self.assertContains(response, "hero--recipe-tools")
-        self.assertContains(response, "images/hero-recipes.png")
+        self.assertContains(response, "images/hero-recipes")
         self.assertContains(response, "Generate AI Recipe")
         self.assertContains(response, "Create New Recipe")
         self.assertContains(response, "Generate Screen Recipe")

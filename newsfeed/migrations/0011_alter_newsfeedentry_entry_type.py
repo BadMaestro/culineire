@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='newsfeedentry',
             name='entry_type',
-            field=models.CharField(choices=[('recipe_published', 'Recipe Published'), ('article_published', 'Article Published'), ('amuse_bouche_published', 'Amuse-Bouche Published'), ('amuse_bouche_featured', 'Amuse-Bouche Featured'), ('site_update', 'Site Update'), ('security_update', 'Security Update'), ('version_release', 'Version Release'), ('admin_note', 'Admin Note'), ('battle_event', 'Chef Battle Event')], db_index=True, max_length=30),
+            field=models.CharField(choices=[('recipe_published', 'Recipe Published'), ('article_published', 'Article Published'), ('amuse_bouche_published', 'Pinch Published'), ('amuse_bouche_featured', 'Pinch Featured'), ('site_update', 'Site Update'), ('security_update', 'Security Update'), ('version_release', 'Version Release'), ('admin_note', 'Admin Note'), ('battle_event', 'Chef Battle Event')], db_index=True, max_length=30),
         ),
     ]

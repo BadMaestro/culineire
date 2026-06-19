@@ -41,16 +41,10 @@
         <div class="battle-form__field" id="field-recipe">
           <label class="battle-form__label" for="{{ form.recipe.id_for_label }}">{{ form.recipe.label }}</label>
           {{ form.recipe }}
-          <p class="battle-form__help">Only your approved recipes are shown.</p>
+          <p class="battle-form__help">Only your approved recipes are shown. Your recipe will serve as the battle reference.</p>
           {% for e in form.recipe.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
         </div>
 
-        <div class="battle-form__field" id="field-article">
-          <label class="battle-form__label" for="{{ form.article.id_for_label }}">{{ form.article.label }}</label>
-          {{ form.article }}
-          <p class="battle-form__help">Only your approved articles are shown.</p>
-          {% for e in form.article.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
-        </div>
 
         <div class="battle-form__field">
           <label class="battle-form__label" for="{{ form.battle_statement.id_for_label }}">
@@ -75,12 +69,10 @@
 (function () {
   var typeInputs = document.querySelectorAll('input[name="content_type"]');
   var recipeField = document.getElementById('field-recipe');
-  var articleField = document.getElementById('field-article');
   function toggle() {
     var val = document.querySelector('input[name="content_type"]:checked');
     val = val ? val.value : 'recipe';
     recipeField.style.display = val === 'recipe' ? '' : 'none';
-    articleField.style.display = val === 'article' ? '' : 'none';
   }
   typeInputs.forEach(function (el) { el.addEventListener('change', toggle); });
   toggle();
@@ -91,7 +83,7 @@
 <div class="container" style="max-width: 700px; padding-block: 0 2.5rem;">
   <h2 style="font-family: var(--font-serif); font-size: 1.3rem; margin-block-end: 1rem;">Live Chat</h2>
   <div id="battle-chat-messages" style="background: var(--surface); border: 1px solid var(--color-border); border-radius: 8px; padding: 1rem; height: 200px; overflow-y: auto; margin-block-end: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
-    <p style="color: var(--color-muted); font-size: 0.85rem; text-align: center;" id="chat-empty-hint">Be the first to cheer a chef on.</p>
+    <p style="color: var(--color-muted); font-size: 0.85rem; text-align: center;" id="chat-empty-hint">Be the first to cheer a Chef on.</p>
   </div>
   <form id="battle-chat-form" method="post" action="{% url 'chef_battle:battle_chat_send' battle.pk %}" style="display: flex; gap: 0.5rem; align-items: flex-end;">
     {% csrf_token %}

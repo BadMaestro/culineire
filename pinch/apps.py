@@ -1,0 +1,10 @@
+from django.apps import AppConfig
+
+
+class PinchConfig(AppConfig):
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "pinch"
+    verbose_name = "Pinch"
+
+    def ready(self):
+        import pinch.signals  # noqa: F401

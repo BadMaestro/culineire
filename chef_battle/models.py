@@ -146,15 +146,14 @@ class BattleChallenge(models.Model):
         CANCELLED = "cancelled", "Cancelled"
 
     class BattleType(models.TextChoices):
-        RECIPE = "recipe", "Recipe Duel"
-        ARTICLE = "article", "Article Duel"
-        MIXED = "mixed", "Recipe Or Article"
+        PHOTO = "photo", "Photo Battle"
+        VIDEO = "video", "Video Battle"
 
     challenger = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="sent_battle_challenges")
     opponent = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="received_battle_challenges")
     theme = models.CharField(max_length=180)
     message = models.TextField(blank=True)
-    battle_type = models.CharField(max_length=16, choices=BattleType.choices, default=BattleType.RECIPE)
+    battle_type = models.CharField(max_length=16, choices=BattleType.choices, default=BattleType.PHOTO)
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.PENDING, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     expires_at = models.DateTimeField(db_index=True)
@@ -206,7 +205,7 @@ class Battle(models.Model):
     challenger = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="battles_as_challenger")
     opponent = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="battles_as_opponent")
     theme = models.CharField(max_length=180)
-    battle_type = models.CharField(max_length=16, choices=BattleChallenge.BattleType.choices, default=BattleChallenge.BattleType.RECIPE)
+    battle_type = models.CharField(max_length=16, choices=BattleChallenge.BattleType.choices, default=BattleChallenge.BattleType.PHOTO)
     status = models.CharField(max_length=24, choices=Status.choices, default=Status.ACTIVE, db_index=True)
     start_time = models.DateTimeField(default=timezone.now, db_index=True)
     submission_deadline = models.DateTimeField()
@@ -301,18 +300,17 @@ class BattleEntry(models.Model):
 
     def clean(self):
         super().clean()
-        if bool(self.recipe) == bool(self.article):
-            raise ValidationError("Choose exactly one recipe or article for the battle entry.")
+        if self.recipe and self.article:
+            raise ValidationError("A battle entry cannot link both a recipe and an article.")
         if self.recipe and self.recipe.author_id != self.author_id:
             raise ValidationError("The selected recipe must belong to the submitting author.")
-        if self.article and self.article.author_id != self.author_id:
-            raise ValidationError("The selected article must belong to the submitting author.")
+
         if self.battle_id and self.author_id and not self.battle.author_is_participant(self.author):
             raise ValidationError("Only battle participants can submit entries.")
 
     @property
     def content_object(self):
-        return self.recipe or self.article
+        return self.recipe
 
 
 class BattleVote(models.Model):

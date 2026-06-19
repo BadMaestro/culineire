@@ -23,8 +23,8 @@
             <h1 class="hero-title">My Collection</h1>
             <p class="hero-subtitle">Your saved recipes and articles in one place.</p>
             <div class="hero__actions">
-                {% if can_view_amuse_bouche_public_area %}
-                <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
+                {% if can_view_pinch_public_area %}
+                <a class="btn-primary" href="{% url 'pinch:feed' %}">Pinch</a>
                 {% endif %}
                 <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
                 <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
@@ -48,11 +48,11 @@
                 Articles
                 <span class="collection-tab__count">{{ saved_articles|length }}</span>
             </a>
-            {% if show_amuse_bouche %}
-            <a class="collection-tab{% if active_tab == 'amuse-bouche' %} collection-tab--active{% endif %}"
-               href="?tab=amuse-bouche"{% if active_tab == 'amuse-bouche' %} aria-current="page"{% endif %}>
-                Amuse-Bouche
-                <span class="collection-tab__count">{{ saved_amuse_bouche|length }}</span>
+            {% if show_pinch %}
+            <a class="collection-tab{% if active_tab == 'pinch' %} collection-tab--active{% endif %}"
+               href="?tab=pinch"{% if active_tab == 'pinch' %} aria-current="page"{% endif %}>
+                Pinch
+                <span class="collection-tab__count">{{ saved_pinch|length }}</span>
             </a>
             {% endif %}
         </nav>
@@ -122,9 +122,9 @@
             </div>
             {% endif %}
         {% else %}
-            {% if saved_amuse_bouche %}
+            {% if saved_pinch %}
             <div class="recipe-grid recipe-grid--mini">
-                {% for saved in saved_amuse_bouche %}
+                {% for saved in saved_pinch %}
                 {% with item=saved.content_object %}
                 <article class="recipe-card">
                     <a class="recipe-card__image-wrapper" href="{{ item.get_absolute_url }}">
@@ -136,7 +136,7 @@
                             <h2 class="recipe-card__title"><a href="{{ item.get_absolute_url }}">{{ item.title }}</a></h2>
                         </div>
                         <div class="recipe-card__footer">
-                            <form action="{% url 'amuse_bouche:toggle_save' item.slug %}" method="post" class="collection-form">
+                            <form action="{% url 'pinch:toggle_save' item.slug %}" method="post" class="collection-form">
                                 {% csrf_token %}
                                 <input type="hidden" name="next" value="{{ request.get_full_path }}">
                                 <button class="collection-remove-btn" type="submit">Remove</button>
@@ -149,9 +149,9 @@
             </div>
             {% else %}
             <div class="collection-empty">
-                <p class="collection-empty__text">You have no saved Amuse-Bouche posts yet.</p>
-                {% if can_view_amuse_bouche_public_area %}
-                <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Explore Amuse-Bouche</a>
+                <p class="collection-empty__text">You have no saved Pinch posts yet.</p>
+                {% if can_view_pinch_public_area %}
+                <a class="btn-primary" href="{% url 'pinch:feed' %}">Explore Pinch</a>
                 {% endif %}
             </div>
             {% endif %}

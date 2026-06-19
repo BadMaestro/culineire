@@ -1,14 +1,14 @@
 AMUSE_BOUCHE_LAUNCH_EVENT_KEY = "version_release_amuse_bouche_public_v2"
-AMUSE_BOUCHE_LAUNCH_TITLE = "Amuse-Bouche Is Now Open"
+AMUSE_BOUCHE_LAUNCH_TITLE = "Pinch Is Now Open"
 AMUSE_BOUCHE_LAUNCH_VERSION = "2.0.0"
-AMUSE_BOUCHE_LAUNCH_URL = "/amuse-bouche/"
+AMUSE_BOUCHE_LAUNCH_URL = "/pinch/"
 TELEGRAM_CHANNEL_URL = "https://t.me/CULINEIRE"
 
 AMUSE_BOUCHE_LAUNCH_MESSAGE = (
-    "CulinEire is now officially running as v2.0.0, with a new public section: Amuse-Bouche.\n\n"
+    "CulinEire is now officially running as v2.0.0, with a new public section: Pinch.\n\n"
     "It is our short-form kitchen feed for quick food ideas: mini recipes, Irish bites, snacks, "
     "sauces, cocktails, plating notes, leftover ideas, chef tricks and behind-the-dish sparks.\n\n"
-    "This release connects the new format to the wider site. Amuse-Bouche posts can link back to "
+    "This release connects the new format to the wider site. Pinch posts can link back to "
     "full recipes, articles, author pages and future Chef Battle stories, so a small idea can still "
     "lead to deeper context.\n\n"
     "The first public version includes a mobile-first feed, moderation before publication, comments, "
@@ -19,7 +19,7 @@ AMUSE_BOUCHE_LAUNCH_MESSAGE = (
 
 AMUSE_BOUCHE_LAUNCH_TELEGRAM_MESSAGE = (
     "CulinEire v2.0.0 is now official.\n\n"
-    "Amuse-Bouche is open on the site.\n\n"
+    "Pinch is open on the site.\n\n"
     "This is our new short-form kitchen feed: quick Irish bites, mini recipes, sauces, cocktails, "
     "plating notes, chef tricks and small ideas that can lead back to full recipes, articles, "
     "authors and future Chef Battle stories.\n\n"

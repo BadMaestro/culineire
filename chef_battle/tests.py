@@ -427,16 +427,16 @@ class EnergyServiceTests(TestCase):
     def test_like_signal_awards_move_to_content_author(self):
         from collection.models import ContentReaction
         from django.contrib.contenttypes.models import ContentType
-        from amuse_bouche.models import AmuseBouche
+        from pinch.models import Pinch
         from chef_battle.models import BattleMoveTransaction, ChefBattleProfile
-        item = AmuseBouche.objects.create(
+        item = Pinch.objects.create(
             author=self.chef,
             title="Test Bite",
             slug="test-bite-energy",
             short_description="yum",
-            status=AmuseBouche.Status.APPROVED,
+            status=Pinch.Status.APPROVED,
         )
-        ct = ContentType.objects.get_for_model(AmuseBouche)
+        ct = ContentType.objects.get_for_model(Pinch)
         ContentReaction.objects.create(
             user=self.user2,
             content_type=ct,
@@ -457,18 +457,18 @@ class EnergyServiceTests(TestCase):
         """Same user liking multiple items of the same chef is blocked after LIKE_ANTI_FARM_MAX_PER_SOURCE."""
         from collection.models import ContentReaction
         from django.contrib.contenttypes.models import ContentType
-        from amuse_bouche.models import AmuseBouche
+        from pinch.models import Pinch
         from chef_battle.models import ChefBattleProfile
         from chef_battle.energy_service import LIKE_ANTI_FARM_MAX_PER_SOURCE
-        ct = ContentType.objects.get_for_model(AmuseBouche)
+        ct = ContentType.objects.get_for_model(Pinch)
         # Same liker (self.user2 / self.source) likes LIKE_ANTI_FARM_MAX_PER_SOURCE items — all awarded
         for i in range(LIKE_ANTI_FARM_MAX_PER_SOURCE):
-            item = AmuseBouche.objects.create(
+            item = Pinch.objects.create(
                 author=self.chef,
                 title=f"Bite AF {i}",
                 slug=f"bite-af2-{i}",
                 short_description="yum",
-                status=AmuseBouche.Status.APPROVED,
+                status=Pinch.Status.APPROVED,
             )
             ContentReaction.objects.create(
                 user=self.user2,
@@ -477,12 +477,12 @@ class EnergyServiceTests(TestCase):
                 reaction=ContentReaction.Reaction.LIKE,
             )
         # One more like from the SAME user — should be blocked (per-source cap reached)
-        extra_item = AmuseBouche.objects.create(
+        extra_item = Pinch.objects.create(
             author=self.chef,
             title="Extra Bite",
             slug="bite-af-extra",
             short_description="yum",
-            status=AmuseBouche.Status.APPROVED,
+            status=Pinch.Status.APPROVED,
         )
         ContentReaction.objects.create(
             user=self.user2,

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}{% if item.seo_title %}{{ item.seo_title }}{% else %}{{ item.title }}{% endif %} | Amuse-Bouche{% endblock %}
+{% block title %}{% if item.seo_title %}{{ item.seo_title }}{% else %}{{ item.title }}{% endif %} | Pinch{% endblock %}
 {% block meta_description %}{{ item.public_description }}{% endblock %}
 {% block og_title %}{% if item.seo_title %}{{ item.seo_title }}{% else %}{{ item.title }}{% endif %}{% endblock %}
 {% block og_type %}article{% endblock %}
@@ -16,7 +16,7 @@
 <meta content="{{ telegram_preview_image.width }}" property="og:image:width">
 <meta content="{{ telegram_preview_image.height }}" property="og:image:height">
 {% endif %}
-<link href="{% static 'css/amuse_bouche.css' %}" rel="stylesheet">
+<link href="{% static 'css/pinch.css' %}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -24,7 +24,7 @@
     <div class="container ab-detail">
 
         <div style="display:flex;justify-content:space-between;align-items:center;">
-            {% if can_view_ab_public %}<a class="ab-back-link" href="{% url 'amuse_bouche:feed' %}">&larr; Back to Amuse-Bouche</a>{% else %}<span></span>{% endif %}
+            {% if can_view_ab_public %}<a class="ab-back-link" href="{% url 'pinch:feed' %}">&larr; Back to Pinch</a>{% else %}<span></span>{% endif %}
             {% if item.linked_recipe %}<a class="ab-back-link" href="{{ item.linked_recipe.get_absolute_url }}">Go to the Recipe &rarr;</a>{% endif %}
         </div>
 
@@ -52,7 +52,7 @@
         {# Author controls #}
         {% if can_edit and not can_moderate %}
         <div class="ab-detail-footer">
-            <a class="btn-secondary" href="{% url 'amuse_bouche:edit' item.slug %}">Edit this post</a>
+            <a class="btn-secondary" href="{% url 'pinch:edit' item.slug %}">Edit this post</a>
         </div>
         {% endif %}
 
@@ -82,7 +82,7 @@
                     {% endif %}
                     {% endwith %}
                     {% if user == comment.user or can_moderate %}
-                    <form action="{% url 'amuse_bouche:delete_comment' item.slug comment.pk %}" method="post" class="ab-comment__delete-form">
+                    <form action="{% url 'pinch:delete_comment' item.slug comment.pk %}" method="post" class="ab-comment__delete-form">
                         {% csrf_token %}
                         <button class="ab-comment__delete-btn" type="submit" title="Delete comment">&times;</button>
                     </form>
@@ -95,7 +95,7 @@
             {% endfor %}
 
             {% if user.is_authenticated %}
-            <form action="{% url 'amuse_bouche:submit_comment' item.slug %}" method="post" class="ab-comment-form">
+            <form action="{% url 'pinch:submit_comment' item.slug %}" method="post" class="ab-comment-form">
                 {% csrf_token %}
                 <textarea class="ab-comment-form__input" name="body" placeholder="Add a comment..." maxlength="1000" rows="3" required></textarea>
                 <div class="ab-comment-form__footer">
@@ -125,7 +125,7 @@
             </p>
             {% endif %}
 
-            <form action="{% url 'amuse_bouche:moderate' item.slug %}" class="ab-moderate__form" method="post">
+            <form action="{% url 'pinch:moderate' item.slug %}" class="ab-moderate__form" method="post">
                 {% csrf_token %}
                 <textarea class="ab-moderate__note" name="moderation_note" placeholder="Moderation note — required for Request Changes and Reject">{{ item.moderation_note }}</textarea>
                 <div class="ab-moderate__actions">
@@ -134,9 +134,9 @@
                     {% endif %}
                     <button class="ab-moderate__btn ab-moderate__btn--changes" name="action" type="submit" value="request_changes">Request Changes</button>
                     <button class="ab-moderate__btn ab-moderate__btn--reject" name="action" type="submit" value="reject">Reject</button>
-                    <a class="ab-moderate__btn ab-moderate__btn--edit" href="{% url 'amuse_bouche:edit' item.slug %}">Edit</a>
+                    <a class="ab-moderate__btn ab-moderate__btn--edit" href="{% url 'pinch:edit' item.slug %}">Edit</a>
                     <button class="ab-moderate__btn ab-moderate__btn--archive" name="action" type="submit" value="delete">Archive</button>
-                    <a class="ab-moderate__btn ab-moderate__btn--reject" href="{% url 'amuse_bouche:delete' item.slug %}">Delete</a>
+                    <a class="ab-moderate__btn ab-moderate__btn--reject" href="{% url 'pinch:delete' item.slug %}">Delete</a>
                 </div>
             </form>
         </div>

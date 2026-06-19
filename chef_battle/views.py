@@ -383,7 +383,7 @@ def season_leaderboard(request):
     return render(request, "chef_battle/season_leaderboard.html", {
         "profiles": profiles,
         "season_start": season_start,
-        "season_name": "Season 1 &mdash; Summer 2026",
+        "season_name": "Season 1 — Summer 2026",
     })
 
 
@@ -597,11 +597,21 @@ def battle_home(request):
     leaders = get_top_profiles()
     events = get_public_events()
 
+    season_leaders = (
+        ChefBattleProfile.objects
+        .select_related("author")
+        .filter(seasonal_score__gt=0)
+        .order_by("-seasonal_score", "-wins", "author__name")[:3]
+    )
+
     return render(request, "chef_battle/home.html", {
         "active_battles": active_battles,
         "recent_battles": recent_battles,
         "leaders": leaders,
         "events": events,
+        "season_name": "Season 1 — Summer 2026",
+        "season_dates": "1 Jun – 31 Aug 2026",
+        "season_leaders": season_leaders,
     })
 
 

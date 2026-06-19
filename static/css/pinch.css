@@ -5,7 +5,7 @@
    ================================================================ */
 
 /* ---- Hero image framing ---- */
-.hero--amuse-bouche .hero__background img {
+.hero--pinch .hero__background img {
   object-fit: cover;
   object-position: center 70%;
 }

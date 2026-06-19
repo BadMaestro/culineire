@@ -157,18 +157,18 @@
 
         <div class="moderation-block">
             <h2 class="moderation-block__title">
-                Amuse-Bouche
-                {% if pending_amuse_bouche %}<span class="moderation-badge moderation-badge--pending">{{ pending_amuse_bouche|length }} pending</span>{% endif %}
-                {% if needs_changes_amuse_bouche %}<span class="moderation-badge moderation-badge--needs_changes">{{ needs_changes_amuse_bouche|length }} needs changes</span>{% endif %}
-                {% if rejected_amuse_bouche %}<span class="moderation-badge moderation-badge--rejected">{{ rejected_amuse_bouche|length }} rejected</span>{% endif %}
+                Pinch
+                {% if pending_pinch %}<span class="moderation-badge moderation-badge--pending">{{ pending_pinch|length }} pending</span>{% endif %}
+                {% if needs_changes_pinch %}<span class="moderation-badge moderation-badge--needs_changes">{{ needs_changes_pinch|length }} needs changes</span>{% endif %}
+                {% if rejected_pinch %}<span class="moderation-badge moderation-badge--rejected">{{ rejected_pinch|length }} rejected</span>{% endif %}
             </h2>
 
-            <div class="moderation-scroll moderation-scroll--amuse-bouche">
-            {% if not pending_amuse_bouche and not needs_changes_amuse_bouche and not rejected_amuse_bouche %}
-            <div class="moderation-empty">All clear &mdash; no Amuse-Bouche posts awaiting moderation.</div>
+            <div class="moderation-scroll moderation-scroll--pinch">
+            {% if not pending_pinch and not needs_changes_pinch and not rejected_pinch %}
+            <div class="moderation-empty">All clear &mdash; no Pinch posts awaiting moderation.</div>
             {% endif %}
 
-            {% for item in pending_amuse_bouche %}
+            {% for item in pending_pinch %}
             <div class="moderation-card">
                 <div class="moderation-card__body">
                     <div class="moderation-card__meta">
@@ -185,20 +185,20 @@
                 </div>
                 <div class="moderation-card__actions">
                     <a class="mod-btn mod-btn--view" href="{{ item.get_absolute_url }}" target="_blank">View</a>
-                    <a class="mod-btn mod-btn--edit" href="{% url 'amuse_bouche:edit' item.slug %}">Edit</a>
-                    <button class="mod-btn mod-btn--reject" data-reject-url="{% url 'amuse_bouche:moderate' item.slug %}" data-reject-title="{{ item.title|truncatechars:40 }}" type="button">Reject</button>
-                    <form action="{% url 'amuse_bouche:moderate' item.slug %}" method="post">{% csrf_token %}
+                    <a class="mod-btn mod-btn--edit" href="{% url 'pinch:edit' item.slug %}">Edit</a>
+                    <button class="mod-btn mod-btn--reject" data-reject-url="{% url 'pinch:moderate' item.slug %}" data-reject-title="{{ item.title|truncatechars:40 }}" type="button">Reject</button>
+                    <form action="{% url 'pinch:moderate' item.slug %}" method="post">{% csrf_token %}
                         <input name="action" type="hidden" value="delete">
                         <button class="mod-btn mod-btn--delete" data-delete-title="{{ item.title|truncatechars:40 }}" type="button">Archive</button>
                     </form>
-                    <form action="{% url 'amuse_bouche:moderate' item.slug %}" method="post">{% csrf_token %}
+                    <form action="{% url 'pinch:moderate' item.slug %}" method="post">{% csrf_token %}
                         <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
                     </form>
                 </div>
             </div>
             {% endfor %}
 
-            {% for item in needs_changes_amuse_bouche %}
+            {% for item in needs_changes_pinch %}
             <div class="moderation-card">
                 <div class="moderation-card__body">
                     <div class="moderation-card__meta">
@@ -218,19 +218,19 @@
                 </div>
                 <div class="moderation-card__actions">
                     <a class="mod-btn mod-btn--view" href="{{ item.get_absolute_url }}" target="_blank">View</a>
-                    <a class="mod-btn mod-btn--edit" href="{% url 'amuse_bouche:edit' item.slug %}">Edit</a>
-                    <form action="{% url 'amuse_bouche:moderate' item.slug %}" method="post">{% csrf_token %}
+                    <a class="mod-btn mod-btn--edit" href="{% url 'pinch:edit' item.slug %}">Edit</a>
+                    <form action="{% url 'pinch:moderate' item.slug %}" method="post">{% csrf_token %}
                         <input name="action" type="hidden" value="delete">
                         <button class="mod-btn mod-btn--delete" data-delete-title="{{ item.title|truncatechars:40 }}" type="button">Archive</button>
                     </form>
-                    <form action="{% url 'amuse_bouche:moderate' item.slug %}" method="post">{% csrf_token %}
+                    <form action="{% url 'pinch:moderate' item.slug %}" method="post">{% csrf_token %}
                         <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
                     </form>
                 </div>
             </div>
             {% endfor %}
 
-            {% for item in rejected_amuse_bouche %}
+            {% for item in rejected_pinch %}
             <div class="moderation-card moderation-card--rejected">
                 <div class="moderation-card__body">
                     <div class="moderation-card__meta">
@@ -250,12 +250,12 @@
                 </div>
                 <div class="moderation-card__actions">
                     <a class="mod-btn mod-btn--view" href="{{ item.get_absolute_url }}" target="_blank">View</a>
-                    <a class="mod-btn mod-btn--edit" href="{% url 'amuse_bouche:edit' item.slug %}">Edit</a>
-                    <form action="{% url 'amuse_bouche:moderate' item.slug %}" method="post">{% csrf_token %}
+                    <a class="mod-btn mod-btn--edit" href="{% url 'pinch:edit' item.slug %}">Edit</a>
+                    <form action="{% url 'pinch:moderate' item.slug %}" method="post">{% csrf_token %}
                         <input name="action" type="hidden" value="delete">
                         <button class="mod-btn mod-btn--delete" data-delete-title="{{ item.title|truncatechars:40 }}" type="button">Archive</button>
                     </form>
-                    <form action="{% url 'amuse_bouche:moderate' item.slug %}" method="post">{% csrf_token %}
+                    <form action="{% url 'pinch:moderate' item.slug %}" method="post">{% csrf_token %}
                         <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
                     </form>
                 </div>

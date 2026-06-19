@@ -40,8 +40,8 @@
       "pass": true
     },
     {
-      "path": "/amuse-bouche/",
-      "description": "Amuse-bouche feed",
+      "path": "/pinch/",
+      "description": "Pinch feed",
       "status": 200,
       "ms": 244,
       "expected": 200,

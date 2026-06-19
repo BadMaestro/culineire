@@ -48,7 +48,7 @@
           <span>2</span>
           <div>
             <strong>Write a focused theme</strong>
-            <p>Keep it specific enough for both chefs to understand the dish, article, or mixed challenge brief.</p>
+            <p>Keep it specific enough for both Chefs to understand the dish and cooking style.</p>
           </div>
         </li>
         <li>
@@ -94,7 +94,7 @@
             <div class="battle-form__field">
               <label class="battle-form__label" for="{{ form.battle_type.id_for_label }}">{{ form.battle_type.label }}</label>
               {{ form.battle_type }}
-              <p class="battle-form__help">Recipe duel, article duel, or either format.</p>
+              <p class="battle-form__help">Photo battle (cooking photos + final dish) or video battle.</p>
               {% for e in form.battle_type.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
             </div>
           </div>
@@ -105,7 +105,7 @@
           <div class="battle-form__field">
             <label class="battle-form__label" for="{{ form.theme.id_for_label }}">{{ form.theme.label }}</label>
             {{ form.theme }}
-            <p class="battle-form__help">One compelling sentence. The chefs and audience should understand the challenge instantly.</p>
+            <p class="battle-form__help">One compelling sentence. The Chefs and audience should understand the challenge instantly.</p>
             {% for e in form.theme.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
           </div>
 

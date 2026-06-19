@@ -2387,12 +2387,14 @@ a.battle-pulse-item__msg:hover {
 
 /* --- Wordmark block --- */
 .battle-home__wordmark {
+  width: 100%;
   padding-block: clamp(2rem, 5vw, 3.8rem) 0;
   text-align: center;
 }
 
 .battle-home__pre-title {
-  margin: 0 0 0.5rem;
+  margin: 0 auto 0.5rem;
+  text-align: center;
   font-size: 0.7rem;
   font-weight: 800;
   letter-spacing: 0.28em;
@@ -2400,19 +2402,29 @@ a.battle-pulse-item__msg:hover {
   color: rgb(232 99 10 / 0.85);
 }
 
+.battle-home .battle-home__pre-title {
+  text-align: center;
+  margin-inline: 5% auto;
+}
+
+.battle-home .battle-home__title {
+  margin-inline: 5% auto;
+}
+
 .battle-home__title {
   font-family: var(--font-serif);
-  font-size: clamp(3.2rem, 8vw, 7rem);
+  font-size: clamp(2.4rem, 5vw, 4.5rem);
   font-weight: 900;
   line-height: 0.88;
   letter-spacing: 0.03em;
   color: #fff;
+  text-align: center;
   text-transform: uppercase;
-  margin: 0;
+  margin: 0 auto;
   text-shadow: 0 4px 48px rgb(0 0 0 / 0.55);
 }
 
-.battle-home__divider {
+.battle-home__divider { justify-content: center;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2456,7 +2468,7 @@ a.battle-pulse-item__msg:hover {
 }
 
 /* --- Primary CTA row --- */
-.battle-home__cta-row {
+.battle-home__cta-row { justify-content: center;
   display: flex;
   align-items: center;
   gap: 0.7rem;
@@ -2914,7 +2926,7 @@ a.battle-home__pulse-msg:hover {
   color: #fff;
   text-decoration: none;
   font-family: var(--font-serif);
-  font-size: clamp(3.2rem, 8vw, 7rem);
+  font-size: clamp(2.4rem, 5vw, 4.5rem);
   font-weight: 900;
   line-height: 0.88;
   letter-spacing: 0.03em;
@@ -2941,4 +2953,35 @@ a.battle-home__pulse-msg:hover {
   display: block;
   text-align: center;
   justify-items: unset;
+}
+
+.battle-home__tagline-link {
+  display: inline;
+  text-decoration: none !important;
+  background: linear-gradient(
+    90deg,
+    #fff 0%,
+    #fff 35%,
+    rgba(255, 228, 130, 1.0) 50%,
+    #fff 65%,
+    #fff 100%
+  );
+  background-size: 250% 100%;
+  background-clip: text !important;
+  -webkit-background-clip: text !important;
+  color: transparent !important;
+  animation: tagline-glint 2.8s linear infinite;
+}
+
+@keyframes tagline-glint {
+  0%   { background-position: 120% 0; }
+  100% { background-position: -120% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .battle-home__tagline-link {
+    animation: none;
+    background: none;
+    color: #fff;
+  }
 }

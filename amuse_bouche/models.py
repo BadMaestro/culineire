@@ -216,8 +216,8 @@ class AmuseBouche(models.Model):
             models.Index(fields=["content_type", "status"]),
             models.Index(fields=["is_featured", "status"]),
         ]
-        verbose_name = "Amuse-Bouche"
-        verbose_name_plural = "Amuse-Bouche"
+        verbose_name = "Pinch"
+        verbose_name_plural = "Pinch"
 
     def __str__(self) -> str:
         return self.title
@@ -345,8 +345,8 @@ class AmuseBoucheGalleryImage(models.Model):
 
     class Meta:
         ordering = ["sort_order", "id"]
-        verbose_name = "Amuse-Bouche gallery image"
-        verbose_name_plural = "Amuse-Bouche gallery images"
+        verbose_name = "Pinch gallery image"
+        verbose_name_plural = "Pinch gallery images"
 
     def __str__(self) -> str:
         return f"{self.amuse_bouche.title} - image {self.id}"

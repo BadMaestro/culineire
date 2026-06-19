@@ -370,8 +370,8 @@ class FeedPageTest(TestCase):
 
 
 def _make_ab(author, title="Test Bite", status="approved"):
-    from amuse_bouche.models import AmuseBouche
-    return AmuseBouche.objects.create(
+    from pinch.models import Pinch
+    return Pinch.objects.create(
         author=author,
         title=title,
         slug=title.lower().replace(" ", "-"),
@@ -381,13 +381,13 @@ def _make_ab(author, title="Test Bite", status="approved"):
 
 
 @override_settings(SITE_DOMAIN="culineire.ie", SITE_SCHEME="https")
-class AmuseBoucheTelegramMessageTest(TestCase):
+class PinchTelegramMessageTest(TestCase):
     """Tests for the compact AB Telegram formatter."""
 
     def setUp(self):
         self.author = _make_author()
 
-    def _make_entry(self, title="Tuna, Egg and Potato Salad", url="/amuse-bouche/tuna-egg-and-potato-salad/"):
+    def _make_entry(self, title="Tuna, Egg and Potato Salad", url="/pinch/tuna-egg-and-potato-salad/"):
         from newsfeed.models import NewsFeedEntry
         return NewsFeedEntry(
             entry_type=NewsFeedEntry.EntryType.AMUSE_BOUCHE_PUBLISHED,
@@ -406,13 +406,13 @@ class AmuseBoucheTelegramMessageTest(TestCase):
         from newsfeed.telegram import build_ab_telegram_message
         entry = self._make_entry()
         msg = build_ab_telegram_message(entry)
-        self.assertIn("https://culineire.ie/amuse-bouche/tuna-egg-and-potato-salad/", msg)
+        self.assertIn("https://culineire.ie/pinch/tuna-egg-and-potato-salad/", msg)
 
-    def test_ab_message_has_amuse_bouche_prefix(self):
+    def test_pinch_message_has_pinch_prefix(self):
         from newsfeed.telegram import build_ab_telegram_message
         entry = self._make_entry()
         msg = build_ab_telegram_message(entry)
-        self.assertTrue(msg.startswith("Amuse-Bouche: "))
+        self.assertTrue(msg.startswith("Pinch: "))
 
     def test_ab_message_does_not_contain_author_prefix(self):
         from newsfeed.telegram import build_ab_telegram_message
@@ -434,9 +434,9 @@ class AmuseBoucheTelegramMessageTest(TestCase):
     TELEGRAM_CHANNEL_ID="@culineire_test",
     SITE_DOMAIN="culineire.ie",
     SITE_SCHEME="https",
-    AMUSE_BOUCHE_PUBLIC=True,
+    PINCH_PUBLIC=True,
 )
-class AmuseBoucheTelegramPublishTest(TestCase):
+class PinchTelegramPublishTest(TestCase):
     """Tests that AB notifications use sendMessage (not sendPhoto) and are not duplicated."""
 
     def setUp(self):
@@ -468,7 +468,7 @@ class AmuseBoucheTelegramPublishTest(TestCase):
         ab.save()
         self.assertEqual(mock_send.call_count, 1)
         sent_text = mock_send.call_args[0][0]
-        self.assertIn("Amuse-Bouche: Boxty Bite", sent_text)
+        self.assertIn("Pinch: Boxty Bite", sent_text)
         self.assertNotIn("short culinary note", sent_text)
 
     @patch("newsfeed.telegram.send_telegram_message_with_link_preview")
@@ -497,7 +497,7 @@ class AmuseBoucheTelegramPublishTest(TestCase):
         from newsfeed.telegram import send_telegram_message_with_link_preview
         mock_call.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
 
-        send_telegram_message_with_link_preview("Amuse-Bouche: Test\n\nhttps://culineire.ie/amuse-bouche/test/")
+        send_telegram_message_with_link_preview("Pinch: Test\n\nhttps://culineire.ie/pinch/test/")
 
         token, method, payload = mock_call.call_args[0]
         self.assertEqual(token, "test-token")
@@ -513,13 +513,13 @@ class AmuseBoucheTelegramPublishTest(TestCase):
         mock_call.return_value = TelegramResult(ok=True, status="sent", response='{"ok": true}')
 
         send_telegram_message_with_link_preview(
-            "Amuse-Bouche: Test\n\nhttps://culineire.ie/amuse-bouche/test/",
-            preview_url="https://culineire.ie/amuse-bouche/test/?tg=1-123",
+            "Pinch: Test\n\nhttps://culineire.ie/pinch/test/",
+            preview_url="https://culineire.ie/pinch/test/?tg=1-123",
         )
 
         payload = mock_call.call_args[0][2]
         options = json.loads(payload["link_preview_options"])
-        self.assertEqual(options["url"], "https://culineire.ie/amuse-bouche/test/?tg=1-123")
+        self.assertEqual(options["url"], "https://culineire.ie/pinch/test/?tg=1-123")
 
     @patch("newsfeed.telegram.send_telegram_message_with_link_preview")
     def test_ab_publish_uses_cache_busted_preview_url(self, mock_send):
@@ -531,12 +531,12 @@ class AmuseBoucheTelegramPublishTest(TestCase):
 
         sent_text = mock_send.call_args[0][0]
         preview_url = mock_send.call_args.kwargs["preview_url"]
-        self.assertIn("https://culineire.ie/amuse-bouche/cache-bite/", sent_text)
-        self.assertRegex(preview_url, r"https://culineire\.ie/amuse-bouche/cache-bite/\?tg=\d+-\d+")
+        self.assertIn("https://culineire.ie/pinch/cache-bite/", sent_text)
+        self.assertRegex(preview_url, r"https://culineire\.ie/pinch/cache-bite/\?tg=\d+-\d+")
 
 
 @override_settings(IS_TESTING=False, DISABLE_EXTERNAL_NOTIFICATIONS=False)
-class AmuseBoucheLaunchNewsCommandTest(TestCase):
+class PinchLaunchNewsCommandTest(TestCase):
     @override_settings(
         TELEGRAM_BOT_TOKEN="test-token",
         TELEGRAM_CHANNEL_ID="@culineire_test",

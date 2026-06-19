@@ -42,7 +42,7 @@
     <h2 class="biathlon-panel__title">Upload Your Dish Photo</h2>
     <p class="biathlon-panel__sub">
       Take a clear photo of your finished dish and upload it here.
-      Once both chefs submit, the Presentation phase begins and public voting opens.
+      Once both Chefs submit, the Presentation phase begins and public voting opens.
     </p>
     <form method="post" action="{% url 'chef_battle:cooking_submit' battle.pk %}" enctype="multipart/form-data">
       {% csrf_token %}
@@ -80,7 +80,7 @@
 <div class="container" style="max-width: 700px; padding-block: 0 2.5rem;">
   <h2 style="font-family: var(--font-serif); font-size: 1.3rem; margin-block-end: 1rem;">Live Chat</h2>
   <div id="battle-chat-messages" style="background: var(--surface); border: 1px solid var(--color-border); border-radius: 8px; padding: 1rem; height: 220px; overflow-y: auto; margin-block-end: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
-    <p style="color: var(--color-muted); font-size: 0.85rem; text-align: center;" id="chat-empty-hint">Cheer the chefs through the cooking phase.</p>
+    <p style="color: var(--color-muted); font-size: 0.85rem; text-align: center;" id="chat-empty-hint">Cheer the Chefs through the cooking phase.</p>
   </div>
   <form id="battle-chat-form" method="post" action="{% url 'chef_battle:battle_chat_send' battle.pk %}" style="display: flex; gap: 0.5rem; align-items: flex-end;">
     {% csrf_token %}

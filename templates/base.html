@@ -142,14 +142,14 @@
         <nav aria-label="Primary" class="ce-nav" id="ce-primary-navigation">
             <div class="ce-nav__menu">
                 <div class="ce-nav__group ce-nav__group--left">
-                {% if can_view_amuse_bouche_public_area %}
-                {% if namespace == 'amuse_bouche' %}
-                <a class="ce-nav__link ce-nav__link--active" href="{% url 'amuse_bouche:feed' %}" aria-current="page">
-                    Amuse-Bouche
+                {% if can_view_pinch_public_area %}
+                {% if namespace == 'pinch' %}
+                <a class="ce-nav__link ce-nav__link--active" href="{% url 'pinch:feed' %}" aria-current="page">
+                    Pinch
                 </a>
                 {% else %}
-                <a class="ce-nav__link" href="{% url 'amuse_bouche:feed' %}">
-                    Amuse-Bouche
+                <a class="ce-nav__link" href="{% url 'pinch:feed' %}">
+                    Pinch
                 </a>
                 {% endif %}
                 <span aria-hidden="true" class="ce-nav__separator"></span>
@@ -359,8 +359,8 @@
                 <nav aria-label="Footer explore" class="footer-col__nav">
                     <a href="{% url 'about' %}">About</a>
                     <a href="{% url 'home' %}">Home</a>
-                    {% if can_view_amuse_bouche_public_area %}
-                    <a href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
+                    {% if can_view_pinch_public_area %}
+                    <a href="{% url 'pinch:feed' %}">Pinch</a>
                     {% endif %}
                     <a href="{% url 'recipes:recipe_list' %}">Recipes</a>
                     <a href="{% url 'articles:article_list' %}">Articles</a>

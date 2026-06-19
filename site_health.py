@@ -33,7 +33,7 @@ PAGES = [
     ("/recipes/",                       200, "Recipe list"),
     ("/recipes/?page=2",                200, "Recipe list page 2"),
     ("/articles/",                      200, "Article list"),
-    ("/amuse-bouche/",                  200, "Amuse-bouche feed"),
+    ("/pinch/",                  200, "Pinch feed"),
     ("/news/",                          200, "Newsfeed"),
     ("/sponsors/",                      200, "Sponsors puzzle"),
     ("/chef-battle/",                   None, "Chef Battle (disabled when feature off)"),

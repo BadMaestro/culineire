@@ -14,8 +14,8 @@ _FEED_FILTERS = (
     ("recipes", "Recipes", (NewsFeedEntry.EntryType.RECIPE_PUBLISHED,)),
     ("articles", "Articles", (NewsFeedEntry.EntryType.ARTICLE_PUBLISHED,)),
     (
-        "amuse-bouche",
-        "Amuse-Bouche",
+        "pinch",
+        "Pinch",
         (
             NewsFeedEntry.EntryType.AMUSE_BOUCHE_PUBLISHED,
             NewsFeedEntry.EntryType.AMUSE_BOUCHE_FEATURED,

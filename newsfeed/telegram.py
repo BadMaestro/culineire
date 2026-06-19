@@ -90,17 +90,17 @@ def build_newsfeed_telegram_message(entry) -> str:
 
 
 def build_ab_direct_telegram_message(ab) -> str:
-    """Compact Amuse-Bouche caption: title + URL only, no description or author prefix."""
+    """Compact Pinch caption: title + URL only, no description or author prefix."""
     site_url = f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}".rstrip("/")
     absolute_url = f"{site_url}{ab.get_absolute_url()}"
-    return f"Amuse-Bouche: {ab.title}\n\n{absolute_url}"
+    return f"Pinch: {ab.title}\n\n{absolute_url}"
 
 
 def build_ab_telegram_message(entry) -> str:
-    """Compact Amuse-Bouche notification: title + URL only, no description or author prefix."""
+    """Compact Pinch notification: title + URL only, no description or author prefix."""
     site_url = f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}".rstrip("/")
     absolute_url = f"{site_url}{entry.url}" if entry.url and entry.url.startswith("/") else (entry.url or "")
-    parts = [f"Amuse-Bouche: {entry.title}"]
+    parts = [f"Pinch: {entry.title}"]
     if absolute_url:
         parts.append(absolute_url)
     return "\n\n".join(parts)
@@ -215,7 +215,7 @@ def send_telegram_message_without_link_preview(text: str) -> TelegramResult:
 
 
 def send_telegram_message_with_link_preview(text: str, *, preview_url: str = "") -> TelegramResult:
-    """sendMessage with small link preview — used for Amuse-Bouche compact notifications."""
+    """sendMessage with small link preview — used for Pinch compact notifications."""
     token = getattr(settings, "TELEGRAM_BOT_TOKEN", "")
     channel_id = getattr(settings, "TELEGRAM_CHANNEL_ID", "")
     if not token or not channel_id:
@@ -330,13 +330,13 @@ def _publish_to_telegram(*, event_key: str, message: str, target_url: str, image
 def publish_ab_to_telegram(ab) -> TelegramResult:
     preview_url = ""
     try:
-        from amuse_bouche.telegram_preview import absolute_url, get_telegram_preview_image
+        from pinch.telegram_preview import absolute_url, get_telegram_preview_image
         get_telegram_preview_image(ab)
         version = getattr(ab, "updated_at", None)
         version_value = int(version.timestamp()) if version else getattr(ab, "pk", "")
         preview_url = f"{absolute_url(ab.get_absolute_url())}?tg={ab.pk}-{version_value}"
     except Exception:
-        logger.exception("Failed to prepare Amuse-Bouche Telegram preview image for pk=%s", getattr(ab, "pk", None))
+        logger.exception("Failed to prepare Pinch Telegram preview image for pk=%s", getattr(ab, "pk", None))
     return _publish_to_telegram(
         event_key=f"amuse_bouche_published:{ab.pk}",
         message=build_ab_direct_telegram_message(ab),

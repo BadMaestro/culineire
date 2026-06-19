@@ -28,7 +28,7 @@ _NO_CACHE_PREFIXES = [
     "/sandbox/",
     "/recipes/moderation/",
     "/collection/",
-    "/amuse-bouche/",
+    "/pinch/",
     "/recipes/create",
     "/recipes/edit/",
     "/articles/create",

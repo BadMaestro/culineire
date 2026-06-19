@@ -14,7 +14,7 @@ from newsfeed.telegram import publish_newsfeed_entry_to_telegram
 
 
 class Command(BaseCommand):
-    help = "Publish the Amuse-Bouche launch news entry and push it to Telegram."
+    help = "Publish the Pinch launch news entry and push it to Telegram."
 
     def add_arguments(self, parser):
         parser.add_argument(

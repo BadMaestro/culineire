@@ -614,7 +614,7 @@ document.addEventListener("DOMContentLoaded", () => {
       document.body.style.overflow = "hidden";
       requestAnimationFrame(function () { panel.classList.add("is-open"); });
 
-      fetch("/amuse-bouche/" + slug + "/comments/", {
+      fetch("/pinch/" + slug + "/comments/", {
         headers: { "X-AB-Fetch": "1" },
       })
         .then(function (r) { return r.json(); })
@@ -724,7 +724,7 @@ document.addEventListener("DOMContentLoaded", () => {
         var dSlug = delBtn.dataset.slug;
         var csrfEl = panel.querySelector("[name=csrfmiddlewaretoken]");
         if (!csrfEl) return;
-        fetch("/amuse-bouche/" + dSlug + "/comment/" + commentId + "/delete/", {
+        fetch("/pinch/" + dSlug + "/comment/" + commentId + "/delete/", {
           method: "POST",
           headers: { "X-CSRFToken": csrfEl.value, "X-AB-Fetch": "1" },
           body: new FormData(),
@@ -756,7 +756,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (submitBtn) submitBtn.disabled = true;
 
       var fd = new FormData(form);
-      fetch("/amuse-bouche/" + slug + "/comment/", {
+      fetch("/pinch/" + slug + "/comment/", {
         method: "POST",
         headers: { "X-CSRFToken": csrfEl.value, "X-AB-Fetch": "1" },
         body: fd,

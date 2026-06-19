@@ -1814,7 +1814,7 @@ def submit_content_report(
 
 # ── Reward Agreement ─────────────────────────────────────────────────────────
 
-REWARD_AGREEMENT_TEXT_v1 = """CHEF BATTLE REWARD AGREEMENT — VERSION 1.0
+REWARD_AGREEMENT_TEXT_v1 = """CHEF BATTLE REWARD AGREEMENT
 
 By accepting this agreement you confirm that you have read and understood the following terms.
 

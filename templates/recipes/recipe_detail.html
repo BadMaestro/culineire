@@ -44,16 +44,16 @@
                 <a class="btn-secondary" href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit Recipe</a>
                 <a class="btn-secondary" href="{% url 'recipes:recipe_delete' recipe.slug %}">Delete Recipe</a>
                 {% if can_generate_ab %}
-                <form action="{% url 'amuse_bouche:generate_from_recipe' recipe.slug %}" method="post" style="display:contents">
+                <form action="{% url 'pinch:generate_from_recipe' recipe.slug %}" method="post" style="display:contents">
                   {% csrf_token %}
                   <button class="btn-secondary" type="submit">
-                    {% if recipe_ab_exists %}View Amuse-Bouche{% else %}Generate Amuse-Bouche{% endif %}
+                    {% if recipe_ab_exists %}View Pinch{% else %}Generate Pinch{% endif %}
                   </button>
                 </form>
                 {% endif %}
                 {% else %}
-                {% if can_view_amuse_bouche_public_area %}
-                <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
+                {% if can_view_pinch_public_area %}
+                <a class="btn-primary" href="{% url 'pinch:feed' %}">Pinch</a>
                 {% endif %}
                 <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
                 <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
@@ -86,7 +86,7 @@
                 <a class="detail-page__back-link" href="{% url 'recipes:recipe_list' %}">Back to Recipes</a>
                 {% else %}<span></span>{% endif %}
                 {% if recipe_ab_url %}
-                <a class="detail-page__back-link" href="{{ recipe_ab_url }}">Back to Amuse-Bouche</a>
+                <a class="detail-page__back-link" href="{{ recipe_ab_url }}">Back to Pinch</a>
                 {% endif %}
             </div>
             {% endif %}
