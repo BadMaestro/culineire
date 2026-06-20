@@ -5183,7 +5183,7 @@
   padding: 0.28rem 0.8rem;
 }
 
-/* hero-peek-btn: hide when battle panel is present */
+/* hero-peek-btn: shift down to clear battle panel kicker */
 .hero--has-battle .hero-peek-btn {
-  display: none;
+  top: 3rem;
 }
