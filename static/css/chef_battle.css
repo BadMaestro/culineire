@@ -2550,11 +2550,12 @@ a.battle-pulse-item__msg:hover {
 
 .battle-home__nav-list {
   display: none;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.38rem;
   position: absolute;
-  top: calc(100% + 0.4rem);
-  left: 0;
+  top: 50%;
+  left: calc(100% + 0.45rem);
+  transform: translateY(-50%);
   z-index: 20;
 }
 
