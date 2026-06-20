@@ -5183,8 +5183,7 @@
   padding: 0.28rem 0.8rem;
 }
 
-/* hero-peek-btn: shift to left side when battle panel occupies top-right */
+/* hero-peek-btn: hide when battle panel is present */
 .hero--has-battle .hero-peek-btn {
-  right: auto;
-  left: 0.85rem;
+  display: none;
 }
