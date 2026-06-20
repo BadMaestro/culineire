@@ -2404,11 +2404,11 @@ a.battle-pulse-item__msg:hover {
 
 .battle-home .battle-home__pre-title {
   text-align: center;
-  margin-inline: 5% auto;
+  margin-inline: auto;
 }
 
 .battle-home .battle-home__title {
-  margin-inline: 5% auto;
+  margin-inline: auto;
 }
 
 .battle-home__title {
