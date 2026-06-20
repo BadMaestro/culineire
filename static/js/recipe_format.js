@@ -5,7 +5,7 @@
  *   1. Preview Recipe Structure — renders current fields as HTML (always works)
  *   2. Clean Recipe Text        — POST to format_suggest, stages cleaned fields
  *   3. Sanitize Text            — client-side content safety on staged (or current) fields
- *   4. Apply Changes            — writes staged fields back into the form (top + bottom button)
+ *   4. Apply Changes            — writes staged fields back into the form
  */
 (function () {
   'use strict';
@@ -106,15 +106,13 @@
     var cleanBtn     = document.getElementById('rf-clean-btn');
     var sanitizeBtn  = document.getElementById('rf-sanitize-btn');
     var applyBtn     = document.getElementById('rf-apply-btn');
-    var applyBtn2    = document.getElementById('rf-apply-btn-2');
     var statusEl     = document.getElementById('rf-status');
 
     // staged holds pending changes (not yet written to form fields)
     var staged = null;
 
     function setApplyEnabled(enabled) {
-      if (applyBtn)  applyBtn.disabled  = !enabled;
-      if (applyBtn2) applyBtn2.disabled = !enabled;
+      if (applyBtn) applyBtn.disabled = !enabled;
     }
 
     function doApply() {
@@ -192,8 +190,7 @@
     }
 
     // ── 4. Apply Changes ────────────────────────────────────────────────────
-    if (applyBtn)  applyBtn.addEventListener('click',  doApply);
-    if (applyBtn2) applyBtn2.addEventListener('click', doApply);
+    if (applyBtn) applyBtn.addEventListener('click', doApply);
 
     // ── Auto-clean on edit page load ────────────────────────────────────────
     if (panel.dataset.autoClean === 'true' && cleanBtn) {
