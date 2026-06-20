@@ -5182,3 +5182,11 @@
   font-size: 0.8rem;
   padding: 0.28rem 0.8rem;
 }
+
+/* hero-peek-btn: move away from battle panel when widget is present */
+.hero--has-battle .hero-peek-btn {
+  top: auto;
+  bottom: 0.85rem;
+  right: auto;
+  left: 0.85rem;
+}
