@@ -231,25 +231,6 @@
 
         {# ── Category filtered view ── #}
 
-        {% if mood_categories %}
-        <div class="category-nav-block recipe-mood-panel">
-            <div class="category-nav-wrap">
-                <nav aria-label="Recipe mood categories" class="category-nav">
-                    {% for mood_category in mood_categories %}
-                    {% if mood_category.is_active %}
-                    <span class="category-nav__item category-nav__item--active">{{ mood_category.label }}</span>
-                    {% else %}
-                    <a class="category-nav__item category-nav__link" href="{{ mood_category.url }}">{{ mood_category.label }}</a>
-                    {% endif %}
-                    {% if not forloop.last %}
-                    <span aria-hidden="true" class="category-nav__separator">&middot;</span>
-                    {% endif %}
-                    {% endfor %}
-                </nav>
-            </div>
-        </div>
-        {% endif %}
-
         {% if categories %}
         <div class="category-nav-block" data-category-toggle>
             <div class="category-nav-wrap" data-category-wrap>
@@ -312,21 +293,6 @@
         {% else %}
 
         {# ── Default view: mood categories, category nav, popular categories, recent recipes ── #}
-
-        {% if mood_categories %}
-        <div class="category-nav-block recipe-mood-panel">
-            <div class="category-nav-wrap">
-                <nav aria-label="Recipe mood categories" class="category-nav">
-                    {% for mood_category in mood_categories %}
-                    <a class="category-nav__item category-nav__link" href="{{ mood_category.url }}">{{ mood_category.label }}</a>
-                    {% if not forloop.last %}
-                    <span aria-hidden="true" class="category-nav__separator">&middot;</span>
-                    {% endif %}
-                    {% endfor %}
-                </nav>
-            </div>
-        </div>
-        {% endif %}
 
         {% if categories %}
         <div class="category-nav-block" data-category-toggle>

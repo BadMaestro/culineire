@@ -5080,3 +5080,105 @@
   vertical-align: middle;
   margin-inline-start: 0.3rem;
 }
+
+/* ═══════════════════════════════════════════════
+   visual_consistency_polish — Groups 1 & 2
+   ═══════════════════════════════════════════════ */
+
+/* ── Group 1.1 / 1.2: Unified listing hero height & inner padding ── */
+.hero--home:not(.hero--recipe-detail):not(.hero--about) {
+  min-height: clamp(320px, 44vw, 480px);
+}
+.hero--home:not(.hero--recipe-detail):not(.hero--about) .hero__inner {
+  padding-block: clamp(1.8rem, 4vw, 3rem);
+}
+
+/* ── Group 1.3: Consistent h1 size on listing heroes ── */
+.hero--home:not(.hero--recipe-detail):not(.hero--about) .hero-title {
+  font-size: clamp(2rem, 3.4vw, 3.2rem);
+  margin-block-end: 0.75rem;
+}
+
+/* ── Group 1.4: Consistent CTA gap on listing heroes ── */
+.hero--home:not(.hero--recipe-detail):not(.hero--about) .hero__actions {
+  gap: 0.65rem;
+}
+.hero--home:not(.hero--recipe-detail):not(.hero--about) .hero-copy .hero__actions {
+  padding-block-start: 1.1rem;
+}
+
+/* ── Group 2.1: Recipe detail hero — left-align content ── */
+.hero--recipe-detail .hero-copy {
+  text-align: left;
+  align-items: flex-start;
+}
+.hero--recipe-detail .hero-copy .hero__actions {
+  justify-content: flex-start;
+}
+
+/* ── Group 2.1: Author row inside recipe detail hero ── */
+.hero-author {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-block: 0.6rem 0;
+  font-size: 0.87rem;
+  color: rgba(247 242 234 / 0.82);
+}
+.hero-author__label {
+  color: rgba(247 242 234 / 0.5);
+  font-weight: 400;
+}
+.hero-author__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  color: rgba(247 242 234 / 0.88);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+.hero-author__link:hover { color: #fff; }
+.hero-author__avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(247 242 234 / 0.25);
+}
+
+/* ── Group 2.2: Pinch detail hero ── */
+.hero--pinch-detail {
+  min-height: clamp(220px, 30vw, 340px);
+}
+.hero--pinch-detail .hero-copy {
+  text-align: left;
+  align-items: flex-start;
+}
+
+/* ── Group 3: Breadcrumb consistency (already styled, no extra CSS needed) ── */
+
+/* ── Group 5: Staff-only admin bar ── */
+.staff-bar {
+  background: rgba(30 20 10 / 0.85);
+  border-bottom: 1px solid rgba(200 169 110 / 0.25);
+  padding: 0.55rem 0;
+}
+.staff-bar__inner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.staff-bar__label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: rgba(200 169 110 / 0.7);
+  margin-inline-end: 0.3rem;
+}
+.staff-bar .btn-secondary {
+  font-size: 0.8rem;
+  padding: 0.28rem 0.8rem;
+}
