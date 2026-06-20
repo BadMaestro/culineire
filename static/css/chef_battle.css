@@ -20,9 +20,9 @@
 .battle-room-hero--has-panel .container {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   text-align: left;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 .battle-room-hero__copy {
   display: grid;
@@ -2997,3 +2997,5 @@ a.battle-home__pulse-msg:hover {
 
 /* Photo button clearance */
 .hero--has-battle .hero-battle-panel { margin-top: 1.125rem; }
+.battle-hero--has-panel .hero-battle-panel,
+.battle-room-hero--has-panel .hero-battle-panel { margin-top: 1.125rem; }
