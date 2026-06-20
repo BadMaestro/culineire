@@ -1,67 +1,46 @@
-# New Agent Onboarding: Join the Coworking System
+# New Agent Onboarding: Connecting to the Coworking System
 
 ## Who you are
 
 You are a Claude Code agent joining an active development team on
-culineire.ie, on your own machine and account — possibly different from
-any colleague already working on this project. The only thing you share
-with them is this git repository, so the very first thing you do is pull.
+culineire.ie. One or more agents may already be registered. Coworking is a
+real app on the live site backed by the production database — there is no
+local file to read, no git pull needed for "state".
 
 ---
 
-## Step 1 — Orient yourself
+## Step 1 — See who's already there
 
 ```bash
-cd "<repo root>"
-git pull
-git log --oneline -10
-cat coworking/state.json 2>/dev/null || echo "No state.json yet — it will be created from state.example.json on first update."
-cat coworking/AGENT_INSTRUCTIONS.md
+python manage.py coworking_list
 ```
 
-`git pull` here is read-only with respect to anything except state.json
-itself — safe to run without asking. Pushing is the step that always needs
-the human's explicit "yes".
+This shows every registered agent: status, last activity, and their
+`next_step` — read this carefully if you're picking up from someone.
 
-Read `state.json` (if it exists) carefully. You will find:
-- What each active agent is currently doing
-- What has been completed today
-- Open blockers and questions
-- Project memory (key facts about the codebase)
-- The exact `next_step` each agent left, in case you need to pick up
+For the full picture (current task description, active prompt, memory,
+recent log), open the dashboard: `https://culineire.ie/coworking/`
+(moderator login required — same access as the rest of the internal tools).
 
 ---
 
 ## Step 2 — Choose your identity
 
-```bash
-python coworking/handoff.py list
-```
-
-Pick the next available slot, or register a brand-new one (no code change
-needed — agent count is not hardcoded):
-
-```bash
-python coworking/handoff.py add-agent --label "[YourMachineName] / Code [Letter]"
-```
-
-Or keep an existing slot's label consistent with your machine if you're resuming.
+Pick an id that doesn't already appear in `coworking_list` output. Keep the
+label human-readable (e.g. "Bolt", "GreenBear", "Claude D").
 
 ---
 
 ## Step 3 — Register yourself
 
 ```bash
-python coworking/update_state.py \
-  --agent [your_id] \
-  --status active \
-  --log "Agent joined - reading project state" \
-  --log-result ok
+python manage.py coworking_update --agent <your_id> --label "<Your Label>" \
+  --status active --log "Agent joined - reading project state" --log-result ok
 ```
 
-This edits `coworking/state.json` locally. Ask the human to review the diff
-and push it — that's the only way a colleague on another machine learns you
-exist.
+If your id doesn't exist yet, this creates it automatically — no code
+change, no migration, no separate "add agent" step needed (though the web
+button works too if you'd rather a human click it).
 
 ---
 
@@ -77,13 +56,10 @@ git log --oneline -20
 ## Step 5 — Introduce yourself in shared memory
 
 ```bash
-python coworking/update_state.py \
-  --agent agent_[YOUR_LETTER] \
-  --status active \
-  --log "Orientation complete. Ready to take tasks." \
-  --log-result ok \
+python manage.py coworking_update --agent <your_id> --status active \
+  --log "Orientation complete. Ready to take tasks." --log-result ok \
   --next "Waiting for task assignment or picking up from colleague" \
-  --key-fact "Joined from [your machine description]"
+  --key-fact "Joined from <your machine/account description>"
 ```
 
 ---
@@ -91,42 +67,31 @@ python coworking/update_state.py \
 ## Step 6 — Check if a colleague needs pickup
 
 ```bash
-python coworking/handoff.py list
+python manage.py coworking_list
 ```
 
-No one can reliably self-report "I just hit my limit" — there's no signal
-an agent can read to know that in advance. So don't rely on a special
-status value for this. Instead look at `last_seen` (how long ago?) and
-whether `current_task.next_step` looks unfinished. The human is usually the
-one who notices a colleague stalled and decides to switch agents — if they
-tell you to pick up from someone, or you see a stale `active` agent with an
-unfinished `next_step`, that's your cue.
-
-```bash
-python coworking/generate_dashboard.py
-```
-
-Open the generated `coworking/dashboard.html` locally and click the
-"Подхватить работу" button on their card — it copies a ready-made handoff
-prompt (their task, next_step, prompt, memory) to your clipboard. Paste it
-here and begin. This works straight from the static file, no server needed.
+There's no reliable "I just hit my limit" signal an agent can set on
+itself — usage limits aren't predictable from inside a session. So don't
+look for a special status value. Instead: the human notices a colleague
+stalled (or tells you directly) and clicks **"Передать эстафету"** on
+`/coworking/`, which flips both agents' status and logs the handoff on
+both sides. After that, run `coworking_list` again (or open the dashboard)
+and read the outgoing agent's `task_description` / `task_next_step` /
+`active_prompt` / memory to continue exactly where they left off.
 
 ---
 
 ## Step 7 — Begin working
 
 ```bash
-python coworking/update_state.py \
-  --agent agent_[YOUR_LETTER] \
-  --task "Title of your task" \
-  --task-desc "What exactly you are doing and why" \
-  --branch "branch-name-if-any" \
-  --next "First concrete action you will take" \
-  --log "Starting task: [title]" \
-  --status active
+python manage.py coworking_update --agent <your_id> \
+  --task "Title of your task" --task-desc "What exactly you are doing and why" \
+  --branch "branch-name-if-any" --next "First concrete action you will take" \
+  --log "Starting task: [title]" --status active
 ```
 
-Then follow `AGENT_INSTRUCTIONS.md` — log every 3-5 actions.
+Then follow `AGENT_INSTRUCTIONS.md` — update `--next` after every
+meaningful step, not just when you think you're running low.
 
 ---
 
@@ -134,18 +99,14 @@ Then follow `AGENT_INSTRUCTIONS.md` — log every 3-5 actions.
 
 1. **`next_step` must always be specific.** A fresh agent must be able to
    start from it with zero extra context.
-2. **Log before AND after** each significant action — every time, not just
-   when you feel like you might be running low. You cannot detect your own
-   limit in advance.
-3. **Never overwrite a colleague's data.** `update_state.py` only merges
-   your own slot.
-4. **Log blockers immediately.**
-5. **Handoffs are explicit and human-decided.** The human watches for
-   limits/availability and tells an agent to run
-   `python coworking/handoff.py handoff --from X --to Y`.
-6. **Never run `git commit`/`push` from inside these scripts.** Pulling is
-   always safe to do yourself. Pushing — including for `state.json` — is
-   always a separate, human-confirmed step.
+2. **Log before AND after** each significant action.
+3. **Never overwrite a colleague's data.** `coworking_update` only touches
+   your own agent row.
+4. **Log blockers immediately** with `--blocker`.
+5. **Handoffs are explicit and human-decided**, via the dashboard button —
+   not something an agent decides on its own.
+6. **No git operations from this app.** Code changes go through the normal
+   diff-review-confirm-push flow, same as everything else in this repo.
 
 ---
 
@@ -153,14 +114,11 @@ Then follow `AGENT_INSTRUCTIONS.md` — log every 3-5 actions.
 
 | Action | Command |
 |--------|---------|
-| Pull latest state (safe, no confirmation needed) | `git pull` |
-| Read full state | `cat coworking/state.json` |
-| List agents | `python coworking/handoff.py list` |
-| Register a new agent | `python coworking/handoff.py add-agent --label "..."` |
-| Hand off to a colleague | `python coworking/handoff.py handoff --from X --to Y --note "..."` |
-| View dashboard (local snapshot) | `python coworking/generate_dashboard.py` then open `coworking/dashboard.html` |
-| Log an action | `python coworking/update_state.py --agent X --log "..."` |
+| List agents | `python manage.py coworking_list` |
+| View full dashboard | `https://culineire.ie/coworking/` |
+| Register / update yourself | `python manage.py coworking_update --agent X --log "..."` |
 | Update next step | `... --next "..."` |
 | Add key fact | `... --key-fact "..."` |
 | Add to shared memory | `... --shared-memory "..."` |
 | Mark task complete | `... --completed "task title"` |
+| Hand off to a colleague | Click "Передать эстафету" on `/coworking/` (human-triggered) |

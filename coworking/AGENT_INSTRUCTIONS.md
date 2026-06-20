@@ -1,100 +1,70 @@
 # Agent Coworking Protocol
 
-Agents in this project run on **different machines and different accounts**.
-The only channel they share is this git repository — there is no local
-server or shared filesystem between them. `coworking/state.json` is
-therefore tracked in git on purpose: it is how an agent on one machine sees
-what an agent on another machine was doing.
+Coworking is a real Django app on the live site (model `CoworkingAgent` +
+`CoworkingLogEntry` + `CoworkingSharedMemory`, app `coworking/`). It is
+**not** a local file anymore — `coworking/state.json` and the old
+`update_state.py`/`handoff.py` CLI scripts were removed. The production
+database is the shared state between agents on different machines/accounts;
+there is no git-based sync step to remember.
 
-## Critical rule: no autonomous git push from inside a script
+Dashboard (moderator-only, same access pattern as the rest of the internal
+tools — `is_moderator`, 404 for everyone else): `https://culineire.ie/coworking/`
 
-`update_state.py` and `handoff.py` never run `git commit`/`push`. They only
-edit `coworking/state.json` on disk. **Pushing** that file always goes
-through the normal flow: show the human the diff, wait for an explicit
-"yes", then commit/push. This file does not get a special exemption from
-that rule.
+## How an agent updates its own status
 
-**Pulling is different and is always safe to do on your own** — `git pull`
-/ `git fetch` are read-only with respect to the working tree state other
-than state.json itself, so do this freely without asking:
+Run via SSH on the server where `manage.py` has access to the production
+database (same way other ops commands in this project run):
 
 ```
-git pull
-cat coworking/state.json
+python manage.py coworking_update --agent bolt --label Bolt --status active \
+  --task "Fix sponsors N+1 query" --next "Run audit.py to verify fix" \
+  --log "Modified sponsors/views.py" --log-result ok
 ```
 
-## On session start
+Full flag list: `--agent`, `--label`, `--status` (active/idle/blocked),
+`--task`, `--task-desc`, `--branch`, `--files` (comma-separated),
+`--next`, `--prompt` (path to a file with the active prompt text), `--log`,
+`--log-result`, `--log-note`, `--key-fact`, `--decision`, `--blocker`,
+`--shared-memory`, `--open-question`, `--completed`. All of these merge
+into the agent's own row — they never touch another agent's data.
+
+## Checking who's registered
 
 ```
-git pull
-python coworking/update_state.py --agent [your_id] --status active --log "Session started"
+python manage.py coworking_list
 ```
 
-## Before every significant action
-
-```
-python coworking/update_state.py --agent [your_id] --log "Starting: [what]"
-```
-
-## After every significant action — do this every time, not "when you sense a limit"
-
-```
-python coworking/update_state.py --agent [your_id] --log "[what] done" --log-result ok --next "[literal next step]"
-```
-
-You cannot detect your own usage limit in advance — there is no internal
-signal for that. The only defense is updating `next_step` after literally
-every meaningful step, so whatever the last saved state is, it's good
-enough for a colleague to pick up from, even if your session ends without
-warning.
-
-## Handing off deliberately (the human decides when, via the CLI)
-
-The human watches for limits/availability and decides when to switch
-agents. When they say "hand off to X":
-
-```
-python coworking/handoff.py handoff --from agent_a --to agent_b --note "why / what's next"
-```
-
-This only updates `coworking/state.json` locally (flips status on both
-sides, logs the handoff). **Ask the human to commit + push** right after —
-that push is the only way the receiving agent's machine can see it.
-
-## Adding a new agent (no code change needed)
-
-```
-python coworking/handoff.py add-agent --label "Mac Mini / Code C"
-```
-
-Creates a new slot with an auto-generated id (or pass `--id` explicitly).
-Push it the same way, so other machines know this agent exists.
-
-## Viewing the board
-
-```
-python coworking/generate_dashboard.py
-```
-
-Writes a static, self-contained `coworking/dashboard.html` (open it
-directly in a browser, `file://...`). It is a snapshot, not live — re-run
-the script after a `git pull` for a fresh view. There is no Django view or
-production page for this; it never touches the live site.
+Read-only. Shows every agent's status, last_seen and next_step.
 
 ## Update frequency
 
-Every 3-5 actions minimum, ideally after every meaningful step (see above —
-this is not optional given we can't self-detect limits). The `--next` field
-is the most important field — it must always be specific enough that a
-fresh agent can start immediately with zero extra context (not "continue
-work" but e.g. "Run audit.py and confirm noindex is fixed on /recipes/").
+After every meaningful step, not just "when you sense a limit" — there is
+no signal an agent can read to predict its own usage limit in advance. The
+only defense is keeping `--next` current at all times, so whatever the
+last saved state is, it's good enough for a colleague to pick up from even
+if your session ends without warning.
 
-## Committing/pushing state.json
+## Handoffs are human-decided, via the web button
 
-This file IS meant to be tracked in `main`'s history (unlike most working
-files, it's not gitignored) — that's the whole point, it's how cross-machine
-handoff works. But the push itself is still a normal, human-confirmed
-commit: show the diff, get a "yes", push. Don't push on every single
-`update_state.py` call — batch it up to the moments that matter (before a
-handoff, before ending a session) so `main`'s history doesn't get noisy with
-dozens of tiny state.json-only commits.
+The human watches for limits/availability themselves and clicks
+**"Передать эстафету"** on `/coworking/` to flip status on both agents and
+log the handoff on both sides. There is no CLI handoff command — this is
+intentionally a human-in-the-loop action, not something an agent triggers
+on itself.
+
+## Adding a new agent
+
+Either click "Add agent" on the dashboard, or:
+
+```
+python manage.py coworking_update --agent <new_id> --label "<New Agent Label>" --status idle
+```
+
+No code change needed — agent count is not hardcoded anywhere.
+
+## No autonomous git operations from this app
+
+`coworking_update` and `coworking_list` only touch the database. Nothing in
+this app runs `git`. Code changes elsewhere in the repo still go through
+the normal flow: show the human the diff, wait for an explicit "yes", then
+commit/push.

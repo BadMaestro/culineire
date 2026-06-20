@@ -68,6 +68,9 @@ urlpatterns = [
     # Sponsors puzzle
     path("sponsors/", include("sponsors.urls", namespace="sponsors")),
 
+    # Coworking (moderator-only AI agent handoff dashboard)
+    path("coworking/", include("coworking.urls", namespace="coworking")),
+
 
     # Accounts (user management)
     path("accounts/", include("accounts.urls", namespace="accounts")),
