@@ -9,51 +9,36 @@
 {% endblock %}
 
 {% block content %}
-<section class="battle-hero battle-hero--has-panel battle-home">
-
-  <div class="battle-home__wordmark">
-    <div class="container">
-      <p class="battle-home__pre-title">CulinEire Presents</p>
-      <h1 class="battle-home__title">Chef Battles</h1>
-      <div class="battle-home__divider" aria-hidden="true">
-        <span class="battle-home__divider-line"></span>
-        <span class="battle-home__divider-icon">&#x2694;&#xFE0F;</span>
-        <span class="battle-home__divider-line"></span>
-      </div>
-    </div>
+<section class="hero hero--home hero--chef-battle{% if chef_battle_enabled %} hero--has-battle{% endif %}">
+  <div aria-hidden="true" class="hero__background">
+    <picture><source srcset="{% static 'images/hero-battle.webp' %}" type="image/webp"><img alt="" width="1672" height="941" src="{% static 'images/hero-battle.png' %}"></picture>
   </div>
-
-  <div class="container battle-hero__inner">
-    <div class="battle-room-hero__copy">
-      <p class="battle-home__tagline">Real Recipes, Real Chefs, Real Rivalry, <a class="battle-home__tagline-link" href="{% url 'chef_battle:payout_statement' %}">Real Rewards</a>.</p>
-      <p class="battle-home__sub">Challenge another Chef, cook your dish, upload photos or video, let the audience vote, and build your public battle record on CulinEire.</p>
-
-      <div class="battle-home__cta-row">
-        <a class="battle-home__cta-primary" href="{% url 'chef_battle:challenge_create' %}">
-          <svg aria-hidden="true" fill="none" height="15" viewBox="0 0 24 24" width="15" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5L3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="M2 2l20 20"/><path d="M3 14l6 6"/><path d="M14 3l7 7"/></svg>
-          Issue a Challenge
-        </a>
-        <a class="battle-home__cta-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
-        <a class="battle-home__cta-secondary" href="{% url 'chef_battle:rules' %}">Rules</a>
-      </div>
-
-      <div class="battle-home__nav-row">
-        <button aria-expanded="false" aria-label="Show navigation" class="hero__burger battle-home__burger" type="button">
-          <svg aria-hidden="true" fill="none" height="14" viewBox="0 0 20 18" width="14">
+  <div aria-hidden="true" class="hero__overlay"></div>
+  <div class="container hero__inner">
+    <div class="hero-copy">
+      <span class="pill">CulinEire Presents</span>
+      <h1 class="hero-title">Chef Battles</h1>
+      <p class="hero-subtitle">Real Recipes, Real Chefs, Real Rivalry, <a href="{% url 'chef_battle:payout_statement' %}">Real Rewards</a>. Challenge another Chef, cook your dish, upload photos or video, let the audience vote.</p>
+      <div class="hero__actions">
+        <a class="btn-primary" href="{% url 'chef_battle:challenge_create' %}">Issue a Challenge</a>
+        <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
+        <a class="btn-secondary" href="{% url 'chef_battle:rules' %}">Rules</a>
+        <button aria-expanded="false" aria-label="Show navigation" class="hero__burger" type="button">
+          <svg aria-hidden="true" fill="none" height="18" viewBox="0 0 20 18" width="20">
             <rect fill="currentColor" height="2" rx="1" width="20" y="0"/>
             <rect fill="currentColor" height="2" rx="1" width="20" y="8"/>
             <rect fill="currentColor" height="2" rx="1" width="20" y="16"/>
           </svg>
           More
         </button>
-        <div class="hero__actions-list battle-home__nav-list">
-          <a class="battle-home__nav-link" href="{% url 'chef_battle:season_leaderboard' %}">Season</a>
-          <a class="battle-home__nav-link" href="{% url 'chef_battle:appreciation_gallery' %}">Gifts</a>
-          <a class="battle-home__nav-link" href="{% url 'chef_battle:artifact_gallery' %}">Artifacts</a>
-          <a class="battle-home__nav-link" href="{% url 'chef_battle:token_shop' %}">Token Shop</a>
-          <a class="battle-home__nav-link" href="{% url 'chef_battle:battle_chest' %}">Battle Chest</a>
-          <a class="battle-home__nav-link" href="{% url 'chef_battle:changing_room' %}">Changing Room</a>
-          <a class="battle-home__nav-link" href="{% url 'chef_battle:challenge_list' %}">My Challenges</a>
+        <div class="hero__actions-list">
+          <a class="btn-secondary" href="{% url 'chef_battle:season_leaderboard' %}">Season</a>
+          <a class="btn-secondary" href="{% url 'chef_battle:appreciation_gallery' %}">Gifts</a>
+          <a class="btn-secondary" href="{% url 'chef_battle:artifact_gallery' %}">Artifacts</a>
+          <a class="btn-secondary" href="{% url 'chef_battle:token_shop' %}">Token Shop</a>
+          <a class="btn-secondary" href="{% url 'chef_battle:battle_chest' %}">Battle Chest</a>
+          <a class="btn-secondary" href="{% url 'chef_battle:changing_room' %}">Changing Room</a>
+          <a class="btn-secondary" href="{% url 'chef_battle:challenge_list' %}">My Challenges</a>
         </div>
       </div>
     </div>
@@ -115,7 +100,7 @@
       <div class="battle-home__empty">
         <p class="battle-home__empty-headline">The Arena Awaits Its First Challenge</p>
         <p class="battle-home__empty-sub">No battles are live right now. Be the first Chef to step into the arena.</p>
-        <a class="battle-home__cta-primary battle-home__cta-primary--sm" href="{% url 'chef_battle:challenge_create' %}">Issue a Challenge</a>
+        <a class="btn-primary" href="{% url 'chef_battle:challenge_create' %}">Issue a Challenge</a>
       </div>
       {% endif %}
 
