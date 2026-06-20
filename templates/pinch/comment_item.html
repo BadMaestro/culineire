@@ -1,0 +1,58 @@
+{% load static %}
+<div class="ab-cmt{% if is_reply %} ab-cmt--reply{% endif %}" id="ab-cmt-{{ comment.pk }}">
+  <div class="ab-cmt__header">
+    {% with ap=comment.user.recipe_author_profile %}
+    {% if ap %}
+    <a href="{{ ap.get_absolute_url }}" class="ab-cmt__avatar-link">
+      <img alt="{{ ap.name }}" class="ab-cmt__avatar" src="{{ ap.display_avatar_url }}" loading="lazy">
+    </a>
+    <div class="ab-cmt__meta">
+      <a class="ab-cmt__author" href="{{ ap.get_absolute_url }}">{{ ap.name }}</a>
+      <span class="ab-cmt__date">{{ comment.created_at|date:"j M Y" }}</span>
+    </div>
+    {% else %}
+    <span class="ab-cmt__avatar ab-cmt__avatar--anon">&#128100;</span>
+    <div class="ab-cmt__meta">
+      <span class="ab-cmt__author">{{ comment.user.username }}</span>
+      <span class="ab-cmt__date">{{ comment.created_at|date:"j M Y" }}</span>
+    </div>
+    {% endif %}
+    {% endwith %}
+    {% if user == comment.user or can_moderate %}
+    <button class="ab-cmt__delete" type="button"
+            data-ab-cmt-delete="{{ comment.pk }}"
+            data-slug="{{ item.slug }}"
+            aria-label="Delete comment">&times;</button>
+    {% endif %}
+  </div>
+
+  <p class="ab-cmt__body">{{ comment.body }}</p>
+
+  {% if user.is_authenticated and item.allow_comments %}
+  {% with root_id=comment.parent_id|default:comment.pk %}
+  <button class="ab-cmt__reply-btn" type="button"
+          data-ab-cmt-reply="{{ comment.pk }}">&#x21A9; Reply</button>
+  <form class="ab-cmt__reply-form" hidden
+        data-ab-cmt-form="{{ item.slug }}"
+        data-reply-to="{{ root_id }}">
+    {% csrf_token %}
+    <input type="hidden" name="parent_id" value="{{ root_id }}">
+    <textarea class="ab-cmt__reply-input" name="body"
+              placeholder="Write a reply..." maxlength="1000" rows="2"></textarea>
+    <div class="ab-cmt__reply-footer">
+      <button type="submit" class="btn-secondary" style="font-size:.8rem;padding:.3rem .8rem;">Post reply</button>
+      <button type="button" class="ab-cmt__reply-cancel">Cancel</button>
+    </div>
+  </form>
+  {% endwith %}
+  {% endif %}
+  {% if not is_reply %}
+  <div class="ab-cmt__replies" id="ab-cmt-replies-{{ comment.pk }}">
+    {% if comment.active_replies %}
+    {% for reply in comment.active_replies %}
+    {% include "pinch/comment_item.html" with comment=reply is_reply=True user=user item=item can_moderate=can_moderate %}
+    {% endfor %}
+    {% endif %}
+  </div>
+  {% endif %}
+</div>

@@ -1,17 +1,17 @@
 ﻿{% extends "base.html" %}
 {% load static %}
 
-{% block title %}Chef Battle Guide | CulinEire{% endblock %}
-{% block meta_description %}Everything you need to know about the CulinEire Chef Battle Arena: rules, tokens, purchases, rankings, artifacts, gifts and legal information.{% endblock %}
+{% block title %}Chef Battles Guide | CulinEire{% endblock %}
+{% block meta_description %}Everything you need to know about the CulinEire Chef Battles Arena: rules, tokens, purchases, rankings, artifacts, gifts and legal information.{% endblock %}
 
 {% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">{% endblock %}
 
 {% block content %}
 <section class="battle-room-hero">
   <div class="container">
-    <p class="battle-kicker">Chef Battle Arena</p>
+    <p class="battle-kicker">Chef Battles Arena</p>
     <h1>Arena Guide</h1>
-    <p class="battle-room-hero__sub">Everything you need to know about the Chef Battle Arena, from rules and tokens to legal information.</p>
+    <p class="battle-room-hero__sub">Everything you need to know about the Chef Battles Arena, from rules and tokens to legal information.</p>
     <div class="battle-actions">
       <a class="btn-primary" href="{% url 'chef_battle:home' %}">Enter Arena</a>
       <a class="btn-secondary" href="{% url 'chef_battle:rules' %}">Rules</a>
@@ -28,7 +28,7 @@
       type="search"
       placeholder="Search the guide..."
       autocomplete="off"
-      aria-label="Search Chef Battle guide"
+      aria-label="Search Chef Battles guide"
     >
   </div>
 
@@ -38,9 +38,9 @@
 
     <section class="battle-guide-section" id="getting-started" data-section="Getting Started">
       <h2 class="battle-guide-section__heading">Getting Started</h2>
-      <p class="battle-guide-section__intro">New to the arena? Start here for an overview of how Chef Battle works.</p>
+      <p class="battle-guide-section__intro">New to the arena? Start here for an overview of how Chef Battles works.</p>
       <div class="battle-guide-grid">
-        <a class="battle-guide-card" href="{% url 'chef_battle:home' %}" data-keywords="arena home overview what is chef battle">
+        <a class="battle-guide-card" href="{% url 'chef_battle:home' %}" data-keywords="arena home overview what is Chef battle">
           <span class="battle-guide-card__label">Overview</span>
           <h3>Arena Home</h3>
           <p>Live battles, active challenges and the current season standings.</p>
@@ -48,7 +48,7 @@
         <a class="battle-guide-card" href="{% url 'chef_battle:rules' %}#1" data-keywords="challenge how to issue a challenge start a battle">
           <span class="battle-guide-card__label">Step 1</span>
           <h3>Issuing a Challenge</h3>
-          <p>How to send a challenge to another chef and what happens when they accept.</p>
+          <p>How to send a challenge to another Chef and what happens when they accept.</p>
         </a>
         <a class="battle-guide-card" href="{% url 'chef_battle:rules' %}#2" data-keywords="battle phases how battle works overview">
           <span class="battle-guide-card__label">Step 2</span>
@@ -65,12 +65,12 @@
 
     <section class="battle-guide-section" id="battle-rules" data-section="Battle Rules">
       <h2 class="battle-guide-section__heading">Battle Rules</h2>
-      <p class="battle-guide-section__intro">The complete rulebook for competing in the Chef Battle Arena.</p>
+      <p class="battle-guide-section__intro">The complete rulebook for competing in the Chef Battles Arena.</p>
       <div class="battle-guide-grid">
         <a class="battle-guide-card battle-guide-card--primary" href="{% url 'chef_battle:rules' %}" data-keywords="rules all complete full rulebook">
           <span class="battle-guide-card__label">Full rules</span>
           <h3>Complete Rulebook</h3>
-          <p>All 13 sections of the official Chef Battle rules in one place.</p>
+          <p>All 13 sections of the official Chef Battles rules in one place.</p>
         </a>
         <a class="battle-guide-card" href="{% url 'chef_battle:rules' %}#3" data-keywords="combat phase attack defense moves">
           <span class="battle-guide-card__label">Section 3</span>
@@ -95,7 +95,7 @@
         <a class="battle-guide-card" href="{% url 'chef_battle:rules' %}#8" data-keywords="moves battle moves what can i do">
           <span class="battle-guide-card__label">Section 8</span>
           <h3>Battle Moves</h3>
-          <p>The full list of actions available to chefs during combat.</p>
+          <p>The full list of actions available to Chefs during combat.</p>
         </a>
       </div>
     </section>
@@ -117,12 +117,12 @@
         <a class="battle-guide-card" href="{% url 'chef_battle:rules' %}#10" data-keywords="appreciation gifts flowers coffee beer whiskey cocktail">
           <span class="battle-guide-card__label">Section 10</span>
           <h3>Appreciation Gifts</h3>
-          <p>Send flowers, coffee, beer, whiskey or cocktails to chefs during a battle.</p>
+          <p>Send flowers, coffee, beer, whiskey or cocktails to Chefs during a battle.</p>
         </a>
         <a class="battle-guide-card" href="{% url 'chef_battle:rules' %}#11" data-keywords="battle gifts artifact delivery in battle send">
           <span class="battle-guide-card__label">Section 11</span>
           <h3>Battle Gifts</h3>
-          <p>Send a combat artifact directly to a chef mid-battle, including delivery fee explained.</p>
+          <p>Send a combat artifact directly to a Chef mid-battle, including delivery fee explained.</p>
         </a>
         <a class="battle-guide-card" href="{% url 'legal:purchases_and_vat' %}" data-keywords="vat tax 23% stripe checkout price payment invoice refund">
           <span class="battle-guide-card__label">Legal</span>
@@ -149,7 +149,7 @@
         <a class="battle-guide-card" href="{% url 'chef_battle:rules' %}#12" data-keywords="artifact drop winner loser consolation rarity chance">
           <span class="battle-guide-card__label">Section 12</span>
           <h3>Artifact Drops</h3>
-          <p>After every completed battle chefs receive random artifact drops from the vault.</p>
+          <p>After every completed battle Chefs receive random artifact drops from the vault.</p>
         </a>
         <a class="battle-guide-card" href="{% url 'chef_battle:my_moves' %}" data-keywords="my artifacts my inventory owned artifacts moves">
           <span class="battle-guide-card__label">Inventory</span>
@@ -161,9 +161,9 @@
 
     <section class="battle-guide-section" id="rankings" data-section="Rankings and Levels">
       <h2 class="battle-guide-section__heading">Rankings &amp; Levels</h2>
-      <p class="battle-guide-section__intro">How chef levels, ranking, and the season standings work.</p>
+      <p class="battle-guide-section__intro">How Chef levels, ranking, and the season standings work.</p>
       <div class="battle-guide-grid">
-        <a class="battle-guide-card" href="{% url 'chef_battle:rankings' %}" data-keywords="rankings leaderboard top chefs list">
+        <a class="battle-guide-card" href="{% url 'chef_battle:rankings' %}" data-keywords="rankings leaderboard top Chefs list">
           <span class="battle-guide-card__label">Live</span>
           <h3>Rankings</h3>
           <p>Current arena rankings across all competing chefs.</p>
@@ -173,22 +173,22 @@
           <h3>Season Leaderboard</h3>
           <p>Season standings and points for the current active season.</p>
         </a>
-        <a class="battle-guide-card" href="{% url 'chef_battle:rules' %}#7" data-keywords="levels ranking chef level how to level up wins">
+        <a class="battle-guide-card" href="{% url 'chef_battle:rules' %}#7" data-keywords="levels ranking Chef level how to level up wins">
           <span class="battle-guide-card__label">Section 7</span>
           <h3>Chef Levels</h3>
-          <p>Five chef levels from Apprentice to CulinEire Hero. How wins advance your rank.</p>
+          <p>Five Chef levels from Apprentice to CulinEire Hero. How wins advance your rank.</p>
         </a>
-        <a class="battle-guide-card" href="{% url 'chef_battle:hall_of_fame' %}" data-keywords="hall of fame legendary chefs history past battles">
+        <a class="battle-guide-card" href="{% url 'chef_battle:hall_of_fame' %}" data-keywords="hall of fame legendary Chefs history past battles">
           <span class="battle-guide-card__label">History</span>
           <h3>Hall of Fame</h3>
-          <p>The first 10 battles and 20 chefs permanently commemorated in the arena.</p>
+          <p>The first 10 battles and 20 Chefs permanently commemorated in the arena.</p>
         </a>
       </div>
     </section>
 
     <section class="battle-guide-section" id="legal" data-section="Legal and Policies">
       <h2 class="battle-guide-section__heading">Legal &amp; Policies</h2>
-      <p class="battle-guide-section__intro">Policies and legal documents that apply to Chef Battle Arena participation and purchases.</p>
+      <p class="battle-guide-section__intro">Policies and legal documents that apply to Chef Battles Arena participation and purchases.</p>
       <div class="battle-guide-grid">
         <a class="battle-guide-card" href="{% url 'legal:purchases_and_vat' %}" data-keywords="purchases vat tax payment stripe invoice refund legal">
           <span class="battle-guide-card__label">Payments</span>

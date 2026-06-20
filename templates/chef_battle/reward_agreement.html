@@ -1,46 +1,91 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% load static %}
 
 {% block title %}Chef Reward Agreement | CulinEire{% endblock %}
-{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">{% endblock %}
+{% block meta_description %}Review and accept the Chef Battles reward terms to become payout eligible.{% endblock %}
 
 {% block content %}
-<section class="battle-room-hero">
-  <div class="container">
-    <p class="battle-kicker">Chef Battle Arena</p>
-    <h1>Chef Reward Agreement</h1>
-    <p class="battle-room-hero__sub">Review and accept the reward terms to become payout eligible.</p>
+<section class="hero hero--home hero--legal">
+  <div aria-hidden="true" class="hero__background">
+    <picture>
+      <source srcset="{% static 'images/hero-battle.webp' %}" type="image/webp">
+      <img alt="" width="1672" height="941" src="{% static 'images/hero-battle.png' %}">
+    </picture>
+  </div>
+  <div aria-hidden="true" class="hero__overlay"></div>
+  <div class="container hero__inner">
+    <div class="hero-copy">
+      <span class="pill">Chef Battles</span>
+      <h1 class="hero-title">Chef Reward Agreement</h1>
+      <p class="hero-subtitle">How CulinEire protects Chefs, prevents fraud, and enforces fair play in every Battle. Chef Battle Rewards are real, and so are the rules that keep them fair. Every payout is subject to eligibility, compliance, and the integrity of the arena.</p>
+      <div class="hero__actions">
+        <a class="btn-primary" href="{% url 'chef_battle:home' %}">Chef Battles</a>
+        <a class="btn-secondary" href="{% url 'legal:legal_hub' %}">Legal</a>
+        <a class="btn-secondary" href="{% url 'sponsors:puzzle' %}">Sponsors</a>
+        <a class="btn-secondary" href="{% url 'messaging:contact' %}">Contact</a>
+      </div>
+    </div>
   </div>
 </section>
 
-<section class="page-section">
-  <div class="container battle-page">
+<section class="legal-shell" aria-labelledby="agreement-title" style="padding-block-start:0;">
 
-    {% if messages %}
-    <ul class="battle-messages">
-      {% for m in messages %}<li class="battle-message battle-message--{{ m.tags }}">{{ m }}</li>{% endfor %}
-    </ul>
-    {% endif %}
+  <div class="legal-intro legal-intro--policy" style="padding-block:1rem 0;">
+    <span class="legal-eyebrow">Chef Battles</span>
+    <h2 id="agreement-title">Chef Battle Reward Agreement</h2>
+    <p>This document sets out the rules governing Chef Battle Rewards: how they are earned, protected, and paid out. It exists to ensure every Chef competes and earns fairly, and that the arena remains free from fraud, abuse, and manipulation.</p>
+  </div>
 
-    <div class="battle-section-header">
-      <h2>Agreement Text</h2>
-    </div>
-    <div class="reward-agreement-text">
-      <pre>{{ agreement_text }}</pre>
-    </div>
 
-    <form method="post" class="reward-agreement-form">
-      {% csrf_token %}
-      <label class="real-photo-declaration__label">
-        <input type="checkbox" name="accept" value="1" required>
-        <span>I have read and I accept the Chef Battle Reward Agreement in full.</span>
-      </label>
-      <div class="battle-actions" style="margin-top:1.5rem">
-        <button type="submit" class="btn-primary">Accept and Continue</button>
-        <a class="btn-secondary" href="{% url 'chef_battle:home' %}">Cancel</a>
+<div class="legal-document-layout">
+    <div class="legal-card-grid legal-card-grid--document legal-document-main" style="grid-column:1/-1;">
+
+      {% if messages %}
+      <div class="legal-card">
+        <ul class="battle-messages">
+          {% for m in messages %}<li class="battle-message battle-message--{{ m.tags }}">{{ m }}</li>{% endfor %}
+        </ul>
       </div>
-    </form>
+      {% endif %}
 
+      <article class="legal-card legal-card--section" id="nature-of-rewards">
+        <div class="section-header">
+          <h2>1. Nature of Rewards</h2>
+        </div>
+        <div class="legal-card__content">
+          <p>CulinEire Chef Battle Rewards (CBR) and Live Support Rewards (LSR) are discretionary platform rewards granted at the sole discretion of CulinEire. They are not money, not user funds, not e-money, and confer no legal right to payment.</p>
+        </div>
+      </article>
+
+      <article class="legal-card legal-card--section" id="conversion-and-payout">
+        <div class="section-header">
+          <h2>2. Conversion and Payout</h2>
+        </div>
+        <div class="legal-card__content">
+          <p>Approved reward tokens may be converted to real-money payouts at a rate of €0.025 per token, subject to a minimum threshold of 2,000 approved reward tokens. The payout rate may change for future reward grants; the rate is locked at request time.</p>
+        </div>
+      </article>
+
+      <article class="legal-card legal-card--section" id="eligibility-conditions">
+        <div class="section-header">
+          <h2>3. Eligibility Conditions</h2>
+        </div>
+        <div class="legal-card__content">
+          <p>Payout requests are subject to: (a) age verification (18+); (b) completion of Stripe Connect onboarding; (c) no active fraud flags, suspensions, or compliance holds; and (d) acceptance of this agreement.</p>
+        </div>
+      </article>
+
+      <article class="legal-card legal-card--section" id="reversal-and-forfeiture">
+        <div class="section-header">
+          <h2>4. Reversal and Forfeiture</h2>
+        </div>
+        <div class="legal-card__content">
+          <p>The platform reserves the right to reverse, void, or expire rewards at any time for breach of Chef Battles rules, fraudulent activity, chargebacks, or material policy violations.</p>
+        </div>
+      </article>
+
+
+    </div>
   </div>
 </section>
 {% endblock %}

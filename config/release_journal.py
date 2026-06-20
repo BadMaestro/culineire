@@ -1,19 +1,60 @@
 RELEASE_JOURNAL = [
     {
+        "version": "feature/chef-battle-home-redesign",
+        "date": "2026-06-19",
+        "commit": "70a47ea",
+        "title": "Chef Battles Home Page — Visual Redesign",
+        "section": "Chef Battles / Frontend",
+        "summary": (
+            "Full visual redesign of the /chef-battle/ home page. "
+            "The page now carries a warm arena identity: chocolate-toned hero gradient, "
+            "centred CHEF'S BATTLE wordmark in Playfair Display, crossed-swords divider, "
+            "and a structured CTA row (orange primary + ghost secondary buttons). "
+            "Active Battles use arena cards with an orange status border and VS notation. "
+            "An empty-state card holds arena-flavoured copy when no battles are live. "
+            "The sidebar gained gold/silver/bronze position circles for Top Chefs and an "
+            "icon-and-timestamp layout for Battle Pulse. "
+            "Palette: cream #faf6f0, chocolate overlay, orange #e8630a — no dark green. "
+            "All JS hooks preserved (hero__burger / hero__actions-list). Mobile-responsive."
+        ),
+        "checklist": [
+            "Added battle-home scoped CSS block (~350 lines) to chef_battle.css",
+            "New wordmark block: pre-title + CHEF'S BATTLE h1 + swords divider",
+            "Hero: dark chocolate gradient overlay on hero-battle.png",
+            "CTA row: orange pill primary + ghost secondary buttons",
+            "More burger nav: pill-style secondary links (Season, Gifts, Artifacts, etc.)",
+            "Active Battles section: battle-home__card with orange left-border status",
+            "Empty arena state: dashed-border card with inline Issue a Challenge CTA",
+            "Recent Results: themed row layout",
+            "Top Chefs: gold (#c8941a) / silver (#9ca0a4) / bronze (#a06840) rank circles",
+            "Battle Pulse: icon + message link + time layout",
+            "Pulsing live dot animation on Active Battles header",
+            "Responsive breakpoint at 768px: centred CTA and nav rows",
+            "collectstatic run — manifest hash 9b810bed59b8",
+            "NGINX Unit restarted to clear compiled template cache",
+        ],
+        "stats": [
+            "2 files changed: templates/chef_battle/home.html + static/css/chef_battle.css",
+            "724 insertions, 125 deletions",
+        ],
+        "notes": "CHEF_BATTLE_ENABLED remains False — home redesign is first step of frontend rollout.",
+        "deployment_status": "deployed",
+    },
+    {
         "version": "feature/chef-battle",
         "date": "2026-06-10",
         "commit": "0cfe995",
-        "title": "Chef's Battle — Phase 1 progress: Admin, selectors, expiry, tests",
-        "section": "Chef's Battle / Backend",
+        "title": "Chef Battles — Phase 1 progress: Admin, selectors, expiry, tests",
+        "section": "Chef Battles / Backend",
         "summary": (
-            "Four solid sessions of backend groundwork for Chef's Battle. "
+            "Four solid sessions of backend groundwork for Chef Battles. "
             "Every model is now fully visible in Django Admin with filters, search and read-only timestamps. "
             "Staff have seven one-click actions to manage battles without touching the database directly. "
             "All read queries were extracted into a clean selectors.py layer — views no longer build "
             "QuerySets inline. The system now handles the full no-show scenario: if a chef doesn't submit "
             "before the deadline, their opponent wins by forfeit; if both miss it, the battle is cancelled. "
             "A management command covers challenge expiry and no-shows in one scheduled job. "
-            "On top of all that, the public homepage now has an Announcements block teasing Chef's Battle "
+            "On top of all that, the public homepage now has an Announcements block teasing Chef Battles "
             "to every visitor, and a management command is ready to post the news to the site feed and Telegram. "
             "The test suite grew from 5 to 20 tests, all green."
         ),
@@ -64,13 +105,13 @@ RELEASE_JOURNAL = [
         "version": "feature/chef-battle",
         "date": "2026-06-10",
         "commit": "09178e6",
-        "title": "Chef's Battle — Phase 0: Core model foundation + access control",
-        "section": "Chef's Battle / Backend",
+        "title": "Chef Battles — Phase 0: Core model foundation + access control",
+        "section": "Chef Battles / Backend",
         "summary": (
-            "We started building Chef's Battle — the new culinary PvP system for CulinEire. "
+            "We started building Chef Battles — the new culinary PvP system for CulinEire. "
             "The full ТЗ was loaded, every gap between the existing code and the spec was identified, "
             "and all missing model fields were added in one migration. "
-            "A proper access control layer was introduced: Chef's Battle is completely invisible "
+            "A proper access control layer was introduced: Chef Battles is completely invisible "
             "to regular and anonymous users until the public launch flag is set. "
             "Admins and superusers can preview everything as it will look, right now."
         ),
@@ -360,7 +401,7 @@ import subprocess
 def _detect_section(subject: str, body: str) -> str:
     text = (subject + " " + body).lower()
     if "chef" in text and "battle" in text:
-        return "Chef's Battle"
+        return "Chef Battles"
     if "recipe" in text:
         return "Recipes"
     if "article" in text:

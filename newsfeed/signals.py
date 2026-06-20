@@ -17,12 +17,8 @@ def _absolute_image_url(image_field) -> str:
 def _get_sponsor_of_month() -> str:
     """Return the active central sponsor name, or empty string if none."""
     try:
-        from sponsors.models import SponsorCell
-        cell = SponsorCell.objects.filter(
-            ring=0,
-            status__in=[SponsorCell.Status.ACTIVE, SponsorCell.Status.SOLD],
-        ).first()
-        return cell.sponsor_name if cell and cell.sponsor_name else ""
+        from sponsors.services import get_sponsor_of_month
+        return get_sponsor_of_month()
     except Exception:
         return ""
 
@@ -105,7 +101,7 @@ def on_article_delete(sender, instance, **kwargs):
     _hide_auto_entry(f"article_published:{instance.pk}")
 
 
-_DIRECT_TELEGRAM_ENTRY_TYPES = {"recipe_published", "article_published", "amuse_bouche_published"}
+_DIRECT_TELEGRAM_ENTRY_TYPES = {"recipe_published", "article_published", "pinch_published"}
 
 
 def on_newsfeed_entry_save(sender, instance, created, **kwargs):

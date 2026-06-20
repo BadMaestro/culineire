@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Edit{% else %}Submit{% endif %} Pinch | CulinEire{% endblock %}
+{% block meta_description %}Submit a short culinary idea to CulinEire.{% endblock %}
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+<link href="{% static 'css/authoring.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="page-section authoring-page">
+    <div class="container authoring-shell">
+
+        <div class="authoring-header authoring-header--centered">
+            <div class="authoring-header__copy">
+                <span class="eyebrow">Author Studio</span>
+                <h1>{% if form.instance.pk %}Edit Pinch{% else %}Submit Pinch{% endif %}</h1>
+                <p class="authoring-intro">Small bites, big ideas. Approved posts appear in the public feed.</p>
+            </div>
+            <p aria-label="Current author" class="authoring-author">
+                <span class="authoring-author__label">By:</span>
+                <img alt="" src="{{ author.display_avatar_url }}">
+                <strong>{{ author.name }}</strong>
+            </p>
+        </div>
+
+        {% if from_recipe %}
+        <div class="authoring-notice authoring-notice--info" role="note">
+            Legal details copied from the original recipe. Please review and confirm them for this Pinch post. This Pinch will store its own image-rights record.
+        </div>
+        {% elif from_article %}
+        <div class="authoring-notice authoring-notice--info" role="note">
+            Legal details copied from the original article. Please review and confirm them for this Pinch post. This Pinch will store its own image-rights record.
+        </div>
+        {% endif %}
+
+        <form class="authoring-form" data-autosave="true" data-autosave-key="pinch-authoring:{{ request.path }}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+
+            {# ── Section 1: Content ── #}
+            <fieldset class="authoring-section">
+                <legend>Content</legend>
+                <div class="authoring-grid">
+
+                    <div class="authoring-field">
+                        {{ form.title.label_tag }}
+                        {{ form.title }}
+                        {{ form.title.errors }}
+                    </div>
+
+                    <div class="authoring-field">
+                        {{ form.content_type.label_tag }}
+                        {{ form.content_type }}
+                        {{ form.content_type.errors }}
+                    </div>
+
+                    <div class="authoring-field">
+                        {{ form.short_description.label_tag }}
+                        {{ form.short_description }}
+                        {% if form.short_description.help_text %}<p class="authoring-help">{{ form.short_description.help_text }}</p>{% endif %}
+                        {{ form.short_description.errors }}
+                    </div>
+
+                </div>
+            </fieldset>
+
+            {# ── Section 2: Image & Rights ── #}
+            <fieldset class="authoring-section">
+                <legend>Cover Image &amp; Rights</legend>
+                <p class="authoring-help authoring-help--center">
+                    See the <a href="{% url 'legal:copyright_image_rights_guide' %}" target="_blank" rel="noopener">Copyright and Image Rights Guide</a>.
+                </p>
+                <div class="authoring-grid">
+
+                    <div class="authoring-field">
+                        {{ form.cover_image.label_tag }}
+                        {% if inherited_image_url %}
+                        <div class="authoring-inherited-image">
+                            <img src="{{ inherited_image_url }}" alt="{{ inherited_image_label }}" class="authoring-inherited-image__preview">
+                            <p class="authoring-help">{{ inherited_image_label }}. Upload a new image below to replace it, or leave empty to keep using it.</p>
+                        </div>
+                        {% endif %}
+                        {{ form.cover_image }}
+                        {{ form.cover_image.errors }}
+                    </div>
+
+                    <div class="authoring-field">
+                        {{ form.cover_image_alt.label_tag }}
+                        {{ form.cover_image_alt }}
+                        {{ form.cover_image_alt.errors }}
+                    </div>
+
+                    <div class="authoring-field">
+                        {{ form.image_rights_status.label_tag }}
+                        {{ form.image_rights_status }}
+                        {{ form.image_rights_status.errors }}
+                    </div>
+
+                    <div class="authoring-field">
+                        {{ form.image_rights_note.label_tag }}
+                        {{ form.image_rights_note }}
+                        {% if form.image_rights_note.help_text %}<p class="authoring-help">{{ form.image_rights_note.help_text }}</p>{% endif %}
+                        {{ form.image_rights_note.errors }}
+                    </div>
+
+                </div>
+            </fieldset>
+
+            {# ── Section 3: Source & Attribution ── #}
+            <fieldset class="authoring-section">
+                <legend>Source &amp; Attribution</legend>
+                {% if from_recipe %}
+                <p class="authoring-help authoring-help--center">Image inherited from recipe. Please confirm the source details below before publishing.</p>
+                {% elif from_article %}
+                <p class="authoring-help authoring-help--center">Image inherited from article. Please confirm the source details below before publishing.</p>
+                {% else %}
+                <p class="authoring-help authoring-help--center">Please confirm the image rights and source details for this Pinch post before publishing.</p>
+                {% endif %}
+                <div class="authoring-grid">
+
+                    <div class="authoring-field">
+                        {{ form.source_type.label_tag }}
+                        {{ form.source_type }}
+                        {{ form.source_type.errors }}
+                    </div>
+
+                    <div class="authoring-field">
+                        {{ form.source_title.label_tag }}
+                        {{ form.source_title }}
+                        {{ form.source_title.errors }}
+                    </div>
+
+                    <div class="authoring-field">
+                        {{ form.source_author.label_tag }}
+                        {{ form.source_author }}
+                        {{ form.source_author.errors }}
+                    </div>
+
+                    <div class="authoring-field">
+                        {{ form.source_url.label_tag }}
+                        {{ form.source_url }}
+                        {{ form.source_url.errors }}
+                    </div>
+
+                    <div class="authoring-field">
+                        {{ form.source_note.label_tag }}
+                        {{ form.source_note }}
+                        {{ form.source_note.errors }}
+                    </div>
+
+                </div>
+            </fieldset>
+
+            {# ── Section 4: Links ── #}
+            <fieldset class="authoring-section">
+                <legend>Linked Content</legend>
+                <div class="authoring-grid authoring-grid--two">
+
+                    <div class="authoring-field">
+                        {{ form.linked_recipe.label_tag }}
+                        {{ form.linked_recipe }}
+                        {{ form.linked_recipe.errors }}
+                    </div>
+
+                    <div class="authoring-field">
+                        {{ form.linked_article.label_tag }}
+                        {{ form.linked_article }}
+                        {{ form.linked_article.errors }}
+                    </div>
+
+                </div>
+            </fieldset>
+
+            {# ── Section 4: SEO ── #}
+            <fieldset class="authoring-section">
+                <legend>SEO (optional)</legend>
+                <div class="authoring-grid">
+
+                    <div class="authoring-field">
+                        {{ form.seo_title.label_tag }}
+                        {{ form.seo_title }}
+                        {{ form.seo_title.errors }}
+                    </div>
+
+                    <div class="authoring-field">
+                        {{ form.seo_description.label_tag }}
+                        {{ form.seo_description }}
+                        {{ form.seo_description.errors }}
+                    </div>
+
+                </div>
+            </fieldset>
+
+            {# ── Section 5: Settings ── #}
+            <fieldset class="authoring-section">
+                <legend>Settings</legend>
+
+                <div class="authoring-field authoring-field--check">
+                    <label for="{{ form.allow_comments.id_for_label }}" class="authoring-check-label">
+                        {{ form.allow_comments }}
+                        <span>{{ form.allow_comments.label }}</span>
+                    </label>
+                    <div class="ab-comments-warning" id="ab-comments-warning">
+                        <svg aria-hidden="true" fill="none" height="14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="14"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+                        If you uncheck this, visitors will not be able to leave comments on your card.
+                    </div>
+                </div>
+
+            </fieldset>
+
+            {# ── Section 6: Confirmations ── #}
+            <fieldset class="authoring-section authoring-section--confirmations">
+                <legend>Confirmations</legend>
+                <p class="authoring-confirm-intro">
+                    Please read and confirm the following before submitting.
+                </p>
+                <div class="authoring-confirm-list">
+                    <label class="authoring-confirm-item">
+                        {{ form.confirm_own_work }}
+                        <span class="authoring-confirm-label">{{ form.confirm_own_work.label }}</span>
+                        {% for error in form.confirm_own_work.errors %}<span class="authoring-error authoring-error--block">{{ error }}</span>{% endfor %}
+                    </label>
+                    <label class="authoring-confirm-item">
+                        {{ form.confirm_image_rights }}
+                        <span class="authoring-confirm-label">{{ form.confirm_image_rights.label }}</span>
+                        {% for error in form.confirm_image_rights.errors %}<span class="authoring-error authoring-error--block">{{ error }}</span>{% endfor %}
+                    </label>
+                    <label class="authoring-confirm-item">
+                        {{ form.confirm_rules }}
+                        <span class="authoring-confirm-label">{{ form.confirm_rules.label }}</span>
+                        {% for error in form.confirm_rules.errors %}<span class="authoring-error authoring-error--block">{{ error }}</span>{% endfor %}
+                    </label>
+                </div>
+            </fieldset>
+
+            <div class="authoring-actions">
+                <div class="authoring-actions__buttons">
+                    <button class="authoring-submit" type="submit">
+                        {% if is_moderator %}Save Changes{% else %}Submit For Review{% endif %}
+                    </button>
+                    <a class="authoring-submit authoring-submit--secondary" href="{{ cancel_url }}">Cancel</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<link href="{% static 'css/pinch.css' %}" rel="stylesheet">
+<script>
+(function () {
+  var chk = document.getElementById("id_allow_comments");
+  var warn = document.getElementById("ab-comments-warning");
+  if (!chk || !warn) return;
+  function toggle() { warn.style.display = chk.checked ? "none" : "flex"; }
+  toggle();
+  chk.addEventListener("change", toggle);
+})();
+</script>
+{% endblock %}

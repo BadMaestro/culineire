@@ -36,11 +36,11 @@ def _pending_moderation_count():
         from django.conf import settings as _settings
         from recipes.models import Recipe
         from articles.models import Article
-        from amuse_bouche.models import AmuseBouche
+        from pinch.models import Pinch
         owner = getattr(_settings, "OWNER_SLUG", "greenbear")
         pending_recipes = Recipe.objects.filter(status=Recipe.Status.PENDING, is_deleted=False).exclude(author__slug=owner).count()
         pending_articles = Article.objects.filter(status=Article.Status.PENDING, is_deleted=False).exclude(author__slug=owner).count()
-        pending_bites = AmuseBouche.objects.filter(status=AmuseBouche.Status.PENDING).exclude(author__slug=owner).count()
+        pending_bites = Pinch.objects.filter(status=Pinch.Status.PENDING).exclude(author__slug=owner).count()
         return pending_recipes + pending_articles + pending_bites
     except ImportError:
         return 0
@@ -94,14 +94,14 @@ def header_author(request):
     )
 
     try:
-        from amuse_bouche.visibility import can_view_amuse_bouche_public_area
-        can_view_amuse_bouche = can_view_amuse_bouche_public_area(user)
+        from pinch.visibility import can_view_pinch_public_area
+        can_view_pinch = can_view_pinch_public_area(user)
     except Exception:
-        can_view_amuse_bouche = False
+        can_view_pinch = False
 
     if not user or not user.is_authenticated:
         return {
-            "can_view_amuse_bouche_public_area": can_view_amuse_bouche,
+            "can_view_pinch_public_area": can_view_pinch,
             "chef_battle_enabled": chef_battle_enabled,
         }
 
@@ -159,7 +159,7 @@ def header_author(request):
         "header_author": author,
         "header_author_name": display_name,
         "header_author_actions": actions,
-        "can_view_amuse_bouche_public_area": can_view_amuse_bouche,
+        "can_view_pinch_public_area": can_view_pinch,
         "chef_battle_enabled": chef_battle_enabled,
         "chef_battle_flag_on": flag_on,
     }

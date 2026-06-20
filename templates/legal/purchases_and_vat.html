@@ -101,7 +101,7 @@
                 </div>
                 <div class="legal-card__content">
                     <ul class="legal-list">
-                        <li>Token prices in the <a href="{% url 'chef_battle:token_shop' %}">Token Shop</a> are displayed <strong>inclusive of 23% Irish VAT</strong>. No additional charges are added at checkout for token purchases.</li>
+                        {% if chef_battle_enabled %}<li>Token prices in the <a href="{% url 'chef_battle:token_shop' %}">Token Shop</a> are displayed <strong>inclusive of 23% Irish VAT</strong>. No additional charges are added at checkout for token purchases.</li>{% endif %}
                         <li>Sponsorship prices are quoted <strong>exclusive of VAT</strong>. VAT is added at checkout.</li>
                         <li>Bearcave Limited is VAT-registered in Ireland: VAT number <strong>IE3645402WH</strong>.</li>
                         <li>Where VAT does not apply, Stripe will determine this at checkout based on your location.</li>
@@ -134,7 +134,7 @@
                 </div>
                 <div class="legal-card__content">
                     <p class="page-subtitle">
-                        Arena Tokens are the virtual currency of the CulinEire Chef Battle Arena.
+                        Arena Tokens are the virtual currency of the CulinEire Chef Battles Arena.
                         They operate as a <strong>closed-loop digital currency</strong> and have no monetary value outside the arena.
                     </p>
                     <ul class="legal-list">
@@ -155,10 +155,10 @@
                 </div>
                 <div class="legal-card__content">
                     <p class="page-subtitle">
-                        CulinEire may issue discretionary token grants to chefs and live supporters as recognition of activity in the arena.
+                        CulinEire may issue discretionary token grants to Chefs and live supporters as recognition of activity in the arena.
                     </p>
                     <ul class="legal-list">
-                        <li><strong>Chef Battle Rewards (CBR)</strong> are token grants issued to chefs who win battles, reach level milestones, or are recognised for outstanding performance.</li>
+                        <li><strong>Chef Battles Rewards (CBR)</strong> are token grants issued to Chefs who win battles, reach level milestones, or are recognised for outstanding performance.</li>
                         <li><strong>Live Support Rewards (LSR)</strong> are token grants issued to viewers who send qualifying appreciation gifts during live battles.</li>
                         <li>CBR and LSR are issued at CulinEire's sole discretion and are not guaranteed. They do not constitute a contractual entitlement.</li>
                         <li>Reward tokens are subject to the same closed-loop restrictions as purchased tokens. They cannot be withdrawn or exchanged for cash.</li>
@@ -174,9 +174,9 @@
                 <div class="legal-card__content">
                     <ul class="legal-list">
                         <li>Appreciation gifts and combat artifacts are <strong>digital items only</strong>. No physical goods are supplied.</li>
-                        <li>Gifts are displayed on the recipient chef's profile as digital recognition. They have no monetary value.</li>
+                        <li>Gifts are displayed on the recipient Chef's profile as digital recognition. They have no monetary value.</li>
                         <li>Artifacts are consumed or displayed within the arena. They cannot be transferred, sold, or redeemed outside the platform.</li>
-                        <li>Chef's Battle is a <strong>skill-based cooking competition</strong>. Purchasing tokens or sending gifts does not constitute placing a bet and does not entitle the sender to any prize or monetary return.</li>
+                        <li>Chef Battles is a <strong>skill-based cooking competition</strong>. Purchasing tokens or sending gifts does not constitute placing a bet and does not entitle the sender to any prize or monetary return.</li>
                     </ul>
                 </div>
             </article>
@@ -187,7 +187,7 @@
                 </div>
                 <div class="legal-card__content">
                     <p class="page-subtitle">
-                        The Arena Operator may, at their sole discretion, grant artifacts directly to chefs as recognition awards,
+                        The Arena Operator may, at their sole discretion, grant artifacts directly to Chefs as recognition awards,
                         competition prizes, or promotional items.
                     </p>
                     <ul class="legal-list">

@@ -26,3 +26,9 @@ runlocal.sh
 staticfiles/
 static/images/kitchen-logo.png
 static/images/kitchen-logo2.png
+
+# Coworking: state.json IS tracked in git on purpose — it's the only
+# channel agents on different machines/accounts have to see each other's
+# handoff state. Only the locally-generated tmp/dashboard files are ignored.
+coworking/state.json.tmp
+coworking/dashboard.html

@@ -90,3 +90,15 @@ def get_hall_of_fame_chefs(limit: int = 20) -> QuerySet:
         .filter(wins__gt=0)
         .order_by("-wins", "-rating", "-crown_count", "author__name")[:limit]
     )
+
+
+def get_author_battle_summary(author):
+    """Return battle_profile and recent_battles for the public author page."""
+    from django.db.models import Q
+    battle_profile = ChefBattleProfile.objects.filter(author=author).first()
+    recent_battles = list(
+        Battle.objects.select_related("challenger", "opponent", "winner")
+        .filter(Q(challenger=author) | Q(opponent=author))
+        .order_by("-created_at")[:6]
+    )
+    return {"battle_profile": battle_profile, "recent_battles": recent_battles}

@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Coworking | CulinEire{% endblock %}
+{% block meta_description %}Internal AI agent coworking dashboard.{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+<link href="{% static 'css/moderation.css' %}" rel="stylesheet">
+<style nonce="{{ request.csp_nonce }}">
+.coworking-board { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-block: 1.5rem; }
+.coworking-card { flex: 1 1 380px; background: var(--surface, #fff); border: 1px solid var(--color-border, #ddd); border-radius: 10px; padding: 1rem 1.25rem; }
+.coworking-card header { display: flex; align-items: baseline; gap: .6rem; flex-wrap: wrap; margin-bottom: .5rem; }
+.coworking-card h2 { margin: 0; font-size: 1.1rem; font-family: var(--font-serif); }
+.coworking-badge--active { color: #1a6b3a; }
+.coworking-badge--idle { color: #a86a00; }
+.coworking-badge--blocked { color: #b3261e; }
+.coworking-last-seen { font-size: .75rem; color: var(--color-muted, #888); margin-left: auto; }
+.coworking-next-step { background: #fff8d6; padding: .4rem .6rem; border-radius: 6px; }
+.coworking-prompt-box { background: var(--surface-soft, #f4f1ec); border-radius: 6px; padding: .6rem; max-height: 200px; overflow-y: auto; font-size: .8rem; white-space: pre-wrap; }
+.coworking-log { font-size: .85rem; padding-left: 1.2rem; }
+.coworking-log-ts { color: var(--color-muted, #888); font-size: .75rem; }
+.coworking-empty { color: #999; font-style: italic; }
+.coworking-completed li { text-decoration: line-through; color: #888; }
+.coworking-shared { margin-top: 2rem; background: var(--surface, #fff); border: 1px solid var(--color-border, #ddd); border-radius: 10px; padding: 1rem 1.25rem; }
+.coworking-form-row { display: flex; gap: .6rem; flex-wrap: wrap; align-items: flex-end; margin-top: 1.5rem; }
+.coworking-form-row select, .coworking-form-row input { padding: .4rem .6rem; border-radius: 6px; border: 1px solid var(--color-border, #ccc); }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="page-section moderation-page automation-page">
+    <div class="container moderation-shell">
+        <a class="mon-back-link" href="{% url 'recipes:moderation_panel' %}">Back to Moderation Panel</a>
+
+        <header class="automation-header">
+            <div>
+                <p class="automation-kicker">Internal AI agent coordination</p>
+                <h1 class="automation-title">Coworking</h1>
+                <p class="automation-summary">{{ agents.count }} agent{{ agents.count|pluralize }} registered</p>
+            </div>
+        </header>
+
+        {% if messages %}
+        <ul class="messages" style="list-style:none; padding:0;">
+            {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <div class="coworking-board">
+            {% for agent in agents %}
+            <section class="coworking-card">
+                <header>
+                    <h2>{{ agent.label }}</h2>
+                    <span class="coworking-badge--{{ agent.status }}">{{ agent.get_status_display }}</span>
+                    <span class="coworking-last-seen">last seen: {{ agent.last_seen|default:"never" }}</span>
+                </header>
+
+                <h3>Current Task</h3>
+                <p><strong>{{ agent.task_title|default:"(none)" }}</strong></p>
+                <p>{{ agent.task_description }}</p>
+                <p>Branch: <code>{{ agent.task_branch|default:"(none)" }}</code></p>
+                <p>Files touched: <code>{{ agent.task_files_touched|join:", "|default:"(none)" }}</code></p>
+                <p class="coworking-next-step">Next step: {{ agent.task_next_step|default:"(none)" }}</p>
+
+                <h3>Active Prompt</h3>
+                <pre class="coworking-prompt-box">{{ agent.active_prompt|default:"(none)" }}</pre>
+
+                <h3>Memory</h3>
+                <p>Key facts:</p>
+                <ul>{% for f in agent.key_facts %}<li>{{ f }}</li>{% empty %}<li class="coworking-empty">(none)</li>{% endfor %}</ul>
+                <p>Decisions made:</p>
+                <ul>{% for d in agent.decisions_made %}<li>{{ d }}</li>{% empty %}<li class="coworking-empty">(none)</li>{% endfor %}</ul>
+                <p>Blockers:</p>
+                <ul>{% for b in agent.blockers %}<li>{{ b }}</li>{% empty %}<li class="coworking-empty">(none)</li>{% endfor %}</ul>
+
+                <h3>Log (last 15)</h3>
+                <ol class="coworking-log">
+                    {% for entry in agent.log_entries.all|slice:":15" %}
+                    <li><span class="coworking-log-ts">{{ entry.ts }}</span> [{{ entry.result }}] {{ entry.action }}{% if entry.note %} &mdash; {{ entry.note }}{% endif %}</li>
+                    {% empty %}
+                    <li class="coworking-empty">(no log entries yet)</li>
+                    {% endfor %}
+                </ol>
+            </section>
+            {% empty %}
+            <p class="coworking-empty">No agents registered yet — add one below.</p>
+            {% endfor %}
+        </div>
+
+        {% if agents.count >= 2 %}
+        <form class="coworking-form-row" method="post" action="{% url 'coworking:handoff' %}">
+            {% csrf_token %}
+            <label>From
+                <select name="from_agent" required>
+                    {% for agent in agents %}<option value="{{ agent.agent_id }}">{{ agent.label }}</option>{% endfor %}
+                </select>
+            </label>
+            <label>To
+                <select name="to_agent" required>
+                    {% for agent in agents %}<option value="{{ agent.agent_id }}">{{ agent.label }}</option>{% endfor %}
+                </select>
+            </label>
+            <input type="text" name="note" placeholder="Optional note">
+            <button class="btn-primary" type="submit">Передать эстафету</button>
+        </form>
+        {% endif %}
+
+        <form class="coworking-form-row" method="post" action="{% url 'coworking:add_agent' %}">
+            {% csrf_token %}
+            <input type="text" name="label" placeholder="New agent label, e.g. Claude D" required>
+            <button class="btn-secondary" type="submit">Add agent</button>
+        </form>
+
+        <section class="coworking-shared">
+            <h2>Shared</h2>
+            <h3>Project memory</h3>
+            <ul>{% for m in shared.project_memory %}<li>{{ m }}</li>{% empty %}<li class="coworking-empty">(none)</li>{% endfor %}</ul>
+            <h3>Open questions</h3>
+            <ul>{% for q in shared.open_questions %}<li>{{ q }}</li>{% empty %}<li class="coworking-empty">(none)</li>{% endfor %}</ul>
+            <h3>Completed today</h3>
+            <ul class="coworking-completed">{% for c in shared.completed_today %}<li>{{ c }}</li>{% empty %}<li class="coworking-empty">(none)</li>{% endfor %}</ul>
+        </section>
+    </div>
+</section>
+{% endblock %}

@@ -31,15 +31,15 @@
             {% endif %}
             {% if can_manage_author_profile %}
             <div class="hero__actions">
-                <a class="btn-primary" href="{% url 'amuse_bouche:create' %}">Create Amuse-Bouche</a>
+                <a class="btn-primary" href="{% url 'pinch:create' %}">Create Pinch</a>
                 <a class="btn-primary" href="{% url 'recipes:recipe_create' %}">Create Recipe</a>
                 <a class="btn-secondary" href="{% url 'articles:article_create' %}">Create Article</a>
                 <a class="btn-secondary" href="{% url 'recipes:author_edit' %}">Edit Profile</a>
             </div>
             {% else %}
             <div class="hero__actions">
-                {% if can_view_amuse_bouche_public_area %}
-                <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
+                {% if can_view_pinch_public_area %}
+                <a class="btn-primary" href="{% url 'pinch:feed' %}">Pinch</a>
                 {% endif %}
                 <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
                 <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
@@ -68,10 +68,10 @@
                 <span class="author-profile-links__label">Articles</span>
                 <svg aria-hidden="true" class="author-profile-links__arrow" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
             </a>
-            {% if show_amuse_bouche_profile_links %}
-            <a class="author-profile-links__card" href="{% url 'amuse_bouche:feed' %}?author={{ author.slug }}">
-                <span class="author-profile-links__count">{{ amuse_bouche_count }}</span>
-                <span class="author-profile-links__label">Amuse-Bouche</span>
+            {% if show_pinch_profile_links %}
+            <a class="author-profile-links__card" href="{% url 'pinch:feed' %}?author={{ author.slug }}">
+                <span class="author-profile-links__count">{{ pinch_count }}</span>
+                <span class="author-profile-links__label">Pinch</span>
                 <svg aria-hidden="true" class="author-profile-links__arrow" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
             </a>
             {% endif %}
@@ -88,7 +88,7 @@
         <section class="author-battle-summary" aria-labelledby="author-battle-summary-title">
             <div class="author-battle-summary__header">
                 <div>
-                    <p class="section-kicker">Chef Battle</p>
+                    <p class="section-kicker">Chef Battles</p>
                     <h2 id="author-battle-summary-title">Arena Record</h2>
                 </div>
                 <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
@@ -108,7 +108,7 @@
                 <span><strong>{{ battle_profile.battle_moves }}</strong> Moves</span>
             </div>
             {% else %}
-            <p class="author-battle-summary__empty">This chef has not entered the arena yet.</p>
+            <p class="author-battle-summary__empty">This Chef has not entered the arena yet.</p>
             {% endif %}
 
             {% if recent_battles %}
@@ -124,7 +124,7 @@
         </section>
         {% endif %}
 
-        {% if private_dashboard or dashboard_recipes or dashboard_articles or dashboard_amuse_bouche %}
+        {% if private_dashboard or dashboard_recipes or dashboard_articles or dashboard_pinch %}
         <div class="author-studio-pending">
             <p class="author-studio-pending__title">{% if private_dashboard %}Content Dashboard{% else %}Published Content{% endif %}</p>
 
@@ -204,11 +204,11 @@
             </div>
             {% endif %}
 
-            {% if dashboard_amuse_bouche %}
+            {% if dashboard_pinch %}
             <div class="author-studio-pending__group">
-                <p class="author-studio-pending__group-label">Amuse-Bouche</p>
+                <p class="author-studio-pending__group-label">Pinch</p>
                 <ul class="author-studio-pending__list">
-                    {% for item in dashboard_amuse_bouche %}
+                    {% for item in dashboard_pinch %}
                     <li class="author-studio-pending__item">
                         {% if private_dashboard %}
                         <span class="author-studio-status author-studio-status--{{ item.status|lower }}">{{ item.author_status_label }}</span>
@@ -219,7 +219,7 @@
                         <a class="author-studio-pending__view" href="{{ item.get_absolute_url }}">View</a>
                         {% endif %}
                         {% if can_manage_author_profile %}
-                        <a class="author-studio-pending__edit" href="{% url 'amuse_bouche:edit' item.slug %}?next={{ request.path }}">Edit</a>
+                        <a class="author-studio-pending__edit" href="{% url 'pinch:edit' item.slug %}?next={{ request.path }}">Edit</a>
                         {% endif %}
                     </li>
                     {% if private_dashboard and item.moderation_note %}{% if item.status == 'rejected' or item.status == 'NEEDS_CHANGES' %}
@@ -233,7 +233,7 @@
             </div>
             {% endif %}
 
-            {% if not dashboard_recipes and not dashboard_articles and not dashboard_amuse_bouche %}
+            {% if not dashboard_recipes and not dashboard_articles and not dashboard_pinch %}
             <p class="author-studio-pending__note">{% if private_dashboard %}No content found{% if content_filter_label %} in {{ content_filter_label }}{% endif %}{% if status_filter_label %} with status &ldquo;{{ status_filter_label }}&rdquo;{% endif %}.{% else %}No published content yet.{% endif %}</p>
             {% endif %}
         </div>

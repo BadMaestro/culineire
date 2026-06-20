@@ -415,7 +415,7 @@ class ArticleDetailView(DetailView):
         )
         context["article_ab_exists"] = (
             article.status == Article.Status.APPROVED
-            and article.amuse_bouche_items.exclude(status="archived").exists()
+            and article.pinch_items.exclude(status="archived").exists()
         )
         context["can_moderate_bar"] = (
                 is_moderator(self.request.user) and

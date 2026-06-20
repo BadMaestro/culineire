@@ -8,8 +8,8 @@ from django.views.decorators.http import require_POST
 from django_ratelimit.decorators import ratelimit
 
 from articles.models import Article, ArticleImage
-from amuse_bouche.models import AmuseBouche
-from amuse_bouche.visibility import can_view_amuse_bouche_public_area
+from pinch.models import Pinch
+from pinch.visibility import can_view_pinch_public_area
 from monitoring.tracker import track_event
 from recipes.models import Recipe, RecipeAuthor
 
@@ -30,8 +30,8 @@ def _safe_next(request, fallback):
 @login_required
 def my_collection(request):
     tab = request.GET.get("tab", "recipes")
-    show_amuse_bouche = can_view_amuse_bouche_public_area(request.user)
-    if tab == "amuse-bouche" and not show_amuse_bouche:
+    show_pinch = can_view_pinch_public_area(request.user)
+    if tab == "pinch" and not show_pinch:
         tab = "recipes"
     article_card_gallery_prefetch = Prefetch(
         "article__gallery_images",
@@ -49,20 +49,20 @@ def my_collection(request):
         .select_related("article", "article__author")
         .prefetch_related(article_card_gallery_prefetch)
     )
-    amuse_bouche_type = ContentType.objects.get_for_model(AmuseBouche)
-    saved_amuse_bouche = []
-    if show_amuse_bouche:
-        saved_amuse_bouche = [
-            saved for saved in SavedContent.objects.filter(user=request.user, content_type=amuse_bouche_type)
+    pinch_type = ContentType.objects.get_for_model(Pinch)
+    saved_pinch_items = []
+    if show_pinch:
+        saved_pinch_items = [
+            saved for saved in SavedContent.objects.filter(user=request.user, content_type=pinch_type)
             .select_related("content_type")
-            if getattr(saved.content_object, "status", None) == AmuseBouche.Status.APPROVED
+            if getattr(saved.content_object, "status", None) == Pinch.Status.APPROVED
         ]
     return render(request, "collection/my_collection.html", {
         "saved_recipes": saved_recipes,
         "saved_articles": saved_articles,
-        "saved_amuse_bouche": saved_amuse_bouche,
+        "saved_pinch": saved_pinch_items,
         "active_tab": tab,
-        "show_amuse_bouche": show_amuse_bouche,
+        "show_pinch": show_pinch,
     })
 
 

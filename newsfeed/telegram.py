@@ -39,12 +39,8 @@ class TelegramResult:
 def _get_sponsor_of_month() -> str:
     """Return the active central sponsor name, or empty string if none."""
     try:
-        from sponsors.models import SponsorCell
-        cell = SponsorCell.objects.filter(
-            ring=0,
-            status__in=[SponsorCell.Status.ACTIVE, SponsorCell.Status.SOLD],
-        ).first()
-        return cell.sponsor_name if cell and cell.sponsor_name else ""
+        from sponsors.services import get_sponsor_of_month
+        return get_sponsor_of_month()
     except Exception:
         return ""
 
@@ -90,17 +86,25 @@ def build_newsfeed_telegram_message(entry) -> str:
 
 
 def build_ab_direct_telegram_message(ab) -> str:
-    """Compact Amuse-Bouche caption: title + URL only, no description or author prefix."""
+    """Compact Pinch caption: title + URL only, no description or author prefix."""
     site_url = f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}".rstrip("/")
     absolute_url = f"{site_url}{ab.get_absolute_url()}"
-    return f"Amuse-Bouche: {ab.title}\n\n{absolute_url}"
+    parts = [f"Pinch: {ab.title}"]
+    sponsor = _get_sponsor_of_month()
+    if sponsor:
+        parts.append(f"Sponsored by: {sponsor}")
+    parts.append(absolute_url)
+    return "\n\n".join(parts)
 
 
 def build_ab_telegram_message(entry) -> str:
-    """Compact Amuse-Bouche notification: title + URL only, no description or author prefix."""
+    """Compact Pinch notification: title + URL only, no description or author prefix."""
     site_url = f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}".rstrip("/")
     absolute_url = f"{site_url}{entry.url}" if entry.url and entry.url.startswith("/") else (entry.url or "")
-    parts = [f"Amuse-Bouche: {entry.title}"]
+    parts = [f"Pinch: {entry.title}"]
+    sponsor = _get_sponsor_of_month()
+    if sponsor:
+        parts.append(f"Sponsored by: {sponsor}")
     if absolute_url:
         parts.append(absolute_url)
     return "\n\n".join(parts)
@@ -215,7 +219,7 @@ def send_telegram_message_without_link_preview(text: str) -> TelegramResult:
 
 
 def send_telegram_message_with_link_preview(text: str, *, preview_url: str = "") -> TelegramResult:
-    """sendMessage with small link preview — used for Amuse-Bouche compact notifications."""
+    """sendMessage with small link preview — used for Pinch compact notifications."""
     token = getattr(settings, "TELEGRAM_BOT_TOKEN", "")
     channel_id = getattr(settings, "TELEGRAM_CHANNEL_ID", "")
     if not token or not channel_id:
@@ -330,15 +334,15 @@ def _publish_to_telegram(*, event_key: str, message: str, target_url: str, image
 def publish_ab_to_telegram(ab) -> TelegramResult:
     preview_url = ""
     try:
-        from amuse_bouche.telegram_preview import absolute_url, get_telegram_preview_image
+        from pinch.telegram_preview import absolute_url, get_telegram_preview_image
         get_telegram_preview_image(ab)
         version = getattr(ab, "updated_at", None)
         version_value = int(version.timestamp()) if version else getattr(ab, "pk", "")
         preview_url = f"{absolute_url(ab.get_absolute_url())}?tg={ab.pk}-{version_value}"
     except Exception:
-        logger.exception("Failed to prepare Amuse-Bouche Telegram preview image for pk=%s", getattr(ab, "pk", None))
+        logger.exception("Failed to prepare Pinch Telegram preview image for pk=%s", getattr(ab, "pk", None))
     return _publish_to_telegram(
-        event_key=f"amuse_bouche_published:{ab.pk}",
+        event_key=f"pinch_published:{ab.pk}",
         message=build_ab_direct_telegram_message(ab),
         target_url=ab.get_absolute_url(),
         _send_fn=lambda text: send_telegram_message_with_link_preview(text, preview_url=preview_url),
@@ -399,7 +403,7 @@ def publish_sponsor_to_telegram(application) -> TelegramResult:
 
 def publish_newsfeed_entry_to_telegram(entry, *, message: str | None = None, event_key: str | None = None) -> TelegramResult:
     from newsfeed.models import NewsFeedEntry as _NewsFeedEntry
-    if entry.entry_type == _NewsFeedEntry.EntryType.AMUSE_BOUCHE_PUBLISHED:
+    if entry.entry_type == _NewsFeedEntry.EntryType.PINCH_PUBLISHED:
         return _publish_to_telegram(
             event_key=event_key or f"newsfeed_entry:{entry.pk}",
             message=message or build_ab_telegram_message(entry),

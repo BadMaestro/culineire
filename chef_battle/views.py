@@ -107,10 +107,10 @@ def _build_battlefield_progress():
         {
             "title": "Phase 0 - Sandbox Gate And Branch Discipline",
             "items": [
-                {"label": "Chef Battle in production via main branch", "detail": "Chef Battle shipped to main, deployed to production, URLs live. Branch discipline followed throughout.", "status": "done", "completed_at": "2026-06-10"},
+                {"label": "Chef Battles in production via main branch", "detail": "Chef Battles shipped to main, deployed to production, URLs live. Branch discipline followed throughout.", "status": "done", "completed_at": "2026-06-10"},
                 {"label": "Feature flag in place", "detail": "CHEF_BATTLE_ENABLED controls homepage queries and battle URLs. Currently enabled on production.", "status": "done" if feature_enabled else "pending", "completed_at": "2026-06-10"},
                 {"label": "Sandbox enablement confirmed", "detail": "CHEF_BATTLE_ENABLED=True applied on production server after all migrations verified.", "status": "done" if feature_enabled else "pending", "completed_at": "2026-06-10"},
-                {"label": "Production release followed QA", "detail": "All Chef Battle deploys went through local check, migration verification and smoke test before push.", "status": "done", "completed_at": "2026-06-10"},
+                {"label": "Production release followed QA", "detail": "All Chef Battles deploys went through local check, migration verification and smoke test before push.", "status": "done", "completed_at": "2026-06-10"},
             ],
         },
         {
@@ -286,7 +286,7 @@ def _build_battlefield_progress():
         {
             "title": "Phase 11 - Solicitor And Accountant Review",
             "items": [
-                {"label": "Solicitor review of public rules", "detail": "Bearcave Limited solicitor must review all public Chef Battle rules before token economy, payouts and live video go live. Scope: token model, gift wording, CBR/LSR, payout terms, anti-gambling, DSA compliance, live video rules.", "status": "done", "completed_at": "2026-06-15"},
+                {"label": "Solicitor review of public rules", "detail": "Bearcave Limited solicitor must review all public Chef Battles rules before token economy, payouts and live video go live. Scope: token model, gift wording, CBR/LSR, payout terms, anti-gambling, DSA compliance, live video rules.", "status": "done", "completed_at": "2026-06-15"},
                 {"label": "Accountant review of VAT treatment", "detail": "Bearcave Limited accountant must confirm VAT treatment of Spendable Tokens before launch: electronically supplied digital service / single-purpose voucher / multi-purpose voucher / other. Stripe Tax configuration must match.", "status": "done", "completed_at": "2026-06-15"},
                 {"label": "DAC7 / MRDP obligation review", "detail": "Review DAC7/MRDP reporting obligations with accountant or tax advisor. Confirm which Chefs are reportable. Set up Revenue reporting process.", "status": "done", "completed_at": "2026-06-15"},
                 {"label": "Stripe Connect payout wording review", "detail": "Solicitor and accountant must approve final Stripe Connect payout wording, Chef Reward Agreement and payout statement format before any real payout is processed.", "status": "done", "completed_at": "2026-06-15"},
@@ -309,7 +309,7 @@ def _build_battlefield_progress():
     percent = round((done_count / total_count) * 100) if total_count else 0
 
     copy_lines = [
-        "CulinEire Chef Battle battlefield handoff",
+        "CulinEire Chef Battles battlefield handoff",
         f"Progress: {done_count}/{total_count} items complete ({percent}%).",
         "",
         "Current metrics:",
@@ -383,7 +383,7 @@ def season_leaderboard(request):
     return render(request, "chef_battle/season_leaderboard.html", {
         "profiles": profiles,
         "season_start": season_start,
-        "season_name": "Season 1 &mdash; Summer 2026",
+        "season_name": "Season 1 — Summer 2026",
     })
 
 
@@ -597,11 +597,21 @@ def battle_home(request):
     leaders = get_top_profiles()
     events = get_public_events()
 
+    season_leaders = (
+        ChefBattleProfile.objects
+        .select_related("author")
+        .filter(seasonal_score__gt=0)
+        .order_by("-seasonal_score", "-wins", "author__name")[:3]
+    )
+
     return render(request, "chef_battle/home.html", {
         "active_battles": active_battles,
         "recent_battles": recent_battles,
         "leaders": leaders,
         "events": events,
+        "season_name": "Season 1 — Summer 2026",
+        "season_dates": "1 Jun – 31 Aug 2026",
+        "season_leaders": season_leaders,
     })
 
 
@@ -610,7 +620,7 @@ def battle_home(request):
 def challenge_list(request):
     author = get_author_for_user(request.user)
     if not author:
-        messages.error(request, "Author profile required before entering Chef Battle.")
+        messages.error(request, "Author profile required before entering Chef Battles.")
         return redirect("home")
 
     sent = get_sent_challenges(author)
@@ -674,7 +684,7 @@ def challenge_create(request):
                 challenge=challenge,
                 actor=author,
                 target=challenge.opponent,
-                message=f"{author.name} challenged {challenge.opponent.name} to Chef Battle: {challenge.theme}.",
+                message=f"{author.name} challenged {challenge.opponent.name} to a Chef Battle: {challenge.theme}.",
                 publish_to_news=True,
             )
             _notify_chef(

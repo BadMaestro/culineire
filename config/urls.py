@@ -41,8 +41,8 @@ urlpatterns = [
     # Articles
     path("articles/", include("articles.urls", namespace="articles")),
 
-    # Amuse-Bouche
-    path("amuse-bouche/", include("amuse_bouche.urls", namespace="amuse_bouche")),
+    # Pinch
+    path("pinch/", include("pinch.urls", namespace="pinch")),
 
     # Messaging
     path("messages/", include("messaging.urls", namespace="messaging")),
@@ -67,6 +67,9 @@ urlpatterns = [
 
     # Sponsors puzzle
     path("sponsors/", include("sponsors.urls", namespace="sponsors")),
+
+    # Coworking (moderator-only AI agent handoff dashboard)
+    path("coworking/", include("coworking.urls", namespace="coworking")),
 
 
     # Accounts (user management)

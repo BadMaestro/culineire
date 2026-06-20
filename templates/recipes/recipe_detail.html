@@ -39,26 +39,22 @@
             {% if recipe.short_description %}
             <p class="hero-subtitle">{{ recipe.short_description }}</p>
             {% endif %}
+            {% if recipe.author %}
+            <p class="hero-author">
+                <span class="hero-author__label">By:</span>
+                <a class="hero-author__link" href="{% url 'recipes:author_detail' recipe.author.slug %}">
+                    <img alt="{{ recipe.author.name }}" class="hero-author__avatar" height="28" src="{{ recipe.author.display_avatar_url }}" width="28">
+                    <span class="hero-author__name">{{ recipe.author.name }}{% executive_badge recipe.author %}</span>
+                </a>
+            </p>
+            {% endif %}
             <div class="hero__actions">
-                {% if can_manage_recipe %}
-                <a class="btn-secondary" href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit Recipe</a>
-                <a class="btn-secondary" href="{% url 'recipes:recipe_delete' recipe.slug %}">Delete Recipe</a>
-                {% if can_generate_ab %}
-                <form action="{% url 'amuse_bouche:generate_from_recipe' recipe.slug %}" method="post" style="display:contents">
-                  {% csrf_token %}
-                  <button class="btn-secondary" type="submit">
-                    {% if recipe_ab_exists %}View Amuse-Bouche{% else %}Generate Amuse-Bouche{% endif %}
-                  </button>
-                </form>
-                {% endif %}
-                {% else %}
-                {% if can_view_amuse_bouche_public_area %}
-                <a class="btn-primary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
+                {% if can_view_pinch_public_area %}
+                <a class="btn-primary" href="{% url 'pinch:feed' %}">Pinch</a>
                 {% endif %}
                 <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
                 <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
                 <a class="btn-secondary" href="{% url 'sponsors:puzzle' %}">Sponsors</a>
-                {% endif %}
             </div>
         </div>
     {% if recipe.image_rights_status == 'ai_generated' %}<span aria-label="AI generated image" class="ai-image-badge ai-image-badge--watermark">AI</span>{% endif %}
@@ -77,6 +73,22 @@
     </div>
 </nav>
 
+{% if can_manage_recipe %}
+<div class="staff-bar">
+    <div class="container staff-bar__inner">
+        <span class="staff-bar__label">Staff</span>
+        <a class="btn-secondary" href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit Recipe</a>
+        <a class="btn-secondary" href="{% url 'recipes:recipe_delete' recipe.slug %}">Delete Recipe</a>
+        {% if can_generate_ab %}
+        <form action="{% url 'pinch:generate_from_recipe' recipe.slug %}" method="post" style="display:contents">
+          {% csrf_token %}
+          <button class="btn-secondary" type="submit">{% if recipe_ab_exists %}View Pinch{% else %}Generate Pinch{% endif %}</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
 <section class="section section--flush-top">
     <div class="container">
         <article class="detail-page">
@@ -86,7 +98,7 @@
                 <a class="detail-page__back-link" href="{% url 'recipes:recipe_list' %}">Back to Recipes</a>
                 {% else %}<span></span>{% endif %}
                 {% if recipe_ab_url %}
-                <a class="detail-page__back-link" href="{{ recipe_ab_url }}">Back to Amuse-Bouche</a>
+                <a class="detail-page__back-link" href="{{ recipe_ab_url }}">Back to Pinch</a>
                 {% endif %}
             </div>
             {% endif %}

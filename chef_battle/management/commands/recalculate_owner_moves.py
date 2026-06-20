@@ -15,7 +15,7 @@ class Command(BaseCommand):
         from accounts.models import RecipeAuthor
         from recipes.models import Recipe
         from articles.models import Article
-        from amuse_bouche.models import AmuseBouche
+        from pinch.models import Pinch
         from chef_battle.models import ChefBattleProfile, BattleMoveTransaction
         from chef_battle.services import (
             MOVES_RECIPE_APPROVED,
@@ -35,7 +35,7 @@ class Command(BaseCommand):
 
         recipe_count = Recipe.objects.filter(author=author, status="approved").count()
         article_count = Article.objects.filter(author=author, status="approved").count()
-        ab_count = AmuseBouche.objects.filter(author=author, status=AmuseBouche.Status.APPROVED).count()
+        ab_count = Pinch.objects.filter(author=author, status=Pinch.Status.APPROVED).count()
 
         recipe_moves = recipe_count * MOVES_RECIPE_APPROVED
         article_moves = article_count * MOVES_ARTICLE_APPROVED
@@ -43,12 +43,12 @@ class Command(BaseCommand):
 
         self.stdout.write(f"Recipes approved: {recipe_count} x {MOVES_RECIPE_APPROVED} = {recipe_moves} moves")
         self.stdout.write(f"Articles approved: {article_count} x {MOVES_ARTICLE_APPROVED} = {article_moves} moves")
-        self.stdout.write(f"Amuse-Bouche approved: {ab_count} x {MOVES_RECIPE_APPROVED} = {ab_moves} moves")
+        self.stdout.write(f"Pinch approved: {ab_count} x {MOVES_RECIPE_APPROVED} = {ab_moves} moves")
 
         # Remove old retroactive content transactions to avoid double-counting
         deleted, _ = BattleMoveTransaction.objects.filter(
             chef=author,
-            reason__in={"Recipe approved", "Article approved", "Amuse-Bouche approved"},
+            reason__in={"Recipe approved", "Article approved", "Pinch approved"},
         ).delete()
         self.stdout.write(f"Removed {deleted} existing content transactions.")
 
@@ -59,7 +59,7 @@ class Command(BaseCommand):
         if article_moves:
             transactions.append(BattleMoveTransaction(chef=author, amount=article_moves, reason="Article approved"))
         if ab_moves:
-            transactions.append(BattleMoveTransaction(chef=author, amount=ab_moves, reason="Amuse-Bouche approved"))
+            transactions.append(BattleMoveTransaction(chef=author, amount=ab_moves, reason="Pinch approved"))
         BattleMoveTransaction.objects.bulk_create(transactions)
 
         # Recalculate total from all transactions

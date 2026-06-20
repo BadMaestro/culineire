@@ -2330,13 +2330,13 @@ class ArticleEditorialDetailTests(TestCase):
         content = self._get().content.decode()
         self.assertEqual(content.count("<h1"), 1)
 
-    def test_article_body_repeats_title_before_rich_text(self):
+    def test_article_body_heading_before_rich_text(self):
+        # Title no longer duplicated in body card (visual_consistency_polish Group 6)
         response = self._get()
         content = response.content.decode()
 
         self.assertContains(response, 'class="article-body-heading"')
-        self.assertContains(response, 'class="article-body-heading__title"')
-        self.assertContains(response, "Editorial Test Article")
+        self.assertNotContains(response, 'class="article-body-heading__title"')
         self.assertLess(
             content.index('class="article-body-heading"'),
             content.index('class="rich-text"'),

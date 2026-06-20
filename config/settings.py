@@ -130,12 +130,13 @@ INSTALLED_APPS = [
     "presence",
     "monitoring",
     "collection",
-    "amuse_bouche",
+    "pinch",
     "legal",
     "newsfeed",
     "chef_battle",
     "sandbox",
     "sponsors",
+    "coworking",
 
     "agent_discovery",
 ]
@@ -174,7 +175,7 @@ MONITORING_EXCLUDED_PATH_PREFIXES = [
     "/presence/",
 ]
 
-AMUSE_BOUCHE_PUBLIC = env_bool("AMUSE_BOUCHE_PUBLIC", default=True)
+PINCH_PUBLIC = env_bool("PINCH_PUBLIC", default=True)
 
 ROOT_URLCONF = "config.urls"
 

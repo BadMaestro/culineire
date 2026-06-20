@@ -5,7 +5,7 @@
 {% block twitter_image %}{{ SITE_URL }}{% static 'images/hero.jpg' %}{% endblock %}
 
 {% block title %}About CulinEire | Irish Food Heritage, Recipes & Kitchen Stories{% endblock %}
-{% block meta_description %}CulinEire is a working kitchen for Irish food heritage: clear recipes, useful stories, short ideas, authors and future Chef Battle events.{% endblock %}
+{% block meta_description %}CulinEire is a working kitchen for Irish food heritage: clear recipes, useful stories, short ideas, authors and future Chef Battles events.{% endblock %}
 
 {% block content %}
 <section class="hero hero--home hero--about{% if chef_battle_enabled %} hero--has-battle{% endif %}">
@@ -21,8 +21,8 @@
             <div class="hero__actions">
                 <a class="btn-primary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
                 <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
-                {% if can_view_amuse_bouche_public_area %}
-                <a class="btn-secondary" href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
+                {% if can_view_pinch_public_area %}
+                <a class="btn-secondary" href="{% url 'pinch:feed' %}">Pinch</a>
                 {% endif %}
                 <a class="btn-secondary" href="{% url 'messaging:contact' %}">Contact</a>
             </div>
@@ -48,7 +48,7 @@
         </div>
         <div>
             <span>Formats</span>
-            <strong>Recipes, articles, Amuse-Bouche ideas and future Chef Battle events.</strong>
+            <strong>Recipes, articles, Pinch posts and future Chef Battles events.</strong>
         </div>
         <div>
             <span>Principle</span>
@@ -66,7 +66,7 @@
             <a href="#about-mission">Mission</a>
             <a href="#about-why">Why it exists</a>
             <a href="#about-formats">How it connects</a>
-            <a href="#about-amuse-bouche">Amuse-Bouche</a>
+            <a href="#about-pinch">Pinch</a>
             <a href="#about-quality">Quality and partners</a>
             <a href="#about-roadmap">Where we are going</a>
         </div>
@@ -79,7 +79,7 @@
                 <a href="#about-mission">Mission</a>
                 <a href="#about-why">Why it exists</a>
                 <a href="#about-formats">How it connects</a>
-                <a href="#about-amuse-bouche">Amuse-Bouche</a>
+                <a href="#about-pinch">Pinch</a>
                 <a href="#about-quality">Quality and partners</a>
                 <a href="#about-roadmap">Where we are going</a>
             </nav>
@@ -93,7 +93,7 @@
                 </div>
                 <p>
                     CulinEire is a practical Irish food platform, not a static archive. It connects clear
-                    recipes, readable food stories, short Amuse-Bouche ideas and future Chef Battle events
+                    recipes, readable food stories, short Pinch posts and future Chef Battles events
                     into one useful kitchen system.
                 </p>
             </article>
@@ -127,19 +127,19 @@
                         <p>Sources, stories and context.</p>
                     </div>
                     <div>
-                        <strong>Amuse-Bouche</strong>
+                        <strong>Pinch</strong>
                         <p>Short sparks linked back to full material.</p>
                     </div>
                     <div>
-                        <strong>Chef Battle</strong>
+                        <strong>Chef Battles</strong>
                         <p>Future themes, voting and results.</p>
                     </div>
                 </div>
             </article>
 
-            <article class="about-story__section" id="about-amuse-bouche">
+            <article class="about-story__section" id="about-pinch">
                 <div class="section-header">
-                    <h2>Amuse-Bouche</h2>
+                    <h2>Pinch</h2>
                 </div>
                 <p>
                     A recipe, article or author note can become a quick bite: a sauce, plating idea, drink,
@@ -174,7 +174,7 @@
                     </div>
                     <div>
                         <span>Then</span>
-                        <p>Careful Chef Battle pilots and partner stories.</p>
+                        <p>Careful Chef Battles pilots and partner stories.</p>
                     </div>
                 </div>
             </article>
@@ -184,8 +184,8 @@
     <nav class="about-story__quicklinks" aria-label="Start exploring CulinEire">
         <a href="{% url 'recipes:recipe_list' %}#all-recipes">Recipes</a>
         <a href="{% url 'articles:article_list' %}">Articles</a>
-        {% if can_view_amuse_bouche_public_area %}
-        <a href="{% url 'amuse_bouche:feed' %}">Amuse-Bouche</a>
+        {% if can_view_pinch_public_area %}
+        <a href="{% url 'pinch:feed' %}">Pinch</a>
         {% endif %}
         <a href="{% url 'messaging:contact' %}">Contact</a>
         <a href="{% url 'sponsors:puzzle' %}">Partners</a>

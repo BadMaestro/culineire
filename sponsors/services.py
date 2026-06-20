@@ -2215,3 +2215,17 @@ def build_roadmap_context() -> dict[str, Any]:
         "environment_mode": "Stripe live mode" if stripe_live_mode else "Stripe test mode",
         "checks": checks,
     }
+
+
+def get_sponsor_of_month() -> str:
+    """Return the active central sponsor's name, or '' if there isn't one.
+
+    Single source of truth for "who is the current central sponsor" so
+    other apps (newsfeed, pinch, chef_battle) don't each reimplement the
+    SponsorCell lookup independently.
+    """
+    cell = SponsorCell.objects.filter(
+        ring=0,
+        status__in=[SponsorCell.Status.ACTIVE, SponsorCell.Status.SOLD],
+    ).first()
+    return cell.sponsor_name if cell and cell.sponsor_name else ""

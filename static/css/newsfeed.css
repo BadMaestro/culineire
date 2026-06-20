@@ -236,11 +236,11 @@
   background: #184c3a;
 }
 
-.nf-entry__dot--amuse_bouche_published {
+.nf-entry__dot--pinch_published {
   background: #a07828;
 }
 
-.nf-entry__dot--amuse_bouche_featured {
+.nf-entry__dot--pinch_featured {
   background: #c89030;
 }
 
@@ -308,12 +308,12 @@
   background: rgb(24 76 58 / 0.08);
 }
 
-.nf-badge--amuse_bouche_published {
+.nf-badge--pinch_published {
   color: #7a5810;
   background: rgb(160 120 40 / 0.1);
 }
 
-.nf-badge--amuse_bouche_featured {
+.nf-badge--pinch_featured {
   color: #8b6612;
   background: rgb(200 144 48 / 0.12);
 }

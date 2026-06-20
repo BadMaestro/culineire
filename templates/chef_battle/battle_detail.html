@@ -1,14 +1,14 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% load static author_tags %}
 
-{% block title %}{{ battle.theme }} | Chef Battle{% endblock %}
-{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">{% endblock %}
+{% block title %}{{ battle.theme }} | Chef Battles{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260620-layout" rel="stylesheet">{% endblock %}
 
 {% block content %}
-<section class="battle-room-hero">
+<section class="battle-room-hero battle-hero--has-panel">
   <div class="container">
     <a class="battle-back-link" href="{% url 'chef_battle:home' %}">&larr; Arena</a>
-    <p class="battle-kicker">{{ battle.get_status_display }} Chef Battle</p>
+    <p class="battle-kicker">{{ battle.get_status_display }} Chef Battles</p>
     <h1>{{ battle.theme }}</h1>
 
     <div class="battle-vs">
@@ -49,6 +49,7 @@
 
     <div class="battle-main">
 
+      {# ── Entries ── #}
       <div class="battle-section-header">
         <h2>Entries</h2>
         {% if can_submit %}
@@ -68,15 +69,15 @@
             {% endif %}
             {% if entry.battle_statement %}<p class="battle-muted">{{ entry.battle_statement }}</p>{% endif %}
             {% if battle.status == "voting" %}
-            <form action="{% url 'chef_battle:battle_vote' battle.pk %}" method="post" style="margin-top:.75rem;">
+            <form action="{% url 'chef_battle:battle_vote' battle.pk %}" method="post" class="battle-vote-form">
               {% csrf_token %}
               <input name="voted_for" type="hidden" value="{{ entry.author.pk }}">
-              <button class="btn-primary" type="submit">Vote for {{ entry.author.name }}</button>
+              <button class="btn-primary battle-vote-btn" type="submit">&#x1F5F3; Vote for {{ entry.author.name }}</button>
             </form>
             {% endif %}
           {% else %}
           <h3>Entry Submitted</h3>
-          <p class="battle-muted">Hidden until both chefs submit or the deadline passes.</p>
+          <p class="battle-muted">Hidden until both Chefs submit or the deadline passes.</p>
           {% endif %}
         </article>
         {% endfor %}
@@ -88,7 +89,7 @@
         {% if can_submit %}
         <a class="btn-primary" href="{% url 'chef_battle:battle_entry_submit' battle.pk %}">Be first to submit</a>
         {% else %}
-        <p class="battle-muted">The chefs are in the kitchen. Check back soon.</p>
+        <p class="battle-muted">The Chefs are in the kitchen. Check back soon.</p>
         {% endif %}
       </div>
       {% endif %}
@@ -111,10 +112,31 @@
       </div>
       {% endif %}
 
-    </div>
+      {# ── Live Chat ── #}
+      {% if battle.status in active_statuses or battle.status == 'completed' %}
+      <div class="battle-section-header battle-section-header--spaced">
+        <h2 class="battle-chat__heading">&#x1F4AC; Live Chat</h2>
+      </div>
+      <section class="battle-chat" aria-label="Live chat">
+        <div id="battle-chat-messages" class="battle-chat__messages" aria-live="polite" aria-atomic="false">
+          <p class="battle-chat__empty" id="chat-empty-hint">Be the first to cheer the Chefs on.</p>
+        </div>
+        <form id="battle-chat-form" class="battle-chat__form" method="post" action="{% url 'chef_battle:battle_chat_send' battle.pk %}">
+          {% csrf_token %}
+          {% if not request.user.is_authenticated %}
+          <input class="battle-chat__name-input" type="text" name="display_name" placeholder="Your name" maxlength="60" aria-label="Display name">
+          {% endif %}
+          <input class="battle-chat__input" type="text" name="body" placeholder="Cheer on your Chef…" maxlength="300" autocomplete="off" required aria-label="Chat message">
+          <button class="battle-chat__send" type="submit">Send</button>
+        </form>
+      </section>
+      {% endif %}
+
+    </div>{# /battle-main #}
 
     <aside class="battle-side">
 
+      {# ── Vote counts ── #}
       <section class="battle-panel battle-panel--votes">
         <h2 class="battle-panel__title">&#x1F4CA; Votes</h2>
         <div class="battle-score-row">
@@ -127,6 +149,33 @@
         </div>
       </section>
 
+      {# ── Appreciation Gifts ── #}
+      {% if request.user.is_authenticated and appreciation_gifts and battle.status in active_statuses %}
+      <section class="battle-panel battle-gifts">
+        <h2 class="battle-panel__title">&#x1F381; Send a Gift</h2>
+        <p class="battle-gifts__balance">Balance: <strong>{{ viewer_token_balance }}T</strong></p>
+        {% for chef in battle_participants %}
+        <div class="battle-gifts__chef">
+          <strong class="battle-gifts__chef-name">{{ chef.name }}</strong>
+          <div class="battle-gifts__buttons">
+            {% for gift in appreciation_gifts %}
+            <form method="post" action="{% url 'chef_battle:send_appreciation_gift' battle.pk %}">
+              {% csrf_token %}
+              <input type="hidden" name="recipient_slug" value="{{ chef.slug }}">
+              <input type="hidden" name="gift_type" value="{{ gift.type }}">
+              <button type="submit" class="battle-gift-btn" {% if viewer_token_balance < gift.cost %}disabled title="Not enough tokens"{% endif %}>
+                {{ gift.emoji }} {{ gift.label }}<span class="battle-gift-btn__cost">{{ gift.cost }}T</span>
+              </button>
+            </form>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+        <p class="battle-gifts__note">Digital appreciation items only.</p>
+      </section>
+      {% endif %}
+
+      {# ── Combat panel (participants only) ── #}
       {% if is_participant and battle.status == "active" %}
       <section class="battle-panel battle-combat" id="battle-combat-panel"
                data-combat-url="{% url 'chef_battle:battle_combat_action' battle.pk %}"
@@ -164,6 +213,7 @@
       </section>
       {% endif %}
 
+      {# ── Combat results ── #}
       {% if combat_state.rounds %}
       <section class="battle-panel battle-combat-results" id="combat-results-panel">
         <h2 class="battle-panel__title">&#x2694; Combat</h2>
@@ -212,6 +262,7 @@
       </section>
       {% endif %}
 
+      {# ── Battle Log ── #}
       <section class="battle-panel">
         <details class="battle-combat-results__log">
           <summary class="battle-panel__title battle-combat-results__log-toggle battle-combat-results__log-toggle--title">&#x1F4DC; Battle Log{% if events %} ({{ events|length }}){% endif %}</summary>
@@ -230,9 +281,32 @@
         </details>
       </section>
 
+      {# ── Report ── #}
+      {% if user.is_authenticated %}
+      <div class="battle-panel">
+        <button class="report-content-btn" type="button" data-kind="battle_entry" data-object="{{ battle.pk }}">Report this battle</button>
+      </div>
+      {% endif %}
+
     </aside>
   </div>
 </section>
+
+{% if user.is_authenticated %}
+<dialog id="report-dialog" class="report-dialog">
+  <form id="report-form" method="dialog">
+    <h2 class="report-dialog__title">Report Content</h2>
+    <label class="report-dialog__label">Reason <span class="report-dialog__hint">(required, max 300 chars)</span>
+      <textarea id="report-reason" name="reason" maxlength="300" rows="3" required></textarea>
+    </label>
+    <div class="report-dialog__actions">
+      <button type="button" id="report-submit" class="btn-primary">Submit Report</button>
+      <button type="button" id="report-cancel" class="btn-secondary">Cancel</button>
+    </div>
+    <p id="report-msg" class="report-dialog__msg" hidden></p>
+  </form>
+</dialog>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
@@ -246,6 +320,7 @@
 })();
 </script>
 {% endif %}
+
 {% if is_participant and battle.status == "active" %}
 <script nonce="{{ request.csp_nonce }}">
 (function () {
@@ -286,13 +361,12 @@
       }
       successEl.textContent = 'Move submitted! Waiting for opponent…';
       successEl.hidden = false;
-      submitBtn.disabled = true;
       form.hidden = true;
 
       if (turnEl) {
         turnEl.classList.remove('battle-combat__turn--yours');
         turnEl.classList.add('battle-combat__turn--waiting');
-        turnEl.innerHTML = '&#x23F3; Waiting for opponent&#x2026;';
+        turnEl.innerHTML = '⏳ Waiting for opponent…';
       }
 
       if (hitsChallenger) hitsChallenger.textContent = res.challenger_hits;
@@ -321,35 +395,12 @@
 </script>
 {% endif %}
 
-{# ── Battle Chat ── #}
+{# ── Chat JS ── #}
 {% if battle.status in active_statuses or battle.status == 'completed' %}
-<div class="container" style="max-width: 700px; padding-block: 2rem;">
-  <h2 style="font-family: var(--font-serif); font-size: 1.3rem; margin-block-end: 1rem;">Live Chat</h2>
-
-  <div id="battle-chat-messages"
-       style="background: var(--surface); border: 1px solid var(--color-border); border-radius: 8px;
-              padding: 1rem; height: 280px; overflow-y: auto; margin-block-end: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
-    <p style="color: var(--color-muted); font-size: 0.85rem; text-align: center;" id="chat-empty-hint">
-      Be the first to cheer the chefs on.
-    </p>
-  </div>
-
-  <form id="battle-chat-form" method="post" action="{% url 'chef_battle:battle_chat_send' battle.pk %}"
-        style="display: flex; gap: 0.5rem; align-items: flex-end;">
-    {% csrf_token %}
-    {% if not request.user.is_authenticated %}
-    <input type="text" name="display_name" placeholder="Your name" maxlength="60"
-           style="width: 120px; padding: .4rem .6rem; border: 1px solid var(--color-border); border-radius: 6px; font-size: .9rem; flex-shrink: 0;">
-    {% endif %}
-    <input type="text" name="body" placeholder="Say something..." maxlength="300" autocomplete="off" required
-           style="flex: 1; padding: .4rem .6rem; border: 1px solid var(--color-border); border-radius: 6px; font-size: .9rem;">
-    <button class="btn-secondary" type="submit" style="white-space: nowrap;">Send</button>
-  </form>
-</div>
-
 <script nonce="{{ request.csp_nonce }}">
 (function () {
   var chatBox = document.getElementById('battle-chat-messages');
+  if (!chatBox) return;
   var emptyHint = document.getElementById('chat-empty-hint');
   var pollUrl = "{% url 'chef_battle:battle_chat_poll' battle.pk %}";
   var sinceId = 0;
@@ -357,11 +408,11 @@
   function appendMessage(msg) {
     if (emptyHint) { emptyHint.remove(); emptyHint = null; }
     var el = document.createElement('div');
-    el.style.cssText = 'display:flex;gap:.5rem;align-items:baseline;font-size:.9rem;';
+    el.className = 'battle-chat__msg';
     el.innerHTML =
-      '<span style="color:var(--color-muted);font-size:.75rem;flex-shrink:0;">' + msg.created_at + '</span>' +
-      '<strong style="flex-shrink:0;">' + msg.display_name.replace(/</g,'&lt;') + '</strong>' +
-      '<span style="word-break:break-word;">' + msg.body.replace(/</g,'&lt;') + '</span>';
+      '<time class="battle-chat__msg-time">' + msg.created_at + '</time>' +
+      '<strong class="battle-chat__msg-name">' + msg.display_name.replace(/</g, '&lt;') + '</strong>' +
+      '<span class="battle-chat__msg-body">' + msg.body.replace(/</g, '&lt;') + '</span>';
     chatBox.appendChild(el);
     chatBox.scrollTop = chatBox.scrollHeight;
     sinceId = Math.max(sinceId, msg.id);
@@ -369,83 +420,37 @@
 
   function poll() {
     fetch(pollUrl + '?since=' + sinceId)
-      .then(function(r){ return r.json(); })
-      .then(function(data){
-        data.messages.forEach(appendMessage);
-      })
-      .catch(function(){});
+      .then(function (r) { return r.json(); })
+      .then(function (data) { data.messages.forEach(appendMessage); })
+      .catch(function () {});
   }
 
   poll();
   setInterval(poll, 8000);
 
-  document.getElementById('battle-chat-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    var form = e.target;
-    var fd = new FormData(form);
-    fetch(form.action, { method: 'POST', body: fd })
-      .then(function(){ form.querySelector('[name="body"]').value = ''; poll(); })
-      .catch(function(){});
-  });
+  var chatForm = document.getElementById('battle-chat-form');
+  if (chatForm) {
+    chatForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var fd = new FormData(chatForm);
+      fetch(chatForm.action, { method: 'POST', body: fd })
+        .then(function () {
+          chatForm.querySelector('[name="body"]').value = '';
+          poll();
+        })
+        .catch(function () {});
+    });
+  }
 })();
 </script>
 {% endif %}
 
-{# ── Appreciation Gifts ── #}
-{% if request.user.is_authenticated and appreciation_gifts and battle.status in active_statuses %}
-<div class="container" style="max-width: 700px; padding-block: 0 2rem;">
-  <details class="battle-gift-panel">
-    <summary class="battle-gift-panel__toggle">
-      🎁 Send a Gift to a Chef
-      <span class="battle-gift-panel__balance">Your balance: {{ viewer_token_balance }}T</span>
-    </summary>
-    <div class="battle-gift-panel__body">
-      {% for chef in battle_participants %}
-      <div class="battle-gift-panel__chef">
-        <strong class="battle-gift-panel__chef-name">{{ chef.name }}</strong>
-        <div class="battle-gift-panel__gifts">
-          {% for gift in appreciation_gifts %}
-          <form method="post" action="{% url 'chef_battle:send_appreciation_gift' battle.pk %}" style="display:inline;">
-            {% csrf_token %}
-            <input type="hidden" name="recipient_slug" value="{{ chef.slug }}">
-            <input type="hidden" name="gift_type" value="{{ gift.type }}">
-            <button type="submit" class="battle-gift-btn"
-                    {% if viewer_token_balance < gift.cost %}disabled title="Not enough tokens"{% endif %}>
-              {{ gift.emoji }} {{ gift.label }}<span class="battle-gift-btn__cost">{{ gift.cost }}T</span>
-            </button>
-          </form>
-          {% endfor %}
-        </div>
-      </div>
-      {% endfor %}
-      <p class="battle-gift-panel__hint">All gifts are digital appreciation items only. No physical goods are supplied. Tokens required.</p>
-    </div>
-  </details>
-</div>
-{% endif %}
-
+{# ── Report dialog JS ── #}
 {% if user.is_authenticated %}
-<div class="report-content-bar">
-  <button class="report-content-btn" type="button" data-kind="battle_entry" data-object="{{ battle.pk }}">Report this battle</button>
-</div>
-
-<dialog id="report-dialog" class="report-dialog">
-  <form id="report-form" method="dialog">
-    <h2 class="report-dialog__title">Report Content</h2>
-    <label class="report-dialog__label">Reason <span class="report-dialog__hint">(required, max 300 chars)</span>
-      <textarea id="report-reason" name="reason" maxlength="300" rows="3" required></textarea>
-    </label>
-    <div class="report-dialog__actions">
-      <button type="button" id="report-submit" class="btn-primary">Submit Report</button>
-      <button type="button" id="report-cancel" class="btn-secondary">Cancel</button>
-    </div>
-    <p id="report-msg" class="report-dialog__msg" hidden></p>
-  </form>
-</dialog>
-
 <script nonce="{{ request.csp_nonce }}">
 (function () {
   var dialog = document.getElementById('report-dialog');
+  if (!dialog) return;
   var pendingKind = '', pendingId = '';
 
   document.querySelectorAll('[data-kind]').forEach(function (btn) {
@@ -462,7 +467,7 @@
 
   document.getElementById('report-submit').addEventListener('click', function () {
     var reason = document.getElementById('report-reason').value.trim();
-    if (!reason) { return; }
+    if (!reason) return;
     var msg = document.getElementById('report-msg');
     fetch('{% url "chef_battle:content_report_submit" %}', {
       method: 'POST',

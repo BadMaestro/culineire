@@ -107,7 +107,7 @@ AUTHOR_DASHBOARD_STATUS_FILTERS = (
 GOD_AUTHOR_DASHBOARD_STATUS_FILTER_KEYS = {"draft", "approved"}
 
 AUTHOR_DASHBOARD_CONTENT_FILTERS = (
-    ("ab", "Amuse-Bouche"),
+    ("ab", "Pinch"),
     ("recipes", "Recipes"),
     ("articles", "Articles"),
 )
@@ -275,10 +275,10 @@ def _build_site_research_progress():
     draft_article_count = Article.objects.filter(status__in=[Article.Status.DRAFT, Article.Status.PENDING], is_deleted=False).count()
 
     try:
-        from amuse_bouche.models import AmuseBouche
+        from pinch.models import Pinch
 
-        approved_bite_count = AmuseBouche.objects.filter(status=AmuseBouche.Status.APPROVED).count()
-        pending_bite_count = AmuseBouche.objects.filter(status=AmuseBouche.Status.PENDING).count()
+        approved_bite_count = Pinch.objects.filter(status=Pinch.Status.APPROVED).count()
+        pending_bite_count = Pinch.objects.filter(status=Pinch.Status.PENDING).count()
     except Exception:
         approved_bite_count = 0
         pending_bite_count = 0
@@ -449,8 +449,8 @@ def _build_site_research_progress():
         f"- Draft/pending recipes: {draft_recipe_count}",
         f"- Approved articles: {approved_article_count}",
         f"- Draft/pending articles: {draft_article_count}",
-        f"- Approved Amuse-Bouche: {approved_bite_count}",
-        f"- Pending Amuse-Bouche: {pending_bite_count}",
+        f"- Approved Pinch: {approved_bite_count}",
+        f"- Pending Pinch: {pending_bite_count}",
         "",
         "Active work:",
     ]
@@ -711,69 +711,27 @@ def home(request):
         .order_by("-published")[:6]
     )
     try:
-        from amuse_bouche.visibility import can_view_amuse_bouche_public_area
-        can_show_amuse_bouche = can_view_amuse_bouche_public_area(request.user)
+        from pinch.visibility import can_view_pinch_public_area
+        can_show_pinch = can_view_pinch_public_area(request.user)
     except Exception:
-        can_show_amuse_bouche = False
+        can_show_pinch = False
 
     try:
-        from amuse_bouche.views import _public_queryset as _ab_qs, _user_state as _ab_state
-        latest_amuse_bouche = list(
+        from pinch.views import _public_queryset as _ab_qs, _user_state as _ab_state
+        latest_pinch = list(
             _ab_qs()[:6]
-        ) if can_show_amuse_bouche else []
-        _, ab_liked_ids, ab_saved_ids, ab_followed_author_ids = _ab_state(latest_amuse_bouche, request.user)
+        ) if can_show_pinch else []
+        _, ab_liked_ids, ab_saved_ids, ab_followed_author_ids = _ab_state(latest_pinch, request.user)
     except Exception:
-        latest_amuse_bouche = []
+        latest_pinch = []
         ab_liked_ids = set()
         ab_saved_ids = set()
         ab_followed_author_ids = set()
 
-    battle_events = []
-    active_battles = []
-    flag_on = getattr(settings, "CHEF_BATTLE_ENABLED", False)
-    user = request.user
-    _author = getattr(user, "recipe_author_profile", None) if user and user.is_authenticated else None
-    chef_battle_enabled = flag_on or bool(
-        user and user.is_authenticated and (
-            user.is_staff or user.is_superuser
-            or (_author and _author.has_bearseeker_privileges)
-        )
-    )
-    battle_crown_holder = None
-    if chef_battle_enabled:
-        try:
-            from django.utils import timezone
-            from chef_battle.models import Battle, BattleEvent, ChefBattleProfile
-
-            battle_events = (
-                BattleEvent.objects.select_related("battle", "actor", "target")
-                .filter(is_public=True, event_type__in=[
-                    BattleEvent.EventType.CHALLENGE_ACCEPTED,
-                    BattleEvent.EventType.BATTLE_STARTED,
-                    BattleEvent.EventType.BATTLE_FINISHED,
-                    BattleEvent.EventType.CROWN_AWARDED,
-                    BattleEvent.EventType.RANK_PROMOTED,
-                ])
-                .order_by("-created_at")[:5]
-            )
-            active_battles = (
-                Battle.objects.select_related("challenger", "opponent", "winner")
-                .filter(status__in=[Battle.Status.ACTIVE, Battle.Status.VOTING, Battle.Status.SCHEDULED])
-                .order_by("end_time")[:4]
-            )
-            battle_crown_holder = (
-                ChefBattleProfile.objects.select_related("user__recipe_author_profile")
-                .filter(crown_until__gt=timezone.now())
-                .order_by("-crown_until")
-                .first()
-            )
-        except Exception:
-            logger.exception("Chef Battle homepage data is unavailable.")
-
     try:
-        from amuse_bouche.models import AmuseBoucheComment
-        announcement_comment_count = AmuseBoucheComment.objects.filter(
-            amuse_bouche__slug="chefs-battle-announcement-2026",
+        from pinch.models import PinchComment
+        announcement_comment_count = PinchComment.objects.filter(
+            pinch_item__slug="chefs-battle-announcement-2026",
             is_deleted=False,
         ).count()
     except Exception:
@@ -782,14 +740,10 @@ def home(request):
     context = {
         "latest_recipes": latest_recipes,
         "latest_articles": latest_articles,
-        "latest_amuse_bouche": latest_amuse_bouche,
+        "latest_pinch": latest_pinch,
         "ab_liked_ids": ab_liked_ids,
         "ab_saved_ids": ab_saved_ids,
         "ab_followed_author_ids": ab_followed_author_ids,
-        "battle_events": battle_events,
-        "active_battles": active_battles,
-        "battle_crown_holder": battle_crown_holder,
-        "chef_battle_enabled": chef_battle_enabled,
         "announcement_comment_count": announcement_comment_count,
     }
     return render(request, "home.html", context)
@@ -1156,11 +1110,11 @@ def recipe_detail(request, slug):
         ),
         "recipe_ab_exists": (
             recipe.status == Recipe.Status.APPROVED
-            and recipe.amuse_bouche_items.exclude(status="archived").exists()
+            and recipe.pinch_items.exclude(status="archived").exists()
         ),
         "recipe_ab_url": (
             ab.get_absolute_url()
-            if (ab := recipe.amuse_bouche_items.exclude(status="archived").first())
+            if (ab := recipe.pinch_items.exclude(status="archived").first())
             else None
         ),
         "is_greenbear": request.user.is_authenticated and hasattr(request.user, "recipe_author_profile") and request.user.recipe_author_profile.slug == settings.OWNER_SLUG,
@@ -1487,15 +1441,11 @@ def author_detail(request, slug):
 
     if chef_battle_enabled:
         try:
-            from chef_battle.models import Battle, ChefBattleProfile
-
-            battle_profile = ChefBattleProfile.objects.filter(author=author).first()
-            recent_battles = list(
-                Battle.objects.select_related("challenger", "opponent", "winner")
-                .filter(Q(challenger=author) | Q(opponent=author))
-                .order_by("-created_at")[:6]
-            )
-        except (DatabaseError, AttributeError):
+            from chef_battle.selectors import get_author_battle_summary
+            _summary = get_author_battle_summary(author)
+            battle_profile = _summary["battle_profile"]
+            recent_battles = _summary["recent_battles"]
+        except Exception:
             logger.exception("Chef Battle profile data is unavailable for author %s.", author.pk)
 
     recipes_for_count = Recipe.objects.filter(author=author, is_deleted=False)
@@ -1520,20 +1470,20 @@ def author_detail(request, slug):
             ],
         ).count()
     try:
-        from amuse_bouche.visibility import can_view_amuse_bouche_public_area
-        can_show_public_amuse_bouche = can_view_amuse_bouche_public_area(request.user)
+        from pinch.visibility import can_view_pinch_public_area
+        can_show_public_pinch = can_view_pinch_public_area(request.user)
     except Exception:
-        can_show_public_amuse_bouche = False
-    can_show_amuse_bouche_workspace = private_dashboard or can_show_public_amuse_bouche
+        can_show_public_pinch = False
+    can_show_pinch_workspace = private_dashboard or can_show_public_pinch
 
-    amuse_bouche_count = 0
+    pinch_count = 0
     try:
-        from amuse_bouche.models import AmuseBouche as _AmuseBouche
-        ab_qs = _AmuseBouche.objects.filter(author=author)
+        from pinch.models import Pinch as _Pinch
+        ab_qs = _Pinch.objects.filter(author=author)
         if not private_dashboard:
-            ab_qs = ab_qs.filter(status=_AmuseBouche.Status.APPROVED)
-        if can_show_amuse_bouche_workspace:
-            amuse_bouche_count = ab_qs.count()
+            ab_qs = ab_qs.filter(status=_Pinch.Status.APPROVED)
+        if can_show_pinch_workspace:
+            pinch_count = ab_qs.count()
     except Exception:
         pass
 
@@ -1609,17 +1559,17 @@ def author_detail(request, slug):
 
     dashboard_recipes = list(recipe_qs)
     dashboard_articles = list(article_qs)
-    dashboard_amuse_bouche = []
+    dashboard_pinch = []
     try:
-        from amuse_bouche.models import AmuseBouche as _AmuseBouche
+        from pinch.models import Pinch as _Pinch
         if not (private_dashboard and content_filter and content_filter != "ab"):
-            ab_qs2 = _AmuseBouche.objects.filter(author=author).order_by("-published_at", "-created_at")
+            ab_qs2 = _Pinch.objects.filter(author=author).order_by("-published_at", "-created_at")
             if private_dashboard:
                 if status_value:
                     ab_qs2 = ab_qs2.filter(status=status_value)
             else:
-                ab_qs2 = ab_qs2.filter(status=_AmuseBouche.Status.APPROVED)
-            dashboard_amuse_bouche = list(ab_qs2) if can_show_amuse_bouche_workspace else []
+                ab_qs2 = ab_qs2.filter(status=_Pinch.Status.APPROVED)
+            dashboard_pinch = list(ab_qs2) if can_show_pinch_workspace else []
     except Exception:
         pass
 
@@ -1637,17 +1587,17 @@ def author_detail(request, slug):
                 article__is_deleted=False,
             ).count()
         )
-        if can_show_public_amuse_bouche:
+        if can_show_public_pinch:
             try:
-                from amuse_bouche.models import AmuseBouche as _AmuseBouche
-                amuse_bouche_type = ContentType.objects.get_for_model(_AmuseBouche)
-                approved_bite_ids = _AmuseBouche.objects.filter(
-                    status=_AmuseBouche.Status.APPROVED
+                from pinch.models import Pinch as _Pinch
+                pinch_type = ContentType.objects.get_for_model(_Pinch)
+                approved_pinch_ids = _Pinch.objects.filter(
+                    status=_Pinch.Status.APPROVED
                 ).values("pk")
                 collection_count += SavedContent.objects.filter(
                     user=request.user,
-                    content_type=amuse_bouche_type,
-                    object_id__in=approved_bite_ids,
+                    content_type=pinch_type,
+                    object_id__in=approved_pinch_ids,
                 ).count()
             except Exception:
                 pass
@@ -1657,15 +1607,15 @@ def author_detail(request, slug):
         "recipe_count": recipe_count,
         "recipe_workspace_attention_count": recipe_workspace_attention_count,
         "article_count": article_count,
-        "amuse_bouche_count": amuse_bouche_count,
-        "show_amuse_bouche_profile_links": can_show_public_amuse_bouche,
+        "pinch_count": pinch_count,
+        "show_pinch_profile_links": can_show_public_pinch,
         "is_god_author": is_god_author,
         "can_manage_author_profile": can_manage,
         "is_moderator_viewer": moderator,
         "private_dashboard": private_dashboard,
         "dashboard_recipes": dashboard_recipes,
         "dashboard_articles": dashboard_articles,
-        "dashboard_amuse_bouche": dashboard_amuse_bouche,
+        "dashboard_pinch": dashboard_pinch,
         "dashboard_status_filters": dashboard_status_filters,
         "dashboard_content_filters": dashboard_content_filters,
         "dashboard_status_filter_links": dashboard_status_filter_links,
@@ -2330,23 +2280,23 @@ def moderation_panel(request):
         .exclude(author__slug=settings.OWNER_SLUG)
         .order_by("-published")
     )
-    from amuse_bouche.models import AmuseBouche
+    from pinch.models import Pinch
 
-    pending_amuse_bouche = (
-        AmuseBouche.objects.select_related("author", "author__user")
-        .filter(status=AmuseBouche.Status.PENDING)
+    pending_pinch = (
+        Pinch.objects.select_related("author", "author__user")
+        .filter(status=Pinch.Status.PENDING)
         .exclude(author__slug=settings.OWNER_SLUG)
         .order_by("-created_at")
     )
-    needs_changes_amuse_bouche = (
-        AmuseBouche.objects.select_related("author", "author__user", "moderated_by")
-        .filter(status=AmuseBouche.Status.NEEDS_CHANGES)
+    needs_changes_pinch = (
+        Pinch.objects.select_related("author", "author__user", "moderated_by")
+        .filter(status=Pinch.Status.NEEDS_CHANGES)
         .exclude(author__slug=settings.OWNER_SLUG)
         .order_by("-moderated_at", "-created_at")
     )
-    rejected_amuse_bouche = (
-        AmuseBouche.objects.select_related("author", "author__user", "moderated_by")
-        .filter(status=AmuseBouche.Status.REJECTED)
+    rejected_pinch = (
+        Pinch.objects.select_related("author", "author__user", "moderated_by")
+        .filter(status=Pinch.Status.REJECTED)
         .exclude(author__slug=settings.OWNER_SLUG)
         .order_by("-created_at")
     )
@@ -2384,17 +2334,23 @@ def moderation_panel(request):
         .order_by("owner_priority", "name", "user__username")
     )
 
-    from chef_battle.services import check_forbidden_claims
     from config.maintenance import read_maintenance_flag
     from sponsors.attention import get_sponsor_moderation_attention_breakdown, get_sponsor_moderation_attention_count
 
     # Forbidden claims flags (PDF v6 §30) — annotate each object directly
-    for r in list(pending_recipes) + list(needs_changes_recipes):
-        r.forbidden_claims_hits = check_forbidden_claims(" ".join(filter(None, [
-            r.short_description, r.ingredients, r.method, r.tips, r.irish_context,
-        ])))
-    for a in list(pending_articles) + list(needs_changes_articles):
-        a.forbidden_claims_hits = check_forbidden_claims(" ".join(filter(None, [a.excerpt, a.body])))
+    try:
+        from chef_battle.services import check_forbidden_claims
+        for r in list(pending_recipes) + list(needs_changes_recipes):
+            r.forbidden_claims_hits = check_forbidden_claims(" ".join(filter(None, [
+                r.short_description, r.ingredients, r.method, r.tips, r.irish_context,
+            ])))
+        for a in list(pending_articles) + list(needs_changes_articles):
+            a.forbidden_claims_hits = check_forbidden_claims(" ".join(filter(None, [a.excerpt, a.body])))
+    except Exception:
+        for r in list(pending_recipes) + list(needs_changes_recipes):
+            r.forbidden_claims_hits = []
+        for a in list(pending_articles) + list(needs_changes_articles):
+            a.forbidden_claims_hits = []
 
     maintenance_flag = read_maintenance_flag()
     maintenance_web_active = maintenance_flag is not None and maintenance_flag.get("active", False)
@@ -2410,9 +2366,9 @@ def moderation_panel(request):
         "pending_articles": pending_articles,
         "needs_changes_articles": needs_changes_articles,
         "rejected_articles": rejected_articles,
-        "pending_amuse_bouche": pending_amuse_bouche,
-        "needs_changes_amuse_bouche": needs_changes_amuse_bouche,
-        "rejected_amuse_bouche": rejected_amuse_bouche,
+        "pending_pinch": pending_pinch,
+        "needs_changes_pinch": needs_changes_pinch,
+        "rejected_pinch": rejected_pinch,
         "registered_authors": registered_authors,
         "author_query": author_query,
         "can_grant_bearseeker_privileges": _can_grant_bearseeker_privileges(request.user),

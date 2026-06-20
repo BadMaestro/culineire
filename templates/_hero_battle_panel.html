@@ -1,7 +1,7 @@
 {% load i18n %}
 {% if chef_battle_enabled %}
 <div class="hero-battle-panel">
-  <p class="hero-battle-panel__kicker">&#x2694;&#xFE0F; Chef Battle Arena</p>
+  <p class="hero-battle-panel__kicker">&#x2694;&#xFE0F; Chef Battles Arena</p>
 
   <div class="hero-battle-panel__card">
     {% if active_battles %}
@@ -33,7 +33,7 @@
       {% endwith %}
       <p class="hero-battle-panel__stat">{{ battle_crown_holder.wins }}W &middot; {{ battle_crown_holder.losses }}L</p>
     {% else %}
-      <p class="hero-battle-panel__empty">No reigning chef yet.</p>
+      <p class="hero-battle-panel__empty">No reigning Chef yet.</p>
     {% endif %}
   </div>
 
@@ -59,6 +59,6 @@
     {% endif %}
   </div>
 
-  <a class="hero-battle-panel__cta" href="{% url 'chef_battle:home' %}">Enter Arena</a>
+
 </div>
 {% endif %}

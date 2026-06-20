@@ -1,7 +1,7 @@
 ﻿{% extends "base.html" %}
 {% load static author_tags %}
 
-{% block title %}Hall of Fame | Chef Battle{% endblock %}
+{% block title %}Hall of Fame | Chef Battles{% endblock %}
 {% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">{% endblock %}
 
 {% block content %}
@@ -12,12 +12,12 @@
         <rect width="640" height="72" rx="6" fill="rgba(0,0,0,0.35)"/>
         <text x="320" y="44" text-anchor="middle" font-family="Georgia,serif" font-size="28" fill="#f5c842" letter-spacing="6">&#x2605; HALL OF FAME &#x2605;</text>
         <line x1="40" y1="56" x2="600" y2="56" stroke="#f5c842" stroke-width="1" stroke-dasharray="4 6" opacity="0.5"/>
-        <text x="320" y="68" text-anchor="middle" font-family="Georgia,serif" font-size="10" fill="rgba(245,200,66,0.7)" letter-spacing="3">CHEF BATTLE ARENA</text>
+        <text x="320" y="68" text-anchor="middle" font-family="Georgia,serif" font-size="10" fill="rgba(245,200,66,0.7)" letter-spacing="3">Chef BATTLE ARENA</text>
       </svg>
     </div>
-    <p class="battle-kicker">Chef Battle Arena</p>
+    <p class="battle-kicker">Chef Battles Arena</p>
     <h1>Hall of Fame</h1>
-    <p class="battle-room-hero__sub">The battles and chefs that shaped the arena</p>
+    <p class="battle-room-hero__sub">The battles and Chefs that shaped the arena</p>
     <div class="battle-actions">
       <a class="btn-primary" href="{% url 'chef_battle:home' %}">Enter Arena</a>
       <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
@@ -102,7 +102,7 @@
   </div>
   {% else %}
   <p style="color: var(--color-muted);">
-    No victories recorded yet. Be the first chef to win a battle and claim your place here.
+    No victories recorded yet. Be the first Chef to win a battle and claim your place here.
   </p>
   {% endif %}
 

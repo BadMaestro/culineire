@@ -80,7 +80,7 @@
             </header>
 
             <a class="detail-page__back-link" href="{% url 'articles:article_list' %}">Back to Articles</a>
-            {% comment %}amuse-bouche generate button hidden temporarily{% endcomment %}
+            {% comment %}pinch generate button hidden temporarily{% endcomment %}
 
             {% if gallery_items %}
             {% if has_gallery %}
@@ -196,7 +196,6 @@
                     <article class="detail-page__content-card">
                         <div class="article-body-heading" aria-hidden="true">
                             <div class="article-body-heading__label">Article</div>
-                            <div class="article-body-heading__title">{{ article.title }}</div>
                         </div>
                         <div class="rich-text">
                             {{ article_body_html }}

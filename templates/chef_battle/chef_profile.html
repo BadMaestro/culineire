@@ -1,14 +1,14 @@
 ﻿{% extends "base.html" %}
 {% load static author_tags %}
 
-{% block title %}{{ author.name }} | Chef Battle Profile{% endblock %}
+{% block title %}{{ author.name }} | Chef Battles Profile{% endblock %}
 {% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">{% endblock %}
 
 {% block content %}
 <section class="battle-room-hero">
   <div class="container">
     <a class="battle-back-link" href="{% url 'chef_battle:home' %}">&larr; Arena</a>
-    <p class="battle-kicker">Chef Battle Arena</p>
+    <p class="battle-kicker">Chef Battles Arena</p>
     <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
       {% if author.profile_image %}
       <img src="{{ author.profile_image.url }}" alt="{{ author.name }}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,0.25);flex-shrink:0;">

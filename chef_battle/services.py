@@ -114,9 +114,15 @@ def create_battle_event(
             url = battle.get_absolute_url() if battle else reverse("chef_battle:challenge_list")
         except NoReverseMatch:
             url = ""
+        try:
+            from sponsors.services import get_sponsor_of_month
+            sponsor = get_sponsor_of_month()
+        except Exception:
+            sponsor = ""
         NewsFeedEntry.objects.create(
             entry_type=NewsFeedEntry.EntryType.BATTLE_EVENT,
             title=message,
+            message=f"Sponsored by: {sponsor}" if sponsor else "",
             url=url,
             is_auto=True,
             is_public=is_public,
@@ -1814,7 +1820,7 @@ def submit_content_report(
 
 # ── Reward Agreement ─────────────────────────────────────────────────────────
 
-REWARD_AGREEMENT_TEXT_v1 = """CHEF BATTLE REWARD AGREEMENT — VERSION 1.0
+REWARD_AGREEMENT_TEXT_v1 = """CHEF BATTLE REWARD AGREEMENT
 
 By accepting this agreement you confirm that you have read and understood the following terms.
 
@@ -1828,7 +1834,7 @@ Approved reward tokens may be converted to real-money payouts at a rate of €0.
 Payout requests are subject to: (a) age verification (18+); (b) completion of Stripe Connect onboarding; (c) no active fraud flags, suspensions, or compliance holds; and (d) acceptance of this agreement.
 
 4. REVERSAL AND FORFEITURE
-The platform reserves the right to reverse, void, or expire rewards at any time for breach of Chef Battle rules, fraudulent activity, chargebacks, or material policy violations.
+The platform reserves the right to reverse, void, or expire rewards at any time for breach of Chef Battles rules, fraudulent activity, chargebacks, or material policy violations.
 
 5. TAX AND REPORTING (DAC7)
 Payouts are subject to EU Directive 2021/514 (DAC7 / MRDP) reporting obligations. By accepting, you consent to the collection of your identity and income data and its annual reporting to Irish Revenue where applicable thresholds are met. Data is retained for 10 years.

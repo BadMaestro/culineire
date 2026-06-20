@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Chef Battle Progress | CulinEire{% endblock %}
-{% block meta_description %}Chef Battle roadmap progress for internal coordination.{% endblock %}
+{% block title %}Chef Battles Progress | CulinEire{% endblock %}
+{% block meta_description %}Chef Battles roadmap progress for internal coordination.{% endblock %}
 
 {% block extra_head %}
 <meta name="robots" content="noindex, nofollow">
@@ -17,7 +17,7 @@
         <header class="automation-header">
             <div>
                 <p class="automation-kicker">Internal battlefield roadmap</p>
-                <h1 class="automation-title">Chef Battle Progress</h1>
+                <h1 class="automation-title">Chef Battles Progress</h1>
                 <p class="automation-summary">{{ battlefield_progress.done_count }}/{{ battlefield_progress.total_count }} checked items complete</p>
             </div>
             <div class="automation-meter" aria-label="{{ battlefield_progress.percent }} percent complete">
@@ -25,7 +25,7 @@
             </div>
         </header>
 
-        <section class="moderation-block moderation-block--tools" aria-label="Chef Battle actions">
+        <section class="moderation-block moderation-block--tools" aria-label="Chef Battles actions">
             <h2 class="moderation-block__title">Battlefield Actions</h2>
             <div class="mod-tools-row">
                 <a class="mod-tool-link" href="{% url 'chef_battle:home' %}">
@@ -99,7 +99,7 @@
                 </li>
                 <li class="manual-tasks__item" data-key="mt-challenge-flow">
                     <input type="checkbox" id="mt-challenge-flow">
-                    <label for="mt-challenge-flow"><strong>Challenge full flow</strong> — send a challenge, accept it, confirm a battle is created and both chefs see it in My Challenges.</label>
+                    <label for="mt-challenge-flow"><strong>Challenge full flow</strong> — send a challenge, accept it, confirm a battle is created and both Chefs see it in My Challenges.</label>
                 </li>
                 <li class="manual-tasks__item" data-key="mt-battle-entry">
                     <input type="checkbox" id="mt-battle-entry">
@@ -119,7 +119,7 @@
                 </li>
                 <li class="manual-tasks__item" data-key="mt-artifact-gift">
                     <input type="checkbox" id="mt-artifact-gift">
-                    <label for="mt-artifact-gift"><strong>Artifact gift sending</strong> — send an artifact gift to a chef during a battle; confirm token deduction and gift appears in the gift panel.</label>
+                    <label for="mt-artifact-gift"><strong>Artifact gift sending</strong> — send an artifact gift to a Chef during a battle; confirm token deduction and gift appears in the gift panel.</label>
                 </li>
                 <li class="manual-tasks__item" data-key="mt-appreciation-gift">
                     <input type="checkbox" id="mt-appreciation-gift">
@@ -139,7 +139,7 @@
                 </li>
                 <li class="manual-tasks__item" data-key="mt-age-verify">
                     <input type="checkbox" id="mt-age-verify">
-                    <label for="mt-age-verify"><strong>Age verification</strong> — complete age verification flow as a chef; confirm ChefBattleProfile.age_verified is set and gate removed.</label>
+                    <label for="mt-age-verify"><strong>Age verification</strong> — complete age verification flow as a Chef; confirm ChefBattleProfile.age_verified is set and gate removed.</label>
                 </li>
                 <li class="manual-tasks__item" data-key="mt-combat-action">
                     <input type="checkbox" id="mt-combat-action">

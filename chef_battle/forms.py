@@ -3,7 +3,6 @@ from __future__ import annotations
 from django import forms
 from django.utils import timezone
 
-from articles.models import Article
 from recipes.models import Recipe, RecipeAuthor
 
 from .models import BattleChallenge, BattleEntry
@@ -43,15 +42,14 @@ class BattleChallengeForm(forms.ModelForm):
 
 class BattleEntryForm(forms.ModelForm):
     content_type = forms.ChoiceField(
-        choices=(("recipe", "Recipe"), ("article", "Article")),
+        choices=(("photo", "Photo Battle"), ("video", "Video Battle")),
         widget=forms.RadioSelect,
     )
     recipe = forms.ModelChoiceField(queryset=Recipe.objects.none(), required=False)
-    article = forms.ModelChoiceField(queryset=Article.objects.none(), required=False)
 
     class Meta:
         model = BattleEntry
-        fields = ("content_type", "recipe", "article", "battle_statement")
+        fields = ("content_type", "recipe", "battle_statement")
         widgets = {
             "battle_statement": forms.Textarea(attrs={"rows": 3}),
         }
@@ -61,7 +59,6 @@ class BattleEntryForm(forms.ModelForm):
         self.author = author
         self.battle = battle
         self.fields["recipe"].queryset = Recipe.objects.filter(author=author, status=Recipe.Status.APPROVED, is_deleted=False).order_by("-created_at")
-        self.fields["article"].queryset = Article.objects.filter(author=author, status=Article.Status.APPROVED, is_deleted=False).order_by("-published")
         for field in self.fields.values():
             if not isinstance(field.widget, forms.RadioSelect):
                 field.widget.attrs.setdefault("class", "authoring-control")
@@ -70,25 +67,16 @@ class BattleEntryForm(forms.ModelForm):
         cleaned = super().clean()
         content_type = cleaned.get("content_type")
         recipe = cleaned.get("recipe")
-        article = cleaned.get("article")
 
-        if content_type == "recipe" and not recipe:
+        if content_type == "photo" and not recipe:
             self.add_error("recipe", "Choose a recipe for this battle.")
-        if content_type == "article" and not article:
-            self.add_error("article", "Choose an article for this battle.")
-        if content_type == "recipe":
-            cleaned["article"] = None
-        if content_type == "article":
-            cleaned["recipe"] = None
         return cleaned
 
     def save(self, commit=True):
         entry = super().save(commit=False)
         entry.author = self.author
         entry.battle = self.battle
-        if self.cleaned_data.get("content_type") == "recipe":
-            entry.article = None
-        else:
+        if self.cleaned_data.get("content_type") != "photo":
             entry.recipe = None
         if commit:
             entry.full_clean()
