@@ -637,7 +637,7 @@ def challenge_list(request):
 def challenge_create(request):
     author = get_author_for_user(request.user)
     if not author:
-        messages.error(request, "Author profile required before creating a Chef Battles challenge.")
+        messages.error(request, "Author profile required before creating a Chef Battle challenge.")
         return redirect("home")
 
     profile = get_or_create_battle_profile(author)
@@ -684,14 +684,14 @@ def challenge_create(request):
                 challenge=challenge,
                 actor=author,
                 target=challenge.opponent,
-                message=f"{author.name} challenged {challenge.opponent.name} to Chef Battles: {challenge.theme}.",
+                message=f"{author.name} challenged {challenge.opponent.name} to a Chef Battle: {challenge.theme}.",
                 publish_to_news=True,
             )
             _notify_chef(
                 author, challenge.opponent,
-                subject=f"You have been challenged to a Chef Battles: {challenge.theme}",
+                subject=f"You have been challenged to a Chef Battle: {challenge.theme}",
                 body=(
-                    f"{author.name} has challenged you to a Chef Battles!\n\n"
+                    f"{author.name} has challenged you to a Chef Battle!\n\n"
                     f"Theme: {challenge.theme}\n"
                     f"Battle type: {challenge.get_battle_type_display()}\n"
                     + (f"\nMessage: {challenge.message}\n" if challenge.message else "")
@@ -700,7 +700,7 @@ def challenge_create(request):
                     + reverse("chef_battle:challenge_list")
                 ),
             )
-            messages.success(request, "Chef Battles challenge sent.")
+            messages.success(request, "Chef Battle challenge sent.")
             return redirect("chef_battle:challenge_list")
     else:
         initial = {}
@@ -843,7 +843,7 @@ def battle_entry_submit(request, pk):
                 battle=battle,
                 actor=author,
                 target=battle.opponent_for(author),
-                message=f"{author.name} submitted an entry for Chef Battles: {battle.theme}.",
+                message=f"{author.name} submitted an entry for Chef Battle: {battle.theme}.",
                 publish_to_news=True,
             )
             messages.success(request, "Battle entry submitted.")
@@ -915,7 +915,7 @@ def battle_vote(request, pk):
         battle=battle,
         actor=None,
         target=voted_for,
-        message=f"A vote landed for {voted_for.name} in Chef Battles: {battle.theme}.",
+        message=f"A vote landed for {voted_for.name} in Chef Battle: {battle.theme}.",
         is_public=False,
     )
     messages.success(request, "Vote recorded.")

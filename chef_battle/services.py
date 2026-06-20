@@ -175,7 +175,7 @@ def accept_challenge(challenge: BattleChallenge) -> Battle:
             battle=battle,
             actor=challenge.opponent,
             target=challenge.challenger,
-            message=f"{challenge.opponent.name} accepted {challenge.challenger.name}'s Chef Battles: {challenge.theme}.",
+            message=f"{challenge.opponent.name} accepted {challenge.challenger.name}'s Chef Battle: {challenge.theme}.",
             publish_to_news=True,
         )
         create_battle_event(
@@ -183,7 +183,7 @@ def accept_challenge(challenge: BattleChallenge) -> Battle:
             battle=battle,
             actor=challenge.challenger,
             target=challenge.opponent,
-            message=f"Chef Battles started: {challenge.challenger.name} vs {challenge.opponent.name} - {challenge.theme}.",
+            message=f"Chef Battle started: {challenge.challenger.name} vs {challenge.opponent.name} - {challenge.theme}.",
             publish_to_news=True,
         )
 
@@ -195,7 +195,7 @@ def accept_challenge(challenge: BattleChallenge) -> Battle:
         challenge.opponent, challenge.challenger,
         subject=f"Your challenge was accepted: {challenge.theme}",
         body=(
-            f"{challenge.opponent.name} accepted your Chef Battles challenge.\n\n"
+            f"{challenge.opponent.name} accepted your Chef Battle challenge.\n\n"
             f"Theme: {challenge.theme}\n"
             f"Battle room: {settings.SITE_SCHEME}://{settings.SITE_DOMAIN}{battle_url}"
         ),
@@ -219,15 +219,15 @@ def refuse_challenge(challenge: BattleChallenge) -> None:
             challenge=challenge,
             actor=challenge.opponent,
             target=challenge.challenger,
-            message=f"{challenge.opponent.name} refused a Chef Battles challenge from {challenge.challenger.name}: {challenge.theme}.",
+            message=f"{challenge.opponent.name} refused a Chef Battle challenge from {challenge.challenger.name}: {challenge.theme}.",
             publish_to_news=True,
         )
 
     _notify_chef(
         challenge.opponent, challenge.challenger,
-        subject=f"Your Chef Battles challenge was refused: {challenge.theme}",
+        subject=f"Your Chef Battle challenge was refused: {challenge.theme}",
         body=(
-            f"{challenge.opponent.name} has declined your Chef Battles challenge.\n\n"
+            f"{challenge.opponent.name} has declined your Chef Battle challenge.\n\n"
             f"Theme: {challenge.theme}\n\n"
             f"Challenge another chef and keep fighting for your rank."
         ),
@@ -342,7 +342,7 @@ def _award_forfeit_win(battle: Battle, *, winner, loser) -> None:
         actor=winner,
         target=loser,
         message=(
-            f"{winner.name} wins by forfeit in Chef Battles '{battle.theme}': "
+            f"{winner.name} wins by forfeit in Chef Battle '{battle.theme}': "
             f"{loser.name} did not submit an entry."
         ),
         is_public=True,
@@ -483,7 +483,7 @@ def calculate_battle_result(battle: Battle) -> Battle:
             battle=battle,
             actor=winner,
             target=loser,
-            message=f"{winner.name} defeated {loser.name} in Chef Battles: {battle.theme}.",
+            message=f"{winner.name} defeated {loser.name} in Chef Battle: {battle.theme}.",
             publish_to_news=True,
         )
         create_battle_event(
@@ -524,9 +524,9 @@ def calculate_battle_result(battle: Battle) -> Battle:
         battle_url = ""
     _notify_chef(
         loser, winner,
-        subject=f"You won the Chef Battles: {battle.theme}",
+        subject=f"You won the Chef Battle: {battle.theme}",
         body=(
-            f"Congratulations! You defeated {loser.name} in Chef Battles: {battle.theme}.\n\n"
+            f"Congratulations! You defeated {loser.name} in Chef Battle: {battle.theme}.\n\n"
             f"Result: {battle.result_reason}\n"
             f"You now hold the Crown for 24 hours.\n\n"
             f"Battle room: {battle_url}"
@@ -534,9 +534,9 @@ def calculate_battle_result(battle: Battle) -> Battle:
     )
     _notify_chef(
         winner, loser,
-        subject=f"Chef Battles result: {battle.theme}",
+        subject=f"Chef Battle result: {battle.theme}",
         body=(
-            f"{winner.name} defeated you in Chef Battles: {battle.theme}.\n\n"
+            f"{winner.name} defeated you in Chef Battle: {battle.theme}.\n\n"
             f"Result: {battle.result_reason}\n\n"
             f"Battle room: {battle_url}"
         ),
@@ -1531,7 +1531,7 @@ def check_payout_eligibility(chef) -> dict:
 
     profile = ChefBattleProfile.objects.filter(author=chef).first()
     if profile is None:
-        return {"eligible": False, "reasons": ["No Chef Battles profile found."]}
+        return {"eligible": False, "reasons": ["No Chef Battle profile found."]}
 
     if not profile.age_verified:
         reasons.append("You must confirm you are 18 or older.")
@@ -1819,7 +1819,7 @@ REWARD_AGREEMENT_TEXT_v1 = """CHEF BATTLE REWARD AGREEMENT
 By accepting this agreement you confirm that you have read and understood the following terms.
 
 1. NATURE OF REWARDS
-CulinEire Chef Battles Rewards (CBR) and Live Support Rewards (LSR) are discretionary platform rewards granted at the sole discretion of CulinEire. They are not money, not user funds, not e-money, and confer no legal right to payment.
+CulinEire Chef Battle Rewards (CBR) and Live Support Rewards (LSR) are discretionary platform rewards granted at the sole discretion of CulinEire. They are not money, not user funds, not e-money, and confer no legal right to payment.
 
 2. CONVERSION AND PAYOUT
 Approved reward tokens may be converted to real-money payouts at a rate of €0.025 per token, subject to a minimum threshold of 2,000 approved reward tokens. The payout rate may change for future reward grants; the rate is locked at request time.

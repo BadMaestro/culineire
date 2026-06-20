@@ -934,7 +934,7 @@ class RewardRecord(models.Model):
     """
 
     class RewardType(models.TextChoices):
-        CBR = "cbr", "Chef Battles Reward"
+        CBR = "cbr", "Chef Battle Reward"
         LSR = "lsr", "Live Support Reward"
 
     class Status(models.TextChoices):
