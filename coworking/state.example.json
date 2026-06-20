@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "agents": {
+    "agent_a": {
+      "id": "agent_a",
+      "label": "GreenBear / Code A",
+      "last_seen": "2025-01-01T00:00:00Z",
+      "status": "idle",
+      "current_task": {
+        "title": "",
+        "description": "",
+        "started_at": "",
+        "branch": "",
+        "files_touched": [],
+        "next_step": ""
+      },
+      "active_prompt": "",
+      "memory": {
+        "key_facts": [],
+        "decisions_made": [],
+        "blockers": []
+      },
+      "log": []
+    }
+  },
+  "shared": {
+    "project_memory": [],
+    "open_questions": [],
+    "completed_today": []
+  }
+}
