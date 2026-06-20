@@ -44,7 +44,15 @@
 
 .hero--recipe-tools .hero__actions {
   margin-block-start: 1.45rem;
-  min-height: 44px;
+  min-height: 36px;
+}
+
+.hero--recipe-tools .hero__actions .btn-primary,
+.hero--recipe-tools .hero__actions .btn-secondary,
+.hero--recipe-tools .hero__actions .btn {
+  min-height: 36px;
+  padding: 0.32rem 0.68rem;
+  font-size: 0.78rem;
 }
 
 .authoring-page {
