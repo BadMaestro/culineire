@@ -2553,6 +2553,15 @@ a.battle-pulse-item__msg:hover {
   gap: 0.38rem;
 }
 
+@media (max-width: 960px) {
+  .battle-home__nav-list {
+    display: none;
+  }
+  .hero__actions.is-open .battle-home__nav-list {
+    display: flex;
+  }
+}
+
 .battle-home__nav-link {
   padding: 0.36rem 0.7rem;
   border: 1px solid rgb(255 255 255 / 0.13);
