@@ -160,6 +160,13 @@ def create_newsfeed_entry_on_approval(sender, instance, **kwargs):
             message = f"{author_name}: {message}"
         elif author_name:
             message = f"By {author_name}"
+        try:
+            from sponsors.services import get_sponsor_of_month
+            sponsor = get_sponsor_of_month()
+        except Exception:
+            sponsor = ""
+        if sponsor:
+            message = f"{message} · Sponsored by: {sponsor}" if message else f"Sponsored by: {sponsor}"
         from .telegram_preview import absolute_url, get_telegram_preview_image
         preview = get_telegram_preview_image(instance)
         image_url = absolute_url(preview.url) if preview else ""

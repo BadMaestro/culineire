@@ -39,12 +39,8 @@ class TelegramResult:
 def _get_sponsor_of_month() -> str:
     """Return the active central sponsor name, or empty string if none."""
     try:
-        from sponsors.models import SponsorCell
-        cell = SponsorCell.objects.filter(
-            ring=0,
-            status__in=[SponsorCell.Status.ACTIVE, SponsorCell.Status.SOLD],
-        ).first()
-        return cell.sponsor_name if cell and cell.sponsor_name else ""
+        from sponsors.services import get_sponsor_of_month
+        return get_sponsor_of_month()
     except Exception:
         return ""
 
@@ -93,7 +89,12 @@ def build_ab_direct_telegram_message(ab) -> str:
     """Compact Pinch caption: title + URL only, no description or author prefix."""
     site_url = f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}".rstrip("/")
     absolute_url = f"{site_url}{ab.get_absolute_url()}"
-    return f"Pinch: {ab.title}\n\n{absolute_url}"
+    parts = [f"Pinch: {ab.title}"]
+    sponsor = _get_sponsor_of_month()
+    if sponsor:
+        parts.append(f"Sponsored by: {sponsor}")
+    parts.append(absolute_url)
+    return "\n\n".join(parts)
 
 
 def build_ab_telegram_message(entry) -> str:
@@ -101,6 +102,9 @@ def build_ab_telegram_message(entry) -> str:
     site_url = f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}".rstrip("/")
     absolute_url = f"{site_url}{entry.url}" if entry.url and entry.url.startswith("/") else (entry.url or "")
     parts = [f"Pinch: {entry.title}"]
+    sponsor = _get_sponsor_of_month()
+    if sponsor:
+        parts.append(f"Sponsored by: {sponsor}")
     if absolute_url:
         parts.append(absolute_url)
     return "\n\n".join(parts)

@@ -114,9 +114,15 @@ def create_battle_event(
             url = battle.get_absolute_url() if battle else reverse("chef_battle:challenge_list")
         except NoReverseMatch:
             url = ""
+        try:
+            from sponsors.services import get_sponsor_of_month
+            sponsor = get_sponsor_of_month()
+        except Exception:
+            sponsor = ""
         NewsFeedEntry.objects.create(
             entry_type=NewsFeedEntry.EntryType.BATTLE_EVENT,
             title=message,
+            message=f"Sponsored by: {sponsor}" if sponsor else "",
             url=url,
             is_auto=True,
             is_public=is_public,
