@@ -26,7 +26,7 @@
 
 .hero--recipe-tools .hero-copy {
   justify-content: center;
-  max-width: min(100%, 760px);
+  max-width: min(100%, 960px);
 }
 
 .hero--recipe-tools .pill {
