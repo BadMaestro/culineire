@@ -1797,15 +1797,12 @@ class RecipeDetailAccessibilityMarkupTests(TestCase):
 
         self.client.force_login(self.user)
         response = self.client.get(recipe.get_absolute_url())
-        hero_actions = response.content.decode().split('<div class="hero__actions">', 1)[1].split("</div>", 1)[0]
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn("Edit Recipe", hero_actions)
-        self.assertIn("Delete Recipe", hero_actions)
-        self.assertIn("Generate Pinch", hero_actions)
-        self.assertNotIn(">Pinch</a>", hero_actions)
-        self.assertNotIn("Explore Recipes", hero_actions)
-        self.assertNotIn("Read Articles", hero_actions)
+        # Author management controls now in .staff-bar below breadcrumb
+        self.assertContains(response, "Edit Recipe")
+        self.assertContains(response, "Delete Recipe")
+        self.assertContains(response, "Generate Pinch")
 
 
 class RecipeDetailStructuredDataTests(TestCase):
@@ -1973,11 +1970,11 @@ class PublicImagePerformanceHintTests(TestCase):
         self.assertContains(response, 'loading="eager"')
         self.assertContains(response, 'decoding="async"')
 
-    def test_recipe_mood_categories_use_standard_category_nav(self):
+    def test_recipe_mood_categories_panel_removed(self):
+        # Mood category panel removed (visual_consistency_polish Group 4)
         response = self.client.get(reverse("recipes:recipe_list"))
 
-        self.assertContains(response, 'aria-label="Recipe mood categories"')
-        self.assertContains(response, "category-nav__item category-nav__link")
+        self.assertNotContains(response, 'aria-label="Recipe mood categories"')
         self.assertNotContains(response, "recipe-mood-chip")
         self.assertNotContains(response, "What are you in the mood for today?")
 
