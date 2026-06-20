@@ -2532,6 +2532,7 @@ a.battle-pulse-item__msg:hover {
   gap: 0.45rem;
   flex-wrap: wrap;
   position: relative;
+  width: fit-content;
 }
 
 .battle-home__burger {
@@ -2551,10 +2552,10 @@ a.battle-pulse-item__msg:hover {
 .battle-home__nav-list {
   display: none;
   flex-wrap: nowrap;
-  gap: 0.38rem;
+  gap: 0.28rem;
   position: absolute;
   top: 50%;
-  left: calc(100% + 0.45rem);
+  left: calc(100% + 0.4rem);
   transform: translateY(-50%);
   z-index: 20;
 }
@@ -2564,13 +2565,14 @@ a.battle-pulse-item__msg:hover {
 }
 
 .battle-home__nav-link {
-  padding: 0.36rem 0.7rem;
+  padding: 0.22rem 0.48rem;
   border: 1px solid rgb(255 255 255 / 0.13);
   border-radius: var(--radius-pill);
   background: rgb(255 255 255 / 0.04);
   color: rgb(240 225 200 / 0.72);
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 600;
+  white-space: nowrap;
   text-decoration: none;
   transition: background 0.18s, color 0.18s, border-color 0.18s;
 }
