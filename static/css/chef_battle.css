@@ -36,7 +36,7 @@
   justify-content: flex-start;
   text-align: left;
 }
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .battle-hero--has-panel .battle-hero__inner,
   .battle-room-hero--has-panel .container {
     flex-direction: column;
@@ -2999,3 +2999,11 @@ a.battle-home__pulse-msg:hover {
 .hero--has-battle .hero-battle-panel { margin-top: 1.125rem; }
 .battle-hero--has-panel .hero-battle-panel,
 .battle-room-hero--has-panel .hero-battle-panel { margin-top: 1.125rem; }
+
+/* Isolate widget from battle-hero typography cascade */
+.battle-hero .hero-battle-panel p,
+.battle-room-hero .hero-battle-panel p {
+  max-width: none;
+  margin: 0;
+  color: inherit;
+}
