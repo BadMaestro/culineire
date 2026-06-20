@@ -2531,6 +2531,7 @@ a.battle-pulse-item__msg:hover {
   align-items: center;
   gap: 0.45rem;
   flex-wrap: wrap;
+  position: relative;
 }
 
 .battle-home__burger {
@@ -2551,6 +2552,10 @@ a.battle-pulse-item__msg:hover {
   display: none;
   flex-wrap: wrap;
   gap: 0.38rem;
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  left: 0;
+  z-index: 20;
 }
 
 .battle-home__nav-row.is-open .battle-home__nav-list {
