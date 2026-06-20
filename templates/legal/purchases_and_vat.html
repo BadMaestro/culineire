@@ -101,7 +101,7 @@
                 </div>
                 <div class="legal-card__content">
                     <ul class="legal-list">
-                        <li>Token prices in the <a href="{% url 'chef_battle:token_shop' %}">Token Shop</a> are displayed <strong>inclusive of 23% Irish VAT</strong>. No additional charges are added at checkout for token purchases.</li>
+                        {% if chef_battle_enabled %}<li>Token prices in the <a href="{% url 'chef_battle:token_shop' %}">Token Shop</a> are displayed <strong>inclusive of 23% Irish VAT</strong>. No additional charges are added at checkout for token purchases.</li>{% endif %}
                         <li>Sponsorship prices are quoted <strong>exclusive of VAT</strong>. VAT is added at checkout.</li>
                         <li>Bearcave Limited is VAT-registered in Ireland: VAT number <strong>IE3645402WH</strong>.</li>
                         <li>Where VAT does not apply, Stripe will determine this at checkout based on your location.</li>

@@ -728,48 +728,6 @@ def home(request):
         ab_saved_ids = set()
         ab_followed_author_ids = set()
 
-    battle_events = []
-    active_battles = []
-    flag_on = getattr(settings, "CHEF_BATTLE_ENABLED", False)
-    user = request.user
-    _author = getattr(user, "recipe_author_profile", None) if user and user.is_authenticated else None
-    chef_battle_enabled = flag_on or bool(
-        user and user.is_authenticated and (
-            user.is_staff or user.is_superuser
-            or (_author and _author.has_bearseeker_privileges)
-        )
-    )
-    battle_crown_holder = None
-    if chef_battle_enabled:
-        try:
-            from django.utils import timezone
-            from chef_battle.models import Battle, BattleEvent, ChefBattleProfile
-
-            battle_events = (
-                BattleEvent.objects.select_related("battle", "actor", "target")
-                .filter(is_public=True, event_type__in=[
-                    BattleEvent.EventType.CHALLENGE_ACCEPTED,
-                    BattleEvent.EventType.BATTLE_STARTED,
-                    BattleEvent.EventType.BATTLE_FINISHED,
-                    BattleEvent.EventType.CROWN_AWARDED,
-                    BattleEvent.EventType.RANK_PROMOTED,
-                ])
-                .order_by("-created_at")[:5]
-            )
-            active_battles = (
-                Battle.objects.select_related("challenger", "opponent", "winner")
-                .filter(status__in=[Battle.Status.ACTIVE, Battle.Status.VOTING, Battle.Status.SCHEDULED])
-                .order_by("end_time")[:4]
-            )
-            battle_crown_holder = (
-                ChefBattleProfile.objects.select_related("user__recipe_author_profile")
-                .filter(crown_until__gt=timezone.now())
-                .order_by("-crown_until")
-                .first()
-            )
-        except Exception:
-            logger.exception("Chef Battle homepage data is unavailable.")
-
     try:
         from pinch.models import PinchComment
         announcement_comment_count = PinchComment.objects.filter(
@@ -786,10 +744,6 @@ def home(request):
         "ab_liked_ids": ab_liked_ids,
         "ab_saved_ids": ab_saved_ids,
         "ab_followed_author_ids": ab_followed_author_ids,
-        "battle_events": battle_events,
-        "active_battles": active_battles,
-        "battle_crown_holder": battle_crown_holder,
-        "chef_battle_enabled": chef_battle_enabled,
         "announcement_comment_count": announcement_comment_count,
     }
     return render(request, "home.html", context)
@@ -1487,15 +1441,11 @@ def author_detail(request, slug):
 
     if chef_battle_enabled:
         try:
-            from chef_battle.models import Battle, ChefBattleProfile
-
-            battle_profile = ChefBattleProfile.objects.filter(author=author).first()
-            recent_battles = list(
-                Battle.objects.select_related("challenger", "opponent", "winner")
-                .filter(Q(challenger=author) | Q(opponent=author))
-                .order_by("-created_at")[:6]
-            )
-        except (DatabaseError, AttributeError):
+            from chef_battle.selectors import get_author_battle_summary
+            _summary = get_author_battle_summary(author)
+            battle_profile = _summary["battle_profile"]
+            recent_battles = _summary["recent_battles"]
+        except Exception:
             logger.exception("Chef Battle profile data is unavailable for author %s.", author.pk)
 
     recipes_for_count = Recipe.objects.filter(author=author, is_deleted=False)
@@ -2384,17 +2334,23 @@ def moderation_panel(request):
         .order_by("owner_priority", "name", "user__username")
     )
 
-    from chef_battle.services import check_forbidden_claims
     from config.maintenance import read_maintenance_flag
     from sponsors.attention import get_sponsor_moderation_attention_breakdown, get_sponsor_moderation_attention_count
 
     # Forbidden claims flags (PDF v6 §30) — annotate each object directly
-    for r in list(pending_recipes) + list(needs_changes_recipes):
-        r.forbidden_claims_hits = check_forbidden_claims(" ".join(filter(None, [
-            r.short_description, r.ingredients, r.method, r.tips, r.irish_context,
-        ])))
-    for a in list(pending_articles) + list(needs_changes_articles):
-        a.forbidden_claims_hits = check_forbidden_claims(" ".join(filter(None, [a.excerpt, a.body])))
+    try:
+        from chef_battle.services import check_forbidden_claims
+        for r in list(pending_recipes) + list(needs_changes_recipes):
+            r.forbidden_claims_hits = check_forbidden_claims(" ".join(filter(None, [
+                r.short_description, r.ingredients, r.method, r.tips, r.irish_context,
+            ])))
+        for a in list(pending_articles) + list(needs_changes_articles):
+            a.forbidden_claims_hits = check_forbidden_claims(" ".join(filter(None, [a.excerpt, a.body])))
+    except Exception:
+        for r in list(pending_recipes) + list(needs_changes_recipes):
+            r.forbidden_claims_hits = []
+        for a in list(pending_articles) + list(needs_changes_articles):
+            a.forbidden_claims_hits = []
 
     maintenance_flag = read_maintenance_flag()
     maintenance_web_active = maintenance_flag is not None and maintenance_flag.get("active", False)

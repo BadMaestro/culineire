@@ -73,10 +73,10 @@
                     <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M4 19V5"/><path d="M8 17V9"/><path d="M13 17V4"/><path d="M18 17v-6"/><path d="M3 19h18"/></svg>
                     Sponsors Roadmap
                 </a>
-                <a class="mod-tool-link" href="{% url 'chef_battle:battlefield_progress' %}">
+                {% if chef_battle_enabled %}<a class="mod-tool-link" href="{% url 'chef_battle:battlefield_progress' %}">
                     <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M14.5 17.5L3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="M2 2l20 20"/><path d="M3 14l6 6"/><path d="M14 3l7 7"/></svg>
                     Chef Battles Roadmap
-                </a>
+                </a>{% endif %}
                 {% endif %}
                 <a class="mod-tool-link" href="{% url 'sponsors:sanctions_source_status' %}">
                     <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
