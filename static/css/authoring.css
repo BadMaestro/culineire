@@ -29,6 +29,15 @@
   max-width: min(100%, 960px);
 }
 
+/* chef_battle.css loads after this file and sets .hero--has-battle .hero-copy
+   to max-width:560px at equal specificity, winning by source order. Beat it
+   with a two-class selector so the recipe-tools hero (which has a much
+   smaller battle panel widget, not a wide two-column layout) can use the
+   space it actually has instead of being capped to half a normal hero. */
+.hero--recipe-tools.hero--has-battle .hero-copy {
+  max-width: min(100%, 820px);
+}
+
 .hero--recipe-tools .pill {
   margin-block-end: 0.55rem;
 }
