@@ -2548,18 +2548,13 @@ a.battle-pulse-item__msg:hover {
 }
 
 .battle-home__nav-list {
-  display: flex;
+  display: none;
   flex-wrap: wrap;
   gap: 0.38rem;
 }
 
-@media (max-width: 960px) {
-  .battle-home__nav-list {
-    display: none;
-  }
-  .battle-home__nav-row.is-open .battle-home__nav-list {
-    display: flex;
-  }
+.battle-home__nav-row.is-open .battle-home__nav-list {
+  display: flex;
 }
 
 .battle-home__nav-link {
