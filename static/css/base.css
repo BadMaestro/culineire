@@ -5183,7 +5183,4 @@
   padding: 0.28rem 0.8rem;
 }
 
-/* hero-peek-btn: shift down to clear battle panel kicker */
-.hero--has-battle .hero-peek-btn {
-  top: 3rem;
-}
+
