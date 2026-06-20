@@ -462,7 +462,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("click", (e) => {
     const btn = e.target.closest(".hero__burger");
     if (!btn) return;
-    const actions = btn.closest(".hero__actions");
+    const actions = btn.closest(".hero__actions") || btn.closest(".battle-home__nav-row");
     if (!actions) return;
     const open = actions.classList.toggle("is-open");
     btn.setAttribute("aria-expanded", open ? "true" : "false");

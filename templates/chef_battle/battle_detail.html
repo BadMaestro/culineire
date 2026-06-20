@@ -77,7 +77,7 @@
             {% endif %}
           {% else %}
           <h3>Entry Submitted</h3>
-          <p class="battle-muted">Hidden until both Chefs submit or the deadline passes.</p>
+          <p class="battle-muted">Hidden until both chefs submit or the deadline passes.</p>
           {% endif %}
         </article>
         {% endfor %}
@@ -89,7 +89,7 @@
         {% if can_submit %}
         <a class="btn-primary" href="{% url 'chef_battle:battle_entry_submit' battle.pk %}">Be first to submit</a>
         {% else %}
-        <p class="battle-muted">The Chefs are in the kitchen. Check back soon.</p>
+        <p class="battle-muted">The chefs are in the kitchen. Check back soon.</p>
         {% endif %}
       </div>
       {% endif %}
@@ -119,14 +119,14 @@
       </div>
       <section class="battle-chat" aria-label="Live chat">
         <div id="battle-chat-messages" class="battle-chat__messages" aria-live="polite" aria-atomic="false">
-          <p class="battle-chat__empty" id="chat-empty-hint">Be the first to cheer the Chefs on.</p>
+          <p class="battle-chat__empty" id="chat-empty-hint">Be the first to cheer the chefs on.</p>
         </div>
         <form id="battle-chat-form" class="battle-chat__form" method="post" action="{% url 'chef_battle:battle_chat_send' battle.pk %}">
           {% csrf_token %}
           {% if not request.user.is_authenticated %}
           <input class="battle-chat__name-input" type="text" name="display_name" placeholder="Your name" maxlength="60" aria-label="Display name">
           {% endif %}
-          <input class="battle-chat__input" type="text" name="body" placeholder="Cheer on your Chef…" maxlength="300" autocomplete="off" required aria-label="Chat message">
+          <input class="battle-chat__input" type="text" name="body" placeholder="Cheer on your chef…" maxlength="300" autocomplete="off" required aria-label="Chat message">
           <button class="battle-chat__send" type="submit">Send</button>
         </form>
       </section>

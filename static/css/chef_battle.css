@@ -2557,7 +2557,7 @@ a.battle-pulse-item__msg:hover {
   .battle-home__nav-list {
     display: none;
   }
-  .hero__actions.is-open .battle-home__nav-list {
+  .battle-home__nav-row.is-open .battle-home__nav-list {
     display: flex;
   }
 }

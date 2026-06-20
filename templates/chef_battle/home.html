@@ -25,8 +25,8 @@
 
   <div class="container battle-hero__inner">
     <div class="battle-room-hero__copy">
-      <p class="battle-home__tagline">Real Recipes, Real Chefs, Real Rivalry, <a class="battle-home__tagline-link" href="{% url 'chef_battle:payout_statement' %}">Real Rewards</a>.</p>
-      <p class="battle-home__sub">Challenge another Chef, cook your dish, upload photos or video, let the audience vote, and build your public battle record on CulinEire.</p>
+      <p class="battle-home__tagline">Real Recipes. Real Chefs.<br>Real Rivalry. Real Rewards.</p>
+      <p class="battle-home__sub">Challenge another chef, submit a recipe or article, let the audience vote, and build your public battle record on CulinEire.</p>
 
       <div class="battle-home__cta-row">
         <a class="battle-home__cta-primary" href="{% url 'chef_battle:challenge_create' %}">
@@ -37,7 +37,7 @@
         <a class="battle-home__cta-secondary" href="{% url 'chef_battle:rules' %}">Rules</a>
       </div>
 
-      <div class="battle-home__nav-row hero__actions">
+      <div class="battle-home__nav-row">
         <button aria-expanded="false" aria-label="Show navigation" class="hero__burger battle-home__burger" type="button">
           <svg aria-hidden="true" fill="none" height="14" viewBox="0 0 20 18" width="14">
             <rect fill="currentColor" height="2" rx="1" width="20" y="0"/>
@@ -75,7 +75,7 @@
         <div class="battle-home__how-step">
           <span class="battle-home__how-icon" aria-hidden="true">&#x1F373;</span>
           <strong class="battle-home__how-label">Cook &amp; Submit</strong>
-          <p class="battle-home__how-desc">Both Chefs upload cooking photos or a video before the deadline. Entries are hidden until both are in.</p>
+          <p class="battle-home__how-desc">Both chefs submit a recipe or article before the deadline. Entries are hidden until both are in.</p>
         </div>
         <div class="battle-home__how-step">
           <span class="battle-home__how-icon" aria-hidden="true">&#x1F5F3;&#xFE0F;</span>
@@ -114,7 +114,7 @@
       {% else %}
       <div class="battle-home__empty">
         <p class="battle-home__empty-headline">The Arena Awaits Its First Challenge</p>
-        <p class="battle-home__empty-sub">No battles are live right now. Be the first Chef to step into the arena.</p>
+        <p class="battle-home__empty-sub">No battles are live right now. Be the first chef to step into the arena.</p>
         <a class="battle-home__cta-primary battle-home__cta-primary--sm" href="{% url 'chef_battle:challenge_create' %}">Issue a Challenge</a>
       </div>
       {% endif %}
@@ -183,7 +183,7 @@
         </ol>
         <a class="battle-home__panel-link" href="{% url 'chef_battle:rankings' %}">Full rankings &#x2192;</a>
         {% else %}
-        <p class="battle-muted">Rankings start after Chefs enter the arena.</p>
+        <p class="battle-muted">Rankings start after chefs enter the arena.</p>
         {% endif %}
       </section>
 
