@@ -2403,12 +2403,13 @@ a.battle-pulse-item__msg:hover {
 }
 
 .battle-home .battle-home__pre-title {
-  text-align: center;
-  margin-inline: auto;
+  text-align: left;
+  margin-inline: 0;
 }
 
 .battle-home .battle-home__title {
-  margin-inline: auto;
+  text-align: left;
+  margin-inline: 0;
 }
 
 .battle-home__title {

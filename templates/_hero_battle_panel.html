@@ -1,12 +1,18 @@
 {% load i18n %}
 {% if chef_battle_enabled %}
 <div class="hero-battle-panel">
-  <p class="hero-battle-panel__kicker">&#x2694;&#xFE0F; Chef Battles Arena</p>
+  <p class="hero-battle-panel__kicker">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+    Chef Battles Arena
+  </p>
 
   <div class="hero-battle-panel__card">
     {% if active_battles %}
       {% with b=active_battles.0 %}
-      <p class="hero-battle-panel__label">&#x1F525; Live Now</p>
+      <p class="hero-battle-panel__label">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+        Live Now
+      </p>
       <a class="hero-battle-panel__vs" href="{{ b.get_absolute_url }}">
         <span>{{ b.challenger.name }}</span>
         <span class="hero-battle-panel__sep">VS</span>
@@ -15,14 +21,20 @@
       <p class="hero-battle-panel__theme">{{ b.theme }}</p>
       {% endwith %}
     {% else %}
-      <p class="hero-battle-panel__label">&#x1F3DF; Arena</p>
+      <p class="hero-battle-panel__label">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+        Arena
+      </p>
       <p class="hero-battle-panel__empty">No active battles right now.</p>
       <a class="hero-battle-panel__link" href="{% url 'chef_battle:challenge_create' %}">Issue a Challenge</a>
     {% endif %}
   </div>
 
   <div class="hero-battle-panel__card">
-    <p class="hero-battle-panel__label">&#x1F451; Crown Holder</p>
+    <p class="hero-battle-panel__label">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      Crown Holder
+    </p>
     {% if battle_crown_holder %}
       {% with author=battle_crown_holder.user.recipe_author_profile %}
       {% if author %}
@@ -38,17 +50,21 @@
   </div>
 
   <div class="hero-battle-panel__card">
-    <p class="hero-battle-panel__label">&#x1F4E3; Battle News</p>
+    <p class="hero-battle-panel__label">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" aria-hidden="true"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
+      Battle News
+    </p>
     {% if battle_events %}
     <ol class="hero-battle-panel__news">
       {% for event in battle_events %}
       <li>
         <span class="hero-battle-panel__icon">
-          {% if event.event_type == 'crown_awarded' %}&#x1F451;
-          {% elif event.event_type == 'battle_finished' %}&#x2694;&#xFE0F;
-          {% elif event.event_type == 'rank_promoted' %}&#x2B06;
-          {% elif event.event_type == 'battle_started' %}&#x1F525;
-          {% else %}&#x1F941;{% endif %}
+          {% if event.event_type == 'crown_awarded' %}<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          {% elif event.event_type == 'battle_finished' %}<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+          {% elif event.event_type == 'rank_promoted' %}<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+          {% elif event.event_type == 'battle_started' %}<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          {% else %}<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          {% endif %}
         </span>
         <a href="{% if event.battle %}{{ event.battle.get_absolute_url }}{% else %}{% url 'chef_battle:home' %}{% endif %}">{{ event.message }}</a>
       </li>
@@ -58,7 +74,6 @@
       <p class="hero-battle-panel__empty">News will appear when the first battle begins.</p>
     {% endif %}
   </div>
-
 
 </div>
 {% endif %}
