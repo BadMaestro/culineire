@@ -6,7 +6,7 @@ app_name = "pinch"
 
 urlpatterns = [
     path("", views.feed, name="feed"),
-    path("new/", views.PinchCreateView.as_view(), name="create"),
+    path("create/", views.PinchCreateView.as_view(), name="create"),
     path("<slug:slug>/", views.detail, name="detail"),
     path("<slug:slug>/edit/", views.PinchUpdateView.as_view(), name="edit"),
     path("<slug:slug>/delete/", views.PinchDeleteView.as_view(), name="delete"),

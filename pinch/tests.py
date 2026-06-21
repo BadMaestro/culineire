@@ -116,9 +116,9 @@ class PinchGatingTests(TestCase):
 
         response = self.client.get(reverse("pinch:create"))
 
-        self.assertContains(response, "Submit Pinch")
+        self.assertContains(response, "Create Pinch")
         self.assertContains(response, 'data-autosave="true"', html=False)
-        self.assertContains(response, "pinch-authoring:/pinch/new/", html=False)
+        self.assertContains(response, "pinch-authoring:/pinch/create/", html=False)
 
     def test_author_can_submit_bite_before_public_launch(self):
         self.client.force_login(self.author_user)
