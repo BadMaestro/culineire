@@ -2408,8 +2408,8 @@ a.battle-pulse-item__msg:hover {
 }
 
 .battle-home .battle-home__title {
-  text-align: left;
-  margin-inline: 0;
+  text-align: center;
+  margin-inline: auto;
 }
 
 .battle-home__title {
