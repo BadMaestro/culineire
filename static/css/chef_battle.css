@@ -2388,7 +2388,7 @@ a.battle-pulse-item__msg:hover {
 /* --- Wordmark block --- */
 .battle-home__wordmark {
   width: 100%;
-  padding-block: clamp(2rem, 5vw, 3.8rem) 0;
+  padding-block: clamp(2.4rem, 6vw, 4.5rem) 0;
   text-align: center;
 }
 
@@ -2775,6 +2775,13 @@ a.battle-pulse-item__msg:hover {
   margin: 0 0 0.9rem;
   padding-block-end: 0.7rem;
   border-block-end: 1px solid #ede5d8;
+}
+
+.battle-home__season-dates {
+  text-align: center;
+  font-size: 0.82rem;
+  color: #8b6438;
+  margin: 0 0 0.9rem;
 }
 
 .battle-home__panel-link {
