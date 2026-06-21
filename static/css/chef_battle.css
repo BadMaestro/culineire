@@ -2450,8 +2450,7 @@ a.battle-pulse-item__msg:hover {
 
 /* --- Hero body layout --- */
 .battle-home .battle-hero__inner {
-  padding-block-start: 0;
-  padding-block-end: clamp(2.4rem, 6vw, 4.5rem);
+  padding-block: clamp(2.4rem, 6vw, 4.5rem);
 }
 
 /* --- Tagline + sub --- */
