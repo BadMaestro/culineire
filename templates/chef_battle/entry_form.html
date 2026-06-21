@@ -72,7 +72,7 @@
   function toggle() {
     var val = document.querySelector('input[name="content_type"]:checked');
     val = val ? val.value : 'recipe';
-    recipeField.style.display = val === 'recipe' ? '' : 'none';
+    recipeField.style.display = val === 'video' ? 'none' : '';
   }
   typeInputs.forEach(function (el) { el.addEventListener('change', toggle); });
   toggle();
