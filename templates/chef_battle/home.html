@@ -17,7 +17,7 @@
       <h1 class="battle-home__title">Chef Battles</h1>
       <div class="battle-home__divider" aria-hidden="true">
         <span class="battle-home__divider-line"></span>
-        <span class="battle-home__divider-icon"><i class="bi bi-fire"></i></span>
+        <span class="battle-home__divider-icon">🔥</span>
         <span class="battle-home__divider-line"></span>
       </div>
     </div>
@@ -196,7 +196,7 @@
           <li class="battle-home__pulse-item">
             <span class="battle-home__pulse-icon">
               {% if event.event_type == 'crown_awarded' %}&#x1F451;
-              {% elif event.event_type == 'battle_finished' %}<i class="bi bi-fire"></i>
+              {% elif event.event_type == 'battle_finished' %}🔥
               {% elif event.event_type == 'rank_promoted' %}&#x2B06;
               {% elif event.event_type == 'battle_started' %}&#x1F525;
               {% else %}&#x1F941;{% endif %}
