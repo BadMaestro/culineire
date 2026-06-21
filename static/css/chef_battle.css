@@ -1,5 +1,7 @@
 .battle-hero,
 .battle-room-hero {
+  position: relative;
+  overflow: hidden;
   background:
     linear-gradient(135deg, rgb(11 24 18 / 0.72), rgb(11 24 18 / 0.52)),
     url("../images/hero-battle.png") center 78% / cover;
