@@ -933,10 +933,20 @@ def rankings(request):
 def my_moves(request):
     from django.db.models import Sum
     from .models import BattleMoveTransaction
-    from .services import (
-        MOVES_CONTENT_DAILY_CAP, MOVES_CONTENT_WEEKLY_CAP,
-        _content_moves_total, _CONTENT_REASONS,
-    )
+    from .services import MOVES_CONTENT_DAILY_CAP, MOVES_CONTENT_WEEKLY_CAP
+
+    CONTENT_TX_TYPES = {
+        BattleMoveTransaction.TxType.RECIPE_PUBLISHED,
+        BattleMoveTransaction.TxType.ARTICLE_PUBLISHED,
+    }
+
+    def _content_moves_total(chef, since):
+        result = (
+            BattleMoveTransaction.objects
+            .filter(chef=chef, tx_type__in=CONTENT_TX_TYPES, created_at__gte=since)
+            .aggregate(total=Sum("amount"))
+        )
+        return result["total"] or 0
 
     author = get_author_for_user(request.user)
     if not author:
