@@ -51,6 +51,23 @@
   text-wrap: balance;
 }
 
+/* When homepage also has the battle panel: left-align like all other pages */
+.hero--home.hero--has-battle .hero__inner {
+  justify-content: space-between;
+}
+
+.hero--home.hero--has-battle .hero-copy {
+  justify-content: flex-start;
+  margin-inline: 0;
+  max-width: 560px;
+}
+
+.hero--home.hero--has-battle .hero-title,
+.hero--home.hero--has-battle .hero-subtitle {
+  text-align: left;
+  text-wrap: unset;
+}
+
 .hero--home .hero-title {
   max-width: 13.5em;
 }
