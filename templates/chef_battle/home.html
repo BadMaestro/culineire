@@ -13,8 +13,8 @@
 
   <div class="battle-home__wordmark">
     <div class="container">
-      <p class="battle-home__pre-title">CulinEire Presents</p>
-      <h1 class="battle-home__title">Chef Battles</h1>
+      <p class="battle-home__pre-title" id="battlePreTitle">CulinEire Presents</p>
+      <h1 class="battle-home__title" id="battleTitle"><span id="battleTitleC" aria-hidden="true" style="position:relative">C</span>hef Battles</h1>
       <div class="battle-home__divider" aria-hidden="true">
         <span class="battle-home__divider-line"></span>
         <span class="battle-home__divider-icon">
@@ -224,4 +224,22 @@
     </aside>
   </div>
 </section>
+
+<script>
+(function () {
+  function alignPreTitle() {
+    var c = document.getElementById('battleTitleC');
+    var title = document.getElementById('battleTitle');
+    var pre = document.getElementById('battlePreTitle');
+    if (!c || !title || !pre) return;
+    var titleRect = title.getBoundingClientRect();
+    var containerRect = title.parentElement.getBoundingClientRect();
+    var cWidth = c.getBoundingClientRect().width;
+    var hLeft = (titleRect.left - containerRect.left) + cWidth;
+    pre.style.marginLeft = hLeft + 'px';
+  }
+  document.fonts.ready.then(alignPreTitle);
+  window.addEventListener('resize', alignPreTitle);
+})();
+</script>
 {% endblock %}
