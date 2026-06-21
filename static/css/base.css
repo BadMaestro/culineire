@@ -5192,7 +5192,8 @@
   justify-content: space-between;
   gap: 1.5rem;
 }
-.hero--has-battle .hero-copy {
+.hero--has-battle .hero-copy,
+.hero--home.hero--has-battle .hero-copy {
   flex: 1 1 0;
   min-width: 0;
   text-align: left;
@@ -5201,7 +5202,9 @@
   max-width: 560px;
 }
 .hero--has-battle .hero-title,
-.hero--has-battle .hero-subtitle {
+.hero--has-battle .hero-subtitle,
+.hero--home.hero--has-battle .hero-title,
+.hero--home.hero--has-battle .hero-subtitle {
   text-align: left;
   margin-inline: 0;
 }
