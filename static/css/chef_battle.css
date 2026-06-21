@@ -2389,9 +2389,7 @@ a.battle-pulse-item__msg:hover {
 
 /* --- Wordmark block --- */
 .battle-home__wordmark {
-  width: 100%;
-  padding-block: clamp(2.4rem, 6vw, 4.5rem) 0;
-  text-align: center;
+  margin-block-end: clamp(1.2rem, 3vw, 2rem);
 }
 
 .battle-home__pre-title {
@@ -2450,7 +2448,7 @@ a.battle-pulse-item__msg:hover {
 
 /* --- Hero body layout --- */
 .battle-home .battle-hero__inner {
-  padding-block: clamp(2.4rem, 6vw, 4.5rem);
+  align-items: center;
 }
 
 /* --- Tagline + sub --- */
