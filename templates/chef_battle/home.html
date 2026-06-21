@@ -238,18 +238,7 @@
     var hLeft = cRect.right - containerRect.left;
     pre.style.marginLeft = hLeft + 'px';
   }
-  function centerPanel() {
-    var hero = document.querySelector('.battle-hero--has-panel');
-    var panel = document.querySelector('.hero-battle-panel');
-    if (!hero || !panel) return;
-    panel.style.transform = '';
-    if (window.innerWidth <= 900) return;
-    var heroRect = hero.getBoundingClientRect();
-    var panelRect = panel.getBoundingClientRect();
-    var desiredTop = heroRect.top + (heroRect.height - panelRect.height) / 2;
-    panel.style.transform = 'translateY(' + (desiredTop - panelRect.top) + 'px)';
-  }
-  function realign() { alignPreTitle(); centerPanel(); }
+  function realign() { alignPreTitle(); }
   realign();
   document.fonts.ready.then(realign);
   window.addEventListener('resize', realign);

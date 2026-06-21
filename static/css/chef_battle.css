@@ -3016,6 +3016,7 @@ a.battle-home__pulse-msg:hover {
 /* Match homepage widget darkness — battle-hero has a lighter overlay so force dark background */
 .battle-hero .hero-battle-panel {
   background: rgb(11 24 18 / 0.62);
+  align-self: center;
 }
 .battle-hero .hero-battle-panel__card {
   background: rgb(11 24 18 / 0.35);
