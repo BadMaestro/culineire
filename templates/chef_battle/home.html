@@ -232,12 +232,13 @@
     var title = document.getElementById('battleTitle');
     var pre = document.getElementById('battlePreTitle');
     if (!c || !title || !pre) return;
-    var titleRect = title.getBoundingClientRect();
+    var cRect = c.getBoundingClientRect();
     var containerRect = title.parentElement.getBoundingClientRect();
-    var cWidth = c.getBoundingClientRect().width;
-    var hLeft = (titleRect.left - containerRect.left) + cWidth;
+    // left edge of "CULINEIRE PRESENTS" = right edge of letter C = start of letter h
+    var hLeft = cRect.right - containerRect.left;
     pre.style.marginLeft = hLeft + 'px';
   }
+  alignPreTitle();
   document.fonts.ready.then(alignPreTitle);
   window.addEventListener('resize', alignPreTitle);
 })();
