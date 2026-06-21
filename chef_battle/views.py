@@ -943,7 +943,7 @@ def my_moves(request):
     def _content_moves_total(chef, since):
         result = (
             BattleMoveTransaction.objects
-            .filter(chef=chef, tx_type__in=CONTENT_TX_TYPES, created_at__gte=since)
+            .filter(chef=chef, transaction_type__in=CONTENT_TX_TYPES, created_at__gte=since)
             .aggregate(total=Sum("amount"))
         )
         return result["total"] or 0
