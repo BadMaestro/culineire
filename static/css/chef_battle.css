@@ -3013,8 +3013,20 @@ a.battle-home__pulse-msg:hover {
 .battle-hero--has-panel .hero-battle-panel,
 .battle-room-hero--has-panel .hero-battle-panel { margin-top: 0; }
 
-.battle-hero .hero-battle-panel {
-  align-self: center;
+/* Dark overlay on battle-hero to match homepage hero darkness behind widget */
+.battle-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(11,24,18,0) 0%, rgba(11,24,18,0) 55%, rgba(11,24,18,0.55) 100%),
+    linear-gradient(180deg, rgba(11,24,18,0.18) 0%, rgba(11,24,18,0.38) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+.battle-hero .battle-hero__inner {
+  position: relative;
+  z-index: 2;
 }
 
 /* Isolate widget from battle-hero typography cascade */
