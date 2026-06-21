@@ -55,6 +55,7 @@
 
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"CulinEire","url":"{{ SITE_URL }}","logo":"{{ SITE_URL }}{% static 'images/logo.png' %}","sameAs":["https://www.instagram.com/culineire/","https://www.tiktok.com/@culineire.ie","https://t.me/CULINEIRE"]}</script>
 
+    {% if chef_battle_enabled %}<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">{% endif %}
     {% block extra_head %}{% endblock %}
     {% if chef_battle_enabled %}<link href="{% static 'css/chef_battle.css' %}?v=20260618-hero-menu" rel="stylesheet">{% endif %}
     {% if chef_battle_enabled %}<link href="{% static 'css/battle_vfx.css' %}" rel="stylesheet">{% endif %}
