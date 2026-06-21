@@ -5183,4 +5183,43 @@
   padding: 0.28rem 0.8rem;
 }
 
+/* ── Hero with battle panel: two-column left-aligned layout ─────────────── */
+/* These rules must live in base.css so they apply on all pages,             */
+/* not just pages that load chef_battle.css                                  */
+.hero--has-battle .hero__inner {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+.hero--has-battle .hero-copy {
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: left;
+  align-items: flex-start;
+  margin-inline: 0;
+  max-width: 560px;
+}
+.hero--has-battle .hero-title,
+.hero--has-battle .hero-subtitle {
+  text-align: left;
+  margin-inline: 0;
+}
+@media (max-width: 900px) {
+  .hero--has-battle .hero__inner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .hero--has-battle .hero-copy {
+    text-align: center;
+    align-items: center;
+    max-width: 100%;
+    margin-inline: auto;
+  }
+  .hero--has-battle .hero-title,
+  .hero--has-battle .hero-subtitle {
+    text-align: center;
+  }
+}
+
 
