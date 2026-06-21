@@ -3031,6 +3031,10 @@ a.battle-home__pulse-msg:hover {
   z-index: 2;
 }
 
+.battle-hero .hero-battle-panel {
+  align-self: center;
+}
+
 /* Isolate widget from battle-hero typography cascade */
 .battle-hero .hero-battle-panel p,
 .battle-room-hero .hero-battle-panel p {
