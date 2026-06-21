@@ -21,7 +21,7 @@
 {% endblock %}
 
 {% block content %}
-<section class="hero hero--home{% if chef_battle_enabled %} hero--has-battle{% endif %}">
+<section class="hero hero--home hero--has-battle">
     <div aria-hidden="true" class="hero__background">
         <div class="hero__slide is-active">
             <picture><source srcset="{% static 'images/hero.webp' %}" type="image/webp"><img alt="" fetchpriority="high" loading="eager" width="1916" height="821" src="{% static 'images/hero.png' %}"></picture>

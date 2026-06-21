@@ -26,7 +26,7 @@
 {% endblock %}
 
 {% block content %}
-<section class="hero hero--home hero--recipe-detail{% if chef_battle_enabled %} hero--has-battle{% endif %}">
+<section class="hero hero--home hero--recipe-detail hero--has-battle">
     <div aria-hidden="true" class="hero__background">
         {% if recipe.hero_image %}<img alt="{{ recipe.title }} image" src="{{ recipe.hero_image.url }}" loading="eager" fetchpriority="high" decoding="async">
         {% else %}<img alt="" src="{% static 'images/hero.jpg' %}" loading="eager" fetchpriority="high" decoding="async">{% endif %}

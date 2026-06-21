@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block content %}
-<section class="hero hero--home hero--article-form{% if chef_battle_enabled %} hero--has-battle{% endif %}">
+<section class="hero hero--home hero--article-form hero--has-battle">
     <div aria-hidden="true" class="hero__background">
         {% if form_mode == "edit" and article.hero_image %}
         <img alt="" src="{{ article.hero_image.url }}">

@@ -12,7 +12,7 @@
 {% endblock %}
 
 {% block content %}
-<section class="hero hero--home hero--pinch-form{% if chef_battle_enabled %} hero--has-battle{% endif %}">
+<section class="hero hero--home hero--pinch-form hero--has-battle">
     <div aria-hidden="true" class="hero__background">
         {% if form.instance.pk and form.instance.cover_image %}
         <img alt="" src="{{ form.instance.cover_image.url }}">
