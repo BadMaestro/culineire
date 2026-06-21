@@ -2440,7 +2440,9 @@ a.battle-pulse-item__msg:hover {
 }
 
 .battle-home__divider-icon {
-  font-size: 1rem;
+  font-size: 1.6rem;
+  margin-inline: 0.6rem;
+  color: rgb(232 99 10 / 0.9);
 }
 
 /* --- Hero body layout --- */
