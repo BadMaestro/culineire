@@ -234,8 +234,8 @@
     if (!c || !title || !pre) return;
     var cRect = c.getBoundingClientRect();
     var containerRect = title.parentElement.getBoundingClientRect();
-    // left edge of "CULINEIRE PRESENTS" = left edge of letter C in "CHEF"
-    var hLeft = cRect.left - containerRect.left;
+    // left edge of "CULINEIRE PRESENTS" = right edge of C = start of h in Chef
+    var hLeft = cRect.right - containerRect.left;
     pre.style.marginLeft = hLeft + 'px';
   }
   function centerPanel() {
