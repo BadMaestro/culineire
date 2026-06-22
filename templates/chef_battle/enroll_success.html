@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load static %}
+{% block og_image %}{{ SITE_URL }}{% static 'images/hero-battle.png' %}{% endblock %}
+{% block og_image_secure_url %}{{ SITE_URL }}{% static 'images/hero-battle.png' %}{% endblock %}
+{% block twitter_image %}{{ SITE_URL }}{% static 'images/hero-battle.png' %}{% endblock %}
+
+{% block title %}Welcome, Chef! | CulinEire{% endblock %}
+{% block meta_description %}You have successfully enrolled in Chef Battles.{% endblock %}
+
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="hero hero--home hero--legal">
+  <div aria-hidden="true" class="hero__background">
+    <img alt="" src="{% static 'images/hero-battle.png' %}">
+  </div>
+  <div aria-hidden="true" class="hero__overlay"></div>
+  <div class="container hero__inner">
+    <div class="hero-copy">
+      <span class="pill">Chef Battles Arena</span>
+      <h1 class="hero-title">Welcome to the Arena!</h1>
+      <p class="hero-subtitle">Your chef profile is live. Time to compete.</p>
+      <div class="hero__actions">
+        <a class="btn-primary" href="{% url 'chef_battle:home' %}">Enter the Arena</a>
+        <a class="btn-secondary" href="{% url 'chef_battle:rules' %}">Battle Rules</a>
+        <a class="btn-secondary" href="{% url 'recipes:author_dashboard' %}">My Dashboard</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="legal-shell">
+  <div class="legal-intro legal-intro--policy" style="text-align:center; max-width:600px; margin-inline:auto;">
+    <span class="legal-eyebrow">Enrollment confirmed</span>
+    <h2>You're a Chef{% if author %}, {{ author.name }}{% endif %}!</h2>
+    <p>Your chef profile has been created. You can now issue challenges, enter battles, and compete for rankings and the coveted Crown.</p>
+    <p style="margin-top:1.5rem;">
+      <a class="btn-primary" href="{% url 'chef_battle:challenge_create' %}">Issue Your First Challenge</a>
+    </p>
+    <p style="margin-top:1rem; font-size:0.9rem; color:var(--ink-soft,#666);">
+      Or browse <a href="{% url 'chef_battle:challenge_list' %}">active battles</a> to follow the action first.
+    </p>
+  </div>
+</section>
+{% endblock %}

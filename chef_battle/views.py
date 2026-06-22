@@ -418,10 +418,16 @@ def chef_enroll(request):
                 profile.age_verified = True
                 profile.age_confirmed_at = now
             profile.save(update_fields=["enrolled_at", "age_verified", "age_confirmed_at"])
-            messages.success(request, "Welcome to Chef Battles! Your chef profile is ready.")
-            return redirect("chef_battle:home")
+            return redirect("chef_battle:enroll_success")
 
     return render(request, "chef_battle/enroll.html", {"error": error})
+
+
+@login_required
+def enroll_success(request):
+    """Confirmation page shown immediately after successful Chef enrollment."""
+    author = get_author_for_user(request.user)
+    return render(request, "chef_battle/enroll_success.html", {"author": author})
 
 
 @login_required
