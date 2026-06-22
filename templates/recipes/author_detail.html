@@ -13,7 +13,7 @@
 {% block twitter_image %}{% if author.avatar %}{{ SITE_URL }}{{ author.avatar.url }}{% else %}{{ SITE_URL }}{% static 'images/hero-profile.png' %}{% endif %}{% endblock %}
 
 {% block content %}
-<section class="hero hero--home hero--author-profile {% if is_god_author %}hero--greenbear{% endif %} hero--has-battle">
+<section class="hero hero--home hero--author-profile {% if is_god_author %}hero--greenbear{% endif %}{% if chef_battle_enabled %} hero--has-battle{% endif %}">
     <div aria-hidden="true" class="hero__background">
         <picture><source srcset="{% static 'images/hero-profile.webp' %}" type="image/webp"><img alt="" width="1672" height="941" src="{% static 'images/hero-profile.png' %}"></picture>
     </div>
