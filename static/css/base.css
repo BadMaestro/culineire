@@ -1961,6 +1961,10 @@
       margin-inline: auto;
     }
 
+    .hero--author-profile .hero-copy {
+      max-width: min(100%, calc(var(--container) - 11rem));
+    }
+
     .hero-title {
       max-width: none;
     }
