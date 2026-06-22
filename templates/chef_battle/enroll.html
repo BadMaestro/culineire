@@ -20,6 +20,11 @@
       <span class="pill">Chef Battles Arena</span>
       <h1 class="hero-title">Join Chef Battles</h1>
       <p class="hero-subtitle">Create your chef profile and enter the arena.</p>
+      <div class="hero__actions">
+        <a class="btn-primary" href="{% url 'chef_battle:home' %}">Chef Battle Arena</a>
+        <a class="btn-secondary" href="{% url 'chef_battle:rules' %}">Battle Rules</a>
+        <a class="btn-secondary" href="{% url 'chef_battle:challenge_list' %}">Active Battles</a>
+      </div>
     </div>
   </div>
 </section>
