@@ -35,10 +35,12 @@
                 <a class="btn-primary" href="{% url 'recipes:recipe_create' %}">Create Recipe</a>
                 <a class="btn-secondary" href="{% url 'articles:article_create' %}">Create Article</a>
                 <a class="btn-secondary" href="{% url 'recipes:author_edit' %}">Edit Profile</a>
-                {% if not battle_profile or not battle_profile.enrolled_at %}
-                <a class="btn-secondary" href="{% url 'chef_battle:chef_enroll' %}">Become a Chef</a>
-                {% endif %}
             </div>
+            {% if not battle_profile or not battle_profile.enrolled_at %}
+            <p style="margin-top:0.6rem;font-size:0.85rem;opacity:0.88;">
+                <a href="{% url 'chef_battle:chef_enroll' %}" style="color:#fff;text-decoration:underline;text-underline-offset:3px;">Become a Chef →</a>
+            </p>
+            {% endif %}
             {% else %}
             <div class="hero__actions">
                 {% if can_view_pinch_public_area %}
