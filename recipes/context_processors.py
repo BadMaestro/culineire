@@ -124,6 +124,15 @@ def header_author(request):
             "url": _reverse_or_empty("recipes:author_dashboard"),
             "badge": workspace_attention_count if workspace_attention_count else None,
         })
+        try:
+            _enrolled = bool(author.battle_profile.enrolled_at)
+        except Exception:
+            _enrolled = False
+        if not _enrolled:
+            actions.append({
+                "label": "Become a Chef",
+                "url": _reverse_or_empty("chef_battle:chef_enroll"),
+            })
 
     actions.append({
         "label": "Messages",

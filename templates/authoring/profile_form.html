@@ -104,6 +104,12 @@
             </div>
         </form>
 
+        {% if not author.battle_profile.enrolled_at %}
+        <p class="auth-note" style="margin-top:1.5rem;">
+            Ready to compete? <a href="{% url 'chef_battle:chef_enroll' %}">Become a Chef</a> and join Chef Battles.
+        </p>
+        {% endif %}
+
         {% if form_mode == "moderation-edit" and can_admin_set_password %}
         <div class="auth-admin-section">
             <p class="auth-admin-section__title">Admin: Set New Password</p>
