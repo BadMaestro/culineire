@@ -387,6 +387,44 @@ def season_leaderboard(request):
     })
 
 
+@chef_battle_guard
+@login_required
+def chef_enroll(request):
+    """Author → Chef onboarding. Requires 18+ confirmation and battle rules acceptance."""
+    author = get_author_for_user(request.user)
+    if author is None:
+        messages.error(request, "You need a recipe author profile to join Chef Battles.")
+        return redirect("chef_battle:home")
+
+    # Already enrolled — go straight to arena
+    try:
+        profile = author.battle_profile
+        if profile.enrolled_at:
+            return redirect("chef_battle:home")
+    except ChefBattleProfile.DoesNotExist:
+        profile = None
+
+    error = None
+    if request.method == "POST":
+        confirm_age = request.POST.get("confirm_age") == "1"
+        confirm_rules = request.POST.get("confirm_rules") == "1"
+        if not confirm_age or not confirm_rules:
+            error = "Please tick both boxes to continue."
+        else:
+            now = timezone.now()
+            if profile is None:
+                profile, _ = ChefBattleProfile.objects.get_or_create(author=author)
+            profile.enrolled_at = now
+            if not profile.age_verified:
+                profile.age_verified = True
+                profile.age_confirmed_at = now
+            profile.save(update_fields=["enrolled_at", "age_verified", "age_confirmed_at"])
+            messages.success(request, "Welcome to Chef Battles! Your chef profile is ready.")
+            return redirect("chef_battle:home")
+
+    return render(request, "chef_battle/enroll.html", {"error": error})
+
+
 @login_required
 def age_verification(request):
     """Allow a chef to self-certify they are 18+ before paid Arena features."""
@@ -604,6 +642,14 @@ def battle_home(request):
         .order_by("-seasonal_score", "-wins", "author__name")[:3]
     )
 
+    viewer_author = get_author_for_user(request.user) if request.user.is_authenticated else None
+    user_enrolled = False
+    if viewer_author:
+        try:
+            user_enrolled = bool(viewer_author.battle_profile.enrolled_at)
+        except ChefBattleProfile.DoesNotExist:
+            pass
+
     return render(request, "chef_battle/home.html", {
         "active_battles": active_battles,
         "recent_battles": recent_battles,
@@ -612,6 +658,8 @@ def battle_home(request):
         "season_name": "Season 1 — Summer 2026",
         "season_dates": "1 Jun – 31 Aug 2026",
         "season_leaders": season_leaders,
+        "viewer_author": viewer_author,
+        "user_enrolled": user_enrolled,
     })
 
 

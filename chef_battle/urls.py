@@ -8,6 +8,7 @@ urlpatterns = [
     path("", views.battle_home, name="home"),
     path("guide/", views.battle_guide, name="guide"),
     path("rules/", views.battle_rules, name="rules"),
+    path("enroll/", views.chef_enroll, name="chef_enroll"),
     path("age-verification/", views.age_verification, name="age_verification"),
     path("tokens/", views.token_shop, name="token_shop"),
     path("tokens/checkout/", views.token_checkout_create, name="token_checkout_create"),

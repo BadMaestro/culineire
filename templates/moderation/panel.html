@@ -573,6 +573,7 @@
                             <th>Status</th>
                             <th>Username</th>
                             <th>Author</th>
+                            <th>Chef</th>
                             <th>Privileges</th>
                             <th>Actions</th>
                         </tr>
@@ -590,6 +591,17 @@
                             <td class="moderation-authors-table__username">@{{ author.user.username }}</td>
                             <td class="moderation-authors-table__author">
                                 <a href="{{ author.get_absolute_url }}">{{ author.name }}</a>
+                            </td>
+                            <td class="moderation-authors-table__chef">
+                                {% with bp=author.battle_profile %}
+                                {% if bp.enrolled_at %}
+                                <span class="moderation-author-status moderation-author-status--active" title="Enrolled {{ bp.enrolled_at|date:'j M Y' }}">Chef ✓</span>
+                                {% elif bp %}
+                                <span class="moderation-author-status" style="color:var(--ink-soft);font-size:.8rem;" title="Profile exists but not enrolled">Profile</span>
+                                {% else %}
+                                <span style="color:var(--ink-soft);font-size:.8rem;">&mdash;</span>
+                                {% endif %}
+                                {% endwith %}
                             </td>
                             <td class="moderation-authors-table__privileges">
                                 {% if author.slug == "greenbear" %}

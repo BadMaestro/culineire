@@ -2303,7 +2303,7 @@ def moderation_panel(request):
     protected_super_user_filter = Q(user__is_superuser=True) | Q(slug=settings.OWNER_SLUG)
 
     registered_authors = (
-        RecipeAuthor.objects.select_related("user")
+        RecipeAuthor.objects.select_related("user", "battle_profile")
         .filter(user__isnull=False, has_bearseeker_privileges=False)
         .exclude(protected_super_user_filter)
         .order_by("name", "user__username")
