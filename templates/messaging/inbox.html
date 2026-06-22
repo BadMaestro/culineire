@@ -59,9 +59,7 @@
                         {% endif %}
                     </div>
                     <div class="msg-row__subject">
-                        {% if msg.sender != request.user and is_moderator %}
-                            Message from CulinEire Kitchen Author
-                        {% elif msg.subject %}{{ msg.subject }}{% else %}(no subject){% endif %}
+                        {% if msg.subject %}{{ msg.subject }}{% elif msg.sender != request.user and is_moderator %}Message from CulinEire Kitchen Author{% else %}(no subject){% endif %}
                         {% if msg.related_recipe %}<span class="msg-row__ref">re: {{ msg.related_recipe.title }}</span>{% endif %}
                         {% if msg.related_article %}<span class="msg-row__ref">re: {{ msg.related_article.title }}</span>{% endif %}
                     </div>
