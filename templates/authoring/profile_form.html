@@ -32,57 +32,50 @@
 {% endblock %}
 
 {% block content %}
-<section class="hero hero--home hero--login hero--has-battle">
+<section class="hero hero--home hero--has-battle">
     <div aria-hidden="true" class="hero__background">
         <img alt="" src="{% static 'images/hero-profile.png' %}">
     </div>
     <div aria-hidden="true" class="hero__overlay"></div>
-    <div class="container hero__inner hero__inner--login">
-        <div class="hero-copy hero-copy--login">
+    <div class="container hero__inner">
+        <div class="hero-copy">
             <h1 class="hero-title">Your Author Profile</h1>
-            <p class="hero-subtitle">Keep your public page polished — a clear name, short bio and a good avatar go a
-                long way.</p>
+            <p class="hero-subtitle">Keep your public page polished — a clear name, short bio and a good avatar go a long way.</p>
         </div>
-        <div class="auth-card auth-card--hero">
-            <div class="auth-copy">
-                <p class="eyebrow">Author Studio</p>
-                <h2>Edit Profile</h2>
+    {% include '_hero_battle_panel.html' %}
+    </div>
+</section>
+
+<section class="page-section">
+  <div class="container" style="max-width: 44rem;">
+    <div class="auth-card">
+        <div class="auth-copy">
+            <p class="eyebrow">Author Studio</p>
+            <h2>Edit Profile</h2>
+        </div>
+
+        <form class="auth-form" data-validate enctype="multipart/form-data" method="post">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="auth-errors" role="alert">
+                {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+                {% endfor %}
             </div>
+            {% endif %}
 
-            <form class="auth-form" data-validate enctype="multipart/form-data" method="post">
-                {% csrf_token %}
-
-                {% if form.non_field_errors %}
-                <div class="auth-errors" role="alert">
-                    {% for error in form.non_field_errors %}
-                    <p>{{ error }}</p>
-                    {% endfor %}
-                </div>
-                {% endif %}
-
-                {% for field in form %}
-                {% if field.html_name == 'avatar' %}
-                <div class="auth-field">
-                    <span class="auth-field__label">{{ field.label }}</span>
-                    <div class="auth-avatar-upload">
-                        <img alt="Current avatar" class="auth-avatar-preview" src="{{ author.display_avatar_url }}">
-                        <div class="auth-avatar-upload__controls">
-                            <label class="auth-avatar-choose-btn" for="{{ field.id_for_label }}">Choose file</label>
-                            <span class="auth-avatar-filename" id="auth-avatar-filename">No file chosen</span>
-                        </div>
-                        <div class="auth-avatar-upload__input-wrap">{{ field }}</div>
-                        {% if field.help_text %}
-                        <div class="auth-help">{{ field.help_text }}</div>
-                        {% endif %}
-                        {% for error in field.errors %}
-                        <p class="auth-error">{{ error }}</p>
-                        {% endfor %}
+            {% for field in form %}
+            {% if field.html_name == 'avatar' %}
+            <div class="auth-field">
+                <span class="auth-field__label">{{ field.label }}</span>
+                <div class="auth-avatar-upload">
+                    <img alt="Current avatar" class="auth-avatar-preview" src="{{ author.display_avatar_url }}">
+                    <div class="auth-avatar-upload__controls">
+                        <label class="auth-avatar-choose-btn" for="{{ field.id_for_label }}">Choose file</label>
+                        <span class="auth-avatar-filename" id="auth-avatar-filename">No file chosen</span>
                     </div>
-                </div>
-                {% else %}
-                <div class="auth-field">
-                    <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
-                    {{ field }}
+                    <div class="auth-avatar-upload__input-wrap">{{ field }}</div>
                     {% if field.help_text %}
                     <div class="auth-help">{{ field.help_text }}</div>
                     {% endif %}
@@ -90,54 +83,65 @@
                     <p class="auth-error">{{ error }}</p>
                     {% endfor %}
                 </div>
+            </div>
+            {% else %}
+            <div class="auth-field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
+                {{ field }}
+                {% if field.help_text %}
+                <div class="auth-help">{{ field.help_text }}</div>
                 {% endif %}
+                {% for error in field.errors %}
+                <p class="auth-error">{{ error }}</p>
                 {% endfor %}
+            </div>
+            {% endif %}
+            {% endfor %}
 
-                <div class="auth-actions">
-                    <a class="btn btn--secondary" href="{{ author.get_absolute_url }}">Cancel</a>
-                    <button class="btn" type="submit">Save Profile</button>
+            <div class="auth-actions">
+                <a class="btn btn--secondary" href="{{ author.get_absolute_url }}">Cancel</a>
+                <button class="btn" type="submit">Save Profile</button>
+            </div>
+        </form>
+
+        {% if form_mode == "moderation-edit" and can_admin_set_password %}
+        <div class="auth-admin-section">
+            <p class="auth-admin-section__title">Admin: Set New Password</p>
+            <p class="auth-admin-section__note">
+                Sets a new password for <strong>{{ author.user.username }}</strong> and emails it to
+                <strong>{{ author.user.email|default:"(no email on file)" }}</strong> automatically.
+            </p>
+            <form class="auth-form" method="post"
+                  action="{% url 'recipes:moderation_author_set_password' slug=author.slug %}">
+                {% csrf_token %}
+                <div class="auth-field">
+                    <label for="id_admin_new_password1">New password:</label>
+                    <input autocomplete="new-password" id="id_admin_new_password1"
+                           name="new_password1" required type="password">
                 </div>
+                <div class="auth-field">
+                    <label for="id_admin_new_password2">Confirm new password:</label>
+                    <input autocomplete="new-password" id="id_admin_new_password2"
+                           name="new_password2" required type="password">
+                </div>
+                <button class="btn" type="submit">Set Password &amp; Email User</button>
             </form>
-
-            {% if form_mode == "moderation-edit" and can_admin_set_password %}
-            <div class="auth-admin-section">
-                <p class="auth-admin-section__title">Admin: Set New Password</p>
-                <p class="auth-admin-section__note">
-                    Sets a new password for <strong>{{ author.user.username }}</strong> and emails it to
-                    <strong>{{ author.user.email|default:"(no email on file)" }}</strong> automatically.
-                </p>
-                <form class="auth-form" method="post"
-                      action="{% url 'recipes:moderation_author_set_password' slug=author.slug %}">
-                    {% csrf_token %}
-                    <div class="auth-field">
-                        <label for="id_admin_new_password1">New password:</label>
-                        <input autocomplete="new-password" id="id_admin_new_password1"
-                               name="new_password1" required type="password">
-                    </div>
-                    <div class="auth-field">
-                        <label for="id_admin_new_password2">Confirm new password:</label>
-                        <input autocomplete="new-password" id="id_admin_new_password2"
-                               name="new_password2" required type="password">
-                    </div>
-                    <button class="btn" type="submit">Set Password &amp; Email User</button>
-                </form>
-            </div>
-            {% endif %}
-
-            {% if show_profile_privacy_notice %}
-            <div class="author-profile-gdpr">
-                <p class="author-profile-gdpr__title">Your Data &amp; Privacy</p>
-                <ul class="author-profile-gdpr__list">
-                    <li>We store your <strong>username</strong>, <strong>email address</strong>, <strong>name</strong> and <strong>default avatar choice</strong> solely to manage your account and author profile.</li>
-                    <li>Your data is never sold or shared with third parties.</li>
-                    <li>You may <strong>edit</strong> your profile information at any time using the form above.</li>
-                    <li>You have the right to <strong>delete</strong> your account and all associated data at any time.</li>
-                    <li>This site complies with the General Data Protection Regulation (GDPR, EU 2016/679).</li>
-                </ul>
-            </div>
-            {% endif %}
         </div>
-    {% include '_hero_battle_panel.html' %}
+        {% endif %}
+
+        {% if show_profile_privacy_notice %}
+        <div class="author-profile-gdpr">
+            <p class="author-profile-gdpr__title">Your Data &amp; Privacy</p>
+            <ul class="author-profile-gdpr__list">
+                <li>We store your <strong>username</strong>, <strong>email address</strong>, <strong>name</strong> and <strong>default avatar choice</strong> solely to manage your account and author profile.</li>
+                <li>Your data is never sold or shared with third parties.</li>
+                <li>You may <strong>edit</strong> your profile information at any time using the form above.</li>
+                <li>You have the right to <strong>delete</strong> your account and all associated data at any time.</li>
+                <li>This site complies with the General Data Protection Regulation (GDPR, EU 2016/679).</li>
+            </ul>
+        </div>
+        {% endif %}
     </div>
+  </div>
 </section>
 {% endblock %}

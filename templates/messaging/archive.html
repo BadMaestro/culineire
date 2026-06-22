@@ -12,82 +12,78 @@
 {% endblock %}
 
 {% block content %}
-<section class="hero hero--home hero--login hero--inbox hero--has-battle">
+<section class="hero hero--home hero--has-battle">
     <div aria-hidden="true" class="hero__background">
         <picture><source srcset="{% static 'images/hero-messages.webp' %}" type="image/webp"><img alt="" width="1672" height="941" src="{% static 'images/hero-messages.png' %}"></picture>
     </div>
     <div aria-hidden="true" class="hero__overlay"></div>
-    <div class="container hero__inner hero__inner--login">
-        <div class="hero-copy hero-copy--login">
+    <div class="container hero__inner">
+        <div class="hero-copy">
             <h1 class="hero-title">Archive</h1>
             <p class="hero-subtitle">Archived conversations.</p>
         </div>
-
-        <div class="auth-card auth-card--hero msg-inbox-card">
-
-            <div class="msg-inbox-card__header">
-                <h2 class="msg-inbox-card__title">Archived Messages</h2>
-                <a class="msg-inbox-card__archive-link" href="{% url 'recipes:moderation_panel' %}">
-                    ← Moderation Panel
-                </a>
-                <a class="msg-inbox-card__archive-link" href="{% url 'messaging:inbox' %}">
-                    ← Inbox
-                </a>
-            </div>
-
-            <div class="msg-inbox-scroll">
-                {% if archived_threads %}
-                {% for msg in archived_threads %}
-                <div class="msg-row-wrap msg-row-wrap--archived">
-                    <a class="msg-row__link" href="{% url 'messaging:message_detail' msg.pk %}">
-                        <div class="msg-row__from">{{ msg.sender.recipe_author_profile.name|default:msg.sender.username
-                            }}
-                        </div>
-                        <div class="msg-row__subject">
-                            {% if msg.subject %}{{ msg.subject }}{% else %}(no subject){% endif %}
-                            {% if msg.related_recipe %}<span
-                                class="msg-row__ref">re: {{ msg.related_recipe.title }}</span>{% endif %}
-                            {% if msg.related_article %}<span
-                                class="msg-row__ref">re: {{ msg.related_article.title }}</span>{% endif %}
-                        </div>
-                        <div class="msg-row__date">
-                            <span class="msg-row__archived-label">archived</span>
-                            {{ msg.archived_at|date:"j M Y" }}
-                        </div>
-                    </a>
-                    <div class="msg-row__actions">
-                        <form action="{% url 'messaging:restore_message' msg.pk %}" method="post">
-                            {% csrf_token %}
-                            <button class="msg-action-btn msg-action-btn--restore" title="Restore to inbox"
-                                    type="submit">
-                                <svg aria-hidden="true" fill="none" height="13" stroke="currentColor" stroke-width="2"
-                                     viewBox="0 0 24 24" width="13">
-                                    <polyline points="1 4 1 10 7 10"/>
-                                    <path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
-                                </svg>
-                            </button>
-                        </form>
-                        <form action="{% url 'messaging:delete_message' msg.pk %}" method="post">
-                            {% csrf_token %}
-                            <button class="msg-action-btn msg-action-btn--delete" title="Delete permanently"
-                                    type="submit">
-                                <svg aria-hidden="true" fill="none" height="13" stroke="currentColor" stroke-width="2"
-                                     viewBox="0 0 24 24" width="13">
-                                    <polyline points="3 6 5 6 21 6"/>
-                                    <path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/>
-                                </svg>
-                            </button>
-                        </form>
-                    </div>
-                </div>
-                {% endfor %}
-                {% else %}
-                <p class="msg-inbox-empty">Archive is empty.</p>
-                {% endif %}
-            </div>
-
-        </div>
     {% include '_hero_battle_panel.html' %}
     </div>
+</section>
+
+<section class="page-section">
+  <div class="container" style="max-width: 52rem;">
+    <div class="msg-inbox-card">
+
+        <div class="msg-inbox-card__header">
+            <h2 class="msg-inbox-card__title">Archived Messages</h2>
+            <a class="msg-inbox-card__archive-link" href="{% url 'recipes:moderation_panel' %}">
+                ← Moderation Panel
+            </a>
+            <a class="msg-inbox-card__archive-link" href="{% url 'messaging:inbox' %}">
+                ← Inbox
+            </a>
+        </div>
+
+        <div class="msg-inbox-scroll">
+            {% if archived_threads %}
+            {% for msg in archived_threads %}
+            <div class="msg-row-wrap msg-row-wrap--archived">
+                <a class="msg-row__link" href="{% url 'messaging:message_detail' msg.pk %}">
+                    <div class="msg-row__from">{{ msg.sender.recipe_author_profile.name|default:msg.sender.username }}</div>
+                    <div class="msg-row__subject">
+                        {% if msg.subject %}{{ msg.subject }}{% else %}(no subject){% endif %}
+                        {% if msg.related_recipe %}<span class="msg-row__ref">re: {{ msg.related_recipe.title }}</span>{% endif %}
+                        {% if msg.related_article %}<span class="msg-row__ref">re: {{ msg.related_article.title }}</span>{% endif %}
+                    </div>
+                    <div class="msg-row__date">
+                        <span class="msg-row__archived-label">archived</span>
+                        {{ msg.archived_at|date:"j M Y" }}
+                    </div>
+                </a>
+                <div class="msg-row__actions">
+                    <form action="{% url 'messaging:restore_message' msg.pk %}" method="post">
+                        {% csrf_token %}
+                        <button class="msg-action-btn msg-action-btn--restore" title="Restore to inbox" type="submit">
+                            <svg aria-hidden="true" fill="none" height="13" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13">
+                                <polyline points="1 4 1 10 7 10"/>
+                                <path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
+                            </svg>
+                        </button>
+                    </form>
+                    <form action="{% url 'messaging:delete_message' msg.pk %}" method="post">
+                        {% csrf_token %}
+                        <button class="msg-action-btn msg-action-btn--delete" title="Delete permanently" type="submit">
+                            <svg aria-hidden="true" fill="none" height="13" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p class="msg-inbox-empty">Archive is empty.</p>
+            {% endif %}
+        </div>
+
+    </div>
+  </div>
 </section>
 {% endblock %}

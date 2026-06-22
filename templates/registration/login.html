@@ -12,77 +12,82 @@
 {% endblock %}
 
 {% block content %}
-<section class="hero hero--home hero--login hero--has-battle">
+<section class="hero hero--home hero--has-battle">
     <div aria-hidden="true" class="hero__background">
         <picture><source srcset="{% static 'images/hero-login.webp' %}" type="image/webp"><img alt="" width="1536" height="1024" src="{% static 'images/hero-login.png' %}"></picture>
     </div>
     <div aria-hidden="true" class="hero__overlay"></div>
-    <div class="container hero__inner hero__inner--login">
-        <div class="hero-copy hero-copy--login">
+    <div class="container hero__inner">
+        <div class="hero-copy">
             <h1 class="hero-title">Welcome Back</h1>
             <p class="hero-subtitle">Sign In to continue exploring Irish recipes and food stories.</p>
         </div>
-        <div class="auth-card auth-card--hero">
-            <div class="auth-copy">
-                <p class="eyebrow">Welcome back</p>
-                <h2>Sign In</h2>
+    </div>
+</section>
+
+<section class="page-section">
+  <div class="container" style="max-width: 44rem;">
+    <div class="auth-card">
+        <div class="auth-copy">
+            <p class="eyebrow">Welcome back</p>
+            <h2>Sign In</h2>
+        </div>
+
+        <form class="auth-form" data-validate method="post">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="auth-errors" role="alert">
+                {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="auth-field">
+                <label for="id_username">Username:</label>
+                <input
+                    autocomplete="username"
+                    autofocus
+                    id="id_username"
+                    name="username"
+                    placeholder="Username"
+                    type="text"
+                    value="{{ form.username.value|default:'' }}"
+                >
+                {% for error in form.username.errors %}
+                <p class="auth-error">{{ error }}</p>
+                {% endfor %}
             </div>
 
-            <form class="auth-form" data-validate method="post">
-                {% csrf_token %}
+            <div class="auth-field">
+                <label for="id_password">Password:</label>
+                <input
+                    autocomplete="current-password"
+                    id="id_password"
+                    name="password"
+                    placeholder="Password"
+                    type="password"
+                >
+                {% for error in form.password.errors %}
+                <p class="auth-error">{{ error }}</p>
+                {% endfor %}
+                <p class="auth-forgot">
+                    <a href="{% url 'password_reset' %}">Forgot password?</a>
+                </p>
+            </div>
 
-                {% if form.non_field_errors %}
-                <div class="auth-errors" role="alert">
-                    {% for error in form.non_field_errors %}
-                    <p>{{ error }}</p>
-                    {% endfor %}
-                </div>
-                {% endif %}
+            {% if next %}
+            <input name="next" type="hidden" value="{{ next }}">
+            {% endif %}
 
-                <div class="auth-field">
-                    <label for="id_username">Username:</label>
-                    <input
-                        autocomplete="username"
-                        autofocus
-                        id="id_username"
-                        name="username"
-                        placeholder="Username"
-                        type="text"
-                        value="{{ form.username.value|default:'' }}"
-                    >
-                    {% for error in form.username.errors %}
-                    <p class="auth-error">{{ error }}</p>
-                    {% endfor %}
-                </div>
+            <button class="btn" type="submit">Sign In</button>
+        </form>
 
-                <div class="auth-field">
-                    <label for="id_password">Password:</label>
-                    <input
-                        autocomplete="current-password"
-                        id="id_password"
-                        name="password"
-                        placeholder="Password"
-                        type="password"
-                    >
-                    {% for error in form.password.errors %}
-                    <p class="auth-error">{{ error }}</p>
-                    {% endfor %}
-                    <p class="auth-forgot">
-                        <a href="{% url 'password_reset' %}">Forgot password?</a>
-                    </p>
-                </div>
-
-                {% if next %}
-                <input name="next" type="hidden" value="{{ next }}">
-                {% endif %}
-
-                <button class="btn" type="submit">Sign In</button>
-            </form>
-
-            <p class="auth-note">
-                New to CulinEire? <a href="{% url 'signup' %}">Join Us</a>
-            </p>
-        </div>
+        <p class="auth-note">
+            New to CulinEire? <a href="{% url 'signup' %}">Join Us</a>
+        </p>
     </div>
+  </div>
 </section>
 {% endblock %}

@@ -13,81 +13,86 @@
 {% endblock %}
 
 {% block content %}
-<section class="hero hero--home hero--login hero--has-battle">
+<section class="hero hero--home hero--has-battle">
     <div aria-hidden="true" class="hero__background">
         <picture><source srcset="{% static 'images/hero-join.webp' %}" type="image/webp"><img alt="" width="1672" height="941" src="{% static 'images/hero-join.png' %}"></picture>
     </div>
     <div aria-hidden="true" class="hero__overlay"></div>
-    <div class="container hero__inner hero__inner--login">
-        <div class="hero-copy hero-copy--login">
+    <div class="container hero__inner">
+        <div class="hero-copy">
             <h1 class="hero-title">Join CulinEire Kitchen</h1>
             <p class="hero-subtitle">Create your account and become part of the Irish food kitchen community.</p>
         </div>
-        <div class="auth-card auth-card--hero">
-            <div class="auth-copy">
-                <p class="eyebrow">Join CulinEire</p>
-                <h2>Create Your Account</h2>
-            </div>
-
-            <form class="auth-form" data-validate method="post">
-                {% csrf_token %}
-
-                {% if form.non_field_errors %}
-                <div class="auth-errors" role="alert">
-                    {% for error in form.non_field_errors %}
-                    <p>{{ error }}</p>
-                    {% endfor %}
-                </div>
-                {% endif %}
-
-                {% for field in form.hidden_fields %}
-                {{ field }}
-                {% endfor %}
-
-                {% for field in form.visible_fields %}
-                <div class="auth-field">
-                    <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
-                    {% if field.name == "default_avatar" %}
-                    <div class="auth-avatar-picker">
-                        {% for radio in field %}
-                        <label class="auth-avatar-choice" for="{{ radio.id_for_label }}">
-                            {{ radio.tag }}
-                            {% if radio.data.value == "male" %}
-                            <img alt="" src="{% static 'images/male-avatar.png' %}">
-                            {% elif radio.data.value == "female" %}
-                            <img alt="" src="{% static 'images/female-avatar.png' %}">
-                            {% else %}
-                            <img alt="" src="{% static 'images/neutral-avatar.PNG' %}">
-                            {% endif %}
-                            <span>{{ radio.choice_label }}</span>
-                        </label>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    {{ field }}
-                    {% endif %}
-
-                    {% if field.help_text %}
-                    <div class="auth-help">{{ field.help_text|striptags }}</div>
-                    {% endif %}
-
-                    {% for error in field.errors %}
-                    <p class="auth-error">{{ error }}</p>
-                    {% endfor %}
-                </div>
-                {% endfor %}
-
-                {% if turnstile_site_key %}
-                <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="light"></div>
-                {% endif %}
-
-                <button class="btn" type="submit">Create account</button>
-            </form>
-
-            <p class="auth-note">
-                Already have an account? <a href="{% url 'login' %}">Sign In here</a>.
-            </p>
-        </div>
     </div>
+</section>
+
+<section class="page-section">
+  <div class="container" style="max-width: 44rem;">
+    <div class="auth-card">
+        <div class="auth-copy">
+            <p class="eyebrow">Join CulinEire</p>
+            <h2>Create Your Account</h2>
+        </div>
+
+        <form class="auth-form" data-validate method="post">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="auth-errors" role="alert">
+                {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% for field in form.hidden_fields %}
+            {{ field }}
+            {% endfor %}
+
+            {% for field in form.visible_fields %}
+            <div class="auth-field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
+                {% if field.name == "default_avatar" %}
+                <div class="auth-avatar-picker">
+                    {% for radio in field %}
+                    <label class="auth-avatar-choice" for="{{ radio.id_for_label }}">
+                        {{ radio.tag }}
+                        {% if radio.data.value == "male" %}
+                        <img alt="" src="{% static 'images/male-avatar.png' %}">
+                        {% elif radio.data.value == "female" %}
+                        <img alt="" src="{% static 'images/female-avatar.png' %}">
+                        {% else %}
+                        <img alt="" src="{% static 'images/neutral-avatar.PNG' %}">
+                        {% endif %}
+                        <span>{{ radio.choice_label }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ field }}
+                {% endif %}
+
+                {% if field.help_text %}
+                <div class="auth-help">{{ field.help_text|striptags }}</div>
+                {% endif %}
+
+                {% for error in field.errors %}
+                <p class="auth-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endfor %}
+
+            {% if turnstile_site_key %}
+            <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="light"></div>
+            {% endif %}
+
+            <button class="btn" type="submit">Create account</button>
+        </form>
+
+        <p class="auth-note">
+            Already have an account? <a href="{% url 'login' %}">Sign In here</a>.
+        </p>
+    </div>
+  </div>
 </section>
 {% endblock %}
