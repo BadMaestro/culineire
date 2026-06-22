@@ -387,7 +387,6 @@ def season_leaderboard(request):
     })
 
 
-@chef_battle_guard
 @login_required
 def chef_enroll(request):
     """Author → Chef onboarding. Requires 18+ confirmation and battle rules acceptance."""
