@@ -1974,12 +1974,16 @@
     }
   }
 
+  .hero--author-profile .hero__actions {
+    gap: 0.3rem;
+  }
+
   .hero--author-profile .hero__actions .btn-primary,
   .hero--author-profile .hero__actions .btn-secondary {
-    padding-inline: 0.55rem;
-    font-size: 0.8rem;
-    letter-spacing: 0.02em;
-    min-height: 38px;
+    padding-inline: 0.45rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.01em;
+    min-height: 36px;
   }
 
   /* ==== Generic cards / surfaces ==== */
