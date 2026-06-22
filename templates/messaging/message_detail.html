@@ -11,13 +11,13 @@
 {% endblock %}
 
 {% block content %}
-<section class="hero hero--home hero--login hero--inbox hero--has-battle">
+<section class="hero hero--home hero--has-battle">
     <div aria-hidden="true" class="hero__background">
         <picture><source srcset="{% static 'images/hero-messages.webp' %}" type="image/webp"><img alt="" width="1672" height="941" src="{% static 'images/hero-messages.png' %}"></picture>
     </div>
     <div aria-hidden="true" class="hero__overlay"></div>
-    <div class="container hero__inner hero__inner--login">
-        <div class="hero-copy hero-copy--login">
+    <div class="container hero__inner">
+        <div class="hero-copy">
             <h1 class="hero-title">
                 {% if root_message.subject %}{{ root_message.subject }}{% else %}Message{% endif %}
             </h1>
@@ -27,39 +27,41 @@
             <p class="hero-subtitle">Re: {{ root_message.related_article.title }}</p>
             {% endif %}
         </div>
-
-        <div class="auth-card auth-card--hero msg-inbox-card">
-
-            <div class="msg-inbox-card__header">
-                <a class="msg-back" href="{% url 'messaging:inbox' %}">← Back to Messages</a>
-            </div>
-
-            <div class="msg-inbox-scroll msg-detail-scroll">
-                <div class="msg-thread">
-                    {% for msg in thread %}
-                    <div class="msg-bubble {% if msg.sender == request.user %}msg-bubble--mine{% else %}msg-bubble--theirs{% endif %}">
-                        <div class="msg-bubble__meta">
-                            <span class="msg-bubble__from">{{ msg.sender.recipe_author_profile.name|default:msg.sender.username }}</span>
-                            <span class="msg-bubble__date">{{ msg.created_at|date:"j M Y, H:i" }}</span>
-                        </div>
-                        <div class="msg-bubble__body">{{ msg.body|linebreaksbr }}</div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            {% if can_reply %}
-            <form action="{% url 'messaging:reply_message' root_message.pk %}" class="msg-reply-form msg-reply-form--card" data-validate method="post">
-                {% csrf_token %}
-                <textarea class="msg-reply-form__textarea" name="body" placeholder="Write a reply…" required rows="3"></textarea>
-                <button class="btn" type="submit">Send Reply</button>
-            </form>
-            {% else %}
-            <p class="msg-awaiting-reply">Waiting for a reply…</p>
-            {% endif %}
-
-        </div>
     {% include '_hero_battle_panel.html' %}
     </div>
+</section>
+
+<section class="page-section">
+  <div class="container" style="max-width: 52rem;">
+
+    <div class="msg-inbox-card__header">
+        <a class="msg-back" href="{% url 'messaging:inbox' %}">← Back to Messages</a>
+    </div>
+
+    <div class="msg-inbox-scroll msg-detail-scroll">
+        <div class="msg-thread">
+            {% for msg in thread %}
+            <div class="msg-bubble {% if msg.sender == request.user %}msg-bubble--mine{% else %}msg-bubble--theirs{% endif %}">
+                <div class="msg-bubble__meta">
+                    <span class="msg-bubble__from">{{ msg.sender.recipe_author_profile.name|default:msg.sender.username }}</span>
+                    <span class="msg-bubble__date">{{ msg.created_at|date:"j M Y, H:i" }}</span>
+                </div>
+                <div class="msg-bubble__body">{{ msg.body|linebreaksbr }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if can_reply %}
+    <form action="{% url 'messaging:reply_message' root_message.pk %}" class="msg-reply-form" data-validate method="post">
+        {% csrf_token %}
+        <textarea class="msg-reply-form__textarea" name="body" placeholder="Write a reply…" required rows="3"></textarea>
+        <button class="btn" type="submit">Send Reply</button>
+    </form>
+    {% else %}
+    <p class="msg-awaiting-reply">Waiting for a reply…</p>
+    {% endif %}
+
+  </div>
 </section>
 {% endblock %}
