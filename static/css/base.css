@@ -1974,6 +1974,16 @@
     }
   }
 
+  .hero--author-profile .hero-copy {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .hero--author-profile .hero-copy .hero__actions {
+    margin-block-start: 1rem;
+  }
+
   .hero--author-profile .hero__actions {
     gap: 0.3rem;
   }
