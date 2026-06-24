@@ -16,7 +16,7 @@ def add_moves(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("chef_battle", "0039_remove_article_battle_type"),
+        ("chef_battle", "0041_add_enrolled_at_field"),
     ]
 
     operations = [
