@@ -38,11 +38,10 @@ def create_full_irish(apps, schema_editor):
             "White pudding\n"
             "Black pudding\n"
             "Cherry tomatoes on the vine\n"
-            "Wild mushrooms\n"
-            "Garlic clove\n"
-            "Unsalted butter\n"
-            "Sourdough bread\n"
-            "Sea salt and black pepper"
+            "Wild mushrooms in garlic butter\n"
+            "Baked beans\n"
+            "Sourdough toast\n"
+            "Unsalted butter"
         ),
         method=(
             "1. Preheat oven to 180C. Place cherry tomatoes on a tray, drizzle with oil, season. "
