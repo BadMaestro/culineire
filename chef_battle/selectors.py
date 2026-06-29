@@ -71,6 +71,7 @@ def get_received_challenges(author, limit: int = 20) -> QuerySet:
 def get_rankings(limit: int = 100) -> QuerySet:
     return (
         ChefBattleProfile.objects.select_related("author")
+        .filter(enrolled_at__isnull=False)
         .order_by("-rating", "-wins", "author__name")[:limit]
     )
 
