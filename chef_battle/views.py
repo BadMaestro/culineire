@@ -979,7 +979,21 @@ def battle_vote(request, pk):
 def rankings(request):
     profiles = get_rankings()
     executives = ChefBattleProfile.objects.select_related("author").filter(is_executive=True)
-    return render(request, "chef_battle/rankings.html", {"profiles": profiles, "executives": executives})
+    rank_tiers = [
+        {"slug": "master",    "name": "Culinary Master",  "pts": "1800+"},
+        {"slug": "exec",      "name": "Executive Chef",   "pts": "1600"},
+        {"slug": "head",      "name": "Head Chef",        "pts": "1450"},
+        {"slug": "sous",      "name": "Sous Chef",        "pts": "1300"},
+        {"slug": "partie",    "name": "Chef de Partie",   "pts": "1180"},
+        {"slug": "commis",    "name": "Commis Chef",      "pts": "1080"},
+        {"slug": "prep",      "name": "Prep Cook",        "pts": "1000"},
+        {"slug": "porter",    "name": "Kitchen Porter",   "pts": "Start"},
+    ]
+    return render(request, "chef_battle/rankings.html", {
+        "profiles": profiles,
+        "executives": executives,
+        "rank_tiers": rank_tiers,
+    })
 
 
 @chef_battle_guard

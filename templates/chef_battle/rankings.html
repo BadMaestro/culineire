@@ -38,46 +38,17 @@
       <h2 class="rank-ladder__title">Rank Ladder</h2>
       <p class="rank-ladder__sub">Rating rises and falls with each battle result.</p>
       <div class="rank-ladder__tiers">
-        <div class="rank-tier rank-tier--master">
-          <img src="{% static 'chef_battle/images/ranks/chef-rank-master.png' %}" alt="Culinary Master" class="rank-tier__avatar" loading="lazy">
-          <span class="rank-tier__name">Culinary Master</span>
-          <span class="rank-tier__pts">1800+</span>
+        {% for tier in rank_tiers %}
+        <div class="rank-tier rank-tier--{{ tier.slug }}">
+          <div class="rank-tier__avatars">
+            <img src="{% static 'chef_battle/images/ranks/' %}chef-rank-{{ tier.slug }}.png" alt="{{ tier.name }} male" class="rank-tier__avatar" loading="lazy">
+            <img src="{% static 'chef_battle/images/ranks/' %}chef-rank-{{ tier.slug }}-female.png" alt="{{ tier.name }} female" class="rank-tier__avatar" loading="lazy">
+            <img src="{% static 'chef_battle/images/ranks/' %}chef-rank-{{ tier.slug }}-neutral.png" alt="{{ tier.name }} neutral" class="rank-tier__avatar" loading="lazy">
+          </div>
+          <span class="rank-tier__name">{{ tier.name }}</span>
+          <span class="rank-tier__pts">{{ tier.pts }}</span>
         </div>
-        <div class="rank-tier rank-tier--executive">
-          <img src="{% static 'chef_battle/images/ranks/chef-rank-exec.png' %}" alt="Executive Chef" class="rank-tier__avatar" loading="lazy">
-          <span class="rank-tier__name">Executive Chef</span>
-          <span class="rank-tier__pts">1600</span>
-        </div>
-        <div class="rank-tier rank-tier--head">
-          <img src="{% static 'chef_battle/images/ranks/chef-rank-head.png' %}" alt="Head Chef" class="rank-tier__avatar" loading="lazy">
-          <span class="rank-tier__name">Head Chef</span>
-          <span class="rank-tier__pts">1450</span>
-        </div>
-        <div class="rank-tier rank-tier--sous">
-          <img src="{% static 'chef_battle/images/ranks/chef-rank-sous.png' %}" alt="Sous Chef" class="rank-tier__avatar" loading="lazy">
-          <span class="rank-tier__name">Sous Chef</span>
-          <span class="rank-tier__pts">1300</span>
-        </div>
-        <div class="rank-tier rank-tier--partie">
-          <img src="{% static 'chef_battle/images/ranks/chef-rank-partie.png' %}" alt="Chef de Partie" class="rank-tier__avatar" loading="lazy">
-          <span class="rank-tier__name">Chef de Partie</span>
-          <span class="rank-tier__pts">1180</span>
-        </div>
-        <div class="rank-tier rank-tier--commis">
-          <img src="{% static 'chef_battle/images/ranks/chef-rank-commis.png' %}" alt="Commis Chef" class="rank-tier__avatar" loading="lazy">
-          <span class="rank-tier__name">Commis Chef</span>
-          <span class="rank-tier__pts">1080</span>
-        </div>
-        <div class="rank-tier rank-tier--prep">
-          <img src="{% static 'chef_battle/images/ranks/chef-rank-prep.png' %}" alt="Prep Cook" class="rank-tier__avatar" loading="lazy">
-          <span class="rank-tier__name">Prep Cook</span>
-          <span class="rank-tier__pts">1000</span>
-        </div>
-        <div class="rank-tier rank-tier--porter">
-          <img src="{% static 'chef_battle/images/ranks/chef-rank-porter.png' %}" alt="Kitchen Porter" class="rank-tier__avatar" loading="lazy">
-          <span class="rank-tier__name">Kitchen Porter</span>
-          <span class="rank-tier__pts">Start</span>
-        </div>
+        {% endfor %}
       </div>
     </div>
 
