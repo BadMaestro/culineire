@@ -14,7 +14,7 @@ from recipes.models import Recipe, RecipeAuthor
 class ChefBattleProfile(models.Model):
     class Rank(models.TextChoices):
         KITCHEN_PORTER = "kitchen_porter", "Kitchen Porter"
-        PREP_COOK = "prep_cook", "Prep Cook"
+        PREP_COOK = "prep_cook", "Prep Chef"
         COMMIS_CHEF = "commis_chef", "Commis Chef"
         CHEF_DE_PARTIE = "chef_de_partie", "Chef de Partie"
         SOUS_CHEF = "sous_chef", "Sous Chef"
