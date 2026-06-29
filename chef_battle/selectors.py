@@ -25,7 +25,7 @@ def get_recent_completed_battles(limit: int = 10) -> QuerySet:
 def get_top_profiles(limit: int = 10) -> QuerySet:
     return (
         ChefBattleProfile.objects.select_related("author")
-        .filter(enrolled_at__isnull=False)
+        .filter(enrolled_at__isnull=False, is_executive=False)
         .order_by("-rating", "-wins", "author__name")[:limit]
     )
 
