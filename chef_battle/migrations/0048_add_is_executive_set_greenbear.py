@@ -12,7 +12,7 @@ def set_greenbear_executive(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("chef_battle", "0040_crestedten_add_100_moves"),
+        ("chef_battle", "0047_fix_crestedten_moves_and_level"),
     ]
 
     operations = [
