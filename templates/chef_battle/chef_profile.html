@@ -1,5 +1,5 @@
 ﻿{% extends "base.html" %}
-{% load static author_tags %}
+{% load static author_tags chef_battle_tags %}
 
 {% block title %}{{ author.name }} | Chef Battles Profile{% endblock %}
 {% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">{% endblock %}
@@ -101,7 +101,7 @@
   {% if battles %}
   <div style="display: grid; gap: 0.75rem; margin-block-end: 2.5rem;">
     {% for battle in battles %}
-    {% with opponent=battle.opponent_for author %}
+    {% with opponent=battle|opponent_for:author %}
     <a class="battle-table__row" href="{{ battle.get_absolute_url }}"
        style="display: grid; grid-template-columns: 2fr 1fr 1fr; align-items: center; gap: 1rem; text-decoration: none;">
       <span>
