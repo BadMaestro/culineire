@@ -81,6 +81,20 @@
       </div>
     </div>
 
+    {% if executives %}
+    <div class="battle-table battle-table--executive">
+      {% for profile in executives %}
+      <a class="battle-table__row battle-table__row--executive" href="{% url 'chef_battle:chef_profile' slug=profile.author.slug %}">
+        <span class="battle-table__executive-label">&#x1F451; {{ profile.author.name }}{% executive_badge profile.author %}</span>
+        <span>{{ profile.get_prestige_title_display|default:profile.get_rank_display }}</span>
+        <strong>&mdash;</strong>
+        <span>&mdash;</span>
+        <span>&#x221E;</span>
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
     {% if profiles %}
     <div class="battle-table">
       <div class="battle-table__head">

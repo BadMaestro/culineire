@@ -978,7 +978,8 @@ def battle_vote(request, pk):
 @chef_battle_guard
 def rankings(request):
     profiles = get_rankings()
-    return render(request, "chef_battle/rankings.html", {"profiles": profiles})
+    executives = ChefBattleProfile.objects.select_related("author").filter(is_executive=True)
+    return render(request, "chef_battle/rankings.html", {"profiles": profiles, "executives": executives})
 
 
 @chef_battle_guard

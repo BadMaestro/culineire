@@ -73,6 +73,7 @@ class ChefBattleProfile(models.Model):
         max_length=16, choices=PrestigeTitle.choices, default=PrestigeTitle.NONE, blank=True
     )
     is_founding_chef = models.BooleanField(default=False, db_index=True)
+    is_executive = models.BooleanField(default=False, db_index=True, help_text="Executive role — excluded from chef rankings and battle participation")
     # Enrolment — set when author explicitly completes the "Join Chef Battles" onboarding
     enrolled_at = models.DateTimeField(null=True, blank=True, db_index=True)
     # 18+ compliance
