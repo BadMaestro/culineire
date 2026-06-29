@@ -25,13 +25,13 @@
   }
 }
 
-/* Images: fill slide, position so warm detail shows on the right */
+/* Images: fill slide, vertical position matches individual section hero pages */
 .hero--home .hero__slide img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 60% center;
+  object-position: center 60%;
 }
 
 .hero--home .hero__inner {
@@ -84,7 +84,7 @@
 /* On small screens keep some visual balance */
 @media (max-width: 640px) {
   .hero--home .hero__slide img {
-    object-position: 55% center;
+    object-position: center 60%;
   }
 
   /* On mobile, move the peek button away from the top (where it
