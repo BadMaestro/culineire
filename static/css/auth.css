@@ -409,7 +409,7 @@
     --contact-card: #fffdf8;
     --contact-accent: #b47a33;
     --contact-green: var(--brand);
-    width: min(1180px, calc(100% - 2rem));
+    width: min(1120px, calc(100% - 2rem));
     margin: clamp(2.5rem, 7vw, 5rem) auto;
     color: var(--contact-ink);
 }
