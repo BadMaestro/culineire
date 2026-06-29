@@ -978,7 +978,6 @@ def battle_vote(request, pk):
 @chef_battle_guard
 def rankings(request):
     profiles = get_rankings()
-    executives = ChefBattleProfile.objects.select_related("author").filter(is_executive=True)
     rank_tiers = [
         {"slug": "master",    "name": "Culinary Master",  "pts": "1800+"},
         {"slug": "exec",      "name": "Executive Chef",   "pts": "1600"},
@@ -991,9 +990,9 @@ def rankings(request):
     ]
     return render(request, "chef_battle/rankings.html", {
         "profiles": profiles,
-        "executives": executives,
         "rank_tiers": rank_tiers,
     })
+>>>>>>> 6489f276 (chef_battle: remove executive row from rankings page)
 
 
 @chef_battle_guard
