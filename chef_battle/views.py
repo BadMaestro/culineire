@@ -992,7 +992,6 @@ def rankings(request):
         "profiles": profiles,
         "rank_tiers": rank_tiers,
     })
->>>>>>> 6489f276 (chef_battle: remove executive row from rankings page)
 
 
 @chef_battle_guard
