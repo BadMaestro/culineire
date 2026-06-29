@@ -979,14 +979,14 @@ def battle_vote(request, pk):
 def rankings(request):
     profiles = get_rankings()
     rank_tiers = [
-        {"slug": "porter",  "name": "Kitchen Porter",   "pts": "0"},
-        {"slug": "prep",    "name": "Prep Chef",        "pts": "1000"},
-        {"slug": "commis",  "name": "Commis Chef",      "pts": "1080"},
-        {"slug": "partie",  "name": "Chef de Partie",   "pts": "1180"},
-        {"slug": "sous",    "name": "Sous Chef",        "pts": "1300"},
-        {"slug": "head",    "name": "Head Chef",        "pts": "1450"},
-        {"slug": "exec",    "name": "Executive Chef",   "pts": "1600"},
-        {"slug": "master",  "name": "Culinary Master",  "pts": "1800+"},
+        {"slug": "porter",  "name": "Kitchen Porters",   "pts": "0"},
+        {"slug": "prep",    "name": "Prep Chefs",        "pts": "1000"},
+        {"slug": "commis",  "name": "Commis Chefs",      "pts": "1080"},
+        {"slug": "partie",  "name": "Chefs de Partie",   "pts": "1180"},
+        {"slug": "sous",    "name": "Sous Chefs",        "pts": "1300"},
+        {"slug": "head",    "name": "Head Chefs",        "pts": "1450"},
+        {"slug": "exec",    "name": "Executive Chefs",   "pts": "1600"},
+        {"slug": "master",  "name": "Culinary Masters",  "pts": "1800+"},
     ]
     return render(request, "chef_battle/rankings.html", {
         "profiles": profiles,
