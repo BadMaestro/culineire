@@ -41,9 +41,9 @@
         {% for tier in rank_tiers %}
         <div class="rank-tier rank-tier--{{ tier.slug }}">
           <div class="rank-tier__avatars">
-            <img src="{% static 'chef_battle/images/ranks/' %}chef-rank-{{ tier.slug }}.png" alt="{{ tier.name }} male" class="rank-tier__avatar" loading="lazy">
-            <img src="{% static 'chef_battle/images/ranks/' %}chef-rank-{{ tier.slug }}-female.png" alt="{{ tier.name }} female" class="rank-tier__avatar" loading="lazy">
-            <img src="{% static 'chef_battle/images/ranks/' %}chef-rank-{{ tier.slug }}-neutral.png" alt="{{ tier.name }} neutral" class="rank-tier__avatar" loading="lazy">
+            <img src="{% static 'chef_battle/images/ranks/' %}chef-rank-{{ tier.slug }}.png" alt="{{ tier.name }}" class="rank-tier__avatar" loading="lazy">
+            <img src="{% static 'chef_battle/images/ranks/' %}chef-rank-{{ tier.slug }}-female.png" alt="{{ tier.name }}" class="rank-tier__avatar" loading="lazy">
+            <img src="{% static 'chef_battle/images/ranks/' %}chef-rank-{{ tier.slug }}-neutral.png" alt="{{ tier.name }}" class="rank-tier__avatar" loading="lazy">
           </div>
           <span class="rank-tier__name">{{ tier.name }}</span>
           <span class="rank-tier__pts">{{ tier.pts }}</span>
