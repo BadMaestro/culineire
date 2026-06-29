@@ -2249,8 +2249,8 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
 .rank-tier--sous .rank-tier__pts    { background: #ddd6fe; color: #4c1d95; }
 .rank-tier--head    { background: #fff7ed; border-color: #fed7aa; }
 .rank-tier--head .rank-tier__pts    { background: #fed7aa; color: #7c2d12; }
-.rank-tier--executive { background: #fffbeb; border-color: #fde68a; }
-.rank-tier--executive .rank-tier__pts { background: #fde68a; color: #78350f; }
+.rank-tier--executive, .rank-tier--exec { background: #fffbeb; border-color: #fde68a; }
+.rank-tier--executive .rank-tier__pts, .rank-tier--exec .rank-tier__pts { background: #fde68a; color: #78350f; }
 .rank-tier--master  { background: linear-gradient(135deg, #fef9c3 0%, #fef3c7 100%); border-color: #fbbf24; box-shadow: 0 0 0 1px #fbbf2440; }
 .rank-tier--master .rank-tier__pts  { background: #fbbf24; color: #451a03; }
 @media (max-width: 600px) { .rank-ladder__tiers { grid-template-columns: repeat(2, 1fr); } }
