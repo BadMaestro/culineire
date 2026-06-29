@@ -1974,6 +1974,11 @@
     }
   }
 
+  .hero--author-profile .hero__background img {
+    object-fit: cover;
+    object-position: center 60%;
+  }
+
   .hero--author-profile .hero-copy {
     display: flex;
     flex-direction: column;

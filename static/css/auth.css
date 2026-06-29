@@ -389,6 +389,18 @@
     object-position: center 44%;
 }
 
+/* -- Legal pages (terms, privacy, cookies, legal hub, etc.) -- */
+.hero--legal .hero__background img {
+    object-fit: cover;
+    object-position: center 60%;
+}
+
+/* -- Inbox / messages -- */
+.hero--inbox .hero__background img {
+    object-fit: cover;
+    object-position: center 60%;
+}
+
 .contact-shell {
     --contact-ink: #2f251b;
     --contact-muted: #766a5b;
