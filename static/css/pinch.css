@@ -7,7 +7,7 @@
 /* ---- Hero image framing ---- */
 .hero--pinch .hero__background img {
   object-fit: cover;
-  object-position: center 70%;
+  object-position: center 60%;
 }
 
 /* ---- Layout ---- */
