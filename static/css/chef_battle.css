@@ -2208,7 +2208,7 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
 .rank-ladder { margin-bottom: 2.5rem; }
 .rank-ladder__title { font-size: 1.1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin: 0 0 0.25rem; }
 .rank-ladder__sub { font-size: 0.85rem; color: var(--muted); margin: 0 0 1.25rem; }
-.rank-ladder__tiers { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.6rem; }
+.rank-ladder__tiers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.6rem; }
 .rank-tier { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; padding: 0.85rem 0.5rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--line); text-align: center; }
 .rank-tier__icon { font-size: 1.6rem; line-height: 1; }
 .rank-tier__name { font-size: 0.78rem; font-weight: 700; line-height: 1.2; color: var(--ink); }
