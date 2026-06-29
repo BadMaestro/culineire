@@ -1,7 +1,7 @@
 /* ===== Hero — Monitoring ===== */
 .hero--monitoring .hero__background img {
   object-fit: cover;
-  object-position: center 75%;
+  object-position: center 60%;
 }
 
 .hero-copy--center {

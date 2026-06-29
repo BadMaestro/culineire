@@ -78,7 +78,7 @@
 }
 
 .hero--recipe-list .hero__background img {
-  object-position: center 82%;
+  object-position: center 60%;
 }
 
 .hero--recipe-list .hero-title {
@@ -983,7 +983,7 @@
   }
 
   .hero--recipe-list .hero__background img {
-    object-position: center 86%;
+    object-position: center 60%;
   }
 
   .hero--recipe-list .hero-title {
@@ -1342,14 +1342,14 @@
 
 .hero--articles .hero__background img {
   object-fit: cover;
-  object-position: center 85%;
+  object-position: center 60%;
 }
 
 /* ==== Recipe list hero image ==== */
 
 .hero--recipes .hero__background img {
   object-fit: cover;
-  object-position: center calc(75% - 0.5cm);
+  object-position: center 60%;
 }
 
 /* ==== Recipes mobile layout ==== */
@@ -1372,7 +1372,7 @@
   }
 
   .hero--recipes .hero__background img {
-    object-position: center 78%;
+    object-position: center 60%;
   }
 
   .hero--recipes + .recipe-list-page {
