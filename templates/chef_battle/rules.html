@@ -29,7 +29,7 @@
         </button>
         <div class="hero__actions-list">
           {% include '_enter_arena_btn.html' %}
-          <a class="btn-secondary" href="{% url 'chef_battle:token_shop' %}">Token Shop</a>
+          <a class="btn-secondary" href="{% url 'chef_battle:token_shop' %}">The Treasury</a>
           <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
           <a class="btn-secondary" href="{% url 'legal:purchases_and_vat' %}">Purchases &amp; VAT</a>
         </div>
@@ -110,7 +110,7 @@
         </a>
         <a class="legal-card legal-card--hub" href="{% url 'chef_battle:token_shop' %}">
           <span class="legal-card__label">Tokens</span>
-          <h3>Token Shop</h3>
+          <h3>The Treasury</h3>
           <p>Buy token packages from 100T to 12,800T. Powered by Stripe.</p>
         </a>
         <a class="legal-card legal-card--hub" href="{% url 'chef_battle:rankings' %}">
@@ -281,7 +281,7 @@
         <div class="section-header"><h2>Tokens</h2></div>
         <div class="legal-card__content">
           <ul class="legal-list">
-            <li>Tokens (T) are the arena currency. They are purchased in packages via the <a href="{% url 'chef_battle:token_shop' %}">Token Shop</a>.</li>
+            <li>Tokens (T) are the arena currency. They are purchased in packages via the <a href="{% url 'chef_battle:token_shop' %}">The Treasury</a>.</li>
             <li>Tokens are used to send appreciation gifts to Chefs and to purchase combat artifacts.</li>
             <li>Tokens have no cash value and cannot be withdrawn. See <a href="{% url 'legal:purchases_and_vat' %}#tokens">Purchases &amp; VAT</a> for full legal terms.</li>
           </ul>
@@ -365,7 +365,7 @@
         <div class="legal-card__content">
           <ul class="legal-list">
             <li>There are 200 combat artifacts: 100 attack and 100 defence, across 5 rarities.</li>
-            <li>Artifacts can be purchased in the <a href="{% url 'chef_battle:token_shop' %}">Token Shop</a> using tokens.</li>
+            <li>Artifacts can be purchased in the <a href="{% url 'chef_battle:token_shop' %}">The Treasury</a> using tokens.</li>
             <li>Rarity determines token cost: Common 10T, Uncommon 25T, Rare 60T, Epic 150T, Legendary 400T.</li>
             <li>Attack artifacts target opponent ingredients. Defence artifacts protect your own.</li>
           </ul>
@@ -512,7 +512,7 @@
     <div>
       <p>
         {% include '_enter_arena_btn.html' %} &middot;
-        <a href="{% url 'chef_battle:token_shop' %}">Token Shop</a> &middot;
+        <a href="{% url 'chef_battle:token_shop' %}">The Treasury</a> &middot;
         <a href="{% url 'legal:purchases_and_vat' %}">Purchases &amp; VAT</a>
       </p>
     </div>
