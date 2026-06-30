@@ -2418,7 +2418,8 @@ a.battle-pulse-item__msg:hover {
   margin-block-end: clamp(1.2rem, 3vw, 2rem);
 }
 
-.battle-home__pre-title {
+.battle-home__pre-title,
+.battle-home__post-title {
   margin: 0 auto 1.2rem;
   text-align: center;
   font-size: 0.7rem;
@@ -2430,6 +2431,12 @@ a.battle-pulse-item__msg:hover {
 
 .battle-home .battle-home__pre-title {
   text-align: left;
+  margin-inline: 0;
+}
+
+/* Bottom sub-header — mirror of pre-title, right-aligned below the title */
+.battle-home .battle-home__post-title {
+  text-align: right;
   margin-inline: 0;
 }
 
