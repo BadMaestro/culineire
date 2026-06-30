@@ -383,7 +383,7 @@ def season_leaderboard(request):
     return render(request, "chef_battle/season_leaderboard.html", {
         "profiles": profiles,
         "season_start": season_start,
-        "season_name": "Season 1 — Summer 2026",
+        "season_name": "Season 1 · Summer 2026",
     })
 
 
@@ -660,7 +660,7 @@ def battle_home(request):
         "recent_battles": recent_battles,
         "leaders": leaders,
         "events": events,
-        "season_name": "Season 1 — Summer 2026",
+        "season_name": "Season 1 · Summer 2026",
         "season_dates": "1 Jun – 31 Aug 2026",
         "season_leaders": season_leaders,
         "viewer_author": viewer_author,
