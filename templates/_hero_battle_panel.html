@@ -25,7 +25,7 @@
       Crown Holder
     </p>
     {% if battle_crown_holder %}
-      <a class="hero-battle-panel__crown" href="{{ battle_crown_holder.author.get_absolute_url }}">{{ battle_crown_holder.author.name }}</a>
+      <a class="hero-battle-panel__crown" href="{{ battle_crown_holder.author.get_absolute_url }}">&#x1F451; {{ battle_crown_holder.author.name }}</a>
     {% else %}
       <p class="hero-battle-panel__empty">No reigning Chef yet.</p>
     {% endif %}
