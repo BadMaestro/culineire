@@ -58,7 +58,6 @@
           <a class="battle-home__nav-link" href="{% url 'chef_battle:season_leaderboard' %}">Season</a>
           <a class="battle-home__nav-link" href="{% url 'chef_battle:appreciation_gallery' %}">Gifts</a>
           <a class="battle-home__nav-link" href="{% url 'chef_battle:artifact_gallery' %}">Artifacts</a>
-          <a class="battle-home__nav-link" href="{% url 'chef_battle:token_shop' %}">Token Shop</a>
           <a class="battle-home__nav-link" href="{% url 'chef_battle:battle_chest' %}">Battle Chest</a>
           <a class="battle-home__nav-link" href="{% url 'chef_battle:changing_room' %}">Changing Room</a>
           <a class="battle-home__nav-link" href="{% url 'chef_battle:challenge_list' %}">My Challenges</a>
@@ -152,26 +151,6 @@
     </div>
 
     <aside class="battle-side">
-
-      {# ── Current Season ── #}
-      <section class="battle-home__panel battle-home__panel--season">
-        <h2 class="battle-home__panel-title">&#x1F3C6; {{ season_name }}</h2>
-        <p class="battle-home__season-dates">{{ season_dates }}</p>
-        {% if season_leaders %}
-        <ol class="battle-home__season-mini">
-          {% for s in season_leaders %}
-          <li class="battle-home__season-mini-row">
-            <span class="battle-home__season-mini-pos">{{ forloop.counter }}</span>
-            <span class="battle-home__season-mini-name">{{ s.author.name }}</span>
-            <strong class="battle-home__season-mini-score">{{ s.seasonal_score }}pts</strong>
-          </li>
-          {% endfor %}
-        </ol>
-        {% else %}
-        <p class="battle-muted">Season standings start after the first battle.</p>
-        {% endif %}
-        <a class="battle-home__panel-link" href="{% url 'chef_battle:season_leaderboard' %}">Full season standings &#x2192;</a>
-      </section>
 
       {# ── Top Chefs ── #}
       <section class="battle-home__panel">
