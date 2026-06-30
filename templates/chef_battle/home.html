@@ -32,14 +32,14 @@
       <div class="battle-home__cta-row">
         <a class="battle-home__cta-secondary" href="{% url 'chef_battle:rules' %}">Rules</a>
         {% if viewer_author and not user_enrolled %}
-        <a class="battle-home__cta-primary" href="{% url 'chef_battle:chef_enroll' %}">
-          <svg aria-hidden="true" fill="none" height="15" viewBox="0 0 24 24" width="15" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-          Join Chef Battles
+        <a class="ce-nav__link ce-nav__link--battle" href="{% url 'chef_battle:chef_enroll' %}">
+          <span class="chef-battle-cta__icon" aria-hidden="true"><svg fill="none" height="15" viewBox="0 0 24 24" width="15" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span>
+          <span class="chef-battle-cta__label">Join Chef Battles</span>
         </a>
         {% else %}
-        <a class="battle-home__cta-primary" href="{% url 'chef_battle:challenge_create' %}">
-          <svg aria-hidden="true" fill="none" height="15" viewBox="0 0 24 24" width="15" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5L3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="M2 2l20 20"/><path d="M3 14l6 6"/><path d="M14 3l7 7"/></svg>
-          Issue a Challenge
+        <a class="ce-nav__link ce-nav__link--battle" href="{% url 'chef_battle:challenge_create' %}">
+          <span class="chef-battle-cta__icon" aria-hidden="true"><svg fill="none" height="15" viewBox="0 0 24 24" width="15" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5L3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="M2 2l20 20"/><path d="M3 14l6 6"/><path d="M14 3l7 7"/></svg></span>
+          <span class="chef-battle-cta__label">Issue a Challenge</span>
         </a>
         {% endif %}
         <a class="battle-home__cta-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
