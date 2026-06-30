@@ -2440,6 +2440,10 @@ a.battle-pulse-item__msg:hover {
 .battle-home .battle-home__wordmark .battle-home__post-title {
   max-width: 62ch;
   margin-inline: auto;
+  /* Push down so the optical gap below the title matches the air the
+     pre-title has above it (the title's tight line-height seats its caps
+     low, leaving little room beneath). Scales with the title's clamp. */
+  margin-top: clamp(0.35rem, 0.74vw, 0.66rem);
   text-align: right;
 }
 
