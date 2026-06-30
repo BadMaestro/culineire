@@ -2434,10 +2434,13 @@ a.battle-pulse-item__msg:hover {
   margin-inline: 0;
 }
 
-/* Bottom sub-header — mirror of pre-title, right-aligned below the title */
-.battle-home .battle-home__post-title {
+/* Bottom sub-header — mirror of pre-title, right-aligned below the title.
+   Specificity beats the .battle-hero p blanket rule so the 62ch box centres
+   exactly like pre-title, with the text pinned to the right edge (mirror). */
+.battle-home .battle-home__wordmark .battle-home__post-title {
+  max-width: 62ch;
+  margin-inline: auto;
   text-align: right;
-  margin-inline: 0;
 }
 
 .battle-home .battle-home__title {
