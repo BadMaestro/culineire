@@ -2415,7 +2415,7 @@ a.battle-pulse-item__msg:hover {
 
 /* --- Wordmark block --- */
 .battle-home__wordmark {
-  margin-block-end: clamp(1.2rem, 3vw, 2rem);
+  margin-block-end: 0;
 }
 
 .battle-home__pre-title,
@@ -2470,7 +2470,7 @@ a.battle-pulse-item__msg:hover {
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  padding-block: 1.1rem 1.8rem;
+  padding-block: 1.1rem 0;
 }
 
 .battle-home__divider-line {
