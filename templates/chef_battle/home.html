@@ -29,7 +29,6 @@
       <p class="battle-home__sub">Challenge another chef, submit a recipe or article, let the audience vote, and build your public battle record on CulinEire.</p>
 
       <div class="battle-home__cta-row">
-        <a class="battle-home__cta-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
         <a class="battle-home__cta-secondary" href="{% url 'chef_battle:rules' %}">Rules</a>
         {% if viewer_author and not user_enrolled %}
         <a class="battle-home__cta-primary" href="{% url 'chef_battle:chef_enroll' %}">
@@ -42,6 +41,7 @@
           Issue a Challenge
         </a>
         {% endif %}
+        <a class="battle-home__cta-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
       </div>
 
       <div class="battle-home__nav-row">
