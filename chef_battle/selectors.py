@@ -1,9 +1,22 @@
 from __future__ import annotations
 
-from django.db.models import Count, QuerySet
+from django.db.models import Case, Count, IntegerField, QuerySet, When
 from django.utils import timezone
 
 from .models import Battle, BattleChallenge, BattleEvent, BattleVote, ChefBattleProfile
+
+_RANK_ORDER = Case(
+    When(rank="culinary_master", then=8),
+    When(rank="executive_chef", then=7),
+    When(rank="head_chef", then=6),
+    When(rank="sous_chef", then=5),
+    When(rank="chef_de_partie", then=4),
+    When(rank="commis_chef", then=3),
+    When(rank="prep_cook", then=2),
+    When(rank="kitchen_porter", then=1),
+    default=0,
+    output_field=IntegerField(),
+)
 
 
 def get_active_battles(limit: int = 12) -> QuerySet:
@@ -26,7 +39,8 @@ def get_top_profiles(limit: int = 10) -> QuerySet:
     return (
         ChefBattleProfile.objects.select_related("author")
         .filter(enrolled_at__isnull=False)
-        .order_by("-rating", "-wins", "author__name")[:limit]
+        .annotate(rank_order=_RANK_ORDER)
+        .order_by("-rating", "-rank_order", "-wins", "author__name")[:limit]
     )
 
 
@@ -73,7 +87,8 @@ def get_rankings(limit: int = 100) -> QuerySet:
     return (
         ChefBattleProfile.objects.select_related("author")
         .filter(enrolled_at__isnull=False)
-        .order_by("-rating", "-wins", "author__name")[:limit]
+        .annotate(rank_order=_RANK_ORDER)
+        .order_by("-rating", "-rank_order", "-wins", "author__name")[:limit]
     )
 
 
