@@ -6,6 +6,7 @@ app_name = "chef_battle"
 
 urlpatterns = [
     path("", views.battle_home, name="home"),
+    path("arena/", views.arena, name="arena"),
     path("guide/", views.battle_guide, name="guide"),
     path("rules/", views.battle_rules, name="rules"),
     path("enroll/", views.chef_enroll, name="chef_enroll"),

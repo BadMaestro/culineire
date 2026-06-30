@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_attrs %} class="page--arena"{% endblock %}
+
+{% block title %}The Arena | Chef Battles | CulinEire{% endblock %}
+{% block meta_description %}Step into the Chef Battles Arena. See every chef ranked by tier around the ring, and watch the active battle at the centre.{% endblock %}
+
+{% block extra_head %}
+<link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">
+<link href="{% static 'css/arena.css' %}?v=20260630a" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero">
+  <div class="container">
+    <p class="battle-kicker">Chef Battles Arena</p>
+    <h1>The Arena</h1>
+    <p class="battle-room-hero__sub">Every enrolled chef, ranked by tier around the ring. The active battle burns at the centre.</p>
+    <div class="battle-actions">
+      <a class="btn-primary" href="{% url 'chef_battle:home' %}">Back to Chef Battles</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">All-Time Rankings</a>
+    </div>
+  </div>
+</section>
+
+<div class="arena-page">
+
+  <div class="arena-legend">
+    {% for rank, chefs in rank_groups %}
+    <div class="arena-legend__item arena-legend__item--{{ rank.value }}">
+      <span class="arena-legend__swatch"></span>
+      <span class="arena-legend__label">{{ rank.label }}</span>
+      <span class="arena-legend__count">{{ chefs|length }}</span>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="arena-puzzle-container">
+    <p class="arena-puzzle-label">Click any chef to view their profile</p>
+    <svg id="arena-puzzle" viewBox="30 30 1040 1040" xmlns="http://www.w3.org/2000/svg"
+         role="img" aria-label="Chef Battles Arena">
+      <defs>
+        <filter id="arena-cell-shadow" x="-5%" y="-5%" width="110%" height="110%">
+          <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="rgba(0,0,0,0.15)"/>
+        </filter>
+        <clipPath id="arena-oct-clip">
+          <polygon id="arena-oct-poly"/>
+        </clipPath>
+      </defs>
+      <g id="arena-cells"></g>
+      <g id="arena-centre"></g>
+    </svg>
+  </div>
+
+</div>
+
+{{ arena_data|json_script:"arena-data-json" }}
+<script src="{% static 'js/arena_puzzle.js' %}?v=20260630a"></script>
+{% endblock %}

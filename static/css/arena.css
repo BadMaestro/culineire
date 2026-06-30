@@ -1,0 +1,93 @@
+/* Chef Battles Arena — concentric octagonal ring of chefs */
+
+.arena-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem 4rem;
+}
+
+.arena-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.arena-legend__item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: #f4f1ec;
+  border: 1px solid #e0d8c8;
+  font-size: 0.78rem;
+  color: #3a3028;
+}
+
+.arena-legend__swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #8f7c5c;
+}
+
+.arena-legend__item--culinary_master .arena-legend__swatch { background: #5a4a2e; }
+.arena-legend__item--executive_chef .arena-legend__swatch { background: #73603f; }
+.arena-legend__item--head_chef .arena-legend__swatch { background: #8f7c5c; }
+.arena-legend__item--sous_chef .arena-legend__swatch { background: #a89878; }
+.arena-legend__item--chef_de_partie .arena-legend__swatch { background: #bfb49a; }
+.arena-legend__item--commis_chef .arena-legend__swatch { background: #ccc1aa; }
+.arena-legend__item--prep_cook .arena-legend__swatch { background: #d8d0c0; }
+.arena-legend__item--kitchen_porter .arena-legend__swatch { background: #e4ddd1; }
+
+.arena-legend__count {
+  font-weight: 700;
+  color: #c8942a;
+}
+
+.arena-puzzle-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.arena-puzzle-label {
+  font-size: 0.85rem;
+  color: var(--color-muted, #6b6258);
+  text-align: center;
+}
+
+#arena-puzzle {
+  width: 100%;
+  max-width: 760px;
+  height: auto;
+}
+
+.arena-cell {
+  transition: opacity 0.15s ease;
+}
+
+.arena-cell--empty {
+  cursor: default;
+}
+
+.arena-cell--in-battle {
+  filter: drop-shadow(0 0 6px rgba(200, 148, 42, 0.85));
+}
+
+.arena-cell--centre {
+  transition: opacity 0.15s ease;
+}
+
+@media (max-width: 640px) {
+  .arena-legend {
+    gap: 0.4rem;
+  }
+  .arena-legend__item {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.55rem;
+  }
+}

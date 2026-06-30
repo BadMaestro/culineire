@@ -668,6 +668,68 @@ def battle_home(request):
     })
 
 
+def arena(request):
+    active_battles = get_active_battles()
+    active_battle = active_battles[0] if active_battles else None
+    in_battle_author_ids = set()
+    for battle in active_battles:
+        in_battle_author_ids.add(battle.challenger_id)
+        in_battle_author_ids.add(battle.opponent_id)
+
+    enrolled = (
+        ChefBattleProfile.objects
+        .select_related("author")
+        .filter(enrolled_at__isnull=False, is_suspended=False)
+        .order_by("-rating")
+    )
+
+    chefs_by_rank = {choice.value: [] for choice in ChefBattleProfile.Rank}
+    for profile in enrolled:
+        chefs_by_rank[profile.rank].append({
+            "name": profile.author.name,
+            "slug": profile.author.slug,
+            "avatar_url": profile.author.display_avatar_url,
+            "rank": profile.rank,
+            "rank_label": profile.get_rank_display(),
+            "rating": profile.rating,
+            "in_battle": profile.author_id in in_battle_author_ids,
+        })
+
+    center = {"type": "empty"}
+    if active_battle:
+        center = {
+            "type": "active_battle",
+            "battle_url": reverse("chef_battle:battle_detail", kwargs={"pk": active_battle.pk}),
+            "challenger": {
+                "name": active_battle.challenger.name,
+                "avatar_url": active_battle.challenger.display_avatar_url,
+            },
+            "opponent": {
+                "name": active_battle.opponent.name,
+                "avatar_url": active_battle.opponent.display_avatar_url,
+            },
+        }
+
+    arena_data = {
+        "rings": {
+            rank.value: chefs_by_rank[rank.value]
+            for rank in ChefBattleProfile.Rank
+        },
+        "center": center,
+    }
+
+    rank_groups = [
+        (rank, chefs_by_rank[rank.value])
+        for rank in ChefBattleProfile.Rank
+    ]
+
+    return render(request, "chef_battle/arena.html", {
+        "rank_groups": rank_groups,
+        "active_battle": active_battle,
+        "arena_data": arena_data,
+    })
+
+
 @chef_battle_guard
 @login_required
 def challenge_list(request):
