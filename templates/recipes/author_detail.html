@@ -105,11 +105,11 @@
             {% if battle_profile %}
             <div class="author-battle-summary__stats">
                 {% if battle_profile.has_crown %}<span class="author-battle-crown" title="Current Crown Holder">&#x1F451; Crown Holder</span>{% endif %}
-                <span><strong>{{ battle_profile.get_rank_display }}</strong> Rank</span>
+                <span>Rank: <strong>{{ battle_profile.get_rank_display }}</strong></span>
                 <span>Rating: <strong>{% if battle_profile.is_executive %}(Bear)seeker{% else %}{{ battle_profile.rating }}{% endif %}</strong></span>
                 <span>Wins: <strong>{{ battle_profile.wins }}</strong></span>
                 <span>Losses: <strong>{{ battle_profile.losses }}</strong></span>
-                <span><strong>{{ battle_profile.battle_moves }}</strong> Moves</span>
+                <span>Moves: <strong>{{ battle_profile.battle_moves }}</strong></span>
             </div>
             {% else %}
             <p class="author-battle-summary__empty">This Chef has not entered the arena yet.</p>
