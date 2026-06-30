@@ -4,6 +4,10 @@
   object-position: center 60%;
 }
 
+.hero--moderation {
+  min-height: clamp(160px, 18vw, 240px);
+}
+
 .hero-copy--center {
   text-align: center;
   align-items: center;
