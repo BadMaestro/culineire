@@ -19,7 +19,7 @@
     <h1>Hall of Fame</h1>
     <p class="battle-room-hero__sub">The battles and Chefs that shaped the arena</p>
     <div class="battle-actions">
-      <a class="btn-primary" href="{% url 'chef_battle:home' %}">Enter Arena</a>
+      {% include '_enter_arena_btn.html' %}
       <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
       <a class="btn-secondary" href="{% url 'chef_battle:guide' %}">Arena Guide</a>
     </div>
@@ -108,7 +108,7 @@
 
   <div style="margin-block-start: 2.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
     <a class="btn-primary" href="{% url 'chef_battle:rankings' %}">Full Rankings</a>
-    <a class="text-link" href="{% url 'chef_battle:home' %}">Enter Arena</a>
+    {% include '_enter_arena_btn.html' %}
   </div>
 </div>
 {% endblock %}

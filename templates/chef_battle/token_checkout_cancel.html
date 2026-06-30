@@ -12,7 +12,7 @@
     <p class="battle-room-hero__sub">No payment was taken. You can return to the shop any time.</p>
     <div class="battle-actions">
       <a class="btn-primary" href="{% url 'chef_battle:token_shop' %}">Back to Token Shop</a>
-      <a class="btn-secondary" href="{% url 'chef_battle:home' %}">Enter Arena</a>
+      {% include '_enter_arena_btn.html' %}
     </div>
   </div>
 </section>
@@ -31,7 +31,7 @@
 
   <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
     <a class="btn-primary" href="{% url 'chef_battle:token_shop' %}">Back to Token Shop</a>
-    <a class="btn-secondary" href="{% url 'chef_battle:home' %}">Enter Arena</a>
+    {% include '_enter_arena_btn.html' %}
   </div>
 
 </div>

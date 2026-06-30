@@ -11,7 +11,7 @@
     <h1>Tokens Added</h1>
     <p class="battle-room-hero__sub">Your purchase was successful. Tokens have been added to your Token Balance.</p>
     <div class="battle-actions">
-      <a class="btn-primary" href="{% url 'chef_battle:home' %}">Enter Arena</a>
+      {% include '_enter_arena_btn.html' %}
       <a class="btn-secondary" href="{% url 'chef_battle:token_shop' %}">Token Shop</a>
     </div>
   </div>
@@ -40,7 +40,7 @@
   {% endif %}
 
   <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-    <a class="btn-primary" href="{% url 'chef_battle:home' %}">Enter Arena</a>
+    {% include '_enter_arena_btn.html' %}
     <a class="btn-secondary" href="{% url 'chef_battle:token_shop' %}">Token Shop</a>
   </div>
 

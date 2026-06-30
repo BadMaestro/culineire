@@ -28,10 +28,7 @@
         <section class="moderation-block moderation-block--tools" aria-label="Chef Battles actions">
             <h2 class="moderation-block__title">Battlefield Actions</h2>
             <div class="mod-tools-row">
-                <a class="mod-tool-link" href="{% url 'chef_battle:home' %}">
-                    <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M3 12h18"/><path d="M12 3v18"/><circle cx="12" cy="12" r="8"/></svg>
-                    Enter Arena
-                </a>
+                {% include '_enter_arena_btn.html' %}
                 <a class="mod-tool-link" href="{% url 'chef_battle:challenge_list' %}">
                     <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M4 7h16"/><path d="M4 12h12"/><path d="M4 17h8"/></svg>
                     My Challenges

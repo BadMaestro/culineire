@@ -20,7 +20,7 @@
           </svg>
         </button>
         <div class="hero__actions-list">
-          <a class="btn-secondary" href="{% url 'chef_battle:home' %}">Enter Arena</a>
+          {% include '_enter_arena_btn.html' %}
           <a class="btn-primary" href="{% url 'chef_battle:challenge_create' %}">Challenge A Chef</a>
           <a class="btn-secondary" href="{% url 'chef_battle:season_leaderboard' %}">Season Leaderboard</a>
           <a class="btn-secondary" href="{% url 'chef_battle:hall_of_fame' %}">Hall of Fame</a>

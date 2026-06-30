@@ -12,7 +12,7 @@
     <p class="battle-room-hero__sub">Challenges you have sent and received.</p>
     <div class="battle-actions">
       <a class="btn-primary" href="{% url 'chef_battle:challenge_create' %}">New Challenge</a>
-      <a class="btn-secondary" href="{% url 'chef_battle:home' %}">Enter Arena</a>
+      {% include '_enter_arena_btn.html' %}
       <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
     </div>
   </div>

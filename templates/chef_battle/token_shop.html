@@ -29,7 +29,7 @@
           </svg>
         </button>
         <div class="hero__actions-list">
-          <a class="btn-primary" href="{% url 'chef_battle:home' %}">Enter Arena</a>
+          {% include '_enter_arena_btn.html' %}
           <a class="btn-secondary" href="{% url 'chef_battle:rules' %}">Rules &amp; Guide</a>
           <a class="btn-secondary" href="{% url 'legal:purchases_and_vat' %}">Purchases &amp; VAT</a>
         </div>
