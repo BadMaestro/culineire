@@ -23,7 +23,16 @@
 }
 
 .hero--moderation {
-  min-height: clamp(160px, 18vw, 240px);
+  min-height: 0;
+  padding-block: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.hero--moderation .hero__inner {
+  align-self: auto;
+}
+
+.hero--moderation .hero-copy {
+  flex: 0 0 auto;
 }
 
 .hero--moderation .hero__background img {
