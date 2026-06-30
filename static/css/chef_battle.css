@@ -1183,7 +1183,7 @@ details[open] .battle-combat-results__log-toggle--title::before { content: ''; }
 .hero-battle-panel {
   flex: 0 0 260px;
   width: 260px;
-  background: linear-gradient(145deg, rgb(12 24 16 / 0.90), rgb(28 16 6 / 0.86));
+  background: linear-gradient(145deg, rgb(12 24 16 / 0.63), rgb(28 16 6 / 0.60));
   border: 1px solid rgb(226 217 204 / 0.22);
   border-radius: 8px;
   backdrop-filter: blur(14px);
