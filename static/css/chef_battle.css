@@ -2547,25 +2547,65 @@ a.battle-pulse-item__msg:hover {
   padding: 0.55rem 1.1rem;
 }
 
-/* Hero "Issue a Challenge" adopts the ghost look of the More menu button
-   (.battle-home__burger). Scoped to .battle-hero so the orange empty-state
-   CTA on the light content background stays untouched. */
+/* Hero "Issue a Challenge" adopts the chef-battle style from header nav.
+   Scoped to .battle-hero so the orange empty-state CTA on the light
+   content background stays untouched. */
 .battle-hero .battle-home__cta-primary {
-  gap: 0.4rem;
-  padding: 0.42rem 0.85rem;
-  border: 1px solid rgb(255 255 255 / 0.18);
-  background: transparent;
-  color: rgb(240 225 200 / 0.72);
-  font-size: 0.8rem;
-  font-weight: 600;
+  background: linear-gradient(145deg, #1a0e06 0%, #2c1808 35%, #38200e 65%, #221208 100%);
+  border: 1.5px solid rgba(185, 128, 45, 0.65);
+  box-shadow:
+    0 1px 0 rgba(255, 215, 120, 0.14) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.32) inset,
+    0 4px 18px rgba(35, 16, 4, 0.55),
+    0 1px 5px rgba(35, 16, 4, 0.4);
+  color: #f0dfc0;
+  font-weight: 700;
+  letter-spacing: 0.055em;
+  gap: 0.42rem;
+  padding: 0.5rem 1.05rem;
+  border-radius: 999px;
+  position: relative;
+  overflow: visible;
+  transition:
+    box-shadow 0.22s ease,
+    border-color 0.22s ease,
+    transform 0.15s ease;
+}
+
+.battle-hero .battle-home__cta-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: linear-gradient(170deg, rgba(255, 215, 120, 0.09) 0%, transparent 55%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .battle-hero .battle-home__cta-primary:hover,
 .battle-hero .battle-home__cta-primary:focus-visible {
-  background: rgb(255 255 255 / 0.1);
-  border-color: rgb(255 255 255 / 0.26);
-  color: #fff;
-  transform: none;
+  border-color: rgba(215, 158, 58, 0.9);
+  box-shadow:
+    0 1px 0 rgba(255, 215, 120, 0.22) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.38) inset,
+    0 6px 24px rgba(170, 105, 20, 0.52),
+    0 2px 8px rgba(35, 16, 4, 0.45),
+    0 0 0 1px rgba(200, 148, 48, 0.22);
+  transform: translateY(-1px) scale(1.03);
+  color: #fff5e0;
+}
+
+.battle-hero .battle-home__cta-primary:active {
+  transform: translateY(0px) scale(1);
+  box-shadow:
+    0 0 0 rgba(255, 215, 120, 0.08) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.38) inset,
+    0 2px 8px rgba(35, 16, 4, 0.5);
+}
+
+.battle-hero .battle-home__cta-primary:focus-visible {
+  outline: 2px solid rgba(205, 150, 50, 0.8);
+  outline-offset: 3px;
 }
 
 .battle-home__cta-secondary {
