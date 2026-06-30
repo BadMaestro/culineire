@@ -22,6 +22,10 @@
   max-width: 100%;
 }
 
+.hero--moderation {
+  min-height: clamp(160px, 18vw, 240px);
+}
+
 .hero--moderation .hero__background img {
   object-fit: cover;
   object-position: center 55%;
