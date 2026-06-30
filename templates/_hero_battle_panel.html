@@ -6,6 +6,7 @@
     Chef Battles Menu
   </p>
 
+  {# 1. Season #}
   <div class="hero-battle-panel__card">
     <p class="hero-battle-panel__label">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
@@ -17,6 +18,27 @@
     </div>
   </div>
 
+  {# 2. Crown Holder #}
+  <div class="hero-battle-panel__card">
+    <p class="hero-battle-panel__label">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      Crown Holder
+    </p>
+    {% if battle_crown_holder %}
+      {% with author=battle_crown_holder.user.recipe_author_profile %}
+      {% if author %}
+      <a class="hero-battle-panel__crown" href="{{ author.get_absolute_url }}">{{ author.name }}</a>
+      {% else %}
+      <p class="hero-battle-panel__crown">{{ battle_crown_holder.user.get_full_name|default:battle_crown_holder.user.username }}</p>
+      {% endif %}
+      {% endwith %}
+      <p class="hero-battle-panel__stat">{{ battle_crown_holder.wins }}W &middot; {{ battle_crown_holder.losses }}L</p>
+    {% else %}
+      <p class="hero-battle-panel__empty">No reigning Chef yet.</p>
+    {% endif %}
+  </div>
+
+  {# 3. Arena #}
   <div class="hero-battle-panel__card">
     {% if active_battles %}
       {% with b=active_battles.0 %}
@@ -41,25 +63,17 @@
     {% endif %}
   </div>
 
+  {# 4. Token Shop #}
   <div class="hero-battle-panel__card">
     <p class="hero-battle-panel__label">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-      Crown Holder
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      Token Shop
     </p>
-    {% if battle_crown_holder %}
-      {% with author=battle_crown_holder.user.recipe_author_profile %}
-      {% if author %}
-      <a class="hero-battle-panel__crown" href="{{ author.get_absolute_url }}">{{ author.name }}</a>
-      {% else %}
-      <p class="hero-battle-panel__crown">{{ battle_crown_holder.user.get_full_name|default:battle_crown_holder.user.username }}</p>
-      {% endif %}
-      {% endwith %}
-      <p class="hero-battle-panel__stat">{{ battle_crown_holder.wins }}W &middot; {{ battle_crown_holder.losses }}L</p>
-    {% else %}
-      <p class="hero-battle-panel__empty">No reigning Chef yet.</p>
-    {% endif %}
+    <a class="battle-home__cta-secondary" href="{% url 'chef_battle:token_shop' %}">Visit the Token Shop</a>
+    <p class="hero-battle-panel__empty">Shop for Artefacts and Gifts.</p>
   </div>
 
+  {# 5. Battle News #}
   <div class="hero-battle-panel__card">
     <p class="hero-battle-panel__label">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" aria-hidden="true"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
@@ -84,15 +98,6 @@
     {% else %}
       <p class="hero-battle-panel__empty">News will appear when the first battle begins.</p>
     {% endif %}
-  </div>
-
-  <div class="hero-battle-panel__card">
-    <p class="hero-battle-panel__label">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-      Token Shop
-    </p>
-    <a class="battle-home__cta-secondary" href="{% url 'chef_battle:token_shop' %}">Visit the Token Shop</a>
-    <p class="hero-battle-panel__empty">Shop for Artefacts and Gifts.</p>
   </div>
 
 </div>
