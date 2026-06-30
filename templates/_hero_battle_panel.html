@@ -25,13 +25,7 @@
       Crown Holder
     </p>
     {% if battle_crown_holder %}
-      {% with author=battle_crown_holder.user.recipe_author_profile %}
-      {% if author %}
-      <a class="hero-battle-panel__crown" href="{{ author.get_absolute_url }}">{{ author.name }}</a>
-      {% else %}
-      <p class="hero-battle-panel__crown">{{ battle_crown_holder.user.get_full_name|default:battle_crown_holder.user.username }}</p>
-      {% endif %}
-      {% endwith %}
+      <a class="hero-battle-panel__crown" href="{{ battle_crown_holder.author.get_absolute_url }}">{{ battle_crown_holder.author.name }}</a>
       <p class="hero-battle-panel__stat">{{ battle_crown_holder.wins }}W &middot; {{ battle_crown_holder.losses }}L</p>
     {% else %}
       <p class="hero-battle-panel__empty">No reigning Chef yet.</p>

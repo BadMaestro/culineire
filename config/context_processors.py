@@ -38,7 +38,7 @@ def hero_battle_panel(request):
                 .order_by("end_time")[:4]
             )
             battle_crown_holder = (
-                ChefBattleProfile.objects.select_related("user__recipe_author_profile")
+                ChefBattleProfile.objects.select_related("author")
                 .filter(crown_until__gt=timezone.now())
                 .order_by("-crown_until")
                 .first()
