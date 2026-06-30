@@ -1105,7 +1105,7 @@
 
 @media (max-width: 760px) {
   .hero--moderation {
-    min-height: 280px;
+    min-height: 0;
   }
 
   .hero--moderation .hero-title {
