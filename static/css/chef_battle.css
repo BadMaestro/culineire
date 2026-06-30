@@ -72,8 +72,10 @@
   }
 }
 
-.battle-hero p,
-.battle-room-hero p {
+/* Hero copy text only — the :not() keeps this blanket rule from reaching into
+   the self-contained .hero-battle-panel widget, which carries its own colours. */
+.battle-hero p:not(.hero-battle-panel *),
+.battle-room-hero p:not(.hero-battle-panel *) {
   max-width: 62ch;
   margin: 0;
   color: rgb(255 248 238 / 0.92);
@@ -3042,14 +3044,4 @@ a.battle-home__pulse-msg:hover {
   z-index: 2;
 }
 
-.battle-hero .hero-battle-panel {
-  align-self: center;
-}
 
-/* Isolate widget from battle-hero typography cascade */
-.battle-hero .hero-battle-panel p,
-.battle-room-hero .hero-battle-panel p {
-  max-width: none;
-  margin: 0;
-  color: inherit;
-}
