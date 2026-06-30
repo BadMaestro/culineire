@@ -2547,6 +2547,27 @@ a.battle-pulse-item__msg:hover {
   padding: 0.55rem 1.1rem;
 }
 
+/* Hero "Issue a Challenge" adopts the ghost look of the More menu button
+   (.battle-home__burger). Scoped to .battle-hero so the orange empty-state
+   CTA on the light content background stays untouched. */
+.battle-hero .battle-home__cta-primary {
+  gap: 0.4rem;
+  padding: 0.42rem 0.85rem;
+  border: 1px solid rgb(255 255 255 / 0.18);
+  background: transparent;
+  color: rgb(240 225 200 / 0.72);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.battle-hero .battle-home__cta-primary:hover,
+.battle-hero .battle-home__cta-primary:focus-visible {
+  background: rgb(255 255 255 / 0.1);
+  border-color: rgb(255 255 255 / 0.26);
+  color: #fff;
+  transform: none;
+}
+
 .battle-home__cta-secondary {
   display: inline-flex;
   align-items: center;
