@@ -62,11 +62,6 @@
   max-width: 700px;
 }
 
-/* Battle panel on homepage needs its own dark background (no battle-hero overlay here) */
-.hero--home .hero-battle-panel {
-  background: linear-gradient(145deg, rgb(12 24 16 / 0.88), rgb(28 16 6 / 0.84));
-  border-color: rgb(226 217 204 / 0.22);
-}
 
 .hero--home.hero--has-battle .hero-title,
 .hero--home.hero--has-battle .hero-subtitle {
