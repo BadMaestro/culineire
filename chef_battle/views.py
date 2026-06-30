@@ -377,7 +377,7 @@ def season_leaderboard(request):
     season_start = timezone.datetime(2026, 6, 1, tzinfo=timezone.get_current_timezone())
     profiles = (
         ChefBattleProfile.objects.select_related("author")
-        .filter(seasonal_score__gt=0, is_executive=False)
+        .filter(seasonal_score__gt=0)
         .order_by("-seasonal_score", "-wins", "author__name")[:50]
     )
     return render(request, "chef_battle/season_leaderboard.html", {
@@ -643,7 +643,7 @@ def battle_home(request):
     season_leaders = (
         ChefBattleProfile.objects
         .select_related("author")
-        .filter(seasonal_score__gt=0, is_executive=False)
+        .filter(seasonal_score__gt=0)
         .order_by("-seasonal_score", "-wins", "author__name")[:3]
     )
 
