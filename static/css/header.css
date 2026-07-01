@@ -284,6 +284,20 @@
   font-size: 0.95rem;
 }
 
+/* Two columns instead of one long vertical stack — owner 2026-07-01:
+   compact rows still summed to ~330px stacked single-file for 8 short
+   text links. Halves the panel height for the same content. */
+.ce-nav--open .ce-nav__menu,
+.ce-nav--open .ce-nav__auth {
+  grid-template-columns: 1fr 1fr;
+  justify-items: stretch;
+}
+.ce-nav--open .ce-nav__link,
+.ce-nav--open .ce-nav__text,
+.ce-nav--open .ce-nav__button {
+  justify-content: center;
+}
+
 .ce-nav__menu,
 .ce-nav__auth {
   display: grid;
