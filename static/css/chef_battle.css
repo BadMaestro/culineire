@@ -2577,10 +2577,10 @@ a.battle-pulse-item__msg:hover {
   display: inline-flex;
   align-items: center;
   padding: 0.64rem 1.05rem;
-  border: 1px solid rgb(255 255 255 / 0.26);
+  border: 1px solid rgb(255 255 255 / 0.26) !important;
   border-radius: var(--radius-pill);
-  background: rgb(255 255 255 / 0.05);
-  color: rgb(240 225 200 / 0.88);
+  background: rgb(255 255 255 / 0.05) !important;
+  color: rgb(240 225 200 / 0.88) !important;
   font-size: 0.88rem;
   font-weight: 600;
   text-decoration: none;
@@ -2589,9 +2589,9 @@ a.battle-pulse-item__msg:hover {
 
 .battle-home__cta-row .btn-primary:hover,
 .battle-home__cta-row .btn-primary:focus-visible {
-  background: rgb(255 255 255 / 0.12);
-  border-color: rgb(255 255 255 / 0.42);
-  color: #fff;
+  background: rgb(255 255 255 / 0.12) !important;
+  border-color: rgb(255 255 255 / 0.42) !important;
+  color: #fff !important;
 }
 
 /* --- More nav row --- */
