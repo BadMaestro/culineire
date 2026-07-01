@@ -5119,7 +5119,7 @@
 /* ── Group 1.1 / 1.2: Unified listing hero height & inner padding ── */
 /* ⛔ LOCKED LAYOUT — measured live 2025-07-01 @ 1920px. DO NOT CHANGE WITHOUT OWNER ORDER. */
 .hero--home:not(.hero--recipe-detail):not(.hero--about) {
-  min-height: clamp(320px, 44vw, 480px); /* → 480px at 1920px. LOCKED. */
+  min-height: clamp(320px, 44vw, 503px); /* → 503px at 1920px (was 480px; +23px to fit the switcher spacing rule below without overflow). LOCKED. */
 }
 .hero--home:not(.hero--recipe-detail):not(.hero--about) .hero__inner {
   padding-block: clamp(1.8rem, 4vw, 49px); /* → 49px at 1920px = 17mm on owner's calibrated monitor (1920x1080, 72x43cm, measured 49px == 17mm with a physical ruler). LOCKED. */

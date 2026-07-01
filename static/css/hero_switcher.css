@@ -161,7 +161,7 @@
 
 .hero__switcher {
   position: absolute;
-  bottom: 1rem;
+  bottom: 49px; /* LOCKED — 17mm, ruler-calibrated. With hero min-height 503px and the button row ending at 385px, this also produces a 35.41px (one pill-height) gap above the switcher. DO NOT CHANGE WITHOUT OWNER ORDER. */
   left: 50%;
   transform: translateX(-50%);
   z-index: 4;
