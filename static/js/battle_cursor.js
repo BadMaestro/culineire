@@ -3,13 +3,18 @@
    CulinEire — Chef Battle cutlery hover cursor
    --------------------------------------------------------------------------
    Shows a custom crossed knife-&-fork cursor that follows the mouse while
-   hovering the Chef Battle nav CTA (.battle-cursor-target).
+   hovering any Chef Battle target (.battle-cursor-target / .js-battle-cursor-target).
+
+   Event-delegated on `document` (pointerover/pointerout/pointermove, which
+   bubble — unlike pointerenter/pointerleave) so targets created after this
+   script runs (e.g. arena cells redrawn every 20s by arena_puzzle.js) are
+   picked up automatically with zero extra wiring on their side.
 
    - Desktop / fine-pointer only  -> bails on touch & coarse pointers.
    - Overlay element is pointer-events:none, so it never blocks clicks,
      hover, focus or dropdown behaviour.
-   - Degrades silently: if the overlay element or targets are missing,
-     nothing happens and the button behaves normally with the native cursor.
+   - Degrades silently: if the overlay element is missing, nothing happens
+     and targets behave normally with the native cursor.
    - Respects prefers-reduced-motion (no follow-smoothing).
 
    See static/css/battle_cursor.css. Isolated feature; safe to remove.
@@ -22,9 +27,9 @@
   if (!fine || !fine.matches) { return; }
 
   var cursor = document.querySelector('.battle-cutlery-cursor');
-  var targets = document.querySelectorAll('.battle-cursor-target, .js-battle-cursor-target');
-  if (!cursor || !targets.length) { return; }   // graceful no-op
+  if (!cursor) { return; }   // graceful no-op
 
+  var SELECTOR = '.battle-cursor-target, .js-battle-cursor-target';
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   // Offset so the SVG centre sits just off the actual click point.
@@ -34,6 +39,7 @@
   var curX = -999, curY = -999;
   var visible = false;
   var rafId = null;
+  var activeEl = null;
 
   function render() {
     rafId = null;
@@ -59,15 +65,14 @@
     }
   }
 
-  function show(e) {
+  function show(el, e) {
     // snap to the pointer on entry so it doesn't streak in from off-screen
     targetX = curX = e.clientX;
     targetY = curY = e.clientY;
     visible = true;
+    activeEl = el;
     cursor.classList.add('is-visible');
-    if (e.currentTarget && e.currentTarget.classList) {
-      e.currentTarget.classList.add('is-battle-cursor-active');
-    }
+    el.classList.add('is-battle-cursor-active');
     schedule();
   }
 
@@ -80,19 +85,32 @@
   function hide() {
     visible = false;
     cursor.classList.remove('is-visible');
-    for (var i = 0; i < targets.length; i++) {
-      targets[i].classList.remove('is-battle-cursor-active');
+    if (activeEl) {
+      activeEl.classList.remove('is-battle-cursor-active');
+      activeEl = null;
     }
   }
 
-  for (var i = 0; i < targets.length; i++) {
-    var t = targets[i];
-    t.addEventListener('pointerenter', show);
-    t.addEventListener('pointermove', move);
-    t.addEventListener('pointerleave', hide);
-    t.addEventListener('pointercancel', hide);
-    t.addEventListener('blur', hide, true);
-  }
+  document.addEventListener('pointerover', function (e) {
+    var el = e.target.closest ? e.target.closest(SELECTOR) : null;
+    if (!el) { return; }
+    if (el.contains(e.relatedTarget)) { return; } // moved within the same target
+    show(el, e);
+  });
+
+  document.addEventListener('pointerout', function (e) {
+    var el = e.target.closest ? e.target.closest(SELECTOR) : null;
+    if (!el) { return; }
+    if (el.contains(e.relatedTarget)) { return; } // moved to a child, not a real leave
+    hide();
+  });
+
+  document.addEventListener('pointermove', function (e) {
+    if (!activeEl) { return; }
+    move(e);
+  });
+
+  document.addEventListener('pointercancel', hide);
   // safety: drop the overlay if the window loses focus mid-hover
   window.addEventListener('blur', hide);
 }());

@@ -34,7 +34,7 @@
             {% if challenge.status == "pending" %}
             <form class="battle-inline-actions" action="{% url 'chef_battle:challenge_respond' challenge.pk %}" method="post">
               {% csrf_token %}
-              <button class="btn-primary" name="action" value="accept" type="submit">Accept</button>
+              <button class="btn-primary battle-cursor-target js-battle-cursor-target" name="action" value="accept" type="submit">Accept</button>
               <button class="btn-secondary" name="action" value="refuse" type="submit">Refuse</button>
             </form>
             {% elif challenge.battle %}
