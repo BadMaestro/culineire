@@ -671,6 +671,26 @@ def battle_home(request):
 _ARENA_ONLINE_THRESHOLD = 180  # seconds — chef counts as online if seen within 3 min
 
 
+def _get_spectators(enrolled_author_ids, limit=40):
+    """Authors with token balance who are not enrolled chefs, up to `limit`."""
+    wallets = (
+        TokenWallet.objects
+        .select_related("chef")
+        .filter(balance__gt=0)
+        .exclude(chef_id__in=enrolled_author_ids)
+        .order_by("-balance")[:limit]
+    )
+    spectators = []
+    for w in wallets:
+        spectators.append({
+            "name": w.chef.name,
+            "slug": w.chef.slug,
+            "avatar_url": w.chef.display_avatar_url,
+            "tokens": w.balance,
+        })
+    return spectators
+
+
 def arena(request):
     active_battles = get_active_battles()
     active_battle = active_battles[0] if active_battles else None
@@ -689,7 +709,9 @@ def arena(request):
     )
 
     chefs_by_rank = {choice.value: [] for choice in ChefBattleProfile.Rank}
+    enrolled_author_ids = set()
     for profile in enrolled:
+        enrolled_author_ids.add(profile.author_id)
         chefs_by_rank[profile.rank].append({
             "name": profile.author.name,
             "slug": profile.author.slug,
@@ -716,11 +738,14 @@ def arena(request):
             },
         }
 
+    spectators = _get_spectators(enrolled_author_ids)
+
     arena_data = {
         "rings": {
             rank.value: chefs_by_rank[rank.value]
             for rank in ChefBattleProfile.Rank
         },
+        "spectators": spectators,
         "center": center,
     }
 
@@ -739,6 +764,7 @@ def arena(request):
 
     return render(request, "chef_battle/arena.html", {
         "rank_groups": rank_groups,
+        "spectator_count": len(spectators),
         "active_battle": active_battle,
         "arena_data": arena_data,
     })
@@ -777,12 +803,16 @@ def arena_state(request):
     )
 
     rings = {choice.value: [] for choice in ChefBattleProfile.Rank}
+    enrolled_author_ids = set()
     for profile in enrolled:
+        enrolled_author_ids.add(profile.author_id)
         rings[profile.rank].append({
             "name": profile.author.name,
             "slug": profile.author.slug,
             "avatar_url": profile.author.display_avatar_url,
             "rank": profile.rank,
+            "rank_label": profile.get_rank_display(),
+            "rating": profile.rating,
             "in_battle": profile.author_id in in_battle_author_ids,
             "is_online": bool(profile.last_seen_at and profile.last_seen_at >= online_cutoff),
         })
@@ -802,7 +832,8 @@ def arena_state(request):
             },
         }
 
-    return JsonResponse({"rings": rings, "center": center})
+    spectators = _get_spectators(enrolled_author_ids)
+    return JsonResponse({"rings": rings, "spectators": spectators, "center": center})
 
 
 @chef_battle_guard

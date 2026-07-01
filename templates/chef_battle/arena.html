@@ -8,7 +8,7 @@
 
 {% block extra_head %}
 <link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">
-<link href="{% static 'css/arena.css' %}?v=20260630a" rel="stylesheet">
+<link href="{% static 'css/arena.css' %}?v=20260701a" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -34,11 +34,16 @@
       <span class="arena-legend__count">{{ chefs|length }}</span>
     </div>
     {% endfor %}
+    <div class="arena-legend__item arena-legend__item--spectator">
+      <span class="arena-legend__swatch"></span>
+      <span class="arena-legend__label">Spectators</span>
+      <span class="arena-legend__count">{{ spectator_count }}</span>
+    </div>
   </div>
 
   <div class="arena-puzzle-container">
     <p class="arena-puzzle-label">Click any chef to view their profile</p>
-    <svg id="arena-puzzle" viewBox="-70 -70 1240 1240" xmlns="http://www.w3.org/2000/svg"
+    <svg id="arena-puzzle" viewBox="-120 -120 1340 1340" xmlns="http://www.w3.org/2000/svg"
          role="img" aria-label="Chef Battles Arena">
       <defs>
         <filter id="arena-cell-shadow" x="-5%" y="-5%" width="110%" height="110%">
@@ -56,5 +61,21 @@
 </div>
 
 {{ arena_data|json_script:"arena-data-json" }}
-<script src="{% static 'js/arena_puzzle.js' %}?v=20260630a"></script>
+
+<div id="arena-tooltip" class="arena-tooltip" hidden aria-live="polite">
+  <button class="arena-tooltip__close" aria-label="Close">&#x2715;</button>
+  <img class="arena-tooltip__avatar" src="" alt="" width="56" height="56">
+  <div class="arena-tooltip__body">
+    <div class="arena-tooltip__name"></div>
+    <div class="arena-tooltip__rank"></div>
+    <div class="arena-tooltip__meta">
+      <span class="arena-tooltip__rating"></span>
+      <span class="arena-tooltip__badge arena-tooltip__badge--battle" hidden>&#9876; In Battle</span>
+      <span class="arena-tooltip__badge arena-tooltip__badge--online" hidden>&#9679; Online</span>
+    </div>
+  </div>
+  <a class="arena-tooltip__link btn-primary" href="#">View Profile</a>
+</div>
+
+<script src="{% static 'js/arena_puzzle.js' %}?v=20260701a"></script>
 {% endblock %}

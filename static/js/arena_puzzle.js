@@ -32,9 +32,10 @@
     6      : [445, 505],
     7      : [505, 560],
     8      : [560, 610],
+    9      : [610, 655],
   };
 
-  var RING_COUNTS = { 1: 6, 2: 10, 3: 14, 4: 18, 5: 22, 6: 26, 7: 30, 8: 34 };
+  var RING_COUNTS = { 1: 6, 2: 10, 3: 14, 4: 18, 5: 22, 6: 26, 7: 30, 8: 34, 9: 40 };
 
   var RING_RANK_KEY = {
     1: 'culinary_master',
@@ -48,8 +49,10 @@
   };
 
   var RING_COLOURS = {
-    chef  : { 8: '#e4ddd1', 7: '#d8d0c0', 6: '#ccc1aa', 5: '#bfb49a', 4: '#a89878', 3: '#8f7c5c', 2: '#73603f', 1: '#5a4a2e' },
-    empty : { 8: '#f4f1ec', 7: '#ede8df', 6: '#e4ddd1', 5: '#d8d0c0', 4: '#ccc1aa', 3: '#bfb49a', 2: '#a89878', 1: '#8f7c5c' },
+    chef       : { 8: '#e4ddd1', 7: '#d8d0c0', 6: '#ccc1aa', 5: '#bfb49a', 4: '#a89878', 3: '#8f7c5c', 2: '#73603f', 1: '#5a4a2e' },
+    empty      : { 8: '#f4f1ec', 7: '#ede8df', 6: '#e4ddd1', 5: '#d8d0c0', 4: '#ccc1aa', 3: '#bfb49a', 2: '#a89878', 1: '#8f7c5c' },
+    spectator  : '#4a6741',
+    spectator_empty: '#d0dace',
   };
 
   /* ------------------------------------------------------------------ */
@@ -152,7 +155,42 @@
     var octPoly = document.getElementById('arena-oct-poly');
     if (!group || !centreG) { return; }
 
-    octPoly.setAttribute('points', octagonPoints(CX, CY, RING_RADII[8][1] + 10));
+    octPoly.setAttribute('points', octagonPoints(CX, CY, RING_RADII[9][1] + 10));
+
+    // Ring 9: spectators (outer ring, different colour scheme)
+    var spectators = data.spectators || [];
+    var s9count = RING_COUNTS[9];
+    var s9inner = RING_RADII[9][0];
+    var s9outer = RING_RADII[9][1];
+    var s9sweep = (2 * Math.PI) / s9count;
+    var s9offset = -Math.PI / 2 - s9sweep / 2;
+
+    for (var si = 0; si < s9count; si++) {
+      var s9start = s9offset + si * s9sweep + GAP / s9outer;
+      var s9end   = s9offset + (si + 1) * s9sweep - GAP / s9outer;
+      var s9path  = ringSegmentPath(CX, CY, s9inner + GAP, s9outer - GAP / 2, s9start, s9end);
+
+      var spec = spectators[si] || null;
+      var s9fill = spec ? RING_COLOURS.spectator : RING_COLOURS.spectator_empty;
+
+      var s9class = 'arena-cell arena-cell--spectator arena-cell--ring-9' + (spec ? ' arena-cell--has-spectator' : '');
+      var s9el = svgEl('path', {
+        d: s9path, fill: s9fill,
+        stroke: '#fff', 'stroke-width': '1.5',
+        filter: 'url(#arena-cell-shadow)',
+        cursor: spec ? 'pointer' : 'default',
+        class: s9class,
+      });
+
+      attachSpectatorEvents(s9el, spec);
+      group.appendChild(s9el);
+
+      if (spec) {
+        appendAvatarToCell(group, spec, s9inner, s9outer, s9start, s9end);
+      } else {
+        addEmptyLabel(group, s9inner, s9outer, s9start, s9end);
+      }
+    }
 
     var rings = [8, 7, 6, 5, 4, 3, 2, 1];
     for (var ri = 0; ri < rings.length; ri++) {
@@ -322,7 +360,7 @@
   }
 
   /* ------------------------------------------------------------------ */
-  /* Ripple + click → chef profile                                       */
+  /* Ripple animation                                                    */
   /* ------------------------------------------------------------------ */
   function fireCellRipple(e) {
     var svg = document.getElementById('arena-puzzle');
@@ -353,13 +391,84 @@
     } catch (err) {}
   }
 
+  /* ------------------------------------------------------------------ */
+  /* Tooltip                                                             */
+  /* ------------------------------------------------------------------ */
+  var _tooltipEl = null;
+
+  function getTooltip() {
+    if (!_tooltipEl) { _tooltipEl = document.getElementById('arena-tooltip'); }
+    return _tooltipEl;
+  }
+
+  function showTooltip(chef, anchorEl) {
+    var tip = getTooltip();
+    if (!tip) { return; }
+
+    tip.querySelector('.arena-tooltip__avatar').src = chef.avatar_url || '';
+    tip.querySelector('.arena-tooltip__avatar').alt = chef.name || '';
+    tip.querySelector('.arena-tooltip__name').textContent = chef.name || '';
+    tip.querySelector('.arena-tooltip__rank').textContent = chef.rank_label || '';
+    tip.querySelector('.arena-tooltip__rating').textContent = 'Rating: ' + (chef.rating || 0);
+    tip.querySelector('.arena-tooltip__link').href = '/chef-battle/profile/' + chef.slug + '/';
+
+    var battleBadge = tip.querySelector('.arena-tooltip__badge--battle');
+    var onlineBadge = tip.querySelector('.arena-tooltip__badge--online');
+    if (battleBadge) { battleBadge.hidden = !chef.in_battle; }
+    if (onlineBadge) { onlineBadge.hidden = !chef.is_online; }
+
+    tip.hidden = false;
+
+    // Position below the SVG cell using its bounding rect
+    var svgEl = document.getElementById('arena-puzzle');
+    var cellRect = anchorEl.getBoundingClientRect();
+    var containerRect = svgEl ? svgEl.getBoundingClientRect() : cellRect;
+    var scrollY = window.scrollY || window.pageYOffset;
+    var scrollX = window.scrollX || window.pageXOffset;
+
+    var tipLeft = cellRect.left + scrollX + (cellRect.width / 2) - (tip.offsetWidth / 2);
+    var tipTop  = cellRect.bottom + scrollY + 8;
+
+    // Keep within viewport horizontally
+    var margin = 8;
+    var maxLeft = scrollX + window.innerWidth - tip.offsetWidth - margin;
+    tipLeft = Math.max(scrollX + margin, Math.min(tipLeft, maxLeft));
+
+    tip.style.left = tipLeft + 'px';
+    tip.style.top  = tipTop + 'px';
+  }
+
+  function hideTooltip() {
+    var tip = getTooltip();
+    if (tip) { tip.hidden = true; }
+  }
+
   function attachCellEvents(el, chef) {
     if (!chef) { return; }
     el.addEventListener('click', function (e) {
+      e.stopPropagation();
       fireCellRipple(e);
-      setTimeout(function () {
-        window.location.href = '/chef-battle/profile/' + chef.slug + '/';
-      }, 220);
+      showTooltip(chef, el);
+    });
+    el.addEventListener('mouseenter', function () { el.setAttribute('opacity', '0.82'); });
+    el.addEventListener('mouseleave', function () { el.removeAttribute('opacity'); });
+  }
+
+  function attachSpectatorEvents(el, spec) {
+    if (!spec) { return; }
+    var spectatorChef = {
+      name: spec.name,
+      slug: spec.slug,
+      avatar_url: spec.avatar_url,
+      rank_label: 'Spectator',
+      rating: spec.tokens + ' tokens',
+      in_battle: false,
+      is_online: false,
+    };
+    el.addEventListener('click', function (e) {
+      e.stopPropagation();
+      fireCellRipple(e);
+      showTooltip(spectatorChef, el);
     });
     el.addEventListener('mouseenter', function () { el.setAttribute('opacity', '0.82'); });
     el.addEventListener('mouseleave', function () { el.removeAttribute('opacity'); });
@@ -412,6 +521,14 @@
       try { data = JSON.parse(el.textContent); } catch (e) {}
     }
     drawArena(data);
+
+    // Dismiss tooltip on outside click
+    document.addEventListener('click', function (e) {
+      var tip = getTooltip();
+      if (tip && !tip.hidden && !tip.contains(e.target)) { hideTooltip(); }
+    });
+    var closeBtn = document.querySelector('.arena-tooltip__close');
+    if (closeBtn) { closeBtn.addEventListener('click', hideTooltip); }
 
     // Start heartbeat immediately then repeat
     pingArena();

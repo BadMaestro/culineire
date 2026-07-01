@@ -41,6 +41,7 @@
 .arena-legend__item--commis_chef .arena-legend__swatch { background: #ccc1aa; }
 .arena-legend__item--prep_cook .arena-legend__swatch { background: #d8d0c0; }
 .arena-legend__item--kitchen_porter .arena-legend__swatch { background: #e4ddd1; }
+.arena-legend__item--spectator .arena-legend__swatch { background: #4a6741; }
 
 .arena-legend__count {
   font-weight: 700;
@@ -78,6 +79,10 @@
   filter: drop-shadow(0 0 6px rgba(200, 148, 42, 0.85));
 }
 
+.arena-cell--has-spectator:hover {
+  opacity: 0.82;
+}
+
 .arena-cell--centre {
   transition: opacity 0.15s ease;
 }
@@ -93,6 +98,102 @@
 @keyframes arena-pulse {
   0%, 100% { opacity: 1; r: 4; }
   50%       { opacity: 0.7; r: 3.5; }
+}
+
+/* ------------------------------------------------------------------ */
+/* Chef tooltip                                                        */
+/* ------------------------------------------------------------------ */
+.arena-tooltip {
+  position: absolute;
+  z-index: 200;
+  background: #fff;
+  border: 1px solid #e0d8c8;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.13);
+  padding: 1rem;
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.arena-tooltip__close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.6rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9c8f80;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0.1rem 0.25rem;
+}
+
+.arena-tooltip__close:hover { color: #3a3028; }
+
+.arena-tooltip__avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e0d8c8;
+  align-self: center;
+}
+
+.arena-tooltip__body {
+  text-align: center;
+}
+
+.arena-tooltip__name {
+  font-family: Georgia, serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #2a2218;
+}
+
+.arena-tooltip__rank {
+  font-size: 0.8rem;
+  color: #8f7c5c;
+  margin-top: 0.15rem;
+}
+
+.arena-tooltip__meta {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.35rem;
+}
+
+.arena-tooltip__rating {
+  font-size: 0.75rem;
+  color: #6b6258;
+}
+
+.arena-tooltip__badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+}
+
+.arena-tooltip__badge--battle {
+  background: rgba(200,148,42,0.15);
+  color: #a07010;
+}
+
+.arena-tooltip__badge--online {
+  background: rgba(34,197,94,0.12);
+  color: #16a34a;
+}
+
+.arena-tooltip__link {
+  display: block;
+  text-align: center;
+  font-size: 0.82rem;
+  padding: 0.45rem 1rem;
 }
 
 @media (max-width: 640px) {
