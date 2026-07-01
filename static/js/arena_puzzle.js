@@ -344,16 +344,23 @@
       lbl2.textContent = 'BATTLE IN PROGRESS';
       g.appendChild(lbl2);
     } else if (center.type === 'crown') {
+      var crownIcon = svgEl('text', {
+        x: CX, y: CY - 22, 'text-anchor': 'middle', 'dominant-baseline': 'middle',
+        'font-size': '20', 'pointer-events': 'none',
+      });
+      crownIcon.textContent = '\u{1F451}';
+      g.appendChild(crownIcon);
+
       var crownLbl = svgEl('text', {
-        x: CX, y: CY - 4, 'text-anchor': 'middle', 'dominant-baseline': 'middle',
+        x: CX, y: CY, 'text-anchor': 'middle', 'dominant-baseline': 'middle',
         fill: '#fff', 'font-family': 'Georgia, serif', 'font-size': '17', 'font-weight': 'bold',
         'pointer-events': 'none',
       });
-      crownLbl.textContent = '\u{1F451} ' + (center.name || '?');
+      crownLbl.textContent = center.name || '?';
       g.appendChild(crownLbl);
 
       var crownLbl2 = svgEl('text', {
-        x: CX, y: CY + 16, 'text-anchor': 'middle', 'dominant-baseline': 'middle',
+        x: CX, y: CY + 19, 'text-anchor': 'middle', 'dominant-baseline': 'middle',
         fill: 'rgba(255,255,255,0.8)', 'font-family': 'Inter, sans-serif', 'font-size': '10',
         'pointer-events': 'none',
       });
