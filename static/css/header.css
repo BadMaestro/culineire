@@ -201,6 +201,11 @@
   align-items: center;
   justify-content: center;
   justify-self: end;
+  position: relative;
+  /* Above the drawer (130) and backdrop (129) so the button stays
+     visible/clickable (as the X) while the drawer is open, instead of
+     being covered by it. */
+  z-index: 131;
   width: 40px;
   height: 40px;
   padding: 0;
