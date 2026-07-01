@@ -215,7 +215,10 @@
         var cellClass = 'arena-cell arena-cell--' + bucket + ' arena-cell--ring-' + ring;
         if (chef && chef.in_battle)  { cellClass += ' arena-cell--in-battle'; }
         if (chef && chef.is_online)  { cellClass += ' arena-cell--online'; }
-        if (chef) { cellClass += ' battle-cursor-target js-battle-cursor-target'; }
+        // Cutlery cursor only on chefs currently in an active battle — owner
+        // scope 2026-07-01: the honing cursor signals a live fight, not every
+        // enrolled chef sitting in the ring.
+        if (chef && chef.in_battle) { cellClass += ' battle-cursor-target js-battle-cursor-target'; }
 
         var pathEl = svgEl('path', {
           d             : path,
