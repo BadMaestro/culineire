@@ -145,11 +145,23 @@ not centered. Verified identical on every hero page at 1920px viewport:
 | Element | Top offset from hero (px) |
 |---------|---------------------------|
 | Kicker (`.pill`), when present | **48px** |
-| H1 (`.hero-title`) | **92px** (or 48px if no kicker, e.g. login/signup) |
+| H1 (`.hero-title`) | **99px** (or 48px if no kicker, e.g. login/signup) |
 
 Subtitle top and button-row top are NOT pixel-fixed — they naturally shift depending
 on how many lines the H1 and subtitle wrap to (content length), which is unavoidable
 without truncating copy text. Only kicker-top and H1-top are guaranteed fixed.
+
+### Equal spacing rhythm — 1rem (16px) between every element (locked 2025-07-01)
+
+Owner ordered identical gaps between kicker → H1 → subtitle → button row.
+Verified 16px between all four on every hero page:
+
+- `.hero-copy > .pill { margin-block-end: 1rem }` — scoped to the hero kicker only
+  (base `.pill` is reused in 40+ non-hero templates; do not touch it)
+- `.hero-title { margin-block-end: 1rem }` (golden group, already hero-scoped)
+- `.hero-subtitle { margin-block-end: 1rem }` (hero-only class)
+- `.hero-copy .hero__actions { padding-block-start: 0 }` — removed the extra
+  1.1rem padding that was stacking on top of the subtitle's own margin
 
 When editing anything under `.hero--has-battle`, always check BOTH `base.css` and
 `chef_battle.css` for the same selector — a fix applied to only one file will silently
