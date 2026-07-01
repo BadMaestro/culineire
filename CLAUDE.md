@@ -231,6 +231,49 @@ because the battle panel does not render for anonymous visitors on any tested pa
 pages** — an H1 near the 900px ceiling could visually overlap the 260px battle
 panel that sits to the right within the 1120px container.
 
+**This rule is desktop-only (>900px).** It does not apply below 900px — see the
+Mobile/Tablet Golden Rule below.
+
+### Mobile/Tablet Golden Rule — fluid, not per-device (locked 2026-07-01)
+
+**All hero golden-rule values above (900px H1 ceiling, 700px container, pill-height
+spacing, etc.) apply to the desktop viewport only.** Below 900px, the hero switches
+to a column layout (`@media (max-width: 900px)` in `base.css` and `chef_battle.css`,
+kept in sync) and uses **fluid** sizing instead: `.hero-title { width: auto;
+max-width: 100%; flex-shrink: 1; }` resets the desktop `width: max-content` /
+`flex-shrink: 0` so H1 wraps and shrinks naturally inside its container at any
+width, instead of a fixed value tied to one device.
+
+**Why fluid, not fixed-per-device:** device screen sizes change every year (new
+iPhone/Galaxy/Pixel models ship annually with different CSS viewport widths) — a
+golden rule pinned to today's exact device widths would need re-locking every time
+a new phone ships, repeating the exact mistake that caused the 2026-07-01 mobile
+overflow bug (the desktop H1 rule was never reset below 900px, so H1 overflowed
+every phone width by up to 370px, text visibly clipped). Fluid sizing (auto-width,
+percentage max-width, shrinkable flex items) works at *any* width in the 320px–900px
+range without needing a new rule per device generation.
+
+**Verified live (DevTools device toolbar) against real 2026 device viewports** on
+all 9 has-battle pages — no H1 overflow on any of them:
+
+| Device | CSS viewport width |
+|--------|---------------------|
+| Samsung Galaxy S24 | 360px |
+| iPhone 17 / 17 Pro | 390–393px |
+| Google Pixel 9 | 412px |
+| iPhone 17 Pro Max | 440px (tested at 430px, same family) |
+
+Tablet range (641–980px, `hero_switcher.css`) and iPad widths (768px iPad Air/Mini,
+1024px iPad Pro) use the existing tablet-specific `max-width`/`em`/`ch`-based rules
+— not yet re-verified live against this specific bug; if a similar overflow is
+found there, apply the same fix (reset `width`/`flex-shrink` to fluid values,
+not a fixed px pinned to one device).
+
+DO NOT replace this fluid rule with fixed per-device breakpoints. If a new device
+class appears with a genuinely different *ratio* (e.g. foldables, very narrow
+smartwatches-as-browsers), extend the fluid range — do not add a device-specific
+exception.
+
 ## Hero Image Positioning — LOCKED. DO NOT TOUCH WITHOUT EXPLICIT OWNER PERMISSION.
 
 The `object-position` of all hero background images is **permanently locked** at
