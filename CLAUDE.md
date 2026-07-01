@@ -107,7 +107,7 @@ Any agent that changes these values without an explicit owner instruction will b
 | Nav buttons | `height` | `44px` | 44px |
 | Nav buttons | `gap` | `0.65rem` | — |
 | Dot switcher | `bottom` | `1rem` | — |
-| Hero copy (with battle) | `max-width` | `560px` | — |
+| Hero copy (with battle) | `max-width` | `700px` | — |
 
 **Locked files for hero layout:**
 
@@ -119,6 +119,24 @@ Any agent that changes these values without an explicit owner instruction will b
 Do NOT add new `min-height`, `padding-block`, `font-size`, or `max-width` overrides
 on hero selectors without owner approval. If something looks broken, diagnose the
 cause — do not adjust these values to compensate.
+
+### Applies to ALL `.hero--has-battle` pages, not just the homepage
+
+Every listing/utility hero (`/pinch/`, `/recipes/`, `/articles/`, `/news/`,
+`/sponsors/`, `/messages/contact/`, `/accounts/login/`, `/accounts/signup/`) carries
+the same `hero hero--home hero--{variant} hero--has-battle` class set as the
+homepage, and shares the SAME `base.css` rules above. There is no per-page hero
+layout override at desktop width — `.hero--{variant}` classes only touch
+`object-position` and mobile (`max-width: 640px`) breakpoints. Do not add
+page-specific `padding-block`, `font-size`, or `max-width` rules for these pages;
+any layout fix belongs in the shared `.hero--home` / `.hero--has-battle` rules in
+`base.css` so every page inherits it identically.
+
+Vertical position of the kicker/H1/subtitle stack is intentionally **centered**
+inside the hero (`.hero__inner { align-items: center }`), so its absolute pixel
+offset naturally shifts a few px between pages depending on kicker/subtitle text
+length (1 vs 2 lines). This is expected content-driven variance, not misalignment
+— do not chase pixel-perfect vertical parity by adding per-page overrides.
 
 ## Hero Image Positioning — LOCKED. DO NOT TOUCH WITHOUT EXPLICIT OWNER PERMISSION.
 

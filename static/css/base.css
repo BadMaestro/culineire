@@ -5232,7 +5232,7 @@
   text-align: left;
   align-items: flex-start;
   margin-inline: 0;
-  max-width: 560px; /* LOCKED — measured at 691px rendered width with this cap */
+  max-width: 700px; /* LOCKED — matches golden homepage hero-copy width. DO NOT CHANGE. */
 }
 .hero--has-battle .hero-title,
 .hero--has-battle .hero-subtitle,
