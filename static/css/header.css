@@ -193,29 +193,30 @@
 }
 
 .ce-nav__toggle {
+  /* Lighter, calmer toggle — owner 2026-07-01: previous version (solid
+     border + filled background box) read as too heavy/bulky. No border,
+     no resting background; just the icon until the user interacts. */
   display: inline-flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   justify-self: end;
-  width: 46px;
-  height: 46px;
+  width: 40px;
+  height: 40px;
   padding: 0;
-  border: 1px solid rgb(31 44 37 / 0.16);
+  border: none;
   border-radius: 12px;
-  background: rgb(31 44 37 / 0.08);
+  background: transparent;
   color: #1f2c25;
   cursor: pointer;
   transition:
     background-color 0.2s ease,
-    border-color 0.2s ease,
     transform 0.18s ease;
 }
 
 .ce-nav__toggle:hover,
 .ce-nav__toggle:focus-visible {
-  background: rgb(31 44 37 / 0.12);
-  border-color: rgb(31 44 37 / 0.22);
+  background: rgb(31 44 37 / 0.06);
 }
 
 .ce-nav__toggle:active {
@@ -224,11 +225,12 @@
 
 .ce-nav__toggle span {
   display: block;
-  width: 18px;
-  height: 2px;
-  margin: 2px 0;
+  width: 16px;
+  height: 1.5px;
+  margin: 2.25px 0;
   border-radius: 999px;
   background: currentColor;
+  opacity: 0.82;
   transition:
     opacity 0.2s ease,
     transform 0.2s ease;
@@ -236,18 +238,50 @@
 
 .ce-nav {
   display: none;
-  grid-column: 1 / -1;
   gap: 0.8rem;
   min-width: 0;
   width: 100%;
-  margin: 0 0 0.85rem;
   padding: 0.4rem 1rem 0.75rem;
-  background: rgb(31 44 37 / 0.06);
+  background: #ebe2d5;
   border-top: 1px solid rgb(31 44 37 / 0.12);
 }
 
 .ce-nav--open {
+  /* Overlay, not inline expansion — owner 2026-07-01: opening the menu
+     used to switch this to display:grid IN the header's normal layout
+     flow, which pushed the hero and everything below it down the page
+     ("bulldozer" effect) every time it opened/closed. Positioned
+     absolute so it floats on top of the page instead of displacing it;
+     .ce-header (its containing block) already has position:relative. */
   display: grid;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 130;
+  max-height: calc(100vh - 100%);
+  overflow-y: auto;
+  box-shadow: 0 12px 24px rgb(31 44 37 / 0.18);
+  padding: 0.35rem 1rem 0.5rem;
+  gap: 0.5rem;
+}
+
+/* Compact rows — owner 2026-07-01: fixing the "bulldozer" push still
+   left a visually oversized panel (44px-tall rows, 0.7rem padding,
+   0.45rem gaps => ~440px for 8 links, close to a full phone screen).
+   Scoped to .ce-nav--open only, so the always-visible desktop nav
+   (min-width:1280px, styled separately) is untouched. */
+.ce-nav--open .ce-nav__menu,
+.ce-nav--open .ce-nav__auth {
+  gap: 0.1rem;
+}
+.ce-nav--open .ce-nav__link,
+.ce-nav--open .ce-nav__text,
+.ce-nav--open .ce-nav__status,
+.ce-nav--open .ce-nav__button {
+  min-height: 36px;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.95rem;
 }
 
 .ce-nav__menu,
@@ -1093,8 +1127,8 @@
   }
 
   .ce-nav__toggle {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
   }
 
   .ce-nav {
@@ -1133,7 +1167,7 @@
   }
 
   .ce-nav__toggle {
-    border-color: ButtonText;
+    border: 1px solid ButtonText; /* base rule sets border:none for the calmer look — high-contrast mode still needs a visible boundary */
     color: ButtonText;
   }
 

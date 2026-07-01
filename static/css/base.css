@@ -2373,39 +2373,19 @@
       line-height: 1.66;
     }
 
-    /* Hero burger menu on mobile */
-    .hero__burger {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 52px;
-      height: 52px;
-      background: rgba(247, 242, 234, 0.12);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border: 1.5px solid rgba(255, 255, 255, 0.22);
-      border-radius: 14px;
-      color: #fff;
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: background 0.18s ease, border-color 0.18s ease;
-    }
-
-    .hero__burger:hover,
-    .hero__burger[aria-expanded="true"] {
-      background: rgba(247, 242, 234, 0.22);
-      border-color: rgba(255, 255, 255, 0.38);
-    }
-
-    .hero__actions-list {
+    /* Hero quick-links removed from mobile ONLY on pages that use the
+       burger+collapsible-list pattern (home, pinch, recipes, articles,
+       news, sponsors, login, signup) — owner: two burger toggles on one
+       screen (header nav + hero burger) was confusing overload, and
+       these 4 links (Pinch/Explore Recipes/Read Articles/Sponsors) are
+       already a subset of the header's full nav (Pinch/Recipes/Articles/
+       Chef Battle/News/Sponsors/Contact), which stays as the single
+       mobile nav toggle. Scoped with :has() so it does NOT affect
+       messaging/contact.html, which has no burger and whose links
+       (Send a Message anchor, Legal Hub, Report Content) are NOT in the
+       header nav. LOCKED 2026-07-01. */
+    .hero__actions:has(.hero__burger) {
       display: none;
-      flex-direction: column;
-      gap: 0.65rem;
-      width: 100%;
-    }
-
-    .hero__actions.is-open .hero__actions-list {
-      display: flex;
     }
 
     .hero__actions {
