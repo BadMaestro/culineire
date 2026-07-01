@@ -1341,7 +1341,13 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
     align-items: stretch;
   }
 
-  .hero--has-battle .hero-copy {
+  .hero--has-battle .hero-copy,
+  .hero--home.hero--has-battle .hero-copy {
+    /* Specificity matched to base.css's competing desktop rule
+       (.hero--home.hero--has-battle .hero-copy, 3 classes), which
+       otherwise wins globally across the whole cascade regardless of
+       this file loading after base.css — specificity beats source
+       order. Must stay in sync with the matching fix in base.css. */
     text-align: center;
     align-items: center;
     max-width: 100%;
@@ -1349,7 +1355,9 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
   }
 
   .hero--has-battle .hero-title,
-  .hero--has-battle .hero-subtitle {
+  .hero--has-battle .hero-subtitle,
+  .hero--home.hero--has-battle .hero-title,
+  .hero--home.hero--has-battle .hero-subtitle {
     text-align: center;
   }
 
