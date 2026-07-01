@@ -13,10 +13,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveIndex(
-            model_name='pinchcomment',
-            name='amuse_bouch_amuse_b_61b343_idx',
-        ),
         migrations.RenameIndex(
             model_name='pinch',
             new_name='pinch_pinch_status_646951_idx',
