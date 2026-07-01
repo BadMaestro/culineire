@@ -1882,7 +1882,7 @@
   .hero-subtitle {
     max-width: 95ch;
     margin: 0 auto;
-    margin-block-end: 9.4px; /* LOCKED — compensated for this element's own half-leading (line-height:1.78 bakes ~6.6px of invisible padding above/below the glyphs into the box) so the TRUE visible gap to the next element is 16px. See golden hero group. */
+    margin-block-end: 64.2px; /* LOCKED — visible gap (subtitle -> buttons) must equal DOUBLE the kicker pill's height (2 x 35.41 = 70.82px), compensated for this element's own ~6.6px bottom leading (line-height:1.78): 70.82 - 6.61 = 64.2px. See golden hero group. */
     font-size: 1.06rem;
     line-height: 1.78;
     color: rgb(247 242 234 / 0.96);
@@ -5122,27 +5122,26 @@
   min-height: clamp(320px, 44vw, 480px); /* → 480px at 1920px. LOCKED. */
 }
 .hero--home:not(.hero--recipe-detail):not(.hero--about) .hero__inner {
-  padding-block: clamp(1.8rem, 4vw, 3rem); /* → 48px at 1920px. LOCKED. */
+  padding-block: clamp(1.8rem, 4vw, 49px); /* → 49px at 1920px = 17mm on owner's calibrated monitor (1920x1080, 72x43cm, measured 49px == 17mm with a physical ruler). LOCKED. */
 }
 
 /* ── Group 1.3: Consistent h1 size on listing heroes ── */
 .hero--home:not(.hero--recipe-detail):not(.hero--about) .hero-title {
   font-size: clamp(2rem, 3.4vw, 3.2rem); /* → 51.2px at 1920px. LOCKED. */
-  margin-block-end: 8.9px; /* LOCKED — equal VISIBLE spacing rhythm. Raw margin alone (1rem/16px) looked equal in the box model but not to the eye: H1's own line-height leaves ~0.5px of invisible leading, but hero-subtitle's line-height:1.78 bakes in ~6.6px of invisible leading above its text. This value is 16px minus both of those, so the true visible gap to the subtitle is 16px. DO NOT CHANGE WITHOUT OWNER ORDER. */
+  margin-block-end: 28.3px; /* LOCKED — visible gap (H1 -> subtitle) must equal the kicker pill's own height (35.41px), compensated for H1's ~0.5px bottom leading and hero-subtitle's ~6.6px top leading: 35.41 - 0.51 - 6.61 = 28.3px. DO NOT CHANGE WITHOUT OWNER ORDER. */
 }
 
-/* ⛔ LOCKED — GOLDEN RULE: equal VISIBLE gap rhythm (not just equal margin).
-   Kicker → H1 → subtitle → actions were first measured with uneven raw
-   margins (9px / 12px / 22px), equalized to 1rem/16px margins — but that
-   still produced uneven VISIBLE gaps (~16.5px / ~23px / ~22.6px) because each
-   element's own line-height bakes a different amount of invisible leading
-   into its box (H1 ~0.5px, hero-subtitle ~6.6px, pill/buttons 0px since their
-   background fills the box). Margins below are individually compensated so
-   the true visible whitespace is 16px at every transition. Scoped to the hero
-   kicker only (`.pill` is reused site-wide in 40+ other templates, so the
-   base `.pill` rule must NOT change). DO NOT CHANGE WITHOUT OWNER ORDER. */
+/* ⛔ LOCKED — GOLDEN RULE: gap sizes are pill-height-relative, not a flat
+   value. Owner ordered: gap(pill->H1) = gap(H1->subtitle) = pill's own
+   rendered height (35.41px); gap(subtitle->buttons) = DOUBLE the pill's
+   height (70.82px). Margins below are individually compensated for each
+   element's own line-height leading (H1 ~0.5px, hero-subtitle ~6.6px,
+   pill/buttons 0px since their background fills the box) so the TRUE
+   VISIBLE gap hits these targets exactly. Scoped to the hero kicker only
+   (`.pill` is reused site-wide in 40+ other templates, so the base `.pill`
+   rule must NOT change). DO NOT CHANGE WITHOUT OWNER ORDER. */
 .hero-copy > .pill {
-  margin-block-end: 15.5px;
+  margin-block-end: 34.9px;
 }
 
 /* ── Group 1.4: Consistent CTA gap on listing heroes ── */
