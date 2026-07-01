@@ -5221,7 +5221,7 @@
 /* ⛔ LOCKED — hero when battle widget is active. DO NOT CHANGE WITHOUT OWNER ORDER. */
 .hero--has-battle .hero__inner {
   flex-direction: row; /* LOCKED */
-  align-items: center;
+  align-items: flex-start; /* LOCKED — top-anchored so kicker/H1/subtitle/buttons land at the same pixel offset on every hero page, regardless of copy length */
   justify-content: space-between;
   gap: 1.5rem;
 }
