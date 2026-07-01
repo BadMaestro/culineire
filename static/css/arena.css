@@ -215,15 +215,19 @@
 }
 
 .arena-tooltip__link {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   font-size: 0.82rem;
   font-weight: 600;
-  padding: 0.52rem 1rem;
+  height: 2.2rem;
+  padding: 0 1rem;
   border-radius: 999px;
   background: #c8942a;
   color: #fff !important;
   text-decoration: none;
+  line-height: 1;
   transition: background 0.18s;
 }
 
