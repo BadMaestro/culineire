@@ -5134,6 +5134,20 @@
   margin-block-end: 28.3px; /* LOCKED — visible gap (H1 -> subtitle) must equal the kicker pill's own height (35.41px), compensated for H1's ~0.5px bottom leading and hero-subtitle's ~6.6px top leading: 35.41 - 0.51 - 6.61 = 28.3px. DO NOT CHANGE WITHOUT OWNER ORDER. */
 }
 
+/* ── Group 1.3b: Pin button-row offset — reserve worst-case H1/subtitle
+   height so the row sits at the same distance from the hero top on every
+   page, instead of floating based on how many lines this page's copy
+   wraps to. Desktop only (>640px) — mobile hero uses different font
+   sizes/line-heights and is handled separately. LOCKED. ── */
+@media (min-width: 641px) {
+  .hero--home:not(.hero--recipe-detail):not(.hero--about) .hero-title {
+    min-height: 104.448px; /* 2 lines x 52.224px line-height — longest H1 wrap seen across the 8 pages (homepage). DO NOT CHANGE WITHOUT OWNER ORDER. */
+  }
+  .hero--home:not(.hero--recipe-detail):not(.hero--about) .hero-subtitle {
+    min-height: 90.5664px; /* 3 lines x 30.1888px line-height — longest subtitle wrap seen across the 8 pages (recipes, sponsors). DO NOT CHANGE WITHOUT OWNER ORDER. */
+  }
+}
+
 /* ⛔ LOCKED — GOLDEN RULE: gap sizes are pill-height-relative, not a flat
    value. Owner ordered: gap(pill->H1) = gap(H1->subtitle) = pill's own
    rendered height (35.41px); gap(subtitle->buttons) = DOUBLE the pill's
