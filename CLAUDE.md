@@ -112,6 +112,7 @@ Any agent that changes these values without an explicit owner instruction will b
 | H1 (with battle) | `width` | `max-content` | — |
 | H1 (with battle) | `max-width` | `900px` | — |
 | H1 (with battle) | `flex-shrink` | `0` | — |
+| Peek button (`.hero-peek-btn`, "Photo") | `top` | `clamp(1.8rem, 4vw, 49px)` | **49px** — same offset as kicker's top offset from hero |
 
 **Locked files for hero layout:**
 
