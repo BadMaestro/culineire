@@ -755,18 +755,26 @@ def arena(request):
     ]
 
     # Update last_seen_at for the authenticated viewer
+    viewer_author = None
+    user_enrolled = False
     if request.user.is_authenticated:
-        author = get_author_for_user(request.user)
-        if author:
+        viewer_author = get_author_for_user(request.user)
+        if viewer_author:
             ChefBattleProfile.objects.filter(
-                author=author, enrolled_at__isnull=False
+                author=viewer_author, enrolled_at__isnull=False
             ).update(last_seen_at=timezone.now())
+            try:
+                user_enrolled = bool(viewer_author.battle_profile.enrolled_at)
+            except ChefBattleProfile.DoesNotExist:
+                user_enrolled = False
 
     return render(request, "chef_battle/arena.html", {
         "rank_groups": rank_groups,
         "spectator_count": len(spectators),
         "active_battle": active_battle,
         "arena_data": arena_data,
+        "viewer_author": viewer_author,
+        "user_enrolled": user_enrolled,
     })
 
 

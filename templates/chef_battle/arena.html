@@ -19,6 +19,17 @@
     <p class="battle-room-hero__sub">Every enrolled chef, ranked by tier around the ring. The active battle burns at the centre.</p>
     <div class="battle-actions">
       <a class="btn-primary" href="{% url 'chef_battle:home' %}">Back to Chef Battles</a>
+      {% if viewer_author and not user_enrolled %}
+      <a class="ce-nav__link ce-nav__link--battle battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:chef_enroll' %}">
+        <span class="chef-battle-cta__icon" aria-hidden="true"><svg fill="none" height="15" viewBox="0 0 24 24" width="15" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span>
+        <span class="chef-battle-cta__label">Join Chef Battles</span>
+      </a>
+      {% elif viewer_author %}
+      <a class="ce-nav__link ce-nav__link--battle battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:challenge_create' %}">
+        <span class="chef-battle-cta__icon" aria-hidden="true"><svg fill="none" height="15" viewBox="0 0 24 24" width="15" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5L3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="M2 2l20 20"/><path d="M3 14l6 6"/><path d="M14 3l7 7"/></svg></span>
+        <span class="chef-battle-cta__label">Issue a Challenge</span>
+      </a>
+      {% endif %}
       <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">All-Time Rankings</a>
     </div>
   </div>
