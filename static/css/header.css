@@ -193,29 +193,30 @@
 }
 
 .ce-nav__toggle {
+  /* Lighter, calmer toggle — owner 2026-07-01: previous version (solid
+     border + filled background box) read as too heavy/bulky. No border,
+     no resting background; just the icon until the user interacts. */
   display: inline-flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   justify-self: end;
-  width: 46px;
-  height: 46px;
+  width: 40px;
+  height: 40px;
   padding: 0;
-  border: 1px solid rgb(31 44 37 / 0.16);
+  border: none;
   border-radius: 12px;
-  background: rgb(31 44 37 / 0.08);
+  background: transparent;
   color: #1f2c25;
   cursor: pointer;
   transition:
     background-color 0.2s ease,
-    border-color 0.2s ease,
     transform 0.18s ease;
 }
 
 .ce-nav__toggle:hover,
 .ce-nav__toggle:focus-visible {
-  background: rgb(31 44 37 / 0.12);
-  border-color: rgb(31 44 37 / 0.22);
+  background: rgb(31 44 37 / 0.06);
 }
 
 .ce-nav__toggle:active {
@@ -224,11 +225,12 @@
 
 .ce-nav__toggle span {
   display: block;
-  width: 18px;
-  height: 2px;
-  margin: 2px 0;
+  width: 16px;
+  height: 1.5px;
+  margin: 2.25px 0;
   border-radius: 999px;
   background: currentColor;
+  opacity: 0.82;
   transition:
     opacity 0.2s ease,
     transform 0.2s ease;
@@ -1093,8 +1095,8 @@
   }
 
   .ce-nav__toggle {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
   }
 
   .ce-nav {
@@ -1133,7 +1135,7 @@
   }
 
   .ce-nav__toggle {
-    border-color: ButtonText;
+    border: 1px solid ButtonText; /* base rule sets border:none for the calmer look — high-contrast mode still needs a visible boundary */
     color: ButtonText;
   }
 
