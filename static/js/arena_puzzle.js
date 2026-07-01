@@ -378,7 +378,7 @@
       circle.setAttribute('pointer-events', 'none');
       svg.appendChild(circle);
 
-      var MAX_R = 90, DURATION = 380, start = null;
+      var MAX_R = 110, DURATION = 420, start = null;
       function step(ts) {
         if (!start) { start = ts; }
         var progress = Math.min((ts - start) / DURATION, 1);

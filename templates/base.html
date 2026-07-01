@@ -63,14 +63,14 @@
 <style>
 .battle-blast { position:fixed; inset:0; z-index:10000; pointer-events:none; display:flex; align-items:center; justify-content:center; }
 .battle-blast.is-active { pointer-events:auto; }
-.battle-blast__wave { position:absolute; width:0; height:0; border-radius:50%; background:transparent; border:6px solid rgba(109,206,143,.0); transform:translate(-50%,-50%); top:50%; left:50%; }
+.battle-blast__wave { position:absolute; width:0; height:0; border-radius:50%; background:transparent; border:6px solid rgba(200,148,42,.0); transform:translate(-50%,-50%); top:50%; left:50%; }
 .battle-blast.is-active .battle-blast__wave { animation:blast-ring 1.4s cubic-bezier(.22,.61,.36,1) forwards; }
 @keyframes blast-ring {
-  0%   { width:0; height:0; border-color:rgba(109,206,143,.85); border-width:10px; }
-  60%  { border-color:rgba(109,206,143,.25); border-width:4px; }
-  100% { width:200vmax; height:200vmax; border-color:rgba(109,206,143,.0); border-width:2px; }
+  0%   { width:0; height:0; border-color:rgba(200,148,42,.85); border-width:10px; }
+  60%  { border-color:rgba(200,148,42,.25); border-width:4px; }
+  100% { width:200vmax; height:200vmax; border-color:rgba(200,148,42,.0); border-width:2px; }
 }
-.battle-blast__card { position:relative; background:#fff; border:2px solid #6dce8f; border-radius:18px; box-shadow:0 12px 48px rgba(40,34,30,.18); padding:1.8rem 2.4rem; text-align:center; max-width:340px; width:90%; opacity:0; transform:scale(.88); transition:opacity .35s ease, transform .35s ease; }
+.battle-blast__card { position:relative; background:#fff; border:2px solid #c8942a; border-radius:18px; box-shadow:0 12px 48px rgba(40,34,30,.18); padding:1.8rem 2.4rem; text-align:center; max-width:340px; width:90%; opacity:0; transform:scale(.88); transition:opacity .35s ease, transform .35s ease; }
 .battle-blast.is-active .battle-blast__card { opacity:1; transform:scale(1); }
 .battle-blast__badge { font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#1a6b3a; background:#d6f5e0; border-radius:99px; padding:.18rem .7rem; display:inline-block; margin-bottom:.6rem; }
 .battle-blast__title { font-family:var(--font-serif); font-size:1.5rem; font-weight:700; color:#28221e; margin:.0 0 .3rem; }
