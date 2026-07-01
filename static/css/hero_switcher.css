@@ -143,6 +143,14 @@
   .hero--home .hero__inner {
     padding-block-end: 3.2rem;
   }
+
+  /* Carousel switcher not needed on mobile — owner request 2026-07-01.
+     It was also overlapping the hero burger button (both land near the
+     hero's vertical/horizontal center once the mobile centering fix
+     landed). LOCKED. */
+  .hero--home .hero__switcher {
+    display: none;
+  }
 }
 
 @media (min-width: 641px) and (max-width: 980px) {
