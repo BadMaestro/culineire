@@ -109,6 +109,9 @@ Any agent that changes these values without an explicit owner instruction will b
 | Dot switcher | `bottom` | `1rem` | — |
 | Hero copy (with battle) | `max-width` | `700px` | — |
 | `.hero__inner` (with battle) | `align-items` | `flex-start` (top-anchored) | — |
+| H1 (with battle) | `width` | `max-content` | — |
+| H1 (with battle) | `max-width` | `900px` | — |
+| H1 (with battle) | `flex-shrink` | `0` | — |
 
 **Locked files for hero layout:**
 
@@ -151,6 +154,25 @@ without truncating copy text. Only kicker-top and H1-top are guaranteed fixed.
 When editing anything under `.hero--has-battle`, always check BOTH `base.css` and
 `chef_battle.css` for the same selector — a fix applied to only one file will silently
 lose the cascade on pages where the other file loads later.
+
+### H1 golden rule — 900px width ceiling (locked 2025-07-01)
+
+Owner measured the rendered H1 width on `/sponsors/` with draggable on-page guides
+and fixed **900px** as the golden H1 width ceiling — H1 must not wrap to a second
+line just because its parent (`hero-copy`, capped at 700px) is narrower than the
+text needs, as long as the text fits within 900px.
+
+Implementation: `.hero--has-battle .hero-title { width: max-content; max-width: 900px; flex-shrink: 0; }`
+in `base.css`. `max-width` alone does not work here — with `flex-basis: auto` inside
+a column flex parent, the browser computes the item's preferred width from the
+already-constrained 700px container and never attempts a wider layout. `width: max-content`
+is required to size the box to its unwrapped text (up to the 900px cap).
+
+This lets H1 overflow past hero-copy's 700px box by design. No visual clash today
+because the battle panel does not render for anonymous visitors on any tested page.
+**Re-check this the moment the battle panel ships for logged-in users on these
+pages** — an H1 near the 900px ceiling could visually overlap the 260px battle
+panel that sits to the right within the 1120px container.
 
 ## Hero Image Positioning — LOCKED. DO NOT TOUCH WITHOUT EXPLICIT OWNER PERMISSION.
 
