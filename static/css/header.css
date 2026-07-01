@@ -238,18 +238,30 @@
 
 .ce-nav {
   display: none;
-  grid-column: 1 / -1;
   gap: 0.8rem;
   min-width: 0;
   width: 100%;
-  margin: 0 0 0.85rem;
   padding: 0.4rem 1rem 0.75rem;
-  background: rgb(31 44 37 / 0.06);
+  background: #ebe2d5;
   border-top: 1px solid rgb(31 44 37 / 0.12);
 }
 
 .ce-nav--open {
+  /* Overlay, not inline expansion — owner 2026-07-01: opening the menu
+     used to switch this to display:grid IN the header's normal layout
+     flow, which pushed the hero and everything below it down the page
+     ("bulldozer" effect) every time it opened/closed. Positioned
+     absolute so it floats on top of the page instead of displacing it;
+     .ce-header (its containing block) already has position:relative. */
   display: grid;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 130;
+  max-height: calc(100vh - 100%);
+  overflow-y: auto;
+  box-shadow: 0 12px 24px rgb(31 44 37 / 0.18);
 }
 
 .ce-nav__menu,
