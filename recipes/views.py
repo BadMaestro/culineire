@@ -880,7 +880,7 @@ def recipe_list(request):
         "page_heading": (
             "Recipe Collection"
             if selected_author
-            else "Explore The Recipe Collection"
+            else "Explore The Full Irish Recipe Collection, Old And New"
         ),
         "page_subtitle": (
             "Irish classics, seasonal dishes and home-kitchen favourites from the CulinEire Kitchen."

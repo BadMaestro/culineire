@@ -5119,7 +5119,30 @@
 /* ── Group 1.1 / 1.2: Unified listing hero height & inner padding ── */
 /* ⛔ LOCKED LAYOUT — measured live 2025-07-01 @ 1920px. DO NOT CHANGE WITHOUT OWNER ORDER. */
 .hero--home:not(.hero--recipe-detail):not(.hero--about) {
-  min-height: clamp(320px, 44vw, 503px); /* → 503px at 1920px (was 480px; +23px to fit the switcher spacing rule below without overflow). LOCKED. */
+  min-height: clamp(320px, 44vw, 503px); /* → 503px at 1920px (was 480px; +23px to fit the switcher spacing rule below without overflow). Applies site-wide to every hero--home page (legal, moderation, monitoring, etc.), not just the 9 nav-button pages below. LOCKED. */
+}
+
+/* ── Group 1.1b: Extra height for the 9 nav-button pages only ──
+   These 9 pages (marked with explicit .hero--index/.hero--pinch/etc.
+   classes) carry the pinned button row (Group 1.3b) + homepage's
+   carousel switcher, which need more room than the site-wide 503px.
+   Scoped narrowly so it does NOT leak onto legal/moderation/monitoring/
+   collection/chef_battle/etc. pages that also carry .hero--home but
+   have no button row to pin. LOCKED. ── */
+.hero--home.hero--index:not(.hero--recipe-detail):not(.hero--about),
+.hero--home.hero--pinch:not(.hero--recipe-detail):not(.hero--about),
+.hero--home.hero--recipes:not(.hero--recipe-detail):not(.hero--about),
+.hero--home.hero--articles:not(.hero--recipe-detail):not(.hero--about),
+.hero--home.hero--news:not(.hero--recipe-detail):not(.hero--about),
+.hero--home.hero--sponsors:not(.hero--recipe-detail):not(.hero--about),
+.hero--home.hero--contact:not(.hero--recipe-detail):not(.hero--about),
+.hero--home.hero--signin:not(.hero--recipe-detail):not(.hero--about),
+.hero--home.hero--signup:not(.hero--recipe-detail):not(.hero--about) {
+  /* Specificity intentionally matched to the Group 1.1 rule above (3
+     classes: .hero--home + 2x :not()) via the redundant, always-true
+     :not() clauses, so this later rule wins the cascade instead of
+     silently losing to the broader one on specificity. */
+  min-height: clamp(320px, 44vw, 533.39px); /* → 533.39px at 1920px (was 503px; +30.39px because the button-row-pinning fix (Group 1.3b) moved the CTA row down to 371.39px, eating into the switcher's reserved 35.41px gap + 33.59px height + 49px bottom gap). LOCKED. */
 }
 .hero--home:not(.hero--recipe-detail):not(.hero--about) .hero__inner {
   padding-block: clamp(1.8rem, 4vw, 49px); /* → 49px at 1920px = 17mm on owner's calibrated monitor (1920x1080, 72x43cm, measured 49px == 17mm with a physical ruler). LOCKED. */
@@ -5140,11 +5163,27 @@
    wraps to. Desktop only (>640px) — mobile hero uses different font
    sizes/line-heights and is handled separately. LOCKED. ── */
 @media (min-width: 641px) {
-  .hero--home:not(.hero--recipe-detail):not(.hero--about) .hero-title {
-    min-height: 104.448px; /* 2 lines x 52.224px line-height — longest H1 wrap seen across the 8 pages (homepage). DO NOT CHANGE WITHOUT OWNER ORDER. */
+  .hero--home.hero--index:not(.hero--recipe-detail):not(.hero--about) .hero-title,
+  .hero--home.hero--pinch:not(.hero--recipe-detail):not(.hero--about) .hero-title,
+  .hero--home.hero--recipes:not(.hero--recipe-detail):not(.hero--about) .hero-title,
+  .hero--home.hero--articles:not(.hero--recipe-detail):not(.hero--about) .hero-title,
+  .hero--home.hero--news:not(.hero--recipe-detail):not(.hero--about) .hero-title,
+  .hero--home.hero--sponsors:not(.hero--recipe-detail):not(.hero--about) .hero-title,
+  .hero--home.hero--contact:not(.hero--recipe-detail):not(.hero--about) .hero-title,
+  .hero--home.hero--signin:not(.hero--recipe-detail):not(.hero--about) .hero-title,
+  .hero--home.hero--signup:not(.hero--recipe-detail):not(.hero--about) .hero-title {
+    min-height: 104.448px; /* 2 lines x 52.224px line-height — longest H1 wrap seen across these 9 pages (homepage). Scoped to the 9 nav-button pages only — NOT the other 30+ hero--home pages (legal, moderation, etc.) which have no button row to pin. DO NOT CHANGE WITHOUT OWNER ORDER. */
   }
-  .hero--home:not(.hero--recipe-detail):not(.hero--about) .hero-subtitle {
-    min-height: 90.5664px; /* 3 lines x 30.1888px line-height — longest subtitle wrap seen across the 8 pages (recipes, sponsors). DO NOT CHANGE WITHOUT OWNER ORDER. */
+  .hero--home.hero--index:not(.hero--recipe-detail):not(.hero--about) .hero-subtitle,
+  .hero--home.hero--pinch:not(.hero--recipe-detail):not(.hero--about) .hero-subtitle,
+  .hero--home.hero--recipes:not(.hero--recipe-detail):not(.hero--about) .hero-subtitle,
+  .hero--home.hero--articles:not(.hero--recipe-detail):not(.hero--about) .hero-subtitle,
+  .hero--home.hero--news:not(.hero--recipe-detail):not(.hero--about) .hero-subtitle,
+  .hero--home.hero--sponsors:not(.hero--recipe-detail):not(.hero--about) .hero-subtitle,
+  .hero--home.hero--contact:not(.hero--recipe-detail):not(.hero--about) .hero-subtitle,
+  .hero--home.hero--signin:not(.hero--recipe-detail):not(.hero--about) .hero-subtitle,
+  .hero--home.hero--signup:not(.hero--recipe-detail):not(.hero--about) .hero-subtitle {
+    min-height: 90.5664px; /* 3 lines x 30.1888px line-height — longest subtitle wrap seen across these 9 pages (recipes, sponsors). Scoped the same way as the H1 rule above. DO NOT CHANGE WITHOUT OWNER ORDER. */
   }
 }
 
@@ -5159,6 +5198,19 @@
    rule must NOT change). DO NOT CHANGE WITHOUT OWNER ORDER. */
 .hero-copy > .pill {
   margin-block-end: 34.9px;
+}
+
+/* ── Group 1.3c: Kicker-less pages (login, signup) — compensate for the
+   missing pill so the H1/button-row offsets still land on the same
+   golden values as every kicker-having page. Reserved space = pill
+   height (35.41px) + its margin-block-end (34.9px) = 70.31px. Desktop
+   only (>640px) — mobile hero uses its own smaller font sizes and
+   this fixed px value was never checked against them. LOCKED. ── */
+@media (min-width: 641px) {
+  .hero--home.hero--signin:not(.hero--recipe-detail):not(.hero--about) .hero-copy > .hero-title:first-child,
+  .hero--home.hero--signup:not(.hero--recipe-detail):not(.hero--about) .hero-copy > .hero-title:first-child {
+    margin-block-start: 70.31px;
+  }
 }
 
 /* ── Group 1.4: Consistent CTA gap on listing heroes ── */
