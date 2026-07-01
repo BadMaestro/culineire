@@ -166,7 +166,15 @@ Current golden targets:
 | Hero top/bottom padding | 17mm, ruler-calibrated | **49px** |
 | Kicker (`.pill`) → H1 | = pill's own rendered height | **35.41px** |
 | H1 → subtitle | = pill's own rendered height (same as above) | **35.41px** |
-| Subtitle → button row | = DOUBLE the pill's height | **70.82px** |
+| Subtitle → button row | = pill's own rendered height (reverted from double-pill) | **35.41px** |
+| Button row → carousel switcher (homepage only) | = pill's own rendered height | **35.41px** |
+| Carousel switcher → hero bottom (homepage only) | 17mm, ruler-calibrated | **49px** |
+
+**Homepage hero height was increased from 480px to 503px** (+23px) to make
+room for the switcher spacing rules below — 118px is needed below the button
+row (35.41 gap + 33.59 switcher height + 49 gap) but only 95px was available
+at the old 480px height. `.hero--home:not(.hero--recipe-detail):not(.hero--about) { min-height: clamp(320px, 44vw, 503px) }`.
+This does NOT affect other has-battle pages (they don't have the switcher).
 
 **IMPORTANT — equal margin ≠ equal visible gap.** Margins below are NOT set to
 these target values directly. Each element's own `line-height` bakes a
@@ -182,10 +190,16 @@ so the TRUE VISIBLE gap hits the targets above:
   templates; do not touch it)
 - `.hero-title { margin-block-end: 28.3px }` (35.41 − H1's 0.5px bottom leading
   − subtitle's 6.6px top leading) (golden group, already hero-scoped)
-- `.hero-subtitle { margin-block-end: 64.2px }` (70.82 − subtitle's own 6.6px
+- `.hero-subtitle { margin-block-end: 28.8px }` (35.41 − subtitle's own 6.6px
   bottom leading) (hero-only class)
 - `.hero-copy .hero__actions { padding-block-start: 0 }` — removed extra
   1.1rem padding that was stacking on top of the subtitle's own margin
+- `.hero__switcher { bottom: 49px }` (homepage-only, `hero_switcher.css`) —
+  icon/dot element, no line-height leading to compensate; `bottom` maps
+  directly to the 17mm target. Given the button row ends at 385px and the
+  switcher is 33.59px tall, this also produces exactly a 35.41px (one
+  pill-height) gap above the switcher — verified, not a coincidence, see the
+  503px hero-height note above.
 
 If the pill's rendered height ever changes (font-size, padding), or you add/resize
 an element in this stack, recompute using `(line-height - font-size) / 2` for
