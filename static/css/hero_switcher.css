@@ -2,6 +2,48 @@
    Hero Switcher — homepage only
    All selectors scoped to .hero--home / .hero__slide / .hero__dot.
    Does not touch any other page, section, or component.
+
+   ⛔⛔⛔ LAYOUT LOCKED — DO NOT TOUCH WITHOUT OWNER PERMISSION ⛔⛔⛔
+   Measured live on prod at 1920×919px viewport (2025-07-01):
+
+   HERO BLOCK
+     min-height ............. clamp(320px, 44vw, 480px)  → 480px at 1920px
+     width .................. 100vw (full bleed)
+
+   PHOTO (object-position ALSO locked in CLAUDE.md)
+     object-fit ............. cover
+     object-position ........ center 60%  ← NEVER CHANGE
+
+   CONTAINER (.hero__inner)
+     width .................. 1120px  (--container)
+     margin-inline .......... auto  → ~400px each side at 1920px
+     padding-block .......... clamp(1.8rem, 4vw, 3rem)  → 48px at 1920px
+
+   KICKER ("Modern Irish Home Cooking")
+     font-size .............. 12.48px (0.78rem)
+     top from hero .......... ~88px
+
+   H1 (.hero-title)
+     font-size .............. clamp(2rem, 3.4vw, 3.2rem)  → 51.2px at 1920px
+     line-height ............ 52.2px
+     top from hero .......... ~132px
+     left ................... 395px (container edge)
+     width .................. up to 691px
+
+   SUBHEADER (.hero-subtitle)
+     font-size .............. 1.06rem  → 16.96px
+     max-width .............. 700px
+     top from hero .......... ~248px
+
+   NAV BUTTONS (.hero__actions)
+     height ................. 44px
+     top from hero .......... ~348px  (margin-block-start: auto pushes to bottom)
+     gap .................... 0.65rem
+
+   DOT SWITCHER (.hero__switcher)
+     position ............... absolute, bottom: 1rem, centered
+
+   ANY deviation from these values = bug. Fix the cause, not the symptom.
    ================================================================ */
 
 /* ------------------------------------------------------------------

@@ -83,6 +83,43 @@ functions plus tests over large rewrites.
 - Map allergens to the existing allergen keys in `recipes.models.ALLERGEN_CHOICES`.
 - Leave human review in the workflow before publication.
 
+## Hero Layout — LOCKED. DO NOT TOUCH WITHOUT EXPLICIT OWNER PERMISSION.
+
+Measured live on production at 1920×919px viewport on 2025-07-01.
+Any agent that changes these values without an explicit owner instruction will be reverted immediately.
+
+### Homepage hero (`.hero--home`, active class `.hero--has-battle`)
+
+| Element | Property | Locked value | Rendered at 1920px |
+|---------|----------|--------------|--------------------|
+| Hero block | `min-height` | `clamp(320px, 44vw, 480px)` | **480px** |
+| Hero block | `width` | `100vw` full bleed | 1910px |
+| Photo | `object-fit` | `cover` | — |
+| Photo | `object-position` | `center 60%` | — |
+| Container (`.hero__inner`) | `width` | `min(100% - 2rem, 1120px)` | **1120px** |
+| Container | `margin-inline` | `auto` | ~400px each side |
+| Container | `padding-block` | `clamp(1.8rem, 4vw, 3rem)` | **48px** |
+| Kicker | `font-size` | `0.78rem` | **12.48px** |
+| H1 (`.hero-title`) | `font-size` | `clamp(2rem, 3.4vw, 3.2rem)` | **51.2px** |
+| H1 | `line-height` | `1.02em` | **52.2px** |
+| Subheader (`.hero-subtitle`) | `font-size` | `1.06rem` | **16.96px** |
+| Subheader | `max-width` | `700px` | 700px |
+| Nav buttons | `height` | `44px` | 44px |
+| Nav buttons | `gap` | `0.65rem` | — |
+| Dot switcher | `bottom` | `1rem` | — |
+| Hero copy (with battle) | `max-width` | `560px` | — |
+
+**Locked files for hero layout:**
+
+| File | What's locked |
+|------|--------------|
+| `static/css/hero_switcher.css` | Full spec comment block at top |
+| `static/css/base.css` | Lines with `/* LOCKED */` comments near `.hero--home` |
+
+Do NOT add new `min-height`, `padding-block`, `font-size`, or `max-width` overrides
+on hero selectors without owner approval. If something looks broken, diagnose the
+cause — do not adjust these values to compensate.
+
 ## Hero Image Positioning — LOCKED. DO NOT TOUCH WITHOUT EXPLICIT OWNER PERMISSION.
 
 The `object-position` of all hero background images is **permanently locked** at

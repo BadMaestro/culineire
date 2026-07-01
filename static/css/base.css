@@ -5117,25 +5117,26 @@
    ═══════════════════════════════════════════════ */
 
 /* ── Group 1.1 / 1.2: Unified listing hero height & inner padding ── */
+/* ⛔ LOCKED LAYOUT — measured live 2025-07-01 @ 1920px. DO NOT CHANGE WITHOUT OWNER ORDER. */
 .hero--home:not(.hero--recipe-detail):not(.hero--about) {
-  min-height: clamp(320px, 44vw, 480px);
+  min-height: clamp(320px, 44vw, 480px); /* → 480px at 1920px. LOCKED. */
 }
 .hero--home:not(.hero--recipe-detail):not(.hero--about) .hero__inner {
-  padding-block: clamp(1.8rem, 4vw, 3rem);
+  padding-block: clamp(1.8rem, 4vw, 3rem); /* → 48px at 1920px. LOCKED. */
 }
 
 /* ── Group 1.3: Consistent h1 size on listing heroes ── */
 .hero--home:not(.hero--recipe-detail):not(.hero--about) .hero-title {
-  font-size: clamp(2rem, 3.4vw, 3.2rem);
+  font-size: clamp(2rem, 3.4vw, 3.2rem); /* → 51.2px at 1920px. LOCKED. */
   margin-block-end: 0.75rem;
 }
 
 /* ── Group 1.4: Consistent CTA gap on listing heroes ── */
 .hero--home:not(.hero--recipe-detail):not(.hero--about) .hero__actions {
-  gap: 0.65rem;
+  gap: 0.65rem; /* LOCKED */
 }
 .hero--home:not(.hero--recipe-detail):not(.hero--about) .hero-copy .hero__actions {
-  padding-block-start: 1.1rem;
+  padding-block-start: 1.1rem; /* LOCKED */
 }
 
 /* ── Group 2.1: Recipe detail hero — left-align content ── */
@@ -5217,8 +5218,9 @@
 /* ── Hero with battle panel: two-column left-aligned layout ─────────────── */
 /* These rules must live in base.css so they apply on all pages,             */
 /* not just pages that load chef_battle.css                                  */
+/* ⛔ LOCKED — hero when battle widget is active. DO NOT CHANGE WITHOUT OWNER ORDER. */
 .hero--has-battle .hero__inner {
-  flex-direction: row;
+  flex-direction: row; /* LOCKED */
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
@@ -5230,7 +5232,7 @@
   text-align: left;
   align-items: flex-start;
   margin-inline: 0;
-  max-width: 560px;
+  max-width: 560px; /* LOCKED — measured at 691px rendered width with this cap */
 }
 .hero--has-battle .hero-title,
 .hero--has-battle .hero-subtitle,
