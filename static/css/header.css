@@ -266,36 +266,38 @@
   gap: 0.5rem;
 }
 
-/* Compact rows — owner 2026-07-01: fixing the "bulldozer" push still
-   left a visually oversized panel (44px-tall rows, 0.7rem padding,
-   0.45rem gaps => ~440px for 8 links, close to a full phone screen).
-   Scoped to .ce-nav--open only, so the always-visible desktop nav
-   (min-width:1280px, styled separately) is untouched. */
+/* Clean single-column list, not scattered pill buttons — owner
+   2026-07-01: centred pills in a 2-column grid read as "scattered,
+   unclear". Left-aligned plain rows with a thin divider between them
+   scan like an ordinary menu instead of loose floating chips. Scoped
+   to .ce-nav--open only — desktop nav (min-width:1280px) untouched. */
 .ce-nav--open .ce-nav__menu,
 .ce-nav--open .ce-nav__auth {
-  gap: 0.1rem;
+  grid-template-columns: 1fr;
+  justify-items: stretch;
+  gap: 0;
 }
 .ce-nav--open .ce-nav__link,
 .ce-nav--open .ce-nav__text,
 .ce-nav--open .ce-nav__status,
 .ce-nav--open .ce-nav__button {
-  min-height: 36px;
-  padding: 0.4rem 0.85rem;
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 40px;
+  padding: 0.55rem 0.3rem;
+  border-radius: 0;
+  border-bottom: 1px solid rgb(31 44 37 / 0.1);
   font-size: 0.95rem;
 }
-
-/* Two columns instead of one long vertical stack — owner 2026-07-01:
-   compact rows still summed to ~330px stacked single-file for 8 short
-   text links. Halves the panel height for the same content. */
-.ce-nav--open .ce-nav__menu,
-.ce-nav--open .ce-nav__auth {
-  grid-template-columns: 1fr 1fr;
-  justify-items: stretch;
+.ce-nav--open .ce-nav__group:last-child .ce-nav__link,
+.ce-nav--open .ce-nav__auth > *:last-child .ce-nav__link,
+.ce-nav--open .ce-nav__auth .ce-nav__link:last-child {
+  border-bottom: none;
 }
-.ce-nav--open .ce-nav__link,
-.ce-nav--open .ce-nav__text,
-.ce-nav--open .ce-nav__button {
-  justify-content: center;
+.ce-nav--open .ce-nav__menu {
+  border-bottom: 1px solid rgb(31 44 37 / 0.16);
+  margin-bottom: 0.35rem;
+  padding-bottom: 0.1rem;
 }
 
 .ce-nav__menu,
