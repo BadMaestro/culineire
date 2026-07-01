@@ -215,7 +215,9 @@
 }
 
 .arena-tooltip__link {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 0.75rem;
   font-weight: 600;
   padding: 0.3rem 0.9rem;
