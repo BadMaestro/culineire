@@ -8,6 +8,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RemoveIndex(
+            model_name="pinchcomment",
+            name="amuse_bouch_amuse_b_61b343_idx",
+        ),
         migrations.RenameField("PinchGalleryImage", "amuse_bouche", "pinch"),
         migrations.RenameField("PinchComment", "amuse_bouche", "pinch"),
         migrations.AlterModelTable("Pinch", None),
