@@ -419,6 +419,51 @@
   }
 
   /* ------------------------------------------------------------------ */
+  /* Battle blast — celebrates the most recently completed battle for   */
+  /* anyone watching the arena, not just its two participants.          */
+  /* ------------------------------------------------------------------ */
+  var _lastSeenResultId = null; // null = not yet initialised from the page's own data
+
+  function fireBattleBlast(result) {
+    var el = document.getElementById('battle-blast');
+    if (!el || !result) { return; }
+
+    var badge = document.getElementById('blast-badge');
+    var winnerEl = document.getElementById('blast-winner');
+    var scoreEl = document.getElementById('blast-score');
+    if (badge) { badge.textContent = 'Battle Complete'; }
+    if (winnerEl) { winnerEl.textContent = result.winner_name + ' Wins!'; }
+    if (scoreEl) { scoreEl.textContent = result.result_reason || result.theme || ''; }
+
+    el.hidden = false;
+    // force layout so the entrance transition/animation actually plays
+    // eslint-disable-next-line no-unused-expressions
+    el.offsetWidth;
+    el.classList.add('is-active');
+  }
+
+  function dismissBattleBlast() {
+    var el = document.getElementById('battle-blast');
+    if (!el) { return; }
+    el.classList.remove('is-active');
+    window.setTimeout(function () { el.hidden = true; }, 350);
+  }
+
+  function initBattleBlast(initialResult) {
+    _lastSeenResultId = initialResult ? initialResult.battle_id : null;
+    var dismissBtn = document.getElementById('blast-dismiss');
+    if (dismissBtn) { dismissBtn.addEventListener('click', dismissBattleBlast); }
+  }
+
+  function maybeCelebrate(latestResult) {
+    if (!latestResult) { return; }
+    if (_lastSeenResultId !== null && latestResult.battle_id !== _lastSeenResultId) {
+      fireBattleBlast(latestResult);
+    }
+    _lastSeenResultId = latestResult.battle_id;
+  }
+
+  /* ------------------------------------------------------------------ */
   /* Tooltip                                                             */
   /* ------------------------------------------------------------------ */
   var _tooltipEl = null;
@@ -536,6 +581,7 @@
             for (var i = 0; i < oldClips.length; i++) { oldClips[i].remove(); }
           }
           drawArena(data);
+          maybeCelebrate(data.latest_result);
         }
       })
       .catch(function () {});
@@ -551,6 +597,7 @@
       try { data = JSON.parse(el.textContent); } catch (e) {}
     }
     drawArena(data);
+    initBattleBlast(data.latest_result);
 
     // Dismiss tooltip on outside click
     document.addEventListener('click', function (e) {

@@ -720,6 +720,28 @@ def _arena_center(active_battle):
     return {"type": "empty"}
 
 
+def _arena_latest_result():
+    """Most recently completed battle, for the arena-wide win celebration
+    (.battle-blast). The client tracks battle_id and only celebrates a
+    battle it hasn't already shown, so this can just always return the
+    single latest one -- no separate "new since" filtering needed here."""
+    battle = (
+        Battle.objects.select_related("winner", "loser")
+        .filter(status=Battle.Status.COMPLETED, winner__isnull=False)
+        .order_by("-id")
+        .first()
+    )
+    if not battle:
+        return None
+    return {
+        "battle_id": battle.pk,
+        "winner_name": battle.winner.name,
+        "loser_name": battle.loser.name if battle.loser else None,
+        "result_reason": battle.result_reason,
+        "theme": battle.theme,
+    }
+
+
 def _get_spectators(enrolled_author_ids, limit=40):
     """Authors with token balance who are not enrolled chefs, up to `limit`."""
     wallets = (
@@ -783,6 +805,7 @@ def arena(request):
         },
         "spectators": spectators,
         "center": center,
+        "latest_result": _arena_latest_result(),
     }
 
     rank_groups = [
@@ -864,7 +887,12 @@ def arena_state(request):
     center = _arena_center(active_battle)
 
     spectators = _get_spectators(enrolled_author_ids)
-    return JsonResponse({"rings": rings, "spectators": spectators, "center": center})
+    return JsonResponse({
+        "rings": rings,
+        "spectators": spectators,
+        "center": center,
+        "latest_result": _arena_latest_result(),
+    })
 
 
 @chef_battle_guard
