@@ -5338,14 +5338,29 @@
     flex-direction: column;
     align-items: stretch;
   }
-  .hero--has-battle .hero-copy {
+  .hero--has-battle .hero-copy,
+  .hero--home.hero--has-battle .hero-copy {
+    /* Specificity matched to the competing desktop rule at line ~5311
+       (.hero--home.hero--has-battle .hero-copy, 3 classes) — without
+       the .hero--home variant here, that higher-specificity desktop
+       rule (text-align:left, align-items:flex-start) silently won on
+       every page carrying both classes, so hero-copy never actually
+       centered on mobile/tablet despite this rule "overriding" it in
+       source order. Confirmed live: hero__burger + button stack sat
+       flush-left instead of centered under the (coincidentally
+       full-width, because it wraps) H1/subtitle text. */
     text-align: center;
     align-items: center;
     max-width: 100%;
     margin-inline: auto;
   }
   .hero--has-battle .hero-title,
-  .hero--has-battle .hero-subtitle {
+  .hero--has-battle .hero-subtitle,
+  .hero--home.hero--has-battle .hero-title,
+  .hero--home.hero--has-battle .hero-subtitle {
+    /* Same specificity fix as hero-copy above — the desktop rule at
+       line ~5319-5322 includes the .hero--home variant (text-align:
+       left), which otherwise wins over this mobile centering rule. */
     text-align: center;
   }
   /* Mobile/tablet golden rule — fluid, not device-specific. The desktop
