@@ -5243,9 +5243,11 @@
 }
 /* ⛔ LOCKED — GOLDEN RULE FOR H1. Measured + fixed by owner 2025-07-01: H1 may
    extend past hero-copy's 700px box up to 900px so short titles don't wrap
-   unnecessarily. flex-shrink:0 stops the flex row from squeezing it back to
-   700px. DO NOT CHANGE WITHOUT OWNER ORDER. */
+   unnecessarily. width:max-content sizes the box to its unwrapped text (so it
+   only wraps once it exceeds 900px); flex-shrink:0 stops the flex row from
+   squeezing it back down to 700px. DO NOT CHANGE WITHOUT OWNER ORDER. */
 .hero--has-battle .hero-title {
+  width: max-content;
   max-width: 900px;
   flex-shrink: 0;
 }
