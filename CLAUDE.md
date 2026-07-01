@@ -156,12 +156,29 @@ without truncating copy text. Only kicker-top and H1-top are guaranteed fixed.
 Owner ordered identical gaps between kicker → H1 → subtitle → button row.
 Verified 16px between all four on every hero page:
 
-- `.hero-copy > .pill { margin-block-end: 1rem }` — scoped to the hero kicker only
-  (base `.pill` is reused in 40+ non-hero templates; do not touch it)
-- `.hero-title { margin-block-end: 1rem }` (golden group, already hero-scoped)
-- `.hero-subtitle { margin-block-end: 1rem }` (hero-only class)
 - `.hero-copy .hero__actions { padding-block-start: 0 }` — removed the extra
   1.1rem padding that was stacking on top of the subtitle's own margin
+
+**IMPORTANT — equal margin ≠ equal visible gap.** An earlier pass set all
+three margins to a flat 1rem and that looked equal in the CSS box model, but
+the OWNER CORRECTLY REJECTED IT: each element's own `line-height` bakes a
+different amount of invisible leading into its box (H1's tight line-height
+leaves ~0.5px, `.hero-subtitle`'s `line-height:1.78` leaves ~6.6px above AND
+below its text; the kicker pill and nav buttons have filled backgrounds so
+their box edge IS the true visual edge, zero leading). Flat 1rem margins
+produced true visible gaps of ~16.5px / ~23px / ~22.6px — NOT equal. Fixed by
+compensating each margin for the adjacent elements' half-leading so the real
+visible whitespace is 16px everywhere:
+
+- `.hero-copy > .pill { margin-block-end: 15.5px }` — scoped to the hero kicker
+  only (base `.pill` is reused in 40+ non-hero templates; do not touch it)
+- `.hero-title { margin-block-end: 8.9px }` (golden group, already hero-scoped)
+- `.hero-subtitle { margin-block-end: 9.4px }` (hero-only class)
+
+If you ever add or resize an element in this stack, do NOT just match its
+`margin-block-end` to the others — recompute using `(line-height - font-size) / 2`
+for that element's own half-leading, and the adjacent element's, then solve for
+the margin that makes `margin + half-leading(prev-bottom) + half-leading(next-top) = 16px`.
 
 When editing anything under `.hero--has-battle`, always check BOTH `base.css` and
 `chef_battle.css` for the same selector — a fix applied to only one file will silently
