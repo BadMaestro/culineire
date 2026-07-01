@@ -5161,6 +5161,14 @@
   margin-block-end: 34.9px;
 }
 
+/* ── Group 1.3c: Kicker-less pages (login, signup) — compensate for the
+   missing pill so the H1/button-row offsets still land on the same
+   golden values as every kicker-having page. Reserved space = pill
+   height (35.41px) + its margin-block-end (34.9px) = 70.31px. LOCKED. ── */
+.hero--home:not(.hero--recipe-detail):not(.hero--about) .hero-copy > .hero-title:first-child {
+  margin-block-start: 70.31px;
+}
+
 /* ── Group 1.4: Consistent CTA gap on listing heroes ── */
 .hero--home:not(.hero--recipe-detail):not(.hero--about) .hero__actions {
   gap: 0.65rem; /* LOCKED */
