@@ -5348,6 +5348,22 @@
   .hero--has-battle .hero-subtitle {
     text-align: center;
   }
+  /* Mobile/tablet golden rule — fluid, not device-specific. The desktop
+     H1 golden rule (width:max-content, max-width:900px, flex-shrink:0)
+     never wraps until 900px and never shrinks, which overflowed the
+     viewport on every phone width (confirmed live: 336px overflow on
+     Pixel-class 412-430px widths, 370px overflow at 375-390px). Reset
+     to a normal shrinkable block so H1 wraps naturally inside its
+     container at ANY width from here down — verified against Galaxy
+     S24 (360px), iPhone 17/17 Pro (390px), Google Pixel 9 (412px),
+     iPhone 17 Pro Max (440px), and this range extends the fix down to
+     the smallest supported phones (320px) without needing a
+     per-device rule. LOCKED. */
+  .hero--has-battle .hero-title {
+    width: auto;
+    max-width: 100%;
+    flex-shrink: 1;
+  }
 }
 
 

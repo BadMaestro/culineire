@@ -1353,6 +1353,16 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
     text-align: center;
   }
 
+  /* Mobile/tablet golden rule — must stay in sync with the matching
+     block in base.css (same reasoning: resets the desktop H1
+     width:max-content/flex-shrink:0 so it wraps instead of overflowing
+     phone viewports). LOCKED. */
+  .hero--has-battle .hero-title {
+    width: auto;
+    max-width: 100%;
+    flex-shrink: 1;
+  }
+
   .hero-battle-panel {
     flex: 0 0 auto;
     width: 100%;
