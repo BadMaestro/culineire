@@ -310,16 +310,19 @@
     var R   = RING_RADII.centre[1] - GAP;
     var pts = octagonPoints(CX, CY, R);
 
+    var isNotable = center.type === 'active_battle' || center.type === 'crown';
     var poly = svgEl('polygon', {
       points: pts,
-      fill: center.type === 'active_battle' ? '#c8942a' : '#6c6054',
+      fill: isNotable ? '#c8942a' : '#6c6054',
       stroke: '#fff', 'stroke-width': '2',
       filter: 'url(#arena-cell-shadow)',
-      cursor: center.type === 'active_battle' ? 'pointer' : 'default',
-      class: 'arena-cell arena-cell--centre' + (center.type === 'active_battle' ? ' arena-center--active' : ''),
+      cursor: isNotable ? 'pointer' : 'default',
+      class: 'arena-cell arena-cell--centre' + (isNotable ? ' arena-center--active' : ''),
     });
     if (center.type === 'active_battle' && center.battle_url) {
       poly.addEventListener('click', function () { window.location.href = center.battle_url; });
+    } else if (center.type === 'crown' && center.profile_url) {
+      poly.addEventListener('click', function () { window.location.href = center.profile_url; });
     }
     g.appendChild(poly);
 
@@ -340,6 +343,22 @@
       });
       lbl2.textContent = 'BATTLE IN PROGRESS';
       g.appendChild(lbl2);
+    } else if (center.type === 'crown') {
+      var crownLbl = svgEl('text', {
+        x: CX, y: CY - 4, 'text-anchor': 'middle', 'dominant-baseline': 'middle',
+        fill: '#fff', 'font-family': 'Georgia, serif', 'font-size': '17', 'font-weight': 'bold',
+        'pointer-events': 'none',
+      });
+      crownLbl.textContent = '\u{1F451} ' + (center.name || '?');
+      g.appendChild(crownLbl);
+
+      var crownLbl2 = svgEl('text', {
+        x: CX, y: CY + 16, 'text-anchor': 'middle', 'dominant-baseline': 'middle',
+        fill: 'rgba(255,255,255,0.8)', 'font-family': 'Inter, sans-serif', 'font-size': '10',
+        'pointer-events': 'none',
+      });
+      crownLbl2.textContent = 'CROWN HOLDER';
+      g.appendChild(crownLbl2);
     } else {
       var text1 = svgEl('text', {
         x: CX, y: CY - 8, 'text-anchor': 'middle', 'dominant-baseline': 'middle',

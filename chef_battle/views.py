@@ -685,6 +685,41 @@ def battle_home(request):
 _ARENA_ONLINE_THRESHOLD = 180  # seconds — chef counts as online if seen within 3 min
 
 
+def _arena_center(active_battle):
+    """Centre-cell payload: active battle takes priority, then the current
+    Crown holder (if any), else empty. Shared by arena() and arena_state()."""
+    if active_battle:
+        return {
+            "type": "active_battle",
+            "battle_url": reverse("chef_battle:battle_detail", kwargs={"pk": active_battle.pk}),
+            "challenger": {
+                "name": active_battle.challenger.name,
+                "avatar_url": active_battle.challenger.display_avatar_url,
+            },
+            "opponent": {
+                "name": active_battle.opponent.name,
+                "avatar_url": active_battle.opponent.display_avatar_url,
+            },
+        }
+
+    crown_holder = (
+        ChefBattleProfile.objects.select_related("author")
+        .filter(crown_until__gt=timezone.now())
+        .order_by("-crown_until")
+        .first()
+    )
+    if crown_holder:
+        return {
+            "type": "crown",
+            "name": crown_holder.author.name,
+            "avatar_url": crown_holder.author.display_avatar_url,
+            "profile_url": crown_holder.author.get_absolute_url(),
+            "crown_until": crown_holder.crown_until.isoformat(),
+        }
+
+    return {"type": "empty"}
+
+
 def _get_spectators(enrolled_author_ids, limit=40):
     """Authors with token balance who are not enrolled chefs, up to `limit`."""
     wallets = (
@@ -737,20 +772,7 @@ def arena(request):
             "is_online": bool(profile.last_seen_at and profile.last_seen_at >= online_cutoff),
         })
 
-    center = {"type": "empty"}
-    if active_battle:
-        center = {
-            "type": "active_battle",
-            "battle_url": reverse("chef_battle:battle_detail", kwargs={"pk": active_battle.pk}),
-            "challenger": {
-                "name": active_battle.challenger.name,
-                "avatar_url": active_battle.challenger.display_avatar_url,
-            },
-            "opponent": {
-                "name": active_battle.opponent.name,
-                "avatar_url": active_battle.opponent.display_avatar_url,
-            },
-        }
+    center = _arena_center(active_battle)
 
     spectators = _get_spectators(enrolled_author_ids)
 
@@ -839,20 +861,7 @@ def arena_state(request):
             "is_online": bool(profile.last_seen_at and profile.last_seen_at >= online_cutoff),
         })
 
-    center = {"type": "empty"}
-    if active_battle:
-        center = {
-            "type": "active_battle",
-            "battle_url": reverse("chef_battle:battle_detail", kwargs={"pk": active_battle.pk}),
-            "challenger": {
-                "name": active_battle.challenger.name,
-                "avatar_url": active_battle.challenger.display_avatar_url,
-            },
-            "opponent": {
-                "name": active_battle.opponent.name,
-                "avatar_url": active_battle.opponent.display_avatar_url,
-            },
-        }
+    center = _arena_center(active_battle)
 
     spectators = _get_spectators(enrolled_author_ids)
     return JsonResponse({"rings": rings, "spectators": spectators, "center": center})
