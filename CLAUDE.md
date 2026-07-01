@@ -147,6 +147,7 @@ not centered. Verified identical on every hero page at 1920px viewport:
 |---------|---------------------------|
 | Kicker (`.pill`), when present | **49px** (updated with 17mm padding pass, was 48px) |
 | H1 (`.hero-title`) | **119px** (or 49px if no kicker, e.g. login/signup) — updated with pill-height-relative spacing pass |
+| Peek button (`.hero-peek-btn`, "Photo") | **49px** — same as kicker's top offset, verified live on all 8 has-battle pages |
 
 Subtitle top and button-row top are NOT pixel-fixed — they naturally shift depending
 on how many lines the H1 and subtitle wrap to (content length), which is unavoidable
