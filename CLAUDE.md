@@ -108,6 +108,7 @@ Any agent that changes these values without an explicit owner instruction will b
 | Nav buttons | `gap` | `0.65rem` | — |
 | Dot switcher | `bottom` | `1rem` | — |
 | Hero copy (with battle) | `max-width` | `700px` | — |
+| `.hero__inner` (with battle) | `align-items` | `flex-start` (top-anchored) | — |
 
 **Locked files for hero layout:**
 
@@ -115,6 +116,7 @@ Any agent that changes these values without an explicit owner instruction will b
 |------|--------------|
 | `static/css/hero_switcher.css` | Full spec comment block at top |
 | `static/css/base.css` | Lines with `/* LOCKED */` comments near `.hero--home` |
+| `static/css/chef_battle.css` | Duplicate `.hero--has-battle .hero__inner` / `.hero-copy` rules (~line 1163) — MUST stay in sync with base.css. This file loads after base.css whenever `chef_battle_enabled` is true (including the homepage for anonymous visitors), so a stale value here silently wins the cascade. |
 
 Do NOT add new `min-height`, `padding-block`, `font-size`, or `max-width` overrides
 on hero selectors without owner approval. If something looks broken, diagnose the
@@ -132,11 +134,23 @@ page-specific `padding-block`, `font-size`, or `max-width` rules for these pages
 any layout fix belongs in the shared `.hero--home` / `.hero--has-battle` rules in
 `base.css` so every page inherits it identically.
 
-Vertical position of the kicker/H1/subtitle stack is intentionally **centered**
-inside the hero (`.hero__inner { align-items: center }`), so its absolute pixel
-offset naturally shifts a few px between pages depending on kicker/subtitle text
-length (1 vs 2 lines). This is expected content-driven variance, not misalignment
-— do not chase pixel-perfect vertical parity by adding per-page overrides.
+### Vertical anchoring — top-anchored, pixel-identical (verified 2025-07-01)
+
+The kicker/H1 stack is **top-anchored** (`.hero--has-battle .hero__inner { align-items: flex-start }`),
+not centered. Verified identical on every hero page at 1920px viewport:
+
+| Element | Top offset from hero (px) |
+|---------|---------------------------|
+| Kicker (`.pill`), when present | **48px** |
+| H1 (`.hero-title`) | **92px** (or 48px if no kicker, e.g. login/signup) |
+
+Subtitle top and button-row top are NOT pixel-fixed — they naturally shift depending
+on how many lines the H1 and subtitle wrap to (content length), which is unavoidable
+without truncating copy text. Only kicker-top and H1-top are guaranteed fixed.
+
+When editing anything under `.hero--has-battle`, always check BOTH `base.css` and
+`chef_battle.css` for the same selector — a fix applied to only one file will silently
+lose the cascade on pages where the other file loads later.
 
 ## Hero Image Positioning — LOCKED. DO NOT TOUCH WITHOUT EXPLICIT OWNER PERMISSION.
 
