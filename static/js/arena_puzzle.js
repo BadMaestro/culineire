@@ -19,6 +19,8 @@
 
   var CX = 550, CY = 550;
   var GAP = 3;
+  var PING_INTERVAL   = 60000;   // 60 s — heartbeat to update last_seen_at
+  var POLL_INTERVAL   = 20000;   // 20 s — refresh arena state
 
   var RING_RADII = {
     centre : [0,   85],
@@ -138,23 +140,30 @@
   /* ------------------------------------------------------------------ */
   /* Draw                                                                 */
   /* ------------------------------------------------------------------ */
+  function clearGroup(id) {
+    var g = document.getElementById(id);
+    while (g && g.firstChild) { g.removeChild(g.firstChild); }
+    return g;
+  }
+
   function drawArena(data) {
-    var group   = document.getElementById('arena-cells');
-    var centreG = document.getElementById('arena-centre');
+    var group   = clearGroup('arena-cells');
+    var centreG = clearGroup('arena-centre');
     var octPoly = document.getElementById('arena-oct-poly');
+    if (!group || !centreG) { return; }
 
     octPoly.setAttribute('points', octagonPoints(CX, CY, RING_RADII[8][1] + 10));
 
     var rings = [8, 7, 6, 5, 4, 3, 2, 1];
     for (var ri = 0; ri < rings.length; ri++) {
-      var ring   = rings[ri];
+      var ring    = rings[ri];
       var rankKey = RING_RANK_KEY[ring];
-      var chefs  = (data.rings && data.rings[rankKey]) || [];
-      var count  = RING_COUNTS[ring];
-      var innerR = RING_RADII[ring][0];
-      var outerR = RING_RADII[ring][1];
-      var sweep  = (2 * Math.PI) / count;
-      var offset = -Math.PI / 2 - sweep / 2;
+      var chefs   = (data.rings && data.rings[rankKey]) || [];
+      var count   = RING_COUNTS[ring];
+      var innerR  = RING_RADII[ring][0];
+      var outerR  = RING_RADII[ring][1];
+      var sweep   = (2 * Math.PI) / count;
+      var offset  = -Math.PI / 2 - sweep / 2;
 
       for (var pos = 0; pos < count; pos++) {
         var startAngle = offset + pos * sweep + GAP / outerR;
@@ -166,7 +175,8 @@
         var fill   = (RING_COLOURS[bucket] || RING_COLOURS.empty)[ring];
 
         var cellClass = 'arena-cell arena-cell--' + bucket + ' arena-cell--ring-' + ring;
-        if (chef && chef.in_battle) { cellClass += ' arena-cell--in-battle'; }
+        if (chef && chef.in_battle)  { cellClass += ' arena-cell--in-battle'; }
+        if (chef && chef.is_online)  { cellClass += ' arena-cell--online'; }
 
         var pathEl = svgEl('path', {
           d             : path,
@@ -185,6 +195,9 @@
 
         if (chef) {
           appendAvatarToCell(group, chef, innerR, outerR, startAngle, endAngle);
+          if (chef.is_online) {
+            appendOnlineDot(group, innerR, outerR, startAngle, endAngle);
+          }
         } else {
           addEmptyLabel(group, innerR, outerR, startAngle, endAngle);
         }
@@ -207,16 +220,16 @@
   }
 
   function appendAvatarToCell(group, chef, innerR, outerR, startAngle, endAngle) {
-    var points    = ringSegmentPoints(CX, CY, innerR + GAP, outerR - GAP / 2, startAngle, endAngle);
-    var bounds    = pointBounds(points);
-    var size      = Math.max(bounds.width, bounds.height);
-    var cx        = (bounds.minX + bounds.maxX) / 2;
-    var cy        = (bounds.minY + bounds.maxY) / 2;
-    var clipId    = 'arena-cell-clip-' + Math.random().toString(36).slice(2);
-    var svgDefs   = document.querySelector('#arena-puzzle defs');
+    var points  = ringSegmentPoints(CX, CY, innerR + GAP, outerR - GAP / 2, startAngle, endAngle);
+    var bounds  = pointBounds(points);
+    var size    = Math.max(bounds.width, bounds.height);
+    var cx      = (bounds.minX + bounds.maxX) / 2;
+    var cy      = (bounds.minY + bounds.maxY) / 2;
+    var svgDefs = document.querySelector('#arena-puzzle defs');
 
     if (svgDefs && chef.avatar_url) {
-      var clip = svgEl('clipPath', { id: clipId });
+      var clipId  = 'ac-' + cx.toFixed(0) + '-' + cy.toFixed(0);
+      var clip    = svgEl('clipPath', { id: clipId });
       clip.appendChild(svgEl('path', { d: pathFromPoints(points) }));
       svgDefs.appendChild(clip);
 
@@ -233,6 +246,27 @@
     }
   }
 
+  function appendOnlineDot(group, innerR, outerR, startAngle, endAngle) {
+    var midAngle  = (startAngle + endAngle) / 2;
+    var outerEdge = outerR - GAP / 2;
+    var r         = octRadius(midAngle, outerEdge);
+    var dotX      = CX + r * Math.cos(midAngle);
+    var dotY      = CY + r * Math.sin(midAngle);
+
+    // White ring + green dot
+    var ring = svgEl('circle', {
+      cx: dotX.toFixed(1), cy: dotY.toFixed(1), r: '5.5',
+      fill: '#fff', 'pointer-events': 'none',
+    });
+    var dot = svgEl('circle', {
+      cx: dotX.toFixed(1), cy: dotY.toFixed(1), r: '4',
+      fill: '#22c55e', 'pointer-events': 'none',
+      class: 'arena-online-dot',
+    });
+    group.appendChild(ring);
+    group.appendChild(dot);
+  }
+
   function drawCentre(g, center) {
     var R   = RING_RADII.centre[1] - GAP;
     var pts = octagonPoints(CX, CY, R);
@@ -243,7 +277,7 @@
       stroke: '#fff', 'stroke-width': '2',
       filter: 'url(#arena-cell-shadow)',
       cursor: center.type === 'active_battle' ? 'pointer' : 'default',
-      class: 'arena-cell arena-cell--centre',
+      class: 'arena-cell arena-cell--centre' + (center.type === 'active_battle' ? ' arena-center--active' : ''),
     });
     if (center.type === 'active_battle' && center.battle_url) {
       poly.addEventListener('click', function () { window.location.href = center.battle_url; });
@@ -253,19 +287,19 @@
     if (center.type === 'active_battle') {
       var lbl = svgEl('text', {
         x: CX, y: CY - 4, 'text-anchor': 'middle', 'dominant-baseline': 'middle',
-        fill: '#fff', 'font-family': 'Georgia, serif', 'font-size': '20', 'font-weight': 'bold',
+        fill: '#fff', 'font-family': 'Georgia, serif', 'font-size': '18', 'font-weight': 'bold',
         'pointer-events': 'none',
       });
-      lbl.textContent = (center.challenger ? center.challenger.name.split(' ')[0] : '?') + ' vs ' +
-        (center.opponent ? center.opponent.name.split(' ')[0] : '?');
+      lbl.textContent = (center.challenger ? center.challenger.name.split(' ')[0] : '?') +
+        ' vs ' + (center.opponent ? center.opponent.name.split(' ')[0] : '?');
       g.appendChild(lbl);
 
       var lbl2 = svgEl('text', {
-        x: CX, y: CY + 18, 'text-anchor': 'middle', 'dominant-baseline': 'middle',
-        fill: 'rgba(255,255,255,0.8)', 'font-family': 'Inter, sans-serif', 'font-size': '11',
+        x: CX, y: CY + 16, 'text-anchor': 'middle', 'dominant-baseline': 'middle',
+        fill: 'rgba(255,255,255,0.8)', 'font-family': 'Inter, sans-serif', 'font-size': '10',
         'pointer-events': 'none',
       });
-      lbl2.textContent = 'BATTLE IN PROGRESS — click to watch';
+      lbl2.textContent = 'BATTLE IN PROGRESS';
       g.appendChild(lbl2);
     } else {
       var text1 = svgEl('text', {
@@ -292,7 +326,7 @@
   /* ------------------------------------------------------------------ */
   function fireCellRipple(e) {
     var svg = document.getElementById('arena-puzzle');
-    if (!svg || !e) return;
+    if (!svg || !e) { return; }
     try {
       var pt = svg.createSVGPoint();
       pt.x = e.clientX;
@@ -308,7 +342,7 @@
 
       var MAX_R = 90, DURATION = 380, start = null;
       function step(ts) {
-        if (!start) start = ts;
+        if (!start) { start = ts; }
         var progress = Math.min((ts - start) / DURATION, 1);
         var eased = 1 - Math.pow(1 - progress, 3);
         circle.setAttribute('r', (MAX_R * eased).toFixed(1));
@@ -332,6 +366,43 @@
   }
 
   /* ------------------------------------------------------------------ */
+  /* Polling: ping (heartbeat) + state refresh                           */
+  /* ------------------------------------------------------------------ */
+  function getCsrfToken() {
+    var match = document.cookie.match(/csrftoken=([^;]+)/);
+    return match ? match[1] : '';
+  }
+
+  function pingArena() {
+    fetch('/chef-battle/arena/ping/', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'X-CSRFToken': getCsrfToken() },
+    }).catch(function () {});
+  }
+
+  function pollArenaState() {
+    fetch('/chef-battle/arena/state/', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'X-CSRFToken': getCsrfToken() },
+    })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (data) {
+          // Clean up dynamic clipPaths from previous render before redraw
+          var defs = document.querySelector('#arena-puzzle defs');
+          if (defs) {
+            var oldClips = defs.querySelectorAll('clipPath[id^="ac-"]');
+            for (var i = 0; i < oldClips.length; i++) { oldClips[i].remove(); }
+          }
+          drawArena(data);
+        }
+      })
+      .catch(function () {});
+  }
+
+  /* ------------------------------------------------------------------ */
   /* Init                                                                 */
   /* ------------------------------------------------------------------ */
   document.addEventListener('DOMContentLoaded', function () {
@@ -341,6 +412,13 @@
       try { data = JSON.parse(el.textContent); } catch (e) {}
     }
     drawArena(data);
+
+    // Start heartbeat immediately then repeat
+    pingArena();
+    setInterval(pingArena, PING_INTERVAL);
+
+    // State polling (refresh SVG every 20s)
+    setInterval(pollArenaState, POLL_INTERVAL);
   });
 
 })();

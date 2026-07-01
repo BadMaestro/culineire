@@ -89,6 +89,7 @@ class ChefBattleProfile(models.Model):
     payout_blocked = models.BooleanField(default=False, db_index=True, help_text="Payout blocked pending compliance review")
     reward_agreement_accepted = models.BooleanField(default=False, help_text="Chef has accepted the Chef Reward Agreement")
     stripe_connect_onboarded = models.BooleanField(default=False, db_index=True, help_text="Stripe Connect onboarding completed")
+    last_seen_at = models.DateTimeField(null=True, blank=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True)
 

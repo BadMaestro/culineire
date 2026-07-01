@@ -82,6 +82,19 @@
   transition: opacity 0.15s ease;
 }
 
+.arena-center--active:hover {
+  opacity: 0.88;
+}
+
+.arena-online-dot {
+  animation: arena-pulse 2s ease-in-out infinite;
+}
+
+@keyframes arena-pulse {
+  0%, 100% { opacity: 1; r: 4; }
+  50%       { opacity: 0.7; r: 3.5; }
+}
+
 @media (max-width: 640px) {
   .arena-legend {
     gap: 0.4rem;

@@ -668,6 +668,9 @@ def battle_home(request):
     })
 
 
+_ARENA_ONLINE_THRESHOLD = 180  # seconds — chef counts as online if seen within 3 min
+
+
 def arena(request):
     active_battles = get_active_battles()
     active_battle = active_battles[0] if active_battles else None
@@ -675,6 +678,8 @@ def arena(request):
     for battle in active_battles:
         in_battle_author_ids.add(battle.challenger_id)
         in_battle_author_ids.add(battle.opponent_id)
+
+    online_cutoff = timezone.now() - timezone.timedelta(seconds=_ARENA_ONLINE_THRESHOLD)
 
     enrolled = (
         ChefBattleProfile.objects
@@ -693,6 +698,7 @@ def arena(request):
             "rank_label": profile.get_rank_display(),
             "rating": profile.rating,
             "in_battle": profile.author_id in in_battle_author_ids,
+            "is_online": bool(profile.last_seen_at and profile.last_seen_at >= online_cutoff),
         })
 
     center = {"type": "empty"}
@@ -723,11 +729,80 @@ def arena(request):
         for rank in ChefBattleProfile.Rank
     ]
 
+    # Update last_seen_at for the authenticated viewer
+    if request.user.is_authenticated:
+        author = get_author_for_user(request.user)
+        if author:
+            ChefBattleProfile.objects.filter(
+                author=author, enrolled_at__isnull=False
+            ).update(last_seen_at=timezone.now())
+
     return render(request, "chef_battle/arena.html", {
         "rank_groups": rank_groups,
         "active_battle": active_battle,
         "arena_data": arena_data,
     })
+
+
+@require_POST
+def arena_ping(request):
+    """Heartbeat — updates last_seen_at for the authenticated chef. Called from JS every 60s."""
+    if not request.user.is_authenticated:
+        return JsonResponse({"ok": False}, status=401)
+    author = get_author_for_user(request.user)
+    if author:
+        ChefBattleProfile.objects.filter(
+            author=author, enrolled_at__isnull=False
+        ).update(last_seen_at=timezone.now())
+    return JsonResponse({"ok": True})
+
+
+@require_POST
+def arena_state(request):
+    """Lightweight state poll — returns updated ring data for JS to refresh SVG."""
+    active_battles = get_active_battles()
+    active_battle = active_battles[0] if active_battles else None
+    in_battle_author_ids = set()
+    for battle in active_battles:
+        in_battle_author_ids.add(battle.challenger_id)
+        in_battle_author_ids.add(battle.opponent_id)
+
+    online_cutoff = timezone.now() - timezone.timedelta(seconds=_ARENA_ONLINE_THRESHOLD)
+
+    enrolled = (
+        ChefBattleProfile.objects
+        .select_related("author")
+        .filter(enrolled_at__isnull=False, is_suspended=False)
+        .order_by("-rating")
+    )
+
+    rings = {choice.value: [] for choice in ChefBattleProfile.Rank}
+    for profile in enrolled:
+        rings[profile.rank].append({
+            "name": profile.author.name,
+            "slug": profile.author.slug,
+            "avatar_url": profile.author.display_avatar_url,
+            "rank": profile.rank,
+            "in_battle": profile.author_id in in_battle_author_ids,
+            "is_online": bool(profile.last_seen_at and profile.last_seen_at >= online_cutoff),
+        })
+
+    center = {"type": "empty"}
+    if active_battle:
+        center = {
+            "type": "active_battle",
+            "battle_url": reverse("chef_battle:battle_detail", kwargs={"pk": active_battle.pk}),
+            "challenger": {
+                "name": active_battle.challenger.name,
+                "avatar_url": active_battle.challenger.display_avatar_url,
+            },
+            "opponent": {
+                "name": active_battle.opponent.name,
+                "avatar_url": active_battle.opponent.display_avatar_url,
+            },
+        }
+
+    return JsonResponse({"rings": rings, "center": center})
 
 
 @chef_battle_guard
