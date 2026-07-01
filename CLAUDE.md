@@ -98,7 +98,7 @@ Any agent that changes these values without an explicit owner instruction will b
 | Photo | `object-position` | `center 60%` | — |
 | Container (`.hero__inner`) | `width` | `min(100% - 2rem, 1120px)` | **1120px** |
 | Container | `margin-inline` | `auto` | ~400px each side |
-| Container | `padding-block` | `clamp(1.8rem, 4vw, 3rem)` | **48px** |
+| Container | `padding-block` | `clamp(1.8rem, 4vw, 49px)` | **49px** (== 17mm, ruler-calibrated — see spacing rhythm section below) |
 | Kicker | `font-size` | `0.78rem` | **12.48px** |
 | H1 (`.hero-title`) | `font-size` | `clamp(2rem, 3.4vw, 3.2rem)` | **51.2px** |
 | H1 | `line-height` | `1.02em` | **52.2px** |
@@ -144,41 +144,53 @@ not centered. Verified identical on every hero page at 1920px viewport:
 
 | Element | Top offset from hero (px) |
 |---------|---------------------------|
-| Kicker (`.pill`), when present | **48px** |
-| H1 (`.hero-title`) | **99px** (or 48px if no kicker, e.g. login/signup) |
+| Kicker (`.pill`), when present | **49px** (updated with 17mm padding pass, was 48px) |
+| H1 (`.hero-title`) | **119px** (or 49px if no kicker, e.g. login/signup) — updated with pill-height-relative spacing pass |
 
 Subtitle top and button-row top are NOT pixel-fixed — they naturally shift depending
 on how many lines the H1 and subtitle wrap to (content length), which is unavoidable
 without truncating copy text. Only kicker-top and H1-top are guaranteed fixed.
 
-### Equal spacing rhythm — 1rem (16px) between every element (locked 2025-07-01)
+### Spacing rhythm — pill-height-relative, ruler-calibrated (superseded, locked 2025-07-01)
 
-Owner ordered identical gaps between kicker → H1 → subtitle → button row.
-Verified 16px between all four on every hero page:
+**SUPERSEDES the earlier flat-16px pass.** Owner calibrated the site's physical
+scale with a ruler against their monitor (1920×1080, 72×43cm, devicePixelRatio 1):
+measured 49px == 17mm on that screen (≈73 PPI — real desktop monitors run well
+below the CSS spec's nominal 96 PPI, so any CSS-px-to-mm conversion via the
+96dpi formula is normally an underestimate of the real screen size).
 
-- `.hero-copy .hero__actions { padding-block-start: 0 }` — removed the extra
-  1.1rem padding that was stacking on top of the subtitle's own margin
+Current golden targets:
 
-**IMPORTANT — equal margin ≠ equal visible gap.** An earlier pass set all
-three margins to a flat 1rem and that looked equal in the CSS box model, but
-the OWNER CORRECTLY REJECTED IT: each element's own `line-height` bakes a
+| Gap | Target | Value |
+|-----|--------|-------|
+| Hero top/bottom padding | 17mm, ruler-calibrated | **49px** |
+| Kicker (`.pill`) → H1 | = pill's own rendered height | **35.41px** |
+| H1 → subtitle | = pill's own rendered height (same as above) | **35.41px** |
+| Subtitle → button row | = DOUBLE the pill's height | **70.82px** |
+
+**IMPORTANT — equal margin ≠ equal visible gap.** Margins below are NOT set to
+these target values directly. Each element's own `line-height` bakes a
 different amount of invisible leading into its box (H1's tight line-height
 leaves ~0.5px, `.hero-subtitle`'s `line-height:1.78` leaves ~6.6px above AND
 below its text; the kicker pill and nav buttons have filled backgrounds so
-their box edge IS the true visual edge, zero leading). Flat 1rem margins
-produced true visible gaps of ~16.5px / ~23px / ~22.6px — NOT equal. Fixed by
-compensating each margin for the adjacent elements' half-leading so the real
-visible whitespace is 16px everywhere:
+their box edge IS the true visual edge, zero leading). Margins are compensated
+so the TRUE VISIBLE gap hits the targets above:
 
-- `.hero-copy > .pill { margin-block-end: 15.5px }` — scoped to the hero kicker
-  only (base `.pill` is reused in 40+ non-hero templates; do not touch it)
-- `.hero-title { margin-block-end: 8.9px }` (golden group, already hero-scoped)
-- `.hero-subtitle { margin-block-end: 9.4px }` (hero-only class)
+- `.hero--home:not(...):not(...) .hero__inner { padding-block: clamp(1.8rem, 4vw, 49px) }`
+- `.hero-copy > .pill { margin-block-end: 34.9px }` (35.41 − H1's 0.5px top leading)
+  — scoped to the hero kicker only (base `.pill` is reused in 40+ non-hero
+  templates; do not touch it)
+- `.hero-title { margin-block-end: 28.3px }` (35.41 − H1's 0.5px bottom leading
+  − subtitle's 6.6px top leading) (golden group, already hero-scoped)
+- `.hero-subtitle { margin-block-end: 64.2px }` (70.82 − subtitle's own 6.6px
+  bottom leading) (hero-only class)
+- `.hero-copy .hero__actions { padding-block-start: 0 }` — removed extra
+  1.1rem padding that was stacking on top of the subtitle's own margin
 
-If you ever add or resize an element in this stack, do NOT just match its
-`margin-block-end` to the others — recompute using `(line-height - font-size) / 2`
-for that element's own half-leading, and the adjacent element's, then solve for
-the margin that makes `margin + half-leading(prev-bottom) + half-leading(next-top) = 16px`.
+If the pill's rendered height ever changes (font-size, padding), or you add/resize
+an element in this stack, recompute using `(line-height - font-size) / 2` for
+that element's own half-leading and the adjacent element's, then solve for the
+margin that makes `margin + half-leading(prev-bottom) + half-leading(next-top) = target`.
 
 When editing anything under `.hero--has-battle`, always check BOTH `base.css` and
 `chef_battle.css` for the same selector — a fix applied to only one file will silently
