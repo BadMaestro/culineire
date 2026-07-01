@@ -5119,7 +5119,7 @@
 /* ── Group 1.1 / 1.2: Unified listing hero height & inner padding ── */
 /* ⛔ LOCKED LAYOUT — measured live 2025-07-01 @ 1920px. DO NOT CHANGE WITHOUT OWNER ORDER. */
 .hero--home:not(.hero--recipe-detail):not(.hero--about) {
-  min-height: clamp(320px, 44vw, 503px); /* → 503px at 1920px (was 480px; +23px to fit the switcher spacing rule below without overflow). LOCKED. */
+  min-height: clamp(320px, 44vw, 534px); /* → 534px at 1920px (was 503px; +31px because the button-row-pinning fix (Group 1.3b) moved the CTA row down to 371.39px, eating into the switcher's reserved 35.41px gap + 33.59px height + 49px bottom gap). LOCKED. */
 }
 .hero--home:not(.hero--recipe-detail):not(.hero--about) .hero__inner {
   padding-block: clamp(1.8rem, 4vw, 49px); /* → 49px at 1920px = 17mm on owner's calibrated monitor (1920x1080, 72x43cm, measured 49px == 17mm with a physical ruler). LOCKED. */
