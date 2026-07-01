@@ -405,11 +405,14 @@
     var tip = getTooltip();
     if (!tip) { return; }
 
+    tip.setAttribute('data-rank', chef.rank || '');
     tip.querySelector('.arena-tooltip__avatar').src = chef.avatar_url || '';
     tip.querySelector('.arena-tooltip__avatar').alt = chef.name || '';
     tip.querySelector('.arena-tooltip__name').textContent = chef.name || '';
     tip.querySelector('.arena-tooltip__rank').textContent = chef.rank_label || '';
-    tip.querySelector('.arena-tooltip__rating').textContent = 'Rating: ' + (chef.rating || 0);
+    var ratingEl = tip.querySelector('.arena-tooltip__rating');
+    ratingEl.textContent = chef.rating ? 'Rating: ' + chef.rating : '';
+    ratingEl.hidden = !chef.rating;
     tip.querySelector('.arena-tooltip__link').href = '/chef-battle/profile/' + chef.slug + '/';
 
     var battleBadge = tip.querySelector('.arena-tooltip__badge--battle');

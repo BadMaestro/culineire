@@ -110,37 +110,57 @@
   z-index: 200;
   background: #fff;
   border: 1px solid #e0d8c8;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.13);
-  padding: 1rem;
-  width: 240px;
+  border-radius: 14px;
+  box-shadow: 0 6px 28px rgba(0,0,0,0.14);
+  padding: 1.1rem 1rem 1rem;
+  width: 220px;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.7rem;
+  overflow: hidden;
 }
+
+.arena-tooltip::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: #c8942a;
+  border-radius: 14px 14px 0 0;
+}
+
+[data-rank="culinary_master"] .arena-tooltip__rank { color: #b07a18; font-weight: 700; }
+[data-rank="executive_chef"]  .arena-tooltip__rank { color: #73603f; font-weight: 600; }
+[data-rank="head_chef"]       .arena-tooltip__rank { color: #8f7c5c; }
 
 .arena-tooltip__close {
   position: absolute;
-  top: 0.5rem;
+  top: 0.55rem;
   right: 0.6rem;
   background: none;
   border: none;
   cursor: pointer;
-  color: #9c8f80;
-  font-size: 1rem;
+  color: #b0a090;
+  font-size: 0.9rem;
   line-height: 1;
-  padding: 0.1rem 0.25rem;
+  padding: 0.15rem 0.3rem;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
 }
 
-.arena-tooltip__close:hover { color: #3a3028; }
+.arena-tooltip__close:hover {
+  color: #3a3028;
+  background: #f4f1ec;
+}
 
 .arena-tooltip__avatar {
-  width: 56px;
-  height: 56px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #e0d8c8;
+  border: 2.5px solid #e0d8c8;
   align-self: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
 }
 
 .arena-tooltip__body {
@@ -152,37 +172,40 @@
   font-size: 1rem;
   font-weight: 700;
   color: #2a2218;
+  letter-spacing: 0.01em;
 }
 
 .arena-tooltip__rank {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: #8f7c5c;
-  margin-top: 0.15rem;
+  margin-top: 0.2rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 .arena-tooltip__meta {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
   flex-wrap: wrap;
-  margin-top: 0.35rem;
+  margin-top: 0.3rem;
 }
 
 .arena-tooltip__rating {
-  font-size: 0.75rem;
-  color: #6b6258;
+  font-size: 0.73rem;
+  color: #9c8f80;
 }
 
 .arena-tooltip__badge {
-  font-size: 0.68rem;
+  font-size: 0.67rem;
   font-weight: 600;
-  padding: 0.15rem 0.5rem;
+  padding: 0.13rem 0.5rem;
   border-radius: 999px;
 }
 
 .arena-tooltip__badge--battle {
-  background: rgba(200,148,42,0.15);
+  background: rgba(200,148,42,0.14);
   color: #a07010;
 }
 
@@ -195,7 +218,19 @@
   display: block;
   text-align: center;
   font-size: 0.82rem;
-  padding: 0.45rem 1rem;
+  font-weight: 600;
+  padding: 0.52rem 1rem;
+  border-radius: 999px;
+  background: #c8942a;
+  color: #fff !important;
+  text-decoration: none;
+  transition: background 0.18s;
+}
+
+.arena-tooltip__link:hover,
+.arena-tooltip__link:focus-visible {
+  background: #a87a20;
+  color: #fff !important;
 }
 
 @media (max-width: 640px) {
