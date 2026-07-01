@@ -50,7 +50,7 @@ def pwa_manifest(request):
         "scope": "/",
         "display": "standalone",
         "background_color": "#faf6f0",
-        "theme_color": "#123c2d",
+        "theme_color": "#3a2c1e",
         "categories": ["food", "lifestyle", "social"],
         "icons": [
             {

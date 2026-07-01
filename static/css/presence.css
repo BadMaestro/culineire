@@ -28,8 +28,8 @@
   align-items: center;
   gap: 0.65rem;
   background: rgb(255 253 249 / 0.97);
-  border: 1px solid rgb(24 76 58 / 0.12);
-  border-left: 3px solid rgb(24 76 58 / 0.18);
+  border: 1px solid rgb(139 115 85 / 0.12);
+  border-left: 3px solid rgb(139 115 85 / 0.18);
   border-radius: var(--radius-sm, 12px);
   padding: 0.65rem 1rem;
   backdrop-filter: blur(16px);
@@ -69,7 +69,7 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: rgb(24 76 58 / 0.25);
+  background: rgb(139 115 85 / 0.25);
   flex-shrink: 0;
 }
 

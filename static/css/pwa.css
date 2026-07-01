@@ -84,7 +84,7 @@
   display: inline-flex;
   vertical-align: -0.15em;
   margin-inline: 0.15em;
-  color: var(--brand, #184c3a);
+  color: var(--brand, #8b7355);
 }
 
 /* Install / action button */
@@ -116,11 +116,11 @@
 
 .pwa-install-banner__dismiss:hover {
   color: var(--ink, #1f2c25);
-  background: var(--brand-soft, rgb(24 76 58 / 0.08));
+  background: var(--brand-soft, rgb(139 115 85 / 0.08));
 }
 
 .pwa-install-banner__dismiss:focus-visible {
-  outline: 2px solid var(--brand, #184c3a);
+  outline: 2px solid var(--brand, #8b7355);
   outline-offset: 2px;
 }
 

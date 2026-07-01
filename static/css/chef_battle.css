@@ -437,10 +437,10 @@
   place-items: center;
   width: 2rem;
   height: 2rem;
-  border: 1px solid rgb(24 76 58 / 0.22);
+  border: 1px solid rgb(139 115 85 / 0.22);
   border-radius: 999px;
-  background: rgb(24 76 58 / 0.08);
-  color: #184c3a;
+  background: rgb(139 115 85 / 0.08);
+  color: #8b7355;
   font-weight: 800;
 }
 
@@ -461,9 +461,9 @@
   display: grid;
   gap: 0.35rem;
   padding: 0.9rem;
-  border-inline-start: 3px solid #184c3a;
+  border-inline-start: 3px solid #8b7355;
   border-radius: 0 8px 8px 0;
-  background: rgb(24 76 58 / 0.07);
+  background: rgb(139 115 85 / 0.07);
 }
 
 .battle-form-shell--challenge {
@@ -538,7 +538,7 @@
 }
 
 .battle-table__row:hover {
-  background: rgb(24 76 58 / 0.05);
+  background: rgb(139 115 85 / 0.05);
 }
 
 @media (max-width: 880px) {
@@ -598,14 +598,14 @@
 .battle-moves-summary__value {
   font-size: 1.4rem;
   font-weight: 800;
-  color: #184c3a;
+  color: #c8942a;
   margin: 0;
 }
 .battle-table__head--3col,
 .battle-table__row--3col {
   grid-template-columns: minmax(8rem, 1fr) minmax(10rem, 2fr) 5rem;
 }
-.battle-moves__positive { color: #184c3a; }
+.battle-moves__positive { color: #8b7355; }
 .battle-moves__negative { color: #a03131; }
 
 /* ── Battle VS block (hero) ─────────────────────────────────────────────── */
@@ -699,7 +699,7 @@
 .battle-score-final__num {
   font-size: 2rem;
   font-weight: 800;
-  color: #184c3a;
+  color: #c8942a;
 }
 
 /* ── Combat panel redesign ──────────────────────────────────────────────── */
@@ -714,7 +714,7 @@
   font-size: .82rem;
   color: var(--muted);
 }
-.battle-combat__energy strong { color: #184c3a; }
+.battle-combat__energy strong { color: #8b7355; }
 .battle-combat__actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -736,9 +736,9 @@
   transition: background .15s, border-color .15s;
 }
 .battle-combat__action-btn:has(input:checked) {
-  background: #184c3a;
+  background: #c8942a;
   color: #fff8ee;
-  border-color: #184c3a;
+  border-color: #c8942a;
 }
 .battle-combat__invest {
   display: flex;
@@ -892,7 +892,7 @@ details[open] .battle-combat-results__log-toggle--title::before { content: ''; }
   letter-spacing: .02em;
 }
 .battle-combat__success {
-  color: #184c3a;
+  color: #8b7355;
   font-weight: 700;
   font-size: .9rem;
   text-align: center;
@@ -955,7 +955,7 @@ details[open] .battle-combat-results__log-toggle--title::before { content: ''; }
 .battle-combat__hit-count {
   font-size: 1.5rem;
   font-weight: 800;
-  color: #184c3a;
+  color: #c8942a;
   min-width: 1.8rem;
   text-align: center;
 }
@@ -1703,17 +1703,17 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
 /* ── Executive row (GreenBear) ──────────────────────────────────────────── */
 .battle-table--executive {
   margin-block-end: 0.5rem;
-  border: 1px solid var(--brand, #184c3a);
+  border: 1px solid var(--brand, #8b7355);
   border-radius: 0.5rem;
   overflow: hidden;
 }
 .battle-table__row--executive {
-  background: linear-gradient(90deg, rgb(24 76 58 / 0.08) 0%, transparent 100%);
+  background: linear-gradient(90deg, rgb(139 115 85 / 0.08) 0%, transparent 100%);
   font-weight: 700;
   border-block-start: none;
 }
 .battle-table__row--executive:hover {
-  background: linear-gradient(90deg, rgb(24 76 58 / 0.14) 0%, transparent 100%);
+  background: linear-gradient(90deg, rgb(139 115 85 / 0.14) 0%, transparent 100%);
 }
 .battle-table__executive-label {
   display: flex;
@@ -1864,7 +1864,7 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
   align-items: center;
   gap: 0.1rem;
   padding: 0.6rem 1rem;
-  background: var(--brand, #2d6a4f);
+  background: var(--brand, #8b7355);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -1872,7 +1872,7 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
   transition: background 0.15s;
   line-height: 1.2;
 }
-.token-shop-buy-btn:hover { background: var(--brand-dark, #1b4332); }
+.token-shop-buy-btn:hover { background: var(--brand-dark, #6e4e2c); }
 .token-shop-buy-btn__label {
   font-size: 0.78rem;
   font-weight: 500;

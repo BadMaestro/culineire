@@ -809,7 +809,7 @@
   min-height: 36px;
   padding: 0.4rem 0.2rem;
   border-radius: 14px;
-  color: rgb(24 76 58 / 0.88);
+  color: rgb(139 115 85 / 0.88);
   font-size: 0.73rem;
   font-weight: 600;
   line-height: 1;
@@ -840,7 +840,7 @@
 
 .ce-author-panel__action-secondary:hover,
 .ce-author-panel__action-secondary:focus-visible {
-  background: rgb(24 76 58 / 0.08);
+  background: rgb(139 115 85 / 0.08);
   color: var(--brand);
   outline: 0;
   text-decoration: none;

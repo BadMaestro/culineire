@@ -1,4 +1,4 @@
-/* Единая очерёдность каскадных слоёв всего проекта.
+﻿/* Единая очерёдность каскадных слоёв всего проекта.
    Чем правее в списке — тем выше приоритет.
    - base       — design tokens, типография, общие компоненты (этот файл)
    - components — карточки, гриды (content_cards.css)
@@ -36,14 +36,14 @@
     --muted: #66746d;
 
     /* Borders */
-    --line: rgb(24 76 58 / 0.12);
-    --line-strong: rgb(24 76 58 / 0.18);
+    --line: rgb(139 115 85 / 0.12);
+    --line-strong: rgb(139 115 85 / 0.18);
 
     /* Brand */
-    --brand: #184c3a;
-    --brand-dark: #123c2d;
+    --brand: #8b7355;
+    --brand-dark: #6e4e2c;
     --brand-mid: #8b7355;
-    --brand-soft: rgb(24 76 58 / 0.08);
+    --brand-soft: rgb(139 115 85 / 0.08);
     --border: #e2d9cc;
 
     /* Scrollbars */
@@ -984,7 +984,7 @@
     display: grid;
     gap: 0.35rem;
     margin-block-start: 0;
-    border-left: 4px solid rgb(24 76 58 / 0.42);
+    border-left: 4px solid rgb(139 115 85 / 0.42);
   }
 
   .legal-contact-card--hub span {
@@ -1217,10 +1217,10 @@
   .legal-cookie-note {
     margin: 0;
     padding: 0.85rem 0.95rem;
-    border-left: 4px solid rgb(24 76 58 / 0.42);
+    border-left: 4px solid rgb(139 115 85 / 0.42);
     border-radius: 0.75rem;
     color: var(--legal-muted);
-    background: rgb(24 76 58 / 0.055);
+    background: rgb(139 115 85 / 0.055);
     font-size: 0.84rem;
     line-height: 1.62;
   }
@@ -1331,7 +1331,7 @@
   .legal-report-form .authoring-checkbox-label input {
     flex: 0 0 auto;
     margin-top: 0.18rem;
-    accent-color: #0b4c3a;
+    accent-color: #8b7355;
   }
 
   .legal-report-success {
@@ -1609,7 +1609,7 @@
 
   .category-nav__link:hover,
   .category-nav__link:focus-visible {
-    color: rgb(24 76 58 / 0.94);
+    color: rgb(139 115 85 / 0.94);
     opacity: 0.92;
   }
 
@@ -2741,7 +2741,7 @@
 .login-modal__input:focus {
   outline: none;
   border-color: var(--brand);
-  box-shadow: 0 0 0 3px rgb(11 76 58 / 0.12);
+  box-shadow: 0 0 0 3px rgb(139 115 85 / 0.12);
 }
 
 .login-modal__error {
@@ -3004,7 +3004,7 @@
 
 .about-note {
   padding: 1.45rem;
-  border: 1px solid rgb(24 76 58 / 0.18);
+  border: 1px solid rgb(139 115 85 / 0.18);
   border-radius: 8px;
   background: var(--surface);
   box-shadow: var(--shadow-sm);
@@ -5064,7 +5064,7 @@
   display: flex;
   flex-direction: column;
   gap: .35rem;
-  background: #184c3a;
+  background: #3a2c1e;
   color: #fff8ee;
   border-radius: 10px;
   padding: .85rem 1.1rem;

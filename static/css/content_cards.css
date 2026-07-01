@@ -324,7 +324,7 @@
 .content-showcase__eyebrow {
   margin: 0;
   margin-block-end: 0.85rem;
-  color: var(--brand, #184c3a);
+  color: var(--brand, #8b7355);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -478,7 +478,7 @@
   height: 100%;
   overflow: hidden;
   background: var(--surface, #fffdf9);
-  border: 1px solid var(--line, rgb(24 76 58 / 0.12));
+  border: 1px solid var(--line, rgb(139 115 85 / 0.12));
   border-radius: 20px;
   box-shadow: var(--shadow-sm, 0 6px 18px rgb(22 33 27 / 0.05));
   transition:
@@ -487,7 +487,7 @@
 }
 
 .recipe-card:hover {
-  border-color: var(--line-strong, rgb(24 76 58 / 0.18));
+  border-color: var(--line-strong, rgb(139 115 85 / 0.18));
   box-shadow: var(--shadow-md, 0 12px 30px rgb(22 33 27 / 0.08));
 }
 
@@ -548,7 +548,7 @@
 
 .recipe-card__title a:hover,
 .recipe-card__title a:focus-visible {
-  color: var(--brand, #184c3a);
+  color: var(--brand, #8b7355);
   text-decoration: none;
 }
 
@@ -577,7 +577,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--brand, #184c3a);
+  color: var(--brand, #8b7355);
   font-size: 0.84rem;
   line-height: 1.2;
   font-weight: 600;
@@ -586,7 +586,7 @@
 
 .recipe-card__category-link:hover,
 .recipe-card__category-link:focus-visible {
-  color: var(--brand-dark, #123c2d);
+  color: var(--brand-dark, #6e4e2c);
   text-decoration: none;
 }
 
@@ -696,7 +696,7 @@
 
 .recipe-card__meta-link:hover,
 .recipe-card__meta-link:focus-visible {
-  color: var(--brand, #184c3a);
+  color: var(--brand, #8b7355);
   text-decoration: none;
 }
 
@@ -728,7 +728,7 @@
 
 .recipe-card__excerpt-link:hover,
 .recipe-card__excerpt-link:focus-visible {
-  color: var(--brand, #184c3a);
+  color: var(--brand, #8b7355);
   text-decoration: none;
 }
 
@@ -811,7 +811,7 @@
 
 .recipe-card-author__brand-link:hover,
 .recipe-card-author__brand-link:focus-visible {
-  color: var(--brand, #184c3a);
+  color: var(--brand, #8b7355);
   text-decoration: none;
 }
 
@@ -917,7 +917,7 @@
 .article-entry,
 .article-list > li {
   background: var(--surface, #fffdf9);
-  border: 1px solid var(--line, rgb(24 76 58 / 0.12));
+  border: 1px solid var(--line, rgb(139 115 85 / 0.12));
   border-radius: var(--radius-md, 18px);
   box-shadow: var(--shadow-sm, 0 6px 18px rgb(22 33 27 / 0.05));
 }
@@ -1528,7 +1528,7 @@
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.03em;
-  color: var(--brand, #184c3a);
+  color: var(--brand, #8b7355);
 }
 
 .author-profile-links__label {

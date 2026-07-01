@@ -23,12 +23,12 @@
 }
 
 .collection-tab:hover {
-  color: var(--brand, #0b4c3a);
+  color: var(--brand, #8b7355);
 }
 
 .collection-tab--active {
-  color: var(--brand, #0b4c3a);
-  border-bottom-color: var(--brand, #0b4c3a);
+  color: var(--brand, #8b7355);
+  border-bottom-color: var(--brand, #8b7355);
 }
 
 .collection-tab__count {
@@ -46,8 +46,8 @@
 }
 
 .collection-tab--active .collection-tab__count {
-  background: color-mix(in srgb, var(--brand, #0b4c3a) 12%, transparent);
-  color: var(--brand, #0b4c3a);
+  background: color-mix(in srgb, var(--brand, #8b7355) 12%, transparent);
+  color: var(--brand, #8b7355);
 }
 
 /* ── Empty state ── */

@@ -91,10 +91,10 @@
   align-content: center;
   min-width: 0;
   padding: 0.85rem 1rem;
-  border: 1px solid rgb(24 76 58 / 0.14);
-  border-left: 4px solid rgb(24 76 58 / 0.46);
+  border: 1px solid rgb(139 115 85 / 0.14);
+  border-left: 4px solid rgb(139 115 85 / 0.46);
   border-radius: 0.9rem;
-  background: rgb(24 76 58 / 0.055);
+  background: rgb(139 115 85 / 0.055);
 }
 
 .nf-filters {
@@ -144,15 +144,15 @@
 .nf-filter:hover,
 .nf-filter:focus-visible,
 .nf-filter--active {
-  border-color: rgb(24 76 58 / 0.36);
-  color: #0b4c3a;
-  background: rgb(24 76 58 / 0.09);
+  border-color: rgb(139 115 85 / 0.36);
+  color: #8b7355;
+  background: rgb(139 115 85 / 0.09);
   outline: 0;
 }
 
 .nf-filter--active strong {
   color: #fffdf8;
-  background: #0b4c3a;
+  background: #8b7355;
 }
 
 .nf-ledger {
@@ -227,13 +227,13 @@
   margin-block-start: 0.12rem;
   border: 2px solid rgb(250 247 241);
   border-radius: 50%;
-  background: var(--brand, #184c3a);
+  background: var(--brand, #8b7355);
   box-shadow: 0 0 0 2px rgb(58 44 30 / 0.13);
 }
 
 .nf-entry__dot--recipe_published,
 .nf-entry__dot--article_published {
-  background: #184c3a;
+  background: #8b7355;
 }
 
 .nf-entry__dot--pinch_published {
@@ -299,13 +299,13 @@
 }
 
 .nf-badge--recipe_published {
-  color: #0c4a38;
-  background: rgb(24 76 58 / 0.1);
+  color: #7a5c38;
+  background: rgb(139 115 85 / 0.1);
 }
 
 .nf-badge--article_published {
-  color: #184c3a;
-  background: rgb(24 76 58 / 0.08);
+  color: #8b7355;
+  background: rgb(139 115 85 / 0.08);
 }
 
 .nf-badge--pinch_published {
@@ -380,7 +380,7 @@
 
 a.nf-entry__title:hover,
 a.nf-entry__title:focus-visible {
-  color: #0b4c3a;
+  color: #8b7355;
   text-decoration: underline;
   text-underline-offset: 0.16em;
   outline: 0;

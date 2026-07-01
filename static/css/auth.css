@@ -1,4 +1,4 @@
-.hero--login {
+﻿.hero--login {
     min-height: clamp(480px, 62vw, 720px);
     overflow: clip;
 }
@@ -113,7 +113,7 @@
 .auth-field input:focus,
 .auth-field select:focus,
 .auth-field textarea:focus {
-    outline: 2px solid rgb(24 76 58 / 0.18);
+    outline: 2px solid rgb(139 115 85 / 0.18);
     outline-offset: 2px;
     border-color: var(--brand);
 }
@@ -128,7 +128,7 @@
 }
 
 .auth-form .profanity-wrapper:focus-within {
-    outline: 2px solid rgb(24 76 58 / 0.18);
+    outline: 2px solid rgb(139 115 85 / 0.18);
     outline-offset: 2px;
     border-color: var(--brand);
 }
@@ -218,7 +218,7 @@
     padding: 0.45rem 1.1rem;
     border: 1px solid var(--brand);
     border-radius: 999px;
-    background: rgb(24 76 58 / 0.07);
+    background: rgb(139 115 85 / 0.07);
     color: var(--brand);
     font-size: 0.88rem;
     font-weight: 600;
@@ -227,7 +227,7 @@
 }
 
 .auth-avatar-choose-btn:hover {
-    background: rgb(24 76 58 / 0.13);
+    background: rgb(139 115 85 / 0.13);
 }
 
 .auth-avatar-filename {
@@ -286,7 +286,7 @@
 
 .auth-avatar-choice:has(input:checked) {
     border-color: var(--brand);
-    background: rgb(24 76 58 / 0.08);
+    background: rgb(139 115 85 / 0.08);
 }
 
 .auth-help {
@@ -359,13 +359,13 @@
 .auth-status--success .auth-status__mark {
     color: #fffdf9;
     background: var(--brand);
-    box-shadow: 0 12px 28px rgb(11 76 58 / 0.22);
+    box-shadow: 0 12px 28px rgb(139 115 85 / 0.22);
 }
 
 .auth-status--pending .auth-status__mark {
     color: var(--brand);
-    border: 1px solid rgb(24 76 58 / 0.2);
-    background: rgb(24 76 58 / 0.08);
+    border: 1px solid rgb(139 115 85 / 0.2);
+    background: rgb(139 115 85 / 0.08);
 }
 
 .auth-status__text {
@@ -499,9 +499,9 @@
     display: grid;
     gap: 0.35rem;
     padding: 0.85rem 0.95rem;
-    border-left: 4px solid rgb(24 76 58 / 0.42);
+    border-left: 4px solid rgb(139 115 85 / 0.42);
     border-radius: 0.75rem;
-    background: rgb(24 76 58 / 0.055);
+    background: rgb(139 115 85 / 0.055);
 }
 
 .contact-panel {
@@ -613,7 +613,7 @@
 }
 
 .contact-history__item--latest {
-    background: rgb(11 76 58 / 0.04);
+    background: rgb(139 115 85 / 0.04);
 }
 
 .contact-history__meta {
@@ -811,7 +811,7 @@
 }
 
 .auth-forgot a:hover {
-    color: var(--brand, #184c3a);
+    color: var(--brand, #8b7355);
 }
 
 .auth-info {
