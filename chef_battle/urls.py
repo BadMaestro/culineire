@@ -7,6 +7,7 @@ app_name = "chef_battle"
 urlpatterns = [
     path("", views.battle_home, name="home"),
     path("arena/", views.arena, name="arena"),
+    path("arena/battle-popup/", views.arena_battle_popup, name="arena_battle_popup"),
     path("arena/ping/", views.arena_ping, name="arena_ping"),
     path("arena/state/", views.arena_state, name="arena_state"),
     path("guide/", views.battle_guide, name="guide"),

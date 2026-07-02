@@ -1,0 +1,126 @@
+{% load static %}
+{% if no_battle %}
+<div class="abp abp--empty">
+  <p class="abp__empty-msg">No battle is happening right now. Check back soon!</p>
+</div>
+{% else %}
+<div class="abp" data-battle-id="{{ battle.pk }}">
+
+  <div class="abp__header">
+    <span class="abp__live">LIVE</span>
+    <span class="abp__theme">{{ battle.theme }}</span>
+    {% if time_remaining %}<span class="abp__timer">&#9201; {{ time_remaining }}</span>{% endif %}
+    <span class="abp__phase">{{ battle.get_status_display }}</span>
+  </div>
+
+  <div class="abp__versus">
+
+    <div class="abp__chef abp__chef--challenger">
+      <img class="abp__chef-avatar" src="{{ battle.challenger.display_avatar_url }}" alt="{{ battle.challenger.name }}" width="72" height="72">
+      <div class="abp__chef-name">{{ battle.challenger.name }}</div>
+      <div class="abp__chef-votes">{{ votes_for_challenger }} vote{{ votes_for_challenger|pluralize }}</div>
+      {% if challenger_artifacts %}
+      <div class="abp__artifacts">
+        {% for ca in challenger_artifacts %}
+        <span class="abp__artifact" title="{{ ca.artifact.name }}{% if ca.artifact.effect_type %} ({{ ca.artifact.effect_type }} +{{ ca.artifact.effect_value }}){% endif %}">
+          {% if ca.artifact.image %}<img src="{{ ca.artifact.image.url }}" alt="{{ ca.artifact.name }}" width="24" height="24">{% else %}&#9876;{% endif %}
+        </span>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% if can_vote and not has_voted %}
+      <form method="post" action="{% url 'chef_battle:battle_vote' battle.pk %}" class="abp__vote-form">
+        {% csrf_token %}
+        <input type="hidden" name="voted_for" value="{{ battle.challenger.pk }}">
+        <button type="submit" class="abp__vote-btn">Vote {{ battle.challenger.name|truncatewords:1 }}</button>
+      </form>
+      {% endif %}
+      {% if viewer_author and not is_participant and viewer_token_balance > 0 %}
+      <div class="abp__gifts">
+        {% for gift in appreciation_gifts %}{% if viewer_token_balance >= gift.cost %}
+        <form method="post" action="{% url 'chef_battle:send_appreciation_gift' battle.pk %}" class="abp__gift-form">
+          {% csrf_token %}
+          <input type="hidden" name="recipient_slug" value="{{ battle.challenger.slug }}">
+          <input type="hidden" name="gift_type" value="{{ gift.type }}">
+          <button type="submit" class="abp__gift-btn" title="{{ gift.label }} ({{ gift.cost }}T)">{{ gift.emoji }}</button>
+        </form>
+        {% endif %}{% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="abp__vs-col">
+      <span class="abp__vs">VS</span>
+    </div>
+
+    <div class="abp__chef abp__chef--opponent">
+      <img class="abp__chef-avatar" src="{{ battle.opponent.display_avatar_url }}" alt="{{ battle.opponent.name }}" width="72" height="72">
+      <div class="abp__chef-name">{{ battle.opponent.name }}</div>
+      <div class="abp__chef-votes">{{ votes_for_opponent }} vote{{ votes_for_opponent|pluralize }}</div>
+      {% if opponent_artifacts %}
+      <div class="abp__artifacts">
+        {% for ca in opponent_artifacts %}
+        <span class="abp__artifact" title="{{ ca.artifact.name }}{% if ca.artifact.effect_type %} ({{ ca.artifact.effect_type }} +{{ ca.artifact.effect_value }}){% endif %}">
+          {% if ca.artifact.image %}<img src="{{ ca.artifact.image.url }}" alt="{{ ca.artifact.name }}" width="24" height="24">{% else %}&#9876;{% endif %}
+        </span>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% if can_vote and not has_voted %}
+      <form method="post" action="{% url 'chef_battle:battle_vote' battle.pk %}" class="abp__vote-form">
+        {% csrf_token %}
+        <input type="hidden" name="voted_for" value="{{ battle.opponent.pk }}">
+        <button type="submit" class="abp__vote-btn">Vote {{ battle.opponent.name|truncatewords:1 }}</button>
+      </form>
+      {% endif %}
+      {% if viewer_author and not is_participant and viewer_token_balance > 0 %}
+      <div class="abp__gifts">
+        {% for gift in appreciation_gifts %}{% if viewer_token_balance >= gift.cost %}
+        <form method="post" action="{% url 'chef_battle:send_appreciation_gift' battle.pk %}" class="abp__gift-form">
+          {% csrf_token %}
+          <input type="hidden" name="recipient_slug" value="{{ battle.opponent.slug }}">
+          <input type="hidden" name="gift_type" value="{{ gift.type }}">
+          <button type="submit" class="abp__gift-btn" title="{{ gift.label }} ({{ gift.cost }}T)">{{ gift.emoji }}</button>
+        </form>
+        {% endif %}{% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  {% if has_voted %}<p class="abp__voted-note">Your vote is recorded.</p>{% endif %}
+
+  <div class="abp__chat">
+    <div class="abp__chat-title">Live Chat</div>
+    <div class="abp__chat-messages" id="abp-chat-messages">
+      {% for msg in recent_chat %}
+      <div class="abp__chat-msg" data-id="{{ msg.pk }}">
+        <b class="abp__chat-who">{{ msg.display_name }}</b>
+        <span class="abp__chat-body">{{ msg.body }}</span>
+        <span class="abp__chat-time">{{ msg.created_at|time:"H:i" }}</span>
+      </div>
+      {% empty %}
+      <p class="abp__chat-empty">No messages yet. Say something!</p>
+      {% endfor %}
+    </div>
+    {% if request.user.is_authenticated %}
+    <form class="abp__chat-form" id="abp-chat-form"
+          data-url="{% url 'chef_battle:battle_chat_send' battle.pk %}"
+          data-poll-url="{% url 'chef_battle:battle_chat_poll' battle.pk %}">
+      {% csrf_token %}
+      <input class="abp__chat-input" name="body" type="text" placeholder="Say something..." maxlength="280" autocomplete="off">
+      <button type="submit" class="abp__chat-send">Send</button>
+    </form>
+    {% else %}
+    <p class="abp__chat-login"><a href="{% url 'account_login' %}">Sign in to chat</a></p>
+    {% endif %}
+  </div>
+
+  <div class="abp__footer">
+    <a href="{{ battle.get_absolute_url }}" class="abp__full-link">Full Battle Room &#8594;</a>
+    {% if is_participant %}<span class="abp__participant-note">You are in this battle.</span>{% endif %}
+  </div>
+
+</div>
+{% endif %}

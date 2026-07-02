@@ -310,7 +310,7 @@ def _build_battlefield_progress():
                 {"label": "Stage B1: Battle context in arena payload", "detail": "arena() + arena_state() now include battle_id, battle_phase, battle_url per in_battle chef. in_battle_map dict replaces raw in_battle_author_ids set.", "status": "done", "completed_at": "2026-07-02"},
                 {"label": "Stage B3: Chefs disappear from ring when in VS centre", "detail": "CENTRE_PHASES + FACING_PHASES constants in arena_puzzle.js. drawArena() vacates ring cell when chef.battle_phase is in either set — move not duplicate.", "status": "done", "completed_at": "2026-07-02"},
                 {"label": "Stage B2: Facing pair positioning (pre-combat)", "detail": "Challenge accepted (scheduled/menu_locked) -> show chefs in deterministic facing cells, not ring cells. Requires drawFacingPair() geometry helper.", "status": "pending"},
-                {"label": "Stage C: Battle Room popup embedded on the arena", "detail": "OWNER APPROVED option A. Centre VS cell = one big link opening the popup: chef left vs right, artifacts visible (open battle), per-battle chat, voting, gifts - all via existing endpoints. 18+/legal affordances carry over unchanged.", "status": "pending"},
+                {"label": "Stage C: Battle Room popup embedded on the arena", "detail": "OWNER APPROVED option A. Centre VS cell = one big link opening the popup: chef left vs right, artifacts visible (open battle), per-battle chat, voting, gifts - all via existing endpoints. 18+/legal affordances carry over unchanged.", "status": "done", "completed_at": "2026-07-02"},
                 {"label": "Stage D: Battle Room page becomes the antechamber", "detail": "battle_detail reworked into pre-battle hub: rules, ratings, statistics, chef comparison -> transition to the arena. Open decision: where chefs perform combat actions.", "status": "pending"},
                 {"label": "Stage E1: Mandatory use of spectator-gifted artifacts", "detail": "Combat logic change + public rules update: chefs may use own artifacts, MUST use artifacts gifted by spectators during the battle. Appreciation gifts never affect the battle.", "status": "pending"},
                 {"label": "Stage E2: Appreciation gifts sellable after battle", "detail": "New economy mechanic. Requires closed-loop token model (s14) and anti-gambling (s17) legal check BEFORE build. Rate and flow TBD with owner.", "status": "pending"},
@@ -712,6 +712,7 @@ def _arena_center(active_battle):
         return {
             "type": "active_battle",
             "battle_url": reverse("chef_battle:battle_detail", kwargs={"pk": active_battle.pk}),
+            "popup_url": reverse("chef_battle:arena_battle_popup"),
             "challenger": {
                 "name": active_battle.challenger.name,
                 "avatar_url": active_battle.challenger.display_avatar_url,
@@ -738,6 +739,97 @@ def _arena_center(active_battle):
         }
 
     return {"type": "empty"}
+
+
+def arena_battle_popup(request):
+    """AJAX partial — Battle Room popup embedded on the arena page.
+    Returns an HTML fragment (no base.html). No login required — anonymous visitors
+    can view the popup; voting and gifts require auth and are gated in the target views.
+    """
+    from .models import AppreciationGiftType, APPRECIATION_GIFT_COST, APPRECIATION_GIFT_EMOJI
+
+    active = list(get_active_battles(limit=1))
+    if not active:
+        return render(request, "chef_battle/arena_battle_popup.html", {"no_battle": True})
+
+    battle = active[0]
+    vote_counts = get_battle_vote_counts(battle)
+
+    challenger_artifacts = list(
+        ChefArtifact.objects
+        .filter(
+            chef=battle.challenger,
+            status__in=[ChefArtifact.Status.AVAILABLE, ChefArtifact.Status.RESERVED],
+        )
+        .select_related("artifact")
+        .order_by("-artifact__effect_value")[:6]
+    )
+    opponent_artifacts = list(
+        ChefArtifact.objects
+        .filter(
+            chef=battle.opponent,
+            status__in=[ChefArtifact.Status.AVAILABLE, ChefArtifact.Status.RESERVED],
+        )
+        .select_related("artifact")
+        .order_by("-artifact__effect_value")[:6]
+    )
+
+    recent_chat = list(
+        BattleChatMessage.objects
+        .filter(battle=battle, is_hidden=False)
+        .order_by("created_at")[:20]
+    )
+
+    viewer_author = get_author_for_user(request.user) if request.user.is_authenticated else None
+    is_participant = bool(viewer_author and battle.author_is_participant(viewer_author))
+
+    can_vote = bool(
+        viewer_author
+        and battle.status in {Battle.Status.ACTIVE, Battle.Status.VOTING}
+        and not is_participant
+    )
+    has_voted = False
+    if can_vote:
+        has_voted = BattleVote.objects.filter(battle=battle, voter=request.user).exists()
+
+    appreciation_gifts = [
+        {
+            "type": k,
+            "label": AppreciationGiftType(k).label,
+            "cost": v,
+            "emoji": APPRECIATION_GIFT_EMOJI.get(k, "🎁"),
+        }
+        for k, v in APPRECIATION_GIFT_COST.items()
+    ]
+    viewer_token_balance = 0
+    if viewer_author:
+        wallet = TokenWallet.objects.filter(chef=viewer_author).first()
+        viewer_token_balance = wallet.balance if wallet else 0
+
+    now = timezone.now()
+    time_remaining = None
+    if hasattr(battle, "end_time") and battle.end_time and battle.end_time > now:
+        delta = battle.end_time - now
+        total_s = int(delta.total_seconds())
+        h, rem = divmod(total_s, 3600)
+        m = rem // 60
+        time_remaining = f"{h}h {m}m" if h else f"{m}m"
+
+    return render(request, "chef_battle/arena_battle_popup.html", {
+        "battle": battle,
+        "votes_for_challenger": vote_counts.get(battle.challenger_id, 0),
+        "votes_for_opponent": vote_counts.get(battle.opponent_id, 0),
+        "challenger_artifacts": challenger_artifacts,
+        "opponent_artifacts": opponent_artifacts,
+        "recent_chat": recent_chat,
+        "viewer_author": viewer_author,
+        "is_participant": is_participant,
+        "can_vote": can_vote,
+        "has_voted": has_voted,
+        "appreciation_gifts": appreciation_gifts,
+        "viewer_token_balance": viewer_token_balance,
+        "time_remaining": time_remaining,
+    })
 
 
 def _arena_latest_result():

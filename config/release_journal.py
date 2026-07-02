@@ -1,5 +1,43 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.66",
+        "date": "2026-07-02",
+        "commit": "pending",
+        "title": "Arena Stage C — Battle Room popup embedded on the arena",
+        "section": "Chef Battles / Arena (Phase FE-3)",
+        "summary": (
+            "Stage C of the Arena As The Hall plan (owner-approved). "
+            "Clicking either combatant cell in the VS centre now opens an inline popup "
+            "instead of navigating to the full battle room page. "
+            "The popup partial (arena_battle_popup view + arena_battle_popup.html template) "
+            "fetches the active battle and renders: chef avatars + vote counts, "
+            "up to 6 AVAILABLE/RESERVED artifacts per chef, live chat with 10-second polling "
+            "and AJAX send (fire-and-forget + repoll), vote buttons (ACTIVE/VOTING phases only, "
+            "non-participants, one vote per user), appreciation gift buttons (logged-in "
+            "non-participants with sufficient token balance), and a footer link to the full "
+            "battle room. Anonymous users see the popup read-only. "
+            "_arena_center() now emits popup_url alongside battle_url. "
+            "drawBattleCell() accepts popupUrl and calls openBattlePopup() in preference to "
+            "navigating. Popup is dismissed on close button, backdrop click, or Escape key. "
+            "No battle in progress renders a graceful 'No battle right now' state."
+        ),
+        "checklist": [
+            "views.py _arena_center(): popup_url added",
+            "views.py arena_battle_popup(): new view — HTML partial, no auth required",
+            "chef_battle/urls.py: arena/battle-popup/ → arena_battle_popup",
+            "templates/chef_battle/arena_battle_popup.html: new partial template",
+            "templates/chef_battle/arena.html: #arena-battle-popup modal container added",
+            "arena_puzzle.js: drawBattleCell() accepts popupUrl, openBattlePopup() added",
+            "arena_puzzle.js: drawCentre() passes center.popup_url to drawBattleCell()",
+            "arena_puzzle.js: closeBattlePopup(), _initPopupChat(), _escHtml() added",
+            "arena_puzzle.js: DOMContentLoaded wires popup close button + backdrop + Escape",
+            "arena.css: .arena-popup modal + .abp partial styles added",
+            "roadmap: Stage C marked done 2026-07-02",
+            "manage.py check: 0 issues",
+        ],
+        "deployment_status": "pending deployment",
+    },
+    {
         "version": "2.5.65",
         "date": "2026-07-02",
         "commit": "pending",

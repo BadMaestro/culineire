@@ -8,7 +8,7 @@
 
 {% block extra_head %}
 <link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">
-<link href="{% static 'css/arena.css' %}?v=20260702a" rel="stylesheet">
+<link href="{% static 'css/arena.css' %}?v=20260702b" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -110,5 +110,15 @@ window.ARENA_VIEWER = {
   </div>
 </div>
 
-<script src="{% static 'js/arena_puzzle.js' %}?v=20260702a"></script>
+<div id="arena-battle-popup" class="arena-popup" hidden>
+  <div class="arena-popup__backdrop" id="arena-popup-backdrop"></div>
+  <div class="arena-popup__panel" role="dialog" aria-modal="true" aria-label="Live Battle">
+    <button class="arena-popup__close" id="arena-popup-close" aria-label="Close battle">&times;</button>
+    <div id="arena-popup-inner" class="arena-popup__inner">
+      <p class="arena-popup__loading">Loading...</p>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'js/arena_puzzle.js' %}?v=20260702b"></script>
 {% endblock %}
