@@ -212,6 +212,30 @@ class ChefEnrollViewTests(TestCase):
         self.assertTrue(profile.age_verified)
 
 
+@override_settings(SECURE_SSL_REDIRECT=False)
+class ChefBattleRulesViewTests(TestCase):
+    def test_ranking_rules_match_current_rank_ladder(self):
+        response = self.client.get(reverse("chef_battle:rules"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Every new Chef starts with 1,000 rating points")
+        for rank_and_threshold in (
+            "Kitchen Porter (0+)",
+            "Prep Chef (1,000+)",
+            "Commis Chef (1,080+)",
+            "Chef de Partie (1,180+)",
+            "Sous Chef (1,300+)",
+            "Head Chef (1,450+)",
+            "Executive Chef (1,600+)",
+            "Culinary Master (1,800+)",
+        ):
+            self.assertContains(response, rank_and_threshold)
+        self.assertContains(response, reverse("chef_battle:rankings"))
+        self.assertContains(response, "A Chef becomes a CulinEire Hero at 15 wins.")
+        self.assertNotContains(response, "Michelin Chef")
+        self.assertNotContains(response, "A win streak bonus")
+
+
 class ChefBattleAntiAbuseTests(TestCase):
     """Anti-abuse: duplicate vote, self-vote, suspicious farm-pair detection."""
 

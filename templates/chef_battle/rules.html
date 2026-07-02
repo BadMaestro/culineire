@@ -258,10 +258,11 @@
         <div class="section-header"><h2>Ranking &amp; Levels</h2></div>
         <div class="legal-card__content">
           <ul class="legal-list">
-            <li>Winning a battle earns +25 rating points. Losing costs 15 rating points (minimum 0).</li>
-            <li>Chefs progress through 5 levels. Each level requires 3 wins. Level 5 Chefs with 15 or more wins can reach CulinEire Hero status.</li>
-            <li>Ranks are calculated from rating: Commis, Chef de Partie, Sous Chef, Head Chef, Executive Chef, Michelin Chef.</li>
-            <li>A win streak bonus tracks consecutive wins on the public profile.</li>
+            <li>Every new Chef starts with 1,000 rating points at Prep Chef rank. Winning a completed battle adds 25 rating points; losing deducts 15, with rating never falling below 0.</li>
+            <li>The rating ladder is: Kitchen Porter (0+), Prep Chef (1,000+), Commis Chef (1,080+), Chef de Partie (1,180+), Sous Chef (1,300+), Head Chef (1,450+), Executive Chef (1,600+), and Culinary Master (1,800+).</li>
+            <li>Levels are separate from rating and are based on total wins: Level 1 (0&ndash;2 wins), Level 2 (3&ndash;5), Level 3 (6&ndash;8), Level 4 (9&ndash;11), and Level 5 (12&ndash;14). A Chef becomes a CulinEire Hero at 15 wins.</li>
+            <li>The <a href="{% url 'chef_battle:rankings' %}">all-time rankings</a> are ordered primarily by rating. Wins are used as a later tie-breaker.</li>
+            <li>Current and best win streaks track consecutive victories on the Chef profile. A win streak is a performance record, not an additional rating bonus.</li>
           </ul>
         </div>
       </article>
