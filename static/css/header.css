@@ -981,6 +981,7 @@
 
   .ce-nav {
     display: flex;
+    flex-direction: row; /* reset the drawer's flex-direction:column — without this, the desktop nav stacked menu + auth into two rows ("Join Us / Sign In" dropped below the main links) */
     flex: 1 1 auto;
     align-items: center;
     justify-content: flex-end;
