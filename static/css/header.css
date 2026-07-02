@@ -270,35 +270,34 @@
 }
 
 .ce-nav {
-  /* Full-height side drawer, not a dropdown strip — owner 2026-07-01.
-     First fix (position:absolute under the header) stopped it from
-     shoving the hero down the page, but the result was still judged
-     "scattered/unclear" as a cramped floating box. A drawer sliding in
-     from the screen edge, full height, with a dimmed backdrop, is the
-     standard pattern for 7+ top-level destinations (more than a 3-5
-     item tab bar comfortably holds). Kept permanently in the DOM/flex
-     layout, off-screen via transform (not display:none), so opening
-     it is a pure GPU-accelerated transform transition instead of a
-     display-none/flex jump-cut — and it never touches the rest of the
-     page's layout. Desktop (min-width:1280px) fully overrides this
-     back to a normal in-flow row further down this file. */
+  /* Side panel sliding in from the top-right — owner 2026-07-01/-02.
+     Was a full-height drawer (top:0 bottom:0, height:100dvh), but with
+     only ~8 short items that left the entire lower half of the screen
+     empty. Now sized to its content (height:auto, capped at the
+     viewport with max-height + scroll as a safety net) so there's no
+     dead space below the last item. Anchored to the top-right corner,
+     rounded bottom-left for a clean card edge. Kept permanently in the
+     layout, off-screen via transform (not display:none), so opening is
+     a GPU-accelerated transform transition that never reflows the page.
+     Desktop (min-width:1280px) fully overrides this back to a normal
+     in-flow row further down this file. */
   display: flex;
   flex-direction: column;
   position: fixed;
   top: 0;
   right: 0;
-  bottom: 0;
   width: min(82vw, 340px);
-  height: 100vh;
-  height: 100dvh;
+  height: auto;
+  max-height: 100dvh;
   z-index: 130;
   gap: 0.4rem;
   min-width: 0;
   overflow-y: auto;
   background: #ebe2d5;
-  box-shadow: -12px 0 32px rgb(31 44 37 / 0.22);
+  box-shadow: -12px 12px 32px rgb(31 44 37 / 0.22);
   padding: 4.5rem 1.3rem 1.5rem;
   border-top: none;
+  border-bottom-left-radius: 18px;
   transform: translateX(100%);
   transition: transform 0.32s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
@@ -1199,10 +1198,11 @@
     height: 40px;
   }
 
-  .ce-nav {
-    padding: 0.75rem;
-    border-radius: 20px;
-  }
+  /* (removed a leftover `.ce-nav { padding:0.75rem; border-radius:20px }`
+     here — it was from the old dropdown design and was overriding the
+     drawer's own padding/geometry on <=520px, pushing the first item up
+     under the header and rounding all four corners of the full edge. The
+     drawer (line ~272) defines its own padding/radius. 2026-07-02) */
 
   .ce-author-panel__summary {
     border-radius: 18px;
