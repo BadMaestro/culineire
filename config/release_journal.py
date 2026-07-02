@@ -1,5 +1,42 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.69",
+        "date": "2026-07-02",
+        "commit": "pending",
+        "title": "Pinch mobile snap — filter row, true full-bleed, handle rides the sheet",
+        "section": "Pinch / Mobile TikTok feed",
+        "summary": (
+            "Live-debugged on production in Chrome device emulation. Three root causes "
+            "fixed: (1) base .category-nav-block rule stacks the block as flex COLUMN "
+            "with a 20px gap, so the inline filter arrows landed on separate rows — "
+            "overridden with flex-direction: row / gap: 0 in the mobile Pinch block; "
+            "(2) .container kept width: calc(100% - 20px) + auto margins and "
+            ".recipe-vscroll (.ab-grid-scroll) carried ~19px inset padding plus 1px "
+            "borders on .recipe-vscroll-wrap/.ab-card, so cards never reached the "
+            "viewport edges — all zeroed, cards are now pixel-exact full-bleed "
+            "(verified: card rect 0..430 wide, wrap bottom == viewport bottom, "
+            "body scrollHeight == viewport height, no page scroll); (3) footer drawer "
+            "handle stayed parked at the bottom when the sheet opened — main.js open() "
+            "now publishes --pinch-footer-h and CSS moves the handle to the sheet's "
+            "top edge (bottom: calc(var(--pinch-footer-h) - 40px)) with the arch "
+            "flipped down, replacing the drag-pip. Drawer toggle state now derives "
+            "from the footer class instead of a private variable. --sticky-offset "
+            "ResizeObserver additionally observes .ce-header and the filter block "
+            "so late layout shifts recompute the snap card height."
+        ),
+        "checklist": [
+            "pinch.css: .category-nav-block gets flex-direction: row + gap: 0 (mobile Pinch only)",
+            "pinch.css: .container width 100% / margin-inline 0; .ab-grid-scroll padding 0",
+            "pinch.css: borders/shadow/radius off .recipe-vscroll-wrap and .ab-card in snap mode",
+            "pinch.css: handle rides to sheet top when open; drag-pip hidden while open",
+            "main.js: open() sets --pinch-footer-h; aria-label swaps open/close",
+            "main.js: drawer state read from footer class (no desync)",
+            "main.js: ResizeObserver also observes .ce-header + .category-nav-block",
+            "Verified live: snap lands exactly per card (200px flick -> 665px card), arrows scroll/disable correctly",
+        ],
+        "deployment_status": "pending deployment",
+    },
+    {
         "version": "2.5.68",
         "date": "2026-07-02",
         "commit": "pending",

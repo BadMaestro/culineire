@@ -1535,8 +1535,11 @@
     row-gap: 0;
   }
 
-  /* ── 3. Full-bleed cards — zero container padding ── */
+  /* ── 3. Full-bleed cards — container spans the full viewport width ── */
   .hero--pinch + .recipe-list-page .container {
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
     padding-inline: 0;
     /* reset --container-padding so the filter bar's negative-margin calc
        doesn't try to escape a 0-padded container */
@@ -1549,8 +1552,11 @@
     margin-inline: 0;
     padding-inline: 0;
     padding-block: 0;
-    /* flex layout to seat the inline arrows */
+    /* flex ROW to seat the inline arrows — base rule stacks this block
+       as a column with a 20px gap, so both must be overridden here */
     display: flex;
+    flex-direction: row;
+    gap: 0;
     align-items: stretch;
     overflow: visible;
   }
@@ -1671,6 +1677,8 @@
     color: rgba(255, 255, 255, 0.52);
     filter: drop-shadow(0 1px 5px rgba(0, 0, 0, 0.75));
     -webkit-tap-highlight-color: transparent;
+    /* rides up to the sheet's top edge when the footer opens */
+    transition: bottom 0.38s cubic-bezier(0.32, 0.72, 0, 1);
   }
   /* Icon flips 180° when footer is open — "tap to close" cue */
   .pinch-footer-handle__icon {
@@ -1679,10 +1687,16 @@
   body:has(footer.pinch-footer--open) .pinch-footer-handle__icon {
     transform: rotate(180deg);
   }
-  /* Handle stays fixed at the very bottom — footer slides up underneath it.
-     z-index 147 keeps it above the footer (145) and scrim (144). */
+  /* Open state: the handle rides UP with the sheet and parks on its top
+     edge (where the drag-pip was), arch flipped to point down — "close me".
+     --pinch-footer-h is set by main.js at open time from the sheet height. */
   body:has(footer.pinch-footer--open) .pinch-footer-handle {
-    color: rgba(255, 255, 255, 0.32);
+    bottom: calc(var(--pinch-footer-h, 60vh) - 40px);
+    color: rgba(255, 255, 255, 0.65);
+  }
+  /* The flipped arch replaces the drag-pip — hide it while open */
+  body:has(footer.pinch-footer--open) footer::before {
+    opacity: 0;
   }
 
   /* ── 7. Heading row not needed in snap mode ── */
@@ -1694,11 +1708,18 @@
   .hero--pinch + .recipe-list-page .recipe-vscroll-wrap {
     height: calc(100dvh - var(--sticky-offset, 100px));
     overflow: hidden;
+    /* frame styling belongs to the desktop grid — full-bleed here */
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
   }
 
   .hero--pinch + .recipe-list-page .ab-grid-scroll {
     height: 100%;
     max-height: none !important;
+    /* base .recipe-vscroll carries ~19px inset padding — kill it so the
+       card photo truly reaches the viewport edges */
+    padding: 0;
     overflow-y: scroll;
     scroll-snap-type: y mandatory;
     overscroll-behavior: contain;
@@ -1719,6 +1740,7 @@
     height: calc(100dvh - var(--sticky-offset, 100px));
     aspect-ratio: unset !important;
     scroll-snap-align: start;
+    border: none;
     border-radius: 0;
     margin: 0;
   }

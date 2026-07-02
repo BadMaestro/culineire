@@ -18,7 +18,13 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   setHeaderH();
   if ("ResizeObserver" in window) {
-    new ResizeObserver(setHeaderH).observe(document.documentElement);
+    const ro = new ResizeObserver(setHeaderH);
+    ro.observe(document.documentElement);
+    // Root resize alone misses header/filter height changes from late font
+    // loads or collapse toggles — watch the elements themselves too.
+    if (ceHeader) ro.observe(ceHeader);
+    const fb = document.querySelector(".recipe-list-page .category-nav-block");
+    if (fb) ro.observe(fb);
   }
 
   // Set --ab-snap-top so the snap feed knows how much header to leave room for
@@ -899,30 +905,34 @@ document.addEventListener("DOMContentLoaded", () => {
     var footer = document.querySelector("footer");
     if (!footer) return;
 
-    var isOpen = false;
+    // Class on the footer is the single source of truth for open state
+    var isOpen = function () { return footer.classList.contains("pinch-footer--open"); };
 
     var open = function () {
-      isOpen = true;
+      // publish the sheet height so CSS can park the handle on its top edge
+      var fh = Math.min(footer.offsetHeight, window.innerHeight * 0.82);
+      document.documentElement.style.setProperty("--pinch-footer-h", fh + "px");
       footer.classList.add("pinch-footer--open");
       if (scrim) { scrim.classList.add("is-open"); scrim.setAttribute("aria-hidden", "false"); }
       handle.setAttribute("aria-expanded", "true");
+      handle.setAttribute("aria-label", "Close footer");
     };
 
     var close = function () {
-      isOpen = false;
       footer.classList.remove("pinch-footer--open");
       if (scrim) { scrim.classList.remove("is-open"); scrim.setAttribute("aria-hidden", "true"); }
       handle.setAttribute("aria-expanded", "false");
+      handle.setAttribute("aria-label", "Open footer");
     };
 
     handle.addEventListener("click", function () {
-      if (isOpen) { close(); } else { open(); }
+      if (isOpen()) { close(); } else { open(); }
     });
 
     if (scrim) scrim.addEventListener("click", close);
 
     document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape" && isOpen) close();
+      if (e.key === "Escape" && isOpen()) close();
     });
   })();
 });
