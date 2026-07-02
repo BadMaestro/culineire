@@ -808,11 +808,12 @@ def arena(request):
         "latest_result": _arena_latest_result(),
     }
 
-    # Moderator-only preview of the active-battle centre (Phase 1 choreography).
+    # Opt-in preview of the active-battle centre (Phase 1 choreography).
     # /chef-battle/arena/?demo=vs stages the two-cell VS centre using two real
     # enrolled chefs, so the owner can see and tune it without an active battle.
-    # No DB writes; never shown to non-moderators.
-    if request.GET.get("demo") == "vs" and is_moderator(request.user):
+    # Purely visual, no DB writes; only for logged-in users who add the param.
+    # Temporary verification aid — remove once the geometry is signed off.
+    if request.GET.get("demo") == "vs" and request.user.is_authenticated:
         demo_pair = list(enrolled[:2])
         if len(demo_pair) >= 2:
             arena_data["center"] = {
