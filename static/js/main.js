@@ -5,11 +5,16 @@ if ("scrollRestoration" in history) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Track sticky header height for any element that needs to offset below it
+  // Track sticky header + filter bar heights so snap feed and sticky nav
+  // always know how much room to leave at the top of the viewport.
   const ceHeader = document.querySelector(".ce-header");
   const setHeaderH = () => {
-    const h = ceHeader ? ceHeader.getBoundingClientRect().height : 0;
-    document.documentElement.style.setProperty("--header-h", h + "px");
+    const hh = ceHeader ? ceHeader.getBoundingClientRect().height : 0;
+    document.documentElement.style.setProperty("--header-h", hh + "px");
+    // --sticky-offset = header + sticky filter bar (if present on this page)
+    const filterBar = document.querySelector(".recipe-list-page .category-nav-block");
+    const fh = filterBar ? filterBar.getBoundingClientRect().height : 0;
+    document.documentElement.style.setProperty("--sticky-offset", (hh + fh) + "px");
   };
   setHeaderH();
   if ("ResizeObserver" in window) {
@@ -600,6 +605,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function sizeAbGrid() {
     const wrapper = document.querySelector(".ab-grid-scroll");
     if (!wrapper) return;
+    // On mobile Pinch feed we use full-screen CSS snap — skip JS sizing
+    if (window.innerWidth <= 640 && document.querySelector(".hero--pinch")) return;
     const firstCard = wrapper.querySelector(".ab-card");
     if (!firstCard) return;
     const gridEl = wrapper.querySelector(".ab-grid");
