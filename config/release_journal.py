@@ -1,5 +1,51 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.60",
+        "date": "2026-07-02",
+        "commit": "pending",
+        "title": "Gold Accent Pass + Artifact Catalogue Sync (owner-approved)",
+        "section": "Chef Battles / Frontend + Content",
+        "summary": (
+            "Two owner-approved cleanups from the 2026-07-02 site audit. "
+            "First, the last legacy greens were replaced with the standardized gold family "
+            "site-wide: #1a6b3a/#d6f5e0/#6dce8f/#bfedd0/#4db877 became #c8942a (accent), "
+            "#f8d28a (pill background) and #6e4e2c (dark text) across the battle blast card, "
+            "combat/pip your-turn pills, token shop, battle guide, moderation done-pills, "
+            "coworking dashboard, chef profile, season leaderboard and rules drop table. "
+            "The undefined var(--color-success, ...) fallback pattern was removed - the variable "
+            "was never defined, so the green fallback always rendered. "
+            "Second, the artifact image-prompt catalogue (generate_battle_assets.py) and its spec "
+            "(docs/chef_battle/combat_items.md) were synced with the 2026-07-01 Irish-myth renaming: "
+            "7 fantasy entries renamed, rune imagery replaced with ogham script."
+        ),
+        "checklist": [
+            "base.html: blast badge/winner gold; version bump",
+            "chef_battle.css: combat + pip your-turn pills, token-shop featured/badge/price, battle-guide focus/hover/label",
+            "moderation.css: mod-tool-link--done gold pill + hover",
+            "coworking dashboard: active badge #c8942a",
+            "chef_profile: Wins stat + Won label; season_leaderboard: pts; rules: winner %",
+            "generate_battle_assets.py: salamander-grill-sauce, the-dagdas-ladle, skellig-stone-stockpot, the-ogham-cutting-board, the-tir-na-nog-wok, giants-causeway-dome, nuadas-silver-pot-lid; runes -> ogham",
+            "combat_items.md: same 7 renames, names/slugs/log lines consistent with the generator",
+            "chef_battle roadmap (views.py): 2 new Phase FE-2 entries, stale Known-gap note resolved",
+            "NEW: docs/chef_battle/ARENA_HALL_PLAN.md - owner-approved Arena As The Hall plan (avatar relocation, embedded Battle Room popup, antechamber, grey anonymous fields, gifted-artifact rule, sellable appreciation gifts)",
+            "NEW: roadmap Phase FE-3 - Arena As The Hall: 9 pending stages mirroring the plan",
+            "Zero remaining matches for legacy greens and old fantasy slugs codebase-wide",
+            "manage.py check: 0 issues",
+        ],
+        "stats": [
+            "10 files changed (CSS, templates, docs, management command, roadmap)",
+        ],
+        "notes": (
+            "Rollback investigation same day: no git-level rollback found. All July 1 work intact "
+            "in main; prod matches origin/main. The arena ?demo panel stages the full duel lifecycle "
+            "visually - choreography Phases 2 (movement) and 3 (spectator popup) were never coded "
+            "(see recovered docs/chef_battle/HANDOFF_CRESTEDTEN.md at commit 9badb2ca). "
+            "From this release on: every step is logged in Deployment Journal, Chef Battle Roadmap "
+            "and CoWork per owner instruction."
+        ),
+        "deployment_status": "pending deployment",
+    },
+    {
         "version": "feature/chef-battle-home-redesign",
         "date": "2026-06-19",
         "commit": "70a47ea",

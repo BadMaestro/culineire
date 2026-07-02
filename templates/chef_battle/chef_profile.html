@@ -41,7 +41,7 @@
 
     <div class="battle-stat-card">
       <span class="battle-stat-card__label">Wins</span>
-      <strong class="battle-stat-card__value" style="color: var(--color-success, #1a6b3a);">{{ profile.wins }}</strong>
+      <strong class="battle-stat-card__value" style="color: #c8942a;">{{ profile.wins }}</strong>
     </div>
 
     <div class="battle-stat-card">
@@ -103,7 +103,7 @@
       <span style="font-size: 0.88rem;">
         {% if battle.status == 'completed' %}
           {% if battle.winner_id == author.pk %}
-            <span style="color: var(--color-success, #1a6b3a); font-weight: 600;">Won</span>
+            <span style="color: #c8942a; font-weight: 600;">Won</span>
           {% elif battle.winner %}
             <span style="color: var(--color-danger, #b91c1c);">Lost</span>
           {% else %}

@@ -136,7 +136,7 @@ dishes — the actual winner is always decided by audience vote on the best reci
 
 | # | Name | Slug | Power | Emoji | Combat log text |
 |---|------|------|-------|-------|-----------------|
-| 81 | Dragon's Breath Sauce | dragons-breath-sauce | 7 | 🔥 | unleashed Dragon's Breath sauce |
+| 81 | Salamander Grill Sauce | salamander-grill-sauce | 7 | 🔥 | unleashed the salamander grill sauce |
 | 82 | Molten Chocolate Cannon | molten-chocolate-cannon | 7 | 🍫 | fired the molten chocolate cannon |
 | 83 | Truffle Grenade | truffle-grenade | 8 | ⚫ | detonated a truffle grenade |
 | 84 | Nitrogen Freeze Blast | nitrogen-freeze-blast | 7 | ⚪ | fired a liquid nitrogen blast |
@@ -160,7 +160,7 @@ dishes — the actual winner is always decided by audience vote on the best reci
 | 97 | Michelin Throwing Star | michelin-throwing-star | 10 | ⭐ | launched a Michelin throwing star |
 | 98 | Apocalypse Curry | apocalypse-curry | 9 | 🍛 | unleashed the Apocalypse Curry |
 | 99 | The Forbidden Habanero | the-forbidden-habanero | 10 | 🌶️ | used the Forbidden Habanero |
-| 100 | Kitchen God's Ladle | kitchen-gods-ladle | 10 | 🥄 | struck with the Kitchen God's Ladle |
+| 100 | The Dagda's Ladle | the-dagdas-ladle | 10 | 🥄 | struck with the Dagda's Ladle |
 
 ---
 
@@ -275,7 +275,7 @@ dishes — the actual winner is always decided by audience vote on the best reci
 | 88 | The Indestructible Colander | indestructible-colander | 8 | ⚪ | blocked with the indestructible colander |
 | 89 | Ancient Copper Cloche | ancient-copper-cloche | 7 | ⚪ | hid under an ancient copper cloche |
 | 90 | The Eternal Pot Lid | eternal-pot-lid | 8 | ⚪ | raised the eternal pot lid |
-| 91 | Adamantine Stockpot | adamantine-stockpot | 7 | ⚪ | hid inside an adamantine stockpot |
+| 91 | Skellig Stone Stockpot | skellig-stone-stockpot | 7 | ⚪ | hid inside the Skellig stone stockpot |
 | 92 | Blessed Baking Stone | blessed-baking-stone | 8 | ⚪ | blocked with a blessed baking stone |
 | 93 | Enchanted Restaurant Dome | enchanted-restaurant-dome | 7 | ⚪ | activated an enchanted restaurant dome |
 
@@ -283,10 +283,10 @@ dishes — the actual winner is always decided by audience vote on the best reci
 
 | # | Name | Slug | Power | Emoji | Combat log text |
 |---|------|------|-------|-------|-----------------|
-| 94 | Excalibur's Cutting Board | excaliburs-cutting-board | 9 | ⚪ | raised Excalibur's cutting board |
-| 95 | The Adamantine Wok | the-adamantine-wok | 10 | 🍳 | blocked with the Adamantine Wok |
+| 94 | The Ogham Cutting Board | the-ogham-cutting-board | 9 | ⚪ | raised the Ogham Cutting Board |
+| 95 | The Tír na nÓg Wok | the-tir-na-nog-wok | 10 | 🍳 | blocked with the Tír na nÓg Wok |
 | 96 | Michelin Shield of Honor | michelin-shield-of-honor | 9 | ⭐ | raised the Michelin Shield of Honor |
 | 97 | Grandma's Indestructible Apron | grandmas-indestructible-apron | 10 | ⚪ | activated Grandma's Indestructible Apron |
-| 98 | Zeus's Stockpot Dome | zeuss-stockpot-dome | 10 | ⚪ | hid under Zeus's Stockpot Dome |
+| 98 | Giant's Causeway Dome | giants-causeway-dome | 10 | ⚪ | hid under the Giant's Causeway Dome |
 | 99 | The Last Line of Pots | the-last-line-of-pots | 9 | ⚪ | raised the Last Line of Pots |
-| 100 | Kitchen God's Aegis | kitchen-gods-aegis | 10 | ⚪ | summoned the Kitchen God's Aegis |
+| 100 | Nuada's Silver Pot Lid | nuadas-silver-pot-lid | 10 | ⚪ | raised Nuada's Silver Pot Lid |

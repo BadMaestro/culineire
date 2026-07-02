@@ -171,7 +171,7 @@ ATTACK_ITEMS = [
     ("stand-mixer-arm-swipe", "rare", "stand mixer arm swiping"),
     ("boiling-syrup-spill", "rare", "caramel syrup spilling boiling"),
     ("food-processor-spray", "rare", "food processor spraying contents"),
-    ("dragons-breath-sauce", "epic", "dragon made of hot sauce breathing fire, purple glow"),
+    ("salamander-grill-sauce", "epic", "hot sauce erupting in flames from a salamander grill, purple glow"),
     ("molten-chocolate-cannon", "epic", "chocolate cannon firing molten streams, purple glow"),
     ("truffle-grenade", "epic", "black truffle as grenade with fuse, dark dramatic"),
     ("nitrogen-freeze-blast", "epic", "liquid nitrogen freeze ray blast, icy blue epic glow"),
@@ -190,7 +190,7 @@ ATTACK_ITEMS = [
     ("michelin-throwing-star", "legendary", "Michelin star shaped as throwing star, gold radiant"),
     ("apocalypse-curry", "legendary", "curry pot erupting apocalyptic fire and spice clouds, legendary"),
     ("the-forbidden-habanero", "legendary", "single habanero pepper radiating forbidden dark power, gold legendary"),
-    ("kitchen-gods-ladle", "legendary", "divine golden ladle radiating heavenly light, legendary artifact"),
+    ("the-dagdas-ladle", "legendary", "the Dagda's giant golden ladle radiating heavenly light, legendary artifact"),
 ]
 
 DEFENSE_ITEMS = [
@@ -280,20 +280,20 @@ DEFENSE_ITEMS = [
     ("liquid-nitrogen-ice-wall", "epic", "liquid nitrogen ice wall, icy blue epic"),
     ("unbreakable-tagine", "epic", "unbreakable tagine dome, epic purple aura"),
     ("diamond-hard-mortar", "epic", "diamond mortar, crystalline epic glow"),
-    ("chefs-sacred-chopping-board", "epic", "sacred chopping board glowing with runes, epic"),
+    ("chefs-sacred-chopping-board", "epic", "sacred chopping board carved with glowing ogham script, epic"),
     ("indestructible-colander", "epic", "indestructible colander, epic purple energy"),
     ("ancient-copper-cloche", "epic", "ancient copper cloche with engravings, epic"),
     ("eternal-pot-lid", "epic", "eternal pot lid with divine markings, purple"),
-    ("adamantine-stockpot", "epic", "adamantine stockpot fortress, dark epic glow"),
+    ("skellig-stone-stockpot", "epic", "Skellig stone stockpot fortress, dark epic glow"),
     ("blessed-baking-stone", "epic", "blessed baking stone with holy light, epic"),
     ("enchanted-restaurant-dome", "epic", "enchanted restaurant dome with purple energy field"),
-    ("excaliburs-cutting-board", "legendary", "cutting board as Excalibur legendary artifact, gold"),
-    ("the-adamantine-wok", "legendary", "adamantine wok legendary shield, ultimate power, gold"),
+    ("the-ogham-cutting-board", "legendary", "ancient cutting board carved with radiant ogham script, legendary artifact, gold"),
+    ("the-tir-na-nog-wok", "legendary", "ageless shining wok of Tír na nÓg, ultimate power, gold"),
     ("michelin-shield-of-honor", "legendary", "Michelin star shield of honor, legendary gold radiant"),
     ("grandmas-indestructible-apron", "legendary", "grandmother's indestructible apron legendary relic, gold"),
-    ("zeuss-stockpot-dome", "legendary", "Zeus's stockpot dome with lightning, legendary gold"),
+    ("giants-causeway-dome", "legendary", "stockpot dome of basalt columns like the Giant's Causeway, legendary gold"),
     ("the-last-line-of-pots", "legendary", "last line of pots legendary wall, gold dramatic"),
-    ("kitchen-gods-aegis", "legendary", "Kitchen God's divine aegis shield, legendary ultimate gold glow"),
+    ("nuadas-silver-pot-lid", "legendary", "Nuada's gleaming silver pot lid raised as a shield, legendary ultimate gold glow"),
 ]
 
 
