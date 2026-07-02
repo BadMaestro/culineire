@@ -34,17 +34,12 @@
           <div class="cr-stat">
             <span class="cr-stat__label">Rank</span>
             <span class="cr-stat__value">
-              {% if profile.prestige_title %}{{ profile.get_prestige_title_display }}{% else %}{{ profile.get_rank_display }}{% endif %}
-              {% if profile.is_hero %} &#x1F451;{% endif %}
+              {% if profile.is_hero %}CulinEire Hero &#x1F451;{% else %}{{ profile.get_rank_display }}{% endif %}
             </span>
           </div>
           <div class="cr-stat">
             <span class="cr-stat__label">Rating</span>
             <span class="cr-stat__value">{{ profile.rating }}</span>
-          </div>
-          <div class="cr-stat">
-            <span class="cr-stat__label">Level</span>
-            <span class="cr-stat__value">{{ profile.level }}{% if profile.is_hero %} / Hero{% else %} / 5{% endif %}</span>
           </div>
           <div class="cr-stat">
             <span class="cr-stat__label">Win Streak</span>

@@ -26,6 +26,7 @@ from .models import (
 from .services import (
     accept_challenge,
     calculate_battle_result,
+    check_rank_matchup,
     expire_stale_challenges,
     handle_no_show_battles,
     rank_for_rating,
@@ -91,6 +92,37 @@ class ChefBattleServiceTests(TestCase):
         self.assertEqual(winner_profile.battle_moves, 11)  # MOVES_BATTLE_WIN(10) + MOVES_BATTLE_PARTICIPATION(1)
         self.assertEqual(loser_profile.battle_moves, 1)    # MOVES_BATTLE_PARTICIPATION(1)
         self.assertEqual(loser_profile.losses, 1)
+
+    def test_matchup_is_limited_to_adjacent_ranks(self):
+        profile_a = ChefBattleProfile.objects.create(
+            author=self.chef_a,
+            rank=ChefBattleProfile.Rank.KITCHEN_PORTER,
+        )
+        profile_b = ChefBattleProfile.objects.create(
+            author=self.chef_b,
+            rank=ChefBattleProfile.Rank.PREP_COOK,
+        )
+
+        self.assertIsNone(check_rank_matchup(self.chef_a, self.chef_b))
+
+        profile_b.rank = ChefBattleProfile.Rank.COMMIS_CHEF
+        profile_b.save(update_fields=["rank"])
+        self.assertIn("Rank mismatch", check_rank_matchup(self.chef_a, self.chef_b))
+
+        profile_a.is_hero = True
+        profile_a.save(update_fields=["is_hero"])
+        self.assertIsNone(check_rank_matchup(self.chef_a, self.chef_b))
+
+    def test_fifteenth_win_does_not_grant_hero_status(self):
+        battle = accept_challenge(self._challenge())
+        profile = ChefBattleProfile.objects.create(author=self.chef_a, wins=14)
+        BattleVote.objects.create(battle=battle, voter=self.voter, voted_for=self.chef_a)
+
+        calculate_battle_result(battle)
+
+        profile.refresh_from_db()
+        self.assertEqual(profile.wins, 15)
+        self.assertFalse(profile.is_hero)
 
     def test_vote_clean_allows_authenticated_user_without_author_profile(self):
         battle = accept_challenge(self._challenge())
@@ -234,7 +266,10 @@ class ChefBattleRulesViewTests(TestCase):
         ):
             self.assertContains(response, rank_and_range, html=False)
         self.assertContains(response, reverse("chef_battle:rankings"))
-        self.assertContains(response, "A Chef becomes a CulinEire Hero at 15 wins.")
+        self.assertContains(response, "CulinEire Hero is a unique site-owner status")
+        self.assertContains(response, "same or an adjacent rank")
+        self.assertNotContains(response, "Level 1")
+        self.assertNotContains(response, "Hero at 15")
         self.assertNotContains(response, "Michelin Chef")
         self.assertNotContains(response, "A win streak bonus")
 

@@ -174,7 +174,7 @@ class ChefBattleProfileAdmin(admin.ModelAdmin):
     ordering = ("-rating",)
     fieldsets = (
         ("Chef", {
-            "fields": ("author", "rank", "level", "is_hero", "rating", "reputation"),
+            "fields": ("author", "rank", "is_hero", "rating", "reputation"),
         }),
         ("Stats", {
             "fields": (
@@ -184,7 +184,7 @@ class ChefBattleProfileAdmin(admin.ModelAdmin):
             ),
         }),
         ("Moves & Tokens", {
-            "fields": ("battle_moves", "seasonal_score", "infinite_moves", "prestige_title"),
+            "fields": ("battle_moves", "seasonal_score", "infinite_moves"),
         }),
         ("Compliance", {
             "fields": (

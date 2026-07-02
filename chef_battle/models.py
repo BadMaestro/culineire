@@ -31,22 +31,6 @@ class ChefBattleProfile(models.Model):
         HEAD_CHEF = "head_chef", "Head Chef"
         EXECUTIVE_CHEF = "executive_chef", "Executive Chef"
 
-    # reserved titles that are manually granted and must not be overwritten by auto-logic
-    RESERVED_TITLES = {"executive_chef"}
-
-    # wins threshold for each prestige title
-    PRESTIGE_THRESHOLDS = [
-        (15, PrestigeTitle.HEAD_CHEF),
-        (10, PrestigeTitle.SOUS_CHEF),
-        (6, PrestigeTitle.CHEF_DE_PARTIE),
-        (3, PrestigeTitle.COMMIS_CHEF),
-        (1, PrestigeTitle.KITCHEN_PORTER),
-    ]
-
-    WINS_PER_LEVEL = 3
-    HERO_WINS_THRESHOLD = 15
-    MAX_LEVEL = 5
-
     author = models.OneToOneField(
         RecipeAuthor,
         on_delete=models.CASCADE,
@@ -104,42 +88,8 @@ class ChefBattleProfile(models.Model):
         return bool(self.crown_until and self.crown_until > timezone.now())
 
     @property
-    def display_level(self) -> str:
-        if self.is_hero:
-            return "CulinEire Hero"
-        return f"Level {self.level}"
-
-    @property
     def michelin_stars_display(self) -> str:
         return "★" * self.michelin_stars if self.michelin_stars else ""
-
-    def recalculate_level(self) -> bool:
-        """Recompute level and is_hero from wins. Returns True if anything changed."""
-        if self.wins >= self.HERO_WINS_THRESHOLD:
-            new_level = self.MAX_LEVEL
-            new_hero = True
-        else:
-            new_level = min(self.MAX_LEVEL, (self.wins // self.WINS_PER_LEVEL) + 1)
-            new_hero = False
-        changed = (self.level != new_level) or (self.is_hero != new_hero)
-        self.level = new_level
-        self.is_hero = new_hero
-        return changed
-
-    def recalculate_prestige_title(self) -> bool:
-        """Assign highest earned prestige title based on wins. Returns True if changed.
-        Reserved titles (e.g. Incognito) are never overwritten by auto-logic."""
-        if self.prestige_title in self.RESERVED_TITLES:
-            return False
-        new_title = self.PrestigeTitle.NONE
-        for threshold, title in self.PRESTIGE_THRESHOLDS:
-            if self.wins >= threshold:
-                new_title = title
-                break
-        changed = self.prestige_title != new_title
-        self.prestige_title = new_title
-        return changed
-
 
 class BattleChallenge(models.Model):
     class Status(models.TextChoices):

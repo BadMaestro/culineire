@@ -65,11 +65,10 @@ def get_or_create_battle_profile(author):
         profile.rank = ChefBattleProfile.Rank.EXECUTIVE_CHEF
         profile.michelin_stars = 3
         profile.is_hero = True
-        profile.level = 5
         profile.rating = 9999
         profile.wins = 15
         profile.infinite_moves = True
-        profile.save(update_fields=["rank", "michelin_stars", "is_hero", "level", "rating", "wins", "infinite_moves", "updated_at"])
+        profile.save(update_fields=["rank", "michelin_stars", "is_hero", "rating", "wins", "infinite_moves", "updated_at"])
     return profile
 
 
@@ -133,18 +132,19 @@ def create_battle_event(
     return event
 
 
-def check_level_matchup(challenger, opponent) -> str | None:
-    """Return an error string if level gap is too large, else None."""
+def check_rank_matchup(challenger, opponent) -> str | None:
+    """Allow battles between adjacent ranks; the site Hero is unrestricted."""
     c_profile = get_or_create_battle_profile(challenger)
     o_profile = get_or_create_battle_profile(opponent)
-    # Hero counts as level 5 for matchup purposes
-    c_level = 5 if c_profile.is_hero else c_profile.level
-    o_level = 5 if o_profile.is_hero else o_profile.level
-    if abs(c_level - o_level) > 1:
+    if c_profile.is_hero or o_profile.is_hero:
+        return None
+
+    rank_order = {rank.value: index for index, rank in enumerate(ChefBattleProfile.Rank)}
+    if abs(rank_order[c_profile.rank] - rank_order[o_profile.rank]) > 1:
         return (
-            f"Level mismatch: {challenger.name} is Level {c_level}, "
-            f"{opponent.name} is Level {o_level}. "
-            "Maximum allowed difference is 1 level."
+            f"Rank mismatch: {challenger.name} is {c_profile.get_rank_display()}, "
+            f"{opponent.name} is {o_profile.get_rank_display()}. "
+            "Challenges are limited to the same or an adjacent rank."
         )
     return None
 
@@ -332,9 +332,7 @@ def _award_forfeit_win(battle: Battle, *, winner, loser) -> None:
     winner_profile.wins += 1
     winner_profile.win_streak += 1
     winner_profile.rank = rank_for_rating(winner_profile.rating)
-    winner_profile.recalculate_level()
-    winner_profile.recalculate_prestige_title()
-    winner_profile.save(update_fields=["wins", "win_streak", "rank", "level", "is_hero", "prestige_title", "updated_at"])
+    winner_profile.save(update_fields=["wins", "win_streak", "rank", "updated_at"])
 
     battle.winner = winner
     battle.loser = loser
@@ -432,8 +430,6 @@ def calculate_battle_result(battle: Battle) -> Battle:
         winner_profile.crown_until = timezone.now() + timezone.timedelta(hours=24)
         if not winner_profile.infinite_moves:
             winner_profile.rank = rank_for_rating(winner_profile.rating)
-        level_changed = winner_profile.recalculate_level()
-        winner_profile.recalculate_prestige_title()
         winner_profile.save()
 
         loser_profile.losses += 1
@@ -499,15 +495,7 @@ def calculate_battle_result(battle: Battle) -> Battle:
             message=f"{winner.name} holds the Crown after winning: {battle.theme}.",
             publish_to_news=True,
         )
-        if level_changed:
-            create_battle_event(
-                event_type=BattleEvent.EventType.RANK_PROMOTED,
-                battle=battle,
-                actor=winner,
-                message=f"{winner.name} reached {winner_profile.display_level}!",
-                publish_to_news=True,
-            )
-        elif winner_profile.rank != old_winner_rank:
+        if winner_profile.rank != old_winner_rank:
             create_battle_event(
                 event_type=BattleEvent.EventType.RANK_PROMOTED,
                 battle=battle,

@@ -62,7 +62,7 @@ from .services import (
     approve_cooking_phase,
     calculate_battle_result,
     check_forbidden_claims,
-    check_level_matchup,
+    check_rank_matchup,
     check_payout_eligibility,
     create_battle_event,
     create_payout_request,
@@ -153,10 +153,10 @@ def _build_battlefield_progress():
                 {"label": "Ingredient combat (locks and hits)", "detail": "Each chef locks 2 ingredients before combat; hits land on unlocked slots; killed ingredients replaced or removed.", "status": "done", "completed_at": "2026-06-11"},
                 {"label": "Cooking phase with photo upload", "detail": "After biathlon, chefs photograph finished dishes. Moderator approves before presentation.", "status": "done", "completed_at": "2026-06-11"},
                 {"label": "Cooking moderation", "detail": "Moderator checklist confirms real cooking happened, image rights are clear and rules were followed.", "status": "done", "completed_at": "2026-06-11"},
-                {"label": "Chef levels (1-5 + CulinEire Hero)", "detail": f"Level system live: 3 wins per level, Hero at 15+ wins. {hero_count} CulinEire Hero chef(s) currently.", "status": "done", "completed_at": "2026-06-11"},
-                {"label": "Level matchup guard", "detail": "Challenges between chefs more than 1 level apart are blocked to protect newer chefs.", "status": "done", "completed_at": "2026-06-11"},
+                {"label": "Rank progression", "detail": "Rating-based Kitchen Porter to Culinary Master progression is live.", "status": "done", "completed_at": "2026-07-02"},
+                {"label": "Rank matchup guard", "detail": "Challenges are limited to the same or an adjacent rank; the site Hero is unrestricted.", "status": "done", "completed_at": "2026-07-02"},
                 {"label": "Hall of Fame", "detail": f"Top 10 battles and top 20 chefs visible at /chef-battle/hall-of-fame/. {completed_battles} completed battle(s) recorded.", "status": "done", "completed_at": "2026-06-12"},
-                {"label": "Visual asset set", "detail": "SVG icons for all 5 levels, CulinEire Hero, 5 rarities, attack/defence types, crown, Michelin star and token.", "status": "done", "completed_at": "2026-06-12"},
+                {"label": "Visual asset set", "detail": "Rank, CulinEire Hero, rarity, combat, crown, Michelin star and token assets.", "status": "done", "completed_at": "2026-06-12"},
             ],
         },
         {
@@ -270,9 +270,9 @@ def _build_battlefield_progress():
             "items": [
                 {"label": "Artifact gallery public page", "detail": "Public browseable gallery at /chef-battle/artifacts/ listing all 200 combat artifacts grouped by rarity with name, description, effect and token cost. Hero-style header, consistent battle design.", "status": "done", "completed_at": "2026-06-16"},
                 {"label": "Battle homepage hero image", "detail": "Commission or generate a strong hero image for /chef-battle/ — two chefs facing off in a kitchen arena, bold colours, site brand style.", "status": "done", "completed_at": "2026-06-16"},
-                {"label": "Rankings page infographic", "detail": "Rank-tier infographic showing the 8 ranks (Kitchen Apprentice → CulinEire Hero) with icons and point thresholds. Displayed above the rankings table.", "status": "done", "completed_at": "2026-06-16"},
+                {"label": "Rankings page infographic", "detail": "Rank-tier infographic showing the 8 ranks from Kitchen Porter to Culinary Master with point thresholds.", "status": "done", "completed_at": "2026-07-02"},
                 {"label": "Battle energy (moves) explainer graphic", "detail": "Visual explainer of the moves / battle-energy system for the guide page: earn moves, spend moves, infinite-moves for CulinEire Hero.", "status": "done", "completed_at": "2026-06-16"},
-                {"label": "Chef level badges — 5 levels + Hero", "detail": "SVG or PNG badge artwork for Chef Level 1-5 and CulinEire Hero. Used on chef profile, my-moves and rankings. Size: 64x64 and 128x128.", "status": "done", "completed_at": "2026-06-16"},
+                {"label": "Chef rank badges", "detail": "Badge artwork for the 8 rating ranks and the unique CulinEire Hero status.", "status": "done", "completed_at": "2026-07-02"},
                 {"label": "Rarity tier icons — 5 rarities", "detail": "Icon set for Common / Uncommon / Rare / Epic / Legendary used in artifact gallery and gift panels. Colour-coded: grey/green/blue/purple/gold.", "status": "done", "completed_at": "2026-06-16"},
                 {"label": "Season leaderboard podium graphic", "detail": "Podium (1st / 2nd / 3rd) illustration for the season leaderboard top-three block, matching arena visual style.", "status": "done", "completed_at": "2026-06-16"},
                 {"label": "Hall of Fame banner", "detail": "Wide decorative banner for the Hall of Fame page header. Stone or wood textures, trophy imagery, Celtic motif optional.", "status": "done", "completed_at": "2026-06-16"},
@@ -954,9 +954,9 @@ def challenge_create(request):
         form = BattleChallengeForm(request.POST, challenger=author)
         if form.is_valid():
             opponent = form.cleaned_data["opponent"]
-            level_error = check_level_matchup(author, opponent)
-            if level_error:
-                messages.error(request, level_error)
+            rank_error = check_rank_matchup(author, opponent)
+            if rank_error:
+                messages.error(request, rank_error)
                 return render(request, "chef_battle/challenge_form.html", {"form": form})
 
             fraud_result = run_fraud_gates([

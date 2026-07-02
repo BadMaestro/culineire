@@ -185,7 +185,7 @@
         <div class="legal-card__content">
           <ul class="legal-list">
             <li>Any Chef with an active profile can challenge another chef.</li>
-            <li>Challenges can only be sent between Chefs within one level of each other. A Level 1 Chef cannot challenge a Level 3 chef.</li>
+            <li>Challenges can only be sent between Chefs of the same or an adjacent rank. The CulinEire Hero is exempt from this restriction.</li>
             <li>The challenged Chef has 48 hours to accept or refuse.</li>
             <li>Refusing a challenge costs 2 Battle Moves. Repeated refusals are recorded on the public profile.</li>
             <li>An accepted challenge opens a Battle Room with a shared theme set by the challenger.</li>
@@ -255,12 +255,12 @@
       </article>
 
       <article class="legal-card legal-card--section" id="s7">
-        <div class="section-header"><h2>Ranking &amp; Levels</h2></div>
+        <div class="section-header"><h2>Rating &amp; Ranks</h2></div>
         <div class="legal-card__content">
           <ul class="legal-list">
             <li>Every new Chef starts with 0 rating points at Kitchen Porter rank. Winning a completed battle adds 25 rating points; losing deducts 15, with rating never falling below 0.</li>
             <li>The rating ladder is: Kitchen Porter (0&ndash;99), Prep Chef (100&ndash;199), Commis Chef (200&ndash;299), Chef de Partie (300&ndash;399), Sous Chef (400&ndash;499), Head Chef (500&ndash;599), Executive Chef (600&ndash;699), and Culinary Master (700+).</li>
-            <li>Levels are separate from rating and are based on total wins: Level 1 (0&ndash;2 wins), Level 2 (3&ndash;5), Level 3 (6&ndash;8), Level 4 (9&ndash;11), and Level 5 (12&ndash;14). A Chef becomes a CulinEire Hero at 15 wins.</li>
+            <li>Culinary Master is the highest rank available through competition. CulinEire Hero is a unique site-owner status and cannot be earned through rating, wins or battles.</li>
             <li>The <a href="{% url 'chef_battle:rankings' %}">all-time rankings</a> are ordered primarily by rating. Wins are used as a later tie-breaker.</li>
             <li>Current and best win streaks track consecutive victories on the Chef profile. A win streak is a performance record, not an additional rating bonus.</li>
           </ul>
