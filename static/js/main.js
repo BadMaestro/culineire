@@ -26,10 +26,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const openClass = nav.classList.contains("ce-nav") ? "ce-nav--open" : "main-nav--open";
     const backdrop = document.querySelector(".ce-nav__backdrop");
 
+    let _scrollY = 0;
+    const lockScroll = () => {
+      _scrollY = window.scrollY;
+      document.body.style.position = "fixed";
+      document.body.style.top      = -_scrollY + "px";
+      document.body.style.left     = "0";
+      document.body.style.right    = "0";
+    };
+    const unlockScroll = () => {
+      document.body.style.position = "";
+      document.body.style.top      = "";
+      document.body.style.left     = "";
+      document.body.style.right    = "";
+      window.scrollTo(0, _scrollY);
+    };
+
     const closeNav = () => {
       nav.classList.remove(openClass);
       navButton.setAttribute("aria-expanded", "false");
-      document.body.style.overflow = "";
+      unlockScroll();
     };
 
     const positionNav = () => {
@@ -43,9 +59,9 @@ document.addEventListener("DOMContentLoaded", () => {
       navButton.setAttribute("aria-expanded", String(isOpen));
       if (isOpen) {
         positionNav();
-        document.body.style.overflow = "hidden";
+        lockScroll();
       } else {
-        document.body.style.overflow = "";
+        unlockScroll();
       }
     });
 
