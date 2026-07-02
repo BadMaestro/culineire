@@ -75,8 +75,9 @@
       </label>
 
       <div class="enroll-form__actions">
-        <button type="submit" class="btn-primary">Join Chef Battles</button>
-        <a class="btn-secondary" href="{% url 'recipes:author_dashboard' %}">Back to Dashboard</a>
+        <a class="btn-secondary enroll-form__back enroll-form__back--desktop" href="{% url 'recipes:author_dashboard' %}">Back to Dashboard</a>
+        <button type="submit" class="btn-primary" disabled>Join Chef Battles</button>
+        <a class="btn-secondary enroll-form__back enroll-form__back--mobile" href="{% url 'recipes:author_dashboard' %}">Back to Dashboard</a>
       </div>
 
       <p class="enroll-form__note">
@@ -149,6 +150,25 @@
   justify-content: center;
   margin-top: 0.5rem;
 }
+.enroll-form__back--mobile {
+  display: none;
+}
+@media (max-width: 640px) {
+  .enroll-form__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .enroll-form__actions > * {
+    width: 100%;
+    text-align: center;
+  }
+  .enroll-form__back--desktop {
+    display: none;
+  }
+  .enroll-form__back--mobile {
+    display: inline-flex;
+  }
+}
 .enroll-form__note {
   font-size: 0.83rem;
   color: var(--ink-soft, #666);
@@ -164,4 +184,25 @@
   font-size: 0.95rem;
 }
 </style>
+
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+  var form = document.querySelector('.enroll-form');
+  if (!form) return;
+
+  var confirmations = form.querySelectorAll('input[type="checkbox"][required]');
+  var submitButton = form.querySelector('button[type="submit"]');
+
+  function updateSubmitState() {
+    submitButton.disabled = !Array.prototype.every.call(confirmations, function (checkbox) {
+      return checkbox.checked;
+    });
+  }
+
+  confirmations.forEach(function (checkbox) {
+    checkbox.addEventListener('change', updateSubmitState);
+  });
+  updateSubmitState();
+}());
+</script>
 {% endblock %}

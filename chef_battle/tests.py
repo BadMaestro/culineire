@@ -165,6 +165,53 @@ class ChefBattleChallengeCreateViewTests(TestCase):
         self.assertContains(response, 'name="battle_type"', html=False)
 
 
+@override_settings(SECURE_SSL_REDIRECT=False)
+class ChefEnrollViewTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user(username="enroll-chef", password="pw", is_staff=True)
+        self.author = RecipeAuthor.objects.create(
+            user=self.user,
+            name="Enroll Chef",
+            slug="enroll-chef",
+        )
+        self.client.login(username="enroll-chef", password="pw")
+
+    def test_enroll_actions_and_confirmation_requirements(self):
+        response = self.client.get(reverse("chef_battle:chef_enroll"))
+
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode()
+        desktop_back = content.index('enroll-form__back--desktop')
+        join = content.index('>Join Chef Battles</button>')
+        mobile_back = content.index('enroll-form__back--mobile')
+        self.assertLess(desktop_back, join)
+        self.assertLess(join, mobile_back)
+        self.assertContains(
+            response,
+            f'href="{reverse("recipes:author_dashboard")}">Back to Dashboard</a>',
+            count=2,
+            html=False,
+        )
+        self.assertContains(response, 'type="submit" class="btn-primary" disabled', html=False)
+
+        incomplete = self.client.post(
+            reverse("chef_battle:chef_enroll"),
+            {"confirm_age": "1"},
+        )
+        self.assertEqual(incomplete.status_code, 200)
+        self.assertContains(incomplete, "Please tick both boxes to continue.")
+
+        complete = self.client.post(
+            reverse("chef_battle:chef_enroll"),
+            {"confirm_age": "1", "confirm_rules": "1"},
+        )
+        self.assertRedirects(complete, reverse("chef_battle:enroll_success"))
+        profile = ChefBattleProfile.objects.get(author=self.author)
+        self.assertIsNotNone(profile.enrolled_at)
+        self.assertTrue(profile.age_verified)
+
+
 class ChefBattleAntiAbuseTests(TestCase):
     """Anti-abuse: duplicate vote, self-vote, suspicious farm-pair detection."""
 
