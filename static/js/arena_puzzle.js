@@ -22,6 +22,11 @@
   var PING_INTERVAL   = 60000;   // 60 s — heartbeat to update last_seen_at
   var POLL_INTERVAL   = 20000;   // 20 s — refresh arena state
 
+  // ?demo in the URL turns on the presentation dev-panel and freezes the
+  // 20s state poll so staged renders persist. Purely client-side, no writes.
+  var DEMO_MODE = false;
+  try { DEMO_MODE = new URLSearchParams(window.location.search).has('demo'); } catch (e) {}
+
   var RING_RADII = {
     centre : [0,   85],
     1      : [85,  145],
@@ -643,6 +648,71 @@
   }
 
   /* ------------------------------------------------------------------ */
+  /* Demo panel — presentation stepper for every arena effect (?demo)    */
+  /* ------------------------------------------------------------------ */
+  function collectChefs(data) {
+    var out = [];
+    var rings = (data && data.rings) || {};
+    for (var k in rings) {
+      if (Object.prototype.hasOwnProperty.call(rings, k)) {
+        for (var i = 0; i < rings[k].length; i++) { if (rings[k][i]) { out.push(rings[k][i]); } }
+      }
+    }
+    return out;
+  }
+
+  function buildDemoPanel(data) {
+    var chefs = collectChefs(data);
+    var a = chefs[0] || { name: 'Chef A', avatar_url: '', slug: '' };
+    var b = chefs[1] || { name: 'Chef B', avatar_url: '', slug: '' };
+    var centreG = document.getElementById('arena-centre');
+
+    function setCentre(center) { clearGroup('arena-centre'); drawCentre(centreG, center); }
+
+    var stages = [
+      ['Empty (Arena)', function () { setCentre({ type: 'empty' }); }],
+      ['Crown holder', function () {
+        setCentre({ type: 'crown', name: a.name, avatar_url: a.avatar_url,
+          profile_url: a.slug ? '/chef-battle/profile/' + a.slug + '/' : '#' });
+      }],
+      ['Battle: VS centre', function () {
+        setCentre({ type: 'active_battle', battle_url: '#',
+          challenger: { name: a.name, avatar_url: a.avatar_url },
+          opponent: { name: b.name, avatar_url: b.avatar_url } });
+      }],
+      ['Cell ripple', function () {
+        var svg = document.getElementById('arena-puzzle');
+        var r = svg.getBoundingClientRect();
+        fireCellRipple({ clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 });
+      }],
+      ['Winner Blast', function () {
+        fireBattleBlast({ battle_id: -1, winner_name: a.name,
+          result_reason: 'Public vote: 5-3', theme: 'Demo Battle' });
+      }],
+    ];
+
+    var panel = document.createElement('div');
+    panel.className = 'arena-demo-panel';
+    var h = document.createElement('p');
+    h.className = 'arena-demo-panel__title';
+    h.textContent = 'Duel stages · demo';
+    panel.appendChild(h);
+    stages.forEach(function (s) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'arena-demo-panel__btn';
+      btn.textContent = s[0];
+      btn.addEventListener('click', s[1]);
+      panel.appendChild(btn);
+    });
+    var note = document.createElement('p');
+    note.className = 'arena-demo-panel__note';
+    note.textContent = 'Client-side preview. Live poll paused.';
+    panel.appendChild(note);
+    document.body.appendChild(panel);
+  }
+
+  /* ------------------------------------------------------------------ */
   /* Init                                                                 */
   /* ------------------------------------------------------------------ */
   document.addEventListener('DOMContentLoaded', function () {
@@ -661,6 +731,11 @@
     });
     var closeBtn = document.querySelector('.arena-tooltip__close');
     if (closeBtn) { closeBtn.addEventListener('click', hideTooltip); }
+
+    if (DEMO_MODE) {
+      buildDemoPanel(data);
+      return;   // no heartbeat, no poll — keep staged demo renders frozen
+    }
 
     // Start heartbeat immediately then repeat
     pingArena();
