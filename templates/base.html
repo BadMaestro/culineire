@@ -148,32 +148,32 @@
                 {% if can_view_pinch_public_area %}
                 {% if namespace == 'pinch' %}
                 <a class="ce-nav__link ce-nav__link--active" href="{% url 'pinch:feed' %}" aria-current="page">
-                    Pinch
+                    <span class="ce-nav__icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M5 3h10a1 1 0 0 1 1 1v12.5l-6-3.5-6 3.5V4a1 1 0 0 1 1-1z"/></svg></span>Pinch
                 </a>
                 {% else %}
                 <a class="ce-nav__link" href="{% url 'pinch:feed' %}">
-                    Pinch
+                    <span class="ce-nav__icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M5 3h10a1 1 0 0 1 1 1v12.5l-6-3.5-6 3.5V4a1 1 0 0 1 1-1z"/></svg></span>Pinch
                 </a>
                 {% endif %}
                 <span aria-hidden="true" class="ce-nav__separator"></span>
                 {% endif %}
                 {% if namespace == 'recipes' %}
                 <a class="ce-nav__link ce-nav__link--active" href="{% url 'recipes:recipe_list' %}" aria-current="page">
-                    Recipes
+                    <span class="ce-nav__icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M2 5h7v11H3a1 1 0 0 1-1-1V5z"/><path d="M11 5h7v10a1 1 0 0 1-1 1h-6V5z"/><line x1="2" y1="5" x2="18" y2="5"/></svg></span>Recipes
                 </a>
                 {% else %}
                 <a class="ce-nav__link" href="{% url 'recipes:recipe_list' %}">
-                    Recipes
+                    <span class="ce-nav__icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M2 5h7v11H3a1 1 0 0 1-1-1V5z"/><path d="M11 5h7v10a1 1 0 0 1-1 1h-6V5z"/><line x1="2" y1="5" x2="18" y2="5"/></svg></span>Recipes
                 </a>
                 {% endif %}
                 <span aria-hidden="true" class="ce-nav__separator"></span>
                 {% if namespace == 'articles' %}
                 <a class="ce-nav__link ce-nav__link--active" href="{% url 'articles:article_list' %}" aria-current="page">
-                    Articles
+                    <span class="ce-nav__icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><rect x="3" y="2" width="14" height="16" rx="1"/><line x1="6" y1="7" x2="14" y2="7"/><line x1="6" y1="10" x2="14" y2="10"/><line x1="6" y1="13" x2="10" y2="13"/></svg></span>Articles
                 </a>
                 {% else %}
                 <a class="ce-nav__link" href="{% url 'articles:article_list' %}">
-                    Articles
+                    <span class="ce-nav__icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><rect x="3" y="2" width="14" height="16" rx="1"/><line x1="6" y1="7" x2="14" y2="7"/><line x1="6" y1="10" x2="14" y2="10"/><line x1="6" y1="13" x2="10" y2="13"/></svg></span>Articles
                 </a>
                 {% endif %}
                 </div>
@@ -194,31 +194,31 @@
                 <div class="ce-nav__group ce-nav__group--right">
                 {% if namespace == 'newsfeed' %}
                 <a class="ce-nav__link ce-nav__link--active" href="{% url 'newsfeed:feed' %}" aria-current="page">
-                    News
+                    <span class="ce-nav__icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><rect x="2" y="4" width="16" height="12" rx="1"/><line x1="5" y1="8" x2="10" y2="8"/><line x1="5" y1="11" x2="10" y2="11"/><rect x="12" y="7" width="4" height="4" rx="0.5"/></svg></span>News
                 </a>
                 {% else %}
                 <a class="ce-nav__link" href="{% url 'newsfeed:feed' %}">
-                    News
+                    <span class="ce-nav__icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><rect x="2" y="4" width="16" height="12" rx="1"/><line x1="5" y1="8" x2="10" y2="8"/><line x1="5" y1="11" x2="10" y2="11"/><rect x="12" y="7" width="4" height="4" rx="0.5"/></svg></span>News
                 </a>
                 {% endif %}
                 <span aria-hidden="true" class="ce-nav__separator"></span>
                 {% if namespace == 'sponsors' %}
                 <a class="ce-nav__link ce-nav__link--active" href="{% url 'sponsors:puzzle' %}" aria-current="page">
-                    Sponsors
+                    <span class="ce-nav__icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M10 2l2.4 4.9 5.6.8-4 3.8.9 5.5L10 14.5l-4.9 2.5.9-5.5-4-3.8 5.6-.8z"/></svg></span>Sponsors
                 </a>
                 {% else %}
                 <a class="ce-nav__link" href="{% url 'sponsors:puzzle' %}">
-                    Sponsors
+                    <span class="ce-nav__icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M10 2l2.4 4.9 5.6.8-4 3.8.9 5.5L10 14.5l-4.9 2.5.9-5.5-4-3.8 5.6-.8z"/></svg></span>Sponsors
                 </a>
                 {% endif %}
                 <span aria-hidden="true" class="ce-nav__separator"></span>
                 {% if namespace == 'messaging' and url_name == 'contact' %}
                 <a class="ce-nav__link ce-nav__link--active" href="{% url 'messaging:contact' %}" aria-current="page">
-                    Contact
+                    <span class="ce-nav__icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><rect x="2" y="4" width="16" height="12" rx="1.5"/><path d="M2 7l8 5 8-5"/></svg></span>Contact
                 </a>
                 {% else %}
                 <a class="ce-nav__link" href="{% url 'messaging:contact' %}">
-                    Contact
+                    <span class="ce-nav__icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><rect x="2" y="4" width="16" height="12" rx="1.5"/><path d="M2 7l8 5 8-5"/></svg></span>Contact
                 </a>
                 {% endif %}
                 </div>
@@ -389,7 +389,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v2.5.48</span>
+                <span class="footer-version">v2.5.49</span>
             </div>
         </div>
     </div>

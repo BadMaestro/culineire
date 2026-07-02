@@ -303,6 +303,19 @@
   transform: translateX(0);
 }
 
+/* Nav icons — inline SVGs shown only in the mobile drawer, hidden on desktop */
+.ce-nav__icon {
+  display: none;
+  flex-shrink: 0;
+  align-items: center;
+  opacity: 0.7;
+  width: 17px;
+}
+
+.ce-nav--open .ce-nav__icon {
+  display: inline-flex;
+}
+
 /* Rows on the dark panel — filled pill for the active/current page
    (matching how .ce-nav__link--active already reads as a filled state
    elsewhere), soft highlight on hover/tap, no divider lines. */
@@ -317,6 +330,7 @@
 .ce-nav--open .ce-nav__status,
 .ce-nav--open .ce-nav__button {
   justify-content: flex-start;
+  gap: 0.7rem;
   width: 100%;
   min-height: 46px;
   padding: 0.6rem 0.85rem;
