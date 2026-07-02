@@ -387,7 +387,34 @@
     }
   }
 
+  // Facing pair: SCHEDULED / MENU_LOCKED — chefs approach from a deterministic angle.
+  function drawFacingPair(g, center) {
+    var theta = ((center.battle_id || 0) % 8) * (Math.PI / 4);
+    var DIST = 48;
+    var R = 28;
+    var cx1 = CX + DIST * Math.cos(theta);
+    var cy1 = CY + DIST * Math.sin(theta);
+    var cx2 = CX - DIST * Math.cos(theta);
+    var cy2 = CY - DIST * Math.sin(theta);
+
+    drawBattleCell(g, cx1, cy1, R, center.challenger, center.battle_url, center.popup_url);
+    drawBattleCell(g, cx2, cy2, R, center.opponent,   center.battle_url, center.popup_url);
+
+    var swords = svgEl('text', {
+      x: CX, y: CY, 'text-anchor': 'middle', 'dominant-baseline': 'middle',
+      fill: '#c8942a', 'font-size': '14', 'pointer-events': 'none', opacity: '0.75',
+    });
+    swords.textContent = '⚔';
+    g.appendChild(swords);
+  }
+
   function drawCentre(g, center) {
+    // Facing pair: SCHEDULED / MENU_LOCKED — pre-combat staging.
+    if (center.type === 'facing_pair') {
+      drawFacingPair(g, center);
+      return;
+    }
+
     // Active battle: two combatant octagons facing each other with VS between.
     if (center.type === 'active_battle') {
       var CELL_R = 38;   // combatant cell radius
@@ -840,6 +867,11 @@
       ['Crown holder', function () {
         setCentre({ type: 'crown', name: a.name, avatar_url: a.avatar_url,
           profile_url: a.slug ? '/chef-battle/profile/' + a.slug + '/' : '#' });
+      }],
+      ['Facing pair (pre-battle)', function () {
+        setCentre({ type: 'facing_pair', battle_id: 3, battle_url: '#',
+          challenger: { name: a.name, avatar_url: a.avatar_url },
+          opponent: { name: b.name, avatar_url: b.avatar_url } });
       }],
       ['Battle: VS centre', function () {
         setCentre({ type: 'active_battle', battle_url: '#',

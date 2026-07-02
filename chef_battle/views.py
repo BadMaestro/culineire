@@ -309,7 +309,9 @@ def _build_battlefield_progress():
                 {"label": "Stage A3: Grey standing fields for anonymous visitors", "detail": "New arena SVG zone (owner-approved geometry ADDITION). Requires a lightweight anonymous presence signal - none exists today.", "status": "pending"},
                 {"label": "Stage B1: Battle context in arena payload", "detail": "arena() + arena_state() now include battle_id, battle_phase, battle_url per in_battle chef. in_battle_map dict replaces raw in_battle_author_ids set.", "status": "done", "completed_at": "2026-07-02"},
                 {"label": "Stage B3: Chefs disappear from ring when in VS centre", "detail": "CENTRE_PHASES + FACING_PHASES constants in arena_puzzle.js. drawArena() vacates ring cell when chef.battle_phase is in either set — move not duplicate.", "status": "done", "completed_at": "2026-07-02"},
-                {"label": "Stage B2: Facing pair positioning (pre-combat)", "detail": "Challenge accepted (scheduled/menu_locked) -> show chefs in deterministic facing cells, not ring cells. Requires drawFacingPair() geometry helper.", "status": "pending"},
+                {"label": "Stage B2: Facing pair positioning (pre-combat)", "detail": "Challenge accepted (scheduled/menu_locked) -> show chefs in deterministic facing cells in the centre zone (not ring cells). _arena_center() returns type 'facing_pair' for SCHEDULED/MENU_LOCKED. drawFacingPair() places two cells at battle_id-deterministic angle, R=28, dist=48px from centre. Crossed swords ⚔ indicator between them.", "status": "done", "completed_at": "2026-07-02"},
+                {"label": "Stage B4: Completion → return to ring cells", "detail": "Handled implicitly by B1+B3: when battle reaches COMPLETED/CANCELLED it leaves ACTIVE_STATUSES, so in_battle_map no longer contains the chefs, their ring cells are rendered normally on the next poll.", "status": "done", "completed_at": "2026-07-02"},
+                {"label": "Stage B5: Teleport animation", "detail": "SVG transitions between 20s polls. Ship static relocation first (done via B2+B3), animate second per original handoff advice.", "status": "pending"},
                 {"label": "Stage C: Battle Room popup embedded on the arena", "detail": "OWNER APPROVED option A. Centre VS cell = one big link opening the popup: chef left vs right, artifacts visible (open battle), per-battle chat, voting, gifts - all via existing endpoints. 18+/legal affordances carry over unchanged.", "status": "done", "completed_at": "2026-07-02"},
                 {"label": "Stage D: Battle Room page becomes the antechamber", "detail": "battle_detail reworked into pre-battle hub: rules, ratings, statistics, chef comparison -> transition to the arena. Open decision: where chefs perform combat actions.", "status": "pending"},
                 {"label": "Stage E1: Mandatory use of spectator-gifted artifacts", "detail": "Combat logic change + public rules update: chefs may use own artifacts, MUST use artifacts gifted by spectators during the battle. Appreciation gifts never affect the battle.", "status": "pending"},
@@ -709,8 +711,11 @@ def _arena_center(active_battle):
     """Centre-cell payload: active battle takes priority, then the current
     Crown holder (if any), else empty. Shared by arena() and arena_state()."""
     if active_battle:
+        is_facing = active_battle.status in {Battle.Status.SCHEDULED, Battle.Status.MENU_LOCKED}
         return {
-            "type": "active_battle",
+            "type": "facing_pair" if is_facing else "active_battle",
+            "battle_id": active_battle.pk,
+            "battle_phase": active_battle.status.value,
             "battle_url": reverse("chef_battle:battle_detail", kwargs={"pk": active_battle.pk}),
             "popup_url": reverse("chef_battle:arena_battle_popup"),
             "challenger": {

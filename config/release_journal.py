@@ -1,5 +1,33 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.67",
+        "date": "2026-07-02",
+        "commit": "pending",
+        "title": "Arena Stage B2+B4 — Facing pair (pre-combat) + completion return",
+        "section": "Chef Battles / Arena (Phase FE-3)",
+        "summary": (
+            "Stage B2: SCHEDULED and MENU_LOCKED battles now display as a facing pair "
+            "in the centre zone instead of the full VS layout. _arena_center() returns "
+            "type 'facing_pair' for these statuses and includes battle_id + battle_phase. "
+            "drawFacingPair() places two smaller cells (R=28) at distance 48px from centre "
+            "at a battle_id-deterministic angle (battle_id % 8 * π/4) so the orientation "
+            "is consistent across polls. A crossed swords ⚔ indicator sits between them. "
+            "Clicking either cell opens the Battle Room popup (same arena_battle_popup endpoint). "
+            "Stage B4 documented: chefs return to their ring cells automatically when the battle "
+            "leaves ACTIVE_STATUSES — handled implicitly by the B1+B3 in_battle_map logic. "
+            "Demo panel gains a 'Facing pair (pre-battle)' stage for client-side verification."
+        ),
+        "checklist": [
+            "views.py _arena_center(): type 'facing_pair' for SCHEDULED/MENU_LOCKED; battle_id + battle_phase added",
+            "views.py roadmap: B2 done, B4 done (implicit), B5 added as pending",
+            "arena_puzzle.js: drawFacingPair() added before drawCentre()",
+            "arena_puzzle.js: drawCentre() checks facing_pair type first",
+            "arena_puzzle.js: demo panel gains 'Facing pair (pre-battle)' stage",
+            "manage.py check: 0 issues",
+        ],
+        "deployment_status": "pending deployment",
+    },
+    {
         "version": "2.5.66",
         "date": "2026-07-02",
         "commit": "pending",
