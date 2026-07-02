@@ -47,13 +47,13 @@ def _notify_chef(sender_author, recipient_author, subject: str, body: str) -> No
 
 
 RANK_THRESHOLDS = [
-    (1800, ChefBattleProfile.Rank.CULINARY_MASTER),
-    (1600, ChefBattleProfile.Rank.EXECUTIVE_CHEF),
-    (1450, ChefBattleProfile.Rank.HEAD_CHEF),
-    (1300, ChefBattleProfile.Rank.SOUS_CHEF),
-    (1180, ChefBattleProfile.Rank.CHEF_DE_PARTIE),
-    (1080, ChefBattleProfile.Rank.COMMIS_CHEF),
-    (1000, ChefBattleProfile.Rank.PREP_COOK),
+    (700, ChefBattleProfile.Rank.CULINARY_MASTER),
+    (600, ChefBattleProfile.Rank.EXECUTIVE_CHEF),
+    (500, ChefBattleProfile.Rank.HEAD_CHEF),
+    (400, ChefBattleProfile.Rank.SOUS_CHEF),
+    (300, ChefBattleProfile.Rank.CHEF_DE_PARTIE),
+    (200, ChefBattleProfile.Rank.COMMIS_CHEF),
+    (100, ChefBattleProfile.Rank.PREP_COOK),
     (0, ChefBattleProfile.Rank.KITCHEN_PORTER),
 ]
 

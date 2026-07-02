@@ -57,7 +57,7 @@ class ChefBattleProfile(models.Model):
     is_hero = models.BooleanField(default=False, db_index=True)
     michelin_stars = models.PositiveSmallIntegerField(default=0)
     infinite_moves = models.BooleanField(default=False)
-    rating = models.IntegerField(default=1000, db_index=True)
+    rating = models.IntegerField(default=0, db_index=True)
     reputation = models.IntegerField(default=0)
     wins = models.PositiveIntegerField(default=0)
     losses = models.PositiveIntegerField(default=0)

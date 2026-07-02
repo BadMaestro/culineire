@@ -28,6 +28,7 @@ from .services import (
     calculate_battle_result,
     expire_stale_challenges,
     handle_no_show_battles,
+    rank_for_rating,
     refuse_challenge,
     submit_battle_entry,
 )
@@ -210,6 +211,8 @@ class ChefEnrollViewTests(TestCase):
         profile = ChefBattleProfile.objects.get(author=self.author)
         self.assertIsNotNone(profile.enrolled_at)
         self.assertTrue(profile.age_verified)
+        self.assertEqual(profile.rating, 0)
+        self.assertEqual(profile.rank, ChefBattleProfile.Rank.KITCHEN_PORTER)
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)
@@ -218,22 +221,39 @@ class ChefBattleRulesViewTests(TestCase):
         response = self.client.get(reverse("chef_battle:rules"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Every new Chef starts with 1,000 rating points")
-        for rank_and_threshold in (
-            "Kitchen Porter (0+)",
-            "Prep Chef (1,000+)",
-            "Commis Chef (1,080+)",
-            "Chef de Partie (1,180+)",
-            "Sous Chef (1,300+)",
-            "Head Chef (1,450+)",
-            "Executive Chef (1,600+)",
-            "Culinary Master (1,800+)",
+        self.assertContains(response, "Every new Chef starts with 0 rating points")
+        for rank_and_range in (
+            "Kitchen Porter (0&ndash;99)",
+            "Prep Chef (100&ndash;199)",
+            "Commis Chef (200&ndash;299)",
+            "Chef de Partie (300&ndash;399)",
+            "Sous Chef (400&ndash;499)",
+            "Head Chef (500&ndash;599)",
+            "Executive Chef (600&ndash;699)",
+            "Culinary Master (700+)",
         ):
-            self.assertContains(response, rank_and_threshold)
+            self.assertContains(response, rank_and_range, html=False)
         self.assertContains(response, reverse("chef_battle:rankings"))
         self.assertContains(response, "A Chef becomes a CulinEire Hero at 15 wins.")
         self.assertNotContains(response, "Michelin Chef")
         self.assertNotContains(response, "A win streak bonus")
+
+    def test_rank_threshold_boundaries(self):
+        expected_boundaries = (
+            (0, ChefBattleProfile.Rank.KITCHEN_PORTER),
+            (99, ChefBattleProfile.Rank.KITCHEN_PORTER),
+            (100, ChefBattleProfile.Rank.PREP_COOK),
+            (199, ChefBattleProfile.Rank.PREP_COOK),
+            (200, ChefBattleProfile.Rank.COMMIS_CHEF),
+            (300, ChefBattleProfile.Rank.CHEF_DE_PARTIE),
+            (400, ChefBattleProfile.Rank.SOUS_CHEF),
+            (500, ChefBattleProfile.Rank.HEAD_CHEF),
+            (600, ChefBattleProfile.Rank.EXECUTIVE_CHEF),
+            (700, ChefBattleProfile.Rank.CULINARY_MASTER),
+        )
+        for rating, expected_rank in expected_boundaries:
+            with self.subTest(rating=rating):
+                self.assertEqual(rank_for_rating(rating), expected_rank)
 
 
 class ChefBattleAntiAbuseTests(TestCase):
