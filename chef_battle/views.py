@@ -808,6 +808,26 @@ def arena(request):
         "latest_result": _arena_latest_result(),
     }
 
+    # Moderator-only preview of the active-battle centre (Phase 1 choreography).
+    # /chef-battle/arena/?demo=vs stages the two-cell VS centre using two real
+    # enrolled chefs, so the owner can see and tune it without an active battle.
+    # No DB writes; never shown to non-moderators.
+    if request.GET.get("demo") == "vs" and is_moderator(request.user):
+        demo_pair = list(enrolled[:2])
+        if len(demo_pair) >= 2:
+            arena_data["center"] = {
+                "type": "active_battle",
+                "battle_url": "#",
+                "challenger": {
+                    "name": demo_pair[0].author.name,
+                    "avatar_url": demo_pair[0].author.display_avatar_url,
+                },
+                "opponent": {
+                    "name": demo_pair[1].author.name,
+                    "avatar_url": demo_pair[1].author.display_avatar_url,
+                },
+            }
+
     rank_groups = [
         (rank, chefs_by_rank[rank.value])
         for rank in ChefBattleProfile.Rank
