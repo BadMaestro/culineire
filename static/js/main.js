@@ -34,6 +34,11 @@ document.addEventListener("DOMContentLoaded", () => {
     navButton.addEventListener("click", () => {
       const isOpen = nav.classList.toggle(openClass);
       navButton.setAttribute("aria-expanded", String(isOpen));
+      if (isOpen) {
+        const r = navButton.getBoundingClientRect();
+        nav.style.top   = (r.bottom + 6) + "px";
+        nav.style.right = (window.innerWidth - r.right) + "px";
+      }
     });
 
     if (backdrop) {
