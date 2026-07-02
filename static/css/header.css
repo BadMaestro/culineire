@@ -287,6 +287,7 @@
   height: auto;
   max-height: calc(100dvh - 32px);
   overflow-y: auto;
+  overscroll-behavior: contain; /* stop touch scroll leaking through to the page */
   z-index: 130;
   gap: 0;
   background: linear-gradient(145deg, rgb(12 24 16 / 0.44), rgb(28 16 6 / 0.42));

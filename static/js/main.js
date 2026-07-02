@@ -29,6 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const closeNav = () => {
       nav.classList.remove(openClass);
       navButton.setAttribute("aria-expanded", "false");
+      document.body.style.overflow = "";
     };
 
     const positionNav = () => {
@@ -40,7 +41,12 @@ document.addEventListener("DOMContentLoaded", () => {
     navButton.addEventListener("click", () => {
       const isOpen = nav.classList.toggle(openClass);
       navButton.setAttribute("aria-expanded", String(isOpen));
-      if (isOpen) positionNav();
+      if (isOpen) {
+        positionNav();
+        document.body.style.overflow = "hidden";
+      } else {
+        document.body.style.overflow = "";
+      }
     });
 
     const navCloseBtn = nav.querySelector(".ce-nav__close");
