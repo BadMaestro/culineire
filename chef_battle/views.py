@@ -313,7 +313,7 @@ def _build_battlefield_progress():
                 {"label": "Stage B4: Completion → return to ring cells", "detail": "Handled implicitly by B1+B3: when battle reaches COMPLETED/CANCELLED it leaves ACTIVE_STATUSES, so in_battle_map no longer contains the chefs, their ring cells are rendered normally on the next poll.", "status": "done", "completed_at": "2026-07-02"},
                 {"label": "Stage B5: Teleport animation", "detail": "SVG transitions between 20s polls. Ship static relocation first (done via B2+B3), animate second per original handoff advice.", "status": "pending"},
                 {"label": "Stage C: Battle Room popup embedded on the arena", "detail": "OWNER APPROVED option A. Centre VS cell = one big link opening the popup: chef left vs right, artifacts visible (open battle), per-battle chat, voting, gifts - all via existing endpoints. 18+/legal affordances carry over unchanged.", "status": "done", "completed_at": "2026-07-02"},
-                {"label": "Stage D: Battle Room page becomes the antechamber", "detail": "battle_detail reworked into pre-battle hub: rules, ratings, statistics, chef comparison -> transition to the arena. Open decision: where chefs perform combat actions.", "status": "pending"},
+                {"label": "Stage D1: Battle Room page becomes the antechamber", "detail": "battle_detail hero redesigned as antechamber: two chef comparison cards (avatar, name, rank, W/L/streak/rating), 'Watch Live in Arena' CTA for active battles. challenger_profile + opponent_profile added to context. D2 (where chefs do combat actions) remains an open owner decision — combat panels stay on this page for now.", "status": "done", "completed_at": "2026-07-02"},
                 {"label": "Stage E1: Mandatory use of spectator-gifted artifacts", "detail": "Combat logic change + public rules update: chefs may use own artifacts, MUST use artifacts gifted by spectators during the battle. Appreciation gifts never affect the battle.", "status": "pending"},
                 {"label": "Stage E2: Appreciation gifts sellable after battle", "detail": "New economy mechanic. Requires closed-loop token model (s14) and anti-gambling (s17) legal check BEFORE build. Rate and flow TBD with owner.", "status": "pending"},
                 {"label": "Stage E3: Scheduled battle time + readiness gate", "detail": "Today battles start on accept. Needs a battle-time concept (who sets it - open owner decision) and a both-ready gate before the centre teleport.", "status": "pending"},
@@ -1251,6 +1251,8 @@ def battle_detail(request, pk):
     from .services import get_combat_state, get_or_create_battle_profile
     combat_state = get_combat_state(battle)
     is_participant = bool(viewer_author and battle.author_is_participant(viewer_author))
+    challenger_profile = get_or_create_battle_profile(battle.challenger)
+    opponent_profile = get_or_create_battle_profile(battle.opponent)
     user_battle_moves = 0
     viewer_has_moved = False
     opponent_has_moved = False
@@ -1296,6 +1298,8 @@ def battle_detail(request, pk):
         "viewer_token_balance": viewer_token_balance,
         "active_statuses": Battle.ACTIVE_STATUSES,
         "battle_participants": [battle.challenger, battle.opponent],
+        "challenger_profile": challenger_profile,
+        "opponent_profile": opponent_profile,
     })
 
 

@@ -1,5 +1,33 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.68",
+        "date": "2026-07-02",
+        "commit": "pending",
+        "title": "Arena Stage D1 — Battle Room page becomes the antechamber",
+        "section": "Chef Battles / Arena (Phase FE-3)",
+        "summary": (
+            "Stage D1: battle_detail hero redesigned as an antechamber (прихожая). "
+            "The old VS/combat-hits block is replaced by two side-by-side chef comparison "
+            "cards showing avatar, name, rank (from ChefBattleProfile), rating, W/L, "
+            "and win streak. A 'Watch Live in Arena →' CTA button appears for active "
+            "battles, linking to the arena page. The kicker text changes from "
+            "'X Chef Battles' to 'Chef Battle · Status'. All existing combat panels, "
+            "entries, chat, gifts, and log remain unchanged (D2 — where chefs perform "
+            "combat actions — is an open owner decision). challenger_profile and "
+            "opponent_profile are added to battle_detail view context via "
+            "get_or_create_battle_profile(). Mobile breakpoint collapses the comparison "
+            "to a single column."
+        ),
+        "checklist": [
+            "views.py battle_detail(): challenger_profile + opponent_profile added to context",
+            "battle_detail.html: hero replaced with antechamber-compare + antechamber-cta",
+            "chef_battle.css: .antechamber-compare, .antechamber-card, .antechamber-vs, .antechamber-cta added",
+            "roadmap: D1 marked done; D2 remains open",
+            "manage.py check: 0 issues",
+        ],
+        "deployment_status": "pending deployment",
+    },
+    {
         "version": "2.5.67",
         "date": "2026-07-02",
         "commit": "pending",

@@ -7,27 +7,50 @@
 {% block content %}
 <section class="battle-room-hero battle-hero--has-panel">
   <div class="container">
-    {% include '_enter_arena_btn.html' %}
-    <p class="battle-kicker">{{ battle.get_status_display }} Chef Battles</p>
+    <p class="battle-kicker">Chef Battle &middot; {{ battle.get_status_display }}</p>
     <h1>{{ battle.theme }}</h1>
 
-    <div class="battle-vs">
-      <div class="battle-vs__chef">
-        <a class="battle-vs__name" href="{% url 'chef_battle:chef_profile' slug=battle.challenger.slug %}">
-          {% if battle.challenger.battle_profile.has_crown %}&#x1F451; {% endif %}{% if battle.challenger.battle_profile.is_founding_chef %}&#x2B50; {% endif %}{{ battle.challenger.name }}{% executive_badge battle.challenger %}
-        </a>
-        <span class="battle-vs__votes" id="combat-hits-challenger">{{ combat_state.challenger_hits }}</span>
-        <span class="battle-vs__label">hits</span>
+    <div class="antechamber-compare">
+      <div class="antechamber-card">
+        <img class="antechamber-card__avatar" src="{{ battle.challenger.display_avatar_url }}" alt="{{ battle.challenger.name }}" width="64" height="64">
+        <div class="antechamber-card__body">
+          <a class="antechamber-card__name" href="{% url 'chef_battle:chef_profile' slug=battle.challenger.slug %}">
+            {% if battle.challenger.battle_profile.has_crown %}&#x1F451; {% endif %}{% if battle.challenger.battle_profile.is_founding_chef %}&#x2B50; {% endif %}{{ battle.challenger.name }}{% executive_badge battle.challenger %}
+          </a>
+          <span class="antechamber-card__rank">{{ challenger_profile.get_rank_display }}</span>
+          <div class="antechamber-card__stats">
+            <span>{{ challenger_profile.wins }}W&nbsp;/&nbsp;{{ challenger_profile.losses }}L</span>
+            <span class="antechamber-card__sep">&middot;</span>
+            <span>{{ challenger_profile.rating }}&nbsp;pts</span>
+            {% if challenger_profile.win_streak > 0 %}<span class="antechamber-card__sep">&middot;</span><span>{{ challenger_profile.win_streak }} streak</span>{% endif %}
+          </div>
+        </div>
       </div>
-      <div class="battle-vs__divider">VS</div>
-      <div class="battle-vs__chef battle-vs__chef--right">
-        <a class="battle-vs__name" href="{% url 'chef_battle:chef_profile' slug=battle.opponent.slug %}">
-          {% if battle.opponent.battle_profile.has_crown %}&#x1F451; {% endif %}{% if battle.opponent.battle_profile.is_founding_chef %}&#x2B50; {% endif %}{{ battle.opponent.name }}{% executive_badge battle.opponent %}
-        </a>
-        <span class="battle-vs__votes" id="combat-hits-opponent">{{ combat_state.opponent_hits }}</span>
-        <span class="battle-vs__label">hits</span>
+
+      <div class="antechamber-vs">VS</div>
+
+      <div class="antechamber-card antechamber-card--right">
+        <img class="antechamber-card__avatar" src="{{ battle.opponent.display_avatar_url }}" alt="{{ battle.opponent.name }}" width="64" height="64">
+        <div class="antechamber-card__body antechamber-card__body--right">
+          <a class="antechamber-card__name" href="{% url 'chef_battle:chef_profile' slug=battle.opponent.slug %}">
+            {% if battle.opponent.battle_profile.has_crown %}&#x1F451; {% endif %}{% if battle.opponent.battle_profile.is_founding_chef %}&#x2B50; {% endif %}{{ battle.opponent.name }}{% executive_badge battle.opponent %}
+          </a>
+          <span class="antechamber-card__rank">{{ opponent_profile.get_rank_display }}</span>
+          <div class="antechamber-card__stats">
+            <span>{{ opponent_profile.wins }}W&nbsp;/&nbsp;{{ opponent_profile.losses }}L</span>
+            <span class="antechamber-card__sep">&middot;</span>
+            <span>{{ opponent_profile.rating }}&nbsp;pts</span>
+            {% if opponent_profile.win_streak > 0 %}<span class="antechamber-card__sep">&middot;</span><span>{{ opponent_profile.win_streak }} streak</span>{% endif %}
+          </div>
+        </div>
       </div>
     </div>
+
+    {% if battle.status in active_statuses %}
+    <div class="antechamber-cta">
+      <a class="antechamber-cta__btn" href="{% url 'chef_battle:arena' %}">Watch Live in Arena &#8594;</a>
+    </div>
+    {% endif %}
 
     <div class="battle-room-meta">
       <span>Start {{ battle.start_time|date:"j M Y H:i" }}</span>
