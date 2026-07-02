@@ -1511,20 +1511,61 @@
    Only applies on mobile (≤640px) on the Pinch feed page.
    ================================================================ */
 @media (max-width: 640px) {
-  /* Hide the "All Bites" heading row — redundant in snap mode */
+  /* ── 1. Remove page-level padding / gaps that push snap container down ── */
+  .hero--pinch + .recipe-list-page {
+    padding-block: 0;
+  }
+  .hero--pinch + .recipe-list-page .recipe-list-stack {
+    row-gap: 0;
+  }
+  .hero--pinch + .recipe-list-page .recipe-list-section {
+    row-gap: 0;
+  }
+
+  /* ── 2. Filter bar — horizontal scroll, no wrap/collapse ── */
+  .hero--pinch + .recipe-list-page .category-nav-block {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    padding-block: 0.45rem;
+  }
+  .hero--pinch + .recipe-list-page .category-nav-block::-webkit-scrollbar {
+    display: none;
+  }
+  /* Override JS-set height so the wrap doesn't clip items */
+  .hero--pinch + .recipe-list-page .category-nav-wrap {
+    height: auto !important;
+    overflow: visible !important;
+  }
+  /* Single row — scroll horizontally to see all categories */
+  .hero--pinch + .recipe-list-page .category-nav {
+    flex-wrap: nowrap;
+    white-space: nowrap;
+  }
+  /* Hide the View All toggle — all categories visible via scroll */
+  .hero--pinch + .recipe-list-page .category-nav-toggle {
+    display: none !important;
+  }
+
+  /* ── 3. Hide footer — not relevant in TikTok snap mode ── */
+  body:has(.hero--pinch) footer {
+    display: none;
+  }
+
+  /* ── 4. Heading row not needed in snap mode ── */
   .hero--pinch + .recipe-list-page .page-header {
     display: none;
   }
 
-  /* The vscroll wrapper becomes the snap container, filling the
-     remaining viewport below the sticky header + sticky filter bar */
+  /* ── 5. Snap container fills remaining viewport exactly ── */
   .hero--pinch + .recipe-list-page .recipe-vscroll-wrap {
     height: calc(100dvh - var(--sticky-offset, 120px));
+    overflow: hidden;
   }
 
   .hero--pinch + .recipe-list-page .ab-grid-scroll {
     height: 100%;
-    max-height: none !important; /* override JS-set inline maxHeight */
+    max-height: none !important;
     overflow-y: scroll;
     scroll-snap-type: y mandatory;
     overscroll-behavior: contain;
