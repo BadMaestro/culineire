@@ -12,9 +12,10 @@
     <img alt="{{ item.title }}" class="ab-card__img" src="{% static 'images/hero.jpg' %}" loading="lazy">
     {% endif %}
 
-    {# Full-card cover link — mouse shortcut, hidden from keyboard and screen readers #}
+    {# Full-card cover link — goes straight to the linked recipe if one exists #}
     {% if not detail %}
-    <a class="ab-card__cover-link" href="{{ item.get_absolute_url }}"
+    <a class="ab-card__cover-link"
+       href="{% if item.linked_recipe %}{{ item.linked_recipe.get_absolute_url }}{% else %}{{ item.get_absolute_url }}{% endif %}"
        tabindex="-1" aria-hidden="true"></a>
     {% endif %}
   </div>

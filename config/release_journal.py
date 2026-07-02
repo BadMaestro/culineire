@@ -1,5 +1,32 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.74",
+        "date": "2026-07-03",
+        "commit": "pending",
+        "title": "Pinch: swipe footer gesture, Safari address-bar collapse, card → recipe link",
+        "section": "Pinch / Mobile TikTok feed",
+        "summary": (
+            "Three mobile UX improvements: (1) Footer drawer now responds to "
+            "touch swipe — swipe up from the bottom 80px to open, swipe down "
+            "when at the top of the sheet to close (in addition to the existing "
+            "tap-the-handle behaviour). (2) Safari address-bar auto-hide now "
+            "works on the Pinch page: body gets 1px extra height so Safari "
+            "treats the document as scrollable and collapses its chrome on "
+            "upward swipe; a passive scroll listener immediately snaps scrollY "
+            "back to 0 so the layout never shifts. (3) Tapping a Pinch card "
+            "image now navigates directly to the linked recipe if one exists, "
+            "falling back to the Pinch detail page only when there is no "
+            "linked recipe."
+        ),
+        "checklist": [
+            "main.js: touchstart/touchend swipe listeners in footer drawer IIFE",
+            "main.js: Safari address-bar snapback IIFE (scroll → scrollTo(0,0))",
+            "pinch.css: body:has(.hero--pinch) overflow-y:scroll + min-height:calc(100dvh+1px)",
+            "item_card.html: cover link href uses linked_recipe.get_absolute_url when available",
+        ],
+        "deployment_status": "pending deployment",
+    },
+    {
         "version": "2.5.73",
         "date": "2026-07-02",
         "commit": "pending",

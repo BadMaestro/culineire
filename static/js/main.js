@@ -943,6 +943,34 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && isOpen()) close();
     });
+
+    // Swipe up from bottom edge → open; swipe down on open footer → close
+    var tsY = 0, tsX = 0;
+    document.addEventListener("touchstart", function (e) {
+      tsY = e.touches[0].clientY;
+      tsX = e.touches[0].clientX;
+    }, { passive: true });
+    document.addEventListener("touchend", function (e) {
+      var dy = tsY - e.changedTouches[0].clientY; // positive = swipe up
+      var dx = Math.abs(e.changedTouches[0].clientX - tsX);
+      if (Math.abs(dy) < 40 || dx > Math.abs(dy) * 0.75) return;
+      if (!isOpen() && dy > 0 && tsY > window.innerHeight - 80) {
+        open();
+      } else if (isOpen() && dy < 0 && footer.scrollTop <= 0) {
+        close();
+      }
+    }, { passive: true });
+  })();
+
+  // ==== Pinch: Safari address-bar collapse snapback ====
+  // CSS gives body 1px extra height so Safari treats the document as scrollable
+  // and collapses its chrome on upward swipe. We snap scrollY back to 0
+  // immediately so the layout never shifts by that 1px.
+  (function () {
+    if (!document.querySelector(".hero--pinch") || window.innerWidth > 640) return;
+    window.addEventListener("scroll", function () {
+      if (window.scrollY !== 0) window.scrollTo(0, 0);
+    }, { passive: true });
   })();
 
   // ==== Pinch filter: whole-item visibility + resting centering ====
