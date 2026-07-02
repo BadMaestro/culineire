@@ -254,6 +254,12 @@
   transform: translateY(-3.75px) rotate(-45deg);
 }
 
+/* Hide the header burger while the nav card is open — the internal X takes over */
+.ce-header:has(.ce-nav--open) .ce-nav__toggle {
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* Dimmed backdrop behind the drawer — click closes the menu (see main.js) */
 .ce-nav__backdrop {
   position: fixed;
@@ -289,7 +295,7 @@
   border: 1px solid rgb(226 217 204 / 0.22);
   border-radius: 14px;
   box-shadow: 0 8px 32px rgb(12 24 16 / 0.30);
-  padding: 0.6rem 0.75rem 0.75rem;
+  padding: 2.8rem 0.75rem 0.75rem; /* top clears the internal X button */
   color: #f7f2ea;
   transform: translateX(calc(100% + 16px));
   transition: transform 0.26s cubic-bezier(0.22, 0.61, 0.36, 1);
@@ -297,6 +303,34 @@
 
 .ce-nav--open {
   transform: translateX(0);
+}
+
+/* Close button inside the nav card — sits at top-right corner */
+.ce-nav__close {
+  display: none; /* shown only when drawer is open */
+  position: absolute;
+  top: 0.45rem;
+  right: 0.45rem;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgb(226 217 204 / 0.22);
+  border-radius: 8px;
+  background: rgb(247 242 234 / 0.12);
+  color: rgb(247 242 234 / 0.8);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.ce-nav--open .ce-nav__close {
+  display: inline-flex;
+}
+.ce-nav__close:hover,
+.ce-nav__close:focus-visible {
+  background: rgb(247 242 234 / 0.22);
+  color: #fff;
 }
 
 /* Nav icons — inline SVGs shown only in the mobile drawer, hidden on desktop */

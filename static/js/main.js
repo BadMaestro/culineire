@@ -31,15 +31,20 @@ document.addEventListener("DOMContentLoaded", () => {
       navButton.setAttribute("aria-expanded", "false");
     };
 
+    const positionNav = () => {
+      const r = navButton.getBoundingClientRect();
+      nav.style.top   = Math.max(4, r.top) + "px";
+      nav.style.right = Math.max(4, window.innerWidth - r.right) + "px";
+    };
+
     navButton.addEventListener("click", () => {
       const isOpen = nav.classList.toggle(openClass);
       navButton.setAttribute("aria-expanded", String(isOpen));
-      if (isOpen) {
-        const r = navButton.getBoundingClientRect();
-        nav.style.top   = Math.max(4, r.bottom + 6) + "px";
-        nav.style.right = Math.max(8, window.innerWidth - r.right) + "px";
-      }
+      if (isOpen) positionNav();
     });
+
+    const navCloseBtn = nav.querySelector(".ce-nav__close");
+    if (navCloseBtn) navCloseBtn.addEventListener("click", closeNav);
 
     if (backdrop) {
       backdrop.addEventListener("click", closeNav);
