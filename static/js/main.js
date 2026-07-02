@@ -36,8 +36,8 @@ document.addEventListener("DOMContentLoaded", () => {
       navButton.setAttribute("aria-expanded", String(isOpen));
       if (isOpen) {
         const r = navButton.getBoundingClientRect();
-        nav.style.top   = (r.bottom + 6) + "px";
-        nav.style.right = (window.innerWidth - r.right) + "px";
+        nav.style.top   = Math.max(4, r.bottom + 6) + "px";
+        nav.style.right = Math.max(8, window.innerWidth - r.right) + "px";
       }
     });
 
