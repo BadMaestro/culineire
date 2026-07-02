@@ -1,5 +1,36 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.70",
+        "date": "2026-07-02",
+        "commit": "pending",
+        "title": "Pinch filter — whole-item visibility + unreachable-left scroll fix",
+        "section": "Pinch / Mobile TikTok feed",
+        "summary": (
+            "Owner request: a category must never show half-clipped under the "
+            "carousel arrows — it is either fully inside the visible track or "
+            "hidden entirely until the arrows scroll it fully into view. New "
+            "main.js module toggles visibility per item on scroll/resize/font-load "
+            "(rAF-free: occluded Chrome windows freeze rAF and one pending frame "
+            "was permanently blocking the generic carousel's scheduleUpdate). "
+            "Two root-cause bugs found live: (1) .category-nav kept "
+            "justify-content: center — with overflowing content the left half "
+            "of the list spilled LEFT of the scroll origin and was physically "
+            "unreachable (scrollLeft cannot go negative); ~421px of categories "
+            "('All', 'Mini Recipe', 'Snack'…) could never be scrolled to. Now "
+            "flex-start in mobile snap mode. (2) The carousel ResizeObserver "
+            "watched only the track (flex: 1, width-stable) so late font loads "
+            "never re-enabled the arrows — it now also observes the content, "
+            "plus scrollend/fonts.ready call updateControls directly."
+        ),
+        "checklist": [
+            "pinch.css: .category-nav justify-content: flex-start (mobile Pinch only)",
+            "main.js: whole-item visibility module for .pinch-filter-carousel (scroll/resize/RO/fonts.ready, no rAF)",
+            "main.js carousels: scrollend + fonts.ready direct updateControls; RO also observes track.firstElementChild",
+            "Verified live: at start 'All…Cocktail' fully visible, 'Quick Tip' hidden entirely; arrows enable/disable correctly",
+        ],
+        "deployment_status": "pending deployment",
+    },
+    {
         "version": "2.5.69",
         "date": "2026-07-02",
         "commit": "pending",

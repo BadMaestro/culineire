@@ -327,12 +327,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     track.addEventListener("scroll", scheduleUpdate, { passive: true });
+    // rAF is frozen in occluded windows and a pending frame blocks all later
+    // updates — settle the controls directly once scrolling stops.
+    track.addEventListener("scrollend", updateControls);
 
     requestAnimationFrame(updateControls);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(updateControls);
+    }
 
     if ("ResizeObserver" in window) {
       const resizeObserver = new ResizeObserver(updateControls);
       resizeObserver.observe(track);
+      // track itself is width-stable (flex: 1) — watch the content too,
+      // otherwise late font loads never re-enable the buttons
+      if (track.firstElementChild) resizeObserver.observe(track.firstElementChild);
     } else {
       window.addEventListener("resize", updateControls);
     }
@@ -934,6 +943,46 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && isOpen()) close();
     });
+  })();
+
+  // ==== Pinch filter: whole-item visibility ====
+  // A category never shows half-clipped under the carousel arrows — it is
+  // either fully inside the visible track or hidden entirely until the
+  // arrows scroll it fully into view.
+  (function () {
+    var carousel = document.querySelector(".pinch-filter-carousel");
+    if (!carousel) return;
+    var wrap = carousel.querySelector(".category-nav-wrap");
+    var nav = carousel.querySelector(".category-nav");
+    if (!wrap || !nav) return;
+
+    var snapMode = function () {
+      return window.innerWidth <= 640 && !!document.querySelector(".hero--pinch");
+    };
+
+    // No rAF gating — occluded windows freeze rAF and a pending frame would
+    // block every later update. The work is ~20 rect reads; cheap enough raw.
+    var update = function () {
+      var children = nav.children;
+      var i;
+      if (!snapMode()) {
+        for (i = 0; i < children.length; i++) children[i].style.visibility = "";
+        return;
+      }
+      var box = wrap.getBoundingClientRect();
+      for (i = 0; i < children.length; i++) {
+        var r = children[i].getBoundingClientRect();
+        var overlaps = r.right > box.left && r.left < box.right;
+        var fully = r.left >= box.left - 2 && r.right <= box.right + 2;
+        children[i].style.visibility = overlaps && !fully ? "hidden" : "";
+      }
+    };
+
+    wrap.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    if ("ResizeObserver" in window) new ResizeObserver(update).observe(nav);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(update);
+    update();
   })();
 });
 

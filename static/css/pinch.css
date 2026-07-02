@@ -1574,10 +1574,14 @@
     display: none;
   }
 
-  /* Single row — horizontal scroll reveals all categories */
+  /* Single row — horizontal scroll reveals all categories.
+     flex-start is REQUIRED: with justify-content center the overflowing
+     half of the list spills LEFT of the scroll origin and can never be
+     scrolled to (scrollLeft cannot go negative). */
   .hero--pinch + .recipe-list-page .category-nav {
     flex-wrap: nowrap;
     white-space: nowrap;
+    justify-content: flex-start;
     padding-block: 0.42rem;
     padding-inline: 0.5rem;
   }
