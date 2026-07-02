@@ -1,5 +1,36 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.71",
+        "date": "2026-07-02",
+        "commit": "pending",
+        "title": "Pinch filter — resting centering + tighter dot separators",
+        "section": "Pinch / Mobile TikTok feed",
+        "summary": (
+            "Owner request: the filter row looked uneven (whole-item hiding left "
+            "all blank space piled on one side) and spacing between categories "
+            "was too generous. (1) The whole-item module now centers the group "
+            "of fully visible categories between the arrows once scrolling "
+            "settles: it computes the leftover blank on each side in "
+            "untransformed coordinates and applies translateX((blankRight - "
+            "blankLeft) / 2) to .category-nav with a 0.25s ease transition. "
+            "justify-content stays flex-start (center breaks scrollability — "
+            "see v2.5.70); centering is purely visual via transform, so scroll "
+            "math and the arrows' enable/disable logic are unaffected. Debounced "
+            "scroll (120ms) substitutes for scrollend on iOS Safari. (2) The "
+            "mobile dot separators are CSS-generated (.category-nav__item::after "
+            "with 0.6em side margins) — tightened to 0.3em and nav side padding "
+            "0.5rem -> 0.4rem. Result at 430px: 6 categories fit fully instead "
+            "of 5, content width 783px -> 733px, resting blanks split 19px/19px."
+        ),
+        "checklist": [
+            "main.js: whole-item module gains recenter-at-rest (shift-aware visibility math)",
+            "pinch.css: .category-nav__item::after margin-inline 0.3em (mobile Pinch only)",
+            "pinch.css: .category-nav transition transform 0.25s; padding-inline 0.4rem",
+            "Verified live at start of list: 6 items fully visible, blanks 19/19 symmetric",
+        ],
+        "deployment_status": "pending deployment",
+    },
+    {
         "version": "2.5.70",
         "date": "2026-07-02",
         "commit": "pending",

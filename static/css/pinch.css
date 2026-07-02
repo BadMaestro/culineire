@@ -1577,13 +1577,20 @@
   /* Single row — horizontal scroll reveals all categories.
      flex-start is REQUIRED: with justify-content center the overflowing
      half of the list spills LEFT of the scroll origin and can never be
-     scrolled to (scrollLeft cannot go negative). */
+     scrolled to (scrollLeft cannot go negative). Visual centering of the
+     visible group is done by main.js via translateX once scrolling rests. */
   .hero--pinch + .recipe-list-page .category-nav {
     flex-wrap: nowrap;
     white-space: nowrap;
     justify-content: flex-start;
     padding-block: 0.42rem;
-    padding-inline: 0.5rem;
+    padding-inline: 0.4rem;
+    transition: transform 0.25s ease;
+  }
+  /* Tighter dot separators (::after "·" carries 0.6em side margins) so
+     more categories fit fully between the arrows */
+  .hero--pinch + .recipe-list-page .category-nav .category-nav__item::after {
+    margin-inline: 0.3em;
   }
 
   /* Hide the desktop View All collapse toggle */

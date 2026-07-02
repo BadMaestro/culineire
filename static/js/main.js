@@ -945,10 +945,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   })();
 
-  // ==== Pinch filter: whole-item visibility ====
+  // ==== Pinch filter: whole-item visibility + resting centering ====
   // A category never shows half-clipped under the carousel arrows — it is
   // either fully inside the visible track or hidden entirely until the
-  // arrows scroll it fully into view.
+  // arrows scroll it fully into view. When scrolling settles, the group of
+  // fully visible items is centered between the arrows via a transform so
+  // the leftover blank space splits evenly instead of piling up on one side.
   (function () {
     var carousel = document.querySelector(".pinch-filter-carousel");
     if (!carousel) return;
@@ -956,33 +958,64 @@ document.addEventListener("DOMContentLoaded", () => {
     var nav = carousel.querySelector(".category-nav");
     if (!wrap || !nav) return;
 
+    var shift = 0; // currently applied translateX
+    var settleTimer = null;
+
     var snapMode = function () {
       return window.innerWidth <= 640 && !!document.querySelector(".hero--pinch");
     };
 
     // No rAF gating — occluded windows freeze rAF and a pending frame would
     // block every later update. The work is ~20 rect reads; cheap enough raw.
-    var update = function () {
+    var update = function (recenter) {
       var children = nav.children;
       var i;
       if (!snapMode()) {
         for (i = 0; i < children.length; i++) children[i].style.visibility = "";
+        shift = 0;
+        nav.style.transform = "";
         return;
       }
       var box = wrap.getBoundingClientRect();
+      var firstFull = null;
+      var lastFull = null;
       for (i = 0; i < children.length; i++) {
         var r = children[i].getBoundingClientRect();
-        var overlaps = r.right > box.left && r.left < box.right;
-        var fully = r.left >= box.left - 2 && r.right <= box.right + 2;
+        // rects include the applied transform — measure in untransformed space
+        var left = r.left - shift;
+        var right = r.right - shift;
+        var overlaps = right > box.left && left < box.right;
+        var fully = left >= box.left - 2 && right <= box.right + 2;
         children[i].style.visibility = overlaps && !fully ? "hidden" : "";
+        if (overlaps && fully) {
+          if (firstFull === null) firstFull = left;
+          lastFull = right;
+        }
+      }
+      if (recenter && firstFull !== null) {
+        var blankLeft = firstFull - box.left;
+        var blankRight = box.right - lastFull;
+        shift = Math.round((blankRight - blankLeft) / 2);
+        nav.style.transform = shift ? "translateX(" + shift + "px)" : "";
       }
     };
 
-    wrap.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
-    if ("ResizeObserver" in window) new ResizeObserver(update).observe(nav);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(update);
-    update();
+    var onScroll = function () {
+      update(false);
+      // debounce as a scrollend substitute (iOS Safari lacks the event)
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(function () { update(true); }, 120);
+    };
+
+    wrap.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", function () { update(true); });
+    if ("ResizeObserver" in window) {
+      new ResizeObserver(function () { update(true); }).observe(nav);
+    }
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () { update(true); });
+    }
+    update(true);
   })();
 });
 
