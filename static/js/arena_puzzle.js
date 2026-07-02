@@ -309,44 +309,96 @@
     group.appendChild(dot);
   }
 
+  function octagonPointPairs(cx, cy, R) {
+    var pts = [];
+    for (var i = 0; i < 8; i++) {
+      var angle = i * Math.PI / 4;
+      pts.push([cx + R * Math.cos(angle), cy + R * Math.sin(angle)]);
+    }
+    return pts;
+  }
+
+  // One combatant cell for the centre VS staging (Phase 1 of the battle
+  // choreography): gold octagon + clipped avatar + first-name label.
+  function drawBattleCell(g, cx, cy, R, chef, battleUrl) {
+    var poly = svgEl('polygon', {
+      points: octagonPoints(cx, cy, R),
+      fill: '#c8942a', stroke: '#fff', 'stroke-width': '2',
+      filter: 'url(#arena-cell-shadow)',
+      cursor: battleUrl ? 'pointer' : 'default',
+      class: 'arena-cell arena-center--active',
+    });
+    if (battleUrl) {
+      poly.addEventListener('click', function () { window.location.href = battleUrl; });
+    }
+    g.appendChild(poly);
+
+    var svgDefs = document.querySelector('#arena-puzzle defs');
+    if (svgDefs && chef && chef.avatar_url) {
+      // 'ac-' prefix so the existing clipPath cleanup in pollArenaState sweeps it
+      var clipId = 'ac-c-' + cx.toFixed(0) + '-' + cy.toFixed(0);
+      var clip = svgEl('clipPath', { id: clipId });
+      clip.appendChild(svgEl('path', { d: pathFromPoints(octagonPointPairs(cx, cy, R)) }));
+      svgDefs.appendChild(clip);
+
+      var img = svgEl('image', {
+        href: chef.avatar_url,
+        x: (cx - R).toFixed(1), y: (cy - R).toFixed(1),
+        width: (R * 2).toFixed(1), height: (R * 2).toFixed(1),
+        preserveAspectRatio: 'xMidYMid slice', 'pointer-events': 'none',
+      });
+      var clipped = svgEl('g', { 'clip-path': 'url(#' + clipId + ')' });
+      clipped.appendChild(img);
+      g.appendChild(clipped);
+    }
+
+    if (chef && chef.name) {
+      var lbl = svgEl('text', {
+        x: cx, y: cy + R + 13, 'text-anchor': 'middle', 'dominant-baseline': 'middle',
+        fill: '#fff', 'font-family': 'Inter, sans-serif', 'font-size': '10', 'font-weight': '600',
+        'pointer-events': 'none',
+      });
+      lbl.textContent = chef.name.split(' ')[0];
+      g.appendChild(lbl);
+    }
+  }
+
   function drawCentre(g, center) {
+    // Active battle: two combatant octagons facing each other with VS between.
+    if (center.type === 'active_battle') {
+      var CELL_R = 38;   // combatant cell radius
+      var CELL_D = 50;   // horizontal offset of each cell from centre
+      drawBattleCell(g, CX - CELL_D, CY, CELL_R, center.challenger, center.battle_url);
+      drawBattleCell(g, CX + CELL_D, CY, CELL_R, center.opponent, center.battle_url);
+      var vs = svgEl('text', {
+        x: CX, y: CY, 'text-anchor': 'middle', 'dominant-baseline': 'middle',
+        fill: '#fff', 'font-family': 'Georgia, serif', 'font-size': '18', 'font-weight': 'bold',
+        'pointer-events': 'none',
+      });
+      vs.textContent = 'VS';
+      g.appendChild(vs);
+      return;
+    }
+
+    // Crown holder or empty: single centre octagon.
     var R   = RING_RADII.centre[1] - GAP;
     var pts = octagonPoints(CX, CY, R);
+    var isCrown = center.type === 'crown';
 
-    var isNotable = center.type === 'active_battle' || center.type === 'crown';
     var poly = svgEl('polygon', {
       points: pts,
-      fill: isNotable ? '#c8942a' : '#6c6054',
+      fill: isCrown ? '#c8942a' : '#6c6054',
       stroke: '#fff', 'stroke-width': '2',
       filter: 'url(#arena-cell-shadow)',
-      cursor: isNotable ? 'pointer' : 'default',
-      class: 'arena-cell arena-cell--centre' + (isNotable ? ' arena-center--active' : ''),
+      cursor: isCrown ? 'pointer' : 'default',
+      class: 'arena-cell arena-cell--centre' + (isCrown ? ' arena-center--active' : ''),
     });
-    if (center.type === 'active_battle' && center.battle_url) {
-      poly.addEventListener('click', function () { window.location.href = center.battle_url; });
-    } else if (center.type === 'crown' && center.profile_url) {
+    if (isCrown && center.profile_url) {
       poly.addEventListener('click', function () { window.location.href = center.profile_url; });
     }
     g.appendChild(poly);
 
-    if (center.type === 'active_battle') {
-      var lbl = svgEl('text', {
-        x: CX, y: CY - 4, 'text-anchor': 'middle', 'dominant-baseline': 'middle',
-        fill: '#fff', 'font-family': 'Georgia, serif', 'font-size': '18', 'font-weight': 'bold',
-        'pointer-events': 'none',
-      });
-      lbl.textContent = (center.challenger ? center.challenger.name.split(' ')[0] : '?') +
-        ' vs ' + (center.opponent ? center.opponent.name.split(' ')[0] : '?');
-      g.appendChild(lbl);
-
-      var lbl2 = svgEl('text', {
-        x: CX, y: CY + 16, 'text-anchor': 'middle', 'dominant-baseline': 'middle',
-        fill: 'rgba(255,255,255,0.8)', 'font-family': 'Inter, sans-serif', 'font-size': '10',
-        'pointer-events': 'none',
-      });
-      lbl2.textContent = 'BATTLE IN PROGRESS';
-      g.appendChild(lbl2);
-    } else if (center.type === 'crown') {
+    if (isCrown) {
       var crownIcon = svgEl('text', {
         x: CX, y: CY - 22, 'text-anchor': 'middle', 'dominant-baseline': 'middle',
         'font-size': '20', 'pointer-events': 'none',
