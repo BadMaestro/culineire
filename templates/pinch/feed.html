@@ -58,10 +58,13 @@
 <section class="page-section recipe-list-page">
     <div class="container recipe-list-stack">
 
-        {# Category nav — dot-separated, articles style #}
+        {# Category nav — carousel on mobile Pinch, dot-separated collapse on desktop #}
         {% if content_type_choices %}
-        <div class="category-nav-block" data-category-toggle>
-            <div class="category-nav-wrap" data-category-wrap>
+        <div class="category-nav-block content-showcase content-showcase--carousel pinch-filter-carousel" data-category-toggle data-card-carousel>
+            <button aria-label="Scroll categories left" class="content-carousel__button content-carousel__button--prev" data-carousel-prev type="button">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="13 4 7 10 13 16"/></svg>
+            </button>
+            <div class="category-nav-wrap" data-category-wrap data-carousel-track>
                 <nav aria-label="Pinch categories" class="category-nav" data-category-nav>
                     {% if not active_content_type %}
                     <span class="category-nav__item category-nav__item--active">All</span>
@@ -78,7 +81,10 @@
                     {% endfor %}
                 </nav>
             </div>
-            <button aria-expanded="false" aria-label="View all categories"
+            <button aria-label="Scroll categories right" class="content-carousel__button content-carousel__button--next" data-carousel-next type="button">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="7 4 13 10 7 16"/></svg>
+            </button>
+            <button aria-expanded="false" aria-label="View all recipe categories"
                     class="category-nav-toggle" data-category-button hidden type="button">
                 <span aria-hidden="true" class="category-nav-toggle__icon category-nav-toggle__icon--left">&#8964;</span>
                 <span class="category-nav-toggle__label" data-category-button-label>View All</span>
@@ -116,5 +122,14 @@
 
     </div>
 </section>
+
+{# ── Footer drawer handle (mobile Pinch snap mode only) ── #}
+<button class="pinch-footer-handle" id="pinch-footer-handle" type="button" aria-label="Open footer" aria-expanded="false">
+    <svg viewBox="0 0 44 26" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="44" height="26" aria-hidden="true">
+        <path d="M6 22 Q22 6 38 22" stroke-width="2.5"/>
+        <polyline points="18 12 22 6 26 12" stroke-width="2"/>
+    </svg>
+</button>
+<div class="pinch-footer-scrim" id="pinch-footer-scrim" aria-hidden="true"></div>
 
 {% endblock %}

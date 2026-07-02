@@ -886,6 +886,42 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   })();
+
+  // ==== Pinch footer drawer (mobile snap mode) ====
+  (function () {
+    var handle = document.getElementById("pinch-footer-handle");
+    var scrim  = document.getElementById("pinch-footer-scrim");
+    if (!handle) return;
+
+    var footer = document.querySelector("footer");
+    if (!footer) return;
+
+    var isOpen = false;
+
+    var open = function () {
+      isOpen = true;
+      footer.classList.add("pinch-footer--open");
+      if (scrim) { scrim.classList.add("is-open"); scrim.setAttribute("aria-hidden", "false"); }
+      handle.setAttribute("aria-expanded", "true");
+    };
+
+    var close = function () {
+      isOpen = false;
+      footer.classList.remove("pinch-footer--open");
+      if (scrim) { scrim.classList.remove("is-open"); scrim.setAttribute("aria-hidden", "true"); }
+      handle.setAttribute("aria-expanded", "false");
+    };
+
+    handle.addEventListener("click", function () {
+      if (isOpen) { close(); } else { open(); }
+    });
+
+    if (scrim) scrim.addEventListener("click", close);
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && isOpen) close();
+    });
+  })();
 });
 
 // ── Chef Battle live notification polling ────────────────────────────────────

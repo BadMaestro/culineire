@@ -1511,7 +1511,7 @@
    Only applies on mobile (≤640px) on the Pinch feed page.
    ================================================================ */
 @media (max-width: 640px) {
-  /* ── 1. Remove page-level padding / gaps that push snap container down ── */
+  /* ── 1. Remove page-level padding / gaps ── */
   .hero--pinch + .recipe-list-page {
     padding-block: 0;
   }
@@ -1522,42 +1522,123 @@
     row-gap: 0;
   }
 
-  /* ── 2. Filter bar — horizontal scroll, no wrap/collapse ── */
+  /* ── 2. Filter bar — carousel container ── */
   .hero--pinch + .recipe-list-page .category-nav-block {
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: none;
-    padding-block: 0.45rem;
+    position: relative; /* containing block for abs carousel buttons */
+    overflow: visible;  /* don't clip the absolute carousel buttons */
+    padding-block: 0.4rem;
   }
-  .hero--pinch + .recipe-list-page .category-nav-block::-webkit-scrollbar {
-    display: none;
-  }
-  /* Override JS-set height so the wrap doesn't clip items */
+  /* carousel track = scrollable wrap */
   .hero--pinch + .recipe-list-page .category-nav-wrap {
     height: auto !important;
-    overflow: visible !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scrollbar-width: none;
+    /* indent so buttons don't cover the first/last category item */
+    padding-inline: 2.2rem;
   }
-  /* Single row — scroll horizontally to see all categories */
+  .hero--pinch + .recipe-list-page .category-nav-wrap::-webkit-scrollbar {
+    display: none;
+  }
+  /* single row — scroll to reveal hidden categories */
   .hero--pinch + .recipe-list-page .category-nav {
     flex-wrap: nowrap;
     white-space: nowrap;
   }
-  /* Hide the View All toggle — all categories visible via scroll */
+  /* Hide the View All toggle — replaced by carousel arrows */
   .hero--pinch + .recipe-list-page .category-nav-toggle {
     display: none !important;
   }
-
-  /* ── 3. Hide footer — not relevant in TikTok snap mode ── */
-  body:has(.hero--pinch) footer {
-    display: none;
+  /* Carousel buttons: smaller, flush to edges of the filter bar */
+  .hero--pinch + .recipe-list-page .content-carousel__button {
+    inline-size: 32px;
+    block-size: 32px;
+  }
+  .hero--pinch + .recipe-list-page .content-carousel__button--prev {
+    inset-inline-start: 0;
+  }
+  .hero--pinch + .recipe-list-page .content-carousel__button--next {
+    inset-inline-end: 0;
   }
 
-  /* ── 4. Heading row not needed in snap mode ── */
+  /* ── 3. Footer — slide-up drawer (handle replaces full footer) ── */
+  body:has(.hero--pinch) footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 145;
+    max-height: 82vh;
+    overflow-y: auto;
+    border-radius: 20px 20px 0 0;
+    transform: translateY(100%);
+    transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+    /* drag handle pip at top */
+    padding-top: 1.25rem;
+  }
+  body:has(.hero--pinch) footer::before {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 0.55rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 38px;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.25);
+  }
+  body:has(.hero--pinch) footer.pinch-footer--open {
+    transform: translateY(0);
+  }
+
+  /* Scrim behind footer drawer */
+  .pinch-footer-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.42);
+    z-index: 144;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.28s ease;
+  }
+  .pinch-footer-scrim.is-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* ── 4. Footer handle button ── */
+  .pinch-footer-handle {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 146;
+    padding: 6px 20px 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.55);
+    filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.7));
+    transition: color 0.18s, filter 0.18s;
+  }
+  .pinch-footer-handle:hover,
+  .pinch-footer-handle:focus-visible {
+    color: rgba(255, 255, 255, 0.85);
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.9));
+    outline: none;
+  }
+
+  /* ── 5. Heading row not needed in snap mode ── */
   .hero--pinch + .recipe-list-page .page-header {
     display: none;
   }
 
-  /* ── 5. Snap container fills remaining viewport exactly ── */
+  /* ── 6. Snap container fills remaining viewport exactly ── */
   .hero--pinch + .recipe-list-page .recipe-vscroll-wrap {
     height: calc(100dvh - var(--sticky-offset, 120px));
     overflow: hidden;
@@ -1588,6 +1669,14 @@
     scroll-snap-align: start;
     border-radius: 0;
     margin: 0;
+  }
+}
+
+/* Desktop: hide the footer handle and scrim (only needed in mobile snap mode) */
+@media (min-width: 641px) {
+  .pinch-footer-handle,
+  .pinch-footer-scrim {
+    display: none !important;
   }
 }
 
