@@ -270,33 +270,30 @@
 }
 
 .ce-nav {
-  /* Compact floating card, top-right corner, height driven by content.
+  /* Compact floating card anchored 8px from top-right corner.
      Same dark gradient + blur as the Chef Battles hero widget. */
   display: flex;
   flex-direction: column;
   position: fixed;
-  top: 0;
-  right: 0;
+  top: 8px;
+  right: 8px;
   width: max-content;
-  min-width: 148px;
-  max-width: min(74vw, 210px);
+  min-width: 180px;
+  max-width: min(74vw, 252px);
   height: auto;
-  max-height: 100dvh;
+  max-height: calc(100dvh - 16px);
   overflow-y: auto;
   z-index: 130;
   gap: 0;
-  background: linear-gradient(145deg, rgb(12 24 16 / 0.54), rgb(28 16 6 / 0.52));
+  background: linear-gradient(145deg, rgb(12 24 16 / 0.44), rgb(28 16 6 / 0.42));
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
-  /* flush top + right edges; only bottom-left gets the radius */
   border: 1px solid rgb(226 217 204 / 0.22);
-  border-top: none;
-  border-right: none;
-  border-radius: 0 0 0 18px;
-  box-shadow: -4px 6px 24px rgb(12 24 16 / 0.28);
-  padding: 3.6rem 0.6rem 0.7rem;
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgb(12 24 16 / 0.30);
+  padding: 3.4rem 0.75rem 0.75rem;
   color: #f7f2ea;
-  transform: translateX(100%);
+  transform: translateX(calc(100% + 16px));
   transition: transform 0.26s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
@@ -360,19 +357,26 @@
   padding-top: 0.55rem;
   border-top: 1px solid rgb(226 217 204 / 0.18);
 }
-/* Sign In is the header's default/plain treatment; Join Us gets the
-   filled brand pill so the drawer's bottom zone reads as a real CTA
-   area, not just two more list rows. */
+/* Join Us: cream CTA pill */
 .ce-nav--open .ce-nav__auth a[href*="signup"],
 .ce-nav--open .ce-nav__auth a[href*="join"] {
   background: rgb(247 242 234 / 0.92);
   color: #1f2c25;
   font-weight: 700;
   justify-content: center;
+  text-align: center;
 }
 .ce-nav--open .ce-nav__auth a[href*="signup"]:hover,
 .ce-nav--open .ce-nav__auth a[href*="join"]:hover {
   background: #fff;
+}
+/* Sign In: same width/alignment as Join Us, plain link style */
+.ce-nav--open .ce-nav__auth a[href*="login"],
+.ce-nav--open .ce-nav__auth a[href*="signin"] {
+  justify-content: center;
+  text-align: center;
+  font-size: 0.88rem;
+  opacity: 0.75;
 }
 
 .ce-nav__menu,
