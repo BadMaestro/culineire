@@ -270,67 +270,42 @@
 }
 
 .ce-nav {
-  /* Side panel sliding in from the top-right — owner 2026-07-01/-02.
-     Was a full-height drawer (top:0 bottom:0, height:100dvh), but with
-     only ~8 short items that left the entire lower half of the screen
-     empty. Now sized to its content (height:auto, capped at the
-     viewport with max-height + scroll as a safety net) so there's no
-     dead space below the last item. Anchored to the top-right corner,
-     rounded bottom-left for a clean card edge. Kept permanently in the
-     layout, off-screen via transform (not display:none), so opening is
-     a GPU-accelerated transform transition that never reflows the page.
-     Desktop (min-width:1280px) fully overrides this back to a normal
-     in-flow row further down this file. */
+  /* Full-height drawer from the right edge, in the same visual language
+     as the site's own Chef Battles hero widget (.hero-battle-panel) —
+     owner 2026-07-02, "unified methods" request: reuse an existing,
+     already-approved surface treatment instead of inventing a new one.
+     Same dark gradient, blur, hairline border and radius as that panel. */
   display: flex;
   flex-direction: column;
-  /* Floating popover card dropping from just under the header, anchored
-     top-right (below the burger). position:absolute is relative to
-     .ce-header (position:relative), so top:100% sits it right under the
-     header at ANY header height — no magic top-padding to clear the bar
-     (that 4.5rem hack was the "strange top gap"). width:max-content hugs
-     the links instead of a full 82vw slab 3x wider than the text. */
-  position: absolute;
-  top: calc(100% - 6px);
-  right: 12px;
-  width: max-content;
-  min-width: 172px;
-  max-width: min(72vw, 250px);
-  max-height: 78dvh;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(78vw, 300px);
+  height: 100vh;
+  height: 100dvh;
   z-index: 130;
-  gap: 2px;
+  gap: 0.2rem;
   overflow-y: auto;
-  background: rgb(238 231 219 / 0.9);
-  -webkit-backdrop-filter: blur(16px) saturate(1.15);
-  backdrop-filter: blur(16px) saturate(1.15);
-  border: 1px solid rgb(31 44 37 / 0.08);
-  border-radius: 16px;
-  box-shadow:
-    0 22px 46px -14px rgb(31 44 37 / 0.4),
-    0 6px 14px rgb(31 44 37 / 0.12);
-  padding: 6px;
-  transform-origin: top right;
-  transform: translateY(-6px) scale(0.96);
-  opacity: 0;
-  visibility: hidden;
-  transition:
-    transform 0.24s cubic-bezier(0.22, 0.61, 0.36, 1),
-    opacity 0.2s ease,
-    visibility 0s linear 0.24s;
+  background: linear-gradient(145deg, rgb(12 24 16 / 0.92), rgb(28 16 6 / 0.92));
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-left: 1px solid rgb(226 217 204 / 0.22);
+  border-radius: 0;
+  box-shadow: -12px 0 32px rgb(12 24 16 / 0.35);
+  padding: 4.5rem 1rem 1.2rem;
+  color: #f7f2ea;
+  transform: translateX(100%);
+  transition: transform 0.32s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 .ce-nav--open {
-  transform: translateY(0) scale(1);
-  opacity: 1;
-  visibility: visible;
-  transition:
-    transform 0.26s cubic-bezier(0.22, 0.61, 0.36, 1),
-    opacity 0.2s ease;
+  transform: translateX(0);
 }
 
-/* Clean rows, NO divider lines — owner 2026-07-02: the hairline between
-   every item read as dated ("stone-age"). Rows are soft-rounded and
-   highlight on hover/tap instead. The main menu and the auth pair are
-   separated only by a small extra gap, not a rule. */
+/* Rows on the dark panel — filled pill for the active/current page
+   (matching how .ce-nav__link--active already reads as a filled state
+   elsewhere), soft highlight on hover/tap, no divider lines. */
 .ce-nav--open .ce-nav__menu,
 .ce-nav--open .ce-nav__auth {
   grid-template-columns: 1fr;
@@ -343,24 +318,46 @@
 .ce-nav--open .ce-nav__button {
   justify-content: flex-start;
   width: 100%;
-  min-height: 40px;
-  padding: 0.5rem 0.7rem;
+  min-height: 46px;
+  padding: 0.6rem 0.85rem;
   border: none;
-  border-radius: 10px;
-  font-size: 0.98rem;
+  border-radius: 12px;
+  font-size: 1.02rem;
+  color: rgb(247 242 234 / 0.88);
 }
 .ce-nav--open .ce-nav__link:hover,
 .ce-nav--open .ce-nav__link:focus-visible,
 .ce-nav--open .ce-nav__button:hover,
 .ce-nav--open .ce-nav__button:focus-visible {
-  background: rgb(31 44 37 / 0.07);
+  background: rgb(247 242 234 / 0.1);
+  color: #fff;
 }
 .ce-nav--open .ce-nav__link--active {
-  background: rgb(58 44 30 / 0.1);
+  background: rgb(247 242 234 / 0.16);
+  color: #fff;
   font-weight: 600;
 }
+.ce-nav--open .ce-nav__menu {
+  flex: 1 1 auto;
+}
 .ce-nav--open .ce-nav__auth {
-  margin-top: 6px;
+  margin-top: auto;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgb(226 217 204 / 0.18);
+}
+/* Sign In is the header's default/plain treatment; Join Us gets the
+   filled brand pill so the drawer's bottom zone reads as a real CTA
+   area, not just two more list rows. */
+.ce-nav--open .ce-nav__auth a[href*="signup"],
+.ce-nav--open .ce-nav__auth a[href*="join"] {
+  background: rgb(247 242 234 / 0.92);
+  color: #1f2c25;
+  font-weight: 700;
+  justify-content: center;
+}
+.ce-nav--open .ce-nav__auth a[href*="signup"]:hover,
+.ce-nav--open .ce-nav__auth a[href*="join"]:hover {
+  background: #fff;
 }
 
 .ce-nav__menu,
