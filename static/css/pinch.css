@@ -1755,6 +1755,14 @@
     border-radius: 0;
     margin: 0;
   }
+
+  /* Safari address-bar collapse: body must be 1px taller than the viewport
+     so Safari sees it as scrollable and hides its chrome on upward swipe.
+     JS in main.js snaps scrollY back to 0 so the layout never actually shifts. */
+  body:has(.hero--pinch) {
+    overflow-y: scroll;
+    min-height: calc(100dvh + 1px);
+  }
 }
 
 /* Desktop / tablet: hide mobile-only Pinch elements */
