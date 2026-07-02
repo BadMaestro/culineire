@@ -11,6 +11,9 @@ PY=$VENV/bin/python
 PIP=$VENV/bin/pip
 ENV_FILE=/srv/culineire/shared/.env
 UNIT_CONFIG=$APP/deploy/unit.culineire.json
+SHARED_DIR=/srv/culineire/shared
+APP_USER=deploy
+APP_GROUP=deploy
 
 DEPLOY_BRANCH=main
 
@@ -55,6 +58,21 @@ info "Installing requirements..."
 $PIP install --quiet --upgrade pip
 $PIP install --quiet -r "$APP/requirements.txt"
 ok "Requirements installed"
+
+# --- 3b. Ensure writable shared directories ----------------------------------
+info "Ensuring shared directory permissions..."
+sudo mkdir -p "$SHARED_DIR"/{staticfiles,media,logs,cache}
+sudo chown -R "$APP_USER:$APP_GROUP" \
+    "$SHARED_DIR/staticfiles" \
+    "$SHARED_DIR/media" \
+    "$SHARED_DIR/logs" \
+    "$SHARED_DIR/cache"
+sudo chmod -R u+rwX,g+rwX \
+    "$SHARED_DIR/staticfiles" \
+    "$SHARED_DIR/media" \
+    "$SHARED_DIR/logs" \
+    "$SHARED_DIR/cache"
+ok "Shared directories are writable by $APP_USER"
 
 # --- 4. Collect static files (must run before check --deploy) ----------------
 info "Collecting static files..."
