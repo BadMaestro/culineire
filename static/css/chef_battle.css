@@ -733,6 +733,48 @@
   letter-spacing: 0.1em;
 }
 
+/* E3 — Readiness Gate */
+.antechamber-ready {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  margin-block: 1.2rem 0.5rem;
+}
+
+.antechamber-ready__indicators {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.antechamber-ready__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.3rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(255 255 255 / 0.12);
+  color: rgba(255 255 255 / 0.6);
+  border: 1px solid rgba(255 255 255 / 0.18);
+  transition: background 0.18s, color 0.18s;
+}
+
+.antechamber-ready__chip--on {
+  background: rgba(56, 180, 100, 0.22);
+  color: #6ee898;
+  border-color: rgba(56, 180, 100, 0.4);
+}
+
+.antechamber-ready__waiting {
+  font-size: 0.82rem;
+  color: rgba(255 255 255 / 0.5);
+  margin: 0;
+}
+
 .antechamber-cta {
   display: flex;
   justify-content: center;

@@ -1279,6 +1279,13 @@ def battle_detail(request, pk):
         wallet = TokenWallet.objects.filter(chef=viewer_author).first()
         viewer_token_balance = wallet.balance if wallet else 0
 
+    viewer_is_challenger = bool(viewer_author and viewer_author.pk == battle.challenger_id)
+    can_set_ready = (
+        is_participant
+        and battle.status == Battle.Status.SCHEDULED
+        and not (battle.challenger_ready if viewer_is_challenger else battle.opponent_ready)
+    )
+
     return render(request, "chef_battle/battle_detail.html", {
         "battle": battle,
         "entries": entries,
@@ -1290,6 +1297,8 @@ def battle_detail(request, pk):
         "viewer_entry": viewer_entry,
         "can_submit": can_submit,
         "is_participant": is_participant,
+        "viewer_is_challenger": viewer_is_challenger,
+        "can_set_ready": can_set_ready,
         "combat_state": combat_state,
         "user_battle_moves": user_battle_moves,
         "viewer_has_moved": viewer_has_moved,
@@ -2199,3 +2208,57 @@ def changing_room(request):
         "energy_cap": ENERGY_CAP,
         "moves_min_to_challenge": MOVES_MIN_TO_CHALLENGE,
     })
+
+
+# ── E3: Readiness Gate ──────────────────────────────────────────────────────
+
+@login_required
+@require_POST
+def battle_set_ready(request, pk):
+    """Chef presses 'Ready' in the antechamber.
+
+    When both chefs are ready the battle advances from SCHEDULED to
+    MENU_LOCKED so they can declare their ingredient lists.
+    """
+    battle = get_object_or_404(Battle, pk=pk)
+    author = get_author_for_user(request.user)
+
+    if not author:
+        raise PermissionDenied
+
+    if not battle.author_is_participant(author):
+        raise PermissionDenied
+
+    if battle.status != Battle.Status.SCHEDULED:
+        messages.error(request, "This battle is not in the readiness phase.")
+        return redirect("chef_battle:battle_detail", pk=pk)
+
+    is_challenger = author.pk == battle.challenger_id
+
+    if is_challenger:
+        if battle.challenger_ready:
+            messages.info(request, "You already marked yourself as ready.")
+            return redirect("chef_battle:battle_detail", pk=pk)
+        battle.challenger_ready = True
+    else:
+        if battle.opponent_ready:
+            messages.info(request, "You already marked yourself as ready.")
+            return redirect("chef_battle:battle_detail", pk=pk)
+        battle.opponent_ready = True
+
+    if battle.challenger_ready and battle.opponent_ready:
+        battle.status = Battle.Status.MENU_LOCKED
+        battle.save(update_fields=["challenger_ready", "opponent_ready", "status", "updated_at"])
+        create_battle_event(
+            battle,
+            event_type="status_change",
+            note="Both chefs ready — battle advanced to menu declaration phase.",
+            author=author,
+        )
+        messages.success(request, "Both chefs are ready! Declare your ingredients now.")
+    else:
+        battle.save(update_fields=["challenger_ready", "opponent_ready", "updated_at"])
+        messages.success(request, "You're ready! Waiting for your opponent.")
+
+    return redirect("chef_battle:battle_detail", pk=pk)
+

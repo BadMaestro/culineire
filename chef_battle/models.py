@@ -172,6 +172,11 @@ class Battle(models.Model):
     rating_delta_challenger = models.IntegerField(default=0)
     rating_delta_opponent = models.IntegerField(default=0)
     crown_awarded = models.BooleanField(default=False)
+    # E3 — readiness gate: both chefs press Ready before menu declaration
+    challenger_ready = models.BooleanField(default=False)
+    opponent_ready = models.BooleanField(default=False)
+    proposed_combat_time = models.DateTimeField(null=True, blank=True)
+    combat_time_confirmed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

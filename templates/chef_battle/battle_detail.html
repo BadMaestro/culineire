@@ -2,7 +2,7 @@
 {% load static author_tags %}
 
 {% block title %}{{ battle.theme }} | Chef Battles{% endblock %}
-{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260620-layout" rel="stylesheet">{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260702c" rel="stylesheet">{% endblock %}
 
 {% block content %}
 <section class="battle-room-hero battle-hero--has-panel">
@@ -46,7 +46,27 @@
       </div>
     </div>
 
-    {% if battle.status in active_statuses %}
+    {# ── E3: Readiness Gate (SCHEDULED phase) ── #}
+    {% if battle.status == "scheduled" %}
+    <div class="antechamber-ready">
+      <div class="antechamber-ready__indicators">
+        <span class="antechamber-ready__chip {% if battle.challenger_ready %}antechamber-ready__chip--on{% endif %}">
+          {{ battle.challenger.name }}&nbsp;{% if battle.challenger_ready %}&#x2705; Ready{% else %}&#x23F3; Waiting{% endif %}
+        </span>
+        <span class="antechamber-ready__chip {% if battle.opponent_ready %}antechamber-ready__chip--on{% endif %}">
+          {{ battle.opponent.name }}&nbsp;{% if battle.opponent_ready %}&#x2705; Ready{% else %}&#x23F3; Waiting{% endif %}
+        </span>
+      </div>
+      {% if can_set_ready %}
+      <form method="post" action="{% url 'chef_battle:battle_set_ready' battle.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="antechamber-cta__btn">&#x1F44D; I'm Ready</button>
+      </form>
+      {% elif is_participant %}
+      <p class="antechamber-ready__waiting">Waiting for your opponent to signal ready&hellip;</p>
+      {% endif %}
+    </div>
+    {% elif battle.status in active_statuses %}
     <div class="antechamber-cta">
       <a class="antechamber-cta__btn" href="{% url 'chef_battle:arena' %}">Watch Live in Arena &#8594;</a>
     </div>

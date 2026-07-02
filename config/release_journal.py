@@ -1,5 +1,35 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.69",
+        "date": "2026-07-02",
+        "commit": "pending",
+        "title": "Arena Stage E3 — Ready button + readiness gate",
+        "section": "Chef Battles / Arena (Phase FE-3)",
+        "summary": (
+            "Stage E3: chefs press 'I'm Ready' in the antechamber (battle_detail, SCHEDULED status). "
+            "Added challenger_ready + opponent_ready + proposed_combat_time + combat_time_confirmed "
+            "fields to Battle model (migration 0052). When both chefs press Ready the battle "
+            "advances from SCHEDULED to MENU_LOCKED (ingredient declaration phase). "
+            "Antechamber shows live ready indicators (green chip when ready, grey waiting). "
+            "battle_set_ready() view: login_required, require_POST, participant-only, "
+            "idempotent (second press returns info message). create_battle_event() logged on advance. "
+            "battle_detail context: viewer_is_challenger + can_set_ready added. "
+            "CSS: .antechamber-ready, .antechamber-ready__indicators, .antechamber-ready__chip, "
+            ".antechamber-ready__chip--on, .antechamber-ready__waiting added to chef_battle.css."
+        ),
+        "checklist": [
+            "models.py: challenger_ready, opponent_ready, proposed_combat_time, combat_time_confirmed added",
+            "migrations/0052_battle_ready_fields.py: created",
+            "views.py: battle_set_ready() added; battle_detail context: viewer_is_challenger, can_set_ready",
+            "urls.py: battles/<int:pk>/ready/ → battle_set_ready",
+            "battle_detail.html: antechamber-ready block with chips + form button",
+            "chef_battle.css: .antechamber-ready* styles added",
+            "base.html: v2.5.69",
+            "manage.py check: 0 issues (pending verify on server)",
+        ],
+        "deployment_status": "pending deployment",
+    },
+    {
         "version": "2.5.68",
         "date": "2026-07-02",
         "commit": "pending",
