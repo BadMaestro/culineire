@@ -1,6 +1,6 @@
 RELEASE_JOURNAL = [
     {
-        "version": "2.5.69",
+        "version": "2.5.73",
         "date": "2026-07-02",
         "commit": "pending",
         "title": "Arena Stage E3 — Ready button + readiness gate",
@@ -24,8 +24,133 @@ RELEASE_JOURNAL = [
             "urls.py: battles/<int:pk>/ready/ → battle_set_ready",
             "battle_detail.html: antechamber-ready block with chips + form button",
             "chef_battle.css: .antechamber-ready* styles added",
-            "base.html: v2.5.69",
+            "base.html: v2.5.73",
             "manage.py check: 0 issues (pending verify on server)",
+        ],
+        "deployment_status": "pending deployment",
+    },
+    {
+        "version": "2.5.72",
+        "date": "2026-07-02",
+        "commit": "pending",
+        "title": "Pinch filter centering hotfix — transform race in visibility math",
+        "section": "Pinch / Mobile TikTok feed",
+        "summary": (
+            "v2.5.71's whole-item module subtracted the TARGET translateX from "
+            "getBoundingClientRect() values, but during the 0.25s transform "
+            "transition rects contain the INTERPOLATED transform — updates "
+            "landing mid-animation miscomputed edge items by up to the full "
+            "shift (e.g. 'All' wrongly hidden at scroll start). Rewritten in "
+            "content coordinates: each item's position is taken relative to the "
+            "nav's own rect (both move by the same transform, so it cancels "
+            "exactly) and compared against [scrollLeft, scrollLeft + "
+            "clientWidth], which are transform-free by definition. No stored "
+            "shift state needed for visibility; the transform is only written, "
+            "never read back."
+        ),
+        "checklist": [
+            "main.js: whole-item visibility computed as itemRect - navRect vs scrollLeft window",
+            "main.js: stored shift variable dropped from visibility math",
+            "Verified live: symmetric blanks at start AND end of list, 'All' stays visible",
+        ],
+        "deployment_status": "pending deployment",
+    },
+    {
+        "version": "2.5.71",
+        "date": "2026-07-02",
+        "commit": "pending",
+        "title": "Pinch filter — resting centering + tighter dot separators",
+        "section": "Pinch / Mobile TikTok feed",
+        "summary": (
+            "Owner request: the filter row looked uneven (whole-item hiding left "
+            "all blank space piled on one side) and spacing between categories "
+            "was too generous. (1) The whole-item module now centers the group "
+            "of fully visible categories between the arrows once scrolling "
+            "settles: it computes the leftover blank on each side in "
+            "untransformed coordinates and applies translateX((blankRight - "
+            "blankLeft) / 2) to .category-nav with a 0.25s ease transition. "
+            "justify-content stays flex-start (center breaks scrollability — "
+            "see v2.5.70); centering is purely visual via transform, so scroll "
+            "math and the arrows' enable/disable logic are unaffected. Debounced "
+            "scroll (120ms) substitutes for scrollend on iOS Safari. (2) The "
+            "mobile dot separators are CSS-generated (.category-nav__item::after "
+            "with 0.6em side margins) — tightened to 0.3em and nav side padding "
+            "0.5rem -> 0.4rem. Result at 430px: 6 categories fit fully instead "
+            "of 5, content width 783px -> 733px, resting blanks split 19px/19px."
+        ),
+        "checklist": [
+            "main.js: whole-item module gains recenter-at-rest (shift-aware visibility math)",
+            "pinch.css: .category-nav__item::after margin-inline 0.3em (mobile Pinch only)",
+            "pinch.css: .category-nav transition transform 0.25s; padding-inline 0.4rem",
+            "Verified live at start of list: 6 items fully visible, blanks 19/19 symmetric",
+        ],
+        "deployment_status": "pending deployment",
+    },
+    {
+        "version": "2.5.70",
+        "date": "2026-07-02",
+        "commit": "pending",
+        "title": "Pinch filter — whole-item visibility + unreachable-left scroll fix",
+        "section": "Pinch / Mobile TikTok feed",
+        "summary": (
+            "Owner request: a category must never show half-clipped under the "
+            "carousel arrows — it is either fully inside the visible track or "
+            "hidden entirely until the arrows scroll it fully into view. New "
+            "main.js module toggles visibility per item on scroll/resize/font-load "
+            "(rAF-free: occluded Chrome windows freeze rAF and one pending frame "
+            "was permanently blocking the generic carousel's scheduleUpdate). "
+            "Two root-cause bugs found live: (1) .category-nav kept "
+            "justify-content: center — with overflowing content the left half "
+            "of the list spilled LEFT of the scroll origin and was physically "
+            "unreachable (scrollLeft cannot go negative); ~421px of categories "
+            "('All', 'Mini Recipe', 'Snack'…) could never be scrolled to. Now "
+            "flex-start in mobile snap mode. (2) The carousel ResizeObserver "
+            "watched only the track (flex: 1, width-stable) so late font loads "
+            "never re-enabled the arrows — it now also observes the content, "
+            "plus scrollend/fonts.ready call updateControls directly."
+        ),
+        "checklist": [
+            "pinch.css: .category-nav justify-content: flex-start (mobile Pinch only)",
+            "main.js: whole-item visibility module for .pinch-filter-carousel (scroll/resize/RO/fonts.ready, no rAF)",
+            "main.js carousels: scrollend + fonts.ready direct updateControls; RO also observes track.firstElementChild",
+            "Verified live: at start 'All…Cocktail' fully visible, 'Quick Tip' hidden entirely; arrows enable/disable correctly",
+        ],
+        "deployment_status": "pending deployment",
+    },
+    {
+        "version": "2.5.69",
+        "date": "2026-07-02",
+        "commit": "pending",
+        "title": "Pinch mobile snap — filter row, true full-bleed, handle rides the sheet",
+        "section": "Pinch / Mobile TikTok feed",
+        "summary": (
+            "Live-debugged on production in Chrome device emulation. Three root causes "
+            "fixed: (1) base .category-nav-block rule stacks the block as flex COLUMN "
+            "with a 20px gap, so the inline filter arrows landed on separate rows — "
+            "overridden with flex-direction: row / gap: 0 in the mobile Pinch block; "
+            "(2) .container kept width: calc(100% - 20px) + auto margins and "
+            ".recipe-vscroll (.ab-grid-scroll) carried ~19px inset padding plus 1px "
+            "borders on .recipe-vscroll-wrap/.ab-card, so cards never reached the "
+            "viewport edges — all zeroed, cards are now pixel-exact full-bleed "
+            "(verified: card rect 0..430 wide, wrap bottom == viewport bottom, "
+            "body scrollHeight == viewport height, no page scroll); (3) footer drawer "
+            "handle stayed parked at the bottom when the sheet opened — main.js open() "
+            "now publishes --pinch-footer-h and CSS moves the handle to the sheet's "
+            "top edge (bottom: calc(var(--pinch-footer-h) - 40px)) with the arch "
+            "flipped down, replacing the drag-pip. Drawer toggle state now derives "
+            "from the footer class instead of a private variable. --sticky-offset "
+            "ResizeObserver additionally observes .ce-header and the filter block "
+            "so late layout shifts recompute the snap card height."
+        ),
+        "checklist": [
+            "pinch.css: .category-nav-block gets flex-direction: row + gap: 0 (mobile Pinch only)",
+            "pinch.css: .container width 100% / margin-inline 0; .ab-grid-scroll padding 0",
+            "pinch.css: borders/shadow/radius off .recipe-vscroll-wrap and .ab-card in snap mode",
+            "pinch.css: handle rides to sheet top when open; drag-pip hidden while open",
+            "main.js: open() sets --pinch-footer-h; aria-label swaps open/close",
+            "main.js: drawer state read from footer class (no desync)",
+            "main.js: ResizeObserver also observes .ce-header + .category-nav-block",
+            "Verified live: snap lands exactly per card (200px flick -> 665px card), arrows scroll/disable correctly",
         ],
         "deployment_status": "pending deployment",
     },

@@ -18,7 +18,13 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   setHeaderH();
   if ("ResizeObserver" in window) {
-    new ResizeObserver(setHeaderH).observe(document.documentElement);
+    const ro = new ResizeObserver(setHeaderH);
+    ro.observe(document.documentElement);
+    // Root resize alone misses header/filter height changes from late font
+    // loads or collapse toggles — watch the elements themselves too.
+    if (ceHeader) ro.observe(ceHeader);
+    const fb = document.querySelector(".recipe-list-page .category-nav-block");
+    if (fb) ro.observe(fb);
   }
 
   // Set --ab-snap-top so the snap feed knows how much header to leave room for
@@ -321,12 +327,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     track.addEventListener("scroll", scheduleUpdate, { passive: true });
+    // rAF is frozen in occluded windows and a pending frame blocks all later
+    // updates — settle the controls directly once scrolling stops.
+    track.addEventListener("scrollend", updateControls);
 
     requestAnimationFrame(updateControls);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(updateControls);
+    }
 
     if ("ResizeObserver" in window) {
       const resizeObserver = new ResizeObserver(updateControls);
       resizeObserver.observe(track);
+      // track itself is width-stable (flex: 1) — watch the content too,
+      // otherwise late font loads never re-enable the buttons
+      if (track.firstElementChild) resizeObserver.observe(track.firstElementChild);
     } else {
       window.addEventListener("resize", updateControls);
     }
@@ -899,31 +914,110 @@ document.addEventListener("DOMContentLoaded", () => {
     var footer = document.querySelector("footer");
     if (!footer) return;
 
-    var isOpen = false;
+    // Class on the footer is the single source of truth for open state
+    var isOpen = function () { return footer.classList.contains("pinch-footer--open"); };
 
     var open = function () {
-      isOpen = true;
+      // publish the sheet height so CSS can park the handle on its top edge
+      var fh = Math.min(footer.offsetHeight, window.innerHeight * 0.82);
+      document.documentElement.style.setProperty("--pinch-footer-h", fh + "px");
       footer.classList.add("pinch-footer--open");
       if (scrim) { scrim.classList.add("is-open"); scrim.setAttribute("aria-hidden", "false"); }
       handle.setAttribute("aria-expanded", "true");
+      handle.setAttribute("aria-label", "Close footer");
     };
 
     var close = function () {
-      isOpen = false;
       footer.classList.remove("pinch-footer--open");
       if (scrim) { scrim.classList.remove("is-open"); scrim.setAttribute("aria-hidden", "true"); }
       handle.setAttribute("aria-expanded", "false");
+      handle.setAttribute("aria-label", "Open footer");
     };
 
     handle.addEventListener("click", function () {
-      if (isOpen) { close(); } else { open(); }
+      if (isOpen()) { close(); } else { open(); }
     });
 
     if (scrim) scrim.addEventListener("click", close);
 
     document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape" && isOpen) close();
+      if (e.key === "Escape" && isOpen()) close();
     });
+  })();
+
+  // ==== Pinch filter: whole-item visibility + resting centering ====
+  // A category never shows half-clipped under the carousel arrows — it is
+  // either fully inside the visible track or hidden entirely until the
+  // arrows scroll it fully into view. When scrolling settles, the group of
+  // fully visible items is centered between the arrows via a transform so
+  // the leftover blank space splits evenly instead of piling up on one side.
+  (function () {
+    var carousel = document.querySelector(".pinch-filter-carousel");
+    if (!carousel) return;
+    var wrap = carousel.querySelector(".category-nav-wrap");
+    var nav = carousel.querySelector(".category-nav");
+    if (!wrap || !nav) return;
+
+    var settleTimer = null;
+
+    var snapMode = function () {
+      return window.innerWidth <= 640 && !!document.querySelector(".hero--pinch");
+    };
+
+    // No rAF gating — occluded windows freeze rAF and a pending frame would
+    // block every later update. The work is ~20 rect reads; cheap enough raw.
+    // All positions are computed in CONTENT coordinates (item rect relative
+    // to the nav rect): the centering translateX moves both by the same
+    // amount, so it cancels out — no race with the transform transition.
+    var update = function (recenter) {
+      var children = nav.children;
+      var i;
+      if (!snapMode()) {
+        for (i = 0; i < children.length; i++) children[i].style.visibility = "";
+        nav.style.transform = "";
+        return;
+      }
+      var navLeft = nav.getBoundingClientRect().left;
+      var viewL = wrap.scrollLeft;
+      var viewR = viewL + wrap.clientWidth;
+      var firstFull = null;
+      var lastFull = null;
+      for (i = 0; i < children.length; i++) {
+        var r = children[i].getBoundingClientRect();
+        var left = r.left - navLeft;
+        var right = r.right - navLeft;
+        var overlaps = right > viewL && left < viewR;
+        var fully = left >= viewL - 2 && right <= viewR + 2;
+        children[i].style.visibility = overlaps && !fully ? "hidden" : "";
+        if (overlaps && fully) {
+          if (firstFull === null) firstFull = left;
+          lastFull = right;
+        }
+      }
+      if (recenter && firstFull !== null) {
+        var blankLeft = firstFull - viewL;
+        var blankRight = viewR - lastFull;
+        var shift = Math.round((blankRight - blankLeft) / 2);
+        nav.style.transform = shift ? "translateX(" + shift + "px)" : "";
+      }
+    };
+
+    var onScroll = function () {
+      update(false);
+      // debounce as a scrollend substitute (iOS Safari lacks the event)
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(function () { update(true); }, 120);
+    };
+
+    wrap.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", function () { update(true); });
+    if ("ResizeObserver" in window) {
+      new ResizeObserver(function () { update(true); }).observe(nav);
+    }
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () { update(true); });
+    }
+    update(true);
   })();
 });
 
