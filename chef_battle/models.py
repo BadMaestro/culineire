@@ -52,7 +52,7 @@ class ChefBattleProfile(models.Model):
         on_delete=models.CASCADE,
         related_name="battle_profile",
     )
-    rank = models.CharField(max_length=32, choices=Rank.choices, default=Rank.KITCHEN_PORTER)
+    rank = models.CharField(max_length=32, choices=Rank.choices, default=Rank.PREP_COOK)
     level = models.PositiveSmallIntegerField(default=1, db_index=True)
     is_hero = models.BooleanField(default=False, db_index=True)
     michelin_stars = models.PositiveSmallIntegerField(default=0)

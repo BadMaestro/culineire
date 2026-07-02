@@ -210,6 +210,8 @@ class ChefEnrollViewTests(TestCase):
         profile = ChefBattleProfile.objects.get(author=self.author)
         self.assertIsNotNone(profile.enrolled_at)
         self.assertTrue(profile.age_verified)
+        self.assertEqual(profile.rating, 1000)
+        self.assertEqual(profile.rank, ChefBattleProfile.Rank.PREP_COOK)
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)
