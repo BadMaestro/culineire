@@ -201,6 +201,11 @@
   align-items: center;
   justify-content: center;
   justify-self: end;
+  position: relative;
+  /* Above the drawer (130) and backdrop (129) so the button stays
+     visible/clickable (as the X) while the drawer is open, instead of
+     being covered by it. */
+  z-index: 131;
   width: 40px;
   height: 40px;
   padding: 0;
@@ -236,41 +241,75 @@
     transform 0.2s ease;
 }
 
+/* Burger morphs into an X when open — owner 2026-07-01, full rethink
+   of the mobile menu (was a cramped dropdown under the header; now a
+   full-height side drawer, see .ce-nav--open below). */
+.ce-nav__toggle[aria-expanded="true"] span:nth-child(1) {
+  transform: translateY(3.75px) rotate(45deg);
+}
+.ce-nav__toggle[aria-expanded="true"] span:nth-child(2) {
+  opacity: 0;
+}
+.ce-nav__toggle[aria-expanded="true"] span:nth-child(3) {
+  transform: translateY(-3.75px) rotate(-45deg);
+}
+
+/* Dimmed backdrop behind the drawer — click closes the menu (see main.js) */
+.ce-nav__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 129;
+  background: rgb(20 24 20 / 0.42);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s ease;
+}
+.ce-header:has(.ce-nav--open) .ce-nav__backdrop {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .ce-nav {
-  display: none;
-  gap: 0.8rem;
+  /* Full-height side drawer, not a dropdown strip — owner 2026-07-01.
+     First fix (position:absolute under the header) stopped it from
+     shoving the hero down the page, but the result was still judged
+     "scattered/unclear" as a cramped floating box. A drawer sliding in
+     from the screen edge, full height, with a dimmed backdrop, is the
+     standard pattern for 7+ top-level destinations (more than a 3-5
+     item tab bar comfortably holds). Kept permanently in the DOM/flex
+     layout, off-screen via transform (not display:none), so opening
+     it is a pure GPU-accelerated transform transition instead of a
+     display-none/flex jump-cut — and it never touches the rest of the
+     page's layout. Desktop (min-width:1280px) fully overrides this
+     back to a normal in-flow row further down this file. */
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(82vw, 340px);
+  height: 100vh;
+  height: 100dvh;
+  z-index: 130;
+  gap: 0.4rem;
   min-width: 0;
-  width: 100%;
-  padding: 0.4rem 1rem 0.75rem;
+  overflow-y: auto;
   background: #ebe2d5;
-  border-top: 1px solid rgb(31 44 37 / 0.12);
+  box-shadow: -12px 0 32px rgb(31 44 37 / 0.22);
+  padding: 4.5rem 1.3rem 1.5rem;
+  border-top: none;
+  transform: translateX(100%);
+  transition: transform 0.32s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 .ce-nav--open {
-  /* Overlay, not inline expansion — owner 2026-07-01: opening the menu
-     used to switch this to display:grid IN the header's normal layout
-     flow, which pushed the hero and everything below it down the page
-     ("bulldozer" effect) every time it opened/closed. Positioned
-     absolute so it floats on top of the page instead of displacing it;
-     .ce-header (its containing block) already has position:relative. */
-  display: grid;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  z-index: 130;
-  max-height: calc(100vh - 100%);
-  overflow-y: auto;
-  box-shadow: 0 12px 24px rgb(31 44 37 / 0.18);
-  padding: 0.35rem 1rem 0.5rem;
-  gap: 0.5rem;
+  transform: translateX(0);
 }
 
-/* Clean single-column list, not scattered pill buttons — owner
-   2026-07-01: centred pills in a 2-column grid read as "scattered,
-   unclear". Left-aligned plain rows with a thin divider between them
-   scan like an ordinary menu instead of loose floating chips. Scoped
-   to .ce-nav--open only — desktop nav (min-width:1280px) untouched. */
+/* Spacious list — owner 2026-07-01: a full-height drawer has real
+   room, so rows don't need to be squeezed. Left-aligned single column,
+   generous tap targets, calm thin dividers instead of pill buttons. */
 .ce-nav--open .ce-nav__menu,
 .ce-nav--open .ce-nav__auth {
   grid-template-columns: 1fr;
@@ -283,21 +322,19 @@
 .ce-nav--open .ce-nav__button {
   justify-content: flex-start;
   width: 100%;
-  min-height: 40px;
-  padding: 0.55rem 0.3rem;
+  min-height: 52px;
+  padding: 0.85rem 0.2rem;
   border-radius: 0;
   border-bottom: 1px solid rgb(31 44 37 / 0.1);
-  font-size: 0.95rem;
+  font-size: 1.05rem;
 }
-.ce-nav--open .ce-nav__group:last-child .ce-nav__link,
-.ce-nav--open .ce-nav__auth > *:last-child .ce-nav__link,
 .ce-nav--open .ce-nav__auth .ce-nav__link:last-child {
   border-bottom: none;
 }
 .ce-nav--open .ce-nav__menu {
   border-bottom: 1px solid rgb(31 44 37 / 0.16);
-  margin-bottom: 0.35rem;
-  padding-bottom: 0.1rem;
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.2rem;
 }
 
 .ce-nav__menu,
@@ -957,6 +994,20 @@
     border-radius: 0;
     box-shadow: none;
     backdrop-filter: none;
+    /* Reset the mobile side-drawer positioning back to a normal in-flow
+       row — desktop nav is always visible, never a fixed overlay. */
+    position: static;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    height: auto;
+    overflow-y: visible;
+    transform: none;
+    transition: none;
+  }
+
+  .ce-nav__backdrop {
+    display: none;
   }
 
   .ce-nav__menu,

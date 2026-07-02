@@ -24,10 +24,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (nav && navButton) {
     const openClass = nav.classList.contains("ce-nav") ? "ce-nav--open" : "main-nav--open";
+    const backdrop = document.querySelector(".ce-nav__backdrop");
+
+    const closeNav = () => {
+      nav.classList.remove(openClass);
+      navButton.setAttribute("aria-expanded", "false");
+    };
 
     navButton.addEventListener("click", () => {
       const isOpen = nav.classList.toggle(openClass);
       navButton.setAttribute("aria-expanded", String(isOpen));
+    });
+
+    if (backdrop) {
+      backdrop.addEventListener("click", closeNav);
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && nav.classList.contains(openClass)) closeNav();
     });
   }
 
