@@ -35,6 +35,12 @@ class PublicTechnicalPagesTests(TestCase):
         self.assertNotContains(response, "data-about-deck")
         self.assertNotContains(response, "about-deck__viewport")
 
+    def test_base_template_loads_desktop_hero_chef_assets(self):
+        response = self.client.get(reverse("about"))
+
+        self.assertContains(response, 'css/hero_chef.css')
+        self.assertContains(response, 'js/hero_chef.js')
+
     def test_robots_txt_points_to_sitemap_and_blocks_private_paths(self):
         response = self.client.get(reverse("robots_txt"))
 
