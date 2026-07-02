@@ -1,5 +1,31 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.72",
+        "date": "2026-07-02",
+        "commit": "pending",
+        "title": "Pinch filter centering hotfix — transform race in visibility math",
+        "section": "Pinch / Mobile TikTok feed",
+        "summary": (
+            "v2.5.71's whole-item module subtracted the TARGET translateX from "
+            "getBoundingClientRect() values, but during the 0.25s transform "
+            "transition rects contain the INTERPOLATED transform — updates "
+            "landing mid-animation miscomputed edge items by up to the full "
+            "shift (e.g. 'All' wrongly hidden at scroll start). Rewritten in "
+            "content coordinates: each item's position is taken relative to the "
+            "nav's own rect (both move by the same transform, so it cancels "
+            "exactly) and compared against [scrollLeft, scrollLeft + "
+            "clientWidth], which are transform-free by definition. No stored "
+            "shift state needed for visibility; the transform is only written, "
+            "never read back."
+        ),
+        "checklist": [
+            "main.js: whole-item visibility computed as itemRect - navRect vs scrollLeft window",
+            "main.js: stored shift variable dropped from visibility math",
+            "Verified live: symmetric blanks at start AND end of list, 'All' stays visible",
+        ],
+        "deployment_status": "pending deployment",
+    },
+    {
         "version": "2.5.71",
         "date": "2026-07-02",
         "commit": "pending",

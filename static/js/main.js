@@ -958,7 +958,6 @@ document.addEventListener("DOMContentLoaded", () => {
     var nav = carousel.querySelector(".category-nav");
     if (!wrap || !nav) return;
 
-    var shift = 0; // currently applied translateX
     var settleTimer = null;
 
     var snapMode = function () {
@@ -967,25 +966,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // No rAF gating — occluded windows freeze rAF and a pending frame would
     // block every later update. The work is ~20 rect reads; cheap enough raw.
+    // All positions are computed in CONTENT coordinates (item rect relative
+    // to the nav rect): the centering translateX moves both by the same
+    // amount, so it cancels out — no race with the transform transition.
     var update = function (recenter) {
       var children = nav.children;
       var i;
       if (!snapMode()) {
         for (i = 0; i < children.length; i++) children[i].style.visibility = "";
-        shift = 0;
         nav.style.transform = "";
         return;
       }
-      var box = wrap.getBoundingClientRect();
+      var navLeft = nav.getBoundingClientRect().left;
+      var viewL = wrap.scrollLeft;
+      var viewR = viewL + wrap.clientWidth;
       var firstFull = null;
       var lastFull = null;
       for (i = 0; i < children.length; i++) {
         var r = children[i].getBoundingClientRect();
-        // rects include the applied transform — measure in untransformed space
-        var left = r.left - shift;
-        var right = r.right - shift;
-        var overlaps = right > box.left && left < box.right;
-        var fully = left >= box.left - 2 && right <= box.right + 2;
+        var left = r.left - navLeft;
+        var right = r.right - navLeft;
+        var overlaps = right > viewL && left < viewR;
+        var fully = left >= viewL - 2 && right <= viewR + 2;
         children[i].style.visibility = overlaps && !fully ? "hidden" : "";
         if (overlaps && fully) {
           if (firstFull === null) firstFull = left;
@@ -993,9 +995,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
       if (recenter && firstFull !== null) {
-        var blankLeft = firstFull - box.left;
-        var blankRight = box.right - lastFull;
-        shift = Math.round((blankRight - blankLeft) / 2);
+        var blankLeft = firstFull - viewL;
+        var blankRight = viewR - lastFull;
+        var shift = Math.round((blankRight - blankLeft) / 2);
         nav.style.transform = shift ? "translateX(" + shift + "px)" : "";
       }
     };
