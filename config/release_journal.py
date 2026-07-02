@@ -1,5 +1,39 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.64",
+        "date": "2026-07-02",
+        "commit": "pending",
+        "title": "Arena Stage A — Chef Popup + Blue Spectator Cells",
+        "section": "Chef Battles / Frontend (Arena As The Hall, Phase FE-3)",
+        "summary": (
+            "Stage A1 and A2 of the Arena As The Hall plan (owner-approved 2026-07-02). "
+            "A1: The existing arena tooltip is expanded into a full chef popup card: "
+            "W/L/Streak stats row, approximate ATK/DEF potential derived from ChefArtifact "
+            "aggregate (hidden when both 0, artifact list never shown), View Profile + "
+            "Challenge buttons. Challenge button is suppressed for spectators, self, and "
+            "in-battle chefs. challenge_create now accepts ?opponent={slug} GET param for "
+            "direct pre-fill from the popup. "
+            "A2: Spectator ring (ring 9) colour changed from legacy green (#4a6741) to "
+            "cobalt blue (#2a5fb0 / empty #c5d3e8); legend swatch updated to match. "
+            "Currently keeps wallet-holder eligibility (_get_spectators unchanged). "
+            "arena() and arena_state() now include wins/losses/win_streak/atk/def in "
+            "each chef dict; artifact potential is aggregated in a single extra query. "
+        ),
+        "checklist": [
+            "chef_battle/views.py: ChefArtifact import, Q/Sum/Coalesce imports",
+            "arena() + arena_state(): list() enrolled, artifact_agg dict, wins/losses/win_streak/atk/def in payload",
+            "challenge_create: GET ?opponent={slug} -> RecipeAuthor.objects.get(slug=) -> initial[opponent]=pk",
+            "arena.html: window.ARENA_VIEWER JS block, expanded tooltip HTML (stats/potential/actions rows), CSS version bump",
+            "arena_puzzle.js: spectator blue #2a5fb0, showTooltip() populates new fields, is_spectator flag hides stats/potential/challenge",
+            "arena.css: legend swatch blue, new .arena-tooltip__stats / __potential / __actions / __challenge CSS",
+            "manage.py check: 0 issues",
+        ],
+        "stats": [
+            "5 files changed (views.py, arena.html, arena_puzzle.js, arena.css, release_journal.py)",
+        ],
+        "deployment_status": "pending deployment",
+    },
+    {
         "version": "2.5.60",
         "date": "2026-07-02",
         "commit": "pending",

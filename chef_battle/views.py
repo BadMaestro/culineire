@@ -8,6 +8,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError
+from django.db.models import Q, Sum
+from django.db.models.functions import Coalesce
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -39,7 +41,7 @@ from .fraud import (
     gate_withdrawal_consent,
     run_fraud_gates,
 )
-from .models import Artifact, Battle, BattleChatMessage, BattleChallenge, BattleEntry, BattleEvent, BattleVote, ChefBattleProfile, TokenWallet
+from .models import Artifact, Battle, BattleChatMessage, BattleChallenge, BattleEntry, BattleEvent, BattleVote, ChefArtifact, ChefBattleProfile, TokenWallet
 from .selectors import (
     get_active_battles,
     get_battle_vote_counts,
@@ -302,8 +304,8 @@ def _build_battlefield_progress():
         {
             "title": "Phase FE-3 - Arena As The Hall (Approved Plan, 2026-07-02)",
             "items": [
-                {"label": "Stage A1: Chef popup on arena cell click", "detail": "Stats, approximate attack/defence potential (aggregate of artifacts, indicative only - artifact list never shown), View Profile, Challenge button in the popup. Full plan: docs/chef_battle/ARENA_HALL_PLAN.md.", "status": "pending"},
-                {"label": "Stage A2: Blue spectator cells for registered users", "detail": "Owner decision open: all logged-in users or token-wallet holders (current _get_spectators behaviour).", "status": "pending"},
+                {"label": "Stage A1: Chef popup on arena cell click", "detail": "Stats (W/L/Streak), approximate ATK/DEF potential from ChefArtifact aggregation (hidden when 0), View Profile + Challenge buttons. Challenge hidden for spectators, self, and in-battle chefs. challenge_create now accepts ?opponent={slug}.", "status": "done", "completed_at": "2026-07-02"},
+                {"label": "Stage A2: Blue spectator cells for registered users", "detail": "Spectator ring changed from green (#4a6741) to blue (#2a5fb0 / empty #c5d3e8). Legend swatch updated. Currently wallet-holders only (_get_spectators behaviour, same as before).", "status": "done", "completed_at": "2026-07-02"},
                 {"label": "Stage A3: Grey standing fields for anonymous visitors", "detail": "New arena SVG zone (owner-approved geometry ADDITION). Requires a lightweight anonymous presence signal - none exists today.", "status": "pending"},
                 {"label": "Stage B: Relocation choreography (teleports)", "detail": "Challenge accepted -> facing pair (same rank: own ring opposite cells; different ranks: vertical pair across rings). Battle time -> both teleport to centre VS cells (move, not duplicate). Completion -> return to original cells. Static relocation first, animation second.", "status": "pending"},
                 {"label": "Stage C: Battle Room popup embedded on the arena", "detail": "OWNER APPROVED option A. Centre VS cell = one big link opening the popup: chef left vs right, artifacts visible (open battle), per-battle chat, voting, gifts - all via existing endpoints. 18+/legal affordances carry over unchanged.", "status": "pending"},
@@ -788,17 +790,29 @@ def arena(request):
 
     online_cutoff = timezone.now() - timezone.timedelta(seconds=_ARENA_ONLINE_THRESHOLD)
 
-    enrolled = (
+    enrolled = list(
         ChefBattleProfile.objects
         .select_related("author")
         .filter(enrolled_at__isnull=False, is_suspended=False)
         .order_by("-rating")
     )
 
+    enrolled_author_ids = {p.author_id for p in enrolled}
+
+    artifact_agg = {
+        a["chef_id"]: a
+        for a in ChefArtifact.objects.filter(
+            chef_id__in=enrolled_author_ids,
+            status=ChefArtifact.Status.AVAILABLE,
+        ).values("chef_id").annotate(
+            atk=Coalesce(Sum("artifact__effect_value", filter=Q(artifact__effect_type="attack")), 0),
+            def_=Coalesce(Sum("artifact__effect_value", filter=Q(artifact__effect_type="defence")), 0),
+        )
+    }
+
     chefs_by_rank = {choice.value: [] for choice in ChefBattleProfile.Rank}
-    enrolled_author_ids = set()
     for profile in enrolled:
-        enrolled_author_ids.add(profile.author_id)
+        agg = artifact_agg.get(profile.author_id, {})
         chefs_by_rank[profile.rank].append({
             "name": profile.author.name,
             "slug": profile.author.slug,
@@ -806,6 +820,11 @@ def arena(request):
             "rank": profile.rank,
             "rank_label": profile.get_rank_display(),
             "rating": profile.rating,
+            "wins": profile.wins,
+            "losses": profile.losses,
+            "win_streak": profile.win_streak,
+            "atk": agg.get("atk", 0),
+            "def": agg.get("def_", 0),
             "in_battle": profile.author_id in in_battle_author_ids,
             "is_online": bool(profile.last_seen_at and profile.last_seen_at >= online_cutoff),
         })
@@ -899,17 +918,29 @@ def arena_state(request):
 
     online_cutoff = timezone.now() - timezone.timedelta(seconds=_ARENA_ONLINE_THRESHOLD)
 
-    enrolled = (
+    enrolled = list(
         ChefBattleProfile.objects
         .select_related("author")
         .filter(enrolled_at__isnull=False, is_suspended=False)
         .order_by("-rating")
     )
 
+    enrolled_author_ids = {p.author_id for p in enrolled}
+
+    artifact_agg = {
+        a["chef_id"]: a
+        for a in ChefArtifact.objects.filter(
+            chef_id__in=enrolled_author_ids,
+            status=ChefArtifact.Status.AVAILABLE,
+        ).values("chef_id").annotate(
+            atk=Coalesce(Sum("artifact__effect_value", filter=Q(artifact__effect_type="attack")), 0),
+            def_=Coalesce(Sum("artifact__effect_value", filter=Q(artifact__effect_type="defence")), 0),
+        )
+    }
+
     rings = {choice.value: [] for choice in ChefBattleProfile.Rank}
-    enrolled_author_ids = set()
     for profile in enrolled:
-        enrolled_author_ids.add(profile.author_id)
+        agg = artifact_agg.get(profile.author_id, {})
         rings[profile.rank].append({
             "name": profile.author.name,
             "slug": profile.author.slug,
@@ -917,6 +948,11 @@ def arena_state(request):
             "rank": profile.rank,
             "rank_label": profile.get_rank_display(),
             "rating": profile.rating,
+            "wins": profile.wins,
+            "losses": profile.losses,
+            "win_streak": profile.win_streak,
+            "atk": agg.get("atk", 0),
+            "def": agg.get("def_", 0),
             "in_battle": profile.author_id in in_battle_author_ids,
             "is_online": bool(profile.last_seen_at and profile.last_seen_at >= online_cutoff),
         })
@@ -1021,9 +1057,13 @@ def challenge_create(request):
             return redirect("chef_battle:challenge_list")
     else:
         initial = {}
-        opponent_id = request.GET.get("opponent")
-        if opponent_id:
-            initial["opponent"] = opponent_id
+        opponent_slug = request.GET.get("opponent")
+        if opponent_slug:
+            try:
+                opp = RecipeAuthor.objects.get(slug=opponent_slug)
+                initial["opponent"] = opp.pk
+            except RecipeAuthor.DoesNotExist:
+                pass
         form = BattleChallengeForm(challenger=author, initial=initial)
 
     return render(request, "chef_battle/challenge_form.html", {"form": form})

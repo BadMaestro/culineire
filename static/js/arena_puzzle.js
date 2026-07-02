@@ -56,8 +56,8 @@
   var RING_COLOURS = {
     chef       : { 8: '#e4ddd1', 7: '#d8d0c0', 6: '#ccc1aa', 5: '#bfb49a', 4: '#a89878', 3: '#8f7c5c', 2: '#73603f', 1: '#5a4a2e' },
     empty      : { 8: '#f4f1ec', 7: '#ede8df', 6: '#e4ddd1', 5: '#d8d0c0', 4: '#ccc1aa', 3: '#bfb49a', 2: '#a89878', 1: '#8f7c5c' },
-    spectator  : '#4a6741',
-    spectator_empty: '#d0dace',
+    spectator  : '#2a5fb0',
+    spectator_empty: '#c5d3e8',
   };
 
   /* ------------------------------------------------------------------ */
@@ -552,6 +552,43 @@
     if (battleBadge) { battleBadge.hidden = !chef.in_battle; }
     if (onlineBadge) { onlineBadge.hidden = !chef.is_online; }
 
+    // W / L / Streak stats (hidden for spectators who are not enrolled chefs)
+    var statsEl = tip.querySelector('.arena-tooltip__stats');
+    var wEl = tip.querySelector('.js-chef-wins');
+    var lEl = tip.querySelector('.js-chef-losses');
+    var sEl = tip.querySelector('.js-chef-streak');
+    if (statsEl) { statsEl.hidden = !!chef.is_spectator; }
+    if (wEl) { wEl.textContent = chef.wins || 0; }
+    if (lEl) { lEl.textContent = chef.losses || 0; }
+    if (sEl) { sEl.textContent = chef.win_streak || 0; }
+
+    // Approximate artifact potential (hidden for spectators and when both are 0)
+    var potEl = tip.querySelector('.js-chef-potential');
+    if (potEl) {
+      var atk = chef.atk || 0;
+      var def = chef['def'] || 0;
+      if (!chef.is_spectator && (atk > 0 || def > 0)) {
+        tip.querySelector('.js-chef-atk').textContent = atk;
+        tip.querySelector('.js-chef-def').textContent = def;
+        potEl.hidden = false;
+      } else {
+        potEl.hidden = true;
+      }
+    }
+
+    // Challenge button — only for enrolled viewers targeting enrolled chefs, not self, not in battle
+    var challengeBtn = tip.querySelector('.js-challenge-btn');
+    if (challengeBtn) {
+      var viewer = window.ARENA_VIEWER || {};
+      var canChallenge = viewer.enrolled && viewer.slug && viewer.slug !== chef.slug && !chef.in_battle && !chef.is_spectator;
+      if (canChallenge) {
+        challengeBtn.href = '/chef-battle/challenge/new/?opponent=' + chef.slug;
+        challengeBtn.hidden = false;
+      } else {
+        challengeBtn.hidden = true;
+      }
+    }
+
     tip.hidden = false;
 
     // Position below the SVG cell using its bounding rect
@@ -599,6 +636,7 @@
       rating: spec.tokens + ' tokens',
       in_battle: false,
       is_online: false,
+      is_spectator: true,
     };
     el.addEventListener('click', function (e) {
       e.stopPropagation();

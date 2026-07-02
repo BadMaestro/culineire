@@ -43,7 +43,7 @@
 .arena-legend__item--commis_chef .arena-legend__swatch { background: #ccc1aa; }
 .arena-legend__item--prep_cook .arena-legend__swatch { background: #d8d0c0; }
 .arena-legend__item--kitchen_porter .arena-legend__swatch { background: #e4ddd1; }
-.arena-legend__item--spectator .arena-legend__swatch { background: #4a6741; }
+.arena-legend__item--spectator .arena-legend__swatch { background: #2a5fb0; }
 
 .arena-legend__count {
   font-weight: 700;
@@ -232,6 +232,82 @@
 .arena-tooltip__link:hover,
 .arena-tooltip__link:focus-visible {
   background: #a87a20;
+  color: #fff !important;
+}
+
+/* --- Stats row (W / L / Streak) --- */
+.arena-tooltip__stats {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 0.1rem;
+  margin-top: 0.5rem;
+  font-size: 0.72rem;
+  color: #9c8f80;
+}
+.arena-tooltip__stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.17rem;
+}
+.arena-tooltip__stat b {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #3a3028;
+}
+.arena-tooltip__stat-lbl {
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #b0a090;
+}
+.arena-tooltip__stat-sep {
+  color: #d4c8b4;
+}
+
+/* --- Artifact potential row --- */
+.arena-tooltip__potential {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.3rem;
+  font-size: 0.68rem;
+}
+.arena-tooltip__potential-item { font-weight: 500; }
+.arena-tooltip__potential-item--atk { color: #b03a2a; }
+.arena-tooltip__potential-item--def { color: #2a55b0; }
+.arena-tooltip__potential b { font-weight: 700; }
+.arena-tooltip__potential-sep { color: #d4c8b4; }
+
+/* --- Action buttons row --- */
+.arena-tooltip__actions {
+  display: flex;
+  gap: 0.4rem;
+}
+.arena-tooltip__actions .arena-tooltip__link {
+  flex: 1;
+  text-align: center;
+}
+.arena-tooltip__challenge {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  background: transparent;
+  color: #c8942a !important;
+  border: 1.5px solid #c8942a;
+  text-decoration: none;
+  line-height: 1;
+  transition: background 0.18s, color 0.18s;
+}
+.arena-tooltip__challenge:hover,
+.arena-tooltip__challenge:focus-visible {
+  background: #c8942a;
   color: #fff !important;
 }
 
