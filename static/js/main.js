@@ -55,7 +55,10 @@ document.addEventListener("DOMContentLoaded", () => {
       document.body.style.top      = "";
       document.body.style.left     = "";
       document.body.style.right    = "";
-      window.scrollTo(0, _scrollY);
+      // On mobile Pinch snap mode the body scroll is always ~0 (hero is hidden),
+      // so restoring scrollY would incorrectly trigger the snap container scroll.
+      const isPinchSnap = window.innerWidth <= 640 && document.querySelector(".hero--pinch");
+      if (!isPinchSnap) window.scrollTo(0, _scrollY);
     };
 
     const closeNav = () => {

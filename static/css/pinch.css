@@ -1506,12 +1506,25 @@
 }
 
 /* ================================================================
+   Pinch filter inline-arrow buttons — hidden everywhere by default,
+   shown only inside mobile Pinch snap mode via the rules below.
+   ================================================================ */
+.pinch-filter-btn {
+  display: none;
+}
+
+/* ================================================================
    Mobile Pinch feed — TikTok/Reels full-screen snap scroll
    One card fills the viewport, swipe to reveal the next.
    Only applies on mobile (≤640px) on the Pinch feed page.
    ================================================================ */
 @media (max-width: 640px) {
-  /* ── 1. Remove page-level padding / gaps ── */
+  /* ── 1. Hide hero — feed is immediately visible (true TikTok UX) ── */
+  .hero--pinch {
+    display: none;
+  }
+
+  /* ── 2. Remove page-level padding / gaps ── */
   .hero--pinch + .recipe-list-page {
     padding-block: 0;
   }
@@ -1522,46 +1535,79 @@
     row-gap: 0;
   }
 
-  /* ── 2. Filter bar — carousel container ── */
-  .hero--pinch + .recipe-list-page .category-nav-block {
-    position: relative; /* containing block for abs carousel buttons */
-    overflow: visible;  /* don't clip the absolute carousel buttons */
-    padding-block: 0.4rem;
+  /* ── 3. Full-bleed cards — zero container padding ── */
+  .hero--pinch + .recipe-list-page .container {
+    padding-inline: 0;
+    /* reset --container-padding so the filter bar's negative-margin calc
+       doesn't try to escape a 0-padded container */
+    --container-padding: 0px;
   }
-  /* carousel track = scrollable wrap */
+
+  /* ── 4. Filter bar — flex row: [arrow] [track] [arrow] ── */
+  .hero--pinch + .recipe-list-page .category-nav-block {
+    /* override base negative-margin / inline-padding (container is now 0) */
+    margin-inline: 0;
+    padding-inline: 0;
+    padding-block: 0;
+    /* flex layout to seat the inline arrows */
+    display: flex;
+    align-items: stretch;
+    overflow: visible;
+  }
+
+  /* Scrollable track between the arrows */
   .hero--pinch + .recipe-list-page .category-nav-wrap {
+    flex: 1;
+    min-width: 0;
     height: auto !important;
     overflow-x: auto !important;
     overflow-y: hidden !important;
     scrollbar-width: none;
-    /* indent so buttons don't cover the first/last category item */
-    padding-inline: 2.2rem;
   }
   .hero--pinch + .recipe-list-page .category-nav-wrap::-webkit-scrollbar {
     display: none;
   }
-  /* single row — scroll to reveal hidden categories */
+
+  /* Single row — horizontal scroll reveals all categories */
   .hero--pinch + .recipe-list-page .category-nav {
     flex-wrap: nowrap;
     white-space: nowrap;
+    padding-block: 0.42rem;
+    padding-inline: 0.5rem;
   }
-  /* Hide the View All toggle — replaced by carousel arrows */
+
+  /* Hide the desktop View All collapse toggle */
   .hero--pinch + .recipe-list-page .category-nav-toggle {
     display: none !important;
   }
-  /* Carousel buttons: smaller, flush to edges of the filter bar */
-  .hero--pinch + .recipe-list-page .content-carousel__button {
-    inline-size: 32px;
-    block-size: 32px;
+
+  /* Inline arrow buttons */
+  .hero--pinch + .recipe-list-page .pinch-filter-btn {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    padding: 0;
+    background: var(--surface, #faf7f2);
+    border: none;
+    color: #5a4a38;
+    cursor: pointer;
+    transition: opacity 0.15s;
   }
-  .hero--pinch + .recipe-list-page .content-carousel__button--prev {
-    inset-inline-start: 0;
+  .hero--pinch + .recipe-list-page .pinch-filter-btn--prev {
+    border-right: 1px solid rgba(58, 48, 40, 0.1);
   }
-  .hero--pinch + .recipe-list-page .content-carousel__button--next {
-    inset-inline-end: 0;
+  .hero--pinch + .recipe-list-page .pinch-filter-btn--next {
+    border-left: 1px solid rgba(58, 48, 40, 0.1);
+  }
+  /* Fade out when at start/end — carousel JS sets disabled */
+  .hero--pinch + .recipe-list-page .pinch-filter-btn:disabled {
+    opacity: 0.18;
+    cursor: default;
   }
 
-  /* ── 3. Footer — slide-up drawer (handle replaces full footer) ── */
+  /* ── 5. Footer — slide-up drawer ── */
   body:has(.hero--pinch) footer {
     position: fixed;
     bottom: 0;
@@ -1573,20 +1619,20 @@
     border-radius: 20px 20px 0 0;
     transform: translateY(100%);
     transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
-    /* drag handle pip at top */
-    padding-top: 1.25rem;
+    padding-top: 1.5rem;
   }
+  /* Drag-pip at the top of the footer sheet */
   body:has(.hero--pinch) footer::before {
     content: '';
     display: block;
     position: absolute;
-    top: 0.55rem;
+    top: 0.6rem;
     left: 50%;
     transform: translateX(-50%);
-    width: 38px;
+    width: 36px;
     height: 4px;
     border-radius: 2px;
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.22);
   }
   body:has(.hero--pinch) footer.pinch-footer--open {
     transform: translateY(0);
@@ -1597,7 +1643,7 @@
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.42);
+    background: rgba(0, 0, 0, 0.45);
     z-index: 144;
     opacity: 0;
     pointer-events: none;
@@ -1608,39 +1654,45 @@
     pointer-events: auto;
   }
 
-  /* ── 4. Footer handle button ── */
+  /* ── 6. Footer handle button (arch arrow, fixed bottom-center) ── */
   .pinch-footer-handle {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: center;
     position: fixed;
     bottom: 0;
     left: 50%;
     transform: translateX(-50%);
     z-index: 146;
-    padding: 6px 20px 8px;
+    padding: 5px 22px 9px;
     background: none;
     border: none;
     cursor: pointer;
-    color: rgba(255, 255, 255, 0.55);
-    filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.7));
-    transition: color 0.18s, filter 0.18s;
+    color: rgba(255, 255, 255, 0.52);
+    filter: drop-shadow(0 1px 5px rgba(0, 0, 0, 0.75));
+    -webkit-tap-highlight-color: transparent;
   }
-  .pinch-footer-handle:hover,
-  .pinch-footer-handle:focus-visible {
-    color: rgba(255, 255, 255, 0.85);
-    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.9));
-    outline: none;
+  /* Icon flips 180° when footer is open — "tap to close" cue */
+  .pinch-footer-handle__icon {
+    transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  body:has(footer.pinch-footer--open) .pinch-footer-handle__icon {
+    transform: rotate(180deg);
+  }
+  /* Handle stays fixed at the very bottom — footer slides up underneath it.
+     z-index 147 keeps it above the footer (145) and scrim (144). */
+  body:has(footer.pinch-footer--open) .pinch-footer-handle {
+    color: rgba(255, 255, 255, 0.32);
   }
 
-  /* ── 5. Heading row not needed in snap mode ── */
+  /* ── 7. Heading row not needed in snap mode ── */
   .hero--pinch + .recipe-list-page .page-header {
     display: none;
   }
 
-  /* ── 6. Snap container fills remaining viewport exactly ── */
+  /* ── 8. Snap container fills remaining viewport exactly ── */
   .hero--pinch + .recipe-list-page .recipe-vscroll-wrap {
-    height: calc(100dvh - var(--sticky-offset, 120px));
+    height: calc(100dvh - var(--sticky-offset, 100px));
     overflow: hidden;
   }
 
@@ -1656,7 +1708,7 @@
     display: none;
   }
 
-  /* Single column, no gap between cards */
+  /* Single column, no gap */
   .hero--pinch + .recipe-list-page .ab-grid {
     grid-template-columns: 1fr !important;
     gap: 0;
@@ -1664,7 +1716,7 @@
 
   /* Each card snaps to fill the full container height */
   .hero--pinch + .recipe-list-page .ab-card {
-    height: calc(100dvh - var(--sticky-offset, 120px));
+    height: calc(100dvh - var(--sticky-offset, 100px));
     aspect-ratio: unset !important;
     scroll-snap-align: start;
     border-radius: 0;
@@ -1672,7 +1724,7 @@
   }
 }
 
-/* Desktop: hide the footer handle and scrim (only needed in mobile snap mode) */
+/* Desktop / tablet: hide mobile-only Pinch elements */
 @media (min-width: 641px) {
   .pinch-footer-handle,
   .pinch-footer-scrim {

@@ -13,7 +13,7 @@
 
 {% block content %}
 
-{# ── Hero ── #}
+{# ── Hero — hidden on mobile (TikTok snap mode shows feed immediately) ── #}
 <section class="hero hero--home hero--pinch hero--has-battle">
     <div aria-hidden="true" class="hero__background">
         <picture><source srcset="{% static 'images/hero-pinch.webp' %}" type="image/webp"><img alt="" width="1672" height="941" src="{% static 'images/hero-pinch.png' %}"></picture>
@@ -58,11 +58,11 @@
 <section class="page-section recipe-list-page">
     <div class="container recipe-list-stack">
 
-        {# Category nav — carousel on mobile Pinch, dot-separated collapse on desktop #}
+        {# Category nav — inline arrow carousel on mobile, dot-collapse on desktop #}
         {% if content_type_choices %}
-        <div class="category-nav-block content-showcase content-showcase--carousel pinch-filter-carousel" data-category-toggle data-card-carousel>
-            <button aria-label="Scroll categories left" class="content-carousel__button content-carousel__button--prev" data-carousel-prev type="button">
-                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="13 4 7 10 13 16"/></svg>
+        <div class="category-nav-block pinch-filter-carousel" data-category-toggle data-card-carousel>
+            <button class="pinch-filter-btn pinch-filter-btn--prev" data-carousel-prev aria-label="Earlier categories" type="button">
+                <svg viewBox="0 0 10 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="10" height="18" aria-hidden="true"><polyline points="9 2 2 9 9 16"/></svg>
             </button>
             <div class="category-nav-wrap" data-category-wrap data-carousel-track>
                 <nav aria-label="Pinch categories" class="category-nav" data-category-nav>
@@ -81,8 +81,8 @@
                     {% endfor %}
                 </nav>
             </div>
-            <button aria-label="Scroll categories right" class="content-carousel__button content-carousel__button--next" data-carousel-next type="button">
-                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="7 4 13 10 7 16"/></svg>
+            <button class="pinch-filter-btn pinch-filter-btn--next" data-carousel-next aria-label="More categories" type="button">
+                <svg viewBox="0 0 10 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="10" height="18" aria-hidden="true"><polyline points="1 2 8 9 1 16"/></svg>
             </button>
             <button aria-expanded="false" aria-label="View all recipe categories"
                     class="category-nav-toggle" data-category-button hidden type="button">
@@ -123,9 +123,9 @@
     </div>
 </section>
 
-{# ── Footer drawer handle (mobile Pinch snap mode only) ── #}
+{# ── Footer drawer handle (mobile snap mode only) ── #}
 <button class="pinch-footer-handle" id="pinch-footer-handle" type="button" aria-label="Open footer" aria-expanded="false">
-    <svg viewBox="0 0 44 26" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="44" height="26" aria-hidden="true">
+    <svg class="pinch-footer-handle__icon" viewBox="0 0 44 26" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="44" height="26" aria-hidden="true">
         <path d="M6 22 Q22 6 38 22" stroke-width="2.5"/>
         <polyline points="18 12 22 6 26 12" stroke-width="2"/>
     </svg>
