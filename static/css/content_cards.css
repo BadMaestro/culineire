@@ -63,6 +63,15 @@
 .recipe-list-page .category-nav-block {
   margin: 0;
   gap: var(--recipe-list-section-gap, 1.25rem);
+  /* Stick to the bottom edge of the sticky header so the filter bar
+     stays visible while cards scroll underneath it */
+  position: sticky;
+  top: var(--header-h, 0px);
+  z-index: 50;
+  background: var(--surface, #faf7f2);
+  padding-block: 0.65rem;
+  margin-inline: calc(var(--container-padding, 1rem) * -1);
+  padding-inline: var(--container-padding, 1rem);
 }
 
 .hero--recipe-list {

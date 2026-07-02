@@ -5,6 +5,17 @@ if ("scrollRestoration" in history) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Track sticky header height for any element that needs to offset below it
+  const ceHeader = document.querySelector(".ce-header");
+  const setHeaderH = () => {
+    const h = ceHeader ? ceHeader.getBoundingClientRect().height : 0;
+    document.documentElement.style.setProperty("--header-h", h + "px");
+  };
+  setHeaderH();
+  if ("ResizeObserver" in window) {
+    new ResizeObserver(setHeaderH).observe(document.documentElement);
+  }
+
   // Set --ab-snap-top so the snap feed knows how much header to leave room for
   const snapPage = document.querySelector(".ab-snap-page");
   if (snapPage) {
