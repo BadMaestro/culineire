@@ -42,6 +42,18 @@
 
   var RING_COUNTS = { 1: 6, 2: 10, 3: 14, 4: 18, 5: 22, 6: 26, 7: 30, 8: 34, 9: 40 };
 
+  // Battle phases where the chef is shown in the VS centre cells, not in their ring.
+  // Any phase in ACTIVE_STATUSES that is NOT pre-battle scheduling.
+  var CENTRE_PHASES = {
+    active: true, cooking: true, awaiting_submissions: true,
+    presentation: true, revealed: true, voting: true,
+    ingredient_penalty: true, disputed: true,
+  };
+  // Phases where the chef is in a facing pair (pre-combat staging); ring cell is also vacated.
+  var FACING_PHASES = {
+    scheduled: true, menu_locked: true,
+  };
+
   var RING_RANK_KEY = {
     1: 'culinary_master',
     2: 'executive_chef',
@@ -214,6 +226,10 @@
         var path = ringSegmentPath(CX, CY, innerR + GAP, outerR - GAP / 2, startAngle, endAngle);
 
         var chef   = chefs[pos] || null;
+        // If the chef is in VS centre or a facing pair, their ring cell is vacated.
+        if (chef && chef.battle_phase && (CENTRE_PHASES[chef.battle_phase] || FACING_PHASES[chef.battle_phase])) {
+          chef = null;
+        }
         var bucket = chef ? 'chef' : 'empty';
         var fill   = (RING_COLOURS[bucket] || RING_COLOURS.empty)[ring];
 

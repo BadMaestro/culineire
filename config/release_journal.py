@@ -1,5 +1,30 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.65",
+        "date": "2026-07-02",
+        "commit": "pending",
+        "title": "Arena Stage B1+B3 — Battle context in payload + ring cell vacated during VS",
+        "section": "Chef Battles / Arena (Phase FE-3)",
+        "summary": (
+            "B1: arena() and arena_state() now build an in_battle_map dict per active battle, "
+            "adding battle_id, battle_phase, and battle_url to each in_battle chef dict "
+            "(previously only a boolean in_battle was passed). "
+            "B3: arena_puzzle.js defines CENTRE_PHASES and FACING_PHASES constant sets. "
+            "drawArena() vacates a chef's ring cell when their battle_phase is in either set — "
+            "so chefs in active combat (active/cooking/voting/etc.) no longer appear in their "
+            "ring cell and the VS centre cell while simultaneously; they are moved, not duplicated."
+        ),
+        "checklist": [
+            "views.py arena(): in_battle_map dict, battle_id/battle_phase/battle_url per chef",
+            "views.py arena_state(): same pattern",
+            "arena_puzzle.js: CENTRE_PHASES + FACING_PHASES constants",
+            "arena_puzzle.js: drawArena() ring-cell vacate when chef.battle_phase in either set",
+            "roadmap: B1 + B3 marked done; B2 (facing pair) remains pending",
+            "manage.py check: 0 issues",
+        ],
+        "deployment_status": "pending deployment",
+    },
+    {
         "version": "2.5.64",
         "date": "2026-07-02",
         "commit": "pending",

@@ -307,7 +307,9 @@ def _build_battlefield_progress():
                 {"label": "Stage A1: Chef popup on arena cell click", "detail": "Stats (W/L/Streak), approximate ATK/DEF potential from ChefArtifact aggregation (hidden when 0), View Profile + Challenge buttons. Challenge hidden for spectators, self, and in-battle chefs. challenge_create now accepts ?opponent={slug}.", "status": "done", "completed_at": "2026-07-02"},
                 {"label": "Stage A2: Blue spectator cells for registered users", "detail": "Spectator ring changed from green (#4a6741) to blue (#2a5fb0 / empty #c5d3e8). Legend swatch updated. Currently wallet-holders only (_get_spectators behaviour, same as before).", "status": "done", "completed_at": "2026-07-02"},
                 {"label": "Stage A3: Grey standing fields for anonymous visitors", "detail": "New arena SVG zone (owner-approved geometry ADDITION). Requires a lightweight anonymous presence signal - none exists today.", "status": "pending"},
-                {"label": "Stage B: Relocation choreography (teleports)", "detail": "Challenge accepted -> facing pair (same rank: own ring opposite cells; different ranks: vertical pair across rings). Battle time -> both teleport to centre VS cells (move, not duplicate). Completion -> return to original cells. Static relocation first, animation second.", "status": "pending"},
+                {"label": "Stage B1: Battle context in arena payload", "detail": "arena() + arena_state() now include battle_id, battle_phase, battle_url per in_battle chef. in_battle_map dict replaces raw in_battle_author_ids set.", "status": "done", "completed_at": "2026-07-02"},
+                {"label": "Stage B3: Chefs disappear from ring when in VS centre", "detail": "CENTRE_PHASES + FACING_PHASES constants in arena_puzzle.js. drawArena() vacates ring cell when chef.battle_phase is in either set — move not duplicate.", "status": "done", "completed_at": "2026-07-02"},
+                {"label": "Stage B2: Facing pair positioning (pre-combat)", "detail": "Challenge accepted (scheduled/menu_locked) -> show chefs in deterministic facing cells, not ring cells. Requires drawFacingPair() geometry helper.", "status": "pending"},
                 {"label": "Stage C: Battle Room popup embedded on the arena", "detail": "OWNER APPROVED option A. Centre VS cell = one big link opening the popup: chef left vs right, artifacts visible (open battle), per-battle chat, voting, gifts - all via existing endpoints. 18+/legal affordances carry over unchanged.", "status": "pending"},
                 {"label": "Stage D: Battle Room page becomes the antechamber", "detail": "battle_detail reworked into pre-battle hub: rules, ratings, statistics, chef comparison -> transition to the arena. Open decision: where chefs perform combat actions.", "status": "pending"},
                 {"label": "Stage E1: Mandatory use of spectator-gifted artifacts", "detail": "Combat logic change + public rules update: chefs may use own artifacts, MUST use artifacts gifted by spectators during the battle. Appreciation gifts never affect the battle.", "status": "pending"},
@@ -784,7 +786,15 @@ def arena(request):
     active_battles = get_active_battles()
     active_battle = active_battles[0] if active_battles else None
     in_battle_author_ids = set()
+    in_battle_map: dict[int, dict] = {}
     for battle in active_battles:
+        info = {
+            "battle_id": battle.id,
+            "battle_phase": battle.status,
+            "battle_url": battle.get_absolute_url(),
+        }
+        in_battle_map[battle.challenger_id] = info
+        in_battle_map[battle.opponent_id] = info
         in_battle_author_ids.add(battle.challenger_id)
         in_battle_author_ids.add(battle.opponent_id)
 
@@ -813,6 +823,7 @@ def arena(request):
     chefs_by_rank = {choice.value: [] for choice in ChefBattleProfile.Rank}
     for profile in enrolled:
         agg = artifact_agg.get(profile.author_id, {})
+        battle_info = in_battle_map.get(profile.author_id)
         chefs_by_rank[profile.rank].append({
             "name": profile.author.name,
             "slug": profile.author.slug,
@@ -825,7 +836,10 @@ def arena(request):
             "win_streak": profile.win_streak,
             "atk": agg.get("atk", 0),
             "def": agg.get("def_", 0),
-            "in_battle": profile.author_id in in_battle_author_ids,
+            "in_battle": battle_info is not None,
+            "battle_id": battle_info["battle_id"] if battle_info else None,
+            "battle_phase": battle_info["battle_phase"] if battle_info else None,
+            "battle_url": battle_info["battle_url"] if battle_info else None,
             "is_online": bool(profile.last_seen_at and profile.last_seen_at >= online_cutoff),
         })
 
@@ -912,7 +926,15 @@ def arena_state(request):
     active_battles = get_active_battles()
     active_battle = active_battles[0] if active_battles else None
     in_battle_author_ids = set()
+    in_battle_map: dict[int, dict] = {}
     for battle in active_battles:
+        info = {
+            "battle_id": battle.id,
+            "battle_phase": battle.status,
+            "battle_url": battle.get_absolute_url(),
+        }
+        in_battle_map[battle.challenger_id] = info
+        in_battle_map[battle.opponent_id] = info
         in_battle_author_ids.add(battle.challenger_id)
         in_battle_author_ids.add(battle.opponent_id)
 
@@ -941,6 +963,7 @@ def arena_state(request):
     rings = {choice.value: [] for choice in ChefBattleProfile.Rank}
     for profile in enrolled:
         agg = artifact_agg.get(profile.author_id, {})
+        battle_info = in_battle_map.get(profile.author_id)
         rings[profile.rank].append({
             "name": profile.author.name,
             "slug": profile.author.slug,
@@ -953,7 +976,10 @@ def arena_state(request):
             "win_streak": profile.win_streak,
             "atk": agg.get("atk", 0),
             "def": agg.get("def_", 0),
-            "in_battle": profile.author_id in in_battle_author_ids,
+            "in_battle": battle_info is not None,
+            "battle_id": battle_info["battle_id"] if battle_info else None,
+            "battle_phase": battle_info["battle_phase"] if battle_info else None,
+            "battle_url": battle_info["battle_url"] if battle_info else None,
             "is_online": bool(profile.last_seen_at and profile.last_seen_at >= online_cutoff),
         })
 
