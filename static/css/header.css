@@ -306,6 +306,12 @@
   transform: translateX(0);
 }
 
+/* Remove iOS tap blue flash on nav items */
+.ce-nav a,
+.ce-nav button {
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* Close button inside the nav card — sits at top-right corner */
 .ce-nav__close {
   display: none; /* shown only when drawer is open */
@@ -410,6 +416,37 @@
   text-align: center;
   font-size: 0.88rem;
   opacity: 0.75;
+}
+
+/* Touch-active class set by JS on touchstart — replaces sticky iOS :hover */
+.ce-nav--open .ce-nav-touch-active {
+  background: rgb(247 242 234 / 0.16) !important;
+  color: #fff !important;
+  transition: none !important;
+}
+.ce-nav--open .ce-nav__auth a[href*="signup"].ce-nav-touch-active,
+.ce-nav--open .ce-nav__auth a[href*="join"].ce-nav-touch-active {
+  background: rgb(247 242 234 / 0.75) !important;
+}
+
+/* Explicit :active for touch — iOS doesn't reliably fire :hover on secondary tap */
+.ce-nav--open .ce-nav__link:active,
+.ce-nav--open .ce-nav__text:active,
+.ce-nav--open .ce-nav__button:active {
+  background: rgb(247 242 234 / 0.18);
+  color: #fff;
+  transition: none;
+}
+.ce-nav--open .ce-nav__auth a[href*="signup"]:active,
+.ce-nav--open .ce-nav__auth a[href*="join"]:active {
+  background: rgb(247 242 234 / 0.75);
+  transition: none;
+}
+.ce-nav--open .ce-nav__auth a[href*="login"]:active,
+.ce-nav--open .ce-nav__auth a[href*="signin"]:active {
+  background: rgb(247 242 234 / 0.14);
+  opacity: 1;
+  transition: none;
 }
 
 .ce-nav__menu,

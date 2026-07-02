@@ -68,6 +68,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const navCloseBtn = nav.querySelector(".ce-nav__close");
     if (navCloseBtn) navCloseBtn.addEventListener("click", closeNav);
 
+    /* iOS hover-stick fix: add/remove a transient class so :hover unsticks
+       when the finger lifts and moves to a different nav item */
+    nav.addEventListener("touchstart", e => {
+      const item = e.target.closest("a, button");
+      nav.querySelectorAll(".ce-nav-touch-active").forEach(el => el.classList.remove("ce-nav-touch-active"));
+      if (item) item.classList.add("ce-nav-touch-active");
+    }, { passive: true });
+    nav.addEventListener("touchend", () => {
+      setTimeout(() => nav.querySelectorAll(".ce-nav-touch-active").forEach(el => el.classList.remove("ce-nav-touch-active")), 200);
+    }, { passive: true });
+
     if (backdrop) {
       backdrop.addEventListener("click", closeNav);
     }
