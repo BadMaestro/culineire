@@ -18,8 +18,8 @@
 }
 
 .hero-chef__sprite {
-  background-image: url("../images/mascot/hero-chef.webp");
-  background-position: 0 0;
+  background-image: url("../images/mascot/hero-chef-walk.webp");
+  background-position: 33.333% 0;
   background-repeat: no-repeat;
   background-size: 400% 100%;
   display: block;
@@ -30,17 +30,18 @@
   width: 100%;
 }
 
+.hero-chef[data-walking="true"] .hero-chef__sprite {
+  background-position: var(--walk-frame, 0 0);
+}
+
 .hero-chef[data-pose="sharpen"] .hero-chef__sprite {
-  background-position: 66.666% 0;
+  background-image: url("../images/mascot/hero-chef-sharpen.webp");
+  background-position: var(--trick-frame, 0 0);
 }
 
 .hero-chef[data-pose="egg"] .hero-chef__sprite {
-  background-position: 100% 0;
-}
-
-.hero-chef[data-walking="true"] .hero-chef__sprite {
-  background-image: url("../images/mascot/hero-chef-walk.webp");
-  background-position: var(--walk-frame, 0 0);
+  background-image: url("../images/mascot/hero-chef-egg.webp");
+  background-position: var(--trick-frame, 0 0);
 }
 
 .hero-chef__speech {

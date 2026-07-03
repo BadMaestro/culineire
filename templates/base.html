@@ -447,9 +447,8 @@
 
 <script defer src="{% static 'js/main.js' %}"></script>
 <script defer src="{% static 'js/presence.js' %}"></script>
-{# hero chef temporarily disabled — sprites being updated #}
-{# {{ hero_chef_promotions|json_script:"hero-chef-promotions" }} #}
-{# <script defer src="{% static 'js/hero_chef.js' %}"></script> #}
+{{ hero_chef_promotions|json_script:"hero-chef-promotions" }}
+<script defer src="{% static 'js/hero_chef.js' %}"></script>
 {% block extra_js %}{% endblock %}
 
 <div class="battle-blast" id="battle-blast" role="dialog" aria-modal="true" aria-label="Battle result" hidden>

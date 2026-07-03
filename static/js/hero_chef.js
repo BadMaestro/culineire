@@ -90,6 +90,7 @@
   const close  = chef.querySelector(".hero-chef__close");
   let walkTimer;
   let walkFrameTimer;
+  let trickFrameTimer;
   let poseTimer;
   let speechTimer;
   let previousX = 72;
@@ -192,10 +193,22 @@
     const pose = Math.random() < 0.5 ? "sharpen" : "egg";
     chef.dataset.walking = "false";
     chef.dataset.pose = pose;
-    if (Math.random() < 0.48) {
-      saySomething();
-    }
-    poseTimer = window.setTimeout(startWalk, randomBetween(3800, 6200));
+
+    // Animate trick frames (4 frames, slower than walk)
+    window.clearInterval(trickFrameTimer);
+    let trickIdx = 0;
+    chef.style.setProperty("--trick-frame", WALK_FRAMES[0]);
+    trickFrameTimer = window.setInterval(() => {
+      trickIdx = (trickIdx + 1) % WALK_FRAMES.length;
+      chef.style.setProperty("--trick-frame", WALK_FRAMES[trickIdx]);
+    }, 220);
+
+    if (Math.random() < 0.48) saySomething();
+    poseTimer = window.setTimeout(() => {
+      window.clearInterval(trickFrameTimer);
+      chef.style.removeProperty("--trick-frame");
+      startWalk();
+    }, randomBetween(3800, 6200));
   }
 
   function startWalk() {
@@ -234,6 +247,7 @@
   function dismiss() {
     window.clearTimeout(walkTimer);
     window.clearInterval(walkFrameTimer);
+    window.clearInterval(trickFrameTimer);
     window.clearTimeout(poseTimer);
     window.clearTimeout(speechTimer);
     sessionStorage.setItem("heroChefDismissed", "1");
