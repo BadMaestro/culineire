@@ -1755,20 +1755,20 @@
     min-height: 0;
     padding-block: 0;
     overflow: hidden;
-    transition: max-height 0.38s cubic-bezier(0.32, 0.72, 0, 1),
-                padding   0.38s cubic-bezier(0.32, 0.72, 0, 1);
+    transition: max-height 0.28s cubic-bezier(0.32, 0.72, 0, 1),
+                padding   0.28s cubic-bezier(0.32, 0.72, 0, 1);
   }
   body.pinch-header-open:has(.hero--pinch) .ce-header__inner {
-    max-height: 140px;
+    max-height: 80px;
     padding-block: 0.45rem;
   }
   .hero--pinch + .recipe-list-page .category-nav-block {
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+    transition: max-height 0.28s cubic-bezier(0.32, 0.72, 0, 1);
   }
   body.pinch-header-open .hero--pinch + .recipe-list-page .category-nav-block {
-    max-height: 80px;
+    max-height: 52px;
   }
 
   /* Handle — arch under the social strip, mirrors the footer handle.
@@ -1791,8 +1791,8 @@
     filter: drop-shadow(0 -1px 5px rgba(0, 0, 0, 0.75));
     -webkit-tap-highlight-color: transparent;
     touch-action: none;
-    transition: top   0.38s cubic-bezier(0.32, 0.72, 0, 1),
-                color 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+    transition: top   0.28s cubic-bezier(0.32, 0.72, 0, 1),
+                color 0.28s cubic-bezier(0.32, 0.72, 0, 1);
     animation: pinch-tricolour 7s ease-in-out infinite;
     animation-delay: 3s;
   }

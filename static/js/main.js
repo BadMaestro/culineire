@@ -1084,7 +1084,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // After the 0.38s slide settles, let the filter carousel re-measure
     // itself against the new geometry (its modules listen for resize).
     var kick = function () {
-      setTimeout(function () { window.dispatchEvent(new Event("resize")); }, 420);
+      setTimeout(function () { window.dispatchEvent(new Event("resize")); }, 320);
     };
 
     var open = function () {
