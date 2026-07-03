@@ -15,14 +15,71 @@ Usage:
 """
 
 import io
+import json
 import sys
 from pathlib import Path
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[4]))
 from recipes.management.commands.generate_recipe import fetch_image_bytes  # noqa: E402
+
+
+def fetch_image_bytes_edit(prompt: str, ref_png: bytes) -> bytes:
+    """Call OpenAI images/edits with a reference image to keep character consistent."""
+    import urllib.parse
+    api_key = getattr(settings, "OPENAI_API_KEY", "")
+    if not api_key:
+        raise CommandError("OPENAI_API_KEY is not configured.")
+
+    boundary = "----FormBoundary7MA4YWxkTrZu0gW"
+    body = b""
+    # image field
+    body += f"--{boundary}\r\n".encode()
+    body += b'Content-Disposition: form-data; name="image"; filename="ref.png"\r\n'
+    body += b"Content-Type: image/png\r\n\r\n"
+    body += ref_png + b"\r\n"
+    # prompt field
+    body += f"--{boundary}\r\n".encode()
+    body += b'Content-Disposition: form-data; name="prompt"\r\n\r\n'
+    body += prompt.encode() + b"\r\n"
+    # model
+    body += f"--{boundary}\r\n".encode()
+    body += b'Content-Disposition: form-data; name="model"\r\n\r\n'
+    body += b"gpt-image-1\r\n"
+    # size
+    body += f"--{boundary}\r\n".encode()
+    body += b'Content-Disposition: form-data; name="size"\r\n\r\n'
+    body += b"1024x1024\r\n"
+    body += f"--{boundary}--\r\n".encode()
+
+    req = Request(
+        "https://api.openai.com/v1/images/edits",
+        data=body,
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": f"multipart/form-data; boundary={boundary}",
+        },
+        method="POST",
+    )
+    try:
+        with urlopen(req, timeout=120) as resp:
+            result = json.loads(resp.read().decode())
+    except HTTPError as exc:
+        raise CommandError(f"OpenAI edits API HTTP {exc.code}: {exc.read().decode()}") from exc
+    except (URLError, OSError) as exc:
+        raise CommandError(f"OpenAI edits API error: {exc}") from exc
+
+    import base64
+    b64 = result["data"][0].get("b64_json") or result["data"][0].get("url")
+    if result["data"][0].get("b64_json"):
+        return base64.b64decode(b64)
+    # fallback: download from URL
+    with urlopen(b64, timeout=60) as r:
+        return r.read()
 
 # Output sprite dimensions — must match existing CSS expectations
 FRAME_W = 310
@@ -100,6 +157,14 @@ class Command(BaseCommand):
             help="Generate only 'walk' or 'main' sprite strip",
         )
 
+    def _raw_to_png(self, raw: bytes) -> bytes:
+        """Convert any image bytes to PNG (required by edits API)."""
+        from PIL import Image
+        img = Image.open(io.BytesIO(raw)).convert("RGBA")
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        return buf.getvalue()
+
     def handle(self, *args, **options):
         dest_dir = Path(settings.BASE_DIR) / "static" / "images" / "mascot"
         dest_dir.mkdir(parents=True, exist_ok=True)
@@ -122,11 +187,17 @@ class Command(BaseCommand):
 
             self.stdout.write(f"\n[{label}] Generating {len(prompts)} frames …")
             cells = []
+            ref_png = None  # set after frame 0
+
             for idx, prompt in enumerate(prompts):
-                self.stdout.write(f"  frame {idx} …", ending="")
+                self.stdout.write(f"  frame {idx} {'(text→img)' if idx == 0 else '(edit+ref)'} …", ending="")
                 self.stdout.flush()
                 try:
-                    raw = fetch_image_bytes(prompt)
+                    if idx == 0:
+                        raw = fetch_image_bytes(prompt)
+                        ref_png = self._raw_to_png(raw)
+                    else:
+                        raw = fetch_image_bytes_edit(prompt, ref_png)
                     cells.append(_frame_to_strip_cell(raw, FRAME_W, FRAME_H))
                     self.stdout.write(self.style.SUCCESS(f" ok ({len(raw) // 1024}kb)"))
                 except Exception as exc:
