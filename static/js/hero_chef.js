@@ -77,7 +77,7 @@
     walkingFrame = window.setInterval(() => {
       alternate = !alternate;
       chef.dataset.pose = alternate ? "walk-b" : "walk-a";
-    }, 260);
+    }, 400);
 
     walkTimer = window.setTimeout(() => {
       window.clearInterval(walkingFrame);
