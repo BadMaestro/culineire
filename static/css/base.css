@@ -5120,7 +5120,8 @@
 .hero--home.hero--signup:not(.hero--recipe-detail):not(.hero--about),
 .hero--home.hero--recipe-form:not(.hero--recipe-detail):not(.hero--about),
 .hero--home.hero--article-form:not(.hero--recipe-detail):not(.hero--about),
-.hero--home.hero--pinch-form:not(.hero--recipe-detail):not(.hero--about) {
+.hero--home.hero--pinch-form:not(.hero--recipe-detail):not(.hero--about),
+.hero--home.hero--inbox:not(.hero--recipe-detail):not(.hero--about) {
   /* Specificity intentionally matched to the Group 1.1 rule above (3
      classes: .hero--home + 2x :not()) via the redundant, always-true
      :not() clauses, so this later rule wins the cascade instead of
@@ -5157,7 +5158,8 @@
   .hero--home.hero--signup:not(.hero--recipe-detail):not(.hero--about) .hero-title,
   .hero--home.hero--recipe-form:not(.hero--recipe-detail):not(.hero--about) .hero-title,
   .hero--home.hero--article-form:not(.hero--recipe-detail):not(.hero--about) .hero-title,
-  .hero--home.hero--pinch-form:not(.hero--recipe-detail):not(.hero--about) .hero-title {
+  .hero--home.hero--pinch-form:not(.hero--recipe-detail):not(.hero--about) .hero-title,
+  .hero--home.hero--inbox:not(.hero--recipe-detail):not(.hero--about) .hero-title {
     min-height: 104.448px; /* 2 lines x 52.224px line-height — longest H1 wrap seen across these 9 pages (homepage). Scoped to the 9 nav-button pages only — NOT the other 30+ hero--home pages (legal, moderation, etc.) which have no button row to pin. DO NOT CHANGE WITHOUT OWNER ORDER. */
   }
   .hero--home.hero--index:not(.hero--recipe-detail):not(.hero--about) .hero-subtitle,
@@ -5171,7 +5173,8 @@
   .hero--home.hero--signup:not(.hero--recipe-detail):not(.hero--about) .hero-subtitle,
   .hero--home.hero--recipe-form:not(.hero--recipe-detail):not(.hero--about) .hero-subtitle,
   .hero--home.hero--article-form:not(.hero--recipe-detail):not(.hero--about) .hero-subtitle,
-  .hero--home.hero--pinch-form:not(.hero--recipe-detail):not(.hero--about) .hero-subtitle {
+  .hero--home.hero--pinch-form:not(.hero--recipe-detail):not(.hero--about) .hero-subtitle,
+  .hero--home.hero--inbox:not(.hero--recipe-detail):not(.hero--about) .hero-subtitle {
     min-height: 90.5664px; /* 3 lines x 30.1888px line-height — longest subtitle wrap seen across these 9 pages (recipes, sponsors). Scoped the same way as the H1 rule above. DO NOT CHANGE WITHOUT OWNER ORDER. */
   }
 }
