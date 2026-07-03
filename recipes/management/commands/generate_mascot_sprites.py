@@ -35,8 +35,10 @@ CHAR = (
     "NOT a human. A bear: green fur, bear snout, bear nose, round bear ears on top of head, "
     "bear paws as hands. Wears a tall white chef toque hat, dark brown leather jacket, white apron. "
     "Chubby round belly, short stubby legs, large friendly eyes, wide smile. "
-    "Facing LEFT. Full body visible. Transparent background. "
-    "Flat 2D cartoon style, clean black outlines. No text, no watermark, no shadow on ground."
+    "Facing LEFT. FULL BODY VISIBLE from top of hat to feet, with generous empty space on all sides. "
+    "Character occupies no more than 60% of the image width and 70% of the image height. "
+    "Plenty of blank space above the hat and below the feet. "
+    "Transparent background. Flat 2D cartoon style, clean black outlines. No text, no watermark, no shadow on ground."
 )
 
 WALK_PROMPTS = [
