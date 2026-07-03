@@ -126,7 +126,7 @@
                 <a class="btn-secondary" style="border-color:#8a1f1f;color:#8a1f1f;" href="{% url 'recipes:moderation_author_delete' author.slug %}" onclick="return confirm('Permanently delete {{ author.name }} and all their content? This cannot be undone.')">Delete Author</a>
             </div>
             <details class="moderation-contact" style="margin-top:1rem;">
-                <summary class="mod-btn mod-btn--contact" style="display:inline-flex;">Contact {{ author.name }}</summary>
+                <summary class="btn-secondary" style="display:inline-flex;cursor:pointer;list-style:none;">Contact {{ author.name }}</summary>
                 <form action="{% url 'messaging:send_message' %}" class="moderation-contact__form" method="post">
                     {% csrf_token %}
                     <input name="action" type="hidden" value="message">
