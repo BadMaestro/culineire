@@ -18,7 +18,8 @@
     { text: "A sharp knife is a safe knife." },
     { text: "My favourite Chef is GreenBear." },
     { text: "You can't even make scrambled eggs?" },
-    { text: "Think you can cook it better? Prove it!" }
+    { text: "Think you can cook it better? Prove it!" },
+    { text: "I don't accept tips. Buy me a coffee instead!", url: "https://buymeacoffee.com/bearcave" }
   ];
 
   // Commercial phrases — Irish heritage & culture + dynamic promotions
