@@ -94,8 +94,10 @@
   let poseTimer;
   let speechTimer;
   let previousX = 72;
+  let previousPose = null;
   const WALK_FRAMES = ["0 0", "33.333% 0", "66.666% 0", "100% 0"];
   const BOOK_FRAMES = ["0 0", "20% 0", "40% 0", "60% 0", "80% 0", "100% 0"];
+  const TRICK_POSES = ["sharpen", "egg", "book"];
 
   // ── Right-click quick-search ──────────────────────────────────────
   const searchAction = (() => {
@@ -191,8 +193,9 @@
   }
 
   function performTrick() {
-    const poses = ["sharpen", "egg", "book"];
-    const pose = poses[Math.floor(Math.random() * poses.length)];
+    const availablePoses = TRICK_POSES.filter(poseName => poseName !== previousPose);
+    const pose = availablePoses[Math.floor(Math.random() * availablePoses.length)];
+    previousPose = pose;
     const frames = pose === "book" ? BOOK_FRAMES : WALK_FRAMES;
     chef.dataset.walking = "false";
     chef.dataset.pose = pose;
@@ -206,7 +209,7 @@
       chef.style.setProperty("--trick-frame", frames[trickIdx]);
     }, 220);
 
-    if (Math.random() < 0.48) saySomething();
+    saySomething();
     poseTimer = window.setTimeout(() => {
       window.clearInterval(trickFrameTimer);
       chef.style.removeProperty("--trick-frame");
