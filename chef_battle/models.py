@@ -141,6 +141,7 @@ class Battle(models.Model):
         VOTING = "voting", "Voting"
         COMPLETED = "completed", "Completed"
         INGREDIENT_PENALTY = "ingredient_penalty", "Ingredient Penalty"
+        PAUSED = "paused", "Paused (Emergency Stop)"
         CANCELLED = "cancelled", "Cancelled"
         DISPUTED = "disputed", "Disputed"
 
