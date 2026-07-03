@@ -9,7 +9,8 @@
     return;
   }
 
-  const messages = [
+  // Simple phrases — casual, fun, conversational
+  const simpleMessages = [
     { text: "Hello!" },
     { text: "What's cooking?" },
     { text: "Welcome to CulinEire!" },
@@ -17,7 +18,11 @@
     { text: "A sharp knife is a safe knife." },
     { text: "My favourite Chef is GreenBear." },
     { text: "You can't even make scrambled eggs?" },
-    { text: "Think you can cook it better? Prove it!" },
+    { text: "Think you can cook it better? Prove it!" }
+  ];
+
+  // Commercial phrases — Irish heritage & culture + dynamic promotions
+  const commercialMessages = [
     { text: "Some of Ireland's greatest stories were cooked, not written." },
     { text: "To understand Ireland, begin at its table." },
     { text: "Every Irish dish carries a piece of the island." },
@@ -54,12 +59,13 @@
     { text: "Some cultures are studied. Ireland's can be tasted." },
     { text: "Every Irish recipe is a story that refused to disappear." }
   ];
+
   const promotionsNode = document.getElementById("hero-chef-promotions");
   if (promotionsNode) {
     try {
       const promotions = JSON.parse(promotionsNode.textContent);
       if (Array.isArray(promotions)) {
-        messages.push(...promotions.filter(item => item && item.text));
+        commercialMessages.push(...promotions.filter(item => item && item.text));
       }
     } catch (error) {
       // Keep the built-in messages when promotional data is unavailable.
@@ -137,13 +143,22 @@
 
   const randomBetween = (min, max) => Math.random() * (max - min) + min;
 
-  // Shuffled deck — every message plays once before any repeats
-  let messageDeck = [];
+  // Two shuffle decks — alternate simple ↔ commercial so both pools
+  // exhaust fully before repeating. First pick is simple (greeting).
+  const shuffle = arr => arr.slice().sort(() => Math.random() - 0.5);
+  let simpleDeck = [];
+  let commercialDeck = [];
+  let wantCommercial = false;
+
   function nextMessage() {
-    if (messageDeck.length === 0) {
-      messageDeck = messages.slice().sort(() => Math.random() - 0.5);
+    wantCommercial = !wantCommercial;
+    if (wantCommercial) {
+      if (commercialDeck.length === 0) commercialDeck = shuffle(commercialMessages);
+      return commercialDeck.pop();
+    } else {
+      if (simpleDeck.length === 0) simpleDeck = shuffle(simpleMessages);
+      return simpleDeck.pop();
     }
-    return messageDeck.pop();
   }
 
   function saySomething() {
