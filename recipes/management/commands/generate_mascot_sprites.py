@@ -32,37 +32,42 @@ STRIP_FRAMES = 4
 
 # GreenBear character definition — used in both strip prompts
 CHAR_DEF = (
-    "The character is GreenBear: a friendly cartoon green bear with small round ears, "
-    "large expressive eyes, a warm smile, thick rounded body, short stubby legs. "
-    "He wears a tall white chef hat, a dark brown leather jacket, and a white chef's apron. "
-    "Flat 2D illustration style with clean black outlines, vibrant colours, no shading gradients."
+    "IMPORTANT: The character MUST be an anthropomorphic BEAR — not a human, not a person. "
+    "A cartoon bear standing upright on two legs, with a bear's snout, bear nose, round bear ears on top of the head, "
+    "bear paws as hands, green fur all over the body. "
+    "The bear wears a tall white chef toque hat, a dark brown leather jacket, and a white chef's apron. "
+    "Big friendly eyes, wide smile showing small teeth, chubby round bear belly, short stubby bear legs. "
+    "Flat 2D cartoon illustration style, clean black outlines, vibrant green fur colour. "
+    "Do NOT draw a human. This is a green cartoon bear."
 )
 
 # Single-image prompt for the walk sprite strip
 WALK_STRIP_PROMPT = (
-    f"{CHAR_DEF} "
-    "Draw a horizontal sprite sheet showing exactly 4 frames of a walking animation cycle, "
-    "all frames in a single row, evenly spaced, each frame the same size. "
-    "The character faces left in all frames. "
-    "Frame 1: right leg forward, left arm swung forward — mid-stride. "
-    "Frame 2: both feet together, arms at sides — passing position. "
-    "Frame 3: left leg forward, right arm swung forward — opposite stride. "
-    "Frame 4: both feet together, arms at sides — passing position (slight variation). "
-    "Fully transparent background, each frame isolated with empty space between them, "
-    "characters fully visible head to toe, no text, no labels, no watermark, no border."
+    "A horizontal sprite sheet of a green anthropomorphic cartoon bear chef walking. "
+    "NOT a human — this is a cartoon BEAR with green fur, bear snout, round bear ears, bear paws. "
+    "The bear wears a tall white chef hat, dark leather jacket, white apron. "
+    "Exactly 4 frames in a single horizontal row, evenly spaced, each frame the same width. "
+    "All frames face left. "
+    "Frame 1: bear mid-stride, one paw forward. "
+    "Frame 2: bear upright, both feet together. "
+    "Frame 3: bear mid-stride opposite leg forward. "
+    "Frame 4: bear upright, slightly different arm position. "
+    "Transparent background, full body visible in each frame, no text, no labels, no border. "
+    f"{CHAR_DEF}"
 )
 
 # Single-image prompt for the main sprite strip
 MAIN_STRIP_PROMPT = (
-    f"{CHAR_DEF} "
-    "Draw a horizontal sprite sheet showing exactly 4 poses in a single row, "
-    "evenly spaced, each pose the same size. "
-    "Pose 1: standing idle, arms relaxed at sides, friendly smile, facing slightly left. "
-    "Pose 2: peering curiously to the left, one hand raised to shade eyes. "
-    "Pose 3: sharpening a kitchen knife on a steel rod, both hands raised, focused expression. "
-    "Pose 4: tossing an egg in the air with one hand, looking up at it, other hand on hip. "
-    "Fully transparent background, each pose isolated with empty space between them, "
-    "characters fully visible head to toe, no text, no labels, no watermark, no border."
+    "A horizontal sprite sheet of a green anthropomorphic cartoon bear chef in 4 poses. "
+    "NOT a human — this is a cartoon BEAR with green fur, bear snout, round bear ears, bear paws. "
+    "The bear wears a tall white chef hat, dark leather jacket, white apron. "
+    "Exactly 4 poses in a single horizontal row, evenly spaced, each pose the same width. "
+    "Pose 1: bear standing idle, arms relaxed, friendly smile. "
+    "Pose 2: bear looking left curiously, one paw raised to shade eyes. "
+    "Pose 3: bear sharpening a kitchen knife on a steel rod, both paws raised. "
+    "Pose 4: bear tossing an egg in the air, looking up at it, other paw on hip. "
+    "Transparent background, full body visible in each pose, no text, no labels, no border. "
+    f"{CHAR_DEF}"
 )
 
 
