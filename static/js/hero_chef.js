@@ -221,7 +221,7 @@
     const nextX = randomBetween(48, 90);
     const distance = Math.abs(nextX - previousX);
     const travelTime = Math.max(2.4, distance / 7.5);
-    chef.style.setProperty("--chef-facing", nextX < previousX ? 1 : -1);
+    chef.style.setProperty("--chef-facing", nextX < previousX ? -1 : 1);
     chef.style.setProperty("--chef-travel-time", `${travelTime}s`);
     chef.style.left = `${nextX}%`;
     previousX = nextX;
