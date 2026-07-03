@@ -23,7 +23,12 @@
   background-repeat: no-repeat;
   background-size: 400% 100%;
   display: block;
-  filter: drop-shadow(0 5px 5px rgb(12 20 15 / 0.3));
+  filter:
+    drop-shadow(1px 0 0 #1a1a0a)
+    drop-shadow(-1px 0 0 #1a1a0a)
+    drop-shadow(0 1px 0 #1a1a0a)
+    drop-shadow(0 -1px 0 #1a1a0a)
+    drop-shadow(0 5px 5px rgb(12 20 15 / 0.3));
   height: 100%;
   transform: scaleX(var(--chef-facing, 1));
   transform-origin: center bottom;
