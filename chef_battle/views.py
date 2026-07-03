@@ -1274,10 +1274,14 @@ def battle_detail(request, pk):
         viewer_has_moved = viewer_author.pk in round_chef_ids
         opponent_has_moved = bool(round_chef_ids - {viewer_author.pk})
 
-    from .models import AppreciationGiftType, APPRECIATION_GIFT_COST, APPRECIATION_GIFT_EMOJI
+    from .models import AppreciationGiftType, APPRECIATION_GIFT_COST, APPRECIATION_GIFT_EMOJI, Artifact
     appreciation_gifts = [
         {"type": k, "label": AppreciationGiftType(k).label, "cost": v, "emoji": APPRECIATION_GIFT_EMOJI.get(k, "🎁")}
         for k, v in APPRECIATION_GIFT_COST.items()
+    ]
+    artifact_rarities = [
+        {"rarity": r, "label": Artifact.Rarity(r).label, "cost": Artifact.RARITY_TOKEN_COST[r]}
+        for r in Artifact.Rarity.values
     ]
     viewer_token_balance = 0
     if viewer_author:
@@ -1310,6 +1314,7 @@ def battle_detail(request, pk):
         "viewer_has_moved": viewer_has_moved,
         "opponent_has_moved": opponent_has_moved,
         "appreciation_gifts": appreciation_gifts,
+        "artifact_rarities": artifact_rarities,
         "viewer_token_balance": viewer_token_balance,
         "active_statuses": Battle.ACTIVE_STATUSES,
         "battle_participants": [battle.challenger, battle.opponent],
@@ -1856,6 +1861,69 @@ def send_appreciation_gift_view(request, pk):
             message=request.POST.get("message", ""),
         )
         messages.success(request, f"Gift sent to {recipient.name}!")
+    except Exception as exc:
+        messages.error(request, str(exc))
+    return redirect("chef_battle:battle_detail", pk=pk)
+
+
+@login_required
+@require_POST
+def send_viewer_battle_gift_view(request, pk):
+    """Viewer sends a combat artifact to a chef during an active battle.
+
+    POST params:
+      recipient_slug — slug of the chef to receive the artifact
+      rarity         — one of: common, uncommon, rare, epic, legendary
+                       A random active artifact of that rarity is selected.
+    """
+    import random
+    from .models import Artifact
+    from .services import send_battle_artifact
+
+    sender_author = get_author_for_user(request.user)
+    early_fraud = run_fraud_gates([
+        (gate_suspended_account, (sender_author,), {}),
+        (gate_fraud_flagged, (sender_author,), {}),
+        (gate_age_verified, (sender_author,), {}),
+    ])
+    if not early_fraud.passed:
+        first_fail = next(g for g in early_fraud.gates if not g.passed)
+        _MSGS = {
+            "suspended_account": "Your account is suspended.",
+            "fraud_flagged": "Your account has been flagged. Please contact support.",
+            "age_verified": "You must confirm that you are 18 or older before sending paid gifts.",
+        }
+        messages.error(request, _MSGS.get(first_fail.gate, "Gift not accepted."))
+        return redirect("chef_battle:battle_detail", pk=pk)
+
+    battle = get_object_or_404(Battle, pk=pk)
+    recipient_slug = request.POST.get("recipient_slug", "")
+    rarity = request.POST.get("rarity", "")
+
+    if rarity not in Artifact.Rarity.values:
+        messages.error(request, "Invalid artifact rarity.")
+        return redirect("chef_battle:battle_detail", pk=pk)
+
+    recipient = get_object_or_404(RecipeAuthor, slug=recipient_slug)
+    if not battle.author_is_participant(recipient):
+        messages.error(request, "Invalid recipient.")
+        return redirect("chef_battle:battle_detail", pk=pk)
+
+    # Pick a random active artifact of the requested rarity.
+    candidates = list(Artifact.objects.filter(is_active=True, rarity=rarity))
+    if not candidates:
+        messages.error(request, "No artifacts available at this rarity. Please try another tier.")
+        return redirect("chef_battle:battle_detail", pk=pk)
+    artifact = random.choice(candidates)
+
+    try:
+        send_battle_artifact(
+            sender_user=request.user,
+            recipient=recipient,
+            battle=battle,
+            artifact=artifact,
+        )
+        messages.success(request, f"🎁 {artifact.name} gifted to {recipient.name}!")
     except Exception as exc:
         messages.error(request, str(exc))
     return redirect("chef_battle:battle_detail", pk=pk)

@@ -3492,3 +3492,17 @@ a.battle-home__pulse-msg:hover {
 .arena-teleport-flash {
   animation: arena-teleport-flash 0.6s ease-out forwards;
 }
+
+/* ------------------------------------------------------------------ */
+/* Artifact gift buttons — rarity colour tiers (E1)                    */
+/* ------------------------------------------------------------------ */
+.battle-gifts--artifacts .battle-gift-btn--artifact {
+  font-size: 0.72rem;
+  padding: 0.28rem 0.6rem;
+}
+.battle-gift-btn--common    { border-color: #8a9aa8; color: #8a9aa8; }
+.battle-gift-btn--uncommon  { border-color: #4caf6e; color: #4caf6e; }
+.battle-gift-btn--rare      { border-color: #4a90d9; color: #4a90d9; }
+.battle-gift-btn--epic      { border-color: #9b59b6; color: #9b59b6; }
+.battle-gift-btn--legendary { border-color: #c8942a; color: #c8942a; }
+.battle-gift-btn--legendary .battle-gift-btn__cost { color: #f8d28a; }

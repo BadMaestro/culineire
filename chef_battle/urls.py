@@ -47,6 +47,7 @@ urlpatterns = [
     path("battles/<int:pk>/chat/poll/", views.battle_chat_poll, name="battle_chat_poll"),
     path("profile/<slug:slug>/", views.chef_battle_profile, name="chef_profile"),
     path("battles/<int:pk>/gift/appreciation/", views.send_appreciation_gift_view, name="send_appreciation_gift"),
+    path("battles/<int:pk>/gift/artifact/", views.send_viewer_battle_gift_view, name="send_viewer_battle_gift"),
     path("payout/", views.payout_statement, name="payout_statement"),
     path("payout/agreement/", views.reward_agreement, name="reward_agreement"),
     path("report/", views.content_report_submit, name="content_report_submit"),

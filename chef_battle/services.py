@@ -1018,13 +1018,24 @@ def submit_cooked_photo(*, battle: Battle, author, photo, real_photo_confirmed: 
 # ── Viewer gifts ───────────────────────────────────────────────────────────────
 
 def send_battle_artifact(*, sender_user, recipient, battle: Battle, artifact: Artifact) -> ViewerBattleGift:
-    """Viewer spends tokens to send a battle artifact to a chef in an active battle."""
+    """Viewer spends tokens to send a battle artifact to a chef in an active battle.
+
+    Creates a ViewerBattleGift record and adds the artifact to the chef's inventory
+    (ChefArtifact with source=gifted). Blocks duplicate gifts if the chef already
+    holds an available copy of this exact artifact.
+    """
     if battle.status not in Battle.ACTIVE_STATUSES:
         raise ValueError("Cannot send battle gifts to a battle that is not active.")
     if not battle.author_is_participant(recipient):
         raise ValueError("Recipient must be a participant in this battle.")
     if not artifact.is_active:
         raise ValueError("This artifact is not available.")
+
+    already_has = ChefArtifact.objects.filter(
+        chef=recipient, artifact=artifact, status=ChefArtifact.Status.AVAILABLE
+    ).exists()
+    if already_has:
+        raise ValueError(f"{recipient.name} already has an unused copy of {artifact.name}.")
 
     sender_author = getattr(sender_user, "recipe_author", None)
     if sender_author is None:
@@ -1047,6 +1058,12 @@ def send_battle_artifact(*, sender_user, recipient, battle: Battle, artifact: Ar
             sender=sender_user,
             artifact=artifact,
             tokens_spent=cost,
+        )
+        # Add artifact to chef's inventory so they can use it in combat.
+        ChefArtifact.objects.update_or_create(
+            chef=recipient,
+            artifact=artifact,
+            defaults={"source": ChefArtifact.Source.GIFTED, "status": ChefArtifact.Status.AVAILABLE},
         )
     return gift
 

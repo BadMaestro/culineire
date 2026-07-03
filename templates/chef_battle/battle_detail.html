@@ -373,6 +373,33 @@
       </section>
       {% endif %}
 
+      {# ── Battle Artifact Gifts ── #}
+      {% if request.user.is_authenticated and artifact_rarities and battle.status in active_statuses %}
+      <section class="battle-panel battle-gifts battle-gifts--artifacts">
+        <h2 class="battle-panel__title">&#x2694; Send a Battle Artifact</h2>
+        <p class="battle-gifts__balance">Balance: <strong>{{ viewer_token_balance }}T</strong></p>
+        <p class="battle-gifts__note" style="margin-block-end:0.75rem;">A random artifact of the chosen rarity is gifted to the chef's combat inventory instantly.</p>
+        {% for chef in battle_participants %}
+        <div class="battle-gifts__chef">
+          <strong class="battle-gifts__chef-name">&#x1F4E6; {{ chef.name }}</strong>
+          <div class="battle-gifts__buttons">
+            {% for tier in artifact_rarities %}
+            <form method="post" action="{% url 'chef_battle:send_viewer_battle_gift' battle.pk %}">
+              {% csrf_token %}
+              <input type="hidden" name="recipient_slug" value="{{ chef.slug }}">
+              <input type="hidden" name="rarity" value="{{ tier.rarity }}">
+              <button type="submit" class="battle-gift-btn battle-gift-btn--artifact battle-gift-btn--{{ tier.rarity }}" {% if viewer_token_balance < tier.cost %}disabled title="Not enough tokens"{% endif %}>
+                {{ tier.label }}<span class="battle-gift-btn__cost">{{ tier.cost }}T</span>
+              </button>
+            </form>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+        <p class="battle-gifts__note">Combat artifacts are one-use digital items. Once used in battle they are consumed.</p>
+      </section>
+      {% endif %}
+
       {# ── Combat panel — participants, ACTIVE only ── #}
       {% if is_participant and battle.status == "active" %}
       <section class="battle-panel battle-combat" id="battle-combat-panel"
