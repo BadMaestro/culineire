@@ -1,6 +1,7 @@
 from datetime import date
 
 from django.conf import settings
+from django.core.cache import cache
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -43,6 +44,59 @@ class PublicTechnicalPagesTests(TestCase):
 
         css_path = settings.BASE_DIR / "static" / "css" / "hero_chef.css"
         self.assertIn("display: block;", css_path.read_text(encoding="utf-8"))
+
+    def test_hero_chef_promotions_link_latest_public_content_and_sponsor(self):
+        from sponsors.models import SponsorCell
+
+        author = RecipeAuthor.objects.create(name="Chef Promoter", slug="chef-promoter")
+        recipe = Recipe.objects.create(
+            title="Newest Recipe",
+            slug="newest-recipe",
+            author=author,
+            ingredients="One ingredient",
+            method="Cook it",
+            status=Recipe.Status.APPROVED,
+        )
+        article = Article.objects.create(
+            title="Newest Article",
+            slug="newest-article",
+            author=author,
+            body="Article body",
+            published=date.today(),
+            status=Article.Status.APPROVED,
+        )
+        SponsorCell.objects.create(
+            cell_number=1,
+            ring=0,
+            position_in_ring=0,
+            status=SponsorCell.Status.ACTIVE,
+            sponsor_name="Kitchen Partner",
+            sponsor_url="https://sponsor.example/",
+        )
+        cache.delete("hero_chef_promotions_v1")
+
+        response = self.client.get(reverse("about"))
+        promotions = response.context["hero_chef_promotions"]
+        promotions_by_text = {item["text"]: item["url"] for item in promotions}
+
+        self.assertEqual(
+            promotions_by_text["Have you read our latest article yet?"],
+            article.get_absolute_url(),
+        )
+        self.assertEqual(
+            promotions_by_text["Have you seen our latest recipe yet?"],
+            recipe.get_absolute_url(),
+        )
+        self.assertEqual(
+            promotions_by_text[
+                "Our sponsor this month is Kitchen Partner, A huge thank you for their support!"
+            ],
+            "https://sponsor.example/",
+        )
+        self.assertEqual(
+            promotions_by_text["I don’t accept tips! Want to thank me?"],
+            "https://buymeacoffee.com/bearcave",
+        )
 
     def test_robots_txt_points_to_sitemap_and_blocks_private_paths(self):
         response = self.client.get(reverse("robots_txt"))

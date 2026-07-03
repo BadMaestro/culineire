@@ -10,21 +10,32 @@
   }
 
   const messages = [
-    "Hello!",
-    "What's cooking?",
-    "Welcome to CulinEire!",
-    "Mind the hot pan!",
-    "A sharp knife is a safe knife.",
-    "My favourite Chef is GreenBear.",
-    "You can't even make scrambled eggs?",
-    "Think you can cook it better? Prove it!"
+    { text: "Hello!" },
+    { text: "What's cooking?" },
+    { text: "Welcome to CulinEire!" },
+    { text: "Mind the hot pan!" },
+    { text: "A sharp knife is a safe knife." },
+    { text: "My favourite Chef is GreenBear." },
+    { text: "You can't even make scrambled eggs?" },
+    { text: "Think you can cook it better? Prove it!" }
   ];
+  const promotionsNode = document.getElementById("hero-chef-promotions");
+  if (promotionsNode) {
+    try {
+      const promotions = JSON.parse(promotionsNode.textContent);
+      if (Array.isArray(promotions)) {
+        messages.push(...promotions.filter(item => item && item.text));
+      }
+    } catch (error) {
+      // Keep the built-in messages when promotional data is unavailable.
+    }
+  }
   const chef = document.createElement("div");
   chef.className = "hero-chef";
   chef.dataset.pose = "walk-a";
   chef.setAttribute("aria-label", "Animated CulinEire chef");
   chef.innerHTML = `
-    <span class="hero-chef__speech" role="status"></span>
+    <a class="hero-chef__speech" role="status" aria-live="polite"></a>
     <span class="hero-chef__sprite" aria-hidden="true"></span>
     <button class="hero-chef__close" type="button" aria-label="Hide animated chef" title="Hide animated chef">
       <svg aria-hidden="true" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -43,12 +54,29 @@
   const randomBetween = (min, max) => Math.random() * (max - min) + min;
 
   function saySomething() {
-    speech.textContent = messages[Math.floor(Math.random() * messages.length)];
+    const message = messages[Math.floor(Math.random() * messages.length)];
+    speech.textContent = message.text;
+    if (message.url) {
+      speech.href = message.url;
+      speech.dataset.linked = "true";
+      if (/^https?:\/\//.test(message.url)) {
+        speech.target = "_blank";
+        speech.rel = "noopener noreferrer";
+      } else {
+        speech.removeAttribute("target");
+        speech.removeAttribute("rel");
+      }
+    } else {
+      speech.removeAttribute("href");
+      speech.removeAttribute("target");
+      speech.removeAttribute("rel");
+      speech.dataset.linked = "false";
+    }
     chef.dataset.speaking = "true";
     window.clearTimeout(speechTimer);
     speechTimer = window.setTimeout(() => {
       chef.dataset.speaking = "false";
-    }, 4600);
+    }, Math.max(4600, message.text.length * 65));
   }
 
   function performTrick() {

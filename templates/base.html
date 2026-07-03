@@ -447,6 +447,7 @@
 
 <script defer src="{% static 'js/main.js' %}"></script>
 <script defer src="{% static 'js/presence.js' %}"></script>
+{{ hero_chef_promotions|json_script:"hero-chef-promotions" }}
 <script defer src="{% static 'js/hero_chef.js' %}"></script>
 {% block extra_js %}{% endblock %}
 

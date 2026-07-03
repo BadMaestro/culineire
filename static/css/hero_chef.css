@@ -63,8 +63,10 @@
   min-width: max-content;
   opacity: 0;
   padding: 0.48rem 0.65rem;
+  pointer-events: none;
   position: absolute;
   text-align: center;
+  text-decoration: none;
   transform: translate(-50%, 6px);
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
@@ -85,6 +87,14 @@
 .hero-chef[data-speaking="true"] .hero-chef__speech {
   opacity: 1;
   transform: translate(-50%, 0);
+}
+
+.hero-chef[data-speaking="true"] .hero-chef__speech[data-linked="true"] {
+  cursor: pointer;
+  pointer-events: auto;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
 }
 
 .hero-chef__close {

@@ -1,4 +1,78 @@
 from django.conf import settings
+from django.core.cache import cache
+from django.urls import reverse
+
+
+def hero_chef_promotions(request):
+    """Build cached promotional messages for the animated hero chef."""
+    cache_key = "hero_chef_promotions_v1"
+    promotions = cache.get(cache_key)
+    if promotions is None:
+        try:
+            from articles.models import Article
+            from recipes.models import Recipe
+            from sponsors.models import SponsorCell
+
+            promotions = []
+            latest_article = (
+                Article.objects.filter(status=Article.Status.APPROVED, is_deleted=False)
+                .order_by("-published", "-pk")
+                .values("slug")
+                .first()
+            )
+            if latest_article:
+                promotions.append({
+                    "text": "Have you read our latest article yet?",
+                    "url": reverse("articles:article_detail", args=[latest_article["slug"]]),
+                })
+
+            latest_recipe = (
+                Recipe.objects.filter(status=Recipe.Status.APPROVED, is_deleted=False)
+                .order_by("-created_at", "-pk")
+                .values("slug")
+                .first()
+            )
+            if latest_recipe:
+                promotions.append({
+                    "text": "Have you seen our latest recipe yet?",
+                    "url": reverse("recipes:recipe_detail", kwargs={"slug": latest_recipe["slug"]}),
+                })
+
+            if getattr(settings, "CHEF_BATTLE_ENABLED", False):
+                promotions.append({
+                    "text": "Do you know who’s competing in Chef Battles right now?",
+                    "url": reverse("chef_battle:arena"),
+                })
+
+            sponsor = (
+                SponsorCell.objects.filter(
+                    ring=0,
+                    status__in=[SponsorCell.Status.ACTIVE, SponsorCell.Status.SOLD],
+                )
+                .values("sponsor_name", "sponsor_url")
+                .first()
+            )
+            if sponsor and sponsor["sponsor_name"]:
+                promotions.append({
+                    "text": (
+                        f"Our sponsor this month is {sponsor['sponsor_name']}, "
+                        "A huge thank you for their support!"
+                    ),
+                    "url": sponsor["sponsor_url"] or reverse("sponsors:puzzle"),
+                })
+
+            promotions.append({
+                "text": "I don’t accept tips! Want to thank me?",
+                "url": "https://buymeacoffee.com/bearcave",
+            })
+            cache.set(cache_key, promotions, 300)
+        except Exception:
+            promotions = [{
+                "text": "I don’t accept tips! Want to thank me?",
+                "url": "https://buymeacoffee.com/bearcave",
+            }]
+
+    return {"hero_chef_promotions": promotions}
 
 
 def hero_battle_panel(request):
