@@ -218,7 +218,7 @@
       return;
     }
 
-    const nextX = randomBetween(48, 90);
+    const nextX = randomBetween(62, 88);
     const distance = Math.abs(nextX - previousX);
     const travelTime = Math.max(2.4, distance / 7.5);
     chef.style.setProperty("--chef-facing", nextX < previousX ? -1 : 1);
