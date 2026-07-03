@@ -1650,11 +1650,14 @@ def author_detail(request, slug):
 
 def _is_protected_author_action(author, user):
     linked_user = getattr(author, "user", None)
-    return (
-        author.slug == settings.OWNER_SLUG
-        or author.user_id == getattr(user, "pk", None)
-        or bool(linked_user and linked_user.is_superuser)
-    )
+    if author.slug == settings.OWNER_SLUG:
+        return True
+    if author.user_id == getattr(user, "pk", None):
+        return True
+    # Superuser targets are protected from regular moderators, but not from other superusers
+    if linked_user and linked_user.is_superuser and not getattr(user, "is_superuser", False):
+        return True
+    return False
 
 
 def _delete_author_profile_and_account(author):
