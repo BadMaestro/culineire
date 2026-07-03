@@ -1,7 +1,7 @@
 .hero-chef {
-  --chef-size: clamp(112px, 8.5vw, 154px);
+  --chef-size: clamp(56px, 14vw, 154px);
   bottom: -0.8%;
-  display: none;
+  display: block;
   height: var(--chef-size);
   left: 72%;
   pointer-events: auto;
@@ -10,14 +10,8 @@
   z-index: 4;
 }
 
-@media (min-width: 1024px) {
-  .hero-chef {
-    display: block;
-  }
-
-  .hero-chef[data-walking="true"] {
-    transition: left var(--chef-travel-time, 4s) linear;
-  }
+.hero-chef[data-walking="true"] {
+  transition: left var(--chef-travel-time, 4s) linear;
 }
 
 .hero-chef__sprite {

@@ -2,10 +2,9 @@
   "use strict";
 
   const hero = document.querySelector("main .hero");
-  const desktop = window.matchMedia("(min-width: 1024px)");
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-  if (!hero || !desktop.matches || sessionStorage.getItem("heroChefDismissed") === "1") {
+  if (!hero || sessionStorage.getItem("heroChefDismissed") === "1") {
     return;
   }
 
@@ -218,7 +217,7 @@
   }
 
   function startWalk() {
-    if (!desktop.matches || reducedMotion.matches) {
+    if (reducedMotion.matches) {
       chef.dataset.walking = "false";
       chef.dataset.pose = "walk-a";
       return;
@@ -267,11 +266,6 @@
   }
 
   close.addEventListener("click", dismiss);
-  desktop.addEventListener("change", event => {
-    if (!event.matches) {
-      dismiss();
-    }
-  });
 
   if (reducedMotion.matches) {
     chef.dataset.pose = "walk-a";
