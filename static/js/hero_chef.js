@@ -15,9 +15,9 @@
     "Welcome to CulinEire!",
     "Mind the hot pan!",
     "A sharp knife is a safe knife.",
-    "My favourite Chef is: GreenBear",
-    "You don't know even how to make a Scramble?",
-    "Can you cook it better? Prove it!"
+    "My favourite Chef is GreenBear.",
+    "You can't even make scrambled eggs?",
+    "Think you can cook it better? Prove it!"
   ];
   const chef = document.createElement("div");
   chef.className = "hero-chef";
