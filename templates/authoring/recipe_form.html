@@ -30,12 +30,12 @@
             <div class="hero__actions">
                 {% if form_mode != "edit" and request.user.is_authenticated %}
                 {% if request.user.is_staff or request.user.is_superuser %}
-                <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}">&larr; Back</a>
+                <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}">Back</a>
                 <a class="btn-primary" href="{% url 'recipes:generate_recipe' %}">Generate AI Recipe</a>
                 <a class="btn-secondary" href="{% url 'recipes:recipe_create_from_screenshot' %}">Generate Screen Recipe</a>
                 <a class="btn-secondary" href="{% url 'recipes:recipe_studio' %}">&#x2728; Recipe Studio</a>
                 {% else %}
-                <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}">&larr; Back</a>
+                <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}">Back</a>
                 {% if can_view_pinch_public_area %}
                 <a class="btn-primary" href="{% url 'pinch:feed' %}">Pinch</a>
                 {% endif %}
