@@ -1,9 +1,8 @@
 """
 Generate GreenBear chef mascot sprite strips for the hero animation.
 
-Each strip is generated as a SINGLE image request (all 4 frames side by side
-in one 1024×1024 canvas) so that OpenAI renders the character consistently
-across all frames. The resulting image is then sliced into individual frames.
+Generates frames individually (one OpenAI call per frame) then composes
+into two 4-frame horizontal sprite strips:
 
   hero-chef.webp       — idle, look, sharpen, egg-toss  (main sprite)
   hero-chef-walk.webp  — 4 walking frames               (walk sprite)
@@ -30,63 +29,53 @@ FRAME_W = 310
 FRAME_H = 496
 STRIP_FRAMES = 4
 
-# GreenBear character definition — used in both strip prompts
-CHAR_DEF = (
-    "IMPORTANT: The character MUST be an anthropomorphic BEAR — not a human, not a person. "
-    "A cartoon bear standing upright on two legs, with a bear's snout, bear nose, round bear ears on top of the head, "
-    "bear paws as hands, green fur all over the body. "
-    "The bear wears a tall white chef toque hat, a dark brown leather jacket, and a white chef's apron. "
-    "Big friendly eyes, wide smile showing small teeth, chubby round bear belly, short stubby bear legs. "
-    "Flat 2D cartoon illustration style, clean black outlines, vibrant green fur colour. "
-    "Do NOT draw a human. This is a green cartoon bear."
+# Core character description — must produce a green cartoon bear, not a human
+CHAR = (
+    "anthropomorphic cartoon GREEN BEAR standing upright. "
+    "NOT a human. A bear: green fur, bear snout, bear nose, round bear ears on top of head, "
+    "bear paws as hands. Wears a tall white chef toque hat, dark brown leather jacket, white apron. "
+    "Chubby round belly, short stubby legs, large friendly eyes, wide smile. "
+    "Facing LEFT. Full body visible. Transparent background. "
+    "Flat 2D cartoon style, clean black outlines. No text, no watermark, no shadow on ground."
 )
 
-# Single-image prompt for the walk sprite strip
-WALK_STRIP_PROMPT = (
-    "A horizontal sprite sheet of a green anthropomorphic cartoon bear chef walking. "
-    "NOT a human — this is a cartoon BEAR with green fur, bear snout, round bear ears, bear paws. "
-    "The bear wears a tall white chef hat, dark leather jacket, white apron. "
-    "Exactly 4 frames in a single horizontal row, evenly spaced, each frame the same width. "
-    "All frames face left. "
-    "Frame 1: bear mid-stride, one paw forward. "
-    "Frame 2: bear upright, both feet together. "
-    "Frame 3: bear mid-stride opposite leg forward. "
-    "Frame 4: bear upright, slightly different arm position. "
-    "Transparent background, full body visible in each frame, no text, no labels, no border. "
-    f"{CHAR_DEF}"
-)
+WALK_PROMPTS = [
+    f"Cartoon green bear chef walking LEFT, right paw stepping forward, left arm swung back, mid-stride. {CHAR}",
+    f"Cartoon green bear chef walking LEFT, both feet close together, upright position, arms at sides. {CHAR}",
+    f"Cartoon green bear chef walking LEFT, left paw stepping forward, right arm swung back, opposite stride. {CHAR}",
+    f"Cartoon green bear chef walking LEFT, both feet together, slight bounce, arms loosely at sides. {CHAR}",
+]
 
-# Single-image prompt for the main sprite strip
-MAIN_STRIP_PROMPT = (
-    "A horizontal sprite sheet of a green anthropomorphic cartoon bear chef in 4 poses. "
-    "NOT a human — this is a cartoon BEAR with green fur, bear snout, round bear ears, bear paws. "
-    "The bear wears a tall white chef hat, dark leather jacket, white apron. "
-    "Exactly 4 poses in a single horizontal row, evenly spaced, each pose the same width. "
-    "Pose 1: bear standing idle, arms relaxed, friendly smile. "
-    "Pose 2: bear looking left curiously, one paw raised to shade eyes. "
-    "Pose 3: bear sharpening a kitchen knife on a steel rod, both paws raised. "
-    "Pose 4: bear tossing an egg in the air, looking up at it, other paw on hip. "
-    "Transparent background, full body visible in each pose, no text, no labels, no border. "
-    f"{CHAR_DEF}"
-)
+MAIN_PROMPTS = [
+    f"Cartoon green bear chef standing idle, arms relaxed at sides, friendly smile, facing LEFT. {CHAR}",
+    f"Cartoon green bear chef looking LEFT with curiosity, one paw raised to shade eyes, peering into distance. {CHAR}",
+    f"Cartoon green bear chef sharpening a kitchen knife on a steel rod, both paws raised, focused expression, facing LEFT. {CHAR}",
+    f"Cartoon green bear chef tossing an egg in the air with one paw, looking up at the egg, other paw on hip, facing LEFT. {CHAR}",
+]
 
 
-def _slice_strip(raw: bytes, out_w: int, out_h: int, n: int) -> bytes:
-    """Slice a generated sprite-sheet image into n equal columns, resize, save as WebP."""
+def _frame_to_strip_cell(raw: bytes, out_w: int, out_h: int) -> "Image":
+    """Convert raw image bytes into a single sprite cell (RGBA, out_w × out_h)."""
     from PIL import Image
 
-    src = Image.open(io.BytesIO(raw)).convert("RGBA")
-    sw, sh = src.size
-    col_w = sw // n
+    img = Image.open(io.BytesIO(raw)).convert("RGBA")
+    # Scale to fit within the cell, preserving aspect ratio
+    img.thumbnail((out_w, out_h), Image.LANCZOS)
+    cell = Image.new("RGBA", (out_w, out_h), (0, 0, 0, 0))
+    x_off = (out_w - img.width) // 2
+    y_off = out_h - img.height  # pin to bottom
+    cell.paste(img, (x_off, y_off), img)
+    return cell
 
-    strip = Image.new("RGBA", (out_w * n, out_h), (0, 0, 0, 0))
-    for i in range(n):
-        frame = src.crop((i * col_w, 0, (i + 1) * col_w, sh))
-        frame.thumbnail((out_w, out_h), Image.LANCZOS)
-        x_off = i * out_w + (out_w - frame.width) // 2
-        y_off = out_h - frame.height
-        strip.paste(frame, (x_off, y_off), frame)
 
+def _compose_strip(cells) -> bytes:
+    """Paste sprite cells into a horizontal strip and encode as WebP."""
+    from PIL import Image
+
+    n = len(cells)
+    strip = Image.new("RGBA", (FRAME_W * n, FRAME_H), (0, 0, 0, 0))
+    for i, cell in enumerate(cells):
+        strip.paste(cell, (i * FRAME_W, 0))
     buf = io.BytesIO()
     strip.save(buf, format="WEBP", lossless=False, quality=85, method=6)
     return buf.getvalue()
@@ -118,28 +107,32 @@ class Command(BaseCommand):
 
         tasks = []
         if only in (None, "walk"):
-            tasks.append(("walk", WALK_STRIP_PROMPT, dest_dir / "hero-chef-walk.webp"))
+            tasks.append(("walk", WALK_PROMPTS, dest_dir / "hero-chef-walk.webp"))
         if only in (None, "main"):
-            tasks.append(("main", MAIN_STRIP_PROMPT, dest_dir / "hero-chef.webp"))
+            tasks.append(("main", MAIN_PROMPTS, dest_dir / "hero-chef.webp"))
 
-        for label, prompt, dest in tasks:
+        for label, prompts, dest in tasks:
             if dest.exists() and not force:
                 self.stdout.write(self.style.WARNING(
-                    f"  skip  {dest.name} (already exists — use --force to regenerate)"
+                    f"  skip  {dest.name} (use --force to regenerate)"
                 ))
                 continue
 
-            self.stdout.write(f"\n[{label}] Generating sprite sheet …", ending="")
-            self.stdout.flush()
-            try:
-                raw = fetch_image_bytes(prompt)
-                self.stdout.write(self.style.SUCCESS(f" ok ({len(raw) // 1024}kb)"))
-            except Exception as exc:
-                raise CommandError(f"[{label}] generation failed: {exc}") from exc
+            self.stdout.write(f"\n[{label}] Generating {len(prompts)} frames …")
+            cells = []
+            for idx, prompt in enumerate(prompts):
+                self.stdout.write(f"  frame {idx} …", ending="")
+                self.stdout.flush()
+                try:
+                    raw = fetch_image_bytes(prompt)
+                    cells.append(_frame_to_strip_cell(raw, FRAME_W, FRAME_H))
+                    self.stdout.write(self.style.SUCCESS(f" ok ({len(raw) // 1024}kb)"))
+                except Exception as exc:
+                    raise CommandError(f"Frame {idx} failed: {exc}") from exc
 
-            self.stdout.write(f"  slicing and composing strip …", ending="")
+            self.stdout.write(f"  composing strip …", ending="")
             self.stdout.flush()
-            strip_bytes = _slice_strip(raw, FRAME_W, FRAME_H, STRIP_FRAMES)
+            strip_bytes = _compose_strip(cells)
             dest.write_bytes(strip_bytes)
             self.stdout.write(self.style.SUCCESS(
                 f" saved {dest.name} ({len(strip_bytes) // 1024}kb)"
