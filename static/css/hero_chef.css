@@ -1,6 +1,6 @@
 .hero-chef {
   --chef-size: clamp(112px, 8.5vw, 154px);
-  bottom: -1.5%;
+  bottom: -1%;
   display: none;
   height: var(--chef-size);
   left: 72%;
