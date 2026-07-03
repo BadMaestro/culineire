@@ -133,10 +133,18 @@
     searchInput.value = "";
   }
 
-  chef.addEventListener("contextmenu", (e) => {
-    e.preventDefault();
-    openSearch();
-  });
+  const isTouch = window.matchMedia("(pointer: coarse)").matches;
+  if (isTouch) {
+    chef.addEventListener("click", (e) => {
+      if (e.target.closest(".hero-chef__close") || e.target.closest(".hero-chef__speech")) return;
+      openSearch();
+    });
+  } else {
+    chef.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      openSearch();
+    });
+  }
   document.addEventListener("click", (e) => {
     if (!searchPopup.hidden && !chef.contains(e.target)) closeSearch();
   });
