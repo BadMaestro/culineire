@@ -1519,6 +1519,18 @@
    Only applies on mobile (≤640px) on the Pinch feed page.
    ================================================================ */
 @media (max-width: 640px) {
+  /* ── 0. Root snap scroller ── */
+  /* The DOCUMENT itself scrolls and snaps: iOS Safari only collapses its
+     address bar on real document scroll, never on inner-div scroll. Snap
+     properties must live on html — iOS ignores them on body for the
+     viewport scroller. scroll-padding-top keeps each snapped card below
+     the sticky header + filter bar. */
+  html:has(.hero--pinch) {
+    scroll-snap-type: y mandatory;
+    scroll-padding-top: var(--sticky-offset, 100px);
+    overscroll-behavior-y: none;
+  }
+
   /* ── 1. Hide hero — feed is immediately visible (true TikTok UX) ── */
   .hero--pinch {
     display: none;
@@ -1548,8 +1560,11 @@
 
   /* ── 4. Filter bar — flex row: [arrow] [track] [arrow] ── */
   .hero--pinch + .recipe-list-page .category-nav-block {
-    /* override base negative-margin / inline-padding (container is now 0) */
+    /* override base negative-margin / inline-padding (container is now 0);
+       margin-block must be 0 too — any gap between the filter bar and the
+       first card breaks the exact snap tiling of the document scroller */
     margin-inline: 0;
+    margin-block: 0;
     padding-inline: 0;
     padding-block: 0;
     /* flex ROW to seat the inline arrows — base rule stacks this block
@@ -1633,6 +1648,8 @@
     z-index: 145;
     max-height: 82vh;
     overflow-y: auto;
+    /* inner sheet scroll must never chain into the document feed */
+    overscroll-behavior: contain;
     border-radius: 20px 20px 0 0;
     transform: translateY(100%);
     transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
@@ -1688,6 +1705,7 @@
     color: rgba(255, 255, 255, 0.52);
     filter: drop-shadow(0 1px 5px rgba(0, 0, 0, 0.75));
     -webkit-tap-highlight-color: transparent;
+    /* drag handle — touches on it must never scroll the feed */
     touch-action: none;
     /* rides up to the sheet's top edge when the footer opens */
     transition: bottom 0.38s cubic-bezier(0.32, 0.72, 0, 1),
@@ -1697,6 +1715,16 @@
     animation-delay: 3s;
   }
 
+  /* Invisible hit area — the visible handle is only ~88x40px; this widens
+     the effective drag target to ~136x60px (over Apple's 44pt minimum) */
+  .pinch-footer-handle::before {
+    content: '';
+    position: absolute;
+    top: -16px;
+    left: -24px;
+    right: -24px;
+    bottom: -4px;
+  }
   /* Icon flips 180° when footer is open — "tap to close" cue */
   .pinch-footer-handle__icon {
     transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
@@ -1720,10 +1748,15 @@
     display: none;
   }
 
-  /* ── 8. Snap container fills remaining viewport exactly ── */
+  /* ── 8. Cards flow in the document — the ROOT is the snap scroller ── */
+  /* Both wrappers must stop constraining/clipping so cards live in the
+     document flow. Their only job now is neutralising the desktop frame
+     styling and the two base rules that would otherwise silently keep
+     .ab-grid-scroll a nested scroller (iOS would then eat the swipes and
+     the address bar would never collapse). */
   .hero--pinch + .recipe-list-page .recipe-vscroll-wrap {
-    height: calc(100dvh - var(--sticky-offset, 100px));
-    overflow: hidden;
+    height: auto;
+    overflow: visible;
     /* frame styling belongs to the desktop grid — full-bleed here */
     border: none;
     border-radius: 0;
@@ -1731,18 +1764,16 @@
   }
 
   .hero--pinch + .recipe-list-page .ab-grid-scroll {
-    height: 100%;
+    height: auto;
+    /* !important still needed: beats the inline maxHeight sizeAbGrid may
+       have written at a desktop width before a resize down */
     max-height: none !important;
     /* base .recipe-vscroll carries ~19px inset padding — kill it so the
        card photo truly reaches the viewport edges */
     padding: 0;
-    overflow-y: scroll;
-    scroll-snap-type: y mandatory;
-    overscroll-behavior: contain;
-    scrollbar-width: none;
-  }
-  .hero--pinch + .recipe-list-page .ab-grid-scroll::-webkit-scrollbar {
-    display: none;
+    overflow: visible;
+    scroll-snap-type: none;
+    overscroll-behavior: auto;
   }
 
   /* Single column, no gap */
@@ -1751,22 +1782,31 @@
     gap: 0;
   }
 
-  /* Each card snaps to fill the full container height */
+  /* Each card snaps to fill the viewport below the sticky chrome.
+     lvh (largest viewport) — NOT dvh — so snap geometry never changes
+     mid-scroll: the layout is sized for the collapsed-chrome state and
+     Safari's first downward swipe simply reveals the pre-reserved space.
+     dvh would resize every card on each toolbar transition and force a
+     visible mandatory re-snap. scroll-snap-stop makes a hard fling
+     advance exactly one card, TikTok-style. */
   .hero--pinch + .recipe-list-page .ab-card {
-    height: calc(100dvh - var(--sticky-offset, 100px));
+    height: calc(100lvh - var(--sticky-offset, 100px));
     aspect-ratio: unset !important;
     scroll-snap-align: start;
+    scroll-snap-stop: always;
     border: none;
     border-radius: 0;
     margin: 0;
   }
 
-  /* Safari address-bar collapse: body must be 1px taller than the viewport
-     so Safari sees it as scrollable and hides its chrome on upward swipe.
-     JS in main.js snaps scrollY back to 0 so the layout never actually shifts. */
-  body:has(.hero--pinch) {
-    overflow-y: scroll;
-    min-height: calc(100dvh + 1px);
+  /* ── 9. Overlay isolation — the root now really scrolls, so gestures on
+     fixed overlays would chain into the feed without these guards ── */
+  .pinch-footer-scrim,
+  .ab-cmt-scrim {
+    touch-action: none;
+  }
+  .ab-cmt-panel {
+    overscroll-behavior: contain;
   }
 }
 

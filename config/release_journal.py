@@ -1,5 +1,81 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.78",
+        "date": "2026-07-03",
+        "commit": "pending",
+        "title": "Pinch: root snap scroller (real Safari address-bar collapse) + filter self-heal",
+        "section": "Pinch / Mobile TikTok feed",
+        "summary": (
+            "Proper rework of v2.5.74's two broken fixes, designed via "
+            "multi-agent diagnosis. (1) Root scroller: iOS Safari only "
+            "collapses its address bar on DOCUMENT scroll, never on an inner "
+            "div — and overscroll-behavior:contain on the old inner scroller "
+            "blocked chaining entirely, so the 1px body hack was dead on "
+            "arrival (deleted along with its scrollTo(0,0) snapback IIFE, "
+            "which would have pinned the refactored feed to card 1). Now "
+            "html:has(.hero--pinch) carries scroll-snap-type:y mandatory + "
+            "scroll-padding-top:var(--sticky-offset); the wrappers are "
+            "overflow:visible/height:auto so cards flow in the document; "
+            "cards are 100lvh minus sticky offset (static geometry — no "
+            "re-snap jumps on toolbar transitions; the first swipe collapses "
+            "the bar and each card then exactly fills the screen) with "
+            "scroll-snap-stop:always. unlockScroll now restores scrollY "
+            "unconditionally (document scroll IS the feed position). "
+            "Comments panel locks html overflow too (iOS ignores body-only). "
+            "Scrims get touch-action:none; footer/comments get "
+            "overscroll-behavior:contain so overlays never scroll the feed. "
+            "(2) Filter carousel self-heal: on iOS the whole-item "
+            "visibility/centering module could freeze with stale state "
+            "(bfcache restores move scrollLeft without firing scroll/resize "
+            "events) leaving categories half-clipped under the arrows. Added "
+            "a pageshow handler plus a 600ms idle watchdog that re-runs the "
+            "idempotent update(true) — any missed state repairs itself "
+            "within a second. (3) Bottom sheet: keeps Bolt's v2.5.76/77 "
+            "Pointer Events handle drag (unchanged); the crude v2.5.74 "
+            "document-wide bottom-80px swipe trigger is gone with the IIFE "
+            "merge; handle gains a ~136x60px invisible hit area."
+        ),
+        "checklist": [
+            "pinch.css: html:has(.hero--pinch) snap root; wrappers overflow:visible; cards 100lvh + scroll-snap-stop",
+            "pinch.css: 1px body hack deleted; footer overscroll contain; scrim touch-action none; handle hit-area",
+            "main.js: snapback IIFE deleted; unlockScroll unconditional restore; html overflow lock in comments panel",
+            "main.js: filter module gains pageshow + 600ms idle watchdog (self-heal, idempotent)",
+            "Verified pre-deploy in Chrome 390px: doc snap 680px/card exact, sticky pinned, watchdog heals corrupted state",
+            "Safari address-bar collapse needs on-device check by owner",
+        ],
+        "deployment_status": "pending deployment",
+    },
+    {
+        "version": "2.5.77",
+        "date": "2026-07-03",
+        "commit": "pending",
+        "title": "Pinch footer — shimmer on arrow colour, lower swipe threshold",
+        "section": "Pinch / Mobile TikTok feed",
+        "summary": (
+            "(Bolt) Follow-up tuning of the v2.5.76 drag: tricolour shimmer "
+            "moved to the SVG arrow colour, swipe threshold lowered "
+            "(SWIPE_MIN 28px, VELOCITY 0.25px/ms)."
+        ),
+        "checklist": ["main.js + pinch.css tuning; deployed by Bolt"],
+        "deployment_status": "deployed",
+    },
+    {
+        "version": "2.5.76",
+        "date": "2026-07-03",
+        "commit": "pending",
+        "title": "Pinch footer — Pointer Events drag + tricolour shimmer",
+        "section": "Pinch / Mobile TikTok feed",
+        "summary": (
+            "(Bolt) Footer drawer handle became a Pointer Events drag target "
+            "with pointer capture, finger-follow transform, momentum-aware "
+            "snap and ghost-click guard; footer body swipe-down closes when "
+            "its inner scroll is at top. Irish tricolour shimmer animation "
+            "on the handle."
+        ),
+        "checklist": ["main.js: pointerdown/move/up/cancel drag; deployed by Bolt"],
+        "deployment_status": "deployed",
+    },
+    {
         "version": "2.5.74",
         "date": "2026-07-03",
         "commit": "pending",

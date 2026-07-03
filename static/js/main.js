@@ -61,10 +61,10 @@ document.addEventListener("DOMContentLoaded", () => {
       document.body.style.top      = "";
       document.body.style.left     = "";
       document.body.style.right    = "";
-      // On mobile Pinch snap mode the body scroll is always ~0 (hero is hidden),
-      // so restoring scrollY would incorrectly trigger the snap container scroll.
-      const isPinchSnap = window.innerWidth <= 640 && document.querySelector(".hero--pinch");
-      if (!isPinchSnap) window.scrollTo(0, _scrollY);
+      // Restore unconditionally: on mobile Pinch the document IS the snap
+      // feed, so this returns the user to the card they were on (_scrollY
+      // was captured at a resting snap position, so no snap correction).
+      window.scrollTo(0, _scrollY);
     };
 
     const closeNav = () => {
@@ -704,7 +704,10 @@ document.addEventListener("DOMContentLoaded", () => {
       positionPanel(cardEl);
       scrim.classList.add("is-open");
       panel.setAttribute("aria-hidden", "false");
+      // Lock BOTH: iOS ignores overflow:hidden on body alone for document
+      // touch scrolling — html must be locked too (preserves scrollY).
       document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
       requestAnimationFrame(function () { panel.classList.add("is-open"); });
 
       fetch("/pinch/" + slug + "/comments/", {
@@ -728,6 +731,7 @@ document.addEventListener("DOMContentLoaded", () => {
       panel.classList.remove("is-open");
       scrim.classList.remove("is-open");
       document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
       panel.addEventListener(
         "transitionend",
         function () {
@@ -906,6 +910,9 @@ document.addEventListener("DOMContentLoaded", () => {
   })();
 
   // ==== Pinch footer drawer (mobile snap mode) ====
+  // iOS-style bottom sheet: tap toggles; Pointer Events drag on the handle
+  // follows the finger; swipe down on the open sheet body closes it. No
+  // document-wide gesture — feed swipes can never open it.
   (function () {
     var handle = document.getElementById("pinch-footer-handle");
     var scrim  = document.getElementById("pinch-footer-scrim");
@@ -914,24 +921,37 @@ document.addEventListener("DOMContentLoaded", () => {
     var footer = document.querySelector("footer");
     if (!footer) return;
 
+    var OPEN_CLASS = "pinch-footer--open";
+
     // Class on the footer is the single source of truth for open state
-    var isOpen = function () { return footer.classList.contains("pinch-footer--open"); };
+    var isOpen = function () { return footer.classList.contains(OPEN_CLASS); };
+
+    // max-height:82vh already caps offsetHeight; min() kept as a guard
+    var sheetHeight = function () {
+      return Math.min(footer.offsetHeight, window.innerHeight * 0.82);
+    };
+
+    // publish the sheet height so CSS can park the handle on its top edge
+    var publishHeight = function () {
+      document.documentElement.style.setProperty("--pinch-footer-h", sheetHeight() + "px");
+    };
+
+    var setAria = function (open) {
+      handle.setAttribute("aria-expanded", open ? "true" : "false");
+      handle.setAttribute("aria-label", open ? "Close footer" : "Open footer");
+    };
 
     var open = function () {
-      // publish the sheet height so CSS can park the handle on its top edge
-      var fh = Math.min(footer.offsetHeight, window.innerHeight * 0.82);
-      document.documentElement.style.setProperty("--pinch-footer-h", fh + "px");
-      footer.classList.add("pinch-footer--open");
+      publishHeight();
+      footer.classList.add(OPEN_CLASS);
       if (scrim) { scrim.classList.add("is-open"); scrim.setAttribute("aria-hidden", "false"); }
-      handle.setAttribute("aria-expanded", "true");
-      handle.setAttribute("aria-label", "Close footer");
+      setAria(true);
     };
 
     var close = function () {
-      footer.classList.remove("pinch-footer--open");
+      footer.classList.remove(OPEN_CLASS);
       if (scrim) { scrim.classList.remove("is-open"); scrim.setAttribute("aria-hidden", "true"); }
-      handle.setAttribute("aria-expanded", "false");
-      handle.setAttribute("aria-label", "Open footer");
+      setAria(false);
     };
 
     var swipeGuard = false;
@@ -940,7 +960,12 @@ document.addEventListener("DOMContentLoaded", () => {
       if (isOpen()) { close(); } else { open(); }
     });
 
-    if (scrim) scrim.addEventListener("click", close);
+    if (scrim) {
+      scrim.addEventListener("click", close);
+      // belt-and-braces with CSS touch-action:none — a drag on the scrim
+      // must never scroll the feed behind the open sheet
+      scrim.addEventListener("touchmove", function (e) { e.preventDefault(); }, { passive: false });
+    }
 
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && isOpen()) close();
@@ -1027,17 +1052,9 @@ document.addEventListener("DOMContentLoaded", () => {
       fts = null;
       if (dy >= SWIPE_MIN && dx <= DRIFT_MAX && isOpen() && footer.scrollTop <= 0) close();
     }, { passive: true });
-  })();
 
-  // ==== Pinch: Safari address-bar collapse snapback ====
-  // CSS gives body 1px extra height so Safari treats the document as scrollable
-  // and collapses its chrome on upward swipe. We snap scrollY back to 0
-  // immediately so the layout never shifts by that 1px.
-  (function () {
-    if (!document.querySelector(".hero--pinch") || window.innerWidth > 640) return;
-    window.addEventListener("scroll", function () {
-      if (window.scrollY !== 0) window.scrollTo(0, 0);
-    }, { passive: true });
+    // keep --pinch-footer-h honest across rotation / address-bar resize
+    window.addEventListener("resize", function () { if (isOpen()) publishHeight(); });
   })();
 
   // ==== Pinch filter: whole-item visibility + resting centering ====
@@ -1097,7 +1114,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     };
 
+    var lastScrollTs = 0;
     var onScroll = function () {
+      lastScrollTs = Date.now();
       update(false);
       // debounce as a scrollend substitute (iOS Safari lacks the event)
       clearTimeout(settleTimer);
@@ -1112,6 +1131,21 @@ document.addEventListener("DOMContentLoaded", () => {
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(function () { update(true); });
     }
+    // Self-heal: iOS Safari restores pages from bfcache with stale
+    // transform/visibility and can move scrollLeft without firing any of
+    // the events above — the row then sits frozen with items half-clipped
+    // under the arrows. update(true) recomputes everything from scratch
+    // and is idempotent, so an idle watchdog repairs any missed state
+    // within ~600ms at negligible cost (~20 rect reads).
+    window.addEventListener("pageshow", function (e) {
+      if (e.persisted) update(true);
+    });
+    setInterval(function () {
+      if (!snapMode()) return;
+      if (document.visibilityState !== "visible") return;
+      if (Date.now() - lastScrollTs < 400) return; // mid-scroll: events drive
+      update(true);
+    }, 600);
     update(true);
   })();
 });
