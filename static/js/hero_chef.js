@@ -48,7 +48,7 @@
     window.clearTimeout(speechTimer);
     speechTimer = window.setTimeout(() => {
       chef.dataset.speaking = "false";
-    }, 3600);
+    }, 4600);
   }
 
   function performTrick() {
