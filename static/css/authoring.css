@@ -40,6 +40,11 @@
   max-width: min(100%, 820px);
 }
 
+.hero--recipe-tools .hero-battle-panel {
+  align-self: stretch;
+  overflow-y: auto;
+}
+
 .hero--recipe-tools .hero-title {
   margin-block-end: 0.85rem;
 }
