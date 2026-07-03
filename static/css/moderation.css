@@ -601,6 +601,17 @@
   border-color: #6e4e2c;
 }
 
+.mod-tool-link--arena-plan {
+  background: #dff3df;
+  border-color: #8fc58f;
+  color: #245b38;
+}
+
+.mod-tool-link--arena-plan:hover {
+  background: #c9e9cb;
+  border-color: #4f9562;
+}
+
 .moderation-block__title {
   display: flex;
   flex-wrap: wrap;

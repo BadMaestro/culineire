@@ -14,6 +14,11 @@ urlpatterns = [
     path("profile/delete/", views.RecipeAuthorDeleteView.as_view(), name="author_delete"),
     path("moderation/", views.moderation_panel, name="moderation_panel"),
     path("moderation/automation-progress/", views.automation_progress, name="automation_progress"),
+    path(
+        "moderation/arena-master-console-plan/",
+        views.arena_master_console_plan,
+        name="arena_master_console_plan",
+    ),
     path("moderation/site-research/", views.site_research_progress, name="site_research_progress"),
     path("moderation/deployment-journal/", views.deployment_journal, name="deployment_journal"),
     path("moderation/generate/", views.generate_recipe_view, name="generate_recipe"),

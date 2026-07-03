@@ -1,0 +1,140 @@
+.arena-plan-page {
+  background: var(--surface);
+}
+
+.arena-plan-header__count {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  min-height: 110px;
+  border: 1px solid #8fc58f;
+  border-radius: 8px;
+  background: #eaf7ea;
+  color: #245b38;
+}
+
+.arena-plan-header__count strong {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  line-height: 1;
+}
+
+.arena-plan-header__count span {
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.arena-plan-index {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding: 1rem;
+  border: 1px solid rgb(58 44 30 / 0.1);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.arena-plan-index a {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #b8d9bc;
+  border-radius: 6px;
+  color: #245b38;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.arena-plan-index a:hover {
+  background: #eaf7ea;
+}
+
+.arena-plan-sections {
+  display: grid;
+  gap: 1rem;
+}
+
+.arena-plan-section {
+  scroll-margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid rgb(58 44 30 / 0.12);
+  border-left: 4px solid #8fc58f;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.arena-plan-section__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+}
+
+.arena-plan-section__header h2 {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+.arena-plan-section__file {
+  margin: 0 0 0.2rem;
+  color: #68816e;
+  font: 0.72rem/1.4 Consolas, "Courier New", monospace;
+}
+
+.arena-plan-copy {
+  flex: 0 0 auto;
+  max-width: 260px;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #78ad82;
+  border-radius: 6px;
+  background: #dff3df;
+  color: #245b38;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.arena-plan-copy:hover,
+.arena-plan-copy:focus-visible {
+  background: #c9e9cb;
+  border-color: #4f9562;
+}
+
+.arena-plan-copy-status {
+  min-height: 1.2em;
+  margin: 0.35rem 0 0;
+  color: #39734a;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.arena-plan-source {
+  width: 100%;
+  min-height: 320px;
+  resize: vertical;
+  padding: 0.85rem;
+  border: 1px solid rgb(36 91 56 / 0.2);
+  border-radius: 6px;
+  background: #fbfdfb;
+  color: var(--ink);
+  font: 0.8rem/1.5 Consolas, "Courier New", monospace;
+}
+
+@media (max-width: 760px) {
+  .arena-plan-header {
+    grid-template-columns: 1fr;
+  }
+
+  .arena-plan-section__header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .arena-plan-copy {
+    max-width: none;
+    width: 100%;
+  }
+}

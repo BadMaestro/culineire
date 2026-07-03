@@ -86,6 +86,22 @@ POPULAR_CATEGORY_PRIORITY = [
     ("pasta_and_noodles", "Pasta and Noodles"),
 ]
 
+ARENA_MASTER_CONSOLE_PLAN_DIR = settings.BASE_DIR / "docs" / "chef_battle" / "arena_master_console"
+ARENA_MASTER_CONSOLE_PLAN_FILES = (
+    ("master", "Master Plan", "00_MASTER_PLAN.yaml"),
+    ("capabilities", "Capability Map", "01_CAPABILITY_MAP.yaml"),
+    ("p00", "P00 - Discovery, baseline, and contract freeze", "phase_00_discovery.yaml"),
+    ("p01", "P01 - Visual shell and responsive arena layout", "phase_01_visual_shell.yaml"),
+    ("p02", "P02 - Read models and live arena projection", "phase_02_read_models.yaml"),
+    ("p03", "P03 - Battle flow and phase controls", "phase_03_battle_flow.yaml"),
+    ("p04", "P04 - Combat engine and live monitor", "phase_04_combat_monitor.yaml"),
+    ("p05", "P05 - Moderation, safety, and streams", "phase_05_moderation_safety.yaml"),
+    ("p06", "P06 - Voting integrity and analytics", "phase_06_voting_integrity.yaml"),
+    ("p07", "P07 - Economy, gifts, and artefacts", "phase_07_economy_gifts.yaml"),
+    ("p08", "P08 - Governance, ranks, and rewards", "phase_08_governance.yaml"),
+    ("p09", "P09 - Hardening, verification, and release", "phase_09_hardening_release.yaml"),
+)
+
 RECIPE_MOOD_CHIPS = [
     ("bread_and_baking", "Baking"),
     ("soups_and_stews", "Soups and Stews"),
@@ -2539,6 +2555,27 @@ def automation_progress(request):
         request,
         "moderation/automation_progress.html",
         {"automation_progress": _build_automation_roadmap_progress()},
+    )
+
+
+def arena_master_console_plan(request):
+    if not _can_grant_bearseeker_privileges(request.user):
+        raise Http404
+
+    plan_sections = []
+    for section_id, title, filename in ARENA_MASTER_CONSOLE_PLAN_FILES:
+        source = (ARENA_MASTER_CONSOLE_PLAN_DIR / filename).read_text(encoding="utf-8")
+        plan_sections.append({
+            "id": section_id,
+            "title": title,
+            "filename": filename,
+            "source": source,
+        })
+
+    return render(
+        request,
+        "moderation/arena_master_console_plan.html",
+        {"plan_sections": plan_sections},
     )
 
 

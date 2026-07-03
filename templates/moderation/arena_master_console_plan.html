@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Arena Master Console Plan | CulinEire{% endblock %}
+{% block meta_description %}Internal implementation plan for the CulinEire Arena Master Console.{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+<link href="{% static 'css/moderation.css' %}" rel="stylesheet">
+<link href="{% static 'css/arena_master_console_plan.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="page-section moderation-page arena-plan-page">
+    <div class="container moderation-shell">
+        <a class="mon-back-link" href="{% url 'recipes:moderation_panel' %}">Back to Moderation Panel</a>
+
+        <header class="automation-header arena-plan-header">
+            <div>
+                <p class="automation-kicker">Internal implementation roadmap</p>
+                <h1 class="automation-title">Arena Master Console Plan</h1>
+                <p class="automation-summary">Ten implementation phases, each capped at 200,000 tokens and verified twice before release.</p>
+            </div>
+            <div class="arena-plan-header__count" aria-label="10 implementation phases">
+                <strong>10</strong>
+                <span>phases</span>
+            </div>
+        </header>
+
+        <nav class="arena-plan-index" aria-label="Plan sections">
+            {% for section in plan_sections %}
+            <a href="#{{ section.id }}">{{ section.title }}</a>
+            {% endfor %}
+        </nav>
+
+        <div class="arena-plan-sections">
+            {% for section in plan_sections %}
+            <section class="arena-plan-section" id="{{ section.id }}">
+                <div class="arena-plan-section__header">
+                    <div>
+                        <p class="arena-plan-section__file">{{ section.filename }}</p>
+                        <h2>{{ section.title }}</h2>
+                    </div>
+                    <button class="arena-plan-copy" data-copy-target="plan-source-{{ section.id }}" type="button">
+                        Copy {{ section.title }}
+                    </button>
+                </div>
+                <p class="arena-plan-copy-status" id="copy-status-{{ section.id }}" role="status" aria-live="polite"></p>
+                <textarea class="arena-plan-source" id="plan-source-{{ section.id }}" readonly rows="18" spellcheck="false">{{ section.source }}</textarea>
+            </section>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/arena_master_console_plan.js' %}" defer></script>
+{% endblock %}

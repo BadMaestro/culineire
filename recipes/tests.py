@@ -337,6 +337,35 @@ class ModerationPanelRoleTests(TestCase):
 
         self.assertEqual(response.status_code, 404)
 
+    def test_arena_master_console_plan_contains_every_copyable_yaml_section(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse("recipes:arena_master_console_plan"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context["plan_sections"]), 12)
+        self.assertContains(response, "Arena Master Console Plan")
+        self.assertContains(response, "phase_09_hardening_release.yaml")
+        self.assertContains(response, 'data-copy-target="plan-source-p00"')
+        self.assertContains(response, 'data-copy-target="plan-source-p09"')
+        self.assertContains(response, 'phase_id: &quot;P00&quot;')
+
+    def test_arena_master_console_plan_is_hidden_from_other_moderators(self):
+        self.client.force_login(self.bearseeker_user)
+
+        response = self.client.get(reverse("recipes:arena_master_console_plan"))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_owner_moderation_panel_links_to_arena_master_console_plan(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse("recipes:moderation_panel"))
+
+        self.assertContains(response, "Arena Console Plan")
+        self.assertContains(response, reverse("recipes:arena_master_console_plan"))
+        self.assertContains(response, "mod-tool-link--arena-plan")
+
     def test_owner_pending_recipe_counts_in_content_studio_not_moderation_header(self):
         Recipe.objects.create(
             title="Owner AI Draft",
