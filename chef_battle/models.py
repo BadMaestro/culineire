@@ -323,6 +323,7 @@ class BattleEvent(models.Model):
         CROWN_AWARDED = "crown_awarded", "Crown Awarded"
         RANK_PROMOTED = "rank_promoted", "Rank Promoted"
         ARTIFACT_DROPPED = "artifact_dropped", "Artifact Dropped"
+        OPERATOR_ACTION = "operator_action", "Operator Action"
 
     battle = models.ForeignKey(Battle, null=True, blank=True, on_delete=models.CASCADE, related_name="events")
     challenge = models.ForeignKey(BattleChallenge, null=True, blank=True, on_delete=models.CASCADE, related_name="events")
