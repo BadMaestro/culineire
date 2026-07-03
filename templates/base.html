@@ -393,7 +393,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v2.5.88</span>
+                <span class="footer-version">v2.5.89</span>
             </div>
         </div>
     </div>
@@ -688,6 +688,69 @@
 </script>
 {% endif %}
 {% if chef_battle_enabled %}<script defer src="{% static 'js/battle_vfx.js' %}"></script>{% endif %}
+{% if chef_battle_enabled %}
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+  /* Sitewide blast — polls /chef-battle/arena/blast/ every 45s, fires the
+     site-wide win celebration (.battle-blast overlay) on any page when a
+     new battle completes. The arena page has its own poller via arena_puzzle.js;
+     this script is a no-op there (both run harmlessly — dedup by battle_id). */
+  var POLL_URL = '{% url "chef_battle:arena_blast" %}';
+  var POLL_INTERVAL = 45000;
+  var _lastSeenId = null;
+  var _initialized = false;
+
+  function fireBlast(result) {
+    var el = document.getElementById('battle-blast');
+    if (!el || !result) return;
+    var badge = document.getElementById('blast-badge');
+    var winner = document.getElementById('blast-winner');
+    var score = document.getElementById('blast-score');
+    var title = document.getElementById('blast-title');
+    if (badge)  badge.textContent  = 'Battle Complete';
+    if (title)  title.textContent  = 'The arena has a new winner!';
+    if (winner) winner.textContent = '🏆 ' + result.winner_name + ' Wins!';
+    if (score)  score.textContent  = result.loser_name ? 'vs ' + result.loser_name : '';
+    el.removeAttribute('hidden');
+    el.classList.add('is-active');
+    var dismiss = document.getElementById('blast-dismiss');
+    if (dismiss) {
+      dismiss.onclick = function () {
+        el.classList.remove('is-active');
+        setTimeout(function () { el.setAttribute('hidden', ''); }, 400);
+      };
+    }
+  }
+
+  function poll() {
+    fetch(POLL_URL, { method: 'GET', credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var result = data.latest_result;
+        if (!result) return;
+        if (!_initialized) {
+          /* On first poll, just record the current latest so we don't replay
+             a blast for a battle that finished before the user opened this page. */
+          _initialized = true;
+          _lastSeenId = result.battle_id;
+          return;
+        }
+        if (result.battle_id !== _lastSeenId) {
+          _lastSeenId = result.battle_id;
+          fireBlast(result);
+        }
+      })
+      .catch(function () {});
+  }
+
+  /* Start after page load so we don't block critical resources. */
+  window.addEventListener('load', function () {
+    poll();
+    setInterval(poll, POLL_INTERVAL);
+  });
+})();
+</script>
+{% endif %}
 <script defer src="{% static 'js/buttons.js' %}"></script>
 <script defer src="{% static 'js/form-validator.js' %}"></script>
 <script defer src="{% static 'js/form-autosave.js' %}"></script>

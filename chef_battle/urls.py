@@ -10,6 +10,7 @@ urlpatterns = [
     path("arena/battle-popup/", views.arena_battle_popup, name="arena_battle_popup"),
     path("arena/ping/", views.arena_ping, name="arena_ping"),
     path("arena/state/", views.arena_state, name="arena_state"),
+    path("arena/blast/", views.arena_blast, name="arena_blast"),
     path("guide/", views.battle_guide, name="guide"),
     path("rules/", views.battle_rules, name="rules"),
     path("enroll/", views.chef_enroll, name="chef_enroll"),

@@ -879,6 +879,12 @@ def _get_spectators(enrolled_author_ids, limit=40):
     return spectators
 
 
+def arena_blast(request):
+    """Ultra-lightweight sitewide blast poll — returns only the latest_result.
+    Used by sitewide_blast.js to show the win celebration on any page."""
+    return JsonResponse({"latest_result": _arena_latest_result()})
+
+
 def arena(request):
     active_battles = get_active_battles()
     active_battle = active_battles[0] if active_battles else None
