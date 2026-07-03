@@ -934,7 +934,9 @@ document.addEventListener("DOMContentLoaded", () => {
       handle.setAttribute("aria-label", "Open footer");
     };
 
+    var swipeGuard = false;
     handle.addEventListener("click", function () {
+      if (swipeGuard) { swipeGuard = false; return; }
       if (isOpen()) { close(); } else { open(); }
     });
 
@@ -944,21 +946,86 @@ document.addEventListener("DOMContentLoaded", () => {
       if (e.key === "Escape" && isOpen()) close();
     });
 
-    // Swipe up from bottom edge → open; swipe down on open footer → close
-    var tsY = 0, tsX = 0;
-    document.addEventListener("touchstart", function (e) {
-      tsY = e.touches[0].clientY;
-      tsX = e.touches[0].clientX;
+    // Pointer Events drag on the handle — finger-follow with momentum-aware snap.
+    // Only the handle acts as pointer target (handle rides to the footer top edge
+    // when open, so it's reachable for close swipes without touching the scroll body).
+    var SWIPE_MIN = 50;    // px min vertical travel
+    var DRIFT_MAX = 35;    // px max horizontal drift
+    var VELOCITY  = 0.35;  // px/ms velocity shortcut
+    var drag      = null;
+
+    function snapFooter(toOpen) {
+      // Commit the current drag translateY, restore transition, then snap.
+      var mat  = new DOMMatrix(getComputedStyle(footer).transform);
+      var curY = mat.m42;
+      footer.style.transition = "none";
+      footer.style.transform  = "translateY(" + curY + "px)";
+      footer.getBoundingClientRect(); // flush layout — commits curY as the before-value
+      requestAnimationFrame(function () {
+        footer.style.transition = "";
+        footer.style.transform  = "";
+        if (toOpen) { open(); } else { close(); }
+      });
+    }
+
+    handle.addEventListener("pointerdown", function (e) {
+      if (e.pointerType === "mouse") return;
+      drag = { id: e.pointerId, y0: e.clientY, x0: e.clientX, t0: Date.now(), moved: false };
+      handle.setPointerCapture(e.pointerId);
     }, { passive: true });
-    document.addEventListener("touchend", function (e) {
-      var dy = tsY - e.changedTouches[0].clientY; // positive = swipe up
-      var dx = Math.abs(e.changedTouches[0].clientX - tsX);
-      if (Math.abs(dy) < 40 || dx > Math.abs(dy) * 0.75) return;
-      if (!isOpen() && dy > 0 && tsY > window.innerHeight - 80) {
-        open();
-      } else if (isOpen() && dy < 0 && footer.scrollTop <= 0) {
-        close();
+
+    handle.addEventListener("pointermove", function (e) {
+      if (!drag || drag.id !== e.pointerId) return;
+      var dy = e.clientY - drag.y0;
+      if (Math.abs(dy) > 8) drag.moved = true;
+      if (!drag.moved) return;
+      if (!isOpen() && dy < -8) {
+        footer.style.transition = "none";
+        footer.style.transform  = "translateY(" + Math.max(0, 100 + dy / window.innerHeight * 100) + "%)";
+      } else if (isOpen() && dy > 8 && footer.scrollTop <= 0) {
+        footer.style.transition = "none";
+        footer.style.transform  = "translateY(" + Math.max(0, dy) + "px)";
       }
+    }, { passive: true });
+
+    handle.addEventListener("pointerup", function (e) {
+      if (!drag || drag.id !== e.pointerId) return;
+      var d = drag; drag = null;
+      var dy  = e.clientY - d.y0;
+      var dx  = Math.abs(e.clientX - d.x0);
+      var vel = (Date.now() - d.t0) > 0 ? Math.abs(dy) / (Date.now() - d.t0) : 0;
+      var ok  = d.moved && dx <= DRIFT_MAX && (Math.abs(dy) >= SWIPE_MIN || vel >= VELOCITY);
+      if (ok && !isOpen() && dy < 0) {
+        swipeGuard = true;
+        snapFooter(true);
+      } else if (ok && isOpen() && dy > 0 && footer.scrollTop <= 0) {
+        swipeGuard = true;
+        snapFooter(false);
+      } else if (d.moved) {
+        snapFooter(isOpen()); // incomplete swipe — snap back to current state
+      }
+      // else: was a tap → let the click event fire normally
+    });
+
+    handle.addEventListener("pointercancel", function () {
+      if (!drag) return;
+      footer.style.transition = "";
+      footer.style.transform  = "";
+      drag = null;
+    });
+
+    // Footer body: simple touch swipe-down-to-close (no pointer capture — preserves scroll)
+    var fts = null;
+    footer.addEventListener("touchstart", function (e) {
+      if (!isOpen() || footer.scrollTop > 0) return;
+      fts = { y: e.touches[0].clientY, x: e.touches[0].clientX };
+    }, { passive: true });
+    footer.addEventListener("touchend", function (e) {
+      if (!fts) return;
+      var dy = e.changedTouches[0].clientY - fts.y;
+      var dx = Math.abs(e.changedTouches[0].clientX - fts.x);
+      fts = null;
+      if (dy >= SWIPE_MIN && dx <= DRIFT_MAX && isOpen() && footer.scrollTop <= 0) close();
     }, { passive: true });
   })();
 
