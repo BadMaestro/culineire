@@ -1007,7 +1007,10 @@ document.addEventListener("DOMContentLoaded", () => {
     handle.addEventListener("pointermove", function (e) {
       if (!drag || drag.id !== e.pointerId) return;
       var dy = e.clientY - drag.y0;
-      if (Math.abs(dy) > 8) drag.moved = true;
+      if (Math.abs(dy) > 8) {
+        drag.moved = true;
+        e.preventDefault();
+      }
       if (!drag.moved) return;
       if (!isOpen() && dy < -8) {
         footer.style.transition = "none";
@@ -1016,7 +1019,7 @@ document.addEventListener("DOMContentLoaded", () => {
         footer.style.transition = "none";
         footer.style.transform  = "translateY(" + Math.max(0, dy) + "px)";
       }
-    }, { passive: true });
+    }, { passive: false });
 
     handle.addEventListener("pointerup", function (e) {
       if (!drag || drag.id !== e.pointerId) return;
@@ -1127,12 +1130,15 @@ document.addEventListener("DOMContentLoaded", () => {
       if (e.pointerType === "mouse") return;
       drag = { id: e.pointerId, y0: e.clientY, x0: e.clientX, t0: Date.now(), moved: false };
       handle.setPointerCapture(e.pointerId);
-    }, { passive: true });
+    });
 
     handle.addEventListener("pointermove", function (e) {
       if (!drag || drag.id !== e.pointerId) return;
-      if (Math.abs(e.clientY - drag.y0) > 8) drag.moved = true;
-    }, { passive: true });
+      if (Math.abs(e.clientY - drag.y0) > 8) {
+        drag.moved = true;
+        e.preventDefault();
+      }
+    }, { passive: false });
 
     handle.addEventListener("pointerup", function (e) {
       if (!drag || drag.id !== e.pointerId) return;
