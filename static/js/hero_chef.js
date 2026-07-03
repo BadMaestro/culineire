@@ -45,11 +45,58 @@
   hero.appendChild(chef);
 
   const speech = chef.querySelector(".hero-chef__speech");
-  const close = chef.querySelector(".hero-chef__close");
+  const close  = chef.querySelector(".hero-chef__close");
   let walkTimer;
   let poseTimer;
   let speechTimer;
   let previousX = 72;
+
+  // ── Right-click quick-search ──────────────────────────────────────
+  const searchAction = (() => {
+    const f = document.querySelector(".ce-header-search");
+    return f ? f.getAttribute("action") : "/recipes/";
+  })();
+  const searchPopup = document.createElement("div");
+  searchPopup.className = "hero-chef__search-popup";
+  searchPopup.setAttribute("role", "search");
+  searchPopup.setAttribute("aria-label", "Quick search");
+  searchPopup.hidden = true;
+  searchPopup.innerHTML = `
+    <form class="hero-chef__search-form" action="${searchAction}" method="get">
+      <input class="hero-chef__search-input" type="search" name="q"
+             placeholder="Search recipes…" aria-label="Search recipes"
+             autocomplete="off" maxlength="100">
+      <button class="hero-chef__search-btn" type="submit" aria-label="Search">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="6.5" cy="6.5" r="4.5"/>
+          <line x1="10.5" y1="10.5" x2="14" y2="14"/>
+        </svg>
+      </button>
+    </form>`;
+  chef.appendChild(searchPopup);
+  const searchInput = searchPopup.querySelector(".hero-chef__search-input");
+
+  function openSearch() {
+    searchPopup.hidden = false;
+    searchInput.focus();
+  }
+  function closeSearch() {
+    searchPopup.hidden = true;
+    searchInput.value = "";
+  }
+
+  chef.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+    openSearch();
+  });
+  document.addEventListener("click", (e) => {
+    if (!searchPopup.hidden && !chef.contains(e.target)) closeSearch();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !searchPopup.hidden) closeSearch();
+  });
+  // ─────────────────────────────────────────────────────────────────
 
   const randomBetween = (min, max) => Math.random() * (max - min) + min;
 
