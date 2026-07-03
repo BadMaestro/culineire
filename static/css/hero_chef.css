@@ -13,6 +13,9 @@
 @media (min-width: 1024px) {
   .hero-chef {
     display: block;
+  }
+
+  .hero-chef[data-walking="true"] {
     transition: left var(--chef-travel-time, 4s) linear;
   }
 }
@@ -25,9 +28,17 @@
   display: block;
   filter: drop-shadow(0 5px 5px rgb(12 20 15 / 0.3));
   height: 100%;
-  transform: scaleX(var(--chef-facing, 1));
+  transform: scaleX(1);
   transform-origin: center bottom;
   width: 100%;
+}
+
+.hero-chef[data-direction="left"] .hero-chef__sprite {
+  transform: scaleX(-1);
+}
+
+.hero-chef[data-direction="right"] .hero-chef__sprite {
+  transform: scaleX(1);
 }
 
 .hero-chef[data-walking="true"] .hero-chef__sprite {

@@ -75,6 +75,7 @@
   const chef = document.createElement("div");
   chef.className = "hero-chef";
   chef.dataset.pose = "walk-a";
+  chef.dataset.direction = "right";
   chef.setAttribute("aria-label", "Animated CulinEire chef");
   chef.innerHTML = `
     <a class="hero-chef__speech" role="status" aria-live="polite"></a>
@@ -93,7 +94,6 @@
   let trickFrameTimer;
   let poseTimer;
   let speechTimer;
-  let previousX = 72;
   let previousPose = null;
   const WALK_FRAMES = ["0 0", "33.333% 0", "66.666% 0", "100% 0"];
   const BOOK_FRAMES = ["0 0", "20% 0", "40% 0", "60% 0", "80% 0", "100% 0"];
@@ -224,15 +224,20 @@
       return;
     }
 
-    const nextX = randomBetween(62, 88);
-    const distance = Math.abs(nextX - previousX);
+    const currentX = (chef.offsetLeft / hero.clientWidth) * 100;
+    let nextX = randomBetween(62, 88);
+    while (Math.abs(nextX - currentX) < 4) {
+      nextX = randomBetween(62, 88);
+    }
+    const movingRight = nextX > currentX;
+    const distance = Math.abs(nextX - currentX);
     const travelTime = Math.max(2.4, distance / 7.5);
-    chef.style.setProperty("--chef-facing", nextX < previousX ? -1 : 1);
+    chef.dataset.direction = movingRight ? "right" : "left";
     chef.style.setProperty("--chef-travel-time", `${travelTime}s`);
-    chef.style.left = `${nextX}%`;
-    previousX = nextX;
     chef.dataset.pose = "walk-a";
     chef.dataset.walking = "true";
+    void chef.offsetWidth;
+    chef.style.left = `${nextX}%`;
 
     // JS frame cycling — CSS steps() is unreliable in Chrome for background-position
     window.clearInterval(walkFrameTimer);
