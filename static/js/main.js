@@ -949,9 +949,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // Pointer Events drag on the handle — finger-follow with momentum-aware snap.
     // Only the handle acts as pointer target (handle rides to the footer top edge
     // when open, so it's reachable for close swipes without touching the scroll body).
-    var SWIPE_MIN = 50;    // px min vertical travel
+    var SWIPE_MIN = 28;    // px min vertical travel
     var DRIFT_MAX = 35;    // px max horizontal drift
-    var VELOCITY  = 0.35;  // px/ms velocity shortcut
+    var VELOCITY  = 0.25;  // px/ms velocity shortcut
     var drag      = null;
 
     function snapFooter(toOpen) {
