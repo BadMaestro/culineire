@@ -2,14 +2,42 @@
 {% load static author_tags %}
 
 {% block title %}{{ battle.theme }} | Chef Battles{% endblock %}
-{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260702c" rel="stylesheet">{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260703e" rel="stylesheet">{% endblock %}
 
 {% block content %}
+
+{# ── Hero: VS comparison (all statuses) ── #}
 <section class="battle-room-hero battle-hero--has-panel">
   <div class="container">
+
+    {# Phase kicker — colour-coded per status #}
+    {% if battle.status == "scheduled" %}
+    <p class="battle-kicker battle-kicker--scheduled">Antechamber &middot; Awaiting Readiness</p>
+    {% elif battle.status == "menu_locked" %}
+    <p class="battle-kicker battle-kicker--menu-locked">Ingredient Declaration &middot; Both Chefs Ready</p>
+    {% elif battle.status == "active" %}
+    <p class="battle-kicker battle-kicker--active">&#x2694;&#xFE0F; Combat &middot; Battle in Progress</p>
+    {% elif battle.status == "ingredient_penalty" %}
+    <p class="battle-kicker battle-kicker--biathlon">&#x1F3AF; Biathlon &middot; Ingredient Challenge</p>
+    {% elif battle.status == "cooking" %}
+    <p class="battle-kicker battle-kicker--cooking">&#x1F373; Cooking Phase</p>
+    {% elif battle.status == "presentation" %}
+    <p class="battle-kicker battle-kicker--presentation">&#x1F441; Entries Revealed</p>
+    {% elif battle.status == "voting" %}
+    <p class="battle-kicker battle-kicker--voting">&#x1F5F3; Voting Open &middot; Cast Your Vote</p>
+    {% elif battle.status == "completed" %}
+    <p class="battle-kicker battle-kicker--completed">&#x1F3C6; Battle Complete</p>
+    {% elif battle.status == "cancelled" %}
+    <p class="battle-kicker battle-kicker--cancelled">Battle Cancelled</p>
+    {% elif battle.status == "disputed" %}
+    <p class="battle-kicker battle-kicker--disputed">&#x26A0;&#xFE0F; Under Review</p>
+    {% else %}
     <p class="battle-kicker">Chef Battle &middot; {{ battle.get_status_display }}</p>
+    {% endif %}
+
     <h1>{{ battle.theme }}</h1>
 
+    {# VS comparison cards #}
     <div class="antechamber-compare">
       <div class="antechamber-card">
         <img class="antechamber-card__avatar" src="{{ battle.challenger.display_avatar_url }}" alt="{{ battle.challenger.name }}" width="64" height="64">
@@ -27,7 +55,9 @@
         </div>
       </div>
 
-      <div class="antechamber-vs">VS</div>
+      <div class="antechamber-vs">
+        {% if battle.status == "completed" and battle.winner %}&#x1F3C6;{% else %}VS{% endif %}
+      </div>
 
       <div class="antechamber-card antechamber-card--right">
         <img class="antechamber-card__avatar" src="{{ battle.opponent.display_avatar_url }}" alt="{{ battle.opponent.name }}" width="64" height="64">
@@ -46,7 +76,7 @@
       </div>
     </div>
 
-    {# ── E3: Readiness Gate (SCHEDULED phase) ── #}
+    {# SCHEDULED: readiness gate #}
     {% if battle.status == "scheduled" %}
     <div class="antechamber-ready">
       <div class="antechamber-ready__indicators">
@@ -66,12 +96,15 @@
       <p class="antechamber-ready__waiting">Waiting for your opponent to signal ready&hellip;</p>
       {% endif %}
     </div>
-    {% elif battle.status in active_statuses %}
+
+    {# Active & post-launch: arena link #}
+    {% elif battle.status != "completed" and battle.status != "cancelled" and battle.status != "disputed" %}
     <div class="antechamber-cta">
       <a class="antechamber-cta__btn" href="{% url 'chef_battle:arena' %}">Watch Live in Arena &#8594;</a>
     </div>
     {% endif %}
 
+    {# Dates row #}
     <div class="battle-room-meta">
       <span>Start {{ battle.start_time|date:"j M Y H:i" }}</span>
       <span>Submit by {{ battle.submission_deadline|date:"j M Y" }}</span>
@@ -79,21 +112,160 @@
       <span>Ends {{ battle.end_time|date:"j M Y" }}</span>
     </div>
 
-    {% if battle.winner %}
-    <p class="battle-winner">&#x1F3C6; {{ battle.winner.name }}{% executive_badge battle.winner %} won &middot; {{ battle.result_reason }}</p>
-    {% elif battle.status == "completed" %}
-    <p class="battle-winner">Draw &middot; {{ battle.result_reason }}</p>
-    {% endif %}
   </div>
 </section>
 
 <section class="page-section">
   <div class="container battle-layout">
-
     <div class="battle-main">
 
-      {# ── Entries ── #}
-      <div class="battle-section-header">
+      {# ══════════════════════════════════════════════════════════
+         Phase action panels — one per status
+      ══════════════════════════════════════════════════════════ #}
+
+      {% if battle.status == "scheduled" %}
+      <div class="bd-phase-panel bd-phase-panel--scheduled">
+        <p class="bd-phase-panel__icon">&#x23F3;</p>
+        <h2 class="bd-phase-panel__title">Waiting for Both Chefs</h2>
+        <p class="bd-phase-panel__body">Once both chefs press <strong>I'm Ready</strong>, the battle moves to the ingredient declaration phase.</p>
+      </div>
+
+      {% elif battle.status == "menu_locked" %}
+      <div class="bd-phase-panel bd-phase-panel--menu-locked">
+        <p class="bd-phase-panel__icon">&#x1F4CB;</p>
+        <h2 class="bd-phase-panel__title">Declare Your Recipe</h2>
+        {% if can_submit %}
+        <p class="bd-phase-panel__body">Submit the recipe you will cook for this battle. Your entry stays hidden until both chefs have submitted or the deadline passes.</p>
+        <a class="btn-primary bd-phase-panel__cta" href="{% url 'chef_battle:battle_entry_submit' battle.pk %}">Submit Your Recipe &rarr;</a>
+        {% elif viewer_entry %}
+        <p class="bd-phase-panel__body">&#x2705; Recipe submitted. Waiting for your opponent.</p>
+        {% elif is_participant %}
+        <p class="bd-phase-panel__body">&#x23F3; Ingredient declaration in progress.</p>
+        {% else %}
+        <p class="bd-phase-panel__body">The chefs are declaring their recipes. The battle begins soon.</p>
+        {% endif %}
+      </div>
+
+      {% elif battle.status == "active" %}
+      <div class="bd-phase-panel bd-phase-panel--active">
+        <p class="bd-phase-panel__icon">&#x2694;&#xFE0F;</p>
+        <h2 class="bd-phase-panel__title">Combat is Live</h2>
+        {% if is_participant %}
+        <p class="bd-phase-panel__body">Use the combat panel on the right to make your move. Each round both chefs choose Attack or Defend.</p>
+        {% else %}
+        <p class="bd-phase-panel__body">The chefs are locked in combat. Watch the Arena for live updates.</p>
+        <a class="btn-primary bd-phase-panel__cta" href="{% url 'chef_battle:arena' %}">Watch in Arena &rarr;</a>
+        {% endif %}
+      </div>
+
+      {% elif battle.status == "ingredient_penalty" %}
+      <div class="bd-phase-panel bd-phase-panel--biathlon">
+        <p class="bd-phase-panel__icon">&#x1F3AF;</p>
+        <h2 class="bd-phase-panel__title">Biathlon Phase</h2>
+        {% if is_participant %}
+        <p class="bd-phase-panel__body">The combat winner fires shots at the loser's ingredient list. Head to the Biathlon Arena to lock or shoot.</p>
+        <a class="btn-primary bd-phase-panel__cta battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:biathlon' battle.pk %}">Go to Biathlon &rarr;</a>
+        {% else %}
+        <p class="bd-phase-panel__body">The combat winner is firing shots at the loser's ingredients.</p>
+        {% endif %}
+      </div>
+
+      {% elif battle.status == "cooking" %}
+      <div class="bd-phase-panel bd-phase-panel--cooking">
+        <p class="bd-phase-panel__icon">&#x1F373;</p>
+        <h2 class="bd-phase-panel__title">Cooking Phase</h2>
+        {% if is_participant and not viewer_entry.cooked_photo %}
+        <p class="bd-phase-panel__body">Cook your dish and submit a real photograph as evidence. Your photo will be reviewed before the reveal.</p>
+        <a class="btn-primary bd-phase-panel__cta" href="{% url 'chef_battle:cooking_submit' battle.pk %}">Submit Photo &rarr;</a>
+        {% elif is_participant %}
+        <p class="bd-phase-panel__body">&#x2705; Photo submitted. Waiting for moderator review.</p>
+        {% else %}
+        <p class="bd-phase-panel__body">The chefs are in the kitchen. Results reveal after moderator review.</p>
+        {% endif %}
+      </div>
+
+      {% elif battle.status == "presentation" %}
+      <div class="bd-phase-panel bd-phase-panel--presentation">
+        <p class="bd-phase-panel__icon">&#x1F441;</p>
+        <h2 class="bd-phase-panel__title">The Dishes Are Revealed</h2>
+        <p class="bd-phase-panel__body">Both entries are now visible. Voting opens shortly — the audience decides the winner.</p>
+      </div>
+
+      {% elif battle.status == "voting" %}
+      <div class="bd-phase-panel bd-phase-panel--voting">
+        <p class="bd-phase-panel__icon">&#x1F5F3;</p>
+        {% if is_participant %}
+        <h2 class="bd-phase-panel__title">Voting is Open</h2>
+        <p class="bd-phase-panel__body">The public are voting. Voting closes {{ battle.voting_deadline|date:"j M Y" }}. Participants cannot vote in their own battle.</p>
+        {% else %}
+        <h2 class="bd-phase-panel__title">Vote for Your Favourite Chef</h2>
+        <p class="bd-phase-panel__body">One vote per person. Voting closes {{ battle.voting_deadline|date:"j M Y" }}. The audience decides the winner.</p>
+        {% endif %}
+      </div>
+
+      {% elif battle.status == "completed" %}
+      {% if battle.winner %}
+      <div class="bd-winner-banner">
+        <div class="bd-winner-banner__trophy">&#x1F3C6;</div>
+        <h2 class="bd-winner-banner__name">{{ battle.winner.name }}</h2>
+        <p class="bd-winner-banner__label">Winner of this battle</p>
+        {% if battle.result_reason %}<p class="bd-winner-banner__reason">{{ battle.result_reason }}</p>{% endif %}
+        <div class="bd-winner-banner__scores">
+          <div class="bd-winner-banner__score {% if battle.winner_id == battle.challenger_id %}bd-winner-banner__score--win{% endif %}">
+            <span class="bd-winner-banner__score-name">{{ battle.challenger.name }}</span>
+            <span class="bd-winner-banner__score-num">{{ votes_for_challenger }}</span>
+            <span class="bd-winner-banner__score-label">votes</span>
+          </div>
+          <span class="bd-winner-banner__score-sep">:</span>
+          <div class="bd-winner-banner__score {% if battle.winner_id == battle.opponent_id %}bd-winner-banner__score--win{% endif %}">
+            <span class="bd-winner-banner__score-name">{{ battle.opponent.name }}</span>
+            <span class="bd-winner-banner__score-num">{{ votes_for_opponent }}</span>
+            <span class="bd-winner-banner__score-label">votes</span>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="bd-winner-banner bd-winner-banner--draw">
+        <div class="bd-winner-banner__trophy">&#x1F91D;</div>
+        <h2 class="bd-winner-banner__name">Draw</h2>
+        <p class="bd-winner-banner__label">{{ battle.result_reason|default:"The battle ended in a draw." }}</p>
+        <div class="bd-winner-banner__scores">
+          <div class="bd-winner-banner__score">
+            <span class="bd-winner-banner__score-name">{{ battle.challenger.name }}</span>
+            <span class="bd-winner-banner__score-num">{{ votes_for_challenger }}</span>
+            <span class="bd-winner-banner__score-label">votes</span>
+          </div>
+          <span class="bd-winner-banner__score-sep">:</span>
+          <div class="bd-winner-banner__score">
+            <span class="bd-winner-banner__score-name">{{ battle.opponent.name }}</span>
+            <span class="bd-winner-banner__score-num">{{ votes_for_opponent }}</span>
+            <span class="bd-winner-banner__score-label">votes</span>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% elif battle.status == "cancelled" %}
+      <div class="bd-phase-panel bd-phase-panel--cancelled">
+        <p class="bd-phase-panel__icon">&#x274C;</p>
+        <h2 class="bd-phase-panel__title">Battle Cancelled</h2>
+        <p class="bd-phase-panel__body">{{ battle.result_reason|default:"This battle was cancelled." }}</p>
+      </div>
+
+      {% elif battle.status == "disputed" %}
+      <div class="bd-phase-panel bd-phase-panel--disputed">
+        <p class="bd-phase-panel__icon">&#x26A0;&#xFE0F;</p>
+        <h2 class="bd-phase-panel__title">Under Review</h2>
+        <p class="bd-phase-panel__body">This battle is under moderator review. The result will be confirmed shortly.</p>
+      </div>
+      {% endif %}
+
+      {# ══════════════════════════════════════════════════════════
+         Entries (visible from MENU_LOCKED onward, except CANCELLED)
+      ══════════════════════════════════════════════════════════ #}
+
+      {% if battle.status != "scheduled" and battle.status != "cancelled" %}
+      <div class="battle-section-header battle-section-header--spaced">
         <h2>Entries</h2>
         {% if can_submit %}
         <a class="btn-primary" href="{% url 'chef_battle:battle_entry_submit' battle.pk %}">Submit Entry</a>
@@ -105,13 +277,13 @@
         {% for entry in entries %}
         <article class="battle-entry">
           <p class="battle-card__status">{{ entry.author.name }}</p>
-          {% if entry.is_revealed or battle.status == "completed" %}
+          {% if entry.is_revealed or battle.status == "completed" or battle.status == "presentation" or battle.status == "voting" %}
             {% if entry.recipe %}
             <h3><a href="{{ entry.recipe.get_absolute_url }}">{{ entry.recipe.title }}</a></h3>
             <p>{{ entry.recipe.short_description|default:"Recipe battle entry." }}</p>
             {% endif %}
             {% if entry.battle_statement %}<p class="battle-muted">{{ entry.battle_statement }}</p>{% endif %}
-            {% if battle.status == "voting" %}
+            {% if battle.status == "voting" and not is_participant %}
             <form action="{% url 'chef_battle:battle_vote' battle.pk %}" method="post" class="battle-vote-form">
               {% csrf_token %}
               <input name="voted_for" type="hidden" value="{{ entry.author.pk }}">
@@ -125,10 +297,8 @@
         </article>
         {% endfor %}
       </div>
-
       {% else %}
       <div class="battle-empty-entries">
-        <p>No entries yet.</p>
         {% if can_submit %}
         <a class="btn-primary" href="{% url 'chef_battle:battle_entry_submit' battle.pk %}">Be first to submit</a>
         {% else %}
@@ -136,27 +306,10 @@
         {% endif %}
       </div>
       {% endif %}
-
-      {% if battle.status == "completed" %}
-      <div class="battle-section-header battle-section-header--spaced">
-        <h2>Final Scores</h2>
-      </div>
-      <div class="battle-score-final">
-        <div class="battle-score-final__chef">
-          <span class="battle-score-final__name">{{ battle.challenger.name }}</span>
-          <span class="battle-score-final__num">{{ votes_for_challenger }}</span>
-          <span class="battle-muted">votes</span>
-        </div>
-        <div class="battle-score-final__chef">
-          <span class="battle-score-final__name">{{ battle.opponent.name }}</span>
-          <span class="battle-score-final__num">{{ votes_for_opponent }}</span>
-          <span class="battle-muted">votes</span>
-        </div>
-      </div>
       {% endif %}
 
       {# ── Live Chat ── #}
-      {% if battle.status in active_statuses or battle.status == 'completed' %}
+      {% if battle.status in active_statuses or battle.status == "completed" %}
       <div class="battle-section-header battle-section-header--spaced">
         <h2 class="battle-chat__heading">&#x1F4AC; Live Chat</h2>
       </div>
@@ -179,7 +332,8 @@
 
     <aside class="battle-side">
 
-      {# ── Vote counts ── #}
+      {# ── Vote counts — voting, presentation, completed ── #}
+      {% if battle.status == "voting" or battle.status == "completed" or battle.status == "presentation" %}
       <section class="battle-panel battle-panel--votes">
         <h2 class="battle-panel__title">&#x1F4CA; Votes</h2>
         <div class="battle-score-row">
@@ -191,6 +345,7 @@
           <strong>{{ votes_for_opponent }}</strong>
         </div>
       </section>
+      {% endif %}
 
       {# ── Appreciation Gifts ── #}
       {% if request.user.is_authenticated and appreciation_gifts and battle.status in active_statuses %}
@@ -218,7 +373,7 @@
       </section>
       {% endif %}
 
-      {# ── Combat panel (participants only) ── #}
+      {# ── Combat panel — participants, ACTIVE only ── #}
       {% if is_participant and battle.status == "active" %}
       <section class="battle-panel battle-combat" id="battle-combat-panel"
                data-combat-url="{% url 'chef_battle:battle_combat_action' battle.pk %}"
@@ -230,7 +385,7 @@
         </div>
 
         <p class="battle-combat__turn {% if viewer_has_moved %}battle-combat__turn--waiting{% else %}battle-combat__turn--yours{% endif %}" id="combat-turn-indicator">
-          {% if viewer_has_moved %}&#x23F3; Waiting for opponent&#x2026;{% else %}&#x1F525; Your move!{% endif %}
+          {% if viewer_has_moved %}&#x23F3; Waiting for opponent&hellip;{% else %}&#x1F525; Your move!{% endif %}
         </p>
 
         <form class="battle-combat__form" id="combat-action-form" {% if viewer_has_moved %}hidden{% endif %}>
@@ -260,7 +415,6 @@
       {% if combat_state.rounds %}
       <section class="battle-panel battle-combat-results" id="combat-results-panel">
         <h2 class="battle-panel__title">&#x2694; Combat</h2>
-
         <div class="battle-combat-results__scoreboard" id="combat-scoreboard">
           <div class="battle-combat-results__score-col">
             <span class="battle-combat-results__score-name">{{ battle.challenger.name }}</span>
@@ -438,8 +592,7 @@
 </script>
 {% endif %}
 
-{# ── Chat JS ── #}
-{% if battle.status in active_statuses or battle.status == 'completed' %}
+{% if battle.status in active_statuses or battle.status == "completed" %}
 <script nonce="{{ request.csp_nonce }}">
 (function () {
   var chatBox = document.getElementById('battle-chat-messages');
@@ -488,7 +641,6 @@
 </script>
 {% endif %}
 
-{# ── Report dialog JS ── #}
 {% if user.is_authenticated %}
 <script nonce="{{ request.csp_nonce }}">
 (function () {

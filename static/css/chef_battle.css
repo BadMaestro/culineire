@@ -3271,4 +3271,200 @@ a.battle-home__pulse-msg:hover {
   z-index: 2;
 }
 
+/* ── D2: Phase kicker colour variants ── */
+.battle-kicker--scheduled   { color: #8c96a0; }
+.battle-kicker--menu-locked { color: #e8a020; }
+.battle-kicker--active      { color: #e84040; }
+.battle-kicker--biathlon    { color: #d94bc4; }
+.battle-kicker--cooking     { color: #e06c1a; }
+.battle-kicker--presentation{ color: #5ba8e0; }
+.battle-kicker--voting      { color: #3dbf6e; }
+.battle-kicker--completed   { color: #f0c000; }
+.battle-kicker--cancelled   { color: #909090; }
+.battle-kicker--disputed    { color: #c05c00; }
+
+/* Inside a dark hero these already appear on an overlay, keep them bright */
+.battle-room-hero .battle-kicker--scheduled    { color: #c0cad6; }
+.battle-room-hero .battle-kicker--menu-locked  { color: #f8d28a; }
+.battle-room-hero .battle-kicker--active       { color: #ff8080; }
+.battle-room-hero .battle-kicker--biathlon     { color: #f08ae0; }
+.battle-room-hero .battle-kicker--cooking      { color: #f0a060; }
+.battle-room-hero .battle-kicker--presentation { color: #90d0ff; }
+.battle-room-hero .battle-kicker--voting       { color: #80f0a8; }
+.battle-room-hero .battle-kicker--completed    { color: #ffe040; }
+.battle-room-hero .battle-kicker--cancelled    { color: #c0c0c0; }
+.battle-room-hero .battle-kicker--disputed     { color: #ffb060; }
+
+/* ── D2: Phase action panels ── */
+.bd-phase-panel {
+  align-items: center;
+  border: 1px solid var(--border, rgb(0 0 0 / 0.1));
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1.8rem;
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+.bd-phase-panel__icon {
+  font-size: 2.4rem;
+  line-height: 1;
+  margin: 0;
+}
+
+.bd-phase-panel__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.bd-phase-panel__body {
+  color: var(--text-muted, #6b7280);
+  font-size: 0.95rem;
+  margin: 0;
+  max-width: 520px;
+}
+
+.bd-phase-panel__cta {
+  margin-top: 0.4rem;
+}
+
+.bd-phase-panel--scheduled   { background: rgb(140 150 160 / 0.06); border-color: rgb(140 150 160 / 0.2); }
+.bd-phase-panel--menu-locked { background: rgb(232 160 32 / 0.06); border-color: rgb(232 160 32 / 0.25); }
+.bd-phase-panel--active      { background: rgb(232 64 64 / 0.06);  border-color: rgb(232 64 64 / 0.2); }
+.bd-phase-panel--biathlon    { background: rgb(217 75 196 / 0.06); border-color: rgb(217 75 196 / 0.22); }
+.bd-phase-panel--cooking     { background: rgb(224 108 26 / 0.06); border-color: rgb(224 108 26 / 0.22); }
+.bd-phase-panel--presentation{ background: rgb(91 168 224 / 0.06); border-color: rgb(91 168 224 / 0.22); }
+.bd-phase-panel--voting      { background: rgb(61 191 110 / 0.06); border-color: rgb(61 191 110 / 0.22); }
+.bd-phase-panel--cancelled   { background: rgb(144 144 144 / 0.06); border-color: rgb(144 144 144 / 0.2); }
+.bd-phase-panel--disputed    { background: rgb(192 92 0 / 0.06);   border-color: rgb(192 92 0 / 0.22); }
+
+/* ── D2: Winner banner ── */
+.bd-winner-banner {
+  align-items: center;
+  background: linear-gradient(135deg, rgb(240 192 0 / 0.12), rgb(255 224 64 / 0.06));
+  border: 2px solid rgb(240 192 0 / 0.35);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  padding: 2.4rem 2rem;
+  text-align: center;
+}
+
+.bd-winner-banner--draw {
+  background: linear-gradient(135deg, rgb(100 160 220 / 0.08), rgb(140 200 240 / 0.04));
+  border-color: rgb(100 160 220 / 0.3);
+}
+
+.bd-winner-banner__trophy {
+  font-size: 3.2rem;
+  line-height: 1;
+}
+
+.bd-winner-banner__name {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.bd-winner-banner__label {
+  color: var(--text-muted, #6b7280);
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.bd-winner-banner__reason {
+  color: var(--text-muted, #6b7280);
+  font-size: 0.92rem;
+  margin: 0.2rem 0 0;
+}
+
+.bd-winner-banner__scores {
+  align-items: flex-end;
+  display: flex;
+  gap: 1.2rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.bd-winner-banner__score {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.bd-winner-banner__score--win .bd-winner-banner__score-num {
+  color: #d4a800;
+}
+
+.bd-winner-banner__score-name {
+  color: var(--text-muted, #6b7280);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.bd-winner-banner__score-num {
+  font-size: 2.4rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.bd-winner-banner__score-label {
+  color: var(--text-muted, #6b7280);
+  font-size: 0.72rem;
+}
+
+.bd-winner-banner__score-sep {
+  font-size: 1.8rem;
+  font-weight: 300;
+  padding-bottom: 0.5rem;
+}
+
+/* ── D2: Entry grid ── */
+.battle-entry-grid {
+  display: grid;
+  gap: 1.2rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  margin-bottom: 1.8rem;
+}
+
+.battle-entry {
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, rgb(0 0 0 / 0.1));
+  border-radius: 10px;
+  padding: 1.2rem 1.4rem;
+}
+
+.battle-empty-entries {
+  margin-bottom: 1.8rem;
+  text-align: center;
+}
+
+.battle-vote-form {
+  margin-top: 0.8rem;
+}
+
+.battle-vote-btn {
+  width: 100%;
+}
+
+/* ── Misc helpers ── */
+.battle-section-header--spaced {
+  margin-bottom: 1rem;
+}
+
+.battle-combat-results__log-toggle--title {
+  cursor: pointer;
+  user-select: none;
+}
+
 
