@@ -17,7 +17,42 @@
     { text: "A sharp knife is a safe knife." },
     { text: "My favourite Chef is GreenBear." },
     { text: "You can't even make scrambled eggs?" },
-    { text: "Think you can cook it better? Prove it!" }
+    { text: "Think you can cook it better? Prove it!" },
+    { text: "Some of Ireland's greatest stories were cooked, not written." },
+    { text: "To understand Ireland, begin at its table." },
+    { text: "Every Irish dish carries a piece of the island." },
+    { text: "Ireland's history was not only written. It was served." },
+    { text: "The soul of Ireland has always had a place at the table." },
+    { text: "Irish food remembers what history forgets." },
+    { text: "Behind every Irish recipe is a story worth keeping." },
+    { text: "Ireland has preserved its memory through food for centuries." },
+    { text: "A nation's culture can be tasted before it is understood." },
+    { text: "Irish cuisine is history shared at the table." },
+    { text: "Ireland remembers through food." },
+    { text: "Every Irish table holds a piece of history." },
+    { text: "The story of Ireland was also written in kitchens." },
+    { text: "Some traditions survive because someone keeps cooking them." },
+    { text: "Irish cuisine is memory made edible." },
+    { text: "A recipe can carry a country." },
+    { text: "Ireland's past still has a place at the table." },
+    { text: "Food is one of Ireland's oldest storytellers." },
+    { text: "Every generation adds something to the Irish table." },
+    { text: "Ireland's culture was never only spoken. It was shared." },
+    { text: "Some recipes are older than the stories told about them." },
+    { text: "The Irish table has always been more than a place to eat." },
+    { text: "A nation can lose many things. Its recipes remember." },
+    { text: "Irish food carries the voices of those who came before us." },
+    { text: "History tastes different when it is still alive." },
+    { text: "The finest Irish stories were passed from hand to hand." },
+    { text: "Ireland's heritage is not locked away. It is still being cooked." },
+    { text: "Every dish is a small act of remembrance." },
+    { text: "The table is where Ireland keeps its memory." },
+    { text: "Irish cuisine is not the past. It is the past still living." },
+    { text: "Before Ireland wrote its history, it cooked it." },
+    { text: "What Ireland could not preserve in words, it preserved in food." },
+    { text: "The island changed. The table remembered." },
+    { text: "Some cultures are studied. Ireland's can be tasted." },
+    { text: "Every Irish recipe is a story that refused to disappear." }
   ];
   const promotionsNode = document.getElementById("hero-chef-promotions");
   if (promotionsNode) {
@@ -102,8 +137,17 @@
 
   const randomBetween = (min, max) => Math.random() * (max - min) + min;
 
+  // Shuffled deck — every message plays once before any repeats
+  let messageDeck = [];
+  function nextMessage() {
+    if (messageDeck.length === 0) {
+      messageDeck = messages.slice().sort(() => Math.random() - 0.5);
+    }
+    return messageDeck.pop();
+  }
+
   function saySomething() {
-    const message = messages[Math.floor(Math.random() * messages.length)];
+    const message = nextMessage();
     speech.textContent = message.text;
     if (message.url) {
       speech.href = message.url;
