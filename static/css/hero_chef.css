@@ -30,28 +30,21 @@
   width: 100%;
 }
 
-.hero-chef[data-pose="walk-b"] .hero-chef__sprite {
-  background-position: 33.333% 0;
-}
-
 .hero-chef[data-pose="sharpen"] .hero-chef__sprite {
-  animation: hero-chef-sharpen 0.58s ease-in-out infinite alternate;
   background-position: 66.666% 0;
 }
 
 .hero-chef[data-pose="egg"] .hero-chef__sprite {
-  animation: hero-chef-pan 0.72s ease-in-out infinite;
   background-position: 100% 0;
 }
 
-@keyframes hero-chef-sharpen {
-  from { transform: scaleX(var(--chef-facing, 1)) rotate(-1deg); }
-  to { transform: scaleX(var(--chef-facing, 1)) rotate(1.5deg); }
+.hero-chef[data-walking="true"] .hero-chef__sprite {
+  animation: hero-chef-walk 0.56s ease-in-out infinite;
 }
 
-@keyframes hero-chef-pan {
+@keyframes hero-chef-walk {
   0%, 100% { transform: scaleX(var(--chef-facing, 1)) translateY(0); }
-  45% { transform: scaleX(var(--chef-facing, 1)) translateY(-3px); }
+  50% { transform: scaleX(var(--chef-facing, 1)) translateY(-2px); }
 }
 
 .hero-chef__speech {

@@ -38,7 +38,6 @@
   let walkTimer;
   let poseTimer;
   let speechTimer;
-  let walkingFrame;
   let previousX = 72;
 
   const randomBetween = (min, max) => Math.random() * (max - min) + min;
@@ -54,6 +53,7 @@
 
   function performTrick() {
     const pose = Math.random() < 0.5 ? "sharpen" : "egg";
+    chef.dataset.walking = "false";
     chef.dataset.pose = pose;
     if (Math.random() < 0.48) {
       saySomething();
@@ -63,6 +63,7 @@
 
   function startWalk() {
     if (!desktop.matches || reducedMotion.matches) {
+      chef.dataset.walking = "false";
       chef.dataset.pose = "walk-a";
       return;
     }
@@ -74,16 +75,11 @@
     chef.style.setProperty("--chef-travel-time", `${travelTime}s`);
     chef.style.left = `${nextX}%`;
     previousX = nextX;
-
-    window.clearInterval(walkingFrame);
-    let alternate = false;
-    walkingFrame = window.setInterval(() => {
-      alternate = !alternate;
-      chef.dataset.pose = alternate ? "walk-b" : "walk-a";
-    }, 400);
+    chef.dataset.walking = "true";
+    chef.dataset.pose = "walk-a";
 
     walkTimer = window.setTimeout(() => {
-      window.clearInterval(walkingFrame);
+      chef.dataset.walking = "false";
       chef.dataset.pose = "walk-a";
       poseTimer = window.setTimeout(performTrick, randomBetween(900, 2200));
     }, travelTime * 1000);
@@ -93,7 +89,6 @@
     window.clearTimeout(walkTimer);
     window.clearTimeout(poseTimer);
     window.clearTimeout(speechTimer);
-    window.clearInterval(walkingFrame);
     sessionStorage.setItem("heroChefDismissed", "1");
     chef.remove();
   }
