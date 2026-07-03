@@ -44,6 +44,15 @@
     padding-block: 0.7rem 1.55rem;
 }
 
+/* base.css zeroes padding-block-end on .hero--home + .page-section;
+   auth pages need breathing room above the footer */
+.hero--login + .page-section,
+.hero--signin + .page-section,
+.hero--signup + .page-section,
+.hero--contact + .page-section {
+    padding-block-end: 4rem;
+}
+
 .auth-card {
     width: min(100%, 38rem);
     padding: 1.5rem 2rem;
