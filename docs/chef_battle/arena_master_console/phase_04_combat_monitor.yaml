@@ -1,0 +1,65 @@
+schema_version: "1.0"
+phase_id: "P04"
+title: "Live battle monitor and combat engine console"
+language: "English"
+working_token_budget: 185000
+hard_token_limit: 200000
+risk_level: "high"
+depends_on: ["P03"]
+
+prompt: |-
+  Implement the Live Battle Monitor and Combat Engine panels by surfacing the
+  existing battle, combat, ingredient, artifact, and event state. This phase is
+  read-first. Any operator intervention requires a separately documented owner
+  decision and must reuse a domain service.
+
+  Reuse targets:
+  - get_combat_state, BattleCombatAction, BattleRound, battle_state_poll.
+  - IngredientLock, IngredientShot, get_biathlon_state, biathlon endpoints.
+  - ChefArtifact inventory/reservation/use status and viewer-gift provenance.
+  - BattleEvent, combat logs, entry/submission state, and battle timers.
+  - Existing battle_detail combat UI behavior and tests.
+
+  Required panels:
+  - Active, pending, accepted, and unresolved battle counts with documented definitions.
+  - Battle timer and voting window.
+  - Append-only event timeline.
+  - Ingredient lock visualization for both chefs without leaking hidden data to
+    users who lack permission.
+  - Combat hits, misses, defended ingredients, surviving ingredients, current
+    round, declared actions, and artifact-in-use summaries.
+  - Biathlon lock/shot state and public-safe result history.
+  - Link to the full authoritative log rather than duplicating ledger detail.
+
+  Constraints:
+  - Never expose an opponent's hidden action or ingredient lock early.
+  - Never let operator polling resolve rounds or consume artifacts accidentally.
+  - Read endpoints must be side-effect free.
+  - Preserve the existing participant combat endpoints and move economy.
+
+  Verification pass 1:
+  - Selector/contract tests for every round outcome and biathlon state.
+  - Hidden-information permission tests for anonymous, spectator, participant,
+    moderator, and operator roles.
+  - Polling tests proving reads do not create actions, rounds, transactions, or events.
+  - Visual checks for dense logs, long chef names, empty inventory, and missing images.
+
+  Verification pass 2:
+  - Independently replay attack/defend, draw, full hit, partial hit, blocked,
+    lock, bounce, hit, artifact use, and depleted-move scenarios.
+  - Compare monitor totals to direct ORM calculations.
+  - Run combat, energy, permission, anti-abuse, biathlon, and ledger regression tests.
+  - Verify the public battle room and arena popup remain functional.
+
+  Required outputs:
+  - Read-only combat/monitor selectors and UI.
+  - Any approved intervention as a separately tested service and endpoint.
+  - docs/chef_battle/arena_master_console/P04_VISIBILITY_MATRIX.yaml
+  - docs/chef_battle/arena_master_console/P04_COMBAT_REPORT.md
+  - docs/chef_battle/arena_master_console/P04_HANDOFF.yaml
+
+acceptance_criteria:
+  - "No hidden combat information leaks to unauthorized users."
+  - "Monitor polling is side-effect free."
+  - "Displayed totals match authoritative combat and biathlon records."
+  - "Both verification passes succeed."

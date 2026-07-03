@@ -1,0 +1,65 @@
+schema_version: "1.0"
+phase_id: "P05"
+title: "Moderation, safety, and live-stream operations"
+language: "English"
+working_token_budget: 185000
+hard_token_limit: 200000
+risk_level: "high"
+depends_on: ["P02", "DG-01", "DG-03"]
+
+prompt: |-
+  Implement the Moderation and Safety panel using existing cooking moderation,
+  content reports, live-stream sessions, broadcasts, reports, safety delay,
+  agreements, suspension, fraud, and audit records.
+
+  Mandatory audit before implementation:
+  - cooking_moderation and cooking_moderation_approve.
+  - BattleEntry moderation statuses and image/content safety fields.
+  - ContentReport model/service/admin.
+  - LiveStreamSession, LiveBroadcast, LiveBroadcastReport, LiveBattleAgreement,
+    and all related Django admin actions.
+  - Existing staff/superuser/GreenBear protections and managed permissions.
+
+  Scope:
+  - Moderation queue with chef, battle, submission/stream state, checklist state,
+    report count, recording status, and last action.
+  - Side-by-side stream/submission review with approve, flag, request review,
+    pause, and end controls only when an existing or owner-approved service exists.
+  - Safety checklist display: age gate, minors, kitchen safety, copyrighted media,
+    excessive alcohol, recording, delay, and prohibited claims, using actual data.
+  - Explicit reason capture for every adverse action.
+  - Audit evidence and notifications consistent with existing workflows.
+  - Emergency action behavior only as approved in DG-03.
+
+  Constraints:
+  - Do not claim automated detection exists unless the repository proves it.
+  - Do not weaken report, DSA, age, suspension, fraud, or agreement handling.
+  - Do not expose private moderation notes publicly.
+  - Do not directly terminate provider streams without an approved provider service.
+
+  Verification pass 1:
+  - Permission, CSRF, reason-required, invalid-state, idempotency, and audit tests.
+  - Tests for every moderation status and stream status.
+  - Privacy tests ensuring notes/reports are operator-only.
+  - UI checks for two streams, one stream, recording-only, unavailable provider,
+    pending report, rejected content, and no active battle.
+
+  Verification pass 2:
+  - Independent moderator workflow from pending through approval and adverse action.
+  - Suspended/fraud-flagged/underage/unagreed chef scenarios.
+  - Verify public content visibility before and after each action.
+  - Run broader moderation, content report, age, fraud, suspension, agreement,
+    permissions, and feature-flag tests.
+
+  Required outputs:
+  - Moderation selectors, approved actions, audit trail, and focused tests.
+  - docs/chef_battle/arena_master_console/P05_ACTION_MATRIX.yaml
+  - docs/chef_battle/arena_master_console/P05_SAFETY_REPORT.md
+  - docs/chef_battle/arena_master_console/P05_HANDOFF.yaml
+
+acceptance_criteria:
+  - "All adverse actions require authorization and a recorded reason."
+  - "No private moderation information leaks publicly."
+  - "No provider action is simulated or falsely reported as successful."
+  - "Both verification passes succeed."
+

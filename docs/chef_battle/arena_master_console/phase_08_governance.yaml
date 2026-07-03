@@ -1,0 +1,65 @@
+schema_version: "1.0"
+phase_id: "P08"
+title: "CBR, LSR, payout, ranks, crown, and arena authority"
+language: "English"
+working_token_budget: 185000
+hard_token_limit: 200000
+risk_level: "critical"
+depends_on: ["P02", "DG-01", "DG-06"]
+
+prompt: |-
+  Implement the Rewards Governance and Ranks/Crown/Arena Authority panels. Treat
+  CBR, LSR, reward issuance, payout, rank, and crown changes as high-risk audited
+  workflows. Default to read-only links into existing review paths unless DG-06
+  explicitly authorizes console actions.
+
+  Audit before coding:
+  - RewardRecord lifecycle, LedgerEvent hash chain, ChefRewardAgreement,
+    PayoutRequest, Stripe Connect, eligibility, issue/reverse/expire/unlock services.
+  - ChefBattleProfile rating/rank/crown/streak fields, rank_for_rating,
+    calculate_battle_result, rankings, hall of fame, and crown tests.
+  - Admin actions for rewards, payouts, profiles, suspension, fraud, and artifacts.
+
+  Scope:
+  - CBR and LSR status cards with authoritative status, reason, related battle/gift,
+    eligibility, reviewer, issuance, acknowledgement, expiry, reversal, and dispute.
+  - Next-battle unlock status and progress from existing eligibility services.
+  - Payout eligibility summary without presenting rewards as user funds.
+  - Rank ladder, current crown holder, recent winner, streak, and battle-to-unlock state.
+  - Operator links to grant artifact, issue warning, review ledger, freeze/unfreeze,
+    or crown/rank actions only if existing permissions/services and owner decisions allow.
+  - Immutable audit evidence for every approved write.
+
+  Constraints:
+  - Never update rating, rank, crown, reward status, ledger hash, payout status,
+    or wallet balance directly from a view.
+  - Never bypass agreements, fraud/suspension, payout block, Stripe Connect, review,
+    expiry, reversal, or eligibility services.
+  - Preserve GreenBear owner-only/hero rules and existing privilege protections.
+  - Do not expose private payout or fraud information publicly.
+
+  Verification pass 1:
+  - Full status-matrix selector tests for CBR/LSR and payout records.
+  - Permission, privacy, direct-mutation prevention, reason, idempotency, and
+    audit tests for any approved action.
+  - Rank threshold, crown, streak, executive exclusion, hero, and owner-protection tests.
+
+  Verification pass 2:
+  - Independently reconcile reward and payout displays to ledger and service results.
+  - Verify the LedgerEvent hash chain remains valid after every tested action.
+  - Run reward lifecycle, payout eligibility, agreement, ledger immutability/hash,
+    crown, ranking, fraud, suspension, and feature-flag regression suites.
+  - Review all user-facing wording for legal accuracy.
+
+  Required outputs:
+  - Governance selectors and only DG-06-approved actions.
+  - docs/chef_battle/arena_master_console/P08_AUTHORITY_MATRIX.yaml
+  - docs/chef_battle/arena_master_console/P08_LEDGER_AUDIT.md
+  - docs/chef_battle/arena_master_console/P08_HANDOFF.yaml
+
+acceptance_criteria:
+  - "All governance actions use authoritative services and immutable audit evidence."
+  - "Ledger hash-chain and lifecycle invariants remain valid."
+  - "Private financial/fraud data remains operator-only."
+  - "Both verification passes succeed."
+

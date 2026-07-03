@@ -1,0 +1,61 @@
+schema_version: "1.0"
+phase_id: "P06"
+title: "Voting integrity and audience analytics"
+language: "English"
+working_token_budget: 175000
+hard_token_limit: 200000
+risk_level: "high"
+depends_on: ["P02", "DG-04", "DG-05"]
+
+prompt: |-
+  Implement the Voting Integrity and audience analytics panel from real vote,
+  presence, gift, chat, and battle records. Do not build a second vote engine.
+
+  Audit first:
+  - BattleVote constraints and stored request hashes/metadata.
+  - battle_vote, get_battle_vote_counts, calculate_battle_result, and auto-completion.
+  - Anti-abuse, one-vote, permission, timer, and completion tests.
+  - Arena presence heartbeat, spectator selection, chat, and gift records.
+
+  Scope:
+  - Public vote totals and percentages with zero-vote handling.
+  - One-vote-per-user enforcement evidence.
+  - Votes-per-time-window series using an explicitly documented timezone/window.
+  - Tie state and completion readiness.
+  - Suspicious activity queue only from owner-approved DG-05 rules. If no rule is
+    approved, show "Not configured" rather than a fabricated risk score.
+  - Community pulse and top-supporter summaries only when definitions are
+    documented and privacy-safe.
+  - Links to authoritative vote/admin records for investigation.
+
+  Constraints:
+  - Do not expose voter identity or request hashes publicly.
+  - Do not change vote eligibility, deadlines, or winner calculation in this phase.
+  - Do not label ordinary activity as fraud without an approved rule.
+  - Analytics queries must be bounded and indexed or cached appropriately.
+
+  Verification pass 1:
+  - Tests for no votes, one-sided votes, tie, deadline boundary, duplicate vote,
+    participant vote rejection, suspended user, anonymous user, and completed battle.
+  - Privacy and operator permission tests.
+  - Query-count and time-window tests.
+  - Chart/metric rendering checks for zero, small, and large datasets.
+
+  Verification pass 2:
+  - Independently calculate totals and percentages from BattleVote and compare.
+  - Re-run anti-abuse and auto-completion suites.
+  - Review all labels for unsupported fraud or integrity claims.
+  - Verify public voting and arena popup remain unchanged.
+
+  Required outputs:
+  - Read-only integrity selectors and approved review UI.
+  - docs/chef_battle/arena_master_console/P06_METRIC_DEFINITIONS.yaml
+  - docs/chef_battle/arena_master_console/P06_PRIVACY_REPORT.md
+  - docs/chef_battle/arena_master_console/P06_HANDOFF.yaml
+
+acceptance_criteria:
+  - "Vote totals match authoritative records."
+  - "No voter-sensitive data leaks."
+  - "Suspicious activity is shown only when an approved rule supports it."
+  - "Both verification passes succeed."
+

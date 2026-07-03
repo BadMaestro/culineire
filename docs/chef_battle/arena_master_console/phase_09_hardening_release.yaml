@@ -1,0 +1,73 @@
+schema_version: "1.0"
+phase_id: "P09"
+title: "Integrated hardening, accessibility, performance, and release readiness"
+language: "English"
+working_token_budget: 175000
+hard_token_limit: 200000
+risk_level: "high"
+depends_on: ["P03", "P04", "P05", "P06", "P07", "P08"]
+
+prompt: |-
+  Integrate and harden the complete Arena Master Console. Do not add major new
+  features. Resolve cross-panel defects, prove security and domain invariants,
+  measure performance, complete accessibility, and produce rollout evidence.
+
+  Required work:
+  - Re-read every phase handoff, decision, data dictionary, authority matrix,
+    visibility matrix, metric definition, and audit report.
+  - Verify one shared active-battle identity and refresh strategy across panels.
+  - Ensure stale polling responses cannot overwrite newer state.
+  - Standardize loading, empty, unavailable, permission-denied, stale, partial,
+    error, and retry states.
+  - Confirm every button has a real action, permission, confirmation, disabled
+    explanation, success state, and failure state.
+  - Remove dead placeholders and reference-only example values.
+  - Optimize bounded queries, indexes only when evidence requires them, caching,
+    payload size, DOM size, image loading, and polling behavior.
+  - Complete keyboard navigation, focus management, live-region discipline,
+    contrast, reduced motion, zoom, text fitting, and non-color status cues.
+  - Provide feature-gated rollout, monitoring, rollback, and incident procedures.
+
+  Verification pass 1:
+  - Full focused test matrix across all operator modules plus Django checks,
+    migration drift, static discovery, JS checks, and accessibility checks.
+  - Desktop screenshots at 1920x1080, 1440x900, and 1280x800 with nonblank
+    Arena, no overlap, no clipping, and no body overflow.
+  - Mobile/public Arena regression screenshot and interaction checks.
+  - Query count, response time, payload size, and polling concurrency measurements.
+
+  Verification pass 2:
+  - Fresh end-to-end role matrix: anonymous, spectator, enrolled chef, battle
+    participant, moderator, unauthorized staff, authorized operator, suspended,
+    fraud-flagged, and feature-disabled.
+  - Fresh end-to-end battle lifecycle including scheduling, combat, biathlon,
+    cooking, moderation, presentation, voting, completion, gifts, rewards,
+    disputes, cancellation, and emergency behavior using test data only.
+  - Security review for CSRF, IDOR, privilege escalation, hidden-data leakage,
+    replay, stale state, duplicate writes, and unsafe GET mutations.
+  - Run the complete chef_battle test suite and all cross-app suites identified
+    by earlier phases.
+  - Independent diff review against the capability map to confirm no duplicated
+    business logic was introduced.
+
+  Required outputs:
+  - Final integrated fixes and tests only.
+  - docs/chef_battle/arena_master_console/P09_ACCEPTANCE_REPORT.md
+  - docs/chef_battle/arena_master_console/P09_PERFORMANCE_REPORT.md
+  - docs/chef_battle/arena_master_console/P09_SECURITY_REVIEW.md
+  - docs/chef_battle/arena_master_console/P09_ROLLOUT_ROLLBACK.yaml
+  - Updated deployment journal, Chef Battle roadmap, and CoWork evidence required
+    by repository conventions.
+
+  Release gate:
+  - Do not enable CHEF_BATTLE_ENABLED.
+  - Do not deploy automatically.
+  - Mark release-ready only when both verification passes, owner acceptance,
+    rollback documentation, and all critical tests are complete.
+
+acceptance_criteria:
+  - "Complete Chef Battle and identified cross-app test suites pass."
+  - "No critical security, privacy, payment, legal, accessibility, or data-integrity issue remains."
+  - "Performance measurements meet the P00-approved targets."
+  - "Public Arena regression checks pass."
+  - "Owner acceptance and rollback plan are documented."

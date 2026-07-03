@@ -1,0 +1,77 @@
+schema_version: "1.0"
+phase_id: "P00"
+title: "Discovery, baseline, and contract freeze"
+language: "English"
+working_token_budget: 100000
+hard_token_limit: 200000
+risk_level: "low"
+
+prompt: |-
+  You are the discovery and architecture agent for the CulinEire Chef Battles
+  Arena Master Console. Do not implement production behavior in this phase.
+
+  Read, in order:
+  1. docs/chef_battle/arena_master_console/00_MASTER_PLAN.yaml
+  2. docs/chef_battle/arena_master_console/01_CAPABILITY_MAP.yaml
+  3. docs/chef_battle/ARENA_HALL_PLAN.md
+  4. docs/chef_battle/ARENA_INTERACTION_PARITY_AUDIT_REPORT.md
+  5. docs/chef_battle/battle_lifecycle.md
+  6. docs/chef_battle/operational_constraints.md
+  7. The reference image at docs/chef_battle/arena_master_console/reference/arena-master-console.png
+
+  Inspect the current repository rather than trusting stale documentation.
+  Inventory every mockup panel, metric, status, and control against current
+  models, services, views, admin actions, templates, JavaScript, URLs, tests,
+  feature flags, permissions, and legal constraints.
+
+  Required work:
+  - Capture baseline screenshots of the current Arena at 1920x1080, 1440x900,
+    1280x800, and one mobile viewport. Do not write production data.
+  - Build a complete panel-by-panel reuse matrix using the columns defined in
+    01_CAPABILITY_MAP.yaml.
+  - Identify all stale assumptions in existing plans.
+  - Document the current public Arena contract and the smallest proposed
+    operator read-model contract. Do not create endpoints yet.
+  - Identify all operator writes shown in the mockup and map each to an
+    existing service/admin action or mark it as a genuine gap.
+  - Resolve or explicitly block on decision gates DG-01 through DG-06.
+  - Define real meanings for every displayed count. Never accept the mockup's
+    example numbers as requirements.
+  - Propose feature-flag and permission boundaries that leave the current
+    public Arena unchanged.
+  - Record query-count and payload-size baselines for arena() and arena_state().
+
+  Verification pass 1:
+  - Re-open every cited implementation path and verify the capability exists.
+  - Confirm each mapped service has tests or record the missing test gap.
+  - Validate all proposed contracts against current models and URLs.
+
+  Verification pass 2:
+  - Independently walk through spectator, chef, moderator, operator, anonymous,
+    suspended, and feature-disabled scenarios.
+  - Search again for duplicate implementations in admin.py, services.py,
+    views.py, signals, management commands, and templates.
+  - Reconcile findings with the reference design and existing canonical rules.
+
+  Deliverables:
+  - docs/chef_battle/arena_master_console/P00_REUSE_MATRIX.yaml
+  - docs/chef_battle/arena_master_console/P00_CONTRACTS.yaml
+  - docs/chef_battle/arena_master_console/P00_DECISIONS.yaml
+  - docs/chef_battle/arena_master_console/P00_BASELINE_REPORT.md
+
+  Stop conditions:
+  - Stop if the worktree contains unrelated modifications.
+  - Stop if any operator authority decision is being guessed.
+  - Stop before 190000 tokens and provide a continuation prompt if needed.
+
+  Completion response must list evidence paths, unresolved decisions, token
+  usage estimate, verification results, changed documentation files, and the
+  exact readiness status for P01.
+
+acceptance_criteria:
+  - "No production code or database migration is added."
+  - "Every visible mockup panel has a reuse/gap decision."
+  - "Every proposed operator action has an authorization and audit requirement."
+  - "Both verification passes are recorded."
+  - "P01 has a frozen, evidence-backed input contract."
+

@@ -1,0 +1,173 @@
+schema_version: "1.0"
+document_type: "implementation_master_plan"
+project: "CulinEire Chef Battles Arena Master Console"
+language: "English"
+status: "planning_complete_implementation_not_started"
+reference_design: "docs/chef_battle/arena_master_console/reference/arena-master-console.png"
+
+objective: >-
+  Build the high-density desktop Chef Battles Arena and Arena Master Console
+  shown in the reference design by surfacing and orchestrating the real
+  Chef Battles domain. Existing battle, moderation, voting, token, gift,
+  artifact, reward, payout, rank, crown, chat, presence, and live-stream
+  functionality must be discovered and reused before any new logic is added.
+
+non_negotiable_rules:
+  - "Never replace real domain behavior with decorative or fabricated dashboard data."
+  - "Audit existing models, services, views, admin actions, templates, JavaScript, tests, and documentation before implementing each panel."
+  - "Prefer read-only selectors and thin orchestration adapters over new business logic."
+  - "Do not duplicate an existing service in a new operator endpoint."
+  - "All operator writes must be server-authoritative POST operations with CSRF, explicit authorization, validation, transactions where needed, idempotency where needed, and audit evidence."
+  - "Preserve CHEF_BATTLE_ENABLED behavior and all existing public access gates."
+  - "Preserve payment, Stripe, token, reward, payout, age, legal, fraud, suspension, and moderation controls."
+  - "Do not invent WebSocket infrastructure. Continue polling unless a measured requirement and an approved architecture decision justify a change."
+  - "Do not create fake production battles or production financial records for verification."
+  - "Do not modify historical migrations."
+  - "Do not enable feature flags or deploy automatically."
+  - "Do not commit unrelated work from parallel agents."
+
+token_policy:
+  hard_limit_per_phase: 200000
+  required_stop_threshold: 190000
+  budgeting_rule: >-
+    Each phase has a working budget below 190000 tokens. At 170000 tokens,
+    stop feature expansion and reserve the remaining budget for tests,
+    second-pass verification, documentation, and a clean handoff.
+  continuation_rule: >-
+    If a phase cannot be completed safely below the hard limit, stop at a
+    coherent boundary, record exact remaining work, and create a numbered
+    continuation prompt instead of compressing verification.
+
+verification_policy:
+  pass_1:
+    name: "Implementation verification"
+    purpose: "Prove the changed unit behaves correctly in isolation."
+    minimum_evidence:
+      - "Focused automated tests for selectors, permissions, services, views, API contracts, and templates touched by the phase."
+      - "Django system check and migration drift check when models are involved."
+      - "JavaScript syntax or frontend test checks for changed scripts."
+      - "Desktop screenshot comparison against the reference for changed visual surfaces."
+  pass_2:
+    name: "Independent integration and regression verification"
+    purpose: "Re-read the implementation from the user workflow and production-risk perspective."
+    minimum_evidence:
+      - "Fresh review of permissions, CSRF, feature flags, error states, empty states, and concurrency behavior."
+      - "Relevant broader Chef Battle test subset, not only newly added tests."
+      - "Desktop viewport checks at 1920x1080, 1440x900, and 1280x800 unless the phase is backend-only."
+      - "Mobile and narrow viewport regression check confirming the existing public site remains usable."
+      - "Console, network, overflow, overlap, and nonblank rendering checks for frontend phases."
+      - "Explicit comparison of implemented controls against the capability map to detect duplicate logic."
+
+mandatory_phase_workflow:
+  - "Read this master plan, the capability map, the phase prompt, and all listed canonical project documents."
+  - "Run git status, identify the active branch, inspect recent commits, and report unrelated changes before editing."
+  - "Produce a reuse matrix: requested capability, existing implementation, evidence path, reuse decision, genuine gap."
+  - "Confirm all phase decision gates are resolved. Stop and ask the owner if any required decision is unresolved."
+  - "Implement only the phase scope."
+  - "Run verification pass 1."
+  - "Perform an explicit second review from a clean user-flow perspective, then run verification pass 2."
+  - "Update phase evidence, roadmap/deployment documentation required by the repository, and the next-phase handoff."
+  - "Commit and push only after both verification passes succeed. Provide the manual deploy command; do not deploy."
+
+decision_gates_before_operator_writes:
+  - id: "DG-01"
+    question: "Who may access the Arena Master Console: GreenBear only, all superusers, staff with a dedicated permission, or another role?"
+    blocks_phases: [3, 4, 5, 6, 7, 8]
+  - id: "DG-02"
+    question: "Which phase transitions may be performed manually, and which must remain service-driven only?"
+    blocks_phases: [3]
+  - id: "DG-03"
+    question: "What exactly must Emergency Stop do, and what recovery path is required?"
+    blocks_phases: [3, 5]
+  - id: "DG-04"
+    question: "Are active viewer counts real authenticated/session presence, symbolic occupancy, or third-party analytics?"
+    blocks_phases: [2, 6]
+  - id: "DG-05"
+    question: "Which suspicious-vote and tie-detection rules are authoritative?"
+    blocks_phases: [6]
+  - id: "DG-06"
+    question: "May operator controls issue/reverse CBR or LSR, or are they review-only links into existing admin workflows?"
+    blocks_phases: [8]
+
+phase_sequence:
+  - id: "P00"
+    name: "Discovery, baseline, and contract freeze"
+    prompt: "phase_00_discovery.yaml"
+    working_token_budget: 100000
+    risk: "low"
+    depends_on: []
+    outcome: "Evidence-backed reuse matrix, signed decisions, baseline screenshots, and frozen data contracts."
+  - id: "P01"
+    name: "Desktop visual shell and information architecture"
+    prompt: "phase_01_visual_shell.yaml"
+    working_token_budget: 155000
+    risk: "medium"
+    depends_on: ["P00"]
+    outcome: "Reference-aligned desktop shell with semantic placeholders fed only by explicit unavailable states."
+  - id: "P02"
+    name: "Read-only arena overview and live data adapters"
+    prompt: "phase_02_read_models.yaml"
+    working_token_budget: 180000
+    risk: "medium"
+    depends_on: ["P01"]
+    outcome: "Real battle, chef, phase, viewer, vote, gift, crown, and system-state read models."
+  - id: "P03"
+    name: "Arena control and battle-flow orchestration"
+    prompt: "phase_03_battle_flow.yaml"
+    working_token_budget: 185000
+    risk: "high"
+    depends_on: ["P02", "DG-01", "DG-02", "DG-03"]
+    outcome: "Authorized phase controls that call existing services and produce audit evidence."
+  - id: "P04"
+    name: "Live battle monitor and combat engine console"
+    prompt: "phase_04_combat_monitor.yaml"
+    working_token_budget: 185000
+    risk: "high"
+    depends_on: ["P03"]
+    outcome: "Operator visibility into active battles, combat rounds, ingredients, locks, shots, artifacts, and logs."
+  - id: "P05"
+    name: "Moderation, safety, and live-stream operations"
+    prompt: "phase_05_moderation_safety.yaml"
+    working_token_budget: 185000
+    risk: "high"
+    depends_on: ["P02", "DG-01", "DG-03"]
+    outcome: "Moderation queue and stream safety controls built on existing records and permissions."
+  - id: "P06"
+    name: "Voting integrity and audience analytics"
+    prompt: "phase_06_voting_integrity.yaml"
+    working_token_budget: 175000
+    risk: "high"
+    depends_on: ["P02", "DG-04", "DG-05"]
+    outcome: "Real vote totals, one-vote enforcement evidence, suspicious-activity review, tie state, and audience summaries."
+  - id: "P07"
+    name: "Economy, gifts, tokens, and artifacts"
+    prompt: "phase_07_economy_gifts.yaml"
+    working_token_budget: 185000
+    risk: "critical"
+    depends_on: ["P02", "P05"]
+    outcome: "Read-first economy console with narrowly approved actions reusing ledgers and gift services."
+  - id: "P08"
+    name: "CBR, LSR, payout, ranks, crown, and arena authority"
+    prompt: "phase_08_governance.yaml"
+    working_token_budget: 185000
+    risk: "critical"
+    depends_on: ["P02", "DG-01", "DG-06"]
+    outcome: "Governance console that preserves reward and payout lifecycle rules and crown/rank authority."
+  - id: "P09"
+    name: "Integrated hardening, accessibility, performance, and release readiness"
+    prompt: "phase_09_hardening_release.yaml"
+    working_token_budget: 175000
+    risk: "high"
+    depends_on: ["P03", "P04", "P05", "P06", "P07", "P08"]
+    outcome: "Integrated console verified twice, documented, feature-gated, rollback-ready, and ready for owner acceptance."
+
+global_definition_of_done:
+  - "Every visible metric is sourced from a documented real query or explicitly marked unavailable."
+  - "Every operator action maps to an existing service or an owner-approved new service with focused tests."
+  - "No panel silently changes business rules."
+  - "Public Arena behavior remains intact when the operator console is inaccessible."
+  - "The feature flag remains off unless the owner separately enables it."
+  - "All phase prompts have completed both verification passes."
+  - "A production-safe rollout and rollback procedure exists."
+
+manual_deploy_command: "cd /srv/culineire/current && bash /srv/culineire/current/deploy/update.sh"

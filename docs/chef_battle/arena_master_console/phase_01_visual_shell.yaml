@@ -1,0 +1,68 @@
+schema_version: "1.0"
+phase_id: "P01"
+title: "Desktop visual shell and information architecture"
+language: "English"
+working_token_budget: 155000
+hard_token_limit: 200000
+risk_level: "medium"
+depends_on: ["P00"]
+
+prompt: |-
+  Build the visual and semantic shell for the Arena Master Console without
+  inventing data or operator behavior.
+
+  Mandatory inputs:
+  - 00_MASTER_PLAN.yaml and 01_CAPABILITY_MAP.yaml
+  - All P00 deliverables
+  - reference/arena-master-console.png
+  - Current arena.html, arena.css, arena_puzzle.js, base.html, and shared header
+
+  Scope:
+  - Preserve the existing public Arena and its SVG renderer.
+  - Add a dedicated operator-console mode or surface behind the P00-approved
+    feature and permission gate.
+  - Create the desktop information architecture represented in the reference:
+    top Arena overview, battle status, chef cards, audience summary, phase rail,
+    lower eight-panel operator deck, and system footer.
+  - Use semantic landmarks, headings, tables/lists where appropriate, proper
+    button elements, focus order, labels, and accessible empty states.
+  - Use restrained reusable components and existing project tokens. Do not put
+    cards inside cards and do not make the public Arena regress.
+  - At this phase, panels may render only explicit states such as
+    "Not connected", "No active battle", or "Unavailable in this phase".
+    Do not render example values from the mockup.
+  - Establish stable responsive dimensions. The target is high-density desktop;
+    provide a safe narrow-desktop layout and a deliberate mobile fallback rather
+    than shrinking the console until text becomes unreadable.
+  - Keep all high-risk controls disabled or absent until their implementation phase.
+
+  Verification pass 1:
+  - Template and permission tests for public/operator separation.
+  - HTML/accessibility checks and JavaScript syntax checks.
+  - Screenshots at 1920x1080, 1440x900, 1280x800, and mobile.
+  - Pixel/DOM checks for nonblank Arena rendering, no text clipping, no overlap,
+    no horizontal body overflow, and stable SVG dimensions.
+
+  Verification pass 2:
+  - Re-open the current public Arena as anonymous, authenticated spectator,
+    enrolled chef, and authorized operator.
+  - Compare screenshots against both the reference and the P00 baseline.
+  - Verify keyboard traversal and reduced-motion behavior.
+  - Review the diff for accidental changes to shared base/header/footer styles.
+
+  Required outputs:
+  - Production code limited to the shell and access gate.
+  - Focused regression tests.
+  - docs/chef_battle/arena_master_console/P01_VISUAL_REPORT.md
+  - docs/chef_battle/arena_master_console/P01_HANDOFF.yaml
+
+  Do not add new domain models, phase mutation endpoints, fake metrics, payment
+  logic, or manual state-changing actions.
+
+acceptance_criteria:
+  - "Authorized operators can open the shell; unauthorized users cannot."
+  - "The existing public Arena remains behaviorally unchanged."
+  - "No fabricated operational data is displayed."
+  - "Desktop layout matches the reference hierarchy without overlap."
+  - "Both verification passes succeed."
+

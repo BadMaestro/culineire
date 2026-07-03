@@ -1,0 +1,64 @@
+schema_version: "1.0"
+phase_id: "P07"
+title: "Economy, gifts, tokens, and artifacts"
+language: "English"
+working_token_budget: 185000
+hard_token_limit: 200000
+risk_level: "critical"
+depends_on: ["P02", "P05"]
+
+prompt: |-
+  Implement the Economy, Gifts, and Artifacts panel as a read-first operational
+  console. This is payment-adjacent production code. Preserve the closed-loop
+  token model and all Stripe, VAT, age, consent, idempotency, fraud, ledger, and
+  legal controls.
+
+  Audit before coding:
+  - TokenPackage source of truth, TokenWallet, TokenTransaction, TokenOrder,
+    ProcessedTokenStripeEvent, checkout views, webhook, and chargeback service.
+  - AppreciationGift, ViewerBattleGift, Artifact, ChefArtifact, send services,
+    artifact drops, rarity weights, and battle chat notifications.
+  - Token, VAT consent, fraud, age, gift catalogue, ledger, and webhook tests.
+
+  Scope:
+  - Tokens in/out and net-flow metrics with exact time windows and transaction types.
+  - Audience gift catalogue and live delivery summaries.
+  - Per-chef delivered appreciation and artifact gifts.
+  - Artifact inventory/use/drop state and rarity distribution from actual records.
+  - Failed/pending/reversed/chargeback transaction review links.
+  - Any operator write must be separately approved, invoke existing services,
+    require reason/confirmation, and produce immutable audit evidence.
+
+  Constraints:
+  - Never edit wallet balances directly.
+  - Never manually mark Stripe orders paid.
+  - Never replay webhooks without the existing idempotency guard.
+  - Never describe tokens or rewards as cash, earnings, withdrawable funds, or e-money.
+  - Never weaken 18+, consent, fraud, suspension, or payout-block gates.
+  - Do not implement appreciation-gift resale without separate legal approval.
+
+  Verification pass 1:
+  - Selector tests for every transaction/gift/artifact status and empty state.
+  - Permission/privacy tests and query-count tests.
+  - If writes are approved: transaction rollback, idempotency, insufficient balance,
+    age, fraud, suspension, chargeback, and duplicate-request tests.
+
+  Verification pass 2:
+  - Independently reconcile displayed totals to TokenTransaction and order records.
+  - Verify wallet balance invariants before/after every tested action.
+  - Run broader token, Stripe, VAT, gift, artifact, fraud, age, ledger, and
+    chargeback test suites.
+  - Review every visible phrase for closed-loop/legal wording compliance.
+
+  Required outputs:
+  - Economy selectors and only explicitly approved actions.
+  - docs/chef_battle/arena_master_console/P07_LEDGER_DEFINITIONS.yaml
+  - docs/chef_battle/arena_master_console/P07_RECONCILIATION_REPORT.md
+  - docs/chef_battle/arena_master_console/P07_HANDOFF.yaml
+
+acceptance_criteria:
+  - "All totals reconcile to authoritative ledger records."
+  - "No direct balance or paid-status mutation exists."
+  - "Payment and legal controls are preserved."
+  - "Both verification passes succeed."
+

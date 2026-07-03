@@ -1,0 +1,234 @@
+schema_version: "1.0"
+document_type: "existing_capability_map"
+status: "baseline_inventory_requires_phase_00_revalidation"
+
+canonical_references:
+  - "docs/chef_battle/ARENA_HALL_PLAN.md"
+  - "docs/chef_battle/ARENA_INTERACTION_PARITY_AUDIT_REPORT.md"
+  - "docs/chef_battle/battle_lifecycle.md"
+  - "docs/chef_battle/battle_rules.md"
+  - "docs/chef_battle/combat_items.md"
+  - "docs/chef_battle/audience_gifts.md"
+  - "docs/chef_battle/token_economy.md"
+  - "docs/chef_battle/operational_constraints.md"
+
+surface_map:
+  arena_ring_and_presence:
+    existing:
+      - "templates/chef_battle/arena.html"
+      - "static/js/arena_puzzle.js"
+      - "static/css/arena.css"
+      - "chef_battle.views.arena"
+      - "chef_battle.views.arena_state"
+      - "chef_battle.views.arena_ping"
+      - "chef_battle.views._arena_center"
+      - "chef_battle.views._get_spectators"
+    reuse_notes:
+      - "Concentric octagonal rank geometry, avatar clipping, online presence, center VS state, crown state, spectators, polling, ripple, tooltip, and popup already exist."
+      - "Do not redraw the ring in a new framework before proving the existing renderer cannot support the target composition."
+    known_gaps:
+      - "Reference-layout side cards and operator-oriented battle metadata are not assembled into one read model."
+      - "Anonymous viewer definition remains an owner decision."
+
+active_battle_popup_and_chat:
+    existing:
+      - "chef_battle.views.arena_battle_popup"
+      - "templates/chef_battle/arena_battle_popup.html"
+      - "chef_battle.views.battle_chat_send"
+      - "chef_battle.views.battle_chat_poll"
+      - "chef_battle.models.BattleChatMessage"
+    reuse_notes:
+      - "Popup already exposes participants, artifacts, votes, gifts, token balance, time remaining, and battle chat."
+    known_gaps:
+      - "Reference design requires a denser operator monitor rather than replacing the public popup."
+
+battle_lifecycle_and_readiness:
+    existing:
+      - "chef_battle.models.BattleChallenge"
+      - "chef_battle.models.Battle"
+      - "chef_battle.services.accept_challenge"
+      - "chef_battle.services.expire_stale_challenges"
+      - "chef_battle.services.handle_no_show_battles"
+      - "chef_battle.views.battle_set_ready"
+      - "Battle.start_time, submission_deadline, voting_deadline, end_time"
+      - "Battle.challenger_ready, opponent_ready, proposed_combat_time, combat_time_confirmed"
+    reuse_notes:
+      - "Scheduling and readiness fields already exist."
+      - "Manual phase mutation must not bypass lifecycle services."
+    known_gaps:
+      - "No audited operator orchestration layer matching the reference control deck."
+
+combat_engine:
+    existing:
+      - "chef_battle.models.BattleCombatAction"
+      - "chef_battle.models.BattleRound"
+      - "chef_battle.services.submit_combat_action"
+      - "chef_battle.services._resolve_round"
+      - "chef_battle.services.get_combat_state"
+      - "chef_battle.views.battle_combat_action"
+      - "chef_battle.views.battle_state_poll"
+      - "templates/chef_battle/battle_detail.html"
+    reuse_notes:
+      - "Attack, defend, invested moves, hidden declarations, round resolution, hit totals, and combat log already exist."
+    known_gaps:
+      - "Operator read model and safe intervention policy are not defined."
+
+ingredient_biathlon:
+    existing:
+      - "chef_battle.models.IngredientLock"
+      - "chef_battle.models.IngredientShot"
+      - "chef_battle.services.place_ingredient_lock"
+      - "chef_battle.services.fire_ingredient_shot"
+      - "chef_battle.services.get_biathlon_state"
+      - "chef_battle.views.biathlon"
+      - "chef_battle.views.biathlon_lock"
+      - "chef_battle.views.biathlon_shoot"
+    reuse_notes:
+      - "Lock and shot limits and result logging already exist."
+    known_gaps:
+      - "Console visualization can be built as a selector; do not create a second ingredient engine."
+
+cooking_and_moderation:
+    existing:
+      - "chef_battle.models.BattleEntry moderation fields"
+      - "chef_battle.services.approve_cooking_phase"
+      - "chef_battle.services.get_battles_awaiting_cooking_approval"
+      - "chef_battle.services.submit_cooked_photo"
+      - "chef_battle.views.cooking_moderation"
+      - "chef_battle.views.cooking_moderation_approve"
+      - "chef_battle.views.cooking_submit"
+      - "templates/chef_battle/cooking_moderation.html"
+    reuse_notes:
+      - "Cooking approval and content submission are implemented."
+    known_gaps:
+      - "The mockup's approve, flag, pause, and end-stream controls require an authorization and action audit."
+
+live_stream_safety:
+    existing:
+      - "chef_battle.models.LiveStreamSession"
+      - "chef_battle.models.LiveBroadcast"
+      - "chef_battle.models.LiveBroadcastReport"
+      - "chef_battle.models.LiveBattleAgreement"
+      - "chef_battle.admin live-stream administration"
+    reuse_notes:
+      - "Provider, status, safety checklist, moderation, recording, delay, termination, reporting, and agreement records exist."
+    known_gaps:
+      - "Public/operator endpoints may not exist; phase 05 must audit admin actions before adding any."
+
+voting:
+    existing:
+      - "chef_battle.models.BattleVote"
+      - "chef_battle.views.battle_vote"
+      - "chef_battle.services.calculate_battle_result"
+      - "chef_battle.tests.ChefBattleAntiAbuseTests"
+      - "chef_battle.tests.AutoCompleteVotingTests"
+      - "chef_battle.tests.PermissionTests"
+    reuse_notes:
+      - "One-vote constraints, vote endpoints, totals, completion, and anti-abuse tests exist."
+    known_gaps:
+      - "Suspicious-activity score, tie analytics, and operator review definitions require evidence and owner decisions."
+
+tokens_gifts_and_artifacts:
+    existing:
+      - "chef_battle.models.TokenPackage"
+      - "chef_battle.models.TokenWallet"
+      - "chef_battle.models.TokenTransaction"
+      - "chef_battle.models.TokenOrder"
+      - "chef_battle.models.ProcessedTokenStripeEvent"
+      - "chef_battle.models.Artifact"
+      - "chef_battle.models.ChefArtifact"
+      - "chef_battle.models.ViewerBattleGift"
+      - "chef_battle.models.AppreciationGift"
+      - "chef_battle.services.credit_tokens"
+      - "chef_battle.services.debit_tokens"
+      - "chef_battle.services.send_battle_artifact"
+      - "chef_battle.services.send_appreciation_gift"
+      - "chef_battle.services.drop_battle_artifacts"
+      - "chef_battle token checkout and Stripe webhook views"
+    reuse_notes:
+      - "Wallet debit/credit, transaction ledger, idempotent Stripe events, gift delivery, artifact inventory, and drop logic exist."
+    known_gaps:
+      - "Reference metrics such as net flow and rarity percentages need precise, approved query definitions."
+
+rewards_payout_and_ledger:
+    existing:
+      - "chef_battle.models.RewardRecord"
+      - "chef_battle.models.LedgerEvent"
+      - "chef_battle.models.ChefRewardAgreement"
+      - "chef_battle.models.PayoutRequest"
+      - "chef_battle.services.issue_reward"
+      - "chef_battle.services.reverse_reward"
+      - "chef_battle.services.check_next_battle_unlock"
+      - "chef_battle.services.check_payout_eligibility"
+      - "chef_battle.services.create_payout_request"
+      - "chef_battle.services.approve_payout_request"
+      - "chef_battle.services.reject_payout_request"
+      - "chef_battle.services.get_chef_payout_statement"
+      - "chef_battle.tests.LedgerEventHashChainTests"
+      - "chef_battle.tests.RewardRecordLifecycleTests"
+      - "chef_battle.tests.PayoutEligibilityTests"
+    reuse_notes:
+      - "CBR/LSR lifecycle, immutable/hash-chained ledger, agreement, expiry, reversal, next-battle unlock, payout eligibility, and Stripe Connect paths exist."
+    known_gaps:
+      - "Operator authority must be decided; default to read-only and links to existing admin review."
+
+ranks_crown_and_profiles:
+    existing:
+      - "chef_battle.models.ChefBattleProfile"
+      - "chef_battle.services.rank_for_rating"
+      - "chef_battle.services.calculate_battle_result"
+      - "chef_battle.views.rankings"
+      - "chef_battle.views.hall_of_fame"
+      - "chef_battle.views.chef_battle_profile"
+      - "chef_battle.tests.CrownTests"
+    reuse_notes:
+      - "Rating, rank, wins/losses, streak, crown holder, crown count, suspension, fraud, and payout flags exist."
+    known_gaps:
+      - "Manual crown/rank actions must not be invented without owner-approved authority and audit rules."
+
+operator_and_admin_foundations:
+    existing:
+      - "chef_battle/admin.py"
+      - "recipes moderation permissions and GreenBear protections"
+      - "chef_battle.models.ContentReport"
+      - "chef_battle.services.submit_content_report"
+      - "config release journal and Chef Battle roadmap"
+    reuse_notes:
+      - "Many high-risk actions already exist in Django admin with explicit validation."
+    known_gaps:
+      - "Dedicated Arena Master permission and console audit event policy require phase 00 decisions."
+
+test_inventory:
+  primary_suite: "python manage.py test chef_battle"
+  known_focused_areas:
+    - "ChefBattleServiceTests"
+    - "ChefBattleAccessTests"
+    - "ChefBattleChallengeCreateViewTests"
+    - "ChefBattleAntiAbuseTests"
+    - "BattleTimerTests"
+    - "CrownTests"
+    - "AutoCompleteVotingTests"
+    - "PermissionTests"
+    - "AppreciationGiftCatalogueTests"
+    - "LSRRewardTests"
+    - "LedgerEventImmutabilityTests"
+    - "SuspensionGateTests"
+    - "BattleCompletionLedgerTests"
+    - "FeatureFlagTests"
+    - "RewardRecordLifecycleTests"
+    - "TokenOrderVatConsentTests"
+    - "LedgerEventHashChainTests"
+    - "FraudGateTests"
+    - "AgeVerificationGateTests"
+    - "PayoutEligibilityTests"
+
+phase_00_required_output_columns:
+  - "mockup_panel"
+  - "requested_metric_or_action"
+  - "existing_source"
+  - "existing_permission"
+  - "existing_tests"
+  - "reuse_strategy"
+  - "genuine_gap"
+  - "owner_decision"
+  - "phase_assignment"

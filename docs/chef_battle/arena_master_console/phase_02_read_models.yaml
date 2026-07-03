@@ -1,0 +1,69 @@
+schema_version: "1.0"
+phase_id: "P02"
+title: "Read-only arena overview and live data adapters"
+language: "English"
+working_token_budget: 180000
+hard_token_limit: 200000
+risk_level: "medium"
+depends_on: ["P01"]
+
+prompt: |-
+  Connect the P01 shell to real, read-only Chef Battles data. Reuse existing
+  selectors and extract shared selectors where arena() and arena_state()
+  currently duplicate queries. Do not add operator writes.
+
+  Required reads:
+  - Master plan, capability map, all P00 outputs, and P01 handoff
+  - chef_battle/models.py, services.py, views.py, urls.py, admin.py, tests.py
+  - arena.html, arena_battle_popup.html, battle_detail.html, arena_puzzle.js
+
+  Required read models:
+  - Active battle identity, battle ID, arena label, theme, status, current phase,
+    next phase, phase timestamps, countdown, readiness, and unresolved state.
+  - Challenger/opponent identity, avatar, rank, rating, team/author context,
+    country when genuinely available, support totals, current battle artifacts,
+    and combat summary.
+  - Existing octagonal rank ring, crown holder, rank legend, and spectators.
+  - Active viewers using only the P00-approved definition.
+  - Vote totals, gift counts, streak, token flow summaries, and artifact drop
+    summaries using documented queries and explicit time windows.
+  - Server time, feature status, and component health using cheap, truthful signals.
+
+  Architecture constraints:
+  - Prefer selector functions returning typed/documented dictionaries.
+  - Avoid N+1 queries and duplicate arena()/arena_state() assembly.
+  - Keep public payloads minimal; operator-only fields must not leak into public
+    JSON or HTML.
+  - Keep polling compatible with the existing 20-second Arena strategy unless
+    P00 measurements justify a separate approved interval.
+  - Return explicit null/unavailable states rather than zero when zero would be misleading.
+
+  Verification pass 1:
+  - Focused selector and JSON contract tests for no battle, scheduled, combat,
+    cooking, voting, completed, disputed, and cancelled cases.
+  - Query-count assertions for main read models.
+  - Permission tests proving operator fields are not visible publicly.
+  - Screenshot and DOM checks for real seeded test data and empty states.
+
+  Verification pass 2:
+  - Independently compare each displayed value to direct ORM queries in tests.
+  - Exercise stale/deleted authors, missing avatars, missing wallets, no sponsor,
+    no crown, no gifts, and multiple active battle edge cases.
+  - Run the relevant broader Chef Battle test subset and review payload size.
+  - Compare public Arena behavior with the P00 baseline.
+
+  Required outputs:
+  - Read-only selectors/adapters and focused tests.
+  - docs/chef_battle/arena_master_console/P02_DATA_DICTIONARY.yaml
+  - docs/chef_battle/arena_master_console/P02_QUERY_REPORT.md
+  - docs/chef_battle/arena_master_console/P02_HANDOFF.yaml
+
+  Do not add controls that mutate battles, votes, gifts, rewards, payouts, ranks,
+  streams, moderation, or tokens.
+
+acceptance_criteria:
+  - "Every visible value has a documented real source and time window."
+  - "Operator-only fields do not leak to public responses."
+  - "Query and payload baselines are recorded and acceptable."
+  - "Both verification passes succeed."
+

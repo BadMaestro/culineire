@@ -1,0 +1,67 @@
+schema_version: "1.0"
+phase_id: "P03"
+title: "Arena control and battle-flow orchestration"
+language: "English"
+working_token_budget: 185000
+hard_token_limit: 200000
+risk_level: "high"
+depends_on: ["P02", "DG-01", "DG-02", "DG-03"]
+
+prompt: |-
+  Implement the authorized Arena Control and Battle Flow panel. Do not mutate
+  Battle.status directly from a view. Every action must call an existing domain
+  service or a narrowly scoped, tested orchestration service created only after
+  the reuse audit proves a gap.
+
+  Required capabilities to audit before coding:
+  - Challenge acceptance/refusal/expiry and battle creation.
+  - Scheduling, proposed combat time, readiness gate, and no-show handling.
+  - Existing combat, cooking approval, reveal, voting, completion, cancellation,
+    dispute, and result calculation paths.
+  - Existing admin actions and BattleEvent/LedgerEvent audit records.
+
+  Scope after owner decisions are recorded:
+  - Phase rail with server-authoritative current and allowed-next states.
+  - Start/advance controls only for transitions explicitly authorized by DG-02.
+  - Lock ingredients, open vote, award crown, broadcast notice, end battle, and
+    emergency controls only when backed by real existing services and permissions.
+  - Confirmation dialogs that state exact consequences.
+  - Idempotency and stale-state protection for repeated clicks or simultaneous operators.
+  - Audit events containing actor, battle, action, before/after state, timestamp,
+    reason, request correlation identifier, and outcome.
+  - Clear disabled reasons; never render a dangerous control as apparently usable.
+
+  Security and safety:
+  - POST only, CSRF required, explicit operator permission, feature gate, and
+    transaction boundaries for multi-record state changes.
+  - Never use GET for state changes.
+  - Never bypass age, suspension, fraud, moderation, agreement, or payout gates.
+  - Emergency Stop behavior must exactly match DG-03 and include a recovery path.
+
+  Verification pass 1:
+  - Transition matrix unit tests and endpoint permission/CSRF tests.
+  - Idempotency, invalid transition, stale version, concurrent request, rollback,
+    and audit-record tests.
+  - UI tests for allowed, disabled, loading, success, failure, and stale states.
+
+  Verification pass 2:
+  - Independently execute full battle-flow scenarios in a test database from
+    scheduled through completed, plus cancellation/dispute/emergency branches.
+  - Confirm all existing participant workflows still work outside the console.
+  - Review every operator endpoint for direct status assignment and reject it
+    unless an explicitly documented service owns the invariant.
+  - Run broader lifecycle, permission, timer, crown, ledger, and feature-flag tests.
+
+  Required outputs:
+  - Authorized flow controls and audited orchestration services.
+  - docs/chef_battle/arena_master_console/P03_TRANSITION_MATRIX.yaml
+  - docs/chef_battle/arena_master_console/P03_AUDIT_REPORT.md
+  - docs/chef_battle/arena_master_console/P03_HANDOFF.yaml
+
+acceptance_criteria:
+  - "No direct unvalidated Battle.status mutation exists in console views."
+  - "Every action is permission-gated, CSRF-protected, auditable, and tested."
+  - "Repeated or concurrent requests cannot double-apply a transition."
+  - "Existing chef and spectator flows remain intact."
+  - "Both verification passes succeed."
+
