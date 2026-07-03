@@ -18,6 +18,7 @@ import io
 import sys
 from pathlib import Path
 
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[4]))
@@ -131,7 +132,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        dest_dir = Path(__file__).resolve().parents[4] / "static" / "images" / "mascot"
+        dest_dir = Path(settings.BASE_DIR) / "static" / "images" / "mascot"
         dest_dir.mkdir(parents=True, exist_ok=True)
 
         force = options["force"]
