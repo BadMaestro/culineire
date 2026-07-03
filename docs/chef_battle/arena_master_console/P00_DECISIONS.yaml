@@ -1,0 +1,151 @@
+schema_version: "1.0"
+document_type: "decision_gates_record"
+project: "CulinEire Chef Battles Arena Master Console"
+recorded_by: "GreenBear (owner) via conversation with Claude Sonnet 4.6"
+recorded_at: "2026-07-04"
+status: "all_gates_resolved"
+
+decisions:
+
+  - id: "DG-01"
+    question: "Who may access the Arena Master Console?"
+    status: "resolved"
+    decision: >-
+      All Django superusers WHO have a special boolean flag set on their profile
+      (has_arena_console_access or equivalent field — to be added to
+      RecipeAuthor or a dedicated OperatorProfile model).
+      Only GreenBear (OWNER_SLUG = "greenbear") may grant or revoke this flag.
+      Without the flag, any superuser or moderator receives a 404.
+      GreenBear always has access regardless of the flag.
+    implementation_notes:
+      - "Add has_arena_console_access BooleanField to RecipeAuthor (or a thin OperatorProfile model)."
+      - "Access check: user.is_superuser AND (author.slug == settings.OWNER_SLUG OR author.has_arena_console_access)."
+      - "UI for granting/revoking the flag: GreenBear-only action, NOT Django admin."
+      - "Moderators follow the same rule — superuser + flag required."
+    blocks_phases: [3, 4, 5, 6, 7, 8]
+
+  - id: "DG-02"
+    question: "Which phase transitions may be performed manually?"
+    status: "resolved"
+    decision: >-
+      No superuser (including staff with the console flag) may perform manual
+      phase transitions. Phase transitions happen only through the existing
+      service layer.
+      EXCEPTION: GreenBear (OWNER_SLUG) may force any phase transition directly
+      from the Arena Master Console. This is an operator override for emergency
+      and testing purposes only.
+    implementation_notes:
+      - "Phase control buttons in the console are rendered only when request.user.recipe_author_profile.slug == settings.OWNER_SLUG."
+      - "All other console users see phase state as read-only."
+      - "Every GreenBear force-transition must create a BattleEvent with event_type=OPERATOR_ACTION and a descriptive message."
+      - "Force transitions call existing service functions where possible; bypass is only used for states the service does not cover."
+    blocks_phases: [3]
+
+  - id: "DG-03"
+    question: "What exactly must Emergency Stop do, and what recovery path is required?"
+    status: "resolved"
+    decision: >-
+      Emergency Stop places the battle into a new PAUSED status (added to
+      Battle.Status in migration 0055). It is used exclusively for genuine
+      on-stream emergencies: a minor appearing on camera, a chef injury,
+      an involuntary exposure, or similar critical safety events.
+      On activation:
+        1. Battle status → PAUSED (all timers stop).
+        2. Live stream signal is disconnected / stream session terminated.
+        3. All countdown timers in the frontend freeze.
+        4. A BattleEvent (OPERATOR_ACTION) is logged with timestamp and operator note.
+        5. Chefs and any monitoring operators receive an automatic notification.
+      Recovery: only GreenBear may resume (→ previous status) or cancel
+      (→ CANCELLED) a PAUSED battle.
+      Emergency Stop is NOT a substitute for a normal end or cancellation.
+    implementation_notes:
+      - "Battle.Status.PAUSED = 'paused', 'Paused (Emergency Stop)' — already added to models.py."
+      - "Migration 0055 required (generate after push)."
+      - "A paused_at DateTimeField and paused_reason TextField should be added to Battle model."
+      - "Frontend polling detects PAUSED status and freezes all timers without page reload."
+      - "Stream disconnect delegates to the existing LiveStreamSession/LiveBroadcast models."
+    blocks_phases: [3, 5]
+
+  - id: "DG-04"
+    question: "Are active viewer counts real presence, symbolic, or analytics?"
+    status: "resolved"
+    decision: >-
+      Active viewer count = real users currently on the battle detail page,
+      tracked via the existing presence.js / presence system already in
+      production. The console displays this live count sourced from the same
+      presence data used elsewhere on the site.
+    implementation_notes:
+      - "Read from the existing Presence model / presence endpoint — do not invent a new counter."
+      - "Filter presence records to the battle detail page URL for the active battle."
+      - "Refresh interval: same as arena polling (20s) or presence system's own interval."
+    blocks_phases: [2, 6]
+
+  - id: "DG-05"
+    question: "Which suspicious-vote and tie-detection rules are authoritative?"
+    status: "resolved"
+    decision: >-
+      Suspicious vote detection is automatic:
+        - One authenticated account = one vote per battle (enforced by
+          UniqueConstraint on BattleVote[battle, voter]).
+        - One anonymous device = one vote per battle (enforced by
+          UniqueConstraint on BattleVote[battle, ip_hash, user_agent_hash]).
+        - Duplicates or constraint violations set is_suspicious=True automatically
+          at vote-save time.
+      Tie detection: a tie exists when the vote count for each participant
+      is exactly equal (challenger_votes == opponent_votes, both > 0).
+      The console displays tie state as a read-only indicator; resolution
+      is a manual GreenBear decision (extend voting, use tiebreak rule, etc.).
+    implementation_notes:
+      - "BattleVote constraints already enforce one-vote rules at DB level."
+      - "is_suspicious flag is set in the vote service when a constraint would fire."
+      - "Tie = BattleVote.objects.filter(battle=b, voted_for=challenger).count() == ...opponent count."
+      - "No new vote logic needed for P06 read panel — reuse existing selectors."
+    blocks_phases: [6]
+
+  - id: "DG-06"
+    question: "May operator controls issue/reverse CBR or LSR, or are they review-only?"
+    status: "resolved"
+    decision: >-
+      The CBR/LSR/Rewards panel is a REVIEW AND REPORTING tool for all
+      console operators (superuser + flag). Console operators may:
+        - Read reward records, payout requests, CBR and LSR statuses.
+        - Create a structured post-battle report and submit it to GreenBear.
+      Final financial authority belongs exclusively to GreenBear:
+        - Only GreenBear may approve, reject, or reverse a payout request.
+        - No automatic payouts. Every payout requires GreenBear's explicit approval.
+      Workflow: moderator watches the battle → at end creates a battle report
+      (summary, flags, recommendation) → submits to GreenBear → GreenBear
+      reviews and approves/rejects payout via the console.
+    implementation_notes:
+      - "Battle report model or structured note on Battle/RewardRecord — to be designed in P08."
+      - "Approve/reject payout buttons rendered only when author.slug == settings.OWNER_SLUG."
+      - "All payout actions call existing payout service functions with full audit trail."
+      - "CBR/LSR status display reuses existing RewardRecord and PayoutRequest models."
+    blocks_phases: [8]
+
+model_changes_required:
+  - "Battle.Status.PAUSED added (models.py done, migration 0055 pending)."
+  - "BattleEvent.EventType.OPERATOR_ACTION added (models.py done, migration 0054 deployed)."
+  - "Battle.paused_at (DateTimeField, null=True) — add in P03."
+  - "Battle.paused_reason (TextField, blank=True) — add in P03."
+  - "RecipeAuthor.has_arena_console_access (BooleanField, default=False) — add in P01 or P03."
+
+access_model_summary:
+  greenbear:
+    - "Full console access always."
+    - "May grant/revoke has_arena_console_access for other superusers."
+    - "Only one who can force phase transitions."
+    - "Only one who can trigger/resume Emergency Stop."
+    - "Only one who can approve/reject payouts."
+  superuser_with_flag:
+    - "Read-only access to all console panels."
+    - "May create and submit battle reports."
+    - "Cannot perform any write action except submitting a report."
+  superuser_without_flag:
+    - "404 on all console URLs."
+  moderator_with_flag:
+    - "Same as superuser_with_flag."
+  moderator_without_flag:
+    - "404 on all console URLs."
+  anonymous_or_regular_user:
+    - "404 on all console URLs."
