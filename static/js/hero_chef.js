@@ -225,6 +225,7 @@
     chef.style.setProperty("--chef-travel-time", `${travelTime}s`);
     chef.style.left = `${nextX}%`;
     previousX = nextX;
+    chef.dataset.pose = "walk-a";
     chef.dataset.walking = "true";
 
     // JS frame cycling — CSS steps() is unreliable in Chrome for background-position
