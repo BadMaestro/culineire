@@ -41,6 +41,9 @@ class PublicTechnicalPagesTests(TestCase):
         self.assertContains(response, 'css/hero_chef.css')
         self.assertContains(response, 'js/hero_chef.js')
 
+        css_path = settings.BASE_DIR / "static" / "css" / "hero_chef.css"
+        self.assertIn("display: block;", css_path.read_text(encoding="utf-8"))
+
     def test_robots_txt_points_to_sitemap_and_blocks_private_paths(self):
         response = self.client.get(reverse("robots_txt"))
 
