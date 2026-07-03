@@ -113,7 +113,7 @@
         {% if form_mode == "moderation-edit" and not author.user.is_superuser %}
         <div class="auth-admin-section">
             <p class="auth-admin-section__title">Moderator Actions</p>
-            <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.75rem;align-items:flex-start;">
+            <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.75rem;align-items:flex-start;justify-content:center;">
                 <form method="post" action="{% url 'accounts:manage_author' author.slug %}">
                     {% csrf_token %}
                     <input name="next" type="hidden" value="{% url 'recipes:moderation_panel' %}">
