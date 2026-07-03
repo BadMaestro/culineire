@@ -593,7 +593,11 @@
                             </td>
                             <td class="moderation-authors-table__username">@{{ author.user.username }}</td>
                             <td class="moderation-authors-table__author">
+                                {% if author.slug != "greenbear" %}
+                                <a href="{% url 'recipes:moderation_author_edit' author.slug %}">{{ author.name }}</a>
+                                {% else %}
                                 <a href="{{ author.get_absolute_url }}">{{ author.name }}</a>
+                                {% endif %}
                             </td>
                             <td class="moderation-authors-table__chef">
                                 {% with bp=author.battle_profile %}
@@ -620,21 +624,6 @@
                                 <span class="moderation-authors-table__self">God</span>
                                 {% elif author.user != request.user %}
                                 <div class="moderation-author-table-actions">
-                                    {% if author.slug != "greenbear" %}
-                                    <a class="mod-btn mod-btn--edit" href="{% url 'recipes:moderation_author_edit' author.slug %}">Edit</a>
-                                    {% endif %}
-                                    <details class="moderation-contact moderation-contact--table">
-                                        <summary class="mod-btn mod-btn--contact">Contact</summary>
-                                        <form action="{% url 'messaging:send_message' %}" class="moderation-contact__form" method="post">
-                                            {% csrf_token %}
-                                            <input name="action" type="hidden" value="message">
-                                            <input name="next" type="hidden" value="{{ request.get_full_path }}">
-                                            <input name="recipient_id" type="hidden" value="{{ author.user.pk }}">
-                                            <input name="subject" type="hidden" value="">
-                                            <textarea name="body" placeholder="Message to {{ author.name }}" required rows="3"></textarea>
-                                            <button class="mod-btn mod-btn--approve" type="submit">Send</button>
-                                        </form>
-                                    </details>
                                     {% if can_grant_bearseeker_privileges and not author.has_bearseeker_privileges and not author.user.is_staff and not author.user.is_superuser %}
                                         <form action="{% url 'accounts:manage_author' author.slug %}" class="moderation-author-table-actions__grant" method="post">{% csrf_token %}
                                             <input name="next" type="hidden" value="{{ request.get_full_path }}">

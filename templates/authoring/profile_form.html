@@ -113,7 +113,7 @@
         {% if form_mode == "moderation-edit" and not author.user.is_superuser %}
         <div class="auth-admin-section">
             <p class="auth-admin-section__title">Moderator Actions</p>
-            <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.75rem;">
+            <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.75rem;align-items:flex-start;">
                 <form method="post" action="{% url 'accounts:manage_author' author.slug %}">
                     {% csrf_token %}
                     <input name="next" type="hidden" value="{% url 'recipes:moderation_panel' %}">
@@ -124,6 +124,18 @@
                     {% endif %}
                 </form>
                 <a class="btn-secondary" style="border-color:#8a1f1f;color:#8a1f1f;" href="{% url 'recipes:moderation_author_delete' author.slug %}" onclick="return confirm('Permanently delete {{ author.name }} and all their content? This cannot be undone.')">Delete Author</a>
+                <details class="moderation-contact">
+                    <summary class="btn-secondary" style="display:inline-flex;cursor:pointer;list-style:none;">Contact {{ author.name }}</summary>
+                    <form action="{% url 'messaging:send_message' %}" class="moderation-contact__form" method="post">
+                        {% csrf_token %}
+                        <input name="action" type="hidden" value="message">
+                        <input name="next" type="hidden" value="{% url 'recipes:moderation_panel' %}">
+                        <input name="recipient_id" type="hidden" value="{{ author.user.pk }}">
+                        <input name="subject" type="hidden" value="">
+                        <textarea name="body" placeholder="Message to {{ author.name }}" required rows="3"></textarea>
+                        <button class="mod-btn mod-btn--approve" type="submit">Send</button>
+                    </form>
+                </details>
             </div>
         </div>
         {% endif %}
