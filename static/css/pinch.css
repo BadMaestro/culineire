@@ -1743,6 +1743,96 @@
     opacity: 0;
   }
 
+  /* ── 6b. Header drawer — top counterpart of the footer sheet ── */
+  /* Default on mobile Pinch: the logo row and the filter bar are collapsed
+     so cards get the whole screen below the social strip (--sticky-offset
+     shrinks to the strip height automatically — setHeaderH measures rects,
+     and card height / scroll-padding-top consume the same variable, so the
+     snap tiling stays exact in both states). body.pinch-header-open is the
+     single source of truth for the open state. */
+  body:has(.hero--pinch) .ce-header__inner {
+    max-height: 0;
+    min-height: 0;
+    padding-block: 0;
+    overflow: hidden;
+    transition: max-height 0.38s cubic-bezier(0.32, 0.72, 0, 1),
+                padding   0.38s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  body.pinch-header-open:has(.hero--pinch) .ce-header__inner {
+    max-height: 140px;
+    padding-block: 0.45rem;
+  }
+  .hero--pinch + .recipe-list-page .category-nav-block {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  body.pinch-header-open .hero--pinch + .recipe-list-page .category-nav-block {
+    max-height: 80px;
+  }
+
+  /* Handle — arch under the social strip, mirrors the footer handle.
+     top follows --sticky-offset, which the JS re-measures live while the
+     drawer animates, so the handle rides the drawer edge in both moves. */
+  .pinch-header-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: var(--sticky-offset, 44px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 146;
+    padding: 9px 22px 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.52);
+    filter: drop-shadow(0 -1px 5px rgba(0, 0, 0, 0.75));
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none;
+    transition: top   0.38s cubic-bezier(0.32, 0.72, 0, 1),
+                color 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  /* Same widened hit area as the footer handle */
+  .pinch-header-handle::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -24px;
+    right: -24px;
+    bottom: -16px;
+  }
+  /* Arch points DOWN by default ("pull me down"); flips up when open */
+  .pinch-header-handle__icon {
+    transform: rotate(180deg);
+    transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  body.pinch-header-open .pinch-header-handle__icon {
+    transform: rotate(0deg);
+  }
+  body.pinch-header-open .pinch-header-handle {
+    color: rgba(255, 255, 255, 0.65);
+  }
+
+  /* Scrim behind the open header drawer — must sit BELOW the filter bar
+     (z-index 50) and the sticky header (120) but above the cards */
+  .pinch-header-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 45;
+    opacity: 0;
+    pointer-events: none;
+    touch-action: none;
+    transition: opacity 0.28s ease;
+  }
+  .pinch-header-scrim.is-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
   /* ── 7. Heading row not needed in snap mode ── */
   .hero--pinch + .recipe-list-page .page-header {
     display: none;
@@ -1813,7 +1903,9 @@
 /* Desktop / tablet: hide mobile-only Pinch elements */
 @media (min-width: 641px) {
   .pinch-footer-handle,
-  .pinch-footer-scrim {
+  .pinch-footer-scrim,
+  .pinch-header-handle,
+  .pinch-header-scrim {
     display: none !important;
   }
 }

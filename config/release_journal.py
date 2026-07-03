@@ -1,5 +1,43 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.82",
+        "date": "2026-07-03",
+        "commit": "pending",
+        "title": "Pinch: collapsible header drawer — full-screen cards by default",
+        "section": "Pinch / Mobile TikTok feed",
+        "summary": (
+            "Owner request: mirror the footer drawer at the top. On mobile "
+            "Pinch the logo row (.ce-header__inner) and the filter carousel "
+            "are now collapsed by default (max-height 0), leaving only the "
+            "social/support strip — cards grow from ~680px to ~810px at "
+            "390x844 (+130px of air, measured live). An arch handle under "
+            "the strip (arch pointing down, same tricolour-family styling "
+            "as the footer handle, ~136x60 hit area) opens the drawer by "
+            "tap or swipe-down and closes it by tap or swipe-up; scrim "
+            "(z-index 45, below filter z-50 and header z-120) click-closes; "
+            "Escape closes. body.pinch-header-open is the single source of "
+            "truth. Geometry follows automatically: setHeaderH's rect "
+            "measurements shrink --sticky-offset to the strip height, and "
+            "card height + scroll-padding-top consume the same variable, so "
+            "snap tiling stays exact in both states (verified live: closed "
+            "snap 810/810, card2 top == strip bottom 34; open snap 701/701, "
+            "card2 top == filter bottom 143). New resilience: setHeaderH is "
+            "now also hooked to window resize — RO callbacks ride the "
+            "render pipeline and freeze in occluded windows (v2.5.70 rAF "
+            "lesson), so the drawer dispatches a synthetic resize 420ms "
+            "after each toggle as a deterministic backstop, which also "
+            "re-runs the filter carousel's update(true)."
+        ),
+        "checklist": [
+            "feed.html: #pinch-header-handle + #pinch-header-scrim added",
+            "pinch.css: section 6b — collapse rules, handle at top:var(--sticky-offset), scrim z-45",
+            "main.js: header drawer IIFE (tap + pointer swipe, kick() resize dispatch)",
+            "main.js: setHeaderH hooked to window resize (occluded-RO backstop)",
+            "Verified pre-deploy in Chrome 390px via injection: both states pixel-exact",
+        ],
+        "deployment_status": "pending deployment",
+    },
+    {
         "version": "2.5.78",
         "date": "2026-07-03",
         "commit": "pending",

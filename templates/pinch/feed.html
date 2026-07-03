@@ -132,4 +132,15 @@
 </button>
 <div class="pinch-footer-scrim" id="pinch-footer-scrim" aria-hidden="true"></div>
 
+{# ── Header drawer handle (mobile snap mode only) — logo row + filters are
+     collapsed by default so cards get the whole screen; the arch under the
+     social strip pulls them down ── #}
+<button class="pinch-header-handle" id="pinch-header-handle" type="button" aria-label="Show menu" aria-expanded="false">
+    <svg class="pinch-header-handle__icon" viewBox="0 0 44 26" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="44" height="26" aria-hidden="true">
+        <path d="M6 22 Q22 6 38 22" stroke-width="2.5"/>
+        <polyline points="18 12 22 6 26 12" stroke-width="2"/>
+    </svg>
+</button>
+<div class="pinch-header-scrim" id="pinch-header-scrim" aria-hidden="true"></div>
+
 {% endblock %}

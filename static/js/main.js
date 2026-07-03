@@ -26,6 +26,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const fb = document.querySelector(".recipe-list-page .category-nav-block");
     if (fb) ro.observe(fb);
   }
+  // RO callbacks ride the render pipeline and freeze in occluded windows
+  // (same failure class as the v2.5.70 rAF bug). A plain resize listener
+  // is the deterministic backstop — the Pinch header drawer dispatches a
+  // synthetic resize after each toggle precisely so this re-runs.
+  window.addEventListener("resize", setHeaderH);
 
   // Set --ab-snap-top so the snap feed knows how much header to leave room for
   const snapPage = document.querySelector(".ab-snap-page");
@@ -1055,6 +1060,98 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // keep --pinch-footer-h honest across rotation / address-bar resize
     window.addEventListener("resize", function () { if (isOpen()) publishHeight(); });
+  })();
+
+  // ==== Pinch header drawer (mobile snap mode) ====
+  // Top counterpart of the footer sheet: the logo row + filter bar are
+  // collapsed by default (cards get the whole screen below the social
+  // strip); the arch handle pulls them down. Tap toggles; swipe down on
+  // the handle opens, swipe up closes. body.pinch-header-open is the
+  // single source of truth; --sticky-offset shrinks/grows automatically
+  // via setHeaderH's ResizeObservers, so card height and snap padding
+  // follow the drawer in both states.
+  (function () {
+    var handle = document.getElementById("pinch-header-handle");
+    var scrim  = document.getElementById("pinch-header-scrim");
+    if (!handle) return;
+
+    var OPEN_CLASS = "pinch-header-open";
+    var isOpen = function () { return document.body.classList.contains(OPEN_CLASS); };
+
+    // After the 0.38s slide settles, let the filter carousel re-measure
+    // itself against the new geometry (its modules listen for resize).
+    var kick = function () {
+      setTimeout(function () { window.dispatchEvent(new Event("resize")); }, 420);
+    };
+
+    var open = function () {
+      document.body.classList.add(OPEN_CLASS);
+      if (scrim) { scrim.classList.add("is-open"); scrim.setAttribute("aria-hidden", "false"); }
+      handle.setAttribute("aria-expanded", "true");
+      handle.setAttribute("aria-label", "Hide menu");
+      kick();
+    };
+
+    var close = function () {
+      document.body.classList.remove(OPEN_CLASS);
+      if (scrim) { scrim.classList.remove("is-open"); scrim.setAttribute("aria-hidden", "true"); }
+      handle.setAttribute("aria-expanded", "false");
+      handle.setAttribute("aria-label", "Show menu");
+      kick();
+    };
+
+    var swipeGuard = false;
+    handle.addEventListener("click", function () {
+      if (swipeGuard) { swipeGuard = false; return; }
+      if (isOpen()) { close(); } else { open(); }
+    });
+
+    if (scrim) {
+      scrim.addEventListener("click", close);
+      scrim.addEventListener("touchmove", function (e) { e.preventDefault(); }, { passive: false });
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && isOpen()) close();
+    });
+
+    // Swipe on the handle: down opens the drawer, up closes it.
+    // Same thresholds as the footer drag (no live finger-follow here —
+    // the drawer is a max-height slide across two DOM subtrees).
+    var SWIPE_MIN = 28;    // px min vertical travel
+    var DRIFT_MAX = 35;    // px max horizontal drift
+    var VELOCITY  = 0.25;  // px/ms velocity shortcut
+    var drag = null;
+
+    handle.addEventListener("pointerdown", function (e) {
+      if (e.pointerType === "mouse") return;
+      drag = { id: e.pointerId, y0: e.clientY, x0: e.clientX, t0: Date.now(), moved: false };
+      handle.setPointerCapture(e.pointerId);
+    }, { passive: true });
+
+    handle.addEventListener("pointermove", function (e) {
+      if (!drag || drag.id !== e.pointerId) return;
+      if (Math.abs(e.clientY - drag.y0) > 8) drag.moved = true;
+    }, { passive: true });
+
+    handle.addEventListener("pointerup", function (e) {
+      if (!drag || drag.id !== e.pointerId) return;
+      var d = drag; drag = null;
+      var dy  = e.clientY - d.y0;
+      var dx  = Math.abs(e.clientX - d.x0);
+      var vel = (Date.now() - d.t0) > 0 ? Math.abs(dy) / (Date.now() - d.t0) : 0;
+      var ok  = d.moved && dx <= DRIFT_MAX && (Math.abs(dy) >= SWIPE_MIN || vel >= VELOCITY);
+      if (ok && !isOpen() && dy > 0) {
+        swipeGuard = true;
+        open();
+      } else if (ok && isOpen() && dy < 0) {
+        swipeGuard = true;
+        close();
+      }
+      // else: tap → click handler owns it
+    });
+
+    handle.addEventListener("pointercancel", function () { drag = null; });
   })();
 
   // ==== Pinch filter: whole-item visibility + resting centering ====
