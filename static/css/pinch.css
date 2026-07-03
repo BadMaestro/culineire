@@ -1793,6 +1793,8 @@
     touch-action: none;
     transition: top   0.38s cubic-bezier(0.32, 0.72, 0, 1),
                 color 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+    animation: pinch-tricolour 7s ease-in-out infinite;
+    animation-delay: 3s;
   }
   /* Same widened hit area as the footer handle */
   .pinch-header-handle::before {
@@ -1813,6 +1815,7 @@
   }
   body.pinch-header-open .pinch-header-handle {
     color: rgba(255, 255, 255, 0.65);
+    animation-play-state: paused;
   }
 
   /* Scrim behind the open header drawer — must sit BELOW the filter bar
@@ -2387,7 +2390,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pinch-footer-handle {
+  .pinch-footer-handle,
+  .pinch-header-handle {
     animation: none;
   }
 }
