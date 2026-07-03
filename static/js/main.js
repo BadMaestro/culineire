@@ -715,17 +715,20 @@ document.addEventListener("DOMContentLoaded", () => {
       document.documentElement.style.overflow = "hidden";
       requestAnimationFrame(function () { panel.classList.add("is-open"); });
 
+      var fetchSlug = slug;
       fetch("/pinch/" + slug + "/comments/", {
         headers: { "X-AB-Fetch": "1" },
       })
         .then(function (r) { return r.json(); })
         .then(function (data) {
+          if (fetchSlug !== activeSlug) return;
           if (data.ok) {
             panel.innerHTML = data.html;
             updateFeedCount(slug, data.count);
           }
         })
         .catch(function () {
+          if (fetchSlug !== activeSlug) return;
           panel.innerHTML =
             '<div style="padding:2rem;text-align:center;color:#9a8a78;font-size:.9rem;">Could not load comments.</div>';
         });
@@ -740,6 +743,7 @@ document.addEventListener("DOMContentLoaded", () => {
       panel.addEventListener(
         "transitionend",
         function () {
+          if (panel.classList.contains("is-open")) return;
           panel.setAttribute("aria-hidden", "true");
           activeSlug = null;
         },
@@ -948,6 +952,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     var open = function () {
       publishHeight();
+      // mutual exclusion: close header drawer if open
+      document.body.classList.remove("pinch-header-open");
+      var hScrim = document.getElementById("pinch-header-scrim");
+      var hHandle = document.getElementById("pinch-header-handle");
+      if (hScrim) { hScrim.classList.remove("is-open"); hScrim.setAttribute("aria-hidden", "true"); }
+      if (hHandle) { hHandle.setAttribute("aria-expanded", "false"); hHandle.setAttribute("aria-label", "Show menu"); }
       footer.classList.add(OPEN_CLASS);
       if (scrim) { scrim.classList.add("is-open"); scrim.setAttribute("aria-hidden", "false"); }
       setAria(true);
@@ -1088,6 +1098,13 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     var open = function () {
+      // mutual exclusion: close footer drawer if open
+      var fFooter = document.querySelector("footer");
+      var fScrim = document.getElementById("pinch-footer-scrim");
+      var fHandle = document.getElementById("pinch-footer-handle");
+      if (fFooter) { fFooter.classList.remove("pinch-footer--open"); }
+      if (fScrim) { fScrim.classList.remove("is-open"); fScrim.setAttribute("aria-hidden", "true"); }
+      if (fHandle) { fHandle.setAttribute("aria-expanded", "false"); fHandle.setAttribute("aria-label", "Open footer"); }
       document.body.classList.add(OPEN_CLASS);
       if (scrim) { scrim.classList.add("is-open"); scrim.setAttribute("aria-hidden", "false"); }
       handle.setAttribute("aria-expanded", "true");

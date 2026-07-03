@@ -1150,28 +1150,6 @@
   color: #fff8ee;
 }
 
-/* "Open Page" inside the feed sheet — same gold pill as Full recipe / Read the story */
-.ab-card .ab-card__sheet .ab-sheet__open-btn {
-  background: none;
-  border: 1px solid rgba(200, 169, 110, .45);
-  border-radius: var(--radius-pill);
-  color: #e8d8b0;
-  font-size: .78rem;
-  font-weight: 400;
-  min-height: unset;
-  padding: .28rem .7rem;
-  text-decoration: none;
-  transition: background-color .15s ease, border-color .15s ease;
-  white-space: nowrap;
-  width: auto;
-}
-
-.ab-card .ab-card__sheet .ab-sheet__open-btn:hover,
-.ab-card .ab-card__sheet .ab-sheet__open-btn:focus-visible {
-  background: rgba(200, 169, 110, .15);
-  border-color: rgba(200, 169, 110, .7);
-}
-
 /* Close button — sibling of .ab-card__sheet, same absolute position as MORE (bottom-right).
    Hidden by default; revealed by CSS sibling selector when sheet is open. */
 .ab-sheet__close {
@@ -1890,6 +1868,27 @@
     border: none;
     border-radius: 0;
     margin: 0;
+  }
+
+  /* ── 8b. Bottom safe zone — cards are 100lvh tall, so while Safari's
+     toolbars are visible the bottom (100lvh − 100dvh, up to ~175px on
+     iPhone) of every card sits BELOW the visual viewport: caption and
+     MORE were invisible and the footer arch handle overlapped the same
+     zone. Lifting only the bottom-anchored card furniture by the live
+     lvh−dvh delta pins it to the VISUAL bottom in both toolbar states;
+     the card box itself stays 100lvh so snap geometry never changes. */
+  .hero--pinch + .recipe-list-page .ab-card__overlay {
+    padding-bottom: calc(100lvh - 100dvh + 3rem);
+  }
+  .hero--pinch + .recipe-list-page .ab-card__open-btn,
+  .hero--pinch + .recipe-list-page .ab-sheet__close {
+    bottom: calc(100lvh - 100dvh + 1.1rem);
+  }
+  .hero--pinch + .recipe-list-page .ab-card__actions {
+    bottom: calc(100lvh - 100dvh + 0.9rem);
+  }
+  .hero--pinch + .recipe-list-page .ab-card__sheet {
+    padding-bottom: calc(100lvh - 100dvh + 1rem);
   }
 
   /* ── 9. Overlay isolation — the root now really scrolls, so gestures on
