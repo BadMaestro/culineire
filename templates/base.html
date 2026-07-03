@@ -320,6 +320,8 @@
     {% block content %}{% endblock %}
 </main>
 
+{% if chef_battle_enabled %}{% include 'chef_battle/_widget.html' %}{% endif %}
+
 <footer class="site-footer">
 
     <div class="footer-stripe" aria-hidden="true">

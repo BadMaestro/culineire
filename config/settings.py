@@ -188,6 +188,7 @@ template_context_processors = [
     "config.context_processors.active_battle_pip",
     "config.context_processors.hero_battle_panel",
     "recipes.context_processors.header_author",
+    "config.context_processors.battle_widget_context",
 ]
 if DEBUG:
     template_context_processors.insert(1, "django.template.context_processors.debug")

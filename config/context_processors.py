@@ -148,6 +148,51 @@ def active_battle_pip(request):
         return {"active_battle_pip": None}
 
 
+def battle_widget_context(request):
+    """Inject battle_widget data for the sitewide Chef Battles sidebar widget."""
+    flag_on = getattr(settings, "CHEF_BATTLE_ENABLED", False)
+    user = request.user
+    _author = getattr(user, "recipe_author_profile", None) if user and user.is_authenticated else None
+    enabled = flag_on or bool(
+        user and user.is_authenticated and (
+            user.is_staff or user.is_superuser
+            or (_author and _author.has_bearseeker_privileges)
+        )
+    )
+    if not enabled:
+        return {}
+    cache_key = "battle_widget_v1"
+    data = cache.get(cache_key)
+    if data is None:
+        try:
+            from chef_battle.models import Battle, BattleEvent, ChefBattleProfile
+            from django.utils import timezone
+            active = list(
+                Battle.objects.select_related("challenger", "opponent")
+                .filter(status__in=[Battle.Status.ACTIVE, Battle.Status.VOTING, Battle.Status.SCHEDULED])
+                .order_by("end_time")[:4]
+            )
+            leaders = list(
+                ChefBattleProfile.objects.select_related("author")
+                .order_by("-rating")[:5]
+            )
+            for profile in leaders:
+                profile.has_crown = bool(
+                    getattr(profile, "crown_until", None)
+                    and profile.crown_until > timezone.now()
+                )
+            events = list(
+                BattleEvent.objects.select_related("battle")
+                .filter(is_public=True)
+                .order_by("-created_at")[:5]
+            )
+            data = {"active": active, "leaders": leaders, "events": events}
+            cache.set(cache_key, data, 60)
+        except Exception:
+            data = {"active": [], "leaders": [], "events": []}
+    return {"battle_widget": data}
+
+
 def site_url(request):
     """Inject SITE_URL into every template context for canonical / OG URLs."""
     site_domain = str(settings.SITE_DOMAIN).strip().rstrip("/")
