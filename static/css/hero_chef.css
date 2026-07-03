@@ -39,16 +39,8 @@
 }
 
 .hero-chef[data-walking="true"] .hero-chef__sprite {
-  /* steps(1, end) holds each frame until the next keyframe — no interpolation */
-  animation: hero-chef-walk 1.0s steps(1, end) infinite;
   background-image: url("../images/mascot/hero-chef-walk.webp");
-}
-
-@keyframes hero-chef-walk {
-  0%  { background-position: 0 0; }
-  25% { background-position: 33.333% 0; }
-  50% { background-position: 66.666% 0; }
-  75% { background-position: 100% 0; }
+  background-position: var(--walk-frame, 0 0);
 }
 
 .hero-chef__speech {

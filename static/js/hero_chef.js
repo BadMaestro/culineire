@@ -47,9 +47,11 @@
   const speech = chef.querySelector(".hero-chef__speech");
   const close  = chef.querySelector(".hero-chef__close");
   let walkTimer;
+  let walkFrameTimer;
   let poseTimer;
   let speechTimer;
   let previousX = 72;
+  const WALK_FRAMES = ["0 0", "33.333% 0", "66.666% 0", "100% 0"];
 
   // ── Right-click quick-search ──────────────────────────────────────
   const searchAction = (() => {
@@ -151,17 +153,27 @@
     chef.style.left = `${nextX}%`;
     previousX = nextX;
     chef.dataset.walking = "true";
-    chef.dataset.pose = "walk-a";
+
+    // JS frame cycling — CSS steps() is unreliable in Chrome for background-position
+    window.clearInterval(walkFrameTimer);
+    let frameIdx = 0;
+    chef.style.setProperty("--walk-frame", WALK_FRAMES[0]);
+    walkFrameTimer = window.setInterval(() => {
+      frameIdx = (frameIdx + 1) % WALK_FRAMES.length;
+      chef.style.setProperty("--walk-frame", WALK_FRAMES[frameIdx]);
+    }, 250);
 
     walkTimer = window.setTimeout(() => {
+      window.clearInterval(walkFrameTimer);
+      chef.style.removeProperty("--walk-frame");
       chef.dataset.walking = "false";
-      chef.dataset.pose = "walk-a";
       poseTimer = window.setTimeout(performTrick, randomBetween(900, 2200));
     }, travelTime * 1000);
   }
 
   function dismiss() {
     window.clearTimeout(walkTimer);
+    window.clearInterval(walkFrameTimer);
     window.clearTimeout(poseTimer);
     window.clearTimeout(speechTimer);
     sessionStorage.setItem("heroChefDismissed", "1");
