@@ -44,6 +44,12 @@
   background-position: var(--trick-frame, 0 0);
 }
 
+.hero-chef[data-pose="book"] .hero-chef__sprite {
+  background-image: url("../images/mascot/hero-chef-book.webp");
+  background-position: var(--trick-frame, 0 0);
+  background-size: 600% 100%;
+}
+
 .hero-chef__speech {
   background: #fffdf8;
   border: 1px solid rgb(92 70 42 / 0.2);
