@@ -1878,7 +1878,7 @@
      lvh−dvh delta pins it to the VISUAL bottom in both toolbar states;
      the card box itself stays 100lvh so snap geometry never changes. */
   .hero--pinch + .recipe-list-page .ab-card__overlay {
-    padding-bottom: calc(100lvh - 100dvh + 3.5rem);
+    padding-bottom: calc(100lvh - 100dvh + 5rem);
   }
   .hero--pinch + .recipe-list-page .ab-card__open-btn,
   .hero--pinch + .recipe-list-page .ab-sheet__close {
@@ -1888,7 +1888,7 @@
     bottom: calc(100lvh - 100dvh + 1rem);
   }
   .hero--pinch + .recipe-list-page .ab-card__sheet {
-    padding-bottom: calc(100lvh - 100dvh + 1rem);
+    padding-bottom: calc(100lvh - 100dvh + 4rem);
   }
 
   /* ── 9. Overlay isolation — the root now really scrolls, so gestures on
