@@ -1,5 +1,116 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.87",
+        "date": "2026-07-03",
+        "commit": "14f29c7",
+        "title": "Pinch 8b: increase base clearance so MORE/caption visually clear footer handle",
+        "section": "Pinch / Mobile TikTok feed",
+        "summary": (
+            "Cross-device audit finding: at desktop Chrome (lvh=dvh, toolbar delta=0) "
+            "the 8b safe-zone base values were too small — MORE button sat 22px "
+            "inside the footer handle's vertical zone (809–826 vs handle 804–844), "
+            "and the caption had only 8px gap above the handle arch. Fixed by "
+            "increasing open-btn/sheet__close base from 1.1rem→3rem (48px clears "
+            "40px handle + 8px gap) and overlay padding-bottom base from 3rem→3.5rem "
+            "(caption now 16px above handle). On real mobile Chrome (56px toolbar "
+            "delta) MORE gets 104px clearance. Layout verified in Chrome 390×844 "
+            "post-deploy: moreBottomCSS=48px, moreGapAboveHandle=+8px, "
+            "captionGapAboveHandle=+16px. CSS hashed to pinch.8db9574bbaee.css."
+        ),
+        "checklist": [
+            "pinch.css: 8b open-btn/close bottom: 1.1rem → 3rem",
+            "pinch.css: 8b overlay padding-bottom: 3rem → 3.5rem",
+            "pinch.css: 8b actions bottom: 0.9rem → 1rem (minor tidy)",
+            "Verified post-deploy: moreGap=+8px, captionGap=+16px at 390×844",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
+        "version": "2.5.86",
+        "date": "2026-07-03",
+        "commit": "18f16ff",
+        "title": "Pinch: remove broken Django multi-line comment in More sheet",
+        "section": "Pinch / Mobile TikTok feed",
+        "summary": (
+            "Django template comment syntax {# #} does not support multi-line "
+            "content — the second line was rendered as literal HTML in the page. "
+            "Removed the malformed comment from item_card.html. No functional change."
+        ),
+        "checklist": [
+            "templates/pinch/item_card.html: removed broken multi-line comment",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
+        "version": "2.5.85",
+        "date": "2026-07-03",
+        "commit": "included in 2.5.83–86 range",
+        "title": "Pinch: More sheet — remove Full Recipe and Open Page buttons",
+        "section": "Pinch / Mobile TikTok feed",
+        "summary": (
+            "Owner request: 'Full Recipe' and 'Open Page' pills removed from the "
+            "More sheet. The cover photo has linked directly to the recipe since "
+            "v2.5.74, making these redundant. Remaining sheet rows: description "
+            "text, 'Read the story' (if linked_article), Edit/Delete (author/ "
+            "moderator only)."
+        ),
+        "checklist": [
+            "templates/pinch/item_card.html: Full Recipe row removed",
+            "templates/pinch/item_card.html: Open Page row removed",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
+        "version": "2.5.84",
+        "date": "2026-07-03",
+        "commit": "included in 2.5.83–86 range",
+        "title": "Pinch 8b: bottom safe zone — lift card furniture above toolbar",
+        "section": "Pinch / Mobile TikTok feed",
+        "summary": (
+            "Cards are 100lvh tall but the visual viewport is 100dvh (smaller when "
+            "Chrome/Safari toolbar is visible). The delta (up to ~175px on iPhone) "
+            "hid the caption and MORE button below the fold. Fix: bottom-anchored "
+            "card furniture (overlay, open-btn, close, actions, sheet) lifted by "
+            "calc(100lvh - 100dvh + Xrem). The card box stays 100lvh so snap "
+            "geometry never changes. Dead CSS for .ab-card .ab-card__sheet "
+            ".ab-sheet__open-btn (21 lines) removed."
+        ),
+        "checklist": [
+            "pinch.css: section 8b added — overlay, open-btn, close, actions, sheet lifted by lvh-dvh delta",
+            "pinch.css: dead .ab-sheet__open-btn CSS block removed",
+            "Verified post-deploy in Chrome 390×844",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
+        "version": "2.5.83",
+        "date": "2026-07-03",
+        "commit": "included in 2.5.83–86 range",
+        "title": "Pinch: tricolour shimmer on header handle + swipe gesture fix + speed match",
+        "section": "Pinch / Mobile TikTok feed",
+        "summary": (
+            "Three owner-requested fixes: (1) Tricolour shimmer added to header "
+            "handle (pinch-tricolour 7s animation, 3s delay, paused when open) to "
+            "match the footer handle. (2) Swipe-to-open gesture fixed: pointermove "
+            "listeners on both handles changed to passive:false with e.preventDefault() "
+            "on confirmed drag >8px — iOS snap scroller was claiming the gesture. "
+            "(3) Header drawer speed matched to footer: transition duration 0.38s→0.28s, "
+            "max-height targets tightened (ce-header__inner 140px→80px, category-nav "
+            "80px→52px); kick() delay updated to 320ms. Also: stale-fetch guard and "
+            "transitionend race guard added to comments panel JS."
+        ),
+        "checklist": [
+            "pinch.css: pinch-tricolour animation on .pinch-header-handle",
+            "pinch.css: header drawer transition 0.38s→0.28s, max-heights tightened",
+            "main.js: pointermove passive:false on both handles",
+            "main.js: kick() delay 420ms→320ms",
+            "main.js: comments stale-fetch guard (fetchSlug vs activeSlug)",
+            "main.js: transitionend race guard (once:true, check is-open)",
+            "main.js: mutual exclusion — opening footer closes header and vice versa",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
         "version": "2.5.82",
         "date": "2026-07-03",
         "commit": "pending",
