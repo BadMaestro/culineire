@@ -110,6 +110,24 @@
         </p>
         {% endif %}
 
+        {% if form_mode == "moderation-edit" and not author.user.is_superuser %}
+        <div class="auth-admin-section">
+            <p class="auth-admin-section__title">Moderator Actions</p>
+            <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.75rem;">
+                <form method="post" action="{% url 'accounts:manage_author' author.slug %}">
+                    {% csrf_token %}
+                    <input name="next" type="hidden" value="{% url 'recipes:moderation_panel' %}">
+                    {% if author.user.is_active %}
+                    <button class="btn-secondary" style="border-color:#b45309;color:#b45309;" name="action" onclick="return confirm('Block {{ author.user.username }}? They will not be able to log in.')" type="submit" value="block">Block User</button>
+                    {% else %}
+                    <button class="btn-secondary" name="action" onclick="return confirm('Unblock {{ author.user.username }}?')" type="submit" value="unblock">Unblock User</button>
+                    {% endif %}
+                </form>
+                <a class="btn-secondary" style="border-color:#8a1f1f;color:#8a1f1f;" href="{% url 'recipes:moderation_author_delete' author.slug %}" onclick="return confirm('Permanently delete {{ author.name }} and all their content? This cannot be undone.')">Delete Author</a>
+            </div>
+        </div>
+        {% endif %}
+
         {% if form_mode == "moderation-edit" and can_admin_set_password %}
         <div class="auth-admin-section">
             <p class="auth-admin-section__title">Admin: Set New Password</p>

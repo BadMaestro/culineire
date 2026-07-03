@@ -658,6 +658,17 @@
                                         {% endif %}
                                         {% endwith %}
                                     {% endif %}
+                                    {% if not author.user.is_superuser %}
+                                    <form action="{% url 'accounts:manage_author' author.slug %}" class="moderation-author-table-actions__grant" method="post">{% csrf_token %}
+                                        <input name="next" type="hidden" value="{{ request.get_full_path }}">
+                                        {% if author.user.is_active %}
+                                        <button class="mod-btn mod-btn--warn" name="action" onclick="return confirm('Block {{ author.user.username }}? They will not be able to log in.')" type="submit" value="block">Block</button>
+                                        {% else %}
+                                        <button class="mod-btn mod-btn--approve" name="action" onclick="return confirm('Unblock {{ author.user.username }}?')" type="submit" value="unblock">Unblock</button>
+                                        {% endif %}
+                                    </form>
+                                    <a class="mod-btn mod-btn--delete" href="{% url 'recipes:moderation_author_delete' author.slug %}" onclick="return confirm('Permanently delete {{ author.name }} and all their content? This cannot be undone.')">Delete</a>
+                                    {% endif %}
                                 </div>
                                 {% else %}
                                 <span class="moderation-authors-table__self">Current moderator</span>
