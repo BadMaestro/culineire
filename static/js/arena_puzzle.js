@@ -158,6 +158,30 @@
   }
 
   /* ------------------------------------------------------------------ */
+  /* Teleport tracking — remember which slugs were in centre last render */
+  /* ------------------------------------------------------------------ */
+  var _prevCentreSlugs = {};   // {slug: true} for chefs shown in centre/facing last draw
+
+  function _slugsFromCenter(center) {
+    var out = {};
+    if (!center) return out;
+    if (center.challenger && center.challenger.slug) out[center.challenger.slug] = true;
+    if (center.opponent   && center.opponent.slug)   out[center.opponent.slug]   = true;
+    return out;
+  }
+
+  // Append a one-shot gold flash ring at (cx, cy) to group g.
+  function _flashRing(g, cx, cy, R) {
+    var ring = svgEl('circle', {
+      cx: cx.toFixed(1), cy: cy.toFixed(1), r: R.toFixed(1),
+      fill: 'none', stroke: '#f8d28a', 'stroke-width': '3',
+      opacity: '0', 'pointer-events': 'none',
+      class: 'arena-teleport-flash',
+    });
+    g.appendChild(ring);
+  }
+
+  /* ------------------------------------------------------------------ */
   /* Draw                                                                 */
   /* ------------------------------------------------------------------ */
   function clearGroup(id) {
@@ -167,6 +191,9 @@
   }
 
   function drawArena(data) {
+    // Snapshot which slugs were in centre before this redraw (for teleport detection).
+    var nextCentreSlugs = _slugsFromCenter(data.center);
+
     var group   = clearGroup('arena-cells');
     var centreG = clearGroup('arena-centre');
     var octPoly = document.getElementById('arena-oct-poly');
@@ -268,6 +295,9 @@
     }
 
     drawCentre(centreG, data.center || { type: 'empty' });
+
+    // Update tracking for the next render cycle.
+    _prevCentreSlugs = nextCentreSlugs;
   }
 
   function addEmptyLabel(group, innerR, outerR, startAngle, endAngle) {
@@ -341,14 +371,18 @@
 
   // One combatant cell for the centre VS staging (Phase 1 of the battle
   // choreography): gold octagon + clipped avatar + first-name label.
-  function drawBattleCell(g, cx, cy, R, chef, battleUrl, popupUrl) {
+  // isNew=true triggers a teleport-in flash ring animation.
+  function drawBattleCell(g, cx, cy, R, chef, battleUrl, popupUrl, isNew) {
+    var cellClass = 'arena-cell arena-center--active';
+    if (isNew) cellClass += ' arena-cell--teleport-in';
     var poly = svgEl('polygon', {
       points: octagonPoints(cx, cy, R),
       fill: '#c8942a', stroke: '#fff', 'stroke-width': '2',
       filter: 'url(#arena-cell-shadow)',
       cursor: (battleUrl || popupUrl) ? 'pointer' : 'default',
-      class: 'arena-cell arena-center--active',
+      class: cellClass,
     });
+    if (isNew) _flashRing(g, cx, cy, R + 12);
     if (popupUrl || battleUrl) {
       poly.addEventListener('click', function () {
         if (popupUrl) { openBattlePopup(popupUrl, battleUrl); }
@@ -397,8 +431,10 @@
     var cx2 = CX - DIST * Math.cos(theta);
     var cy2 = CY - DIST * Math.sin(theta);
 
-    drawBattleCell(g, cx1, cy1, R, center.challenger, center.battle_url, center.popup_url);
-    drawBattleCell(g, cx2, cy2, R, center.opponent,   center.battle_url, center.popup_url);
+    var chNew = center.challenger && !_prevCentreSlugs[center.challenger.slug];
+    var opNew = center.opponent   && !_prevCentreSlugs[center.opponent.slug];
+    drawBattleCell(g, cx1, cy1, R, center.challenger, center.battle_url, center.popup_url, chNew);
+    drawBattleCell(g, cx2, cy2, R, center.opponent,   center.battle_url, center.popup_url, opNew);
 
     var swords = svgEl('text', {
       x: CX, y: CY, 'text-anchor': 'middle', 'dominant-baseline': 'middle',
@@ -419,8 +455,10 @@
     if (center.type === 'active_battle') {
       var CELL_R = 38;   // combatant cell radius
       var CELL_D = 50;   // horizontal offset of each cell from centre
-      drawBattleCell(g, CX - CELL_D, CY, CELL_R, center.challenger, center.battle_url, center.popup_url);
-      drawBattleCell(g, CX + CELL_D, CY, CELL_R, center.opponent, center.battle_url, center.popup_url);
+      var chNew2 = center.challenger && !_prevCentreSlugs[center.challenger.slug];
+      var opNew2 = center.opponent   && !_prevCentreSlugs[center.opponent.slug];
+      drawBattleCell(g, CX - CELL_D, CY, CELL_R, center.challenger, center.battle_url, center.popup_url, chNew2);
+      drawBattleCell(g, CX + CELL_D, CY, CELL_R, center.opponent, center.battle_url, center.popup_url, opNew2);
       var vs = svgEl('text', {
         x: CX, y: CY, 'text-anchor': 'middle', 'dominant-baseline': 'middle',
         fill: '#fff', 'font-family': 'Georgia, serif', 'font-size': '18', 'font-weight': 'bold',
