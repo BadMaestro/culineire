@@ -49,8 +49,6 @@
       {% if item.short_description %}
       <p class="ab-sheet__text">{{ item.short_description }}</p>
       {% endif %}
-      {# Row 1: content links — recipe/page links removed (cover photo links
-         straight to the recipe since v2.5.74, so the pills were redundant) #}
       {% if item.linked_article %}
       <div class="ab-sheet__row">
         <a class="ab-sheet__link" href="{{ item.linked_article.get_absolute_url }}">Read the story</a>
