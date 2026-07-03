@@ -40,10 +40,6 @@
   max-width: min(100%, 820px);
 }
 
-.hero--recipe-tools .pill {
-  margin-block-end: 0.55rem;
-}
-
 .hero--recipe-tools .hero-title {
   margin-block-end: 0.85rem;
 }
