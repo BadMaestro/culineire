@@ -51,10 +51,11 @@ WALK_PROMPTS = [
         "neutral mid-walk position, arms at sides, weight evenly distributed, "
         f"{CHAR_BASE}"
     ),
-    # Frame 2 — left leg forward, arms opposite
+    # Frame 2 — opposite stride
     (
-        "green bear chef mascot walking left, left leg stepping forward, right arm "
-        "swung forward, left arm back, mid-stride pose, weight on right foot, "
+        "green bear chef mascot in motion moving left, alternate stride from frame 1, "
+        "legs in walking position, arms gently swinging in opposite rhythm, "
+        "dynamic walking pose, cheerful expression, "
         f"{CHAR_BASE}"
     ),
     # Frame 3 — upright passing position (slight variation)
