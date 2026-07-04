@@ -11,6 +11,10 @@ from articles.models import Article
 from recipes.models import Recipe, RecipeAuthor
 
 
+def vote_integrity_expires_at():
+    return timezone.now() + timezone.timedelta(days=90)
+
+
 class ChefBattleProfile(models.Model):
     class Rank(models.TextChoices):
         KITCHEN_PORTER = "kitchen_porter", "Kitchen Porter"
@@ -310,6 +314,36 @@ class BattleVote(models.Model):
         voter_author = RecipeAuthor.objects.filter(user=self.voter).first() if self.voter_id else None
         if voter_author and voter_author.pk == self.voted_for_id:
             raise ValidationError("Chefs cannot vote for themselves.")
+
+
+class VoteIntegrityEvent(models.Model):
+    """Private evidence for a rejected vote attempt.
+
+    These rows are deliberately separate from BattleVote: they never contribute
+    to public totals or battle results. Request metadata is pseudonymised before
+    it reaches this model.
+    """
+
+    battle = models.ForeignKey(
+        Battle, on_delete=models.CASCADE, related_name="vote_integrity_events"
+    )
+    gate_code = models.CharField(max_length=40, db_index=True)
+    failed_gates = models.JSONField(default=list, blank=True)
+    is_authenticated = models.BooleanField(default=False)
+    ip_hash = models.CharField(max_length=64, blank=True)
+    user_agent_hash = models.CharField(max_length=64, blank=True)
+    session_key_hash = models.CharField(max_length=64, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    expires_at = models.DateTimeField(default=vote_integrity_expires_at, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["battle", "-created_at"], name="vote_int_battle_time_idx"),
+        ]
+
+    def __str__(self):
+        return f"Battle {self.battle_id}: {self.gate_code}"
 
 
 class BattleEvent(models.Model):

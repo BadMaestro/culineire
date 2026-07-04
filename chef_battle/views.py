@@ -7,7 +7,7 @@ import logging
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
 from django.http import JsonResponse
@@ -41,7 +41,7 @@ from .fraud import (
     gate_withdrawal_consent,
     run_fraud_gates,
 )
-from .models import Artifact, Battle, BattleChatMessage, BattleChallenge, BattleEntry, BattleEvent, BattleVote, ChefArtifact, ChefBattleProfile, TokenWallet
+from .models import Artifact, Battle, BattleChatMessage, BattleChallenge, BattleEntry, BattleEvent, BattleVote, ChefArtifact, ChefBattleProfile, TokenWallet, VoteIntegrityEvent
 from .selectors import (
     get_active_battles,
     get_battle_vote_counts,
@@ -1329,6 +1329,28 @@ def battle_entry_submit(request, pk):
     return render(request, "chef_battle/entry_form.html", {"battle": battle, "form": form})
 
 
+def _record_vote_integrity_event(
+    *, request, battle, gate_code, failed_gates, ip_hash, user_agent_hash
+):
+    """Persist private rejected-attempt evidence without affecting vote totals."""
+    try:
+        session_key = getattr(request.session, "session_key", None) or ""
+        VoteIntegrityEvent.objects.create(
+            battle=battle,
+            gate_code=gate_code,
+            failed_gates=list(dict.fromkeys(failed_gates)),
+            is_authenticated=request.user.is_authenticated,
+            ip_hash=ip_hash,
+            user_agent_hash=user_agent_hash,
+            session_key_hash=hash_request_value(session_key),
+        )
+    except Exception:
+        # Audit persistence must not turn a rejected vote into a public 500.
+        logger.exception(
+            "Failed to persist vote integrity event for battle %s", battle.pk
+        )
+
+
 @chef_battle_guard
 @require_POST
 def battle_vote(request, pk):
@@ -1361,6 +1383,14 @@ def battle_vote(request, pk):
     ])
     if not fraud_result.passed:
         first_fail = next(g for g in fraud_result.gates if not g.passed)
+        _record_vote_integrity_event(
+            request=request,
+            battle=battle,
+            gate_code=first_fail.gate,
+            failed_gates=[g.gate for g in fraud_result.gates if not g.passed],
+            ip_hash=ip_hash,
+            user_agent_hash=ua_hash,
+        )
         _VOTE_FRAUD_MESSAGES = {
             "self_vote": "Chefs cannot vote for themselves.",
             "participant_vote": "Battle participants cannot vote in their own battle.",
@@ -1380,8 +1410,17 @@ def battle_vote(request, pk):
     )
     try:
         vote.full_clean()
-        vote.save()
+        with transaction.atomic():
+            vote.save()
     except (IntegrityError, ValidationError):
+        _record_vote_integrity_event(
+            request=request,
+            battle=battle,
+            gate_code="constraint_rejected",
+            failed_gates=["constraint_rejected"],
+            ip_hash=ip_hash,
+            user_agent_hash=ua_hash,
+        )
         messages.warning(request, "Your vote for this battle has already been recorded.")
         return redirect(battle.get_absolute_url())
 
@@ -2465,4 +2504,3 @@ def master_action(request):
         "battle": {"id": battle.pk, "status": battle.status,
                    "status_display": battle.get_status_display()},
     })
-

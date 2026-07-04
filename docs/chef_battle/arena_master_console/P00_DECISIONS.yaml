@@ -89,15 +89,19 @@ decisions:
           UniqueConstraint on BattleVote[battle, voter]).
         - One anonymous device = one vote per battle (enforced by
           UniqueConstraint on BattleVote[battle, ip_hash, user_agent_hash]).
-        - Duplicates or constraint violations set is_suspicious=True automatically
-          at vote-save time.
+        - Rejected duplicate, velocity, eligibility, and constraint attempts are
+          recorded as private VoteIntegrityEvent evidence. They are never saved
+          as BattleVote and never affect totals or winner calculation.
+        - BattleVote.is_suspicious remains a moderator review flag for an accepted
+          vote; no automatic risk score exists.
       Tie detection: a tie exists when the vote count for each participant
       is exactly equal (challenger_votes == opponent_votes, both > 0).
       The console displays tie state as a read-only indicator; resolution
       is a manual GreenBear decision (extend voting, use tiebreak rule, etc.).
     implementation_notes:
       - "BattleVote constraints already enforce one-vote rules at DB level."
-      - "is_suspicious flag is set in the vote service when a constraint would fire."
+      - "Rejected attempts are recorded in VoteIntegrityEvent with hashed request metadata."
+      - "BattleVote.is_suspicious applies only to an accepted vote selected for review."
       - "Tie = BattleVote.objects.filter(battle=b, voted_for=challenger).count() == ...opponent count."
       - "No new vote logic needed for P06 read panel — reuse existing selectors."
     blocks_phases: [6]

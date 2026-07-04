@@ -2,6 +2,7 @@ import json
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.core.management import call_command
 from django.db import IntegrityError
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
@@ -23,6 +24,7 @@ from .models import (
     LedgerEvent,
     RewardRecord,
     TokenWallet,
+    VoteIntegrityEvent,
 )
 from .services import (
     accept_challenge,
@@ -350,6 +352,96 @@ class ChefBattleAntiAbuseTests(TestCase):
         vote.refresh_from_db()
         self.assertTrue(vote.is_suspicious)
         self.assertEqual(vote.moderation_note, "Rapid repeated voting pattern")
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class VoteIntegrityEvidenceTests(TestCase):
+    """Rejected attempts are auditable but never become authoritative votes."""
+
+    def setUp(self):
+        User = get_user_model()
+        user_a = User.objects.create_user(username="vie-chef-a", password="pw")
+        user_b = User.objects.create_user(username="vie-chef-b", password="pw")
+        self.voter = User.objects.create_user(username="vie-voter", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(
+            user=user_a, name="VIE Chef A", slug="vie-chef-a"
+        )
+        self.chef_b = RecipeAuthor.objects.create(
+            user=user_b, name="VIE Chef B", slug="vie-chef-b"
+        )
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.chef_a,
+            opponent=self.chef_b,
+            theme="Integrity evidence",
+            status=Battle.Status.VOTING,
+            start_time=now - timezone.timedelta(hours=1),
+            submission_deadline=now - timezone.timedelta(minutes=30),
+            voting_deadline=now + timezone.timedelta(hours=1),
+            end_time=now + timezone.timedelta(hours=1),
+        )
+        BattleEntry.objects.create(
+            battle=self.battle, author=self.chef_a, is_revealed=True
+        )
+        self.url = reverse("chef_battle:battle_vote", args=[self.battle.pk])
+
+    def test_authenticated_duplicate_records_constraint_event_not_vote(self):
+        self.client.force_login(self.voter)
+        payload = {"voted_for": self.chef_a.pk}
+        self.client.post(self.url, payload, HTTP_USER_AGENT="integrity-test-agent")
+        response = self.client.post(
+            self.url, payload, HTTP_USER_AGENT="integrity-test-agent", follow=True
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(BattleVote.objects.filter(battle=self.battle).count(), 1)
+        event = VoteIntegrityEvent.objects.get(battle=self.battle)
+        self.assertEqual(event.gate_code, "constraint_rejected")
+        self.assertEqual(event.failed_gates, ["constraint_rejected"])
+        self.assertTrue(event.is_authenticated)
+        self.assertEqual(len(event.ip_hash), 64)
+        self.assertEqual(len(event.user_agent_hash), 64)
+        public_html = response.content.decode()
+        self.assertNotIn("constraint_rejected", public_html)
+        self.assertNotIn(event.ip_hash, public_html)
+
+    def test_anonymous_duplicate_records_gate_event_not_vote(self):
+        payload = {"voted_for": self.chef_a.pk}
+        self.client.post(self.url, payload, HTTP_USER_AGENT="anonymous-integrity-agent")
+        self.client.post(self.url, payload, HTTP_USER_AGENT="anonymous-integrity-agent")
+
+        self.assertEqual(BattleVote.objects.filter(battle=self.battle).count(), 1)
+        event = VoteIntegrityEvent.objects.get(battle=self.battle)
+        self.assertEqual(event.gate_code, "duplicate_device")
+        self.assertEqual(event.failed_gates, ["duplicate_device"])
+        self.assertFalse(event.is_authenticated)
+        self.assertEqual(len(event.ip_hash), 64)
+        self.assertEqual(len(event.user_agent_hash), 64)
+
+    def test_retention_defaults_to_90_days_and_purge_removes_only_expired(self):
+        current = VoteIntegrityEvent.objects.create(
+            battle=self.battle,
+            gate_code="duplicate_device",
+            failed_gates=["duplicate_device"],
+        )
+        self.assertAlmostEqual(
+            (current.expires_at - current.created_at).total_seconds(),
+            90 * 24 * 60 * 60,
+            delta=5,
+        )
+        expired = VoteIntegrityEvent.objects.create(
+            battle=self.battle,
+            gate_code="constraint_rejected",
+            failed_gates=["constraint_rejected"],
+        )
+        VoteIntegrityEvent.objects.filter(pk=expired.pk).update(
+            expires_at=timezone.now() - timezone.timedelta(seconds=1)
+        )
+
+        call_command("purge_vote_integrity_events", verbosity=0)
+
+        self.assertTrue(VoteIntegrityEvent.objects.filter(pk=current.pk).exists())
+        self.assertFalse(VoteIntegrityEvent.objects.filter(pk=expired.pk).exists())
 
 
 class ChefBattleExpiryTests(TestCase):

@@ -35,6 +35,7 @@ from .models import (
     TokenTransaction,
     TokenWallet,
     ViewerBattleGift,
+    VoteIntegrityEvent,
 )
 from .services import create_battle_event, issue_reward, reverse_reward
 
@@ -288,6 +289,27 @@ class BattleVoteAdmin(admin.ModelAdmin):
     readonly_fields = ("created_at", "ip_hash", "user_agent_hash", "session_key_hash")
     actions = [mark_votes_suspicious, clear_votes_suspicious]
     ordering = ("-created_at",)
+
+
+@admin.register(VoteIntegrityEvent)
+class VoteIntegrityEventAdmin(admin.ModelAdmin):
+    list_display = (
+        "battle", "gate_code", "is_authenticated", "created_at", "expires_at"
+    )
+    list_filter = ("gate_code", "is_authenticated")
+    search_fields = ("battle__theme",)
+    readonly_fields = (
+        "battle", "gate_code", "failed_gates", "is_authenticated",
+        "ip_hash", "user_agent_hash", "session_key_hash", "created_at",
+        "expires_at",
+    )
+    ordering = ("-created_at",)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(BattleEvent)
