@@ -97,6 +97,7 @@ phase_sequence:
     risk: "low"
     depends_on: []
     outcome: "Evidence-backed reuse matrix, signed decisions, baseline screenshots, and frozen data contracts."
+    status: "COMPLETED — confirmed by owner 2026-07-04. Evidence: P00_REUSE_MATRIX.yaml, P00_CONTRACTS.yaml, P00_DECISIONS.yaml, P00_BASELINE_REPORT.md. Deployed as v2.5.96 (dbc027db). Baseline screenshots waived by owner in favor of code-level baseline."
   - id: "P01"
     name: "Desktop visual shell and information architecture"
     prompt: "phase_01_visual_shell.yaml"

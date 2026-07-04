@@ -24,7 +24,7 @@ from monitoring.tracker import get_client_ip
 from recipes.authoring import get_author_for_user
 from recipes.models import RecipeAuthor
 
-from .access import chef_battle_guard
+from .access import arena_console_guard, chef_battle_guard
 from .forms import BattleChallengeForm, BattleEntryForm
 from .fraud import (
     gate_account_age,
@@ -323,7 +323,7 @@ def _build_battlefield_progress():
             "title": "Phase AMC - Arena Master Console (10-phase plan, docs/chef_battle/arena_master_console/)",
             "items": [
                 {"label": "P00: Discovery, baseline, and contract freeze", "detail": "Reuse matrix for all 8 mockup panels (P00_REUSE_MATRIX.yaml), frozen public arena + operator read-model contracts (P00_CONTRACTS.yaml), query baselines: arena() 15q/47KB anon, 21q/51KB auth; arena_state() 7q/4.5KB. All 6 decision gates resolved (P00_DECISIONS.yaml). Both verification passes recorded (P00_BASELINE_REPORT.md). No production code added.", "status": "done", "completed_at": "2026-07-04"},
-                {"label": "P01: Desktop visual shell and information architecture", "detail": "Reference-aligned desktop shell with semantic placeholders fed only by explicit unavailable states.", "status": "pending"},
+                {"label": "P01: Desktop visual shell and information architecture", "detail": "Console shell live at /chef-battle/master/ behind ARENA_MASTER_CONSOLE_ENABLED (default off) + DG-01 gate (superuser + owner/flag, 404 otherwise). RecipeAuthor.has_arena_console_access added (recipes/0038). 8-panel deck, phase rail, overview row, system footer — explicit empty states only, all controls disabled. 12 access tests. Verified at 1920/1440/1280/mobile.", "status": "done", "completed_at": "2026-07-04"},
                 {"label": "P02: Read-only arena overview and live data adapters", "detail": "Real battle, chef, phase, viewer, vote, gift, crown, and system-state read models via single /battle/master/state/ endpoint.", "status": "pending"},
                 {"label": "P03: Arena control and battle-flow orchestration", "detail": "GreenBear-only phase controls calling existing services with OPERATOR_ACTION audit. Emergency Stop (PAUSED status) per DG-03.", "status": "pending"},
                 {"label": "P04: Live battle monitor and combat engine console", "detail": "Operator visibility into combat rounds, ingredients, locks, shots, artifacts, logs. Read-only.", "status": "pending"},
@@ -2350,4 +2350,21 @@ def battle_set_ready(request, pk):
         messages.success(request, "You're ready! Waiting for your opponent.")
 
     return redirect("chef_battle:battle_detail", pk=pk)
+
+
+# ── Arena Master Console (P01: visual shell only) ───────────────────────────
+
+@arena_console_guard
+def master_console(request):
+    """Arena Master Console shell (phase P01 of the console plan).
+
+    Renders layout and explicit unavailable states only. Live read models
+    arrive in P02; every operator write stays disabled until its own phase.
+    Access: DG-01 gate in access.arena_console_guard.
+    """
+    author = get_author_for_user(request.user)
+    return render(request, "chef_battle/arena_master_console.html", {
+        "operator_author": author,
+        "operator_is_owner": bool(author and author.slug == settings.OWNER_SLUG),
+    })
 

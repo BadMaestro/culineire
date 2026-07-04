@@ -326,6 +326,10 @@ TELEGRAM_CHANNEL_ID = os.getenv("TELEGRAM_CHANNEL_ID", "")
 DISABLE_EXTERNAL_NOTIFICATIONS = env_bool("DISABLE_EXTERNAL_NOTIFICATIONS", default=False)
 PRESENCE_EVENT_COOLDOWN_MINUTES = env_int("PRESENCE_EVENT_COOLDOWN_MINUTES", default=5)
 CHEF_BATTLE_ENABLED = env_bool("CHEF_BATTLE_ENABLED", default=False)
+# Arena Master Console (operator console). Independent of CHEF_BATTLE_ENABLED.
+# Off => all console URLs 404 for everyone including the owner. See
+# docs/chef_battle/arena_master_console/P00_CONTRACTS.yaml.
+ARENA_MASTER_CONSOLE_ENABLED = env_bool("ARENA_MASTER_CONSOLE_ENABLED", default=False)
 # Feature flags — must remain False until external review is complete:
 # ENABLE_STRIPE_CONNECT_PAYOUTS: requires legal/accounting sign-off before enabling.
 # ENABLE_LIVE_VIDEO: requires video provider infrastructure + content-safety legal review.

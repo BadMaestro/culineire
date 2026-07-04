@@ -1809,3 +1809,128 @@ class ContentReportViewTests(TestCase):
             data={"content_kind": "chef_profile", "object_id": "1", "reason": ""},
         )
         self.assertEqual(resp.status_code, 400)
+
+
+# ── AMC P01 — Arena Master Console access gate (DG-01) ───────────────────────
+
+@override_settings(ARENA_MASTER_CONSOLE_ENABLED=True, CHEF_BATTLE_ENABLED=True)
+class ArenaMasterConsoleAccessTests(TestCase):
+    """P01: only superusers with the console flag (or the owner) may open the
+    console shell; everyone else receives 404. Flag off => 404 for everyone."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.url = reverse("chef_battle:master_console")
+
+        from django.conf import settings as django_settings
+        self.owner_user = User.objects.create_superuser("greenbear", password="pw")
+        self.owner_author, _ = RecipeAuthor.objects.update_or_create(
+            slug=django_settings.OWNER_SLUG,
+            defaults={"user": self.owner_user, "name": "GreenBear"},
+        )
+
+        self.flagged_user = User.objects.create_superuser("flagged-super", password="pw")
+        self.flagged_author = RecipeAuthor.objects.create(
+            user=self.flagged_user, name="Flagged Super", slug="flagged-super",
+            has_arena_console_access=True,
+        )
+
+        self.plain_super = User.objects.create_superuser("plain-super", password="pw")
+        RecipeAuthor.objects.create(
+            user=self.plain_super, name="Plain Super", slug="plain-super"
+        )
+
+        self.moderator_user = User.objects.create_user("mod-user", password="pw")
+        RecipeAuthor.objects.create(
+            user=self.moderator_user, name="Mod User", slug="mod-user",
+            has_bearseeker_privileges=True,
+        )
+
+        self.flag_no_super = User.objects.create_user("flag-no-super", password="pw")
+        RecipeAuthor.objects.create(
+            user=self.flag_no_super, name="Flag No Super", slug="flag-no-super",
+            has_arena_console_access=True,
+        )
+
+        self.chef_user = User.objects.create_user("plain-chef", password="pw")
+        chef_author = RecipeAuthor.objects.create(
+            user=self.chef_user, name="Plain Chef", slug="plain-chef"
+        )
+        ChefBattleProfile.objects.create(author=chef_author, enrolled_at=timezone.now())
+
+    def test_anonymous_gets_404(self):
+        self.assertEqual(self.client.get(self.url).status_code, 404)
+
+    def test_regular_chef_gets_404(self):
+        self.client.force_login(self.chef_user)
+        self.assertEqual(self.client.get(self.url).status_code, 404)
+
+    def test_moderator_without_superuser_gets_404(self):
+        self.client.force_login(self.moderator_user)
+        self.assertEqual(self.client.get(self.url).status_code, 404)
+
+    def test_superuser_without_flag_gets_404(self):
+        self.client.force_login(self.plain_super)
+        self.assertEqual(self.client.get(self.url).status_code, 404)
+
+    def test_flag_without_superuser_gets_404(self):
+        self.client.force_login(self.flag_no_super)
+        self.assertEqual(self.client.get(self.url).status_code, 404)
+
+    def test_owner_gets_console(self):
+        self.client.force_login(self.owner_user)
+        resp = self.client.get(self.url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Arena Master Console")
+        self.assertContains(resp, "amc-badge")
+
+    def test_superuser_with_flag_gets_console(self):
+        self.client.force_login(self.flagged_user)
+        resp = self.client.get(self.url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Arena Master Console")
+        self.assertNotContains(resp, "amc-badge")
+
+    @override_settings(ARENA_MASTER_CONSOLE_ENABLED=False)
+    def test_console_flag_off_blocks_everyone_including_owner(self):
+        self.client.force_login(self.owner_user)
+        self.assertEqual(self.client.get(self.url).status_code, 404)
+        self.client.force_login(self.flagged_user)
+        self.assertEqual(self.client.get(self.url).status_code, 404)
+
+    @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_console_is_independent_of_chef_battle_flag(self):
+        self.client.force_login(self.owner_user)
+        self.assertEqual(self.client.get(self.url).status_code, 200)
+
+    def test_shell_renders_no_fabricated_data(self):
+        self.client.force_login(self.owner_user)
+        resp = self.client.get(self.url)
+        content = resp.content.decode()
+        self.assertIn("No active battle", content)
+        self.assertIn("Not connected", content)
+        # Mockup example values must never appear in the shell
+        for fabricated in ("1.6K", "2.4K", "1,240T", "CB-2025-0714", "Emerald Hall"):
+            self.assertNotIn(fabricated, content)
+
+    def test_all_eight_panels_present_with_disabled_controls(self):
+        self.client.force_login(self.owner_user)
+        content = self.client.get(self.url).content.decode()
+        for panel in (
+            "Arena Control / Battle Flow", "Live Battle Monitor", "Combat Engine",
+            "Moderation &amp; Safety", "Voting Integrity", "Economy / Gifts / Artifacts",
+            "CBR / LSR / Rewards Governance", "Ranks / Crown / Arena Authority",
+        ):
+            self.assertIn(panel, content)
+        # Every console shell button is disabled in P01
+        import re
+        amc_buttons = re.findall(r'<button[^>]*class="amc-btn[^"]*"[^>]*>', content)
+        self.assertEqual(len(amc_buttons), 6)
+        for button in amc_buttons:
+            self.assertIn("disabled", button)
+
+    def test_public_arena_unchanged_for_anonymous(self):
+        resp = self.client.get(reverse("chef_battle:arena"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "arena-puzzle")
+        self.assertNotContains(resp, "amc-page")

@@ -25,6 +25,38 @@ def is_battle_visible(request) -> bool:
     return bool(author and author.has_bearseeker_privileges)
 
 
+def has_arena_console_access(request) -> bool:
+    """
+    Arena Master Console access (decision gate DG-01, P00_DECISIONS.yaml):
+    - ARENA_MASTER_CONSOLE_ENABLED must be True, otherwise nobody gets in,
+      including the owner.
+    - The user must be an authenticated superuser AND either be the site
+      owner (OWNER_SLUG) or carry RecipeAuthor.has_arena_console_access.
+    """
+    if not getattr(settings, "ARENA_MASTER_CONSOLE_ENABLED", False):
+        return False
+    user = getattr(request, "user", None)
+    if not user or not user.is_authenticated or not user.is_superuser:
+        return False
+    author = getattr(user, "recipe_author_profile", None)
+    if author is None:
+        return False
+    return author.slug == settings.OWNER_SLUG or author.has_arena_console_access
+
+
+def arena_console_guard(view_func):
+    """
+    View decorator for Arena Master Console views: Http404 for anyone who
+    fails the DG-01 access check (same failure mode as the moderation tools).
+    """
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if not has_arena_console_access(request):
+            raise Http404
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
 def chef_battle_guard(view_func):
     """
     View decorator: raises Http404 for any user who cannot see Chef Battles.

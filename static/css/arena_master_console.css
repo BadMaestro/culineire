@@ -1,0 +1,452 @@
+/* Arena Master Console — P01 visual shell.
+   Dark operator surface scoped to .amc-page; does not touch shared styles.
+   Reference: docs/chef_battle/arena_master_console/reference/arena-master-console.png */
+
+.amc-page {
+  /* Local tokens (dark green/gold, aligned with the reference and the
+     existing battle gold #c8942a used across chef_battle surfaces) */
+  --amc-bg: #10160f;
+  --amc-surface: #172015;
+  --amc-surface-soft: #1d2819;
+  --amc-line: rgb(200 148 42 / 0.22);
+  --amc-line-soft: rgb(200 148 42 / 0.12);
+  --amc-ink: #e8e4d8;
+  --amc-muted: #9aa593;
+  --amc-gold: #c8942a;
+  --amc-gold-soft: rgb(200 148 42 / 0.14);
+  --amc-danger: #b3402e;
+  --amc-radius: 10px;
+
+  background: var(--amc-bg);
+  color: var(--amc-ink);
+  padding: 1.5rem clamp(1rem, 2vw, 2.5rem) 3rem;
+  min-height: 60vh;
+}
+
+.amc-page h1,
+.amc-page h2,
+.amc-page h3 {
+  color: var(--amc-ink);
+  font-family: var(--font-serif, Georgia, serif);
+}
+
+/* ── Topbar ──────────────────────────────────────────────────────── */
+
+.amc-topbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--amc-line-soft);
+}
+
+.amc-kicker {
+  margin: 0 0 0.2rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--amc-gold);
+}
+
+.amc-topbar__title h1 {
+  margin: 0;
+  font-size: clamp(1.4rem, 2.2vw, 2rem);
+  line-height: 1.1;
+}
+
+.amc-topbar__meta {
+  display: flex;
+  gap: 2rem;
+  margin: 0;
+}
+
+.amc-meta-item dt {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--amc-muted);
+}
+
+.amc-meta-item dd {
+  margin: 0.15rem 0 0;
+  font-size: 0.92rem;
+}
+
+/* ── Shared bits ─────────────────────────────────────────────────── */
+
+.amc-empty {
+  color: var(--amc-muted);
+  font-style: italic;
+  font-size: 0.88rem;
+}
+
+.amc-link {
+  color: var(--amc-gold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-size: 0.85rem;
+}
+
+.amc-link:hover,
+.amc-link:focus-visible {
+  color: #e0b054;
+}
+
+.amc-badge {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--amc-gold-soft);
+  border: 1px solid var(--amc-line);
+  color: var(--amc-gold);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.amc-panel__title {
+  margin: 0 0 0.6rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--amc-gold);
+  font-family: var(--font-sans, system-ui, sans-serif);
+  font-weight: 600;
+}
+
+.amc-panel__num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.3rem;
+  height: 1.3rem;
+  margin-right: 0.35rem;
+  border-radius: 50%;
+  border: 1px solid var(--amc-line);
+  color: var(--amc-ink);
+  font-size: 0.7rem;
+}
+
+/* ── Overview row ────────────────────────────────────────────────── */
+
+.amc-overview {
+  display: grid;
+  grid-template-columns: 230px 200px minmax(0, 1fr) 200px 230px;
+  gap: 1rem;
+  align-items: stretch;
+  margin-bottom: 1rem;
+}
+
+.amc-status,
+.amc-chef,
+.amc-audience {
+  background: var(--amc-surface);
+  border: 1px solid var(--amc-line-soft);
+  border-radius: var(--amc-radius);
+  padding: 1rem;
+}
+
+.amc-status__list,
+.amc-audience__list {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.amc-status__row dt,
+.amc-audience__row dt {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--amc-muted);
+}
+
+.amc-status__row dd,
+.amc-audience__row dd {
+  margin: 0.15rem 0 0;
+}
+
+.amc-status__timer {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--amc-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.amc-chef__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+  padding: 0.75rem 0;
+}
+
+.amc-chef__avatar-placeholder {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  border: 1px dashed var(--amc-line);
+  background: var(--amc-surface-soft);
+}
+
+.amc-ring {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+  background:
+    radial-gradient(ellipse at center, rgb(200 148 42 / 0.06), transparent 65%),
+    var(--amc-surface-soft);
+  border: 1px solid var(--amc-line-soft);
+  border-radius: var(--amc-radius);
+}
+
+.amc-ring__placeholder {
+  text-align: center;
+  max-width: 34ch;
+  padding: 1rem;
+}
+
+.amc-ring__label {
+  margin: 0 0 0.4rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--amc-gold);
+}
+
+/* ── Phase rail ──────────────────────────────────────────────────── */
+
+.amc-phase-rail {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  padding: 0.6rem 1rem;
+  background: var(--amc-surface);
+  border: 1px solid var(--amc-line-soft);
+  border-radius: 999px;
+}
+
+.amc-phase-rail__list {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.amc-phase-rail__step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--amc-line-soft);
+  color: var(--amc-muted);
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.amc-phase-rail__num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  border: 1px solid var(--amc-line-soft);
+  font-size: 0.65rem;
+}
+
+.amc-phase-rail__note {
+  margin: 0;
+}
+
+/* ── Operator deck ───────────────────────────────────────────────── */
+
+.amc-deck__heading {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.amc-deck__sub {
+  font-size: 0.72rem;
+  color: var(--amc-muted);
+  letter-spacing: 0.1em;
+  margin-left: 0.5rem;
+}
+
+.amc-deck__grid {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.amc-panel {
+  background: var(--amc-surface);
+  border: 1px solid var(--amc-line-soft);
+  border-radius: var(--amc-radius);
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 190px;
+}
+
+.amc-panel__hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--amc-muted);
+  line-height: 1.45;
+}
+
+.amc-panel__actions {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.amc-btn {
+  padding: 0.35rem 0.7rem;
+  border-radius: 7px;
+  border: 1px solid var(--amc-line-soft);
+  background: var(--amc-surface-soft);
+  color: var(--amc-muted);
+  font-size: 0.75rem;
+  font-family: inherit;
+}
+
+.amc-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.amc-btn--danger {
+  border-color: rgb(179 64 46 / 0.4);
+  color: #c96b5b;
+}
+
+/* ── System footer ───────────────────────────────────────────────── */
+
+.amc-footer {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--amc-line-soft);
+}
+
+.amc-footer__list {
+  display: flex;
+  gap: 2.5rem;
+  flex-wrap: wrap;
+  margin: 0;
+}
+
+.amc-footer__item dt {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--amc-muted);
+}
+
+.amc-footer__item dd {
+  margin: 0.15rem 0 0;
+  font-size: 0.9rem;
+}
+
+.amc-footer__tz {
+  color: var(--amc-muted);
+  font-size: 0.75rem;
+}
+
+/* ── Responsive: narrow desktop ──────────────────────────────────── */
+
+@media (max-width: 1500px) {
+  .amc-deck__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1300px) {
+  .amc-overview {
+    grid-template-columns: 210px 180px minmax(0, 1fr) 180px 210px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .amc-overview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .amc-ring {
+    grid-column: 1 / -1;
+    order: -1;
+    min-height: 260px;
+  }
+
+  .amc-deck__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ── Deliberate mobile fallback: stacked, readable, not shrunken ── */
+
+@media (max-width: 700px) {
+  .amc-page {
+    padding: 1rem 1rem 2rem;
+  }
+
+  .amc-topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .amc-topbar__meta {
+    gap: 1.25rem;
+  }
+
+  .amc-overview,
+  .amc-deck__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .amc-ring {
+    min-height: 200px;
+  }
+
+  .amc-phase-rail {
+    border-radius: var(--amc-radius);
+  }
+
+  .amc-footer__list {
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+}
+
+/* The floating site-wide battle widget overlaps the operator deck's
+   bottom-right panel; the console IS the battle surface, so hide it here. */
+body.page--amc #site-battle-widget {
+  display: none;
+}
+
+/* ── Reduced motion: shell has no animation, guard future additions ─ */
+
+@media (prefers-reduced-motion: reduce) {
+  .amc-page * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

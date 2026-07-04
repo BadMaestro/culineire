@@ -130,6 +130,14 @@ class RecipeAuthor(models.Model):
         default=False,
         help_text="Grants access to AI image generation in the recipe creation form (paid feature).",
     )
+    has_arena_console_access = models.BooleanField(
+        "Can open the Arena Master Console",
+        default=False,
+        help_text=(
+            "Grants read access to the Chef Battles Arena Master Console. "
+            "Requires a superuser account as well. Only the site owner can grant or revoke this."
+        ),
+    )
 
     class Meta:
         verbose_name = "Recipe author"

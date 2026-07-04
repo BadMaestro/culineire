@@ -1,5 +1,38 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.97",
+        "date": "2026-07-04",
+        "commit": "pending",
+        "title": "Arena Master Console P01: visual shell + DG-01 access gate (dark)",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "Console shell shipped at /chef-battle/master/ behind the new "
+            "ARENA_MASTER_CONSOLE_ENABLED flag (default False — the URL 404s for "
+            "everyone on production until the owner enables it). Access per DG-01: "
+            "superuser AND (owner slug OR the new "
+            "RecipeAuthor.has_arena_console_access flag, migration recipes/0038); "
+            "everyone else receives 404. Shell renders the reference information "
+            "architecture — overview row (battle status, chef slots, ring "
+            "placeholder, audience), 7-step phase rail, eight-panel operator "
+            "deck, system footer — with explicit empty states only ('No active "
+            "battle', 'Not connected'); a test asserts no mockup example values "
+            "render and all six control buttons stay disabled. New page-scoped "
+            "arena_master_console.css; zero shared-style changes; public arena "
+            "verified byte-identical in behavior. 12 focused access tests. "
+            "Verified at 1920/1440/1280 and mobile with no overflow or overlap."
+        ),
+        "checklist": [
+            "config/settings.py: ARENA_MASTER_CONSOLE_ENABLED flag (default False)",
+            "recipes: has_arena_console_access field + migration 0038",
+            "chef_battle/access.py: arena_console_guard (Http404)",
+            "chef_battle: master_console view + /chef-battle/master/ URL",
+            "templates/chef_battle/arena_master_console.html + static/css/arena_master_console.css",
+            "chef_battle/tests.py: ArenaMasterConsoleAccessTests (12 tests)",
+            "docs: P01_VISUAL_REPORT.md + P01_HANDOFF.yaml",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
         "version": "2.5.96",
         "date": "2026-07-04",
         "commit": "pending",

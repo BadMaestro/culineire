@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_attrs %} class="page--amc"{% endblock %}
+
+{% block title %}Arena Master Console | Chef Battles | CulinEire{% endblock %}
+{% block meta_description %}Arena Master Console — operator control deck for Chef Battles.{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+<link href="{% static 'css/arena_master_console.css' %}?v=20260704b" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="amc-page">
+
+  <header class="amc-topbar">
+    <div class="amc-topbar__title">
+      <p class="amc-kicker">CulinEire Arena Operator Control Deck</p>
+      <h1>Arena Master Console</h1>
+    </div>
+    <dl class="amc-topbar__meta">
+      <div class="amc-meta-item">
+        <dt>Battle ID</dt>
+        <dd><span class="amc-empty">No active battle</span></dd>
+      </div>
+      <div class="amc-meta-item">
+        <dt>Arena feed</dt>
+        <dd><span class="amc-empty">Not connected</span></dd>
+      </div>
+    </dl>
+  </header>
+
+  {# ── Top arena overview ─────────────────────────────────────────── #}
+  <section class="amc-overview" aria-label="Arena overview">
+
+    <article class="amc-status" aria-label="Battle status">
+      <h2 class="amc-panel__title">Battle Status</h2>
+      <dl class="amc-status__list">
+        <div class="amc-status__row">
+          <dt>State</dt>
+          <dd><span class="amc-empty">No active battle</span></dd>
+        </div>
+        <div class="amc-status__row">
+          <dt>Current phase</dt>
+          <dd><span class="amc-empty">Unavailable in this phase</span></dd>
+        </div>
+        <div class="amc-status__row">
+          <dt>Time remaining</dt>
+          <dd class="amc-status__timer" aria-label="Timer not running">--:--</dd>
+        </div>
+        <div class="amc-status__row">
+          <dt>Next phase</dt>
+          <dd><span class="amc-empty">Unavailable in this phase</span></dd>
+        </div>
+      </dl>
+    </article>
+
+    <article class="amc-chef amc-chef--one" aria-label="Chef 1 slot">
+      <h2 class="amc-panel__title">Chef #1</h2>
+      <div class="amc-chef__empty">
+        <span class="amc-chef__avatar-placeholder" aria-hidden="true"></span>
+        <p class="amc-empty">No active battle — slot empty</p>
+      </div>
+    </article>
+
+    <div class="amc-ring" role="img" aria-label="Arena ring feed placeholder">
+      <div class="amc-ring__placeholder">
+        <p class="amc-ring__label">Arena Ring</p>
+        <p class="amc-empty">Live ring feed connects in a later phase.<br>The public Arena remains available at its usual address.</p>
+        <a class="amc-link" href="{% url 'chef_battle:arena' %}">Open public Arena</a>
+      </div>
+    </div>
+
+    <article class="amc-chef amc-chef--two" aria-label="Chef 2 slot">
+      <h2 class="amc-panel__title">Chef #2</h2>
+      <div class="amc-chef__empty">
+        <span class="amc-chef__avatar-placeholder" aria-hidden="true"></span>
+        <p class="amc-empty">No active battle — slot empty</p>
+      </div>
+    </article>
+
+    <article class="amc-audience" aria-label="Audience summary">
+      <h2 class="amc-panel__title">Audience</h2>
+      <dl class="amc-audience__list">
+        <div class="amc-audience__row">
+          <dt>Active viewers</dt>
+          <dd><span class="amc-empty">Not connected</span></dd>
+        </div>
+        <div class="amc-audience__row">
+          <dt>Public votes</dt>
+          <dd><span class="amc-empty">Not connected</span></dd>
+        </div>
+        <div class="amc-audience__row">
+          <dt>Battle gifts</dt>
+          <dd><span class="amc-empty">Not connected</span></dd>
+        </div>
+        <div class="amc-audience__row">
+          <dt>Battle streak</dt>
+          <dd><span class="amc-empty">Not connected</span></dd>
+        </div>
+      </dl>
+    </article>
+
+  </section>
+
+  {# ── Phase rail ─────────────────────────────────────────────────── #}
+  <nav class="amc-phase-rail" aria-label="Battle phase rail">
+    <ol class="amc-phase-rail__list">
+      <li class="amc-phase-rail__step"><span class="amc-phase-rail__num">1</span> Challenge</li>
+      <li class="amc-phase-rail__step"><span class="amc-phase-rail__num">2</span> Combat</li>
+      <li class="amc-phase-rail__step"><span class="amc-phase-rail__num">3</span> Biathlon</li>
+      <li class="amc-phase-rail__step"><span class="amc-phase-rail__num">4</span> Cooking</li>
+      <li class="amc-phase-rail__step"><span class="amc-phase-rail__num">5</span> Mod Review</li>
+      <li class="amc-phase-rail__step"><span class="amc-phase-rail__num">6</span> Voting</li>
+      <li class="amc-phase-rail__step"><span class="amc-phase-rail__num">7</span> Crown</li>
+    </ol>
+    <p class="amc-phase-rail__note amc-empty">No active battle — phase rail idle</p>
+  </nav>
+
+  {# ── Eight-panel operator deck ──────────────────────────────────── #}
+  <section class="amc-deck" aria-label="Operator control deck">
+    <h2 class="amc-deck__heading">Arena Master Console <span class="amc-deck__sub">Operator panels</span></h2>
+
+    <div class="amc-deck__grid">
+
+      <article class="amc-panel" aria-label="Arena control and battle flow">
+        <h3 class="amc-panel__title"><span class="amc-panel__num">1</span> Arena Control / Battle Flow</h3>
+        <p class="amc-empty">Phase controls activate in a later phase.</p>
+        <div class="amc-panel__actions">
+          <button type="button" class="amc-btn" disabled>Start Phase</button>
+          <button type="button" class="amc-btn" disabled>Lock Ingredients</button>
+          <button type="button" class="amc-btn" disabled>Open Vote</button>
+          <button type="button" class="amc-btn" disabled>Award Crown</button>
+          <button type="button" class="amc-btn amc-btn--danger" disabled>Emergency Stop</button>
+          <button type="button" class="amc-btn" disabled>End Battle</button>
+        </div>
+      </article>
+
+      <article class="amc-panel" aria-label="Live battle monitor">
+        <h3 class="amc-panel__title"><span class="amc-panel__num">2</span> Live Battle Monitor</h3>
+        <p class="amc-empty">Not connected</p>
+        <p class="amc-panel__hint">Active battles, timers and the live event log appear here once read models are wired.</p>
+      </article>
+
+      <article class="amc-panel" aria-label="Combat engine">
+        <h3 class="amc-panel__title"><span class="amc-panel__num">3</span> Combat Engine</h3>
+        <p class="amc-empty">Not connected</p>
+        <p class="amc-panel__hint">Ingredient locks, hits, biathlon shots, artifacts in use and the combat log appear here.</p>
+      </article>
+
+      <article class="amc-panel" aria-label="Moderation and safety">
+        <h3 class="amc-panel__title"><span class="amc-panel__num">4</span> Moderation &amp; Safety</h3>
+        <p class="amc-empty">Not connected</p>
+        <p class="amc-panel__hint">Dish photo approval, live stream status and the safety checklist appear here.</p>
+        <div class="amc-panel__actions">
+          <a class="amc-link" href="{% url 'chef_battle:cooking_moderation' %}">Open existing cooking moderation</a>
+        </div>
+      </article>
+
+      <article class="amc-panel" aria-label="Voting integrity">
+        <h3 class="amc-panel__title"><span class="amc-panel__num">5</span> Voting Integrity</h3>
+        <p class="amc-empty">Not connected</p>
+        <p class="amc-panel__hint">Vote totals, one-vote enforcement, suspicious activity and tie state appear here.</p>
+      </article>
+
+      <article class="amc-panel" aria-label="Economy, gifts and artifacts">
+        <h3 class="amc-panel__title"><span class="amc-panel__num">6</span> Economy / Gifts / Artifacts</h3>
+        <p class="amc-empty">Not connected</p>
+        <p class="amc-panel__hint">Token flow, audience gifts and artifact drops appear here.</p>
+      </article>
+
+      <article class="amc-panel" aria-label="CBR, LSR and rewards governance">
+        <h3 class="amc-panel__title"><span class="amc-panel__num">7</span> CBR / LSR / Rewards Governance</h3>
+        <p class="amc-empty">Not connected</p>
+        <p class="amc-panel__hint">Reward statuses, payout eligibility and battle reports appear here. Review-only by design.</p>
+      </article>
+
+      <article class="amc-panel" aria-label="Ranks, crown and arena authority">
+        <h3 class="amc-panel__title"><span class="amc-panel__num">8</span> Ranks / Crown / Arena Authority</h3>
+        <p class="amc-empty">Not connected</p>
+        <p class="amc-panel__hint">Rank ladder, crown holder and operator tools appear here.</p>
+      </article>
+
+    </div>
+  </section>
+
+  {# ── System footer ──────────────────────────────────────────────── #}
+  <footer class="amc-footer" aria-label="Console system status">
+    <dl class="amc-footer__list">
+      <div class="amc-footer__item">
+        <dt>System status</dt>
+        <dd>Shell only — read models not connected</dd>
+      </div>
+      <div class="amc-footer__item">
+        <dt>Server time</dt>
+        <dd>{% now "H:i" %} <span class="amc-footer__tz">Ireland (IST)</span></dd>
+      </div>
+      <div class="amc-footer__item">
+        <dt>Operator</dt>
+        <dd>{{ operator_author.name|default:"Unknown" }}{% if operator_is_owner %} <span class="amc-badge">Owner</span>{% endif %}</dd>
+      </div>
+    </dl>
+  </footer>
+
+</div>
+{% endblock %}

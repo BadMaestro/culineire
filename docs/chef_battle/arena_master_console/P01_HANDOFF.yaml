@@ -1,0 +1,50 @@
+schema_version: "1.0"
+document_type: "phase_01_handoff"
+phase_id: "P01"
+status: "complete_pending_owner_signoff"
+produced_at: "2026-07-04"
+
+delivered:
+  access_gate:
+    setting: "ARENA_MASTER_CONSOLE_ENABLED (config/settings.py, default False)"
+    model_field: "RecipeAuthor.has_arena_console_access (recipes/migrations/0038)"
+    check: "chef_battle.access.has_arena_console_access — superuser AND (OWNER_SLUG OR flag); flag off => nobody"
+    decorator: "chef_battle.access.arena_console_guard (Http404 failure mode)"
+    view: "chef_battle.views.master_console"
+    url: "/chef-battle/master/ (chef_battle:master_console)"
+  shell:
+    template: "templates/chef_battle/arena_master_console.html"
+    css: "static/css/arena_master_console.css (scoped .amc-page; hides #site-battle-widget on console only)"
+    javascript: "none added in P01"
+  tests:
+    class: "chef_battle.tests.ArenaMasterConsoleAccessTests (12 tests)"
+
+p02_input_contract:
+  endpoint_to_create: "/chef-battle/master/state/ per P00_CONTRACTS.yaml operator_read_model_contract"
+  dom_mount_points:
+    battle_status: ".amc-status dl rows (state/current phase/timer/next phase)"
+    chef_slots: ".amc-chef--one / .amc-chef--two"
+    ring: ".amc-ring (replace placeholder with public renderer embed)"
+    audience: ".amc-audience dl rows"
+    phase_rail: ".amc-phase-rail__step (add active state class)"
+    deck_panels: ".amc-panel (numbered 1-8, aria-labelled)"
+    footer: ".amc-footer (system status, server time, operator)"
+  rules:
+    - "Replace .amc-empty states only when a real query backs the value."
+    - "Do not enable any .amc-btn — writes begin in P03 with audit."
+    - "Keep public arena endpoints byte-compatible (P00 contract)."
+
+local_dev_notes:
+  - "Local .env now contains CHEF_BATTLE_ENABLED=True and ARENA_MASTER_CONSOLE_ENABLED=True for dev-server verification."
+  - "When running the test suite locally, set both flags to False in the process env first (5 access tests assume default flags)."
+  - "Local operator account: amc_local_operator (superuser, linked to the greenbear author locally only)."
+  - "Dev server: Django caches templates even with DEBUG=True (Django 4.1+); restart after template edits when using --noreload."
+
+known_issues:
+  - "PRE-EXISTING, NOT P01: recipes.tests.GenerateRecipeCommandTests.test_generate_recipe_creates_draft_only_with_safety_fields fails on clean main (image_rights_status not_applicable vs AI_GENERATED). Needs a separate owner-approved fix."
+
+deployment:
+  migrations_required: true   # recipes/0038
+  collectstatic_required: true  # new arena_master_console.css
+  flag_state_after_deploy: "ARENA_MASTER_CONSOLE_ENABLED absent from server .env => console 404s for everyone (dark)."
+  enable_command_when_owner_decides: "add ARENA_MASTER_CONSOLE_ENABLED=True to /srv/culineire/shared/.env and restart unit"

@@ -56,4 +56,5 @@ urlpatterns = [
     path("gifts/", views.appreciation_gallery, name="appreciation_gallery"),
     path("chest/", views.battle_chest, name="battle_chest"),
     path("changing-room/", views.changing_room, name="changing_room"),
+    path("master/", views.master_console, name="master_console"),
 ]
