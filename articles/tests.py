@@ -1293,6 +1293,8 @@ class ArticleAuthoringPermissionTests(TestCase):
                 "meat",
                 "poultry_and_game",
                 "desserts_and_drinks",
+                "beyond_the_kitchen",
+                "culinary_tech_innovations",
             ],
         )
 

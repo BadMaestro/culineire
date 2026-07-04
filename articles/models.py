@@ -92,6 +92,8 @@ class Article(models.Model):
         MEAT = "meat", "Meat"
         POULTRY_AND_GAME = "poultry_and_game", "Poultry and Game"
         DESSERTS_AND_DRINKS = "desserts_and_drinks", "Desserts and Drinks"
+        BEYOND_THE_KITCHEN = "beyond_the_kitchen", "Beyond the Kitchen"
+        CULINARY_TECH_INNOVATIONS = "culinary_tech_innovations", "Culinary Tech & Innovations"
 
     title = models.CharField("Title", max_length=200)
     slug = models.SlugField("Slug", max_length=220, unique=True, db_index=True)
