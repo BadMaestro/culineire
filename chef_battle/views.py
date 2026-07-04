@@ -320,6 +320,21 @@ def _build_battlefield_progress():
             ],
         },
         {
+            "title": "Phase AMC - Arena Master Console (10-phase plan, docs/chef_battle/arena_master_console/)",
+            "items": [
+                {"label": "P00: Discovery, baseline, and contract freeze", "detail": "Reuse matrix for all 8 mockup panels (P00_REUSE_MATRIX.yaml), frozen public arena + operator read-model contracts (P00_CONTRACTS.yaml), query baselines: arena() 15q/47KB anon, 21q/51KB auth; arena_state() 7q/4.5KB. All 6 decision gates resolved (P00_DECISIONS.yaml). Both verification passes recorded (P00_BASELINE_REPORT.md). No production code added.", "status": "done", "completed_at": "2026-07-04"},
+                {"label": "P01: Desktop visual shell and information architecture", "detail": "Reference-aligned desktop shell with semantic placeholders fed only by explicit unavailable states.", "status": "pending"},
+                {"label": "P02: Read-only arena overview and live data adapters", "detail": "Real battle, chef, phase, viewer, vote, gift, crown, and system-state read models via single /battle/master/state/ endpoint.", "status": "pending"},
+                {"label": "P03: Arena control and battle-flow orchestration", "detail": "GreenBear-only phase controls calling existing services with OPERATOR_ACTION audit. Emergency Stop (PAUSED status) per DG-03.", "status": "pending"},
+                {"label": "P04: Live battle monitor and combat engine console", "detail": "Operator visibility into combat rounds, ingredients, locks, shots, artifacts, logs. Read-only.", "status": "pending"},
+                {"label": "P05: Moderation, safety, and live-stream operations", "detail": "Moderation queue + stream safety controls on existing records. Live-stream operator endpoints are a confirmed gap (admin-only today).", "status": "pending"},
+                {"label": "P06: Voting integrity and audience analytics", "detail": "Real vote totals, one-vote constraint evidence, is_suspicious review, tie indicator per DG-05.", "status": "pending"},
+                {"label": "P07: Economy, gifts, tokens, and artifacts", "detail": "Read-first economy console over existing ledgers. Net-flow and rarity formulas need owner sign-off.", "status": "pending"},
+                {"label": "P08: CBR, LSR, payout, ranks, crown, and arena authority", "detail": "Review-and-report panel per DG-06; payout approve/reject GreenBear-only via existing services.", "status": "pending"},
+                {"label": "P09: Hardening, accessibility, performance, release readiness", "detail": "Integrated console verified twice, feature-gated (ARENA_MASTER_CONSOLE_ENABLED, default off), rollback-ready.", "status": "pending"},
+            ],
+        },
+        {
             "title": "Phase 11 - Solicitor And Accountant Review",
             "items": [
                 {"label": "Solicitor review of public rules", "detail": "Bearcave Limited solicitor must review all public Chef Battles rules before token economy, payouts and live video go live. Scope: token model, gift wording, CBR/LSR, payout terms, anti-gambling, DSA compliance, live video rules.", "status": "done", "completed_at": "2026-06-15"},

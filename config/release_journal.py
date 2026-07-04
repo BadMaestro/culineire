@@ -1,5 +1,33 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.96",
+        "date": "2026-07-04",
+        "commit": "pending",
+        "title": "Arena Master Console P00 complete: discovery, baselines, frozen contracts",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "Phase P00 of the 10-phase Arena Master Console plan "
+            "(docs/chef_battle/arena_master_console/) executed and documented. "
+            "All 8 reference-mockup panels mapped against existing code in "
+            "P00_REUSE_MATRIX.yaml with verified line references; public arena "
+            "contract (arena, arena_state, arena_ping, arena_battle_popup) frozen "
+            "and the smallest operator read-model contract proposed in "
+            "P00_CONTRACTS.yaml; query/payload baselines measured on an isolated "
+            "test DB: arena() 15 queries/47KB anonymous, 21/51KB authenticated, "
+            "arena_state() 7 queries/4.5KB. All six decision gates (DG-01..DG-06) "
+            "resolved in P00_DECISIONS.yaml. Stale assumption recorded: "
+            "battle_lifecycle.md status table is outdated vs the real 13-value "
+            "Battle.Status. No production behavior changed; roadmap updated with "
+            "the AMC phase block."
+        ),
+        "checklist": [
+            "docs: P00_REUSE_MATRIX.yaml, P00_CONTRACTS.yaml, P00_BASELINE_REPORT.md added",
+            "chef_battle/views.py: Phase AMC block added to battlefield roadmap",
+            "No migrations, no public URL or behavior changes",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
         "version": "2.5.87",
         "date": "2026-07-03",
         "commit": "14f29c7",

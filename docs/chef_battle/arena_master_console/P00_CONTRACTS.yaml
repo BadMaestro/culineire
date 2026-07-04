@@ -1,0 +1,141 @@
+schema_version: "1.0"
+document_type: "phase_00_frozen_contracts"
+project: "CulinEire Chef Battles Arena Master Console"
+produced_at: "2026-07-04"
+verified_against_commit: "8c74f678 (main)"
+status: "frozen_input_for_P01"
+
+# ─────────────────────────────────────────────────────────────────────
+# 1. CURRENT PUBLIC ARENA CONTRACT (must remain byte-compatible)
+# ─────────────────────────────────────────────────────────────────────
+
+public_arena_contract:
+  arena_page:
+    url: "/battle/arena/  (chef_battle:arena, views.py:888)"
+    method: "GET"
+    access: "public, gated by chef_battle_guard (CHEF_BATTLE_ENABLED)"
+    template_context:
+      - "rank_groups — chefs grouped by ChefBattleProfile.Rank"
+      - "spectator_count — int"
+      - "active_battle — Battle | None"
+      - "arena_data — JSON blob consumed by arena_puzzle.js"
+      - "viewer_author — RecipeAuthor | None"
+      - "user_enrolled — bool"
+
+  arena_state:
+    url: "/battle/arena/state/  (chef_battle:arena_state, views.py:1027)"
+    method: "POST (CSRF), polled every ~20s by arena_puzzle.js"
+    access: "public, flag-gated"
+    response_json:
+      rings: "dict rank_value → list of chef dicts: name, slug, avatar_url, rank, rank_label, rating, wins, losses, win_streak, atk, def, in_battle, battle_id, battle_phase, battle_url, is_online"
+      spectators: "list (max 40) from _get_spectators (views.py:862)"
+      center: "VS-state dict from _arena_center (views.py:710)"
+      latest_result: "dict from _arena_latest_result (views.py:840)"
+
+  arena_ping:
+    url: "/battle/arena/ping/  (views.py:1014)"
+    method: "POST, JS heartbeat every 60s"
+    access: "authenticated; 401 otherwise"
+    effect: "ChefBattleProfile.last_seen_at = now (enrolled only)"
+
+  arena_battle_popup:
+    url: "/battle/arena/battle-popup/  (views.py:749)"
+    method: "GET"
+    access: "public, flag-gated"
+    returns: "HTML fragment: participants, artifacts, votes, gifts, token balance, time remaining, chat"
+
+  invariants:
+    - "None of the above URLs, methods, response keys, or access gates may change in P01–P09."
+    - "Console must be additive: new URLs only, behind new access gate."
+    - "When the console is inaccessible or errors, public arena behavior is unaffected."
+
+# ─────────────────────────────────────────────────────────────────────
+# 2. PROPOSED OPERATOR READ-MODEL CONTRACT (smallest viable, P02)
+#    No endpoints are created in P00. This is a frozen design input.
+# ─────────────────────────────────────────────────────────────────────
+
+operator_read_model_contract:
+  access_gate:
+    rule: "user.is_authenticated AND user.is_superuser AND (author.slug == settings.OWNER_SLUG OR author.has_arena_console_access)"
+    failure_mode: "Http404 (same pattern as moderation tools)"
+    source: "DG-01, P00_DECISIONS.yaml"
+
+  proposed_endpoint:
+    url: "/battle/master/state/ (name: master_state) — single aggregated endpoint, NOT one per panel"
+    method: "POST (CSRF), polling interval same as arena (20s)"
+    response_sections:
+      arena:
+        fields: ["enrolled_count", "online_count", "suspended_count", "spectator_count", "crown_holder {slug,name,crown_until} | null"]
+        sources: ["ChefBattleProfile queryset", "_get_spectators"]
+      battles:
+        fields: ["per active battle: id, status, status_display, theme, challenger/opponent {slug,name,ready}, start_time, submission_deadline, voting_deadline, end_time, is_paused"]
+        sources: ["Battle.ACTIVE_STATUSES queryset + PAUSED"]
+      combat:
+        fields: ["per active-combat battle: get_combat_state(battle) verbatim", "get_biathlon_state(battle) verbatim"]
+        sources: ["services.get_combat_state:787", "services.get_biathlon_state:866"]
+      moderation:
+        fields: ["cooking_queue_count", "open_content_report_count", "flagged_entry_count"]
+        sources: ["get_battles_awaiting_cooking_approval:919", "ContentReport", "BattleEntry.ModerationStatus"]
+      voting:
+        fields: ["per voting battle: challenger_votes, opponent_votes, suspicious_count, is_tie"]
+        sources: ["BattleVote counts; is_tie = equal non-zero counts (DG-05)"]
+      viewers:
+        fields: ["per battle: active_viewer_count"]
+        sources: ["presence.PresenceEvent filtered to battle detail URL (DG-04)"]
+      economy:
+        fields: ["battle_gift_totals per active battle (tokens)", "pending_payout_count"]
+        sources: ["ViewerBattleGift/AppreciationGift aggregates", "PayoutRequest"]
+    rules:
+      - "Every field maps to a documented real query; no fabricated values."
+      - "Fields whose source is unavailable are returned as explicit {\"available\": false} states, never fake numbers."
+      - "Read-only: this endpoint performs no writes."
+      - "Section list may shrink per phase, not grow silently; additions require a phase prompt."
+
+  operator_writes_identified_in_mockup:
+    # Every write control visible in reference/arena-master-console.png,
+    # mapped per master-plan rule "map each to an existing service or genuine gap".
+    - control: "Force phase transition"
+      mapping: "existing lifecycle services first; direct write only for uncovered states"
+      authorization: "OWNER_SLUG only (DG-02)"
+      audit: "BattleEvent OPERATOR_ACTION"
+      phase: "P03"
+    - control: "Emergency Stop / Resume / Cancel"
+      mapping: "genuine gap — new pause/resume service per DG-03 spec"
+      authorization: "OWNER_SLUG only"
+      audit: "BattleEvent OPERATOR_ACTION + paused_at/paused_reason"
+      phase: "P03/P05"
+    - control: "Approve cooking content"
+      mapping: "services.approve_cooking_phase (existing)"
+      authorization: "moderator + console flag"
+      audit: "existing moderation fields"
+      phase: "P05"
+    - control: "Flag entry / end stream"
+      mapping: "BattleEntry.ModerationStatus + LiveStreamSession state machine (admin actions exist; endpoints are a gap)"
+      authorization: "console flag; termination OWNER_SLUG per DG-03"
+      audit: "OPERATOR_ACTION + LiveBroadcastReport"
+      phase: "P05"
+    - control: "Approve / reject payout"
+      mapping: "services.approve_payout_request / reject_payout_request (existing)"
+      authorization: "OWNER_SLUG only (DG-06)"
+      audit: "existing payout audit trail"
+      phase: "P08"
+    - control: "Submit battle report"
+      mapping: "genuine gap — report model designed in P08"
+      authorization: "any console operator"
+      audit: "report record itself"
+      phase: "P08"
+    - control: "Grant/revoke console access"
+      mapping: "genuine gap — has_arena_console_access field + GreenBear-only UI"
+      authorization: "OWNER_SLUG only (DG-01)"
+      audit: "OPERATOR_ACTION or dedicated log"
+      phase: "P01/P03"
+    - control: "Issue/reverse CBR or LSR"
+      mapping: "EXCLUDED from console — review-only per DG-06; existing admin workflow remains the path"
+      authorization: "n/a"
+      audit: "n/a"
+      phase: "none"
+
+  feature_flag_boundary:
+    - "CHEF_BATTLE_ENABLED behavior untouched."
+    - "Console gets its own flag: ARENA_MASTER_CONSOLE_ENABLED (default False), checked in addition to the access gate."
+    - "Flag off ⇒ all console URLs 404 for everyone including GreenBear."
