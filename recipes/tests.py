@@ -3651,12 +3651,16 @@ class GenerateRecipeCommandTests(TestCase):
     def test_generate_recipe_creates_draft_only_with_safety_fields(self, call_anthropic):
         call_anthropic.return_value = self.generated_payload()
 
-        call_command("generate_recipe", "Irish", "Colcannon", author_slug=self.author.slug)
+        call_command("generate_recipe", "Irish", "Colcannon", author_slug=self.author.slug, no_image=True)
 
         recipe = Recipe.objects.get(title="Irish Colcannon")
         self.assertEqual(recipe.status, Recipe.Status.DRAFT)
         self.assertEqual(recipe.category, Recipe.Category.TRADITIONAL_IRISH_DISHES)
-        self.assertEqual(recipe.image_rights_status, Recipe.ImageRightsStatus.AI_GENERATED)
+        # Without a generated image the command must not claim any image rights
+        # (CLAUDE.md content automation rule); AI_GENERATED is set only after a
+        # hero/step image is actually produced.
+        self.assertEqual(recipe.image_rights_status, Recipe.ImageRightsStatus.NOT_APPLICABLE)
+        self.assertFalse(recipe.hero_image)
         self.assertEqual(recipe.source_type, Recipe.SourceType.AI_ASSISTED)
         self.assertEqual(recipe.source_title, "Created specially for CulinEire")
         self.assertEqual(recipe.source_author, "CulinEire Creative Studio")
