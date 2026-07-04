@@ -325,7 +325,7 @@ def _build_battlefield_progress():
                 {"label": "P00: Discovery, baseline, and contract freeze", "detail": "Reuse matrix for all 8 mockup panels (P00_REUSE_MATRIX.yaml), frozen public arena + operator read-model contracts (P00_CONTRACTS.yaml), query baselines: arena() 15q/47KB anon, 21q/51KB auth; arena_state() 7q/4.5KB. All 6 decision gates resolved (P00_DECISIONS.yaml). Both verification passes recorded (P00_BASELINE_REPORT.md). No production code added.", "status": "done", "completed_at": "2026-07-04"},
                 {"label": "P01: Desktop visual shell and information architecture", "detail": "Console shell live at /chef-battle/master/ behind ARENA_MASTER_CONSOLE_ENABLED (default off) + DG-01 gate (superuser + owner/flag, 404 otherwise). RecipeAuthor.has_arena_console_access added (recipes/0038). 8-panel deck, phase rail, overview row, system footer — explicit empty states only, all controls disabled. 12 access tests. Verified at 1920/1440/1280/mobile.", "status": "done", "completed_at": "2026-07-04"},
                 {"label": "P02: Read-only arena overview and live data adapters", "detail": "Console now live: get_master_state() selector + POST /chef-battle/master/state/ (20s poll, 12 queries/1.9KB at 1 battle). Battle status, chef cards, phase rail, voting/moderation/economy panels all real; public ring embedded via shared partial. arena()/arena_state() dedup into _build_arena_payload(). Viewers metric honestly unavailable (DG-04 source does not exist). Fixed latent arena 500 (.value on DB status). 17 new tests; 171/171 suite green.", "status": "done", "completed_at": "2026-07-04"},
-                {"label": "P03: Arena control and battle-flow orchestration", "detail": "GreenBear-only phase controls calling existing services with OPERATOR_ACTION audit. Emergency Stop (PAUSED status) per DG-03.", "status": "pending"},
+                {"label": "P03: Arena control and battle-flow orchestration", "detail": "Owner-only controls live: force transitions (service-owned paths reuse approve_cooking_phase / calculate_battle_result), Emergency Stop per DG-03 (PAUSED + stream termination + chef notifications + timer freeze), Resume, Cancel, Broadcast. All transactional, expected_status idempotency, OPERATOR_ACTION audit with correlation id. Award Crown permanently disabled (audience decides). 22 tests; suite 193/193. Migration 0056.", "status": "done", "completed_at": "2026-07-04"},
                 {"label": "P04: Live battle monitor and combat engine console", "detail": "Operator visibility into combat rounds, ingredients, locks, shots, artifacts, logs. Read-only.", "status": "pending"},
                 {"label": "P05: Moderation, safety, and live-stream operations", "detail": "Moderation queue + stream safety controls on existing records. Live-stream operator endpoints are a confirmed gap (admin-only today).", "status": "pending"},
                 {"label": "P06: Voting integrity and audience analytics", "detail": "Real vote totals, one-vote constraint evidence, is_suspicious review, tie indicator per DG-05.", "status": "pending"},
@@ -2348,4 +2348,85 @@ def master_state(request):
     writes and leaks nothing into public endpoints."""
     from .selectors import get_master_state
     return JsonResponse(get_master_state())
+
+
+@arena_console_guard
+@require_POST
+def master_action(request):
+    """Operator write actions for the console (P03).
+
+    DG-02: force transitions, Emergency Stop, resume, cancel and broadcast
+    are owner-only; the services enforce that again, but we reject early
+    with 403 so non-owner console operators get a clear answer. Every action
+    is transactional, idempotency-guarded (expected_status) and audited as
+    a BattleEvent OPERATOR_ACTION inside the service layer.
+    """
+    import uuid
+
+    from .services import (
+        OperatorActionError, operator_broadcast, operator_cancel,
+        operator_emergency_stop, operator_force_status, operator_resume,
+    )
+
+    author = get_author_for_user(request.user)
+    if not author or author.slug != settings.OWNER_SLUG:
+        return JsonResponse(
+            {"ok": False, "error": "Only the arena owner may perform console actions."},
+            status=403,
+        )
+
+    action = request.POST.get("action", "")
+    battle_id = request.POST.get("battle_id")
+    correlation_id = request.POST.get("correlation_id") or uuid.uuid4().hex[:12]
+    reason = request.POST.get("reason", "")
+
+    try:
+        if action == "force_status":
+            battle = operator_force_status(
+                battle_id=battle_id,
+                operator_author=author,
+                target_status=request.POST.get("target_status", ""),
+                expected_status=request.POST.get("expected_status") or None,
+                reason=reason,
+                correlation_id=correlation_id,
+            )
+        elif action == "emergency_stop":
+            battle = operator_emergency_stop(
+                battle_id=battle_id, operator_author=author,
+                reason=reason, correlation_id=correlation_id,
+            )
+        elif action == "resume":
+            battle = operator_resume(
+                battle_id=battle_id, operator_author=author,
+                correlation_id=correlation_id,
+            )
+        elif action == "cancel":
+            battle = operator_cancel(
+                battle_id=battle_id, operator_author=author,
+                reason=reason, correlation_id=correlation_id,
+            )
+        elif action == "broadcast":
+            operator_broadcast(
+                operator_author=author,
+                message=request.POST.get("message", ""),
+                battle_id=battle_id or None,
+                correlation_id=correlation_id,
+            )
+            return JsonResponse({"ok": True, "action": action,
+                                 "correlation_id": correlation_id})
+        else:
+            return JsonResponse({"ok": False, "error": f"Unknown action '{action}'."},
+                                status=400)
+    except Battle.DoesNotExist:
+        return JsonResponse({"ok": False, "error": "Battle not found."}, status=404)
+    except OperatorActionError as exc:
+        return JsonResponse({"ok": False, "error": str(exc)}, status=409)
+
+    return JsonResponse({
+        "ok": True,
+        "action": action,
+        "correlation_id": correlation_id,
+        "battle": {"id": battle.pk, "status": battle.status,
+                   "status_display": battle.get_status_display()},
+    })
 

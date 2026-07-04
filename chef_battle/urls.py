@@ -58,4 +58,5 @@ urlpatterns = [
     path("changing-room/", views.changing_room, name="changing_room"),
     path("master/", views.master_console, name="master_console"),
     path("master/state/", views.master_state, name="master_state"),
+    path("master/action/", views.master_action, name="master_action"),
 ]

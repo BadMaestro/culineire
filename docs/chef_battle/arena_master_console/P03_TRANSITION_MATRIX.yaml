@@ -1,0 +1,66 @@
+schema_version: "1.0"
+document_type: "phase_03_transition_matrix"
+produced_at: "2026-07-04"
+authority: "DG-02 — ONLY the owner (OWNER_SLUG) may force transitions; other console operators are read-only"
+endpoint: "POST /chef-battle/master/action/ (arena_console_guard + owner check + CSRF)"
+idempotency: "expected_status field — request rejected 409 if battle state changed since the operator saw it; battle row locked with select_for_update inside a transaction"
+audit: "every applied action creates BattleEvent OPERATOR_ACTION with payload {action, before_status, after_status, reason, correlation_id, outcome}"
+
+actions:
+
+  force_status:
+    allowed_targets:
+      - scheduled
+      - menu_locked
+      - active
+      - awaiting_submissions
+      - revealed
+      - cooking
+      - presentation
+      - voting
+      - completed
+      - ingredient_penalty
+    forbidden_targets:
+      cancelled: "use the cancel action (requires reason, notifies chefs)"
+      paused: "use emergency_stop (DG-03 semantics)"
+      disputed: "no owner decision exists for manual disputes"
+    service_owned_transitions:
+      "ingredient_penalty -> cooking": "services.approve_cooking_phase (moderation invariant)"
+      "voting -> completed": "services.calculate_battle_result (votes, rating, crown, rewards)"
+      "active -> completed": "services.calculate_battle_result"
+    all_other_transitions: "direct status assignment inside the audited transaction (DG-02 owner override)"
+    guards:
+      - "rejected if battle already in target status"
+      - "rejected if battle is PAUSED (resume/cancel first)"
+      - "rejected on stale expected_status"
+
+  emergency_stop:
+    per: "DG-03"
+    effects:
+      - "status -> paused; paused_at/paused_reason/paused_from_status recorded (migration chef_battle/0056)"
+      - "all SCHEDULED/LIVE LiveStreamSession rows -> TERMINATED with reason + terminated_by"
+      - "frontend freezes countdown (timer shows PAUSED) via is_paused in master_state"
+      - "both chefs notified via existing _notify_chef (in-site message + email)"
+      - "audit event with streams_terminated count"
+    guards: ["reason required", "not on completed/cancelled/paused battles"]
+
+  resume:
+    effect: "status -> paused_from_status; pause fields cleared; chefs notified"
+    guards: ["battle must be PAUSED", "pre-pause status must be recorded"]
+
+  cancel:
+    effect: "status -> cancelled; result_reason = 'Cancelled by arena operator: <reason>'; chefs notified (handle_no_show_battles pattern)"
+    guards: ["reason required", "not on completed/cancelled battles", "clears pause fields if paused"]
+
+  broadcast:
+    effect: "public BattleEvent OPERATOR_ACTION with the operator's message (max 500 chars), optional battle link"
+    guards: ["message required"]
+
+  award_crown:
+    status: "PERMANENTLY DISABLED in the console"
+    reason: "The crown is decided only by audience voting (project core principle); calculate_battle_result owns crown awards. The button renders disabled with this explanation."
+
+ui_contract:
+  owner: "8 buttons in panel 1; Award Crown disabled with reason; every action shows a confirm/prompt stating exact consequences; errors surface in #amc-action-error"
+  non_owner_operator: "panel 1 renders 'Read-only access' with the DG-02 explanation; no action markup at all"
+  paused_state: "countdown shows PAUSED; force buttons rejected server-side with a clear message"

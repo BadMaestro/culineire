@@ -43,6 +43,8 @@
   function tick() {
     var el = document.getElementById('amc-status-timer');
     if (!el) return;
+    var primary = state.battles && state.battles[0];
+    if (primary && primary.is_paused) { el.textContent = 'PAUSED'; return; }
     if (deadlineMs === null) { el.textContent = '--:--'; return; }
     var s = Math.max(0, Math.floor((deadlineMs - Date.now()) / 1000));
     var h = Math.floor(s / 3600);
@@ -128,7 +130,7 @@
   /* ── Poll loop ──────────────────────────────────────────────────── */
 
   function poll() {
-    fetch(STATE_URL, {
+    return fetch(STATE_URL, {
       method: 'POST',
       headers: { 'X-CSRFToken': getCsrfToken() },
       credentials: 'same-origin',
@@ -145,6 +147,103 @@
       .catch(function () {
         setText('amc-sys-status', 'Poll failed — showing last known state');
       });
+  }
+
+  /* ── Operator actions (P03, owner only) ─────────────────────────── */
+
+  var ACTION_URL = '/chef-battle/master/action/';
+
+  function showActionError(text) {
+    var el = document.getElementById('amc-action-error');
+    if (!el) return;
+    el.textContent = text;
+    el.classList.toggle('amc-hidden', !text);
+  }
+
+  function postAction(fields) {
+    var body = new FormData();
+    Object.keys(fields).forEach(function (k) {
+      if (fields[k] !== null && fields[k] !== undefined) body.append(k, fields[k]);
+    });
+    return fetch(ACTION_URL, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCsrfToken() },
+      credentials: 'same-origin',
+      body: body,
+    }).then(function (resp) {
+      return resp.json().then(function (data) {
+        if (!resp.ok || !data.ok) throw new Error(data.error || ('HTTP ' + resp.status));
+        return data;
+      });
+    });
+  }
+
+  function handleAction(btn) {
+    var primary = state.battles && state.battles[0];
+    var kind = btn.getAttribute('data-amc-action');
+    var fields = { battle_id: primary ? primary.id : '' };
+
+    if (kind === 'broadcast') {
+      var msg = window.prompt('Broadcast notice (public, appears in the battle feed):');
+      if (!msg) return;
+      fields.action = 'broadcast';
+      fields.message = msg;
+    } else if (!primary) {
+      showActionError('No battle to act on.');
+      return;
+    } else if (kind === 'advance') {
+      if (!primary.next_status) { showActionError('No expected next phase for this state.'); return; }
+      if (!window.confirm('Force battle #' + primary.id + ' from "' + primary.status_display +
+          '" to "' + primary.next_status_display + '"? This is audited and cannot be undone from the console.')) return;
+      fields.action = 'force_status';
+      fields.target_status = primary.next_status;
+      fields.expected_status = primary.status;
+      fields.reason = 'Console: advance to expected next phase';
+    } else if (kind === 'force') {
+      var target = btn.getAttribute('data-amc-target');
+      if (!window.confirm('Force battle #' + primary.id + ' from "' + primary.status_display +
+          '" to "' + target + '"? This is audited and cannot be undone from the console.')) return;
+      fields.action = 'force_status';
+      fields.target_status = target;
+      fields.expected_status = primary.status;
+      fields.reason = 'Console: force ' + target;
+    } else if (kind === 'emergency_stop') {
+      var reason = window.prompt(
+        'EMERGENCY STOP battle #' + primary.id + '.\n' +
+        'Consequences: status becomes PAUSED, all timers freeze, live streams are ' +
+        'terminated, both chefs are notified. Only you can resume or cancel.\n\n' +
+        'Enter the reason (required):');
+      if (!reason) return;
+      fields.action = 'emergency_stop';
+      fields.reason = reason;
+    } else if (kind === 'resume') {
+      if (!window.confirm('Resume battle #' + primary.id + ' to its pre-pause phase?')) return;
+      fields.action = 'resume';
+    } else if (kind === 'cancel') {
+      var cancelReason = window.prompt(
+        'END BATTLE #' + primary.id + ' — this cancels it PERMANENTLY. ' +
+        'Both chefs are notified. Enter the reason (required):');
+      if (!cancelReason) return;
+      fields.action = 'cancel';
+      fields.reason = cancelReason;
+    } else {
+      return;
+    }
+
+    btn.disabled = true;
+    showActionError('');
+    postAction(fields)
+      .then(function () { return poll(); })
+      .catch(function (err) { showActionError(err.message); })
+      .finally(function () { btn.disabled = false; });
+  }
+
+  var controls = document.getElementById('amc-controls');
+  if (controls && window.AMC_OPERATOR && window.AMC_OPERATOR.isOwner) {
+    controls.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-amc-action]');
+      if (btn && !btn.disabled) handleAction(btn);
+    });
   }
 
   apply();

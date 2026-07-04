@@ -15,7 +15,8 @@ from newsfeed.models import NewsFeedEntry
 from .models import (
     APPRECIATION_GIFT_COST, Artifact, Battle, BattleChallenge, BattleCombatAction,
     BattleEntry, BattleEvent, BattleRound, ChefArtifact, ChefBattleProfile, IngredientLock,
-    IngredientShot, AppreciationGift, ViewerBattleGift, TokenTransaction, TokenWallet,
+    IngredientShot, AppreciationGift, LiveStreamSession, ViewerBattleGift,
+    TokenTransaction, TokenWallet,
 )
 
 logger = logging.getLogger(__name__)
@@ -1894,3 +1895,264 @@ def check_forbidden_claims(text: str) -> list[str]:
     """Return list of forbidden phrases found in text (case-insensitive). Empty list = clean."""
     lower = (text or "").lower()
     return [phrase for phrase in _FORBIDDEN_PHRASES if phrase in lower]
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# Arena Master Console operator orchestration (P03).
+# DG-02: ONLY the owner (OWNER_SLUG) may force phase transitions.
+# Every action: transactional, idempotency-guarded via expected_status,
+# audited as a BattleEvent OPERATOR_ACTION with a correlation id.
+# Contract: docs/chef_battle/arena_master_console/P03_TRANSITION_MATRIX.yaml.
+# ═════════════════════════════════════════════════════════════════════════════
+
+class OperatorActionError(ValueError):
+    """Raised when an operator action is rejected (invalid state, stale
+    expected_status, unauthorized actor). Message is safe to show in the UI."""
+
+
+def _require_owner(operator_author):
+    if not operator_author or operator_author.slug != settings.OWNER_SLUG:
+        raise OperatorActionError("Only the arena owner may perform this action.")
+
+
+def _operator_event(*, battle, operator_author, action, before, after, reason, correlation_id, extra=None):
+    payload = {
+        "action": action,
+        "before_status": before,
+        "after_status": after,
+        "reason": reason,
+        "correlation_id": correlation_id,
+        "outcome": "applied",
+    }
+    if extra:
+        payload.update(extra)
+    event = create_battle_event(
+        event_type=BattleEvent.EventType.OPERATOR_ACTION,
+        battle=battle,
+        actor=operator_author,
+        message=f"Operator action '{action}': {before} -> {after}. Reason: {reason or 'not given'}.",
+        is_public=False,
+    )
+    event.payload_json = payload
+    event.save(update_fields=["payload_json"])
+    return event
+
+
+def _locked_battle(battle_id, expected_status):
+    """Fetch the battle under row lock and verify the operator saw the
+    current state (stale-click / double-click / concurrent-operator guard)."""
+    battle = Battle.objects.select_for_update().select_related(
+        "challenger", "opponent"
+    ).get(pk=battle_id)
+    if expected_status and battle.status != expected_status:
+        raise OperatorActionError(
+            f"Stale state: battle is now '{battle.status}', not '{expected_status}'. "
+            "Refresh and retry."
+        )
+    return battle
+
+
+def _notify_participants(battle, subject, body, operator_author):
+    """Notify both chefs via the existing in-site + email channel."""
+    for author in (battle.challenger, battle.opponent):
+        _notify_chef(operator_author, author, subject, body)
+
+
+# Transitions where an existing domain service owns the invariant.
+# The operator force path MUST call the service, never assign directly.
+_SERVICE_OWNED_TRANSITIONS = {
+    (Battle.Status.INGREDIENT_PENALTY, Battle.Status.COOKING): "approve_cooking_phase",
+    (Battle.Status.VOTING, Battle.Status.COMPLETED): "calculate_battle_result",
+    (Battle.Status.ACTIVE, Battle.Status.COMPLETED): "calculate_battle_result",
+}
+
+# Force-transition targets the console may request at all.
+OPERATOR_ALLOWED_TARGETS = {
+    Battle.Status.SCHEDULED, Battle.Status.MENU_LOCKED, Battle.Status.ACTIVE,
+    Battle.Status.AWAITING_SUBMISSIONS, Battle.Status.REVEALED,
+    Battle.Status.COOKING, Battle.Status.PRESENTATION, Battle.Status.VOTING,
+    Battle.Status.COMPLETED, Battle.Status.INGREDIENT_PENALTY,
+}
+
+
+def operator_force_status(
+    *, battle_id, operator_author, target_status, expected_status,
+    reason="", correlation_id="",
+):
+    """GreenBear-only forced phase transition (DG-02).
+
+    Uses the owning domain service when one exists for the transition;
+    direct assignment only for states no service covers, inside the same
+    transaction, always audited."""
+    _require_owner(operator_author)
+    if target_status not in OPERATOR_ALLOWED_TARGETS:
+        raise OperatorActionError(f"'{target_status}' is not a valid force target.")
+
+    with transaction.atomic():
+        battle = _locked_battle(battle_id, expected_status)
+        before = battle.status
+        if before == target_status:
+            raise OperatorActionError(f"Battle is already '{target_status}'.")
+        if before == Battle.Status.PAUSED:
+            raise OperatorActionError("Battle is paused. Use Resume or Cancel first.")
+
+        service_name = _SERVICE_OWNED_TRANSITIONS.get((before, target_status))
+        if service_name == "approve_cooking_phase":
+            approve_cooking_phase(battle, operator_author)
+        elif service_name == "calculate_battle_result":
+            calculate_battle_result(battle)
+            battle.refresh_from_db()
+            if battle.status != Battle.Status.COMPLETED:
+                raise OperatorActionError(
+                    f"Result service left battle in '{battle.status}'; not forcing further."
+                )
+        else:
+            battle.status = target_status
+            battle.save(update_fields=["status", "updated_at"])
+
+        _operator_event(
+            battle=battle, operator_author=operator_author,
+            action="force_status", before=before, after=battle.status,
+            reason=reason, correlation_id=correlation_id,
+            extra={"service_used": service_name or "direct"},
+        )
+    return battle
+
+
+def operator_emergency_stop(*, battle_id, operator_author, reason, correlation_id=""):
+    """Emergency Stop per DG-03: PAUSED status, timers freeze (frontend reads
+    is_paused), live streams terminated, audit event, chefs notified."""
+    _require_owner(operator_author)
+    if not (reason or "").strip():
+        raise OperatorActionError("Emergency Stop requires a reason.")
+
+    with transaction.atomic():
+        battle = _locked_battle(battle_id, expected_status=None)
+        before = battle.status
+        if before == Battle.Status.PAUSED:
+            raise OperatorActionError("Battle is already paused.")
+        if before in (Battle.Status.COMPLETED, Battle.Status.CANCELLED):
+            raise OperatorActionError(f"Cannot pause a {before} battle.")
+
+        now = timezone.now()
+        battle.paused_from_status = before
+        battle.paused_at = now
+        battle.paused_reason = reason
+        battle.status = Battle.Status.PAUSED
+        battle.save(update_fields=[
+            "status", "paused_at", "paused_reason", "paused_from_status", "updated_at",
+        ])
+
+        terminated = list(
+            battle.live_streams.filter(
+                status__in=[LiveStreamSession.Status.SCHEDULED, LiveStreamSession.Status.LIVE]
+            )
+        )
+        for stream in terminated:
+            stream.status = LiveStreamSession.Status.TERMINATED
+            stream.ended_at = now
+            stream.terminated_reason = f"Emergency Stop: {reason}"[:300]
+            stream.terminated_by = operator_author.user
+            stream.save(update_fields=[
+                "status", "ended_at", "terminated_reason", "terminated_by", "updated_at",
+            ])
+
+        _operator_event(
+            battle=battle, operator_author=operator_author,
+            action="emergency_stop", before=before, after=Battle.Status.PAUSED,
+            reason=reason, correlation_id=correlation_id,
+            extra={"streams_terminated": len(terminated)},
+        )
+        _notify_participants(
+            battle,
+            subject=f"Battle #{battle.pk} paused (Emergency Stop)",
+            body=(
+                f"Your battle '{battle.theme}' has been paused by the arena operator. "
+                f"Reason: {reason}. All timers are frozen; you will be notified when "
+                "the battle resumes or is cancelled."
+            ),
+            operator_author=operator_author,
+        )
+    return battle
+
+
+def operator_resume(*, battle_id, operator_author, correlation_id=""):
+    """Resume a PAUSED battle to the status it was paused from (DG-03)."""
+    _require_owner(operator_author)
+    with transaction.atomic():
+        battle = _locked_battle(battle_id, expected_status=Battle.Status.PAUSED)
+        restore_to = battle.paused_from_status
+        if not restore_to:
+            raise OperatorActionError("No pre-pause status recorded; cannot resume.")
+        battle.status = restore_to
+        battle.paused_at = None
+        battle.paused_reason = ""
+        battle.paused_from_status = ""
+        battle.save(update_fields=[
+            "status", "paused_at", "paused_reason", "paused_from_status", "updated_at",
+        ])
+        _operator_event(
+            battle=battle, operator_author=operator_author,
+            action="resume", before=Battle.Status.PAUSED, after=restore_to,
+            reason="", correlation_id=correlation_id,
+        )
+        _notify_participants(
+            battle,
+            subject=f"Battle #{battle.pk} resumed",
+            body=f"Your battle '{battle.theme}' has resumed in phase '{restore_to}'.",
+            operator_author=operator_author,
+        )
+    return battle
+
+
+def operator_cancel(*, battle_id, operator_author, reason, correlation_id=""):
+    """Cancel a battle (owner-only). Follows the handle_no_show_battles
+    cancellation pattern: CANCELLED + result_reason + audit event."""
+    _require_owner(operator_author)
+    if not (reason or "").strip():
+        raise OperatorActionError("Cancellation requires a reason.")
+    with transaction.atomic():
+        battle = _locked_battle(battle_id, expected_status=None)
+        before = battle.status
+        if before in (Battle.Status.COMPLETED, Battle.Status.CANCELLED):
+            raise OperatorActionError(f"Cannot cancel a {before} battle.")
+        battle.status = Battle.Status.CANCELLED
+        battle.result_reason = f"Cancelled by arena operator: {reason}"[:120]
+        if before == Battle.Status.PAUSED:
+            battle.paused_at = None
+            battle.paused_from_status = ""
+        battle.save(update_fields=[
+            "status", "result_reason", "paused_at", "paused_from_status", "updated_at",
+        ])
+        _operator_event(
+            battle=battle, operator_author=operator_author,
+            action="cancel", before=before, after=Battle.Status.CANCELLED,
+            reason=reason, correlation_id=correlation_id,
+        )
+        _notify_participants(
+            battle,
+            subject=f"Battle #{battle.pk} cancelled",
+            body=f"Your battle '{battle.theme}' was cancelled by the arena operator. Reason: {reason}.",
+            operator_author=operator_author,
+        )
+    return battle
+
+
+def operator_broadcast(*, operator_author, message, battle_id=None, correlation_id=""):
+    """Owner-only public announcement into the battle event feed."""
+    _require_owner(operator_author)
+    if not (message or "").strip():
+        raise OperatorActionError("Broadcast message cannot be empty.")
+    battle = Battle.objects.get(pk=battle_id) if battle_id else None
+    event = create_battle_event(
+        event_type=BattleEvent.EventType.OPERATOR_ACTION,
+        battle=battle,
+        actor=operator_author,
+        message=message.strip()[:500],
+        is_public=True,
+    )
+    event.payload_json = {
+        "action": "broadcast", "correlation_id": correlation_id, "outcome": "applied",
+    }
+    event.save(update_fields=["payload_json"])
+    return event

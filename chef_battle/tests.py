@@ -15,6 +15,7 @@ from .models import (
     Battle,
     BattleChallenge,
     BattleEntry,
+    BattleEvent,
     BattleVote,
     ChefArtifact,
     ChefBattleProfile,
@@ -1925,12 +1926,14 @@ class ArenaMasterConsoleAccessTests(TestCase):
             "CBR / LSR / Rewards Governance", "Ranks / Crown / Arena Authority",
         ):
             self.assertIn(panel, content)
-        # Every console shell button is disabled in P01
+        # P03: owner sees 8 control buttons; only Award Crown stays disabled
+        # (crown is decided by audience voting only — project core principle).
         import re
         amc_buttons = re.findall(r'<button[^>]*class="amc-btn[^"]*"[^>]*>', content)
-        self.assertEqual(len(amc_buttons), 6)
-        for button in amc_buttons:
-            self.assertIn("disabled", button)
+        self.assertEqual(len(amc_buttons), 8)
+        disabled = [b for b in amc_buttons if "disabled" in b]
+        self.assertEqual(len(disabled), 1)
+        self.assertIn("Award Crown", content)
 
     def test_public_arena_unchanged_for_anonymous(self):
         resp = self.client.get(reverse("chef_battle:arena"))
@@ -2166,3 +2169,276 @@ class ArenaMasterStateTests(TestCase):
         self.assertContains(resp, "MS Chef A")
         self.assertContains(resp, "MS Chef B")
         self.assertContains(resp, "amc-state-json")
+
+
+# ── AMC P03 — operator battle-flow orchestration ─────────────────────────────
+
+@override_settings(ARENA_MASTER_CONSOLE_ENABLED=True, CHEF_BATTLE_ENABLED=True)
+class ArenaMasterActionTests(TestCase):
+    """P03: owner-only force transitions, Emergency Stop (DG-03), resume,
+    cancel, broadcast — permissions, idempotency, audit, rollback."""
+
+    def setUp(self):
+        from django.conf import settings as django_settings
+        User = get_user_model()
+        self.url = reverse("chef_battle:master_action")
+
+        self.owner_user = User.objects.create_superuser("greenbear", password="pw")
+        self.owner_author, _ = RecipeAuthor.objects.update_or_create(
+            slug=django_settings.OWNER_SLUG,
+            defaults={"user": self.owner_user, "name": "GreenBear"},
+        )
+
+        self.operator_user = User.objects.create_superuser("flag-op", password="pw")
+        RecipeAuthor.objects.create(
+            user=self.operator_user, name="Flag Op", slug="flag-op",
+            has_arena_console_access=True,
+        )
+
+        ua = User.objects.create_user("act-chef-a", password="pw")
+        ub = User.objects.create_user("act-chef-b", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=ua, name="Act Chef A", slug="act-chef-a")
+        self.chef_b = RecipeAuthor.objects.create(user=ub, name="Act Chef B", slug="act-chef-b")
+        ChefBattleProfile.objects.create(author=self.chef_a, enrolled_at=timezone.now())
+        ChefBattleProfile.objects.create(author=self.chef_b, enrolled_at=timezone.now())
+
+    def _battle(self, status=Battle.Status.SCHEDULED):
+        now = timezone.now()
+        return Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b,
+            theme="Action Dish", status=status,
+            start_time=now,
+            submission_deadline=now + timezone.timedelta(days=2),
+            voting_deadline=now + timezone.timedelta(days=4),
+            end_time=now + timezone.timedelta(days=5),
+        )
+
+    def _post(self, user, **fields):
+        self.client.force_login(user)
+        return self.client.post(self.url, fields)
+
+    # ── permissions ──
+    def test_anonymous_gets_404(self):
+        self.assertEqual(self.client.post(self.url, {"action": "resume"}).status_code, 404)
+
+    def test_flagged_operator_gets_403_not_owner(self):
+        battle = self._battle()
+        resp = self._post(self.operator_user, action="force_status",
+                          battle_id=battle.pk, target_status="menu_locked")
+        self.assertEqual(resp.status_code, 403)
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.SCHEDULED)
+
+    def test_get_not_allowed(self):
+        self.client.force_login(self.owner_user)
+        self.assertEqual(self.client.get(self.url).status_code, 405)
+
+    # ── force transitions ──
+    def test_owner_forces_scheduled_to_menu_locked_with_audit(self):
+        battle = self._battle()
+        resp = self._post(self.owner_user, action="force_status",
+                          battle_id=battle.pk, target_status="menu_locked",
+                          expected_status="scheduled", reason="test advance",
+                          correlation_id="corr-123")
+        self.assertEqual(resp.status_code, 200)
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.MENU_LOCKED)
+        event = BattleEvent.objects.get(
+            battle=battle, event_type=BattleEvent.EventType.OPERATOR_ACTION)
+        self.assertEqual(event.actor, self.owner_author)
+        self.assertFalse(event.is_public)
+        payload = event.payload_json
+        self.assertEqual(payload["action"], "force_status")
+        self.assertEqual(payload["before_status"], "scheduled")
+        self.assertEqual(payload["after_status"], "menu_locked")
+        self.assertEqual(payload["reason"], "test advance")
+        self.assertEqual(payload["correlation_id"], "corr-123")
+        self.assertEqual(payload["service_used"], "direct")
+
+    def test_stale_expected_status_rejected(self):
+        battle = self._battle(Battle.Status.MENU_LOCKED)
+        resp = self._post(self.owner_user, action="force_status",
+                          battle_id=battle.pk, target_status="active",
+                          expected_status="scheduled")
+        self.assertEqual(resp.status_code, 409)
+        self.assertIn("Stale state", resp.json()["error"])
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.MENU_LOCKED)
+
+    def test_repeated_click_is_idempotent(self):
+        battle = self._battle()
+        first = self._post(self.owner_user, action="force_status",
+                           battle_id=battle.pk, target_status="menu_locked",
+                           expected_status="scheduled")
+        second = self._post(self.owner_user, action="force_status",
+                            battle_id=battle.pk, target_status="menu_locked",
+                            expected_status="scheduled")
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(second.status_code, 409)
+        self.assertEqual(
+            BattleEvent.objects.filter(
+                battle=battle, event_type=BattleEvent.EventType.OPERATOR_ACTION
+            ).count(), 1)
+
+    def test_same_status_rejected(self):
+        battle = self._battle()
+        resp = self._post(self.owner_user, action="force_status",
+                          battle_id=battle.pk, target_status="scheduled")
+        self.assertEqual(resp.status_code, 409)
+
+    def test_invalid_target_rejected(self):
+        battle = self._battle()
+        for bad in ("cancelled", "paused", "disputed", "nonsense"):
+            resp = self._post(self.owner_user, action="force_status",
+                              battle_id=battle.pk, target_status=bad)
+            self.assertEqual(resp.status_code, 409, bad)
+
+    def test_cooking_transition_uses_owning_service(self):
+        battle = self._battle(Battle.Status.INGREDIENT_PENALTY)
+        resp = self._post(self.owner_user, action="force_status",
+                          battle_id=battle.pk, target_status="cooking",
+                          expected_status="ingredient_penalty")
+        self.assertEqual(resp.status_code, 200)
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.COOKING)
+        op_event = BattleEvent.objects.get(
+            battle=battle, event_type=BattleEvent.EventType.OPERATOR_ACTION)
+        self.assertEqual(op_event.payload_json["service_used"], "approve_cooking_phase")
+
+    def test_voting_to_completed_uses_result_service(self):
+        battle = self._battle(Battle.Status.VOTING)
+        User = get_user_model()
+        voter = User.objects.create_user("act-voter", password="pw")
+        BattleVote.objects.create(battle=battle, voter=voter, voted_for=self.chef_a)
+        resp = self._post(self.owner_user, action="force_status",
+                          battle_id=battle.pk, target_status="completed",
+                          expected_status="voting")
+        self.assertEqual(resp.status_code, 200)
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.COMPLETED)
+        self.assertEqual(battle.winner, self.chef_a)
+
+    def test_unknown_action_400_and_missing_battle_404(self):
+        self.client.force_login(self.owner_user)
+        self.assertEqual(
+            self.client.post(self.url, {"action": "explode"}).status_code, 400)
+        self.assertEqual(
+            self.client.post(self.url, {"action": "resume", "battle_id": 999999}).status_code, 404)
+
+    # ── Emergency Stop (DG-03) ──
+    def test_emergency_stop_full_behavior(self):
+        from .models import LiveStreamSession
+        battle = self._battle(Battle.Status.COOKING)
+        stream = LiveStreamSession.objects.create(
+            battle=battle, chef=self.chef_a, status=LiveStreamSession.Status.LIVE)
+        resp = self._post(self.owner_user, action="emergency_stop",
+                          battle_id=battle.pk, reason="Minor visible on camera")
+        self.assertEqual(resp.status_code, 200)
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.PAUSED)
+        self.assertEqual(battle.paused_from_status, "cooking")
+        self.assertEqual(battle.paused_reason, "Minor visible on camera")
+        self.assertIsNotNone(battle.paused_at)
+        stream.refresh_from_db()
+        self.assertEqual(stream.status, LiveStreamSession.Status.TERMINATED)
+        self.assertIn("Emergency Stop", stream.terminated_reason)
+        self.assertEqual(stream.terminated_by, self.owner_user)
+        # audit + chef notifications
+        event = BattleEvent.objects.get(
+            battle=battle, event_type=BattleEvent.EventType.OPERATOR_ACTION)
+        self.assertEqual(event.payload_json["action"], "emergency_stop")
+        self.assertEqual(event.payload_json["streams_terminated"], 1)
+        from messaging.models import Message
+        self.assertEqual(
+            Message.objects.filter(subject__icontains="paused").count(), 2)
+
+    def test_emergency_stop_requires_reason(self):
+        battle = self._battle(Battle.Status.ACTIVE)
+        resp = self._post(self.owner_user, action="emergency_stop",
+                          battle_id=battle.pk, reason="  ")
+        self.assertEqual(resp.status_code, 409)
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.ACTIVE)
+
+    def test_cannot_pause_completed_or_paused(self):
+        done = self._battle(Battle.Status.COMPLETED)
+        resp = self._post(self.owner_user, action="emergency_stop",
+                          battle_id=done.pk, reason="x")
+        self.assertEqual(resp.status_code, 409)
+        paused = self._battle(Battle.Status.PAUSED)
+        resp = self._post(self.owner_user, action="emergency_stop",
+                          battle_id=paused.pk, reason="x")
+        self.assertEqual(resp.status_code, 409)
+
+    def test_force_status_blocked_while_paused(self):
+        battle = self._battle(Battle.Status.PAUSED)
+        resp = self._post(self.owner_user, action="force_status",
+                          battle_id=battle.pk, target_status="cooking")
+        self.assertEqual(resp.status_code, 409)
+        self.assertIn("paused", resp.json()["error"].lower())
+
+    # ── resume / cancel ──
+    def test_resume_restores_pre_pause_status(self):
+        battle = self._battle(Battle.Status.VOTING)
+        self._post(self.owner_user, action="emergency_stop",
+                   battle_id=battle.pk, reason="incident")
+        resp = self._post(self.owner_user, action="resume", battle_id=battle.pk)
+        self.assertEqual(resp.status_code, 200)
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.VOTING)
+        self.assertIsNone(battle.paused_at)
+        self.assertEqual(battle.paused_reason, "")
+        self.assertEqual(battle.paused_from_status, "")
+
+    def test_resume_requires_paused(self):
+        battle = self._battle(Battle.Status.ACTIVE)
+        resp = self._post(self.owner_user, action="resume", battle_id=battle.pk)
+        self.assertEqual(resp.status_code, 409)
+
+    def test_cancel_paused_battle(self):
+        battle = self._battle(Battle.Status.ACTIVE)
+        self._post(self.owner_user, action="emergency_stop",
+                   battle_id=battle.pk, reason="incident")
+        resp = self._post(self.owner_user, action="cancel",
+                          battle_id=battle.pk, reason="cannot continue safely")
+        self.assertEqual(resp.status_code, 200)
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.CANCELLED)
+        self.assertIn("Cancelled by arena operator", battle.result_reason)
+
+    def test_cancel_requires_reason_and_not_completed(self):
+        battle = self._battle(Battle.Status.ACTIVE)
+        self.assertEqual(
+            self._post(self.owner_user, action="cancel",
+                       battle_id=battle.pk, reason="").status_code, 409)
+        done = self._battle(Battle.Status.COMPLETED)
+        self.assertEqual(
+            self._post(self.owner_user, action="cancel",
+                       battle_id=done.pk, reason="x").status_code, 409)
+
+    # ── broadcast ──
+    def test_broadcast_creates_public_event(self):
+        battle = self._battle()
+        resp = self._post(self.owner_user, action="broadcast",
+                          battle_id=battle.pk, message="Round starts in 5 minutes")
+        self.assertEqual(resp.status_code, 200)
+        event = BattleEvent.objects.get(
+            battle=battle, event_type=BattleEvent.EventType.OPERATOR_ACTION)
+        self.assertTrue(event.is_public)
+        self.assertEqual(event.message, "Round starts in 5 minutes")
+
+    def test_broadcast_requires_message(self):
+        resp = self._post(self.owner_user, action="broadcast", message=" ")
+        self.assertEqual(resp.status_code, 409)
+
+    # ── console rendering per role ──
+    def test_owner_sees_controls_operator_sees_read_only(self):
+        console = reverse("chef_battle:master_console")
+        self.client.force_login(self.owner_user)
+        owner_page = self.client.get(console).content.decode()
+        self.assertIn("amc-controls", owner_page)
+        self.assertIn("Emergency Stop", owner_page)
+        self.client.force_login(self.operator_user)
+        op_page = self.client.get(console).content.decode()
+        self.assertNotIn("amc-controls", op_page)
+        self.assertIn("Read-only access", op_page)

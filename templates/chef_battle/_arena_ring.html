@@ -24,7 +24,7 @@ Loads arena_puzzle.js which drives the SVG, tooltip, popup and 20 s poll.
 
 {{ arena_data|json_script:"arena-data-json" }}
 
-<script>
+<script nonce="{{ request.csp_nonce }}">
 window.ARENA_VIEWER = {
   slug: "{{ viewer_author.slug|default:'' }}",
   enrolled: {{ user_enrolled|yesno:"true,false" }}

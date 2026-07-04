@@ -178,6 +178,10 @@ class Battle(models.Model):
     opponent_ready = models.BooleanField(default=False)
     proposed_combat_time = models.DateTimeField(null=True, blank=True)
     combat_time_confirmed = models.BooleanField(default=False)
+    # Emergency Stop (DG-03): set when status -> PAUSED, cleared on resume.
+    paused_at = models.DateTimeField(null=True, blank=True)
+    paused_reason = models.TextField(blank=True)
+    paused_from_status = models.CharField(max_length=24, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

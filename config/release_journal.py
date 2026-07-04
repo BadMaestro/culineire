@@ -1,5 +1,38 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.100",
+        "date": "2026-07-04",
+        "commit": "pending",
+        "title": "Arena Master Console P03: owner battle-flow controls + Emergency Stop",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "First operator write surface, reachable only by the owner: force "
+            "phase transitions (transitions with an owning domain service call "
+            "that service - approve_cooking_phase, calculate_battle_result; "
+            "direct assignment only where DG-02 authorizes the owner override), "
+            "Emergency Stop per DG-03 (battle -> PAUSED with paused_at/reason/"
+            "from_status via migration 0056, live streams TERMINATED, timers "
+            "frozen in the console, both chefs notified in-site + email), "
+            "Resume, Cancel and public Broadcast. Every action is POST+CSRF, "
+            "transactional with row locking, idempotency-guarded via "
+            "expected_status (stale clicks get 409), and audited as a "
+            "BattleEvent OPERATOR_ACTION with correlation id and before/after "
+            "state. Award Crown stays permanently disabled - the crown is "
+            "decided only by audience voting. Non-owner console operators see "
+            "an explicit read-only panel. Fixed in passing: missing CSP nonce "
+            "on console/ring inline scripts. 22 new tests; chef_battle suite "
+            "193/193."
+        ),
+        "checklist": [
+            "chef_battle/0056: Battle.paused_at/paused_reason/paused_from_status",
+            "services: operator_force_status/emergency_stop/resume/cancel/broadcast",
+            "POST /chef-battle/master/action/ (owner-only, CSRF, audited)",
+            "console panel 1: owner controls with consequence confirms",
+            "docs: P03_TRANSITION_MATRIX.yaml, P03_AUDIT_REPORT.md, P03_HANDOFF.yaml",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
         "version": "2.5.99",
         "date": "2026-07-04",
         "commit": "pending",

@@ -1,0 +1,29 @@
+schema_version: "1.0"
+document_type: "phase_03_handoff"
+phase_id: "P03"
+status: "complete_pending_owner_signoff"
+produced_at: "2026-07-04"
+
+delivered:
+  model: "Battle.paused_at/paused_reason/paused_from_status (migration 0056)"
+  services: "operator_force_status / operator_emergency_stop / operator_resume / operator_cancel / operator_broadcast + OperatorActionError (chef_battle/services.py)"
+  endpoint: "POST /chef-battle/master/action/ (chef_battle:master_action)"
+  ui: "panel 1 owner controls with confirms; read-only panel for non-owner operators; PAUSED timer freeze"
+  tests: "ArenaMasterActionTests (22)"
+
+fixed_in_passing:
+  - "CSP nonce missing on console/ring inline scripts (window.AMC_OPERATOR, window.ARENA_VIEWER) — silently dropped under strict CSP"
+
+design_decisions:
+  - "Award Crown permanently disabled: crown belongs to audience voting only (project core principle)"
+  - "cancelled/paused/disputed excluded from force targets — cancel and emergency_stop are dedicated audited actions; disputes have no owner decision yet"
+  - "End Battle button maps to cancel; forcing completion goes through calculate_battle_result via Start Phase from voting"
+
+p04_input_contract:
+  monitor_read_models: "reuse get_master_state combat section; extend with BattleEvent feed (panel 2 'event log' from the mockup) and per-round detail"
+  no_new_writes: "P04 is read-only monitoring; the only write surface stays master_action"
+
+deployment:
+  migrations_required: true   # chef_battle/0056
+  collectstatic_required: true
+  risk: "low-medium — writes reachable only by owner; console 404 for everyone else"

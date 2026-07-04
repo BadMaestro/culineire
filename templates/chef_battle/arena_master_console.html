@@ -153,15 +153,31 @@
 
       <article class="amc-panel" aria-label="Arena control and battle flow">
         <h3 class="amc-panel__title"><span class="amc-panel__num">1</span> Arena Control / Battle Flow</h3>
-        <p class="amc-panel__hint">Controls activate in P03 with authorization and audit.</p>
-        <div class="amc-panel__actions">
-          <button type="button" class="amc-btn" disabled>Start Phase</button>
-          <button type="button" class="amc-btn" disabled>Lock Ingredients</button>
-          <button type="button" class="amc-btn" disabled>Open Vote</button>
-          <button type="button" class="amc-btn" disabled>Award Crown</button>
-          <button type="button" class="amc-btn amc-btn--danger" disabled>Emergency Stop</button>
-          <button type="button" class="amc-btn" disabled>End Battle</button>
+        {% if operator_is_owner %}
+        <p class="amc-panel__hint">Owner controls. Every action is confirmed, audited and idempotency-guarded.</p>
+        <div class="amc-panel__actions" id="amc-controls">
+          <button type="button" class="amc-btn" data-amc-action="advance"
+                  title="Force the battle into its expected next phase">Start Phase</button>
+          <button type="button" class="amc-btn" data-amc-action="force" data-amc-target="menu_locked"
+                  title="Force the battle into Menu Locked">Lock Ingredients</button>
+          <button type="button" class="amc-btn" data-amc-action="force" data-amc-target="voting"
+                  title="Force the battle into Voting">Open Vote</button>
+          <button type="button" class="amc-btn" disabled
+                  title="The crown is decided only by audience voting — no manual award exists by design">Award Crown</button>
+          <button type="button" class="amc-btn" data-amc-action="broadcast"
+                  title="Post a public operator notice to the battle feed">Broadcast Notice</button>
+          <button type="button" class="amc-btn amc-btn--danger" data-amc-action="emergency_stop"
+                  title="Pause the battle, freeze timers, terminate live streams, notify chefs (DG-03)">Emergency Stop</button>
+          <button type="button" class="amc-btn" data-amc-action="resume"
+                  title="Resume a paused battle to its pre-pause phase">Resume</button>
+          <button type="button" class="amc-btn amc-btn--danger" data-amc-action="cancel"
+                  title="Cancel the battle permanently">End Battle</button>
         </div>
+        <p class="amc-panel__hint amc-hidden" id="amc-action-error" role="alert"></p>
+        {% else %}
+        <p class="amc-empty">Read-only access</p>
+        <p class="amc-panel__hint">Phase controls are reserved for the arena owner (DG-02). You can monitor every panel and submit battle reports (P08).</p>
+        {% endif %}
       </article>
 
       <article class="amc-panel" aria-label="Live battle monitor">
@@ -265,5 +281,6 @@
 </div>
 
 {{ master_state|json_script:"amc-state-json" }}
-<script src="{% static 'js/arena_master_console.js' %}?v=20260704a"></script>
+<script nonce="{{ request.csp_nonce }}">window.AMC_OPERATOR = { isOwner: {{ operator_is_owner|yesno:"true,false" }} };</script>
+<script src="{% static 'js/arena_master_console.js' %}?v=20260704b"></script>
 {% endblock %}
