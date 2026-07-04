@@ -46,5 +46,5 @@ known_issues:
 deployment:
   migrations_required: true   # recipes/0038
   collectstatic_required: true  # new arena_master_console.css
-  flag_state_after_deploy: "ARENA_MASTER_CONSOLE_ENABLED absent from server .env => console 404s for everyone (dark)."
-  enable_command_when_owner_decides: "add ARENA_MASTER_CONSOLE_ENABLED=True to /srv/culineire/shared/.env and restart unit"
+  flag_state_after_deploy: "ARENA_MASTER_CONSOLE_ENABLED absent from server .env => console visible ONLY to the owner (superuser + greenbear slug); 404 for everyone else. Owner decision 2026-07-04: flags never hide the site from the owner."
+  enable_command_when_owner_decides: "to admit non-owner operators: add ARENA_MASTER_CONSOLE_ENABLED=True to /srv/culineire/shared/.env, restart unit, and set has_arena_console_access on their RecipeAuthor"

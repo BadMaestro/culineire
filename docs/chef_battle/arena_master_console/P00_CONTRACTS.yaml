@@ -137,5 +137,5 @@ operator_read_model_contract:
 
   feature_flag_boundary:
     - "CHEF_BATTLE_ENABLED behavior untouched."
-    - "Console gets its own flag: ARENA_MASTER_CONSOLE_ENABLED (default False), checked in addition to the access gate."
-    - "Flag off ⇒ all console URLs 404 for everyone including GreenBear."
+    - "Console gets its own kill switch: ARENA_MASTER_CONSOLE_ENABLED (default False) for NON-OWNER operators only."
+    - "OWNER OVERRIDE (owner decision 2026-07-04): the owner (superuser + OWNER_SLUG) always sees the console regardless of any flag — the whole site is always visible to the owner. Flag off ⇒ 404 for every non-owner."

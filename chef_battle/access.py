@@ -28,20 +28,23 @@ def is_battle_visible(request) -> bool:
 def has_arena_console_access(request) -> bool:
     """
     Arena Master Console access (decision gate DG-01, P00_DECISIONS.yaml):
-    - ARENA_MASTER_CONSOLE_ENABLED must be True, otherwise nobody gets in,
-      including the owner.
-    - The user must be an authenticated superuser AND either be the site
-      owner (OWNER_SLUG) or carry RecipeAuthor.has_arena_console_access.
+    - The owner (superuser + OWNER_SLUG) ALWAYS has access — the whole site
+      is always visible to the owner, feature flags never hide it from them.
+    - Other operators need superuser + RecipeAuthor.has_arena_console_access,
+      AND the ARENA_MASTER_CONSOLE_ENABLED kill switch must be on.
     """
-    if not getattr(settings, "ARENA_MASTER_CONSOLE_ENABLED", False):
-        return False
     user = getattr(request, "user", None)
     if not user or not user.is_authenticated or not user.is_superuser:
         return False
     author = getattr(user, "recipe_author_profile", None)
     if author is None:
         return False
-    return author.slug == settings.OWNER_SLUG or author.has_arena_console_access
+    if author.slug == settings.OWNER_SLUG:
+        return True
+    return (
+        getattr(settings, "ARENA_MASTER_CONSOLE_ENABLED", False)
+        and author.has_arena_console_access
+    )
 
 
 def arena_console_guard(view_func):

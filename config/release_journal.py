@@ -1,5 +1,27 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.98",
+        "date": "2026-07-04",
+        "commit": "pending",
+        "title": "Arena Master Console: owner always sees the console (flag = operator kill switch)",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "Owner decision: the whole site is always visible to the owner — "
+            "feature flags never hide anything from GreenBear. The console "
+            "access gate now grants the owner (superuser + owner slug) access "
+            "unconditionally; ARENA_MASTER_CONSOLE_ENABLED remains a kill "
+            "switch for NON-owner operators only (superuser + "
+            "has_arena_console_access, 404 otherwise). Tests and P00/P01 "
+            "contract docs updated to record the override."
+        ),
+        "checklist": [
+            "chef_battle/access.py: owner bypasses ARENA_MASTER_CONSOLE_ENABLED",
+            "tests: flag-off case now expects 200 for owner, 404 for others",
+            "P00_CONTRACTS.yaml + P01_HANDOFF.yaml: owner override recorded",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
         "version": "2.5.97",
         "date": "2026-07-04",
         "commit": "pending",

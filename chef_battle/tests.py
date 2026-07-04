@@ -1892,9 +1892,11 @@ class ArenaMasterConsoleAccessTests(TestCase):
         self.assertNotContains(resp, "amc-badge")
 
     @override_settings(ARENA_MASTER_CONSOLE_ENABLED=False)
-    def test_console_flag_off_blocks_everyone_including_owner(self):
+    def test_console_flag_off_blocks_operators_but_never_the_owner(self):
+        # The whole site is always visible to the owner — flags never hide it.
         self.client.force_login(self.owner_user)
-        self.assertEqual(self.client.get(self.url).status_code, 404)
+        self.assertEqual(self.client.get(self.url).status_code, 200)
+        # Non-owner operators are gated by the kill switch.
         self.client.force_login(self.flagged_user)
         self.assertEqual(self.client.get(self.url).status_code, 404)
 
