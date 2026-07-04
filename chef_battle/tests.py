@@ -2442,3 +2442,211 @@ class ArenaMasterActionTests(TestCase):
         op_page = self.client.get(console).content.decode()
         self.assertNotIn("amc-controls", op_page)
         self.assertIn("Read-only access", op_page)
+
+
+# ── AMC P04 — live battle monitor / combat engine read models ────────────────
+
+@override_settings(ARENA_MASTER_CONSOLE_ENABLED=True, CHEF_BATTLE_ENABLED=True)
+class ArenaMasterMonitorTests(TestCase):
+    """P04: monitor section contract, side-effect-free polling, hidden-info
+    visibility boundaries, totals vs authoritative ORM records."""
+
+    def setUp(self):
+        from django.conf import settings as django_settings
+        User = get_user_model()
+        self.state_url = reverse("chef_battle:master_state")
+
+        self.owner_user = User.objects.create_superuser("greenbear", password="pw")
+        self.owner_author, _ = RecipeAuthor.objects.update_or_create(
+            slug=django_settings.OWNER_SLUG,
+            defaults={"user": self.owner_user, "name": "GreenBear"},
+        )
+
+        ua = User.objects.create_user("mon-chef-a", password="pw")
+        ub = User.objects.create_user("mon-chef-b", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=ua, name="Mon Chef A", slug="mon-chef-a")
+        self.chef_b = RecipeAuthor.objects.create(user=ub, name="Mon Chef B", slug="mon-chef-b")
+        ChefBattleProfile.objects.create(author=self.chef_a, enrolled_at=timezone.now())
+        ChefBattleProfile.objects.create(author=self.chef_b, enrolled_at=timezone.now())
+
+    def _battle(self, status=Battle.Status.ACTIVE):
+        now = timezone.now()
+        return Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b,
+            theme="Monitor Dish", status=status,
+            start_time=now,
+            submission_deadline=now + timezone.timedelta(days=2),
+            voting_deadline=now + timezone.timedelta(days=4),
+            end_time=now + timezone.timedelta(days=5),
+        )
+
+    def _state(self):
+        self.client.force_login(self.owner_user)
+        resp = self.client.post(self.state_url)
+        self.assertEqual(resp.status_code, 200)
+        return resp.json()
+
+    def _add_round(self, battle, number, outcome, ch_hits, op_hits):
+        from .models import BattleRound
+        return BattleRound.objects.create(
+            battle=battle, round_number=number,
+            attacker=self.chef_a, defender=self.chef_b,
+            attack_power=3, defence_power=1,
+            outcome=outcome, challenger_hits=ch_hits, opponent_hits=op_hits,
+        )
+
+    # ── contract ──
+    def test_monitor_section_present_with_counts(self):
+        challenge = BattleChallenge.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b, theme="Pending One",
+            expires_at=timezone.now() + timezone.timedelta(hours=24),
+        )
+        self._battle(Battle.Status.ACTIVE)
+        self._battle(Battle.Status.PAUSED)
+        self._battle(Battle.Status.DISPUTED)
+        data = self._state()
+        counts = data["monitor"]["counts"]
+        self.assertEqual(counts["battles_active"], 1)
+        self.assertEqual(counts["battles_paused"], 1)
+        self.assertEqual(counts["battles_unresolved"], 1)
+        self.assertEqual(counts["challenges_pending"], 1)
+        self.assertEqual(counts["challenges_accepted"], 0)
+
+    def test_every_round_outcome_serializes(self):
+        from .models import BattleRound
+        battle = self._battle(Battle.Status.ACTIVE)
+        for i, outcome in enumerate(BattleRound.Outcome.values, start=1):
+            self._add_round(battle, i, outcome, i, i - 1)
+        data = self._state()
+        combat = [d for d in data["monitor"]["detail"] if d["kind"] == "combat"][0]
+        self.assertEqual(len(combat["rounds"]), len(BattleRound.Outcome.values))
+        self.assertEqual(combat["current_round"], len(BattleRound.Outcome.values) + 1)
+        self.assertEqual(
+            {r["outcome"] for r in combat["rounds"]}, set(BattleRound.Outcome.values))
+
+    def test_declared_actions_and_hits_match_orm(self):
+        from .models import BattleCombatAction, BattleRound
+        battle = self._battle(Battle.Status.ACTIVE)
+        self._add_round(battle, 1, BattleRound.Outcome.FULL_HIT, 2, 0)
+        BattleCombatAction.objects.create(
+            battle=battle, chef=self.chef_a, round_number=2,
+            action_type=BattleCombatAction.ActionType.ATTACK,
+            moves_invested=3, is_locked=True,
+        )
+        data = self._state()
+        combat = [d for d in data["monitor"]["detail"] if d["kind"] == "combat"][0]
+        self.assertEqual(combat["challenger_hits"], 2)
+        self.assertEqual(combat["opponent_hits"], 0)
+        last = BattleRound.objects.filter(battle=battle).order_by("-round_number").first()
+        self.assertEqual(combat["challenger_hits"], last.challenger_hits)
+        self.assertEqual(combat["declared_actions"], [{
+            "chef": "mon-chef-a", "action_type": "attack",
+            "moves_invested": 3, "is_locked": True,
+        }])
+
+    def test_biathlon_detail_matches_orm(self):
+        from recipes.models import Recipe
+        from .models import IngredientLock, IngredientShot
+        battle = self._battle(Battle.Status.INGREDIENT_PENALTY)
+        battle.winner = self.chef_a
+        battle.loser = self.chef_b
+        battle.save(update_fields=["winner", "loser"])
+        recipe = Recipe.objects.create(
+            title="Loser Dish", slug="loser-dish", author=self.chef_b,
+            ingredients="eggs\nflour\nbutter\nmilk\nsugar", method="mix",
+            status=Recipe.Status.APPROVED,
+        )
+        battle.entries.create(author=self.chef_b, recipe=recipe)
+        IngredientLock.objects.create(battle=battle, chef=self.chef_b, ingredient_index=1)
+        IngredientShot.objects.create(battle=battle, shooter=self.chef_a, target_index=1, bounced=True)
+        IngredientShot.objects.create(battle=battle, shooter=self.chef_a, target_index=3, bounced=False)
+        data = self._state()
+        bia = [d for d in data["monitor"]["detail"] if d["kind"] == "biathlon"][0]
+        self.assertEqual(bia["ingredient_count"], 5)
+        self.assertEqual(bia["lock_indices"], [1])
+        self.assertEqual(bia["locks_placed"], 1)
+        self.assertEqual(bia["shots_fired"], 2)
+        self.assertEqual(
+            sorted(s["target_index"] for s in bia["shots"]), [1, 3])
+        self.assertTrue(any(s["bounced"] for s in bia["shots"]))
+
+    def test_event_log_append_only_ordering(self):
+        battle = self._battle(Battle.Status.ACTIVE)
+        from .services import create_battle_event
+        for i in range(3):
+            create_battle_event(
+                event_type=BattleEvent.EventType.BATTLE_STARTED,
+                battle=battle, message=f"event {i}", is_public=True,
+            )
+        data = self._state()
+        messages = [e["message"] for e in data["monitor"]["events"]]
+        self.assertEqual(messages[:3], ["event 2", "event 1", "event 0"])
+
+    def test_artifacts_in_use_lists_reserved_only(self):
+        from .models import Artifact, ChefArtifact
+        self._battle(Battle.Status.ACTIVE)
+        artifact = Artifact.objects.create(
+            name="Iron Pan", rarity=Artifact.Rarity.RARE,
+            effect_type="defence", effect_value=2, token_cost=50,
+        )
+        ChefArtifact.objects.create(
+            chef=self.chef_a, artifact=artifact, status=ChefArtifact.Status.RESERVED)
+        ChefArtifact.objects.create(
+            chef=self.chef_b, artifact=artifact, status=ChefArtifact.Status.AVAILABLE)
+        data = self._state()
+        in_use = data["monitor"]["artifacts_in_use"]
+        self.assertEqual(len(in_use), 1)
+        self.assertEqual(in_use[0]["chef"], "mon-chef-a")
+        self.assertEqual(in_use[0]["status"], "reserved")
+
+    # ── side-effect-free polling ──
+    def test_poll_creates_no_records(self):
+        from .models import BattleCombatAction, BattleRound, TokenTransaction
+        battle = self._battle(Battle.Status.ACTIVE)
+        self._add_round(battle, 1, "full_hit", 1, 0)
+        before = {
+            "rounds": BattleRound.objects.count(),
+            "actions": BattleCombatAction.objects.count(),
+            "events": BattleEvent.objects.count(),
+            "tx": TokenTransaction.objects.count(),
+            "battles": Battle.objects.count(),
+        }
+        for _ in range(3):
+            self._state()
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.ACTIVE)
+        after = {
+            "rounds": BattleRound.objects.count(),
+            "actions": BattleCombatAction.objects.count(),
+            "events": BattleEvent.objects.count(),
+            "tx": TokenTransaction.objects.count(),
+            "battles": Battle.objects.count(),
+        }
+        self.assertEqual(before, after)
+
+    # ── hidden-information boundaries ──
+    def test_hidden_combat_data_not_in_public_endpoints(self):
+        from .models import BattleCombatAction
+        battle = self._battle(Battle.Status.ACTIVE)
+        BattleCombatAction.objects.create(
+            battle=battle, chef=self.chef_a, round_number=1,
+            action_type=BattleCombatAction.ActionType.ATTACK, moves_invested=2,
+        )
+        # public arena JSON has no declared actions or lock indices
+        arena_json = self.client.post(reverse("chef_battle:arena_state")).content.decode()
+        for marker in ("declared_actions", "lock_indices", "moves_invested"):
+            self.assertNotIn(marker, arena_json)
+        # anonymous cannot reach the monitor at all
+        self.client.logout()
+        self.assertEqual(self.client.post(self.state_url).status_code, 404)
+
+    def test_flagged_operator_sees_monitor_read_only(self):
+        User = get_user_model()
+        op = User.objects.create_superuser("mon-op", password="pw")
+        RecipeAuthor.objects.create(
+            user=op, name="Mon Op", slug="mon-op", has_arena_console_access=True)
+        self._battle(Battle.Status.ACTIVE)
+        self.client.force_login(op)
+        resp = self.client.post(self.state_url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("monitor", resp.json())

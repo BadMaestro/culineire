@@ -1,0 +1,30 @@
+schema_version: "1.0"
+document_type: "phase_04_visibility_matrix"
+produced_at: "2026-07-04"
+principle: "Hidden combat information is served ONLY through the operator console gate (DG-01). Public endpoints are byte-unchanged (test-enforced)."
+
+count_definitions:
+  battles_active: "Battle.status in Battle.ACTIVE_STATUSES"
+  battles_paused: "status == paused (Emergency Stop)"
+  battles_unresolved: "status == disputed"
+  challenges_pending: "BattleChallenge.status == pending"
+  challenges_accepted: "BattleChallenge.status == accepted"
+
+visibility:
+  declared_combat_actions:
+    public_arena_json: "never (test: hidden_combat_data_not_in_public_endpoints)"
+    battle_participants: "own action only until both locked (existing battle room rules, untouched)"
+    console_operators: "full view incl. unlocked declarations — all console users are superusers behind the DG-01 gate; decision recorded here"
+  ingredient_lock_indices:
+    public: "never"
+    winner_in_biathlon: "revealed only on bounce (existing rules, untouched)"
+    console_operators: "full view (lock_indices) — same rationale"
+  event_log:
+    public_battle_feed: "is_public=True events only (existing behavior)"
+    console: "all events for listed battles, including non-public OPERATOR_ACTION audit entries"
+  artifacts_in_use:
+    console: "RESERVED ChefArtifact rows for participants of listed battles"
+
+side_effect_guarantee: "master_state / monitor selectors are pure reads. Test poll_creates_no_records asserts 3 consecutive polls create zero BattleRound, BattleCombatAction, BattleEvent, TokenTransaction, Battle rows and change no status."
+
+operator_interventions: "NONE added in P04 — read-only phase; the only write surface remains master_action (P03)."

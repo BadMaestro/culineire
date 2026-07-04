@@ -1,0 +1,24 @@
+schema_version: "1.0"
+document_type: "phase_04_handoff"
+phase_id: "P04"
+status: "complete_pending_owner_signoff"
+produced_at: "2026-07-04"
+
+delivered:
+  selector: "get_master_monitor() merged into master_state as 'monitor' section (no new endpoint)"
+  ui: "panel 2: counts + live event log; panel 3: rounds, declared actions, biathlon, artifacts-in-use; JS re-render on poll"
+  tests: "ArenaMasterMonitorTests (9)"
+
+design_decisions:
+  - "Hidden declarations/lock indices ARE shown to console users (all superusers behind DG-01 gate); public endpoints unchanged — recorded in P04_VISIBILITY_MATRIX.yaml"
+  - "No operator interventions added — read-only phase; write surface remains master_action (P03)"
+  - "Event log capped at 20 entries per poll; full authoritative history stays in BattleEvent, ledger detail is linked not duplicated"
+
+p05_input_contract:
+  moderation_panel: "extend panel 4 with cooking queue rows + live-stream status; stream termination endpoints are the confirmed gap (admin-only today); reuse LiveStreamSession/LiveBroadcast state machines and approve_cooking_phase"
+  emergency_path: "stream disconnect is already wired via operator_emergency_stop (P03)"
+
+deployment:
+  migrations_required: false
+  collectstatic_required: true
+  risk: "low — read-only additions behind the console gate"

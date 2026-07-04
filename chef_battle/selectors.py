@@ -380,7 +380,10 @@ def get_master_state() -> dict:
         "paused_battle_count": sum(1 for b in battles if b.status == Battle.Status.PAUSED),
     }
 
+    monitor = get_master_monitor(battles=battles)
+
     return {
+        "monitor": monitor,
         "arena": {
             "enrolled_count": profile_counts["enrolled"],
             "online_count": profile_counts["online"],
@@ -399,4 +402,154 @@ def get_master_state() -> dict:
         "viewers": viewers,
         "economy": economy,
         "system": system,
+    }
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# P04 — Live Battle Monitor + Combat Engine read models.
+# Read-only and side-effect free: pure ORM reads, no round resolution, no
+# artifact consumption, no event creation. Visibility: this data is served
+# ONLY through the operator console gate; public endpoints are untouched.
+# See docs/chef_battle/arena_master_console/P04_VISIBILITY_MATRIX.yaml.
+# ═════════════════════════════════════════════════════════════════════════════
+
+def _monitor_combat_detail(battle):
+    """Rounds, current-round declared actions and hit totals for one ACTIVE
+    battle. Same rows the battle room uses; nothing is resolved or mutated."""
+    from .models import BattleCombatAction
+
+    rounds = list(
+        battle.combat_rounds.order_by("round_number").values(
+            "round_number", "outcome", "challenger_hits", "opponent_hits", "log_message",
+        )
+    )
+    current_round = (rounds[-1]["round_number"] + 1) if rounds else 1
+    declared = list(
+        BattleCombatAction.objects.filter(battle=battle, round_number=current_round)
+        .select_related("chef")
+    )
+    return {
+        "battle_id": battle.pk,
+        "kind": "combat",
+        "current_round": current_round,
+        "rounds": rounds,
+        "challenger_hits": rounds[-1]["challenger_hits"] if rounds else 0,
+        "opponent_hits": rounds[-1]["opponent_hits"] if rounds else 0,
+        # Operator-only view of hidden declarations (documented decision):
+        # console users are all superusers behind the DG-01 gate.
+        "declared_actions": [
+            {
+                "chef": a.chef.slug,
+                "action_type": a.action_type,
+                "moves_invested": a.moves_invested,
+                "is_locked": a.is_locked,
+            }
+            for a in declared
+        ],
+    }
+
+
+def _monitor_biathlon_detail(battle):
+    """Biathlon lock/shot state for one INGREDIENT_PENALTY battle. Uses the
+    same queries as get_biathlon_state but returns only JSON-safe fields."""
+    from .models import IngredientLock, IngredientShot
+
+    loser, winner = battle.loser, battle.winner
+    loser_entry = (
+        battle.entries.filter(author=loser).select_related("recipe").first()
+        if loser else None
+    )
+    ingredients = []
+    if loser_entry and loser_entry.recipe:
+        ingredients = [
+            line for line in loser_entry.recipe.ingredients.splitlines() if line.strip()
+        ]
+    locks = list(
+        battle.ingredient_locks.filter(chef=loser).values_list("ingredient_index", flat=True)
+    ) if loser else []
+    shots = list(
+        battle.ingredient_shots.filter(shooter=winner).values("target_index", "bounced")
+    ) if winner else []
+    return {
+        "battle_id": battle.pk,
+        "kind": "biathlon",
+        "loser": loser.name if loser else None,
+        "winner": winner.name if winner else None,
+        "ingredient_count": len(ingredients),
+        # Operator-only: lock indices are hidden from the winner publicly.
+        "lock_indices": locks,
+        "shots": shots,
+        "locks_placed": len(locks),
+        "shots_fired": len(shots),
+        "max_locks": IngredientLock.MAX_LOCKS,
+        "max_shots": IngredientShot.MAX_SHOTS,
+    }
+
+
+def get_master_monitor(battles=None) -> dict:
+    """P04 monitor section for the console state payload.
+
+    counts definitions (documented in P04_VISIBILITY_MATRIX.yaml):
+    - battles_active: Battle.ACTIVE_STATUSES
+    - battles_paused: PAUSED (Emergency Stop)
+    - battles_unresolved: DISPUTED
+    - challenges_pending / challenges_accepted: BattleChallenge.Status
+    """
+    from .models import ChefArtifact
+
+    if battles is None:
+        statuses = set(Battle.ACTIVE_STATUSES) | {
+            Battle.Status.INGREDIENT_PENALTY, Battle.Status.PAUSED,
+        }
+        battles = list(
+            Battle.objects.select_related("challenger", "opponent", "winner", "loser")
+            .filter(status__in=statuses)
+            .order_by("end_time")
+        )
+
+    counts = {
+        "battles_active": sum(1 for b in battles if b.status in Battle.ACTIVE_STATUSES),
+        "battles_paused": sum(1 for b in battles if b.status == Battle.Status.PAUSED),
+        "battles_unresolved": Battle.objects.filter(status=Battle.Status.DISPUTED).count(),
+        "challenges_pending": BattleChallenge.objects.filter(
+            status=BattleChallenge.Status.PENDING).count(),
+        "challenges_accepted": BattleChallenge.objects.filter(
+            status=BattleChallenge.Status.ACCEPTED).count(),
+    }
+
+    battle_ids = [b.pk for b in battles]
+    events = list(
+        BattleEvent.objects.filter(battle_id__in=battle_ids)
+        .order_by("-created_at")
+        .values("id", "battle_id", "event_type", "message", "created_at", "is_public")[:20]
+    )
+    for e in events:
+        e["created_at"] = e["created_at"].isoformat()
+
+    detail = []
+    for b in battles:
+        if b.status == Battle.Status.ACTIVE:
+            detail.append(_monitor_combat_detail(b))
+        elif b.status == Battle.Status.INGREDIENT_PENALTY:
+            detail.append(_monitor_biathlon_detail(b))
+
+    artifacts_in_use = [
+        {
+            "chef": ca.chef.slug,
+            "artifact": ca.artifact.name,
+            "effect_type": ca.artifact.effect_type,
+            "effect_value": ca.artifact.effect_value,
+            "status": ca.status,
+        }
+        for ca in ChefArtifact.objects.filter(
+            chef_id__in={b.challenger_id for b in battles} | {b.opponent_id for b in battles},
+            status=ChefArtifact.Status.RESERVED,
+        ).select_related("chef", "artifact")
+    ] if battles else []
+
+    return {
+        "counts": counts,
+        "events": events,
+        "detail": detail,
+        "artifacts_in_use": artifacts_in_use,
     }

@@ -121,6 +121,7 @@ phase_sequence:
     risk: "high"
     depends_on: ["P02", "DG-01", "DG-02", "DG-03"]
     outcome: "Authorized phase controls that call existing services and produce audit evidence."
+    status: "COMPLETED — confirmed by owner 2026-07-04. Owner-only master_action endpoint (force/emergency_stop/resume/cancel/broadcast), migration 0056, OPERATOR_ACTION audit (v2.5.100, deployed). Evidence: P03_TRANSITION_MATRIX.yaml, P03_AUDIT_REPORT.md, P03_HANDOFF.yaml."
   - id: "P04"
     name: "Live battle monitor and combat engine console"
     prompt: "phase_04_combat_monitor.yaml"

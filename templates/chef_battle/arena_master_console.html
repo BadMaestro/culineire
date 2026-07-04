@@ -182,6 +182,12 @@
 
       <article class="amc-panel" aria-label="Live battle monitor">
         <h3 class="amc-panel__title"><span class="amc-panel__num">2</span> Live Battle Monitor</h3>
+        <dl class="amc-panel__kv amc-panel__kv--row" id="amc-monitor-counts">
+          <div><dt>Active</dt><dd data-amc-count="battles_active">{{ master_state.monitor.counts.battles_active }}</dd></div>
+          <div><dt>Pending</dt><dd data-amc-count="challenges_pending">{{ master_state.monitor.counts.challenges_pending }}</dd></div>
+          <div><dt>Accepted</dt><dd data-amc-count="challenges_accepted">{{ master_state.monitor.counts.challenges_accepted }}</dd></div>
+          <div><dt>Unresolved</dt><dd data-amc-count="battles_unresolved">{{ master_state.monitor.counts.battles_unresolved }}</dd></div>
+        </dl>
         <ul class="amc-panel__list" id="amc-battle-list">
           {% for b in master_state.battles %}
           <li><a class="amc-link" href="{{ b.url }}">#{{ b.id }}</a> {{ b.status_display }} — {{ b.challenger.name }} vs {{ b.opponent.name }}{% if b.is_paused %} <span class="amc-badge amc-badge--danger">PAUSED</span>{% endif %}</li>
@@ -189,15 +195,38 @@
           <li><span class="amc-empty">No battles in progress</span></li>
           {% endfor %}
         </ul>
+        <h4 class="amc-panel__subtitle">Event log (live)</h4>
+        <ul class="amc-panel__list amc-panel__list--log" id="amc-event-log">
+          {% for e in master_state.monitor.events %}
+          <li>#{{ e.battle_id }} · {{ e.message|truncatechars:90 }}</li>
+          {% empty %}
+          <li><span class="amc-empty">No events yet</span></li>
+          {% endfor %}
+        </ul>
       </article>
 
       <article class="amc-panel" aria-label="Combat engine">
         <h3 class="amc-panel__title"><span class="amc-panel__num">3</span> Combat Engine</h3>
         <ul class="amc-panel__list" id="amc-combat-list">
-          {% for c in master_state.combat %}
-          <li>#{{ c.battle_id }} {% if c.kind == "combat" %}round {{ c.rounds_played }} — hits {{ c.challenger_hits }}:{{ c.opponent_hits }}{% else %}biathlon — locks {{ c.locks_placed }}/{{ c.max_locks }}, shots {{ c.shots_fired }}/{{ c.max_shots }}{% endif %}</li>
+          {% for c in master_state.monitor.detail %}
+          {% if c.kind == "combat" %}
+          <li>
+            #{{ c.battle_id }} — round {{ c.current_round }}, hits {{ c.challenger_hits }}:{{ c.opponent_hits }}
+            {% for a in c.declared_actions %}<br><span class="amc-panel__hint">{{ a.chef }}: {{ a.action_type }} ({{ a.moves_invested }} moves){% if a.is_locked %} · locked{% endif %}</span>{% endfor %}
+          </li>
+          {% else %}
+          <li>#{{ c.battle_id }} — biathlon: locks {{ c.locks_placed }}/{{ c.max_locks }}, shots {{ c.shots_fired }}/{{ c.max_shots }} ({{ c.winner }} shooting at {{ c.loser }})</li>
+          {% endif %}
           {% empty %}
           <li><span class="amc-empty">No combat in progress</span></li>
+          {% endfor %}
+        </ul>
+        <h4 class="amc-panel__subtitle">Artifacts in use</h4>
+        <ul class="amc-panel__list" id="amc-artifact-list">
+          {% for a in master_state.monitor.artifacts_in_use %}
+          <li>{{ a.chef }}: {{ a.artifact }} ({{ a.effect_type }} +{{ a.effect_value }})</li>
+          {% empty %}
+          <li><span class="amc-empty">None reserved</span></li>
           {% endfor %}
         </ul>
       </article>

@@ -508,6 +508,28 @@
   font-variant-numeric: tabular-nums;
 }
 
+.amc-panel__subtitle {
+  margin: 0.5rem 0 0.2rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--amc-muted);
+  font-family: var(--font-sans, system-ui, sans-serif);
+}
+
+.amc-panel__kv--row {
+  flex-direction: row;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.amc-panel__list--log {
+  max-height: 160px;
+  overflow-y: auto;
+  font-size: 0.72rem;
+  color: var(--amc-muted);
+}
+
 .amc-badge--danger {
   border-color: rgb(179 64 46 / 0.5);
   color: #c96b5b;

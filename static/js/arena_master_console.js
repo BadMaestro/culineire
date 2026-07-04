@@ -105,6 +105,89 @@
     setText('amc-rank-online', state.arena.online_count);
     setText('amc-rank-suspended', state.arena.suspended_count);
 
+    /* P04: monitor panels (battle list, counts, event log, combat, artifacts) */
+    var mon = state.monitor;
+    if (mon) {
+      Object.keys(mon.counts || {}).forEach(function (key) {
+        var el = document.querySelector('[data-amc-count="' + key + '"]');
+        if (el) el.textContent = mon.counts[key];
+      });
+
+      var battleList = document.getElementById('amc-battle-list');
+      if (battleList) {
+        battleList.textContent = '';
+        (state.battles || []).forEach(function (b) {
+          var li = document.createElement('li');
+          var a = document.createElement('a');
+          a.className = 'amc-link';
+          a.href = b.url;
+          a.textContent = '#' + b.id;
+          li.appendChild(a);
+          li.appendChild(document.createTextNode(
+            ' ' + b.status_display + ' — ' + b.challenger.name + ' vs ' + b.opponent.name +
+            (b.is_paused ? ' [PAUSED]' : '')));
+          battleList.appendChild(li);
+        });
+        if (!(state.battles || []).length) {
+          battleList.innerHTML = '<li><span class="amc-empty">No battles in progress</span></li>';
+        }
+      }
+
+      var log = document.getElementById('amc-event-log');
+      if (log) {
+        log.textContent = '';
+        (mon.events || []).forEach(function (e) {
+          var li = document.createElement('li');
+          li.textContent = '#' + e.battle_id + ' · ' + e.message.slice(0, 90);
+          log.appendChild(li);
+        });
+        if (!(mon.events || []).length) {
+          log.innerHTML = '<li><span class="amc-empty">No events yet</span></li>';
+        }
+      }
+
+      var combat = document.getElementById('amc-combat-list');
+      if (combat) {
+        combat.textContent = '';
+        (mon.detail || []).forEach(function (c) {
+          var li = document.createElement('li');
+          if (c.kind === 'combat') {
+            li.textContent = '#' + c.battle_id + ' — round ' + c.current_round +
+              ', hits ' + c.challenger_hits + ':' + c.opponent_hits;
+            (c.declared_actions || []).forEach(function (a) {
+              var span = document.createElement('span');
+              span.className = 'amc-panel__hint';
+              span.textContent = a.chef + ': ' + a.action_type + ' (' + a.moves_invested +
+                ' moves)' + (a.is_locked ? ' · locked' : '');
+              li.appendChild(document.createElement('br'));
+              li.appendChild(span);
+            });
+          } else {
+            li.textContent = '#' + c.battle_id + ' — biathlon: locks ' + c.locks_placed +
+              '/' + c.max_locks + ', shots ' + c.shots_fired + '/' + c.max_shots +
+              ' (' + c.winner + ' shooting at ' + c.loser + ')';
+          }
+          combat.appendChild(li);
+        });
+        if (!(mon.detail || []).length) {
+          combat.innerHTML = '<li><span class="amc-empty">No combat in progress</span></li>';
+        }
+      }
+
+      var artifacts = document.getElementById('amc-artifact-list');
+      if (artifacts) {
+        artifacts.textContent = '';
+        (mon.artifacts_in_use || []).forEach(function (a) {
+          var li = document.createElement('li');
+          li.textContent = a.chef + ': ' + a.artifact + ' (' + a.effect_type + ' +' + a.effect_value + ')';
+          artifacts.appendChild(li);
+        });
+        if (!(mon.artifacts_in_use || []).length) {
+          artifacts.innerHTML = '<li><span class="amc-empty">None reserved</span></li>';
+        }
+      }
+    }
+
     if (sys.server_time) {
       var d = new Date(sys.server_time);
       setText('amc-server-time',

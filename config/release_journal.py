@@ -1,5 +1,30 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.101",
+        "date": "2026-07-04",
+        "commit": "pending",
+        "title": "Arena Master Console P04: live battle monitor + combat engine panels",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "Read-only monitor section added to the console state payload "
+            "(same endpoint, same 20 s poll): battle and challenge counts with "
+            "documented definitions, an append-only live event log including "
+            "operator audit entries, per-round combat detail (outcomes, hit "
+            "totals, current-round declared actions), biathlon lock/shot "
+            "state, and artifacts-in-use. Polling is proven side-effect free "
+            "by test (three polls create zero rounds/actions/events/"
+            "transactions). Hidden combat information is served only behind "
+            "the console gate; public arena JSON is verified unchanged. "
+            "9 new tests; full chef_battle suite green."
+        ),
+        "checklist": [
+            "selectors: get_master_monitor() merged into master_state",
+            "console panels 2/3: counts, event log, combat detail, artifacts",
+            "docs: P04_VISIBILITY_MATRIX.yaml, P04_COMBAT_REPORT.md, P04_HANDOFF.yaml",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
         "version": "2.5.100",
         "date": "2026-07-04",
         "commit": "pending",
