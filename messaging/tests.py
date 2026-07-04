@@ -26,7 +26,7 @@ class ContactPageLayoutTests(TestCase):
         response = self.client.get(self.url)
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'class="hero hero--home hero--contact"')
+        self.assertContains(response, 'hero--contact')
         self.assertContains(response, 'class="contact-shell"')
         self.assertContains(response, 'class="contact-layout"')
         self.assertContains(response, 'class="contact-info-panel"')

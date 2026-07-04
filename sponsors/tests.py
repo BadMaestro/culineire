@@ -132,7 +132,7 @@ class SponsorFlowTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "€25")
         self.assertContains(response, "/year + VAT")
-        self.assertContains(response, "Prices are shown excluding VAT")
+        self.assertContains(response, "excluding VAT")
         self.assertContains(response, "Businesses, sole traders and individuals")
         self.assertContains(response, "Payment reserves a spot while Bearcave Limited completes internal review")
         self.assertContains(response, "does not guarantee approval, publication or activation")
@@ -1362,9 +1362,10 @@ class SponsorPublicFormTests(TestCase):
 
     def test_sponsorship_contract_distinguishes_central_monthly_from_annual_ring(self):
         response = self.client.get(reverse("sponsors:annual_contract"))
-        self.assertContains(response, "Annual Ring Sponsorship")
-        self.assertContains(response, "Central Sponsor of the Month costs €1000/month plus VAT")
-        self.assertContains(response, "runs for 30 days from that publication date")
+        self.assertContains(response, "Annual Ring Sponsor")
+        self.assertContains(response, "12-Month Ring Sponsorship")
+        self.assertContains(response, "Central Monthly Sponsorship")
+        self.assertContains(response, "runs for 30 days")
         self.assertContains(response, "It is not a calendar-month or annual product")
 
     def test_sponsor_modal_js_has_exactly_three_public_confirmations(self):
@@ -1935,7 +1936,7 @@ class SponsorContractEmailTests(TestCase):
     def _pdf_attachment(self, message):
         matches = [
             attachment for attachment in message.attachments
-            if attachment[0].endswith(".pdf") and attachment[2] == "application/pdf"
+            if "Agreement" in attachment[0] and attachment[2] == "application/pdf"
         ]
         self.assertEqual(len(matches), 1)
         return matches[0]

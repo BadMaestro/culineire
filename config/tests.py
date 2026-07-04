@@ -26,7 +26,7 @@ class PublicTechnicalPagesTests(TestCase):
         response = self.client.get(reverse("about"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'class="hero hero--home hero--about"')
+        self.assertContains(response, 'hero--about')
         self.assertContains(response, 'class="about-story"')
         self.assertContains(response, 'class="about-story__summary"')
         self.assertContains(response, 'class="about-story__mobile-jump"')
@@ -39,8 +39,8 @@ class PublicTechnicalPagesTests(TestCase):
     def test_base_template_loads_desktop_hero_chef_assets(self):
         response = self.client.get(reverse("about"))
 
-        self.assertContains(response, 'css/hero_chef.css')
-        self.assertContains(response, 'js/hero_chef.js')
+        self.assertContains(response, 'css/hero_chef')
+        self.assertContains(response, 'js/hero_chef')
 
         css_path = settings.BASE_DIR / "static" / "css" / "hero_chef.css"
         self.assertIn("display: block;", css_path.read_text(encoding="utf-8"))

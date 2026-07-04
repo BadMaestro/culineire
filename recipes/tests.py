@@ -2055,8 +2055,8 @@ class PublicImagePerformanceHintTests(TestCase):
 
         recipe_response = self.client.get(reverse("recipes:recipe_list"))
         recipe_hero = recipe_response.content.decode().split('<div class="hero__actions">', 1)[1].split("</div>", 1)[0]
-        self.assertNotIn("Create Recipe", recipe_hero)
-        self.assertNotIn(reverse("recipes:recipe_create"), recipe_hero)
+        self.assertIn("Create Recipe", recipe_hero)
+        self.assertIn(reverse("recipes:recipe_create"), recipe_hero)
         self.assertNotIn("Back to My Dashboard", recipe_hero)
         self.assertIn("Pinch", recipe_hero)
         self.assertNotIn("Explore Recipes", recipe_hero)
@@ -2065,8 +2065,8 @@ class PublicImagePerformanceHintTests(TestCase):
 
         article_response = self.client.get(reverse("articles:article_list"))
         article_hero = article_response.content.decode().split('<div class="hero__actions">', 1)[1].split("</div>", 1)[0]
-        self.assertNotIn("Create Article", article_hero)
-        self.assertNotIn(reverse("articles:article_create"), article_hero)
+        self.assertIn("Create Article", article_hero)
+        self.assertIn(reverse("articles:article_create"), article_hero)
         self.assertNotIn("Back to My Dashboard", article_hero)
         self.assertIn("Pinch", article_hero)
         self.assertIn("Explore Recipes", article_hero)
@@ -2075,8 +2075,8 @@ class PublicImagePerformanceHintTests(TestCase):
 
         pinch_response = self.client.get(reverse("pinch:feed"))
         pinch_hero = pinch_response.content.decode().split('<div class="hero__actions">', 1)[1].split("</div>", 1)[0]
-        self.assertNotIn("Create Pinch", pinch_hero)
-        self.assertNotIn(reverse("pinch:create"), pinch_hero)
+        self.assertIn("Create Pinch", pinch_hero)
+        self.assertIn(reverse("pinch:create"), pinch_hero)
         self.assertNotIn("Back to My Dashboard", pinch_hero)
         self.assertIn("Explore Recipes", pinch_hero)
         self.assertIn("Read Articles", pinch_hero)
