@@ -380,6 +380,8 @@ def get_master_state() -> dict:
         "paused_battle_count": sum(1 for b in battles if b.status == Battle.Status.PAUSED),
     }
 
+    moderation["detail"] = get_master_moderation_detail()
+
     monitor = get_master_monitor(battles=battles)
 
     return {
@@ -552,4 +554,96 @@ def get_master_monitor(battles=None) -> dict:
         "events": events,
         "detail": detail,
         "artifacts_in_use": artifacts_in_use,
+    }
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# P05 — Moderation & safety read models (operator-only via console gate).
+# Private moderation notes never appear in public endpoints.
+# ═════════════════════════════════════════════════════════════════════════════
+
+def get_master_moderation_detail() -> dict:
+    """Cooking queue, pending content reports, and live-stream safety state
+    for the console moderation panel. Pure reads."""
+    from .models import (
+        BattleEntry, ContentReport, LiveBattleAgreement, LiveStreamSession,
+    )
+
+    queue_battles = list(
+        Battle.objects.filter(status=Battle.Status.INGREDIENT_PENALTY)
+        .select_related("challenger", "opponent")
+        .prefetch_related("entries__author")
+        .order_by("updated_at")[:10]
+    )
+    cooking_queue = []
+    for b in queue_battles:
+        cooking_queue.append({
+            "battle_id": b.pk,
+            "theme": b.theme,
+            "url": b.get_absolute_url(),
+            "entries": [
+                {
+                    "entry_id": e.pk,
+                    "author": e.author.name,
+                    "author_slug": e.author.slug,
+                    "moderation_status": e.moderation_status,
+                    "moderation_status_display": e.get_moderation_status_display(),
+                    "has_cooked_photo": bool(e.cooked_photo),
+                    "real_photo_confirmed": e.real_photo_confirmed,
+                    "is_late": e.is_late,
+                    "reviewed_at": e.reviewed_at.isoformat() if e.reviewed_at else None,
+                }
+                for e in b.entries.all()
+            ],
+        })
+
+    reports = [
+        {
+            "report_id": r.pk,
+            "content_kind": r.content_kind,
+            "object_id": r.object_id,
+            "reason": r.reason,
+            "created_at": r.created_at.isoformat(),
+        }
+        for r in ContentReport.objects.filter(status=ContentReport.Status.PENDING)
+        .order_by("-created_at")[:10]
+    ]
+
+    sessions = list(
+        LiveStreamSession.objects.filter(
+            status__in=[LiveStreamSession.Status.SCHEDULED, LiveStreamSession.Status.LIVE]
+        )
+        .select_related("chef", "battle")
+        .prefetch_related("broadcast")[:10]
+    )
+    agreement_chef_ids = set(
+        LiveBattleAgreement.objects.filter(
+            chef_id__in=[s.chef_id for s in sessions]
+        ).values_list("chef_id", flat=True)
+    ) if sessions else set()
+
+    streams = []
+    for s in sessions:
+        broadcast = getattr(s, "broadcast", None)
+        streams.append({
+            "session_id": s.pk,
+            "chef": s.chef.name,
+            "chef_slug": s.chef.slug,
+            "battle_id": s.battle_id,
+            "status": s.status,
+            "provider": s.provider or "none",
+            "checklist_confirmed": s.checklist_confirmed,
+            "agreement_signed": s.chef_id in agreement_chef_ids,
+            "broadcast": {
+                "moderation_status": broadcast.moderation_status,
+                "safety_delay_enabled": broadcast.safety_delay_enabled,
+                "report_count": broadcast.report_count,
+                "stopped_by_staff": broadcast.stopped_by_staff,
+            } if broadcast else None,
+        })
+
+    return {
+        "cooking_queue": cooking_queue,
+        "content_reports": reports,
+        "streams": streams,
     }

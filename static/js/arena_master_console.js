@@ -329,6 +329,59 @@
     });
   }
 
+  /* ── P05: moderation actions (owner only) ───────────────────────── */
+
+  function handleModAction(btn) {
+    var kind = btn.getAttribute('data-amc-mod');
+    var fields = {};
+
+    if (kind === 'entry') {
+      var status = btn.getAttribute('data-status');
+      var adverse = status !== 'approved';
+      var reason = '';
+      if (adverse) {
+        reason = window.prompt('Flag entry #' + btn.getAttribute('data-entry') +
+          '. The chef will be notified. Enter the reason (required):');
+        if (!reason) return;
+      } else if (!window.confirm('Approve entry #' + btn.getAttribute('data-entry') + '?')) {
+        return;
+      }
+      fields = { action: 'moderate_entry', entry_id: btn.getAttribute('data-entry'),
+                 new_status: status, reason: reason };
+    } else if (kind === 'report') {
+      var note = window.prompt(
+        (btn.getAttribute('data-status') === 'dismissed' ? 'Dismiss' : 'Mark reviewed') +
+        ' report #' + btn.getAttribute('data-report') + '. Enter a review note (required):');
+      if (!note) return;
+      fields = { action: 'review_report', report_id: btn.getAttribute('data-report'),
+                 new_status: btn.getAttribute('data-status'), reason: note };
+    } else if (kind === 'stream') {
+      var streamReason = window.prompt(
+        'END STREAM session #' + btn.getAttribute('data-session') +
+        '. The platform record is terminated and the chef is notified. ' +
+        'No provider-side kill is performed (no provider integration is configured). ' +
+        'Enter the reason (required):');
+      if (!streamReason) return;
+      fields = { action: 'end_stream', session_id: btn.getAttribute('data-session'),
+                 reason: streamReason };
+    } else {
+      return;
+    }
+
+    btn.disabled = true;
+    showActionError('');
+    postAction(fields)
+      .then(function () { window.location.reload(); })
+      .catch(function (err) { showActionError(err.message); btn.disabled = false; });
+  }
+
+  if (window.AMC_OPERATOR && window.AMC_OPERATOR.isOwner) {
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-amc-mod]');
+      if (btn && !btn.disabled) handleModAction(btn);
+    });
+  }
+
   apply();
   setInterval(tick, 1000);
   setInterval(poll, POLL_INTERVAL);

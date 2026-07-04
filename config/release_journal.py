@@ -1,5 +1,33 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.102",
+        "date": "2026-07-04",
+        "commit": "pending",
+        "title": "Arena Master Console P05: moderation, safety and live-stream panel",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "Panel 4 is live: cooking moderation queue with per-entry state "
+            "(status, photo presence, real-photo confirmation, lateness), "
+            "pending DSA content reports, and live-stream sessions with real "
+            "broadcast safety data (checklist confirmation, safety delay, "
+            "agreement presence, viewer report count). Owner-only actions via "
+            "the audited master_action endpoint: moderate_entry (adverse "
+            "outcomes require a reason and notify the chef), review_report "
+            "(note mandatory), end_stream (terminates the platform record and "
+            "honestly reports provider_side_terminated: false - no provider "
+            "integration exists and none is simulated). No fake automated "
+            "detection is claimed anywhere. Moderation notes verified absent "
+            "from public endpoints. 10 new tests; suite 212 green."
+        ),
+        "checklist": [
+            "selectors: get_master_moderation_detail() in moderation.detail",
+            "services: operator_moderate_entry/review_report/end_stream",
+            "console panel 4: queue/reports/streams + owner row actions",
+            "docs: P05_ACTION_MATRIX.yaml, P05_SAFETY_REPORT.md, P05_HANDOFF.yaml",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
         "version": "2.5.101",
         "date": "2026-07-04",
         "commit": "pending",

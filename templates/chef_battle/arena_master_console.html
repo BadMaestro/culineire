@@ -233,11 +233,59 @@
 
       <article class="amc-panel" aria-label="Moderation and safety">
         <h3 class="amc-panel__title"><span class="amc-panel__num">4</span> Moderation &amp; Safety</h3>
-        <dl class="amc-panel__kv">
-          <div><dt>Cooking queue</dt><dd id="amc-mod-cooking">{{ master_state.moderation.cooking_queue }}</dd></div>
-          <div><dt>Reports pending</dt><dd id="amc-mod-reports">{{ master_state.moderation.content_reports_pending }}</dd></div>
-          <div><dt>Entries flagged</dt><dd id="amc-mod-flagged">{{ master_state.moderation.entries_flagged }}</dd></div>
+        <dl class="amc-panel__kv amc-panel__kv--row">
+          <div><dt>Queue</dt><dd id="amc-mod-cooking">{{ master_state.moderation.cooking_queue }}</dd></div>
+          <div><dt>Reports</dt><dd id="amc-mod-reports">{{ master_state.moderation.content_reports_pending }}</dd></div>
+          <div><dt>Flagged</dt><dd id="amc-mod-flagged">{{ master_state.moderation.entries_flagged }}</dd></div>
         </dl>
+
+        <h4 class="amc-panel__subtitle">Cooking queue</h4>
+        <ul class="amc-panel__list" id="amc-mod-queue">
+          {% for q in master_state.moderation.detail.cooking_queue %}
+          <li><a class="amc-link" href="{{ q.url }}">#{{ q.battle_id }}</a> {{ q.theme|truncatechars:30 }}
+            {% for e in q.entries %}
+            <br><span class="amc-panel__hint">{{ e.author }}: {{ e.moderation_status_display }}{% if not e.has_cooked_photo %} · no photo{% endif %}{% if e.is_late %} · late{% endif %}</span>
+            {% if operator_is_owner %}
+            <button type="button" class="amc-btn amc-btn--mini" data-amc-mod="entry" data-entry="{{ e.entry_id }}" data-status="approved">Approve</button>
+            <button type="button" class="amc-btn amc-btn--mini amc-btn--danger" data-amc-mod="entry" data-entry="{{ e.entry_id }}" data-status="flagged">Flag</button>
+            {% endif %}
+            {% endfor %}
+          </li>
+          {% empty %}
+          <li><span class="amc-empty">Queue empty</span></li>
+          {% endfor %}
+        </ul>
+
+        <h4 class="amc-panel__subtitle">Content reports</h4>
+        <ul class="amc-panel__list" id="amc-mod-report-list">
+          {% for r in master_state.moderation.detail.content_reports %}
+          <li>#{{ r.report_id }} {{ r.content_kind }} · {{ r.reason|truncatechars:40 }}
+            {% if operator_is_owner %}
+            <button type="button" class="amc-btn amc-btn--mini" data-amc-mod="report" data-report="{{ r.report_id }}" data-status="reviewed">Review</button>
+            <button type="button" class="amc-btn amc-btn--mini" data-amc-mod="report" data-report="{{ r.report_id }}" data-status="dismissed">Dismiss</button>
+            {% endif %}
+          </li>
+          {% empty %}
+          <li><span class="amc-empty">No pending reports</span></li>
+          {% endfor %}
+        </ul>
+
+        <h4 class="amc-panel__subtitle">Live streams</h4>
+        <ul class="amc-panel__list" id="amc-mod-stream-list">
+          {% for s in master_state.moderation.detail.streams %}
+          <li>#{{ s.session_id }} {{ s.chef }} · {{ s.status }} · provider {{ s.provider }}
+            {% if not s.checklist_confirmed %} · <span class="amc-badge amc-badge--danger">checklist!</span>{% endif %}
+            {% if not s.agreement_signed %} · <span class="amc-badge amc-badge--danger">no agreement</span>{% endif %}
+            {% if s.broadcast %}<br><span class="amc-panel__hint">broadcast: {{ s.broadcast.moderation_status }} · delay {{ s.broadcast.safety_delay_enabled|yesno:"on,OFF" }} · {{ s.broadcast.report_count }} report(s)</span>{% endif %}
+            {% if operator_is_owner %}
+            <button type="button" class="amc-btn amc-btn--mini amc-btn--danger" data-amc-mod="stream" data-session="{{ s.session_id }}">End Stream</button>
+            {% endif %}
+          </li>
+          {% empty %}
+          <li><span class="amc-empty">No active streams</span></li>
+          {% endfor %}
+        </ul>
+
         <div class="amc-panel__actions">
           <a class="amc-link" href="{% url 'chef_battle:cooking_moderation' %}">Open cooking moderation</a>
         </div>

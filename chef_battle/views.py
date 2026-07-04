@@ -327,7 +327,7 @@ def _build_battlefield_progress():
                 {"label": "P02: Read-only arena overview and live data adapters", "detail": "Console now live: get_master_state() selector + POST /chef-battle/master/state/ (20s poll, 12 queries/1.9KB at 1 battle). Battle status, chef cards, phase rail, voting/moderation/economy panels all real; public ring embedded via shared partial. arena()/arena_state() dedup into _build_arena_payload(). Viewers metric honestly unavailable (DG-04 source does not exist). Fixed latent arena 500 (.value on DB status). 17 new tests; 171/171 suite green.", "status": "done", "completed_at": "2026-07-04"},
                 {"label": "P03: Arena control and battle-flow orchestration", "detail": "Owner-only controls live: force transitions (service-owned paths reuse approve_cooking_phase / calculate_battle_result), Emergency Stop per DG-03 (PAUSED + stream termination + chef notifications + timer freeze), Resume, Cancel, Broadcast. All transactional, expected_status idempotency, OPERATOR_ACTION audit with correlation id. Award Crown permanently disabled (audience decides). 22 tests; suite 193/193. Migration 0056.", "status": "done", "completed_at": "2026-07-04"},
                 {"label": "P04: Live battle monitor and combat engine console", "detail": "Monitor section merged into master_state: battle/challenge counts, live event log (incl. operator audit entries), per-round combat detail with declared actions, biathlon locks/shots, artifacts-in-use. Side-effect-free polling proven by test. Hidden info visible only behind console gate; public JSON unchanged. 9 tests; suite green.", "status": "done", "completed_at": "2026-07-04"},
-                {"label": "P05: Moderation, safety, and live-stream operations", "detail": "Moderation queue + stream safety controls on existing records. Live-stream operator endpoints are a confirmed gap (admin-only today).", "status": "pending"},
+                {"label": "P05: Moderation, safety, and live-stream operations", "detail": "Panel 4 live: cooking queue with per-entry state, pending content reports, stream sessions with broadcast safety data (checklist, delay, agreement, report count). Owner-only actions: moderate_entry (adverse needs reason + notifies chef), review_report (note required), end_stream (honest provider_side_terminated:false - no provider API exists). All audited. 10 tests; suite 212 green.", "status": "done", "completed_at": "2026-07-04"},
                 {"label": "P06: Voting integrity and audience analytics", "detail": "Real vote totals, one-vote constraint evidence, is_suspicious review, tie indicator per DG-05.", "status": "pending"},
                 {"label": "P07: Economy, gifts, tokens, and artifacts", "detail": "Read-first economy console over existing ledgers. Net-flow and rarity formulas need owner sign-off.", "status": "pending"},
                 {"label": "P08: CBR, LSR, payout, ranks, crown, and arena authority", "detail": "Review-and-report panel per DG-06; payout approve/reject GreenBear-only via existing services.", "status": "pending"},
@@ -2365,7 +2365,8 @@ def master_action(request):
 
     from .services import (
         OperatorActionError, operator_broadcast, operator_cancel,
-        operator_emergency_stop, operator_force_status, operator_resume,
+        operator_emergency_stop, operator_end_stream, operator_force_status,
+        operator_moderate_entry, operator_resume, operator_review_report,
     )
 
     author = get_author_for_user(request.user)
@@ -2405,6 +2406,41 @@ def master_action(request):
                 battle_id=battle_id, operator_author=author,
                 reason=reason, correlation_id=correlation_id,
             )
+        elif action == "moderate_entry":
+            entry = operator_moderate_entry(
+                entry_id=request.POST.get("entry_id"),
+                operator_author=author,
+                new_status=request.POST.get("new_status", ""),
+                reason=reason,
+                correlation_id=correlation_id,
+            )
+            return JsonResponse({"ok": True, "action": action,
+                                 "correlation_id": correlation_id,
+                                 "entry": {"id": entry.pk,
+                                           "moderation_status": entry.moderation_status}})
+        elif action == "review_report":
+            report = operator_review_report(
+                report_id=request.POST.get("report_id"),
+                operator_author=author,
+                new_status=request.POST.get("new_status", ""),
+                note=reason,
+                correlation_id=correlation_id,
+            )
+            return JsonResponse({"ok": True, "action": action,
+                                 "correlation_id": correlation_id,
+                                 "report": {"id": report.pk, "status": report.status}})
+        elif action == "end_stream":
+            session = operator_end_stream(
+                session_id=request.POST.get("session_id"),
+                operator_author=author,
+                reason=reason,
+                correlation_id=correlation_id,
+            )
+            return JsonResponse({"ok": True, "action": action,
+                                 "correlation_id": correlation_id,
+                                 "provider_side_terminated": False,
+                                 "note": "Platform record terminated; no provider integration is configured.",
+                                 "session": {"id": session.pk, "status": session.status}})
         elif action == "broadcast":
             operator_broadcast(
                 operator_author=author,

@@ -1,0 +1,24 @@
+schema_version: "1.0"
+document_type: "phase_05_handoff"
+phase_id: "P05"
+status: "complete_pending_owner_signoff"
+produced_at: "2026-07-04"
+
+delivered:
+  selectors: "get_master_moderation_detail() -> moderation.detail section"
+  services: "operator_moderate_entry / operator_review_report / operator_end_stream (owner-only, audited, reasons mandatory)"
+  ui: "panel 4: cooking queue, content reports, live streams with per-row owner buttons; read-only for others"
+  tests: "ArenaMasterModerationTests (10)"
+
+honesty_guarantees:
+  - "end_stream never claims provider-side termination (provider_side_terminated: false everywhere)"
+  - "safety checklist shows only real fields; no fake automated detection"
+
+p06_input_contract:
+  voting_panel: "extend voting section with per-battle suspicious vote list and vote-rate; DG-05 rules already implemented in P02 read model; P06 adds analytics depth only"
+  no_new_writes_expected: "tie resolution is a manual owner decision outside the console per DG-05"
+
+deployment:
+  migrations_required: false
+  collectstatic_required: true
+  risk: "low — adverse actions owner-only behind console gate"

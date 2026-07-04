@@ -334,6 +334,18 @@
   opacity: 0.55;
 }
 
+.amc-btn--mini {
+  padding: 0.1rem 0.45rem;
+  font-size: 0.65rem;
+  margin-left: 0.25rem;
+  cursor: pointer;
+}
+
+.amc-btn--mini:hover:not(:disabled) {
+  color: var(--amc-ink);
+  border-color: var(--amc-line);
+}
+
 .amc-btn--danger {
   border-color: rgb(179 64 46 / 0.4);
   color: #c96b5b;

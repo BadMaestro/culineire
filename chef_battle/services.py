@@ -2156,3 +2156,158 @@ def operator_broadcast(*, operator_author, message, battle_id=None, correlation_
     }
     event.save(update_fields=["payload_json"])
     return event
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# P05 — Moderation & safety operator actions (owner-only per DG-01 access
+# model: non-owner console operators are read-only). Reasons are mandatory
+# for every adverse action; everything is audited as OPERATOR_ACTION.
+# ═════════════════════════════════════════════════════════════════════════════
+
+# Entry statuses the console may set. Adverse ones require a reason.
+_ENTRY_ADVERSE = {
+    BattleEntry.ModerationStatus.FLAGGED,
+    BattleEntry.ModerationStatus.REJECTED,
+    BattleEntry.ModerationStatus.NEEDS_CHANGES,
+}
+_ENTRY_ALLOWED = _ENTRY_ADVERSE | {BattleEntry.ModerationStatus.APPROVED}
+
+
+def operator_moderate_entry(*, entry_id, operator_author, new_status, reason="",
+                            correlation_id=""):
+    """Owner-only battle-entry moderation from the console. Reuses the
+    existing BattleEntry moderation fields (status/note/reviewed_by/at)."""
+    _require_owner(operator_author)
+    if new_status not in _ENTRY_ALLOWED:
+        raise OperatorActionError(f"'{new_status}' is not a console-settable entry status.")
+    if new_status in _ENTRY_ADVERSE and not (reason or "").strip():
+        raise OperatorActionError("Adverse moderation actions require a reason.")
+
+    with transaction.atomic():
+        try:
+            entry = (BattleEntry.objects.select_for_update()
+                     .select_related("battle", "author").get(pk=entry_id))
+        except BattleEntry.DoesNotExist:
+            raise OperatorActionError("Entry not found.")
+        before = entry.moderation_status
+        if before == new_status:
+            raise OperatorActionError(f"Entry is already '{new_status}'.")
+        entry.moderation_status = new_status
+        if reason:
+            entry.moderation_note = reason
+        entry.reviewed_by = operator_author.user
+        entry.reviewed_at = timezone.now()
+        entry.save(update_fields=[
+            "moderation_status", "moderation_note", "reviewed_by", "reviewed_at", "updated_at",
+        ])
+        _operator_event(
+            battle=entry.battle, operator_author=operator_author,
+            action="moderate_entry", before=before, after=new_status,
+            reason=reason, correlation_id=correlation_id,
+            extra={"entry_id": entry.pk, "entry_author": entry.author.slug},
+        )
+        if new_status in _ENTRY_ADVERSE:
+            _notify_chef(
+                operator_author, entry.author,
+                subject=f"Your battle entry needs attention (battle #{entry.battle_id})",
+                body=(
+                    f"Your entry for '{entry.battle.theme}' was marked "
+                    f"'{entry.get_moderation_status_display()}' by the arena operator. "
+                    f"Reason: {reason}."
+                ),
+            )
+    return entry
+
+
+def operator_review_report(*, report_id, operator_author, new_status, note="",
+                           correlation_id=""):
+    """Owner-only content-report review. Reuses ContentReport review fields."""
+    from .models import ContentReport
+
+    _require_owner(operator_author)
+    allowed = {
+        ContentReport.Status.REVIEWED,
+        ContentReport.Status.ACTIONED,
+        ContentReport.Status.DISMISSED,
+    }
+    if new_status not in allowed:
+        raise OperatorActionError(f"'{new_status}' is not a valid report resolution.")
+    if not (note or "").strip():
+        raise OperatorActionError("Report review requires a note.")
+
+    with transaction.atomic():
+        try:
+            report = ContentReport.objects.select_for_update().get(pk=report_id)
+        except ContentReport.DoesNotExist:
+            raise OperatorActionError("Report not found.")
+        before = report.status
+        if before == new_status:
+            raise OperatorActionError(f"Report is already '{new_status}'.")
+        report.status = new_status
+        report.moderator_note = note
+        report.reviewed_by = operator_author.user
+        report.reviewed_at = timezone.now()
+        report.save(update_fields=["status", "moderator_note", "reviewed_by", "reviewed_at"])
+        _operator_event(
+            battle=None, operator_author=operator_author,
+            action="review_report", before=before, after=new_status,
+            reason=note, correlation_id=correlation_id,
+            extra={"report_id": report.pk, "content_kind": report.content_kind,
+                   "object_id": report.object_id},
+        )
+    return report
+
+
+def operator_end_stream(*, session_id, operator_author, reason, correlation_id=""):
+    """Owner-only stream shutdown. Updates platform records only: session ->
+    TERMINATED, broadcast marked stopped_by_staff. NO provider API call is
+    made or claimed — no provider integration is configured
+    (ENABLE_LIVE_VIDEO is off); the response states this honestly."""
+    _require_owner(operator_author)
+    if not (reason or "").strip():
+        raise OperatorActionError("Ending a stream requires a reason.")
+
+    with transaction.atomic():
+        try:
+            session = (LiveStreamSession.objects.select_for_update()
+                       .select_related("chef", "battle").get(pk=session_id))
+        except LiveStreamSession.DoesNotExist:
+            raise OperatorActionError("Stream session not found.")
+        before = session.status
+        if before in (LiveStreamSession.Status.ENDED, LiveStreamSession.Status.TERMINATED):
+            raise OperatorActionError(f"Stream is already '{before}'.")
+        now = timezone.now()
+        session.status = LiveStreamSession.Status.TERMINATED
+        session.ended_at = now
+        session.terminated_reason = reason[:300]
+        session.terminated_by = operator_author.user
+        session.save(update_fields=[
+            "status", "ended_at", "terminated_reason", "terminated_by", "updated_at",
+        ])
+        broadcast = getattr(session, "broadcast", None)
+        if broadcast is not None:
+            broadcast.stopped_by_staff = True
+            broadcast.stop_reason = reason[:300]
+            broadcast.reviewed_by = operator_author.user
+            broadcast.reviewed_at = now
+            broadcast.save(update_fields=[
+                "stopped_by_staff", "stop_reason", "reviewed_by", "reviewed_at", "updated_at",
+            ])
+        _operator_event(
+            battle=session.battle, operator_author=operator_author,
+            action="end_stream", before=before,
+            after=LiveStreamSession.Status.TERMINATED,
+            reason=reason, correlation_id=correlation_id,
+            extra={
+                "session_id": session.pk,
+                "chef": session.chef.slug,
+                "provider": session.provider or "none",
+                "provider_side_terminated": False,
+            },
+        )
+        _notify_chef(
+            operator_author, session.chef,
+            subject=f"Your live stream was ended by the arena operator",
+            body=f"Your stream (session #{session.pk}) was ended. Reason: {reason}.",
+        )
+    return session

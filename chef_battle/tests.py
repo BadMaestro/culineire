@@ -2138,8 +2138,11 @@ class ArenaMasterStateTests(TestCase):
         from .selectors import get_master_state
         with CaptureQueriesContext(connection) as ctx:
             get_master_state()
-        # 2 battles: fixed sections + 2 per-battle vote/suspicious queries.
-        self.assertLessEqual(len(ctx.captured_queries), 20,
+        # Operator-only endpoint. Budget history: P02 fixed sections +
+        # 2 per-battle vote queries (<=20); P04 monitor (+counts/events);
+        # P05 moderation detail (+queue/reports/streams). 20 fixed at zero
+        # battles + ~4 per battle => 35 covers 2 battles with headroom.
+        self.assertLessEqual(len(ctx.captured_queries), 35,
                              f"master_state used {len(ctx.captured_queries)} queries")
 
     # ── public leak checks ──
@@ -2650,3 +2653,189 @@ class ArenaMasterMonitorTests(TestCase):
         resp = self.client.post(self.state_url)
         self.assertEqual(resp.status_code, 200)
         self.assertIn("monitor", resp.json())
+
+
+# ── AMC P05 — moderation & safety operations ─────────────────────────────────
+
+@override_settings(ARENA_MASTER_CONSOLE_ENABLED=True, CHEF_BATTLE_ENABLED=True)
+class ArenaMasterModerationTests(TestCase):
+    """P05: moderation read models, owner-only adverse actions with mandatory
+    reasons, audit records, privacy of moderation notes."""
+
+    def setUp(self):
+        from django.conf import settings as django_settings
+        User = get_user_model()
+        self.action_url = reverse("chef_battle:master_action")
+        self.state_url = reverse("chef_battle:master_state")
+
+        self.owner_user = User.objects.create_superuser("greenbear", password="pw")
+        self.owner_author, _ = RecipeAuthor.objects.update_or_create(
+            slug=django_settings.OWNER_SLUG,
+            defaults={"user": self.owner_user, "name": "GreenBear"},
+        )
+        self.operator_user = User.objects.create_superuser("mod-op", password="pw")
+        RecipeAuthor.objects.create(
+            user=self.operator_user, name="Mod Op", slug="mod-op",
+            has_arena_console_access=True,
+        )
+
+        ua = User.objects.create_user("p5-chef-a", password="pw")
+        ub = User.objects.create_user("p5-chef-b", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=ua, name="P5 Chef A", slug="p5-chef-a")
+        self.chef_b = RecipeAuthor.objects.create(user=ub, name="P5 Chef B", slug="p5-chef-b")
+        ChefBattleProfile.objects.create(author=self.chef_a, enrolled_at=timezone.now())
+        ChefBattleProfile.objects.create(author=self.chef_b, enrolled_at=timezone.now())
+
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b,
+            theme="Moderation Dish", status=Battle.Status.INGREDIENT_PENALTY,
+            start_time=now,
+            submission_deadline=now + timezone.timedelta(days=2),
+            voting_deadline=now + timezone.timedelta(days=4),
+            end_time=now + timezone.timedelta(days=5),
+        )
+        self.entry = self.battle.entries.create(author=self.chef_a)
+
+    def _post(self, user, **fields):
+        self.client.force_login(user)
+        return self.client.post(self.action_url, fields)
+
+    # ── read models ──
+    def test_moderation_detail_in_state(self):
+        from .models import ContentReport, LiveStreamSession
+        ContentReport.objects.create(
+            content_kind=ContentReport.ContentKind.BATTLE_ENTRY,
+            object_id=self.entry.pk, reason="looks like stock photo",
+        )
+        LiveStreamSession.objects.create(
+            battle=self.battle, chef=self.chef_a,
+            status=LiveStreamSession.Status.LIVE, checklist_confirmed=True,
+        )
+        self.client.force_login(self.owner_user)
+        data = self.client.post(self.state_url).json()
+        detail = data["moderation"]["detail"]
+        self.assertEqual(detail["cooking_queue"][0]["battle_id"], self.battle.pk)
+        self.assertEqual(detail["cooking_queue"][0]["entries"][0]["moderation_status"], "pending")
+        self.assertEqual(detail["content_reports"][0]["reason"], "looks like stock photo")
+        stream = detail["streams"][0]
+        self.assertEqual(stream["chef_slug"], "p5-chef-a")
+        self.assertTrue(stream["checklist_confirmed"])
+        self.assertFalse(stream["agreement_signed"])
+
+    # ── entry moderation ──
+    def test_owner_approves_entry(self):
+        resp = self._post(self.owner_user, action="moderate_entry",
+                          entry_id=self.entry.pk, new_status="approved")
+        self.assertEqual(resp.status_code, 200)
+        self.entry.refresh_from_db()
+        self.assertEqual(self.entry.moderation_status, BattleEntry.ModerationStatus.APPROVED)
+        self.assertEqual(self.entry.reviewed_by, self.owner_user)
+        event = BattleEvent.objects.get(event_type=BattleEvent.EventType.OPERATOR_ACTION)
+        self.assertEqual(event.payload_json["action"], "moderate_entry")
+        self.assertEqual(event.payload_json["entry_author"], "p5-chef-a")
+
+    def test_adverse_entry_action_requires_reason_and_notifies(self):
+        resp = self._post(self.owner_user, action="moderate_entry",
+                          entry_id=self.entry.pk, new_status="flagged", reason="")
+        self.assertEqual(resp.status_code, 409)
+        resp = self._post(self.owner_user, action="moderate_entry",
+                          entry_id=self.entry.pk, new_status="flagged",
+                          reason="copyright concern")
+        self.assertEqual(resp.status_code, 200)
+        self.entry.refresh_from_db()
+        self.assertEqual(self.entry.moderation_status, BattleEntry.ModerationStatus.FLAGGED)
+        self.assertEqual(self.entry.moderation_note, "copyright concern")
+        from messaging.models import Message
+        self.assertTrue(Message.objects.filter(
+            recipient=self.chef_a.user, subject__icontains="needs attention").exists())
+
+    def test_entry_invalid_status_and_same_status_rejected(self):
+        resp = self._post(self.owner_user, action="moderate_entry",
+                          entry_id=self.entry.pk, new_status="suspected_ai", reason="x")
+        self.assertEqual(resp.status_code, 409)
+        resp = self._post(self.owner_user, action="moderate_entry",
+                          entry_id=self.entry.pk, new_status="pending", reason="x")
+        self.assertEqual(resp.status_code, 409)
+
+    def test_operator_cannot_moderate(self):
+        resp = self._post(self.operator_user, action="moderate_entry",
+                          entry_id=self.entry.pk, new_status="approved")
+        self.assertEqual(resp.status_code, 403)
+        self.entry.refresh_from_db()
+        self.assertEqual(self.entry.moderation_status, BattleEntry.ModerationStatus.PENDING)
+
+    # ── content reports ──
+    def test_report_review_requires_note(self):
+        from .models import ContentReport
+        report = ContentReport.objects.create(
+            content_kind=ContentReport.ContentKind.BATTLE_CHAT,
+            object_id=1, reason="abuse")
+        resp = self._post(self.owner_user, action="review_report",
+                          report_id=report.pk, new_status="dismissed", reason="")
+        self.assertEqual(resp.status_code, 409)
+        resp = self._post(self.owner_user, action="review_report",
+                          report_id=report.pk, new_status="dismissed",
+                          reason="not a violation")
+        self.assertEqual(resp.status_code, 200)
+        report.refresh_from_db()
+        self.assertEqual(report.status, ContentReport.Status.DISMISSED)
+        self.assertEqual(report.moderator_note, "not a violation")
+        self.assertEqual(report.reviewed_by, self.owner_user)
+
+    def test_report_invalid_status_rejected(self):
+        from .models import ContentReport
+        report = ContentReport.objects.create(
+            content_kind=ContentReport.ContentKind.BATTLE_CHAT,
+            object_id=1, reason="abuse")
+        resp = self._post(self.owner_user, action="review_report",
+                          report_id=report.pk, new_status="pending", reason="x")
+        self.assertEqual(resp.status_code, 409)
+
+    # ── streams ──
+    def test_end_stream_updates_records_and_is_honest_about_provider(self):
+        from .models import LiveBroadcast, LiveStreamSession
+        session = LiveStreamSession.objects.create(
+            battle=self.battle, chef=self.chef_a, status=LiveStreamSession.Status.LIVE)
+        broadcast = LiveBroadcast.objects.create(session=session)
+        resp = self._post(self.owner_user, action="end_stream",
+                          session_id=session.pk, reason="prohibited content")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertFalse(data["provider_side_terminated"])
+        self.assertIn("no provider integration", data["note"].lower())
+        session.refresh_from_db()
+        broadcast.refresh_from_db()
+        self.assertEqual(session.status, LiveStreamSession.Status.TERMINATED)
+        self.assertEqual(session.terminated_by, self.owner_user)
+        self.assertTrue(broadcast.stopped_by_staff)
+        self.assertEqual(broadcast.stop_reason, "prohibited content")
+        event = BattleEvent.objects.get(event_type=BattleEvent.EventType.OPERATOR_ACTION)
+        self.assertFalse(event.payload_json["provider_side_terminated"])
+
+    def test_end_stream_requires_reason_and_live_state(self):
+        from .models import LiveStreamSession
+        session = LiveStreamSession.objects.create(
+            battle=self.battle, chef=self.chef_a,
+            status=LiveStreamSession.Status.ENDED)
+        resp = self._post(self.owner_user, action="end_stream",
+                          session_id=session.pk, reason="x")
+        self.assertEqual(resp.status_code, 409)
+        live = LiveStreamSession.objects.create(
+            battle=self.battle, chef=self.chef_a,
+            status=LiveStreamSession.Status.LIVE)
+        resp = self._post(self.owner_user, action="end_stream",
+                          session_id=live.pk, reason=" ")
+        self.assertEqual(resp.status_code, 409)
+
+    # ── privacy ──
+    def test_moderation_notes_never_public(self):
+        self._post(self.owner_user, action="moderate_entry",
+                   entry_id=self.entry.pk, new_status="flagged",
+                   reason="secret-mod-note-xyz")
+        self.client.logout()
+        arena_json = self.client.post(reverse("chef_battle:arena_state")).content.decode()
+        self.assertNotIn("secret-mod-note-xyz", arena_json)
+        battle_page = self.client.get(self.battle.get_absolute_url())
+        if battle_page.status_code == 200:
+            self.assertNotIn("secret-mod-note-xyz", battle_page.content.decode())

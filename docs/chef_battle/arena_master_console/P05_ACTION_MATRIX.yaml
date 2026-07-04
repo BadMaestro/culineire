@@ -1,0 +1,45 @@
+schema_version: "1.0"
+document_type: "phase_05_action_matrix"
+produced_at: "2026-07-04"
+authority: "DG-01 access model: non-owner console operators are read-only; all adverse actions are owner-only with mandatory reasons"
+
+read_models:
+  moderation_detail:
+    cooking_queue: "ingredient_penalty battles + per-entry moderation state (status, photo presence, real-photo confirmation, lateness, review timestamp)"
+    content_reports: "10 newest PENDING ContentReport rows (kind, object, reason)"
+    streams: "SCHEDULED/LIVE LiveStreamSession rows + broadcast safety state (moderation status, safety delay, report count, stopped_by_staff) + checklist_confirmed + LiveBattleAgreement presence"
+  safety_checklist_note: >-
+    Displayed checklist state uses actual data only: checklist_confirmed,
+    safety_delay_enabled, agreement_signed, report_count. No automated
+    minor/copyright/alcohol detection exists in the repository and none is
+    claimed — those items are covered by the chef-confirmed checklist and
+    viewer reports.
+
+actions:
+  moderate_entry:
+    who: "owner only"
+    allowed_statuses: [approved, flagged, rejected, needs_changes]
+    reason: "required for flagged/rejected/needs_changes; approve needs confirm only"
+    reuses: "BattleEntry.moderation_status/note/reviewed_by/reviewed_at"
+    side_effects: "OPERATOR_ACTION audit; chef notified (in-site + email) on adverse actions"
+  review_report:
+    who: "owner only"
+    allowed_statuses: [reviewed, actioned, dismissed]
+    reason: "note always required"
+    reuses: "ContentReport.status/moderator_note/reviewed_by/reviewed_at"
+    side_effects: "OPERATOR_ACTION audit (no battle link)"
+  end_stream:
+    who: "owner only"
+    reason: "always required"
+    reuses: "LiveStreamSession TERMINATED state machine + LiveBroadcast stopped_by_staff/stop_reason"
+    provider_honesty: >-
+      NO provider API is called or claimed: ENABLE_LIVE_VIDEO is off and no
+      provider service exists. The JSON response and the audit payload both
+      carry provider_side_terminated: false, and the UI prompt states it.
+    side_effects: "OPERATOR_ACTION audit; chef notified"
+  approve_cooking_phase: "already reachable via master_action force_status ingredient_penalty->cooking (P03), which calls the owning service"
+  emergency_stream_path: "operator_emergency_stop (P03) terminates all live sessions of a battle per DG-03"
+
+privacy:
+  - "moderation_note / moderator_note / operator audit payloads never appear in public endpoints (test: moderation_notes_never_public)"
+  - "moderation detail served only through the console gate"

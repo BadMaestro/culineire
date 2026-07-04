@@ -129,6 +129,7 @@ phase_sequence:
     risk: "high"
     depends_on: ["P03"]
     outcome: "Operator visibility into active battles, combat rounds, ingredients, locks, shots, artifacts, and logs."
+    status: "COMPLETED — confirmed by owner 2026-07-04. Monitor section in master_state: counts, event log, combat/biathlon detail, artifacts-in-use; side-effect-free polling proven (v2.5.101, deployed). Evidence: P04_VISIBILITY_MATRIX.yaml, P04_COMBAT_REPORT.md, P04_HANDOFF.yaml."
   - id: "P05"
     name: "Moderation, safety, and live-stream operations"
     prompt: "phase_05_moderation_safety.yaml"
