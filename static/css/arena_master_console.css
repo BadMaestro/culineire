@@ -436,6 +436,114 @@
   }
 }
 
+/* ── P02: live data presentation ─────────────────────────────────── */
+
+.amc-hidden {
+  display: none !important;
+}
+
+.amc-chef__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  text-align: center;
+  padding: 0.5rem 0;
+}
+
+.amc-chef__avatar {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--amc-line);
+}
+
+.amc-chef__name {
+  margin: 0;
+  font-weight: 700;
+}
+
+.amc-chef__rank {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--amc-gold);
+}
+
+.amc-chef__stats,
+.amc-chef__ready {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--amc-muted);
+}
+
+.amc-panel__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.amc-panel__kv {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.amc-panel__kv dt {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--amc-muted);
+}
+
+.amc-panel__kv dd {
+  margin: 0.1rem 0 0;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.amc-badge--danger {
+  border-color: rgb(179 64 46 / 0.5);
+  color: #c96b5b;
+  background: rgb(179 64 46 / 0.12);
+}
+
+.amc-phase-rail__step--active {
+  border-color: var(--amc-gold);
+  color: var(--amc-gold);
+  background: var(--amc-gold-soft);
+}
+
+/* Embedded public ring: constrain the SVG inside the overview cell and
+   keep the shared arena label readable on the dark surface. */
+.amc-ring {
+  padding: 0.5rem;
+}
+
+.amc-ring .arena-puzzle-container {
+  width: 100%;
+}
+
+.amc-ring #arena-puzzle {
+  width: 100%;
+  height: auto;
+  max-width: 560px;
+  display: block;
+  margin: 0 auto;
+}
+
+.amc-ring .arena-puzzle-label {
+  color: var(--amc-muted);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
 /* The floating site-wide battle widget overlaps the operator deck's
    bottom-right panel; the console IS the battle surface, so hide it here. */
 body.page--amc #site-battle-widget {

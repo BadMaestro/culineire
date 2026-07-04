@@ -1,0 +1,33 @@
+schema_version: "1.0"
+document_type: "phase_02_handoff"
+phase_id: "P02"
+status: "complete_pending_owner_signoff"
+produced_at: "2026-07-04"
+
+delivered:
+  selectors: "chef_battle/selectors.py: get_master_state() + MASTER_PHASE_RAIL_STEP + MASTER_NEXT_STATUS"
+  shared_arena_assembly: "chef_battle/views.py: _build_arena_payload() now feeds arena(), arena_state() and master_console() (dedup)"
+  endpoint: "POST /chef-battle/master/state/ (arena_console_guard, read-only)"
+  console: "arena_master_console.html renders live data + embeds the public ring via new shared partial templates/chef_battle/_arena_ring.html"
+  javascript: "static/js/arena_master_console.js — 20 s poll + 1 s countdown; no writes"
+  tests: "ArenaMasterStateTests (17) + updated ArenaMasterConsoleAccessTests (12)"
+
+fixed_in_passing:
+  - "Latent arena crash: _arena_center .value on DB-loaded status (public 500 with any active battle)"
+  - "Multi-line {# #} comment rendered literally in ring partial"
+
+open_items_for_later_phases:
+  - "viewers.available=false — DG-04's presumed presence source does not exist; owner must approve a real per-battle presence design before any viewer count is shown (new infra)"
+  - "P03: enable phase controls (OWNER_SLUG only) + Emergency Stop service + Battle.paused_at/paused_reason fields"
+  - "Panel 7 (CBR/LSR) still an explicit empty state — connects in P08"
+  - "Event log (panel 2 mockup) — BattleEvent feed can be added in P04 monitor phase"
+
+p03_input_contract:
+  state_source: "reuse get_master_state(); controls must re-render from the same state after each action"
+  audit: "every operator write -> BattleEvent OPERATOR_ACTION per DG-02/DG-03"
+  buttons: "the six disabled .amc-btn controls in panel 1 are the mount points"
+
+deployment:
+  migrations_required: false
+  collectstatic_required: true  # arena_master_console.css/js, arena ring partial unchanged assets
+  risk: "low-medium: public arena template refactored to shared partial + shared payload builder; covered by tests and live regression"

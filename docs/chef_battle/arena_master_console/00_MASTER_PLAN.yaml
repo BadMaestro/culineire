@@ -105,6 +105,7 @@ phase_sequence:
     risk: "medium"
     depends_on: ["P00"]
     outcome: "Reference-aligned desktop shell with semantic placeholders fed only by explicit unavailable states."
+    status: "COMPLETED — confirmed by owner 2026-07-04. Shell at /chef-battle/master/, DG-01 gate with owner override (v2.5.97 + v2.5.98, deployed). Evidence: P01_VISUAL_REPORT.md, P01_HANDOFF.yaml."
   - id: "P02"
     name: "Read-only arena overview and live data adapters"
     prompt: "phase_02_read_models.yaml"

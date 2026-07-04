@@ -1,0 +1,75 @@
+schema_version: "1.0"
+document_type: "phase_02_data_dictionary"
+produced_at: "2026-07-04"
+source_of_truth: "chef_battle/selectors.py get_master_state()"
+endpoint: "POST /chef-battle/master/state/ (chef_battle:master_state, arena_console_guard)"
+refresh: "20 s poll (same cadence as public arena); countdown ticks client-side every 1 s"
+
+sections:
+
+  arena:
+    enrolled_count:
+      query: "ChefBattleProfile.filter(enrolled_at__isnull=False).count()"
+      window: "current"
+    online_count:
+      query: "enrolled, not suspended, last_seen_at >= now-180s (arena heartbeat via arena_ping)"
+      window: "180 seconds"
+    suspended_count:
+      query: "enrolled AND is_suspended=True"
+      window: "current"
+    crown_holder:
+      query: "ChefBattleProfile.filter(crown_until__gt=now).order_by(-crown_until).first()"
+      nullable: "null when no crown is held"
+
+  battles:
+    definition: "Battle.ACTIVE_STATUSES + ingredient_penalty + paused, ordered by end_time"
+    fields:
+      status/status_display: "Battle.status verbatim"
+      next_status: "display-only canonical map MASTER_NEXT_STATUS; never drives writes"
+      phase_rail_step: "MASTER_PHASE_RAIL_STEP: 1 Challenge .. 7 Crown"
+      deadline/seconds_remaining: "voting->voting_deadline; pre-voting->submission_deadline; else end_time; clamped >= 0"
+      participants: "name/slug/avatar/rank/rating/wins/losses/streak from ChefBattleProfile (bulk-fetched, no N+1); ready from Battle.challenger_ready/opponent_ready"
+      is_paused: "status == paused (Emergency Stop, DG-03)"
+
+  combat:
+    combat_entries: "per ACTIVE battle: rounds_played + last round hit totals from BattleRound (same rows the battle room uses)"
+    biathlon_entries: "per INGREDIENT_PENALTY battle: lock/shot counts vs IngredientLock.MAX_LOCKS / IngredientShot.MAX_SHOTS"
+
+  moderation:
+    cooking_queue: "Battle.filter(status=ingredient_penalty).count() — same set as get_battles_awaiting_cooking_approval"
+    content_reports_pending: "ContentReport.filter(status=PENDING).count()"
+    entries_flagged: "BattleEntry moderation_status in {flagged, suspected_ai, suspected_stock, duplicate}"
+
+  voting:
+    per_battle: "get_battle_vote_counts (same selector as public battle room)"
+    suspicious_votes: "BattleVote.filter(battle, is_suspicious=True).count() (DG-05 automatic flags)"
+    is_tie: "challenger_votes == opponent_votes AND > 0 (DG-05)"
+
+  viewers:
+    available: false
+    reason: >-
+      DG-04 assumed an existing per-page presence system. P02 discovery found
+      none exists: presence.PresenceEvent is an owner/admin login event log,
+      not page presence. Per the non-fabrication rule the console shows
+      "Unavailable" and the real arena heartbeat signal instead.
+    arena_online_chefs: "same query as arena.online_count (enrolled chefs seen in 180 s)"
+    owner_decision_needed: "if per-battle viewer counts are wanted, a real presence signal must be designed and approved (new infrastructure, out of P02 scope)"
+
+  economy:
+    window: "24 hours (explicit in payload as window_hours)"
+    tokens_in_24h: "sum TokenTransaction.amount > 0 in window"
+    tokens_out_24h: "sum TokenTransaction.amount < 0 in window (negative number)"
+    battle_gifts: "per listed battle: ViewerBattleGift count + sum(tokens_spent); AppreciationGift has no battle FK and is intentionally excluded"
+    pending_payouts: "PayoutRequest status in {pending, under_review}"
+
+  system:
+    server_time: "timezone.now() ISO"
+    chef_battle_enabled / console_flag_enabled: "settings flags verbatim"
+    active_battle_count / paused_battle_count: "derived from the battles list"
+
+public_contract_note: >-
+  arena() and arena_state() now share _build_arena_payload() (views.py) —
+  the public JSON keys {rings, spectators, center, latest_result} and HTML
+  are unchanged and covered by test_public_arena_state_keys_unchanged.
+  No operator field appears in any public response
+  (test_operator_fields_do_not_leak_into_public_arena).

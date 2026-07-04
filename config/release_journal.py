@@ -1,5 +1,37 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.99",
+        "date": "2026-07-04",
+        "commit": "pending",
+        "title": "Arena Master Console P02: live read-only data + embedded arena ring",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "The console now shows real data: battle status card, chef cards, "
+            "7-step phase rail, and live counts in the moderation, voting, "
+            "economy and ranks panels, all sourced from the new read-only "
+            "get_master_state() selector via POST /chef-battle/master/state/ "
+            "(20 s poll, 12 queries / 1.9 KB with one battle; every field "
+            "documented in P02_DATA_DICTIONARY.yaml). The public arena ring "
+            "renderer is embedded through a new shared partial "
+            "_arena_ring.html; arena() and arena_state() were deduplicated "
+            "into _build_arena_payload() with the public JSON contract "
+            "verified unchanged. Active-viewer count is honestly reported as "
+            "unavailable: the presence source DG-04 assumed does not exist. "
+            "Fixed in passing: a latent public-arena 500 (.value on a "
+            "DB-loaded battle status) and a multi-line template comment "
+            "rendering as text. 17 new tests; full chef_battle suite 171/171."
+        ),
+        "checklist": [
+            "chef_battle/selectors.py: get_master_state() + rail/next-status maps",
+            "chef_battle/views.py: _build_arena_payload() dedup + master_state endpoint",
+            "templates/chef_battle/_arena_ring.html shared partial (arena.html refactored)",
+            "arena_master_console.html + .js + .css: live data, 20s poll, countdown",
+            "tests: ArenaMasterStateTests (17), query budget, public-leak checks",
+            "docs: P02_DATA_DICTIONARY.yaml, P02_QUERY_REPORT.md, P02_HANDOFF.yaml",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
         "version": "2.5.98",
         "date": "2026-07-04",
         "commit": "pending",

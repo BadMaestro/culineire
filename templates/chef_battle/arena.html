@@ -52,73 +52,7 @@
     </div>
   </div>
 
-  <div class="arena-puzzle-container">
-    <p class="arena-puzzle-label">Click any chef to view their profile</p>
-    <svg id="arena-puzzle" viewBox="-120 -120 1340 1340" xmlns="http://www.w3.org/2000/svg"
-         role="img" aria-label="Chef Battles Arena">
-      <defs>
-        <filter id="arena-cell-shadow" x="-5%" y="-5%" width="110%" height="110%">
-          <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="rgba(0,0,0,0.15)"/>
-        </filter>
-        <clipPath id="arena-oct-clip">
-          <polygon id="arena-oct-poly"/>
-        </clipPath>
-      </defs>
-      <g id="arena-cells"></g>
-      <g id="arena-centre"></g>
-    </svg>
-  </div>
+  {% include "chef_battle/_arena_ring.html" %}
 
 </div>
-
-{{ arena_data|json_script:"arena-data-json" }}
-
-<script>
-window.ARENA_VIEWER = {
-  slug: "{{ viewer_author.slug|default:'' }}",
-  enrolled: {{ user_enrolled|yesno:"true,false" }}
-};
-</script>
-
-<div id="arena-tooltip" class="arena-tooltip" hidden aria-live="polite">
-  <button class="arena-tooltip__close" aria-label="Close">&#x2715;</button>
-  <img class="arena-tooltip__avatar" src="" alt="" width="60" height="60">
-  <div class="arena-tooltip__body">
-    <div class="arena-tooltip__name"></div>
-    <div class="arena-tooltip__rank"></div>
-    <div class="arena-tooltip__meta">
-      <span class="arena-tooltip__rating"></span>
-      <span class="arena-tooltip__badge arena-tooltip__badge--battle" hidden>&#9876; In Battle</span>
-      <span class="arena-tooltip__badge arena-tooltip__badge--online" hidden>&#9679; Online</span>
-    </div>
-    <div class="arena-tooltip__stats">
-      <span class="arena-tooltip__stat"><b class="js-chef-wins">0</b><span class="arena-tooltip__stat-lbl">W</span></span>
-      <span class="arena-tooltip__stat-sep"> &middot; </span>
-      <span class="arena-tooltip__stat"><b class="js-chef-losses">0</b><span class="arena-tooltip__stat-lbl">L</span></span>
-      <span class="arena-tooltip__stat-sep"> &middot; </span>
-      <span class="arena-tooltip__stat"><b class="js-chef-streak">0</b><span class="arena-tooltip__stat-lbl">Streak</span></span>
-    </div>
-    <div class="arena-tooltip__potential js-chef-potential" hidden>
-      <span class="arena-tooltip__potential-item arena-tooltip__potential-item--atk">ATK&nbsp;~<b class="js-chef-atk">0</b></span>
-      <span class="arena-tooltip__potential-sep"> &middot; </span>
-      <span class="arena-tooltip__potential-item arena-tooltip__potential-item--def">DEF&nbsp;~<b class="js-chef-def">0</b></span>
-    </div>
-  </div>
-  <div class="arena-tooltip__actions">
-    <a class="arena-tooltip__link" href="#">View Profile</a>
-    <a class="arena-tooltip__challenge js-challenge-btn" href="#" hidden>Challenge</a>
-  </div>
-</div>
-
-<div id="arena-battle-popup" class="arena-popup" hidden>
-  <div class="arena-popup__backdrop" id="arena-popup-backdrop"></div>
-  <div class="arena-popup__panel" role="dialog" aria-modal="true" aria-label="Live Battle">
-    <button class="arena-popup__close" id="arena-popup-close" aria-label="Close battle">&times;</button>
-    <div id="arena-popup-inner" class="arena-popup__inner">
-      <p class="arena-popup__loading">Loading...</p>
-    </div>
-  </div>
-</div>
-
-<script src="{% static 'js/arena_puzzle.js' %}?v=20260702b"></script>
 {% endblock %}

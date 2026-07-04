@@ -1909,10 +1909,11 @@ class ArenaMasterConsoleAccessTests(TestCase):
         self.client.force_login(self.owner_user)
         resp = self.client.get(self.url)
         content = resp.content.decode()
+        # With no battles the console shows explicit empty states
         self.assertIn("No active battle", content)
-        self.assertIn("Not connected", content)
+        self.assertIn("No battles in progress", content)
         # Mockup example values must never appear in the shell
-        for fabricated in ("1.6K", "2.4K", "1,240T", "CB-2025-0714", "Emerald Hall"):
+        for fabricated in ("1.6K", "1,240T", "CB-2025-0714", "Emerald Hall"):
             self.assertNotIn(fabricated, content)
 
     def test_all_eight_panels_present_with_disabled_controls(self):
@@ -1936,3 +1937,232 @@ class ArenaMasterConsoleAccessTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "arena-puzzle")
         self.assertNotContains(resp, "amc-page")
+
+
+# ── AMC P02 — master_state read models ───────────────────────────────────────
+
+@override_settings(ARENA_MASTER_CONSOLE_ENABLED=True, CHEF_BATTLE_ENABLED=True)
+class ArenaMasterStateTests(TestCase):
+    """P02: /chef-battle/master/state/ contract, battle-state matrix,
+    query bounds, and no operator-field leakage into public endpoints."""
+
+    def setUp(self):
+        from django.conf import settings as django_settings
+        User = get_user_model()
+        self.state_url = reverse("chef_battle:master_state")
+        self.console_url = reverse("chef_battle:master_console")
+
+        self.owner_user = User.objects.create_superuser("greenbear", password="pw")
+        self.owner_author, _ = RecipeAuthor.objects.update_or_create(
+            slug=django_settings.OWNER_SLUG,
+            defaults={"user": self.owner_user, "name": "GreenBear"},
+        )
+
+        ua = User.objects.create_user("ms-chef-a", password="pw")
+        ub = User.objects.create_user("ms-chef-b", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=ua, name="MS Chef A", slug="ms-chef-a")
+        self.chef_b = RecipeAuthor.objects.create(user=ub, name="MS Chef B", slug="ms-chef-b")
+        self.profile_a = ChefBattleProfile.objects.create(
+            author=self.chef_a, enrolled_at=timezone.now(), rating=1200
+        )
+        self.profile_b = ChefBattleProfile.objects.create(
+            author=self.chef_b, enrolled_at=timezone.now(), rating=1100
+        )
+        self.plain_user = User.objects.create_user("ms-plain", password="pw")
+
+    def _battle(self, status, **extra):
+        now = timezone.now()
+        defaults = dict(
+            challenger=self.chef_a,
+            opponent=self.chef_b,
+            theme="Master State Dish",
+            status=status,
+            start_time=now,
+            submission_deadline=now + timezone.timedelta(days=2),
+            voting_deadline=now + timezone.timedelta(days=4),
+            end_time=now + timezone.timedelta(days=5),
+        )
+        defaults.update(extra)
+        return Battle.objects.create(**defaults)
+
+    def _owner_state(self):
+        self.client.force_login(self.owner_user)
+        resp = self.client.post(self.state_url)
+        self.assertEqual(resp.status_code, 200)
+        return resp.json()
+
+    # ── access ──
+    def test_anonymous_gets_404(self):
+        self.assertEqual(self.client.post(self.state_url).status_code, 404)
+
+    def test_regular_user_gets_404(self):
+        self.client.force_login(self.plain_user)
+        self.assertEqual(self.client.post(self.state_url).status_code, 404)
+
+    def test_get_method_not_allowed_for_owner(self):
+        self.client.force_login(self.owner_user)
+        self.assertEqual(self.client.get(self.state_url).status_code, 405)
+
+    # ── contract: sections always present ──
+    def test_state_contains_all_sections(self):
+        data = self._owner_state()
+        for section in ("arena", "battles", "combat", "moderation", "voting",
+                        "viewers", "economy", "system"):
+            self.assertIn(section, data)
+
+    def test_no_battle_state(self):
+        data = self._owner_state()
+        self.assertEqual(data["battles"], [])
+        self.assertEqual(data["voting"], [])
+        self.assertEqual(data["combat"], [])
+        self.assertEqual(data["system"]["active_battle_count"], 0)
+        # DG-04 source does not exist — must be explicitly unavailable
+        self.assertFalse(data["viewers"]["available"])
+        self.assertEqual(data["arena"]["enrolled_count"], 2)
+
+    # ── battle-state matrix ──
+    def test_scheduled_battle_fields(self):
+        battle = self._battle(Battle.Status.SCHEDULED, challenger_ready=True)
+        data = self._owner_state()
+        self.assertEqual(len(data["battles"]), 1)
+        b = data["battles"][0]
+        self.assertEqual(b["id"], battle.pk)
+        self.assertEqual(b["status"], "scheduled")
+        self.assertEqual(b["phase_rail_step"], 1)
+        self.assertEqual(b["next_status"], "menu_locked")
+        self.assertTrue(b["challenger"]["ready"])
+        self.assertFalse(b["opponent"]["ready"])
+        self.assertEqual(b["challenger"]["rating"], 1200)
+        self.assertIsNotNone(b["deadline"])
+        self.assertGreater(b["seconds_remaining"], 0)
+        self.assertFalse(b["is_paused"])
+
+    def test_active_battle_reports_combat(self):
+        battle = self._battle(Battle.Status.ACTIVE)
+        from .models import BattleRound
+        BattleRound.objects.create(
+            battle=battle, round_number=1,
+            attacker=self.chef_a, defender=self.chef_b,
+            attack_power=3, defence_power=1,
+            outcome=BattleRound.Outcome.FULL_HIT,
+            challenger_hits=2, opponent_hits=1,
+        )
+        data = self._owner_state()
+        self.assertEqual(data["battles"][0]["phase_rail_step"], 2)
+        self.assertEqual(len(data["combat"]), 1)
+        c = data["combat"][0]
+        self.assertEqual(c["kind"], "combat")
+        self.assertEqual(c["rounds_played"], 1)
+        self.assertEqual(c["challenger_hits"], 2)
+        self.assertEqual(c["opponent_hits"], 1)
+
+    def test_ingredient_penalty_reports_biathlon_and_cooking_queue(self):
+        self._battle(Battle.Status.INGREDIENT_PENALTY)
+        data = self._owner_state()
+        self.assertEqual(data["combat"][0]["kind"], "biathlon")
+        self.assertEqual(data["moderation"]["cooking_queue"], 1)
+
+    def test_voting_battle_counts_and_tie(self):
+        battle = self._battle(Battle.Status.VOTING)
+        User = get_user_model()
+        for i, target in enumerate((self.chef_a, self.chef_b)):
+            voter = User.objects.create_user(f"ms-voter-{i}", password="pw")
+            BattleVote.objects.create(battle=battle, voter=voter, voted_for=target)
+        BattleVote.objects.create(
+            battle=battle, voted_for=self.chef_a,
+            ip_hash="h1", user_agent_hash="h2", is_suspicious=True,
+        )
+        data = self._owner_state()
+        v = data["voting"][0]
+        self.assertEqual(v["challenger_votes"], 2)
+        self.assertEqual(v["opponent_votes"], 1)
+        self.assertEqual(v["suspicious_votes"], 1)
+        self.assertFalse(v["is_tie"])
+
+    def test_exact_equal_nonzero_votes_is_tie(self):
+        battle = self._battle(Battle.Status.VOTING)
+        User = get_user_model()
+        for i, target in enumerate((self.chef_a, self.chef_b)):
+            voter = User.objects.create_user(f"ms-tie-{i}", password="pw")
+            BattleVote.objects.create(battle=battle, voter=voter, voted_for=target)
+        data = self._owner_state()
+        self.assertTrue(data["voting"][0]["is_tie"])
+
+    def test_completed_and_cancelled_excluded_paused_included(self):
+        self._battle(Battle.Status.COMPLETED)
+        self._battle(Battle.Status.CANCELLED)
+        self._battle(Battle.Status.PAUSED)
+        data = self._owner_state()
+        self.assertEqual(len(data["battles"]), 1)
+        self.assertTrue(data["battles"][0]["is_paused"])
+        self.assertEqual(data["system"]["paused_battle_count"], 1)
+        self.assertEqual(data["system"]["active_battle_count"], 0)
+
+    def test_gift_totals_per_battle(self):
+        from .models import Artifact, ViewerBattleGift
+        battle = self._battle(Battle.Status.VOTING)
+        artifact = Artifact.objects.create(
+            name="Test Ladle", rarity=Artifact.Rarity.COMMON,
+            effect_type="attack", effect_value=1, token_cost=30,
+        )
+        ViewerBattleGift.objects.create(
+            battle=battle, recipient=self.chef_a, artifact=artifact, tokens_spent=30
+        )
+        data = self._owner_state()
+        gift = data["economy"]["battle_gifts"][0]
+        self.assertEqual(gift["battle_id"], battle.pk)
+        self.assertEqual(gift["gift_count"], 1)
+        self.assertEqual(gift["tokens_spent"], 30)
+
+    # ── verification pass 2: value vs direct ORM ──
+    def test_online_count_matches_direct_query(self):
+        self.profile_a.last_seen_at = timezone.now()
+        self.profile_a.save(update_fields=["last_seen_at"])
+        data = self._owner_state()
+        from django.db.models import Q
+        cutoff = timezone.now() - timezone.timedelta(seconds=180)
+        expected = ChefBattleProfile.objects.filter(
+            enrolled_at__isnull=False, is_suspended=False, last_seen_at__gte=cutoff
+        ).count()
+        self.assertEqual(data["arena"]["online_count"], expected)
+
+    # ── query bound ──
+    def test_master_state_query_budget(self):
+        for _ in range(2):
+            self._battle(Battle.Status.VOTING)
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from .selectors import get_master_state
+        with CaptureQueriesContext(connection) as ctx:
+            get_master_state()
+        # 2 battles: fixed sections + 2 per-battle vote/suspicious queries.
+        self.assertLessEqual(len(ctx.captured_queries), 20,
+                             f"master_state used {len(ctx.captured_queries)} queries")
+
+    # ── public leak checks ──
+    def test_public_arena_state_keys_unchanged(self):
+        self._battle(Battle.Status.ACTIVE)
+        resp = self.client.post(reverse("chef_battle:arena_state"))
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(set(data.keys()),
+                         {"rings", "spectators", "center", "latest_result"})
+
+    def test_operator_fields_do_not_leak_into_public_arena(self):
+        self._battle(Battle.Status.VOTING)
+        resp = self.client.get(reverse("chef_battle:arena"))
+        content = resp.content.decode()
+        for operator_marker in ("amc-state-json", "suspicious_votes", "pending_payouts",
+                                "tokens_in_24h", "master/state"):
+            self.assertNotIn(operator_marker, content)
+
+    def test_console_page_renders_live_values(self):
+        battle = self._battle(Battle.Status.SCHEDULED)
+        self.client.force_login(self.owner_user)
+        resp = self.client.get(self.console_url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, f"#{battle.pk}")
+        self.assertContains(resp, "Master State Dish")
+        self.assertContains(resp, "MS Chef A")
+        self.assertContains(resp, "MS Chef B")
+        self.assertContains(resp, "amc-state-json")

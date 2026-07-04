@@ -8,7 +8,9 @@
 
 {% block extra_head %}
 <meta name="robots" content="noindex, nofollow">
-<link href="{% static 'css/arena_master_console.css' %}?v=20260704b" rel="stylesheet">
+<link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">
+<link href="{% static 'css/arena.css' %}?v=20260702b" rel="stylesheet">
+<link href="{% static 'css/arena_master_console.css' %}?v=20260704c" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -22,11 +24,15 @@
     <dl class="amc-topbar__meta">
       <div class="amc-meta-item">
         <dt>Battle ID</dt>
-        <dd><span class="amc-empty">No active battle</span></dd>
+        <dd id="amc-battle-id">{% if primary_battle %}#{{ primary_battle.id }}{% else %}<span class="amc-empty">No active battle</span>{% endif %}</dd>
       </div>
       <div class="amc-meta-item">
-        <dt>Arena feed</dt>
-        <dd><span class="amc-empty">Not connected</span></dd>
+        <dt>Active battles</dt>
+        <dd id="amc-battle-count">{{ master_state.system.active_battle_count }}</dd>
+      </div>
+      <div class="amc-meta-item">
+        <dt>Paused</dt>
+        <dd id="amc-paused-count">{{ master_state.system.paused_battle_count }}</dd>
       </div>
     </dl>
   </header>
@@ -39,45 +45,62 @@
       <dl class="amc-status__list">
         <div class="amc-status__row">
           <dt>State</dt>
-          <dd><span class="amc-empty">No active battle</span></dd>
+          <dd id="amc-status-state">{% if primary_battle %}{{ primary_battle.status_display }}{% else %}<span class="amc-empty">No active battle</span>{% endif %}</dd>
         </div>
         <div class="amc-status__row">
-          <dt>Current phase</dt>
-          <dd><span class="amc-empty">Unavailable in this phase</span></dd>
+          <dt>Theme</dt>
+          <dd id="amc-status-theme">{% if primary_battle %}{{ primary_battle.theme }}{% else %}<span class="amc-empty">&mdash;</span>{% endif %}</dd>
         </div>
         <div class="amc-status__row">
           <dt>Time remaining</dt>
-          <dd class="amc-status__timer" aria-label="Timer not running">--:--</dd>
+          <dd class="amc-status__timer" id="amc-status-timer"
+              data-deadline="{{ primary_battle.deadline|default:'' }}">--:--</dd>
         </div>
         <div class="amc-status__row">
-          <dt>Next phase</dt>
-          <dd><span class="amc-empty">Unavailable in this phase</span></dd>
+          <dt>Expected next phase</dt>
+          <dd id="amc-status-next">{% if primary_battle.next_status_display %}{{ primary_battle.next_status_display }}{% else %}<span class="amc-empty">&mdash;</span>{% endif %}</dd>
         </div>
       </dl>
     </article>
 
-    <article class="amc-chef amc-chef--one" aria-label="Chef 1 slot">
+    <article class="amc-chef amc-chef--one" aria-label="Chef 1 slot" id="amc-chef-1">
       <h2 class="amc-panel__title">Chef #1</h2>
+      {% if primary_battle %}
+      <div class="amc-chef__card">
+        <img class="amc-chef__avatar" src="{{ primary_battle.challenger.avatar_url }}" alt="" width="84" height="84">
+        <p class="amc-chef__name">{{ primary_battle.challenger.name }}</p>
+        <p class="amc-chef__rank">{{ primary_battle.challenger.rank_label|default:"Unranked" }}</p>
+        <p class="amc-chef__stats">{{ primary_battle.challenger.rating|default:"—" }} rating · {{ primary_battle.challenger.wins|default:0 }}W/{{ primary_battle.challenger.losses|default:0 }}L</p>
+        <p class="amc-chef__ready">{% if primary_battle.challenger.ready %}Ready{% else %}<span class="amc-empty">Not ready</span>{% endif %}</p>
+      </div>
+      {% else %}
       <div class="amc-chef__empty">
         <span class="amc-chef__avatar-placeholder" aria-hidden="true"></span>
         <p class="amc-empty">No active battle — slot empty</p>
       </div>
+      {% endif %}
     </article>
 
-    <div class="amc-ring" role="img" aria-label="Arena ring feed placeholder">
-      <div class="amc-ring__placeholder">
-        <p class="amc-ring__label">Arena Ring</p>
-        <p class="amc-empty">Live ring feed connects in a later phase.<br>The public Arena remains available at its usual address.</p>
-        <a class="amc-link" href="{% url 'chef_battle:arena' %}">Open public Arena</a>
-      </div>
+    <div class="amc-ring">
+      {% include "chef_battle/_arena_ring.html" %}
     </div>
 
-    <article class="amc-chef amc-chef--two" aria-label="Chef 2 slot">
+    <article class="amc-chef amc-chef--two" aria-label="Chef 2 slot" id="amc-chef-2">
       <h2 class="amc-panel__title">Chef #2</h2>
+      {% if primary_battle %}
+      <div class="amc-chef__card">
+        <img class="amc-chef__avatar" src="{{ primary_battle.opponent.avatar_url }}" alt="" width="84" height="84">
+        <p class="amc-chef__name">{{ primary_battle.opponent.name }}</p>
+        <p class="amc-chef__rank">{{ primary_battle.opponent.rank_label|default:"Unranked" }}</p>
+        <p class="amc-chef__stats">{{ primary_battle.opponent.rating|default:"—" }} rating · {{ primary_battle.opponent.wins|default:0 }}W/{{ primary_battle.opponent.losses|default:0 }}L</p>
+        <p class="amc-chef__ready">{% if primary_battle.opponent.ready %}Ready{% else %}<span class="amc-empty">Not ready</span>{% endif %}</p>
+      </div>
+      {% else %}
       <div class="amc-chef__empty">
         <span class="amc-chef__avatar-placeholder" aria-hidden="true"></span>
         <p class="amc-empty">No active battle — slot empty</p>
       </div>
+      {% endif %}
     </article>
 
     <article class="amc-audience" aria-label="Audience summary">
@@ -85,19 +108,23 @@
       <dl class="amc-audience__list">
         <div class="amc-audience__row">
           <dt>Active viewers</dt>
-          <dd><span class="amc-empty">Not connected</span></dd>
+          <dd id="amc-viewers" title="No per-page presence source exists yet — see P02 data dictionary"><span class="amc-empty">Unavailable</span></dd>
+        </div>
+        <div class="amc-audience__row">
+          <dt>Chefs online (3&nbsp;min)</dt>
+          <dd id="amc-online">{{ master_state.arena.online_count }}</dd>
         </div>
         <div class="amc-audience__row">
           <dt>Public votes</dt>
-          <dd><span class="amc-empty">Not connected</span></dd>
+          <dd id="amc-votes">{% if primary_battle %}{{ master_state.voting.0.total_votes }}{% else %}<span class="amc-empty">No active battle</span>{% endif %}</dd>
         </div>
         <div class="amc-audience__row">
           <dt>Battle gifts</dt>
-          <dd><span class="amc-empty">Not connected</span></dd>
+          <dd id="amc-gifts">{% if primary_battle %}{{ master_state.economy.battle_gifts.0.gift_count }}{% else %}<span class="amc-empty">No active battle</span>{% endif %}</dd>
         </div>
         <div class="amc-audience__row">
-          <dt>Battle streak</dt>
-          <dd><span class="amc-empty">Not connected</span></dd>
+          <dt>Crown holder</dt>
+          <dd id="amc-crown">{% if master_state.arena.crown_holder %}{{ master_state.arena.crown_holder.name }}{% else %}<span class="amc-empty">None</span>{% endif %}</dd>
         </div>
       </dl>
     </article>
@@ -105,17 +132,17 @@
   </section>
 
   {# ── Phase rail ─────────────────────────────────────────────────── #}
-  <nav class="amc-phase-rail" aria-label="Battle phase rail">
+  <nav class="amc-phase-rail" aria-label="Battle phase rail" data-active-step="{{ primary_battle.phase_rail_step|default:'' }}">
     <ol class="amc-phase-rail__list">
-      <li class="amc-phase-rail__step"><span class="amc-phase-rail__num">1</span> Challenge</li>
-      <li class="amc-phase-rail__step"><span class="amc-phase-rail__num">2</span> Combat</li>
-      <li class="amc-phase-rail__step"><span class="amc-phase-rail__num">3</span> Biathlon</li>
-      <li class="amc-phase-rail__step"><span class="amc-phase-rail__num">4</span> Cooking</li>
-      <li class="amc-phase-rail__step"><span class="amc-phase-rail__num">5</span> Mod Review</li>
-      <li class="amc-phase-rail__step"><span class="amc-phase-rail__num">6</span> Voting</li>
-      <li class="amc-phase-rail__step"><span class="amc-phase-rail__num">7</span> Crown</li>
+      <li class="amc-phase-rail__step" data-step="1"><span class="amc-phase-rail__num">1</span> Challenge</li>
+      <li class="amc-phase-rail__step" data-step="2"><span class="amc-phase-rail__num">2</span> Combat</li>
+      <li class="amc-phase-rail__step" data-step="3"><span class="amc-phase-rail__num">3</span> Biathlon</li>
+      <li class="amc-phase-rail__step" data-step="4"><span class="amc-phase-rail__num">4</span> Cooking</li>
+      <li class="amc-phase-rail__step" data-step="5"><span class="amc-phase-rail__num">5</span> Mod Review</li>
+      <li class="amc-phase-rail__step" data-step="6"><span class="amc-phase-rail__num">6</span> Voting</li>
+      <li class="amc-phase-rail__step" data-step="7"><span class="amc-phase-rail__num">7</span> Crown</li>
     </ol>
-    <p class="amc-phase-rail__note amc-empty">No active battle — phase rail idle</p>
+    <p class="amc-phase-rail__note{% if primary_battle %} amc-hidden{% endif %} amc-empty" id="amc-rail-note">No active battle — phase rail idle</p>
   </nav>
 
   {# ── Eight-panel operator deck ──────────────────────────────────── #}
@@ -126,7 +153,7 @@
 
       <article class="amc-panel" aria-label="Arena control and battle flow">
         <h3 class="amc-panel__title"><span class="amc-panel__num">1</span> Arena Control / Battle Flow</h3>
-        <p class="amc-empty">Phase controls activate in a later phase.</p>
+        <p class="amc-panel__hint">Controls activate in P03 with authorization and audit.</p>
         <div class="amc-panel__actions">
           <button type="button" class="amc-btn" disabled>Start Phase</button>
           <button type="button" class="amc-btn" disabled>Lock Ingredients</button>
@@ -139,47 +166,75 @@
 
       <article class="amc-panel" aria-label="Live battle monitor">
         <h3 class="amc-panel__title"><span class="amc-panel__num">2</span> Live Battle Monitor</h3>
-        <p class="amc-empty">Not connected</p>
-        <p class="amc-panel__hint">Active battles, timers and the live event log appear here once read models are wired.</p>
+        <ul class="amc-panel__list" id="amc-battle-list">
+          {% for b in master_state.battles %}
+          <li><a class="amc-link" href="{{ b.url }}">#{{ b.id }}</a> {{ b.status_display }} — {{ b.challenger.name }} vs {{ b.opponent.name }}{% if b.is_paused %} <span class="amc-badge amc-badge--danger">PAUSED</span>{% endif %}</li>
+          {% empty %}
+          <li><span class="amc-empty">No battles in progress</span></li>
+          {% endfor %}
+        </ul>
       </article>
 
       <article class="amc-panel" aria-label="Combat engine">
         <h3 class="amc-panel__title"><span class="amc-panel__num">3</span> Combat Engine</h3>
-        <p class="amc-empty">Not connected</p>
-        <p class="amc-panel__hint">Ingredient locks, hits, biathlon shots, artifacts in use and the combat log appear here.</p>
+        <ul class="amc-panel__list" id="amc-combat-list">
+          {% for c in master_state.combat %}
+          <li>#{{ c.battle_id }} {% if c.kind == "combat" %}round {{ c.rounds_played }} — hits {{ c.challenger_hits }}:{{ c.opponent_hits }}{% else %}biathlon — locks {{ c.locks_placed }}/{{ c.max_locks }}, shots {{ c.shots_fired }}/{{ c.max_shots }}{% endif %}</li>
+          {% empty %}
+          <li><span class="amc-empty">No combat in progress</span></li>
+          {% endfor %}
+        </ul>
       </article>
 
       <article class="amc-panel" aria-label="Moderation and safety">
         <h3 class="amc-panel__title"><span class="amc-panel__num">4</span> Moderation &amp; Safety</h3>
-        <p class="amc-empty">Not connected</p>
-        <p class="amc-panel__hint">Dish photo approval, live stream status and the safety checklist appear here.</p>
+        <dl class="amc-panel__kv">
+          <div><dt>Cooking queue</dt><dd id="amc-mod-cooking">{{ master_state.moderation.cooking_queue }}</dd></div>
+          <div><dt>Reports pending</dt><dd id="amc-mod-reports">{{ master_state.moderation.content_reports_pending }}</dd></div>
+          <div><dt>Entries flagged</dt><dd id="amc-mod-flagged">{{ master_state.moderation.entries_flagged }}</dd></div>
+        </dl>
         <div class="amc-panel__actions">
-          <a class="amc-link" href="{% url 'chef_battle:cooking_moderation' %}">Open existing cooking moderation</a>
+          <a class="amc-link" href="{% url 'chef_battle:cooking_moderation' %}">Open cooking moderation</a>
         </div>
       </article>
 
       <article class="amc-panel" aria-label="Voting integrity">
         <h3 class="amc-panel__title"><span class="amc-panel__num">5</span> Voting Integrity</h3>
-        <p class="amc-empty">Not connected</p>
-        <p class="amc-panel__hint">Vote totals, one-vote enforcement, suspicious activity and tie state appear here.</p>
+        <ul class="amc-panel__list" id="amc-voting-list">
+          {% for v in master_state.voting %}
+          <li>#{{ v.battle_id }}: {{ v.challenger_votes }}:{{ v.opponent_votes }}{% if v.is_tie %} <span class="amc-badge">TIE</span>{% endif %}{% if v.suspicious_votes %} · {{ v.suspicious_votes }} suspicious{% endif %}</li>
+          {% empty %}
+          <li><span class="amc-empty">No battles in progress</span></li>
+          {% endfor %}
+        </ul>
+        <p class="amc-panel__hint">One vote per account and per device is DB-enforced.</p>
       </article>
 
       <article class="amc-panel" aria-label="Economy, gifts and artifacts">
         <h3 class="amc-panel__title"><span class="amc-panel__num">6</span> Economy / Gifts / Artifacts</h3>
-        <p class="amc-empty">Not connected</p>
-        <p class="amc-panel__hint">Token flow, audience gifts and artifact drops appear here.</p>
+        <dl class="amc-panel__kv">
+          <div><dt>Tokens in (24h)</dt><dd id="amc-eco-in">{{ master_state.economy.tokens_in_24h }}</dd></div>
+          <div><dt>Tokens out (24h)</dt><dd id="amc-eco-out">{{ master_state.economy.tokens_out_24h }}</dd></div>
+          <div><dt>Pending payouts</dt><dd id="amc-eco-payouts">{{ master_state.economy.pending_payouts }}</dd></div>
+        </dl>
       </article>
 
       <article class="amc-panel" aria-label="CBR, LSR and rewards governance">
         <h3 class="amc-panel__title"><span class="amc-panel__num">7</span> CBR / LSR / Rewards Governance</h3>
-        <p class="amc-empty">Not connected</p>
-        <p class="amc-panel__hint">Reward statuses, payout eligibility and battle reports appear here. Review-only by design.</p>
+        <p class="amc-empty">Read models connect in P08</p>
+        <p class="amc-panel__hint">Reward statuses, payout eligibility and battle reports. Review-only by design (DG-06).</p>
       </article>
 
       <article class="amc-panel" aria-label="Ranks, crown and arena authority">
         <h3 class="amc-panel__title"><span class="amc-panel__num">8</span> Ranks / Crown / Arena Authority</h3>
-        <p class="amc-empty">Not connected</p>
-        <p class="amc-panel__hint">Rank ladder, crown holder and operator tools appear here.</p>
+        <dl class="amc-panel__kv">
+          <div><dt>Enrolled chefs</dt><dd id="amc-rank-enrolled">{{ master_state.arena.enrolled_count }}</dd></div>
+          <div><dt>Online now</dt><dd id="amc-rank-online">{{ master_state.arena.online_count }}</dd></div>
+          <div><dt>Suspended</dt><dd id="amc-rank-suspended">{{ master_state.arena.suspended_count }}</dd></div>
+        </dl>
+        <div class="amc-panel__actions">
+          <a class="amc-link" href="{% url 'chef_battle:rankings' %}">Open rankings</a>
+        </div>
       </article>
 
     </div>
@@ -190,11 +245,15 @@
     <dl class="amc-footer__list">
       <div class="amc-footer__item">
         <dt>System status</dt>
-        <dd>Shell only — read models not connected</dd>
+        <dd id="amc-sys-status">Read models live · polling every 20s</dd>
       </div>
       <div class="amc-footer__item">
         <dt>Server time</dt>
-        <dd>{% now "H:i" %} <span class="amc-footer__tz">Ireland (IST)</span></dd>
+        <dd><span id="amc-server-time">{% now "H:i" %}</span> <span class="amc-footer__tz">Ireland (IST)</span></dd>
+      </div>
+      <div class="amc-footer__item">
+        <dt>Chef Battles flag</dt>
+        <dd id="amc-sys-flag">{{ master_state.system.chef_battle_enabled|yesno:"enabled,disabled" }}</dd>
       </div>
       <div class="amc-footer__item">
         <dt>Operator</dt>
@@ -204,4 +263,7 @@
   </footer>
 
 </div>
+
+{{ master_state|json_script:"amc-state-json" }}
+<script src="{% static 'js/arena_master_console.js' %}?v=20260704a"></script>
 {% endblock %}

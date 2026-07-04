@@ -324,7 +324,7 @@ def _build_battlefield_progress():
             "items": [
                 {"label": "P00: Discovery, baseline, and contract freeze", "detail": "Reuse matrix for all 8 mockup panels (P00_REUSE_MATRIX.yaml), frozen public arena + operator read-model contracts (P00_CONTRACTS.yaml), query baselines: arena() 15q/47KB anon, 21q/51KB auth; arena_state() 7q/4.5KB. All 6 decision gates resolved (P00_DECISIONS.yaml). Both verification passes recorded (P00_BASELINE_REPORT.md). No production code added.", "status": "done", "completed_at": "2026-07-04"},
                 {"label": "P01: Desktop visual shell and information architecture", "detail": "Console shell live at /chef-battle/master/ behind ARENA_MASTER_CONSOLE_ENABLED (default off) + DG-01 gate (superuser + owner/flag, 404 otherwise). RecipeAuthor.has_arena_console_access added (recipes/0038). 8-panel deck, phase rail, overview row, system footer — explicit empty states only, all controls disabled. 12 access tests. Verified at 1920/1440/1280/mobile.", "status": "done", "completed_at": "2026-07-04"},
-                {"label": "P02: Read-only arena overview and live data adapters", "detail": "Real battle, chef, phase, viewer, vote, gift, crown, and system-state read models via single /battle/master/state/ endpoint.", "status": "pending"},
+                {"label": "P02: Read-only arena overview and live data adapters", "detail": "Console now live: get_master_state() selector + POST /chef-battle/master/state/ (20s poll, 12 queries/1.9KB at 1 battle). Battle status, chef cards, phase rail, voting/moderation/economy panels all real; public ring embedded via shared partial. arena()/arena_state() dedup into _build_arena_payload(). Viewers metric honestly unavailable (DG-04 source does not exist). Fixed latent arena 500 (.value on DB status). 17 new tests; 171/171 suite green.", "status": "done", "completed_at": "2026-07-04"},
                 {"label": "P03: Arena control and battle-flow orchestration", "detail": "GreenBear-only phase controls calling existing services with OPERATOR_ACTION audit. Emergency Stop (PAUSED status) per DG-03.", "status": "pending"},
                 {"label": "P04: Live battle monitor and combat engine console", "detail": "Operator visibility into combat rounds, ingredients, locks, shots, artifacts, logs. Read-only.", "status": "pending"},
                 {"label": "P05: Moderation, safety, and live-stream operations", "detail": "Moderation queue + stream safety controls on existing records. Live-stream operator endpoints are a confirmed gap (admin-only today).", "status": "pending"},
@@ -730,7 +730,10 @@ def _arena_center(active_battle):
         return {
             "type": "facing_pair" if is_facing else "active_battle",
             "battle_id": active_battle.pk,
-            "battle_phase": active_battle.status.value,
+            # NOTE: status is a plain str when the battle is loaded from the
+            # DB (TextChoices only wraps in-memory assignments) — .value here
+            # crashed the arena for any real active battle (latent pre-P02 bug).
+            "battle_phase": str(active_battle.status),
             "battle_url": reverse("chef_battle:battle_detail", kwargs={"pk": active_battle.pk}),
             "popup_url": reverse("chef_battle:arena_battle_popup"),
             "challenger": {
@@ -900,10 +903,13 @@ def arena_blast(request):
     return JsonResponse({"latest_result": _arena_latest_result()})
 
 
-def arena(request):
+def _build_arena_payload():
+    """Shared arena ring assembly used by arena(), arena_state() and the
+    Arena Master Console (P02 dedup — the two views previously duplicated
+    these queries line for line). Output keys are part of the frozen public
+    contract in P00_CONTRACTS.yaml; do not rename them."""
     active_battles = get_active_battles()
     active_battle = active_battles[0] if active_battles else None
-    in_battle_author_ids = set()
     in_battle_map: dict[int, dict] = {}
     for battle in active_battles:
         info = {
@@ -913,8 +919,6 @@ def arena(request):
         }
         in_battle_map[battle.challenger_id] = info
         in_battle_map[battle.opponent_id] = info
-        in_battle_author_ids.add(battle.challenger_id)
-        in_battle_author_ids.add(battle.opponent_id)
 
     online_cutoff = timezone.now() - timezone.timedelta(seconds=_ARENA_ONLINE_THRESHOLD)
 
@@ -961,18 +965,32 @@ def arena(request):
             "is_online": bool(profile.last_seen_at and profile.last_seen_at >= online_cutoff),
         })
 
-    center = _arena_center(active_battle)
-
-    spectators = _get_spectators(enrolled_author_ids)
-
-    arena_data = {
+    return {
+        "active_battle": active_battle,
+        "enrolled": enrolled,
+        "chefs_by_rank": chefs_by_rank,
         "rings": {
             rank.value: chefs_by_rank[rank.value]
             for rank in ChefBattleProfile.Rank
         },
-        "spectators": spectators,
-        "center": center,
+        "spectators": _get_spectators(enrolled_author_ids),
+        "center": _arena_center(active_battle),
         "latest_result": _arena_latest_result(),
+    }
+
+
+def arena(request):
+    payload = _build_arena_payload()
+    active_battle = payload["active_battle"]
+    enrolled = payload["enrolled"]
+    chefs_by_rank = payload["chefs_by_rank"]
+    spectators = payload["spectators"]
+
+    arena_data = {
+        "rings": payload["rings"],
+        "spectators": spectators,
+        "center": payload["center"],
+        "latest_result": payload["latest_result"],
     }
 
     # Opt-in preview of the active-battle centre (Phase 1 choreography).
@@ -1041,74 +1059,12 @@ def arena_ping(request):
 @require_POST
 def arena_state(request):
     """Lightweight state poll — returns updated ring data for JS to refresh SVG."""
-    active_battles = get_active_battles()
-    active_battle = active_battles[0] if active_battles else None
-    in_battle_author_ids = set()
-    in_battle_map: dict[int, dict] = {}
-    for battle in active_battles:
-        info = {
-            "battle_id": battle.id,
-            "battle_phase": battle.status,
-            "battle_url": battle.get_absolute_url(),
-        }
-        in_battle_map[battle.challenger_id] = info
-        in_battle_map[battle.opponent_id] = info
-        in_battle_author_ids.add(battle.challenger_id)
-        in_battle_author_ids.add(battle.opponent_id)
-
-    online_cutoff = timezone.now() - timezone.timedelta(seconds=_ARENA_ONLINE_THRESHOLD)
-
-    enrolled = list(
-        ChefBattleProfile.objects
-        .select_related("author")
-        .filter(enrolled_at__isnull=False, is_suspended=False)
-        .order_by("-rating")
-    )
-
-    enrolled_author_ids = {p.author_id for p in enrolled}
-
-    artifact_agg = {
-        a["chef_id"]: a
-        for a in ChefArtifact.objects.filter(
-            chef_id__in=enrolled_author_ids,
-            status=ChefArtifact.Status.AVAILABLE,
-        ).values("chef_id").annotate(
-            atk=Coalesce(Sum("artifact__effect_value", filter=Q(artifact__effect_type="attack")), 0),
-            def_=Coalesce(Sum("artifact__effect_value", filter=Q(artifact__effect_type="defence")), 0),
-        )
-    }
-
-    rings = {choice.value: [] for choice in ChefBattleProfile.Rank}
-    for profile in enrolled:
-        agg = artifact_agg.get(profile.author_id, {})
-        battle_info = in_battle_map.get(profile.author_id)
-        rings[profile.rank].append({
-            "name": profile.author.name,
-            "slug": profile.author.slug,
-            "avatar_url": profile.author.display_avatar_url,
-            "rank": profile.rank,
-            "rank_label": profile.get_rank_display(),
-            "rating": profile.rating,
-            "wins": profile.wins,
-            "losses": profile.losses,
-            "win_streak": profile.win_streak,
-            "atk": agg.get("atk", 0),
-            "def": agg.get("def_", 0),
-            "in_battle": battle_info is not None,
-            "battle_id": battle_info["battle_id"] if battle_info else None,
-            "battle_phase": battle_info["battle_phase"] if battle_info else None,
-            "battle_url": battle_info["battle_url"] if battle_info else None,
-            "is_online": bool(profile.last_seen_at and profile.last_seen_at >= online_cutoff),
-        })
-
-    center = _arena_center(active_battle)
-
-    spectators = _get_spectators(enrolled_author_ids)
+    payload = _build_arena_payload()
     return JsonResponse({
-        "rings": rings,
-        "spectators": spectators,
-        "center": center,
-        "latest_result": _arena_latest_result(),
+        "rings": payload["rings"],
+        "spectators": payload["spectators"],
+        "center": payload["center"],
+        "latest_result": payload["latest_result"],
     })
 
 
@@ -2356,15 +2312,40 @@ def battle_set_ready(request, pk):
 
 @arena_console_guard
 def master_console(request):
-    """Arena Master Console shell (phase P01 of the console plan).
+    """Arena Master Console (P01 shell + P02 read-only live data).
 
-    Renders layout and explicit unavailable states only. Live read models
-    arrive in P02; every operator write stays disabled until its own phase.
-    Access: DG-01 gate in access.arena_console_guard.
+    Server-renders the current read models and embeds the public arena ring
+    renderer; arena_master_console.js polls master_state() every 20 s. All
+    values come from documented selectors (P02_DATA_DICTIONARY.yaml); no
+    operator writes exist until P03. Access: DG-01 gate.
     """
+    from .selectors import get_master_state
+
     author = get_author_for_user(request.user)
+    payload = _build_arena_payload()
+    state = get_master_state()
     return render(request, "chef_battle/arena_master_console.html", {
         "operator_author": author,
         "operator_is_owner": bool(author and author.slug == settings.OWNER_SLUG),
+        "master_state": state,
+        "primary_battle": state["battles"][0] if state["battles"] else None,
+        "arena_data": {
+            "rings": payload["rings"],
+            "spectators": payload["spectators"],
+            "center": payload["center"],
+            "latest_result": payload["latest_result"],
+        },
+        "viewer_author": author,
+        "user_enrolled": False,
     })
+
+
+@arena_console_guard
+@require_POST
+def master_state(request):
+    """Read-only state poll for the console (P02). Same 20 s cadence as the
+    public arena poll. Operator-only via arena_console_guard; performs no
+    writes and leaks nothing into public endpoints."""
+    from .selectors import get_master_state
+    return JsonResponse(get_master_state())
 
