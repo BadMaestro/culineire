@@ -287,11 +287,11 @@
                         </form>
                     </div>
                 </details>
-                <form action="{% url 'logout' %}" class="ce-nav__logout ce-nav__logout--drawer" method="post">
-                    {% csrf_token %}
-                    <button class="ce-nav__button ce-nav__button--secondary" type="submit">Sign Out</button>
-                </form>
             </div>
+            <form action="{% url 'logout' %}" class="ce-nav__logout ce-nav__logout--drawer" method="post">
+                {% csrf_token %}
+                <button class="ce-nav__button ce-nav__button--secondary" type="submit">Sign Out</button>
+            </form>
             {% else %}
             <div class="ce-nav__auth">
                 {% if url_name == 'signup' %}
@@ -399,7 +399,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v2.5.114</span>
+                <span class="footer-version">v2.5.115</span>
             </div>
         </div>
     </div>

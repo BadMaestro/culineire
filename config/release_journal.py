@@ -1,5 +1,23 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.115",
+        "date": "2026-07-05",
+        "commit": "pending",
+        "title": "Drawer: Sign Out back at the bottom",
+        "section": "UI / Mobile",
+        "summary": (
+            "Per owner correction: only the profile block belongs at the top "
+            "of the drawer; Sign Out returns to the bottom, below the nav "
+            "links, with its own separator. Verified order live at 375px: "
+            "profile -> nav -> Sign Out, single centred button."
+        ),
+        "checklist": [
+            "base.html: drawer logout form moved out of the auth block",
+            "header.css: bottom separator on the drawer logout",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
         "version": "2.5.114",
         "date": "2026-07-05",
         "commit": "pending",

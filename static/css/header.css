@@ -1431,6 +1431,8 @@
 .ce-nav--open .ce-nav__logout--drawer {
   display: block;
   margin-top: 0.55rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid rgb(226 217 204 / 0.18);
 }
 .ce-nav--open .ce-nav__logout--drawer .ce-nav__button {
   width: 100%;
