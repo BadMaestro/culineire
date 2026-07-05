@@ -1,5 +1,38 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.103",
+        "date": "2026-07-05",
+        "commit": "pending",
+        "title": "Arena Master Console: post-audit corrections for P03-P05",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "Independent compliance audit of P00-P05 found and fixed real "
+            "defects in the completed phases. Emergency Stop now truly "
+            "freezes battle time: on resume the submission/voting/end "
+            "deadlines are shifted forward by the measured pause duration "
+            "inside the locked transaction (with clock-skew protection), and "
+            "the resume audit records the shift. Stream report counts now "
+            "aggregate the authoritative LiveBroadcastReport rows instead of "
+            "the unsynchronised legacy counter. Cooked-photo moderation "
+            "follows the real lifecycle: uploads stay in COOKING with "
+            "PENDING review, approve requires a photo plus real-photo "
+            "confirmation, and PRESENTATION starts only after both entries "
+            "are approved. Malformed action IDs return JSON 400 instead of "
+            "500; cancelling a paused battle clears all pause fields; "
+            "rejected vote-integrity evidence handling fixed. Remaining "
+            "audit items are recorded per item as deferred-to-phase or "
+            "accepted risk in the phase documents."
+        ),
+        "checklist": [
+            "operator_resume: deadlines shifted by pause duration (clock-skew safe)",
+            "console streams: report_count from LiveBroadcastReport aggregate",
+            "cooked-photo lifecycle: COOKING+PENDING -> owner approve -> PRESENTATION",
+            "master_action: malformed IDs -> JSON 400; cancel clears pause fields",
+            "audit trail: P03_AUDIT_REPORT.md / P05_SAFETY_REPORT.md post-audit sections",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
         "version": "2.5.102",
         "date": "2026-07-04",
         "commit": "pending",
