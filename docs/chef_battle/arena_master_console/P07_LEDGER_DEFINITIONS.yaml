@@ -1,0 +1,27 @@
+schema_version: "1.0"
+document_type: "phase_07_ledger_definitions"
+produced_at: "2026-07-05"
+source: "chef_battle/selectors.py get_master_economy_detail()"
+write_surface: "NONE — P07 is read-only; no economy write action was approved. master_action rejects any economy mutation verb with 400 (test-enforced)."
+
+definitions:
+  window: "24 hours back from server now (ECONOMY_WINDOW_HOURS, explicit in payload)"
+  flows_by_type:
+    source: "TokenTransaction grouped by tx_type inside window"
+    semantics: "count + signed token sum exactly as stored in the immutable ledger (credits positive, debits negative)"
+  headline_in_out: "existing P02 aggregates over the same ledger (amount>0 / amount<0 sums); reconciliation test proves both views agree"
+  gift_catalogue:
+    source: "APPRECIATION_GIFT_COST constant (source of truth) + AppreciationGift 24h delivery counts per type"
+  gifts_by_chef_24h:
+    source: "AppreciationGift grouped by recipient, top 10 by tokens"
+    privacy: "recipients only; sender identities not exposed"
+  artifact_inventory: "ChefArtifact counts by lifecycle status (available/reserved/consumed/expired/reversed)"
+  rarity_distribution: "active Artifact catalogue rows grouped by rarity"
+  orders_by_status: "TokenOrder counts by status (pending/completed/expired/cancelled/refunded/disputed)"
+  attention_order_ids: "ids (only) of newest 10 DISPUTED/REFUNDED orders — investigation happens in the existing admin/records, never via console mutation"
+
+invariants_preserved:
+  - "Wallet balances never edited (no code path exists in the console)"
+  - "Stripe order status never mutated; webhook idempotency untouched"
+  - "Closed-loop wording enforced: panel states tokens are virtual items, not cash/earnings; banned phrases test-asserted absent"
+  - "Wallet invariant test: balance == sum of ledger amounts before/after selector reads"

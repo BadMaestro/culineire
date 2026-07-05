@@ -1,0 +1,20 @@
+schema_version: "1.0"
+document_type: "phase_07_handoff"
+phase_id: "P07"
+status: "complete_pending_owner_signoff"
+produced_at: "2026-07-05"
+
+delivered:
+  selector: "get_master_economy_detail() -> economy.detail (flows by type, gift catalogue + delivery, per-chef gifts, artifact inventory/rarity, orders by status, attention ids)"
+  ui: "panel 6: four subtitled lists + closed-loop wording hint"
+  tests: "ArenaMasterEconomyTests (8) incl. ledger reconciliation, wallet invariant, banned-wording and no-write-path checks"
+
+write_surface: "NONE — nothing approved, nothing built; master_action rejects economy verbs (test-enforced)"
+
+p08_input_contract:
+  cbr_lsr_panel: "panel 7 still explicit empty state; DG-06 says review-only — surface RewardRecord/PayoutRequest/LedgerEvent read models + battle-report submission (the one write allowed to non-owner operators per DG-01)"
+
+deployment:
+  migrations_required: false
+  collectstatic_required: true
+  risk: "low — read-only, operator-gated"

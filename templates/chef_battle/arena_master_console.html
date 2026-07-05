@@ -312,11 +312,54 @@
 
       <article class="amc-panel" aria-label="Economy, gifts and artifacts">
         <h3 class="amc-panel__title"><span class="amc-panel__num">6</span> Economy / Gifts / Artifacts</h3>
-        <dl class="amc-panel__kv">
-          <div><dt>Tokens in (24h)</dt><dd id="amc-eco-in">{{ master_state.economy.tokens_in_24h }}</dd></div>
-          <div><dt>Tokens out (24h)</dt><dd id="amc-eco-out">{{ master_state.economy.tokens_out_24h }}</dd></div>
-          <div><dt>Pending payouts</dt><dd id="amc-eco-payouts">{{ master_state.economy.pending_payouts }}</dd></div>
+        <dl class="amc-panel__kv amc-panel__kv--row">
+          <div><dt>In (24h)</dt><dd id="amc-eco-in">{{ master_state.economy.tokens_in_24h }}</dd></div>
+          <div><dt>Out (24h)</dt><dd id="amc-eco-out">{{ master_state.economy.tokens_out_24h }}</dd></div>
+          <div><dt>Payout queue</dt><dd id="amc-eco-payouts">{{ master_state.economy.pending_payouts }}</dd></div>
         </dl>
+
+        <h4 class="amc-panel__subtitle">Flow by type (24h)</h4>
+        <ul class="amc-panel__list" id="amc-eco-flows">
+          {% for type, f in master_state.economy.detail.flows_by_type.items %}
+          <li>{{ type }}: {{ f.count }} tx · {{ f.tokens }}T</li>
+          {% empty %}
+          <li><span class="amc-empty">No token movement in 24h</span></li>
+          {% endfor %}
+        </ul>
+
+        <h4 class="amc-panel__subtitle">Gifts delivered (24h)</h4>
+        <ul class="amc-panel__list" id="amc-eco-gifts">
+          {% for g in master_state.economy.detail.gifts_by_chef_24h %}
+          <li>{{ g.chef }}: {{ g.gifts }} gift(s) · {{ g.tokens }}T</li>
+          {% empty %}
+          <li><span class="amc-empty">No gifts in 24h</span></li>
+          {% endfor %}
+        </ul>
+
+        <h4 class="amc-panel__subtitle">Artifacts</h4>
+        <ul class="amc-panel__list" id="amc-eco-artifacts">
+          {% if master_state.economy.detail.artifact_inventory %}
+          <li>inventory: {% for s, n in master_state.economy.detail.artifact_inventory.items %}{{ s }} {{ n }}{% if not forloop.last %} · {% endif %}{% endfor %}</li>
+          {% else %}
+          <li><span class="amc-empty">No chef artifacts</span></li>
+          {% endif %}
+          {% if master_state.economy.detail.rarity_distribution %}
+          <li>catalogue rarity: {% for r, n in master_state.economy.detail.rarity_distribution.items %}{{ r }} {{ n }}{% if not forloop.last %} · {% endif %}{% endfor %}</li>
+          {% endif %}
+        </ul>
+
+        <h4 class="amc-panel__subtitle">Orders</h4>
+        <ul class="amc-panel__list" id="amc-eco-orders">
+          {% if master_state.economy.detail.orders_by_status %}
+          <li>{% for s, n in master_state.economy.detail.orders_by_status.items %}{{ s }} {{ n }}{% if not forloop.last %} · {% endif %}{% endfor %}</li>
+          {% else %}
+          <li><span class="amc-empty">No token orders</span></li>
+          {% endif %}
+          {% if master_state.economy.detail.attention_order_ids %}
+          <li><span class="amc-badge amc-badge--danger">needs review</span> order ids: {{ master_state.economy.detail.attention_order_ids|join:", " }}</li>
+          {% endif %}
+        </ul>
+        <p class="amc-panel__hint">Tokens are closed-loop virtual items, not cash or earnings. This panel is read-only: wallet balances and Stripe order status can never be edited from the console.</p>
       </article>
 
       <article class="amc-panel" aria-label="CBR, LSR and rewards governance">

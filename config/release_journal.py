@@ -1,5 +1,35 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.105",
+        "date": "2026-07-05",
+        "commit": "pending",
+        "title": "Arena Master Console P07: economy, gifts and artifacts panel (read-only)",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "Panel 6 upgraded to a full read-only economy view: token flows "
+            "grouped by transaction type over an explicit 24h window (signed "
+            "sums exactly as stored in the immutable ledger), appreciation "
+            "gift catalogue from the source-of-truth constants with live "
+            "delivery counts, per-chef gift totals, artifact inventory by "
+            "lifecycle status plus catalogue rarity distribution, and token "
+            "orders by status with disputed/refunded ids flagged for "
+            "attention. No operator economy write was approved, so none "
+            "exists: a test posts five invented mutation verbs to the action "
+            "endpoint and asserts each is rejected. Reconciliation tests "
+            "prove displayed totals equal ledger sums and wallet balances "
+            "equal transaction sums. Closed-loop wording (virtual items, "
+            "never cash or earnings) is asserted on the rendered page. "
+            "8 new tests; full suite green."
+        ),
+        "checklist": [
+            "selectors: get_master_economy_detail() -> economy.detail",
+            "console panel 6: flows/gifts/artifacts/orders lists + wording hint",
+            "tests: reconciliation, wallet invariant, no-write-path, wording",
+            "docs: P07_LEDGER_DEFINITIONS.yaml, P07_RECONCILIATION_REPORT.md, P07_HANDOFF.yaml",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
         "version": "2.5.104",
         "date": "2026-07-05",
         "commit": "pending",

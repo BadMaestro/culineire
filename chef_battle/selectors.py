@@ -360,6 +360,7 @@ def get_master_state() -> dict:
         "pending_payouts": PayoutRequest.objects.filter(
             status__in=[PayoutRequest.Status.PENDING, PayoutRequest.Status.UNDER_REVIEW]
         ).count(),
+        "detail": get_master_economy_detail(),
     }
 
     # ── system section ───────────────────────────────────────────────
@@ -755,4 +756,91 @@ def _voting_analytics_for_battle(b, now):
             "chat_messages_last_hour": chat_last_hour,
             "support_by_chef": support,
         },
+    }
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# P07 — Economy, gifts, tokens and artifacts (READ-ONLY).
+# Payment-adjacent: no operator write exists in this phase; wallet balances,
+# Stripe paid-status and webhooks are never touched. Tokens are closed-loop
+# virtual items — never described as cash, earnings or withdrawable funds.
+# Ledger definitions: docs/chef_battle/arena_master_console/P07_LEDGER_DEFINITIONS.yaml
+# ═════════════════════════════════════════════════════════════════════════════
+
+ECONOMY_WINDOW_HOURS = 24
+
+
+def get_master_economy_detail() -> dict:
+    """Console economy panel detail. Pure reads over indexed columns."""
+    from django.db.models import Count as _Count, Q as _Q, Sum as _Sum
+    from .models import (
+        APPRECIATION_GIFT_COST, AppreciationGift, Artifact, ChefArtifact,
+        TokenOrder, TokenTransaction,
+    )
+
+    now = timezone.now()
+    window_start = now - timezone.timedelta(hours=ECONOMY_WINDOW_HOURS)
+
+    # Token flow per transaction type inside the window (credits are
+    # positive, debits negative — exactly as stored in the ledger).
+    flows_by_type = {
+        row["tx_type"]: {"count": row["n"], "tokens": row["total"] or 0}
+        for row in TokenTransaction.objects.filter(created_at__gte=window_start)
+        .values("tx_type").annotate(n=_Count("id"), total=_Sum("amount"))
+    }
+
+    # Appreciation gifts delivered per recipient chef in the window.
+    gifts_by_chef = [
+        {
+            "chef": row["recipient__slug"],
+            "gifts": row["n"],
+            "tokens": row["tokens"] or 0,
+        }
+        for row in AppreciationGift.objects.filter(sent_at__gte=window_start)
+        .values("recipient__slug").annotate(n=_Count("id"), tokens=_Sum("tokens_spent"))
+        .order_by("-tokens")[:10]
+    ]
+
+    # Static appreciation catalogue (source of truth constant) + live 24h counts.
+    delivered_by_type = {
+        row["gift_type"]: row["n"]
+        for row in AppreciationGift.objects.filter(sent_at__gte=window_start)
+        .values("gift_type").annotate(n=_Count("id"))
+    }
+    gift_catalogue = [
+        {"type": str(k), "cost_tokens": v, "delivered_24h": delivered_by_type.get(k, 0)}
+        for k, v in APPRECIATION_GIFT_COST.items()
+    ]
+
+    # Artifact inventory by lifecycle status and catalogue rarity distribution.
+    artifact_inventory = {
+        row["status"]: row["n"]
+        for row in ChefArtifact.objects.values("status").annotate(n=_Count("id"))
+    }
+    rarity_distribution = {
+        row["rarity"]: row["n"]
+        for row in Artifact.objects.filter(is_active=True)
+        .values("rarity").annotate(n=_Count("id"))
+    }
+
+    # Order review: counts by status; ids only for states needing attention.
+    orders_by_status = {
+        row["status"]: row["n"]
+        for row in TokenOrder.objects.values("status").annotate(n=_Count("id"))
+    }
+    attention_orders = list(
+        TokenOrder.objects.filter(
+            status__in=[TokenOrder.Status.DISPUTED, TokenOrder.Status.REFUNDED]
+        ).order_by("-created_at").values_list("id", flat=True)[:10]
+    )
+
+    return {
+        "window_hours": ECONOMY_WINDOW_HOURS,
+        "flows_by_type": flows_by_type,
+        "gift_catalogue": gift_catalogue,
+        "gifts_by_chef_24h": gifts_by_chef,
+        "artifact_inventory": artifact_inventory,
+        "rarity_distribution": rarity_distribution,
+        "orders_by_status": orders_by_status,
+        "attention_order_ids": attention_orders,
     }

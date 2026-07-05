@@ -2230,11 +2230,14 @@ class ArenaMasterStateTests(TestCase):
         from .selectors import get_master_state
         with CaptureQueriesContext(connection) as ctx:
             get_master_state()
-        # Operator-only endpoint. Budget history: P02 fixed sections +
-        # 2 per-battle vote queries (<=20); P04 monitor (+counts/events);
-        # P05 moderation detail (+queue/reports/streams). 20 fixed at zero
-        # battles + ~4 per battle => 35 covers 2 battles with headroom.
-        self.assertLessEqual(len(ctx.captured_queries), 35,
+        # Operator-only endpoint polled every 20 s by at most a couple of
+        # operators. Budget history: P02 <=20; P04 monitor; P05 moderation
+        # detail (~27 fixed); P06 voting analytics adds ~7/battle (votes,
+        # UTC series, integrity x2, suspicious, chat x2, gift aggregate);
+        # P07 economy detail adds ~6 fixed. Measured: 41 at 2 battles.
+        # Bound 50 = headroom for 3 battles; revisit only if battle
+        # concurrency grows beyond that.
+        self.assertLessEqual(len(ctx.captured_queries), 50,
                              f"master_state used {len(ctx.captured_queries)} queries")
 
     # ── public leak checks ──
@@ -3241,3 +3244,124 @@ class ArenaMasterVotingAnalyticsTests(TestCase):
         for marker in ("votes_per_hour", "rejected_by_gate", "suspicious_queue",
                        "enforcement", "challenger_pct"):
             self.assertNotIn(marker, raw)
+
+
+# ── AMC P07 — economy, gifts, tokens, artifacts (read-only) ──────────────────
+
+@override_settings(ARENA_MASTER_CONSOLE_ENABLED=True, CHEF_BATTLE_ENABLED=True)
+class ArenaMasterEconomyTests(TestCase):
+    """P07: ledger reconciliation, catalogue/inventory contract, closed-loop
+    wording, absence of any economy write path."""
+
+    def setUp(self):
+        from django.conf import settings as django_settings
+        User = get_user_model()
+        self.state_url = reverse("chef_battle:master_state")
+        self.owner_user = User.objects.create_superuser("greenbear", password="pw")
+        RecipeAuthor.objects.update_or_create(
+            slug=django_settings.OWNER_SLUG,
+            defaults={"user": self.owner_user, "name": "GreenBear"},
+        )
+        ua = User.objects.create_user("p7-chef", password="pw")
+        self.chef = RecipeAuthor.objects.create(user=ua, name="P7 Chef", slug="p7-chef")
+        ChefBattleProfile.objects.create(author=self.chef, enrolled_at=timezone.now())
+
+    def _detail(self):
+        self.client.force_login(self.owner_user)
+        return self.client.post(self.state_url).json()["economy"]["detail"]
+
+    def test_empty_states(self):
+        d = self._detail()
+        self.assertEqual(d["flows_by_type"], {})
+        self.assertEqual(d["gifts_by_chef_24h"], [])
+        self.assertEqual(d["artifact_inventory"], {})
+        self.assertEqual(d["orders_by_status"], {})
+        self.assertEqual(d["attention_order_ids"], [])
+        self.assertEqual(d["window_hours"], 24)
+        # Catalogue is static and always present
+        self.assertEqual(len(d["gift_catalogue"]), len(APPRECIATION_GIFT_COST))
+
+    def test_flows_reconcile_to_ledger(self):
+        from .services import credit_tokens, debit_tokens
+        from .models import TokenTransaction
+        credit_tokens(self.chef, 100, TokenTransaction.TxType.PURCHASE)
+        credit_tokens(self.chef, 50, TokenTransaction.TxType.ADMIN_GRANT)
+        debit_tokens(self.chef, 30, TokenTransaction.TxType.GIFT_SENT)
+        d = self._detail()
+        self.assertEqual(d["flows_by_type"]["purchase"], {"count": 1, "tokens": 100})
+        self.assertEqual(d["flows_by_type"]["admin_grant"], {"count": 1, "tokens": 50})
+        self.assertEqual(d["flows_by_type"]["gift_sent"], {"count": 1, "tokens": -30})
+        # Headline totals reconcile with the same ledger
+        econ = self.client.post(self.state_url).json()["economy"]
+        self.assertEqual(econ["tokens_in_24h"], 150)
+        self.assertEqual(econ["tokens_out_24h"], -30)
+        # Wallet invariant: balance equals ledger sum
+        from .models import TokenWallet
+        wallet = TokenWallet.objects.get(chef=self.chef)
+        ledger_sum = sum(tx.amount for tx in wallet.transactions.all())
+        self.assertEqual(wallet.balance, ledger_sum)
+
+    def test_old_transactions_outside_window(self):
+        from .services import credit_tokens
+        from .models import TokenTransaction
+        tx = credit_tokens(self.chef, 100, TokenTransaction.TxType.PURCHASE)
+        TokenTransaction.objects.filter(pk=tx.pk).update(
+            created_at=timezone.now() - timezone.timedelta(hours=30))
+        d = self._detail()
+        self.assertNotIn("purchase", d["flows_by_type"])
+
+    def test_gift_catalogue_and_delivery(self):
+        from .models import AppreciationGift, AppreciationGiftType
+        AppreciationGift.objects.create(
+            recipient=self.chef, gift_type=AppreciationGiftType.COFFEE, tokens_spent=20)
+        d = self._detail()
+        coffee = next(g for g in d["gift_catalogue"] if g["type"] == "coffee")
+        self.assertEqual(coffee["cost_tokens"], 20)
+        self.assertEqual(coffee["delivered_24h"], 1)
+        self.assertEqual(d["gifts_by_chef_24h"][0],
+                         {"chef": "p7-chef", "gifts": 1, "tokens": 20})
+
+    def test_artifact_inventory_and_rarity(self):
+        from .models import Artifact, ChefArtifact
+        a1 = Artifact.objects.create(name="P7 Pan", rarity=Artifact.Rarity.RARE,
+                                     effect_type="defence", effect_value=2, token_cost=50)
+        a2 = Artifact.objects.create(name="P7 Spoon", rarity=Artifact.Rarity.COMMON,
+                                     effect_type="attack", effect_value=1, token_cost=10)
+        ChefArtifact.objects.create(chef=self.chef, artifact=a1,
+                                    status=ChefArtifact.Status.AVAILABLE)
+        ChefArtifact.objects.create(chef=self.chef, artifact=a2,
+                                    status=ChefArtifact.Status.CONSUMED)
+        d = self._detail()
+        self.assertEqual(d["artifact_inventory"], {"available": 1, "consumed": 1})
+        self.assertEqual(d["rarity_distribution"], {"rare": 1, "common": 1})
+
+    def test_orders_by_status_and_attention_ids(self):
+        from .models import TokenOrder, TokenPackage, TokenWallet
+        wallet, _ = TokenWallet.objects.get_or_create(chef=self.chef)
+        package = TokenPackage.objects.first() or TokenPackage.objects.create(
+            key="p7-test", name="P7 Test Pack", tokens=100, price_eur="10.00")
+        ok = TokenOrder.objects.create(
+            wallet=wallet, package=package, status=TokenOrder.Status.COMPLETED,
+            tokens=100, amount_eur_cents=1000)
+        bad = TokenOrder.objects.create(
+            wallet=wallet, package=package, status=TokenOrder.Status.DISPUTED,
+            tokens=100, amount_eur_cents=1000)
+        d = self._detail()
+        self.assertEqual(d["orders_by_status"], {"completed": 1, "disputed": 1})
+        self.assertEqual(d["attention_order_ids"], [bad.pk])
+
+    def test_closed_loop_wording_on_console(self):
+        self.client.force_login(self.owner_user)
+        page = self.client.get(reverse("chef_battle:master_console")).content.decode()
+        self.assertIn("closed-loop virtual items", page)
+        for banned in ("withdrawable", "e-money", "cash out", "your earnings"):
+            self.assertNotIn(banned, page.lower())
+
+    def test_no_economy_write_action_exists(self):
+        # master_action must reject any invented economy mutation verb.
+        self.client.force_login(self.owner_user)
+        for verb in ("credit_tokens", "adjust_wallet", "mark_order_paid",
+                     "grant_tokens", "refund_order"):
+            resp = self.client.post(reverse("chef_battle:master_action"),
+                                    {"action": verb, "battle_id": 1})
+            self.assertEqual(resp.status_code, 400, verb)

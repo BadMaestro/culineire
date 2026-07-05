@@ -137,6 +137,7 @@ phase_sequence:
     risk: "high"
     depends_on: ["P02", "DG-01", "DG-03"]
     outcome: "Moderation queue and stream safety controls built on existing records and permissions."
+    status: "COMPLETED — confirmed by owner 2026-07-04 + post-audit corrections (photo lifecycle, real report counts) deployed (v2.5.102, v2.5.103). Evidence: P05_ACTION_MATRIX.yaml, P05_SAFETY_REPORT.md, P05_HANDOFF.yaml."
   - id: "P06"
     name: "Voting integrity and audience analytics"
     prompt: "phase_06_voting_integrity.yaml"
@@ -144,6 +145,7 @@ phase_sequence:
     risk: "high"
     depends_on: ["P02", "DG-04", "DG-05"]
     outcome: "Real vote totals, one-vote enforcement evidence, suspicious-activity review, tie state, and audience summaries."
+    status: "COMPLETED — confirmed by owner 2026-07-05 (v2.5.104, deployed). Percentages, UTC vote series, VoteIntegrityEvent evidence, privacy-safe suspicious queue, tie/readiness, pulse. Evidence: P06_METRIC_DEFINITIONS.yaml, P06_PRIVACY_REPORT.md, P06_HANDOFF.yaml."
   - id: "P07"
     name: "Economy, gifts, tokens, and artifacts"
     prompt: "phase_07_economy_gifts.yaml"
