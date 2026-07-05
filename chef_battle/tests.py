@@ -3670,6 +3670,9 @@ class OwnerBriefingTests(TestCase):
         self.assertContains(resp, "Owner Briefing")
         self.assertContains(resp, "Completion report")
         self.assertContains(resp, "Running a test battle")
+        # Console button in the action row for console-access users
+        self.assertContains(resp, "Master Console")
+        self.assertContains(resp, "/chef-battle/master/")
 
     def test_regular_chef_does_not_see_briefing(self):
         self.client.force_login(self.chef_user)
@@ -3677,3 +3680,4 @@ class OwnerBriefingTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertNotContains(resp, "Owner Briefing")
         self.assertNotContains(resp, "amc-briefing")
+        self.assertNotContains(resp, "Master Console")

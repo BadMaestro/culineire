@@ -14,6 +14,9 @@
       <a class="btn-primary" href="{% url 'chef_battle:challenge_create' %}">New Challenge</a>
       {% include '_enter_arena_btn.html' %}
       <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
+      {% if can_see_console %}
+      <a class="btn-secondary" href="{% url 'chef_battle:master_console' %}">Master Console</a>
+      {% endif %}
     </div>
   </div>
 </section>

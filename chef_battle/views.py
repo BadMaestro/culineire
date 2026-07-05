@@ -1085,11 +1085,13 @@ def challenge_list(request):
 
     sent = get_sent_challenges(author)
     received = get_received_challenges(author)
+    from .access import has_arena_console_access
     return render(request, "chef_battle/challenge_list.html", {
         "author": author,
         "sent_challenges": sent,
         "received_challenges": received,
         "is_owner": author.slug == settings.OWNER_SLUG,
+        "can_see_console": has_arena_console_access(request),
     })
 
 

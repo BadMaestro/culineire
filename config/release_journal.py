@@ -1,5 +1,23 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.110",
+        "date": "2026-07-05",
+        "commit": "pending",
+        "title": "Master Console button on the challenges page",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "The challenges page action row now includes a Master Console "
+            "button, rendered only for accounts that pass the console access "
+            "gate (the owner and flagged operators). Regular chefs see no "
+            "trace of it (test-enforced)."
+        ),
+        "checklist": [
+            "challenge_list: can_see_console via has_arena_console_access",
+            "OwnerBriefingTests extended (button visible/hidden per role)",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
         "version": "2.5.109",
         "date": "2026-07-05",
         "commit": "pending",
