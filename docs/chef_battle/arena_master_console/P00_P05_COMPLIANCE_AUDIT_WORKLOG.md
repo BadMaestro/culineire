@@ -317,3 +317,40 @@ coverage, then rerun the focused action class.
 
 - Clock-skew regression: PASS; `ArenaMasterActionTests` 23/23.
 - Final verified total across the executed focused groups: 53 passing tests.
+
+## 2026-07-05 — Independent adversarial pass 2
+
+Owner requested one additional pass for missed defects.
+
+Planned checks before any further code change:
+
+- Trace every `master_action` branch through authorization, input validation,
+  transaction, idempotency, audit and notification behavior.
+- Inspect hidden combat payloads for operator-participant conflicts and unrelated
+  battle data exposure.
+- Reconcile safety/read-model fields with authoritative model relations and
+  identify stale counters, version checks, truncation or privacy leaks.
+- Search focused tests for claims present only in documentation.
+- Record new findings first; do not implement them without a bounded correction
+  that can be verified within the remaining budget.
+
+### Adversarial pass 2 findings
+
+- CRITICAL — P05 moderation queue has a lifecycle mismatch. It selects only
+  `Battle.Status.INGREDIENT_PENALTY`, while `cooking_submit()` accepts cooked
+  photos only in `Battle.Status.COOKING`. `approve_cooking_phase()` moves the
+  battle out of the queue before either chef can upload; after upload, the battle
+  remains excluded. Therefore the console cannot observe legitimate cooked-photo
+  submissions in the normal workflow.
+- HIGH — malformed `battle_id`, `entry_id`, `report_id`, or `session_id` values
+  can raise uncaught ORM conversion errors. `master_action` does not normalise
+  these to a controlled 400/404 response, allowing malformed owner input to
+  produce HTTP 500.
+- MEDIUM — cancelling a paused battle clears `paused_at` and
+  `paused_from_status` but leaves `paused_reason`, creating inconsistent state and
+  retaining emergency text unnecessarily.
+- CONFIRMED PREVIOUS — the `master_action` docstring claims all actions are
+  idempotency-guarded by `expected_status`, but only force-status uses that guard.
+
+Decision: do not guess the cooked-photo workflow. It needs an owner decision:
+review during COOKING before presentation, or a dedicated pending-review state.
