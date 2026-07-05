@@ -1434,9 +1434,23 @@
 }
 .ce-nav--open .ce-nav__logout--drawer .ce-nav__button {
   width: 100%;
+  justify-content: center; /* centred label (generic drawer buttons are flex-start) */
   border: 1px solid rgb(247 242 234 / 0.28);
   background: rgb(247 242 234 / 0.10);
   color: #f7f2ea;
+}
+
+/* Profile block lives at the TOP of the drawer (owner annotation
+   2026-07-05): auth block ordered before the nav links; its separator
+   flips from top to bottom accordingly. */
+.ce-nav--open .ce-nav__auth--author {
+  order: -1;
+  margin-top: 0;
+  margin-bottom: 0.4rem;
+  padding-top: 0;
+  padding-bottom: 0.55rem;
+  border-top: none;
+  border-bottom: 1px solid rgb(226 217 204 / 0.18);
 }
 .ce-nav--open .ce-nav__logout--drawer .ce-nav__button:hover,
 .ce-nav--open .ce-nav__logout--drawer .ce-nav__button:focus-visible {

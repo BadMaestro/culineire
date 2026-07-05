@@ -1546,6 +1546,15 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
   }
 }
 
+/* Mobile: the hero Chef Battles Menu panel is redundant — the floating
+   corner widget covers battles/arena entry and was overlapping this panel
+   (owner decision 2026-07-05). Desktop/tablet keep the hero panel. */
+@media (max-width: 640px) {
+  .hero-battle-panel {
+    display: none;
+  }
+}
+
 /* ── OLD Homepage Battle Arena Hero (kept for reference) ──────── */
 .battle-arena-hero {
   background:

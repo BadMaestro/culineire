@@ -1,5 +1,29 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.114",
+        "date": "2026-07-05",
+        "commit": "pending",
+        "title": "Mobile drawer layout per owner annotations; hero battle panel hidden on mobile",
+        "section": "UI / Mobile",
+        "summary": (
+            "Three changes from the owner's annotated mobile screenshots. "
+            "(1) The hero Chef Battles Menu panel is hidden on mobile "
+            "(<=640px) - the floating corner widget covers battles/arena "
+            "entry there and was overlapping the panel; desktop and tablet "
+            "keep it. (2) The drawer profile block moved to the top of the "
+            "drawer (above the nav links), separator flipped accordingly. "
+            "(3) The drawer Sign Out label is centred. Verified live at "
+            "375px (profile above nav, one centred Sign Out, hero panel "
+            "gone) and 1920px (hero panel visible, locked hero anchors "
+            "49/119px intact)."
+        ),
+        "checklist": [
+            "chef_battle.css: .hero-battle-panel hidden at <=640px",
+            "header.css: drawer auth block order -1 + flipped separator; Sign Out centred",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
         "version": "2.5.113",
         "date": "2026-07-05",
         "commit": "pending",
