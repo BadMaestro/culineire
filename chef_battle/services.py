@@ -2441,3 +2441,48 @@ def operator_review_payout(*, payout_id, operator_author, decision, reason="",
                "tokens": payout.amount_reward_tokens},
     )
     return payout
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# Viewer presence heartbeat (DG-04, owner-delegated design 2026-07-05).
+# Piggybacks on the existing public 20 s polls — no new endpoints, no
+# WebSockets. Device key = sha256(IP)+sha256(UA) digest (same
+# pseudonymisation as vote dedup); battle=None means the arena lobby.
+# Active viewer definition: seen within VIEWER_PRESENCE_WINDOW_SECONDS.
+# ═════════════════════════════════════════════════════════════════════════════
+
+VIEWER_PRESENCE_WINDOW_SECONDS = 180
+VIEWER_PRESENCE_PURGE_AFTER_SECONDS = 3600
+
+
+def record_viewer_presence(request, battle=None) -> None:
+    """Upsert a presence heartbeat. MUST never break the public poll that
+    calls it — every failure is swallowed and logged."""
+    from .models import BattleViewerPresence
+
+    from monitoring.tracker import get_client_ip
+
+    try:
+        ip = get_client_ip(request) or ""
+        ua = request.META.get("HTTP_USER_AGENT", "")
+        if not ip and not ua:
+            return
+        viewer_hash = hash_request_value(f"{ip}|{ua}")
+        now = timezone.now()
+        BattleViewerPresence.objects.update_or_create(
+            battle=battle,
+            viewer_hash=viewer_hash,
+            defaults={
+                "last_seen_at": now,
+                "is_authenticated": bool(getattr(request.user, "is_authenticated", False)),
+            },
+        )
+        # Opportunistic retention: drop rows idle for over an hour on the
+        # same surface (indexed delete; keeps the table tiny by design).
+        BattleViewerPresence.objects.filter(
+            battle=battle,
+            last_seen_at__lt=now - timezone.timedelta(
+                seconds=VIEWER_PRESENCE_PURGE_AFTER_SECONDS),
+        ).delete()
+    except Exception:
+        logger.exception("viewer presence heartbeat failed")

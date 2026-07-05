@@ -321,15 +321,29 @@ def get_master_state() -> dict:
     ]
 
     # ── viewers section ──────────────────────────────────────────────
-    # DG-04 assumed a per-page presence system; P02 discovery found none
-    # exists (presence.PresenceEvent is an owner/admin login event log).
-    # Per the non-fabrication rule this stays explicitly unavailable. The
-    # only real presence signal today is the arena heartbeat below.
+    # DG-04 resolved 2026-07-05 (design delegated to Claude by the owner):
+    # BattleViewerPresence heartbeats ride the existing public 20 s polls;
+    # a viewer is active if seen within 180 s. Device-hash pseudonymised,
+    # no raw IP/UA stored, rows purged after an hour of inactivity.
+    from django.db.models import Count as _PCount
+    from .models import BattleViewerPresence
+
+    presence_cutoff = now - timezone.timedelta(seconds=ARENA_ONLINE_THRESHOLD_SECONDS)
+    presence_rows = {
+        row["battle_id"]: row["n"]
+        for row in BattleViewerPresence.objects.filter(last_seen_at__gte=presence_cutoff)
+        .values("battle_id").annotate(n=_PCount("id"))
+    }
     viewers = {
-        "available": False,
-        "reason": "No per-page presence source exists; see P02_DATA_DICTIONARY.yaml.",
-        "arena_online_chefs": profile_counts["online"],
+        "available": True,
+        "definition": "distinct devices polling the page within 180s (battle room per battle; arena lobby separate)",
         "window_seconds": ARENA_ONLINE_THRESHOLD_SECONDS,
+        "arena_lobby_viewers": presence_rows.get(None, 0),
+        "battles": [
+            {"battle_id": b.pk, "viewers": presence_rows.get(b.pk, 0)}
+            for b in battles
+        ],
+        "arena_online_chefs": profile_counts["online"],
     }
 
     # ── economy section ──────────────────────────────────────────────

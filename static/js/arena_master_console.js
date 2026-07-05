@@ -77,6 +77,16 @@
     }
 
     setText('amc-online', state.arena.online_count);
+
+    /* DG-04: real viewer presence */
+    if (state.viewers && state.viewers.available) {
+      setText('amc-lobby-viewers', state.viewers.arena_lobby_viewers);
+      if (state.viewers.battles && state.viewers.battles.length) {
+        setText('amc-viewers', state.viewers.battles[0].viewers);
+      } else {
+        setEmpty('amc-viewers', 'No active battle');
+      }
+    }
     if (state.voting && state.voting.length) {
       setText('amc-votes', state.voting[0].total_votes);
     } else {

@@ -77,6 +77,17 @@ decisions:
     implementation_notes:
       - "Read from the existing Presence model / presence endpoint — do not invent a new counter."
       - "Filter presence records to the battle detail page URL for the active battle."
+    resolution_2026_07_05: >-
+      P02 discovery found the assumed presence system does not exist
+      (presence.PresenceEvent is an owner/admin login event log). The owner
+      delegated the design to Claude on 2026-07-05; implemented as
+      BattleViewerPresence (migration 0059): heartbeats ride the existing
+      public surfaces (battle_detail page view, battle_state_poll for
+      logged-in viewers, arena_state poll for the lobby). Device key =
+      sha256(IP|UA) — same pseudonymisation as vote dedup; no raw IP/UA, no
+      account linkage, rows purged after 1 h idle. Active viewer = seen
+      within 180 s. Console viewers section now live: per-battle counts +
+      arena lobby count.
       - "Refresh interval: same as arena polling (20s) or presence system's own interval."
     blocks_phases: [2, 6]
 

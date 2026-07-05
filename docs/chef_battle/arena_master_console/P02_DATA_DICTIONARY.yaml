@@ -46,14 +46,12 @@ sections:
     is_tie: "challenger_votes == opponent_votes AND > 0 (DG-05)"
 
   viewers:
-    available: false
-    reason: >-
-      DG-04 assumed an existing per-page presence system. P02 discovery found
-      none exists: presence.PresenceEvent is an owner/admin login event log,
-      not page presence. Per the non-fabrication rule the console shows
-      "Unavailable" and the real arena heartbeat signal instead.
+    available: true
+    resolved: "DG-04 resolved 2026-07-05 (design delegated to Claude by the owner)"
+    source: "BattleViewerPresence heartbeats on battle_detail (public page view), battle_state_poll (logged-in 20s poll) and arena_state (lobby)"
+    definition: "distinct device hashes (sha256 of IP|UA) seen within 180 s; battle room counted per battle, arena lobby separately"
+    privacy: "no raw IP/UA stored, no account linkage; rows purged after 1 h idle (opportunistic delete on heartbeat)"
     arena_online_chefs: "same query as arena.online_count (enrolled chefs seen in 180 s)"
-    owner_decision_needed: "if per-battle viewer counts are wanted, a real presence signal must be designed and approved (new infrastructure, out of P02 scope)"
 
   economy:
     window: "24 hours (explicit in payload as window_hours)"

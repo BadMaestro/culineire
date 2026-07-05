@@ -1,5 +1,36 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.108",
+        "date": "2026-07-05",
+        "commit": "pending",
+        "title": "Real viewer presence for the Arena Master Console (DG-04 resolved)",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "The last open console gap is closed: active-viewer counts are "
+            "now real. New BattleViewerPresence model (migration 0059) "
+            "records pseudonymised device heartbeats (sha256 of IP+UA, the "
+            "same technique as vote dedup - no raw IP/UA, no account "
+            "linkage) on the existing public surfaces: the battle room page "
+            "and its logged-in 20s poll count per battle; the arena page "
+            "and its poll count the lobby separately. A viewer is active if "
+            "seen within 180 seconds (the same window as the chef "
+            "heartbeat); idle rows are purged after an hour. The console "
+            "Audience card now shows real 'Battle viewers' and 'Arena "
+            "lobby' counts instead of Unavailable. Heartbeats are fail-safe "
+            "(they can never break a public poll - test-enforced) and the "
+            "public arena JSON contract is unchanged. 7 new tests; "
+            "chef_battle suite 252 green."
+        ),
+        "checklist": [
+            "chef_battle/0059: BattleViewerPresence",
+            "services: record_viewer_presence (fail-safe heartbeat + 1h purge)",
+            "hooks: battle_detail, battle_state_poll, arena page, arena_state",
+            "console Audience card: real per-battle + lobby counts",
+            "docs: DG-04 resolution in P00_DECISIONS + P02_DATA_DICTIONARY",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
         "version": "2.5.107",
         "date": "2026-07-05",
         "commit": "pending",

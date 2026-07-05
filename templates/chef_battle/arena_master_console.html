@@ -107,8 +107,12 @@
       <h2 class="amc-panel__title">Audience</h2>
       <dl class="amc-audience__list">
         <div class="amc-audience__row">
-          <dt>Active viewers</dt>
-          <dd id="amc-viewers" title="No per-page presence source exists yet — see P02 data dictionary"><span class="amc-empty">Unavailable</span></dd>
+          <dt>Battle viewers (3&nbsp;min)</dt>
+          <dd id="amc-viewers" title="Distinct devices polling the battle room within 180s">{% if primary_battle %}{{ master_state.viewers.battles.0.viewers }}{% else %}<span class="amc-empty">No active battle</span>{% endif %}</dd>
+        </div>
+        <div class="amc-audience__row">
+          <dt>Arena lobby (3&nbsp;min)</dt>
+          <dd id="amc-lobby-viewers" title="Distinct devices polling the arena page within 180s">{{ master_state.viewers.arena_lobby_viewers }}</dd>
         </div>
         <div class="amc-audience__row">
           <dt>Chefs online (3&nbsp;min)</dt>
@@ -456,5 +460,5 @@
 
 {{ master_state|json_script:"amc-state-json" }}
 <script nonce="{{ request.csp_nonce }}">window.AMC_OPERATOR = { isOwner: {{ operator_is_owner|yesno:"true,false" }} };</script>
-<script src="{% static 'js/arena_master_console.js' %}?v=20260705a"></script>
+<script src="{% static 'js/arena_master_console.js' %}?v=20260705b"></script>
 {% endblock %}

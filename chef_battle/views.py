@@ -980,6 +980,10 @@ def _build_arena_payload():
 
 
 def arena(request):
+    # DG-04: page view is a lobby presence heartbeat (poll continues it)
+    from .services import record_viewer_presence
+    record_viewer_presence(request, battle=None)
+
     payload = _build_arena_payload()
     active_battle = payload["active_battle"]
     enrolled = payload["enrolled"]
@@ -1059,6 +1063,9 @@ def arena_ping(request):
 @require_POST
 def arena_state(request):
     """Lightweight state poll — returns updated ring data for JS to refresh SVG."""
+    from .services import record_viewer_presence
+    record_viewer_presence(request, battle=None)  # arena lobby surface
+
     payload = _build_arena_payload()
     return JsonResponse({
         "rings": payload["rings"],
@@ -1204,6 +1211,10 @@ def battle_detail(request, pk):
         Battle.objects.select_related("challenger", "opponent", "winner", "loser"),
         pk=pk,
     )
+
+    # DG-04: page view is a presence heartbeat (public battle room surface)
+    from .services import record_viewer_presence
+    record_viewer_presence(request, battle=battle)
     if battle.end_time <= timezone.now() and battle.status != Battle.Status.COMPLETED:
         battle = calculate_battle_result(battle)
     else:
@@ -1613,6 +1624,10 @@ def battle_state_poll(request, pk):
 
     battle = get_object_or_404(Battle, pk=pk)
     author = get_author_for_user(request.user)
+
+    from .services import record_viewer_presence
+    record_viewer_presence(request, battle=battle)
+
     state = get_combat_state(battle)
 
     viewer_has_moved = False

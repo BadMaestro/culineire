@@ -346,6 +346,40 @@ class VoteIntegrityEvent(models.Model):
         return f"Battle {self.battle_id}: {self.gate_code}"
 
 
+class BattleViewerPresence(models.Model):
+    """Pseudonymised viewer heartbeat for real audience counts (DG-04).
+
+    One row per device (sha256 of IP+UA, same pseudonymisation as vote
+    dedup) per surface. battle=NULL means the arena lobby page. Rows are
+    upserted by the existing public 20 s polls and opportunistically purged
+    after an hour — no raw IP/UA, no account linkage, no history kept.
+    A viewer counts as active if seen within the last 180 seconds.
+    """
+
+    battle = models.ForeignKey(
+        Battle, null=True, blank=True, on_delete=models.CASCADE,
+        related_name="viewer_presences",
+    )
+    viewer_hash = models.CharField(max_length=64, db_index=True)
+    is_authenticated = models.BooleanField(default=False)
+    last_seen_at = models.DateTimeField(db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["battle", "viewer_hash"], name="unique_viewer_per_surface"
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["battle", "last_seen_at"], name="viewer_battle_seen_idx"),
+        ]
+
+    def __str__(self):
+        surface = f"battle {self.battle_id}" if self.battle_id else "arena lobby"
+        return f"Viewer {self.viewer_hash[:8]} on {surface}"
+
+
 class BattleEvent(models.Model):
     class EventType(models.TextChoices):
         CHALLENGE_CREATED = "challenge_created", "Challenge Created"

@@ -2111,8 +2111,9 @@ class ArenaMasterStateTests(TestCase):
         self.assertEqual(data["voting"], [])
         self.assertEqual(data["combat"], [])
         self.assertEqual(data["system"]["active_battle_count"], 0)
-        # DG-04 source does not exist — must be explicitly unavailable
-        self.assertFalse(data["viewers"]["available"])
+        # DG-04 resolved 2026-07-05: presence is live; empty DB = zero viewers
+        self.assertTrue(data["viewers"]["available"])
+        self.assertEqual(data["viewers"]["arena_lobby_viewers"], 0)
         self.assertEqual(data["arena"]["enrolled_count"], 2)
 
     # ── battle-state matrix ──
@@ -3539,3 +3540,108 @@ class ArenaMasterGovernanceTests(TestCase):
         raw = self.client.post(reverse("chef_battle:arena_state")).content.decode()
         for marker in ("gross_eur", "payout", "rewards_matrix", "chain_intact"):
             self.assertNotIn(marker, raw)
+
+
+# ── DG-04 — viewer presence heartbeat ────────────────────────────────────────
+
+@override_settings(ARENA_MASTER_CONSOLE_ENABLED=True, CHEF_BATTLE_ENABLED=True)
+class ViewerPresenceTests(TestCase):
+    """DG-04 resolution: heartbeats on existing polls, 180s window,
+    device-hash pseudonymisation, no PII, opportunistic retention."""
+
+    def setUp(self):
+        from django.conf import settings as django_settings
+        User = get_user_model()
+        self.owner_user = User.objects.create_superuser("greenbear", password="pw")
+        RecipeAuthor.objects.update_or_create(
+            slug=django_settings.OWNER_SLUG,
+            defaults={"user": self.owner_user, "name": "GreenBear"},
+        )
+        ua = User.objects.create_user("pr-chef-a", password="pw")
+        ub = User.objects.create_user("pr-chef-b", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=ua, name="Pr Chef A", slug="pr-chef-a")
+        self.chef_b = RecipeAuthor.objects.create(user=ub, name="Pr Chef B", slug="pr-chef-b")
+        ChefBattleProfile.objects.create(author=self.chef_a, enrolled_at=timezone.now())
+        ChefBattleProfile.objects.create(author=self.chef_b, enrolled_at=timezone.now())
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b,
+            theme="Presence Dish", status=Battle.Status.ACTIVE,
+            start_time=now,
+            submission_deadline=now + timezone.timedelta(days=2),
+            voting_deadline=now + timezone.timedelta(days=4),
+            end_time=now + timezone.timedelta(days=5),
+        )
+
+    def _poll_battle(self, ip, ua="TestBrowser/1.0"):
+        # Anonymous spectators heartbeat via the public battle room page
+        # (battle_state_poll is login-only and covers logged-in viewers).
+        return self.client.get(
+            reverse("chef_battle:battle_detail", kwargs={"pk": self.battle.pk}),
+            REMOTE_ADDR=ip, HTTP_USER_AGENT=ua,
+        )
+
+    def _viewers(self):
+        self.client.force_login(self.owner_user)
+        return self.client.post(reverse("chef_battle:master_state")).json()["viewers"]
+
+    def test_battle_poll_records_presence(self):
+        from .models import BattleViewerPresence
+        self.assertEqual(self._poll_battle("10.0.0.1").status_code, 200)
+        row = BattleViewerPresence.objects.get()
+        self.assertEqual(row.battle, self.battle)
+        self.assertEqual(len(row.viewer_hash), 64)
+
+    def test_same_device_counts_once_distinct_devices_counted(self):
+        self._poll_battle("10.0.0.1")
+        self._poll_battle("10.0.0.1")  # same device, refresh only
+        self._poll_battle("10.0.0.2")
+        self._poll_battle("10.0.0.1", ua="OtherBrowser/2.0")
+        v = self._viewers()
+        self.assertTrue(v["available"])
+        self.assertEqual(v["battles"][0]["viewers"], 3)
+
+    def test_stale_viewers_leave_the_window(self):
+        from .models import BattleViewerPresence
+        self._poll_battle("10.0.0.1")
+        BattleViewerPresence.objects.update(
+            last_seen_at=timezone.now() - timezone.timedelta(seconds=300))
+        v = self._viewers()
+        self.assertEqual(v["battles"][0]["viewers"], 0)
+
+    def test_arena_lobby_counted_separately(self):
+        self.client.post(reverse("chef_battle:arena_state"),
+                         REMOTE_ADDR="10.0.0.9", HTTP_USER_AGENT="Lobby/1.0")
+        self._poll_battle("10.0.0.1")
+        v = self._viewers()
+        self.assertEqual(v["arena_lobby_viewers"], 1)
+        self.assertEqual(v["battles"][0]["viewers"], 1)
+
+    def test_idle_rows_purged_after_an_hour(self):
+        from .models import BattleViewerPresence
+        BattleViewerPresence.objects.create(
+            battle=self.battle, viewer_hash="x" * 64,
+            last_seen_at=timezone.now() - timezone.timedelta(hours=2))
+        self._poll_battle("10.0.0.1")
+        hashes = set(BattleViewerPresence.objects.filter(
+            battle=self.battle).values_list("viewer_hash", flat=True))
+        self.assertNotIn("x" * 64, hashes)
+        self.assertEqual(len(hashes), 1)
+
+    def test_no_raw_ip_or_ua_stored_or_exposed(self):
+        from .models import BattleViewerPresence
+        self._poll_battle("203.0.113.77", ua="SecretAgent/9.9")
+        row = BattleViewerPresence.objects.get()
+        self.assertNotIn("203.0.113.77", row.viewer_hash)
+        self.client.force_login(self.owner_user)
+        raw = self.client.post(reverse("chef_battle:master_state")).content.decode()
+        self.assertNotIn("203.0.113.77", raw)
+        self.assertNotIn("SecretAgent", raw)
+        self.assertNotIn("viewer_hash", raw)
+
+    def test_public_polls_unbroken_and_arena_json_clean(self):
+        resp = self.client.post(reverse("chef_battle:arena_state"),
+                                REMOTE_ADDR="10.0.0.5", HTTP_USER_AGENT="A/1")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(set(resp.json().keys()),
+                         {"rings", "spectators", "center", "latest_result"})
