@@ -625,7 +625,9 @@ def submit_combat_action(
     moves_invested = max(COMBAT_MOVES_MIN, min(COMBAT_MOVES_MAX, moves_invested))
 
     profile = get_or_create_battle_profile(chef)
-    if profile.battle_moves < moves_invested:
+    # infinite_moves (hero rank, bots) bypasses the balance gate exactly like
+    # the energy service does on spend — the two checks must stay consistent.
+    if not profile.infinite_moves and profile.battle_moves < moves_invested:
         raise ValueError(f"Not enough battle moves. You have {profile.battle_moves}.")
 
     round_number = get_current_round(battle)

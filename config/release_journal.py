@@ -1,5 +1,37 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.117",
+        "date": "2026-07-05",
+        "commit": "pending",
+        "title": "Battle emulation: full lifecycle test battles from the console",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "New owner-only emulation mechanics (chef_battle/emulation.py): "
+            "Start Emulation creates a battle between two dedicated bot "
+            "chefs (EMU Chef Alpha/Beta, isolated accounts with infinite "
+            "energy), and each Emulation Step click advances it exactly one "
+            "lifecycle stage THROUGH THE REAL DOMAIN SERVICES - readiness, "
+            "menu entries with bot recipes, combat rounds until the win "
+            "condition, biathlon locks and shots, cooking-photo submission "
+            "and owner approval, voting with synthetic voters, and the real "
+            "result calculation. Seven clicks = a complete battle visible "
+            "live in the console, the arena ring and the public battle "
+            "room. Only one emulation can run at a time; the step action "
+            "refuses non-emulation battles; everything is audited. Fixed "
+            "in passing: submit_combat_action ignored infinite_moves (hero "
+            "rank chefs with zero balance could not declare actions even "
+            "though the energy service allows them). 4 new tests incl. a "
+            "full-lifecycle assertion; chef_battle suite 258 green."
+        ),
+        "checklist": [
+            "chef_battle/emulation.py: start_emulation + emulation_step",
+            "master_action: start_emulation / emulation_step verbs (owner-only)",
+            "console panel 1: Emulation section with two buttons",
+            "services: infinite_moves honored in submit_combat_action",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
         "version": "2.5.116",
         "date": "2026-07-05",
         "commit": "pending",

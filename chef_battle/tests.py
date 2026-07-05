@@ -2018,11 +2018,11 @@ class ArenaMasterConsoleAccessTests(TestCase):
             "CBR / LSR / Rewards Governance", "Ranks / Crown / Arena Authority",
         ):
             self.assertIn(panel, content)
-        # P03: owner sees 8 control buttons; only Award Crown stays disabled
-        # (crown is decided by audience voting only — project core principle).
+        # P03: owner control buttons (8) + emulation pair; only Award Crown
+        # stays disabled (crown is decided by audience voting only).
         import re
         amc_buttons = re.findall(r'<button[^>]*class="amc-btn[^"]*"[^>]*>', content)
-        self.assertEqual(len(amc_buttons), 8)
+        self.assertEqual(len(amc_buttons), 10)
         disabled = [b for b in amc_buttons if "disabled" in b]
         self.assertEqual(len(disabled), 1)
         self.assertIn("Award Crown", content)
@@ -3681,3 +3681,86 @@ class OwnerBriefingTests(TestCase):
         self.assertNotContains(resp, "Owner Briefing")
         self.assertNotContains(resp, "amc-briefing")
         self.assertNotContains(resp, "Master Console")
+
+
+@override_settings(ARENA_MASTER_CONSOLE_ENABLED=True, CHEF_BATTLE_ENABLED=True)
+class BattleEmulationTests(TestCase):
+    """Owner-only battle emulation drives a full lifecycle via real services."""
+
+    def setUp(self):
+        from django.conf import settings as django_settings
+        User = get_user_model()
+        self.owner_user = User.objects.create_superuser("greenbear", password="pw")
+        self.owner_author, _ = RecipeAuthor.objects.update_or_create(
+            slug=django_settings.OWNER_SLUG,
+            defaults={"user": self.owner_user, "name": "GreenBear"},
+        )
+        self.url = reverse("chef_battle:master_action")
+
+    def test_operator_cannot_emulate(self):
+        User = get_user_model()
+        op = User.objects.create_superuser("emu-op", password="pw")
+        RecipeAuthor.objects.create(user=op, name="Emu Op", slug="emu-op",
+                                    has_arena_console_access=True)
+        self.client.force_login(op)
+        resp = self.client.post(self.url, {"action": "start_emulation"})
+        self.assertEqual(resp.status_code, 403)
+
+    def test_full_emulated_lifecycle(self):
+        from .emulation import emulation_step, start_emulation
+        battle = start_emulation(operator_author=self.owner_author)
+        self.assertEqual(battle.status, Battle.Status.SCHEDULED)
+        self.assertTrue(battle.theme.startswith("EMULATION"))
+
+        seen = [battle.status]
+        for _ in range(12):
+            result = emulation_step(battle_id=battle.pk,
+                                    operator_author=self.owner_author)
+            seen.append(result["after"])
+            if result["after"] == Battle.Status.COMPLETED:
+                break
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.COMPLETED)
+
+        # Every stage of the real lifecycle was traversed
+        for stage in ("menu_locked", "ingredient_penalty", "cooking",
+                      "presentation", "voting", "completed"):
+            self.assertIn(stage, seen, seen)
+
+        # Real domain artifacts exist
+        self.assertEqual(battle.entries.count(), 2)
+        self.assertGreater(battle.combat_rounds.count(), 0)
+        self.assertEqual(
+            battle.ingredient_locks.count(), 2)  # IngredientLock.MAX_LOCKS
+        self.assertGreater(battle.votes.count(), 0)
+        self.assertIsNotNone(battle.winner)
+        for entry in battle.entries.all():
+            self.assertTrue(entry.cooked_photo)
+            self.assertEqual(entry.moderation_status,
+                             BattleEntry.ModerationStatus.APPROVED)
+        # Audited
+        self.assertTrue(BattleEvent.objects.filter(
+            battle=battle, event_type=BattleEvent.EventType.OPERATOR_ACTION,
+            payload_json__action="emulation_start").exists())
+
+    def test_second_emulation_blocked_while_running(self):
+        from .emulation import start_emulation
+        from .services import OperatorActionError
+        start_emulation(operator_author=self.owner_author)
+        with self.assertRaises(OperatorActionError):
+            start_emulation(operator_author=self.owner_author)
+
+    def test_step_rejects_non_emulation_battle(self):
+        from .emulation import emulation_step, _get_or_create_bot
+        from .services import OperatorActionError
+        a = _get_or_create_bot("emu-chef-alpha", "EMU Chef Alpha")
+        b = _get_or_create_bot("emu-chef-beta", "EMU Chef Beta")
+        now = timezone.now()
+        real = Battle.objects.create(
+            challenger=a, opponent=b, theme="Real Battle",
+            status=Battle.Status.SCHEDULED, start_time=now,
+            submission_deadline=now + timezone.timedelta(days=1),
+            voting_deadline=now + timezone.timedelta(days=2),
+            end_time=now + timezone.timedelta(days=3))
+        with self.assertRaises(OperatorActionError):
+            emulation_step(battle_id=real.pk, operator_author=self.owner_author)

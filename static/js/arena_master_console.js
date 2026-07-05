@@ -312,7 +312,14 @@
     var kind = btn.getAttribute('data-amc-action');
     var fields = { battle_id: primary ? primary.id : '' };
 
-    if (kind === 'broadcast') {
+    if (kind === 'start_emulation') {
+      if (!window.confirm('Start a battle EMULATION between the EMU bot chefs? ' +
+          'It runs through the real services; advance it stage by stage with Emulation Step.')) return;
+      fields = { action: 'start_emulation' };
+    } else if (kind === 'emulation_step') {
+      if (!primary) { showActionError('No battle to step.'); return; }
+      fields = { action: 'emulation_step', battle_id: primary.id };
+    } else if (kind === 'broadcast') {
       var msg = window.prompt('Broadcast notice (public, appears in the battle feed):');
       if (!msg) return;
       fields.action = 'broadcast';

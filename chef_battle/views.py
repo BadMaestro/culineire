@@ -2550,6 +2550,20 @@ def master_action(request):
             return JsonResponse({"ok": True, "action": action,
                                  "correlation_id": correlation_id,
                                  "payout": {"id": payout.pk, "status": payout.status}})
+        elif action == "start_emulation":
+            from .emulation import start_emulation
+            battle = start_emulation(operator_author=author,
+                                     correlation_id=correlation_id)
+            return JsonResponse({"ok": True, "action": action,
+                                 "correlation_id": correlation_id,
+                                 "battle": {"id": battle.pk, "status": battle.status,
+                                            "status_display": battle.get_status_display()}})
+        elif action == "emulation_step":
+            from .emulation import emulation_step
+            result = emulation_step(battle_id=battle_id, operator_author=author,
+                                    correlation_id=correlation_id)
+            return JsonResponse({"ok": True, "action": action,
+                                 "correlation_id": correlation_id, **result})
         elif action == "broadcast":
             operator_broadcast(
                 operator_author=author,
