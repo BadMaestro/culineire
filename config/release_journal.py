@@ -1,5 +1,35 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.116",
+        "date": "2026-07-05",
+        "commit": "pending",
+        "title": "Chef Battles corner widget: site design language + finger drag",
+        "section": "Chef Battles / UI",
+        "summary": (
+            "The floating corner widget was visually orphaned: an ad-hoc "
+            "flat panel whose Enter Arena used btn-primary's dark ink on a "
+            "dark background and was unreadable. Per the site principle "
+            "(reuse existing design, never invent), the card now speaks the "
+            "same language as the mobile nav drawer / hero widget: dark "
+            "gradient + 16px blur, cream border, 14px radius, and the "
+            "Enter Arena button gets the drawer's light-on-dark button "
+            "treatment. New battle_widget.js: on touch devices (and narrow "
+            "viewports) the header row is a vertical drag handle - slide "
+            "the widget up/down with a finger, position clamped to the "
+            "viewport and remembered per device; a short tap still toggles "
+            "the card, a finished drag never toggles it. Desktop mouse "
+            "behaviour unchanged. Verified live at 375px: readable button, "
+            "drawer-style card, synthetic drag moved 642 -> 442px and "
+            "persisted."
+        ),
+        "checklist": [
+            "chef_battle.css: widget card on drawer tokens; light Enter Arena; grab cursor",
+            "static/js/battle_widget.js: pointer drag + localStorage position",
+            "_widget.html: script include",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
         "version": "2.5.115",
         "date": "2026-07-05",
         "commit": "pending",

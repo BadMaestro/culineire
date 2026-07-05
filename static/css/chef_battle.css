@@ -3526,13 +3526,41 @@ a.battle-home__pulse-msg:hover {
   z-index: 120;
   width: 220px;
   font-size: 0.78rem;
-  background: rgb(11 24 18 / 0.92);
-  border: 1px solid rgb(248 210 138 / 0.25);
+  /* Same dark card language as the mobile nav drawer (which itself matches
+     the Chef Battles hero widget) — site principle: reuse, don't invent. */
+  background: linear-gradient(145deg, rgb(12 24 16 / 0.60), rgb(28 16 6 / 0.58));
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgb(226 217 204 / 0.22);
   border-right: none;
-  border-radius: 6px 0 0 6px;
-  color: #fff8ee;
-  box-shadow: -2px 2px 12px rgb(0 0 0 / 0.5);
+  border-radius: 14px 0 0 14px;
+  color: #f7f2ea;
+  box-shadow: 0 8px 32px rgb(12 24 16 / 0.30);
   transition: transform 0.25s ease;
+}
+
+/* While the user drags the widget (mobile), kill the transition so it
+   tracks the finger 1:1. */
+.site-battle-widget[data-dragging="true"] {
+  transition: none;
+}
+
+/* The card's Enter Arena: light-on-dark treatment shared with the drawer
+   buttons — btn-primary's dark ink is designed for light surfaces and was
+   unreadable here. */
+.site-battle-widget .btn-primary {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  border: 1px solid rgb(247 242 234 / 0.28);
+  border-radius: 10px;
+  background: rgb(247 242 234 / 0.10);
+  color: #f7f2ea;
+}
+.site-battle-widget .btn-primary:hover,
+.site-battle-widget .btn-primary:focus-visible {
+  background: rgb(247 242 234 / 0.2);
+  color: #fff;
 }
 .site-battle-widget__details {
   display: block;
@@ -3643,5 +3671,18 @@ a.battle-home__pulse-msg:hover {
     width: 180px;
     font-size: 0.72rem;
     bottom: 4rem;
+  }
+}
+
+/* Touch devices: the header row doubles as a vertical drag handle
+   (battle_widget.js) — hint it and stop the browser from scrolling the
+   page while the finger moves the card. */
+@media (pointer: coarse) {
+  .site-battle-widget__toggle {
+    touch-action: none;
+    cursor: grab;
+  }
+  .site-battle-widget[data-dragging="true"] .site-battle-widget__toggle {
+    cursor: grabbing;
   }
 }
