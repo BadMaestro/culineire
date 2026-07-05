@@ -3764,3 +3764,75 @@ class BattleEmulationTests(TestCase):
             end_time=now + timezone.timedelta(days=3))
         with self.assertRaises(OperatorActionError):
             emulation_step(battle_id=real.pk, operator_author=self.owner_author)
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class ProfileMergeTests(TestCase):
+    """Regression tests for the merged chef profile / author page (2026-07-06):
+    hero battle panel removed, chef profile folded into the author page."""
+
+    def setUp(self):
+        User = get_user_model()
+        u1 = User.objects.create_user("merge-chef", password="pw")
+        u2 = User.objects.create_user("merge-plain", password="pw")
+        self.chef = RecipeAuthor.objects.create(user=u1, name="Merge Chef", slug="merge-chef")
+        self.plain = RecipeAuthor.objects.create(user=u2, name="Merge Plain", slug="merge-plain")
+        ChefBattleProfile.objects.create(author=self.chef, enrolled_at=timezone.now())
+        # plain author: no ChefBattleProfile at all
+
+    def test_chef_profile_url_redirects_to_author_arena(self):
+        resp = self.client.get(reverse("chef_battle:chef_profile", kwargs={"slug": "merge-chef"}))
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.url, self.chef.get_absolute_url() + "#chef-arena")
+
+    def test_chef_profile_redirect_missing_slug_404(self):
+        resp = self.client.get(reverse("chef_battle:chef_profile", kwargs={"slug": "no-such-xyz"}))
+        self.assertEqual(resp.status_code, 404)
+
+    def test_redirect_works_for_author_without_battle_profile(self):
+        resp = self.client.get(reverse("chef_battle:chef_profile", kwargs={"slug": "merge-plain"}))
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.url, self.plain.get_absolute_url() + "#chef-arena")
+
+    def test_author_page_shows_arena_for_enrolled_chef(self):
+        resp = self.client.get(self.chef.get_absolute_url())
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'id="chef-arena"')
+        self.assertContains(resp, "Chef Battles Arena")
+
+    def test_author_page_no_arena_for_non_chef(self):
+        resp = self.client.get(self.plain.get_absolute_url())
+        self.assertEqual(resp.status_code, 200)
+        self.assertNotContains(resp, 'id="chef-arena"')
+
+    def test_hero_battle_panel_partial_gone(self):
+        import os
+        from django.conf import settings as dj
+        for base in dj.TEMPLATES[0]["DIRS"]:
+            self.assertFalse(
+                os.path.exists(os.path.join(base, "_hero_battle_panel.html")),
+                "the hero battle panel partial should be deleted")
+
+    def test_get_author_for_user_anonymous_returns_none(self):
+        from django.contrib.auth.models import AnonymousUser
+        from recipes.authoring import get_author_for_user
+        self.assertIsNone(get_author_for_user(AnonymousUser()))
+        self.assertIsNone(get_author_for_user(None))
+
+    def test_token_shop_renders_for_anonymous(self):
+        # login link must reverse; anonymous must not crash (get_author_for_user guard)
+        resp = self.client.get(reverse("chef_battle:token_shop"))
+        self.assertIn(resp.status_code, (200, 302))
+
+    def test_widget_menu_urls_reverse(self):
+        for name in ["challenge_list", "season_leaderboard", "rankings",
+                     "token_shop", "appreciation_gallery", "artifact_gallery"]:
+            reverse(f"chef_battle:{name}")  # raises NoReverseMatch on failure
+
+    def test_author_summary_selector_shapes(self):
+        from chef_battle.selectors import get_author_battle_summary
+        data = get_author_battle_summary(self.chef)
+        self.assertEqual(
+            set(data.keys()), {"battle_profile", "recent_battles", "battles", "gift_display"})
+        self.assertIsNotNone(data["battle_profile"])
+        self.assertIsInstance(data["gift_display"], list)

@@ -120,7 +120,7 @@
         <span class="token-shop-buy-btn__price">&#x20AC;{{ pkg.price_with_vat }} incl. VAT</span>
       </button>
       {% else %}
-      <a class="btn-primary token-shop-card__btn" href="{% url 'accounts:login' %}?next={{ request.path }}">
+      <a class="btn-primary token-shop-card__btn" href="{% url 'login' %}?next={{ request.path }}">
         Sign in to buy
       </a>
       {% endif %}

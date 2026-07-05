@@ -9,6 +9,11 @@ from .models import RecipeAuthor
 
 
 def get_author_for_user(user):
+    # Anonymous / missing users have no author; guard here so callers that
+    # forget the is_authenticated check don't crash with a SimpleLazyObject
+    # being fed to a pk lookup (surfaced via token_shop when the flag is on).
+    if not user or not getattr(user, "is_authenticated", False):
+        return None
     return RecipeAuthor.objects.filter(user=user).first()
 
 
