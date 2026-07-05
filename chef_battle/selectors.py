@@ -898,12 +898,7 @@ def get_master_governance_detail() -> dict:
         .order_by("-created_at")[:8]
     ]
 
-    chain_ok, first_broken = LedgerEvent.verify_chain()
-    ledger = {
-        "total_events": LedgerEvent.objects.count(),
-        "chain_intact": chain_ok,
-        "first_broken_pk": first_broken,
-    }
+    ledger = _ledger_chain_status(LedgerEvent)
 
     return {
         "rewards_matrix": rewards_matrix,
@@ -912,3 +907,33 @@ def get_master_governance_detail() -> dict:
         "reports": reports,
         "ledger": ledger,
     }
+
+
+# verify_chain() scans the whole LedgerEvent table; at a 20 s poll cadence
+# that cost is wasted (P09 hardening). The scan re-runs only when the table
+# changed (count differs — one cheap COUNT per poll) or the 60 s TTL lapsed,
+# so tampering that ADDS/REMOVES rows is caught immediately and in-place
+# row edits within <=60 s. The authoritative check remains verify_chain().
+_LEDGER_CHAIN_CACHE = {"at": None, "count": None, "value": None}
+LEDGER_CHAIN_CACHE_SECONDS = 60
+
+
+def _ledger_chain_status(LedgerEvent):
+    now = timezone.now()
+    current_count = LedgerEvent.objects.count()
+    cached = _LEDGER_CHAIN_CACHE
+    if (
+        cached["at"] is not None
+        and cached["count"] == current_count
+        and (now - cached["at"]).total_seconds() < LEDGER_CHAIN_CACHE_SECONDS
+    ):
+        return cached["value"]
+    chain_ok, first_broken = LedgerEvent.verify_chain()
+    value = {
+        "total_events": current_count,
+        "chain_intact": chain_ok,
+        "first_broken_pk": first_broken,
+        "checked_at": now.isoformat(),
+    }
+    _LEDGER_CHAIN_CACHE.update(at=now, count=current_count, value=value)
+    return value

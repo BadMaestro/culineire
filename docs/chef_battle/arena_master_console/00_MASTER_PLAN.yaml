@@ -2,7 +2,7 @@ schema_version: "1.0"
 document_type: "implementation_master_plan"
 project: "CulinEire Chef Battles Arena Master Console"
 language: "English"
-status: "planning_complete_implementation_not_started"
+status: "implementation_complete_pending_final_owner_acceptance"
 reference_design: "docs/chef_battle/arena_master_console/reference/arena-master-console.png"
 
 objective: >-
@@ -153,6 +153,7 @@ phase_sequence:
     risk: "critical"
     depends_on: ["P02", "P05"]
     outcome: "Read-first economy console with narrowly approved actions reusing ledgers and gift services."
+    status: "COMPLETED — confirmed by owner 2026-07-05 (v2.5.105, deployed, READ-ONLY: no economy write approved or built). Evidence: P07_LEDGER_DEFINITIONS.yaml, P07_RECONCILIATION_REPORT.md, P07_HANDOFF.yaml."
   - id: "P08"
     name: "CBR, LSR, payout, ranks, crown, and arena authority"
     prompt: "phase_08_governance.yaml"
@@ -160,6 +161,7 @@ phase_sequence:
     risk: "critical"
     depends_on: ["P02", "DG-01", "DG-06"]
     outcome: "Governance console that preserves reward and payout lifecycle rules and crown/rank authority."
+    status: "COMPLETED — confirmed by owner 2026-07-05 (v2.5.106, deployed). BattleReport workflow + owner payout decisions via owning services. Evidence: P08_AUTHORITY_MATRIX.yaml, P08_LEDGER_AUDIT.md, P08_HANDOFF.yaml."
   - id: "P09"
     name: "Integrated hardening, accessibility, performance, and release readiness"
     prompt: "phase_09_hardening_release.yaml"
@@ -167,6 +169,7 @@ phase_sequence:
     risk: "high"
     depends_on: ["P03", "P04", "P05", "P06", "P07", "P08"]
     outcome: "Integrated console verified twice, documented, feature-gated, rollback-ready, and ready for owner acceptance."
+    status: "COMPLETED 2026-07-05 (v2.5.107) — pending owner acceptance. Hardening (stale-poll guard, chain-check cache, a11y), full verification both passes, release docs (acceptance/performance/security/rollout-rollback). CHEF_BATTLE_ENABLED untouched."
 
 global_definition_of_done:
   - "Every visible metric is sourced from a documented real query or explicitly marked unavailable."

@@ -334,6 +334,13 @@
   opacity: 0.55;
 }
 
+/* P09 accessibility: visible keyboard focus on every interactive element */
+.amc-page .amc-btn:focus-visible,
+.amc-page .amc-link:focus-visible {
+  outline: 2px solid var(--amc-gold);
+  outline-offset: 2px;
+}
+
 .amc-btn--mini {
   padding: 0.1rem 0.45rem;
   font-size: 0.65rem;

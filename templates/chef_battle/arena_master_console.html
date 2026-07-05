@@ -10,7 +10,7 @@
 <meta name="robots" content="noindex, nofollow">
 <link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">
 <link href="{% static 'css/arena.css' %}?v=20260702b" rel="stylesheet">
-<link href="{% static 'css/arena_master_console.css' %}?v=20260704c" rel="stylesheet">
+<link href="{% static 'css/arena_master_console.css' %}?v=20260705a" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -435,7 +435,7 @@
     <dl class="amc-footer__list">
       <div class="amc-footer__item">
         <dt>System status</dt>
-        <dd id="amc-sys-status">Read models live · polling every 20s</dd>
+        <dd id="amc-sys-status" role="status" aria-live="polite">Read models live · polling every 20s</dd>
       </div>
       <div class="amc-footer__item">
         <dt>Server time</dt>
@@ -456,5 +456,5 @@
 
 {{ master_state|json_script:"amc-state-json" }}
 <script nonce="{{ request.csp_nonce }}">window.AMC_OPERATOR = { isOwner: {{ operator_is_owner|yesno:"true,false" }} };</script>
-<script src="{% static 'js/arena_master_console.js' %}?v=20260704b"></script>
+<script src="{% static 'js/arena_master_console.js' %}?v=20260705a"></script>
 {% endblock %}

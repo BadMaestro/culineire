@@ -1,5 +1,36 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.107",
+        "date": "2026-07-05",
+        "commit": "pending",
+        "title": "Arena Master Console P09: final hardening and release readiness",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "Final phase of the 10-phase console plan. Hardening: a "
+            "monotonic poll sequence so a slow response can never overwrite "
+            "newer state; the ledger hash-chain verification is cached for "
+            "60 seconds (it was scanning the full table on every 20-second "
+            "poll); visible keyboard-focus outlines on all console controls "
+            "and a polite live region on the system-status line. "
+            "Verification: 96 focused console tests across 8 suites plus "
+            "the complete project test run; JS syntax, Django checks and "
+            "migration drift clean; viewports 1920/1440/1280/mobile with no "
+            "overflow or clipping; public arena regression clean; "
+            "performance measured at 37 queries / 4.0 KB / 24 ms per poll "
+            "with one battle. Release evidence: acceptance report, "
+            "performance report, security review, and rollout/rollback/"
+            "incident procedures in docs/chef_battle/arena_master_console/. "
+            "CHEF_BATTLE_ENABLED stays OFF; the console remains visible "
+            "only to the owner on production."
+        ),
+        "checklist": [
+            "JS: stale-poll guard; selectors: verify_chain 60s cache",
+            "CSS: :focus-visible outlines; template: aria-live status",
+            "docs: P09_ACCEPTANCE_REPORT.md, P09_PERFORMANCE_REPORT.md, P09_SECURITY_REVIEW.md, P09_ROLLOUT_ROLLBACK.yaml",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
         "version": "2.5.106",
         "date": "2026-07-05",
         "commit": "pending",

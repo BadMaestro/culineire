@@ -134,7 +134,10 @@ class SponsorFlowTests(TestCase):
         self.assertContains(response, "/year + VAT")
         self.assertContains(response, "excluding VAT")
         self.assertContains(response, "Businesses, sole traders and individuals")
-        self.assertContains(response, "Payment reserves a spot while Bearcave Limited completes internal review")
+        # Current legal copy (template splits the sentence around a <strong>
+        # tag, so assert the two stable fragments separately).
+        self.assertContains(response, "Payment reserves a spot only.")
+        self.assertContains(response, "approval and internal compliance review")
         self.assertContains(response, "does not guarantee approval, publication or activation")
         self.assertContains(response, "Sponsor of the Month")
         self.assertContains(response, "€1000")

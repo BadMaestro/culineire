@@ -138,17 +138,44 @@ class AdminSetPasswordTests(TestCase):
         self.assertFalse(self.client.login(username="member", password="123"))
         self.assertEqual(len(mail.outbox), 0)
 
-    def test_cannot_target_superuser_account(self):
+    def test_superuser_may_target_other_superuser_but_not_owner(self):
+        # Contract changed in ea6a599c: superusers may manage other superuser
+        # accounts (regular moderators still cannot - covered by
+        # test_regular_user_gets_404). The owner account stays untouchable.
+        from django.conf import settings as django_settings
+
         other_admin = get_user_model().objects.create_superuser(
             username="admin2", password="AdminPass123!", email="admin2@example.com"
         )
-        protected_author = RecipeAuthor.objects.create(
+        peer_author = RecipeAuthor.objects.create(
             name="Admin Author", slug="admin-author", user=other_admin
         )
         self.client.force_login(self.admin)
         url = reverse(
             "recipes:moderation_author_set_password",
-            kwargs={"slug": protected_author.slug},
+            kwargs={"slug": peer_author.slug},
+        )
+        response = self.client.post(
+            url, {"new_password1": "FreshSecret789!", "new_password2": "FreshSecret789!"}
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(
+            self.client.login(username="admin2", password="FreshSecret789!")
+        )
+
+        # The owner (OWNER_SLUG) is always protected, even from superusers.
+        owner_user = get_user_model().objects.create_superuser(
+            username="owner-test", password="OwnerPass123!", email="owner@example.com"
+        )
+        # A data migration may already have created the owner author row.
+        owner_author, _ = RecipeAuthor.objects.update_or_create(
+            slug=django_settings.OWNER_SLUG,
+            defaults={"name": "Owner", "user": owner_user},
+        )
+        self.client.force_login(self.admin)
+        url = reverse(
+            "recipes:moderation_author_set_password",
+            kwargs={"slug": owner_author.slug},
         )
         response = self.client.post(
             url, {"new_password1": "FreshSecret789!", "new_password2": "FreshSecret789!"}

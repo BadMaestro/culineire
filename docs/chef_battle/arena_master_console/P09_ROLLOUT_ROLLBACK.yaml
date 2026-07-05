@@ -1,0 +1,39 @@
+schema_version: "1.0"
+document_type: "phase_09_rollout_rollback"
+produced_at: "2026-07-05"
+
+current_production_state:
+  versions: "v2.5.96 (P00) .. v2.5.107 (P09), all deployed incrementally"
+  migrations: [recipes/0038, chef_battle/0056, chef_battle/0057, chef_battle/0058]
+  flags:
+    CHEF_BATTLE_ENABLED: "OFF on production (dark launch preserved)"
+    ARENA_MASTER_CONSOLE_ENABLED: "absent from server .env => console visible ONLY to the owner; 404 for everyone else"
+
+rollout:
+  step_1: "already live for the owner — no action needed for owner-only use"
+  step_2_add_operator: "grant superuser + set RecipeAuthor.has_arena_console_access=True + add ARENA_MASTER_CONSOLE_ENABLED=True to /srv/culineire/shared/.env + sudo systemctl restart unit"
+  step_3_public_battles: "independent decision — CHEF_BATTLE_ENABLED flag; console works either way (its data honestly reflects flag state in the footer)"
+
+monitoring:
+  - "footer 'System status' line: poll health + last-known-state warning on failures"
+  - "panel 7 ledger line: hash-chain intact indicator (60s cache)"
+  - "OPERATOR_ACTION BattleEvents: full audit of every console write with correlation ids"
+  - "server: journalctl -u unit + Django logs (fraud/vote gates log WARNING)"
+  - "cron responsibility: purge_vote_integrity_events (90-day retention) — schedule like existing expiry jobs"
+
+rollback:
+  ui_only_issue: "revert the offending commit; git push; deploy.sh (collectstatic included). Console is additive — no public surface depends on it."
+  disable_operators: "remove ARENA_MASTER_CONSOLE_ENABLED from .env + restart unit (owner keeps access; nobody else)"
+  hide_from_everyone: "revert the owner-override commit (db3d97b6) or add a temporary guard return False — requires code change by design; owner access is intentionally not flag-controlled"
+  migrations: "0056/0057/0058 are additive (new nullable columns / new tables) — safe to leave in place on any code rollback; do NOT reverse-migrate on production"
+
+incident_procedure:
+  suspected_data_leak: "check P09_SECURITY_REVIEW residual risks; console is superuser-only — rotate any affected credentials, review OPERATOR_ACTION audit trail"
+  broken_ledger_chain: "panel shows first broken pk; treat as tampering: freeze payouts (owner), inspect DB access logs, do not rewrite ledger rows"
+  stuck_battle: "owner Emergency Stop -> investigate -> Resume (deadlines shift by pause duration) or Cancel with reason"
+
+release_gate_status:
+  chef_battle_enabled: "NOT enabled (per release gate)"
+  verification_pass_1: "complete (focused suites 245/245, JS syntax, checks, migration drift clean, viewports 1920/1440/1280/mobile clean)"
+  verification_pass_2: "complete (full project suite, role matrix via tests, public arena regression, security review)"
+  owner_acceptance: "pending owner sign-off of P09"

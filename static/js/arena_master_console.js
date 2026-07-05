@@ -241,7 +241,12 @@
 
   /* ── Poll loop ──────────────────────────────────────────────────── */
 
+  // Monotonic sequence: a slow response that arrives after a newer one
+  // must never overwrite fresher state (P09 hardening).
+  var pollSeq = 0;
+
   function poll() {
+    var seq = ++pollSeq;
     return fetch(STATE_URL, {
       method: 'POST',
       headers: { 'X-CSRFToken': getCsrfToken() },
@@ -252,11 +257,13 @@
         return resp.json();
       })
       .then(function (fresh) {
+        if (seq !== pollSeq) return; // stale response, a newer poll finished
         state = fresh;
         apply();
         setText('amc-sys-status', 'Read models live · polling every 20s');
       })
       .catch(function () {
+        if (seq !== pollSeq) return;
         setText('amc-sys-status', 'Poll failed — showing last known state');
       });
   }
