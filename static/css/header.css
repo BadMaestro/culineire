@@ -1418,8 +1418,13 @@
   color: rgb(247 242 234 / 0.55);
 }
 
-/* Sign Out directly in the drawer (the author-panel copy stays hidden in
-   its collapsed dropdown, which mobile users never discovered). */
+/* Sign Out directly in the drawer. Exactly ONE button: the author-panel
+   dropdown's own copy is hidden while the drawer is open (its absolutely
+   positioned popup rendered a detached, misaligned duplicate below the
+   drawer on mobile). */
+.ce-nav--open .ce-author-panel .ce-nav__logout {
+  display: none;
+}
 .ce-nav__logout--drawer {
   display: none;
 }

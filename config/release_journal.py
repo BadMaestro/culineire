@@ -1,5 +1,25 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.113",
+        "date": "2026-07-05",
+        "commit": "pending",
+        "title": "Drawer: exactly one Sign Out button",
+        "section": "UI / Mobile",
+        "summary": (
+            "Follow-up to v2.5.112: the author-panel dropdown's own Sign Out "
+            "was rendering as a detached, misaligned duplicate below the "
+            "drawer (its popup is absolutely positioned on mobile), so two "
+            "buttons appeared. The dropdown copy is now hidden while the "
+            "drawer is open; the drawer keeps its single centred Sign Out "
+            "(13px/13px gaps, verified live in both collapsed and expanded "
+            "profile states). Desktop dropdown unchanged."
+        ),
+        "checklist": [
+            "header.css: .ce-nav--open .ce-author-panel .ce-nav__logout hidden",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
         "version": "2.5.112",
         "date": "2026-07-05",
         "commit": "pending",
