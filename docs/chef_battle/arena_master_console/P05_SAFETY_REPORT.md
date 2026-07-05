@@ -56,6 +56,12 @@ counter. It aggregates the authoritative `LiveBroadcastReport` relation for each
 listed broadcast. A regression test sets the legacy counter to 99, creates two
 real reports, and verifies that the console displays 2.
 
+Cooked-photo moderation now follows the real lifecycle: uploads remain in
+COOKING with PENDING review state, the console queue includes those battles, and
+PRESENTATION begins only after both confirmed photos are owner-approved. Malformed
+action identifiers return JSON 400, and paused cancellation clears all pause
+fields. Verification: 36 P03/P05 plus 20 timer/voting/state tests passed.
+
 ## Deployment
 
 No migrations. collectstatic required (console JS/CSS).

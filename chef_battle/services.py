@@ -978,7 +978,11 @@ def debit_tokens(chef, amount: int, tx_type: str, description: str = "", battle=
 # ── Cooking phase ─────────────────────────────────────────────────────────────
 
 def submit_cooked_photo(*, battle: Battle, author, photo, real_photo_confirmed: bool = False) -> BattleEntry:
-    """Chef uploads their cooked dish photo. Advances to PRESENTATION when both submitted."""
+    """Chef uploads a cooked dish photo for moderation.
+
+    Presentation opens only after both photos are explicitly approved by the
+    arena owner; upload alone never publishes them.
+    """
     import hashlib
     if battle.status != Battle.Status.COOKING:
         raise ValueError("Battle must be in COOKING status to submit a cooked photo.")
@@ -997,22 +1001,15 @@ def submit_cooked_photo(*, battle: Battle, author, photo, real_photo_confirmed: 
         entry.cooked_photo_submitted_at = timezone.now()
         entry.real_photo_confirmed = real_photo_confirmed
         entry.photo_hash = photo_hash
+        entry.moderation_status = BattleEntry.ModerationStatus.PENDING
+        entry.moderation_note = ""
+        entry.reviewed_by = None
+        entry.reviewed_at = None
         entry.save(update_fields=[
             "cooked_photo", "cooked_photo_submitted_at",
-            "real_photo_confirmed", "photo_hash", "updated_at",
+            "real_photo_confirmed", "photo_hash", "moderation_status",
+            "moderation_note", "reviewed_by", "reviewed_at", "updated_at",
         ])
-        both_submitted = not BattleEntry.objects.filter(
-            battle=battle, cooked_photo__isnull=True
-        ).exclude(cooked_photo="").exists()
-        if both_submitted:
-            battle.status = Battle.Status.PRESENTATION
-            battle.save(update_fields=["status", "updated_at"])
-            create_battle_event(
-                event_type=BattleEvent.EventType.BATTLE_STARTED,
-                battle=battle,
-                message="Both chefs have submitted their cooked dish photos. Presentation phase begins.",
-                is_public=True,
-            )
     return entry
 
 
@@ -2137,8 +2134,10 @@ def operator_cancel(*, battle_id, operator_author, reason, correlation_id=""):
         if before == Battle.Status.PAUSED:
             battle.paused_at = None
             battle.paused_from_status = ""
+            battle.paused_reason = ""
         battle.save(update_fields=[
-            "status", "result_reason", "paused_at", "paused_from_status", "updated_at",
+            "status", "result_reason", "paused_at", "paused_from_status",
+            "paused_reason", "updated_at",
         ])
         _operator_event(
             battle=battle, operator_author=operator_author,
@@ -2201,13 +2200,20 @@ def operator_moderate_entry(*, entry_id, operator_author, new_status, reason="",
 
     with transaction.atomic():
         try:
+            entry_ref = BattleEntry.objects.only("battle_id").get(pk=entry_id)
+            battle = Battle.objects.select_for_update().get(pk=entry_ref.battle_id)
             entry = (BattleEntry.objects.select_for_update()
-                     .select_related("battle", "author").get(pk=entry_id))
+                     .select_related("author").get(pk=entry_id))
         except BattleEntry.DoesNotExist:
             raise OperatorActionError("Entry not found.")
         before = entry.moderation_status
         if before == new_status:
             raise OperatorActionError(f"Entry is already '{new_status}'.")
+        if new_status == BattleEntry.ModerationStatus.APPROVED:
+            if not entry.cooked_photo or not entry.real_photo_confirmed:
+                raise OperatorActionError(
+                    "Cannot approve an entry without a cooked photo and real-photo confirmation."
+                )
         entry.moderation_status = new_status
         if reason:
             entry.moderation_note = reason
@@ -2216,8 +2222,30 @@ def operator_moderate_entry(*, entry_id, operator_author, new_status, reason="",
         entry.save(update_fields=[
             "moderation_status", "moderation_note", "reviewed_by", "reviewed_at", "updated_at",
         ])
+        if new_status == BattleEntry.ModerationStatus.APPROVED:
+            eligible_entries = (
+                BattleEntry.objects.filter(
+                    battle=battle,
+                    author_id__in=[battle.challenger_id, battle.opponent_id],
+                    moderation_status=BattleEntry.ModerationStatus.APPROVED,
+                    real_photo_confirmed=True,
+                    cooked_photo__isnull=False,
+                )
+                .exclude(cooked_photo="")
+                .count()
+            )
+            if battle.status == Battle.Status.COOKING and eligible_entries == 2:
+                battle.status = Battle.Status.PRESENTATION
+                battle.save(update_fields=["status", "updated_at"])
+                create_battle_event(
+                    event_type=BattleEvent.EventType.BATTLE_STARTED,
+                    battle=battle,
+                    message=("Both cooked dish photos were approved. "
+                             "Presentation phase begins."),
+                    is_public=True,
+                )
         _operator_event(
-            battle=entry.battle, operator_author=operator_author,
+            battle=battle, operator_author=operator_author,
             action="moderate_entry", before=before, after=new_status,
             reason=reason, correlation_id=correlation_id,
             extra={"entry_id": entry.pk, "entry_author": entry.author.slug},

@@ -25,15 +25,15 @@ broader than the reproducible evidence.
 
 ## Critical and high-priority gaps
 
-### 0. P05 cooked-photo moderation queue cannot see cooked photos
+### 0. P05 cooked-photo moderation queue could not see cooked photos — RESOLVED
 
 `get_master_moderation_detail()` selects only `INGREDIENT_PENALTY` battles,
 while `cooking_submit()` accepts uploads only in `COOKING`. The transition to
 COOKING removes the battle from the queue before submission is possible.
 
-Impact: the console cannot review uploaded dish photos, real-photo declarations
-or lateness in the normal lifecycle. An owner decision is required: review during
-COOKING before presentation, or add a dedicated pending-review state.
+Resolution (`2026-07-05`): COOKING is now the pending-review state. Upload resets
+review evidence to PENDING and never auto-publishes. Presentation opens only after
+both confirmed photos receive owner approval. Queue/action tests cover the flow.
 
 ### 1. Emergency Stop did not stop server-authoritative time — RESOLVED
 
@@ -111,10 +111,9 @@ version verification, and explicit `Unavailable` states until each signal exists
   code acceptance criterion.
 - Several reports are stale: P01 flag semantics and P02 automatic suspicious-vote
   wording no longer match the authoritative behavior.
-- Malformed action identifiers can escape as HTTP 500 because ORM primary-key
-  conversion errors are not normalised to domain 400/404 responses.
-- Cancelling a paused battle leaves `paused_reason` populated while clearing the
-  other pause fields.
+- RESOLVED (`2026-07-05`) — malformed action identifiers now return JSON 400.
+- RESOLVED (`2026-07-05`) — cancelling a paused battle clears every pause field,
+  including `paused_reason`.
 
 ## Verified strengths
 
@@ -132,17 +131,15 @@ version verification, and explicit `Unavailable` states until each signal exists
 
 ## Ordered remediation plan
 
-1. Decide and repair the cooked-photo moderation lifecycle/queue.
-2. Resolve and enforce hidden-combat operator/participant permissions.
-3. Normalise malformed action identifiers and clear pause state consistently.
-4. Add rejected operator-action audit, broadcast idempotency, concurrency,
+1. Resolve and enforce hidden-combat operator/participant permissions.
+2. Add rejected operator-action audit, broadcast idempotency, concurrency,
    rollback and enforced-CSRF coverage.
-5. Make P05 checklist/agreement evidence granular and complete its required
+3. Make P05 checklist/agreement evidence granular and complete its required
    status/scenario matrix.
-6. Bulk-load P02–P05 per-battle data and restore a battle-count-independent query
+4. Bulk-load P02–P05 per-battle data and restore a battle-count-independent query
    ceiling.
-7. Add missing P04 combat metrics and authoritative log link.
-8. Correct stale P00/P01/P02 documentation and retain reproducible visual-test
+5. Add missing P04 combat metrics and authoritative log link.
+6. Correct stale P00/P01/P02 documentation and retain reproducible visual-test
    artifacts for future phases.
 
 P06 should remain paused until items 1–5 are resolved or explicitly accepted by

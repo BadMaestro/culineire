@@ -299,7 +299,9 @@ def get_master_state() -> dict:
 
     # ── moderation section ───────────────────────────────────────────
     moderation = {
-        "cooking_queue": Battle.objects.filter(status=Battle.Status.INGREDIENT_PENALTY).count(),
+        "cooking_queue": Battle.objects.filter(status__in=[
+            Battle.Status.INGREDIENT_PENALTY, Battle.Status.COOKING,
+        ]).count(),
         "content_reports_pending": ContentReport.objects.filter(
             status=ContentReport.Status.PENDING
         ).count(),
@@ -570,7 +572,9 @@ def get_master_moderation_detail() -> dict:
     )
 
     queue_battles = list(
-        Battle.objects.filter(status=Battle.Status.INGREDIENT_PENALTY)
+        Battle.objects.filter(status__in=[
+            Battle.Status.INGREDIENT_PENALTY, Battle.Status.COOKING,
+        ])
         .select_related("challenger", "opponent")
         .prefetch_related("entries__author")
         .order_by("updated_at")[:10]

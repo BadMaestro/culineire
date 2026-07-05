@@ -5,7 +5,7 @@ authority: "DG-01 access model: non-owner console operators are read-only; all a
 
 read_models:
   moderation_detail:
-    cooking_queue: "ingredient_penalty battles + per-entry moderation state (status, photo presence, real-photo confirmation, lateness, review timestamp)"
+    cooking_queue: "ingredient_penalty and cooking battles + per-entry moderation state; owner actions appear only after cooked-photo submission"
     content_reports: "10 newest PENDING ContentReport rows (kind, object, reason)"
     streams: "SCHEDULED/LIVE LiveStreamSession rows + broadcast safety state (moderation status, safety delay, report count, stopped_by_staff) + checklist_confirmed + LiveBattleAgreement presence"
   safety_checklist_note: >-
@@ -22,6 +22,7 @@ actions:
     reason: "required for flagged/rejected/needs_changes; approve needs confirm only"
     reuses: "BattleEntry.moderation_status/note/reviewed_by/reviewed_at"
     side_effects: "OPERATOR_ACTION audit; chef notified (in-site + email) on adverse actions"
+    presentation_gate: "approve requires cooked photo + real-photo confirmation; final approval of both participant entries advances COOKING -> PRESENTATION"
   review_report:
     who: "owner only"
     allowed_statuses: [reviewed, actioned, dismissed]

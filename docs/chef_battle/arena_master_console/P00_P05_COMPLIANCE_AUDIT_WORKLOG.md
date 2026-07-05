@@ -354,3 +354,43 @@ Planned checks before any further code change:
 
 Decision: do not guess the cooked-photo workflow. It needs an owner decision:
 review during COOKING before presentation, or a dedicated pending-review state.
+
+## 2026-07-05 — Second-pass remediation authorised
+
+Owner instructed to fix the three newly identified defects.
+
+Implementation contract selected for safety and minimal schema impact:
+
+- Reuse `COOKING` as the pending-photo-review state; do not add another Battle
+  status or migration.
+- Uploading both cooked photos must not expose/advance them automatically.
+- P05 queue must include COOKING battles that have submitted entries.
+- When an owner approves the final required cooked entry, advance to
+  `PRESENTATION` only if both participant entries have photos,
+  `real_photo_confirmed=True`, and `moderation_status=APPROVED`.
+- Rejection/flag/needs-changes keeps the battle in COOKING.
+- Normalise malformed action identifiers to a controlled JSON 400.
+- Cancelling a paused battle clears every pause field including reason.
+
+Planned verification: focused upload/moderation/action tests, migration drift,
+Django check, diff review, then commit. No unrelated phase work.
+
+### Second-pass remediation checkpoint
+
+- Cooked-photo upload now remains in COOKING and resets review evidence to
+  PENDING; upload no longer publishes presentation automatically.
+- Approval without a photo or real-photo confirmation is rejected server-side.
+- Final approval advances to PRESENTATION only when both participant photos meet
+  the evidence and approval conditions, under a battle row lock.
+- Queue now includes COOKING battles and owner buttons render only for submitted
+  photos.
+- Malformed action IDs return JSON 400; paused cancellation clears all pause data.
+- `makemigrations --check`: PASS; `manage.py check`: PASS.
+- P03/P05 focused tests: PASS, 36/36.
+
+Next action: related timer/voting/state regressions, documentation resolution,
+diff review and commit.
+
+- Related timer/voting/state regressions: PASS, 20/20.
+- Total verification for this correction: 56 focused tests passed.
+- Full suite not repeated due remaining weekly budget; no migration was added.

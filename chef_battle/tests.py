@@ -2420,6 +2420,24 @@ class ArenaMasterActionTests(TestCase):
         self.assertEqual(
             self.client.post(self.url, {"action": "resume", "battle_id": 999999}).status_code, 404)
 
+    def test_malformed_action_ids_return_400_not_500(self):
+        cases = (
+            {"action": "force_status", "battle_id": "abc", "target_status": "active"},
+            {"action": "emergency_stop", "battle_id": "abc", "reason": "x"},
+            {"action": "resume", "battle_id": "abc"},
+            {"action": "cancel", "battle_id": "abc", "reason": "x"},
+            {"action": "moderate_entry", "entry_id": "abc", "new_status": "approved"},
+            {"action": "review_report", "report_id": "abc", "new_status": "reviewed"},
+            {"action": "end_stream", "session_id": "abc", "reason": "x"},
+            {"action": "broadcast", "battle_id": "abc", "message": "x"},
+        )
+        self.client.force_login(self.owner_user)
+        for payload in cases:
+            with self.subTest(action=payload["action"]):
+                response = self.client.post(self.url, payload)
+                self.assertEqual(response.status_code, 400)
+                self.assertFalse(response.json()["ok"])
+
     # ── Emergency Stop (DG-03) ──
     def test_emergency_stop_full_behavior(self):
         from .models import LiveStreamSession
@@ -2543,6 +2561,9 @@ class ArenaMasterActionTests(TestCase):
         battle.refresh_from_db()
         self.assertEqual(battle.status, Battle.Status.CANCELLED)
         self.assertIn("Cancelled by arena operator", battle.result_reason)
+        self.assertIsNone(battle.paused_at)
+        self.assertEqual(battle.paused_from_status, "")
+        self.assertEqual(battle.paused_reason, "")
 
     def test_cancel_requires_reason_and_not_completed(self):
         battle = self._battle(Battle.Status.ACTIVE)
@@ -2870,6 +2891,9 @@ class ArenaMasterModerationTests(TestCase):
 
     # ── entry moderation ──
     def test_owner_approves_entry(self):
+        self.entry.cooked_photo = "chef_battle/cooked/approved.jpg"
+        self.entry.real_photo_confirmed = True
+        self.entry.save(update_fields=["cooked_photo", "real_photo_confirmed"])
         resp = self._post(self.owner_user, action="moderate_entry",
                           entry_id=self.entry.pk, new_status="approved")
         self.assertEqual(resp.status_code, 200)
@@ -2879,6 +2903,76 @@ class ArenaMasterModerationTests(TestCase):
         event = BattleEvent.objects.get(event_type=BattleEvent.EventType.OPERATOR_ACTION)
         self.assertEqual(event.payload_json["action"], "moderate_entry")
         self.assertEqual(event.payload_json["entry_author"], "p5-chef-a")
+
+    def test_approve_requires_cooked_photo_and_real_photo_confirmation(self):
+        resp = self._post(
+            self.owner_user, action="moderate_entry",
+            entry_id=self.entry.pk, new_status="approved",
+        )
+        self.assertEqual(resp.status_code, 409)
+        self.entry.cooked_photo = "chef_battle/cooked/unconfirmed.jpg"
+        self.entry.save(update_fields=["cooked_photo"])
+        resp = self._post(
+            self.owner_user, action="moderate_entry",
+            entry_id=self.entry.pk, new_status="approved",
+        )
+        self.assertEqual(resp.status_code, 409)
+
+    def test_cooked_photos_wait_for_both_owner_approvals_before_presentation(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from .services import submit_cooked_photo
+
+        self.battle.status = Battle.Status.COOKING
+        self.battle.save(update_fields=["status"])
+        entry_b = self.battle.entries.create(author=self.chef_b)
+        submit_cooked_photo(
+            battle=self.battle,
+            author=self.chef_a,
+            photo=SimpleUploadedFile("a.jpg", b"photo-a", content_type="image/jpeg"),
+            real_photo_confirmed=True,
+        )
+        submit_cooked_photo(
+            battle=self.battle,
+            author=self.chef_b,
+            photo=SimpleUploadedFile("b.jpg", b"photo-b", content_type="image/jpeg"),
+            real_photo_confirmed=True,
+        )
+        self.battle.refresh_from_db()
+        self.entry.refresh_from_db()
+        entry_b.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.COOKING)
+        self.assertEqual(self.entry.moderation_status, BattleEntry.ModerationStatus.PENDING)
+        self.assertEqual(entry_b.moderation_status, BattleEntry.ModerationStatus.PENDING)
+
+        self.client.force_login(self.owner_user)
+        state = self.client.post(self.state_url).json()
+        queued = state["moderation"]["detail"]["cooking_queue"]
+        self.assertEqual(queued[0]["battle_id"], self.battle.pk)
+        self.assertTrue(all(e["has_cooked_photo"] for e in queued[0]["entries"]))
+
+        first = self._post(
+            self.owner_user, action="moderate_entry",
+            entry_id=self.entry.pk, new_status="approved",
+        )
+        self.assertEqual(first.status_code, 200)
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.COOKING)
+
+        second = self._post(
+            self.owner_user, action="moderate_entry",
+            entry_id=entry_b.pk, new_status="approved",
+        )
+        self.assertEqual(second.status_code, 200)
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.PRESENTATION)
+        self.assertEqual(
+            BattleEvent.objects.filter(
+                battle=self.battle,
+                message__icontains="photos were approved",
+                is_public=True,
+            ).count(),
+            1,
+        )
 
     def test_adverse_entry_action_requires_reason_and_notifies(self):
         resp = self._post(self.owner_user, action="moderate_entry",

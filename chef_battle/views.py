@@ -2420,10 +2420,30 @@ def master_action(request):
     correlation_id = request.POST.get("correlation_id") or uuid.uuid4().hex[:12]
     reason = request.POST.get("reason", "")
 
+    id_fields = {
+        "force_status": "battle_id", "emergency_stop": "battle_id",
+        "resume": "battle_id", "cancel": "battle_id",
+        "moderate_entry": "entry_id", "review_report": "report_id",
+        "end_stream": "session_id",
+    }
+    if action == "broadcast" and battle_id:
+        id_fields["broadcast"] = "battle_id"
+    id_field = id_fields.get(action)
+    parsed_id = None
+    if id_field:
+        try:
+            parsed_id = int(request.POST.get(id_field, ""))
+            if parsed_id < 1:
+                raise ValueError
+        except (TypeError, ValueError):
+            return JsonResponse(
+                {"ok": False, "error": f"Invalid {id_field}."}, status=400
+            )
+
     try:
         if action == "force_status":
             battle = operator_force_status(
-                battle_id=battle_id,
+                battle_id=parsed_id,
                 operator_author=author,
                 target_status=request.POST.get("target_status", ""),
                 expected_status=request.POST.get("expected_status") or None,
@@ -2432,22 +2452,22 @@ def master_action(request):
             )
         elif action == "emergency_stop":
             battle = operator_emergency_stop(
-                battle_id=battle_id, operator_author=author,
+                battle_id=parsed_id, operator_author=author,
                 reason=reason, correlation_id=correlation_id,
             )
         elif action == "resume":
             battle = operator_resume(
-                battle_id=battle_id, operator_author=author,
+                battle_id=parsed_id, operator_author=author,
                 correlation_id=correlation_id,
             )
         elif action == "cancel":
             battle = operator_cancel(
-                battle_id=battle_id, operator_author=author,
+                battle_id=parsed_id, operator_author=author,
                 reason=reason, correlation_id=correlation_id,
             )
         elif action == "moderate_entry":
             entry = operator_moderate_entry(
-                entry_id=request.POST.get("entry_id"),
+                entry_id=parsed_id,
                 operator_author=author,
                 new_status=request.POST.get("new_status", ""),
                 reason=reason,
@@ -2459,7 +2479,7 @@ def master_action(request):
                                            "moderation_status": entry.moderation_status}})
         elif action == "review_report":
             report = operator_review_report(
-                report_id=request.POST.get("report_id"),
+                report_id=parsed_id,
                 operator_author=author,
                 new_status=request.POST.get("new_status", ""),
                 note=reason,
@@ -2470,7 +2490,7 @@ def master_action(request):
                                  "report": {"id": report.pk, "status": report.status}})
         elif action == "end_stream":
             session = operator_end_stream(
-                session_id=request.POST.get("session_id"),
+                session_id=parsed_id,
                 operator_author=author,
                 reason=reason,
                 correlation_id=correlation_id,
@@ -2484,7 +2504,7 @@ def master_action(request):
             operator_broadcast(
                 operator_author=author,
                 message=request.POST.get("message", ""),
-                battle_id=battle_id or None,
+                battle_id=parsed_id if id_field == "battle_id" else None,
                 correlation_id=correlation_id,
             )
             return JsonResponse({"ok": True, "action": action,

@@ -245,7 +245,7 @@
           <li><a class="amc-link" href="{{ q.url }}">#{{ q.battle_id }}</a> {{ q.theme|truncatechars:30 }}
             {% for e in q.entries %}
             <br><span class="amc-panel__hint">{{ e.author }}: {{ e.moderation_status_display }}{% if not e.has_cooked_photo %} · no photo{% endif %}{% if e.is_late %} · late{% endif %}</span>
-            {% if operator_is_owner %}
+            {% if operator_is_owner and e.has_cooked_photo %}
             <button type="button" class="amc-btn amc-btn--mini" data-amc-mod="entry" data-entry="{{ e.entry_id }}" data-status="approved">Approve</button>
             <button type="button" class="amc-btn amc-btn--mini amc-btn--danger" data-amc-mod="entry" data-entry="{{ e.entry_id }}" data-status="flagged">Flag</button>
             {% endif %}
