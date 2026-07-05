@@ -1,5 +1,35 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.120",
+        "date": "2026-07-05",
+        "commit": "pending",
+        "title": "Chef profile page rebuilt on the canonical corporate hero",
+        "section": "Chef Battles / UI",
+        "summary": (
+            "The chef profile still used the legacy battle-room-hero. Rebuilt "
+            "it on the site's canonical hero - the same hero hero--home "
+            "hero--author-profile structure used by the recipe author page "
+            "and every legal page (e.g. company-information): hero__background "
+            "+ hero__overlay + container hero__inner > hero-copy with pill, "
+            "hero-author-avatar-wrap, hero-title, hero-subtitle and a "
+            "hero__actions button row, plus the shared _hero_battle_panel "
+            "include and hero--has-battle when the flag is on. All primary "
+            "actions moved into hero__actions (uniform, even, aligned); the "
+            "one-off btn-ghost Report button was dropped in favour of the "
+            "standard text-link. Verified live: pill sits at the locked 49px "
+            "golden anchor, hero buttons all 36px on one line, mobile hero "
+            "centred and battle panel correctly hidden, no body overflow, no "
+            "inline styles and no legacy classes remain."
+        ),
+        "checklist": [
+            "chef_profile.html: canonical hero hero--home hero--author-profile",
+            "actions in hero__actions; Report -> text-link (no btn-ghost)",
+            "reuse hero-author-avatar-wrap + _hero_battle_panel include",
+            "removed dead .chef-profile-identity CSS",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
         "version": "2.5.119",
         "date": "2026-07-05",
         "commit": "pending",

@@ -2,32 +2,44 @@
 {% load static author_tags chef_battle_tags %}
 
 {% block title %}{{ author.name }} | Chef Battles Profile{% endblock %}
-{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260705e" rel="stylesheet">{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260705f" rel="stylesheet">{% endblock %}
 
 {% block content %}
-<section class="battle-room-hero">
-  <div class="container">
-    <p class="battle-kicker">Chef Battles Arena</p>
-    <div class="chef-profile-identity">
-      {% if author.profile_image %}
-      <img class="chef-profile-identity__avatar" src="{{ author.profile_image.url }}" alt="{{ author.name }}">
-      {% else %}
-      <div class="chef-avatar-placeholder" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 2C9.5 2 8 4 8 6c0 1.5.7 2.8 1.7 3.6C7.1 10.5 6 12.6 6 15h12c0-2.4-1.1-4.5-3.7-5.4C15.3 8.8 16 7.5 16 6c0-2-1.5-4-4-4z"/>
-          <rect x="8" y="15" width="8" height="2" rx="1"/>
-          <rect x="7" y="17" width="10" height="3" rx="1"/>
-        </svg>
+<section class="hero hero--home hero--author-profile{% if chef_battle_enabled %} hero--has-battle{% endif %}">
+  <div aria-hidden="true" class="hero__background">
+    <picture><source srcset="{% static 'images/hero-battle.webp' %}" type="image/webp"><img alt="" width="1672" height="941" src="{% static 'images/hero-battle.png' %}"></picture>
+  </div>
+  <div aria-hidden="true" class="hero__overlay"></div>
+  <div class="container hero__inner">
+    <div class="hero-copy">
+      <span class="pill">Chef Battles Arena</span>
+      <div class="hero-author-avatar-wrap">
+        {% if author.profile_image %}
+        <img class="hero-author-avatar" src="{{ author.profile_image.url }}" alt="{{ author.name }}">
+        {% else %}
+        <div class="chef-avatar-placeholder" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2C9.5 2 8 4 8 6c0 1.5.7 2.8 1.7 3.6C7.1 10.5 6 12.6 6 15h12c0-2.4-1.1-4.5-3.7-5.4C15.3 8.8 16 7.5 16 6c0-2-1.5-4-4-4z"/>
+            <rect x="8" y="15" width="8" height="2" rx="1"/>
+            <rect x="7" y="17" width="10" height="3" rx="1"/>
+          </svg>
+        </div>
+        {% endif %}
       </div>
-      {% endif %}
-      <div class="chef-profile-identity__text">
-        <h1>{{ author.name }}</h1>
-        <p class="battle-room-hero__sub chef-profile-identity__rank">{{ profile.get_rank_display }}</p>
+      <h1 class="hero-title">{{ author.name }}</h1>
+      <p class="hero-subtitle">{{ profile.get_rank_display }}</p>
+      <div class="hero__actions">
+        {% if is_own_profile %}
+        <a class="btn-primary" href="{% url 'chef_battle:my_moves' %}">My Moves</a>
+        {% else %}
+        <a class="btn-primary battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:challenge_create' %}?opponent={{ author.slug }}">Challenge This Chef</a>
+        {% endif %}
+        {% include '_enter_arena_btn.html' %}
+        <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
+        <a class="btn-secondary" href="{{ author.get_absolute_url }}">View Recipe Profile</a>
       </div>
     </div>
-    <div class="battle-actions">
-      {% include '_enter_arena_btn.html' %}
-    </div>
+  {% include '_hero_battle_panel.html' %}
   </div>
 </section>
 
@@ -124,19 +136,10 @@
   <div class="empty-state"><p>No battles yet. Step into the arena.</p></div>
   {% endif %}
 
-  {# ── Actions ── #}
-  <div class="battle-actions">
-    {% if is_own_profile %}
-    <a class="btn-primary" href="{% url 'chef_battle:my_moves' %}">My Moves</a>
-    {% else %}
-    <a class="btn-primary battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:challenge_create' %}?opponent={{ author.slug }}">Challenge This Chef</a>
-    {% endif %}
-    <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
-    <a class="btn-secondary" href="{{ author.get_absolute_url }}">View Recipe Profile</a>
-  </div>
+  {# ── Report (primary actions live in the hero) ── #}
   {% if user.is_authenticated and not is_own_profile %}
   <div class="chef-profile-report">
-    <button class="btn-ghost report-content-btn" type="button" data-kind="chef_profile" data-object="{{ profile.pk }}">Report</button>
+    <button class="text-link report-content-btn" type="button" data-kind="chef_profile" data-object="{{ profile.pk }}">Report this profile</button>
   </div>
   {% endif %}
 

@@ -2532,25 +2532,10 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
 .chef-avatar-placeholder { display: flex; align-items: center; justify-content: center; width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 2px solid #bbf7d0; flex-shrink: 0; }
 .chef-avatar-placeholder svg { width: 44px; height: 44px; color: #16a34a; }
 
-/* ── Chef profile page — classic template layout (no inline styles) ──── */
-.chef-profile-identity {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-.chef-profile-identity__avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid rgb(255 255 255 / 0.25);
-  flex-shrink: 0;
-}
-.chef-profile-identity__text { text-align: center; }
-.chef-profile-identity__text h1 { margin: 0; }
-.chef-profile-identity__rank { margin: 0.25rem 0 0; }
+/* ── Chef profile page — canonical hero + classic template layout ────── */
+/* Placeholder avatar sits inside the standard .hero-author-avatar-wrap
+   (reused from the recipe author profile); centre it like the real avatar. */
+.hero-author-avatar-wrap .chef-avatar-placeholder { margin-inline: auto; }
 
 .chef-profile-stats {
   display: grid;
