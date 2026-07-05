@@ -287,6 +287,10 @@
                         </form>
                     </div>
                 </details>
+                <form action="{% url 'logout' %}" class="ce-nav__logout ce-nav__logout--drawer" method="post">
+                    {% csrf_token %}
+                    <button class="ce-nav__button ce-nav__button--secondary" type="submit">Sign Out</button>
+                </form>
             </div>
             {% else %}
             <div class="ce-nav__auth">
@@ -395,7 +399,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v2.5.111</span>
+                <span class="footer-version">v2.5.112</span>
             </div>
         </div>
     </div>

@@ -193,6 +193,20 @@
       speech.dataset.linked = "false";
     }
     chef.dataset.speaking = "true";
+    // Keep the bubble inside the horizon: measure after render and shift it
+    // back inside the viewport (the tail stays anchored to the bear via CSS).
+    speech.style.setProperty("--speech-shift", "0px");
+    window.requestAnimationFrame(() => {
+      const pad = 8;
+      const rect = speech.getBoundingClientRect();
+      let shift = 0;
+      if (rect.right > window.innerWidth - pad) {
+        shift = (window.innerWidth - pad) - rect.right;
+      } else if (rect.left < pad) {
+        shift = pad - rect.left;
+      }
+      if (shift !== 0) speech.style.setProperty("--speech-shift", shift.toFixed(1) + "px");
+    });
     window.clearTimeout(speechTimer);
     speechTimer = window.setTimeout(() => {
       chef.dataset.speaking = "false";

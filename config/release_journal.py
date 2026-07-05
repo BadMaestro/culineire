@@ -1,5 +1,35 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.112",
+        "date": "2026-07-05",
+        "commit": "pending",
+        "title": "Mobile fixes: drawer author block, Sign Out, GreenBear bubble clamped",
+        "section": "UI / Mobile",
+        "summary": (
+            "Three mobile issues from the owner's live iPhone review. (1) The "
+            "author block in the nav drawer used the desktop dark ink on the "
+            "dark drawer card - name and greeting were near-invisible; the "
+            "drawer now overrides them with light tones. (2) Sign Out was "
+            "buried inside the collapsed author dropdown; the drawer now "
+            "shows a dedicated Sign Out button directly under the profile "
+            "block (drawer-only, desktop unchanged). (3) GreenBear speech "
+            "bubbles overflowed the viewport edge: min-width:max-content was "
+            "overriding the 180px cap so long phrases never wrapped, and the "
+            "bubble is centred on a bear that roams up to 88 percent of the "
+            "hero width. Now the bubble wraps at min(180px, 100vw-16px) and "
+            "hero_chef.js measures each phrase and shifts the bubble back "
+            "inside the horizon while the tail stays anchored on the bear. "
+            "Golden bear positions and animations untouched."
+        ),
+        "checklist": [
+            "header.css: drawer author colors + .ce-nav__logout--drawer",
+            "base.html: drawer Sign Out form",
+            "hero_chef.css: width:max-content + viewport-aware max-width + --speech-shift",
+            "hero_chef.js: per-phrase viewport clamp",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
         "version": "2.5.111",
         "date": "2026-07-05",
         "commit": "pending",

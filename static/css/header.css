@@ -1400,3 +1400,41 @@
     font-weight: 700;
   }
 }
+
+/* ── Mobile drawer: author block readable on the dark card ─────────────
+   The desktop summary uses dark ink (#2f3534) and a dark-transparent
+   greeting, which are near-invisible on the drawer's dark gradient. ── */
+.ce-nav--open .ce-author-panel__summary {
+  background: rgb(247 242 234 / 0.10);
+  color: #f7f2ea;
+}
+.ce-nav--open .ce-author-panel__summary:hover,
+.ce-nav--open .ce-author-panel__summary:focus-visible,
+.ce-nav--open .ce-author-panel[open] .ce-author-panel__summary {
+  background: rgb(247 242 234 / 0.18);
+  color: #fff;
+}
+.ce-nav--open .ce-author-panel__greeting {
+  color: rgb(247 242 234 / 0.55);
+}
+
+/* Sign Out directly in the drawer (the author-panel copy stays hidden in
+   its collapsed dropdown, which mobile users never discovered). */
+.ce-nav__logout--drawer {
+  display: none;
+}
+.ce-nav--open .ce-nav__logout--drawer {
+  display: block;
+  margin-top: 0.55rem;
+}
+.ce-nav--open .ce-nav__logout--drawer .ce-nav__button {
+  width: 100%;
+  border: 1px solid rgb(247 242 234 / 0.28);
+  background: rgb(247 242 234 / 0.10);
+  color: #f7f2ea;
+}
+.ce-nav--open .ce-nav__logout--drawer .ce-nav__button:hover,
+.ce-nav--open .ce-nav__logout--drawer .ce-nav__button:focus-visible {
+  background: rgb(247 242 234 / 0.2);
+  color: #fff;
+}
