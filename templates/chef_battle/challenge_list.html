@@ -67,4 +67,8 @@
     </div>
   </div>
 </section>
+
+{% if is_owner %}
+{% include "chef_battle/_amc_owner_briefing.html" %}
+{% endif %}
 {% endblock %}

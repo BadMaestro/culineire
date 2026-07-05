@@ -1,5 +1,35 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.109",
+        "date": "2026-07-05",
+        "commit": "pending",
+        "title": "Owner briefing on the challenges page: AMC report, manual, test-battle guide",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "The challenges page now shows an owner-only briefing block "
+            "(rendered exclusively for the greenbear account, test-enforced) "
+            "with four collapsible sections: (1) the completion report of "
+            "the 10-phase Arena Master Console plan - every phase at 100%, "
+            "versions v2.5.96-v2.5.108, with evidence document references; "
+            "(2) honest bug and deviation analysis - the seven real defects "
+            "found and fixed along the way (latent arena crash, Emergency "
+            "Stop timer freeze, report counter, photo lifecycle, vote-series "
+            "timezone, CSP nonces, stale tests) plus every deliberate "
+            "deviation from the reference (Award Crown disabled by the "
+            "audience-decides principle, read-only economy, no fabricated "
+            "risk scores, honest provider-termination flag); (3) a "
+            "step-by-step console manual covering every panel and control; "
+            "(4) a full walkthrough for running a test battle from challenge "
+            "to crown, including the Emergency Stop drill."
+        ),
+        "checklist": [
+            "templates/chef_battle/_amc_owner_briefing.html (owner-only include)",
+            "challenge_list view passes is_owner",
+            "OwnerBriefingTests (2): owner sees, regular chef does not",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
         "version": "2.5.108",
         "date": "2026-07-05",
         "commit": "pending",

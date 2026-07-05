@@ -1089,6 +1089,7 @@ def challenge_list(request):
         "author": author,
         "sent_challenges": sent,
         "received_challenges": received,
+        "is_owner": author.slug == settings.OWNER_SLUG,
     })
 
 

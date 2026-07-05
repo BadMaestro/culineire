@@ -3645,3 +3645,35 @@ class ViewerPresenceTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(set(resp.json().keys()),
                          {"rings", "spectators", "center", "latest_result"})
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class OwnerBriefingTests(TestCase):
+    """The AMC owner briefing on the challenges page is owner-only."""
+
+    def setUp(self):
+        from django.conf import settings as django_settings
+        User = get_user_model()
+        self.owner_user = User.objects.create_superuser("greenbear", password="pw")
+        RecipeAuthor.objects.update_or_create(
+            slug=django_settings.OWNER_SLUG,
+            defaults={"user": self.owner_user, "name": "GreenBear"},
+        )
+        cu = User.objects.create_user("brief-chef", password="pw")
+        RecipeAuthor.objects.create(user=cu, name="Brief Chef", slug="brief-chef")
+        self.chef_user = cu
+        self.url = reverse("chef_battle:challenge_list")
+
+    def test_owner_sees_briefing(self):
+        self.client.force_login(self.owner_user)
+        resp = self.client.get(self.url)
+        self.assertContains(resp, "Owner Briefing")
+        self.assertContains(resp, "Completion report")
+        self.assertContains(resp, "Running a test battle")
+
+    def test_regular_chef_does_not_see_briefing(self):
+        self.client.force_login(self.chef_user)
+        resp = self.client.get(self.url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertNotContains(resp, "Owner Briefing")
+        self.assertNotContains(resp, "amc-briefing")

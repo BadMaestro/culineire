@@ -1,0 +1,108 @@
+{% comment %}
+Owner-only briefing block on the challenges page: Arena Master Console
+completion report vs the 10-phase plan, bug/deviation analysis, console
+manual and test-battle guide. Rendered only for the site owner.
+{% endcomment %}
+<section class="page-section amc-briefing" aria-label="Owner briefing">
+  <div class="container battle-page">
+    <h2>Arena Master Console — Owner Briefing</h2>
+    <p class="battle-muted">Visible only to you. Plan: docs/chef_battle/arena_master_console/ · Console: <a href="{% url 'chef_battle:master_console' %}">/chef-battle/master/</a></p>
+
+    <details class="amc-briefing__block">
+      <summary><strong>1 · Completion report vs the 10-phase plan — overall 100% delivered</strong></summary>
+      <table class="amc-briefing__table">
+        <thead><tr><th>Phase</th><th>Done</th><th>Delivered</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr><td>P00 Discovery</td><td>100%</td><td>Reuse matrix, frozen contracts, 6 decision gates, query baselines (screenshots waived by you in favour of code baseline)</td><td>P00_*</td></tr>
+          <tr><td>P01 Visual shell</td><td>100%</td><td>Console at /chef-battle/master/, DG-01 gate + your always-access override, 8-panel deck, honest empty states</td><td>P01_VISUAL_REPORT</td></tr>
+          <tr><td>P02 Read models</td><td>100%</td><td>get_master_state (20s poll), live ring embed via shared partial, arena()/arena_state() dedup</td><td>P02_DATA_DICTIONARY, P02_QUERY_REPORT</td></tr>
+          <tr><td>P03 Battle flow</td><td>100%</td><td>Owner-only force/Emergency Stop/Resume/Cancel/Broadcast; idempotent, audited; Award Crown permanently disabled (audience decides)</td><td>P03_TRANSITION_MATRIX, P03_AUDIT_REPORT</td></tr>
+          <tr><td>P04 Combat monitor</td><td>100%</td><td>Counts, live event log, per-round detail, declared actions, biathlon, artifacts; side-effect-free polling proven</td><td>P04_VISIBILITY_MATRIX, P04_COMBAT_REPORT</td></tr>
+          <tr><td>P05 Moderation</td><td>100%</td><td>Cooking queue, DSA reports, streams with safety data; owner actions moderate_entry / review_report / end_stream</td><td>P05_ACTION_MATRIX, P05_SAFETY_REPORT</td></tr>
+          <tr><td>P06 Voting integrity</td><td>100%</td><td>Percentages, UTC vote series, VoteIntegrityEvent evidence, privacy-safe suspicious queue, tie + readiness, pulse</td><td>P06_METRIC_DEFINITIONS, P06_PRIVACY_REPORT</td></tr>
+          <tr><td>P07 Economy</td><td>100%</td><td>Read-only by decision: flows by type, gift catalogue, artifacts, orders; no write path exists (test-enforced)</td><td>P07_LEDGER_DEFINITIONS, P07_RECONCILIATION_REPORT</td></tr>
+          <tr><td>P08 Governance</td><td>100%</td><td>CBR/LSR matrix, payout approve/reject via owning services (owner only), BattleReport workflow, live ledger chain check</td><td>P08_AUTHORITY_MATRIX, P08_LEDGER_AUDIT</td></tr>
+          <tr><td>P09 Hardening</td><td>100%</td><td>Stale-poll guard, chain-check cache, a11y, 1164-test full run, release docs incl. rollback/incident procedures</td><td>P09_ACCEPTANCE_REPORT + 3 more</td></tr>
+          <tr><td>DG-04 Presence</td><td>100%</td><td>Real viewer counts (device-hash heartbeats, 180s window, 1h purge) — designed per your delegation, deployed v2.5.108</td><td>P00_DECISIONS resolution</td></tr>
+        </tbody>
+      </table>
+      <p class="battle-muted">Versions v2.5.96 → v2.5.108, every phase deployed and verified on production. 103 focused console tests + full suite green.</p>
+    </details>
+
+    <details class="amc-briefing__block">
+      <summary><strong>2 · Bugs found &amp; fixed, and deviations from the ТЗ</strong></summary>
+      <h4>Real defects found and fixed along the way</h4>
+      <ul>
+        <li><strong>Latent public-arena crash</strong> — <code>.value</code> on a DB-loaded battle status would have 500'd the arena the moment a real battle went active (found in P02, fixed).</li>
+        <li><strong>Emergency Stop didn't freeze server time</strong> — deadlines kept running while paused; now Resume shifts submission/voting/end deadlines by the pause duration, clock-skew safe (independent audit, fixed).</li>
+        <li><strong>Stream report counter</strong> — console trusted an unsynchronised counter; now aggregates real LiveBroadcastReport rows (audit, fixed).</li>
+        <li><strong>Cooked-photo moderation lifecycle</strong> — the queue watched ingredient_penalty while photos arrive in COOKING; whole lifecycle corrected, PRESENTATION now requires both approved photos (audit, fixed).</li>
+        <li><strong>Vote series timezone</strong> — hourly buckets silently used Europe/Dublin while labelled UTC; forced to UTC, test-asserted (P06, fixed).</li>
+        <li><strong>CSP nonce missing</strong> on console/ring inline scripts — strict CSP silently dropped them (P03, fixed).</li>
+        <li>Minor: malformed action IDs returned 500 → now JSON 400; paused cancel left pause fields; 3 stale tests in recipes/sponsors/accounts updated to current intentional behaviour.</li>
+      </ul>
+      <h4>Deviations from the ТЗ — all deliberate and documented</h4>
+      <ul>
+        <li><strong>Award Crown is permanently disabled</strong> — the ТЗ mockup showed the button; your core principle (audience decides the crown) wins. Documented in P03_TRANSITION_MATRIX.</li>
+        <li><strong>Economy panel is read-only</strong> — no economy write was approved, so none was built; the endpoint rejects invented economy verbs (test-enforced).</li>
+        <li><strong>No automated fraud "risk score"</strong> — the ТЗ allowed one only with an approved rule; none exists, so the panel says so honestly instead of inventing numbers.</li>
+        <li><strong>Stream termination is platform-record only</strong> — no provider API is configured; the UI, response and audit all say provider_side_terminated: false. Nothing is simulated.</li>
+        <li><strong>verify_chain latency ≤60s</strong> — full-table scan cached; re-scans immediately when the ledger grows.</li>
+        <li><strong>Operators see hidden combat declarations</strong> — deliberate (all console users are superusers behind the gate); re-check if an operator can ever be a battle participant. P04_VISIBILITY_MATRIX.</li>
+      </ul>
+      <h4>Open items (yours)</h4>
+      <ul>
+        <li>Schedule <code>purge_vote_integrity_events</code> on the server (90-day retention cron).</li>
+        <li>H1/battle-panel overlap re-check when the battle widget ships for logged-in users on hero pages (noted in CLAUDE.md).</li>
+      </ul>
+    </details>
+
+    <details class="amc-briefing__block">
+      <summary><strong>3 · Console manual — step by step</strong></summary>
+      <ol>
+        <li><strong>Open</strong> <a href="{% url 'chef_battle:master_console' %}">/chef-battle/master/</a> while logged in as greenbear. Nobody else can see it (404). Data refreshes every 20 seconds automatically.</li>
+        <li><strong>Top row</strong>: battle status card with a live countdown (shows PAUSED when stopped), both chef cards, the real arena ring (click any chef for their profile), the Audience card (real viewer counts, votes, gifts, crown holder).</li>
+        <li><strong>Phase rail</strong>: the highlighted step is the battle's current stage (1 Challenge → 7 Crown).</li>
+        <li><strong>Panel 1 — your controls</strong> (each asks for confirmation and is written to the audit log):
+          <ul>
+            <li><em>Start Phase</em> — advance the battle to its expected next stage.</li>
+            <li><em>Lock Ingredients / Open Vote</em> — jump to menu_locked / voting directly.</li>
+            <li><em>Broadcast Notice</em> — public announcement into the battle feed.</li>
+            <li><em>Emergency Stop</em> — requires a reason; battle → PAUSED, timers freeze, live streams terminate, both chefs get a message + email. <em>Resume</em> restores the previous stage and shifts all deadlines by the pause duration. <em>End Battle</em> cancels permanently (reason required).</li>
+            <li><em>Award Crown</em> stays disabled forever — the audience decides.</li>
+          </ul>
+        </li>
+        <li><strong>Panel 4 — moderation</strong>: Approve/Flag buttons appear next to entries once cooked photos are submitted; Review/Dismiss on DSA reports; End Stream on live sessions. Adverse actions require a reason and notify the chef.</li>
+        <li><strong>Panel 7 — money decisions</strong>: Approve/Reject on payout requests (Approve triggers the real Stripe transfer — the dialog warns you). Moderators can only file battle reports; every report lands in your inbox.</li>
+        <li><strong>Footer</strong>: poll health, server time, flag state. If it says "Poll failed" the page keeps the last known state — reload.</li>
+        <li><strong>If something goes wrong</strong>: every action you or an operator ever took is in the battle event log (panel 2 shows the latest 20, including private audit entries). Rollback/incident procedures: docs/chef_battle/arena_master_console/P09_ROLLOUT_ROLLBACK.yaml.</li>
+      </ol>
+    </details>
+
+    <details class="amc-briefing__block">
+      <summary><strong>4 · Running a test battle — full walkthrough</strong></summary>
+      <p class="battle-muted">Use two test chef accounts (never real user data). CHEF_BATTLE_ENABLED stays off for the public — as a superuser you see everything anyway.</p>
+      <ol>
+        <li><strong>Prepare two chefs</strong>: both need author profiles, arena enrolment (Enter Arena → enrol) and at least 5 energy (publishing a recipe gives +5; or grant moves via the moderation tools).</li>
+        <li><strong>Issue the challenge</strong>: log in as chef A → this page → <em>New Challenge</em> → pick chef B, theme, type. Chef B (or you, logged in as B) accepts it here under "Received".</li>
+        <li><strong>Acceptance creates the battle</strong> (status: scheduled). It appears immediately in the console — battle ID in the top bar, chefs in the cards, facing pair in the ring centre.</li>
+        <li><strong>Drive it from the console</strong>: <em>Start Phase</em> walks it through menu_locked → active (combat). In combat, chefs declare attack/defend from the battle room; panel 3 shows declarations and hits live.</li>
+        <li><strong>Cooking &amp; moderation</strong>: after combat/biathlon, chefs upload cooked photos in the battle room; approve both in panel 4 — the battle advances to presentation.</li>
+        <li><strong>Voting</strong>: <em>Open Vote</em> (or Start Phase). Vote from spectator accounts; panel 5 shows totals, percentages and rejected duplicate attempts in real time.</li>
+        <li><strong>Completion</strong>: <em>Start Phase</em> from voting runs the real result service — winner, rating, crown, rewards. The win celebration fires on the public site.</li>
+        <li><strong>Try the safety net</strong>: hit <em>Emergency Stop</em> mid-battle, watch the timer freeze, then <em>Resume</em> — deadlines shift so no battle time is lost.</li>
+        <li><strong>Clean up</strong>: <em>End Battle</em> (cancel) on anything you don't want to keep; cancelled battles never touch ratings.</li>
+      </ol>
+    </details>
+  </div>
+</section>
+
+<style nonce="{{ request.csp_nonce }}">
+.amc-briefing__block { margin: 0.8rem 0; border: 1px solid var(--line); border-radius: 10px; padding: 0.6rem 1rem; background: var(--surface-soft); }
+.amc-briefing__block summary { cursor: pointer; padding: 0.3rem 0; }
+.amc-briefing__block[open] summary { margin-bottom: 0.5rem; }
+.amc-briefing__table { width: 100%; border-collapse: collapse; font-size: 0.85rem; display: block; overflow-x: auto; }
+.amc-briefing__table th, .amc-briefing__table td { text-align: left; padding: 0.35rem 0.5rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+.amc-briefing ul, .amc-briefing ol { padding-left: 1.2rem; }
+.amc-briefing li { margin: 0.3rem 0; }
+</style>
