@@ -2,16 +2,15 @@
 {% load static author_tags chef_battle_tags %}
 
 {% block title %}{{ author.name }} | Chef Battles Profile{% endblock %}
-{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260705e" rel="stylesheet">{% endblock %}
 
 {% block content %}
 <section class="battle-room-hero">
   <div class="container">
-    {% include '_enter_arena_btn.html' %}
     <p class="battle-kicker">Chef Battles Arena</p>
-    <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+    <div class="chef-profile-identity">
       {% if author.profile_image %}
-      <img src="{{ author.profile_image.url }}" alt="{{ author.name }}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,0.25);flex-shrink:0;">
+      <img class="chef-profile-identity__avatar" src="{{ author.profile_image.url }}" alt="{{ author.name }}">
       {% else %}
       <div class="chef-avatar-placeholder" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -21,18 +20,22 @@
         </svg>
       </div>
       {% endif %}
-      <div>
-        <h1 style="margin:0;">{{ author.name }}</h1>
-        <p class="battle-room-hero__sub" style="margin:0.25rem 0 0;">{{ profile.get_rank_display }}</p>
+      <div class="chef-profile-identity__text">
+        <h1>{{ author.name }}</h1>
+        <p class="battle-room-hero__sub chef-profile-identity__rank">{{ profile.get_rank_display }}</p>
       </div>
+    </div>
+    <div class="battle-actions">
+      {% include '_enter_arena_btn.html' %}
     </div>
   </div>
 </section>
 
-<div class="container" style="padding-block: 2.5rem; max-width: 900px;">
+<section class="page-section">
+  <div class="container battle-page">
 
   {# ── Stats ── #}
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; margin-block-end: 2.5rem;">
+  <div class="chef-profile-stats">
 
     <div class="battle-stat-card">
       <span class="battle-stat-card__label">Rating</span>
@@ -41,12 +44,12 @@
 
     <div class="battle-stat-card">
       <span class="battle-stat-card__label">Wins</span>
-      <strong class="battle-stat-card__value" style="color: #c8942a;">{{ profile.wins }}</strong>
+      <strong class="battle-stat-card__value battle-stat-card__value--gold">{{ profile.wins }}</strong>
     </div>
 
     <div class="battle-stat-card">
       <span class="battle-stat-card__label">Losses</span>
-      <strong class="battle-stat-card__value" style="color: var(--color-danger, #b91c1c);">{{ profile.losses }}</strong>
+      <strong class="battle-stat-card__value battle-stat-card__value--danger">{{ profile.losses }}</strong>
     </div>
 
     <div class="battle-stat-card">
@@ -67,53 +70,52 @@
   </div>
 
   {% if profile.has_crown %}
-  <div class="battle-crown-banner" style="margin-block-end: 2rem;">
+  <div class="battle-crown-banner">
     <span>&#x1F451; Current Crown Holder</span>
-    <span style="font-size: 0.85rem; color: var(--color-muted);">Until {{ profile.crown_until|date:"d M Y, H:i" }}</span>
+    <span class="battle-crown-banner__until">Until {{ profile.crown_until|date:"d M Y, H:i" }}</span>
   </div>
   {% endif %}
 
   {# ── Appreciation Gifts ── #}
   {% if gift_display %}
-  <h2 style="font-family: var(--font-serif); font-size: 1.5rem; margin-block-end: 0.75rem;">Gifts from the Audience</h2>
-  <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; margin-block-end: 2.5rem;">
+  <h2 class="chef-profile__section-title">Gifts from the Audience</h2>
+  <div class="chef-profile-gifts">
     {% for gift in gift_display %}
-    <div class="battle-stat-card" style="flex: 0 0 auto; min-width: 100px; text-align: center;">
-      <span style="font-size: 1.8rem; line-height: 1;">{{ gift.emoji }}</span>
-      <span class="battle-stat-card__label" style="margin-top: 0.3rem;">{{ gift.label }}</span>
-      <strong class="battle-stat-card__value" style="font-size: 1.3rem;">x{{ gift.count }}</strong>
+    <div class="battle-stat-card chef-profile-gift">
+      <span class="chef-profile-gift__emoji">{{ gift.emoji }}</span>
+      <span class="battle-stat-card__label">{{ gift.label }}</span>
+      <strong class="battle-stat-card__value chef-profile-gift__count">x{{ gift.count }}</strong>
     </div>
     {% endfor %}
   </div>
   {% endif %}
 
   {# ── Battle History ── #}
-  <h2 style="font-family: var(--font-serif); font-size: 1.5rem; margin-block-end: 1rem;">Battle History</h2>
+  <h2 class="chef-profile__section-title">Battle History</h2>
 
   {% if battles %}
-  <div style="display: grid; gap: 0.75rem; margin-block-end: 2.5rem;">
+  <div class="chef-profile-history">
     {% for battle in battles %}
     {% with opponent=battle|opponent_for:author %}
-    <a class="battle-table__row" href="{{ battle.get_absolute_url }}"
-       style="display: grid; grid-template-columns: 2fr 1fr 1fr; align-items: center; gap: 1rem; text-decoration: none;">
+    <a class="battle-table__row" href="{{ battle.get_absolute_url }}">
       <span>
-        <strong style="display: block; font-size: 0.95rem; font-family: var(--font-serif);">{{ battle.theme }}</strong>
-        <span style="font-size: 0.82rem; color: var(--color-muted);">vs {% if opponent %}{{ opponent.name }}{% else %}TBD{% endif %}</span>
+        <strong class="chef-profile-history__theme">{{ battle.theme }}</strong>
+        <span class="chef-profile-history__meta">vs {% if opponent %}{{ opponent.name }}{% else %}TBD{% endif %}</span>
       </span>
-      <span style="font-size: 0.88rem;">
+      <span class="chef-profile-history__result">
         {% if battle.status == 'completed' %}
           {% if battle.winner_id == author.pk %}
-            <span style="color: #c8942a; font-weight: 600;">Won</span>
+            <span class="result-won">Won</span>
           {% elif battle.winner %}
-            <span style="color: var(--color-danger, #b91c1c);">Lost</span>
+            <span class="result-lost">Lost</span>
           {% else %}
-            <span style="color: var(--color-muted);">Draw</span>
+            <span class="result-draw">Draw</span>
           {% endif %}
         {% else %}
-          <span style="color: var(--color-muted);">{{ battle.get_status_display }}</span>
+          <span class="result-pending">{{ battle.get_status_display }}</span>
         {% endif %}
       </span>
-      <span style="font-size: 0.82rem; color: var(--color-muted); text-align: right;">{{ battle.created_at|date:"d M Y" }}</span>
+      <span class="chef-profile-history__date">{{ battle.created_at|date:"d M Y" }}</span>
     </a>
     {% endwith %}
     {% endfor %}
@@ -123,7 +125,7 @@
   {% endif %}
 
   {# ── Actions ── #}
-  <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+  <div class="battle-actions">
     {% if is_own_profile %}
     <a class="btn-primary" href="{% url 'chef_battle:my_moves' %}">My Moves</a>
     {% else %}
@@ -131,12 +133,15 @@
     {% endif %}
     <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
     <a class="btn-secondary" href="{{ author.get_absolute_url }}">View Recipe Profile</a>
-    {% if user.is_authenticated and not is_own_profile %}
-    <button class="btn-ghost report-content-btn" type="button" data-kind="chef_profile" data-object="{{ profile.pk }}">Report</button>
-    {% endif %}
   </div>
+  {% if user.is_authenticated and not is_own_profile %}
+  <div class="chef-profile-report">
+    <button class="btn-ghost report-content-btn" type="button" data-kind="chef_profile" data-object="{{ profile.pk }}">Report</button>
+  </div>
+  {% endif %}
 
-</div>
+  </div>
+</section>
 
 {% if user.is_authenticated and not is_own_profile %}
 <dialog id="report-dialog" class="report-dialog">

@@ -2532,6 +2532,101 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
 .chef-avatar-placeholder { display: flex; align-items: center; justify-content: center; width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 2px solid #bbf7d0; flex-shrink: 0; }
 .chef-avatar-placeholder svg { width: 44px; height: 44px; color: #16a34a; }
 
+/* ── Chef profile page — classic template layout (no inline styles) ──── */
+.chef-profile-identity {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.chef-profile-identity__avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgb(255 255 255 / 0.25);
+  flex-shrink: 0;
+}
+.chef-profile-identity__text { text-align: center; }
+.chef-profile-identity__text h1 { margin: 0; }
+.chef-profile-identity__rank { margin: 0.25rem 0 0; }
+
+.chef-profile-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 1rem;
+  margin-block-end: 2.5rem;
+}
+.battle-stat-card__value--gold { color: #c8942a; }
+.battle-stat-card__value--danger { color: var(--color-danger, #b91c1c); }
+
+.battle-crown-banner__until { font-size: 0.85rem; color: var(--muted); }
+
+.chef-profile__section-title {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  margin-block-end: 1rem;
+}
+
+.chef-profile-gifts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-block-end: 2.5rem;
+}
+.chef-profile-gift {
+  flex: 0 0 auto;
+  min-width: 100px;
+  align-items: center;
+  text-align: center;
+}
+.chef-profile-gift__emoji { font-size: 1.8rem; line-height: 1; }
+.chef-profile-gift__count { font-size: 1.3rem; }
+
+.chef-profile-history {
+  display: grid;
+  gap: 0.75rem;
+  margin-block-end: 2.5rem;
+}
+.chef-profile-history .battle-table__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content max-content;
+  align-items: center;
+  gap: 1rem;
+  /* Reset the base battle-table mobile min-width (42rem, meant for the
+     horizontal-scroll .battle-table wrapper this simple list does not use). */
+  min-width: 0;
+  text-decoration: none;
+}
+.chef-profile-history__theme { overflow-wrap: anywhere; }
+@media (max-width: 520px) {
+  .chef-profile-history .battle-table__row { gap: 0.5rem; }
+  .chef-profile-history__date { display: none; }
+}
+.chef-profile-history__theme {
+  display: block;
+  font-size: 0.95rem;
+  font-family: var(--font-serif);
+}
+.chef-profile-history__meta { font-size: 0.82rem; color: var(--muted); }
+.chef-profile-history__result { font-size: 0.88rem; }
+.chef-profile-history__date {
+  font-size: 0.82rem;
+  color: var(--muted);
+  text-align: right;
+}
+.result-won { color: #c8942a; font-weight: 600; }
+.result-lost { color: var(--color-danger, #b91c1c); }
+.result-draw,
+.result-pending { color: var(--muted); }
+
+/* Report sits on its own centred line so the main pill row stays even */
+.chef-profile-report {
+  margin-block-start: 1rem;
+  text-align: center;
+}
+
 /* Hall of Fame banner */
 .hof-hero { position: relative; }
 .hof-banner { margin-block-end: 1rem; }

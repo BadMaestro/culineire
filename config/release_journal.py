@@ -1,5 +1,38 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.119",
+        "date": "2026-07-05",
+        "commit": "pending",
+        "title": "Chef profile page brought to the classic template look",
+        "section": "Chef Battles / UI",
+        "summary": (
+            "The chef profile page was a wall of ad-hoc inline styles with a "
+            "left-aligned, uneven action row (the Report ghost button had a "
+            "different padding and corner radius than the pill buttons next "
+            "to it) and an Enter Arena link floating faintly over the hero "
+            "photo. Rebuilt to the site's classic pattern used by every "
+            "other Chef Battles page: battle-room-hero with a centred "
+            "identity block and Enter Arena inside a proper battle-actions "
+            "row; page-section + container battle-page body; all layout "
+            "moved from inline styles to named component classes "
+            "(chef-profile-stats, chef-profile-gifts, chef-profile-history, "
+            "etc.). The three main actions now sit in a centred battle-"
+            "actions row, all identical pills; Report drops to its own "
+            "centred line so it never breaks the even row. Fixed the mobile "
+            "history overflow (the reused battle-table row carries a 42rem "
+            "min-width meant for a horizontal-scroll wrapper this list does "
+            "not use). Zero inline styles remain in the page body. Verified "
+            "live at desktop and 375px."
+        ),
+        "checklist": [
+            "chef_profile.html: classic hero + page-section, no inline styles",
+            "chef_battle.css: chef-profile-* component classes",
+            "action row centred, buttons even; Report on its own line",
+            "mobile history overflow fixed (min-width reset)",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
         "version": "2.5.118",
         "date": "2026-07-05",
         "commit": "pending",
