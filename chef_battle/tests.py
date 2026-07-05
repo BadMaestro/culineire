@@ -2475,8 +2475,13 @@ class ArenaMasterActionTests(TestCase):
     # ── resume / cancel ──
     def test_resume_restores_pre_pause_status(self):
         battle = self._battle(Battle.Status.VOTING)
+        original_submission = battle.submission_deadline
+        original_voting = battle.voting_deadline
+        original_end = battle.end_time
         self._post(self.owner_user, action="emergency_stop",
                    battle_id=battle.pk, reason="incident")
+        paused_at = timezone.now() - timezone.timedelta(hours=2)
+        Battle.objects.filter(pk=battle.pk).update(paused_at=paused_at)
         resp = self._post(self.owner_user, action="resume", battle_id=battle.pk)
         self.assertEqual(resp.status_code, 200)
         battle.refresh_from_db()
@@ -2484,11 +2489,49 @@ class ArenaMasterActionTests(TestCase):
         self.assertIsNone(battle.paused_at)
         self.assertEqual(battle.paused_reason, "")
         self.assertEqual(battle.paused_from_status, "")
+        for original, shifted in (
+            (original_submission, battle.submission_deadline),
+            (original_voting, battle.voting_deadline),
+            (original_end, battle.end_time),
+        ):
+            self.assertAlmostEqual(
+                (shifted - original).total_seconds(), 7200, delta=3
+            )
+        event = BattleEvent.objects.filter(
+            battle=battle,
+            event_type=BattleEvent.EventType.OPERATOR_ACTION,
+            payload_json__action="resume",
+        ).get()
+        self.assertAlmostEqual(
+            event.payload_json["pause_duration_seconds"], 7200, delta=3
+        )
+        self.assertEqual(
+            event.payload_json["shifted_deadlines"],
+            ["submission_deadline", "voting_deadline", "end_time"],
+        )
 
     def test_resume_requires_paused(self):
         battle = self._battle(Battle.Status.ACTIVE)
         resp = self._post(self.owner_user, action="resume", battle_id=battle.pk)
         self.assertEqual(resp.status_code, 409)
+
+    def test_resume_never_moves_deadlines_backwards_on_clock_skew(self):
+        battle = self._battle(Battle.Status.PAUSED)
+        battle.paused_from_status = Battle.Status.VOTING
+        battle.paused_at = timezone.now() + timezone.timedelta(minutes=5)
+        battle.save(update_fields=["paused_from_status", "paused_at"])
+        original_deadlines = (
+            battle.submission_deadline, battle.voting_deadline, battle.end_time,
+        )
+
+        resp = self._post(self.owner_user, action="resume", battle_id=battle.pk)
+
+        self.assertEqual(resp.status_code, 200)
+        battle.refresh_from_db()
+        self.assertEqual(
+            (battle.submission_deadline, battle.voting_deadline, battle.end_time),
+            original_deadlines,
+        )
 
     def test_cancel_paused_battle(self):
         battle = self._battle(Battle.Status.ACTIVE)
@@ -2795,14 +2838,23 @@ class ArenaMasterModerationTests(TestCase):
 
     # ── read models ──
     def test_moderation_detail_in_state(self):
-        from .models import ContentReport, LiveStreamSession
+        from .models import ContentReport, LiveBroadcast, LiveBroadcastReport, LiveStreamSession
         ContentReport.objects.create(
             content_kind=ContentReport.ContentKind.BATTLE_ENTRY,
             object_id=self.entry.pk, reason="looks like stock photo",
         )
-        LiveStreamSession.objects.create(
+        session = LiveStreamSession.objects.create(
             battle=self.battle, chef=self.chef_a,
             status=LiveStreamSession.Status.LIVE, checklist_confirmed=True,
+        )
+        broadcast = LiveBroadcast.objects.create(session=session, report_count=99)
+        LiveBroadcastReport.objects.create(
+            broadcast=broadcast,
+            category=LiveBroadcastReport.ReportCategory.CHILD_SAFETY,
+        )
+        LiveBroadcastReport.objects.create(
+            broadcast=broadcast,
+            category=LiveBroadcastReport.ReportCategory.COPYRIGHT,
         )
         self.client.force_login(self.owner_user)
         data = self.client.post(self.state_url).json()
@@ -2814,6 +2866,7 @@ class ArenaMasterModerationTests(TestCase):
         self.assertEqual(stream["chef_slug"], "p5-chef-a")
         self.assertTrue(stream["checklist_confirmed"])
         self.assertFalse(stream["agreement_signed"])
+        self.assertEqual(stream["broadcast"]["report_count"], 2)
 
     # ── entry moderation ──
     def test_owner_approves_entry(self):

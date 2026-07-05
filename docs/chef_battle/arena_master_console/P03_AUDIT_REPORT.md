@@ -60,6 +60,14 @@ operator services; direct assignment exists only inside
   environments silently dropped them. Both now carry
   `nonce="{{ request.csp_nonce }}"` like every other inline script on the site.
 
+## Post-audit correction (2026-07-05)
+
+Emergency Stop now preserves server-authoritative time: on resume,
+`submission_deadline`, `voting_deadline`, and `end_time` are extended by the
+measured pause duration inside the locked transaction. The resume audit payload
+records that duration and the shifted fields. Focused P03/P05 regression suite:
+32/32 passing; no migration required.
+
 ## Deployment
 
 - Migration required: `chef_battle/0056` (3 nullable/blank columns — safe).

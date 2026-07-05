@@ -613,8 +613,8 @@ def get_master_moderation_detail() -> dict:
         LiveStreamSession.objects.filter(
             status__in=[LiveStreamSession.Status.SCHEDULED, LiveStreamSession.Status.LIVE]
         )
-        .select_related("chef", "battle")
-        .prefetch_related("broadcast")[:10]
+        .select_related("chef", "battle", "broadcast")
+        .annotate(authoritative_report_count=Count("broadcast__reports", distinct=True))[:10]
     )
     agreement_chef_ids = set(
         LiveBattleAgreement.objects.filter(
@@ -637,7 +637,7 @@ def get_master_moderation_detail() -> dict:
             "broadcast": {
                 "moderation_status": broadcast.moderation_status,
                 "safety_delay_enabled": broadcast.safety_delay_enabled,
-                "report_count": broadcast.report_count,
+                "report_count": s.authoritative_report_count,
                 "stopped_by_staff": broadcast.stopped_by_staff,
             } if broadcast else None,
         })

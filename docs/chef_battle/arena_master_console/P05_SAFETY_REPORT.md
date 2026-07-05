@@ -49,6 +49,13 @@ moderation note text absent from public arena JSON and battle page.
 - Live console check: honest empty states for queue/reports/streams, no
   overflow, no console errors; public arena unchanged.
 
+## Post-audit correction (2026-07-05)
+
+The console no longer trusts the unsynchronised `LiveBroadcast.report_count`
+counter. It aggregates the authoritative `LiveBroadcastReport` relation for each
+listed broadcast. A regression test sets the legacy counter to 99, creates two
+real reports, and verifies that the console displays 2.
+
 ## Deployment
 
 No migrations. collectstatic required (console JS/CSS).

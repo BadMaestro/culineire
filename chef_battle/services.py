@@ -2084,17 +2084,33 @@ def operator_resume(*, battle_id, operator_author, correlation_id=""):
         restore_to = battle.paused_from_status
         if not restore_to:
             raise OperatorActionError("No pre-pause status recorded; cannot resume.")
+        resumed_at = timezone.now()
+        pause_duration = max(
+            timezone.timedelta(0),
+            resumed_at - battle.paused_at if battle.paused_at else timezone.timedelta(0),
+        )
+        shifted_deadlines = []
+        for field_name in ("submission_deadline", "voting_deadline", "end_time"):
+            deadline = getattr(battle, field_name)
+            if deadline is not None:
+                setattr(battle, field_name, deadline + pause_duration)
+                shifted_deadlines.append(field_name)
         battle.status = restore_to
         battle.paused_at = None
         battle.paused_reason = ""
         battle.paused_from_status = ""
         battle.save(update_fields=[
             "status", "paused_at", "paused_reason", "paused_from_status", "updated_at",
+            *shifted_deadlines,
         ])
         _operator_event(
             battle=battle, operator_author=operator_author,
             action="resume", before=Battle.Status.PAUSED, after=restore_to,
             reason="", correlation_id=correlation_id,
+            extra={
+                "pause_duration_seconds": max(0, int(pause_duration.total_seconds())),
+                "shifted_deadlines": shifted_deadlines,
+            },
         )
         _notify_participants(
             battle,
