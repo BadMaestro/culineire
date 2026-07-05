@@ -57,6 +57,19 @@
       </div>
       {% endif %}
 
+      {# Arena Menu — absorbed from the former hero battle panel #}
+      <div class="site-battle-widget__section">
+        <p class="site-battle-widget__section-title">Arena Menu</p>
+        <div class="site-battle-widget__menu">
+          <a href="{% url 'chef_battle:challenge_list' %}">My Challenges</a>
+          <a href="{% url 'chef_battle:season_leaderboard' %}">Season</a>
+          <a href="{% url 'chef_battle:rankings' %}">Rankings</a>
+          <a href="{% url 'chef_battle:token_shop' %}">Treasury</a>
+          <a href="{% url 'chef_battle:appreciation_gallery' %}">Gifts</a>
+          <a href="{% url 'chef_battle:artifact_gallery' %}">Artifacts</a>
+        </div>
+      </div>
+
       {% include '_enter_arena_btn.html' %}
 
     </div>

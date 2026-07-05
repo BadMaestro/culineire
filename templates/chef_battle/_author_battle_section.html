@@ -1,0 +1,106 @@
+{% load chef_battle_tags %}
+{% comment %}
+Chef Battles arena section, shown on the author page when the author is an
+enrolled chef (merged profile). Owned by the chef_battle app so the recipes
+app never renders battle markup itself. Requires context: author,
+battle_profile, arena_battles, arena_gift_display.
+{% endcomment %}
+<section class="page-section chef-arena-section" id="chef-arena" aria-label="Chef Battles arena">
+  <div class="container battle-page">
+
+    <div class="section-header">
+      <h2>Chef Battles Arena</h2>
+    </div>
+
+    {# ── Stats ── #}
+    <div class="chef-profile-stats">
+      <div class="battle-stat-card">
+        <span class="battle-stat-card__label">Rank</span>
+        <strong class="battle-stat-card__value chef-arena-rank">{{ battle_profile.get_rank_display }}</strong>
+      </div>
+      <div class="battle-stat-card">
+        <span class="battle-stat-card__label">Rating</span>
+        <strong class="battle-stat-card__value">{{ battle_profile.rating }}</strong>
+      </div>
+      <div class="battle-stat-card">
+        <span class="battle-stat-card__label">Wins</span>
+        <strong class="battle-stat-card__value battle-stat-card__value--gold">{{ battle_profile.wins }}</strong>
+      </div>
+      <div class="battle-stat-card">
+        <span class="battle-stat-card__label">Losses</span>
+        <strong class="battle-stat-card__value battle-stat-card__value--danger">{{ battle_profile.losses }}</strong>
+      </div>
+      <div class="battle-stat-card">
+        <span class="battle-stat-card__label">Win Streak</span>
+        <strong class="battle-stat-card__value">{{ battle_profile.win_streak }}</strong>
+      </div>
+      <div class="battle-stat-card">
+        <span class="battle-stat-card__label">Crowns</span>
+        <strong class="battle-stat-card__value">{{ battle_profile.crown_count }}</strong>
+      </div>
+      <div class="battle-stat-card">
+        <span class="battle-stat-card__label">Battle Moves</span>
+        <strong class="battle-stat-card__value">{% if battle_profile.infinite_moves %}&#x221E;{% else %}{{ battle_profile.battle_moves }}{% endif %}</strong>
+      </div>
+    </div>
+
+    {% if battle_profile.has_crown %}
+    <div class="battle-crown-banner">
+      <span>&#x1F451; Current Crown Holder</span>
+      <span class="battle-crown-banner__until">Until {{ battle_profile.crown_until|date:"d M Y, H:i" }}</span>
+    </div>
+    {% endif %}
+
+    {# ── Appreciation Gifts ── #}
+    {% if arena_gift_display %}
+    <h3 class="chef-profile__section-title">Gifts from the Audience</h3>
+    <div class="chef-profile-gifts">
+      {% for gift in arena_gift_display %}
+      <div class="battle-stat-card chef-profile-gift">
+        <span class="chef-profile-gift__emoji">{{ gift.emoji }}</span>
+        <span class="battle-stat-card__label">{{ gift.label }}</span>
+        <strong class="battle-stat-card__value chef-profile-gift__count">x{{ gift.count }}</strong>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {# ── Battle History ── #}
+    <h3 class="chef-profile__section-title">Battle History</h3>
+    {% if arena_battles %}
+    <div class="chef-profile-history">
+      {% for battle in arena_battles %}
+      {% with opponent=battle|opponent_for:author %}
+      <a class="battle-table__row" href="{{ battle.get_absolute_url }}">
+        <span>
+          <strong class="chef-profile-history__theme">{{ battle.theme }}</strong>
+          <span class="chef-profile-history__meta">vs {% if opponent %}{{ opponent.name }}{% else %}TBD{% endif %}</span>
+        </span>
+        <span class="chef-profile-history__result">
+          {% if battle.status == 'completed' %}
+            {% if battle.winner_id == author.pk %}<span class="result-won">Won</span>
+            {% elif battle.winner %}<span class="result-lost">Lost</span>
+            {% else %}<span class="result-draw">Draw</span>{% endif %}
+          {% else %}<span class="result-pending">{{ battle.get_status_display }}</span>{% endif %}
+        </span>
+        <span class="chef-profile-history__date">{{ battle.created_at|date:"d M Y" }}</span>
+      </a>
+      {% endwith %}
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state"><p>No battles yet. Step into the arena.</p></div>
+    {% endif %}
+
+    <div class="battle-actions">
+      {% if can_manage_author_profile %}
+      <a class="btn-secondary" href="{% url 'chef_battle:my_moves' %}">My Moves</a>
+      {% else %}
+      <a class="btn-secondary battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:challenge_create' %}?opponent={{ author.slug }}">Challenge This Chef</a>
+      {% endif %}
+      {% include '_enter_arena_btn.html' %}
+      <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
+    </div>
+
+  </div>
+</section>

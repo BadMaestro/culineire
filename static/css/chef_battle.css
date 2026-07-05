@@ -2612,6 +2612,14 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
   text-align: center;
 }
 
+/* Merged author page: the chef arena section. Rank label is a word, not a
+   number, so it needs a smaller value size to fit the stat card. */
+.chef-arena-section { padding-block-start: 0; }
+.battle-stat-card__value.chef-arena-rank {
+  font-size: 1.1rem;
+  line-height: 1.15;
+}
+
 /* Hall of Fame banner */
 .hof-hero { position: relative; }
 .hof-banner { margin-block-end: 1rem; }
@@ -3745,6 +3753,25 @@ a.battle-home__pulse-msg:hover {
   text-decoration: none;
 }
 .site-battle-widget__events a:hover { color: #f8d28a; }
+
+.site-battle-widget__menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.6rem;
+}
+.site-battle-widget__menu a {
+  color: inherit;
+  text-decoration: none;
+  font-size: 0.72rem;
+  padding: 0.15rem 0;
+  border-bottom: 1px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.site-battle-widget__menu a:hover,
+.site-battle-widget__menu a:focus-visible {
+  color: #f8d28a;
+  border-bottom-color: rgb(248 210 138 / 0.4);
+}
 
 @media (max-width: 600px) {
   .site-battle-widget {

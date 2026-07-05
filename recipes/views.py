@@ -1445,6 +1445,8 @@ def author_detail(request, slug):
 
     battle_profile = None
     recent_battles = []
+    arena_battles = []
+    arena_gift_display = []
     _flag_on = getattr(settings, "CHEF_BATTLE_ENABLED", False)
     _u = request.user
     _ap = getattr(_u, "recipe_author_profile", None) if _u and _u.is_authenticated else None
@@ -1461,6 +1463,8 @@ def author_detail(request, slug):
             _summary = get_author_battle_summary(author)
             battle_profile = _summary["battle_profile"]
             recent_battles = _summary["recent_battles"]
+            arena_battles = _summary["battles"]
+            arena_gift_display = _summary["gift_display"]
         except Exception:
             logger.exception("Chef Battle profile data is unavailable for author %s.", author.pk)
 
@@ -1643,6 +1647,8 @@ def author_detail(request, slug):
         "collection_count": collection_count,
         "battle_profile": battle_profile,
         "recent_battles": recent_battles,
+        "arena_battles": arena_battles,
+        "arena_gift_display": arena_gift_display,
         "chef_battle_enabled": chef_battle_enabled,
     }
     return render(request, "recipes/author_detail.html", context)

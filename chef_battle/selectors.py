@@ -110,15 +110,38 @@ def get_hall_of_fame_chefs(limit: int = 20) -> QuerySet:
 
 
 def get_author_battle_summary(author):
-    """Return battle_profile and recent_battles for the public author page."""
-    from django.db.models import Q
+    """Battle data for the merged author page arena section (chef_battle owns
+    this so the recipes app never queries battle models directly):
+    - battle_profile: the ChefBattleProfile (or None)
+    - recent_battles: short list for compact summaries
+    - battles: full recent history (20) for the arena section
+    - gift_display: appreciation gifts aggregated by type
+    """
+    from django.db.models import Count, Q
+    from .models import AppreciationGiftType, APPRECIATION_GIFT_EMOJI
+
     battle_profile = ChefBattleProfile.objects.filter(author=author).first()
-    recent_battles = list(
+    battles = list(
         Battle.objects.select_related("challenger", "opponent", "winner")
         .filter(Q(challenger=author) | Q(opponent=author))
-        .order_by("-created_at")[:6]
+        .order_by("-created_at")[:20]
     )
-    return {"battle_profile": battle_profile, "recent_battles": recent_battles}
+    gift_display = [
+        {
+            "type": g["gift_type"],
+            "label": AppreciationGiftType(g["gift_type"]).label,
+            "count": g["total"],
+            "emoji": APPRECIATION_GIFT_EMOJI.get(g["gift_type"], "\U0001F381"),
+        }
+        for g in author.appreciation_gifts.values("gift_type")
+        .annotate(total=Count("id")).order_by("-total")
+    ]
+    return {
+        "battle_profile": battle_profile,
+        "recent_battles": battles[:6],
+        "battles": battles,
+        "gift_display": gift_display,
+    }
 
 
 # ═════════════════════════════════════════════════════════════════════════════

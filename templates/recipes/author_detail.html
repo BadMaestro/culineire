@@ -52,7 +52,6 @@
             </div>
             {% endif %}
         </div>
-    {% include '_hero_battle_panel.html' %}
     </div>
 </section>
 
@@ -88,47 +87,6 @@
             </a>
             {% endif %}
         </div>
-
-        {% if chef_battle_enabled %}
-        <section class="author-battle-summary" aria-labelledby="author-battle-summary-title">
-            <div class="author-battle-summary__header">
-                <div>
-                    <p class="section-kicker">Chef Battles</p>
-                    <h2 id="author-battle-summary-title">Arena Record</h2>
-                </div>
-                <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
-                <a class="btn-secondary" href="{% url 'chef_battle:chef_profile' slug=author.slug %}">Battle Profile</a>
-                {% if request.user.is_authenticated and not can_manage_author_profile %}
-                <a class="btn-secondary" href="{% url 'chef_battle:challenge_create' %}?opponent={{ author.pk }}">Challenge Chef</a>
-                {% endif %}
-                </div>
-            </div>
-
-            {% if battle_profile %}
-            <div class="author-battle-summary__stats">
-                {% if battle_profile.has_crown %}<span class="author-battle-crown" title="Current Crown Holder">&#x1F451; Crown Holder</span>{% endif %}
-                <span>Rank: <strong>{{ battle_profile.get_rank_display }}</strong></span>
-                <span>Rating: <strong>{% if battle_profile.is_executive %}(Bear)seeker{% else %}{{ battle_profile.rating }}{% endif %}</strong></span>
-                <span>Wins: <strong>{{ battle_profile.wins }}</strong></span>
-                <span>Losses: <strong>{{ battle_profile.losses }}</strong></span>
-                <span>Moves: <strong>{{ battle_profile.battle_moves }}</strong></span>
-            </div>
-            {% else %}
-            <p class="author-battle-summary__empty">This Chef has not entered the arena yet.</p>
-            {% endif %}
-
-            {% if recent_battles %}
-            <ol class="author-battle-summary__list">
-                {% for battle in recent_battles %}
-                <li>
-                    <a href="{{ battle.get_absolute_url }}">{{ battle.theme }}</a>
-                    <span>{{ battle.get_status_display }}{% if battle.winner %} - {{ battle.winner.name }} won{% endif %}</span>
-                </li>
-                {% endfor %}
-            </ol>
-            {% endif %}
-        </section>
-        {% endif %}
 
         {% if private_dashboard or dashboard_recipes or dashboard_articles or dashboard_pinch %}
         <div class="author-studio-pending">
@@ -275,4 +233,8 @@
 
     </div>
 </section>
+
+{% if chef_battle_enabled and battle_profile.enrolled_at %}
+{% include 'chef_battle/_author_battle_section.html' %}
+{% endif %}
 {% endblock %}
