@@ -1,0 +1,22 @@
+schema_version: "1.0"
+document_type: "phase_08_handoff"
+phase_id: "P08"
+status: "complete_pending_owner_signoff"
+produced_at: "2026-07-05"
+
+delivered:
+  model: "BattleReport (migration 0058)"
+  services: "operator_submit_battle_report (any console operator), operator_review_payout (owner-only wrapper over approve/reject_payout_request)"
+  selectors: "get_master_governance_detail() -> governance section"
+  ui: "panel 7: rewards matrix, payout queue with owner approve/reject, battle reports + submit button, live ledger chain status"
+  tests: "ArenaMasterGovernanceTests (9)"
+
+scaling_note: "verify_chain() scans the full LedgerEvent table on every poll — fine at current volume; if events grow past ~10k, cache the result or verify incrementally (flagged for P09/后续)"
+
+p09_input_contract:
+  hardening: "final phase: cross-console regression, performance re-measure, docs consolidation, release checklist; no new features"
+
+deployment:
+  migrations_required: true   # chef_battle/0058
+  collectstatic_required: true
+  risk: "medium — payout approval reaches real Stripe Connect path, but only via the pre-existing owning service and only for the owner"

@@ -375,9 +375,11 @@ def get_master_state() -> dict:
     moderation["detail"] = get_master_moderation_detail()
 
     monitor = get_master_monitor(battles=battles)
+    governance = get_master_governance_detail()
 
     return {
         "monitor": monitor,
+        "governance": governance,
         "arena": {
             "enrolled_count": profile_counts["enrolled"],
             "online_count": profile_counts["online"],
@@ -843,4 +845,70 @@ def get_master_economy_detail() -> dict:
         "rarity_distribution": rarity_distribution,
         "orders_by_status": orders_by_status,
         "attention_order_ids": attention_orders,
+    }
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# P08 — Rewards governance read models (DG-06: review tool for all console
+# operators; financial authority stays with the owner). CBR/LSR are
+# discretionary platform rewards — never funds, earnings or balances.
+# ═════════════════════════════════════════════════════════════════════════════
+
+def get_master_governance_detail() -> dict:
+    """Panel 7 read models: reward status matrix, payout queue, battle
+    reports, ledger hash-chain state. Pure reads."""
+    from django.db.models import Count as _Count
+    from .models import BattleReport, LedgerEvent, PayoutRequest, RewardRecord
+
+    rewards_matrix = {}
+    for row in RewardRecord.objects.values("reward_type", "status").annotate(n=_Count("id")):
+        rewards_matrix.setdefault(row["reward_type"], {})[row["status"]] = row["n"]
+
+    recent_rewards = [
+        {
+            "id": r.pk, "type": r.reward_type, "status": r.status,
+            "tokens": r.tokens_granted, "recipient": r.recipient.slug,
+            "reason": r.reason[:80],
+        }
+        for r in RewardRecord.objects.select_related("recipient")
+        .order_by("-created_at")[:8]
+    ]
+
+    payouts = [
+        {
+            "id": p.pk, "chef": p.chef.slug, "status": p.status,
+            "tokens": p.amount_reward_tokens,
+            "gross_eur": str(p.gross_payout_eur),
+            "requested_at": p.requested_at.isoformat(),
+            "actionable": p.status in (
+                PayoutRequest.Status.PENDING, PayoutRequest.Status.UNDER_REVIEW,
+            ),
+        }
+        for p in PayoutRequest.objects.select_related("chef")
+        .order_by("-requested_at")[:10]
+    ]
+
+    reports = [
+        {
+            "id": r.pk, "battle_id": r.battle_id, "author": r.author.slug,
+            "recommendation": r.recommendation, "status": r.status,
+            "flags": r.flags, "created_at": r.created_at.isoformat(),
+        }
+        for r in BattleReport.objects.select_related("author")
+        .order_by("-created_at")[:8]
+    ]
+
+    chain_ok, first_broken = LedgerEvent.verify_chain()
+    ledger = {
+        "total_events": LedgerEvent.objects.count(),
+        "chain_intact": chain_ok,
+        "first_broken_pk": first_broken,
+    }
+
+    return {
+        "rewards_matrix": rewards_matrix,
+        "recent_rewards": recent_rewards,
+        "payouts": payouts,
+        "reports": reports,
+        "ledger": ledger,
     }

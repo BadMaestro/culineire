@@ -330,7 +330,7 @@ def _build_battlefield_progress():
                 {"label": "P05: Moderation, safety, and live-stream operations", "detail": "Panel 4 live: cooking queue with per-entry state, pending content reports, stream sessions with broadcast safety data (checklist, delay, agreement, report count). Owner-only actions: moderate_entry (adverse needs reason + notifies chef), review_report (note required), end_stream (honest provider_side_terminated:false - no provider API exists). All audited. 10 tests; suite 212 green.", "status": "done", "completed_at": "2026-07-04"},
                 {"label": "P06: Voting integrity and audience analytics", "detail": "Panel 5 live: percentages (NULL at zero votes), UTC hourly vote series (24h, tz test-asserted), enforcement evidence (unique constraints + VoteIntegrityEvent aggregates by gate), privacy-safe suspicious queue (no voter identity/hashes), tie + completion readiness incl. blocked-by-tie, community pulse (visible chat, support per chef). Read-only; no risk scores claimed. 9 tests; suite green.", "status": "done", "completed_at": "2026-07-05"},
                 {"label": "P07: Economy, gifts, tokens, and artifacts", "detail": "Panel 6 live, READ-ONLY: token flows by tx_type (24h, signed ledger sums), gift catalogue from source-of-truth constants + 24h delivery, per-chef gift totals, artifact inventory by status + rarity distribution, orders by status with disputed/refunded attention ids. No economy write path exists (test posts 5 mutation verbs, all 400). Ledger reconciliation + wallet invariant tests. Closed-loop wording enforced. 8 tests; suite green.", "status": "done", "completed_at": "2026-07-05"},
-                {"label": "P08: CBR, LSR, payout, ranks, crown, and arena authority", "detail": "Review-and-report panel per DG-06; payout approve/reject GreenBear-only via existing services.", "status": "pending"},
+                {"label": "P08: CBR, LSR, payout, ranks, crown, and arena authority", "detail": "Panel 7 live: CBR/LSR status matrix (full lifecycle), payout queue with owner-only approve/reject delegating to existing owning services (Stripe path untouched), BattleReport model+workflow (DG-06: any operator reports, owner decides, owner notified), live LedgerEvent hash-chain check in the panel. Chain asserted intact after payout approval. 9 tests; suite green. Migration 0058.", "status": "done", "completed_at": "2026-07-05"},
                 {"label": "P09: Hardening, accessibility, performance, release readiness", "detail": "Integrated console verified twice, feature-gated (ARENA_MASTER_CONSOLE_ENABLED, default off), rollback-ready.", "status": "pending"},
             ],
         },
@@ -2405,20 +2405,41 @@ def master_action(request):
     from .services import (
         OperatorActionError, operator_broadcast, operator_cancel,
         operator_emergency_stop, operator_end_stream, operator_force_status,
-        operator_moderate_entry, operator_resume, operator_review_report,
+        operator_moderate_entry, operator_resume, operator_review_payout,
+        operator_review_report, operator_submit_battle_report,
     )
 
     author = get_author_for_user(request.user)
+    action = request.POST.get("action", "")
+    battle_id = request.POST.get("battle_id")
+    correlation_id = request.POST.get("correlation_id") or uuid.uuid4().hex[:12]
+    reason = request.POST.get("reason", "")
+
+    # DG-06: submitting a battle report is the ONE write available to every
+    # console operator (the console gate already vetted them). Everything
+    # else stays owner-only.
+    if action == "submit_battle_report":
+        try:
+            report = operator_submit_battle_report(
+                battle_id=battle_id,
+                operator_author=author,
+                summary=request.POST.get("summary", ""),
+                recommendation=request.POST.get("recommendation", ""),
+                flags=request.POST.getlist("flags"),
+                correlation_id=correlation_id,
+            )
+        except OperatorActionError as exc:
+            return JsonResponse({"ok": False, "error": str(exc)}, status=409)
+        return JsonResponse({"ok": True, "action": action,
+                             "correlation_id": correlation_id,
+                             "report": {"id": report.pk,
+                                        "recommendation": report.recommendation}})
+
     if not author or author.slug != settings.OWNER_SLUG:
         return JsonResponse(
             {"ok": False, "error": "Only the arena owner may perform console actions."},
             status=403,
         )
-
-    action = request.POST.get("action", "")
-    battle_id = request.POST.get("battle_id")
-    correlation_id = request.POST.get("correlation_id") or uuid.uuid4().hex[:12]
-    reason = request.POST.get("reason", "")
 
     id_fields = {
         "force_status": "battle_id", "emergency_stop": "battle_id",
@@ -2500,6 +2521,17 @@ def master_action(request):
                                  "provider_side_terminated": False,
                                  "note": "Platform record terminated; no provider integration is configured.",
                                  "session": {"id": session.pk, "status": session.status}})
+        elif action in ("approve_payout", "reject_payout"):
+            payout = operator_review_payout(
+                payout_id=request.POST.get("payout_id"),
+                operator_author=author,
+                decision=action.split("_")[0],
+                reason=reason,
+                correlation_id=correlation_id,
+            )
+            return JsonResponse({"ok": True, "action": action,
+                                 "correlation_id": correlation_id,
+                                 "payout": {"id": payout.pk, "status": payout.status}})
         elif action == "broadcast":
             operator_broadcast(
                 operator_author=author,

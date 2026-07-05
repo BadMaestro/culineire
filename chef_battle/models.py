@@ -1090,6 +1090,44 @@ class LedgerEvent(models.Model):
         return True, None
 
 
+class BattleReport(models.Model):
+    """Structured post-battle report from a console operator to GreenBear (DG-06).
+
+    The one write available to non-owner console operators: watch the battle,
+    summarise it, flag issues, recommend a payout decision. Final financial
+    authority stays exclusively with the owner.
+    """
+
+    class Recommendation(models.TextChoices):
+        APPROVE_PAYOUT = "approve_payout", "Approve payout"
+        WITHHOLD = "withhold", "Withhold payout"
+        NEEDS_REVIEW = "needs_review", "Needs deeper review"
+        NO_ACTION = "no_action", "No action needed"
+
+    class Status(models.TextChoices):
+        SUBMITTED = "submitted", "Submitted"
+        REVIEWED = "reviewed", "Reviewed by owner"
+
+    battle = models.ForeignKey(Battle, on_delete=models.CASCADE, related_name="operator_reports")
+    author = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="battle_reports")
+    summary = models.TextField()
+    flags = models.JSONField(default=list, blank=True, help_text="List of short flag strings raised by the operator")
+    recommendation = models.CharField(max_length=20, choices=Recommendation.choices)
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.SUBMITTED, db_index=True)
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="reviewed_battle_reports",
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Report on battle #{self.battle_id} by {self.author} ({self.recommendation})"
+
+
 class ContentReport(models.Model):
     """DSA content report submitted by a user against arena content."""
 

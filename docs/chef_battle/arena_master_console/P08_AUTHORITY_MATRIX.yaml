@@ -1,0 +1,34 @@
+schema_version: "1.0"
+document_type: "phase_08_authority_matrix"
+produced_at: "2026-07-05"
+authority: "DG-06 — review-and-reporting tool for all console operators; final financial authority is exclusively the owner's"
+
+read_models:
+  rewards_matrix: "RewardRecord counts by reward_type x status (full 11-status lifecycle)"
+  recent_rewards: "8 newest records: id, type, status, tokens, recipient slug, reason (truncated)"
+  payouts: "10 newest PayoutRequest rows: chef, reward tokens, gross EUR, status, actionable flag (pending/under_review only)"
+  reports: "8 newest BattleReport rows"
+  ledger: "LedgerEvent count + verify_chain() result (chain intact / first broken pk)"
+
+writes:
+  submit_battle_report:
+    who: "ANY console operator (the one non-owner write, per DG-06)"
+    model: "BattleReport (migration chef_battle/0058): battle, author, summary, flags[], recommendation, status"
+    recommendations: [approve_payout, withhold, needs_review, no_action]
+    guards: ["summary required", "recommendation whitelist"]
+    side_effects: "OPERATOR_ACTION audit + owner notified (in-site + email)"
+  approve_payout:
+    who: "owner only"
+    delegates_to: "services.approve_payout_request (owning service: status, reviewer, ledger event, reward acknowledgement, Stripe Connect transfer with graceful failure -> stays APPROVED for retry)"
+    console_adds: "OPERATOR_ACTION audit with payout id/chef/tokens; confirm dialog states the Stripe transfer consequence"
+  reject_payout:
+    who: "owner only; reason mandatory"
+    delegates_to: "services.reject_payout_request (returns ISSUED rewards to APPROVED, ledger event)"
+
+never_from_console:
+  - "rating / rank / crown / streak mutation (calculate_battle_result owns these)"
+  - "RewardRecord status mutation (issue/reverse/expire services own the lifecycle)"
+  - "LedgerEvent rows (immutable, hash-chained; console only verifies)"
+  - "wallet balances, Stripe order status"
+
+wording: "CBR/LSR presented as discretionary platform rewards; banned phrases (earned funds, withdrawable balance, cash balance) test-asserted absent"

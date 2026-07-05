@@ -408,6 +408,49 @@
     document.addEventListener('click', function (e) {
       var btn = e.target.closest('[data-amc-mod]');
       if (btn && !btn.disabled) handleModAction(btn);
+      var pbtn = e.target.closest('[data-amc-payout]');
+      if (pbtn && !pbtn.disabled) handlePayout(pbtn);
+    });
+  }
+
+  /* ── P08: payout decisions (owner) + battle reports (any operator) ── */
+
+  function handlePayout(btn) {
+    var id = btn.getAttribute('data-amc-payout');
+    var decision = btn.getAttribute('data-decision');
+    var fields = { payout_id: id, action: decision + '_payout' };
+    if (decision === 'approve') {
+      if (!window.confirm('APPROVE payout request #' + id +
+          '? This triggers the real Stripe Connect transfer and cannot be undone from the console.')) return;
+    } else {
+      var reason = window.prompt('REJECT payout request #' + id +
+        '. Issued reward records return to approved state. Enter the reason (required):');
+      if (!reason) return;
+      fields.reason = reason;
+    }
+    btn.disabled = true;
+    showActionError('');
+    postAction(fields)
+      .then(function () { window.location.reload(); })
+      .catch(function (err) { showActionError(err.message); btn.disabled = false; });
+  }
+
+  var reportBtn = document.getElementById('amc-submit-report');
+  if (reportBtn) {
+    reportBtn.addEventListener('click', function () {
+      var battleId = reportBtn.getAttribute('data-battle');
+      var summary = window.prompt('Battle report for battle #' + battleId +
+        ' (goes to the owner). Summary (required):');
+      if (!summary) return;
+      var rec = window.prompt(
+        'Recommendation - one of: approve_payout / withhold / needs_review / no_action');
+      if (!rec) return;
+      reportBtn.disabled = true;
+      showActionError('');
+      postAction({ action: 'submit_battle_report', battle_id: battleId,
+                   summary: summary, recommendation: rec })
+        .then(function () { window.location.reload(); })
+        .catch(function (err) { showActionError(err.message); reportBtn.disabled = false; });
     });
   }
 

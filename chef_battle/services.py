@@ -2355,3 +2355,89 @@ def operator_end_stream(*, session_id, operator_author, reason, correlation_id="
             body=f"Your stream (session #{session.pk}) was ended. Reason: {reason}.",
         )
     return session
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# P08 — Rewards governance (DG-06).
+# Battle reports: the ONE write available to every console operator.
+# Payout approve/reject: owner-only wrappers over the existing owning
+# services (approve_payout_request / reject_payout_request) + console audit.
+# ═════════════════════════════════════════════════════════════════════════════
+
+def operator_submit_battle_report(*, battle_id, operator_author, summary,
+                                  recommendation, flags=None, correlation_id=""):
+    """Any console operator may submit a structured post-battle report to the
+    owner (DG-06 workflow). Not owner-gated by design."""
+    from .models import BattleReport
+
+    if not operator_author:
+        raise OperatorActionError("Operator profile required.")
+    if not (summary or "").strip():
+        raise OperatorActionError("Report summary is required.")
+    if recommendation not in BattleReport.Recommendation.values:
+        raise OperatorActionError(f"'{recommendation}' is not a valid recommendation.")
+
+    with transaction.atomic():
+        try:
+            battle = Battle.objects.get(pk=battle_id)
+        except Battle.DoesNotExist:
+            raise OperatorActionError("Battle not found.")
+        report = BattleReport.objects.create(
+            battle=battle,
+            author=operator_author,
+            summary=summary.strip(),
+            flags=[str(fl)[:80] for fl in (flags or [])][:10],
+            recommendation=recommendation,
+        )
+        _operator_event(
+            battle=battle, operator_author=operator_author,
+            action="submit_battle_report", before=battle.status, after=battle.status,
+            reason=f"recommendation: {recommendation}", correlation_id=correlation_id,
+            extra={"report_id": report.pk, "flags": report.flags},
+        )
+    # Notify the owner outside the transaction (email path is fail-silent).
+    from django.conf import settings as django_settings
+    from recipes.models import RecipeAuthor as _RA
+    owner = _RA.objects.filter(slug=django_settings.OWNER_SLUG).first()
+    if owner and owner.pk != operator_author.pk:
+        _notify_chef(
+            operator_author, owner,
+            subject=f"Battle report submitted for battle #{battle.pk}",
+            body=(
+                f"{operator_author.name} submitted a report on '{battle.theme}'. "
+                f"Recommendation: {report.get_recommendation_display()}. "
+                f"Summary: {report.summary[:500]}"
+            ),
+        )
+    return report
+
+
+def operator_review_payout(*, payout_id, operator_author, decision, reason="",
+                           correlation_id=""):
+    """Owner-only payout decision. Delegates to the owning services
+    (approve_payout_request / reject_payout_request) — never touches status,
+    reward records, ledger or Stripe directly."""
+    _require_owner(operator_author)
+    if decision == "approve":
+        try:
+            payout = approve_payout_request(payout_id, operator_author.user)
+        except ValueError as exc:
+            raise OperatorActionError(str(exc))
+    elif decision == "reject":
+        if not (reason or "").strip():
+            raise OperatorActionError("Rejecting a payout requires a reason.")
+        try:
+            payout = reject_payout_request(payout_id, operator_author.user, reason)
+        except ValueError as exc:
+            raise OperatorActionError(str(exc))
+    else:
+        raise OperatorActionError(f"'{decision}' is not a valid payout decision.")
+
+    _operator_event(
+        battle=None, operator_author=operator_author,
+        action=f"payout_{decision}", before="pending/under_review", after=payout.status,
+        reason=reason, correlation_id=correlation_id,
+        extra={"payout_id": payout.pk, "chef": payout.chef.slug,
+               "tokens": payout.amount_reward_tokens},
+    )
+    return payout

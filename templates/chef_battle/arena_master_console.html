@@ -364,8 +364,55 @@
 
       <article class="amc-panel" aria-label="CBR, LSR and rewards governance">
         <h3 class="amc-panel__title"><span class="amc-panel__num">7</span> CBR / LSR / Rewards Governance</h3>
-        <p class="amc-empty">Read models connect in P08</p>
-        <p class="amc-panel__hint">Reward statuses, payout eligibility and battle reports. Review-only by design (DG-06).</p>
+
+        <h4 class="amc-panel__subtitle">Rewards</h4>
+        <ul class="amc-panel__list" id="amc-gov-rewards">
+          {% if master_state.governance.rewards_matrix %}
+          {% for type, statuses in master_state.governance.rewards_matrix.items %}
+          <li>{{ type|upper }}: {% for s, n in statuses.items %}{{ s }} {{ n }}{% if not forloop.last %} · {% endif %}{% endfor %}</li>
+          {% endfor %}
+          {% else %}
+          <li><span class="amc-empty">No reward records</span></li>
+          {% endif %}
+          {% for r in master_state.governance.recent_rewards|slice:":4" %}
+          <li><span class="amc-panel__hint">#{{ r.id }} {{ r.type|upper }} {{ r.tokens }}T → {{ r.recipient }} ({{ r.status }})</span></li>
+          {% endfor %}
+        </ul>
+
+        <h4 class="amc-panel__subtitle">Payout requests</h4>
+        <ul class="amc-panel__list" id="amc-gov-payouts">
+          {% for p in master_state.governance.payouts %}
+          <li>#{{ p.id }} {{ p.chef }} · {{ p.tokens }} reward tokens · €{{ p.gross_eur }} · {{ p.status }}
+            {% if operator_is_owner and p.actionable %}
+            <button type="button" class="amc-btn amc-btn--mini" data-amc-payout="{{ p.id }}" data-decision="approve">Approve</button>
+            <button type="button" class="amc-btn amc-btn--mini amc-btn--danger" data-amc-payout="{{ p.id }}" data-decision="reject">Reject</button>
+            {% endif %}
+          </li>
+          {% empty %}
+          <li><span class="amc-empty">No payout requests</span></li>
+          {% endfor %}
+        </ul>
+
+        <h4 class="amc-panel__subtitle">Battle reports</h4>
+        <ul class="amc-panel__list" id="amc-gov-reports">
+          {% for r in master_state.governance.reports %}
+          <li>#{{ r.id }} battle {{ r.battle_id }} by {{ r.author }} → {{ r.recommendation }}{% if r.flags %} · flags: {{ r.flags|join:", " }}{% endif %}</li>
+          {% empty %}
+          <li><span class="amc-empty">No reports submitted</span></li>
+          {% endfor %}
+        </ul>
+        {% if master_state.battles %}
+        <div class="amc-panel__actions">
+          <button type="button" class="amc-btn" id="amc-submit-report" data-battle="{{ primary_battle.id }}">Submit Battle Report</button>
+        </div>
+        {% endif %}
+
+        <h4 class="amc-panel__subtitle">Ledger</h4>
+        <p class="amc-panel__hint" id="amc-gov-ledger">
+          {{ master_state.governance.ledger.total_events }} event(s) ·
+          {% if master_state.governance.ledger.chain_intact %}hash chain intact{% else %}<span class="amc-badge amc-badge--danger">CHAIN BROKEN at #{{ master_state.governance.ledger.first_broken_pk }}</span>{% endif %}
+        </p>
+        <p class="amc-panel__hint">CBR/LSR are discretionary platform rewards, not funds or earnings. Payout decisions are owner-only; operators submit reports (DG-06).</p>
       </article>
 
       <article class="amc-panel" aria-label="Ranks, crown and arena authority">

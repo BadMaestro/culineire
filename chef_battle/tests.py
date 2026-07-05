@@ -3365,3 +3365,177 @@ class ArenaMasterEconomyTests(TestCase):
             resp = self.client.post(reverse("chef_battle:master_action"),
                                     {"action": verb, "battle_id": 1})
             self.assertEqual(resp.status_code, 400, verb)
+
+
+# ── AMC P08 — rewards governance (DG-06) ─────────────────────────────────────
+
+@override_settings(ARENA_MASTER_CONSOLE_ENABLED=True, CHEF_BATTLE_ENABLED=True)
+class ArenaMasterGovernanceTests(TestCase):
+    """P08: reward/payout read models, battle reports (operator write),
+    owner-only payout decisions via owning services, ledger chain integrity."""
+
+    def setUp(self):
+        from django.conf import settings as django_settings
+        User = get_user_model()
+        self.state_url = reverse("chef_battle:master_state")
+        self.action_url = reverse("chef_battle:master_action")
+
+        self.owner_user = User.objects.create_superuser("greenbear", password="pw")
+        self.owner_author, _ = RecipeAuthor.objects.update_or_create(
+            slug=django_settings.OWNER_SLUG,
+            defaults={"user": self.owner_user, "name": "GreenBear"},
+        )
+        self.operator_user = User.objects.create_superuser("gov-op", password="pw")
+        self.operator_author = RecipeAuthor.objects.create(
+            user=self.operator_user, name="Gov Op", slug="gov-op",
+            has_arena_console_access=True,
+        )
+        ua = User.objects.create_user("p8-chef", password="pw")
+        self.chef = RecipeAuthor.objects.create(user=ua, name="P8 Chef", slug="p8-chef")
+        ChefBattleProfile.objects.create(author=self.chef, enrolled_at=timezone.now())
+
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.chef, opponent=self.owner_author,
+            theme="Governance Dish", status=Battle.Status.VOTING,
+            start_time=now,
+            submission_deadline=now + timezone.timedelta(days=2),
+            voting_deadline=now + timezone.timedelta(days=4),
+            end_time=now + timezone.timedelta(days=5),
+        )
+
+    def _payout(self, status=None):
+        from .models import PayoutRequest
+        return PayoutRequest.objects.create(
+            chef=self.chef, amount_reward_tokens=100,
+            gross_payout_eur="2.50",
+            status=status or PayoutRequest.Status.PENDING,
+        )
+
+    def _state(self, user=None):
+        self.client.force_login(user or self.owner_user)
+        return self.client.post(self.state_url).json()
+
+    # ── read models ──
+    def test_governance_read_models(self):
+        from .models import RewardRecord
+        RewardRecord.objects.create(
+            recipient=self.chef, reward_type=RewardRecord.RewardType.CBR,
+            tokens_granted=50, reason="battle win",
+            status=RewardRecord.Status.APPROVED)
+        payout = self._payout()
+        gov = self._state()["governance"]
+        self.assertEqual(gov["rewards_matrix"]["cbr"]["approved"], 1)
+        self.assertEqual(gov["recent_rewards"][0]["recipient"], "p8-chef")
+        p = gov["payouts"][0]
+        self.assertEqual(p["id"], payout.pk)
+        self.assertTrue(p["actionable"])
+        self.assertTrue(gov["ledger"]["chain_intact"])
+
+    # ── battle report: the one operator write ──
+    def test_operator_submits_battle_report(self):
+        from .models import BattleReport
+        self.client.force_login(self.operator_user)
+        resp = self.client.post(self.action_url, {
+            "action": "submit_battle_report", "battle_id": self.battle.pk,
+            "summary": "Fair battle, clean kitchen, no violations seen.",
+            "recommendation": "approve_payout",
+        })
+        self.assertEqual(resp.status_code, 200)
+        report = BattleReport.objects.get()
+        self.assertEqual(report.author, self.operator_author)
+        self.assertEqual(report.recommendation, "approve_payout")
+        # Audited + owner notified
+        event = BattleEvent.objects.get(
+            event_type=BattleEvent.EventType.OPERATOR_ACTION)
+        self.assertEqual(event.payload_json["action"], "submit_battle_report")
+        from messaging.models import Message
+        self.assertTrue(Message.objects.filter(
+            recipient=self.owner_user, subject__icontains="Battle report").exists())
+
+    def test_report_requires_summary_and_valid_recommendation(self):
+        self.client.force_login(self.operator_user)
+        resp = self.client.post(self.action_url, {
+            "action": "submit_battle_report", "battle_id": self.battle.pk,
+            "summary": " ", "recommendation": "approve_payout"})
+        self.assertEqual(resp.status_code, 409)
+        resp = self.client.post(self.action_url, {
+            "action": "submit_battle_report", "battle_id": self.battle.pk,
+            "summary": "ok", "recommendation": "pay_now"})
+        self.assertEqual(resp.status_code, 409)
+
+    # ── payout decisions: owner only, via owning services ──
+    def test_operator_cannot_decide_payout(self):
+        payout = self._payout()
+        self.client.force_login(self.operator_user)
+        resp = self.client.post(self.action_url, {
+            "action": "approve_payout", "payout_id": payout.pk})
+        self.assertEqual(resp.status_code, 403)
+        payout.refresh_from_db()
+        self.assertEqual(payout.status, "pending")
+
+    def test_owner_approves_payout_via_owning_service(self):
+        from .models import LedgerEvent, PayoutRequest
+        payout = self._payout()
+        self.client.force_login(self.owner_user)
+        resp = self.client.post(self.action_url, {
+            "action": "approve_payout", "payout_id": payout.pk})
+        self.assertEqual(resp.status_code, 200)
+        payout.refresh_from_db()
+        self.assertEqual(payout.status, PayoutRequest.Status.APPROVED)
+        self.assertEqual(payout.reviewed_by, self.owner_user)
+        # Owning service wrote its ledger event; console added audit; chain intact
+        self.assertTrue(LedgerEvent.objects.filter(
+            payload__action="payout_approved").exists())
+        self.assertTrue(BattleEvent.objects.filter(
+            event_type=BattleEvent.EventType.OPERATOR_ACTION,
+            payload_json__action="payout_approve").exists())
+        ok, broken = LedgerEvent.verify_chain()
+        self.assertTrue(ok, f"chain broken at {broken}")
+
+    def test_owner_reject_requires_reason_and_returns_rewards(self):
+        from .models import PayoutRequest, RewardRecord
+        payout = self._payout()
+        RewardRecord.objects.create(
+            recipient=self.chef, reward_type=RewardRecord.RewardType.CBR,
+            tokens_granted=100, reason="win",
+            status=RewardRecord.Status.ISSUED,
+            status_note=f"PayoutRequest #{payout.pk}")
+        self.client.force_login(self.owner_user)
+        resp = self.client.post(self.action_url, {
+            "action": "reject_payout", "payout_id": payout.pk, "reason": ""})
+        self.assertEqual(resp.status_code, 409)
+        resp = self.client.post(self.action_url, {
+            "action": "reject_payout", "payout_id": payout.pk,
+            "reason": "verification incomplete"})
+        self.assertEqual(resp.status_code, 200)
+        payout.refresh_from_db()
+        self.assertEqual(payout.status, PayoutRequest.Status.REJECTED)
+        self.assertEqual(payout.rejection_reason, "verification incomplete")
+        reward = RewardRecord.objects.get()
+        self.assertEqual(reward.status, RewardRecord.Status.APPROVED)
+
+    def test_paid_payout_not_actionable(self):
+        from .models import PayoutRequest
+        payout = self._payout(status=PayoutRequest.Status.PAID)
+        gov = self._state()["governance"]
+        self.assertFalse(gov["payouts"][0]["actionable"])
+        self.client.force_login(self.owner_user)
+        resp = self.client.post(self.action_url, {
+            "action": "approve_payout", "payout_id": payout.pk})
+        self.assertEqual(resp.status_code, 409)
+
+    # ── wording + privacy ──
+    def test_rewards_never_described_as_funds(self):
+        self.client.force_login(self.owner_user)
+        page = self.client.get(reverse("chef_battle:master_console")).content.decode()
+        self.assertIn("discretionary platform rewards", page)
+        for banned in ("earned funds", "withdrawable balance", "cash balance"):
+            self.assertNotIn(banned, page.lower())
+
+    def test_payout_data_not_public(self):
+        self._payout()
+        self.client.logout()
+        raw = self.client.post(reverse("chef_battle:arena_state")).content.decode()
+        for marker in ("gross_eur", "payout", "rewards_matrix", "chain_intact"):
+            self.assertNotIn(marker, raw)

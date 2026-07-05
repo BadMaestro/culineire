@@ -1,5 +1,37 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.106",
+        "date": "2026-07-05",
+        "commit": "pending",
+        "title": "Arena Master Console P08: rewards governance, payouts and battle reports",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "Panel 7 is live per DG-06: CBR/LSR status matrix across the "
+            "full reward lifecycle, recent reward rows, and the payout "
+            "request queue. Owner-only approve/reject buttons delegate to "
+            "the pre-existing owning services (approve_payout_request / "
+            "reject_payout_request) - the console never touches payout "
+            "status, reward records, ledger rows or Stripe directly; the "
+            "approve dialog states the real Stripe Connect consequence. New "
+            "BattleReport model (migration 0058) implements the DG-06 "
+            "workflow: any console operator submits a structured post-battle "
+            "report (summary, flags, recommendation), the owner is notified "
+            "and decides. The panel shows a live LedgerEvent hash-chain "
+            "verification result; tests assert the chain stays intact after "
+            "an owner payout approval. Rewards are presented as "
+            "discretionary platform rewards - never funds or earnings "
+            "(test-asserted wording). 9 new tests; full suite green."
+        ),
+        "checklist": [
+            "chef_battle/0058: BattleReport",
+            "services: operator_submit_battle_report + operator_review_payout",
+            "selectors: get_master_governance_detail() -> governance section",
+            "console panel 7: matrix, payouts, reports, ledger chain status",
+            "docs: P08_AUTHORITY_MATRIX.yaml, P08_LEDGER_AUDIT.md, P08_HANDOFF.yaml",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
         "version": "2.5.105",
         "date": "2026-07-05",
         "commit": "pending",
