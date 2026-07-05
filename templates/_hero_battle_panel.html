@@ -17,41 +17,13 @@
     </div>
   </div>
 
-  {# 2. Crown Holder #}
+  {# 3. Arena — menu link only; live battle info lives in the corner widget #}
   <div class="hero-battle-panel__card">
     <p class="hero-battle-panel__label">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-      Crown Holder
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+      Arena
     </p>
-    {% if battle_crown_holder %}
-      <a class="hero-battle-panel__crown" href="{{ battle_crown_holder.author.get_absolute_url }}">&#x1F451; {{ battle_crown_holder.author.name }}</a>
-    {% else %}
-      <p class="hero-battle-panel__empty">No reigning Chef yet.</p>
-    {% endif %}
-  </div>
-
-  {# 3. Arena #}
-  <div class="hero-battle-panel__card">
-    {% if active_battles %}
-      {% with b=active_battles.0 %}
-      <p class="hero-battle-panel__label">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
-        Live Now
-      </p>
-      <a class="hero-battle-panel__vs" href="{{ b.get_absolute_url }}">
-        <span>{{ b.challenger.name }}</span>
-        <span class="hero-battle-panel__sep">VS</span>
-        <span>{{ b.opponent.name }}</span>
-      </a>
-      <p class="hero-battle-panel__theme">{{ b.theme }}</p>
-      {% endwith %}
-    {% else %}
-      <p class="hero-battle-panel__label">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-        Arena
-      </p>
-      <a class="battle-home__cta-secondary" href="{% url 'chef_battle:challenge_list' %}">My Challenges</a>
-    {% endif %}
+    <a class="battle-home__cta-secondary" href="{% url 'chef_battle:challenge_list' %}">My Challenges</a>
   </div>
 
   {# 4. The Treasury #}

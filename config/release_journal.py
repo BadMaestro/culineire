@@ -1,5 +1,28 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.111",
+        "date": "2026-07-05",
+        "commit": "pending",
+        "title": "Hero battle panel deduplicated against the corner widget",
+        "section": "Chef Battles",
+        "summary": (
+            "The hero 'Chef Battles Menu' panel and the sitewide corner "
+            "widget were showing overlapping live data. Per owner decision "
+            "the overlaps were removed from the hero side: the Crown Holder "
+            "card (the corner widget marks the crown holder in Top Chefs) "
+            "and the Live Now battle display (the corner widget lists "
+            "active battles) are gone. The hero panel is now a pure menu - "
+            "Season, Arena (My Challenges), Treasury, Gift Shop - while all "
+            "live battle data lives only in the corner widget. Locked hero "
+            "anchors verified untouched (kicker 49px, H1 119px)."
+        ),
+        "checklist": [
+            "templates/_hero_battle_panel.html: Crown Holder + Live Now removed",
+            "hero golden anchors re-verified live (49/119px)",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
         "version": "2.5.110",
         "date": "2026-07-05",
         "commit": "pending",
