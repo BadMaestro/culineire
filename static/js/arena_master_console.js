@@ -459,6 +459,86 @@
       .catch(function (err) { showActionError(err.message); btn.disabled = false; });
   }
 
+  /* ── One-click full emulation: start (or pick up the running EMU
+     battle) and step through every stage with a viewing pause. ──────── */
+
+  var runBtn = document.getElementById('amc-run-emulation');
+  if (runBtn && window.AMC_OPERATOR && window.AMC_OPERATOR.isOwner) {
+    var STAGE_PAUSE_MS = 5000;
+    var STAGE_LABELS = {
+      scheduled: 'battle created — bots in the antechamber',
+      menu_locked: 'both bots ready, menus being declared',
+      active: 'combat!',
+      ingredient_penalty: 'biathlon: locks and shots',
+      cooking: 'bots are cooking',
+      presentation: 'dishes presented',
+      voting: 'audience voting',
+      completed: 'DONE — crown decided',
+    };
+
+    function emuProgress(text) {
+      var el = document.getElementById('amc-emu-progress');
+      if (el) { el.textContent = text; el.classList.toggle('amc-hidden', !text); }
+    }
+
+    function findEmuBattle() {
+      return (state.battles || []).find(function (b) {
+        return b.theme && b.theme.indexOf('EMULATION') === 0;
+      });
+    }
+
+    runBtn.addEventListener('click', function () {
+      if (!window.confirm('Run a FULL battle emulation? A bot battle is created and ' +
+          'walks through every stage to the crown automatically (~40 seconds, ' +
+          'about 5 seconds per stage). Watch the panels, the ring and the battle room.')) return;
+      runBtn.disabled = true;
+      showActionError('');
+
+      var run = function (battleId) {
+        postAction({ action: 'emulation_step', battle_id: battleId })
+          .then(function (res) {
+            emuProgress('Stage: ' + (STAGE_LABELS[res.after] || res.after) +
+              (res.hits ? ' (hits ' + res.hits + ')' : '') +
+              (res.winner ? ' — winner: ' + res.winner : ''));
+            return poll().then(function () { return res; });
+          })
+          .then(function (res) {
+            if (res.after === 'completed') {
+              emuProgress('Emulation complete — ' + (STAGE_LABELS.completed) +
+                (res.winner ? ' Winner: ' + res.winner : ''));
+              runBtn.disabled = false;
+              return;
+            }
+            window.setTimeout(function () { run(battleId); }, STAGE_PAUSE_MS);
+          })
+          .catch(function (err) {
+            showActionError(err.message);
+            emuProgress('Stopped: ' + err.message);
+            runBtn.disabled = false;
+          });
+      };
+
+      var existing = findEmuBattle();
+      if (existing) {
+        emuProgress('Continuing emulation battle #' + existing.id + '…');
+        run(existing.id);
+        return;
+      }
+      postAction({ action: 'start_emulation' })
+        .then(function (res) {
+          emuProgress('Battle #' + res.battle.id + ' created — ' + STAGE_LABELS.scheduled);
+          return poll().then(function () {
+            window.setTimeout(function () { run(res.battle.id); }, STAGE_PAUSE_MS);
+          });
+        })
+        .catch(function (err) {
+          showActionError(err.message);
+          emuProgress('Stopped: ' + err.message);
+          runBtn.disabled = false;
+        });
+    });
+  }
+
   var reportBtn = document.getElementById('amc-submit-report');
   if (reportBtn) {
     reportBtn.addEventListener('click', function () {

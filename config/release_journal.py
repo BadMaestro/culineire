@@ -1,5 +1,29 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.118",
+        "date": "2026-07-05",
+        "commit": "pending",
+        "title": "One-click full battle emulation",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "New Run Full Emulation button in console panel 1: one click "
+            "creates the bot battle and walks it through every stage to the "
+            "crown automatically, pausing five seconds per stage so the "
+            "owner can watch the panels, the ring and the battle room "
+            "update live. A progress line narrates each stage (combat, "
+            "biathlon, cooking, voting, winner). If an emulation battle is "
+            "already mid-flight the button simply continues it. Start Only "
+            "and Step Manually remain for stage-by-stage inspection. "
+            "Live-verified: full autonomous run finished with a crowned "
+            "winner and no console errors."
+        ),
+        "checklist": [
+            "console: Run Full Emulation button + live progress line",
+            "arena_master_console.js: auto-runner over the existing endpoints",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
         "version": "2.5.117",
         "date": "2026-07-05",
         "commit": "pending",

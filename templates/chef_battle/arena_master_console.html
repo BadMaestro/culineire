@@ -179,11 +179,14 @@
         </div>
         <h4 class="amc-panel__subtitle">Emulation</h4>
         <div class="amc-panel__actions">
+          <button type="button" class="amc-btn" id="amc-run-emulation"
+                  title="One click: creates a bot battle and runs it through every stage to the crown, pausing a few seconds per stage so you can watch">&#9654; Run Full Emulation</button>
           <button type="button" class="amc-btn" data-amc-action="start_emulation"
-                  title="Create a full test battle between the EMU bot chefs">Start Emulation</button>
+                  title="Create a full test battle between the EMU bot chefs">Start Only</button>
           <button type="button" class="amc-btn" data-amc-action="emulation_step"
-                  title="Advance the emulation battle by one lifecycle stage">Emulation Step</button>
+                  title="Advance the emulation battle by one lifecycle stage">Step Manually</button>
         </div>
+        <p class="amc-panel__hint amc-hidden" id="amc-emu-progress" role="status" aria-live="polite"></p>
         <p class="amc-panel__hint amc-hidden" id="amc-action-error" role="alert"></p>
         {% else %}
         <p class="amc-empty">Read-only access</p>
@@ -467,5 +470,5 @@
 
 {{ master_state|json_script:"amc-state-json" }}
 <script nonce="{{ request.csp_nonce }}">window.AMC_OPERATOR = { isOwner: {{ operator_is_owner|yesno:"true,false" }} };</script>
-<script src="{% static 'js/arena_master_console.js' %}?v=20260705c"></script>
+<script src="{% static 'js/arena_master_console.js' %}?v=20260705d"></script>
 {% endblock %}

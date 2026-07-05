@@ -2022,7 +2022,7 @@ class ArenaMasterConsoleAccessTests(TestCase):
         # stays disabled (crown is decided by audience voting only).
         import re
         amc_buttons = re.findall(r'<button[^>]*class="amc-btn[^"]*"[^>]*>', content)
-        self.assertEqual(len(amc_buttons), 10)
+        self.assertEqual(len(amc_buttons), 11)
         disabled = [b for b in amc_buttons if "disabled" in b]
         self.assertEqual(len(disabled), 1)
         self.assertIn("Award Crown", content)
