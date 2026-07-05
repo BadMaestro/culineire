@@ -295,12 +295,19 @@
         <h3 class="amc-panel__title"><span class="amc-panel__num">5</span> Voting Integrity</h3>
         <ul class="amc-panel__list" id="amc-voting-list">
           {% for v in master_state.voting %}
-          <li>#{{ v.battle_id }}: {{ v.challenger_votes }}:{{ v.opponent_votes }}{% if v.is_tie %} <span class="amc-badge">TIE</span>{% endif %}{% if v.suspicious_votes %} · {{ v.suspicious_votes }} suspicious{% endif %}</li>
+          <li>
+            #{{ v.battle_id }}: {{ v.challenger_votes }}:{{ v.opponent_votes }}
+            {% if v.total_votes %}({{ v.challenger_pct }}% / {{ v.opponent_pct }}%){% else %}<span class="amc-empty">no votes yet</span>{% endif %}
+            {% if v.is_tie %} <span class="amc-badge">TIE</span>{% endif %}
+            {% if v.completion.ready %} <span class="amc-badge{% if v.completion.blocked_by_tie %} amc-badge--danger{% endif %}">{% if v.completion.blocked_by_tie %}DEADLINE PASSED — TIE{% else %}READY TO COMPLETE{% endif %}</span>{% endif %}
+            <br><span class="amc-panel__hint">rejected attempts: {{ v.enforcement.rejected_attempts_total }} total · {{ v.enforcement.rejected_attempts_24h }} in 24h{% if v.suspicious_votes %} · {{ v.suspicious_votes }} flagged for review{% endif %}</span>
+            <br><span class="amc-panel__hint">pulse: {{ v.pulse.chat_messages_last_hour }} chat msg/h ({{ v.pulse.chat_messages_total }} total)</span>
+          </li>
           {% empty %}
           <li><span class="amc-empty">No battles in progress</span></li>
           {% endfor %}
         </ul>
-        <p class="amc-panel__hint">One vote per account and per device is DB-enforced.</p>
+        <p class="amc-panel__hint">One vote per account and per device is DB-enforced (unique constraints). Rejected attempts are private VoteIntegrityEvent evidence and never count toward totals. Vote series bucketed hourly in UTC over 24h. No automated risk scoring exists; flags are manual moderator review marks.</p>
       </article>
 
       <article class="amc-panel" aria-label="Economy, gifts and artifacts">

@@ -82,6 +82,35 @@
     } else {
       setEmpty('amc-votes', 'No active battle');
     }
+
+    /* P06: voting integrity list */
+    var votingList = document.getElementById('amc-voting-list');
+    if (votingList) {
+      votingList.textContent = '';
+      (state.voting || []).forEach(function (v) {
+        var li = document.createElement('li');
+        var head = '#' + v.battle_id + ': ' + v.challenger_votes + ':' + v.opponent_votes;
+        if (v.total_votes) head += ' (' + v.challenger_pct + '% / ' + v.opponent_pct + '%)';
+        else head += ' (no votes yet)';
+        if (v.is_tie) head += ' [TIE]';
+        if (v.completion && v.completion.ready) {
+          head += v.completion.blocked_by_tie ? ' [DEADLINE PASSED - TIE]' : ' [READY TO COMPLETE]';
+        }
+        li.textContent = head;
+        var hint = document.createElement('span');
+        hint.className = 'amc-panel__hint';
+        hint.textContent = 'rejected attempts: ' + v.enforcement.rejected_attempts_total +
+          ' total, ' + v.enforcement.rejected_attempts_24h + ' in 24h' +
+          (v.suspicious_votes ? ', ' + v.suspicious_votes + ' flagged for review' : '') +
+          ' | pulse: ' + v.pulse.chat_messages_last_hour + ' chat msg/h';
+        li.appendChild(document.createElement('br'));
+        li.appendChild(hint);
+        votingList.appendChild(li);
+      });
+      if (!(state.voting || []).length) {
+        votingList.innerHTML = '<li><span class="amc-empty">No battles in progress</span></li>';
+      }
+    }
     if (state.economy && state.economy.battle_gifts && state.economy.battle_gifts.length) {
       setText('amc-gifts', state.economy.battle_gifts[0].gift_count);
     } else {

@@ -1,5 +1,35 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.104",
+        "date": "2026-07-05",
+        "commit": "pending",
+        "title": "Arena Master Console P06: voting integrity and audience analytics",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "Panel 5 upgraded from raw counts to a full integrity view: vote "
+            "percentages with honest NULL at zero votes, a 24-hour hourly "
+            "vote series bucketed in UTC (found and fixed: default bucketing "
+            "silently used the site timezone while labelled UTC), one-vote "
+            "enforcement evidence (the two DB unique constraints plus "
+            "aggregate counts of rejected attempts from private "
+            "VoteIntegrityEvent records, grouped by gate code), a "
+            "privacy-safe suspicious-vote queue (vote id, target, timestamp "
+            "- no voter identity, no request hashes, test-asserted), tie "
+            "state with completion readiness including the blocked-by-tie "
+            "case, and community pulse (visible chat volume, support tokens "
+            "aggregated per chef). Read-only phase; no automated risk "
+            "scoring exists and none is claimed. 9 new tests; full suite "
+            "green."
+        ),
+        "checklist": [
+            "selectors: _voting_analytics_for_battle() replaces P02 voting loop",
+            "console panel 5: percentages, badges, evidence counts, pulse",
+            "TruncHour tzinfo=UTC fix (was site-TZ while labelled UTC)",
+            "docs: P06_METRIC_DEFINITIONS.yaml, P06_PRIVACY_REPORT.md (extended), P06_HANDOFF.yaml",
+        ],
+        "deployment_status": "deployed",
+    },
+    {
         "version": "2.5.103",
         "date": "2026-07-05",
         "commit": "pending",

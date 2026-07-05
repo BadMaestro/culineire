@@ -1,0 +1,23 @@
+schema_version: "1.0"
+document_type: "phase_06_handoff"
+phase_id: "P06"
+status: "complete_pending_owner_signoff"
+produced_at: "2026-07-05"
+
+delivered:
+  selector: "_voting_analytics_for_battle() — replaces the P02 voting loop; adds percentages, UTC hourly series, enforcement evidence (VoteIntegrityEvent aggregates), suspicious queue (privacy-safe shape), completion readiness, community pulse"
+  ui: "panel 5: percentages, tie/readiness badges, rejected-attempt counts, pulse line; JS re-render on poll; honest hint text describing the real mechanisms"
+  tests: "ArenaMasterVotingAnalyticsTests (9)"
+
+fixed_in_passing:
+  - "votes_per_hour bucketing was silently in site TZ while labelled UTC — TruncHour tzinfo forced to UTC, test-asserted"
+
+no_new_writes: "read-only phase; tie resolution remains a manual owner decision outside the console (DG-05)"
+
+p07_input_contract:
+  economy_panel: "extend economy section with token flow detail, gift/artifact ledgers, payout queue rows; reuse TokenTransaction/LedgerEvent; DG-06 pending for any CBR/LSR write"
+
+deployment:
+  migrations_required: true   # chef_battle/0057 (VoteIntegrityEvent, from audit commits) if not yet applied on prod
+  collectstatic_required: true
+  risk: "low — read-only analytics behind console gate"

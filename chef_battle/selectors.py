@@ -316,20 +316,9 @@ def get_master_state() -> dict:
     }
 
     # ── voting section ───────────────────────────────────────────────
-    voting = []
-    for b in battles:
-        counts = get_battle_vote_counts(b)
-        challenger_votes = counts.get(b.challenger_id, 0)
-        opponent_votes = counts.get(b.opponent_id, 0)
-        voting.append({
-            "battle_id": b.pk,
-            "challenger_votes": challenger_votes,
-            "opponent_votes": opponent_votes,
-            "total_votes": challenger_votes + opponent_votes,
-            "suspicious_votes": b.votes.filter(is_suspicious=True).count(),
-            # DG-05: tie = exactly equal non-zero counts
-            "is_tie": challenger_votes == opponent_votes and challenger_votes > 0,
-        })
+    voting = [
+        _voting_analytics_for_battle(b, now) for b in battles
+    ]
 
     # ── viewers section ──────────────────────────────────────────────
     # DG-04 assumed a per-page presence system; P02 discovery found none
@@ -650,4 +639,120 @@ def get_master_moderation_detail() -> dict:
         "cooking_queue": cooking_queue,
         "content_reports": reports,
         "streams": streams,
+    }
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# P06 — Voting integrity & audience analytics (read-only, DG-05).
+# No second vote engine: totals come from get_battle_vote_counts, evidence
+# from VoteIntegrityEvent (rejected attempts, never in totals), the
+# suspicious flag stays a manual moderator flag — no fabricated risk score.
+# Metric definitions: docs/chef_battle/arena_master_console/P06_METRIC_DEFINITIONS.yaml
+# ═════════════════════════════════════════════════════════════════════════════
+
+VOTE_SERIES_WINDOW_HOURS = 24  # series window; hours bucketed in UTC
+
+
+def _voting_analytics_for_battle(b, now):
+    """Full voting panel entry for one battle. Pure reads, bounded queries."""
+    from django.db.models import Count as _Count, Sum as _Sum
+    from django.db.models.functions import TruncHour
+    from .models import BattleChatMessage, VoteIntegrityEvent, ViewerBattleGift
+
+    counts = get_battle_vote_counts(b)
+    challenger_votes = counts.get(b.challenger_id, 0)
+    opponent_votes = counts.get(b.opponent_id, 0)
+    total = challenger_votes + opponent_votes
+
+    # Percentages with explicit zero-vote handling (null, never fake 50/50).
+    if total:
+        challenger_pct = round(challenger_votes * 100 / total, 1)
+        opponent_pct = round(100 - challenger_pct, 1)
+    else:
+        challenger_pct = opponent_pct = None
+
+    # Votes per hour, last VOTE_SERIES_WINDOW_HOURS, bucketed in UTC.
+    import datetime as _dt
+    window_start = now - timezone.timedelta(hours=VOTE_SERIES_WINDOW_HOURS)
+    series = [
+        {"hour_utc": row["hour"].isoformat(), "votes": row["n"]}
+        for row in (
+            b.votes.filter(created_at__gte=window_start)
+            # tzinfo forced to UTC so buckets match the documented timezone
+            # (default TruncHour would bucket in the site TZ, Europe/Dublin).
+            .annotate(hour=TruncHour("created_at", tzinfo=_dt.timezone.utc))
+            .values("hour").annotate(n=_Count("id")).order_by("hour")
+        )
+    ]
+
+    # DG-05 enforcement evidence: rejected attempts grouped by gate code.
+    integrity_qs = VoteIntegrityEvent.objects.filter(battle=b)
+    rejected_by_gate = {
+        row["gate_code"]: row["n"]
+        for row in integrity_qs.values("gate_code").annotate(n=_Count("id"))
+    }
+    rejected_24h = integrity_qs.filter(created_at__gte=window_start).count()
+
+    # Suspicious queue: manual moderator flags only (no automatic score).
+    suspicious = list(
+        b.votes.filter(is_suspicious=True)
+        .values("id", "voted_for__slug", "created_at")[:10]
+    )
+    for s in suspicious:
+        s["created_at"] = s["created_at"].isoformat()
+
+    # Completion readiness (display only; auto-completion owns the transition).
+    deadline_passed = bool(
+        b.status == Battle.Status.VOTING
+        and (b.voting_deadline or b.end_time)
+        and (b.voting_deadline or b.end_time) <= now
+    )
+    is_tie = challenger_votes == opponent_votes and challenger_votes > 0
+
+    # Community pulse: visible chat volume + support tokens per chef.
+    chat_total = BattleChatMessage.objects.filter(battle=b, is_hidden=False).count()
+    chat_last_hour = BattleChatMessage.objects.filter(
+        battle=b, is_hidden=False,
+        created_at__gte=now - timezone.timedelta(hours=1),
+    ).count()
+    support = {
+        row["recipient__slug"]: {
+            "gifts": row["n"], "tokens": row["tokens"] or 0,
+        }
+        for row in ViewerBattleGift.objects.filter(battle=b)
+        .values("recipient__slug").annotate(n=_Count("id"), tokens=_Sum("tokens_spent"))
+    }
+
+    return {
+        "battle_id": b.pk,
+        "challenger_votes": challenger_votes,
+        "opponent_votes": opponent_votes,
+        "total_votes": total,
+        "challenger_pct": challenger_pct,
+        "opponent_pct": opponent_pct,
+        "votes_per_hour": series,
+        "series_window_hours": VOTE_SERIES_WINDOW_HOURS,
+        "series_timezone": "UTC",
+        "enforcement": {
+            "one_vote_per_account": "unique(battle, voter)",
+            "one_vote_per_device": "unique(battle, ip_hash, user_agent_hash)",
+            "rejected_attempts_total": sum(rejected_by_gate.values()),
+            "rejected_attempts_24h": rejected_24h,
+            "rejected_by_gate": rejected_by_gate,
+        },
+        "suspicious_votes": len(suspicious) if len(suspicious) < 10
+                            else b.votes.filter(is_suspicious=True).count(),
+        "suspicious_queue": suspicious,
+        "is_tie": is_tie,
+        "completion": {
+            "deadline_passed": deadline_passed,
+            "has_votes": total > 0,
+            "ready": deadline_passed,
+            "blocked_by_tie": deadline_passed and is_tie,
+        },
+        "pulse": {
+            "chat_messages_total": chat_total,
+            "chat_messages_last_hour": chat_last_hour,
+            "support_by_chef": support,
+        },
     }

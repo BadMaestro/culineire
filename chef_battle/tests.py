@@ -3078,3 +3078,166 @@ class ArenaMasterModerationTests(TestCase):
         battle_page = self.client.get(self.battle.get_absolute_url())
         if battle_page.status_code == 200:
             self.assertNotIn("secret-mod-note-xyz", battle_page.content.decode())
+
+
+# ── AMC P06 — voting integrity & audience analytics ──────────────────────────
+
+@override_settings(ARENA_MASTER_CONSOLE_ENABLED=True, CHEF_BATTLE_ENABLED=True)
+class ArenaMasterVotingAnalyticsTests(TestCase):
+    """P06: totals/percentages vs ORM, series window, enforcement evidence,
+    tie/readiness, privacy of voter data."""
+
+    def setUp(self):
+        from django.conf import settings as django_settings
+        User = get_user_model()
+        self.state_url = reverse("chef_battle:master_state")
+
+        self.owner_user = User.objects.create_superuser("greenbear", password="pw")
+        RecipeAuthor.objects.update_or_create(
+            slug=django_settings.OWNER_SLUG,
+            defaults={"user": self.owner_user, "name": "GreenBear"},
+        )
+        ua = User.objects.create_user("p6-chef-a", password="pw")
+        ub = User.objects.create_user("p6-chef-b", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=ua, name="P6 Chef A", slug="p6-chef-a")
+        self.chef_b = RecipeAuthor.objects.create(user=ub, name="P6 Chef B", slug="p6-chef-b")
+        ChefBattleProfile.objects.create(author=self.chef_a, enrolled_at=timezone.now())
+        ChefBattleProfile.objects.create(author=self.chef_b, enrolled_at=timezone.now())
+
+    def _battle(self, status=Battle.Status.VOTING, **extra):
+        now = timezone.now()
+        defaults = dict(
+            challenger=self.chef_a, opponent=self.chef_b,
+            theme="Analytics Dish", status=status,
+            start_time=now,
+            submission_deadline=now + timezone.timedelta(days=2),
+            voting_deadline=now + timezone.timedelta(days=4),
+            end_time=now + timezone.timedelta(days=5),
+        )
+        defaults.update(extra)
+        return Battle.objects.create(**defaults)
+
+    def _votes(self, battle, for_a=0, for_b=0):
+        User = get_user_model()
+        made = []
+        for i in range(for_a):
+            u = User.objects.create_user(f"p6-va-{battle.pk}-{i}", password="pw")
+            made.append(BattleVote.objects.create(battle=battle, voter=u, voted_for=self.chef_a))
+        for i in range(for_b):
+            u = User.objects.create_user(f"p6-vb-{battle.pk}-{i}", password="pw")
+            made.append(BattleVote.objects.create(battle=battle, voter=u, voted_for=self.chef_b))
+        return made
+
+    def _voting(self):
+        self.client.force_login(self.owner_user)
+        data = self.client.post(self.state_url).json()
+        return data["voting"]
+
+    def test_zero_votes_gives_null_percentages(self):
+        self._battle()
+        v = self._voting()[0]
+        self.assertEqual(v["total_votes"], 0)
+        self.assertIsNone(v["challenger_pct"])
+        self.assertIsNone(v["opponent_pct"])
+        self.assertFalse(v["is_tie"])
+        self.assertFalse(v["completion"]["has_votes"])
+
+    def test_percentages_match_direct_orm(self):
+        battle = self._battle()
+        self._votes(battle, for_a=3, for_b=1)
+        v = self._voting()[0]
+        self.assertEqual(v["challenger_votes"],
+                         BattleVote.objects.filter(battle=battle, voted_for=self.chef_a).count())
+        self.assertEqual(v["challenger_pct"], 75.0)
+        self.assertEqual(v["opponent_pct"], 25.0)
+        self.assertFalse(v["is_tie"])
+
+    def test_one_sided_votes(self):
+        battle = self._battle()
+        self._votes(battle, for_a=2, for_b=0)
+        v = self._voting()[0]
+        self.assertEqual(v["challenger_pct"], 100.0)
+        self.assertEqual(v["opponent_pct"], 0.0)
+
+    def test_votes_per_hour_series_window_and_timezone(self):
+        battle = self._battle()
+        votes = self._votes(battle, for_a=2)
+        # Move one vote outside the 24h window
+        old = votes[0]
+        BattleVote.objects.filter(pk=old.pk).update(
+            created_at=timezone.now() - timezone.timedelta(hours=30))
+        v = self._voting()[0]
+        self.assertEqual(v["series_timezone"], "UTC")
+        self.assertEqual(v["series_window_hours"], 24)
+        self.assertEqual(sum(p["votes"] for p in v["votes_per_hour"]), 1)
+
+    def test_enforcement_evidence_from_integrity_events(self):
+        from .models import VoteIntegrityEvent
+        battle = self._battle()
+        VoteIntegrityEvent.objects.create(battle=battle, gate_code="duplicate_account")
+        VoteIntegrityEvent.objects.create(battle=battle, gate_code="duplicate_account")
+        old = VoteIntegrityEvent.objects.create(battle=battle, gate_code="participant")
+        VoteIntegrityEvent.objects.filter(pk=old.pk).update(
+            created_at=timezone.now() - timezone.timedelta(hours=30))
+        v = self._voting()[0]
+        enf = v["enforcement"]
+        self.assertEqual(enf["rejected_attempts_total"], 3)
+        self.assertEqual(enf["rejected_attempts_24h"], 2)
+        self.assertEqual(enf["rejected_by_gate"]["duplicate_account"], 2)
+        self.assertIn("unique(battle, voter)", enf["one_vote_per_account"])
+
+    def test_tie_and_completion_readiness(self):
+        battle = self._battle(
+            voting_deadline=timezone.now() - timezone.timedelta(minutes=5))
+        self._votes(battle, for_a=2, for_b=2)
+        v = self._voting()[0]
+        self.assertTrue(v["is_tie"])
+        self.assertTrue(v["completion"]["deadline_passed"])
+        self.assertTrue(v["completion"]["blocked_by_tie"])
+
+    def test_suspicious_queue_has_no_voter_identity(self):
+        battle = self._battle()
+        votes = self._votes(battle, for_a=1)
+        BattleVote.objects.filter(pk=votes[0].pk).update(is_suspicious=True)
+        self.client.force_login(self.owner_user)
+        raw = self.client.post(self.state_url).content.decode()
+        data = self.client.post(self.state_url).json()
+        v = data["voting"][0]
+        self.assertEqual(v["suspicious_votes"], 1)
+        entry = v["suspicious_queue"][0]
+        self.assertEqual(set(entry.keys()), {"id", "voted_for__slug", "created_at"})
+        # No voter username or hash VALUES anywhere in the console payload.
+        # (The constraint description string legitimately names the ip_hash
+        # column, so we assert the JSON keys are absent, not the substring.)
+        self.assertNotIn("p6-va-", raw)
+        self.assertNotIn('"ip_hash"', raw)
+        self.assertNotIn('"user_agent_hash"', raw)
+        # And the series hour is really UTC
+        data2 = self.client.post(self.state_url).json()
+        for point in data2["voting"][0]["votes_per_hour"]:
+            self.assertTrue(point["hour_utc"].endswith("+00:00"), point["hour_utc"])
+
+    def test_pulse_support_and_chat(self):
+        from .models import Artifact, BattleChatMessage, ViewerBattleGift
+        battle = self._battle()
+        artifact = Artifact.objects.create(
+            name="P6 Whisk", rarity=Artifact.Rarity.COMMON,
+            effect_type="attack", effect_value=1, token_cost=25)
+        ViewerBattleGift.objects.create(
+            battle=battle, recipient=self.chef_a, artifact=artifact, tokens_spent=25)
+        BattleChatMessage.objects.create(
+            battle=battle, display_name="fan", body="go!", is_hidden=False)
+        BattleChatMessage.objects.create(
+            battle=battle, display_name="troll", body="hidden", is_hidden=True)
+        v = self._voting()[0]
+        self.assertEqual(v["pulse"]["chat_messages_total"], 1)
+        self.assertEqual(v["pulse"]["support_by_chef"]["p6-chef-a"]["tokens"], 25)
+
+    def test_public_arena_unchanged_no_analytics_leak(self):
+        battle = self._battle()
+        self._votes(battle, for_a=1)
+        self.client.logout()
+        raw = self.client.post(reverse("chef_battle:arena_state")).content.decode()
+        for marker in ("votes_per_hour", "rejected_by_gate", "suspicious_queue",
+                       "enforcement", "challenger_pct"):
+            self.assertNotIn(marker, raw)

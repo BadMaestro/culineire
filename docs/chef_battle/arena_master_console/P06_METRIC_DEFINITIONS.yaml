@@ -1,0 +1,35 @@
+schema_version: "1.0"
+document_type: "phase_06_metric_definitions"
+produced_at: "2026-07-05"
+source: "chef_battle/selectors.py _voting_analytics_for_battle()"
+
+metrics:
+  vote_totals:
+    definition: "get_battle_vote_counts (same selector public battle room uses); no second vote engine"
+  percentages:
+    definition: "challenger_votes*100/total rounded to 0.1; NULL when total is 0 (never a fake 50/50)"
+  votes_per_hour:
+    window: "24 hours back from server now"
+    bucketing: "TruncHour with tzinfo forced to UTC (site TZ is Europe/Dublin; UTC forced explicitly and test-asserted via +00:00 suffix)"
+    bounded: "single aggregate query per battle over the indexed created_at window"
+  enforcement_evidence:
+    one_vote_per_account: "UniqueConstraint(battle, voter)"
+    one_vote_per_device: "UniqueConstraint(battle, ip_hash, user_agent_hash)"
+    rejected_attempts: "VoteIntegrityEvent rows (DG-05): grouped by gate_code, total + 24h; never part of totals or results"
+  suspicious_queue:
+    definition: "BattleVote.is_suspicious=True — MANUAL moderator review flag only; no automated risk score exists and none is claimed"
+    fields_exposed: "vote id, voted_for slug, timestamp — NO voter identity, NO request hashes"
+    cap: "10 newest in queue; count falls back to full COUNT when capped"
+  tie:
+    definition: "challenger_votes == opponent_votes AND > 0 (DG-05)"
+  completion_readiness:
+    deadline_passed: "status == voting AND (voting_deadline or end_time) <= now"
+    ready: "deadline_passed (display only — auto-completion service owns the actual transition)"
+    blocked_by_tie: "deadline_passed AND tie — resolution is a manual GreenBear decision"
+  community_pulse:
+    chat: "visible (is_hidden=False) BattleChatMessage count, total + last hour"
+    support_by_chef: "ViewerBattleGift aggregate per recipient (gift count + tokens); individual supporter identities intentionally NOT exposed (privacy)"
+
+privacy_rules:
+  - "Voter usernames, ip_hash, user_agent_hash, session_key_hash values never serialized (test-asserted)"
+  - "All analytics served only behind the console gate; public arena JSON verified free of analytics keys"
