@@ -1,5 +1,21 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.137",
+        "date": "2026-07-06",
+        "commit": "pending",
+        "title": "Author profile edit hero brought to the Author Studio standard",
+        "section": "UI",
+        "summary": (
+            "The Edit Profile page (profile/edit) was the only Author Studio "
+            "form whose hero lacked the standard pattern used by the recipe, "
+            "article and pinch forms. Added the 'Author Studio' pill and the "
+            "hero__actions button row (Back to dashboard, Explore Recipes, "
+            "Read Articles, Sponsors), and upgraded the hero background to a "
+            "<picture> with the webp source. All other listed legal pages "
+            "already match the golden standard and were left untouched."
+        ),
+    },
+    {
         "version": "2.5.136",
         "date": "2026-07-06",
         "commit": "pending",
