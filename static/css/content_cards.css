@@ -1605,7 +1605,7 @@
 
 .author-studio-pending {
   margin-block-start: 2.5rem;
-  padding: 1rem 1.2rem;
+  padding: 0.7rem 1.2rem;
   border: 1px solid rgb(180 130 20 / 0.22);
   border-radius: 12px;
   background: rgb(255 248 225 / 0.6);
@@ -1677,6 +1677,13 @@
    own clickable summaries. */
 .author-studio-pending__group.is-card-controlled > summary {
   display: none;
+}
+
+/* A collapsed card-controlled section has a hidden header and no content, so it
+   should take no vertical space - otherwise its margin bloats the empty
+   dashboard box. When opened it regains its normal top margin. */
+.author-studio-pending__group.is-card-controlled:not([open]) {
+  margin-block: 0;
 }
 
 /* My Collection expands into nested sub-sections (Saved Recipes/Articles/Pinch),
@@ -1940,7 +1947,7 @@
   flex-direction: column;
   align-items: center;
   gap: 0.35rem;
-  margin-block: 0.75rem 1.25rem;
+  margin-block: 0.75rem 0;
   width: 100%;
 }
 

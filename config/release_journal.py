@@ -1,5 +1,23 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.136",
+        "date": "2026-07-06",
+        "commit": "pending",
+        "title": "Halve the collapsed Content Dashboard box height",
+        "section": "Chef Battles / UI",
+        "summary": (
+            "With the group headers hidden and all sections collapsed by "
+            "default, the Content Dashboard box was ~138px tall but showed only "
+            "its title and filter row - the rest was empty space from the box "
+            "padding, the filter row's bottom margin, and the collapsed "
+            "sections' own top margins (which still applied at zero height). "
+            "Trimmed box padding-block 1rem->0.7rem, dropped the filter row's "
+            "1.25rem bottom margin, and zeroed the margin of collapsed "
+            "card-controlled sections (they regain it when opened). Box is now "
+            "~72px collapsed, about half. Verified live in Chrome as GreenBear."
+        ),
+    },
+    {
         "version": "2.5.135",
         "date": "2026-07-06",
         "commit": "pending",
