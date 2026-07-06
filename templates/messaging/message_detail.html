@@ -18,6 +18,7 @@
     <div aria-hidden="true" class="hero__overlay"></div>
     <div class="container hero__inner">
         <div class="hero-copy">
+            <span class="pill">Kitchen Team</span>
             <h1 class="hero-title">
                 {% if root_message.subject %}{{ root_message.subject }}{% else %}Message{% endif %}
             </h1>
@@ -26,6 +27,12 @@
             {% elif root_message.related_article %}
             <p class="hero-subtitle">Re: {{ root_message.related_article.title }}</p>
             {% endif %}
+            <div class="hero__actions">
+                <a class="btn-secondary" href="{% url 'messaging:inbox' %}">&larr; Messages</a>
+                <a class="btn-primary" href="{% url 'pinch:feed' %}">Pinch</a>
+                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Articles</a>
+                <a class="btn-secondary" href="{% url 'messaging:contact' %}">Contact</a>
+            </div>
         </div>
     </div>
 </section>

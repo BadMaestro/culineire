@@ -1,5 +1,23 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.139",
+        "date": "2026-07-07",
+        "commit": "pending",
+        "title": "Non-Chef-Battle pages brought to the golden hero standard",
+        "section": "UI",
+        "summary": (
+            "Audited every non-Chef-Battle page and standardised the heroes "
+            "that lacked the pill/actions pattern. Added the pill to login "
+            "and signup; added pill + a compact actions row to the seven auth "
+            "status/password-reset pages (signup_success, activation_pending, "
+            "activation_invalid, password_reset form/confirm/done/complete); "
+            "added pill + actions to messaging archive and message_detail "
+            "(matching inbox); and added an actions row to the moderator "
+            "reports_list and report_detail pages. The listed legal pages and "
+            "profile/edit were already handled earlier."
+        ),
+    },
+    {
         "version": "2.5.138",
         "date": "2026-07-06",
         "commit": "pending",

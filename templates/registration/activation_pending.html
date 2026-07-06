@@ -19,8 +19,13 @@
     <div aria-hidden="true" class="hero__overlay"></div>
     <div class="container hero__inner">
         <div class="hero-copy">
+            <span class="pill">Almost There</span>
             <h1 class="hero-title">Almost There!</h1>
             <p class="hero-subtitle">One last step before you join the CulinEire kitchen.</p>
+            <div class="hero__actions">
+                <a class="btn-secondary" href="{% url 'home' %}">Home</a>
+                <a class="btn-secondary" href="{% url 'login' %}">Sign In</a>
+            </div>
         </div>
     </div>
 </section>
