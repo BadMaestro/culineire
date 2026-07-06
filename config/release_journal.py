@@ -1,5 +1,21 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.140",
+        "date": "2026-07-07",
+        "commit": "pending",
+        "title": "Last two non-Chef-Battle heroes standardised",
+        "section": "UI",
+        "summary": (
+            "Final sweep: the moderation panel and the pinch detail page were "
+            "the only remaining non-Chef-Battle heroes with a pill but no "
+            "actions row. Added a hero__actions button row to both (moderator "
+            "nav on the panel; Pinch Feed / Explore Recipes / Read Articles / "
+            "Sponsors on pinch detail, matching the recipe detail pattern). "
+            "Every non-Chef-Battle hero page now carries the pill + actions "
+            "golden pattern."
+        ),
+    },
+    {
         "version": "2.5.139",
         "date": "2026-07-07",
         "commit": "pending",
