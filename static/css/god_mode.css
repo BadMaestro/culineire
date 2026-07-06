@@ -59,7 +59,13 @@
   background: none;
   -webkit-background-clip: initial;
   background-clip: border-box;
-  filter: opacity(0.75);
+  /* The parent clips its gradient to the text and paints it with a
+     transparent fill (color / -webkit-text-fill-color). Those inherit into
+     the paw pseudo-elements and make the 🐾 emoji invisible. Give them a
+     light gold fill so they read on the dark hero, matching the name. */
+  color: #f5e08a;
+  -webkit-text-fill-color: #f5e08a;
+  filter: opacity(0.85);
 }
 
 .author-name--god::before,

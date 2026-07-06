@@ -1,5 +1,21 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.124",
+        "date": "2026-07-06",
+        "commit": "pending",
+        "title": "Restore GreenBear's hero name paws",
+        "section": "Chef Battles / UI",
+        "summary": (
+            "GreenBear's signature bear paws around the hero name had gone "
+            "invisible. The name gradient clips to the text and paints it with "
+            "a transparent fill (color / -webkit-text-fill-color: transparent); "
+            "those inherit into the ::before/::after paw pseudo-elements, so "
+            "the 🐾 emoji was rendered transparent. Reset the fill on the paw "
+            "pseudo-elements to a light gold so they read on the dark hero and "
+            "match the name."
+        ),
+    },
+    {
         "version": "2.5.123",
         "date": "2026-07-06",
         "commit": "pending",
