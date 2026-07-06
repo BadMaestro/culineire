@@ -238,9 +238,11 @@
     </div>
 </section>
 
-{# Progressive enhancement: the count cards (Recipes/Articles/Pinch) toggle the
-   matching Content Dashboard <details> section instead of navigating away. If JS
-   is off or the section is absent, the card stays a normal link. #}
+{% comment %}
+Progressive enhancement: the count cards (Recipes/Articles/Pinch) toggle the
+matching Content Dashboard details section instead of navigating away. If JS is
+off or the section is absent, the card stays a normal link.
+{% endcomment %}
 <script nonce="{{ request.csp_nonce }}">
 (function () {
     var cards = document.querySelectorAll('.author-profile-links__card[data-dash-toggle]');

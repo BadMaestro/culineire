@@ -1,5 +1,21 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.132",
+        "date": "2026-07-06",
+        "commit": "pending",
+        "title": "Hotfix: stray template comment rendered as text on author page",
+        "section": "Chef Battles / UI",
+        "summary": (
+            "The v2.5.131 explainer comment above the card-toggle script used a "
+            "multi-line {# ... #} block. Django's {# #} comment syntax is "
+            "single-line only, so the multi-line version was NOT stripped and "
+            "rendered as visible text below the Content Dashboard - and the "
+            "'<details>' substring inside it even became a stray collapsible "
+            "'Details' element. Replaced it with {% comment %}...{% endcomment %} "
+            "(multi-line safe). Verified live in Chrome as GreenBear."
+        ),
+    },
+    {
         "version": "2.5.131",
         "date": "2026-07-06",
         "commit": "pending",
