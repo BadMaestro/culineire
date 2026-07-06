@@ -55,6 +55,10 @@
     </div>
 </section>
 
+{% if chef_battle_enabled and battle_profile.enrolled_at %}
+{% include 'chef_battle/_author_battle_section.html' %}
+{% endif %}
+
 <section class="page-section author-profile-page">
     <div class="container">
 
@@ -233,8 +237,4 @@
 
     </div>
 </section>
-
-{% if chef_battle_enabled and battle_profile.enrolled_at %}
-{% include 'chef_battle/_author_battle_section.html' %}
-{% endif %}
 {% endblock %}

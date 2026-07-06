@@ -1,5 +1,20 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.127",
+        "date": "2026-07-06",
+        "commit": "pending",
+        "title": "Chef Battles Arena block moved directly under the hero",
+        "section": "Chef Battles / UI",
+        "summary": (
+            "The merged Chef Battles Arena section (stat cards, crown banner, "
+            "gifts, battle history, actions) was rendered at the very bottom "
+            "of the author page. Moved the _author_battle_section.html include "
+            "to sit directly under the hero, above the author profile content, "
+            "on every author page (shown when the flag is on and the author is "
+            "an enrolled chef)."
+        ),
+    },
+    {
         "version": "2.5.126",
         "date": "2026-07-06",
         "commit": "pending",
