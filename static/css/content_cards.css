@@ -1670,6 +1670,15 @@
   transform: rotate(90deg);
 }
 
+/* Once JS wires a count card to its section (is-card-controlled), the card is
+   the sole toggle, so the section's own summary header is redundant - hide it.
+   Gated on the JS-added class so the no-JS fallback keeps the summary usable.
+   Nested My Collection sub-sections are not card-controlled, so they keep their
+   own clickable summaries. */
+.author-studio-pending__group.is-card-controlled > summary {
+  display: none;
+}
+
 /* My Collection expands into nested sub-sections (Saved Recipes/Articles/Pinch),
    each independently collapsible. Indent them under the parent for hierarchy. */
 .author-studio-pending__subgroups {

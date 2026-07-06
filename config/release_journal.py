@@ -1,5 +1,24 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.134",
+        "date": "2026-07-06",
+        "commit": "pending",
+        "title": "Drop redundant dashboard group headers (cards are the toggle now)",
+        "section": "Chef Battles / UI",
+        "summary": (
+            "The Content Dashboard group headers (RECIPES / ARTICLES / PINCH / "
+            "My Collection) duplicated the count cards that now toggle those "
+            "sections, so they were visual noise. The wiring script now tags "
+            "each card-controlled section with .is-card-controlled and CSS "
+            "hides that section's own <summary> header - leaving just the "
+            "content the card reveals. Gated on the JS-added class so the no-JS "
+            "fallback keeps the summaries usable. Nested My Collection "
+            "sub-sections (Saved Recipes/Articles/Pinch) are not card-controlled "
+            "and keep their own clickable headers. Verified live in Chrome as "
+            "GreenBear."
+        ),
+    },
+    {
         "version": "2.5.133",
         "date": "2026-07-06",
         "commit": "pending",

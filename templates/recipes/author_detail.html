@@ -299,6 +299,10 @@ off or the section is absent, the card stays a normal link.
     cards.forEach(function (card) {
         var target = document.getElementById(card.getAttribute('data-dash-toggle'));
         if (!target) { return; }
+        // The card is now the control for this section, so its own header
+        // summary is redundant - hide it (only once JS has wired the card, so
+        // the no-JS fallback keeps the summary usable).
+        target.classList.add('is-card-controlled');
         function sync() {
             card.classList.toggle('is-open', target.open);
             card.setAttribute('aria-expanded', target.open ? 'true' : 'false');
