@@ -1,18 +1,19 @@
 RELEASE_JOURNAL = [
     {
-        "version": "2.5.124",
+        "version": "2.5.125",
         "date": "2026-07-06",
         "commit": "pending",
-        "title": "Restore GreenBear's hero name paws",
+        "title": "Revert author-hero name experiment; GreenBear page untouched",
         "section": "Chef Battles / UI",
         "summary": (
-            "GreenBear's signature bear paws around the hero name had gone "
-            "invisible. The name gradient clips to the text and paints it with "
-            "a transparent fill (color / -webkit-text-fill-color: transparent); "
-            "those inherit into the ::before/::after paw pseudo-elements, so "
-            "the 🐾 emoji was rendered transparent. Reset the fill on the paw "
-            "pseudo-elements to a light gold so they read on the dark hero and "
-            "match the name."
+            "Reverted the v2.5.122/124 author-hero name changes: GreenBear's "
+            "personal profile page and god_mode.css must never be modified, "
+            "and other author pages should follow GreenBear's page as a "
+            "reference standard, not become clones of it. Restored "
+            "author_detail.html, base.css, recipes/views.py and god_mode.css "
+            "to their pre-change state. The floating widget's mouse drag "
+            "(v2.5.123), the Arena Menu centring and the merged-profile "
+            "section-title alignment are kept."
         ),
     },
     {
@@ -36,20 +37,14 @@ RELEASE_JOURNAL = [
         "version": "2.5.122",
         "date": "2026-07-06",
         "commit": "pending",
-        "title": "Unified author hero name; gold wave gated to Executive Chef",
+        "title": "Floating widget Arena Menu centred; merged section titles aligned",
         "section": "Chef Battles / UI",
         "summary": (
-            "Every author profile hero now renders the author's name in the "
-            "H1 with the elegant cursive treatment GreenBear uses, instead of "
-            "the generic 'Author's Profile' / 'Author Dashboard' label. The "
-            "animated gold 'wave' shimmer on the name is now a rank privilege: "
-            "unlocked only for Executive-Chef-rank chefs (and above) via the "
-            "new .author-name--executive class; every other author gets the "
-            "same elegant name, statically. GreenBear keeps his exclusive "
-            "extras (bear paws, IDDQD pill, enlarged avatar, reinforced "
-            "overlay) in god_mode.css. Also: floating widget Arena Menu title "
-            "and links centred; merged-profile section titles left-aligned "
-            "for even spacing."
+            "Centred the floating Chef Battles widget's Arena Menu title and "
+            "link list, and left-aligned the merged-profile section titles "
+            "(Gifts, Battle History) for even spacing against the full-width "
+            "stat cards. (The author-hero name change originally shipped here "
+            "was reverted in v2.5.125.)"
         ),
     },
     {

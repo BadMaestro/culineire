@@ -24,11 +24,7 @@
             <div class="hero-author-avatar-wrap">
                 <img alt="{{ author.name }}" class="hero-author-avatar" src="{{ author.display_avatar_url }}">
             </div>
-            {% if is_god_author %}
-            <h1 class="hero-title author-name--greenbear">{{ author.name }}</h1>
-            {% else %}
-            <h1 class="hero-title author-name--chef{% if author_is_executive %} author-name--executive{% endif %}">{{ author.name }}</h1>
-            {% endif %}
+            <h1 class="hero-title {% if is_god_author %}author-name--greenbear{% endif %}">{% if private_dashboard %}Author Dashboard{% elif is_god_author %}{{ author.name }}{% else %}Author's Profile{% endif %}</h1>
             {% if is_god_author %}<p class="hero-subtitle" style="margin-top:0;">{% executive_badge author %}</p>{% endif %}
             {% if author.bio %}
             <p class="hero-subtitle">{{ author.bio }}</p>
