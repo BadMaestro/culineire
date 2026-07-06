@@ -1,5 +1,29 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.128",
+        "date": "2026-07-06",
+        "commit": "pending",
+        "title": "Restore centered GreenBear/author hero (drop stale hero--has-battle)",
+        "section": "Chef Battles / UI",
+        "summary": (
+            "The author hero carried the hero--has-battle class whenever "
+            "chef_battle_enabled was true (staff / superuser / bearseeker, i.e. "
+            "GreenBear viewing his own page while logged in). That class applies "
+            "the LOCKED two-column, left-anchored battle layout "
+            "(text-align:left; align-items:flex-start), which jammed the pill, "
+            "H1 and action buttons to the left edge while the avatar stayed "
+            "centered - a visibly broken hero. Anonymous visitors never got the "
+            "class, so the public page still looked correct. Since the Arena "
+            "panel was moved out of the hero in v2.5.127, hero--has-battle no "
+            "longer serves any purpose on this hero and only broke centering. "
+            "Removed the class from author_detail.html so the hero uses its "
+            "designed centered .hero--author-profile layout in every view, "
+            "matching the golden GreenBear standard. No LOCKED hero CSS was "
+            "touched; template-only change verified live in Chrome (centered "
+            "without the class, broken with it)."
+        ),
+    },
+    {
         "version": "2.5.127",
         "date": "2026-07-06",
         "commit": "pending",
