@@ -1,5 +1,23 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.138",
+        "date": "2026-07-06",
+        "commit": "pending",
+        "title": "Move Delete Profile from the author dashboard to the profile edit page",
+        "section": "Chef Battles / UI",
+        "summary": (
+            "The 'Profile Settings / Delete Profile' block was removed from the "
+            "author dashboard (author_detail.html) and rebuilt at the bottom of "
+            "the profile edit page (/recipes/profile/edit/), below the Your Data "
+            "& Privacy block, as a standard .auth-admin-section with a title, an "
+            "explanatory note and a red Delete Profile button (confirm dialog, "
+            "recipes:author_delete). Shown only in self-edit mode for non-owner "
+            "authors (new can_delete_own_profile context flag mirrors the old "
+            "not-is_god_author guard, so the owner never sees it). The "
+            "moderator's separate 'Delete Author Profile' action is untouched."
+        ),
+    },
+    {
         "version": "2.5.137",
         "date": "2026-07-06",
         "commit": "pending",

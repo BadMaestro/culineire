@@ -2076,6 +2076,7 @@ class RecipeAuthorUpdateView(AuthorRequiredMixin, UpdateView):
         )
         context["submit_label"] = "Save Profile"
         context["show_profile_privacy_notice"] = True
+        context["can_delete_own_profile"] = self.object.slug != settings.OWNER_SLUG
         return context
 
 

@@ -183,6 +183,16 @@
             </ul>
         </div>
         {% endif %}
+
+        {% if form_mode == "edit" and can_delete_own_profile %}
+        <div class="auth-admin-section">
+            <p class="auth-admin-section__title">Delete Profile</p>
+            <p class="auth-admin-section__note">Permanently delete your author profile and all associated content. This cannot be undone.</p>
+            <div style="display:flex;justify-content:center;">
+                <a class="btn-secondary" style="border-color:#8a1f1f;color:#8a1f1f;" href="{% url 'recipes:author_delete' %}" onclick="return confirm('Permanently delete your profile and all your content? This cannot be undone.')">Delete Profile</a>
+            </div>
+        </div>
+        {% endif %}
     </div>
   </div>
 </section>
