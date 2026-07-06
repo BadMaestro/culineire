@@ -1,5 +1,22 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.126",
+        "date": "2026-07-06",
+        "commit": "pending",
+        "title": "GreenBear hero H1 shows his name in every view (golden standard)",
+        "section": "Chef Battles / UI",
+        "summary": (
+            "On GreenBear's own profile the hero H1 showed 'Author Dashboard' "
+            "(the private-dashboard label) instead of the golden 'GreenBear' "
+            "name when viewed in a manage/dashboard context. Reordered the H1 "
+            "so the is_god_author branch takes priority: GreenBear's page now "
+            "always renders his name in the gold treatment, matching the "
+            "golden-standard profile. Isolated to is_god_author only - every "
+            "other author keeps the unchanged 'Author Dashboard' / 'Author's "
+            "Profile' logic."
+        ),
+    },
+    {
         "version": "2.5.125",
         "date": "2026-07-06",
         "commit": "pending",
