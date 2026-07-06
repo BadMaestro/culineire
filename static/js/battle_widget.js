@@ -1,9 +1,9 @@
 /**
- * Sitewide Chef Battles widget — vertical finger drag.
+ * Sitewide Chef Battles widget — vertical drag.
  * The header row is the handle: a short press toggles the card as before,
  * a vertical move slides the whole widget up/down and the position is
- * remembered per device (localStorage). Active on touch devices and narrow
- * viewports; desktop mouse behaviour unchanged.
+ * remembered per device (localStorage). Uses pointer events, so it works
+ * with both a finger (touch) and the mouse (desktop) identically.
  */
 (function () {
   'use strict';
@@ -12,10 +12,6 @@
   if (!widget) return;
   var handle = widget.querySelector('.site-battle-widget__toggle');
   if (!handle) return;
-
-  var enabled = window.matchMedia('(pointer: coarse)').matches
-    || window.matchMedia('(max-width: 900px)').matches;
-  if (!enabled) return;
 
   var STORE_KEY = 'battleWidgetTop';
   var DRAG_THRESHOLD = 12; // px of travel before a press becomes a drag

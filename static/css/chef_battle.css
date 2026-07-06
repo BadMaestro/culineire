@@ -3788,15 +3788,14 @@ a.battle-home__pulse-msg:hover {
   }
 }
 
-/* Touch devices: the header row doubles as a vertical drag handle
-   (battle_widget.js) — hint it and stop the browser from scrolling the
-   page while the finger moves the card. */
-@media (pointer: coarse) {
-  .site-battle-widget__toggle {
-    touch-action: none;
-    cursor: grab;
-  }
-  .site-battle-widget[data-dragging="true"] .site-battle-widget__toggle {
-    cursor: grabbing;
-  }
+/* The header row doubles as a vertical drag handle (battle_widget.js) on
+   every device — hint it with a grab cursor and stop the browser from
+   scrolling the page (or selecting text) while the pointer moves the card.
+   Works with both a finger (touch) and the mouse (desktop). */
+.site-battle-widget__toggle {
+  touch-action: none;
+  cursor: grab;
+}
+.site-battle-widget[data-dragging="true"] .site-battle-widget__toggle {
+  cursor: grabbing;
 }

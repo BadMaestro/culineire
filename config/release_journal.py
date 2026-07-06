@@ -1,5 +1,22 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.123",
+        "date": "2026-07-06",
+        "commit": "pending",
+        "title": "Floating battle widget draggable with the mouse too",
+        "section": "Chef Battles / UI",
+        "summary": (
+            "The sitewide floating Chef Battles widget could be dragged up and "
+            "down only with a finger on touch devices; on desktop the drag was "
+            "gated off. Removed the coarse-pointer / narrow-viewport gate so "
+            "the pointer-event drag now works identically with the mouse: "
+            "press-and-hold the header row and slide the card up or down, "
+            "position remembered per device. A short click still toggles the "
+            "card open/closed (drag threshold unchanged). The grab/grabbing "
+            "cursor and touch-action:none now apply on every device."
+        ),
+    },
+    {
         "version": "2.5.122",
         "date": "2026-07-06",
         "commit": "pending",
