@@ -1670,6 +1670,17 @@
   transform: rotate(90deg);
 }
 
+/* My Collection expands into nested sub-sections (Saved Recipes/Articles/Pinch),
+   each independently collapsible. Indent them under the parent for hierarchy. */
+.author-studio-pending__subgroups {
+  margin-block-start: 0.5rem;
+  padding-inline-start: 0.9rem;
+  border-inline-start: 2px solid rgb(180 130 20 / 0.18);
+}
+.author-studio-pending__group--nested {
+  margin-block-start: 0.5rem;
+}
+
 .author-studio-pending__list {
   display: flex;
   flex-direction: column;

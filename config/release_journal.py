@@ -1,5 +1,25 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.133",
+        "date": "2026-07-06",
+        "commit": "pending",
+        "title": "My Collection card expands inline with nested saved sub-sections",
+        "section": "Chef Battles / UI",
+        "summary": (
+            "The My Collection count card now toggles an inline dash-collection "
+            "section like the other three cards, instead of only linking to "
+            "/collection/. The section expands into three independently "
+            "collapsible nested <details> sub-sections - Saved Recipes, Saved "
+            "Articles, Saved Pinch - each listing the saved items with a View "
+            "link, so the owner can browse saved content without leaving the "
+            "page. The author view now builds dashboard_saved_recipes / "
+            "_articles / _pinch (mirroring the /collection/ view querysets; "
+            "collection_count is derived from their lengths) and only on the "
+            "owner's own private dashboard. The card keeps its /collection/ "
+            "href as a no-JS fallback. Verified live in Chrome as GreenBear."
+        ),
+    },
+    {
         "version": "2.5.132",
         "date": "2026-07-06",
         "commit": "pending",

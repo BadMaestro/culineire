@@ -1594,18 +1594,23 @@ def author_detail(request, slug):
         pass
 
     collection_count = 0
+    dashboard_saved_recipes = []
+    dashboard_saved_articles = []
+    dashboard_saved_pinch = []
     if private_dashboard:
-        collection_count = (
+        dashboard_saved_recipes = list(
             SavedRecipe.objects.filter(
                 user=request.user,
                 recipe__status=Recipe.Status.APPROVED,
                 recipe__is_deleted=False,
-            ).count()
-            + SavedArticle.objects.filter(
+            ).select_related("recipe", "recipe__author")
+        )
+        dashboard_saved_articles = list(
+            SavedArticle.objects.filter(
                 user=request.user,
                 article__status=Article.Status.APPROVED,
                 article__is_deleted=False,
-            ).count()
+            ).select_related("article", "article__author")
         )
         if can_show_public_pinch:
             try:
@@ -1614,13 +1619,20 @@ def author_detail(request, slug):
                 approved_pinch_ids = _Pinch.objects.filter(
                     status=_Pinch.Status.APPROVED
                 ).values("pk")
-                collection_count += SavedContent.objects.filter(
-                    user=request.user,
-                    content_type=pinch_type,
-                    object_id__in=approved_pinch_ids,
-                ).count()
+                dashboard_saved_pinch = list(
+                    SavedContent.objects.filter(
+                        user=request.user,
+                        content_type=pinch_type,
+                        object_id__in=approved_pinch_ids,
+                    ).select_related("content_type")
+                )
             except Exception:
                 pass
+        collection_count = (
+            len(dashboard_saved_recipes)
+            + len(dashboard_saved_articles)
+            + len(dashboard_saved_pinch)
+        )
 
     context = {
         "author": author,
@@ -1636,6 +1648,9 @@ def author_detail(request, slug):
         "dashboard_recipes": dashboard_recipes,
         "dashboard_articles": dashboard_articles,
         "dashboard_pinch": dashboard_pinch,
+        "dashboard_saved_recipes": dashboard_saved_recipes,
+        "dashboard_saved_articles": dashboard_saved_articles,
+        "dashboard_saved_pinch": dashboard_saved_pinch,
         "dashboard_status_filters": dashboard_status_filters,
         "dashboard_content_filters": dashboard_content_filters,
         "dashboard_status_filter_links": dashboard_status_filter_links,
