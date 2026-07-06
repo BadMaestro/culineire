@@ -1,5 +1,19 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.135",
+        "date": "2026-07-06",
+        "commit": "pending",
+        "title": "Updated author hero background image",
+        "section": "UI",
+        "summary": (
+            "Owner supplied a new hero-profile.png (coastal sunset with the "
+            "Irish cookery books and tablet). Regenerated hero-profile.webp "
+            "from the new PNG so the <picture> webp source matches (the hero "
+            "serves the webp first to modern browsers, so a stale webp would "
+            "silently keep showing the old image)."
+        ),
+    },
+    {
         "version": "2.5.134",
         "date": "2026-07-06",
         "commit": "pending",
