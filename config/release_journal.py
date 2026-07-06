@@ -1,5 +1,26 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.131",
+        "date": "2026-07-06",
+        "commit": "pending",
+        "title": "Author dashboard: count cards toggle their content section",
+        "section": "Chef Battles / UI",
+        "summary": (
+            "The count cards (145 Recipes, 5 Articles, 30 Pinch) now act as the "
+            "toggle for their matching Content Dashboard section, mirroring the "
+            "group-header chevron added in v2.5.130. Clicking a card expands or "
+            "collapses its <details> section in place; the card's corner chevron "
+            "points right when collapsed and rotates down when open. Wired as "
+            "progressive enhancement (a small nonce'd inline script maps each "
+            "card's data-dash-toggle to the section id and mirrors the open "
+            "state) - if JS is off or the section is absent, the card stays a "
+            "normal navigation link. The label (Recipes/Articles/Pinch) is now "
+            "centred in the card. My Collection has no dashboard section so it "
+            "stays a plain link. All sections collapsed by default to keep the "
+            "page tidy. Verified live in Chrome logged in as GreenBear."
+        ),
+    },
+    {
         "version": "2.5.130",
         "date": "2026-07-06",
         "commit": "pending",

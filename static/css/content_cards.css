@@ -1541,6 +1541,8 @@
 }
 
 .author-profile-links__label {
+  flex: 1;
+  text-align: center;
   font-size: 0.82rem;
   font-weight: 500;
   color: rgb(31 44 37 / 0.55);
@@ -1570,6 +1572,14 @@
   stroke-linecap: round;
   stroke-linejoin: round;
   color: rgb(31 44 37 / 0.25);
+  transition: transform 0.18s ease;
+}
+
+/* Count cards that toggle a Content Dashboard section (progressive enhancement,
+   see author_detail.html). The chevron points right when the section is
+   collapsed and rotates down when it is open, mirroring the group header. */
+.author-profile-links__card.is-open .author-profile-links__arrow {
+  transform: rotate(90deg);
 }
 
 .hero-author-avatar-wrap {

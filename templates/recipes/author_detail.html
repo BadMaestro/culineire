@@ -63,7 +63,7 @@
     <div class="container">
 
         <div class="author-profile-links">
-            <a class="author-profile-links__card" href="{% url 'recipes:recipe_list' %}?author={{ author.slug }}">
+            <a class="author-profile-links__card" href="{% url 'recipes:recipe_list' %}?author={{ author.slug }}" data-dash-toggle="dash-recipes">
                 <span class="author-profile-links__count">{{ recipe_count }}</span>
                 <span class="author-profile-links__label">Recipes</span>
                 {% if recipe_workspace_attention_count %}
@@ -71,13 +71,13 @@
                 {% endif %}
                 <svg aria-hidden="true" class="author-profile-links__arrow" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
             </a>
-            <a class="author-profile-links__card" href="{% url 'articles:article_list' %}?author={{ author.slug }}">
+            <a class="author-profile-links__card" href="{% url 'articles:article_list' %}?author={{ author.slug }}" data-dash-toggle="dash-articles">
                 <span class="author-profile-links__count">{{ article_count }}</span>
                 <span class="author-profile-links__label">Articles</span>
                 <svg aria-hidden="true" class="author-profile-links__arrow" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
             </a>
             {% if show_pinch_profile_links %}
-            <a class="author-profile-links__card" href="{% url 'pinch:feed' %}?author={{ author.slug }}">
+            <a class="author-profile-links__card" href="{% url 'pinch:feed' %}?author={{ author.slug }}" data-dash-toggle="dash-pinch">
                 <span class="author-profile-links__count">{{ pinch_count }}</span>
                 <span class="author-profile-links__label">Pinch</span>
                 <svg aria-hidden="true" class="author-profile-links__arrow" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
@@ -114,7 +114,7 @@
             {% endif %}
 
             {% if dashboard_recipes %}
-            <details class="author-studio-pending__group">
+            <details class="author-studio-pending__group" id="dash-recipes">
                 <summary class="author-studio-pending__group-label">Recipes<svg aria-hidden="true" class="author-studio-pending__group-arrow" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></summary>
                 <ul class="author-studio-pending__list">
                     {% for recipe in dashboard_recipes %}
@@ -144,7 +144,7 @@
             {% endif %}
 
             {% if dashboard_articles %}
-            <details class="author-studio-pending__group">
+            <details class="author-studio-pending__group" id="dash-articles">
                 <summary class="author-studio-pending__group-label">Articles<svg aria-hidden="true" class="author-studio-pending__group-arrow" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></summary>
                 <ul class="author-studio-pending__list">
                     {% for article in dashboard_articles %}
@@ -173,7 +173,7 @@
             {% endif %}
 
             {% if dashboard_pinch %}
-            <details class="author-studio-pending__group">
+            <details class="author-studio-pending__group" id="dash-pinch">
                 <summary class="author-studio-pending__group-label">Pinch<svg aria-hidden="true" class="author-studio-pending__group-arrow" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></summary>
                 <ul class="author-studio-pending__list">
                     {% for item in dashboard_pinch %}
@@ -237,4 +237,29 @@
 
     </div>
 </section>
+
+{# Progressive enhancement: the count cards (Recipes/Articles/Pinch) toggle the
+   matching Content Dashboard <details> section instead of navigating away. If JS
+   is off or the section is absent, the card stays a normal link. #}
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+    var cards = document.querySelectorAll('.author-profile-links__card[data-dash-toggle]');
+    cards.forEach(function (card) {
+        var target = document.getElementById(card.getAttribute('data-dash-toggle'));
+        if (!target) { return; }
+        function sync() {
+            card.classList.toggle('is-open', target.open);
+            card.setAttribute('aria-expanded', target.open ? 'true' : 'false');
+        }
+        card.setAttribute('role', 'button');
+        card.setAttribute('aria-controls', target.id);
+        sync();
+        card.addEventListener('click', function (e) {
+            e.preventDefault();
+            target.open = !target.open;
+        });
+        target.addEventListener('toggle', sync);
+    });
+})();
+</script>
 {% endblock %}
