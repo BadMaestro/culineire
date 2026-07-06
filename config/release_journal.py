@@ -1,5 +1,26 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.121",
+        "date": "2026-07-06",
+        "commit": "pending",
+        "title": "Chef profile merged into author page; hero battle panel removed",
+        "section": "Chef Battles / UI",
+        "summary": (
+            "Full profile merge: the standalone chef battle profile is gone - "
+            "chef_battle:chef_battle_profile now redirects to the author "
+            "detail page anchored at #chef-arena. The chef's arena stats, "
+            "crown banner, gifts and battle history render on the author page "
+            "via the new chef_battle-owned partial _author_battle_section.html "
+            "(shown only when the flag is on and the author is enrolled). The "
+            "big _hero_battle_panel.html include was removed from all 37 hero "
+            "templates and the partial deleted; its functions now live in the "
+            "floating corner widget (Arena Menu section). Two pre-existing "
+            "bugs fixed: get_author_for_user crashed on AnonymousUser, and "
+            "token_shop used a namespaced 'accounts:login' that does not "
+            "reverse. Added 10 ProfileMergeTests. Full suite green: 1177 OK."
+        ),
+    },
+    {
         "version": "2.5.120",
         "date": "2026-07-05",
         "commit": "pending",
