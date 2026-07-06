@@ -2623,6 +2623,12 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
   font-size: 1.1rem;
   line-height: 1.15;
 }
+/* Merged author page: centre the "Battle History" sub-heading to match the
+   centred "Chef Battles Arena" section header, and give the empty-state some
+   breathing room above the actions row. Scoped to the arena section so the
+   standalone chef profile page keeps its own layout. */
+.chef-arena-section .chef-profile__section-title { text-align: center; }
+.chef-arena-section .battle-actions { margin-block-start: 1.5rem; }
 
 /* Hall of Fame banner */
 .hof-hero { position: relative; }

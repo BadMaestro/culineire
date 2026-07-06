@@ -114,8 +114,8 @@
             {% endif %}
 
             {% if dashboard_recipes %}
-            <div class="author-studio-pending__group">
-                <p class="author-studio-pending__group-label">Recipes</p>
+            <details class="author-studio-pending__group">
+                <summary class="author-studio-pending__group-label">Recipes<svg aria-hidden="true" class="author-studio-pending__group-arrow" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></summary>
                 <ul class="author-studio-pending__list">
                     {% for recipe in dashboard_recipes %}
                     <li class="author-studio-pending__item{% if recipe.status == 'rejected' %} author-studio-pending__item--rejected{% endif %}{% if recipe.status == 'draft' %} author-studio-pending__item--draft{% endif %}">
@@ -140,12 +140,12 @@
                     {% endif %}{% endif %}
                     {% endfor %}
                 </ul>
-            </div>
+            </details>
             {% endif %}
 
             {% if dashboard_articles %}
-            <div class="author-studio-pending__group">
-                <p class="author-studio-pending__group-label">Articles</p>
+            <details class="author-studio-pending__group">
+                <summary class="author-studio-pending__group-label">Articles<svg aria-hidden="true" class="author-studio-pending__group-arrow" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></summary>
                 <ul class="author-studio-pending__list">
                     {% for article in dashboard_articles %}
                     <li class="author-studio-pending__item{% if article.status == 'rejected' %} author-studio-pending__item--rejected{% endif %}{% if article.status == 'draft' %} author-studio-pending__item--draft{% endif %}">
@@ -169,12 +169,12 @@
                     {% endif %}{% endif %}
                     {% endfor %}
                 </ul>
-            </div>
+            </details>
             {% endif %}
 
             {% if dashboard_pinch %}
-            <div class="author-studio-pending__group">
-                <p class="author-studio-pending__group-label">Pinch</p>
+            <details class="author-studio-pending__group">
+                <summary class="author-studio-pending__group-label">Pinch<svg aria-hidden="true" class="author-studio-pending__group-arrow" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></summary>
                 <ul class="author-studio-pending__list">
                     {% for item in dashboard_pinch %}
                     <li class="author-studio-pending__item">
@@ -198,7 +198,7 @@
                     {% endif %}{% endif %}
                     {% endfor %}
                 </ul>
-            </div>
+            </details>
             {% endif %}
 
             {% if not dashboard_recipes and not dashboard_articles and not dashboard_pinch %}

@@ -1631,6 +1631,35 @@
   color: var(--ink-soft);
 }
 
+/* Collapsible content-dashboard groups (native <details>). Collapsed by
+   default; the summary is the clickable header and the chevron rotates from
+   pointing right (closed) to down (open). */
+.author-studio-pending__group > summary.author-studio-pending__group-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.author-studio-pending__group > summary.author-studio-pending__group-label::-webkit-details-marker {
+  display: none;
+}
+.author-studio-pending__group-arrow {
+  width: 14px;
+  height: 14px;
+  margin-inline-start: auto;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  color: rgb(31 44 37 / 0.4);
+  transition: transform 0.18s ease;
+}
+.author-studio-pending__group[open] > summary .author-studio-pending__group-arrow {
+  transform: rotate(90deg);
+}
+
 .author-studio-pending__list {
   display: flex;
   flex-direction: column;

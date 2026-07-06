@@ -1,5 +1,26 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.130",
+        "date": "2026-07-06",
+        "commit": "pending",
+        "title": "Author dashboard: centre Battle History, spacing, collapsible content groups",
+        "section": "Chef Battles / UI",
+        "summary": (
+            "Three author-page tweaks. (1) Centred the 'Battle History' "
+            "sub-heading to match the centred 'Chef Battles Arena' header. "
+            "(2) Added 1.5rem breathing room between the 'No battles yet' "
+            "empty-state and the actions row (My Moves / Enter Arena / "
+            "Rankings), which were touching. (3) Made the Content Dashboard "
+            "content groups (Recipes / Articles / Pinch) collapsible using "
+            "native <details>/<summary> - no JS, so no CSP-nonce concern. All "
+            "collapsed by default; the chevron points right when closed and "
+            "rotates down when open; each group toggles independently. The "
+            "count cards (145 Recipes etc.) stay as navigation links and My "
+            "Collection stays a plain link, per owner decision. Verified live "
+            "in Chrome logged in as GreenBear."
+        ),
+    },
+    {
         "version": "2.5.129",
         "date": "2026-07-06",
         "commit": "pending",
