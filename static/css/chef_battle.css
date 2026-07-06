@@ -2551,7 +2551,8 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
 .chef-profile__section-title {
   font-family: var(--font-serif);
   font-size: 1.5rem;
-  margin-block-end: 1rem;
+  text-align: left;
+  margin-block: 2.25rem 1rem;
 }
 
 .chef-profile-gifts {
@@ -3758,6 +3759,12 @@ a.battle-home__pulse-msg:hover {
   display: flex;
   flex-wrap: wrap;
   gap: 0.3rem 0.6rem;
+}
+.site-battle-widget__section--menu {
+  text-align: center;
+}
+.site-battle-widget__section--menu .site-battle-widget__menu {
+  justify-content: center;
 }
 .site-battle-widget__menu a {
   color: inherit;

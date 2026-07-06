@@ -1468,6 +1468,14 @@ def author_detail(request, slug):
         except Exception:
             logger.exception("Chef Battle profile data is unavailable for author %s.", author.pk)
 
+    # The animated gold "wave" on the hero name is an Executive-Chef-rank
+    # privilege (Culinary Master sits above it and keeps it). Every other
+    # author still gets the elegant static hero name, just without the shimmer.
+    author_is_executive = bool(
+        battle_profile
+        and getattr(battle_profile, "rank", None) in ("executive_chef", "culinary_master")
+    )
+
     recipes_for_count = Recipe.objects.filter(author=author, is_deleted=False)
     articles_for_count = Article.objects.filter(author=author, is_deleted=False)
     if not (can_manage or moderator):
@@ -1630,6 +1638,7 @@ def author_detail(request, slug):
         "pinch_count": pinch_count,
         "show_pinch_profile_links": can_show_public_pinch,
         "is_god_author": is_god_author,
+        "author_is_executive": author_is_executive,
         "can_manage_author_profile": can_manage,
         "is_moderator_viewer": moderator,
         "private_dashboard": private_dashboard,

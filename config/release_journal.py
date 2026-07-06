@@ -1,5 +1,25 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.122",
+        "date": "2026-07-06",
+        "commit": "pending",
+        "title": "Unified author hero name; gold wave gated to Executive Chef",
+        "section": "Chef Battles / UI",
+        "summary": (
+            "Every author profile hero now renders the author's name in the "
+            "H1 with the elegant cursive treatment GreenBear uses, instead of "
+            "the generic 'Author's Profile' / 'Author Dashboard' label. The "
+            "animated gold 'wave' shimmer on the name is now a rank privilege: "
+            "unlocked only for Executive-Chef-rank chefs (and above) via the "
+            "new .author-name--executive class; every other author gets the "
+            "same elegant name, statically. GreenBear keeps his exclusive "
+            "extras (bear paws, IDDQD pill, enlarged avatar, reinforced "
+            "overlay) in god_mode.css. Also: floating widget Arena Menu title "
+            "and links centred; merged-profile section titles left-aligned "
+            "for even spacing."
+        ),
+    },
+    {
         "version": "2.5.121",
         "date": "2026-07-06",
         "commit": "pending",
