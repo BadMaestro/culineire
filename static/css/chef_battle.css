@@ -2614,8 +2614,11 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
 }
 
 /* Merged author page: the chef arena section. Rank label is a word, not a
-   number, so it needs a smaller value size to fit the stat card. */
-.chef-arena-section { padding-block-start: 0; }
+   number, so it needs a smaller value size to fit the stat card.
+   padding-block-start restores the standard section rhythm (2rem) so the
+   "Chef Battles Arena" header isn't jammed against the hero above it — it now
+   sits directly under the hero since v2.5.127, not at the page bottom. */
+.chef-arena-section { padding-block-start: 2rem; }
 .battle-stat-card__value.chef-arena-rank {
   font-size: 1.1rem;
   line-height: 1.15;

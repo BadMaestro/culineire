@@ -1,5 +1,24 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.129",
+        "date": "2026-07-06",
+        "commit": "pending",
+        "title": "Fix cramped spacing above Chef Battles Arena section on author page",
+        "section": "Chef Battles / UI",
+        "summary": (
+            "On the logged-in author page (enrolled chef, e.g. GreenBear), the "
+            "'Chef Battles Arena' section header was jammed directly against the "
+            "bottom of the hero with zero gap. Cause: chef_battle.css set "
+            ".chef-arena-section { padding-block-start: 0 } - a leftover from when "
+            "the Arena block lived at the page bottom. Since v2.5.127 the block "
+            "sits directly under the hero, so it needs the standard 2rem section "
+            "top padding. Changed the value from 0 to 2rem; verified live in "
+            "Chrome logged in as GreenBear (hero->header gap now 32px, matching "
+            "the site's section rhythm; the gap below the section was already "
+            "correct via the following profile section's own top padding)."
+        ),
+    },
+    {
         "version": "2.5.128",
         "date": "2026-07-06",
         "commit": "pending",
