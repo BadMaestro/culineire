@@ -23,11 +23,7 @@
             <span class="pill">Admin</span>
             <h1 class="hero-title">Content Reports</h1>
             <p class="hero-subtitle">Reports submitted by registered users.</p>
-            <div class="hero__actions">
-                <a class="btn-secondary" href="{% url 'legal:legal_hub' %}">Legal Hub</a>
-                <a class="btn-secondary" href="{% url 'legal:report_content' %}">Report Content</a>
-                <a class="btn-secondary" href="{% url 'legal:company_information' %}">Company Info</a>
-            </div>
+            {% include 'includes/hero_actions.html' %}
         </div>
     </div>
 </section>

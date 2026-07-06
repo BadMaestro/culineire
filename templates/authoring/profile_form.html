@@ -42,12 +42,7 @@
             <span class="pill">Author Studio</span>
             <h1 class="hero-title">Your Author Profile</h1>
             <p class="hero-subtitle">Keep your public page polished — a clear name, short bio and a good avatar go a long way.</p>
-            <div class="hero__actions">
-                <a class="btn-secondary" href="{% url 'recipes:author_dashboard' %}">&larr; Back</a>
-                <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
-                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
-                <a class="btn-secondary" href="{% url 'sponsors:puzzle' %}">Sponsors</a>
-            </div>
+            {% include 'includes/hero_actions.html' %}
         </div>
     </div>
 </section>

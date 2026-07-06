@@ -1,5 +1,23 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.141",
+        "date": "2026-07-07",
+        "commit": "pending",
+        "title": "Hero action rows use the homepage's exact class set (golden standard)",
+        "section": "UI",
+        "summary": (
+            "Golden standard = every non-Chef-Battle hero uses the same classes "
+            "as the homepage hero, including hero__actions > hero__burger + "
+            "hero__actions-list with the standard site nav. Earlier edits had "
+            "used a bare hero__actions with ad-hoc buttons. Extracted the "
+            "canonical block into includes/hero_actions.html and switched the "
+            "14 edited pages (profile edit, 7 auth status/reset, messaging "
+            "archive + detail, legal reports list + detail, pinch detail, "
+            "moderation panel) to include it, so they carry the identical "
+            "burger + actions-list + Pinch/Explore/Read/Sponsors set as home."
+        ),
+    },
+    {
         "version": "2.5.140",
         "date": "2026-07-07",
         "commit": "pending",

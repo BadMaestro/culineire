@@ -32,12 +32,7 @@
             {% if item.public_description %}
             <p class="hero-subtitle">{{ item.public_description|truncatechars:180 }}</p>
             {% endif %}
-            <div class="hero__actions">
-                <a class="btn-secondary" href="{% url 'pinch:feed' %}">&larr; Pinch Feed</a>
-                <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
-                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
-                <a class="btn-secondary" href="{% url 'sponsors:puzzle' %}">Sponsors</a>
-            </div>
+            {% include 'includes/hero_actions.html' %}
         </div>
     </div>
 </section>

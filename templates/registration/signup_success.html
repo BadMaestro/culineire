@@ -22,10 +22,7 @@
             <span class="pill">Welcome</span>
             <h1 class="hero-title">Welcome To CulinEire</h1>
             <p class="hero-subtitle">Your account is ready.</p>
-            <div class="hero__actions">
-                <a class="btn-primary" href="{% url 'login' %}">Sign In</a>
-                <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
-            </div>
+            {% include 'includes/hero_actions.html' %}
         </div>
     </div>
 </section>

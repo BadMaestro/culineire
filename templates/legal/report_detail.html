@@ -23,10 +23,7 @@
             <span class="pill">Admin</span>
             <h1 class="hero-title">Content Report #{{ report.pk }}</h1>
             <p class="hero-subtitle">{{ report.get_report_type_display }}</p>
-            <div class="hero__actions">
-                <a class="btn-secondary" href="{% url 'legal:reports_list' %}">&larr; All Reports</a>
-                <a class="btn-secondary" href="{% url 'legal:legal_hub' %}">Legal Hub</a>
-            </div>
+            {% include 'includes/hero_actions.html' %}
         </div>
     </div>
 </section>

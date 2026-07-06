@@ -22,10 +22,7 @@
             <span class="pill">Expired</span>
             <h1 class="hero-title">Link expired</h1>
             <p class="hero-subtitle">This activation link is no longer valid.</p>
-            <div class="hero__actions">
-                <a class="btn-primary" href="{% url 'signup' %}">Sign Up Again</a>
-                <a class="btn-secondary" href="{% url 'home' %}">Home</a>
-            </div>
+            {% include 'includes/hero_actions.html' %}
         </div>
     </div>
 </section>
