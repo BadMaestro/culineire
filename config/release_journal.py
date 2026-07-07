@@ -1,5 +1,23 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.145",
+        "date": "2026-07-07",
+        "commit": "pending",
+        "title": "Master Console link in the sitewide Chef Battles widget",
+        "section": "Chef Battles / UI",
+        "summary": (
+            "Added a gold-accented 'Master Console' link inside the floating "
+            "Chef Battles Arena widget (above Enter Arena), shown only to users "
+            "who can actually open the Arena Master Console. Gating reuses "
+            "chef_battle.access.has_arena_console_access(request) exactly - the "
+            "owner (GreenBear) always sees it; other superusers see it only when "
+            "ARENA_MASTER_CONSOLE_ENABLED is on AND they have "
+            "RecipeAuthor.has_arena_console_access - so the link never leads to "
+            "a 404. The flag is injected via the battle_widget_context "
+            "processor. Links to chef_battle:master_console (/chef-battle/master/)."
+        ),
+    },
+    {
         "version": "2.5.144",
         "date": "2026-07-07",
         "commit": "pending",

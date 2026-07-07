@@ -70,6 +70,12 @@
         </div>
       </div>
 
+      {% if can_access_arena_console %}
+      <a class="site-battle-widget__console-link" href="{% url 'chef_battle:master_console' %}">
+        <span aria-hidden="true">&#x1F6E0;&#xFE0F;</span> Master Console
+      </a>
+      {% endif %}
+
       {% include '_enter_arena_btn.html' %}
 
     </div>

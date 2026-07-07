@@ -190,7 +190,11 @@ def battle_widget_context(request):
             cache.set(cache_key, data, 60)
         except Exception:
             data = {"active": [], "leaders": [], "events": []}
-    return {"battle_widget": data}
+    from chef_battle.access import has_arena_console_access
+    return {
+        "battle_widget": data,
+        "can_access_arena_console": has_arena_console_access(request),
+    }
 
 
 def site_url(request):
