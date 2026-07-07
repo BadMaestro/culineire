@@ -1,5 +1,28 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.144",
+        "date": "2026-07-07",
+        "commit": "pending",
+        "title": "Fix stuck drag on the sitewide Chef Battles widget",
+        "section": "Chef Battles / UI",
+        "summary": (
+            "The floating Chef Battles Arena widget could get stuck mid-drag: "
+            "the grabbing cursor stayed clenched and the card followed the "
+            "pointer with no mouse button held and no new click. Root cause in "
+            "battle_widget.js: setPointerCapture was called late (only after the "
+            "12px drag threshold), so a pointerup that landed off the handle "
+            "(once the card slid out from under the cursor) was missed - endDrag "
+            "never ran, leaving pointerId set (constant for a mouse) and "
+            "data-dragging=true, so later hover moves re-dragged the widget. "
+            "Fixes: capture the pointer at pointerdown so every move/up/cancel "
+            "reaches the handle; add a lostpointercapture end path; bail out of "
+            "pointermove when e.buttons === 0; fully reset state "
+            "(releasePointerCapture + pointerId=null + data-dragging=false) on "
+            "every end; ignore non-primary mouse buttons; clear stale gestures "
+            "on a new pointerdown. Reproduced then verified fixed live in Chrome."
+        ),
+    },
+    {
         "version": "2.5.143",
         "date": "2026-07-07",
         "commit": "pending",
