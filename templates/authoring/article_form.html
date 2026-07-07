@@ -24,14 +24,7 @@
             <span class="pill">Author Studio</span>
             <h1 class="hero-title">{% if form_mode == "edit" %}Edit Article{% else %}Create Article{% endif %}</h1>
             <p class="hero-subtitle">Write your article and share it with the CulinEire community. Every food story deserves a place on the page.</p>
-            <div class="hero__actions">
-                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Back</a>
-                {% if can_view_pinch_public_area %}
-                <a class="btn-primary" href="{% url 'pinch:feed' %}">Pinch</a>
-                {% endif %}
-                <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
-                <a class="btn-secondary" href="{% url 'sponsors:puzzle' %}">Sponsors</a>
-            </div>
+            {% include 'includes/hero_actions.html' %}
         </div>
     </div>
 </section>

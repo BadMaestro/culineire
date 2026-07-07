@@ -18,12 +18,7 @@
             <span class="pill">Cookies</span>
             <h1 class="hero-title">Cookie Policy</h1>
             <p class="hero-subtitle">What CulinEire stores in your browser, why it is needed, and how to control it.</p>
-            <div class="hero__actions">
-                <a class="btn-primary" href="{% url 'legal:legal_hub' %}">Legal Hub</a>
-                <a class="btn-secondary" href="{% url 'privacy' %}">Privacy Policy</a>
-                <a class="btn-secondary" href="{% url 'legal:terms' %}">Terms of Use</a>
-                <a class="btn-secondary" href="#contact">Contact</a>
-            </div>
+            {% include 'includes/hero_actions.html' %}
         </div>
     </div>
 </section>

@@ -18,10 +18,7 @@
             <h1 class="hero-title">Create Recipe from Screenshot</h1>
             <p class="hero-subtitle">Upload a recipe screenshot, extract the visible content, and review the draft before it is sent to moderation.</p>
             {% if request.user.is_staff or request.user.is_superuser %}
-            <div class="hero__actions">
-                <a class="btn-primary" href="{% url 'recipes:recipe_create' %}">Create New Recipe</a>
-                <a class="btn-secondary" href="{% url 'recipes:generate_recipe' %}">Generate AI Recipe</a>
-            </div>
+            {% include 'includes/hero_actions.html' %}
             {% endif %}
         </div>
     </div>

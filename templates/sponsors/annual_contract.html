@@ -22,10 +22,7 @@
             <span class="pill">Sponsors</span>
             <h1 class="hero-title">Sponsorship Terms</h1>
             <p class="hero-subtitle">Placement options, pricing, payment and your rights as a CulinEire sponsor.</p>
-            <div class="hero__actions">
-                <a class="btn-primary" href="{% url 'sponsors:puzzle' %}">View Sponsor Puzzle</a>
-                <!--email_off--><a class="btn-secondary" href="mailto:culineire@bearcave.ie">Contact Us</a><!--/email_off-->
-            </div>
+            {% include 'includes/hero_actions.html' %}
         </div>
     </div>
 </section>

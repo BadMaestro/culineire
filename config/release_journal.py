@@ -1,5 +1,23 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.142",
+        "date": "2026-07-07",
+        "commit": "pending",
+        "title": "Roll the shared hero action row across all non-battle pages",
+        "section": "UI",
+        "summary": (
+            "Switched every remaining non-Chef-Battle page that still had a "
+            "bespoke hero action row to the shared includes/hero_actions.html "
+            "(26 templates: all legal pages, about, privacy, collection, "
+            "messaging inbox/contact, monitoring, newsfeed add, authoring "
+            "forms, pinch form, recipe detail, screenshot/generate flows, "
+            "sponsors annual contract, offline). Pages already on the "
+            "homepage burger + actions-list pattern were left untouched, and "
+            "recipes/author_detail.html was deliberately excluded (GreenBear "
+            "page, plus author management CTAs) pending owner approval."
+        ),
+    },
+    {
         "version": "2.5.141",
         "date": "2026-07-07",
         "commit": "pending",

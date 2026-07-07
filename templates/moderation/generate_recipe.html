@@ -22,10 +22,7 @@
             <h1 class="hero-title">Generate AI Recipe</h1>
             <p class="hero-subtitle">Configure parameters and start AI recipe generation. The recipe will appear in the pending queue when ready.</p>
             {% if request.user.is_staff or request.user.is_superuser %}
-            <div class="hero__actions">
-                <a class="btn-primary" href="{% url 'recipes:recipe_create' %}">Create New Recipe</a>
-                <a class="btn-secondary" href="{% url 'recipes:recipe_create_from_screenshot' %}">Generate Screen Recipe</a>
-            </div>
+            {% include 'includes/hero_actions.html' %}
             {% endif %}
         </div>
     </div>

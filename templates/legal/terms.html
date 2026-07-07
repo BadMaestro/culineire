@@ -18,12 +18,7 @@
             <span class="pill">Legal</span>
             <h1 class="hero-title">Terms of Use</h1>
             <p class="hero-subtitle">The rules that govern your use of CulinEire.</p>
-            <div class="hero__actions">
-                <a class="btn-primary" href="{% url 'legal:legal_hub' %}">Legal Hub</a>
-                <a class="btn-secondary" href="{% url 'privacy' %}">Privacy Policy</a>
-                <a class="btn-secondary" href="{% url 'legal:cookies' %}">Cookie Policy</a>
-                <a class="btn-secondary" href="#contact">Contact</a>
-            </div>
+            {% include 'includes/hero_actions.html' %}
         </div>
     </div>
 </section>

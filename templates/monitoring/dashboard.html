@@ -23,14 +23,7 @@
             <span class="pill">Analytics</span>
             <h1 class="hero-title">Monitoring Dashboard</h1>
             <p class="hero-subtitle">{{ today|date:"l, j F Y" }} - Real-time site analytics</p>
-            <div class="hero__actions">
-                {% if can_view_pinch_public_area %}
-                <a class="btn-primary" href="{% url 'pinch:feed' %}">Pinch</a>
-                {% endif %}
-                <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
-                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
-                <a class="btn-secondary" href="{% url 'sponsors:puzzle' %}">Sponsors</a>
-            </div>
+            {% include 'includes/hero_actions.html' %}
         </div>
     </div>
 </section>

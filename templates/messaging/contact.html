@@ -23,12 +23,7 @@
             <span class="pill">Contact</span>
             <h1 class="hero-title">Get In Touch With The CulinEire Team Today</h1>
             <p class="hero-subtitle">Send a clear message to the CulinEire team, or use the right route for legal, sponsor, or content concerns. We read every message and aim to reply as quickly as we can, kitchen hours permitting.</p>
-            <div class="hero__actions">
-                <a class="btn-primary" href="#contact-panel">Send a Message</a>
-                <a class="btn-secondary" href="{% url 'legal:legal_hub' %}">Legal Hub</a>
-                <a class="btn-secondary" href="{% url 'legal:report_content' %}">Report Content</a>
-                <a class="btn-secondary" href="{% url 'sponsors:puzzle' %}">Sponsors</a>
-            </div>
+            {% include 'includes/hero_actions.html' %}
         </div>
     </div>
 </section>

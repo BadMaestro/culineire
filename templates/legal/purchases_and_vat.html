@@ -18,11 +18,7 @@
             <span class="pill">Legal</span>
             <h1 class="hero-title">Purchases &amp; VAT</h1>
             <p class="hero-subtitle">How payments, VAT, and purchased items work on CulinEire.</p>
-            <div class="hero__actions">
-                <a class="btn-primary" href="{% url 'legal:legal_hub' %}">Legal Hub</a>
-                <a class="btn-secondary" href="{% url 'legal:terms' %}">Terms of Use</a>
-                <a class="btn-secondary" href="{% url 'legal:company_information' %}">Company Info</a>
-            </div>
+            {% include 'includes/hero_actions.html' %}
         </div>
     </div>
 </section>
