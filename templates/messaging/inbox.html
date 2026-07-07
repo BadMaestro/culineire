@@ -20,18 +20,14 @@
     <div class="container hero__inner">
         <div class="hero-copy">
             <span class="pill">Kitchen Team</span>
-            <h1 class="hero-title">Messages</h1>
             {% if is_moderator %}
-            <p class="hero-subtitle">Your conversations with CulinEire Authors.</p>
+            <h1 class="hero-title">Your Conversations With The CulinEire Authors</h1>
+            <p class="hero-subtitle">Every conversation you have with CulinEire authors, gathered in one place, questions about recipes and articles, moderation notes and replies, all kept together so nothing gets lost between the kitchen and the community.</p>
             {% else %}
-            <p class="hero-subtitle">Your messages from the CulinEire Kitchen Team.</p>
+            <h1 class="hero-title">Your Messages From The CulinEire Kitchen Team</h1>
+            <p class="hero-subtitle">Messages and replies from the CulinEire Kitchen Team, kept together in one simple inbox, with updates on your recipes and articles, answers to your questions, and anything the team needs to share with you.</p>
             {% endif %}
-            <div class="hero__actions">
-                <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}">&larr; Recipes</a>
-                <a class="btn-primary" href="{% url 'pinch:feed' %}">Pinch</a>
-                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Articles</a>
-                <a class="btn-secondary" href="{% url 'messaging:contact' %}">Contact</a>
-            </div>
+            {% include 'includes/hero_actions.html' %}
         </div>
     </div>
 </section>

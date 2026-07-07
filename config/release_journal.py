@@ -1,5 +1,24 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.148",
+        "date": "2026-07-07",
+        "commit": "pending",
+        "title": "Messages inbox hero standardised to the golden standard",
+        "section": "UI",
+        "summary": (
+            "The /messages/ inbox hero was the last messaging page still using a "
+            "custom four-button action row (Recipes / Pinch / Articles / "
+            "Contact); its sibling archive page already used the shared include. "
+            "Swapped it for {% include 'includes/hero_actions.html' %} (the "
+            "canonical golden-standard nav row) since the inbox has no page-"
+            "specific technical buttons. Also expanded the copy to the golden "
+            "proportion: a title-case H1 that wraps to two lines and a "
+            "three-line descriptive subtitle (moderator and member variants), "
+            "verified live via Range client-rect line counting. No em dashes "
+            "per the UI copy rule."
+        ),
+    },
+    {
         "version": "2.5.147",
         "date": "2026-07-07",
         "commit": "pending",
