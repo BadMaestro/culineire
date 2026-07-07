@@ -1,5 +1,20 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.149",
+        "date": "2026-07-07",
+        "commit": "pending",
+        "title": "Messages inbox H1 reworded to a single warm two-line title",
+        "section": "UI",
+        "summary": (
+            "Replaced the two per-role inbox H1s with one unified, on-brand "
+            "two-line title, 'Your Conversations Around The CulinEire Kitchen "
+            "Table' (kitchen-table motif, works for both the moderator and "
+            "member views). The moderator/member split now lives only in the "
+            "three-line subtitle. Verified live at two rendered lines via Range "
+            "client-rect counting."
+        ),
+    },
+    {
         "version": "2.5.148",
         "date": "2026-07-07",
         "commit": "pending",
