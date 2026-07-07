@@ -18,7 +18,12 @@
             <span class="pill">Legal</span>
             <h1 class="hero-title">Content Publishing Rules</h1>
             <p class="hero-subtitle">What you may and may not submit to CulinEire.</p>
-            {% include 'includes/hero_actions.html' %}
+            <div class="hero__actions">
+                <a class="btn-primary" href="{% url 'legal:legal_hub' %}">Legal Hub</a>
+                <a class="btn-secondary" href="{% url 'legal:author_submission_agreement' %}">Submission Agreement</a>
+                <a class="btn-secondary" href="{% url 'legal:copyright_image_rights_guide' %}">Image Rights</a>
+                <a class="btn-secondary" href="{% url 'legal:report_content' %}">Report Content</a>
+            </div>
         </div>
     </div>
 </section>

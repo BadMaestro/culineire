@@ -24,7 +24,14 @@
       <span class="pill">News</span>
       <h1 class="hero-title">Add News Entry</h1>
       <p class="hero-subtitle">Post a new entry to public CulinEire News.</p>
-      {% include 'includes/hero_actions.html' %}
+      <div class="hero__actions">
+        {% if can_view_pinch_public_area %}
+        <a class="btn-primary" href="{% url 'pinch:feed' %}">Pinch</a>
+        {% endif %}
+        <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
+        <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
+        <a class="btn-secondary" href="{% url 'sponsors:puzzle' %}">Sponsors</a>
+      </div>
     </div>
   </div>
 </section>

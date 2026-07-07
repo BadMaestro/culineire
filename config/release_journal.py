@@ -1,5 +1,24 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.143",
+        "date": "2026-07-07",
+        "commit": "pending",
+        "title": "Revert v2.5.142 sweep — restore functional page hero buttons",
+        "section": "UI",
+        "summary": (
+            "v2.5.142 wrongly replaced the hero action rows on functional and "
+            "content pages with the generic shared nav, wiping page-specific "
+            "buttons (Generate AI Recipe, Recipe Studio, create/tool flows, "
+            "and the contextual legal/messaging navigation). Restored all 26 "
+            "of those templates to their previous state so their own buttons "
+            "come back. The shared includes/hero_actions.html stays only on "
+            "the genuinely empty-hero pages (auth status/reset, messaging "
+            "archive/detail, reports, moderation panel, pinch detail, profile "
+            "edit) from v2.5.141. GreenBear's author_detail.html was never "
+            "touched."
+        ),
+    },
+    {
         "version": "2.5.142",
         "date": "2026-07-07",
         "commit": "pending",

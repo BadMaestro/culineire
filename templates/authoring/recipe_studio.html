@@ -82,7 +82,11 @@ textarea.studio-control { resize: vertical; min-height: 80px; }
       <span class="pill">Premium Studio</span>
       <h1 class="hero-title">Recipe Studio</h1>
       <p class="hero-subtitle">Full control: AI fill, custom steps with photos, drag & drop images.</p>
-      {% include 'includes/hero_actions.html' %}
+      <div class="hero__actions">
+        <a class="btn-secondary" href="{% url 'recipes:recipe_create' %}">Standard Form</a>
+        <a class="btn-secondary" href="{% url 'recipes:generate_recipe' %}">Auto Generate</a>
+        <a class="btn-secondary" href="{% url 'recipes:recipe_create_from_screenshot' %}">From Screenshot</a>
+      </div>
     </div>
   </div>
 </section>

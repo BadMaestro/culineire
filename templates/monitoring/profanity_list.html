@@ -23,7 +23,14 @@
             <span class="pill">Content Safety</span>
             <h1 class="hero-title">Profanity Filter</h1>
             <p class="hero-subtitle">Manage the list of words blocked from being published on CulinEire.</p>
-            {% include 'includes/hero_actions.html' %}
+            <div class="hero__actions">
+                {% if can_view_pinch_public_area %}
+                <a class="btn-primary" href="{% url 'pinch:feed' %}">Pinch</a>
+                {% endif %}
+                <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
+                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
+                <a class="btn-secondary" href="{% url 'sponsors:puzzle' %}">Sponsors</a>
+            </div>
         </div>
     </div>
 </section>

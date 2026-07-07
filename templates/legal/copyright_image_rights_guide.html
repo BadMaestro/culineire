@@ -18,7 +18,12 @@
             <span class="pill">Legal</span>
             <h1 class="hero-title">Copyright &amp; Image Rights</h1>
             <p class="hero-subtitle">A practical guide to images, licences, and your rights as a CulinEire author.</p>
-            {% include 'includes/hero_actions.html' %}
+            <div class="hero__actions">
+                <a class="btn-primary" href="{% url 'legal:legal_hub' %}">Legal Hub</a>
+                <a class="btn-secondary" href="{% url 'legal:content_publishing_rules' %}">Publishing Rules</a>
+                <a class="btn-secondary" href="{% url 'legal:author_submission_agreement' %}">Submission Agreement</a>
+                <a class="btn-secondary" href="{% url 'legal:report_content' %}">Report Content</a>
+            </div>
         </div>
     </div>
 </section>
