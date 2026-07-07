@@ -970,7 +970,12 @@ def _build_arena_payload():
         "enrolled": enrolled,
         "chefs_by_rank": chefs_by_rank,
         "rings": {
-            rank.value: chefs_by_rank[rank.value]
+            # Only chefs currently online occupy ring cells. Offline chefs
+            # vanish from the sector entirely and reappear automatically on the
+            # next 20s arena poll once their heartbeat marks them online again.
+            # chefs_by_rank stays complete so the legend/roster counts still
+            # reflect every enrolled chef.
+            rank.value: [c for c in chefs_by_rank[rank.value] if c["is_online"]]
             for rank in ChefBattleProfile.Rank
         },
         "spectators": _get_spectators(enrolled_author_ids),

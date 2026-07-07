@@ -1,5 +1,24 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.146",
+        "date": "2026-07-07",
+        "commit": "pending",
+        "title": "Arena ring cells show only online chefs",
+        "section": "Chef Battles / UI",
+        "summary": (
+            "The arena ring now places only currently-online chefs in its "
+            "sector cells; offline chefs disappear from the ring entirely and "
+            "reappear automatically once they return to the arena. Done by "
+            "filtering the `rings` payload in _build_arena_payload to chefs "
+            "with is_online (last_seen_at within the 180s window) - the existing "
+            "60s arena heartbeat + 20s state poll already refresh presence, so "
+            "no JS change was needed. chefs_by_rank stays complete so the "
+            "rank legend/roster counts still reflect every enrolled chef, and "
+            "the centre (crown holder / active battle) is unaffected. Applies "
+            "to the public arena, the 20s poll and the Master Console ring."
+        ),
+    },
+    {
         "version": "2.5.145",
         "date": "2026-07-07",
         "commit": "pending",
