@@ -989,6 +989,22 @@ def arena(request):
     from .services import record_viewer_presence
     record_viewer_presence(request, battle=None)
 
+    # Mark the viewing chef present BEFORE building the ring, so an enrolled
+    # chef appears in their own arena immediately on page load instead of only
+    # after the first 20s poll.
+    viewer_author = None
+    user_enrolled = False
+    if request.user.is_authenticated:
+        viewer_author = get_author_for_user(request.user)
+        if viewer_author:
+            ChefBattleProfile.objects.filter(
+                author=viewer_author, enrolled_at__isnull=False
+            ).update(last_seen_at=timezone.now())
+            try:
+                user_enrolled = bool(viewer_author.battle_profile.enrolled_at)
+            except ChefBattleProfile.DoesNotExist:
+                user_enrolled = False
+
     payload = _build_arena_payload()
     active_battle = payload["active_battle"]
     enrolled = payload["enrolled"]
@@ -1028,20 +1044,6 @@ def arena(request):
         for rank in ChefBattleProfile.Rank
     ]
 
-    # Update last_seen_at for the authenticated viewer
-    viewer_author = None
-    user_enrolled = False
-    if request.user.is_authenticated:
-        viewer_author = get_author_for_user(request.user)
-        if viewer_author:
-            ChefBattleProfile.objects.filter(
-                author=viewer_author, enrolled_at__isnull=False
-            ).update(last_seen_at=timezone.now())
-            try:
-                user_enrolled = bool(viewer_author.battle_profile.enrolled_at)
-            except ChefBattleProfile.DoesNotExist:
-                user_enrolled = False
-
     return render(request, "chef_battle/arena.html", {
         "rank_groups": rank_groups,
         "spectator_count": len(spectators),
@@ -1070,6 +1072,16 @@ def arena_state(request):
     """Lightweight state poll — returns updated ring data for JS to refresh SVG."""
     from .services import record_viewer_presence
     record_viewer_presence(request, battle=None)  # arena lobby surface
+
+    # The 20s poll also keeps the polling chef present, so an enrolled chef who
+    # sits on the arena stays online (and visible in the ring) without relying
+    # solely on the slower 60s ping heartbeat.
+    if request.user.is_authenticated:
+        viewer_author = get_author_for_user(request.user)
+        if viewer_author:
+            ChefBattleProfile.objects.filter(
+                author=viewer_author, enrolled_at__isnull=False
+            ).update(last_seen_at=timezone.now())
 
     payload = _build_arena_payload()
     return JsonResponse({

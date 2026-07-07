@@ -20,7 +20,7 @@
   var CX = 550, CY = 550;
   var GAP = 3;
   var PING_INTERVAL   = 60000;   // 60 s — heartbeat to update last_seen_at
-  var POLL_INTERVAL   = 20000;   // 20 s — refresh arena state
+  var POLL_INTERVAL   = 10000;   // 10 s — refresh arena state (and presence)
 
   // ?demo in the URL turns on the presentation dev-panel and freezes the
   // 20s state poll so staged renders persist. Purely client-side, no writes.

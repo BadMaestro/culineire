@@ -1,5 +1,25 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.147",
+        "date": "2026-07-07",
+        "commit": "pending",
+        "title": "Arena presence: appear immediately, refresh every 10s",
+        "section": "Chef Battles / UI",
+        "summary": (
+            "Made an enrolled chef show up in the arena promptly. (1) arena() "
+            "now updates the viewer's last_seen_at BEFORE building the ring, so "
+            "a chef appears in their own arena on first page load instead of "
+            "waiting for the first poll. (2) arena_state (the poll) now also "
+            "refreshes the polling chef's last_seen_at, so presence no longer "
+            "depends solely on the slower 60s ping heartbeat. (3) Dropped the "
+            "ring refresh interval from 20s to 10s (arena_puzzle.js POLL_"
+            "INTERVAL). Note: a chef only registers as present if their browser "
+            "actually hits the arena while authenticated - if the page was "
+            "opened before logging in, the heartbeat runs anonymously (401) and "
+            "they must reload after login."
+        ),
+    },
+    {
         "version": "2.5.146",
         "date": "2026-07-07",
         "commit": "pending",
