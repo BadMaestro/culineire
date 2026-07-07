@@ -31,23 +31,58 @@
     </div>
 </section>
 
-<section class="page-section">
-  <div class="container" style="max-width: 52rem;">
-
-    <div class="msg-inbox-card__header">
-      <h2 class="msg-inbox-card__title">Inbox</h2>
-      {% if is_moderator %}
-      <a class="msg-inbox-card__archive-link" href="{% url 'recipes:moderation_panel' %}">
-          ← Moderation Panel
-      </a>
-      <a class="msg-inbox-card__archive-link" href="{% url 'messaging:archive' %}">
-          <svg fill="none" height="14" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14"><path d="M21 8v13H3V8M1 3h22v5H1zM10 12h4"/></svg>
-          Archive
-      </a>
-      {% endif %}
+<section class="legal-shell legal-shell--hub" aria-labelledby="inbox-hub-title">
+    <div class="legal-intro legal-intro--hub">
+        <span class="legal-eyebrow">Kitchen Team</span>
+        <h2 id="inbox-hub-title">Your Message Inbox</h2>
+        {% if is_moderator %}
+        <p>Every conversation between you and CulinEire authors, kept in one place. Open a thread to read the full exchange and reply, archive anything you have finished with, and use the contact form whenever you need to start something new.</p>
+        {% else %}
+        <p>Messages and replies from the CulinEire Kitchen Team, kept in one place. Open a thread to read the full exchange and reply, or use the contact form whenever you need to reach the team.</p>
+        {% endif %}
     </div>
 
-    <div class="msg-inbox-scroll">
+    <div class="legal-summary-panel legal-summary-panel--hub" aria-label="Inbox summary">
+        <div class="legal-summary-item">
+            <span>Conversations</span>
+            <strong>{{ total_count }}</strong>
+        </div>
+        <div class="legal-summary-item">
+            <span>Unread</span>
+            <strong>{{ unread_count }}</strong>
+        </div>
+        <div class="legal-summary-item">
+            <span>Kept together</span>
+            <strong>One simple inbox</strong>
+        </div>
+        <div class="legal-summary-item">
+            <span>Reach us</span>
+            <strong><a href="{% url 'messaging:contact' %}">Contact form</a></strong>
+        </div>
+    </div>
+
+    <div class="legal-document-layout legal-hub-layout">
+        <aside class="legal-toc" aria-label="Messages navigation">
+            <span class="legal-toc__label">Messages</span>
+            <nav>
+                <a href="#inbox-list">Your inbox</a>
+                {% if is_moderator %}
+                <a href="{% url 'messaging:archive' %}">Archived messages</a>
+                <a href="{% url 'recipes:moderation_panel' %}">Moderation panel</a>
+                {% endif %}
+                <a href="{% url 'messaging:contact' %}">Start a new message</a>
+            </nav>
+            <p>Open any conversation to read the full thread and reply.{% if is_moderator %} Archive threads you have finished with to keep the inbox tidy.{% endif %}</p>
+        </aside>
+
+        <div class="legal-hub-main">
+            <section class="legal-hub-section" id="inbox-list" aria-labelledby="inbox-list-title">
+                <div class="section-header">
+                    <h2 id="inbox-list-title">Inbox</h2>
+                </div>
+                <p class="legal-hub-section__intro">{% if user_messages %}Your conversations, most recent first.{% else %}Nothing here yet.{% endif %}</p>
+
+                <div class="msg-inbox-scroll">
         {% if user_messages %}
             {% for msg in user_messages %}
             <div class="msg-row-wrap {% if msg.has_unread %}msg-row-wrap--unread{% endif %}">
@@ -88,8 +123,9 @@
         {% else %}
         <p class="msg-inbox-empty">No messages yet.</p>
         {% endif %}
+                </div>
+            </section>
+        </div>
     </div>
-
-  </div>
 </section>
 {% endblock %}

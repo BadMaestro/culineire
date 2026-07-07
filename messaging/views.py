@@ -82,6 +82,8 @@ def inbox(request):
     return render(request, "messaging/inbox.html", {
         "user_messages": user_messages,
         "is_moderator": is_moderator(request.user),
+        "total_count": len(user_messages),
+        "unread_count": sum(1 for message in user_messages if message.has_unread),
     })
 
 

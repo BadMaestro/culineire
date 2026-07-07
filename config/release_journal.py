@@ -1,5 +1,24 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.150",
+        "date": "2026-07-07",
+        "commit": "pending",
+        "title": "Messages inbox rebuilt on the legal-hub shell layout",
+        "section": "UI",
+        "summary": (
+            "Rebuilt everything below the /messages/ hero to follow the "
+            "/legal/ hub principle, reusing the existing legal-shell classes "
+            "from base.css (no new CSS). Added an intro block (eyebrow + H2 + "
+            "paragraph), a four-tile summary panel (Conversations / Unread / "
+            "Kept together / Reach us, with live counts from the view), and the "
+            "two-column legal-document-layout: a sticky legal-toc side panel "
+            "(Your inbox / Archived / Moderation panel / Start a new message + "
+            "helper text) beside the legal-hub-main column that holds the "
+            "existing thread list. The inbox view now passes total_count and "
+            "unread_count. Moderator and member copy variants preserved."
+        ),
+    },
+    {
         "version": "2.5.149",
         "date": "2026-07-07",
         "commit": "pending",
