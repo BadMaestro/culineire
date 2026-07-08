@@ -168,18 +168,19 @@ class SignUpView(CreateView):
         return f"{slug}-{counter}"
 
     def form_valid(self, form):
+        from django.db import transaction
         require_confirmation = getattr(settings, "SIGNUP_REQUIRE_EMAIL_CONFIRMATION", True)
-        user = form.save(commit=False)
-        user.is_active = not require_confirmation
-        user.save()
-        author_name = user.get_full_name() or user.username
-
-        RecipeAuthor.objects.create(
-            user=user,
-            name=author_name,
-            slug=self._unique_author_slug(author_name),
-            default_avatar=form.cleaned_data["default_avatar"],
-        )
+        with transaction.atomic():
+            user = form.save(commit=False)
+            user.is_active = not require_confirmation
+            user.save()
+            author_name = user.get_full_name() or user.username
+            RecipeAuthor.objects.create(
+                user=user,
+                name=author_name,
+                slug=self._unique_author_slug(author_name),
+                default_avatar=form.cleaned_data["default_avatar"],
+            )
 
         if not require_confirmation:
             user.backend = "django.contrib.auth.backends.ModelBackend"

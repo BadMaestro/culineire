@@ -94,6 +94,16 @@ class SignUpForm(UserCreationForm):
         widget=forms.HiddenInput,
     )
 
+    def clean_email(self):
+        email = self.cleaned_data.get("email", "").strip().lower()
+        User = get_user_model()
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError(
+                "An account with this email address already exists. "
+                "Please sign in or use a different email."
+            )
+        return email
+
     def clean_website(self):
         value = self.cleaned_data.get("website", "").strip()
         if value:
