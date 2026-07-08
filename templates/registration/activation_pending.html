@@ -68,9 +68,7 @@
 
         <div class="legal-hub-main">
             <section class="legal-hub-section" id="confirm-email" aria-labelledby="confirm-email-title" role="status" aria-live="polite" style="text-align: center; padding: 2.5rem 2rem;">
-                <div class="section-header">
-                    <h2 id="confirm-email-title">Check Your Email</h2>
-                </div>
+                <h2 id="confirm-email-title" style="margin-block-end: 1.25rem;">Check Your Email</h2>
                 <p class="legal-hub-section__intro">We have sent a confirmation link to <strong>{{ email }}</strong>.</p>
                 <p style="margin-block-start: 0.75rem; color: var(--ink-soft);">Open that email and click the activation link. The link expires in 24 hours. If you do not see it, check your spam folder.</p>
                 <a class="btn btn--secondary" href="{% url 'login' %}" style="margin-block-start: 1.75rem; display: inline-block;">Already activated? Sign In</a>
