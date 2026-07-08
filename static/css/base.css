@@ -2130,6 +2130,11 @@
     color: var(--ink-soft);
   }
 
+  .empty-state a,
+  .empty-state button {
+    margin-block-start: 1.25rem;
+  }
+
   /* ==== Generic content / rich text ==== */
 
   .rich-text,
