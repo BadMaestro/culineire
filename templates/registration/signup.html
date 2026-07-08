@@ -20,98 +20,121 @@
     <div aria-hidden="true" class="hero__overlay"></div>
     <div class="container hero__inner">
         <div class="hero-copy">
-            <span class="pill">Join</span>
+            <span class="pill">Join Us</span>
             <h1 class="hero-title">Join The CulinEire Kitchen Community Today</h1>
             <p class="hero-subtitle">Create your free account and become part of the Irish food kitchen community, save your favourite recipes, follow authors, and share your own food stories and Pinch notes.</p>
-
-            <div class="hero__actions">
-                <button aria-expanded="false" aria-label="Show navigation" class="hero__burger" type="button">
-                    <svg aria-hidden="true" fill="none" height="18" viewBox="0 0 20 18" width="20">
-                        <rect fill="currentColor" height="2" rx="1" width="20" y="0"/>
-                        <rect fill="currentColor" height="2" rx="1" width="20" y="8"/>
-                        <rect fill="currentColor" height="2" rx="1" width="20" y="16"/>
-                    </svg>
-                </button>
-                <div class="hero__actions-list">
-                    {% if can_view_pinch_public_area %}
-                    <a class="btn-primary" href="{% url 'pinch:feed' %}">Pinch</a>
-                    {% endif %}
-                    <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
-                    <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
-                    <a class="btn-secondary" href="{% url 'sponsors:puzzle' %}">Sponsors</a>
-                </div>
-            </div>
+            {% include 'includes/hero_actions.html' %}
         </div>
     </div>
 </section>
 
-<section class="page-section">
-  <div class="container" style="max-width: 44rem;">
-    <div class="auth-card">
-        <div class="auth-copy">
-            <p class="eyebrow">Join CulinEire</p>
-            <h2>Create Your Account</h2>
-        </div>
-
-        <form class="auth-form" data-validate method="post">
-            {% csrf_token %}
-
-            {% if form.non_field_errors %}
-            <div class="auth-errors" role="alert">
-                {% for error in form.non_field_errors %}
-                <p>{{ error }}</p>
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            {% for field in form.hidden_fields %}
-            {{ field }}
-            {% endfor %}
-
-            {% for field in form.visible_fields %}
-            <div class="auth-field">
-                <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
-                {% if field.name == "default_avatar" %}
-                <div class="auth-avatar-picker">
-                    {% for radio in field %}
-                    <label class="auth-avatar-choice" for="{{ radio.id_for_label }}">
-                        {{ radio.tag }}
-                        {% if radio.data.value == "male" %}
-                        <img alt="" src="{% static 'images/male-avatar.png' %}">
-                        {% elif radio.data.value == "female" %}
-                        <img alt="" src="{% static 'images/female-avatar.png' %}">
-                        {% else %}
-                        <img alt="" src="{% static 'images/neutral-avatar.PNG' %}">
-                        {% endif %}
-                        <span>{{ radio.choice_label }}</span>
-                    </label>
-                    {% endfor %}
-                </div>
-                {% else %}
-                {{ field }}
-                {% endif %}
-
-                {% if field.help_text %}
-                <div class="auth-help">{{ field.help_text|striptags }}</div>
-                {% endif %}
-
-                {% for error in field.errors %}
-                <p class="auth-error">{{ error }}</p>
-                {% endfor %}
-            </div>
-            {% endfor %}
-
-            {% if turnstile_site_key %}
-            <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="light"></div>
-            {% endif %}
-
-            <button class="btn" type="submit">Create account</button>
-        </form>
-
-        <p class="auth-note">
-            Already have an account? <a href="{% url 'login' %}">Sign In here</a>.
-        </p>
+<section class="legal-shell legal-shell--hub" aria-labelledby="signup-hub-title">
+    <div class="legal-intro legal-intro--hub">
+        <span class="legal-eyebrow">Join CulinEire</span>
+        <h2 id="signup-hub-title">Create Your Free Account</h2>
+        <p>Joining CulinEire is free and takes less than a minute. Once you have an account you can submit recipes and articles, save favourites, send messages, and — when you are ready — step into the Chef Battles arena.</p>
     </div>
-  </div>
+
+    <div class="legal-summary-panel legal-summary-panel--hub" aria-label="Account highlights">
+        <div class="legal-summary-item">
+            <span>Cost</span>
+            <strong>Always free</strong>
+        </div>
+        <div class="legal-summary-item">
+            <span>Community</span>
+            <strong>Irish food kitchen</strong>
+        </div>
+        <div class="legal-summary-item">
+            <span>Publish</span>
+            <strong>Recipes &amp; articles</strong>
+        </div>
+        <div class="legal-summary-item">
+            <span>Privacy</span>
+            <strong><a href="{% url 'privacy' %}">GDPR compliant</a></strong>
+        </div>
+    </div>
+
+    <div class="legal-document-layout legal-hub-layout">
+        <aside class="legal-toc" aria-label="Account navigation">
+            <span class="legal-toc__label">Account</span>
+            <nav>
+                <a href="#create-account">Create your account</a>
+                <a href="{% url 'login' %}">Already have an account?</a>
+                <a href="{% url 'privacy' %}">Privacy Policy</a>
+                <a href="{% url 'legal:terms' %}">Terms of Use</a>
+            </nav>
+            <p>Your data is protected under GDPR. We never sell your information or share it with third parties.</p>
+        </aside>
+
+        <div class="legal-hub-main">
+            <section class="legal-hub-section" id="create-account" aria-labelledby="create-account-title">
+                <div class="section-header">
+                    <h2 id="create-account-title">Create Account</h2>
+                </div>
+                <p class="legal-hub-section__intro">Fill in the form below to create your free CulinEire account.</p>
+
+                <div class="auth-card">
+                    <form class="auth-form" data-validate method="post">
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                        <div class="auth-errors" role="alert">
+                            {% for error in form.non_field_errors %}
+                            <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        {% for field in form.hidden_fields %}
+                        {{ field }}
+                        {% endfor %}
+
+                        {% for field in form.visible_fields %}
+                        <div class="auth-field">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
+                            {% if field.name == "default_avatar" %}
+                            <div class="auth-avatar-picker">
+                                {% for radio in field %}
+                                <label class="auth-avatar-choice" for="{{ radio.id_for_label }}">
+                                    {{ radio.tag }}
+                                    {% if radio.data.value == "male" %}
+                                    <img alt="" src="{% static 'images/male-avatar.png' %}">
+                                    {% elif radio.data.value == "female" %}
+                                    <img alt="" src="{% static 'images/female-avatar.png' %}">
+                                    {% else %}
+                                    <img alt="" src="{% static 'images/neutral-avatar.PNG' %}">
+                                    {% endif %}
+                                    <span>{{ radio.choice_label }}</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            {{ field }}
+                            {% endif %}
+
+                            {% if field.help_text %}
+                            <div class="auth-help">{{ field.help_text|striptags }}</div>
+                            {% endif %}
+
+                            {% for error in field.errors %}
+                            <p class="auth-error">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+
+                        {% if turnstile_site_key %}
+                        <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="light"></div>
+                        {% endif %}
+
+                        <button class="btn" type="submit">Create account</button>
+                    </form>
+
+                    <p class="auth-note">
+                        Already have an account? <a href="{% url 'login' %}">Sign In here</a>.
+                    </p>
+                </div>
+            </section>
+        </div>
+    </div>
 </section>
 {% endblock %}
