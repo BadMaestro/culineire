@@ -12,7 +12,7 @@
 {% endblock %}
 
 {% block content %}
-<section class="hero hero--home hero--has-battle">
+<section class="hero hero--home hero--signup hero--has-battle">
     <div aria-hidden="true" class="hero__background">
         <picture><source srcset="{% static 'images/hero-join.webp' %}" type="image/webp"><img alt="" width="1672" height="941" src="{% static 'images/hero-join.png' %}"></picture>
     </div>
@@ -60,7 +60,6 @@
             <span class="legal-toc__label">Account</span>
             <nav>
                 <a href="#confirm-email">Confirm your email</a>
-                <a href="{% url 'login' %}">Already activated? Sign In</a>
                 <a href="{% url 'privacy' %}">Privacy Policy</a>
                 <a href="{% url 'legal:terms' %}">Terms of Use</a>
             </nav>
@@ -81,6 +80,7 @@
                         </svg>
                     </div>
                     <p class="auth-note">Open that email and click the activation link. The link expires in 24 hours. If you do not see it, check your spam folder.</p>
+                    <a class="btn btn--secondary" href="{% url 'login' %}">Already activated? Sign In</a>
                 </div>
             </section>
         </div>
