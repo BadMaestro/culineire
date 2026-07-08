@@ -72,16 +72,8 @@
                     <h2 id="confirm-email-title">Check Your Email</h2>
                 </div>
                 <p class="legal-hub-section__intro">We have sent a confirmation link to <strong>{{ email }}</strong>.</p>
-                <div class="auth-card auth-status auth-status--pending">
-                    <div class="auth-status__mark" aria-hidden="true">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="2" y="4" width="20" height="16" rx="2"/>
-                            <path d="m2 7 10 7 10-7"/>
-                        </svg>
-                    </div>
-                    <p class="auth-note">Open that email and click the activation link. The link expires in 24 hours. If you do not see it, check your spam folder.</p>
-                    <a class="btn btn--secondary" href="{% url 'login' %}">Already activated? Sign In</a>
-                </div>
+                <p>Open that email and click the activation link. The link expires in 24 hours. If you do not see it, check your spam folder.</p>
+                <a class="btn btn--secondary" href="{% url 'login' %}" style="margin-block-start: 1.5rem; display: inline-block;">Already activated? Sign In</a>
             </section>
         </div>
 
