@@ -68,7 +68,6 @@
                 <a href="#inbox-list">Your inbox</a>
                 {% if is_moderator %}
                 <a href="{% url 'messaging:archive' %}">Archived messages</a>
-                <a href="{% url 'recipes:moderation_panel' %}">Moderation panel</a>
                 {% endif %}
                 <a href="{% url 'messaging:contact' %}">Start a new message</a>
             </nav>

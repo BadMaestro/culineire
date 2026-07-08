@@ -1,5 +1,18 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.151",
+        "date": "2026-07-07",
+        "commit": "pending",
+        "title": "Remove Moderation panel link from messages inbox side nav",
+        "section": "UI",
+        "summary": (
+            "Dropped the 'Moderation panel' link from the messages inbox "
+            "legal-toc side panel added in v2.5.150. The moderator-only side "
+            "nav now shows just 'Archived messages' alongside the shared 'Your "
+            "inbox' and 'Start a new message' links."
+        ),
+    },
+    {
         "version": "2.5.150",
         "date": "2026-07-07",
         "commit": "pending",
