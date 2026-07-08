@@ -161,6 +161,12 @@
   .hero--home .hero-subtitle {
     max-width: 62ch;
   }
+
+  /* Switcher is visible here (bottom: 49px, ~34px tall = 83px from bottom).
+     Push hero content up enough so nav buttons never overlap it. */
+  .hero--home .hero__inner {
+    padding-block-end: 5.5rem;
+  }
 }
 
 /* ------------------------------------------------------------------
