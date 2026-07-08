@@ -117,6 +117,13 @@ def header_author(request):
 
     actions = []
 
+    # Messages first
+    actions.append({
+        "label": "Messages",
+        "url": _reverse_or_empty("messaging:inbox"),
+        "badge": unread_count if unread_count else None,
+    })
+
     if author:
         workspace_attention_count = _author_workspace_attention_count(author)
         actions.append({
@@ -134,20 +141,10 @@ def header_author(request):
                 "url": _reverse_or_empty("chef_battle:chef_enroll"),
             })
 
-    actions.append({
-        "label": "Messages",
-        "url": _reverse_or_empty("messaging:inbox"),
-        "badge": unread_count if unread_count else None,
-    })
-
     if flag_on or (user and user.is_authenticated and (user.is_staff or user.is_superuser)):
-        actions.insert(3, {
-            "label": "Chef Battle",
-            "url": _reverse_or_empty("chef_battle:challenge_list"),
-        })
-        actions.insert(4, {
-            "label": "My Notifications",
-            "url": _reverse_or_empty("chef_battle:notifications_inbox"),
+        actions.append({
+            "label": "Chef Battles",
+            "url": _reverse_or_empty("chef_battle:home"),
         })
 
     if is_moderator:

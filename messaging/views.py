@@ -79,11 +79,41 @@ def inbox(request):
         reverse=True,
     )
 
+    from django.conf import settings as _settings
+    battle_events = []
+    pending_challenges = []
+    flag_on = getattr(_settings, "CHEF_BATTLE_ENABLED", False)
+    if flag_on or request.user.is_staff or request.user.is_superuser:
+        try:
+            from chef_battle.models import BattleEvent, BattleChallenge
+            from chef_battle.views import get_author_for_user
+            from django.db.models import Q as _Q
+            _author = get_author_for_user(request.user)
+            if _author:
+                battle_events = list(
+                    BattleEvent.objects.filter(is_public=True)
+                    .filter(_Q(actor=_author) | _Q(target=_author))
+                    .select_related("battle", "actor", "target")
+                    .order_by("-created_at")[:20]
+                )
+                pending_challenges = list(
+                    BattleChallenge.objects.filter(
+                        opponent=_author,
+                        status=BattleChallenge.Status.PENDING,
+                    )
+                    .select_related("challenger")
+                    .order_by("expires_at")
+                )
+        except Exception:
+            pass
+
     return render(request, "messaging/inbox.html", {
         "user_messages": user_messages,
         "is_moderator": is_moderator(request.user),
         "total_count": len(user_messages),
         "unread_count": sum(1 for message in user_messages if message.has_unread),
+        "battle_events": battle_events,
+        "pending_challenges": pending_challenges,
     })
 
 

@@ -1,5 +1,40 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.153",
+        "date": "2026-07-08",
+        "commit": "pending",
+        "title": "Chef Battles UI overhaul: nav merge, hero cleanup, widget links",
+        "section": "Chef Battles / UI",
+        "summary": (
+            "Nine simultaneous improvements across the Chef Battles UI. "
+            "(1) /chef-battle/notifications/ merged into /messages/ inbox: "
+            "pending challenges and recent battle events now appear in the Messages "
+            "inbox under a 'Battle Notifications' section. "
+            "(2) Dropdown: 'My Notifications' removed; 'Chef Battle' renamed "
+            "'Chef Battles' and linked to /chef-battle/ instead of /challenges/; "
+            "Messages moved to first position for regular users. "
+            "(3) /chef-battle/ hero: 'Challenges' button added after 'Rules'; "
+            "'Rankings' and 'Enter Arena' buttons removed; 'Payout' button added "
+            "after 'Issue a Challenge'. "
+            "(4) Hero 'More' burger button and hidden nav list removed entirely. "
+            "(5-6) Widget: 'Battle Chest' and 'Changing Room' console-style buttons "
+            "added (same styling as Master Console)."
+        ),
+    },
+    {
+        "version": "2.5.152",
+        "date": "2026-07-08",
+        "commit": "7973dfe",
+        "title": "Fix empty-state spacing: gap between text and button",
+        "section": "UI",
+        "summary": (
+            "Added margin-block-start: 1.25rem to links and buttons inside "
+            ".empty-state so the action button is not jammed against the "
+            "explanatory paragraph above it. Visible on /chef-battle/notifications/ "
+            "empty state and any other page using .empty-state."
+        ),
+    },
+    {
         "version": "2.5.151",
         "date": "2026-07-07",
         "commit": "pending",

@@ -31,6 +31,7 @@
 
       <div class="battle-home__cta-row">
         <a class="battle-home__cta-secondary" href="{% url 'chef_battle:rules' %}">Rules</a>
+        <a class="battle-home__cta-secondary" href="{% url 'chef_battle:challenge_list' %}">Challenges</a>
         {% if viewer_author and not user_enrolled %}
         <a class="ce-nav__link ce-nav__link--battle battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:chef_enroll' %}">
           <span class="chef-battle-cta__icon" aria-hidden="true"><svg fill="none" height="15" viewBox="0 0 24 24" width="15" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span>
@@ -42,27 +43,7 @@
           <span class="chef-battle-cta__label">Issue a Challenge</span>
         </a>
         {% endif %}
-        <a class="battle-home__cta-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
-        {% include '_enter_arena_btn.html' %}
-      </div>
-
-      <div class="battle-home__nav-row">
-        <button aria-expanded="false" aria-label="Show navigation" class="hero__burger battle-home__burger" type="button">
-          <svg aria-hidden="true" fill="none" height="14" viewBox="0 0 20 18" width="14">
-            <rect fill="currentColor" height="2" rx="1" width="20" y="0"/>
-            <rect fill="currentColor" height="2" rx="1" width="20" y="8"/>
-            <rect fill="currentColor" height="2" rx="1" width="20" y="16"/>
-          </svg>
-          More
-        </button>
-        <div class="hero__actions-list battle-home__nav-list">
-          <a class="battle-home__nav-link" href="{% url 'chef_battle:season_leaderboard' %}">Season</a>
-          <a class="battle-home__nav-link" href="{% url 'chef_battle:appreciation_gallery' %}">Gifts</a>
-          <a class="battle-home__nav-link" href="{% url 'chef_battle:artifact_gallery' %}">Artifacts</a>
-          <a class="battle-home__nav-link" href="{% url 'chef_battle:battle_chest' %}">Battle Chest</a>
-          <a class="battle-home__nav-link" href="{% url 'chef_battle:changing_room' %}">Changing Room</a>
-          <a class="battle-home__nav-link" href="{% url 'chef_battle:challenge_list' %}">My Challenges</a>
-        </div>
+        <a class="battle-home__cta-secondary" href="{% url 'chef_battle:reward_agreement' %}">Payout</a>
       </div>
     </div>
   </div>

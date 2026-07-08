@@ -75,6 +75,12 @@
         <span aria-hidden="true">&#x1F6E0;&#xFE0F;</span> Master Console
       </a>
       {% endif %}
+      <a class="site-battle-widget__console-link" href="{% url 'chef_battle:battle_chest' %}">
+        <span aria-hidden="true">&#x1FA84;</span> Battle Chest
+      </a>
+      <a class="site-battle-widget__console-link" href="{% url 'chef_battle:changing_room' %}">
+        <span aria-hidden="true">&#x1F455;</span> Changing Room
+      </a>
 
       {% include '_enter_arena_btn.html' %}
 
