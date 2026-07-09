@@ -22,8 +22,8 @@
     { text: "Hello!", weight: 2 },
     { text: "What’s cooking?", weight: 2 },
     // support / sponsors
-    { text: "I can’t take tips — but you can buy me a coffee!", weight: 2, url: "https://buymeacoffee.com/bearcave" },
-    { text: "I don’t accept tips. Buy me a coffee instead!", weight: 1, url: "https://buymeacoffee.com/bearcave" },
+    { text: "I can’t take tips — but you can buy me a coffee! ☕", weight: 2, url: "https://buymeacoffee.com/bearcave" },
+    { text: "I don’t accept tips. Buy me a coffee instead! ☕", weight: 1, url: "https://buymeacoffee.com/bearcave" },
     { text: "Visit our Sponsors page and help keep CulinEire growing!", weight: 4, url: "/sponsors/" },
     { text: "Even a small bit of support helps keep Bearcave growing.", weight: 2 },
     // bearcave story
