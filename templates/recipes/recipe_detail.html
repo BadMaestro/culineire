@@ -44,7 +44,7 @@
                 <span class="hero-author__label">By:</span>
                 <a class="hero-author__link" href="{% url 'recipes:author_detail' recipe.author.slug %}">
                     <img alt="{{ recipe.author.name }}" class="hero-author__avatar" height="28" src="{{ recipe.author.display_avatar_url }}" width="28">
-                    <span class="hero-author__name">{{ recipe.author.name }}{% executive_badge recipe.author %}</span>
+                    <span class="hero-author__name">{{ recipe.author.name }}</span>
                 </a>
             </p>
             {% endif %}
@@ -348,7 +348,7 @@
                 <section class="detail-page__card detail-page__card--author-commentary">
                     <h2>Author Commentary</h2>
                     <div class="source-header">
-                        {% if recipe.author %}<span class="source-header__author">{{ recipe.author.name }}{% executive_badge recipe.author %}</span>{% endif %}
+                        {% if recipe.author %}<span class="source-header__author">{{ recipe.author.name }}</span>{% endif %}
                     </div>
                     <div class="detail-page__card-copy">
                         <blockquote class="source-note" style="margin-bottom:0;">
