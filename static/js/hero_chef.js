@@ -24,7 +24,7 @@
     // support / sponsors
     { text: "I can’t take tips — but you can buy me a coffee!", weight: 2, link: { label: "☕", url: "https://buymeacoffee.com/bearcave" } },
     { text: "I don’t accept tips. Buy me a coffee instead!", weight: 1, link: { label: "☕", url: "https://buymeacoffee.com/bearcave" } },
-    { text: "Visit our Sponsors page and help keep CulinEire growing!", weight: 4, link: { label: "→", url: "/sponsors/" } },
+    { text: "Visit our Sponsors page and help keep CulinEire growing!", weight: 4, link: { label: "Sponsors", url: "/sponsors/" } },
     { text: "Even a small bit of support helps keep Bearcave growing.", weight: 2 },
     // bearcave story
     { text: "Did you know I live in Bearcave?", weight: 4 },
@@ -89,17 +89,17 @@
     { text: "The Irish table has always been more than a place to eat.", weight: 3 },
     { text: "A nation can lose many things. Its recipes remember.", weight: 3 },
     { text: "Irish food carries the voices of those who came before us.", weight: 3 },
-    { text: "History tastes different when it is still alive.", weight: 2 },
-    { text: "The finest Irish stories were passed from hand to hand.", weight: 2 },
+    { text: "History tastes different when it is still alive.", weight: 3 },
+    { text: "The finest Irish stories were passed from hand to hand.", weight: 3 },
     { text: "Ireland’s heritage is not locked away. It is still being cooked.", weight: 3 },
     { text: "Every dish is a small act of remembrance.", weight: 3 },
     { text: "The table is where Ireland keeps its memory.", weight: 3 },
-    { text: "Irish cuisine is not the past. It is the past still living.", weight: 2 },
-    { text: "Before Ireland wrote its history, it cooked it.", weight: 2 },
-    { text: "What Ireland could not preserve in words, it preserved in food.", weight: 2 },
-    { text: "The island changed. The table remembered.", weight: 2 },
+    { text: "Irish cuisine is not the past. It is the past still living.", weight: 4 },
+    { text: "Before Ireland wrote its history, it cooked it.", weight: 4 },
+    { text: "What words forgot, food remembered.", weight: 4 },
+    { text: "The island changed. The table remembered.", weight: 4 },
     { text: "Some cultures are studied. Ireland’s can be tasted.", weight: 2 },
-    { text: "Every Irish recipe is a story that refused to disappear.", weight: 3 }
+    { text: "Every Irish recipe is a story that refused to disappear.", weight: 4 }
   ];
 
   const promotionsNode = document.getElementById("hero-chef-promotions");
@@ -200,6 +200,7 @@
   // Weighted shuffle deck — expand each message by its weight, shuffle, drain.
   const shuffle = arr => arr.slice().sort(() => Math.random() - 0.5);
   let deck = [];
+  let lastText = null;
 
   function buildDeck() {
     const expanded = [];
@@ -212,7 +213,15 @@
 
   function nextMessage() {
     if (deck.length === 0) deck = buildDeck();
-    return deck.pop();
+    let msg = deck.pop();
+    // Avoid repeating the same phrase back-to-back; swap with next if needed
+    if (msg.text === lastText && deck.length > 0) {
+      const next = deck.pop();
+      deck.push(msg);
+      msg = next;
+    }
+    lastText = msg.text;
+    return msg;
   }
 
   function saySomething() {
