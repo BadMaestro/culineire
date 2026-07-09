@@ -22,9 +22,9 @@
     { text: "Hello!", weight: 2 },
     { text: "What’s cooking?", weight: 2 },
     // support / sponsors
-    { text: "I can’t take tips — but you can buy me a coffee! ☕", weight: 2, url: "https://buymeacoffee.com/bearcave" },
-    { text: "I don’t accept tips. Buy me a coffee instead! ☕", weight: 1, url: "https://buymeacoffee.com/bearcave" },
-    { text: "Visit our Sponsors page and help keep CulinEire growing!", weight: 4, url: "/sponsors/" },
+    { text: "I can’t take tips — but you can buy me a coffee!", weight: 2, link: { label: "☕", url: "https://buymeacoffee.com/bearcave" } },
+    { text: "I don’t accept tips. Buy me a coffee instead!", weight: 1, link: { label: "☕", url: "https://buymeacoffee.com/bearcave" } },
+    { text: "Visit our Sponsors page and help keep CulinEire growing!", weight: 4, link: { label: "→", url: "/sponsors/" } },
     { text: "Even a small bit of support helps keep Bearcave growing.", weight: 2 },
     // bearcave story
     { text: "Did you know I live in Bearcave?", weight: 4 },
@@ -217,11 +217,14 @@
 
   function saySomething() {
     const message = nextMessage();
-    speech.textContent = message.text;
-    if (message.url) {
-      speech.href = message.url;
+    const link = message.link;
+    if (link) {
+      const safeText = message.text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const safeLabel = link.label.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      speech.innerHTML = `${safeText} <span class="hero-chef__speech-label">${safeLabel}</span>`;
+      speech.href = link.url;
       speech.dataset.linked = "true";
-      if (/^https?:\/\//.test(message.url)) {
+      if (/^https?:\/\//.test(link.url)) {
         speech.target = "_blank";
         speech.rel = "noopener noreferrer";
       } else {
@@ -229,6 +232,7 @@
         speech.removeAttribute("rel");
       }
     } else {
+      speech.textContent = message.text;
       speech.removeAttribute("href");
       speech.removeAttribute("target");
       speech.removeAttribute("rel");

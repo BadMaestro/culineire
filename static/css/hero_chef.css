@@ -106,6 +106,12 @@
   pointer-events: auto;
 }
 
+.hero-chef__speech-label {
+  display: inline-block;
+  margin-inline-start: 0.25em;
+  opacity: 0.8;
+}
+
 .hero-chef__close {
   align-items: center;
   background: rgb(20 27 22 / 0.72);
