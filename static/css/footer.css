@@ -298,3 +298,14 @@
     justify-content: center;
   }
 }
+
+.footer-gofundme {
+  border-color: rgba(74, 222, 128, 0.25);
+  color: rgba(74, 222, 128, 0.75);
+}
+.footer-gofundme:hover,
+.footer-gofundme:focus-visible {
+  background: rgba(74, 222, 128, 0.12);
+  border-color: rgba(74, 222, 128, 0.45);
+  color: #86efac;
+}

@@ -1459,3 +1459,10 @@
   background: rgb(247 242 234 / 0.2);
   color: #fff;
 }
+
+.ce-header-gofundme {
+  color: #4ade80;
+}
+.ce-header-gofundme:hover {
+  color: #86efac;
+}
