@@ -38,9 +38,12 @@
     7      : [505, 560],
     8      : [560, 610],
     9      : [610, 655],
+    10     : [660, 715],
+    11     : [720, 780],
+    12     : [785, 850],
   };
 
-  var RING_COUNTS = { 1: 6, 2: 10, 3: 14, 4: 18, 5: 22, 6: 26, 7: 30, 8: 34, 9: 40 };
+  var RING_COUNTS = { 1: 6, 2: 10, 3: 14, 4: 18, 5: 22, 6: 26, 7: 30, 8: 34, 9: 40, 10: 48, 11: 56, 12: 64 };
 
   // Battle phases where the chef is shown in the VS centre cells, not in their ring.
   // Any phase in ACTIVE_STATUSES that is NOT pre-battle scheduling.
@@ -190,6 +193,43 @@
     return g;
   }
 
+
+
+  /* Corner arc rings — extend spectator seating into the 4 diagonal corners */
+  function drawCornerRings(group) {
+    var BASE_R    = RING_RADII[12][1];  // 850 — just outside outermost ring
+    var DEPTH     = 65;                 // radial depth per corner ring, matching ring 12
+    var NUM_RINGS = 4;                  // rings of corner seating
+    var NUM_CELLS = 6;                  // arc segments per corner per ring
+
+    // Corner centres at 45°, 135°, 225°, 315° in SVG coords (y-down)
+    var corners = [Math.PI / 4, 3 * Math.PI / 4, 5 * Math.PI / 4, 7 * Math.PI / 4];
+    var SPAN = Math.PI / 3.2;          // ~56° arc span per corner
+
+    for (var ri = 0; ri < NUM_RINGS; ri++) {
+      var innerR = BASE_R + ri * DEPTH;
+      var outerR = innerR + DEPTH;
+      var sweep  = SPAN / NUM_CELLS;
+
+      for (var ci = 0; ci < corners.length; ci++) {
+        var base = corners[ci] - SPAN / 2;
+        for (var si = 0; si < NUM_CELLS; si++) {
+          var startA = base + si * sweep + GAP / outerR;
+          var endA   = base + (si + 1) * sweep - GAP / outerR;
+          var path   = ringSegmentPath(CX, CY, innerR + GAP, outerR - GAP / 2, startA, endA);
+          group.appendChild(svgEl('path', {
+            d: path,
+            fill: RING_COLOURS.spectator_empty,
+            stroke: '#fff', 'stroke-width': '1.5',
+            filter: 'url(#arena-cell-shadow)',
+            'pointer-events': 'none',
+            class: 'arena-cell arena-cell--spectator arena-cell--corner',
+          }));
+        }
+      }
+    }
+  }
+
   function drawArena(data) {
     // Snapshot which slugs were in centre before this redraw (for teleport detection).
     var nextCentreSlugs = _slugsFromCenter(data.center);
@@ -199,7 +239,8 @@
     var octPoly = document.getElementById('arena-oct-poly');
     if (!group || !centreG) { return; }
 
-    octPoly.setAttribute('points', octagonPoints(CX, CY, RING_RADII[9][1] + 10));
+    octPoly.setAttribute('points', octagonPoints(CX, CY, RING_RADII[12][1] + 10));
+    drawCornerRings(group);
 
     // Ring 9: spectators (outer ring, different colour scheme)
     var spectators = data.spectators || [];
@@ -233,6 +274,31 @@
         appendAvatarToCell(group, spec, s9inner, s9outer, s9start, s9end);
       } else {
         addEmptyLabel(group, s9inner, s9outer, s9start, s9end);
+      }
+    }
+
+
+    // Rings 10-12: expanded spectator seating (all empty blue seats)
+    var extraSpectatorRings = [10, 11, 12];
+    for (var er = 0; er < extraSpectatorRings.length; er++) {
+      var ering = extraSpectatorRings[er];
+      var erCount = RING_COUNTS[ering];
+      var erInner = RING_RADII[ering][0];
+      var erOuter = RING_RADII[ering][1];
+      var erSweep = (2 * Math.PI) / erCount;
+      var erOffset = -Math.PI / 2 - erSweep / 2;
+      for (var ei = 0; ei < erCount; ei++) {
+        var erStart = erOffset + ei * erSweep + GAP / erOuter;
+        var erEnd   = erOffset + (ei + 1) * erSweep - GAP / erOuter;
+        var erPath  = ringSegmentPath(CX, CY, erInner + GAP, erOuter - GAP / 2, erStart, erEnd);
+        var erEl = svgEl('path', {
+          d: erPath, fill: RING_COLOURS.spectator_empty,
+          stroke: '#fff', 'stroke-width': '1.5',
+          filter: 'url(#arena-cell-shadow)',
+          cursor: 'default',
+          class: 'arena-cell arena-cell--spectator arena-cell--ring-' + ering,
+        });
+        group.appendChild(erEl);
       }
     }
 

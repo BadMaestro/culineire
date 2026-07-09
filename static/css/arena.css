@@ -1,9 +1,9 @@
 /* Chef Battles Arena — concentric octagonal ring of chefs */
 
 .arena-page {
-  max-width: 1200px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 2rem 1rem 4rem;
+  padding: 2rem 0 4rem;
 }
 
 .arena-legend {
@@ -65,8 +65,9 @@
 
 #arena-puzzle {
   width: 100%;
-  max-width: 760px;
+  max-width: none;
   height: auto;
+  display: block;
 }
 
 .arena-cell {
