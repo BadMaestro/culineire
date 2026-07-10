@@ -248,10 +248,13 @@ def get_master_state() -> dict:
 
     # ── battles section ──────────────────────────────────────────────
     # ACTIVE_STATUSES + ingredient_penalty (in-progress biathlon phase,
-    # excluded from the public "in progress" set) + paused (Emergency Stop).
+    # excluded from the public "in progress" set) + paused (Emergency Stop)
+    # + revealed (P03 force target not in ACTIVE_STATUSES; would vanish from
+    # the console if excluded).
     statuses = set(Battle.ACTIVE_STATUSES) | {
         Battle.Status.INGREDIENT_PENALTY,
         Battle.Status.PAUSED,
+        Battle.Status.REVEALED,
     }
     battles = list(
         Battle.objects.select_related("challenger", "opponent")
