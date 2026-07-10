@@ -2948,8 +2948,8 @@ def recipe_format_preview(request):
 
 @login_required
 def recipe_studio_view(request):
-    """Premium unified recipe creation form for staff/superusers."""
-    if not (request.user.is_staff or request.user.is_superuser):
+    """Premium unified recipe creation form for moderators (incl. staff/superusers)."""
+    if not is_moderator(request.user):
         raise Http404
 
     from .models import ALLERGEN_CHOICES, RecipeAdditionalCategory
@@ -3122,7 +3122,7 @@ def recipe_studio_ai_fill(request):
     POST JSON: {dish_name, custom_prompt, category}
     Returns JSON with all recipe text fields pre-filled.
     """
-    if not (request.user.is_staff or request.user.is_superuser):
+    if not is_moderator(request.user):
         return JsonResponse({"success": False, "error": "Not authorized"}, status=403)
 
     if not getattr(settings, "ANTHROPIC_API_KEY", ""):

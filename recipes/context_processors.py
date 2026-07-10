@@ -165,6 +165,7 @@ def header_author(request):
         "header_author": author,
         "header_author_name": display_name,
         "header_author_actions": actions,
+        "is_moderator": is_moderator,
         "can_view_pinch_public_area": can_view_pinch,
         "chef_battle_enabled": chef_battle_enabled,
         "chef_battle_flag_on": flag_on,

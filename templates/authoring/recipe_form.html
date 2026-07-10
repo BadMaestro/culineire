@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block content %}
-<section class="hero hero--home hero--recipe-form hero--has-battle{% if form_mode != "edit" and request.user.is_authenticated %}{% if request.user.is_staff or request.user.is_superuser %} hero--recipe-tools{% endif %}{% endif %}">
+<section class="hero hero--home hero--recipe-form hero--has-battle{% if form_mode != "edit" and request.user.is_authenticated %}{% if request.user.is_staff or request.user.is_superuser or is_moderator %} hero--recipe-tools{% endif %}{% endif %}">
     <div aria-hidden="true" class="hero__background">
         {% if form_mode == "edit" and recipe.hero_image %}
         <img alt="" src="{{ recipe.hero_image.url }}">
@@ -29,7 +29,7 @@
             <p class="hero-subtitle">Write your recipe and share it with the CulinEire community. Every dish has a story worth putting on the page.</p>
             <div class="hero__actions">
                 {% if form_mode != "edit" and request.user.is_authenticated %}
-                {% if request.user.is_staff or request.user.is_superuser %}
+                {% if request.user.is_staff or request.user.is_superuser or is_moderator %}
                 <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}">Back</a>
                 <a class="btn-primary" href="{% url 'recipes:generate_recipe' %}">Generate AI Recipe</a>
                 <a class="btn-secondary" href="{% url 'recipes:recipe_create_from_screenshot' %}">Generate Screen Recipe</a>

@@ -3873,3 +3873,56 @@ class RecipeGenerationTaskViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.json()["failed"])
         self.assertEqual(task.status, RecipeGenerationTask.Status.FAILED)
+
+
+class RecipeStudioModeratorAccessTests(TestCase):
+    """AI recipe tools (Studio + AI Fill) are available to all moderators,
+    not only Django staff/superusers (v2.5.174)."""
+
+    def setUp(self):
+        user_model = get_user_model()
+        # Non-staff, non-superuser author who IS a moderator via bearseeker.
+        self.mod_user = user_model.objects.create_user(
+            username="mod-bearseeker", email="mod@example.com", password="pass",
+        )
+        RecipeAuthor.objects.create(
+            user=self.mod_user, name="Mod Bearseeker", slug="mod-bearseeker",
+            has_bearseeker_privileges=True,
+        )
+        # Regular author with no moderator privileges.
+        self.plain_user = user_model.objects.create_user(
+            username="plain-author", email="plain@example.com", password="pass",
+        )
+        RecipeAuthor.objects.create(
+            user=self.plain_user, name="Plain Author", slug="plain-author",
+        )
+
+    def test_moderator_can_open_recipe_studio(self):
+        self.client.login(username="mod-bearseeker", password="pass")
+        resp = self.client.get(reverse("recipes:recipe_studio"))
+        self.assertEqual(resp.status_code, 200)
+
+    def test_regular_author_cannot_open_recipe_studio(self):
+        self.client.login(username="plain-author", password="pass")
+        resp = self.client.get(reverse("recipes:recipe_studio"))
+        self.assertEqual(resp.status_code, 404)
+
+    def test_moderator_ai_fill_is_authorized(self):
+        # Not 403 (authorization passes); may 400/502 on missing API key,
+        # but must not be the 403 "Not authorized" gate.
+        self.client.login(username="mod-bearseeker", password="pass")
+        resp = self.client.post(
+            reverse("recipes:recipe_studio_ai_fill"),
+            data=json.dumps({"dish_name": "Test"}),
+            content_type="application/json",
+        )
+        self.assertNotEqual(resp.status_code, 403)
+
+    def test_regular_author_ai_fill_is_forbidden(self):
+        self.client.login(username="plain-author", password="pass")
+        resp = self.client.post(
+            reverse("recipes:recipe_studio_ai_fill"),
+            data=json.dumps({"dish_name": "Test"}),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, 403)
