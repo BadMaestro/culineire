@@ -14,6 +14,7 @@ UNIT_CONFIG=$APP/deploy/unit.culineire.json
 SHARED_DIR=/srv/culineire/shared
 APP_USER=deploy
 APP_GROUP=deploy
+NGINX_MODSEC_DIR=/etc/nginx/modsec
 
 DEPLOY_BRANCH=main
 
@@ -112,6 +113,18 @@ if grep -q '"success"' /tmp/culineire-unit-reconfigure.json; then
 else
     cat /tmp/culineire-unit-reconfigure.json
     fail "NGINX Unit configuration failed - check: sudo tail -n 100 /var/log/unit.log"
+fi
+
+# --- 8. Sync ModSecurity rules when WAF is installed -------------------------
+if [ -d "$NGINX_MODSEC_DIR" ]; then
+    info "Updating ModSecurity rules..."
+    sudo cp "$APP/deploy/modsecurity/culineire-main.conf" "$NGINX_MODSEC_DIR/culineire-main.conf"
+    sudo cp "$APP/deploy/modsecurity/culineire-probes.conf" "$NGINX_MODSEC_DIR/culineire-probes.conf"
+    sudo nginx -t
+    sudo systemctl reload nginx
+    ok "ModSecurity rules synced and NGINX reloaded"
+else
+    info "ModSecurity directory not present; skipping WAF rule sync"
 fi
 
 # --- 9. Smoke test ------------------------------------------------------------

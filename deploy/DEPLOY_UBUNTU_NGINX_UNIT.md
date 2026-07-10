@@ -29,7 +29,7 @@ PY
 
 ```bash
 sudo apt update
-sudo apt install -y nginx postgresql postgresql-contrib python3.12 python3.12-venv python3-pip git curl certbot python3-certbot-nginx
+sudo apt install -y nginx postgresql postgresql-contrib python3.12 python3.12-venv python3-pip git curl certbot python3-certbot-nginx libnginx-mod-http-modsecurity modsecurity-crs
 ```
 
 Install NGINX Unit from the official Unit repository. These commands target Ubuntu 24.04 `noble`; use the matching codename and Python module if the server is a different Ubuntu release.
@@ -134,6 +134,20 @@ Issue a certificate for both names:
 sudo certbot certonly --webroot -w /var/www/letsencrypt -d culineire.ie -d www.culineire.ie
 ```
 
+## ModSecurity WAF
+
+Enable ModSecurity before applying the final HTTPS NGINX config. The final config expects `/etc/nginx/modsec/culineire-main.conf` to exist.
+
+```bash
+sudo mkdir -p /etc/nginx/modsec
+if [ ! -f /etc/modsecurity/modsecurity.conf ]; then
+    sudo cp /etc/modsecurity/modsecurity.conf-recommended /etc/modsecurity/modsecurity.conf
+fi
+sudo sed -i 's/SecRuleEngine DetectionOnly/SecRuleEngine On/' /etc/modsecurity/modsecurity.conf
+sudo cp /srv/culineire/current/deploy/modsecurity/culineire-main.conf /etc/nginx/modsec/culineire-main.conf
+sudo cp /srv/culineire/current/deploy/modsecurity/culineire-probes.conf /etc/nginx/modsec/culineire-probes.conf
+```
+
 Then switch to the final HTTPS reverse-proxy config:
 
 ```bash
@@ -148,11 +162,14 @@ sudo systemctl reload nginx
 curl -I https://culineire.ie/
 curl -I https://culineire.ie/static/css/base.css
 curl -I https://culineire.ie/media/
+curl -I https://culineire.ie/credentials.json
+curl -I https://culineire.ie/stripe-credentials.json
 ```
 
 Verify:
 
 - HTTP redirects to HTTPS.
+- Credential probes return 404 and are written to the ModSecurity audit log.
 - `DEBUG=False`.
 - Login, signup activation email, messages, recipe/article creation, moderation panel, monitoring panel.
 - `check --deploy` shows only intentional HSTS preload/subdomain warnings for first launch.

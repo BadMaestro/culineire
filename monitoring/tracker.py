@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+from urllib.parse import unquote
 
 from django.conf import settings
 from django.db import DatabaseError
@@ -16,6 +17,8 @@ BOT_UA_MARKERS = (
     "bingpreview", "facebookexternalhit", "telegrambot",
     "curl/", "wget/", "python-requests",
     "go-http-client", "httpx", "okhttp",
+    "scanner", "zgrab", "masscan", "nuclei",
+    "nikto", "sqlmap", "wpscan", "gobuster", "ffuf",
 )
 
 # Patterns that trigger a pre-request SecurityEvent in middleware
@@ -31,6 +34,10 @@ SUSPICIOUS_TRIGGER_PATTERNS = (
 CRITICAL_PATH_MARKERS = (
     ".env", ".git", ".sql", ".bak", "etc/passwd",
     "union select", "<script", "../../",
+    "credentials.json", "client_secret", "client_secrets",
+    "service-account", "serviceaccount", "firebase-adminsdk",
+    "google-credentials", "google-service-account",
+    "sa-key", "sa-private-key", "stripe-credentials",
 )
 
 # Comprehensive path markers used in views for request classification
@@ -51,6 +58,25 @@ SUSPICIOUS_PATH_MARKERS = (
     ".cgi", "docker", "/.well-known/stripe",
     "/iam",
 )
+
+
+def normalized_path_variants(path: str) -> tuple[str, ...]:
+    """Return raw and URL-decoded lowercase variants for scanner matching."""
+    raw = (path or "").lower()
+    variants = [raw]
+    decoded = raw
+    for _ in range(2):
+        next_decoded = unquote(decoded).lower()
+        if next_decoded == decoded:
+            break
+        variants.append(next_decoded)
+        decoded = next_decoded
+    return tuple(dict.fromkeys(variants))
+
+
+def path_contains_marker(path: str, markers: tuple[str, ...]) -> bool:
+    variants = normalized_path_variants(path)
+    return any(marker in variant for variant in variants for marker in markers)
 
 
 def get_client_ip(request) -> str:

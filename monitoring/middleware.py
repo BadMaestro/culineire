@@ -4,14 +4,14 @@ import logging
 
 from django.conf import settings
 from django.db import DatabaseError
+from django.http import HttpResponseNotFound
 from django.middleware.common import CommonMiddleware
-from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
 from .tracker import (
     BOT_UA_MARKERS, SUSPICIOUS_TRIGGER_PATTERNS, CRITICAL_PATH_MARKERS,
-    get_client_ip, hash_ip, failed_login_severity,
+    get_client_ip, hash_ip, path_contains_marker,
 )
 
 _DEFAULT_EXCLUDED = (
@@ -25,8 +25,7 @@ def _is_bot_ua(user_agent: str) -> bool:
 
 
 def _suspicious_severity(path: str) -> str:
-    p = (path or "").lower()
-    if any(m in p for m in CRITICAL_PATH_MARKERS):
+    if path_contains_marker(path, CRITICAL_PATH_MARKERS):
         return "critical"
     return "medium"
 
@@ -64,10 +63,11 @@ class MonitoringMiddleware:
             return self.get_response(request)
 
         # Flag suspicious paths before even processing the request.
-        path_lower = path.lower()
-        is_suspicious = any(p in path_lower for p in SUSPICIOUS_TRIGGER_PATTERNS)
+        is_suspicious = path_contains_marker(path, SUSPICIOUS_TRIGGER_PATTERNS)
         if is_suspicious:
             self._record_security(request, "suspicious_request")
+            if getattr(settings, "MONITORING_BLOCK_SUSPICIOUS_PROBES", True):
+                return HttpResponseNotFound()
 
         response = self.get_response(request)
 
