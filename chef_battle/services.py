@@ -623,6 +623,7 @@ def submit_combat_action(
     chef,
     action_type: str,
     moves_invested: int,
+    artifact_id: int | None = None,
 ) -> BattleCombatAction:
     """
     Chef declares their combat action for the current round.
@@ -646,20 +647,31 @@ def submit_combat_action(
     if not profile.infinite_moves and profile.battle_moves < moves_invested:
         raise ValueError(f"Not enough battle moves. You have {profile.battle_moves}.")
 
+    # Validate artifact ownership and availability before touching the DB.
+    chef_artifact = None
+    if artifact_id is not None:
+        try:
+            chef_artifact = ChefArtifact.objects.select_related("artifact").get(
+                pk=artifact_id, chef=chef, status=ChefArtifact.Status.AVAILABLE,
+            )
+        except ChefArtifact.DoesNotExist:
+            raise ValueError("Artifact not available or does not belong to you.")
+
     round_number = get_current_round(battle)
 
     action, created = BattleCombatAction.objects.get_or_create(
         battle=battle,
         chef=chef,
         round_number=round_number,
-        defaults={"action_type": action_type, "moves_invested": moves_invested},
+        defaults={"action_type": action_type, "moves_invested": moves_invested, "artifact_used": chef_artifact},
     )
     if not created:
         if action.is_locked:
             raise ValueError("Your action for this round is already locked.")
         action.action_type = action_type
         action.moves_invested = moves_invested
-        action.save(update_fields=["action_type", "moves_invested", "updated_at"])
+        action.artifact_used = chef_artifact
+        action.save(update_fields=["action_type", "moves_invested", "artifact_used", "updated_at"])
 
     # Auto-resolve if both chefs have submitted
     other_chef = battle.opponent_for(chef)
@@ -720,7 +732,7 @@ def _resolve_round(battle: Battle, round_number: int) -> BattleRound | None:
             ca.status = "consumed"
             ca.consumed_at = timezone.now()
             ca.consumed_in_battle = battle
-            ca.save(update_fields=["status", "consumed_at", "consumed_in_battle", "updated_at"])
+            ca.save(update_fields=["status", "consumed_at", "consumed_in_battle"])
 
     c_power += c_bonus
     o_power += o_bonus

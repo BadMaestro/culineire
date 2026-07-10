@@ -431,6 +431,17 @@
             <label class="battle-muted">Energy to invest</label>
             <input class="battle-form__input" type="number" name="moves_invested" value="1" min="1" max="3">
           </div>
+          {% if user_available_artifacts %}
+          <div class="battle-combat__artifacts">
+            <label class="battle-muted">Activate artifact (optional, one-use)</label>
+            <select name="artifact_id" class="battle-form__input">
+              <option value="">&#x2014; None &#x2014;</option>
+              {% for ca in user_available_artifacts %}
+              <option value="{{ ca.pk }}">{{ ca.artifact.name }} (+{{ ca.artifact.effect_value }} {{ ca.artifact.get_effect_type_display|default:ca.artifact.effect_type }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endif %}
           <button class="btn-primary battle-combat__submit battle-cursor-target js-battle-cursor-target" type="submit" id="combat-submit-btn">Make Move</button>
           <p class="battle-form__error" id="combat-error" hidden></p>
           <p class="battle-combat__success" id="combat-success" hidden></p>

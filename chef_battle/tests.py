@@ -4082,3 +4082,164 @@ class ArenaMasterActionSecurityTests(TransactionTestCase):
         self.assertEqual(resp.status_code, 200)
         data = json.loads(resp.content)
         self.assertTrue(data["ok"])
+
+
+# ── Combat artifact activation (Gap 2 fix) ───────────────────────────────────
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class CombatArtifactTests(TestCase):
+    """submit_combat_action accepts artifact_id; _resolve_round consumes it."""
+
+    def setUp(self):
+        from .models import Artifact, ChefArtifact, ChefBattleProfile
+        User = get_user_model()
+        ua = User.objects.create_user("art-chef-a", password="pw")
+        ub = User.objects.create_user("art-chef-b", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=ua, name="Art Chef A", slug="art-chef-a")
+        self.chef_b = RecipeAuthor.objects.create(user=ub, name="Art Chef B", slug="art-chef-b")
+        ChefBattleProfile.objects.create(author=self.chef_a, enrolled_at=timezone.now(), battle_moves=50)
+        ChefBattleProfile.objects.create(author=self.chef_b, enrolled_at=timezone.now(), battle_moves=50)
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b,
+            theme="Artifact Dish", status=Battle.Status.ACTIVE,
+            start_time=now,
+            submission_deadline=now + timezone.timedelta(days=2),
+            voting_deadline=now + timezone.timedelta(days=4),
+            end_time=now + timezone.timedelta(days=5),
+        )
+        self.artifact = Artifact.objects.create(
+            name="Iron Pan", rarity=Artifact.Rarity.RARE,
+            effect_type="attack", effect_value=5, token_cost=50,
+        )
+        self.chef_artifact = ChefArtifact.objects.create(
+            chef=self.chef_a, artifact=self.artifact,
+            status=ChefArtifact.Status.AVAILABLE,
+        )
+
+    def test_artifact_id_sets_artifact_used_on_action(self):
+        from .services import submit_combat_action
+        action = submit_combat_action(
+            self.battle, self.chef_a, "attack", 3, artifact_id=self.chef_artifact.pk
+        )
+        self.assertEqual(action.artifact_used_id, self.chef_artifact.pk)
+
+    def test_artifact_consumed_after_round_resolves(self):
+        from .models import ChefArtifact
+        from .services import submit_combat_action
+        submit_combat_action(self.battle, self.chef_a, "attack", 3, artifact_id=self.chef_artifact.pk)
+        # Resolves automatically when opponent submits
+        submit_combat_action(self.battle, self.chef_b, "defend", 1)
+        self.chef_artifact.refresh_from_db()
+        self.assertEqual(self.chef_artifact.status, ChefArtifact.Status.CONSUMED)
+        self.assertIsNotNone(self.chef_artifact.consumed_at)
+        self.assertEqual(self.chef_artifact.consumed_in_battle_id, self.battle.pk)
+
+    def test_artifact_belonging_to_opponent_is_rejected(self):
+        from .models import Artifact, ChefArtifact
+        from .services import submit_combat_action
+        other_artifact = Artifact.objects.create(
+            name="Silver Spoon", rarity=Artifact.Rarity.COMMON,
+            effect_type="boost", effect_value=2, token_cost=10,
+        )
+        opponent_ca = ChefArtifact.objects.create(
+            chef=self.chef_b, artifact=other_artifact,
+            status=ChefArtifact.Status.AVAILABLE,
+        )
+        with self.assertRaises(ValueError, msg="Artifact not available or does not belong to you."):
+            submit_combat_action(self.battle, self.chef_a, "attack", 3, artifact_id=opponent_ca.pk)
+
+    def test_consumed_artifact_is_rejected(self):
+        from .models import ChefArtifact
+        from .services import submit_combat_action
+        self.chef_artifact.status = ChefArtifact.Status.CONSUMED
+        self.chef_artifact.save(update_fields=["status"])
+        with self.assertRaises(ValueError):
+            submit_combat_action(self.battle, self.chef_a, "attack", 3, artifact_id=self.chef_artifact.pk)
+
+    def test_combat_without_artifact_unchanged(self):
+        from .services import submit_combat_action
+        action = submit_combat_action(self.battle, self.chef_a, "attack", 2)
+        self.assertIsNone(action.artifact_used_id)
+
+    def test_battle_detail_context_includes_available_artifacts(self):
+        self.client.force_login(self.chef_a.user)
+        resp = self.client.get(reverse("chef_battle:battle_detail", args=[self.battle.pk]))
+        self.assertEqual(resp.status_code, 200)
+        available = resp.context["user_available_artifacts"]
+        self.assertEqual(len(available), 1)
+        self.assertEqual(available[0].pk, self.chef_artifact.pk)
+
+    def test_battle_combat_action_view_accepts_artifact_id(self):
+        from .models import ChefArtifact
+        self.client.force_login(self.chef_a.user)
+        resp = self.client.post(
+            reverse("chef_battle:battle_combat_action", args=[self.battle.pk]),
+            {"action_type": "attack", "moves_invested": "2", "artifact_id": str(self.chef_artifact.pk)},
+        )
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertTrue(data["ok"])
+        from .models import BattleCombatAction
+        action = BattleCombatAction.objects.get(battle=self.battle, chef=self.chef_a, round_number=1)
+        self.assertEqual(action.artifact_used_id, self.chef_artifact.pk)
+
+
+# ── Post-battle cooldown — accept path (Gap 4 fix) ───────────────────────────
+
+@override_settings(CHEF_BATTLE_ENABLED=True, SECURE_SSL_REDIRECT=False)
+class PostBattleCooldownAcceptTests(TestCase):
+    """gate_post_battle_cooldown is enforced on challenge_respond (accept) as well as challenge_create."""
+
+    def setUp(self):
+        from .models import ChefBattleProfile
+        User = get_user_model()
+        ua = User.objects.create_user("cd-chef-a", password="pw")
+        ub = User.objects.create_user("cd-chef-b", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=ua, name="CD Chef A", slug="cd-chef-a")
+        self.chef_b = RecipeAuthor.objects.create(user=ub, name="CD Chef B", slug="cd-chef-b")
+        ChefBattleProfile.objects.create(author=self.chef_a, enrolled_at=timezone.now(), battle_moves=20)
+        ChefBattleProfile.objects.create(author=self.chef_b, enrolled_at=timezone.now(), battle_moves=20)
+
+    def _make_pending_challenge(self):
+        return BattleChallenge.objects.create(
+            challenger=self.chef_a,
+            opponent=self.chef_b,
+            theme="Cooldown Dish",
+            expires_at=timezone.now() + timezone.timedelta(hours=24),
+        )
+
+    def _completed_battle_for(self, chef):
+        now = timezone.now()
+        other = self.chef_a if chef == self.chef_b else self.chef_b
+        return Battle.objects.create(
+            challenger=chef, opponent=other,
+            theme="Past Dish", status=Battle.Status.COMPLETED,
+            start_time=now - timezone.timedelta(hours=2),
+            submission_deadline=now - timezone.timedelta(hours=1),
+            voting_deadline=now - timezone.timedelta(minutes=30),
+            end_time=now - timezone.timedelta(minutes=10),
+        )
+
+    def test_accept_blocked_when_accepting_chef_in_cooldown(self):
+        self._completed_battle_for(self.chef_b)
+        challenge = self._make_pending_challenge()
+        self.client.force_login(self.chef_b.user)
+        resp = self.client.post(
+            reverse("chef_battle:challenge_respond", kwargs={"pk": challenge.pk}),
+            {"action": "accept"},
+        )
+        self.assertEqual(resp.status_code, 302)
+        challenge.refresh_from_db()
+        self.assertEqual(challenge.status, BattleChallenge.Status.PENDING)
+
+    def test_accept_allowed_when_no_recent_completed_battle(self):
+        challenge = self._make_pending_challenge()
+        self.client.force_login(self.chef_b.user)
+        resp = self.client.post(
+            reverse("chef_battle:challenge_respond", kwargs={"pk": challenge.pk}),
+            {"action": "accept"},
+        )
+        self.assertEqual(resp.status_code, 302)
+        challenge.refresh_from_db()
+        self.assertEqual(challenge.status, BattleChallenge.Status.ACCEPTED)

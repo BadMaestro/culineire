@@ -1215,6 +1215,10 @@ def challenge_respond(request, pk):
 
     action = request.POST.get("action")
     if action == "accept":
+        cooldown = gate_post_battle_cooldown(author)
+        if not cooldown.passed:
+            messages.error(request, "You completed a battle recently. Please wait 24 hours before accepting a new challenge.")
+            return redirect("chef_battle:challenge_list")
         battle = accept_challenge(challenge)
         messages.success(request, "Challenge accepted. The battle room is live.")
         return redirect(battle.get_absolute_url())
@@ -1293,6 +1297,15 @@ def battle_detail(request, pk):
         wallet = TokenWallet.objects.filter(chef=viewer_author).first()
         viewer_token_balance = wallet.balance if wallet else 0
 
+    user_available_artifacts = []
+    if is_participant and viewer_author and battle.status == Battle.Status.ACTIVE:
+        from .models import ChefArtifact
+        user_available_artifacts = list(
+            ChefArtifact.objects.filter(chef=viewer_author, status=ChefArtifact.Status.AVAILABLE)
+            .select_related("artifact")
+            .order_by("artifact__name")
+        )
+
     viewer_is_challenger = bool(viewer_author and viewer_author.pk == battle.challenger_id)
     can_set_ready = (
         is_participant
@@ -1324,6 +1337,7 @@ def battle_detail(request, pk):
         "battle_participants": [battle.challenger, battle.opponent],
         "challenger_profile": challenger_profile,
         "opponent_profile": opponent_profile,
+        "user_available_artifacts": user_available_artifacts,
     })
 
 
@@ -1614,8 +1628,16 @@ def battle_combat_action(request, pk):
     except (ValueError, TypeError):
         moves_invested = 1
 
+    artifact_id = None
     try:
-        submit_combat_action(battle, author, action_type, moves_invested)
+        _raw = request.POST.get("artifact_id") or None
+        if _raw:
+            artifact_id = int(_raw)
+    except (ValueError, TypeError):
+        pass
+
+    try:
+        submit_combat_action(battle, author, action_type, moves_invested, artifact_id=artifact_id)
     except ValueError as e:
         return JsonResponse({"ok": False, "error": str(e)}, status=400)
 
