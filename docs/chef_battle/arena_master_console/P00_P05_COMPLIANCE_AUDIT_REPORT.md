@@ -109,8 +109,13 @@ version verification, and explicit `Unavailable` states until each signal exists
   focused verification covers only a subset of required statuses and scenarios.
 - P00 modified production-facing roadmap/version files despite its no-production-
   code acceptance criterion.
-- Several reports are stale: P01 flag semantics and P02 automatic suspicious-vote
-  wording no longer match the authoritative behavior.
+- RESOLVED (`2026-07-10`, v2.5.172) — P01 stale flag semantics corrected:
+  P01_VISUAL_REPORT.md and P01_HANDOFF.yaml no longer claim "flag off => 404 for
+  everyone including owner". Both now state the authoritative god-level owner rule
+  (owner always retains access regardless of flag), matching
+  `chef_battle/access.py` and `test_console_flag_off_blocks_operators_but_never_the_owner`.
+- Still stale: P02 automatic suspicious-vote wording no longer matches the
+  authoritative behavior.
 - RESOLVED (`2026-07-05`) — malformed action identifiers now return JSON 400.
 - RESOLVED (`2026-07-05`) — cancelling a paused battle clears every pause field,
   including `paused_reason`.
