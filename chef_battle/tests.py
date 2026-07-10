@@ -144,7 +144,7 @@ class ChefBattleServiceTests(TestCase):
 
 @override_settings(SECURE_SSL_REDIRECT=False)
 class ChefBattleAccessTests(TestCase):
-    """Permission tests: anonymous users and non-admins see 404 when flag is off."""
+    """Permission tests for Chef Battle pages with feature flag enabled."""
 
     def setUp(self):
         User = get_user_model()
@@ -152,29 +152,28 @@ class ChefBattleAccessTests(TestCase):
         self.user = User.objects.create_user(username="regular", password="pw")
         self.staff = User.objects.create_user(username="staff", password="pw", is_staff=True)
 
-    def test_anonymous_gets_404_on_battle_home(self):
+    def test_anonymous_can_view_battle_home(self):
         response = self.client.get(reverse("chef_battle:home"))
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 200)
 
-    def test_regular_user_gets_404_on_battle_home(self):
+    def test_regular_user_can_view_battle_home(self):
         self.client.login(username="regular", password="pw")
         response = self.client.get(reverse("chef_battle:home"))
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 200)
 
     def test_staff_user_can_access_battle_home(self):
         self.client.login(username="staff", password="pw")
         response = self.client.get(reverse("chef_battle:home"))
         self.assertEqual(response.status_code, 200)
 
-    def test_anonymous_gets_404_on_rankings(self):
+    def test_anonymous_can_view_rankings(self):
         response = self.client.get(reverse("chef_battle:rankings"))
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 200)
 
-    def test_anonymous_gets_404_on_challenge_list(self):
+    def test_anonymous_challenge_list_redirects_to_login(self):
         response = self.client.get(reverse("chef_battle:challenge_list"))
-        # challenge_list redirects non-authenticated via @login_required to login;
-        # anonymous users hit @chef_battle_guard first → 404
-        self.assertEqual(response.status_code, 404)
+        # challenge_list requires login → redirect to login page
+        self.assertEqual(response.status_code, 302)
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)
@@ -755,7 +754,8 @@ class NotificationsPollViewTests(TestCase):
     def test_poll_requires_login(self):
         url = reverse("chef_battle:notifications_poll")
         resp = self.client.get(url)
-        self.assertEqual(resp.status_code, 404)  # chef_battle_guard returns 404 for anon
+        # login_required redirects anonymous users to login page
+        self.assertEqual(resp.status_code, 302)
 
     def test_poll_returns_json_for_staff(self):
         self.client.login(username="poll-user", password="pw")
