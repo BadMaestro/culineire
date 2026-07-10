@@ -2,6 +2,16 @@
 
 Produced: 2026-07-04 · Phase: P01 (Desktop visual shell and information architecture)
 
+> **Correction 2026-07-10 (compliance audit follow-up):** the original flag
+> semantics in this report and in P01_HANDOFF.yaml were stale — they claimed
+> "flag off → 404 for everyone including owner" / "flag off => nobody". The
+> authoritative behavior has always been the opposite: the owner (GreenBear,
+> god level) is NEVER hidden by a feature flag. This is a hard product rule —
+> the owner always sees the whole site. Enforced by `chef_battle/access.py`
+> (`OWNER_SLUG` short-circuit) and guarded by
+> `test_console_flag_off_blocks_operators_but_never_the_owner`, which must not
+> be weakened or removed. Corrected inline below.
+
 ## What was built
 
 - **Access gate (DG-01):** `ARENA_MASTER_CONSOLE_ENABLED` setting (default **False**),
@@ -29,9 +39,12 @@ End Battle) are rendered `disabled`; a test enforces this.
 - **Tests:** `ArenaMasterConsoleAccessTests` — 12/12 pass. Cover: anonymous,
   regular chef, moderator-without-superuser, superuser-without-flag,
   flag-without-superuser (all 404); owner and superuser+flag (200); console flag
-  off → 404 for everyone including owner; console independent of
-  CHEF_BATTLE_ENABLED; no fabricated data; 8 panels present; buttons disabled;
-  public arena unchanged.
+  off → 404 for **non-owner operators only** — the owner (GreenBear, god level)
+  **always** retains access regardless of the flag, per the authoritative gate in
+  `chef_battle/access.py` (`if author.slug == settings.OWNER_SLUG: return True`)
+  and the test `test_console_flag_off_blocks_operators_but_never_the_owner`;
+  console independent of CHEF_BATTLE_ENABLED; no fabricated data; 8 panels present;
+  buttons disabled; public arena unchanged.
 - **Screenshots (local dev server, logged in as owner-linked operator):**
   - 1920×1080 — 8 deck panels in one row; no overlap after widget fix.
   - 1440×900 — deck 4×2; overview intact.

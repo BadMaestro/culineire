@@ -8,7 +8,7 @@ delivered:
   access_gate:
     setting: "ARENA_MASTER_CONSOLE_ENABLED (config/settings.py, default False)"
     model_field: "RecipeAuthor.has_arena_console_access (recipes/migrations/0038)"
-    check: "chef_battle.access.has_arena_console_access — superuser AND (OWNER_SLUG OR flag); flag off => nobody"
+    check: "chef_battle.access.has_arena_console_access — the owner (superuser + OWNER_SLUG, GreenBear god level) ALWAYS has access regardless of the flag; other operators need superuser AND has_arena_console_access AND ARENA_MASTER_CONSOLE_ENABLED. Flag off => only the owner (never nobody)."
     decorator: "chef_battle.access.arena_console_guard (Http404 failure mode)"
     view: "chef_battle.views.master_console"
     url: "/chef-battle/master/ (chef_battle:master_console)"
