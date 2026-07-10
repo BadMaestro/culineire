@@ -36,7 +36,7 @@ sections:
     biathlon_entries: "per INGREDIENT_PENALTY battle: lock/shot counts vs IngredientLock.MAX_LOCKS / IngredientShot.MAX_SHOTS"
 
   moderation:
-    cooking_queue: "Battle.filter(status=ingredient_penalty).count() — same set as get_battles_awaiting_cooking_approval"
+    cooking_queue: "Battle.filter(status__in=[ingredient_penalty, cooking]).count() — COOKING added by P05 fix (2026-07-05): chefs submit cooked photos in COOKING status, requiring moderator review before PRESENTATION. get_battles_awaiting_cooking_approval() predates this change and is now stale."
     content_reports_pending: "ContentReport.filter(status=PENDING).count()"
     entries_flagged: "BattleEntry moderation_status in {flagged, suspected_ai, suspected_stock, duplicate}"
 
