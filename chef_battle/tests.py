@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.db import IntegrityError
-from django.test import Client, TestCase, override_settings
+from django.test import Client, TestCase, TransactionTestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -22,6 +22,7 @@ from .models import (
     ChefBattleProfile,
     ContentReport,
     LedgerEvent,
+    OperatorActionIdempotencyKey,
     RewardRecord,
     TokenWallet,
     VoteIntegrityEvent,
@@ -2374,10 +2375,15 @@ class ArenaMasterActionTests(TestCase):
                             expected_status="scheduled")
         self.assertEqual(first.status_code, 200)
         self.assertEqual(second.status_code, 409)
-        self.assertEqual(
-            BattleEvent.objects.filter(
-                battle=battle, event_type=BattleEvent.EventType.OPERATOR_ACTION
-            ).count(), 1)
+        events = BattleEvent.objects.filter(
+            battle=battle, event_type=BattleEvent.EventType.OPERATOR_ACTION
+        ).order_by("created_at")
+        # The battle state changed exactly once; the repeat click is now also
+        # audited (rejected), so there are two events with different outcomes.
+        self.assertEqual(events.count(), 2)
+        self.assertEqual(events[0].payload_json["outcome"], "applied")
+        self.assertEqual(events[1].payload_json["outcome"], "rejected")
+        self.assertIn("Stale state", events[1].payload_json["error"])
 
     def test_same_status_rejected(self):
         battle = self._battle()
@@ -3836,3 +3842,243 @@ class ProfileMergeTests(TestCase):
             set(data.keys()), {"battle_profile", "recent_battles", "battles", "gift_display"})
         self.assertIsNotNone(data["battle_profile"])
         self.assertIsInstance(data["gift_display"], list)
+
+
+@override_settings(
+    CHEF_BATTLE_ENABLED=True,
+    ARENA_MASTER_CONSOLE_ENABLED=True,
+    OWNER_SLUG="amc-sec-owner",
+)
+class ArenaMasterActionSecurityTests(TransactionTestCase):
+    """Audit trail, idempotency, concurrency, rollback, and CSRF tests for
+    the Arena Master Console master_action endpoint.
+
+    Two tiers under test:
+      DG-01 (arena_console_guard): superuser + has_arena_console_access
+      DG-02 (view-level): owner-only for write actions (OWNER_SLUG match)
+
+    amc-sec-owner  -- passes DG-01 AND DG-02 (OWNER_SLUG overridden)
+    amc-sec-other  -- passes DG-01 but fails DG-02 (non-owner operator)
+    """
+
+    def setUp(self):
+        User = get_user_model()
+        owner_user = User.objects.create_user("amc-sec-owner", password="pw", is_superuser=True)
+        other_user = User.objects.create_user("amc-sec-other", password="pw", is_superuser=True)
+        self.owner_author = RecipeAuthor.objects.create(
+            user=owner_user, name="AMC Owner", slug="amc-sec-owner",
+            has_arena_console_access=True)
+        self.other_author = RecipeAuthor.objects.create(
+            user=other_user, name="AMC Other", slug="amc-sec-other",
+            has_arena_console_access=True)
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.owner_author, opponent=self.other_author,
+            theme="Security Battle", status=Battle.Status.SCHEDULED,
+            start_time=now, submission_deadline=now + timezone.timedelta(days=1),
+            voting_deadline=now + timezone.timedelta(days=2),
+            end_time=now + timezone.timedelta(days=3),
+        )
+        self.url = reverse("chef_battle:master_action")
+
+    def _login_owner(self):
+        c = Client()
+        c.login(username="amc-sec-owner", password="pw")
+        return c
+
+    def _login_other(self):
+        c = Client()
+        c.login(username="amc-sec-other", password="pw")
+        return c
+
+    # -- Audit trail tests ------------------------------------------------
+    # NOTE: master_action view reads request.POST (form-encoded), not JSON.
+    # Field names come from the view: target_status (not new_status), etc.
+
+    def test_non_owner_rejection_is_audited(self):
+        """Non-owner console operator (passes DG-01 guard) gets 403 from DG-02
+        and the rejection is written to the audit trail."""
+        c = self._login_other()
+        before = BattleEvent.objects.count()
+        resp = c.post(self.url, data={
+            "action": "force_status", "battle_id": self.battle.pk,
+            "target_status": "active", "correlation_id": "sec-test-1"})
+        self.assertEqual(resp.status_code, 403)
+        self.assertEqual(BattleEvent.objects.count(), before + 1)
+        ev = BattleEvent.objects.order_by("-created_at").first()
+        self.assertEqual(ev.payload_json["outcome"], "rejected")
+
+    def test_invalid_battle_id_rejection_is_audited(self):
+        c = self._login_owner()
+        before = BattleEvent.objects.count()
+        resp = c.post(self.url, data={
+            "action": "force_status", "battle_id": "not-a-number",
+            "target_status": "active", "correlation_id": "sec-test-2"})
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(BattleEvent.objects.count(), before + 1)
+        ev = BattleEvent.objects.order_by("-created_at").first()
+        self.assertEqual(ev.payload_json["outcome"], "rejected")
+
+    def test_not_found_rejection_is_audited(self):
+        c = self._login_owner()
+        before = BattleEvent.objects.count()
+        resp = c.post(self.url, data={
+            "action": "force_status", "battle_id": 999999,
+            "target_status": "active", "correlation_id": "sec-test-3"})
+        self.assertEqual(resp.status_code, 404)
+        self.assertEqual(BattleEvent.objects.count(), before + 1)
+        ev = BattleEvent.objects.order_by("-created_at").first()
+        self.assertEqual(ev.payload_json["outcome"], "rejected")
+
+    def test_unknown_action_rejection_is_audited(self):
+        c = self._login_owner()
+        before = BattleEvent.objects.count()
+        resp = c.post(self.url, data={
+            "action": "does_not_exist", "correlation_id": "sec-test-4"})
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(BattleEvent.objects.count(), before + 1)
+        ev = BattleEvent.objects.order_by("-created_at").first()
+        self.assertEqual(ev.payload_json["outcome"], "rejected")
+
+    def test_service_rejection_stale_state_is_audited(self):
+        """force_status with wrong expected_status triggers OperatorActionError."""
+        c = self._login_owner()
+        before = BattleEvent.objects.count()
+        resp = c.post(self.url, data={
+            "action": "force_status", "battle_id": self.battle.pk,
+            "target_status": "active",
+            "expected_status": "voting",  # wrong -- battle is scheduled
+            "correlation_id": "sec-test-5"})
+        self.assertIn(resp.status_code, (400, 409))
+        self.assertGreater(BattleEvent.objects.count(), before)
+        ev = BattleEvent.objects.filter(
+            payload_json__outcome="rejected").order_by("-created_at").first()
+        self.assertIsNotNone(ev)
+
+    # -- Idempotency / dedup tests ----------------------------------------
+
+    def test_broadcast_replay_with_same_correlation_id_is_rejected(self):
+        c = self._login_owner()
+        post_data = {
+            "action": "broadcast", "message": "Hello arena",
+            "correlation_id": "idem-corr-001"}
+        r1 = c.post(self.url, data=post_data)
+        self.assertEqual(r1.status_code, 200)
+        r2 = c.post(self.url, data=post_data)
+        self.assertEqual(r2.status_code, 409)
+        data2 = json.loads(r2.content)
+        self.assertFalse(data2["ok"])
+        self.assertIn("already", data2["error"].lower())
+        self.assertEqual(
+            OperatorActionIdempotencyKey.objects.filter(correlation_id="idem-corr-001").count(),
+            1)
+
+    def test_broadcast_without_correlation_id_is_not_deduplicated(self):
+        """Omitting correlation_id: view auto-generates a unique one per request,
+        so two identical broadcasts both apply."""
+        c = self._login_owner()
+        post_data = {"action": "broadcast", "message": "No dedup here"}
+        r1 = c.post(self.url, data=post_data)
+        r2 = c.post(self.url, data=post_data)
+        self.assertEqual(r1.status_code, 200)
+        self.assertEqual(r2.status_code, 200)
+
+    # -- Concurrency test -------------------------------------------------
+
+    def test_concurrent_force_status_requests_serialize_exactly_once(self):
+        """Two threads race to force the same status transition.
+        Only one must succeed; the other must be rejected (stale-state guard
+        or DB serialization). raise_request_exception=False so SQLite
+        serialization errors appear as 500 rather than propagating."""
+        import threading
+
+        self.battle.status = Battle.Status.SCHEDULED
+        self.battle.save(update_fields=["status"])
+
+        results = []
+        errors = []
+
+        def do_request():
+            # raise_request_exception=False: DB errors become 500, not thread crashes
+            c = Client(raise_request_exception=False)
+            c.login(username="amc-sec-owner", password="pw")
+            try:
+                r = c.post(self.url, data={
+                    "action": "force_status",
+                    "battle_id": self.battle.pk,
+                    "target_status": "active",
+                    "expected_status": "scheduled",
+                    "correlation_id": ""})
+                results.append(r.status_code)
+            except Exception as e:
+                errors.append(e)
+
+        t1 = threading.Thread(target=do_request)
+        t2 = threading.Thread(target=do_request)
+        t1.start(); t2.start()
+        t1.join(); t2.join()
+
+        self.assertFalse(errors, f"Thread errors: {errors}")
+        self.assertEqual(len(results), 2, f"Both threads must complete, got: {results}")
+        ok_count = results.count(200)
+        # Any non-200 counts as a rejection (409=stale, 400=invalid, 500=db lock)
+        rejected_count = len([s for s in results if s != 200])
+        self.assertEqual(ok_count, 1, f"Expected exactly 1 success, got: {results}")
+        self.assertEqual(rejected_count, 1, f"Expected exactly 1 rejection, got: {results}")
+
+    # -- Rollback test ----------------------------------------------------
+
+    def test_exception_mid_transaction_rolls_back_state_and_audit(self):
+        """If RuntimeError fires before operator_force_status runs (simulating
+        a crash before any DB write), the battle status must remain unchanged
+        and the view must not return 200. raise_request_exception=False so the
+        RuntimeError becomes a 500 response instead of propagating to the test."""
+        from unittest.mock import patch
+        from chef_battle import services as svc
+
+        def crashing_force(**kwargs):
+            raise RuntimeError("Crash before any state write")
+
+        c = Client(raise_request_exception=False)
+        c.login(username="amc-sec-owner", password="pw")
+        before_status = self.battle.status
+
+        with patch.object(svc, "operator_force_status", side_effect=crashing_force):
+            resp = c.post(self.url, data={
+                "action": "force_status",
+                "battle_id": self.battle.pk,
+                "target_status": "active",
+                "expected_status": "",
+                "correlation_id": "rollback-test-001"})
+
+        # Must not return 200 (no success on crash)
+        self.assertNotEqual(resp.status_code, 200)
+        # Battle status must be unchanged because the service never ran
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, before_status,
+                         "Battle status must not have changed after service crash")
+
+    # -- CSRF enforcement tests -------------------------------------------
+
+    def test_post_without_csrf_token_is_rejected_with_csrf_enforced(self):
+        c = Client(enforce_csrf_checks=True)
+        c.login(username="amc-sec-owner", password="pw")
+        resp = c.post(self.url, data={
+            "action": "broadcast", "message": "csrf test",
+            "correlation_id": "csrf-test-no-token"})
+        self.assertEqual(resp.status_code, 403)
+
+    def test_post_with_valid_csrf_token_succeeds_with_csrf_enforced(self):
+        c = Client(enforce_csrf_checks=True)
+        c.login(username="amc-sec-owner", password="pw")
+        # GET to master_console forces Django to set the csrftoken cookie
+        c.get(reverse("chef_battle:master_console"))
+        csrf_value = c.cookies.get("csrftoken")
+        self.assertIsNotNone(csrf_value, "CSRF cookie must be set after GET")
+        resp = c.post(self.url,
+            data={"action": "broadcast", "message": "csrf success test",
+                  "correlation_id": "csrf-test-with-token"},
+            HTTP_X_CSRFTOKEN=csrf_value.value)
+        self.assertEqual(resp.status_code, 200)
+        data = json.loads(resp.content)
+        self.assertTrue(data["ok"])

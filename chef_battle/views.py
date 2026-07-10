@@ -2416,6 +2416,7 @@ def master_action(request):
         operator_emergency_stop, operator_end_stream, operator_force_status,
         operator_moderate_entry, operator_resume, operator_review_payout,
         operator_review_report, operator_submit_battle_report,
+        record_rejected_operator_action,
     )
 
     author = get_author_for_user(request.user)
@@ -2423,6 +2424,17 @@ def master_action(request):
     battle_id = request.POST.get("battle_id")
     correlation_id = request.POST.get("correlation_id") or uuid.uuid4().hex[:12]
     reason = request.POST.get("reason", "")
+
+    def _reject(error, *, status, extra=None):
+        """Every rejected console write gets a private audit trail entry —
+        permission denials, invalid input, not-found and service-level
+        validation failures are all reconstructable later, not only the
+        actions that were actually applied."""
+        record_rejected_operator_action(
+            action=action or "(missing)", operator_author=author, error=error,
+            correlation_id=correlation_id, battle_id=battle_id, extra=extra,
+        )
+        return JsonResponse({"ok": False, "error": str(error)}, status=status)
 
     # DG-06: submitting a battle report is the ONE write available to every
     # console operator (the console gate already vetted them). Everything
@@ -2438,16 +2450,15 @@ def master_action(request):
                 correlation_id=correlation_id,
             )
         except OperatorActionError as exc:
-            return JsonResponse({"ok": False, "error": str(exc)}, status=409)
+            return _reject(exc, status=409)
         return JsonResponse({"ok": True, "action": action,
                              "correlation_id": correlation_id,
                              "report": {"id": report.pk,
                                         "recommendation": report.recommendation}})
 
     if not author or author.slug != settings.OWNER_SLUG:
-        return JsonResponse(
-            {"ok": False, "error": "Only the arena owner may perform console actions."},
-            status=403,
+        return _reject(
+            "Only the arena owner may perform console actions.", status=403,
         )
 
     id_fields = {
@@ -2466,9 +2477,8 @@ def master_action(request):
             if parsed_id < 1:
                 raise ValueError
         except (TypeError, ValueError):
-            return JsonResponse(
-                {"ok": False, "error": f"Invalid {id_field}."}, status=400
-            )
+            return _reject(f"Invalid {id_field}.", status=400,
+                           extra={"invalid_field": id_field})
 
     try:
         if action == "force_status":
@@ -2565,12 +2575,11 @@ def master_action(request):
             return JsonResponse({"ok": True, "action": action,
                                  "correlation_id": correlation_id})
         else:
-            return JsonResponse({"ok": False, "error": f"Unknown action '{action}'."},
-                                status=400)
+            return _reject(f"Unknown action '{action}'.", status=400)
     except Battle.DoesNotExist:
-        return JsonResponse({"ok": False, "error": "Battle not found."}, status=404)
+        return _reject("Battle not found.", status=404)
     except OperatorActionError as exc:
-        return JsonResponse({"ok": False, "error": str(exc)}, status=409)
+        return _reject(exc, status=409)
 
     return JsonResponse({
         "ok": True,

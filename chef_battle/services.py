@@ -4,7 +4,7 @@ import hashlib
 import logging
 
 from django.conf import settings
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db import models
 from django.db.models import Count, Sum
 from django.urls import NoReverseMatch, reverse
@@ -15,7 +15,7 @@ from newsfeed.models import NewsFeedEntry
 from .models import (
     APPRECIATION_GIFT_COST, Artifact, Battle, BattleChallenge, BattleCombatAction,
     BattleEntry, BattleEvent, BattleRound, ChefArtifact, ChefBattleProfile, IngredientLock,
-    IngredientShot, AppreciationGift, LiveStreamSession, ViewerBattleGift,
+    IngredientShot, AppreciationGift, LiveStreamSession, OperatorActionIdempotencyKey, ViewerBattleGift,
     TokenTransaction, TokenWallet,
 )
 
@@ -1937,6 +1937,43 @@ def _operator_event(*, battle, operator_author, action, before, after, reason, c
     return event
 
 
+def record_rejected_operator_action(
+    *, action, operator_author, error, correlation_id="", battle_id=None, extra=None,
+):
+    """Private audit trail for a console write attempt that did NOT apply:
+    permission denial (403), invalid/malformed input (400), not-found (404),
+    or a service-level rejection (stale expected_status, missing reason,
+    invalid transition — 409). Mirrors ``_operator_event``'s shape but with
+    ``outcome: "rejected"`` so an investigation can reconstruct every
+    attempted high-risk action, not only the ones that succeeded. Never
+    raises: a battle lookup failure here must not mask the original error.
+    """
+    battle = None
+    if battle_id:
+        try:
+            battle = Battle.objects.filter(pk=battle_id).first()
+        except (TypeError, ValueError):
+            battle = None
+    payload = {
+        "action": action,
+        "correlation_id": correlation_id,
+        "outcome": "rejected",
+        "error": str(error)[:300],
+    }
+    if extra:
+        payload.update(extra)
+    event = create_battle_event(
+        event_type=BattleEvent.EventType.OPERATOR_ACTION,
+        battle=battle,
+        actor=operator_author,
+        message=f"Operator action '{action}' REJECTED: {error}"[:500],
+        is_public=False,
+    )
+    event.payload_json = payload
+    event.save(update_fields=["payload_json"])
+    return event
+
+
 def _locked_battle(battle_id, expected_status):
     """Fetch the battle under row lock and verify the operator saw the
     current state (stale-click / double-click / concurrent-operator guard)."""
@@ -2156,22 +2193,42 @@ def operator_cancel(*, battle_id, operator_author, reason, correlation_id=""):
 
 
 def operator_broadcast(*, operator_author, message, battle_id=None, correlation_id=""):
-    """Owner-only public announcement into the battle event feed."""
+    """Owner-only public announcement into the battle event feed.
+
+    Unlike force_status/emergency_stop/resume/cancel, a broadcast has no
+    target state a repeat click would already satisfy — it is not naturally
+    idempotent. A supplied correlation_id is therefore enforced as a genuine
+    replay guard: the unique-constrained insert into
+    OperatorActionIdempotencyKey happens inside the same transaction as event
+    creation, so a duplicate/replayed request (or a real race between two
+    simultaneous requests with the same key) raises IntegrityError and rolls
+    back before a second public announcement is ever created.
+    """
     _require_owner(operator_author)
     if not (message or "").strip():
         raise OperatorActionError("Broadcast message cannot be empty.")
-    battle = Battle.objects.get(pk=battle_id) if battle_id else None
-    event = create_battle_event(
-        event_type=BattleEvent.EventType.OPERATOR_ACTION,
-        battle=battle,
-        actor=operator_author,
-        message=message.strip()[:500],
-        is_public=True,
-    )
-    event.payload_json = {
-        "action": "broadcast", "correlation_id": correlation_id, "outcome": "applied",
-    }
-    event.save(update_fields=["payload_json"])
+    with transaction.atomic():
+        if correlation_id:
+            try:
+                OperatorActionIdempotencyKey.objects.create(
+                    correlation_id=correlation_id, action="broadcast",
+                )
+            except IntegrityError:
+                raise OperatorActionError(
+                    "This broadcast was already sent (duplicate request)."
+                )
+        battle = Battle.objects.get(pk=battle_id) if battle_id else None
+        event = create_battle_event(
+            event_type=BattleEvent.EventType.OPERATOR_ACTION,
+            battle=battle,
+            actor=operator_author,
+            message=message.strip()[:500],
+            is_public=True,
+        )
+        event.payload_json = {
+            "action": "broadcast", "correlation_id": correlation_id, "outcome": "applied",
+        }
+        event.save(update_fields=["payload_json"])
     return event
 
 

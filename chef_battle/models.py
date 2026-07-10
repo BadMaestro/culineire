@@ -1467,3 +1467,22 @@ class LiveBattleAgreement(models.Model):
 
     def __str__(self):
         return f"LiveBattleAgreement v{self.agreement_version} — {self.chef} @ {self.accepted_at:%Y-%m-%d}"
+
+
+class OperatorActionIdempotencyKey(models.Model):
+    """Replay guard for Arena Master Console actions with no natural
+    before/after state to check (e.g. broadcast has no target status a
+    repeat click would already satisfy, unlike force_status/emergency_stop/
+    resume/cancel, which are already idempotent via row-locked before-state
+    checks). The unique constraint on correlation_id is enforced at INSERT
+    time, so a genuine race (two simultaneous requests with the same key)
+    can create at most one row — the loser raises IntegrityError and the
+    caller treats that as a rejected duplicate, never a second side effect.
+    """
+
+    correlation_id = models.CharField(max_length=64, unique=True)
+    action = models.CharField(max_length=40)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    def __str__(self):
+        return f"{self.action}:{self.correlation_id}"
