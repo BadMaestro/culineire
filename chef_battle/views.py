@@ -2588,3 +2588,8 @@ def master_action(request):
         "battle": {"id": battle.pk, "status": battle.status,
                    "status_display": battle.get_status_display()},
     })
+
+
+def dev_tour(request):
+    """Developer tour page — overview of Chef Battles feature pages."""
+    return render(request, "chef_battle/dev_tour.html")

@@ -12,7 +12,7 @@ def is_battle_visible(request) -> bool:
     """
     Chef Battles is visible when:
     - CHEF_BATTLE_ENABLED is True (public launch), OR
-    - the user is staff, superuser, or has bearseeker privileges (admin preview)
+    - the user is staff, superuser, or has bearseeker privileges (admin preview).
     """
     if getattr(settings, "CHEF_BATTLE_ENABLED", False):
         return True
