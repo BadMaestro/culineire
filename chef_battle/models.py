@@ -489,6 +489,7 @@ class ChefArtifact(models.Model):
         GIFTED = "gifted", "Gifted"
         DROP = "drop", "Battle Drop"
         ADMIN_GRANT = "admin_grant", "Admin Grant"
+        BATTLE_GIFT = "battle_gift", "Battle Gift (in-battle delivery)"
 
     class Status(models.TextChoices):
         AVAILABLE = "available", "Available"
@@ -522,11 +523,14 @@ class ChefArtifact(models.Model):
         related_name="admin_granted_artifacts",
     )
     admin_grant_reason = models.TextField(blank=True)
+    locked_to_battle = models.ForeignKey(
+        "Battle", null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="battle_gift_artifacts",
+        help_text="Battle-gift artifact: must be used in this battle, expires unused when battle ends.",
+    )
 
     class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=["chef", "artifact"], name="unique_artifact_per_chef"),
-        ]
+        pass  # unique_artifact_per_chef removed: battle gifts allow duplicate entries
 
     def __str__(self):
         return f"{self.chef} - {self.artifact}"
@@ -542,6 +546,7 @@ class ViewerBattleGift(models.Model):
     )
     artifact = models.ForeignKey(Artifact, on_delete=models.CASCADE, related_name="battle_gifts")
     tokens_spent = models.PositiveIntegerField()
+    delivery_fee = models.PositiveIntegerField(default=0, help_text="In-battle delivery fee (equals artifact cost).")
     sent_at = models.DateTimeField(auto_now_add=True, db_index=True)
     is_applied = models.BooleanField(default=False)
 

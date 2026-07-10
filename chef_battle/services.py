@@ -419,6 +419,11 @@ def calculate_battle_result(battle: Battle) -> Battle:
     opponent_votes = vote_counts.get(battle.opponent_id, 0)
 
     if challenger_votes == opponent_votes:
+        ChefArtifact.objects.filter(
+            locked_to_battle=battle,
+            status=ChefArtifact.Status.AVAILABLE,
+            source=ChefArtifact.Source.BATTLE_GIFT,
+        ).update(status=ChefArtifact.Status.EXPIRED, expired_at=timezone.now())
         battle.result_reason = "Draw by public vote"
         battle.status = Battle.Status.COMPLETED
         battle.save(update_fields=["status", "result_reason", "updated_at"])
@@ -475,6 +480,13 @@ def calculate_battle_result(battle: Battle) -> Battle:
             BattleMoveTransaction(chef=winner, amount=MOVES_BATTLE_PARTICIPATION, transaction_type=TxType.BATTLE_PARTICIPATION),
             BattleMoveTransaction(chef=loser, amount=MOVES_BATTLE_PARTICIPATION, transaction_type=TxType.BATTLE_PARTICIPATION),
         ])
+
+        # Expire unused BATTLE_GIFT artifacts locked to this battle.
+        ChefArtifact.objects.filter(
+            locked_to_battle=battle,
+            status=ChefArtifact.Status.AVAILABLE,
+            source=ChefArtifact.Source.BATTLE_GIFT,
+        ).update(status=ChefArtifact.Status.EXPIRED, expired_at=timezone.now())
 
         battle.winner = winner
         battle.loser = loser
@@ -1112,11 +1124,12 @@ def submit_cooked_photo(*, battle: Battle, author, photo, real_photo_confirmed: 
 # ── Viewer gifts ───────────────────────────────────────────────────────────────
 
 def send_battle_artifact(*, sender_user, recipient, battle: Battle, artifact: Artifact) -> ViewerBattleGift:
-    """Viewer spends tokens to send a battle artifact to a chef in an active battle.
+    """Viewer delivers a battle artifact to a chef mid-battle.
 
-    Creates a ViewerBattleGift record and adds the artifact to the chef's inventory
-    (ChefArtifact with source=gifted). Blocks duplicate gifts if the chef already
-    holds an available copy of this exact artifact.
+    Total cost = artifact.token_cost * 2 (artifact price + delivery fee).
+    The artifact is locked to this battle: it must be used here and cannot be
+    carried to the chef's inventory. If unused when the battle ends it is expired.
+    Multiple deliveries of the same artifact to the same chef are allowed.
     """
     if battle.status not in Battle.ACTIVE_STATUSES:
         raise ValueError("Cannot send battle gifts to a battle that is not active.")
@@ -1125,12 +1138,6 @@ def send_battle_artifact(*, sender_user, recipient, battle: Battle, artifact: Ar
     if not artifact.is_active:
         raise ValueError("This artifact is not available.")
 
-    already_has = ChefArtifact.objects.filter(
-        chef=recipient, artifact=artifact, status=ChefArtifact.Status.AVAILABLE
-    ).exists()
-    if already_has:
-        raise ValueError(f"{recipient.name} already has an unused copy of {artifact.name}.")
-
     sender_author = getattr(sender_user, "recipe_author", None)
     if sender_author is None:
         from recipes.models import RecipeAuthor as RA
@@ -1138,12 +1145,15 @@ def send_battle_artifact(*, sender_user, recipient, battle: Battle, artifact: Ar
     if sender_author is None:
         raise ValueError("Sender must have a chef profile to send gifts.")
 
-    cost = artifact.token_cost
+    artifact_cost = artifact.token_cost
+    delivery_fee = artifact_cost  # delivery fee equals the artifact price
+    total_cost = artifact_cost + delivery_fee
+
     with transaction.atomic():
         debit_tokens(
-            sender_author, cost,
+            sender_author, total_cost,
             tx_type=TokenTransaction.TxType.GIFT_SENT,
-            description=f"Battle gift: {artifact.name} → {recipient.name}",
+            description=f"Battle gift: {artifact.name} to {recipient.name} (incl. delivery fee)",
             battle=battle,
         )
         gift = ViewerBattleGift.objects.create(
@@ -1151,13 +1161,16 @@ def send_battle_artifact(*, sender_user, recipient, battle: Battle, artifact: Ar
             recipient=recipient,
             sender=sender_user,
             artifact=artifact,
-            tokens_spent=cost,
+            tokens_spent=total_cost,
+            delivery_fee=delivery_fee,
         )
-        # Add artifact to chef's inventory so they can use it in combat.
-        ChefArtifact.objects.update_or_create(
+        # Battle-locked artifact: locked_to_battle ensures it expires unused after the battle.
+        ChefArtifact.objects.create(
             chef=recipient,
             artifact=artifact,
-            defaults={"source": ChefArtifact.Source.GIFTED, "status": ChefArtifact.Status.AVAILABLE},
+            source=ChefArtifact.Source.BATTLE_GIFT,
+            status=ChefArtifact.Status.AVAILABLE,
+            locked_to_battle=battle,
         )
     return gift
 
