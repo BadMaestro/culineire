@@ -38,8 +38,38 @@ actions:
       provider service exists. The JSON response and the audit payload both
       carry provider_side_terminated: false, and the UI prompt states it.
     side_effects: "OPERATOR_ACTION audit; chef notified"
+  suspend_chef:
+    who: "owner only"
+    reason: "always required"
+    reuses: "ChefBattleProfile.is_suspended/suspended_at/suspension_reason"
+    side_effects: "OPERATOR_ACTION audit (battle=None) + LedgerEvent(ACCOUNT_SUSPENDED); chef notified"
+    idempotency: "rejects if already suspended (409)"
+    console_field: "chef_slug (str), reason (str)"
+  unsuspend_chef:
+    who: "owner only"
+    reason: "not required"
+    side_effects: "OPERATOR_ACTION audit (battle=None); chef notified"
+    idempotency: "rejects if not suspended (409)"
+    console_field: "chef_slug (str)"
+  set_fraud_flag:
+    who: "owner only"
+    reason: "always required (note)"
+    reuses: "ChefBattleProfile.fraud_flag/fraud_flag_note"
+    side_effects: "OPERATOR_ACTION audit (battle=None) + LedgerEvent(FRAUD_FLAG)"
+    idempotency: "rejects if already flagged (409)"
+    console_field: "chef_slug (str), reason (str)"
+  clear_fraud_flag:
+    who: "owner only"
+    reason: "not required"
+    side_effects: "OPERATOR_ACTION audit (battle=None)"
+    idempotency: "rejects if flag not set (409)"
+    console_field: "chef_slug (str)"
   approve_cooking_phase: "already reachable via master_action force_status ingredient_penalty->cooking (P03), which calls the owning service"
   emergency_stream_path: "operator_emergency_stop (P03) terminates all live sessions of a battle per DG-03"
+
+read_models_updated_2026_07_10:
+  cooking_queue_entries: "now include age_verified/is_suspended/fraud_flag from ChefBattleProfile (safety checklist badges)"
+  flagged_chefs: "new section: enrolled chefs with is_suspended=True OR fraud_flag=True (up to 20, ordered by suspended_at)"
 
 privacy:
   - "moderation_note / moderator_note / operator audit payloads never appear in public endpoints (test: moderation_notes_never_public)"

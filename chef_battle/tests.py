@@ -3089,6 +3089,119 @@ class ArenaMasterModerationTests(TestCase):
         if battle_page.status_code == 200:
             self.assertNotIn("secret-mod-note-xyz", battle_page.content.decode())
 
+    # ── P05 chef safety: suspend / unsuspend ──
+    def test_owner_suspends_chef_and_audit_created(self):
+        resp = self._post(self.owner_user, action="suspend_chef",
+                          chef_slug="p5-chef-a", reason="test suspension")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertTrue(data["ok"])
+        self.assertTrue(data["chef"]["is_suspended"])
+        profile = ChefBattleProfile.objects.get(author=self.chef_a)
+        self.assertTrue(profile.is_suspended)
+        self.assertEqual(profile.suspension_reason, "test suspension")
+        event = BattleEvent.objects.filter(
+            event_type=BattleEvent.EventType.OPERATOR_ACTION,
+            payload_json__action="suspend_chef",
+        ).first()
+        self.assertIsNotNone(event)
+        self.assertEqual(event.payload_json["chef_slug"], "p5-chef-a")
+
+    def test_suspend_requires_reason(self):
+        resp = self._post(self.owner_user, action="suspend_chef",
+                          chef_slug="p5-chef-a", reason="")
+        self.assertEqual(resp.status_code, 409)
+        profile = ChefBattleProfile.objects.get(author=self.chef_a)
+        self.assertFalse(profile.is_suspended)
+
+    def test_suspend_already_suspended_returns_409(self):
+        ChefBattleProfile.objects.filter(author=self.chef_a).update(
+            is_suspended=True, suspension_reason="first")
+        resp = self._post(self.owner_user, action="suspend_chef",
+                          chef_slug="p5-chef-a", reason="second")
+        self.assertEqual(resp.status_code, 409)
+
+    def test_owner_unsuspends_chef(self):
+        ChefBattleProfile.objects.filter(author=self.chef_a).update(
+            is_suspended=True, suspension_reason="reason")
+        resp = self._post(self.owner_user, action="unsuspend_chef",
+                          chef_slug="p5-chef-a")
+        self.assertEqual(resp.status_code, 200)
+        profile = ChefBattleProfile.objects.get(author=self.chef_a)
+        self.assertFalse(profile.is_suspended)
+
+    def test_unsuspend_not_suspended_returns_409(self):
+        resp = self._post(self.owner_user, action="unsuspend_chef",
+                          chef_slug="p5-chef-a")
+        self.assertEqual(resp.status_code, 409)
+
+    def test_operator_cannot_suspend(self):
+        resp = self._post(self.operator_user, action="suspend_chef",
+                          chef_slug="p5-chef-a", reason="nope")
+        self.assertEqual(resp.status_code, 403)
+
+    # ── P05 chef safety: fraud flag ──
+    def test_owner_sets_fraud_flag_and_audit_created(self):
+        resp = self._post(self.owner_user, action="set_fraud_flag",
+                          chef_slug="p5-chef-a", reason="suspicious pattern")
+        self.assertEqual(resp.status_code, 200)
+        profile = ChefBattleProfile.objects.get(author=self.chef_a)
+        self.assertTrue(profile.fraud_flag)
+        self.assertEqual(profile.fraud_flag_note, "suspicious pattern")
+        event = BattleEvent.objects.filter(
+            event_type=BattleEvent.EventType.OPERATOR_ACTION,
+            payload_json__action="set_fraud_flag",
+        ).first()
+        self.assertIsNotNone(event)
+
+    def test_fraud_flag_requires_note(self):
+        resp = self._post(self.owner_user, action="set_fraud_flag",
+                          chef_slug="p5-chef-a", reason="")
+        self.assertEqual(resp.status_code, 409)
+
+    def test_fraud_flag_already_set_returns_409(self):
+        ChefBattleProfile.objects.filter(author=self.chef_a).update(fraud_flag=True)
+        resp = self._post(self.owner_user, action="set_fraud_flag",
+                          chef_slug="p5-chef-a", reason="double")
+        self.assertEqual(resp.status_code, 409)
+
+    def test_owner_clears_fraud_flag(self):
+        ChefBattleProfile.objects.filter(author=self.chef_a).update(
+            fraud_flag=True, fraud_flag_note="old note")
+        resp = self._post(self.owner_user, action="clear_fraud_flag",
+                          chef_slug="p5-chef-a")
+        self.assertEqual(resp.status_code, 200)
+        profile = ChefBattleProfile.objects.get(author=self.chef_a)
+        self.assertFalse(profile.fraud_flag)
+
+    def test_clear_fraud_flag_not_set_returns_409(self):
+        resp = self._post(self.owner_user, action="clear_fraud_flag",
+                          chef_slug="p5-chef-a")
+        self.assertEqual(resp.status_code, 409)
+
+    def test_safety_checklist_in_moderation_detail(self):
+        """Cooking queue entries expose age_verified/is_suspended/fraud_flag."""
+        ChefBattleProfile.objects.filter(author=self.chef_a).update(
+            age_verified=False, is_suspended=False, fraud_flag=True)
+        self.client.force_login(self.owner_user)
+        data = self.client.post(self.state_url).json()
+        entries = data["moderation"]["detail"]["cooking_queue"][0]["entries"]
+        entry_data = next(e for e in entries if e["author_slug"] == "p5-chef-a")
+        self.assertFalse(entry_data["age_verified"])
+        self.assertFalse(entry_data["is_suspended"])
+        self.assertTrue(entry_data["fraud_flag"])
+
+    def test_flagged_chefs_in_moderation_detail(self):
+        """Suspended and fraud-flagged enrolled chefs appear in flagged_chefs list."""
+        ChefBattleProfile.objects.filter(author=self.chef_a).update(
+            is_suspended=True, suspension_reason="test")
+        self.client.force_login(self.owner_user)
+        data = self.client.post(self.state_url).json()
+        flagged = data["moderation"]["detail"]["flagged_chefs"]
+        slugs = [c["chef_slug"] for c in flagged]
+        self.assertIn("p5-chef-a", slugs)
+        self.assertNotIn("p5-chef-b", slugs)
+
 
 # ── AMC P06 — voting integrity & audience analytics ──────────────────────────
 

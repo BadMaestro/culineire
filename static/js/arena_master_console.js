@@ -428,12 +428,41 @@
       .catch(function (err) { showActionError(err.message); btn.disabled = false; });
   }
 
+  /* ── P05: chef safety actions (owner) — suspend/unsuspend/fraud flag ── */
+
+  function handleSafetyAction(btn) {
+    var action = btn.getAttribute('data-amc-safety');
+    var slug = btn.getAttribute('data-chef');
+    var fields = { action: action, chef_slug: slug };
+    var reasonRequired = btn.getAttribute('data-reason-required') === '1';
+    if (reasonRequired) {
+      var prompt_text = action === 'suspend_chef'
+        ? 'Suspend chef "' + slug + '". They will be notified. Enter reason (required):'
+        : 'Set fraud flag on chef "' + slug + '". Enter note (required):';
+      var reason = window.prompt(prompt_text);
+      if (!reason) return;
+      fields.reason = reason;
+    } else {
+      var confirm_text = action === 'unsuspend_chef'
+        ? 'Lift suspension for chef "' + slug + '"?'
+        : 'Clear fraud flag for chef "' + slug + '"?';
+      if (!window.confirm(confirm_text)) return;
+    }
+    btn.disabled = true;
+    showActionError('');
+    postAction(fields)
+      .then(function () { window.location.reload(); })
+      .catch(function (err) { showActionError(err.message); btn.disabled = false; });
+  }
+
   if (window.AMC_OPERATOR && window.AMC_OPERATOR.isOwner) {
     document.addEventListener('click', function (e) {
       var btn = e.target.closest('[data-amc-mod]');
       if (btn && !btn.disabled) handleModAction(btn);
       var pbtn = e.target.closest('[data-amc-payout]');
       if (pbtn && !pbtn.disabled) handlePayout(pbtn);
+      var sbtn = e.target.closest('[data-amc-safety]');
+      if (sbtn && !sbtn.disabled) handleSafetyAction(sbtn);
     });
   }
 

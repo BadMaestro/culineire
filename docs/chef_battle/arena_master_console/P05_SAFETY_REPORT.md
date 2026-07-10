@@ -62,6 +62,29 @@ PRESENTATION begins only after both confirmed photos are owner-approved. Malform
 action identifiers return JSON 400, and paused cancellation clears all pause
 fields. Verification: 36 P03/P05 plus 20 timer/voting/state tests passed.
 
+## Update 2026-07-10 — Suspend/fraud actions + safety checklist
+
+Added to P05 scope (all owner-only via `master_action`):
+
+- `suspend_chef` / `unsuspend_chef` — set `ChefBattleProfile.is_suspended`; reason
+  required for suspend; creates `LedgerEvent(ACCOUNT_SUSPENDED)`; chef notified.
+- `set_fraud_flag` / `clear_fraud_flag` — set `ChefBattleProfile.fraud_flag`; note
+  required for set; creates `LedgerEvent(FRAUD_FLAG)`.
+- `get_master_moderation_detail()` enriched: cooking-queue entries now carry
+  `age_verified`, `is_suspended`, `fraud_flag` from `ChefBattleProfile`; new
+  `flagged_chefs` list returns enrolled chefs with `is_suspended=True` OR
+  `fraud_flag=True`.
+- Template: cooking-queue entries show age/suspended/fraud badges inline; new
+  "Chef safety flags" subsection with Suspend/Unsuspend/Flag fraud/Clear fraud
+  buttons (owner only); `data-reason-required="1"` wires the JS prompt.
+- `arena_master_console.js`: new `handleSafetyAction()` registered on
+  `[data-amc-safety]` click delegation.
+
+**Tests added** (in `ArenaMasterModerationTests`): 10 new tests — suspend with
+audit, suspend requires reason, already-suspended 409, unsuspend, unsuspend-not-
+suspended 409, operator-cannot-suspend 403, set-fraud-flag, fraud-requires-note,
+already-flagged 409, clear-flag, safety-checklist-in-detail, flagged-chefs-list.
+
 ## Deployment
 
 No migrations. collectstatic required (console JS/CSS).

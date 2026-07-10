@@ -259,9 +259,15 @@
           <li><a class="amc-link" href="{{ q.url }}">#{{ q.battle_id }}</a> {{ q.theme|truncatechars:30 }}
             {% for e in q.entries %}
             <br><span class="amc-panel__hint">{{ e.author }}: {{ e.moderation_status_display }}{% if not e.has_cooked_photo %} · no photo{% endif %}{% if e.is_late %} · late{% endif %}</span>
+            <span class="amc-panel__hint">
+              {% if e.age_verified == False %}<span class="amc-badge amc-badge--danger">age!</span>{% endif %}
+              {% if e.is_suspended %}<span class="amc-badge amc-badge--danger">suspended</span>{% endif %}
+              {% if e.fraud_flag %}<span class="amc-badge amc-badge--danger">fraud</span>{% endif %}
+            </span>
             {% if operator_is_owner and e.has_cooked_photo %}
             <button type="button" class="amc-btn amc-btn--mini" data-amc-mod="entry" data-entry="{{ e.entry_id }}" data-status="approved">Approve</button>
-            <button type="button" class="amc-btn amc-btn--mini amc-btn--danger" data-amc-mod="entry" data-entry="{{ e.entry_id }}" data-status="flagged">Flag</button>
+            <button type="button" class="amc-btn amc-btn--mini amc-btn--warn" data-amc-mod="entry" data-entry="{{ e.entry_id }}" data-status="needs_changes" data-reason-required="1">Request changes</button>
+            <button type="button" class="amc-btn amc-btn--mini amc-btn--danger" data-amc-mod="entry" data-entry="{{ e.entry_id }}" data-status="flagged" data-reason-required="1">Flag</button>
             {% endif %}
             {% endfor %}
           </li>
@@ -297,6 +303,32 @@
           </li>
           {% empty %}
           <li><span class="amc-empty">No active streams</span></li>
+          {% endfor %}
+        </ul>
+
+        <h4 class="amc-panel__subtitle">Chef safety flags</h4>
+        <ul class="amc-panel__list" id="amc-mod-flagged-list">
+          {% for c in master_state.moderation.detail.flagged_chefs %}
+          <li>
+            <a class="amc-link" href="{% url 'chef_battle:chef_profile' c.chef_slug %}">{{ c.chef_name }}</a>
+            {% if c.is_suspended %}<span class="amc-badge amc-badge--danger">suspended</span> <span class="amc-panel__hint">{{ c.suspension_reason|truncatechars:60 }}</span>{% endif %}
+            {% if c.fraud_flag %}<span class="amc-badge amc-badge--danger">fraud</span> <span class="amc-panel__hint">{{ c.fraud_flag_note|truncatechars:60 }}</span>{% endif %}
+            {% if not c.age_verified %}<span class="amc-badge amc-badge--warn">age unverified</span>{% endif %}
+            {% if operator_is_owner %}
+            {% if c.is_suspended %}
+            <button type="button" class="amc-btn amc-btn--mini" data-amc-safety="unsuspend_chef" data-chef="{{ c.chef_slug }}">Unsuspend</button>
+            {% else %}
+            <button type="button" class="amc-btn amc-btn--mini amc-btn--danger" data-amc-safety="suspend_chef" data-chef="{{ c.chef_slug }}" data-reason-required="1">Suspend</button>
+            {% endif %}
+            {% if c.fraud_flag %}
+            <button type="button" class="amc-btn amc-btn--mini" data-amc-safety="clear_fraud_flag" data-chef="{{ c.chef_slug }}">Clear fraud</button>
+            {% else %}
+            <button type="button" class="amc-btn amc-btn--mini amc-btn--danger" data-amc-safety="set_fraud_flag" data-chef="{{ c.chef_slug }}" data-reason-required="1">Flag fraud</button>
+            {% endif %}
+            {% endif %}
+          </li>
+          {% empty %}
+          <li><span class="amc-empty">No suspended or fraud-flagged chefs</span></li>
           {% endfor %}
         </ul>
 

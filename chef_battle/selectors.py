@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from django.db import models
 from django.db.models import Case, Count, IntegerField, QuerySet, When
 from django.utils import timezone
 
@@ -597,8 +598,8 @@ def get_master_monitor(battles=None) -> dict:
 # ═════════════════════════════════════════════════════════════════════════════
 
 def get_master_moderation_detail() -> dict:
-    """Cooking queue, pending content reports, and live-stream safety state
-    for the console moderation panel. Pure reads."""
+    """Cooking queue, pending content reports, live-stream safety state, and
+    chef safety checklist for the console moderation panel (P05). Pure reads."""
     from .models import (
         BattleEntry, ContentReport, LiveBattleAgreement, LiveStreamSession,
     )
@@ -611,6 +612,18 @@ def get_master_moderation_detail() -> dict:
         .prefetch_related("entries__author")
         .order_by("updated_at")[:10]
     )
+
+    # Prefetch ChefBattleProfile safety fields for all participating authors.
+    all_author_ids = set()
+    for b in queue_battles:
+        for e in b.entries.all():
+            all_author_ids.add(e.author_id)
+    profiles_map = {
+        p.author_id: p
+        for p in ChefBattleProfile.objects.filter(author_id__in=all_author_ids)
+        .only("author_id", "age_verified", "is_suspended", "fraud_flag")
+    } if all_author_ids else {}
+
     cooking_queue = []
     for b in queue_battles:
         cooking_queue.append({
@@ -628,6 +641,10 @@ def get_master_moderation_detail() -> dict:
                     "real_photo_confirmed": e.real_photo_confirmed,
                     "is_late": e.is_late,
                     "reviewed_at": e.reviewed_at.isoformat() if e.reviewed_at else None,
+                    # P05 safety checklist
+                    "age_verified": profiles_map[e.author_id].age_verified if e.author_id in profiles_map else None,
+                    "is_suspended": profiles_map[e.author_id].is_suspended if e.author_id in profiles_map else None,
+                    "fraud_flag": profiles_map[e.author_id].fraud_flag if e.author_id in profiles_map else None,
                 }
                 for e in b.entries.all()
             ],
@@ -678,10 +695,29 @@ def get_master_moderation_detail() -> dict:
             } if broadcast else None,
         })
 
+    # P05: chefs needing safety attention (suspended or fraud-flagged).
+    flagged_chefs = [
+        {
+            "chef_name": p.author.name,
+            "chef_slug": p.author.slug,
+            "is_suspended": p.is_suspended,
+            "suspended_at": p.suspended_at.isoformat() if p.suspended_at else None,
+            "suspension_reason": p.suspension_reason,
+            "fraud_flag": p.fraud_flag,
+            "fraud_flag_note": p.fraud_flag_note,
+            "age_verified": p.age_verified,
+        }
+        for p in ChefBattleProfile.objects.select_related("author")
+        .filter(enrolled_at__isnull=False)
+        .filter(models.Q(is_suspended=True) | models.Q(fraud_flag=True))
+        .order_by("-suspended_at", "author__name")[:20]
+    ]
+
     return {
         "cooking_queue": cooking_queue,
         "content_reports": reports,
         "streams": streams,
+        "flagged_chefs": flagged_chefs,
     }
 
 

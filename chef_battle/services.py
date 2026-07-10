@@ -2524,6 +2524,138 @@ def operator_end_stream(*, session_id, operator_author, reason, correlation_id="
 
 
 # ═════════════════════════════════════════════════════════════════════════════
+# P05 — Moderation and safety console actions (DG-03 / DG-05).
+# Suspension, fraud-flag, and their reversals are owner-only writes that
+# reuse the existing ChefBattleProfile fields and LedgerEvent audit trail.
+# Every adverse action requires a non-empty reason/note and produces a
+# private BattleEvent OPERATOR_ACTION audit entry (battle=None).
+# ═════════════════════════════════════════════════════════════════════════════
+
+
+def _get_profile_by_slug(chef_slug: str):
+    """Resolve a RecipeAuthor slug to its ChefBattleProfile or raise OperatorActionError."""
+    from recipes.models import RecipeAuthor
+    try:
+        author = RecipeAuthor.objects.select_related("battle_profile").get(slug=chef_slug)
+    except RecipeAuthor.DoesNotExist:
+        raise OperatorActionError(f"Chef '{chef_slug}' not found.")
+    profile = getattr(author, "battle_profile", None)
+    if profile is None:
+        raise OperatorActionError(f"Chef '{chef_slug}' has no battle profile.")
+    return author, profile
+
+
+def operator_suspend_chef(*, chef_slug, operator_author, reason, correlation_id=""):
+    """Owner-only: suspend a chef (sets is_suspended=True). Requires a reason.
+    Creates a LedgerEvent(ACCOUNT_SUSPENDED) audit entry consistent with the
+    Django admin suspend_profiles action."""
+    from .models import LedgerEvent
+    _require_owner(operator_author)
+    if not (reason or "").strip():
+        raise OperatorActionError("Suspending a chef requires a reason.")
+    with transaction.atomic():
+        author, profile = _get_profile_by_slug(chef_slug)
+        if profile.is_suspended:
+            raise OperatorActionError(f"Chef '{chef_slug}' is already suspended.")
+        now = timezone.now()
+        profile.is_suspended = True
+        profile.suspended_at = now
+        profile.suspension_reason = reason[:200]
+        profile.save(update_fields=["is_suspended", "suspended_at", "suspension_reason"])
+        LedgerEvent.objects.create(
+            event_type=LedgerEvent.EventType.ACCOUNT_SUSPENDED,
+            actor=author,
+            payload={"suspended_by": operator_author.slug, "reason": reason[:300]},
+        )
+        _operator_event(
+            battle=None, operator_author=operator_author,
+            action="suspend_chef", before="active", after="suspended",
+            reason=reason, correlation_id=correlation_id,
+            extra={"chef_slug": chef_slug},
+        )
+        _notify_chef(
+            operator_author, author,
+            subject="Your chef account has been suspended",
+            body=(
+                f"Your Chef's Battle account has been suspended by the arena operator. "
+                f"Reason: {reason}. Please contact support if you believe this is an error."
+            ),
+        )
+    return profile
+
+
+def operator_unsuspend_chef(*, chef_slug, operator_author, correlation_id=""):
+    """Owner-only: lift a chef suspension (sets is_suspended=False)."""
+    _require_owner(operator_author)
+    with transaction.atomic():
+        author, profile = _get_profile_by_slug(chef_slug)
+        if not profile.is_suspended:
+            raise OperatorActionError(f"Chef '{chef_slug}' is not suspended.")
+        profile.is_suspended = False
+        profile.suspended_at = None
+        profile.suspension_reason = ""
+        profile.save(update_fields=["is_suspended", "suspended_at", "suspension_reason"])
+        _operator_event(
+            battle=None, operator_author=operator_author,
+            action="unsuspend_chef", before="suspended", after="active",
+            reason="", correlation_id=correlation_id,
+            extra={"chef_slug": chef_slug},
+        )
+        _notify_chef(
+            operator_author, author,
+            subject="Your chef account suspension has been lifted",
+            body="Your Chef's Battle account suspension has been lifted by the arena operator.",
+        )
+    return profile
+
+
+def operator_set_fraud_flag(*, chef_slug, operator_author, note, correlation_id=""):
+    """Owner-only: set fraud_flag=True on a chef profile. Requires a note."""
+    from .models import LedgerEvent
+    _require_owner(operator_author)
+    if not (note or "").strip():
+        raise OperatorActionError("Setting the fraud flag requires a note.")
+    with transaction.atomic():
+        author, profile = _get_profile_by_slug(chef_slug)
+        if profile.fraud_flag:
+            raise OperatorActionError(f"Chef '{chef_slug}' is already fraud-flagged.")
+        profile.fraud_flag = True
+        profile.fraud_flag_note = note[:200]
+        profile.save(update_fields=["fraud_flag", "fraud_flag_note"])
+        LedgerEvent.objects.create(
+            event_type=LedgerEvent.EventType.FRAUD_FLAG,
+            actor=author,
+            payload={"flagged_by": operator_author.slug, "note": note[:300]},
+        )
+        _operator_event(
+            battle=None, operator_author=operator_author,
+            action="set_fraud_flag", before="unflagged", after="fraud_flagged",
+            reason=note, correlation_id=correlation_id,
+            extra={"chef_slug": chef_slug},
+        )
+    return profile
+
+
+def operator_clear_fraud_flag(*, chef_slug, operator_author, correlation_id=""):
+    """Owner-only: clear fraud_flag on a chef profile."""
+    _require_owner(operator_author)
+    with transaction.atomic():
+        author, profile = _get_profile_by_slug(chef_slug)
+        if not profile.fraud_flag:
+            raise OperatorActionError(f"Chef '{chef_slug}' has no fraud flag set.")
+        profile.fraud_flag = False
+        profile.fraud_flag_note = ""
+        profile.save(update_fields=["fraud_flag", "fraud_flag_note"])
+        _operator_event(
+            battle=None, operator_author=operator_author,
+            action="clear_fraud_flag", before="fraud_flagged", after="unflagged",
+            reason="", correlation_id=correlation_id,
+            extra={"chef_slug": chef_slug},
+        )
+    return profile
+
+
+# ═════════════════════════════════════════════════════════════════════════════
 # P08 — Rewards governance (DG-06).
 # Battle reports: the ONE write available to every console operator.
 # Payout approve/reject: owner-only wrappers over the existing owning

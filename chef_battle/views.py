@@ -2437,9 +2437,10 @@ def master_action(request):
 
     from .services import (
         OperatorActionError, operator_broadcast, operator_cancel,
-        operator_emergency_stop, operator_end_stream, operator_force_status,
-        operator_moderate_entry, operator_resume, operator_review_payout,
-        operator_review_report, operator_submit_battle_report,
+        operator_clear_fraud_flag, operator_emergency_stop, operator_end_stream,
+        operator_force_status, operator_moderate_entry, operator_resume,
+        operator_review_payout, operator_review_report, operator_set_fraud_flag,
+        operator_submit_battle_report, operator_suspend_chef, operator_unsuspend_chef,
         record_rejected_operator_action,
     )
 
@@ -2575,6 +2576,50 @@ def master_action(request):
             return JsonResponse({"ok": True, "action": action,
                                  "correlation_id": correlation_id,
                                  "payout": {"id": payout.pk, "status": payout.status}})
+        elif action == "suspend_chef":
+            chef_slug = request.POST.get("chef_slug", "")
+            if not chef_slug:
+                return _reject("chef_slug is required.", status=400)
+            profile = operator_suspend_chef(
+                chef_slug=chef_slug, operator_author=author,
+                reason=reason, correlation_id=correlation_id,
+            )
+            return JsonResponse({"ok": True, "action": action,
+                                 "correlation_id": correlation_id,
+                                 "chef": {"slug": chef_slug, "is_suspended": profile.is_suspended}})
+        elif action == "unsuspend_chef":
+            chef_slug = request.POST.get("chef_slug", "")
+            if not chef_slug:
+                return _reject("chef_slug is required.", status=400)
+            profile = operator_unsuspend_chef(
+                chef_slug=chef_slug, operator_author=author,
+                correlation_id=correlation_id,
+            )
+            return JsonResponse({"ok": True, "action": action,
+                                 "correlation_id": correlation_id,
+                                 "chef": {"slug": chef_slug, "is_suspended": profile.is_suspended}})
+        elif action == "set_fraud_flag":
+            chef_slug = request.POST.get("chef_slug", "")
+            if not chef_slug:
+                return _reject("chef_slug is required.", status=400)
+            profile = operator_set_fraud_flag(
+                chef_slug=chef_slug, operator_author=author,
+                note=reason, correlation_id=correlation_id,
+            )
+            return JsonResponse({"ok": True, "action": action,
+                                 "correlation_id": correlation_id,
+                                 "chef": {"slug": chef_slug, "fraud_flag": profile.fraud_flag}})
+        elif action == "clear_fraud_flag":
+            chef_slug = request.POST.get("chef_slug", "")
+            if not chef_slug:
+                return _reject("chef_slug is required.", status=400)
+            profile = operator_clear_fraud_flag(
+                chef_slug=chef_slug, operator_author=author,
+                correlation_id=correlation_id,
+            )
+            return JsonResponse({"ok": True, "action": action,
+                                 "correlation_id": correlation_id,
+                                 "chef": {"slug": chef_slug, "fraud_flag": profile.fraud_flag}})
         elif action == "start_emulation":
             from .emulation import start_emulation
             battle = start_emulation(operator_author=author,
