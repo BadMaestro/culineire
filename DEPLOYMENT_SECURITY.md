@@ -21,6 +21,7 @@ DJANGO_CSRF_COOKIE_SECURE=False
 DJANGO_SECURE_PROXY_SSL_HEADER=False
 DJANGO_LOG_LEVEL=DEBUG
 DJANGO_LOG_DIR=logs
+MONITORING_BLOCK_SUSPICIOUS_PROBES=True
 ```
 
 ## Production example
@@ -47,6 +48,7 @@ SITE_SCHEME=https
 DJANGO_STATIC_ROOT=/srv/culineire/shared/staticfiles
 DJANGO_MEDIA_ROOT=/srv/culineire/shared/media
 DATABASE_URL=postgresql://culineire:replace-password@127.0.0.1:5432/culineire
+MONITORING_BLOCK_SUSPICIOUS_PROBES=True
 ```
 
 `DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS` and `DJANGO_SECURE_HSTS_PRELOAD` should only be enabled after HTTPS is confirmed
@@ -63,6 +65,7 @@ for the main domain, `www`, and every covered subdomain. Do not enable them auto
 - Run `collectstatic` into `DJANGO_STATIC_ROOT`; never serve raw source directories as production static roots.
 - Store user uploads under `DJANGO_MEDIA_ROOT` and back them up separately from the database.
 - Prefer PostgreSQL for public production; if SQLite is used temporarily, schedule file-level backups and avoid multi-writer deployments.
+- Install and enable ModSecurity with the project rules in `deploy/modsecurity/` before applying the final HTTPS NGINX config.
 - Confirm secure cookies are enabled in production.
 - Verify admin is reachable only over HTTPS.
 - Run Django deployment checks before switching traffic.

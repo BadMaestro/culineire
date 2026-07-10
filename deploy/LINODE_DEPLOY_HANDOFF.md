@@ -11,6 +11,7 @@ The full command-by-command server guide is in `deploy/DEPLOY_UBUNTU_NGINX_UNIT.
 - NGINX Unit config is ready: `deploy/unit.culineire.json`.
 - NGINX bootstrap config is ready for the first certificate issue: `deploy/nginx.culineire.bootstrap.conf`.
 - Final NGINX HTTPS reverse-proxy config is ready: `deploy/nginx.culineire.conf`.
+- ModSecurity WAF rules are ready: `deploy/modsecurity/culineire-main.conf` and `deploy/modsecurity/culineire-probes.conf`.
 - Production environment template is ready: `deploy/production.env.example`.
 - Public technical URLs are implemented: `/about/`, `/privacy/`, `/robots.txt`, `/sitemap.xml`.
 - Last local preflight before this handoff: 62 Django tests passed, `manage.py check` passed, no pending migrations.
@@ -64,6 +65,7 @@ Use it for SSH and DNS only if it is still the active public IP in Linode Cloud 
    - load the Unit config;
    - apply NGINX bootstrap config;
    - issue Let's Encrypt certificate;
+   - install and enable ModSecurity with the project rules;
    - switch to final NGINX HTTPS config.
 3. Create the first owner account with `createsuperuser`.
 4. Log into the site and verify signup, email activation, recipes, articles, messages, moderation and monitoring.
@@ -89,6 +91,7 @@ DJANGO_SECURE_PROXY_SSL_HEADER=True
 SITE_DOMAIN=culineire.ie
 SITE_SCHEME=https
 DATABASE_URL=postgresql://culineire:<real-password>@127.0.0.1:5432/culineire
+MONITORING_BLOCK_SUSPICIOUS_PROBES=True
 ```
 
 Keep `DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS` and `DJANGO_SECURE_HSTS_PRELOAD` disabled for the first launch. Enable them only after HTTPS is confirmed for every relevant subdomain.
@@ -101,6 +104,7 @@ Keep `DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS` and `DJANGO_SECURE_HSTS_PRELOAD` di
 - `/static/css/base.css` returns 200.
 - `/robots.txt` returns 200.
 - `/sitemap.xml` returns XML.
+- `/credentials.json` and `/stripe-credentials.json` return 404 and appear in the ModSecurity audit log.
 - Uploads under `/media/` work after creating/editing content.
 - Signup activation email is delivered.
 - Moderator tools work for GreenBear.

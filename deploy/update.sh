@@ -14,6 +14,8 @@ UNIT_CONFIG=$APP/deploy/unit.culineire.json
 SHARED_DIR=/srv/culineire/shared
 APP_USER=deploy
 APP_GROUP=deploy
+NGINX_MODSEC_DIR=/etc/nginx/modsec
+MODSEC_ENGINE_CONF=/etc/modsecurity/modsecurity.conf
 
 DEPLOY_BRANCH=main
 
@@ -36,6 +38,10 @@ echo ""
 # --- 1. Pull latest code -----------------------------------------------------
 info "Pulling latest code from GitHub..."
 cd "$APP"
+
+if [ ! -w "$APP/.git" ] || [ ! -w "$APP/.git/objects" ]; then
+    fail "Git checkout is not writable by $(whoami). Fix ownership first: sudo chown -R $APP_USER:$APP_GROUP $APP"
+fi
 
 if ! git diff --quiet || ! git diff --cached --quiet; then
     fail "Working tree has uncommitted changes — aborting deploy. Run 'git status' to inspect."
@@ -112,6 +118,41 @@ if grep -q '"success"' /tmp/culineire-unit-reconfigure.json; then
 else
     cat /tmp/culineire-unit-reconfigure.json
     fail "NGINX Unit configuration failed - check: sudo tail -n 100 /var/log/unit.log"
+fi
+
+# --- 8. Sync ModSecurity rules when WAF is installed -------------------------
+if [ -d "$NGINX_MODSEC_DIR" ]; then
+    info "Updating ModSecurity rules..."
+    if [ ! -f "$MODSEC_ENGINE_CONF" ]; then
+        sudo mkdir -p "$(dirname "$MODSEC_ENGINE_CONF")"
+        if [ -f /etc/modsecurity/modsecurity.conf-recommended ]; then
+            sudo cp /etc/modsecurity/modsecurity.conf-recommended "$MODSEC_ENGINE_CONF"
+        elif [ -f /etc/modsecurity.d/modsecurity.conf-recommended ]; then
+            sudo cp /etc/modsecurity.d/modsecurity.conf-recommended "$MODSEC_ENGINE_CONF"
+        elif [ -f /usr/share/doc/libmodsecurity3/examples/modsecurity.conf-recommended ]; then
+            sudo cp /usr/share/doc/libmodsecurity3/examples/modsecurity.conf-recommended "$MODSEC_ENGINE_CONF"
+        else
+            printf '%s\n' \
+                'SecRuleEngine On' \
+                'SecRequestBodyAccess On' \
+                'SecResponseBodyAccess Off' \
+                'SecAuditEngine RelevantOnly' \
+                'SecAuditLog /var/log/modsec_audit.log' \
+                'SecAuditLogParts ABIJDEFHZ' \
+                | sudo tee "$MODSEC_ENGINE_CONF" >/dev/null
+        fi
+    fi
+    sudo sed -i -E 's/^[[:space:]]*SecRuleEngine[[:space:]]+.*/SecRuleEngine On/' "$MODSEC_ENGINE_CONF"
+    if ! sudo grep -qE '^[[:space:]]*SecRuleEngine[[:space:]]+' "$MODSEC_ENGINE_CONF"; then
+        printf '%s\n' 'SecRuleEngine On' | sudo tee -a "$MODSEC_ENGINE_CONF" >/dev/null
+    fi
+    sudo cp "$APP/deploy/modsecurity/culineire-main.conf" "$NGINX_MODSEC_DIR/culineire-main.conf"
+    sudo cp "$APP/deploy/modsecurity/culineire-probes.conf" "$NGINX_MODSEC_DIR/culineire-probes.conf"
+    sudo nginx -t
+    sudo systemctl reload nginx
+    ok "ModSecurity rules synced and NGINX reloaded"
+else
+    info "ModSecurity directory not present; skipping WAF rule sync"
 fi
 
 # --- 9. Smoke test ------------------------------------------------------------

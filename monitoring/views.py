@@ -17,7 +17,7 @@ from django.http import JsonResponse
 from accounts.views import is_moderator
 
 from .models import PageView, ProfanityWord, SecurityEvent, UserActivity
-from .tracker import BOT_UA_MARKERS, SUSPICIOUS_PATH_MARKERS
+from .tracker import BOT_UA_MARKERS, SUSPICIOUS_PATH_MARKERS, path_contains_marker
 
 DETAIL_PAGE_SIZE = 100
 DETAIL_ROW_LIMIT = 3000
@@ -60,8 +60,7 @@ def _is_technical_path(path: str) -> bool:
 
 
 def _is_suspicious_path(path: str) -> bool:
-    normalized = (path or "").lower()
-    return any(marker in normalized for marker in SUSPICIOUS_PATH_MARKERS)
+    return path_contains_marker(path, SUSPICIOUS_PATH_MARKERS)
 
 
 def _is_protected_path(path: str) -> bool:
@@ -821,4 +820,3 @@ def profanity_words_api(request):
         return HttpResponseForbidden()
     from config.profanity import get_word_list
     return JsonResponse({"words": get_word_list()})
-

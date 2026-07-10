@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.test import Client, RequestFactory, SimpleTestCase, TestCase
+from django.test import Client, RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.utils import timezone
 
 from recipes.models import RecipeAuthor
@@ -69,6 +69,56 @@ class MiddlewareSkipTest(TestCase):
         self.assertEqual(
             SecurityEvent.objects.filter(event_type=SecurityEvent.EventType.SUSPICIOUS_REQUEST).count(), 1
         )
+
+    def test_blocks_credential_probe_before_view(self):
+        called = False
+
+        def get_response(request):
+            nonlocal called
+            called = True
+            return _make_response()
+
+        middleware = MonitoringMiddleware(get_response)
+        request = self.factory.get(
+            "/stripe-credentials.json",
+            HTTP_USER_AGENT="TLM-Audit-Scanner/1.0",
+            REMOTE_ADDR="203.0.113.10",
+        )
+        request.user = type("AnonUser", (), {"is_authenticated": False})()
+        request.session = type("Session", (), {"session_key": None})()
+
+        response = middleware(request)
+
+        self.assertFalse(called)
+        self.assertEqual(response.status_code, 404)
+        event = SecurityEvent.objects.get(event_type=SecurityEvent.EventType.SUSPICIOUS_REQUEST)
+        self.assertEqual(event.severity, SecurityEvent.Severity.CRITICAL)
+        self.assertEqual(event.path, "/stripe-credentials.json")
+        self.assertEqual(event.user_agent, "TLM-Audit-Scanner/1.0")
+        self.assertEqual(PageView.objects.count(), 0)
+
+    @override_settings(MONITORING_BLOCK_SUSPICIOUS_PROBES=False)
+    def test_can_log_suspicious_probe_without_blocking(self):
+        request = self.factory.get("/credentials.json")
+        request.user = type("AnonUser", (), {"is_authenticated": False})()
+        request.session = type("Session", (), {"session_key": None})()
+
+        response = self.middleware(request)
+
+        self.assertEqual(response.status_code, 200)
+        event = SecurityEvent.objects.get(event_type=SecurityEvent.EventType.SUSPICIOUS_REQUEST)
+        self.assertEqual(event.severity, SecurityEvent.Severity.CRITICAL)
+
+    def test_url_encoded_traversal_is_critical_and_blocked(self):
+        request = self.factory.get("/%2e%2e/%2e%2e/etc/passwd")
+        request.user = type("AnonUser", (), {"is_authenticated": False})()
+        request.session = type("Session", (), {"session_key": None})()
+
+        response = self.middleware(request)
+
+        self.assertEqual(response.status_code, 404)
+        event = SecurityEvent.objects.get(event_type=SecurityEvent.EventType.SUSPICIOUS_REQUEST)
+        self.assertEqual(event.severity, SecurityEvent.Severity.CRITICAL)
 
 
 class TrackEventTest(TestCase):
@@ -143,6 +193,18 @@ class RequestKindClassificationTest(SimpleTestCase):
                     _request_kind("Mozilla/5.0", path, user=None),
                     "Bot/Scanner",
                 )
+
+    def test_scanner_user_agent_is_bot_even_on_root(self):
+        self.assertEqual(
+            _request_kind("TLM-Audit-Scanner/1.0", "/", user=None),
+            "Bot/Scanner",
+        )
+
+    def test_url_encoded_private_file_probe_is_scanner(self):
+        self.assertEqual(
+            _request_kind("Mozilla/5.0", "/%63redentials.json", user=None),
+            "Bot/Scanner",
+        )
 
 
 class DashboardPermissionTest(TestCase):
