@@ -110,13 +110,15 @@ else
 fi
 
 info "Loading CulinEire NGINX Unit configuration..."
+UNIT_RECONFIGURE_RESPONSE=$(mktemp)
+trap 'rm -f "$UNIT_RECONFIGURE_RESPONSE"' EXIT
 sudo curl -sS -X PUT --data-binary @"$UNIT_CONFIG" \
     --unix-socket /var/run/control.unit.sock \
-    http://localhost/config/ >/tmp/culineire-unit-reconfigure.json
-if grep -q '"success"' /tmp/culineire-unit-reconfigure.json; then
+    http://localhost/config/ >"$UNIT_RECONFIGURE_RESPONSE"
+if grep -q '"success"' "$UNIT_RECONFIGURE_RESPONSE"; then
     ok "NGINX Unit configuration loaded"
 else
-    cat /tmp/culineire-unit-reconfigure.json
+    cat "$UNIT_RECONFIGURE_RESPONSE"
     fail "NGINX Unit configuration failed - check: sudo tail -n 100 /var/log/unit.log"
 fi
 
