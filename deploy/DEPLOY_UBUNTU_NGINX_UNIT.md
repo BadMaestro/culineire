@@ -92,6 +92,13 @@ Edit every `replace-*` value before continuing.
 
 ## Django Release Commands
 
+If `git fetch` fails with `insufficient permission for adding an object to repository database .git/objects`,
+repair checkout ownership before running the deploy script:
+
+```bash
+sudo chown -R deploy:deploy /srv/culineire/current
+```
+
 ```bash
 cd /srv/culineire/current
 /srv/culineire/venv/bin/python manage.py check --deploy
@@ -140,10 +147,29 @@ Enable ModSecurity before applying the final HTTPS NGINX config. The final confi
 
 ```bash
 sudo mkdir -p /etc/nginx/modsec
+sudo mkdir -p /etc/modsecurity
 if [ ! -f /etc/modsecurity/modsecurity.conf ]; then
-    sudo cp /etc/modsecurity/modsecurity.conf-recommended /etc/modsecurity/modsecurity.conf
+    if [ -f /etc/modsecurity/modsecurity.conf-recommended ]; then
+        sudo cp /etc/modsecurity/modsecurity.conf-recommended /etc/modsecurity/modsecurity.conf
+    elif [ -f /etc/modsecurity.d/modsecurity.conf-recommended ]; then
+        sudo cp /etc/modsecurity.d/modsecurity.conf-recommended /etc/modsecurity/modsecurity.conf
+    elif [ -f /usr/share/doc/libmodsecurity3/examples/modsecurity.conf-recommended ]; then
+        sudo cp /usr/share/doc/libmodsecurity3/examples/modsecurity.conf-recommended /etc/modsecurity/modsecurity.conf
+    else
+        printf '%s\n' \
+            'SecRuleEngine On' \
+            'SecRequestBodyAccess On' \
+            'SecResponseBodyAccess Off' \
+            'SecAuditEngine RelevantOnly' \
+            'SecAuditLog /var/log/modsec_audit.log' \
+            'SecAuditLogParts ABIJDEFHZ' \
+            | sudo tee /etc/modsecurity/modsecurity.conf >/dev/null
+    fi
 fi
-sudo sed -i 's/SecRuleEngine DetectionOnly/SecRuleEngine On/' /etc/modsecurity/modsecurity.conf
+sudo sed -i -E 's/^[[:space:]]*SecRuleEngine[[:space:]]+.*/SecRuleEngine On/' /etc/modsecurity/modsecurity.conf
+if ! sudo grep -qE '^[[:space:]]*SecRuleEngine[[:space:]]+' /etc/modsecurity/modsecurity.conf; then
+    printf '%s\n' 'SecRuleEngine On' | sudo tee -a /etc/modsecurity/modsecurity.conf >/dev/null
+fi
 sudo cp /srv/culineire/current/deploy/modsecurity/culineire-main.conf /etc/nginx/modsec/culineire-main.conf
 sudo cp /srv/culineire/current/deploy/modsecurity/culineire-probes.conf /etc/nginx/modsec/culineire-probes.conf
 ```
