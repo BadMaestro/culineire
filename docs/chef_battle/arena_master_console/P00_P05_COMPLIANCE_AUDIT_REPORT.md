@@ -98,8 +98,13 @@ version verification, and explicit `Unavailable` states until each signal exists
 
 ## Cross-phase engineering gaps
 
-- P02–P05 retain per-battle queries. The current budget accepts roughly four
-  additional queries per battle, contrary to P02's “avoid N+1” constraint.
+- P02–P05 retain per-battle queries (~7/battle, test-enforced bound 50). This is
+  contrary to P02's “avoid N+1” constraint but ACCEPTED (`2026-07-10`) as a
+  documented deviation: the endpoint is operator-only (`arena_console_guard`),
+  polled every 20 s by a couple of superusers, active battles are typically a
+  handful, and `test_master_state_query_budget` prevents silent growth. A
+  battle-count-independent bulk-load remains available if concurrency grows beyond
+  ~3 battles. Documented in P02_QUERY_REPORT.md "N+1 status".
 - Required screenshot/DOM evidence is described in reports but not retained;
   historical viewport, keyboard, clipping, and live-production claims cannot be
   independently reproduced.
@@ -114,8 +119,12 @@ version verification, and explicit `Unavailable` states until each signal exists
   everyone including owner". Both now state the authoritative god-level owner rule
   (owner always retains access regardless of flag), matching
   `chef_battle/access.py` and `test_console_flag_off_blocks_operators_but_never_the_owner`.
-- Still stale: P02 automatic suspicious-vote wording no longer matches the
-  authoritative behavior.
+- RESOLVED (`2026-07-10`) — P02 stale suspicious-vote wording corrected:
+  P02_DATA_DICTIONARY.yaml no longer claims "DG-05 automatic flags". `is_suspicious`
+  is a MANUAL moderator flag only (set/cleared via `mark_votes_suspicious` /
+  `clear_votes_suspicious` admin actions, `chef_battle/admin.py`); no automatic
+  detection exists. P02_QUERY_REPORT.md stale query numbers also corrected to the
+  authoritative test-enforced figure (41 at 2 battles, bound 50).
 - RESOLVED (`2026-07-05`) — malformed action identifiers now return JSON 400.
 - RESOLVED (`2026-07-05`) — cancelling a paused battle clears every pause field,
   including `paused_reason`.

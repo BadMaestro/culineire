@@ -42,8 +42,8 @@ sections:
 
   voting:
     per_battle: "get_battle_vote_counts (same selector as public battle room)"
-    suspicious_votes: "BattleVote.filter(battle, is_suspicious=True).count() (DG-05 automatic flags)"
-    is_tie: "challenger_votes == opponent_votes AND > 0 (DG-05)"
+    suspicious_votes: "BattleVote.filter(battle, is_suspicious=True).count(). CORRECTION 2026-07-10: this is a MANUAL moderator flag only — set/cleared via the Django admin actions mark_votes_suspicious / clear_votes_suspicious (chef_battle/admin.py). There is NO automatic suspicious-vote detection; the field defaults False and never changes without a moderator action. Earlier 'DG-05 automatic flags' wording was inaccurate. Rejected/invalid vote attempts are tracked separately in VoteIntegrityEvent and never enter vote totals."
+    is_tie: "challenger_votes == opponent_votes AND > 0 (DG-05 tie detection)"
 
   viewers:
     available: true

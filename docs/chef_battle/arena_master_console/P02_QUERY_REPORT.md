@@ -2,17 +2,41 @@
 
 Produced: 2026-07-04 · Measured on local dev DB (6 enrolled chefs, 1 scheduled battle) and test DB.
 
-## Operator endpoint
+> **Correction 2026-07-10:** the numbers in the original table below were the
+> P02-only baseline and are now STALE. Later phases added per-battle read models
+> (P05 moderation detail, P06 voting analytics ~7/battle, P07 economy detail).
+> The authoritative, test-enforced figure is now in
+> `test_master_state_query_budget`: **41 queries at 2 battles, bound 50**
+> (~7 queries per battle marginal cost, not the 2 stated below). This is a
+> known, accepted per-battle cost, not an oversight — see "N+1 status" below.
 
-| Measurement | Value |
+## Operator endpoint (P02 baseline — superseded, see correction above)
+
+| Measurement | P02 baseline value |
 |---|---|
-| `get_master_state()` queries (1 battle) | **12** |
+| `get_master_state()` queries (1 battle) | 12 (P02-only; now higher with P05–P07 detail) |
 | `get_master_state()` payload (1 battle) | 1,929 bytes |
-| Test-enforced budget (2 battles) | ≤ 20 queries (`test_master_state_query_budget`) |
+| Test-enforced budget | **50 queries** (`test_master_state_query_budget`, measured 41 at 2 battles) |
 | Poll cadence | 20 s (matches public arena) |
 
-Per-battle marginal cost: 2 queries (vote counts + suspicious count). Everything
-else is fixed-cost aggregates; participants' profiles are bulk-fetched (no N+1).
+## N+1 status (authoritative 2026-07-10)
+
+The endpoint retains per-battle queries (~7/battle: vote counts, UTC vote series,
+VoteIntegrityEvent ×2, suspicious count, chat ×2, gift aggregate + P05/P07 detail).
+This is a documented deviation from P02's "avoid N+1" constraint, accepted for
+these reasons:
+
+- **Operator-only**: `arena_console_guard`, polled every 20 s by at most a couple
+  of superuser operators — not a public hot path.
+- **Low battle concurrency**: active battles are typically a handful; the 50-query
+  bound gives headroom for ~3 concurrent battles.
+- **Regression-guarded**: `test_master_state_query_budget` fails if the count
+  exceeds 50, so per-battle cost cannot silently grow.
+
+A battle-count-independent bulk-load (aggregate all active battles' analytics in
+fixed queries) remains available as a future optimization if active-battle
+concurrency ever grows beyond the ~3 the current bound covers. Tracked as audit
+remediation item 4.
 
 ## Public arena after the shared-selector refactor
 
