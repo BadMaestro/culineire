@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% load static %}
 {% block extra_head %}<link rel="stylesheet" href="{% static 'css/chef_battle.css' %}?v=20260618-hero-menu">{% endblock %}
 {% block og_image %}{{ SITE_URL }}{% static 'images/hero-battle.png' %}{% endblock %}
@@ -75,11 +75,13 @@
       <a href="#quick-access">Quick Access</a>
       <a href="#s0">0. Eligibility</a>
       <a href="#s1">1. The Challenge</a>
+      <a href="#s1b">1b. Changing Room</a>
       <a href="#s2">2. The Battle</a>
       <a href="#s3">3. Combat Phase</a>
       <a href="#s4">4. Biathlon</a>
       <a href="#s5">5. Cooking Phase</a>
       <a href="#s6">6. Voting</a>
+      <a href="#s6b">6b. The Ceremony</a>
       <a href="#s7">7. Ranking &amp; Levels</a>
       <a href="#s8">8. Battle Moves</a>
       <a href="#s9">9. Tokens</a>
@@ -142,11 +144,13 @@
       <nav>
         <a href="#s0">0. Eligibility</a>
         <a href="#s1">1. The Challenge</a>
+        <a href="#s1b">1b. Changing Room</a>
         <a href="#s2">2. The Battle</a>
         <a href="#s3">3. Combat Phase</a>
         <a href="#s4">4. Biathlon</a>
         <a href="#s5">5. Cooking Phase</a>
         <a href="#s6">6. Voting</a>
+        <a href="#s6b">6b. The Ceremony</a>
         <a href="#s7">7. Ranking &amp; Levels</a>
         <a href="#s8">8. Battle Moves</a>
         <a href="#s9">9. Tokens</a>
@@ -186,8 +190,22 @@
             <li>Any Chef with an active profile can challenge another chef.</li>
             <li>Challenges can only be sent between Chefs of the same or an adjacent rank. The CulinEire Hero is exempt from this restriction.</li>
             <li>The challenged Chef has 48 hours to accept or refuse.</li>
-            <li>Refusing a challenge costs 2 Battle Moves. Repeated refusals are recorded on the public profile.</li>
+            <li>Refusing a challenge costs 15 Battle Moves. Repeated refusals are recorded on the public profile.</li>
+            <li>Challenges are always linked to a specific recipe. The challenger must select an existing approved recipe as the basis for the battle theme.</li>
             <li>An accepted challenge opens a Battle Room with a shared theme set by the challenger.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="legal-card legal-card--section" id="s1b">
+        <div class="section-header"><h2>The Changing Room</h2></div>
+        <div class="legal-card__content">
+          <ul class="legal-list">
+            <li>Once a challenge is accepted, both Chefs enter the <strong>Changing Room</strong> &#x2014; a private preparation stage before combat begins.</li>
+            <li>In the Changing Room, each Chef reviews the battle theme and prepares their ingredient list based on their chosen recipe.</li>
+            <li>The Changing Room is private: neither Chef can see the opponent&#x2019;s ingredient selection until combat begins.</li>
+            <li>Chefs must select their locked ingredients (2 per Chef) and finalise their combat setup before entering the Arena.</li>
+            <li>The Changing Room stage is time-limited. If a Chef does not complete their setup within the allowed time, they may forfeit their combat advantage.</li>
           </ul>
         </div>
       </article>
@@ -196,8 +214,12 @@
         <div class="section-header"><h2>The Battle</h2></div>
         <div class="legal-card__content">
           <ul class="legal-list">
-            <li>Each Chef has 5 days to submit a recipe as their battle entry.</li>
+            <li>Each Chef has <strong>48 hours</strong> to submit a recipe as their battle entry.</li>
             <li>Entries must be original recipes created specifically for the battle theme.</li>
+            <li><strong>If the Challenger does not submit</strong> within 48 hours and the Opponent has submitted, the Challenger loses automatically.</li>
+            <li><strong>If the Opponent does not submit</strong> and the Challenger has submitted, the Opponent loses by default and the Challenger wins.</li>
+            <li><strong>If neither Chef submits</strong> within 48 hours, the battle ends as a draw. No rating points are awarded and no Crown is granted.</li>
+            <li>Technical victories (wins by default due to no-show) do not award the Crown. The Crown is reserved for battles where both Chefs complete the full flow: submission, combat, cooking and voting.</li>
             <li>Only one entry per Chef per battle is allowed.</li>
             <li>After both entries are submitted, the Combat Phase begins.</li>
           </ul>
@@ -210,8 +232,10 @@
           <ul class="legal-list">
             <li>Each Chef selects a menu of ingredients from their recipe. Both menus are equal in size.</li>
             <li>Each Chef locks 2 ingredients to protect them from attack.</li>
-            <li>Chefs exchange hits targeting unlocked ingredients in the opponent's menu.</li>
-            <li>A hit ingredient is marked as defeated and must be replaced or removed from the final recipe.</li>
+            <li>Chefs take turns attacking. Each attack costs <strong>1 Battle Move</strong> from the attacker's balance.</li>
+            <li>A hit lands on any unlocked ingredient in the opponent's menu. A hit ingredient is marked as defeated and must be replaced or removed from the final recipe.</li>
+            <li>The Combat Phase uses a <strong>3-point system</strong>. The first Chef to land <strong>3 successful hits</strong> wins Round 1 (Combat).</li>
+            <li>Audience likes during the Combat Phase count as support. A Chef who receives audience likes also earns 1 Battle Move per like.</li>
           </ul>
         </div>
       </article>
@@ -248,7 +272,23 @@
             <li>Each visitor gets one vote per battle. No account required to vote.</li>
             <li>The Chef with the most votes wins the battle and receives the Crown.</li>
             <li>In the event of a tie, the battle is recorded as a draw and no crown is awarded.</li>
+            <li>The Crown is awarded <strong>only after a full completed battle</strong> (both Chefs submitted, combat completed, cooking phase completed and public voting finished).</li>
+            <li>If a Chef already holds the Crown when entering a battle, the Crown status remains active regardless of the battle outcome. A technical win (no-show) does not transfer the Crown from one Chef to another.</li>
             <li>The Crown is held for 24 hours and is visible on the winner's public profile.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="legal-card legal-card--section" id="s6b">
+        <div class="section-header"><h2>The Ceremony</h2></div>
+        <div class="legal-card__content">
+          <ul class="legal-list">
+            <li>After voting closes, the <strong>Ceremony</strong> is the public resolution stage. The battle result, vote totals and winner are announced in the Battle Room.</li>
+            <li>The winner receives: a <strong>rating increase</strong> (+25 points), a <strong>Crown</strong> valid for 24 hours (full battles only), and a <strong>guaranteed artifact drop</strong>.</li>
+            <li>The defeated Chef receives: a <strong>rating adjustment</strong> (&#x2212;15 points) and a <strong>50% chance of a consolation artifact drop</strong>.</li>
+            <li>Both Chefs receive a public <strong>Battle Record</strong> entry on their profile showing their result, opponent, theme and vote totals.</li>
+            <li>If the winner already held the Crown, the 24-hour Crown timer resets from the moment the Ceremony is completed.</li>
+            <li>All Ceremony events (result, Crown award, rating changes, artifact drops) are visible in the site-wide activity feed and both Chefs&#x2019; profiles.</li>
           </ul>
         </div>
       </article>
@@ -270,7 +310,7 @@
         <div class="section-header"><h2>Battle Moves</h2></div>
         <div class="legal-card__content">
           <ul class="legal-list">
-            <li>Battle Moves are earned by winning battles, having recipes and articles approved, and reaching milestones.</li>
+            <li>Battle Moves are earned by winning battles, having recipes and articles approved, reaching milestones, and receiving audience likes during active battles (<strong>1 audience like = 1 Battle Move</strong>).</li>
             <li>A minimum of 10 Battle Moves is required to issue a challenge.</li>
             <li>New Chefs receive starting moves to enter the arena.</li>
           </ul>
