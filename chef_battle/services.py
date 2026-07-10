@@ -221,6 +221,21 @@ def refuse_challenge(challenge: BattleChallenge) -> None:
         profile.reputation -= 5
         profile.save(update_fields=["refused_battles", "reputation", "updated_at"])
 
+        # Live rules 2026-07-10: refusing costs 15 Battle Moves
+        from .energy_service import spend_moves as _spend_moves, InsufficientEnergy
+        from .models import BattleMoveTransaction
+        try:
+            _spend_moves(
+                challenge.opponent,
+                MOVES_REFUSE_PENALTY,
+                BattleMoveTransaction.TxType.CHALLENGE_REFUSED,
+            )
+        except InsufficientEnergy:
+            # Floor at zero: drain remaining moves, never go negative
+            if profile.battle_moves > 0:
+                profile.battle_moves = 0
+                profile.save(update_fields=["battle_moves", "updated_at"])
+
         create_battle_event(
             event_type=BattleEvent.EventType.CHALLENGE_REFUSED,
             challenge=challenge,
@@ -563,6 +578,7 @@ from .energy_service import (  # noqa: E402
 )
 
 MOVES_MIN_TO_CHALLENGE = 10
+MOVES_REFUSE_PENALTY = 15  # Live rules 2026-07-10: refusing costs 15 Battle Moves
 
 # Legacy cap constants kept for backward compatibility with existing tests
 MOVES_CONTENT_DAILY_CAP = ENERGY_CAP
@@ -676,6 +692,38 @@ def _resolve_round(battle: Battle, round_number: int) -> BattleRound | None:
 
     c_power = challenger_action.moves_invested
     o_power = opponent_action.moves_invested
+
+    # Gap 2 fix: apply artifact effect if a chef activated one this round.
+    # attack artifact -> bonus on ATTACK; defence/defense -> bonus on DEFEND;
+    # boost -> bonus regardless of action type.
+    def _artifact_bonus(action):
+        ca = action.artifact_used
+        if not ca or ca.status != "available":
+            return 0
+        et = (ca.artifact.effect_type or "").lower().replace("defence", "defense")
+        ev = ca.artifact.effect_value or 0
+        if et == "attack" and action.action_type == "attack":
+            return ev
+        if et == "defense" and action.action_type == "defend":
+            return ev
+        if et == "boost":
+            return ev
+        return 0
+
+    c_bonus = _artifact_bonus(challenger_action)
+    o_bonus = _artifact_bonus(opponent_action)
+
+    # Consume activated artifacts inside the same resolution block
+    for _action, _bonus in ((challenger_action, c_bonus), (opponent_action, o_bonus)):
+        if _bonus and _action.artifact_used and _action.artifact_used.status == "available":
+            ca = _action.artifact_used
+            ca.status = "consumed"
+            ca.consumed_at = timezone.now()
+            ca.consumed_in_battle = battle
+            ca.save(update_fields=["status", "consumed_at", "consumed_in_battle", "updated_at"])
+
+    c_power += c_bonus
+    o_power += o_bonus
 
     # Challenger attacks → opponent defends (and vice versa simultaneously)
     # We resolve as: whoever invested more in attack vs other's defence
@@ -902,11 +950,45 @@ def get_biathlon_state(battle: Battle) -> dict:
 
 # ── Cooking phase moderation ──────────────────────────────────────────────────
 
+def get_surviving_ingredients(battle: Battle, chef) -> list:
+    """Compute which of a chef's recipe ingredients survive the biathlon.
+
+    For the loser: removes lines hit by non-bouncing shots.
+    For the winner: returns the full ingredient list unchanged.
+    Returns an empty list if no recipe entry is found.
+    """
+    entry = (
+        battle.entries
+        .filter(author=chef)
+        .select_related("recipe")
+        .first()
+    )
+    if not entry or not entry.recipe:
+        return []
+    all_ingredients = [
+        line for line in entry.recipe.ingredients.splitlines() if line.strip()
+    ]
+    if battle.loser and chef.pk == battle.loser.pk:
+        eliminated = set(
+            battle.ingredient_shots
+            .filter(bounced=False)
+            .values_list("target_index", flat=True)
+        )
+        return [ing for i, ing in enumerate(all_ingredients) if i not in eliminated]
+    return all_ingredients
+
+
 def approve_cooking_phase(battle: Battle, moderator) -> Battle:
     """Moderator approves transition from INGREDIENT_PENALTY to COOKING."""
     if battle.status != Battle.Status.INGREDIENT_PENALTY:
         raise ValueError("Battle must be in ingredient_penalty status to approve cooking phase.")
     with transaction.atomic():
+        # Persist surviving ingredients for each chef before status changes —
+        # shots/locks are stable here; the list drives cooking-phase moderation.
+        for chef in (battle.challenger, battle.opponent):
+            surviving = get_surviving_ingredients(battle, chef)
+            battle.entries.filter(author=chef).update(surviving_ingredients=surviving)
+
         battle.status = Battle.Status.COOKING
         battle.save(update_fields=["status", "updated_at"])
         create_battle_event(

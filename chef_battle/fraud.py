@@ -246,7 +246,34 @@ def gate_repeat_challenge_cooldown(challenger, opponent, cooldown_hours: int = 2
 
 
 # ---------------------------------------------------------------------------
-# Gate 12 — DSA report threshold (too many reports against one account)
+# Gate 12 — Post-battle cooldown (any completed battle, both participants)
+# ---------------------------------------------------------------------------
+
+def gate_post_battle_cooldown(challenger, cooldown_hours: int = 24) -> GateResult:
+    """Reject if the challenger completed any battle within the last cooldown_hours.
+
+    Live rules 2026-07-10: both chefs enter a 24h cooldown after a completed
+    battle before they may issue or accept a new challenge.
+    """
+    from django.db.models import Q
+    from .models import Battle
+    cutoff = timezone.now() - timezone.timedelta(hours=cooldown_hours)
+    recent = Battle.objects.filter(
+        Q(challenger=challenger) | Q(opponent=challenger),
+        status=Battle.Status.COMPLETED,
+        updated_at__gte=cutoff,
+    ).exists()
+    if recent:
+        return GateResult(
+            "post_battle_cooldown", False,
+            f"{challenger.slug} completed a battle within the last {cooldown_hours}h. "
+            "Please wait before issuing a new challenge.",
+        )
+    return GateResult("post_battle_cooldown", True)
+
+
+# ---------------------------------------------------------------------------
+# Gate 13 — DSA report threshold (too many reports against one account)
 # ---------------------------------------------------------------------------
 
 def gate_dsa_report_threshold(author, max_reports: int = 5) -> GateResult:

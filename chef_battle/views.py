@@ -34,6 +34,7 @@ from .fraud import (
     gate_fraud_flagged,
     gate_gift_velocity,
     gate_participant_vote,
+    gate_post_battle_cooldown,
     gate_repeat_challenge_cooldown,
     gate_self_vote,
     gate_suspended_account,
@@ -1143,6 +1144,7 @@ def challenge_create(request):
                 (gate_age_verified, (author,), {}),
                 (gate_challenge_spam, (author,), {}),
                 (gate_repeat_challenge_cooldown, (author, opponent), {}),
+                (gate_post_battle_cooldown, (author,), {}),
             ])
             if not fraud_result.passed:
                 first_fail = next(g for g in fraud_result.gates if not g.passed)
@@ -1151,6 +1153,7 @@ def challenge_create(request):
                     "fraud_flagged": "Your account has been flagged. Please contact support.",
                     "challenge_spam": "You have sent too many challenges today. Please wait before sending another.",
                     "repeat_challenge_cooldown": "You have recently challenged this chef. Please wait before challenging again.",
+                    "post_battle_cooldown": "You completed a battle recently. Please wait 24 hours before issuing a new challenge.",
                 }
                 messages.error(request, _CHALLENGE_FRAUD_MESSAGES.get(first_fail.gate, "Challenge not accepted."))
                 return render(request, "chef_battle/challenge_form.html", {"form": form})

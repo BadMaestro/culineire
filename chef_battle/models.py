@@ -255,6 +255,10 @@ class BattleEntry(models.Model):
     )
     reviewed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
+    surviving_ingredients = models.JSONField(
+        default=list, blank=True,
+        help_text="Ingredient lines the chef may use in cooking (set by approve_cooking_phase).",
+    )
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -423,6 +427,7 @@ class BattleMoveTransaction(models.Model):
         BATTLE_WON = "battle_won", "Victory Bonus"
         BATTLE_PARTICIPATION = "battle_participation", "Battle Participation"
         COMBAT_ACTION_SPENT = "combat_action_spent", "Spent on Tactical Turn"
+        CHALLENGE_REFUSED = "challenge_refused", "Challenge Refusal Penalty"
         ADMIN_ADJUSTMENT = "admin_adjustment", "Admin Manual Fix"
 
     chef = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="battle_move_transactions")
@@ -688,6 +693,13 @@ class BattleCombatAction(models.Model):
     action_type = models.CharField(max_length=8, choices=ActionType.choices)
     moves_invested = models.PositiveSmallIntegerField(default=1)
     is_locked = models.BooleanField(default=False)
+    artifact_used = models.ForeignKey(
+        "ChefArtifact",
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name="combat_uses",
+        help_text="Artifact activated this round (consumed after resolution).",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
