@@ -47,6 +47,42 @@
   margin-block-start: -0.5rem;
 }
 
+.mon-period-bar {
+  display: flex;
+  gap: 0.5rem;
+  margin-block: 1rem 1.5rem;
+  flex-wrap: wrap;
+}
+
+.mon-period-btn {
+  padding: 0.35rem 1rem;
+  border: 1px solid rgb(139 115 85 / 0.3);
+  border-radius: 999px;
+  background: rgb(139 115 85 / 0.06);
+  color: #8b7355;
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.mon-period-btn:hover {
+  background: rgb(139 115 85 / 0.15);
+  color: #6b5535;
+}
+
+.mon-period-btn--active {
+  background: #8b7355;
+  color: #fff;
+  border-color: #8b7355;
+}
+
+.mon-period-btn--active:hover {
+  background: #6b5535;
+  border-color: #6b5535;
+  color: #fff;
+}
+
 .mon-action-btn {
   display: inline-flex;
   align-items: center;

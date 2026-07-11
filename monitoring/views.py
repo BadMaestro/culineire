@@ -40,8 +40,9 @@ PROTECTED_PATH_PREFIXES = (
 
 PERIOD_OPTIONS = {
     "today": "Today",
-    "24h": "Last 24 hours",
+    "yesterday": "Yesterday",
     "7d": "Last 7 days",
+    "30d": "Last 30 days",
 }
 
 
@@ -97,11 +98,15 @@ def _decorate_request_rows(rows):
 
 
 def _period_bounds(period: str, now):
-    if period == "24h":
-        return {"created_at__gte": now - timezone.timedelta(hours=24)}
+    today = timezone.localdate()
+    if period == "yesterday":
+        yesterday = today - timezone.timedelta(days=1)
+        return {"created_at__date": yesterday}
     if period == "7d":
         return {"created_at__gte": now - timezone.timedelta(days=7)}
-    return {"created_at__date": timezone.localdate()}
+    if period == "30d":
+        return {"created_at__gte": now - timezone.timedelta(days=30)}
+    return {"created_at__date": today}
 
 
 def _selected_period(request) -> str:
@@ -158,18 +163,22 @@ def dashboard(request):
     five_min_ago = now - timezone.timedelta(minutes=5)
     seven_days_ago = now - timezone.timedelta(days=7)
 
-    today_pageviews = list(
+    period = _selected_period(request)
+    bounds = _period_bounds(period, now)
+    period_label = PERIOD_OPTIONS[period]
+
+    period_pageviews = list(
         PageView.objects
-        .filter(created_at__date=today)
+        .filter(**bounds)
         .select_related("user")
         .only("path", "user_agent", "user")
     )
-    decorated_today_pageviews = _decorate_request_rows(today_pageviews)
+    decorated_period_pageviews = _decorate_request_rows(period_pageviews)
     human_pageviews_today = len({
-        row.session_key for row in decorated_today_pageviews
+        row.session_key for row in decorated_period_pageviews
         if row.request_kind in HUMAN_REQUEST_KINDS and row.session_key
     })
-    bot_pageviews_today = sum(1 for row in decorated_today_pageviews if row.request_kind == "Bot/Scanner")
+    bot_pageviews_today = sum(1 for row in decorated_period_pageviews if row.request_kind == "Bot/Scanner")
 
     online_now = (
         PageView.objects
@@ -182,24 +191,24 @@ def dashboard(request):
 
     visitors_today = (
         PageView.objects
-        .filter(created_at__date=today)
+        .filter(**bounds)
         .exclude(session_key="")
         .values("session_key")
         .distinct()
         .count()
     )
 
-    pageviews_today = len(today_pageviews)
+    pageviews_today = len(period_pageviews)
 
     new_users_today = (
         UserActivity.objects
-        .filter(event_type=UserActivity.EventType.REGISTER, created_at__date=today)
+        .filter(event_type=UserActivity.EventType.REGISTER, **bounds)
         .count()
     )
 
     active_users_today = (
         UserActivity.objects
-        .filter(created_at__date=today)
+        .filter(**bounds)
         .exclude(user=None)
         .values("user")
         .distinct()
@@ -208,18 +217,18 @@ def dashboard(request):
 
     count_404_today = SecurityEvent.objects.filter(
         event_type=SecurityEvent.EventType.NOT_FOUND,
-        created_at__date=today,
+        **bounds,
     ).count()
 
     failed_logins_today = SecurityEvent.objects.filter(
         event_type=SecurityEvent.EventType.FAILED_LOGIN,
-        created_at__date=today,
+        **bounds,
     ).count()
 
     threats_today = SecurityEvent.objects.filter(
         Q(event_type=SecurityEvent.EventType.SUSPICIOUS_REQUEST) |
         Q(severity=SecurityEvent.Severity.CRITICAL),
-        created_at__date=today,
+        **bounds,
     ).distinct().count()
 
     top_recipe_rows = list(
@@ -319,6 +328,9 @@ def dashboard(request):
         "count_404_today": count_404_today,
         "failed_logins_today": failed_logins_today,
         "threats_today": threats_today,
+        "period": period,
+        "period_label": period_label,
+        "period_links": _period_links(reverse("monitoring:dashboard"), period),
         "top_recipes": top_recipes,
         "top_articles": top_articles,
         "top_paths": top_paths,

@@ -43,6 +43,12 @@
       <a class="mon-back-link" href="#clear-stats">Clear Statistics ↓</a>
     </div>
 
+    <div class="mon-period-bar">
+      {% for link in period_links %}
+      <a class="mon-period-btn{% if link.active %} mon-period-btn--active{% endif %}" href="{{ link.url }}">{{ link.label }}</a>
+      {% endfor %}
+    </div>
+
     <div class="mon-cards">
       <a class="mon-card mon-card--green" href="{{ traffic_urls.online }}">
         <span class="mon-card__value">{{ online_now }}</span>
@@ -52,7 +58,7 @@
       </a>
       <a class="mon-card" href="{{ traffic_urls.visitors }}">
         <span class="mon-card__value">{{ visitors_today }}</span>
-        <span class="mon-card__label">Visitors Today</span>
+        <span class="mon-card__label">Visitors</span>
         <span class="mon-card__sub">unique sessions</span>
         <span class="mon-card__open">Open details</span>
       </a>
@@ -70,37 +76,37 @@
       </a>
       <a class="mon-card" href="{{ traffic_urls.pageviews }}">
         <span class="mon-card__value">{{ pageviews_today }}</span>
-        <span class="mon-card__label">Page Views Today</span>
+        <span class="mon-card__label">Page Views</span>
         <span class="mon-card__sub">total hits</span>
         <span class="mon-card__open">Open details</span>
       </a>
       <a class="mon-card" href="{{ activity_urls.new_users }}">
         <span class="mon-card__value">{{ new_users_today }}</span>
-        <span class="mon-card__label">New Users Today</span>
+        <span class="mon-card__label">New Users</span>
         <span class="mon-card__sub">registrations</span>
         <span class="mon-card__open">Open details</span>
       </a>
       <a class="mon-card" href="{{ activity_urls.active_users }}">
         <span class="mon-card__value">{{ active_users_today }}</span>
-        <span class="mon-card__label">Active Users Today</span>
+        <span class="mon-card__label">Active Users</span>
         <span class="mon-card__sub">logged-in activity</span>
         <span class="mon-card__open">Open details</span>
       </a>
       <a class="mon-card {% if count_404_today > 20 %}mon-card--warn{% endif %}" href="{{ security_urls.404 }}">
         <span class="mon-card__value">{{ count_404_today }}</span>
-        <span class="mon-card__label">404s Today</span>
+        <span class="mon-card__label">404s</span>
         <span class="mon-card__sub">not found</span>
         <span class="mon-card__open">Open details</span>
       </a>
       <a class="mon-card {% if failed_logins_today > 5 %}mon-card--danger{% endif %}" href="{{ security_urls.failed_login }}">
         <span class="mon-card__value">{{ failed_logins_today }}</span>
-        <span class="mon-card__label">Failed Logins Today</span>
+        <span class="mon-card__label">Failed Logins</span>
         <span class="mon-card__sub">auth failures</span>
         <span class="mon-card__open">Open details</span>
       </a>
       <a class="mon-card {% if threats_today > 0 %}mon-card--critical{% endif %}" href="{{ security_urls.suspicious }}">
         <span class="mon-card__value">{{ threats_today }}</span>
-        <span class="mon-card__label">Threats Today</span>
+        <span class="mon-card__label">Threats</span>
         <span class="mon-card__sub">suspicious &amp; critical events</span>
         <span class="mon-card__open">Open details</span>
       </a>
