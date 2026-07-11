@@ -4,7 +4,7 @@ from collections import Counter
 
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.db.models.functions import ExtractHour
 from django.http import Http404
 from django.shortcuts import redirect, render
@@ -216,15 +216,11 @@ def dashboard(request):
         created_at__date=today,
     ).count()
 
-    suspicious_today = SecurityEvent.objects.filter(
-        event_type=SecurityEvent.EventType.SUSPICIOUS_REQUEST,
+    threats_today = SecurityEvent.objects.filter(
+        Q(event_type=SecurityEvent.EventType.SUSPICIOUS_REQUEST) |
+        Q(severity=SecurityEvent.Severity.CRITICAL),
         created_at__date=today,
-    ).count()
-
-    critical_today = SecurityEvent.objects.filter(
-        severity=SecurityEvent.Severity.CRITICAL,
-        created_at__date=today,
-    ).count()
+    ).distinct().count()
 
     top_recipe_rows = list(
         UserActivity.objects
@@ -322,8 +318,7 @@ def dashboard(request):
         "active_users_today": active_users_today,
         "count_404_today": count_404_today,
         "failed_logins_today": failed_logins_today,
-        "suspicious_today": suspicious_today,
-        "critical_today": critical_today,
+        "threats_today": threats_today,
         "top_recipes": top_recipes,
         "top_articles": top_articles,
         "top_paths": top_paths,

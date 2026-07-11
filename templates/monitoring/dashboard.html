@@ -98,16 +98,10 @@
         <span class="mon-card__sub">auth failures</span>
         <span class="mon-card__open">Open details</span>
       </a>
-      <a class="mon-card {% if suspicious_today > 0 %}mon-card--danger{% endif %}" href="{{ security_urls.suspicious }}">
-        <span class="mon-card__value">{{ suspicious_today }}</span>
-        <span class="mon-card__label">Suspicious Today</span>
-        <span class="mon-card__sub">flagged requests</span>
-        <span class="mon-card__open">Open details</span>
-      </a>
-      <a class="mon-card {% if critical_today > 0 %}mon-card--critical{% endif %}" href="{{ security_urls.critical }}">
-        <span class="mon-card__value">{{ critical_today }}</span>
-        <span class="mon-card__label">Critical Today</span>
-        <span class="mon-card__sub">brute force and targeted scans</span>
+      <a class="mon-card {% if threats_today > 0 %}mon-card--critical{% endif %}" href="{{ security_urls.suspicious }}">
+        <span class="mon-card__value">{{ threats_today }}</span>
+        <span class="mon-card__label">Threats Today</span>
+        <span class="mon-card__sub">suspicious &amp; critical events</span>
         <span class="mon-card__open">Open details</span>
       </a>
     </div>
