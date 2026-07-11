@@ -134,6 +134,12 @@ def _paginate(request, rows_or_qs):
     return paginator.get_page(request.GET.get("page"))
 
 
+def _exclude_bots(qs):
+    for marker in BOT_UA_MARKERS:
+        qs = qs.exclude(user_agent__icontains=marker)
+    return qs
+
+
 def _dashboard_url(name: str, query: str = "") -> str:
     url = reverse(name)
     return f"{url}?{query}" if query else url
@@ -190,9 +196,7 @@ def dashboard(request):
     )
 
     visitors_today = (
-        PageView.objects
-        .filter(**bounds)
-        .exclude(ip_hash="")
+        _exclude_bots(PageView.objects.filter(**bounds).exclude(ip_hash=""))
         .values("ip_hash")
         .distinct()
         .count()
@@ -388,9 +392,9 @@ def traffic_detail(request):
         title = "Online Sessions"
         subtitle = "Requests from sessions active in the last 5 minutes."
     elif kind == "visitors":
-        qs = qs.exclude(ip_hash="")
+        qs = _exclude_bots(qs.exclude(ip_hash=""))
         title = "Visitors"
-        subtitle = "Requests grouped by unique IP (session-independent, catches mobile visitors)."
+        subtitle = "Unique IPs excluding known bots — catches mobile and anonymous visitors."
     elif kind == "human":
         title = "Human and Guest Visitors"
         subtitle = "Unique sessions from logged-in users and normal anonymous browser traffic. Scanner-like paths are excluded."
@@ -421,7 +425,7 @@ def traffic_detail(request):
         ]
     else:
         if kind == "visitors":
-            total_count = qs.exclude(ip_hash="").values("ip_hash").distinct().count()
+            total_count = qs.exclude(ip_hash="").values("ip_hash").distinct().count()  # qs already bot-filtered
         else:
             total_count = qs.exclude(session_key="").values("session_key").distinct().count()
         page_obj = _paginate(request, qs)
