@@ -69,6 +69,18 @@ class MonitoringMiddleware:
             if getattr(settings, "MONITORING_BLOCK_SUSPICIOUS_PROBES", True):
                 return HttpResponseNotFound()
 
+        # Force session creation for real browsers so anonymous mobile visitors
+        # get a session_key and are counted correctly in visitor stats.
+        # Bots don't persist cookies between requests, so this only sticks for real browsers.
+        ua = request.META.get("HTTP_USER_AGENT", "")
+        ua_lower = ua.lower()
+        if (
+            hasattr(request, "session")
+            and not request.session.session_key
+            and not any(m in ua_lower for m in BOT_UA_MARKERS)
+        ):
+            request.session["_v"] = 1
+
         response = self.get_response(request)
 
         try:

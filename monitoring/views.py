@@ -196,8 +196,10 @@ def dashboard(request):
     )
 
     visitors_today = (
-        _exclude_bots(PageView.objects.filter(**bounds).exclude(ip_hash=""))
-        .values("ip_hash")
+        PageView.objects
+        .filter(**bounds)
+        .exclude(session_key="")
+        .values("session_key")
         .distinct()
         .count()
     )
@@ -392,9 +394,9 @@ def traffic_detail(request):
         title = "Online Sessions"
         subtitle = "Requests from sessions active in the last 5 minutes."
     elif kind == "visitors":
-        qs = _exclude_bots(qs.exclude(ip_hash=""))
+        qs = qs.exclude(session_key="")
         title = "Visitors"
-        subtitle = "Unique IPs excluding known bots — catches mobile and anonymous visitors."
+        subtitle = "Unique browser sessions. Mobile visitors get a session on first visit."
     elif kind == "human":
         title = "Human and Guest Visitors"
         subtitle = "Unique sessions from logged-in users and normal anonymous browser traffic. Scanner-like paths are excluded."
@@ -424,10 +426,7 @@ def traffic_detail(request):
             for path, count in Counter(row.path for row in rows).most_common(10)
         ]
     else:
-        if kind == "visitors":
-            total_count = qs.exclude(ip_hash="").values("ip_hash").distinct().count()  # qs already bot-filtered
-        else:
-            total_count = qs.exclude(session_key="").values("session_key").distinct().count()
+        total_count = qs.exclude(session_key="").values("session_key").distinct().count()
         page_obj = _paginate(request, qs)
         page_obj.object_list = _decorate_request_rows(list(page_obj.object_list))
         top_paths = list(
