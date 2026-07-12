@@ -429,6 +429,7 @@ class BattleMoveTransaction(models.Model):
         BATTLE_PARTICIPATION = "battle_participation", "Battle Participation"
         COMBAT_ACTION_SPENT = "combat_action_spent", "Spent on Tactical Turn"
         CHALLENGE_REFUSED = "challenge_refused", "Challenge Refusal Penalty"
+        ENROL_BONUS = "enrol_bonus", "Enrolment Bonus"
         ADMIN_ADJUSTMENT = "admin_adjustment", "Admin Manual Fix"
 
     chef = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="battle_move_transactions")

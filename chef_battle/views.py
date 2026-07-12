@@ -470,6 +470,11 @@ def chef_enroll(request):
                 profile.age_verified = True
                 profile.age_confirmed_at = now
             profile.save(update_fields=["enrolled_at", "age_verified", "age_confirmed_at"])
+            try:
+                from .services import award_enrol_bonus
+                award_enrol_bonus(author)
+            except Exception:
+                logger.exception("Failed to award enrol bonus to author pk=%s", author.pk)
             return redirect("chef_battle:enroll_success")
 
     return render(request, "chef_battle/enroll.html", {"error": error})
