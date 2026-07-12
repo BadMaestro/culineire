@@ -19,6 +19,7 @@ BOT_UA_MARKERS = (
     "go-http-client", "httpx", "okhttp",
     "scanner", "zgrab", "masscan", "nuclei",
     "nikto", "sqlmap", "wpscan", "gobuster", "ffuf",
+    "chrome/142",
 )
 
 # Patterns that trigger a pre-request SecurityEvent in middleware
