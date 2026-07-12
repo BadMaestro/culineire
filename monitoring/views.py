@@ -140,6 +140,11 @@ def _exclude_bots(qs):
     return qs
 
 
+def _public(qs):
+    """Exclude superuser (owner) traffic from public-facing monitoring stats."""
+    return qs.exclude(user__is_superuser=True)
+
+
 def _dashboard_url(name: str, query: str = "") -> str:
     url = reverse(name)
     return f"{url}?{query}" if query else url
@@ -174,15 +179,14 @@ def dashboard(request):
     period_label = PERIOD_OPTIONS[period]
 
     human_pageviews_today = (
-        PageView.objects.filter(**bounds, is_bot=False).count()
+        _public(PageView.objects.filter(**bounds, is_bot=False)).count()
     )
     bot_pageviews_today = (
-        PageView.objects.filter(**bounds, is_bot=True).count()
+        _public(PageView.objects.filter(**bounds, is_bot=True)).count()
     )
 
     online_now = (
-        PageView.objects
-        .filter(created_at__gte=five_min_ago)
+        _public(PageView.objects.filter(created_at__gte=five_min_ago))
         .exclude(session_key="")
         .values("session_key")
         .distinct()
@@ -190,15 +194,14 @@ def dashboard(request):
     )
 
     visitors_today = (
-        PageView.objects
-        .filter(**bounds)
+        _public(PageView.objects.filter(**bounds))
         .exclude(session_key="")
         .values("session_key")
         .distinct()
         .count()
     )
 
-    pageviews_today = PageView.objects.filter(**bounds).count()
+    pageviews_today = _public(PageView.objects.filter(**bounds)).count()
 
     new_users_today = (
         UserActivity.objects
@@ -210,6 +213,7 @@ def dashboard(request):
         UserActivity.objects
         .filter(**bounds)
         .exclude(user=None)
+        .exclude(user__is_superuser=True)
         .values("user")
         .distinct()
         .count()
@@ -234,6 +238,7 @@ def dashboard(request):
     top_recipe_rows = list(
         UserActivity.objects
         .filter(event_type=UserActivity.EventType.RECIPE_VIEW, object_type="recipe", **bounds)
+        .exclude(user__is_superuser=True)
         .values("object_id", "object_title")
         .annotate(views=Count("id"))
         .order_by("-views")[:10]
@@ -241,6 +246,7 @@ def dashboard(request):
     top_article_rows = list(
         UserActivity.objects
         .filter(event_type=UserActivity.EventType.ARTICLE_VIEW, object_type="article", **bounds)
+        .exclude(user__is_superuser=True)
         .values("object_id", "object_title")
         .annotate(views=Count("id"))
         .order_by("-views")[:10]
@@ -267,16 +273,14 @@ def dashboard(request):
             top_articles.append(row)
 
     top_paths = (
-        PageView.objects
-        .filter(created_at__gte=seven_days_ago)
+        _public(PageView.objects.filter(created_at__gte=seven_days_ago))
         .values("path")
         .annotate(count=Count("id"))
         .order_by("-count")[:10]
     )
 
     top_referrers = (
-        PageView.objects
-        .filter(created_at__gte=seven_days_ago)
+        _public(PageView.objects.filter(created_at__gte=seven_days_ago))
         .exclude(referrer="")
         .values("referrer")
         .annotate(count=Count("id"))
@@ -297,8 +301,7 @@ def dashboard(request):
     _decorate_request_rows(latest_security)
 
     hourly_views = list(
-        PageView.objects
-        .filter(created_at__date=today)
+        _public(PageView.objects.filter(created_at__date=today))
         .annotate(hour=ExtractHour("created_at"))
         .values("hour")
         .annotate(count=Count("id"))
