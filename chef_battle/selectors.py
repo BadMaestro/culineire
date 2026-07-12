@@ -453,11 +453,12 @@ def get_master_state() -> dict:
 def _monitor_combat_detail(battle):
     """Rounds, current-round declared actions and hit totals for one ACTIVE
     battle. Same rows the battle room uses; nothing is resolved or mutated."""
-    from .models import BattleCombatAction
+    from .models import BattleCombatAction, BattleRound
 
     rounds = list(
         battle.combat_rounds.order_by("round_number").values(
-            "round_number", "outcome", "challenger_hits", "opponent_hits", "log_message",
+            "round_number", "outcome", "challenger_hits", "opponent_hits",
+            "attacker_id", "defender_id", "log_message",
         )
     )
     current_round = (rounds[-1]["round_number"] + 1) if rounds else 1
@@ -465,13 +466,39 @@ def _monitor_combat_detail(battle):
         BattleCombatAction.objects.filter(battle=battle, round_number=current_round)
         .select_related("chef")
     )
+
+    def _per_chef_stats(chef_id):
+        attacks = [r for r in rounds if r["attacker_id"] == chef_id]
+        defences = [r for r in rounds if r["defender_id"] == chef_id]
+        hits = sum(1 for r in attacks if r["outcome"] in (BattleRound.Outcome.FULL_HIT, BattleRound.Outcome.PARTIAL_HIT))
+        return {
+            "hits": hits,
+            "misses": len(attacks) - hits,
+            "defended": sum(1 for r in defences if r["outcome"] == BattleRound.Outcome.BLOCKED),
+        }
+
+    challenger_stats = _per_chef_stats(battle.challenger_id)
+    opponent_stats = _per_chef_stats(battle.opponent_id)
+
+    entries = {e.author_id: len(e.surviving_ingredients) for e in battle.entries.all()}
+    challenger_stats["surviving_ingredients"] = entries.get(battle.challenger_id)
+    opponent_stats["surviving_ingredients"] = entries.get(battle.opponent_id)
+
+    # Strip attacker_id/defender_id from the public rounds list (internal FKs)
+    rounds_out = [
+        {k: v for k, v in r.items() if k not in ("attacker_id", "defender_id")}
+        for r in rounds
+    ]
+
     return {
         "battle_id": battle.pk,
         "kind": "combat",
         "current_round": current_round,
-        "rounds": rounds,
+        "rounds": rounds_out,
         "challenger_hits": rounds[-1]["challenger_hits"] if rounds else 0,
         "opponent_hits": rounds[-1]["opponent_hits"] if rounds else 0,
+        "challenger_stats": challenger_stats,
+        "opponent_stats": opponent_stats,
         # Operator-only view of hidden declarations (documented decision):
         # console users are all superusers behind the DG-01 gate.
         "declared_actions": [

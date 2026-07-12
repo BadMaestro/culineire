@@ -324,6 +324,7 @@
       if (!msg) return;
       fields.action = 'broadcast';
       fields.message = msg;
+      fields.correlation_id = Date.now().toString(36) + Math.random().toString(36).slice(2);
     } else if (!primary) {
       showActionError('No battle to act on.');
       return;
