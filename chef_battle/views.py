@@ -499,8 +499,16 @@ def age_verification(request):
 
     profile, _ = ChefBattleProfile.objects.get_or_create(author=author)
 
+    from django.utils.http import url_has_allowed_host_and_scheme
+
+    def _safe_next(fallback):
+        nxt = request.GET.get("next") or ""
+        if nxt and url_has_allowed_host_and_scheme(nxt, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+            return nxt
+        return fallback
+
     if profile.age_verified:
-        return redirect(request.GET.get("next") or "chef_battle:home")
+        return redirect(_safe_next("chef_battle:home"))
 
     error = None
     if request.method == "POST":
@@ -510,7 +518,7 @@ def age_verification(request):
             profile.save(update_fields=["age_verified", "age_confirmed_at"])
             from django.contrib import messages as _msg
             _msg.success(request, "Age confirmed. You can now use Arena paid features.")
-            return redirect(request.GET.get("next") or "chef_battle:token_shop")
+            return redirect(_safe_next("chef_battle:token_shop"))
         else:
             error = "Please tick the checkbox to confirm you are 18 or older."
 
