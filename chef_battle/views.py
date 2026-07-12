@@ -1303,13 +1303,21 @@ def battle_detail(request, pk):
         viewer_token_balance = wallet.balance if wallet else 0
 
     user_available_artifacts = []
+    opponent_active_ingredients = []
     if is_participant and viewer_author and battle.status == Battle.Status.ACTIVE:
-        from .models import ChefArtifact
+        from .models import ChefArtifact, BattleIngredient
         user_available_artifacts = list(
             ChefArtifact.objects.filter(chef=viewer_author, status=ChefArtifact.Status.AVAILABLE)
             .select_related("artifact")
             .order_by("artifact__name")
         )
+        opponent = battle.opponent_for(viewer_author)
+        if opponent:
+            opponent_active_ingredients = list(
+                BattleIngredient.objects.filter(
+                    battle=battle, chef=opponent, is_key=False, is_eliminated=False
+                ).order_by("position")
+            )
 
     viewer_is_challenger = bool(viewer_author and viewer_author.pk == battle.challenger_id)
     can_set_ready = (
@@ -1343,6 +1351,7 @@ def battle_detail(request, pk):
         "challenger_profile": challenger_profile,
         "opponent_profile": opponent_profile,
         "user_available_artifacts": user_available_artifacts,
+        "opponent_active_ingredients": opponent_active_ingredients,
     })
 
 
@@ -1641,8 +1650,19 @@ def battle_combat_action(request, pk):
     except (ValueError, TypeError):
         pass
 
+    target_ingredient_id = None
     try:
-        submit_combat_action(battle, author, action_type, moves_invested, artifact_id=artifact_id)
+        _raw = request.POST.get("target_ingredient_id") or None
+        if _raw:
+            target_ingredient_id = int(_raw)
+    except (ValueError, TypeError):
+        pass
+
+    try:
+        submit_combat_action(
+            battle, author, action_type, moves_invested,
+            artifact_id=artifact_id, target_ingredient_id=target_ingredient_id,
+        )
     except ValueError as e:
         return JsonResponse({"ok": False, "error": str(e)}, status=400)
 

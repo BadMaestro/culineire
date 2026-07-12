@@ -443,6 +443,17 @@
             </select>
           </div>
           {% endif %}
+          {% if opponent_active_ingredients %}
+          <div class="battle-combat__target" id="combat-target-row">
+            <label class="battle-muted">Target ingredient (attack only)</label>
+            <select name="target_ingredient_id" class="battle-form__input" id="combat-target-select">
+              <option value="">&#x2014; Random &#x2014;</option>
+              {% for ing in opponent_active_ingredients %}
+              <option value="{{ ing.pk }}">{{ ing.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endif %}
           <button class="btn-primary battle-combat__submit battle-cursor-target js-battle-cursor-target" type="submit" id="combat-submit-btn">Make Move</button>
           <p class="battle-form__error" id="combat-error" hidden></p>
           <p class="battle-combat__success" id="combat-success" hidden></p>
@@ -574,6 +585,18 @@
   const successEl = document.getElementById('combat-success');
   const submitBtn = document.getElementById('combat-submit-btn');
   const turnEl = document.getElementById('combat-turn-indicator');
+  const targetRow = document.getElementById('combat-target-row');
+
+  // Show/hide target selector based on attack vs defend
+  function updateTargetRow() {
+    if (!targetRow) return;
+    const actionType = form.querySelector('[name=action_type]:checked');
+    targetRow.style.display = (actionType && actionType.value === 'attack') ? '' : 'none';
+  }
+  form.querySelectorAll('[name=action_type]').forEach(function(el) {
+    el.addEventListener('change', updateTargetRow);
+  });
+  updateTargetRow();
 
   form.addEventListener('submit', function (e) {
     e.preventDefault();

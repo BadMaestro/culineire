@@ -722,6 +722,7 @@ def submit_combat_action(
     action_type: str,
     moves_invested: int,
     artifact_id: int | None = None,
+    target_ingredient_id: int | None = None,
 ) -> BattleCombatAction:
     """
     Chef declares their combat action for the current round.
@@ -755,13 +756,33 @@ def submit_combat_action(
         except ChefArtifact.DoesNotExist:
             raise ValueError("Artifact not available or does not belong to you.")
 
+    # Validate target ingredient: must belong to the opponent, not be locked, not already eliminated.
+    target_ingredient = None
+    if target_ingredient_id is not None and action_type == BattleCombatAction.ActionType.ATTACK:
+        opponent = battle.opponent_for(chef)
+        try:
+            target_ingredient = BattleIngredient.objects.get(
+                pk=target_ingredient_id,
+                battle=battle,
+                chef=opponent,
+                is_key=False,
+                is_eliminated=False,
+            )
+        except BattleIngredient.DoesNotExist:
+            raise ValueError("Invalid target: ingredient not found, is locked, or already eliminated.")
+
     round_number = get_current_round(battle)
 
     action, created = BattleCombatAction.objects.get_or_create(
         battle=battle,
         chef=chef,
         round_number=round_number,
-        defaults={"action_type": action_type, "moves_invested": moves_invested, "artifact_used": chef_artifact},
+        defaults={
+            "action_type": action_type,
+            "moves_invested": moves_invested,
+            "artifact_used": chef_artifact,
+            "target_ingredient": target_ingredient,
+        },
     )
     if not created:
         if action.is_locked:
@@ -769,7 +790,8 @@ def submit_combat_action(
         action.action_type = action_type
         action.moves_invested = moves_invested
         action.artifact_used = chef_artifact
-        action.save(update_fields=["action_type", "moves_invested", "artifact_used", "updated_at"])
+        action.target_ingredient = target_ingredient
+        action.save(update_fields=["action_type", "moves_invested", "artifact_used", "target_ingredient", "updated_at"])
 
     # Auto-resolve if both chefs have submitted
     other_chef = battle.opponent_for(chef)
@@ -907,6 +929,19 @@ def _resolve_round(battle: Battle, round_number: int) -> BattleRound | None:
         BattleCombatAction.objects.filter(
             battle=battle, round_number=round_number
         ).update(is_locked=True)
+
+        # Eliminate targeted ingredients on successful hits
+        now = timezone.now()
+        if c_hit_landed and challenger_action.target_ingredient_id:
+            BattleIngredient.objects.filter(
+                pk=challenger_action.target_ingredient_id,
+                is_key=False, is_eliminated=False,
+            ).update(is_eliminated=True, eliminated_at=now, eliminated_by=battle.challenger)
+        if o_hit_landed and opponent_action.target_ingredient_id:
+            BattleIngredient.objects.filter(
+                pk=opponent_action.target_ingredient_id,
+                is_key=False, is_eliminated=False,
+            ).update(is_eliminated=True, eliminated_at=now, eliminated_by=battle.opponent)
 
         # Deduct moves via energy_service to create typed transaction records
         from .models import BattleMoveTransaction

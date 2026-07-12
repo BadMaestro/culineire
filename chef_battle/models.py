@@ -708,6 +708,13 @@ class BattleCombatAction(models.Model):
         related_name="combat_uses",
         help_text="Artifact activated this round (consumed after resolution).",
     )
+    target_ingredient = models.ForeignKey(
+        "BattleIngredient",
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name="targeted_by_actions",
+        help_text="Opponent ingredient this attack targets (attack only; ignored on defend).",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
