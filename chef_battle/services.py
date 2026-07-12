@@ -154,7 +154,7 @@ def accept_challenge(challenge: BattleChallenge) -> Battle:
     now = timezone.now()
     start_time = challenge.proposed_start_time or now
     status = Battle.Status.SCHEDULED if start_time > now else Battle.Status.MENU_LOCKED
-    submission_deadline = start_time + timezone.timedelta(days=5)
+    submission_deadline = start_time + timezone.timedelta(hours=48)
     voting_deadline = submission_deadline + timezone.timedelta(days=2)
     end_time = voting_deadline
 
