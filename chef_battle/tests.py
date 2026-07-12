@@ -663,7 +663,10 @@ class EnergyServiceTests(TestCase):
             reaction=ContentReaction.Reaction.LIKE,
         )
         profile = ChefBattleProfile.objects.get(author=self.chef)
-        self.assertEqual(profile.battle_moves, 1)
+        # Publishing the approved Pinch itself awards EARN_PINCH_PUBLISHED (+1),
+        # so assert the like award in isolation via its transaction, and the
+        # balance as publish + like.
+        self.assertEqual(profile.battle_moves, 2)
         self.assertTrue(
             BattleMoveTransaction.objects.filter(
                 chef=self.chef,
@@ -709,8 +712,17 @@ class EnergyServiceTests(TestCase):
             object_id=extra_item.pk,
             reaction=ContentReaction.Reaction.LIKE,
         )
-        profile = ChefBattleProfile.objects.get(author=self.chef)
-        self.assertEqual(profile.battle_moves, LIKE_ANTI_FARM_MAX_PER_SOURCE)
+        # Each approved Pinch also awards EARN_PINCH_PUBLISHED, so isolate the
+        # like awards via their transactions — the extra like must not award.
+        from django.db.models import Sum
+        from chef_battle.models import BattleMoveTransaction
+        like_total = (
+            BattleMoveTransaction.objects.filter(
+                chef=self.chef,
+                transaction_type=BattleMoveTransaction.TxType.LIKE_RECEIVED,
+            ).aggregate(total=Sum("amount"))["total"]
+        )
+        self.assertEqual(like_total, LIKE_ANTI_FARM_MAX_PER_SOURCE)
 
 
 class BattleTimerTests(TestCase):
@@ -721,27 +733,28 @@ class BattleTimerTests(TestCase):
         self.chef_a = RecipeAuthor.objects.create(user=self.user_a, name="Timer A", slug="timer-a")
         self.chef_b = RecipeAuthor.objects.create(user=self.user_b, name="Timer B", slug="timer-b")
 
-    def test_battle_has_7_day_window(self):
+    def test_battle_has_4_day_window(self):
+        """48h submission + 2 days voting = 4 days total (deadline reverted to 48h)."""
         challenge = BattleChallenge.objects.create(
             challenger=self.chef_a,
             opponent=self.chef_b,
-            theme="7-day test",
+            theme="4-day test",
             expires_at=timezone.now() + timezone.timedelta(hours=24),
         )
         battle = accept_challenge(challenge)
         delta = battle.end_time - battle.start_time
-        self.assertEqual(delta.days, 7)
+        self.assertEqual(delta.days, 4)
 
-    def test_submission_deadline_is_5_days(self):
+    def test_submission_deadline_is_48_hours(self):
         challenge = BattleChallenge.objects.create(
             challenger=self.chef_a,
             opponent=self.chef_b,
-            theme="5-day sub test",
+            theme="48h sub test",
             expires_at=timezone.now() + timezone.timedelta(hours=24),
         )
         battle = accept_challenge(challenge)
         delta = battle.submission_deadline - battle.start_time
-        self.assertEqual(delta.days, 5)
+        self.assertEqual(delta, timezone.timedelta(hours=48))
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)
@@ -4111,10 +4124,17 @@ class ArenaMasterActionSecurityTests(TransactionTestCase):
         results = []
         errors = []
 
-        def do_request():
-            # raise_request_exception=False: DB errors become 500, not thread crashes
+        # Log both clients in serially on the main thread — a concurrent login
+        # is a session-table write that can hit an SQLite lock and kill the
+        # thread before the race under test (the POST) even starts.
+        clients = []
+        for _ in range(2):
             c = Client(raise_request_exception=False)
             c.login(username="amc-sec-owner", password="pw")
+            clients.append(c)
+
+        def do_request(c):
+            # raise_request_exception=False: DB errors become 500, not thread crashes
             try:
                 r = c.post(self.url, data={
                     "action": "force_status",
@@ -4126,8 +4146,8 @@ class ArenaMasterActionSecurityTests(TransactionTestCase):
             except Exception as e:
                 errors.append(e)
 
-        t1 = threading.Thread(target=do_request)
-        t2 = threading.Thread(target=do_request)
+        t1 = threading.Thread(target=do_request, args=(clients[0],))
+        t2 = threading.Thread(target=do_request, args=(clients[1],))
         t1.start(); t2.start()
         t1.join(); t2.join()
 
@@ -4445,6 +4465,18 @@ class DeclareMenuServiceTests(TestCase):
                 battle=self.battle, chef=self.chef_a, ingredients=self._ingredients()
             )
 
+    def test_unequal_count_raises(self):
+        """Spec: both chefs must declare the same number of ingredients (5 vs 5, 6 vs 6)."""
+        self.declare_menu(battle=self.battle, chef=self.chef_a, ingredients=self._ingredients(n=5))
+        with self.assertRaises(ValueError):
+            self.declare_menu(
+                battle=self.battle, chef=self.chef_b, ingredients=self._ingredients(n=6)
+            )
+        # Matching count is accepted and starts the battle
+        self.declare_menu(battle=self.battle, chef=self.chef_b, ingredients=self._ingredients(n=5))
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.ACTIVE)
+
     def test_wrong_battle_status_raises(self):
         self.battle.status = Battle.Status.SCHEDULED
         self.battle.save()
@@ -4452,3 +4484,143 @@ class DeclareMenuServiceTests(TestCase):
             self.declare_menu(
                 battle=self.battle, chef=self.chef_a, ingredients=self._ingredients()
             )
+
+
+@override_settings(SECURE_SSL_REDIRECT=False, CHEF_BATTLE_ENABLED=True)
+class TokenCheckoutCancelSecurityTests(TestCase):
+    """IDOR guard: only the order's owner may cancel it via ?order=N."""
+
+    def setUp(self):
+        from .models import TokenOrder, TokenPackage, TokenWallet
+        User = get_user_model()
+        self.owner_user = User.objects.create_user(username="tcc-owner", password="pw")
+        self.other_user = User.objects.create_user(username="tcc-other", password="pw")
+        self.owner = RecipeAuthor.objects.create(user=self.owner_user, name="TCC Owner", slug="tcc-owner")
+        self.other = RecipeAuthor.objects.create(user=self.other_user, name="TCC Other", slug="tcc-other")
+        self.wallet = TokenWallet.objects.create(chef=self.owner)
+        self.package = TokenPackage.objects.create(
+            key="tcc-pack", name="TCC Pack", tokens=100, price_eur="10.00"
+        )
+        self.order = TokenOrder.objects.create(
+            wallet=self.wallet, package=self.package, tokens=100, amount_eur_cents=1000
+        )
+        self.url = reverse("chef_battle:token_checkout_cancel")
+
+    def _order_status(self):
+        self.order.refresh_from_db()
+        return self.order.status
+
+    def test_anonymous_cannot_cancel_order(self):
+        response = self.client.get(f"{self.url}?order={self.order.pk}")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._order_status(), "pending")
+
+    def test_other_user_cannot_cancel_order(self):
+        self.client.login(username="tcc-other", password="pw")
+        response = self.client.get(f"{self.url}?order={self.order.pk}")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._order_status(), "pending")
+
+    def test_owner_can_cancel_own_order(self):
+        self.client.login(username="tcc-owner", password="pw")
+        response = self.client.get(f"{self.url}?order={self.order.pk}")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._order_status(), "cancelled")
+
+    def test_non_numeric_order_param_is_safe(self):
+        self.client.login(username="tcc-owner", password="pw")
+        response = self.client.get(f"{self.url}?order=abc")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._order_status(), "pending")
+
+
+@override_settings(SECURE_SSL_REDIRECT=False, CHEF_BATTLE_ENABLED=True)
+class BattleChatSecurityTests(TestCase):
+    """Anonymous chat: no impersonation of registered names; poll input hardened."""
+
+    def setUp(self):
+        from .models import BattleChatMessage
+        self.BattleChatMessage = BattleChatMessage
+        User = get_user_model()
+        self.user_a = User.objects.create_user(username="chat-chef-a", password="pw")
+        self.user_b = User.objects.create_user(username="chat-chef-b", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=self.user_a, name="Chat Chef A", slug="chat-chef-a")
+        self.chef_b = RecipeAuthor.objects.create(user=self.user_b, name="Chat Chef B", slug="chat-chef-b")
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.chef_a,
+            opponent=self.chef_b,
+            theme="Chat Theme",
+            status=Battle.Status.ACTIVE,
+            submission_deadline=now + timezone.timedelta(days=2),
+            voting_deadline=now + timezone.timedelta(days=4),
+            end_time=now + timezone.timedelta(days=4),
+        )
+        self.send_url = reverse("chef_battle:battle_chat_send", args=[self.battle.pk])
+        self.poll_url = reverse("chef_battle:battle_chat_poll", args=[self.battle.pk])
+
+    def test_anonymous_cannot_impersonate_username(self):
+        self.client.post(self.send_url, {"body": "hello", "display_name": "chat-chef-a"})
+        msg = self.BattleChatMessage.objects.get(battle=self.battle)
+        self.assertEqual(msg.display_name, "Anonymous")
+
+    def test_anonymous_cannot_impersonate_author_name(self):
+        self.client.post(self.send_url, {"body": "hello", "display_name": "Chat Chef B"})
+        msg = self.BattleChatMessage.objects.get(battle=self.battle)
+        self.assertEqual(msg.display_name, "Anonymous")
+
+    def test_anonymous_free_name_is_kept(self):
+        self.client.post(self.send_url, {"body": "hello", "display_name": "RandomGuest42"})
+        msg = self.BattleChatMessage.objects.get(battle=self.battle)
+        self.assertEqual(msg.display_name, "RandomGuest42")
+
+    def test_authenticated_name_not_overridden(self):
+        self.client.login(username="chat-chef-a", password="pw")
+        self.client.post(self.send_url, {"body": "hello", "display_name": "ignored"})
+        msg = self.BattleChatMessage.objects.get(battle=self.battle)
+        self.assertEqual(msg.display_name, "chat-chef-a")
+
+    def test_chat_poll_non_numeric_since_is_safe(self):
+        response = self.client.get(f"{self.poll_url}?since=abc")
+        self.assertEqual(response.status_code, 200)
+
+
+@override_settings(SECURE_SSL_REDIRECT=False, CHEF_BATTLE_ENABLED=False)
+class ArenaDarkLaunchTests(TestCase):
+    """With the flag OFF, every arena endpoint must 404 for the public
+    (P00 contract: arena is gated by chef_battle_guard) while superusers
+    keep dark-launch preview access."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.super_user = User.objects.create_superuser(
+            username="adl-super", password="pw", email="adl@example.com"
+        )
+        RecipeAuthor.objects.create(user=self.super_user, name="ADL Super", slug="adl-super")
+
+    def test_arena_page_hidden_from_anonymous(self):
+        response = self.client.get(reverse("chef_battle:arena"))
+        self.assertEqual(response.status_code, 404)
+
+    def test_arena_state_hidden_from_anonymous(self):
+        response = self.client.post(reverse("chef_battle:arena_state"))
+        self.assertEqual(response.status_code, 404)
+
+    def test_arena_popup_hidden_from_anonymous(self):
+        response = self.client.get(reverse("chef_battle:arena_battle_popup"))
+        self.assertEqual(response.status_code, 404)
+
+    def test_arena_blast_hidden_from_anonymous(self):
+        response = self.client.get(reverse("chef_battle:arena_blast"))
+        self.assertEqual(response.status_code, 404)
+
+    def test_arena_ping_hidden_from_anonymous(self):
+        response = self.client.post(reverse("chef_battle:arena_ping"))
+        self.assertEqual(response.status_code, 404)
+
+    def test_superuser_keeps_dark_launch_preview(self):
+        self.client.login(username="adl-super", password="pw")
+        response = self.client.get(reverse("chef_battle:arena"))
+        self.assertEqual(response.status_code, 200)
+        response = self.client.post(reverse("chef_battle:arena_state"))
+        self.assertEqual(response.status_code, 200)

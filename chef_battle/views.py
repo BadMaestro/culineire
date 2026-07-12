@@ -10,12 +10,13 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
 from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from django_ratelimit.decorators import ratelimit
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,7 @@ from monitoring.tracker import get_client_ip
 from recipes.authoring import get_author_for_user
 from recipes.models import RecipeAuthor
 
-from .access import arena_console_guard, chef_battle_guard
+from .access import arena_console_guard, chef_battle_guard, is_battle_visible
 from .forms import BattleChallengeForm, BattleEntryForm
 from .fraud import (
     gate_account_age,
@@ -637,8 +638,18 @@ def token_checkout_cancel(request):
     from .models import TokenOrder
     order_id = request.GET.get("order", "")
     order = None
-    if order_id:
-        order = TokenOrder.objects.filter(pk=order_id).select_related("package").first()
+    # Only the order's owner may see or cancel it — the order id is guessable
+    # (?order=N), so an ownership filter is the IDOR gate. Anonymous visitors
+    # (expired session on return from Stripe) get the page without the order;
+    # the pending order is later cancelled by the checkout.session.expired webhook.
+    author = get_author_for_user(request.user) if request.user.is_authenticated else None
+    if order_id.isdigit() and author:
+        order = (
+            TokenOrder.objects
+            .filter(pk=order_id, wallet__chef=author)
+            .select_related("package")
+            .first()
+        )
     if order and order.status == "pending":
         order.status = "cancelled"
         order.save(update_fields=["status", "updated_at"])
@@ -778,6 +789,7 @@ def _arena_center(active_battle):
     return {"type": "empty"}
 
 
+@chef_battle_guard
 def arena_battle_popup(request):
     """AJAX partial — Battle Room popup embedded on the arena page.
     Returns an HTML fragment (no base.html). No login required — anonymous visitors
@@ -914,6 +926,8 @@ def _get_spectators(enrolled_author_ids, limit=40):
 def arena_blast(request):
     """Ultra-lightweight sitewide blast poll — returns only the latest_result.
     Used by sitewide_blast.js to show the win celebration on any page."""
+    if not is_battle_visible(request):
+        raise Http404
     return JsonResponse({"latest_result": _arena_latest_result()})
 
 
@@ -998,6 +1012,7 @@ def _build_arena_payload():
     }
 
 
+@chef_battle_guard
 def arena(request):
     # DG-04: page view is a lobby presence heartbeat (poll continues it)
     from .services import record_viewer_presence
@@ -1070,6 +1085,10 @@ def arena(request):
 @require_POST
 def arena_ping(request):
     """Heartbeat — updates last_seen_at for the authenticated chef. Called from JS every 60s."""
+    # Visibility check only (not the full guard): the guard's suspended-POST
+    # branch would stack a banner message on every 60s heartbeat.
+    if not is_battle_visible(request):
+        raise Http404
     if not request.user.is_authenticated:
         return JsonResponse({"ok": False}, status=401)
     author = get_author_for_user(request.user)
@@ -1081,8 +1100,15 @@ def arena_ping(request):
 
 
 @require_POST
+@ratelimit(key="ip", rate="120/m", method="POST", block=False)
 def arena_state(request):
     """Lightweight state poll — returns updated ring data for JS to refresh SVG."""
+    # Visibility check only (not the full guard): the guard's suspended-POST
+    # branch would stack a banner message on every 20s poll.
+    if not is_battle_visible(request):
+        raise Http404
+    if getattr(request, "limited", False):
+        return JsonResponse({"error": "rate_limited"}, status=429)
     from .services import record_viewer_presence
     record_viewer_presence(request, battle=None)  # arena lobby surface
 
@@ -1693,9 +1719,12 @@ def battle_combat_action(request, pk):
 
 @chef_battle_guard
 @login_required
+@ratelimit(key="ip", rate="120/m", method="GET", block=False)
 def battle_state_poll(request, pk):
     """Lightweight GET endpoint — returns current combat state for auto-poll."""
     from django.http import JsonResponse
+    if getattr(request, "limited", False):
+        return JsonResponse({"error": "rate_limited"}, status=429)
     from .services import get_combat_state
     from .models import BattleCombatAction
 
@@ -1870,8 +1899,11 @@ def hall_of_fame(request):
 
 @chef_battle_guard
 @require_POST
+@ratelimit(key="ip", rate="20/m", method="POST", block=False)
 def battle_chat_send(request, pk):
     battle = get_object_or_404(Battle, pk=pk)
+    if getattr(request, "limited", False):
+        return redirect("chef_battle:battle_detail", pk=pk)
     if battle.status not in Battle.ACTIVE_STATUSES | {Battle.Status.COMPLETED}:
         return redirect("chef_battle:battle_detail", pk=pk)
 
@@ -1884,6 +1916,15 @@ def battle_chat_send(request, pk):
         display_name = request.user.get_full_name() or request.user.username
     else:
         display_name = request.POST.get("display_name", "").strip()[:60] or "Anonymous"
+        # An anonymous visitor must not impersonate a registered account or
+        # a chef's public author name (e.g. posting as "GreenBear").
+        from django.contrib.auth import get_user_model
+        name_taken = (
+            get_user_model().objects.filter(username__iexact=display_name).exists()
+            or RecipeAuthor.objects.filter(name__iexact=display_name).exists()
+        )
+        if name_taken:
+            display_name = "Anonymous"
 
     BattleChatMessage.objects.create(
         battle=battle,
@@ -1894,11 +1935,17 @@ def battle_chat_send(request, pk):
     return redirect("chef_battle:battle_detail", pk=pk)
 
 
+@ratelimit(key="ip", rate="120/m", method="GET", block=False)
 def battle_chat_poll(request, pk):
     from django.http import JsonResponse
     from .models import BattleChatMessage
+    if getattr(request, "limited", False):
+        return JsonResponse({"error": "rate_limited"}, status=429)
     battle = get_object_or_404(Battle, pk=pk)
-    since_id = int(request.GET.get("since", 0))
+    try:
+        since_id = int(request.GET.get("since", 0))
+    except (TypeError, ValueError):
+        since_id = 0
     msgs = (
         BattleChatMessage.objects
         .filter(battle=battle, id__gt=since_id, is_hidden=False)

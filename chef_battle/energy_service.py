@@ -12,6 +12,8 @@ from __future__ import annotations
 import logging
 
 from django.db import transaction
+from django.db.models import F
+from django.db.models.functions import Least
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
@@ -108,8 +110,13 @@ def award_moves(
     elif source_author is not None and transaction_type == TxType.LIKE_RECEIVED:
         reference_object_id = source_author.pk
 
-    profile.battle_moves = min(ENERGY_CAP, profile.battle_moves + amount)
-    profile.save(update_fields=["battle_moves", "updated_at"])
+    # DB-side capped increment — read-modify-write loses updates when two
+    # awards land at once (e.g. recipe publish + like in the same second).
+    from chef_battle.models import ChefBattleProfile
+    ChefBattleProfile.objects.filter(pk=profile.pk).update(
+        battle_moves=Least(F("battle_moves") + amount, ENERGY_CAP),
+        updated_at=timezone.now(),
+    )
 
     BattleMoveTransaction.objects.create(
         chef=author,
@@ -131,18 +138,24 @@ def spend_moves(author, amount: int, transaction_type: str) -> None:
     if amount <= 0:
         return
 
-    from chef_battle.models import BattleMoveTransaction
+    from chef_battle.models import BattleMoveTransaction, ChefBattleProfile
 
     profile = _get_profile(author)
 
-    if not profile.infinite_moves and profile.battle_moves < amount:
-        raise InsufficientEnergy(
-            f"Not enough battle moves. Have {profile.battle_moves}, need {amount}."
-        )
-
     if not profile.infinite_moves:
-        profile.battle_moves -= amount
-        profile.save(update_fields=["battle_moves", "updated_at"])
+        # Conditional atomic UPDATE: balance check and deduction in one
+        # statement, so concurrent spends cannot drive the balance negative.
+        updated = ChefBattleProfile.objects.filter(
+            pk=profile.pk, battle_moves__gte=amount
+        ).update(
+            battle_moves=F("battle_moves") - amount,
+            updated_at=timezone.now(),
+        )
+        if not updated:
+            profile.refresh_from_db(fields=["battle_moves"])
+            raise InsufficientEnergy(
+                f"Not enough battle moves. Have {profile.battle_moves}, need {amount}."
+            )
 
     BattleMoveTransaction.objects.create(
         chef=author,

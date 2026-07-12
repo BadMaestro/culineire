@@ -6,7 +6,7 @@ import logging
 from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.db import models
-from django.db.models import Count, Sum
+from django.db.models import Count, F, Sum
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 
@@ -1000,19 +1000,27 @@ def declare_menu(*, battle: Battle, chef, ingredients: list[dict]) -> list[Battl
     """Chef declares their ingredient list in the Changing Room.
 
     ingredients: list of dicts {'name': str, 'is_key': bool}.
-    Validates count (5–7), exactly 2 is_key, unique names.
-    Transitions battle to MENU_LOCKED when both chefs have declared.
+    Validates count (5–7, equal to the opponent's declared count),
+    exactly 2 is_key, unique names. Declaration is final — re-declaring raises.
+    Transitions battle to ACTIVE when both chefs have declared.
     """
     if battle.status != Battle.Status.MENU_LOCKED:
         raise ValueError("Меню можно объявить только на стадии Changing Room (menu_locked).")
     if not battle.author_is_participant(chef):
         raise ValueError("Только участник боя может объявить меню.")
+    if battle.battle_ingredients.filter(chef=chef).exists():
+        raise ValueError("Меню уже объявлено и не может быть изменено.")
 
     count = len(ingredients)
     if count < BattleIngredient.MIN_COUNT or count > BattleIngredient.MAX_COUNT:
         raise ValueError(
             f"Список должен содержать от {BattleIngredient.MIN_COUNT} "
             f"до {BattleIngredient.MAX_COUNT} ингредиентов, получено {count}."
+        )
+    opponent_count = battle.battle_ingredients.filter(chef=battle.opponent_for(chef)).count()
+    if opponent_count and count != opponent_count:
+        raise ValueError(
+            f"Соперник объявил {opponent_count} ингредиентов — ваш список должен содержать столько же."
         )
     key_count = sum(1 for i in ingredients if i.get("is_key"))
     if key_count != BattleIngredient.KEY_COUNT:
@@ -1025,7 +1033,6 @@ def declare_menu(*, battle: Battle, chef, ingredients: list[dict]) -> list[Battl
         raise ValueError("Ингредиенты не должны повторяться.")
 
     with transaction.atomic():
-        battle.battle_ingredients.filter(chef=chef).delete()
         created = []
         for pos, item in enumerate(ingredients):
             created.append(BattleIngredient.objects.create(
@@ -1228,9 +1235,14 @@ def credit_tokens(chef, amount: int, tx_type: str, description: str = "", battle
         raise ValueError("Credit amount must be positive.")
     with transaction.atomic():
         wallet = get_or_create_wallet(chef)
-        wallet.balance += amount
-        wallet.total_purchased += amount
-        wallet.save(update_fields=["balance", "total_purchased", "updated_at"])
+        # Atomic DB-side increment — a read-modify-write here loses updates
+        # under concurrent credits (e.g. webhook retry + gift at once).
+        TokenWallet.objects.filter(pk=wallet.pk).update(
+            balance=F("balance") + amount,
+            total_purchased=F("total_purchased") + amount,
+            updated_at=timezone.now(),
+        )
+        wallet.refresh_from_db()
         return TokenTransaction.objects.create(
             wallet=wallet,
             tx_type=tx_type,
@@ -1247,13 +1259,20 @@ def debit_tokens(chef, amount: int, tx_type: str, description: str = "", battle=
         raise ValueError("Debit amount must be positive.")
     with transaction.atomic():
         wallet = get_or_create_wallet(chef)
-        if wallet.balance < amount:
+        # Conditional atomic UPDATE: the balance check and the deduction happen
+        # in one statement, so two concurrent debits cannot both pass a stale
+        # balance check (double spend). Filter fails => insufficient funds.
+        updated = TokenWallet.objects.filter(pk=wallet.pk, balance__gte=amount).update(
+            balance=F("balance") - amount,
+            total_spent=F("total_spent") + amount,
+            updated_at=timezone.now(),
+        )
+        if not updated:
+            wallet.refresh_from_db(fields=["balance"])
             raise ValueError(
                 f"Insufficient tokens: need {amount}T, have {wallet.balance}T."
             )
-        wallet.balance -= amount
-        wallet.total_spent += amount
-        wallet.save(update_fields=["balance", "total_spent", "updated_at"])
+        wallet.refresh_from_db()
         return TokenTransaction.objects.create(
             wallet=wallet,
             tx_type=tx_type,
