@@ -320,3 +320,75 @@ Secrets must come from environment variables and must not be committed:
 Pinterest, Buffer, Instagram, TikTok, and Telegram account setup are external
 steps. Code can support them, but account verification and token creation happen
 outside the repository.
+
+## Agent Session Start — ОБЯЗАТЕЛЬНО ЧИТАТЬ ПЕРВЫМ
+
+Если ты AI-агент (Bolt, GreenBear, или любой другой) — при старте сессии
+**не начинай работу** пока не прочитал актуальный контекст из CoWork БД.
+CLAUDE.md содержит только правила проекта, но НЕ текущий статус задач,
+хендоффы и решения между сессиями.
+
+### Шаг 1 — читай CoWork БД (главный источник контекста)
+
+```python
+# Запускай через SSH:
+# wsl -e bash -c "ssh -i ~/.ssh/culineire_linode root@80.85.84.156 '...'"
+#
+# Или на сервере напрямую:
+# cd /srv/culineire/current && set -a && source /srv/culineire/shared/.env && set +a
+# /srv/culineire/venv/bin/python -c "..."
+
+import django, os
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+django.setup()
+
+from coworking.models import CoworkingAgent, CoworkingSharedMemory, CoworkingLogEntry
+
+# 1. Свой агент-ряд (замени agent_id на свой: 'bolt' или 'greenbear')
+me = CoworkingAgent.objects.get(agent_id="bolt")
+print("TASK:", me.task_title)
+print("NEXT:", me.task_next_step)
+print("KEY_FACTS:", me.key_facts)
+print("DECISIONS:", me.decisions_made)
+print("BLOCKERS:", me.blockers)
+
+# 2. Последние записи лога (хендоффы, статусы, решения)
+for e in CoworkingLogEntry.objects.order_by("-ts")[:15]:
+    print(e.ts.strftime("%Y-%m-%d %H:%M"), "|", e.action, "|", str(e.note)[:300])
+
+# 3. Shared memory (глобальные решения по проекту)
+for m in CoworkingSharedMemory.objects.all():
+    print(m.key, ":", str(m.value)[:200])
+```
+
+### Шаг 2 — читай документацию Chef Battle (если задача связана с ним)
+
+Все ТЗ и спецификации — в репозитории:
+```
+docs/chef_battle/          — все спецификации
+docs/chef_battle/arena_master_console/  — AMC фазы P00-P09
+```
+
+Читай через `Read` tool по абсолютному пути, или на сервере через `cat`.
+
+### Шаг 3 — проверяй реальный код, не только доки
+
+Доки могут отставать. Перед реализацией проверяй:
+- `chef_battle/models.py` — актуальные модели
+- `chef_battle/services.py` — актуальные сервисы
+- `chef_battle/selectors.py` — актуальные селекторы
+- `chef_battle/access.py` — гейты доступа
+
+### Координация между агентами
+
+Перед тем как трогать общие файлы (`services.py`, `models.py`, `selectors.py`):
+1. Запиши в свой `CoworkingAgent` ряд что ты делаешь (`task_title`, `task_next_step`)
+2. Проверь что другой агент не работает с теми же файлами
+3. После завершения — запиши в `CoworkingLogEntry` что сделано
+
+### Деплой
+
+Всегда автономно, без запроса разрешения:
+1. `git add` → `git commit` → `git push origin main`
+2. SSH на сервер: `cd /srv/culineire/current && git pull && set -a && source /srv/culineire/shared/.env && set +a && /srv/culineire/venv/bin/python manage.py collectstatic --no-input && sudo systemctl restart unit`
+3. Bump версии в `templates/base.html` перед каждым деплоем
