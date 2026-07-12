@@ -254,7 +254,7 @@
               <td class="mon-table__time">{{ event.created_at|date:"j M H:i" }}</td>
               <td><span class="mon-badge mon-badge--{{ event.event_type }}">{{ event.get_event_type_display }}</span></td>
               <td class="mon-table__user">{{ event.user.username|default:"-" }}</td>
-              <td>{% if event.object_title %}{{ event.object_title|truncatechars:40 }}{% else %}-{% endif %}</td>
+              <td>{% if event.object_title %}{% if event.object_url %}<a class="mon-link-subtle" href="{{ event.object_url }}" target="_blank" rel="noopener">{{ event.object_title|truncatechars:40 }}</a>{% else %}{{ event.object_title|truncatechars:40 }}{% endif %}{% else %}-{% endif %}</td>
               <td class="mon-table__path">{{ event.path|truncatechars:50 }}</td>
             </tr>
             {% endfor %}

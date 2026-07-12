@@ -166,6 +166,19 @@ def _content_url_maps(recipe_ids, article_ids):
     return recipe_urls, article_urls
 
 
+def _attach_activity_urls(activities):
+    recipe_ids = {e.object_id for e in activities if e.object_type == "recipe" and e.object_id}
+    article_ids = {e.object_id for e in activities if e.object_type == "article" and e.object_id}
+    recipe_urls, article_urls = _content_url_maps(recipe_ids, article_ids)
+    for event in activities:
+        if event.object_type == "recipe":
+            event.object_url = recipe_urls.get(event.object_id, "")
+        elif event.object_type == "article":
+            event.object_url = article_urls.get(event.object_id, "")
+        else:
+            event.object_url = ""
+
+
 def dashboard(request):
     _require_moderator(request)
 
@@ -287,11 +300,12 @@ def dashboard(request):
         .order_by("-count")[:10]
     )
 
-    latest_activities = (
+    latest_activities = list(
         UserActivity.objects
         .select_related("user")
         .order_by("-created_at")[:25]
     )
+    _attach_activity_urls(latest_activities)
 
     latest_security = list(
         SecurityEvent.objects
