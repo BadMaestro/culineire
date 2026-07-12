@@ -19,7 +19,13 @@ BOT_UA_MARKERS = (
     "go-http-client", "httpx", "okhttp",
     "scanner", "zgrab", "masscan", "nuclei",
     "nikto", "sqlmap", "wpscan", "gobuster", "ffuf",
-    "chrome/142",
+    # fake Chrome builds — real Chrome never uses x.0.0.0 minor versions
+    "chrome/142.0.0.0", "chrome/149.0.0.0", "chrome/150.0.0.0",
+    # headless browsers
+    "headlesschrome",
+    # AI and search crawlers
+    "claude-searchbot", "claude-user", "chatgpt-user",
+    "amzn-searchbot", "stripebot",
 )
 
 # Patterns that trigger a pre-request SecurityEvent in middleware
