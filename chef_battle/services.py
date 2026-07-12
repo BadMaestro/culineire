@@ -959,6 +959,66 @@ def get_combat_state(battle: Battle) -> dict:
     }
 
 
+# ── Pre-battle: Menu Declaration (Changing Room) ─────────────────────────────
+
+def declare_menu(*, battle: Battle, chef, ingredients: list[dict]) -> list[BattleIngredient]:
+    """Chef declares their ingredient list in the Changing Room.
+
+    ingredients: list of dicts {'name': str, 'is_key': bool}.
+    Validates count (5–7), exactly 2 is_key, unique names.
+    Transitions battle to MENU_LOCKED when both chefs have declared.
+    """
+    if battle.status != Battle.Status.MENU_LOCKED:
+        raise ValueError("Меню можно объявить только на стадии Changing Room (menu_locked).")
+    if not battle.author_is_participant(chef):
+        raise ValueError("Только участник боя может объявить меню.")
+
+    count = len(ingredients)
+    if count < BattleIngredient.MIN_COUNT or count > BattleIngredient.MAX_COUNT:
+        raise ValueError(
+            f"Список должен содержать от {BattleIngredient.MIN_COUNT} "
+            f"до {BattleIngredient.MAX_COUNT} ингредиентов, получено {count}."
+        )
+    key_count = sum(1 for i in ingredients if i.get("is_key"))
+    if key_count != BattleIngredient.KEY_COUNT:
+        raise ValueError(f"Необходимо отметить ровно {BattleIngredient.KEY_COUNT} ключевых ингредиента.")
+
+    names = [i["name"].strip() for i in ingredients]
+    if any(not n for n in names):
+        raise ValueError("Название ингредиента не может быть пустым.")
+    if len(set(n.lower() for n in names)) != len(names):
+        raise ValueError("Ингредиенты не должны повторяться.")
+
+    with transaction.atomic():
+        battle.battle_ingredients.filter(chef=chef).delete()
+        created = []
+        for pos, item in enumerate(ingredients):
+            created.append(BattleIngredient.objects.create(
+                battle=battle,
+                chef=chef,
+                name=item["name"].strip(),
+                is_key=bool(item.get("is_key")),
+                position=pos,
+            ))
+
+        # Transition to menu_locked when both chefs have declared
+        both_declared = (
+            battle.battle_ingredients.filter(chef=battle.challenger).exists()
+            and battle.battle_ingredients.filter(chef=battle.opponent).exists()
+        )
+        if both_declared:
+            battle.status = Battle.Status.ACTIVE
+            battle.save(update_fields=["status"])
+            create_battle_event(
+                battle=battle,
+                event_type=BattleEvent.EventType.BATTLE_STARTED,
+                message="Оба шефа объявили меню. Бой начинается!",
+                is_public=True,
+            )
+
+    return created
+
+
 # ── Biathlon ─────────────────────────────────────────────────────────────────
 
 def place_ingredient_lock(*, battle: Battle, chef, ingredient_index: int) -> IngredientLock:

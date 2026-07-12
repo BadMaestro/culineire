@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Changing Room: {{ battle.theme }} | Chef Battles{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero">
+  <div class="container">
+    {% include '_enter_arena_btn.html' %}
+    <p class="battle-kicker battle-kicker--active">&#x1F9E5; Changing Room &middot; Declare Your Menu</p>
+    <h1 class="battle-room-title">{{ battle.theme }}</h1>
+    <p class="battle-room-meta">vs {{ battle.opponent.name if request.user == battle.challenger.user else battle.challenger.name }}</p>
+  </div>
+</section>
+
+<div class="container battle-room-body">
+
+  {% if messages %}
+  <div class="battle-messages">
+    {% for msg in messages %}
+    <div class="battle-message battle-message--{{ msg.tags }}">{{ msg }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if already_declared %}
+  <div class="bd-phase-panel bd-phase-panel--declared">
+    <p class="bd-phase-panel__icon">&#x2705;</p>
+    <h2 class="bd-phase-panel__title">Menu Declared</h2>
+    <p class="bd-phase-panel__body">
+      You have submitted your ingredient list.
+      {% if opponent_declared %}
+        Both chefs are ready &mdash; combat is beginning!
+      {% else %}
+        Waiting for your opponent to declare their menu&hellip;
+      {% endif %}
+    </p>
+    <h3 class="cr-list-title">Your ingredients</h3>
+    <ul class="cr-ingredient-list cr-ingredient-list--readonly">
+      {% for ing in my_ingredients %}
+      <li class="cr-ingredient-item{% if ing.is_key %} cr-ingredient-item--key{% endif %}">
+        {{ ing.name }}
+        {% if ing.is_key %}<span class="cr-key-badge">&#x1F512; Locked</span>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    <a class="btn-secondary bd-phase-panel__cta" href="{% url 'chef_battle:battle_detail' battle.pk %}">Back to Battle Room</a>
+  </div>
+
+  {% else %}
+  <div class="bd-phase-panel bd-phase-panel--changing-room">
+    <p class="bd-phase-panel__icon">&#x1F9E5;</p>
+    <h2 class="bd-phase-panel__title">Declare Your Ingredients</h2>
+    <p class="bd-phase-panel__body">
+      List {{ min_count }}&ndash;{{ max_count }} ingredients. Mark exactly {{ key_count }} as <strong>locked</strong> &mdash; they are hidden from your opponent and cannot be eliminated during combat.
+    </p>
+
+    <form method="post" action="{% url 'chef_battle:battle_declare_menu' battle.pk %}" class="cr-form" id="cr-form">
+      {% csrf_token %}
+
+      <div class="cr-ingredient-builder" id="cr-builder">
+        {% for i in "12345"|make_list %}
+        <div class="cr-ingredient-row" data-index="{{ forloop.counter0 }}">
+          <span class="cr-row-num">{{ forloop.counter }}</span>
+          <input
+            class="cr-ingredient-input"
+            type="text"
+            name="ingredient_name"
+            placeholder="Ingredient name&hellip;"
+            maxlength="150"
+            {% if forloop.counter <= min_count %}required{% endif %}
+          >
+          <label class="cr-key-label">
+            <input type="checkbox" name="ingredient_key" value="{{ forloop.counter0 }}" class="cr-key-check">
+            &#x1F512; Lock
+          </label>
+          <button type="button" class="cr-remove-btn" aria-label="Remove">&#x2715;</button>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="cr-form-actions">
+        <button type="button" class="btn-secondary" id="cr-add-btn" {% if max_count <= 5 %}style="display:none"{% endif %}>
+          + Add ingredient
+        </button>
+        <span class="cr-counter" id="cr-counter">5 / {{ max_count }}</span>
+      </div>
+
+      <p class="cr-key-hint" id="cr-key-hint"></p>
+
+      <button type="submit" class="btn-primary cr-submit-btn" id="cr-submit">
+        Lock In My Menu &rarr;
+      </button>
+    </form>
+  </div>
+  {% endif %}
+
+</div>
+
+<script>
+(function () {
+  const MIN = {{ min_count }};
+  const MAX = {{ max_count }};
+  const KEY_REQUIRED = {{ key_count }};
+  const builder = document.getElementById('cr-builder');
+  const addBtn  = document.getElementById('cr-add-btn');
+  const counter = document.getElementById('cr-counter');
+  const hint    = document.getElementById('cr-key-hint');
+  const submit  = document.getElementById('cr-submit');
+
+  function rows() { return builder ? builder.querySelectorAll('.cr-ingredient-row') : []; }
+
+  function reindex() {
+    rows().forEach((row, i) => {
+      row.dataset.index = i;
+      row.querySelector('.cr-row-num').textContent = i + 1;
+      const inp = row.querySelector('.cr-ingredient-input');
+      inp.required = i < MIN;
+      const chk = row.querySelector('.cr-key-check');
+      chk.value = i;
+    });
+  }
+
+  function update() {
+    const r = rows();
+    const count = r.length;
+    if (counter) counter.textContent = count + ' / ' + MAX;
+    if (addBtn) addBtn.style.display = count >= MAX ? 'none' : '';
+
+    const keyCount = builder ? builder.querySelectorAll('.cr-key-check:checked').length : 0;
+    const ok = keyCount === KEY_REQUIRED;
+    if (hint) {
+      if (keyCount < KEY_REQUIRED) {
+        hint.textContent = 'Select ' + (KEY_REQUIRED - keyCount) + ' more locked ingredient(s).';
+        hint.className = 'cr-key-hint cr-key-hint--warn';
+      } else if (keyCount > KEY_REQUIRED) {
+        hint.textContent = 'Too many locked — uncheck ' + (keyCount - KEY_REQUIRED) + '.';
+        hint.className = 'cr-key-hint cr-key-hint--error';
+      } else {
+        hint.textContent = '2 ingredients locked. Ready to submit.';
+        hint.className = 'cr-key-hint cr-key-hint--ok';
+      }
+    }
+    if (submit) submit.disabled = !ok;
+  }
+
+  function addRow() {
+    if (rows().length >= MAX) return;
+    const idx = rows().length;
+    const div = document.createElement('div');
+    div.className = 'cr-ingredient-row';
+    div.dataset.index = idx;
+    div.innerHTML =
+      '<span class="cr-row-num">' + (idx + 1) + '</span>' +
+      '<input class="cr-ingredient-input" type="text" name="ingredient_name" placeholder="Ingredient name…" maxlength="150">' +
+      '<label class="cr-key-label"><input type="checkbox" name="ingredient_key" value="' + idx + '" class="cr-key-check"> 🔒 Lock</label>' +
+      '<button type="button" class="cr-remove-btn" aria-label="Remove">✕</button>';
+    builder.appendChild(div);
+    div.querySelector('.cr-ingredient-input').focus();
+    reindex();
+    update();
+  }
+
+  if (addBtn) addBtn.addEventListener('click', addRow);
+
+  if (builder) {
+    builder.addEventListener('click', function (e) {
+      if (e.target.classList.contains('cr-remove-btn')) {
+        const r = rows();
+        if (r.length <= MIN) return;
+        e.target.closest('.cr-ingredient-row').remove();
+        reindex();
+        update();
+      }
+    });
+    builder.addEventListener('change', update);
+  }
+
+  update();
+})();
+</script>
+{% endblock %}

@@ -42,7 +42,7 @@ from .fraud import (
     gate_withdrawal_consent,
     run_fraud_gates,
 )
-from .models import Artifact, Battle, BattleChatMessage, BattleChallenge, BattleEntry, BattleEvent, BattleVote, ChefArtifact, ChefBattleProfile, TokenWallet, VoteIntegrityEvent
+from .models import Artifact, Battle, BattleChatMessage, BattleChallenge, BattleEntry, BattleEvent, BattleIngredient, BattleVote, ChefArtifact, ChefBattleProfile, TokenWallet, VoteIntegrityEvent
 from .selectors import (
     get_active_battles,
     get_battle_vote_counts,
@@ -2381,6 +2381,62 @@ def battle_set_ready(request, pk):
     else:
         battle.save(update_fields=["challenger_ready", "opponent_ready", "updated_at"])
         messages.success(request, "You're ready! Waiting for your opponent.")
+
+    return redirect("chef_battle:battle_detail", pk=pk)
+
+
+# ── Changing Room: Menu Declaration ─────────────────────────────────────────
+
+@login_required
+def battle_changing_room(request, pk):
+    """Changing Room — chef declares their ingredient list (menu_locked phase)."""
+    battle = get_object_or_404(Battle, pk=pk)
+    viewer_author = get_author_for_user(request.user)
+    if not viewer_author or not battle.author_is_participant(viewer_author):
+        raise PermissionDenied
+    if battle.status != Battle.Status.MENU_LOCKED:
+        return redirect("chef_battle:battle_detail", pk=pk)
+
+    my_ingredients = list(
+        battle.battle_ingredients.filter(chef=viewer_author).order_by("position")
+    )
+    opponent = battle.opponent if viewer_author.pk == battle.challenger_id else battle.challenger
+    opponent_declared = battle.battle_ingredients.filter(chef=opponent).exists()
+
+    return render(request, "chef_battle/changing_room_declare.html", {
+        "battle": battle,
+        "my_ingredients": my_ingredients,
+        "already_declared": bool(my_ingredients),
+        "opponent_declared": opponent_declared,
+        "min_count": BattleIngredient.MIN_COUNT,
+        "max_count": BattleIngredient.MAX_COUNT,
+        "key_count": BattleIngredient.KEY_COUNT,
+    })
+
+
+@login_required
+@require_POST
+def battle_declare_menu(request, pk):
+    """POST: submit ingredient list for the Changing Room."""
+    from .services import declare_menu
+    battle = get_object_or_404(Battle, pk=pk)
+    viewer_author = get_author_for_user(request.user)
+    if not viewer_author or not battle.author_is_participant(viewer_author):
+        raise PermissionDenied
+
+    # Parse posted ingredient names and keys
+    names = request.POST.getlist("ingredient_name")
+    keys = set(request.POST.getlist("ingredient_key"))  # positions marked as key
+    ingredients = [
+        {"name": name, "is_key": str(i) in keys}
+        for i, name in enumerate(names)
+    ]
+    try:
+        declare_menu(battle=battle, chef=viewer_author, ingredients=ingredients)
+        messages.success(request, "Меню объявлено. Ждём соперника!")
+    except ValueError as e:
+        messages.error(request, str(e))
+        return redirect("chef_battle:battle_changing_room", pk=pk)
 
     return redirect("chef_battle:battle_detail", pk=pk)
 

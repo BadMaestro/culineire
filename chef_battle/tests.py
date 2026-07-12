@@ -4356,3 +4356,99 @@ class PostBattleCooldownAcceptTests(TestCase):
         self.assertEqual(resp.status_code, 302)
         challenge.refresh_from_db()
         self.assertEqual(challenge.status, BattleChallenge.Status.ACCEPTED)
+
+
+class DeclareMenuServiceTests(TestCase):
+    """Tests for the declare_menu() service (Gap 1 Phase 1)."""
+
+    def setUp(self):
+        from .services import declare_menu
+        self.declare_menu = declare_menu
+
+        User = get_user_model()
+        self.user_a = User.objects.create_user(username="dm-chef-a", password="pw")
+        self.user_b = User.objects.create_user(username="dm-chef-b", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=self.user_a, name="DM Chef A", slug="dm-chef-a")
+        self.chef_b = RecipeAuthor.objects.create(user=self.user_b, name="DM Chef B", slug="dm-chef-b")
+
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.chef_a,
+            opponent=self.chef_b,
+            theme="Test Theme",
+            status=Battle.Status.MENU_LOCKED,
+            submission_deadline=now + timezone.timedelta(days=5),
+            voting_deadline=now + timezone.timedelta(days=7),
+            end_time=now + timezone.timedelta(days=7),
+        )
+
+    def _ingredients(self, n=5, key_indices=(0, 1)):
+        return [
+            {"name": f"Ingredient {i}", "is_key": i in key_indices}
+            for i in range(n)
+        ]
+
+    def test_menu_locked_status_precondition(self):
+        self.assertEqual(self.battle.status, Battle.Status.MENU_LOCKED)
+
+    def test_declare_menu_creates_ingredients(self):
+        from .models import BattleIngredient
+        result = self.declare_menu(
+            battle=self.battle, chef=self.chef_a, ingredients=self._ingredients()
+        )
+        self.assertEqual(len(result), 5)
+        db_count = BattleIngredient.objects.filter(battle=self.battle, chef=self.chef_a).count()
+        self.assertEqual(db_count, 5)
+
+    def test_declare_menu_exactly_two_keys(self):
+        from .models import BattleIngredient
+        self.declare_menu(battle=self.battle, chef=self.chef_a, ingredients=self._ingredients())
+        key_count = BattleIngredient.objects.filter(
+            battle=self.battle, chef=self.chef_a, is_key=True
+        ).count()
+        self.assertEqual(key_count, 2)
+
+    def test_too_few_ingredients_raises(self):
+        with self.assertRaises(ValueError):
+            self.declare_menu(
+                battle=self.battle, chef=self.chef_a, ingredients=self._ingredients(n=4)
+            )
+
+    def test_too_many_ingredients_raises(self):
+        with self.assertRaises(ValueError):
+            self.declare_menu(
+                battle=self.battle, chef=self.chef_a, ingredients=self._ingredients(n=8)
+            )
+
+    def test_wrong_key_count_raises(self):
+        with self.assertRaises(ValueError):
+            self.declare_menu(
+                battle=self.battle, chef=self.chef_a,
+                ingredients=self._ingredients(key_indices=(0,))  # only 1 key
+            )
+
+    def test_both_declare_transitions_to_active(self):
+        self.declare_menu(battle=self.battle, chef=self.chef_a, ingredients=self._ingredients())
+        self.declare_menu(battle=self.battle, chef=self.chef_b, ingredients=self._ingredients())
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.ACTIVE)
+
+    def test_first_declare_stays_menu_locked(self):
+        self.declare_menu(battle=self.battle, chef=self.chef_a, ingredients=self._ingredients())
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.MENU_LOCKED)
+
+    def test_duplicate_declare_raises(self):
+        self.declare_menu(battle=self.battle, chef=self.chef_a, ingredients=self._ingredients())
+        with self.assertRaises(ValueError):
+            self.declare_menu(
+                battle=self.battle, chef=self.chef_a, ingredients=self._ingredients()
+            )
+
+    def test_wrong_battle_status_raises(self):
+        self.battle.status = Battle.Status.SCHEDULED
+        self.battle.save()
+        with self.assertRaises(ValueError):
+            self.declare_menu(
+                battle=self.battle, chef=self.chef_a, ingredients=self._ingredients()
+            )
