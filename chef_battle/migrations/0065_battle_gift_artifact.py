@@ -5,7 +5,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('chef_battle', '0061_surviving_ingredients_and_artifact_used'),
+        ('chef_battle', '0064_chest_data_migration'),
     ]
 
     operations = [

@@ -64,6 +64,7 @@ class ChefBattleProfile(models.Model):
     is_executive = models.BooleanField(default=False, db_index=True, help_text="Executive role — excluded from chef rankings and battle participation")
     # Enrolment — set when author explicitly completes the "Join Chef Battles" onboarding
     enrolled_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    chest_moves = models.PositiveIntegerField(default=0, help_text="Overflow moves stored in the chest when wallet is full.")
     # 18+ compliance
     age_verified = models.BooleanField(default=False)
     age_confirmed_at = models.DateTimeField(null=True, blank=True)
@@ -801,6 +802,46 @@ class IngredientShot(models.Model):
     def __str__(self):
         result = "bounced" if self.bounced else "hit"
         return f"Shot by {self.shooter} at #{self.target_index} ({result}, battle {self.battle_id})"
+
+
+class BattleIngredient(models.Model):
+    """One ingredient declared by a chef before combat begins.
+
+    Both chefs must declare equal-sized lists (5–7 items each) with exactly
+    2 marked is_key (their hidden combat locks). Once both lists are submitted
+    the battle transitions to menu_locked -> active.
+    """
+
+    MIN_COUNT = 5
+    MAX_COUNT = 7
+    KEY_COUNT = 2  # exactly 2 per chef must be marked is_key
+
+    battle = models.ForeignKey(Battle, on_delete=models.CASCADE, related_name="battle_ingredients")
+    chef = models.ForeignKey(
+        "recipes.RecipeAuthor", on_delete=models.CASCADE, related_name="battle_ingredients"
+    )
+    name = models.CharField(max_length=150)
+    is_key = models.BooleanField(default=False, help_text="Hidden combat lock — protects this ingredient from elimination")
+    is_eliminated = models.BooleanField(default=False, db_index=True)
+    eliminated_at = models.DateTimeField(null=True, blank=True)
+    eliminated_by = models.ForeignKey(
+        "recipes.RecipeAuthor", null=True, blank=True,
+        on_delete=models.SET_NULL, related_name="ingredients_eliminated"
+    )
+    position = models.PositiveSmallIntegerField(default=0, help_text="Display order within this chef's list")
+
+    class Meta:
+        ordering = ["battle", "chef", "position"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["battle", "chef", "position"],
+                name="unique_ingredient_position_per_chef",
+            ),
+        ]
+
+    def __str__(self):
+        status = "eliminated" if self.is_eliminated else ("key" if self.is_key else "active")
+        return f"{self.name} [{status}] — {self.chef} (battle {self.battle_id})"
 
 
 class BattleChatMessage(models.Model):

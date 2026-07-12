@@ -14,9 +14,9 @@ from newsfeed.models import NewsFeedEntry
 
 from .models import (
     APPRECIATION_GIFT_COST, Artifact, Battle, BattleChallenge, BattleCombatAction,
-    BattleEntry, BattleEvent, BattleRound, ChefArtifact, ChefBattleProfile, IngredientLock,
-    IngredientShot, AppreciationGift, LiveStreamSession, OperatorActionIdempotencyKey, ViewerBattleGift,
-    TokenTransaction, TokenWallet,
+    BattleEntry, BattleEvent, BattleIngredient, BattleRound, ChefArtifact, ChefBattleProfile,
+    IngredientLock, IngredientShot, AppreciationGift, LiveStreamSession,
+    OperatorActionIdempotencyKey, ViewerBattleGift, TokenTransaction, TokenWallet,
 )
 
 logger = logging.getLogger(__name__)
