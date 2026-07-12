@@ -173,18 +173,12 @@ def dashboard(request):
     bounds = _period_bounds(period, now)
     period_label = PERIOD_OPTIONS[period]
 
-    period_pageviews = list(
-        PageView.objects
-        .filter(**bounds)
-        .select_related("user")
-        .only("path", "user_agent", "user")
+    human_pageviews_today = (
+        PageView.objects.filter(**bounds, is_bot=False).count()
     )
-    decorated_period_pageviews = _decorate_request_rows(period_pageviews)
-    human_pageviews_today = len({
-        row.session_key for row in decorated_period_pageviews
-        if row.request_kind in HUMAN_REQUEST_KINDS and row.session_key
-    })
-    bot_pageviews_today = sum(1 for row in decorated_period_pageviews if row.request_kind == "Bot/Scanner")
+    bot_pageviews_today = (
+        PageView.objects.filter(**bounds, is_bot=True).count()
+    )
 
     online_now = (
         PageView.objects
@@ -204,7 +198,7 @@ def dashboard(request):
         .count()
     )
 
-    pageviews_today = len(period_pageviews)
+    pageviews_today = PageView.objects.filter(**bounds).count()
 
     new_users_today = (
         UserActivity.objects
@@ -239,14 +233,14 @@ def dashboard(request):
 
     top_recipe_rows = list(
         UserActivity.objects
-        .filter(event_type=UserActivity.EventType.RECIPE_VIEW, object_type="recipe")
+        .filter(event_type=UserActivity.EventType.RECIPE_VIEW, object_type="recipe", **bounds)
         .values("object_id", "object_title")
         .annotate(views=Count("id"))
         .order_by("-views")[:10]
     )
     top_article_rows = list(
         UserActivity.objects
-        .filter(event_type=UserActivity.EventType.ARTICLE_VIEW, object_type="article")
+        .filter(event_type=UserActivity.EventType.ARTICLE_VIEW, object_type="article", **bounds)
         .values("object_id", "object_title")
         .annotate(views=Count("id"))
         .order_by("-views")[:10]

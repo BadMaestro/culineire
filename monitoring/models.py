@@ -51,8 +51,9 @@ class PageView(models.Model):
         related_name="page_views",
     )
     session_key = models.CharField(max_length=40, blank=True, db_index=True)
-    ip_hash = models.CharField(max_length=64, blank=True)
+    ip_hash = models.CharField(max_length=64, blank=True, db_index=True)
     user_agent = models.CharField(max_length=200, blank=True)
+    is_bot = models.BooleanField(default=False, db_index=True)
     status_code = models.PositiveSmallIntegerField(default=200)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 

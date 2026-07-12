@@ -140,6 +140,7 @@ class MonitoringMiddleware:
                 session_key=session_key,
                 ip_hash=ip_hash,
                 user_agent=user_agent,
+                is_bot=_is_bot_ua(user_agent),
                 status_code=status,
             )
 
