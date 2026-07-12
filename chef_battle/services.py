@@ -596,38 +596,31 @@ MOVES_REFUSE_PENALTY = 15  # Live rules 2026-07-10: refusing costs 15 Battle Mov
 MOVES_CONTENT_DAILY_CAP = ENERGY_CAP
 MOVES_CONTENT_WEEKLY_CAP = ENERGY_CAP
 
-ENROL_MOVES_MIN = 10
-ENROL_MOVES_MAX = 60
-ENROL_MOVES_PER_RECIPE = 3
-ENROL_MOVES_PER_ARTICLE = 3
+ENROL_MOVES_MAX_TO_BATTLE = 60
+ENROL_MOVES_PER_RECIPE = 5
+ENROL_MOVES_PER_ARTICLE = 5
 ENROL_MOVES_PER_PINCH = 1
 ENROL_MOVES_PER_LIKE = 1
 
 
 def calculate_enrol_moves(author) -> int:
-    """Calculate how many battle moves a chef earns on enrolment based on prior activity.
+    """Calculate total moves earned from prior activity before enrolling.
 
-    Formula: 3 per approved recipe + 3 per approved article + 1 per approved pinch
-             + 1 per like received on their content.
-    Clamped to [ENROL_MOVES_MIN, ENROL_MOVES_MAX].
+    Formula: 5 per approved recipe + 5 per approved article + 1 per approved pinch
+             + 1 per unique like received on content.
+    Returns raw total — no minimum. Cap applied at transfer time.
     """
     from recipes.models import Recipe
     from articles.models import Article
     from pinch.models import Pinch
     from collection.models import ContentReaction
     from django.contrib.contenttypes.models import ContentType
-
-    recipe_count = Recipe.objects.filter(
-        author=author, status=Recipe.Status.APPROVED
-    ).count()
-    article_count = Article.objects.filter(
-        author=author, status=Article.Status.APPROVED
-    ).count()
-    pinch_count = Pinch.objects.filter(
-        author=author, status=Pinch.Status.APPROVED
-    ).count()
-
     from django.db.models import Q
+
+    recipe_count = Recipe.objects.filter(author=author, status=Recipe.Status.APPROVED).count()
+    article_count = Article.objects.filter(author=author, status=Article.Status.APPROVED).count()
+    pinch_count = Pinch.objects.filter(author=author, status=Pinch.Status.APPROVED).count()
+
     recipe_ct = ContentType.objects.get_for_model(Recipe)
     article_ct = ContentType.objects.get_for_model(Article)
     pinch_ct = ContentType.objects.get_for_model(Pinch)
@@ -642,47 +635,52 @@ def calculate_enrol_moves(author) -> int:
         Q(content_type=pinch_ct, object_id__in=pinch_pks),
     ).count()
 
-    total = (
+    return (
         recipe_count * ENROL_MOVES_PER_RECIPE
         + article_count * ENROL_MOVES_PER_ARTICLE
         + pinch_count * ENROL_MOVES_PER_PINCH
         + like_count * ENROL_MOVES_PER_LIKE
     )
-    return max(ENROL_MOVES_MIN, min(ENROL_MOVES_MAX, total))
 
 
 def award_enrol_bonus(author) -> int:
-    """Award enrolment bonus moves to a chef. Overflow above ENERGY_CAP goes to chest_moves.
+    """Credit enrolment moves based on prior activity.
 
-    Returns total moves awarded (to battle_moves + chest_moves combined).
+    All earned moves go to chest_moves. Then up to ENROL_MOVES_MAX_TO_BATTLE
+    are transferred to battle_moves (capped by ENERGY_CAP headroom).
+    Remainder stays in the chest.
+    Returns total moves calculated.
     """
-    from .models import BattleMoveTransaction, ChefBattleProfile
+    from .models import BattleMoveTransaction
 
-    amount = calculate_enrol_moves(author)
     profile = get_or_create_battle_profile(author)
-
     if profile.infinite_moves:
         return 0
 
+    total = calculate_enrol_moves(author)
+    if total <= 0:
+        return 0
+
+    # All moves land in the chest first
+    profile.refresh_from_db(fields=["chest_moves", "battle_moves"])
+    profile.chest_moves += total
+    profile.save(update_fields=["chest_moves"])
+
+    # Transfer up to ENROL_MOVES_MAX_TO_BATTLE from chest to battle_moves
     headroom = max(0, ENERGY_CAP - profile.battle_moves)
-    to_battle = min(amount, headroom)
-    to_chest = amount - to_battle
-
+    to_battle = min(profile.chest_moves, ENROL_MOVES_MAX_TO_BATTLE, headroom)
     if to_battle > 0:
-        _energy_award_moves(author, to_battle, BattleMoveTransaction.TxType.ENROL_BONUS)
-
-    if to_chest > 0:
-        profile.refresh_from_db(fields=["chest_moves"])
-        profile.chest_moves += to_chest
-        profile.save(update_fields=["chest_moves"])
+        profile.refresh_from_db(fields=["chest_moves", "battle_moves"])
+        profile.chest_moves -= to_battle
+        profile.battle_moves = min(ENERGY_CAP, profile.battle_moves + to_battle)
+        profile.save(update_fields=["chest_moves", "battle_moves"])
         BattleMoveTransaction.objects.create(
             chef=author,
-            amount=to_chest,
+            amount=to_battle,
             transaction_type=BattleMoveTransaction.TxType.ENROL_BONUS,
-            reason="chest overflow",
         )
 
-    return amount
+    return total
 
 
 def award_moves(author, amount: int, reason: str) -> None:
@@ -708,7 +706,7 @@ def award_moves(author, amount: int, reason: str) -> None:
 # ── Phase 4: Combat mechanics ─────────────────────────────────────────────────
 
 COMBAT_MOVES_MIN = 1
-COMBAT_MOVES_MAX = 10
+COMBAT_MOVES_MAX = 5
 COMBAT_HITS_TO_WIN = 3  # not used for victory — just for display drama
 
 

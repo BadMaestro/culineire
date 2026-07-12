@@ -119,6 +119,26 @@ def remember_previous_ab_status(sender, instance, **kwargs):
 
 
 @receiver(post_save, sender=Pinch)
+def award_battle_moves_on_approval(sender, instance, created, **kwargs):
+    """Award +1 battle move to the author when a Pinch is approved."""
+    del sender, created, kwargs
+    previous_status = getattr(instance, "_previous_status", None)
+    if instance.status != Pinch.Status.APPROVED or previous_status == Pinch.Status.APPROVED:
+        return
+    if instance.is_announcement:
+        return
+    author = instance.author
+    if not author:
+        return
+    try:
+        from chef_battle.energy_service import award_moves, EARN_PINCH_PUBLISHED
+        from chef_battle.models import BattleMoveTransaction
+        award_moves(author, EARN_PINCH_PUBLISHED, BattleMoveTransaction.TxType.PINCH_PUBLISHED)
+    except Exception:
+        logger.exception("Failed to award battle moves for Pinch pk=%s", instance.pk)
+
+
+@receiver(post_save, sender=Pinch)
 def publish_ab_to_telegram_on_approval(sender, instance, **kwargs):
     del sender, kwargs
     if instance.is_announcement:

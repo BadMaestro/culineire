@@ -424,6 +424,7 @@ class BattleMoveTransaction(models.Model):
     class TxType(models.TextChoices):
         RECIPE_PUBLISHED = "recipe_published", "Recipe Publication"
         ARTICLE_PUBLISHED = "article_published", "Article Publication"
+        PINCH_PUBLISHED = "pinch_published", "Pinch Publication"
         LIKE_RECEIVED = "like_received", "Verified Like Received"
         BATTLE_WON = "battle_won", "Victory Bonus"
         BATTLE_PARTICIPATION = "battle_participation", "Battle Participation"

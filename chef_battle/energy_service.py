@@ -18,7 +18,8 @@ logger = logging.getLogger(__name__)
 
 # ── Earning rates ─────────────────────────────────────────────────────────────
 EARN_RECIPE_PUBLISHED = 5
-EARN_ARTICLE_PUBLISHED = 3
+EARN_ARTICLE_PUBLISHED = 5
+EARN_PINCH_PUBLISHED = 1
 EARN_LIKE_RECEIVED = 1
 EARN_BATTLE_WON = 10
 EARN_BATTLE_PARTICIPATION = 1
