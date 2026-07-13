@@ -4688,3 +4688,102 @@ class TokenChargebackServiceTests(TestCase):
         self.assertEqual(self.order.status, TokenOrder.Status.REFUNDED)
         self.assertEqual(self.wallet.balance, 0)
         self.assertEqual(result["deducted_tokens"], 20)
+
+
+@override_settings(SECURE_SSL_REDIRECT=False, CHEF_BATTLE_ENABLED=True)
+class SeasonEngineTests(TestCase):
+    """Phase 6 Seasons engine: lifecycle + standings snapshot + score reset."""
+
+    def setUp(self):
+        from .models import ChefBattleProfile
+        User = get_user_model()
+        self.chefs = []
+        for i, score in enumerate([30, 10, 20]):  # deliberately unordered
+            u = User.objects.create_user(username=f"season-chef-{i}", password="pw")
+            a = RecipeAuthor.objects.create(user=u, name=f"Season Chef {i}", slug=f"season-chef-{i}")
+            ChefBattleProfile.objects.create(author=a, seasonal_score=score, wins=score // 10)
+            self.chefs.append(a)
+        self.now = timezone.now()
+
+    def _mk(self, name="S1", start_delta=-1, end_delta=1, **kw):
+        from .season_service import create_season
+        return create_season(
+            name=name,
+            starts_at=self.now + timezone.timedelta(days=start_delta),
+            ends_at=self.now + timezone.timedelta(days=end_delta),
+            **kw,
+        )
+
+    def test_create_requires_end_after_start(self):
+        from .season_service import create_season
+        with self.assertRaises(ValueError):
+            create_season(name="bad", starts_at=self.now, ends_at=self.now - timezone.timedelta(days=1))
+
+    def test_only_one_active_season(self):
+        from .season_service import activate_season
+        s1 = self._mk("S1", activate=True)
+        s2 = self._mk("S2")
+        with self.assertRaises(ValueError):
+            activate_season(s2)
+
+    def test_ended_season_cannot_reactivate(self):
+        from .models import Season
+        from .season_service import activate_season
+        s = self._mk("S1", activate=True)
+        s.status = Season.Status.ENDED
+        s.save(update_fields=["status"])
+        with self.assertRaises(ValueError):
+            activate_season(s)
+
+    def test_get_active_season(self):
+        from .season_service import get_active_season
+        self.assertIsNone(get_active_season())
+        s = self._mk("S1", activate=True)
+        self.assertEqual(get_active_season(), s)
+
+    def test_close_snapshots_ranked_standings_and_resets(self):
+        from .models import Season, SeasonStanding, ChefBattleProfile
+        from .season_service import close_season
+        s = self._mk("S1", activate=True)
+        result = close_season(s)
+
+        s.refresh_from_db()
+        self.assertEqual(s.status, Season.Status.ENDED)
+        self.assertEqual(result["standings_recorded"], 3)
+        # Champion is the highest seasonal_score (30).
+        self.assertEqual(result["champion"], self.chefs[0])
+
+        standings = list(SeasonStanding.objects.filter(season=s).order_by("rank_position"))
+        self.assertEqual([st.rank_position for st in standings], [1, 2, 3])
+        self.assertEqual([st.score for st in standings], [30, 20, 10])
+        self.assertEqual(standings[0].chef, self.chefs[0])
+
+        # Live scores are reset for the next season.
+        self.assertEqual(
+            ChefBattleProfile.objects.filter(seasonal_score__gt=0).count(), 0
+        )
+
+    def test_close_only_active(self):
+        from .season_service import close_season
+        s = self._mk("S1")  # upcoming, not active
+        with self.assertRaises(ValueError):
+            close_season(s)
+
+    def test_roll_seasons_command_closes_and_activates(self):
+        from django.core.management import call_command
+        from .models import Season
+        # An active season already past its end, and an upcoming one in window.
+        past = self._mk("Past", start_delta=-10, end_delta=-1, activate=True)
+        upcoming = self._mk("Next", start_delta=-1, end_delta=30)
+        call_command("roll_seasons")
+        past.refresh_from_db()
+        upcoming.refresh_from_db()
+        self.assertEqual(past.status, Season.Status.ENDED)
+        self.assertEqual(upcoming.status, Season.Status.ACTIVE)
+
+    def test_leaderboard_shows_active_season_name(self):
+        # With CHEF_BATTLE_ENABLED the leaderboard is public (no login needed).
+        self._mk("Autumn Cup", activate=True)
+        resp = self.client.get(reverse("chef_battle:season_leaderboard"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Autumn Cup")

@@ -180,7 +180,7 @@ def _build_battlefield_progress():
         {
             "title": "Phase 6 - Seasons, Clans And Sponsorship",
             "items": [
-                {"label": "Seasons and leaderboards", "detail": "Season 1 leaderboard live at /chef-battle/season/. Seasonal score earned per win (+10). Resets each season.", "status": "done", "completed_at": "2026-06-13"},
+                {"label": "Seasons and leaderboards", "detail": "Season lifecycle engine (season_service.py): create/activate/close with a single active season at a time. Seasonal score earned per win (+10); on close, final standings are frozen into SeasonStanding (ranked) and live scores reset for the next season. Leaderboard at /chef-battle/season/ tracks the active season; roll_seasons management command rolls the lifecycle on a cron.", "status": "done", "completed_at": "2026-07-13"},
                 {"label": "Clan / team battles", "detail": "Team-based battle formats after individual battle mechanics are stable and tested.", "status": "pending"},
                 {"label": "Sponsor battle integration", "detail": "Named sponsor battles, branded themes and sponsor landing pages after AllFresh pilot.", "status": "pending"},
                 {"label": "Cosmetics and prestige items", "detail": "Prestige titles auto-assigned by wins milestone (Kitchen Porter → Executive Chef). Displayed on profile and rankings pages.", "status": "done", "completed_at": "2026-06-13"},
@@ -426,17 +426,34 @@ def battlefield_progress(request):
 
 @chef_battle_guard
 def season_leaderboard(request):
-    from django.utils import timezone
-    season_start = timezone.datetime(2026, 6, 1, tzinfo=timezone.get_current_timezone())
+    from .season_service import get_active_season, get_latest_finished_season
+    active = get_active_season()
     profiles = (
         ChefBattleProfile.objects.select_related("author")
         .filter(seasonal_score__gt=0)
         .order_by("-seasonal_score", "-wins", "author__name")[:50]
     )
+    if active:
+        season_name = (
+            f"{active.name} · {active.starts_at.day} {active.starts_at:%b} – "
+            f"{active.ends_at.day} {active.ends_at:%b %Y}"
+        )
+        season_start = active.starts_at
+    else:
+        season_name = "No active season"
+        season_start = None
+    # Frozen champions of the most recently ended season, if any.
+    finished = get_latest_finished_season()
+    past_standings = (
+        finished.standings.select_related("chef")[:10] if finished else []
+    )
     return render(request, "chef_battle/season_leaderboard.html", {
         "profiles": profiles,
         "season_start": season_start,
-        "season_name": "Season 1 · Summer 2026",
+        "season_name": season_name,
+        "active_season": active,
+        "finished_season": finished,
+        "past_standings": past_standings,
     })
 
 
@@ -716,6 +733,8 @@ def battle_home(request):
     leaders = get_top_profiles()
     events = get_public_events()
 
+    from .season_service import get_active_season
+    active_season = get_active_season()
     season_leaders = (
         ChefBattleProfile.objects
         .select_related("author")
@@ -736,8 +755,12 @@ def battle_home(request):
         "recent_battles": recent_battles,
         "leaders": leaders,
         "events": events,
-        "season_name": "Season 1 · Summer 2026",
-        "season_dates": "1 Jun – 31 Aug 2026",
+        "season_name": active_season.name if active_season else "Season Leaderboard",
+        "season_dates": (
+            f"{active_season.starts_at.day} {active_season.starts_at:%b} – "
+            f"{active_season.ends_at.day} {active_season.ends_at:%b %Y}"
+            if active_season else ""
+        ),
         "season_leaders": season_leaders,
         "viewer_author": viewer_author,
         "user_enrolled": user_enrolled,
