@@ -1765,8 +1765,10 @@ def handle_token_order_chargeback(token_order_id: int, chargeback: bool = False)
                     wallet.save(update_fields=["balance"])
                     TokenTransaction.objects.create(
                         wallet=wallet,
+                        tx_type=TokenTransaction.TxType.REFUND,
                         amount=-actual_deduct,
-                        reason=f"{'Chargeback' if chargeback else 'Refund'} — order #{order.pk}",
+                        balance_after=wallet.balance,
+                        description=f"{'Chargeback' if chargeback else 'Refund'} — order #{order.pk}",
                     )
                     deducted_tokens = actual_deduct
 

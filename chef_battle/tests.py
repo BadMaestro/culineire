@@ -4624,3 +4624,67 @@ class ArenaDarkLaunchTests(TestCase):
         self.assertEqual(response.status_code, 200)
         response = self.client.post(reverse("chef_battle:arena_state"))
         self.assertEqual(response.status_code, 200)
+
+
+@override_settings(SECURE_SSL_REDIRECT=False, CHEF_BATTLE_ENABLED=True)
+class TokenChargebackServiceTests(TestCase):
+    """handle_token_order_chargeback must run end-to-end without FieldError/TypeError.
+
+    Regression: after the owner->chef fix, the clawback TokenTransaction was
+    still built with a non-existent 'reason' kwarg and omitted the required
+    tx_type/balance_after fields, so a real chargeback with token deduction
+    crashed with TypeError and the chargeback lock never applied.
+    """
+
+    def setUp(self):
+        from .models import TokenWallet, TokenPackage, TokenOrder, ChefBattleProfile
+        User = get_user_model()
+        self.user = User.objects.create_user(username="cb-buyer", password="pw")
+        self.buyer = RecipeAuthor.objects.create(user=self.user, name="CB Buyer", slug="cb-buyer")
+        ChefBattleProfile.objects.create(author=self.buyer)
+        self.wallet = TokenWallet.objects.create(chef=self.buyer, balance=100)
+        self.package = TokenPackage.objects.create(
+            key="cb-pack", name="CB Pack", tokens=50, price_eur="5.00"
+        )
+        self.order = TokenOrder.objects.create(
+            wallet=self.wallet, package=self.package, tokens=50,
+            amount_eur_cents=500, status=TokenOrder.Status.COMPLETED,
+        )
+
+    def test_chargeback_runs_and_locks(self):
+        from .services import handle_token_order_chargeback
+        from .models import TokenOrder, TokenTransaction, LedgerEvent, ChefBattleProfile
+
+        result = handle_token_order_chargeback(self.order.pk, chargeback=True)
+
+        self.order.refresh_from_db()
+        self.wallet.refresh_from_db()
+        self.assertEqual(self.order.status, TokenOrder.Status.DISPUTED)
+        self.assertEqual(self.wallet.balance, 50)  # 100 - 50 clawed back
+        self.assertEqual(result["deducted_tokens"], 50)
+        self.assertTrue(
+            TokenTransaction.objects.filter(
+                wallet=self.wallet,
+                tx_type=TokenTransaction.TxType.REFUND,
+                amount=-50,
+            ).exists()
+        )
+        self.assertTrue(
+            LedgerEvent.objects.filter(
+                event_type=LedgerEvent.EventType.CHARGEBACK_LOCK
+            ).exists()
+        )
+        profile = ChefBattleProfile.objects.get(author=self.buyer)
+        self.assertTrue(profile.payout_blocked)
+
+    def test_refund_deducts_capped_at_balance(self):
+        from .services import handle_token_order_chargeback
+        from .models import TokenOrder
+        self.wallet.balance = 20
+        self.wallet.save(update_fields=["balance"])
+        result = handle_token_order_chargeback(self.order.pk, chargeback=False)
+        self.order.refresh_from_db()
+        self.wallet.refresh_from_db()
+        self.assertEqual(self.order.status, TokenOrder.Status.REFUNDED)
+        self.assertEqual(self.wallet.balance, 0)
+        self.assertEqual(result["deducted_tokens"], 20)
