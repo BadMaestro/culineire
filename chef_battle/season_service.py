@@ -13,7 +13,7 @@ from __future__ import annotations
 from django.db import transaction
 
 from .models import ChefBattleProfile, Season, SeasonStanding
-from .season_signals import season_ended, season_started
+from .season_signals import season_ended, season_ended_committed, season_started
 
 
 def get_active_season() -> Season | None:
@@ -96,12 +96,21 @@ def close_season(season: Season) -> dict:
         season.status = Season.Status.ENDED
         season.save(update_fields=["status"])
 
-        # Integration hook: faction subsystem finalises FactionSeasonStanding and
-        # issues SeasonReward. Runs in this transaction — see season_signals.py.
+        # Integration hook (in-transaction): light, must-be-atomic work only —
+        # e.g. finalising FactionSeasonStanding from the frozen standings. A
+        # raising receiver rolls back the whole close. See season_signals.py.
         season_ended.send(
             sender=Season,
             season=season,
             standings=season.standings.order_by("rank_position"),
+        )
+
+        # Integration hook (post-commit): heavy / fallible work — e.g. issuing
+        # SeasonReward via RewardRecord. Fires via on_commit AFTER this
+        # transaction commits, so a reward-issuance failure can never roll back
+        # the season close. Discarded if the transaction rolls back.
+        transaction.on_commit(
+            lambda: season_ended_committed.send(sender=Season, season=season)
         )
 
     return {

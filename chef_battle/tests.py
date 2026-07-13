@@ -4867,3 +4867,70 @@ class SeasonSignalTests(TestCase):
         self.assertEqual(SeasonStanding.objects.filter(season=s).count(), 0)
         from .models import ChefBattleProfile
         self.assertEqual(ChefBattleProfile.objects.get(author=self.author).seasonal_score, 15)
+
+
+@override_settings(SECURE_SSL_REDIRECT=False, CHEF_BATTLE_ENABLED=True)
+class SeasonCommittedSignalTests(TestCase):
+    """season_ended_committed fires post-commit for heavy/fallible faction reward work."""
+
+    def setUp(self):
+        from .models import ChefBattleProfile
+        User = get_user_model()
+        u = User.objects.create_user(username="cs-chef", password="pw")
+        self.author = RecipeAuthor.objects.create(user=u, name="CS Chef", slug="cs-chef")
+        ChefBattleProfile.objects.create(author=self.author, seasonal_score=20, wins=2)
+        self.now = timezone.now()
+
+    def _active_season(self):
+        from .season_service import create_season
+        return create_season(
+            name="CS Season",
+            starts_at=self.now - timezone.timedelta(days=1),
+            ends_at=self.now + timezone.timedelta(days=1),
+            activate=True,
+        )
+
+    def test_committed_signal_fires_after_commit(self):
+        from .season_signals import season_ended_committed
+        from .season_service import close_season
+        received = {}
+
+        def receiver(sender, season, **kwargs):
+            # By the time this runs, the close is committed and durable.
+            received["season"] = season
+            received["status"] = type(season).objects.get(pk=season.pk).status
+
+        season_ended_committed.connect(receiver)
+        try:
+            s = self._active_season()
+            with self.captureOnCommitCallbacks(execute=True):
+                close_season(s)
+        finally:
+            season_ended_committed.disconnect(receiver)
+        from .models import Season
+        self.assertEqual(received.get("season"), s)
+        self.assertEqual(received.get("status"), Season.Status.ENDED)
+
+    def test_committed_signal_not_fired_on_rollback(self):
+        from .season_signals import season_ended, season_ended_committed
+        from .season_service import close_season
+        fired = {"committed": False}
+
+        def in_txn_boom(sender, season, standings, **kwargs):
+            raise RuntimeError("in-transaction receiver failed")
+
+        def committed_receiver(sender, season, **kwargs):
+            fired["committed"] = True
+
+        season_ended.connect(in_txn_boom)
+        season_ended_committed.connect(committed_receiver)
+        try:
+            s = self._active_season()
+            with self.assertRaises(RuntimeError):
+                with self.captureOnCommitCallbacks(execute=True):
+                    close_season(s)
+        finally:
+            season_ended.disconnect(in_txn_boom)
+            season_ended_committed.disconnect(committed_receiver)
+        # In-txn failure rolled back the close, so post-commit never fired.
+        self.assertFalse(fired["committed"])
