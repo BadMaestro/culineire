@@ -1743,12 +1743,12 @@ def handle_token_order_chargeback(token_order_id: int, chargeback: bool = False)
 
     with transaction.atomic():
         try:
-            order = TokenOrder.objects.select_for_update().select_related("wallet__owner").get(pk=token_order_id)
+            order = TokenOrder.objects.select_for_update().select_related("wallet__chef").get(pk=token_order_id)
         except TokenOrder.DoesNotExist:
             logger.error("handle_token_order_chargeback: TokenOrder %s not found", token_order_id)
             return {"error": "TokenOrder not found"}
 
-        buyer_author = getattr(order.wallet, "owner", None)
+        buyer_author = getattr(order.wallet, "chef", None)
 
         new_status = TokenOrder.Status.DISPUTED if chargeback else TokenOrder.Status.REFUNDED
         order.status = new_status
@@ -1757,7 +1757,7 @@ def handle_token_order_chargeback(token_order_id: int, chargeback: bool = False)
         # Deduct tokens from buyer's wallet if they were credited
         deducted_tokens = 0
         if buyer_author and order.tokens and order.tokens > 0:
-            wallet = TokenWallet.objects.filter(owner=buyer_author).select_for_update().first()
+            wallet = TokenWallet.objects.filter(chef=buyer_author).select_for_update().first()
             if wallet:
                 actual_deduct = min(wallet.balance, order.tokens)
                 if actual_deduct > 0:
