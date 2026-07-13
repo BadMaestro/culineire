@@ -5114,3 +5114,78 @@ class FactionNormalizationTests(TestCase):
         self.assertNotIn("french", slugs)   # under the active-member floor
         self.assertEqual(board[0]["rank_position"], 1)
         self.assertEqual(board[0]["active_member_count"], FACTION_RANK_MEMBER_FLOOR)
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class FactionEarnPathTests(TestCase):
+    """Phase 6: award_faction_contribution + its uncapped insertion in award_moves."""
+
+    def setUp(self):
+        from .models import ChefBattleProfile, Faction, FactionMembership, Season
+        User = get_user_model()
+        u = User.objects.create_user("fep-chef", password="pw")
+        self.chef = RecipeAuthor.objects.create(user=u, name="FEP Chef", slug="fep-chef")
+        self.profile = ChefBattleProfile.objects.create(author=self.chef, enrolled_at=timezone.now())
+        now = timezone.now()
+        self.season = Season.objects.create(
+            name="FEP", starts_at=now - timezone.timedelta(days=1),
+            ends_at=now + timezone.timedelta(days=30), status=Season.Status.ACTIVE,
+        )
+        self.italian = Faction.objects.get(kind="cuisine", slug="italian")
+        self.bbq = Faction.objects.get(kind="specialty", slug="bbq")
+        FactionMembership.objects.create(chef=self.chef, faction=self.italian, faction_kind="cuisine", season=self.season)
+        FactionMembership.objects.create(chef=self.chef, faction=self.bbq, faction_kind="specialty", season=self.season)
+
+    def _points(self):
+        from .models import FactionContribution
+        from django.db.models import Sum
+        return {
+            "cuisine": FactionContribution.objects.filter(faction=self.italian, season=self.season).aggregate(t=Sum("points"))["t"] or 0,
+            "specialty": FactionContribution.objects.filter(faction=self.bbq, season=self.season).aggregate(t=Sum("points"))["t"] or 0,
+            "rows": FactionContribution.objects.filter(chef=self.chef, season=self.season).count(),
+        }
+
+    def test_award_writes_both_axes(self):
+        from .faction_service import award_faction_contribution
+        n = award_faction_contribution(self.chef, 5)
+        self.assertEqual(n, 2)  # one cuisine + one specialty row
+        p = self._points()
+        self.assertEqual(p["cuisine"], 5)
+        self.assertEqual(p["specialty"], 5)
+
+    def test_noop_without_membership(self):
+        from .faction_service import award_faction_contribution
+        from .models import FactionMembership
+        FactionMembership.objects.all().delete()
+        self.assertEqual(award_faction_contribution(self.chef, 5), 0)
+
+    def test_noop_without_active_season(self):
+        from .faction_service import award_faction_contribution
+        from .models import Season
+        self.season.status = Season.Status.ENDED
+        self.season.save(update_fields=["status"])
+        self.assertEqual(award_faction_contribution(self.chef, 5), 0)
+
+    def test_award_moves_triggers_faction_points(self):
+        from .energy_service import award_moves
+        award_moves(self.chef, 3, "recipe_published")
+        p = self._points()
+        self.assertEqual(p["rows"], 2)
+        self.assertEqual(p["cuisine"], 3)
+
+    def test_faction_points_uncapped_even_when_moves_capped(self):
+        from .energy_service import award_moves, ENERGY_CAP
+        from .models import ChefBattleProfile
+        # Max out the moves wallet so award_moves' ENERGY_CAP early-return trips.
+        ChefBattleProfile.objects.filter(pk=self.profile.pk).update(battle_moves=ENERGY_CAP)
+        award_moves(self.chef, 5, "recipe_published")
+        self.profile.refresh_from_db()
+        self.assertEqual(self.profile.battle_moves, ENERGY_CAP)  # moves stayed capped
+        p = self._points()
+        self.assertEqual(p["cuisine"], 5)   # faction points STILL credited
+        self.assertEqual(p["specialty"], 5)
+
+    def test_admin_adjustment_does_not_feed_factions(self):
+        from .energy_service import award_moves
+        award_moves(self.chef, 10, "admin_adjustment")
+        self.assertEqual(self._points()["rows"], 0)

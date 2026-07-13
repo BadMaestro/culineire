@@ -53,6 +53,15 @@ def _anti_farm_like_count(author, source_author) -> int:
     ).count()
 
 
+# Move-earning events that also feed Culinary Faction contribution (Phase 6).
+# Content + likes now; battle_won/battle_participation are added together with
+# the same-faction / per-opponent anti-abuse gates so battle points are never
+# credited without their guards. Spends/penalties/admin/enrol are excluded.
+_FACTION_EARN_TYPES = frozenset({
+    "recipe_published", "article_published", "pinch_published", "like_received",
+})
+
+
 @transaction.atomic
 def award_moves(
     author,
@@ -85,6 +94,18 @@ def award_moves(
     if transaction_type == TxType.LIKE_RECEIVED and source_author is not None:
         if _anti_farm_like_count(author, source_author) >= LIKE_ANTI_FARM_MAX_PER_SOURCE:
             return 0
+
+    # Faction contribution — season-cumulative and UNCAPPED. Fires here, past the
+    # anti-farm gate, with the ORIGINAL amount and BEFORE the ENERGY_CAP early-
+    # return below could suppress it. Isolated in a savepoint so a faction
+    # failure never breaks the core moves economy.
+    if transaction_type in _FACTION_EARN_TYPES:
+        try:
+            with transaction.atomic():
+                from chef_battle.faction_service import award_faction_contribution
+                award_faction_contribution(author, amount, source=reference)
+        except Exception:
+            logger.exception("Faction contribution failed for author pk=%s", author.pk)
 
     profile = _get_profile(author)
     if profile.infinite_moves:

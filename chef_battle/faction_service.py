@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import math
 
+from django.db import transaction
 from django.db.models import Count, Sum
 
 from .models import (
@@ -24,7 +25,52 @@ from .models import (
     FACTION_RANK_MEMBER_FLOOR,
     Faction,
     FactionContribution,
+    FactionMembership,
 )
+
+
+def award_faction_contribution(chef, points: int, *, source=None) -> int:
+    """Credit `points` to the chef's active-season Cuisine AND Specialty factions.
+
+    Writes one append-only FactionContribution row per axis the chef currently
+    belongs to (so a chef in both a cuisine and a specialty gets two rows).
+    No-op (returns 0) if points<=0, there is no active season, or the chef has
+    no live membership. faction / faction_kind are denormalised at write time so
+    the points stay with the faction the chef was in at the earning moment.
+
+    Returns the number of contribution rows written.
+    """
+    if points <= 0:
+        return 0
+    from .season_service import get_active_season
+    season = get_active_season()
+    if season is None:
+        return 0
+    memberships = list(
+        FactionMembership.objects.filter(
+            chef=chef, season=season, left_at__isnull=True
+        ).select_related("faction")
+    )
+    if not memberships:
+        return 0
+
+    content_type = object_id = None
+    if source is not None:
+        from django.contrib.contenttypes.models import ContentType
+        content_type = ContentType.objects.get_for_model(source)
+        object_id = source.pk
+
+    with transaction.atomic():
+        rows = [
+            FactionContribution(
+                chef=chef, faction=m.faction, faction_kind=m.faction_kind,
+                season=season, source_content_type=content_type,
+                source_object_id=object_id, points=points,
+            )
+            for m in memberships
+        ]
+        FactionContribution.objects.bulk_create(rows)
+    return len(rows)
 
 
 def normalized_score(total_points: int, active_member_count: int) -> float:
