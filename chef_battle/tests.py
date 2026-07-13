@@ -5068,3 +5068,49 @@ class FactionSchemaTests(TestCase):
         with self.assertRaises(IntegrityError):
             with transaction.atomic():
                 FactionSeasonStanding.objects.create(faction=bbq, season=season, total_points=8)
+
+
+class FactionNormalizationTests(TestCase):
+    """Phase 6: normalized_score math + live faction leaderboard."""
+
+    def test_normalized_score_math(self):
+        from .faction_service import normalized_score
+        self.assertEqual(normalized_score(0, 5), 0.0)
+        self.assertEqual(normalized_score(100, 0), 0.0)   # no div-by-zero
+        self.assertEqual(normalized_score(-5, 5), 0.0)
+        self.assertAlmostEqual(normalized_score(100, 4), 50.0)   # 100/2
+        self.assertAlmostEqual(normalized_score(90, 9), 30.0)    # 90/3
+        # Size alone can't win: 200 pts over 25 members (40) loses to 100 over 4 (50).
+        self.assertLess(normalized_score(200, 25), normalized_score(100, 4))
+
+    def test_leaderboard_ranks_and_floor(self):
+        from .faction_service import get_faction_leaderboard
+        from .models import Faction, FactionContribution, Season, FACTION_RANK_MEMBER_FLOOR
+        User = get_user_model()
+        now = timezone.now()
+        season = Season.objects.create(
+            name="LB", starts_at=now, ends_at=now + timezone.timedelta(days=30),
+            status=Season.Status.ACTIVE,
+        )
+        italian = Faction.objects.get(kind="cuisine", slug="italian")
+        french = Faction.objects.get(kind="cuisine", slug="french")
+
+        def seed(faction, n_members, pts_each):
+            for i in range(n_members):
+                u = User.objects.create_user(f"lb-{faction.slug}-{i}", password="pw")
+                chef = RecipeAuthor.objects.create(user=u, name=f"{faction.slug}{i}", slug=f"lb-{faction.slug}-{i}")
+                FactionContribution.objects.create(
+                    chef=chef, faction=faction, faction_kind="cuisine", season=season, points=pts_each
+                )
+
+        # Italian: 5 members x 20 = 100 total, active 5 -> 100/sqrt(5) ~= 44.7
+        seed(italian, FACTION_RANK_MEMBER_FLOOR, 20)
+        # French: only 4 members -> below the >=5 floor, excluded from the board
+        seed(french, FACTION_RANK_MEMBER_FLOOR - 1, 50)
+
+        board = get_faction_leaderboard(season, "cuisine")
+        slugs = [r["faction"].slug for r in board]
+        self.assertIn("italian", slugs)
+        self.assertNotIn("french", slugs)   # under the active-member floor
+        self.assertEqual(board[0]["rank_position"], 1)
+        self.assertEqual(board[0]["active_member_count"], FACTION_RANK_MEMBER_FLOOR)
