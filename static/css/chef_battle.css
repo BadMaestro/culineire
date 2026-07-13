@@ -4002,7 +4002,3 @@ a.battle-home__pulse-msg:hover {
   text-decoration: none;
 }
 .battle-sponsor__name:hover { text-decoration: underline; }
-.battle-sponsor__tagline {
-  font-style: italic;
-  color: var(--muted, #6e6257);
-}

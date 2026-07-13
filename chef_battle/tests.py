@@ -4975,8 +4975,9 @@ class RelinkArtifactImagesCommandTests(TestCase):
 
 
 @override_settings(SECURE_SSL_REDIRECT=False, CHEF_BATTLE_ENABLED=True)
-class SponsorBattleTests(TestCase):
-    """Phase 7: branded / sponsor battles — is_sponsored + battle_detail badge."""
+class CentralSponsorBattleBadgeTests(TestCase):
+    """Battles are branded by the ACTIVE CENTRAL sponsor (the ring-0 cell),
+    resolved via sponsors.services.get_sponsor_of_month — never per-battle."""
 
     def setUp(self):
         from .models import ChefBattleProfile
@@ -4996,29 +4997,19 @@ class SponsorBattleTests(TestCase):
             voting_deadline=now + timezone.timedelta(days=4),
             end_time=now + timezone.timedelta(days=5),
         )
+        self.url = reverse("chef_battle:battle_detail", kwargs={"pk": self.battle.pk})
 
-    def test_is_sponsored_property(self):
-        self.assertFalse(self.battle.is_sponsored)
-        self.battle.sponsor_name = "Kerrygold"
-        self.assertTrue(self.battle.is_sponsored)
-        self.battle.sponsor_name = "   "  # whitespace only -> not sponsored
-        self.assertFalse(self.battle.is_sponsored)
-
-    def test_detail_shows_sponsor_badge_when_branded(self):
-        self.battle.sponsor_name = "Kerrygold"
-        self.battle.sponsor_url = "https://example.com/kerrygold"
-        self.battle.sponsor_tagline = "The taste of Ireland"
-        self.battle.save(update_fields=["sponsor_name", "sponsor_url", "sponsor_tagline"])
-        url = reverse("chef_battle:battle_detail", kwargs={"pk": self.battle.pk})
-        resp = self.client.get(url)
+    def test_badge_shown_when_central_sponsor_active(self):
+        from unittest.mock import patch
+        with patch("sponsors.services.get_sponsor_of_month", return_value="Kerrygold"):
+            resp = self.client.get(self.url)
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "Presented by")
         self.assertContains(resp, "Kerrygold")
-        self.assertContains(resp, "The taste of Ireland")
-        self.assertContains(resp, 'rel="noopener sponsored"')
 
-    def test_detail_no_badge_when_not_branded(self):
-        url = reverse("chef_battle:battle_detail", kwargs={"pk": self.battle.pk})
-        resp = self.client.get(url)
+    def test_no_badge_when_no_central_sponsor(self):
+        from unittest.mock import patch
+        with patch("sponsors.services.get_sponsor_of_month", return_value=""):
+            resp = self.client.get(self.url)
         self.assertEqual(resp.status_code, 200)
         self.assertNotContains(resp, "Presented by")

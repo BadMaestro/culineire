@@ -236,7 +236,7 @@ class BattleEventInline(admin.TabularInline):
 class BattleAdmin(admin.ModelAdmin):
     list_display = (
         "theme", "challenger", "opponent", "status",
-        "winner", "start_time", "end_time", "crown_awarded", "sponsor_name",
+        "winner", "start_time", "end_time", "crown_awarded",
     )
     list_filter = ("status", "battle_type", "crown_awarded")
     search_fields = ("theme", "challenger__name", "opponent__name")
@@ -259,10 +259,6 @@ class BattleAdmin(admin.ModelAdmin):
                 "winner", "loser", "result_reason",
                 "rating_delta_challenger", "rating_delta_opponent", "crown_awarded",
             ),
-        }),
-        ("Sponsor (Phase 7 branded battle)", {
-            "fields": ("sponsor_name", "sponsor_url", "sponsor_tagline"),
-            "classes": ("collapse",),
         }),
         ("Timestamps", {
             "fields": ("created_at", "updated_at"),

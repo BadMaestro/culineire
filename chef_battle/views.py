@@ -182,7 +182,7 @@ def _build_battlefield_progress():
             "items": [
                 {"label": "Seasons and leaderboards", "detail": "Season lifecycle engine (season_service.py): create/activate/close with a single active season at a time. Seasonal score earned per win (+10); on close, final standings are frozen into SeasonStanding (ranked) and live scores reset for the next season. Leaderboard at /chef-battle/season/ tracks the active season; roll_seasons management command rolls the lifecycle on a cron.", "status": "done", "completed_at": "2026-07-13"},
                 {"label": "Clan / team battles", "detail": "Team-based battle formats after individual battle mechanics are stable and tested.", "status": "pending"},
-                {"label": "Sponsor battle integration", "detail": "Branded-battle foundation shipped (Phase 7): operator-set sponsor_name/sponsor_url/sponsor_tagline on Battle, 'Presented by' badge on the battle page with a rel=sponsored link. Set via admin. Sponsor landing pages and media/recap automation deferred until battles are publicly live.", "status": "partial", "completed_at": "2026-07-13"},
+                {"label": "Sponsor battle integration", "detail": "Battles run under the active central sponsor (the ring-0 'Central Sponsor of the Month' cell), resolved via the single source of truth sponsors.services.get_sponsor_of_month(). Battle events already carry 'Sponsored by: <name>' in the newsfeed/Telegram (create_battle_event), and the battle page now shows a 'Presented by <name>' badge when a central sponsor is active. No per-battle config — branding follows the central cell automatically.", "status": "done", "completed_at": "2026-07-13"},
                 {"label": "Cosmetics and prestige items", "detail": "Prestige titles auto-assigned by wins milestone (Kitchen Porter → Executive Chef). Displayed on profile and rankings pages.", "status": "done", "completed_at": "2026-06-13"},
                 {"label": "TikTok / Instagram live integration", "detail": "Stream cooking phase live. Requires platform account verification and API approval.", "status": "pending"},
             ],
@@ -1383,8 +1383,15 @@ def battle_detail(request, pk):
         and not (battle.challenger_ready if viewer_is_challenger else battle.opponent_ready)
     )
 
+    try:
+        from sponsors.services import get_sponsor_of_month
+        central_sponsor = get_sponsor_of_month()
+    except Exception:
+        central_sponsor = ""
+
     return render(request, "chef_battle/battle_detail.html", {
         "battle": battle,
+        "central_sponsor": central_sponsor,
         "entries": entries,
         "events": events,
         "vote_counts": vote_counts,

@@ -37,11 +37,10 @@
 
     <h1>{{ battle.theme }}</h1>
 
-    {% if battle.is_sponsored %}
+    {% if central_sponsor %}
     <p class="battle-sponsor">
       <span class="battle-sponsor__label">Presented by</span>
-      {% if battle.sponsor_url %}<a class="battle-sponsor__name" href="{{ battle.sponsor_url }}" target="_blank" rel="noopener sponsored">{{ battle.sponsor_name }}</a>{% else %}<span class="battle-sponsor__name">{{ battle.sponsor_name }}</span>{% endif %}
-      {% if battle.sponsor_tagline %}<span class="battle-sponsor__tagline">{{ battle.sponsor_tagline }}</span>{% endif %}
+      <a class="battle-sponsor__name" href="{% url 'sponsors:puzzle' %}">{{ central_sponsor }}</a>
     </p>
     {% endif %}
 
