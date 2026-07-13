@@ -142,7 +142,7 @@ class ChefBattleServiceTests(TestCase):
             vote.full_clean()
 
 
-@override_settings(SECURE_SSL_REDIRECT=False)
+@override_settings(SECURE_SSL_REDIRECT=False, CHEF_BATTLE_ENABLED=True)
 class ChefBattleAccessTests(TestCase):
     """Permission tests for Chef Battle pages with feature flag enabled."""
 
@@ -176,7 +176,7 @@ class ChefBattleAccessTests(TestCase):
         self.assertEqual(response.status_code, 302)
 
 
-@override_settings(SECURE_SSL_REDIRECT=False)
+@override_settings(SECURE_SSL_REDIRECT=False, CHEF_BATTLE_ENABLED=True)
 class ChefBattleChallengeCreateViewTests(TestCase):
     def setUp(self):
         User = get_user_model()
@@ -757,7 +757,7 @@ class BattleTimerTests(TestCase):
         self.assertEqual(delta, timezone.timedelta(hours=48))
 
 
-@override_settings(SECURE_SSL_REDIRECT=False)
+@override_settings(SECURE_SSL_REDIRECT=False, CHEF_BATTLE_ENABLED=True)
 class NotificationsPollViewTests(TestCase):
     def setUp(self):
         User = get_user_model()

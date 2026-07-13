@@ -2679,7 +2679,7 @@ def operator_end_stream(*, session_id, operator_author, reason, correlation_id="
 
     with transaction.atomic():
         try:
-            session = (LiveStreamSession.objects.select_for_update()
+            session = (LiveStreamSession.objects.select_for_update(of=("self",))
                        .select_related("chef", "battle").get(pk=session_id))
         except LiveStreamSession.DoesNotExist:
             raise OperatorActionError("Stream session not found.")
