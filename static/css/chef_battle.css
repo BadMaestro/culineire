@@ -3980,3 +3980,29 @@ a.battle-home__pulse-msg:hover {
   }
   .cr-key-hint--ok { color: #5c5; }
 }
+
+/* Phase 7 — branded / sponsor battle badge (battle_detail hero) */
+.battle-sponsor {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  color: var(--muted, #6e6257);
+}
+.battle-sponsor__label {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.72rem;
+}
+.battle-sponsor__name {
+  font-weight: 700;
+  color: var(--brand, #c8942a);
+  text-decoration: none;
+}
+.battle-sponsor__name:hover { text-decoration: underline; }
+.battle-sponsor__tagline {
+  font-style: italic;
+  color: var(--muted, #6e6257);
+}

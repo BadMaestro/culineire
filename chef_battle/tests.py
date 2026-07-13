@@ -4972,3 +4972,53 @@ class RelinkArtifactImagesCommandTests(TestCase):
                 call_command("relink_artifact_images")
                 a.refresh_from_db()
                 self.assertEqual(a.image.name, f"chef_battle/artifacts/{fname}")
+
+
+@override_settings(SECURE_SSL_REDIRECT=False, CHEF_BATTLE_ENABLED=True)
+class SponsorBattleTests(TestCase):
+    """Phase 7: branded / sponsor battles — is_sponsored + battle_detail badge."""
+
+    def setUp(self):
+        from .models import ChefBattleProfile
+        User = get_user_model()
+        ua = User.objects.create_user("sp-chef-a", password="pw")
+        ub = User.objects.create_user("sp-chef-b", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=ua, name="SP Chef A", slug="sp-chef-a")
+        self.chef_b = RecipeAuthor.objects.create(user=ub, name="SP Chef B", slug="sp-chef-b")
+        ChefBattleProfile.objects.create(author=self.chef_a, enrolled_at=timezone.now())
+        ChefBattleProfile.objects.create(author=self.chef_b, enrolled_at=timezone.now())
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b,
+            theme="Butter Duel", status=Battle.Status.VOTING,
+            start_time=now,
+            submission_deadline=now + timezone.timedelta(days=2),
+            voting_deadline=now + timezone.timedelta(days=4),
+            end_time=now + timezone.timedelta(days=5),
+        )
+
+    def test_is_sponsored_property(self):
+        self.assertFalse(self.battle.is_sponsored)
+        self.battle.sponsor_name = "Kerrygold"
+        self.assertTrue(self.battle.is_sponsored)
+        self.battle.sponsor_name = "   "  # whitespace only -> not sponsored
+        self.assertFalse(self.battle.is_sponsored)
+
+    def test_detail_shows_sponsor_badge_when_branded(self):
+        self.battle.sponsor_name = "Kerrygold"
+        self.battle.sponsor_url = "https://example.com/kerrygold"
+        self.battle.sponsor_tagline = "The taste of Ireland"
+        self.battle.save(update_fields=["sponsor_name", "sponsor_url", "sponsor_tagline"])
+        url = reverse("chef_battle:battle_detail", kwargs={"pk": self.battle.pk})
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Presented by")
+        self.assertContains(resp, "Kerrygold")
+        self.assertContains(resp, "The taste of Ireland")
+        self.assertContains(resp, 'rel="noopener sponsored"')
+
+    def test_detail_no_badge_when_not_branded(self):
+        url = reverse("chef_battle:battle_detail", kwargs={"pk": self.battle.pk})
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertNotContains(resp, "Presented by")

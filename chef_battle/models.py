@@ -187,6 +187,12 @@ class Battle(models.Model):
     paused_at = models.DateTimeField(null=True, blank=True)
     paused_reason = models.TextField(blank=True)
     paused_from_status = models.CharField(max_length=24, blank=True)
+    # Phase 7 — branded / sponsor battles. Operator-set; a battle is "branded"
+    # when sponsor_name is present. Free text now; can later link to the
+    # sponsors app if a real sponsor relationship is needed.
+    sponsor_name = models.CharField(max_length=120, blank=True)
+    sponsor_url = models.URLField(blank=True)
+    sponsor_tagline = models.CharField(max_length=200, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -204,6 +210,10 @@ class Battle(models.Model):
 
     def get_absolute_url(self):
         return reverse("chef_battle:battle_detail", kwargs={"pk": self.pk})
+
+    @property
+    def is_sponsored(self) -> bool:
+        return bool(self.sponsor_name.strip())
 
     def author_is_participant(self, author) -> bool:
         return bool(author and author.pk in {self.challenger_id, self.opponent_id})
