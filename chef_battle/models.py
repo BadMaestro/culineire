@@ -1553,3 +1553,133 @@ class OperatorActionIdempotencyKey(models.Model):
 
     def __str__(self):
         return f"{self.action}:{self.correlation_id}"
+
+
+# ── Culinary Factions (Phase 6) ──────────────────────────────────────────────
+# Named thresholds (kept distinct on purpose — see cuisines_design.md 3.1):
+FACTION_ACTIVE_CONTRIBUTION_MIN = 1   # >= this many contributions in a season to count in sqrt(active_member_count)
+FACTION_RANK_MEMBER_FLOOR = 5         # >= this many active members for a faction to appear on the ranked board
+
+
+class Faction(models.Model):
+    """A curated identity a chef represents for a season (Cuisine or Specialty).
+
+    Seeded/curated — never user-created — so no name-moderation machinery is
+    needed. Both axes are rows of this one table (kind discriminator).
+    """
+
+    class Kind(models.TextChoices):
+        CUISINE = "cuisine", "Cuisine"
+        SPECIALTY = "specialty", "Specialty"
+
+    kind = models.CharField(max_length=16, choices=Kind.choices, db_index=True)
+    name = models.CharField(max_length=80)
+    slug = models.SlugField(max_length=80)
+    crest_icon = models.CharField(max_length=8, blank=True)  # emoji crest
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["kind", "name"]
+        constraints = [
+            models.UniqueConstraint(fields=["kind", "slug"], name="unique_faction_slug_per_kind"),
+        ]
+
+    def __str__(self):
+        return f"{self.get_kind_display()}: {self.name}"
+
+
+class FactionMembership(models.Model):
+    """A chef's faction pick for one season — one Cuisine + one Specialty each."""
+
+    chef = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="faction_memberships")
+    faction = models.ForeignKey(Faction, on_delete=models.CASCADE, related_name="memberships")
+    faction_kind = models.CharField(max_length=16, choices=Faction.Kind.choices, db_index=True)
+    season = models.ForeignKey(Season, on_delete=models.CASCADE, related_name="faction_memberships")
+    joined_at = models.DateTimeField(auto_now_add=True)
+    left_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["chef", "faction_kind", "season"],
+                name="unique_membership_per_kind_per_season",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.chef} -> {self.faction} ({self.season})"
+
+
+class FactionContribution(models.Model):
+    """Append-only, immutable points ledger (mirrors BattleMoveTransaction).
+
+    Standings are a SUM over this ledger — never a mutated counter. faction /
+    faction_kind are denormalised at write time so points belong to the faction
+    as of the earning moment and survive a later switch.
+    """
+
+    chef = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="faction_contributions")
+    faction = models.ForeignKey(Faction, on_delete=models.CASCADE, related_name="contributions")
+    faction_kind = models.CharField(max_length=16, choices=Faction.Kind.choices)
+    season = models.ForeignKey(Season, on_delete=models.CASCADE, related_name="faction_contributions")
+    source_content_type = models.ForeignKey(
+        "contenttypes.ContentType", null=True, blank=True, on_delete=models.SET_NULL
+    )
+    source_object_id = models.PositiveIntegerField(null=True, blank=True)
+    points = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["season", "faction"]),
+            models.Index(fields=["chef", "season"]),
+        ]
+
+    def __str__(self):
+        return f"{self.chef} +{self.points} -> {self.faction} ({self.season})"
+
+
+class FactionSeasonStanding(models.Model):
+    """Per-faction, per-season board. Written ONLY by the season receivers
+    (season_started opens the row, season_ended finalises rank_position)."""
+
+    faction = models.ForeignKey(Faction, on_delete=models.CASCADE, related_name="standings")
+    season = models.ForeignKey(Season, on_delete=models.CASCADE, related_name="faction_standings")
+    total_points = models.IntegerField(default=0)
+    active_member_count = models.IntegerField(default=0)
+    normalized_score = models.FloatField(default=0.0)
+    rank_position = models.PositiveIntegerField(null=True, blank=True)
+    rewards_pending = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["rank_position", "-normalized_score"]
+        constraints = [
+            models.UniqueConstraint(fields=["faction", "season"], name="unique_standing_per_faction_per_season"),
+        ]
+
+    def __str__(self):
+        return f"{self.faction} @ {self.season}: {self.normalized_score:.2f}"
+
+
+class SeasonReward(models.Model):
+    """Thin audit bridge for season-end rewards — NO monetary fields.
+
+    Individual leg -> RewardRecord (CBR). Collective/placement leg -> ChefCosmetic
+    (non-cash). Keeps the anti-gambling/DAC7 posture (rules sec 15-18).
+    """
+
+    chef = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="faction_season_rewards")
+    faction = models.ForeignKey(Faction, on_delete=models.CASCADE, related_name="season_rewards")
+    season = models.ForeignKey(Season, on_delete=models.CASCADE, related_name="faction_rewards")
+    points_snapshot = models.IntegerField(default=0)
+    placement = models.PositiveIntegerField(null=True, blank=True)
+    reward_record = models.ForeignKey(
+        "RewardRecord", null=True, blank=True, on_delete=models.SET_NULL, related_name="faction_season_rewards"
+    )
+    cosmetic = models.ForeignKey(
+        "ChefCosmetic", null=True, blank=True, on_delete=models.SET_NULL, related_name="faction_season_rewards"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"SeasonReward {self.chef} / {self.faction} / {self.season}"

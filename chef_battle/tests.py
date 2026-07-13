@@ -5013,3 +5013,58 @@ class CentralSponsorBattleBadgeTests(TestCase):
             resp = self.client.get(self.url)
         self.assertEqual(resp.status_code, 200)
         self.assertNotContains(resp, "Presented by")
+
+
+class FactionSchemaTests(TestCase):
+    """Phase 6 Culinary Factions — seed + model constraints."""
+
+    def test_seed_counts(self):
+        from .models import Faction
+        self.assertEqual(Faction.objects.filter(kind="cuisine").count(), 10)
+        self.assertEqual(Faction.objects.filter(kind="specialty").count(), 18)
+        # Slugs are unique per kind; a name resolves to exactly one faction per kind.
+        italian = Faction.objects.get(kind="cuisine", slug="italian")
+        self.assertEqual(italian.name, "Italian")
+        self.assertTrue(italian.crest_icon)
+
+    def test_one_membership_per_kind_per_season(self):
+        from django.db import IntegrityError, transaction
+        from .models import Faction, FactionMembership, Season
+        User = get_user_model()
+        u = User.objects.create_user("fac-chef", password="pw")
+        chef = RecipeAuthor.objects.create(user=u, name="Fac Chef", slug="fac-chef")
+        now = timezone.now()
+        season = Season.objects.create(
+            name="FS", starts_at=now, ends_at=now + timezone.timedelta(days=30),
+            status=Season.Status.ACTIVE,
+        )
+        italian = Faction.objects.get(kind="cuisine", slug="italian")
+        french = Faction.objects.get(kind="cuisine", slug="french")
+        FactionMembership.objects.create(chef=chef, faction=italian, faction_kind="cuisine", season=season)
+        # Second cuisine membership in the same season must be rejected.
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                FactionMembership.objects.create(chef=chef, faction=french, faction_kind="cuisine", season=season)
+
+    def test_contribution_ledger_and_standing(self):
+        from .models import Faction, FactionContribution, FactionSeasonStanding, Season
+        from django.db.models import Sum
+        User = get_user_model()
+        u = User.objects.create_user("fac-chef2", password="pw")
+        chef = RecipeAuthor.objects.create(user=u, name="Fac Chef2", slug="fac-chef2")
+        now = timezone.now()
+        season = Season.objects.create(
+            name="FS2", starts_at=now, ends_at=now + timezone.timedelta(days=30),
+            status=Season.Status.ACTIVE,
+        )
+        bbq = Faction.objects.get(kind="specialty", slug="bbq")
+        FactionContribution.objects.create(chef=chef, faction=bbq, faction_kind="specialty", season=season, points=5)
+        FactionContribution.objects.create(chef=chef, faction=bbq, faction_kind="specialty", season=season, points=3)
+        total = FactionContribution.objects.filter(faction=bbq, season=season).aggregate(t=Sum("points"))["t"]
+        self.assertEqual(total, 8)
+        # Standing row is unique per (faction, season).
+        FactionSeasonStanding.objects.create(faction=bbq, season=season, total_points=8)
+        from django.db import IntegrityError, transaction
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                FactionSeasonStanding.objects.create(faction=bbq, season=season, total_points=8)
