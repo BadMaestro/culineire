@@ -13,6 +13,7 @@ from __future__ import annotations
 from django.db import transaction
 
 from .models import ChefBattleProfile, Season, SeasonStanding
+from .season_signals import season_ended, season_started
 
 
 def get_active_season() -> Season | None:
@@ -54,8 +55,11 @@ def activate_season(season: Season) -> Season:
     active = get_active_season()
     if active is not None and active.pk != season.pk:
         raise ValueError("Another season is already active — close it first.")
-    season.status = Season.Status.ACTIVE
-    season.save(update_fields=["status"])
+    with transaction.atomic():
+        season.status = Season.Status.ACTIVE
+        season.save(update_fields=["status"])
+        # Integration hook: faction subsystem opens per-season standings.
+        season_started.send(sender=Season, season=season)
     return season
 
 
@@ -91,6 +95,14 @@ def close_season(season: Season) -> dict:
 
         season.status = Season.Status.ENDED
         season.save(update_fields=["status"])
+
+        # Integration hook: faction subsystem finalises FactionSeasonStanding and
+        # issues SeasonReward. Runs in this transaction — see season_signals.py.
+        season_ended.send(
+            sender=Season,
+            season=season,
+            standings=season.standings.order_by("rank_position"),
+        )
 
     return {
         "season_id": season.pk,

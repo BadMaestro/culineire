@@ -4787,3 +4787,83 @@ class SeasonEngineTests(TestCase):
         resp = self.client.get(reverse("chef_battle:season_leaderboard"))
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "Autumn Cup")
+
+
+@override_settings(SECURE_SSL_REDIRECT=False, CHEF_BATTLE_ENABLED=True)
+class SeasonSignalTests(TestCase):
+    """Phase 6 integration contract: season_started / season_ended fire for factions."""
+
+    def setUp(self):
+        from .models import ChefBattleProfile
+        User = get_user_model()
+        u = User.objects.create_user(username="sig-chef", password="pw")
+        self.author = RecipeAuthor.objects.create(user=u, name="Sig Chef", slug="sig-chef")
+        ChefBattleProfile.objects.create(author=self.author, seasonal_score=15, wins=1)
+        self.now = timezone.now()
+
+    def _mk(self, activate=False):
+        from .season_service import create_season
+        return create_season(
+            name="Sig Season",
+            starts_at=self.now - timezone.timedelta(days=1),
+            ends_at=self.now + timezone.timedelta(days=1),
+            activate=activate,
+        )
+
+    def test_season_started_signal_fires(self):
+        from .season_signals import season_started
+        from .season_service import activate_season
+        received = {}
+
+        def receiver(sender, season, **kwargs):
+            received["season"] = season
+
+        season_started.connect(receiver)
+        try:
+            s = self._mk(activate=False)
+            activate_season(s)
+        finally:
+            season_started.disconnect(receiver)
+        self.assertEqual(received.get("season"), s)
+
+    def test_season_ended_signal_fires_with_ranked_standings(self):
+        from .season_signals import season_ended
+        from .season_service import close_season
+        received = {}
+
+        def receiver(sender, season, standings, **kwargs):
+            received["season"] = season
+            received["standings"] = list(standings)
+
+        season_ended.connect(receiver)
+        try:
+            s = self._mk(activate=True)
+            close_season(s)
+        finally:
+            season_ended.disconnect(receiver)
+        self.assertEqual(received.get("season"), s)
+        self.assertEqual(len(received.get("standings", [])), 1)
+        self.assertEqual(received["standings"][0].rank_position, 1)
+        self.assertEqual(received["standings"][0].chef, self.author)
+
+    def test_ended_receiver_exception_rolls_back_close(self):
+        from .models import Season, SeasonStanding
+        from .season_signals import season_ended
+        from .season_service import close_season
+
+        def boom(sender, season, standings, **kwargs):
+            raise RuntimeError("faction finalisation failed")
+
+        season_ended.connect(boom)
+        try:
+            s = self._mk(activate=True)
+            with self.assertRaises(RuntimeError):
+                close_season(s)
+        finally:
+            season_ended.disconnect(boom)
+        # The close was rolled back: season still active, no standings, score intact.
+        s.refresh_from_db()
+        self.assertEqual(s.status, Season.Status.ACTIVE)
+        self.assertEqual(SeasonStanding.objects.filter(season=s).count(), 0)
+        from .models import ChefBattleProfile
+        self.assertEqual(ChefBattleProfile.objects.get(author=self.author).seasonal_score, 15)
