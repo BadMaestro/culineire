@@ -67,6 +67,69 @@ class CoworkingLogEntry(models.Model):
         return f"{self.agent_id} @ {self.ts}: {self.action[:50]}"
 
 
+class CoworkingMessage(models.Model):
+    """A directed message from one agent to another.
+
+    Unlike CoworkingLogEntry (a public activity log), this is addressed to a
+    specific agent and carries a read flag, so an agent can poll its own inbox
+    for genuinely new, unhandled messages instead of grepping the shared log.
+    """
+
+    from_agent = models.ForeignKey(
+        CoworkingAgent, on_delete=models.CASCADE, related_name="sent_messages"
+    )
+    to_agent = models.ForeignKey(
+        CoworkingAgent, on_delete=models.CASCADE, related_name="received_messages"
+    )
+    subject = models.CharField(max_length=200, blank=True)
+    body = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    read_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["to_agent", "read_at"]),
+        ]
+
+    def __str__(self):
+        state = "read" if self.read_at else "unread"
+        return f"{self.from_agent_id}->{self.to_agent_id} [{state}]: {self.subject or self.body[:40]}"
+
+    @property
+    def is_read(self) -> bool:
+        return self.read_at is not None
+
+    def mark_read(self):
+        if self.read_at is None:
+            self.read_at = timezone.now()
+            self.save(update_fields=["read_at"])
+
+    @classmethod
+    def send(cls, *, from_agent, to_agent, body: str, subject: str = "") -> "CoworkingMessage":
+        """Send a message. Agents may be CoworkingAgent instances or agent_id strings."""
+        if isinstance(from_agent, str):
+            from_agent, _ = CoworkingAgent.objects.get_or_create(
+                agent_id=from_agent, defaults={"label": from_agent.title()}
+            )
+        if isinstance(to_agent, str):
+            to_agent, _ = CoworkingAgent.objects.get_or_create(
+                agent_id=to_agent, defaults={"label": to_agent.title()}
+            )
+        return cls.objects.create(
+            from_agent=from_agent, to_agent=to_agent, subject=subject, body=body
+        )
+
+    @classmethod
+    def unread_for(cls, agent_id: str):
+        """Unread messages addressed to agent_id, oldest first."""
+        return (
+            cls.objects.filter(to_agent_id=agent_id, read_at__isnull=True)
+            .select_related("from_agent")
+            .order_by("created_at")
+        )
+
+
 class CoworkingSharedMemory(models.Model):
     """Singleton row holding cross-agent project memory."""
 
