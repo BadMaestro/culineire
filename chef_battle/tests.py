@@ -4934,3 +4934,41 @@ class SeasonCommittedSignalTests(TestCase):
             season_ended_committed.disconnect(committed_receiver)
         # In-txn failure rolled back the close, so post-commit never fired.
         self.assertFalse(fired["committed"])
+
+
+class RelinkArtifactImagesCommandTests(TestCase):
+    """Recovery command: re-link blank Artifact.image to on-disk files by PK."""
+
+    def test_relinks_blank_image_from_disk_file(self):
+        import os, tempfile
+        from django.conf import settings
+        from django.core.management import call_command
+        from .models import Artifact
+
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                a = Artifact.objects.create(name="Recovery Knife", rarity=Artifact.Rarity.RARE)
+                self.assertEqual(a.image, "")
+                # Also seed an already-imaged artifact and one with no file.
+                b = Artifact.objects.create(name="No File Relic")
+
+                art_dir = os.path.join(media_root, "chef_battle", "artifacts")
+                os.makedirs(art_dir, exist_ok=True)
+                # Canonical file + a deduped variant for the same pk — canonical wins.
+                fname = f"recovery-knife-{a.pk}.png"
+                with open(os.path.join(art_dir, fname), "wb") as fh:
+                    fh.write(b"\x89PNG\r\n")
+                with open(os.path.join(art_dir, f"recovery-knife-{a.pk}_zZ9.png"), "wb") as fh:
+                    fh.write(b"\x89PNG\r\n")
+
+                call_command("relink_artifact_images")
+
+                a.refresh_from_db()
+                b.refresh_from_db()
+                self.assertEqual(a.image.name, f"chef_battle/artifacts/{fname}")
+                self.assertEqual(b.image, "")  # no matching file -> untouched
+
+                # Idempotent: a second run leaves the linked one as-is.
+                call_command("relink_artifact_images")
+                a.refresh_from_db()
+                self.assertEqual(a.image.name, f"chef_battle/artifacts/{fname}")
