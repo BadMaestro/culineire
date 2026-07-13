@@ -3,13 +3,23 @@
 Read/UI only. The earn-path, season receivers, normalisation math and
 anti-abuse gates live in faction_service.py / energy_service.py / fraud.py
 (Bolt's lane). This module never writes FactionContribution or
-FactionSeasonStanding — it only reads via faction_service helpers.
+FactionSeasonStanding — membership writes go through faction_selectors.
 """
 from __future__ import annotations
 
-from django.shortcuts import render
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
+from django.shortcuts import redirect, render
+
+from recipes.authoring import get_author_for_user
 
 from .access import chef_battle_guard
+from .faction_selectors import (
+    factions_by_kind,
+    get_chef_factions,
+    set_faction_membership,
+)
 from .faction_service import get_faction_leaderboard
 from .models import Faction
 from .season_service import get_active_season
@@ -45,5 +55,60 @@ def faction_leaderboards(request):
             "cuisine_board": cuisine_board,
             "specialty_board": specialty_board,
             "rank_floor": RANK_MEMBER_FLOOR,
+        },
+    )
+
+
+@chef_battle_guard
+@login_required
+def faction_choose(request):
+    """Pick a Cuisine and a Specialty for the active season.
+
+    First pick is allowed any time in the active season; an already-chosen kind
+    is locked until next season (enforced in faction_selectors.set_faction_membership).
+    """
+    author = get_author_for_user(request.user)
+    if author is None:
+        messages.error(request, "You need a recipe author profile to represent a faction.")
+        return redirect("chef_battle:home")
+
+    active = get_active_season()
+    current = get_chef_factions(author, active) if active else {}
+    error = None
+
+    if request.method == "POST" and active:
+        picks = {
+            Faction.Kind.CUISINE.value: request.POST.get("cuisine"),
+            Faction.Kind.SPECIALTY.value: request.POST.get("specialty"),
+        }
+        try:
+            changed = False
+            for kind, fid in picks.items():
+                if current.get(kind) is not None:
+                    continue  # already locked this season
+                if not fid:
+                    continue
+                faction = Faction.objects.filter(pk=fid, kind=kind, is_active=True).first()
+                if faction is not None:
+                    set_faction_membership(author, faction, active)
+                    changed = True
+            if changed:
+                messages.success(request, "Your faction is set for this season.")
+            return redirect("chef_battle:faction_leaderboards")
+        except ValidationError as exc:
+            error = getattr(exc, "message", None) or str(exc)
+            current = get_chef_factions(author, active)
+
+    return render(
+        request,
+        "chef_battle/faction_choose.html",
+        {
+            "active_season": active,
+            "season_label": _season_label(active),
+            "cuisines": factions_by_kind(Faction.Kind.CUISINE.value),
+            "specialties": factions_by_kind(Faction.Kind.SPECIALTY.value),
+            "current_cuisine": current.get(Faction.Kind.CUISINE.value),
+            "current_specialty": current.get(Faction.Kind.SPECIALTY.value),
+            "error": error,
         },
     )

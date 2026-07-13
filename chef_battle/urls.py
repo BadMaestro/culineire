@@ -24,6 +24,7 @@ urlpatterns = [
     path("stripe/webhook/", views.token_stripe_webhook, name="token_stripe_webhook"),
     path("season/", views.season_leaderboard, name="season_leaderboard"),
     path("factions/", faction_views.faction_leaderboards, name="faction_leaderboards"),
+    path("factions/choose/", faction_views.faction_choose, name="faction_choose"),
     path("roadmap/", views.battlefield_progress, name="battlefield_progress"),
     path("rankings/", views.rankings, name="rankings"),
     path("challenges/", views.challenge_list, name="challenge_list"),

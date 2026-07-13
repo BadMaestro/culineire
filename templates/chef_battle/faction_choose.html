@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Choose Your Faction | Chef Battles | CulinEire{% endblock %}
+{% block meta_description %}Pick your Cuisine and Specialty for the current Chef Battles season and represent them on the faction leaderboards.{% endblock %}
+
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260618-hero-menu" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero battle-room-hero--has-panel">
+  <div class="container">
+    <div class="battle-room-hero__copy">
+      <p class="battle-kicker">Chef Battles Arena</p>
+      <h1>Choose Your Faction</h1>
+      <p class="battle-room-hero__sub">{{ season_label }}</p>
+    </div>
+  </div>
+</section>
+
+<div class="container" style="max-width:620px; padding-block:2.5rem;">
+  {% if not active_season %}
+    <p>No active season right now — faction picks open when the next season starts.</p>
+  {% else %}
+    <p style="color:var(--color-muted); margin-block-end:1.5rem;">
+      Represent one <strong>Cuisine</strong> (your heritage) and one <strong>Specialty</strong> (your mastery).
+      Everything you publish this season earns points for both. Your pick is <strong>locked for the season</strong> —
+      you can change it only between seasons. See the <a href="{% url 'chef_battle:rules' %}#s20">Culinary Factions rules</a>.
+    </p>
+
+    {% if error %}<p style="color:#b3261e; margin-block-end:1rem;">{{ error }}</p>{% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+
+      <div style="margin-block-end:1.5rem;">
+        <label for="cuisine" style="font-weight:600; display:block; margin-block-end:0.4rem;">Cuisine (heritage)</label>
+        {% if current_cuisine %}
+          <div style="padding:0.6rem 0.9rem; background:var(--surface-soft,#f7f2e9); border-radius:8px;">
+            {{ current_cuisine.faction.crest_icon }} <strong>{{ current_cuisine.faction.name }} Cuisine</strong>
+            <span style="color:var(--color-muted); font-size:0.8rem;">— locked this season</span>
+          </div>
+        {% else %}
+          <select name="cuisine" id="cuisine" style="width:100%; padding:0.55rem 0.7rem; border-radius:8px; border:1px solid var(--color-border,#d9cfbe);">
+            <option value="">— choose a Cuisine —</option>
+            {% for f in cuisines %}<option value="{{ f.id }}">{{ f.crest_icon }} {{ f.name }}</option>{% endfor %}
+          </select>
+        {% endif %}
+      </div>
+
+      <div style="margin-block-end:1.75rem;">
+        <label for="specialty" style="font-weight:600; display:block; margin-block-end:0.4rem;">Specialty (mastery)</label>
+        {% if current_specialty %}
+          <div style="padding:0.6rem 0.9rem; background:var(--surface-soft,#f7f2e9); border-radius:8px;">
+            {{ current_specialty.faction.crest_icon }} <strong>{{ current_specialty.faction.name }} Specialty</strong>
+            <span style="color:var(--color-muted); font-size:0.8rem;">— locked this season</span>
+          </div>
+        {% else %}
+          <select name="specialty" id="specialty" style="width:100%; padding:0.55rem 0.7rem; border-radius:8px; border:1px solid var(--color-border,#d9cfbe);">
+            <option value="">— choose a Specialty —</option>
+            {% for f in specialties %}<option value="{{ f.id }}">{{ f.crest_icon }} {{ f.name }}</option>{% endfor %}
+          </select>
+        {% endif %}
+      </div>
+
+      {% if not current_cuisine or not current_specialty %}
+        <button type="submit" class="btn-primary">Lock in my faction</button>
+      {% else %}
+        <p style="color:var(--color-muted);">Both chosen for this season. <a href="{% url 'chef_battle:faction_leaderboards' %}">See the rankings →</a></p>
+      {% endif %}
+    </form>
+  {% endif %}
+</div>
+{% endblock %}
