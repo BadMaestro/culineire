@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+from . import faction_views
 
 app_name = "chef_battle"
 
@@ -22,6 +23,7 @@ urlpatterns = [
     path("tokens/checkout/cancel/", views.token_checkout_cancel, name="token_checkout_cancel"),
     path("stripe/webhook/", views.token_stripe_webhook, name="token_stripe_webhook"),
     path("season/", views.season_leaderboard, name="season_leaderboard"),
+    path("factions/", faction_views.faction_leaderboards, name="faction_leaderboards"),
     path("roadmap/", views.battlefield_progress, name="battlefield_progress"),
     path("rankings/", views.rankings, name="rankings"),
     path("challenges/", views.challenge_list, name="challenge_list"),
