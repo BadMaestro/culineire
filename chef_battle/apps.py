@@ -6,3 +6,7 @@ class ChefBattleConfig(AppConfig):
     name = "chef_battle"
     verbose_name = "Chef Battles"
 
+    def ready(self):
+        from . import faction_receivers
+        faction_receivers.connect()
+

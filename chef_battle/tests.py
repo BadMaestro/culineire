@@ -5189,3 +5189,61 @@ class FactionEarnPathTests(TestCase):
         from .energy_service import award_moves
         award_moves(self.chef, 10, "admin_adjustment")
         self.assertEqual(self._points()["rows"], 0)
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class FactionSeasonReceiverTests(TestCase):
+    """Phase 6: season_started carryover + season_ended standings finalisation."""
+
+    def _chef(self, tag):
+        from .models import ChefBattleProfile
+        User = get_user_model()
+        u = User.objects.create_user(f"fsr-{tag}", password="pw")
+        chef = RecipeAuthor.objects.create(user=u, name=f"FSR {tag}", slug=f"fsr-{tag}")
+        ChefBattleProfile.objects.create(author=chef, enrolled_at=timezone.now())
+        return chef
+
+    def test_season_started_opens_standings_and_carries_membership(self):
+        from .models import Faction, FactionMembership, FactionSeasonStanding, Season
+        from .season_service import create_season, activate_season
+        now = timezone.now()
+        prior = Season.objects.create(
+            name="Prior", starts_at=now - timezone.timedelta(days=60),
+            ends_at=now - timezone.timedelta(days=30), status=Season.Status.ENDED,
+        )
+        italian = Faction.objects.get(kind="cuisine", slug="italian")
+        chef = self._chef("carry")
+        FactionMembership.objects.create(chef=chef, faction=italian, faction_kind="cuisine", season=prior)
+
+        new = create_season(
+            name="New", starts_at=now - timezone.timedelta(days=1),
+            ends_at=now + timezone.timedelta(days=30),
+        )
+        activate_season(new)  # fires season_started -> receiver
+
+        self.assertTrue(
+            FactionMembership.objects.filter(chef=chef, season=new, faction=italian).exists()
+        )
+        self.assertEqual(FactionSeasonStanding.objects.filter(season=new).count(), 28)
+
+    def test_season_ended_finalizes_standings(self):
+        from .models import Faction, FactionContribution, FactionSeasonStanding, FACTION_RANK_MEMBER_FLOOR
+        from .season_service import create_season, close_season
+        now = timezone.now()
+        season = create_season(
+            name="Fin", starts_at=now - timezone.timedelta(days=1),
+            ends_at=now + timezone.timedelta(days=1), activate=True,
+        )
+        italian = Faction.objects.get(kind="cuisine", slug="italian")
+        for i in range(FACTION_RANK_MEMBER_FLOOR):
+            chef = self._chef(f"fin{i}")
+            FactionContribution.objects.create(
+                chef=chef, faction=italian, faction_kind="cuisine", season=season, points=10
+            )
+        close_season(season)  # fires season_ended -> finalize (in Bolt's txn)
+
+        st = FactionSeasonStanding.objects.get(faction=italian, season=season)
+        self.assertEqual(st.total_points, FACTION_RANK_MEMBER_FLOOR * 10)
+        self.assertEqual(st.active_member_count, FACTION_RANK_MEMBER_FLOOR)
+        self.assertEqual(st.rank_position, 1)
+        self.assertTrue(st.rewards_pending)
