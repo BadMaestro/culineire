@@ -5744,3 +5744,63 @@ class BattleReactionTests(TestCase):
         c = Client(); c.login(username="react-u", password="pw")
         r = c.post("/chef-battle/arena/react/", {"battle_id": self.battle.pk, "side": "x"})
         self.assertEqual(r.status_code, 400)
+
+
+class ArenaSnapshotTests(TestCase):
+    """arena_state snapshot envelope: shape, real reaction/chat data, endpoint."""
+
+    def setUp(self):
+        from django.conf import settings
+        from django.test import Client
+        from .models import Battle, BattleChatMessage
+        from .reaction_service import record_battle_reaction
+        U = get_user_model()
+        # owner author for the gated endpoint
+        author = RecipeAuthor.objects.filter(slug=settings.OWNER_SLUG).first()
+        if author is not None and author.user_id:
+            self.owner = author.user
+            self.owner.is_superuser = True; self.owner.is_staff = True; self.owner.save()
+        else:
+            self.owner = U.objects.create_superuser("snap-owner", "s@o.com", "pw")
+            if author is None:
+                RecipeAuthor.objects.create(user=self.owner, name="Owner", slug=settings.OWNER_SLUG)
+            else:
+                author.user = self.owner; author.save(update_fields=["user"])
+        self.client = Client(); self.client.force_login(self.owner)
+        self.ch = RecipeAuthor.objects.create(
+            user=U.objects.create_user("snap-ch", password="pw"), name="Aidan", slug="snap-ch")
+        self.op = RecipeAuthor.objects.create(
+            user=U.objects.create_user("snap-op", password="pw"), name="Luca", slug="snap-op")
+        self.battle = Battle.objects.create(
+            challenger=self.ch, opponent=self.op, theme="Irish Comfort",
+            submission_deadline=timezone.now(), end_time=timezone.now())
+        record_battle_reaction(self.battle, "left", session_key="s1")
+        record_battle_reaction(self.battle, "left", session_key="s2")
+        BattleChatMessage.objects.create(battle=self.battle, display_name="Fan", body="Go Aidan!")
+
+    def test_snapshot_shape_and_real_data(self):
+        from .arena_snapshot import build_arena_snapshot
+        snap = build_arena_snapshot(self.battle, sequence=3)
+        self.assertEqual(snap["sequence"], 3)
+        self.assertIn("server_timestamp", snap)
+        self.assertEqual(snap["battle"]["theme"], "Irish Comfort")
+        self.assertEqual(snap["left"]["name"], "Aidan")
+        self.assertEqual(snap["left"]["country"], "Ireland")
+        self.assertEqual(snap["right"]["country"], "Ireland")
+        self.assertEqual(snap["left"]["likes"], 2)   # real reaction count
+        self.assertEqual(snap["right"]["likes"], 0)
+        self.assertEqual(snap["chat"], [("Fan", "Go Aidan!")])
+        for key in ("num","name","rank","clan","country","avatar_url","playback_url","viewers","likes","comments","supporters","role"):
+            self.assertIn(key, snap["left"])
+
+    def test_snapshot_endpoint_owner_gated(self):
+        r = self.client.post("/chef-battle/master/live-arena/snapshot/", {"sequence": "0"})
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.assertEqual(d["left"]["name"], "Aidan")
+        self.assertEqual(d["left"]["likes"], 2)
+
+    def test_preview_uses_real_battle(self):
+        r = self.client.get("/chef-battle/master/live-arena/preview/")
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("Irish Comfort", r.content.decode())

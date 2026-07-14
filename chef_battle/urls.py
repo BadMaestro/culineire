@@ -80,5 +80,6 @@ urlpatterns = [
     path("master/action/", views.master_action, name="master_action"),
     path("master/live-arena/", views.live_arena_progress, name="live_arena_progress"),
     path("master/live-arena/preview/", views.live_arena_preview, name="live_arena_preview"),
+    path("master/live-arena/snapshot/", views.live_arena_snapshot, name="live_arena_snapshot"),
     path("master/live-arena/update/", views.live_arena_stage_update, name="live_arena_stage_update"),
 ]

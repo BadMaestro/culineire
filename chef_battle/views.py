@@ -2928,7 +2928,45 @@ def live_arena_preview(request):
             ("Riccardo", "Luca bringing the heat!"),
         ],
     }
-    return render(request, "chef_battle/live_arena_preview.html", {"fx": fixture})
+    from .arena_snapshot import build_arena_snapshot, get_current_arena_battle
+    battle = get_current_arena_battle()
+    fx = _snapshot_to_fx(build_arena_snapshot(battle)) if battle is not None else fixture
+    return render(request, "chef_battle/live_arena_preview.html", {"fx": fx})
+
+
+def _fmt_hms(seconds) -> str:
+    seconds = max(0, int(seconds or 0))
+    return f"{seconds // 3600:02d}:{(seconds % 3600) // 60:02d}:{seconds % 60:02d}"
+
+
+def _snapshot_to_fx(snap: dict) -> dict:
+    """Map an arena snapshot onto the frontend fixture shape (same keys)."""
+    return {
+        "is_fixture": False,
+        "battle_id": snap["battle"]["id"],
+        "theme": snap["battle"]["theme"],
+        "remaining_seconds": snap["battle"]["remaining_seconds"],
+        "timer": _fmt_hms(snap["battle"]["remaining_seconds"]),
+        "left": snap["left"],
+        "right": snap["right"],
+        "chat": snap["chat"],
+    }
+
+
+@arena_console_guard
+@require_POST
+def live_arena_snapshot(request):
+    """Polling snapshot for the live-arena preview (owner-gated). Full state so
+    the client can resync on reconnect; envelope carries server_timestamp/sequence."""
+    from .arena_snapshot import build_arena_snapshot, get_current_arena_battle
+    battle = get_current_arena_battle()
+    if battle is None:
+        return JsonResponse({"battle": None, "server_timestamp": timezone.now().isoformat()})
+    try:
+        seq = int(request.POST.get("sequence") or 0) + 1
+    except (TypeError, ValueError):
+        seq = 0
+    return JsonResponse(build_arena_snapshot(battle, sequence=seq))
 
 
 @require_POST
