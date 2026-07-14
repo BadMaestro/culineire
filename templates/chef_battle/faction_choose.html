@@ -23,8 +23,9 @@
   {% else %}
     <p style="color:var(--color-muted); margin-block-end:1.5rem;">
       Represent one <strong>Cuisine</strong> (your heritage) and one <strong>Specialty</strong> (your mastery).
-      Everything you publish this season earns points for both. Your pick is <strong>locked for the season</strong> —
-      you can change it only between seasons. See the <a href="{% url 'chef_battle:rules' %}#s20">Culinary Factions rules</a>.
+      Everything you publish this season earns points for both.
+      {% if in_window %}You can still change your pick early in the season; after that it locks until next season.{% else %}Your pick is locked for the season — you can change it only between seasons.{% endif %}
+      See the <a href="{% url 'chef_battle:rules' %}#s20">Culinary Factions rules</a>.
     </p>
 
     {% if error %}<p style="color:#b3261e; margin-block-end:1rem;">{{ error }}</p>{% endif %}
@@ -32,9 +33,10 @@
     <form method="post">
       {% csrf_token %}
 
+      {# ── Cuisine ── #}
       <div style="margin-block-end:1.5rem;">
         <label for="cuisine" style="font-weight:600; display:block; margin-block-end:0.4rem;">Cuisine (heritage)</label>
-        {% if current_cuisine %}
+        {% if current_cuisine and not in_window %}
           <div style="padding:0.6rem 0.9rem; background:var(--surface-soft,#f7f2e9); border-radius:8px;">
             {{ current_cuisine.faction.crest_icon }} <strong>{{ current_cuisine.faction.name }} Cuisine</strong>
             <span style="color:var(--color-muted); font-size:0.8rem;">— locked this season</span>
@@ -42,14 +44,15 @@
         {% else %}
           <select name="cuisine" id="cuisine" style="width:100%; padding:0.55rem 0.7rem; border-radius:8px; border:1px solid var(--color-border,#d9cfbe);">
             <option value="">— choose a Cuisine —</option>
-            {% for f in cuisines %}<option value="{{ f.id }}">{{ f.crest_icon }} {{ f.name }}</option>{% endfor %}
+            {% for f in cuisines %}<option value="{{ f.id }}"{% if current_cuisine and current_cuisine.faction_id == f.id %} selected{% endif %}>{{ f.crest_icon }} {{ f.name }}</option>{% endfor %}
           </select>
         {% endif %}
       </div>
 
+      {# ── Specialty ── #}
       <div style="margin-block-end:1.75rem;">
         <label for="specialty" style="font-weight:600; display:block; margin-block-end:0.4rem;">Specialty (mastery)</label>
-        {% if current_specialty %}
+        {% if current_specialty and not in_window %}
           <div style="padding:0.6rem 0.9rem; background:var(--surface-soft,#f7f2e9); border-radius:8px;">
             {{ current_specialty.faction.crest_icon }} <strong>{{ current_specialty.faction.name }} Specialty</strong>
             <span style="color:var(--color-muted); font-size:0.8rem;">— locked this season</span>
@@ -57,13 +60,13 @@
         {% else %}
           <select name="specialty" id="specialty" style="width:100%; padding:0.55rem 0.7rem; border-radius:8px; border:1px solid var(--color-border,#d9cfbe);">
             <option value="">— choose a Specialty —</option>
-            {% for f in specialties %}<option value="{{ f.id }}">{{ f.crest_icon }} {{ f.name }}</option>{% endfor %}
+            {% for f in specialties %}<option value="{{ f.id }}"{% if current_specialty and current_specialty.faction_id == f.id %} selected{% endif %}>{{ f.crest_icon }} {{ f.name }}</option>{% endfor %}
           </select>
         {% endif %}
       </div>
 
-      {% if not current_cuisine or not current_specialty %}
-        <button type="submit" class="btn-primary">Lock in my faction</button>
+      {% if in_window or not current_cuisine or not current_specialty %}
+        <button type="submit" class="btn-primary">{% if current_cuisine and current_specialty %}Update my faction{% else %}Lock in my faction{% endif %}</button>
       {% else %}
         <p style="color:var(--color-muted);">Both chosen for this season. <a href="{% url 'chef_battle:faction_leaderboards' %}">See the rankings →</a></p>
       {% endif %}

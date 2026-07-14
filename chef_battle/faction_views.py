@@ -18,6 +18,7 @@ from .access import chef_battle_guard
 from .faction_selectors import (
     factions_by_kind,
     get_chef_factions,
+    in_repick_window,
     set_faction_membership,
 )
 from .faction_service import get_faction_leaderboard
@@ -84,13 +85,14 @@ def faction_choose(request):
         try:
             changed = False
             for kind, fid in picks.items():
-                if current.get(kind) is not None:
-                    continue  # already locked this season
                 if not fid:
                     continue
                 faction = Faction.objects.filter(pk=fid, kind=kind, is_active=True).first()
-                if faction is not None:
-                    set_faction_membership(author, faction, active)
+                if faction is None:
+                    continue
+                before = current.get(kind)
+                set_faction_membership(author, faction, active)
+                if before is None or before.faction_id != faction.id:
                     changed = True
             if changed:
                 messages.success(request, "Your faction is set for this season.")
@@ -109,6 +111,7 @@ def faction_choose(request):
             "specialties": factions_by_kind(Faction.Kind.SPECIALTY.value),
             "current_cuisine": current.get(Faction.Kind.CUISINE.value),
             "current_specialty": current.get(Faction.Kind.SPECIALTY.value),
+            "in_window": in_repick_window(active) if active else False,
             "error": error,
         },
     )

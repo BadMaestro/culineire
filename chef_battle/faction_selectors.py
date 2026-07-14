@@ -8,9 +8,25 @@ Cuisine + one Specialty per season at the DB level.
 """
 from __future__ import annotations
 
+from datetime import timedelta
+
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 from .models import Faction, FactionMembership
+
+# A chef may freely change (or keep the carried-over) faction during this window
+# at the start of a season; after it, the pick locks until the next season.
+# The window doubles as the early-join reward-eligibility window (design sec 8),
+# and is safe from bandwagoning because standings are still empty this early.
+FACTION_REPICK_WINDOW_DAYS = 7
+
+
+def in_repick_window(season) -> bool:
+    """True while a season is early enough that faction picks can still change."""
+    if season is None or season.starts_at is None:
+        return False
+    return timezone.now() <= season.starts_at + timedelta(days=FACTION_REPICK_WINDOW_DAYS)
 
 
 def factions_by_kind(kind: str):
@@ -39,22 +55,30 @@ def get_chef_factions(chef, season) -> dict:
 def set_faction_membership(chef, faction: Faction, season) -> FactionMembership:
     """Pick a faction for the active season.
 
-    First pick (mid-season allowed) creates the membership; re-picking the same
-    faction is a no-op; trying to switch to a different faction of the same kind
-    within the active season is rejected (season-lock).
+    - First pick (allowed any time in the season) creates the membership.
+    - Re-picking the same faction is a no-op.
+    - Changing to a different faction of the same kind is allowed only during the
+      re-pick window at the start of the season; after it, the pick is locked
+      until the next season. Points already earned stay with the faction they
+      were earned for (event-sourced), so a mid-window switch only redirects
+      future contributions.
     """
     if season is None:
         raise ValidationError("There is no active season to join right now.")
     existing = FactionMembership.objects.filter(
         chef=chef, faction_kind=faction.kind, season=season
     ).first()
-    if existing is not None:
-        if existing.faction_id == faction.id:
-            return existing
-        raise ValidationError(
-            f"Your {faction.get_kind_display()} is locked for this season — "
-            f"you can change it next season."
+    if existing is None:
+        return FactionMembership.objects.create(
+            chef=chef, faction=faction, faction_kind=faction.kind, season=season
         )
-    return FactionMembership.objects.create(
-        chef=chef, faction=faction, faction_kind=faction.kind, season=season
+    if existing.faction_id == faction.id:
+        return existing
+    if in_repick_window(season):
+        existing.faction = faction
+        existing.save(update_fields=["faction"])
+        return existing
+    raise ValidationError(
+        f"Your {faction.get_kind_display()} is locked for this season — "
+        f"you can change it next season."
     )

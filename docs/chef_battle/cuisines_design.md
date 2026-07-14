@@ -69,6 +69,7 @@ SeasonReward                                        # thin audit bridge — NO m
 - **Two distinct thresholds, both named constants:** (a) *active-for-denominator* = **≥1 contribution in the season** (defines who counts in `√(active_member_count)`); (b) *rank floor* = **≥5 active members** for a faction to appear on the ranked board. They are different numbers and must not be conflated.
 - **`FactionContribution` denormalised `faction`/`faction_kind` at write time** — confirmed correct: points belong to the faction *as of the earning moment* and survive a later switch.
 - **`SeasonReward` money split:** collective leg → `ChefCosmetic` (non-cash); individual leg → `RewardRecord` (CBR). Matches anti-gambling §17.
+- **Re-pick window (resolves the carryover ↔ lock tension):** carryover keeps a chef's prior-season pick by default, but a **7-day window** (`FACTION_REPICK_WINDOW_DAYS`) at the start of each season lets them freely change (or keep) it; after the window the pick locks until next season. First pick is allowed any time. Safe from bandwagoning because standings are still empty that early, and it doubles as the early-join reward-eligibility window (sec 8). Points already earned stay with the faction they were earned for (event-sourced), so a mid-window switch only redirects future contributions. Lives in `faction_selectors.set_faction_membership` (GreenBear's lane).
 
 ## 4. How points are earned
 
