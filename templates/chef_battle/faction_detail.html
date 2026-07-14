@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ faction.name }} {{ kind_label }} | Chef Battles | CulinEire{% endblock %}
+{% block meta_description %}{{ faction.name }} {{ kind_label }} — standing and top contributors this Chef Battles season.{% endblock %}
+
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260618-hero-menu" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero battle-room-hero--has-panel">
+  <div class="container">
+    <div class="battle-room-hero__copy">
+      <p class="battle-kicker">{{ kind_label }}</p>
+      <h1>{{ faction.crest_icon }} {{ faction.name }} {{ kind_label }}</h1>
+      <p class="battle-room-hero__sub">{{ season_label }}</p>
+    </div>
+  </div>
+</section>
+
+<div class="container" style="max-width:720px; padding-block:2.5rem;">
+  {% if not active_season %}
+    <p>No active season right now.</p>
+  {% else %}
+    <div class="chef-profile-stats" style="margin-block-end:1.5rem;">
+      <div class="battle-stat-card">
+        <span class="battle-stat-card__label">Rank</span>
+        <strong class="battle-stat-card__value">{% if standing.rank_position %}#{{ standing.rank_position }}{% else %}&mdash;{% endif %}</strong>
+      </div>
+      <div class="battle-stat-card">
+        <span class="battle-stat-card__label">Score</span>
+        <strong class="battle-stat-card__value">{{ standing.normalized_score|floatformat:1 }}</strong>
+      </div>
+      <div class="battle-stat-card">
+        <span class="battle-stat-card__label">Total points</span>
+        <strong class="battle-stat-card__value">{{ standing.total_points }}</strong>
+      </div>
+      <div class="battle-stat-card">
+        <span class="battle-stat-card__label">Active members</span>
+        <strong class="battle-stat-card__value">{{ standing.active_member_count }}</strong>
+      </div>
+    </div>
+
+    {% if not standing.rank_position %}
+      <p style="color:var(--color-muted); margin-block-end:1.5rem;">Not on the ranked board yet — a faction needs at least {{ rank_floor }} active members this season.</p>
+    {% endif %}
+
+    {% if my_rank %}<p style="margin-block-end:1.5rem;">You are <strong>#{{ my_rank }}</strong> contributor in this {{ kind_label|lower }} this season.</p>{% endif %}
+
+    <h2 style="font-size:1.2rem; margin-block-end:0.8rem;">Top Contributors</h2>
+    {% if contributors %}
+    <div class="faction-board">
+      {% for c in contributors %}
+      <div style="display:grid; grid-template-columns:2.5rem 1fr auto; gap:0.75rem; align-items:center; padding-block:0.55rem; border-block-end:1px solid var(--color-border,#efe9df);">
+        <span style="font-weight:700; color:#c8942a;">{{ forloop.counter }}</span>
+        <a href="{% url 'recipes:author_detail' c.chef__slug %}">{{ c.chef__name }}</a>
+        <span style="text-align:right; color:var(--color-muted);">{{ c.points }} pts</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p style="color:var(--color-muted);">No contributions yet this season. Publish a recipe to put {{ faction.name }} on the board.</p>
+    {% endif %}
+
+    <p style="margin-block-start:1.75rem;"><a href="{% url 'chef_battle:faction_leaderboards' %}">&larr; All faction rankings</a></p>
+  {% endif %}
+</div>
+{% endblock %}

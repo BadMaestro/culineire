@@ -25,6 +25,7 @@ urlpatterns = [
     path("season/", views.season_leaderboard, name="season_leaderboard"),
     path("factions/", faction_views.faction_leaderboards, name="faction_leaderboards"),
     path("factions/choose/", faction_views.faction_choose, name="faction_choose"),
+    path("factions/<str:kind>/<slug:slug>/", faction_views.faction_detail, name="faction_detail"),
     path("roadmap/", views.battlefield_progress, name="battlefield_progress"),
     path("rankings/", views.rankings, name="rankings"),
     path("challenges/", views.challenge_list, name="challenge_list"),

@@ -11,9 +11,10 @@ from __future__ import annotations
 from datetime import timedelta
 
 from django.core.exceptions import ValidationError
+from django.db.models import Count, Sum
 from django.utils import timezone
 
-from .models import Faction, FactionMembership
+from .models import FACTION_ACTIVE_CONTRIBUTION_MIN, Faction, FactionContribution, FactionMembership
 
 # A chef may freely change (or keep the carried-over) faction during this window
 # at the start of a season; after it, the pick locks until the next season.
@@ -50,6 +51,49 @@ def get_chef_factions(chef, season) -> dict:
         Faction.Kind.CUISINE.value: get_membership(chef, Faction.Kind.CUISINE.value, season),
         Faction.Kind.SPECIALTY.value: get_membership(chef, Faction.Kind.SPECIALTY.value, season),
     }
+
+
+def get_faction_standing(faction: Faction, season) -> dict:
+    """One faction's live standing for a season (works below the rank floor too).
+
+    Reuses Bolt's normalisation formula; rank_position is filled only if the
+    faction clears the board floor (looked up from get_faction_leaderboard).
+    """
+    from .faction_service import get_faction_leaderboard, normalized_score
+
+    if season is None:
+        return {"total_points": 0, "active_member_count": 0, "normalized_score": 0.0, "rank_position": None}
+    contribs = FactionContribution.objects.filter(faction=faction, season=season)
+    total = contribs.aggregate(t=Sum("points"))["t"] or 0
+    active = (
+        contribs.values("chef")
+        .annotate(n=Count("id"))
+        .filter(n__gte=FACTION_ACTIVE_CONTRIBUTION_MIN)
+        .count()
+    )
+    rank = None
+    for row in get_faction_leaderboard(season, faction.kind):
+        if row["faction"].id == faction.id:
+            rank = row["rank_position"]
+            break
+    return {
+        "total_points": total,
+        "active_member_count": active,
+        "normalized_score": normalized_score(total, active),
+        "rank_position": rank,
+    }
+
+
+def get_faction_top_contributors(faction: Faction, season, limit: int = 15) -> list:
+    """Chefs who contributed most to this faction this season, points desc."""
+    if season is None:
+        return []
+    return list(
+        FactionContribution.objects.filter(faction=faction, season=season)
+        .values("chef", "chef__name", "chef__slug")
+        .annotate(points=Sum("points"))
+        .order_by("-points")[:limit]
+    )
 
 
 def set_faction_membership(chef, faction: Faction, season) -> FactionMembership:

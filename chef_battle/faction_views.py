@@ -10,7 +10,7 @@ from __future__ import annotations
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 
 from recipes.authoring import get_author_for_user
 
@@ -18,6 +18,8 @@ from .access import chef_battle_guard
 from .faction_selectors import (
     factions_by_kind,
     get_chef_factions,
+    get_faction_standing,
+    get_faction_top_contributors,
     in_repick_window,
     set_faction_membership,
 )
@@ -55,6 +57,38 @@ def faction_leaderboards(request):
             "season_label": _season_label(active),
             "cuisine_board": cuisine_board,
             "specialty_board": specialty_board,
+            "rank_floor": RANK_MEMBER_FLOOR,
+        },
+    )
+
+
+@chef_battle_guard
+def faction_detail(request, kind, slug):
+    """One faction's page: standing, top contributors, and the viewer's own rank."""
+    faction = get_object_or_404(Faction, kind=kind, slug=slug, is_active=True)
+    active = get_active_season()
+    standing = get_faction_standing(faction, active)
+    contributors = get_faction_top_contributors(faction, active)
+
+    my_rank = None
+    author = get_author_for_user(request.user) if request.user.is_authenticated else None
+    if author is not None:
+        for i, c in enumerate(contributors, start=1):
+            if c["chef"] == author.id:
+                my_rank = i
+                break
+
+    return render(
+        request,
+        "chef_battle/faction_detail.html",
+        {
+            "faction": faction,
+            "kind_label": faction.get_kind_display(),
+            "active_season": active,
+            "season_label": _season_label(active),
+            "standing": standing,
+            "contributors": contributors,
+            "my_rank": my_rank,
             "rank_floor": RANK_MEMBER_FLOOR,
         },
     )
