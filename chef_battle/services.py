@@ -481,6 +481,20 @@ def calculate_battle_result(battle: Battle) -> Battle:
             BattleMoveTransaction(chef=loser, amount=MOVES_BATTLE_PARTICIPATION, transaction_type=TxType.BATTLE_PARTICIPATION),
         ])
 
+        # Battle-derived faction contribution (Phase 6): gated by same-faction=0
+        # and the per-opponent seasonal cap. Isolated so a faction failure can't
+        # break battle completion.
+        try:
+            from .faction_service import award_battle_faction_contribution
+            award_battle_faction_contribution(
+                winner, loser, MOVES_BATTLE_WIN + MOVES_BATTLE_PARTICIPATION, battle=battle
+            )
+            award_battle_faction_contribution(
+                loser, winner, MOVES_BATTLE_PARTICIPATION, battle=battle
+            )
+        except Exception:
+            logger.exception("Battle faction contribution failed for battle pk=%s", battle.pk)
+
         # Expire unused BATTLE_GIFT artifacts locked to this battle.
         ChefArtifact.objects.filter(
             locked_to_battle=battle,

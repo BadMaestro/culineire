@@ -73,6 +73,50 @@ def award_faction_contribution(chef, points: int, *, source=None) -> int:
     return len(rows)
 
 
+def award_battle_faction_contribution(chef, opponent, points: int, *, battle=None) -> int:
+    """Award battle-derived faction points to `chef`, per axis, gated by the
+    same-faction rule (0 points vs your own faction) and the per-opponent
+    seasonal cap. Returns the number of contribution rows written.
+
+    Battles award moves directly (not via award_moves), so this is called from
+    calculate_battle_result rather than riding the content earn-path.
+    """
+    if points <= 0:
+        return 0
+    from .season_service import get_active_season
+    season = get_active_season()
+    if season is None:
+        return 0
+    memberships = list(
+        FactionMembership.objects.filter(
+            chef=chef, season=season, left_at__isnull=True
+        ).select_related("faction")
+    )
+    if not memberships:
+        return 0
+
+    from .fraud import gate_faction_battle_cap, gate_same_faction_battle
+    content_type = object_id = None
+    if battle is not None:
+        from django.contrib.contenttypes.models import ContentType
+        content_type = ContentType.objects.get_for_model(battle)
+        object_id = battle.pk
+
+    written = 0
+    with transaction.atomic():
+        for m in memberships:
+            if not gate_same_faction_battle(chef, opponent, m.faction_kind, season).passed:
+                continue
+            if battle is not None and not gate_faction_battle_cap(chef, opponent, season, battle).passed:
+                continue
+            FactionContribution.objects.create(
+                chef=chef, faction=m.faction, faction_kind=m.faction_kind, season=season,
+                source_content_type=content_type, source_object_id=object_id, points=points,
+            )
+            written += 1
+    return written
+
+
 def normalized_score(total_points: int, active_member_count: int) -> float:
     """total / sqrt(active). Pure math — safe on any input.
 

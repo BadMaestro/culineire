@@ -5247,3 +5247,66 @@ class FactionSeasonReceiverTests(TestCase):
         self.assertEqual(st.active_member_count, FACTION_RANK_MEMBER_FLOOR)
         self.assertEqual(st.rank_position, 1)
         self.assertTrue(st.rewards_pending)
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class FactionBattleGateTests(TestCase):
+    """Phase 6: battle-derived faction points — same-faction=0 + per-opponent cap."""
+
+    def setUp(self):
+        from .models import ChefBattleProfile, Faction, FactionMembership, Season
+        User = get_user_model()
+        self.now = timezone.now()
+        self.season = Season.objects.create(
+            name="BG", starts_at=self.now - timezone.timedelta(days=2),
+            ends_at=self.now + timezone.timedelta(days=30), status=Season.Status.ACTIVE,
+        )
+        self.italian = Faction.objects.get(kind="cuisine", slug="italian")
+        self.french = Faction.objects.get(kind="cuisine", slug="french")
+        self.bbq = Faction.objects.get(kind="specialty", slug="bbq")
+        self.grill = Faction.objects.get(kind="specialty", slug="grill")
+
+        def mk(tag, cuisine, specialty):
+            u = User.objects.create_user(f"bg-{tag}", password="pw")
+            chef = RecipeAuthor.objects.create(user=u, name=f"BG {tag}", slug=f"bg-{tag}")
+            ChefBattleProfile.objects.create(author=chef, enrolled_at=self.now)
+            FactionMembership.objects.create(chef=chef, faction=cuisine, faction_kind="cuisine", season=self.season)
+            FactionMembership.objects.create(chef=chef, faction=specialty, faction_kind="specialty", season=self.season)
+            return chef
+
+        self.chef = mk("chef", self.italian, self.bbq)
+        self.opp_samebbq = mk("oppbbq", self.french, self.bbq)      # diff cuisine, SAME specialty
+        self.opp_diff = mk("oppdiff", self.french, self.grill)      # both different
+
+    def _battle(self, a, b, status="active"):
+        from .models import Battle
+        return Battle.objects.create(
+            challenger=a, opponent=b, theme="BG", status=status, start_time=self.now,
+            submission_deadline=self.now + timezone.timedelta(days=2),
+            voting_deadline=self.now + timezone.timedelta(days=4),
+            end_time=self.now + timezone.timedelta(days=5),
+        )
+
+    def test_same_faction_axis_blocked(self):
+        from .faction_service import award_battle_faction_contribution
+        from .models import FactionContribution
+        battle = self._battle(self.chef, self.opp_samebbq)
+        n = award_battle_faction_contribution(self.chef, self.opp_samebbq, 5, battle=battle)
+        self.assertEqual(n, 1)  # cuisine (Italian vs French) awarded; specialty (BBQ==BBQ) blocked
+        self.assertTrue(FactionContribution.objects.filter(chef=self.chef, faction=self.italian).exists())
+        self.assertFalse(FactionContribution.objects.filter(chef=self.chef, faction=self.bbq).exists())
+
+    def test_both_axes_awarded_when_all_different(self):
+        from .faction_service import award_battle_faction_contribution
+        battle = self._battle(self.chef, self.opp_diff)
+        n = award_battle_faction_contribution(self.chef, self.opp_diff, 5, battle=battle)
+        self.assertEqual(n, 2)
+
+    def test_per_opponent_cap(self):
+        from .faction_service import award_battle_faction_contribution
+        # 3 completed battles already exist between this pair this season.
+        for _ in range(3):
+            self._battle(self.chef, self.opp_diff, status="completed")
+        battle4 = self._battle(self.chef, self.opp_diff)
+        n = award_battle_faction_contribution(self.chef, self.opp_diff, 5, battle=battle4)
+        self.assertEqual(n, 0)  # cap reached -> both axes blocked

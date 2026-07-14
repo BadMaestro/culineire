@@ -384,3 +384,45 @@ def run_fraud_gates(gates: list[tuple[Callable, tuple, dict]]) -> FraudCheckResu
             logger.warning("Fraud gate FAILED: %s — %s", r.gate, r.reason)
 
     return FraudCheckResult(passed=not failed, gates=gate_results, failed_gates=failed)
+
+
+# ---------------------------------------------------------------------------
+# Faction gates (Phase 6) — battle-derived contribution guards
+# ---------------------------------------------------------------------------
+
+def gate_same_faction_battle(chef, opponent, faction_kind: str, season) -> GateResult:
+    """Block faction points when both chefs share a faction on this axis.
+
+    Same-faction battles awarding points would let a faction farm itself
+    (collusion), so they earn zero on that axis.
+    """
+    from .models import FactionMembership
+    c = (FactionMembership.objects
+         .filter(chef=chef, faction_kind=faction_kind, season=season, left_at__isnull=True)
+         .values_list("faction_id", flat=True).first())
+    o = (FactionMembership.objects
+         .filter(chef=opponent, faction_kind=faction_kind, season=season, left_at__isnull=True)
+         .values_list("faction_id", flat=True).first())
+    if c is not None and c == o:
+        return GateResult("same_faction_battle", False, "Same-faction battle awards no faction points.")
+    return GateResult("same_faction_battle", True)
+
+
+def gate_faction_battle_cap(chef, opponent, season, battle, cap: int = 3) -> GateResult:
+    """Block faction points once this pair has produced `cap` completed battles
+    in the season — throttles win-trading against one opponent."""
+    from django.db.models import Q
+    from .models import Battle
+    prior = (
+        Battle.objects.filter(
+            status=Battle.Status.COMPLETED,
+            start_time__gte=season.starts_at,
+            start_time__lte=season.ends_at,
+        )
+        .filter(Q(challenger=chef, opponent=opponent) | Q(challenger=opponent, opponent=chef))
+        .exclude(pk=battle.pk)
+        .count()
+    )
+    if prior >= cap:
+        return GateResult("faction_battle_cap", False, f"Per-opponent faction cap ({cap}) reached this season.")
+    return GateResult("faction_battle_cap", True)
