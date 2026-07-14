@@ -2,6 +2,7 @@ from django.urls import path
 
 from . import views
 from . import faction_views
+from . import clan_views
 
 app_name = "chef_battle"
 
@@ -26,6 +27,13 @@ urlpatterns = [
     path("factions/", faction_views.faction_leaderboards, name="faction_leaderboards"),
     path("factions/choose/", faction_views.faction_choose, name="faction_choose"),
     path("factions/<str:kind>/<slug:slug>/", faction_views.faction_detail, name="faction_detail"),
+    path("clans/", clan_views.clan_home, name="clan_home"),
+    path("clans/create/", clan_views.clan_create, name="clan_create"),
+    path("clans/leave/", clan_views.clan_leave, name="clan_leave"),
+    path("clans/request/<int:membership_id>/", clan_views.clan_request_action, name="clan_request_action"),
+    path("clans/<slug:slug>/", clan_views.clan_detail, name="clan_detail"),
+    path("clans/<slug:slug>/join/", clan_views.clan_join, name="clan_join"),
+    path("clans/<slug:slug>/alliance/", clan_views.alliance_action, name="alliance_action"),
     path("roadmap/", views.battlefield_progress, name="battlefield_progress"),
     path("rankings/", views.rankings, name="rankings"),
     path("challenges/", views.challenge_list, name="challenge_list"),

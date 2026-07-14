@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Clans | Chef Battles | CulinEire{% endblock %}
+{% block meta_description %}Chef Battle clans — named teams of Chefs competing for the season. Browse clans, see the standings, and found or join a clan.{% endblock %}
+
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260618-hero-menu" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero battle-room-hero--has-panel">
+  <div class="container">
+    <div class="battle-room-hero__copy">
+      <p class="battle-kicker">Chef Battles Arena</p>
+      <h1>Clans</h1>
+      <p class="battle-room-hero__sub">{{ season_label }} &middot; Team standings</p>
+    </div>
+  </div>
+</section>
+
+<div class="container" style="max-width: 900px; padding-block: 2.5rem;">
+
+  <div style="font-size:0.85rem; color:var(--color-muted); margin-block-end:1.5rem;">
+    A <strong>clan</strong> is a named team of Chefs. Its founder picks up to 3 categories the clan competes in.
+    The <strong>winning clan of a season</strong> is the one whose members earned the greatest combined contribution.
+    See the <a href="{% url 'chef_battle:rules' %}#s21">Clan rules</a>.
+  </div>
+
+  <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-block-end:2rem;">
+    {% if my_membership %}
+      <a class="btn btn--primary" href="{% url 'chef_battle:clan_detail' my_membership.clan.slug %}">{{ my_membership.clan.crest_icon }} My clan &middot; {{ my_membership.clan.name }}</a>
+    {% else %}
+      <a class="btn btn--primary" href="{% url 'chef_battle:clan_create' %}">Found a clan</a>
+    {% endif %}
+  </div>
+
+  {% if winner and active_season %}
+    <div style="background:var(--color-surface, #faf7f1); border:1px solid #e5ded3; border-radius:12px; padding:1rem 1.25rem; margin-block-end:2rem;">
+      <span style="font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--color-muted);">Leading this season</span><br>
+      <a style="font-size:1.1rem; font-weight:700;" href="{% url 'chef_battle:clan_detail' winner.slug %}">{{ winner.crest_icon }} {{ winner.name }}</a>
+    </div>
+  {% endif %}
+
+  {% if active_season %}
+    {% include "chef_battle/_clan_board.html" with board=board member_cap=member_cap %}
+  {% else %}
+    <p style="margin-block-end:2rem;">No active season right now — clan standings open when the next season starts.</p>
+  {% endif %}
+
+  <h2 style="font-size:1.2rem; margin-block:2rem 0.8rem;">All Clans</h2>
+  {% if clans %}
+    <div class="clan-list" style="display:grid; gap:0.6rem;">
+      {% for clan in clans %}
+      <a href="{% url 'chef_battle:clan_detail' clan.slug %}" style="display:flex; align-items:center; gap:0.75rem; padding:0.75rem 1rem; border:1px solid #efe9df; border-radius:10px; text-decoration:none;">
+        <span style="font-size:1.4rem;">{{ clan.crest_icon|default:"🍳" }}</span>
+        <span style="flex:1;">
+          <strong>{{ clan.name }}</strong><br>
+          <span style="font-size:0.78rem; color:var(--color-muted);">
+            {% for cat in clan.categories.all %}{{ cat.name }}{% if not forloop.last %} · {% endif %}{% endfor %}
+          </span>
+        </span>
+      </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p style="color:var(--color-muted);">No clans have been approved yet. Be the first to found one.</p>
+  {% endif %}
+
+</div>
+{% endblock %}

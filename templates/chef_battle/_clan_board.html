@@ -1,0 +1,21 @@
+{# Season clan ranking board. Expects: board (list of dicts), member_cap #}
+<div style="margin-block-end:2.5rem;">
+  <h2 style="font-size:1.2rem; margin-block-end:0.8rem;">Season Standings</h2>
+  {% if board %}
+  <div class="clan-board">
+    <div class="clan-board__head" style="display:grid; grid-template-columns:2.5rem 1fr 5rem 5rem; gap:0.75rem; font-size:0.78rem; color:var(--color-muted); text-transform:uppercase; letter-spacing:0.04em; padding-block:0.5rem; border-block-end:1px solid var(--color-border, #e5ded3);">
+      <span>#</span><span>Clan</span><span style="text-align:right;">Points</span><span style="text-align:right;">Members</span>
+    </div>
+    {% for row in board %}
+    <div class="clan-board__row" style="display:grid; grid-template-columns:2.5rem 1fr 5rem 5rem; gap:0.75rem; align-items:center; padding-block:0.6rem; border-block-end:1px solid var(--color-border, #efe9df);">
+      <span style="font-weight:700; color:#c8942a;">{{ row.rank_position }}</span>
+      <span style="font-weight:600;"><a href="{% url 'chef_battle:clan_detail' row.clan.slug %}">{{ row.clan.crest_icon }} {{ row.clan.name }}</a></span>
+      <span style="text-align:right;" title="{{ row.total_points }} combined points from {{ row.active_member_count }} active members">{{ row.total_points }}</span>
+      <span style="text-align:right; color:var(--color-muted);">{{ row.active_member_count }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p style="color:var(--color-muted);">No clan has enough active members to rank yet this season.</p>
+  {% endif %}
+</div>

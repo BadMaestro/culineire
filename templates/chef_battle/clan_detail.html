@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ clan.name }} | Clans | Chef Battles | CulinEire{% endblock %}
+{% block meta_description %}{{ clan.name }} — a Chef Battle clan. Roster, categories and season standing.{% endblock %}
+
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260618-hero-menu" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero battle-room-hero--has-panel">
+  <div class="container">
+    <div class="battle-room-hero__copy">
+      <p class="battle-kicker">Chef Battle Clan</p>
+      <h1>{{ clan.crest_icon }} {{ clan.name }}</h1>
+      <p class="battle-room-hero__sub">{{ season_label }}</p>
+    </div>
+  </div>
+</section>
+
+<div class="container" style="max-width: 820px; padding-block: 2.5rem;">
+
+  <p style="margin-block-end:0.4rem;"><a href="{% url 'chef_battle:clan_home' %}">&larr; All clans</a></p>
+
+  {% if clan.moderation_status != "approved" %}
+    <div style="background:#fdf6e3; border:1px solid #eaddb6; border-radius:10px; padding:0.7rem 1rem; margin-block:1rem; font-size:0.85rem;">
+      This clan is <strong>{{ clan.get_moderation_status_display|lower }}</strong> moderation and does not yet appear on the leaderboard.
+    </div>
+  {% endif %}
+
+  {# --- Categories + standing --- #}
+  <div style="display:flex; flex-wrap:wrap; gap:2rem; margin-block:1.5rem;">
+    <div>
+      <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--color-muted);">Categories</div>
+      <div style="font-size:0.95rem;">
+        {% for cat in clan.categories.all %}{{ cat.crest_icon }} {{ cat.name }}{% if not forloop.last %} &middot; {% endif %}{% empty %}—{% endfor %}
+      </div>
+    </div>
+    <div>
+      <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--color-muted);">Season points</div>
+      <div style="font-size:0.95rem; font-weight:700;">{{ standing.total_points }}{% if standing.rank_position %} <span style="font-weight:400; color:var(--color-muted);">· rank #{{ standing.rank_position }}</span>{% endif %}</div>
+    </div>
+    <div>
+      <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--color-muted);">Members</div>
+      <div style="font-size:0.95rem;">{{ standing.active_member_count }} / {{ member_cap }}</div>
+    </div>
+    {% if alliance_membership %}
+    <div>
+      <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--color-muted);">Alliance</div>
+      <div style="font-size:0.95rem;">🤝 {{ alliance_membership.alliance.name }}</div>
+    </div>
+    {% endif %}
+  </div>
+
+  {# --- Viewer actions --- #}
+  <div style="margin-block:1.5rem; display:flex; gap:0.75rem; flex-wrap:wrap;">
+    {% if can_join %}
+      <form method="post" action="{% url 'chef_battle:clan_join' clan.slug %}">{% csrf_token %}
+        <button type="submit" style="padding:0.55rem 1.1rem; border-radius:8px; border:0; background:#2c6e49; color:#fff; font-weight:600; cursor:pointer;">Request to join</button>
+      </form>
+    {% elif pending_here %}
+      <span style="color:var(--color-muted);">Your join request is pending the founder&#x2019;s review.</span>
+    {% elif in_this_clan and not viewer_founder %}
+      <form method="post" action="{% url 'chef_battle:clan_leave' %}" onsubmit="return confirm('Leave {{ clan.name }}?');">{% csrf_token %}
+        <button type="submit" style="padding:0.55rem 1.1rem; border-radius:8px; border:1px solid #c0392b; background:#fff; color:#c0392b; font-weight:600; cursor:pointer;">Leave clan</button>
+      </form>
+    {% elif viewer_founder %}
+      <span style="color:var(--color-muted);">You are the founder of this clan.</span>
+    {% endif %}
+  </div>
+
+  {# --- Roster --- #}
+  <h2 style="font-size:1.1rem; margin-block:1.75rem 0.6rem;">Roster</h2>
+  <div style="display:grid; gap:0.35rem;">
+    {% for m in roster %}
+    <div style="display:flex; align-items:center; gap:0.6rem; padding:0.4rem 0;">
+      <a href="{% url 'recipes:author_detail' m.chef.slug %}" style="font-weight:600;">{{ m.chef.name }}</a>
+      {% if m.role == "founder" %}<span style="font-size:0.7rem; background:#c8942a; color:#fff; padding:0.1rem 0.45rem; border-radius:6px;">FOUNDER</span>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  {# --- Top contributors this season --- #}
+  {% if contributors %}
+  <h2 style="font-size:1.1rem; margin-block:1.75rem 0.6rem;">Top Contributors &middot; This Season</h2>
+  <div style="display:grid; gap:0.3rem;">
+    {% for c in contributors %}
+    <div style="display:flex; justify-content:space-between; padding:0.3rem 0; border-block-end:1px solid #f1ece3;">
+      <a href="{% url 'recipes:author_detail' c.chef__slug %}">{{ forloop.counter }}. {{ c.chef__name }}</a>
+      <span style="color:var(--color-muted);">{{ c.points }} pts</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {# --- Founder: pending join requests --- #}
+  {% if viewer_founder %}
+  <h2 style="font-size:1.1rem; margin-block:2rem 0.6rem;">Join Requests</h2>
+  {% if pending_requests %}
+    <div style="display:grid; gap:0.4rem;">
+      {% for req in pending_requests %}
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:0.6rem; padding:0.5rem 0.75rem; border:1px solid #efe9df; border-radius:8px;">
+        <a href="{% url 'recipes:author_detail' req.chef.slug %}">{{ req.chef.name }}</a>
+        <span style="display:flex; gap:0.4rem;">
+          <form method="post" action="{% url 'chef_battle:clan_request_action' req.id %}">{% csrf_token %}
+            <input type="hidden" name="action" value="approve">
+            <button type="submit" style="padding:0.3rem 0.8rem; border:0; border-radius:6px; background:#2c6e49; color:#fff; cursor:pointer;">Approve</button>
+          </form>
+          <form method="post" action="{% url 'chef_battle:clan_request_action' req.id %}">{% csrf_token %}
+            <input type="hidden" name="action" value="deny">
+            <button type="submit" style="padding:0.3rem 0.8rem; border:1px solid #c0392b; border-radius:6px; background:#fff; color:#c0392b; cursor:pointer;">Decline</button>
+          </form>
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p style="color:var(--color-muted);">No pending requests.</p>
+  {% endif %}
+
+  {# --- Founder: alliance foundation (S1) --- #}
+  <h2 style="font-size:1.1rem; margin-block:2rem 0.6rem;">Alliance</h2>
+  <p style="font-size:0.82rem; color:var(--color-muted); margin-block-end:0.75rem;">
+    Alliances let clans stand together. This is the Season&nbsp;1 foundation — the full
+    cuisine-versus-cuisine mechanic expands in later seasons. See the
+    <a href="{% url 'chef_battle:rules' %}#s22">Alliance rules</a>.
+  </p>
+  {% if alliance_membership %}
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:0.6rem;">
+      <span>🤝 In alliance <strong>{{ alliance_membership.alliance.name }}</strong></span>
+      <form method="post" action="{% url 'chef_battle:alliance_action' clan.slug %}">{% csrf_token %}
+        <input type="hidden" name="action" value="leave">
+        <button type="submit" style="padding:0.3rem 0.8rem; border:1px solid #c0392b; border-radius:6px; background:#fff; color:#c0392b; cursor:pointer;">Leave alliance</button>
+      </form>
+    </div>
+  {% else %}
+    <form method="post" action="{% url 'chef_battle:alliance_action' clan.slug %}" style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center; margin-block-end:0.75rem;">{% csrf_token %}
+      <input type="hidden" name="action" value="create">
+      <input type="text" name="alliance_name" placeholder="New alliance name" maxlength="80" required style="padding:0.4rem 0.6rem; border:1px solid #d8cfbf; border-radius:6px;">
+      <button type="submit" style="padding:0.4rem 0.9rem; border:0; border-radius:6px; background:#2c6e49; color:#fff; cursor:pointer;">Create alliance</button>
+    </form>
+    {% if all_alliances %}
+    <form method="post" action="{% url 'chef_battle:alliance_action' clan.slug %}" style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">{% csrf_token %}
+      <input type="hidden" name="action" value="join">
+      <select name="alliance_id" style="padding:0.4rem 0.6rem; border:1px solid #d8cfbf; border-radius:6px;">
+        {% for a in all_alliances %}<option value="{{ a.id }}">{{ a.name }} ({{ a.clan_count }} clans)</option>{% endfor %}
+      </select>
+      <button type="submit" style="padding:0.4rem 0.9rem; border:1px solid #2c6e49; border-radius:6px; background:#fff; color:#2c6e49; cursor:pointer;">Join alliance</button>
+    </form>
+    {% endif %}
+  {% endif %}
+  {% endif %}
+
+</div>
+{% endblock %}

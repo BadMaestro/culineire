@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Found a Clan | Chef Battles | CulinEire{% endblock %}
+{% block meta_description %}Found a Chef Battle clan: choose a name, a crest and up to three categories your clan competes in.{% endblock %}
+
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260618-hero-menu" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero battle-room-hero--has-panel">
+  <div class="container">
+    <div class="battle-room-hero__copy">
+      <p class="battle-kicker">Chef Battles Arena</p>
+      <h1>Found a Clan</h1>
+      <p class="battle-room-hero__sub">Name your team and choose up to {{ max_categories }} categories</p>
+    </div>
+  </div>
+</section>
+
+<div class="container" style="max-width: 720px; padding-block: 2.5rem;">
+
+  <p style="margin-block-end:1rem;"><a href="{% url 'chef_battle:clan_home' %}">&larr; All clans</a></p>
+
+  {% if error %}
+    <div style="background:#fdecea; border:1px solid #f5c6cb; color:#a12; border-radius:8px; padding:0.7rem 1rem; margin-block-end:1.25rem;">{{ error }}</div>
+  {% endif %}
+
+  <p style="font-size:0.85rem; color:var(--color-muted); margin-block-end:1.5rem;">
+    Your clan will be reviewed by moderation before it appears on the leaderboard. Categories show where your
+    clan is prepared to compete — they don&#x2019;t change your personal Cuisine or Specialty, and are not exclusive.
+    You may hold at most <strong>{{ max_categories }}</strong>, and never every category.
+  </p>
+
+  <form method="post" id="clan-create-form">{% csrf_token %}
+
+    <label style="display:block; font-weight:600; margin-block-end:0.3rem;">Clan name</label>
+    <input type="text" name="name" maxlength="80" required value="{{ submitted_name }}"
+           style="width:100%; padding:0.55rem 0.7rem; border:1px solid #d8cfbf; border-radius:8px; margin-block-end:1.25rem;">
+
+    <label style="display:block; font-weight:600; margin-block-end:0.3rem;">Crest (one emoji, optional)</label>
+    <input type="text" name="crest_icon" maxlength="8" value="{{ submitted_crest }}" placeholder="🔥"
+           style="width:6rem; padding:0.55rem 0.7rem; border:1px solid #d8cfbf; border-radius:8px; margin-block-end:1.5rem;">
+
+    <label style="display:block; font-weight:600; margin-block-end:0.5rem;">
+      Categories <span style="font-weight:400; color:var(--color-muted);">(choose 1–{{ max_categories }})</span>
+    </label>
+
+    <div style="font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--color-muted); margin-block:0.75rem 0.35rem;">Cuisines</div>
+    <div style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+      {% for f in cuisines %}
+      <label class="cat-chip" style="display:inline-flex; align-items:center; gap:0.35rem; padding:0.35rem 0.7rem; border:1px solid #d8cfbf; border-radius:999px; cursor:pointer;">
+        <input type="checkbox" name="categories" value="{{ f.id }}" {% if f.id in submitted_categories %}checked{% endif %}>
+        {{ f.crest_icon }} {{ f.name }}
+      </label>
+      {% endfor %}
+    </div>
+
+    <div style="font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--color-muted); margin-block:1rem 0.35rem;">Specialties</div>
+    <div style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+      {% for f in specialties %}
+      <label class="cat-chip" style="display:inline-flex; align-items:center; gap:0.35rem; padding:0.35rem 0.7rem; border:1px solid #d8cfbf; border-radius:999px; cursor:pointer;">
+        <input type="checkbox" name="categories" value="{{ f.id }}" {% if f.id in submitted_categories %}checked{% endif %}>
+        {{ f.crest_icon }} {{ f.name }}
+      </label>
+      {% endfor %}
+    </div>
+
+    <p id="cat-hint" style="font-size:0.8rem; color:var(--color-muted); margin-block:0.75rem 1.5rem;"></p>
+
+    <button type="submit" style="padding:0.6rem 1.4rem; border:0; border-radius:8px; background:#2c6e49; color:#fff; font-weight:600; cursor:pointer;">Found clan</button>
+  </form>
+</div>
+
+<script>
+(function () {
+  var MAX = {{ max_categories }};
+  var form = document.getElementById('clan-create-form');
+  if (!form) return;
+  var boxes = form.querySelectorAll('input[name="categories"]');
+  var hint = document.getElementById('cat-hint');
+  function update() {
+    var checked = form.querySelectorAll('input[name="categories"]:checked').length;
+    boxes.forEach(function (b) { if (!b.checked) b.disabled = checked >= MAX; });
+    hint.textContent = checked + ' of ' + MAX + ' selected' + (checked >= MAX ? ' (maximum reached)' : '');
+  }
+  boxes.forEach(function (b) { b.addEventListener('change', update); });
+  update();
+})();
+</script>
+{% endblock %}
