@@ -114,6 +114,24 @@
             <button class="btn-secondary" type="submit">Add agent</button>
         </form>
 
+        <section class="coworking-paste">
+            <h2>Paste &amp; deliver</h2>
+            <p class="coworking-paste__hint">Paste text of any length (e.g. a full transcript) and route it to an agent's inbox. No character limit.</p>
+            <form method="post" action="{% url 'coworking:send_message' %}" class="coworking-paste__form">
+                {% csrf_token %}
+                <div class="coworking-paste__controls">
+                    <label>Deliver to
+                        <select name="to_agent" required>
+                            {% for agent in agents %}{% if agent.agent_id != 'owner' %}<option value="{{ agent.agent_id }}">{{ agent.label }}</option>{% endif %}{% endfor %}
+                        </select>
+                    </label>
+                    <input type="text" name="subject" placeholder="Optional subject, e.g. GreenBear last transcript" maxlength="200">
+                </div>
+                <textarea name="body" rows="14" required placeholder="Paste here — any length is accepted…" style="width:100%; font-family:var(--font-mono, monospace); font-size:.85rem; line-height:1.5; resize:vertical;"></textarea>
+                <button class="btn-primary" type="submit">Deliver to agent</button>
+            </form>
+        </section>
+
         <section class="coworking-shared">
             <h2>Shared</h2>
             <h3>Project memory</h3>

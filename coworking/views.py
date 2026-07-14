@@ -8,7 +8,7 @@ from django.views.decorators.http import require_POST
 
 from accounts.views import is_moderator
 
-from .models import CoworkingAgent, CoworkingSharedMemory
+from .models import CoworkingAgent, CoworkingMessage, CoworkingSharedMemory
 
 
 def _require_access(request):
@@ -61,6 +61,29 @@ def handoff(request):
     )
 
     messages.success(request, f"Handed off from {from_agent.label} to {to_agent.label}.")
+    return redirect("coworking:dashboard")
+
+
+@require_POST
+def send_message(request):
+    """Owner paste-box: drop text of ANY length and route it to an agent's
+    inbox (CoworkingMessage), which the agent picks up via its 15s poller.
+    No length cap — the body is a TextField and no form validator truncates it."""
+    _require_access(request)
+    to_id = request.POST.get("to_agent", "").strip()
+    body = request.POST.get("body", "").strip()
+    subject = request.POST.get("subject", "").strip()
+    if not to_id or not body:
+        messages.error(request, "Choose a recipient and paste some text.")
+        return redirect("coworking:dashboard")
+    to_agent = get_object_or_404(CoworkingAgent, pk=to_id)
+    CoworkingMessage.send(
+        from_agent="owner",
+        to_agent=to_agent,
+        body=body,
+        subject=subject or "Owner paste",
+    )
+    messages.success(request, f"Sent {len(body):,} characters to {to_agent.label}.")
     return redirect("coworking:dashboard")
 
 

@@ -1,5 +1,20 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.213",
+        "date": "2026-07-14",
+        "commit": "pending",
+        "title": "CoWork owner paste-box: route any-length text to an agent",
+        "section": "Coworking",
+        "summary": (
+            "Added a 'Paste & deliver' box to the coworking dashboard so the owner "
+            "can paste text of ANY length (e.g. a full agent transcript that would "
+            "be split across several Telegram messages) and route it to a chosen "
+            "agent's inbox as a single CoworkingMessage. The agent picks it up via "
+            "its 15s inbox poller. No character cap (TextField, no form truncation); "
+            "moderator-gated like the rest of the dashboard. 4 new tests."
+        ),
+    },
+    {
         "version": "2.5.212",
         "date": "2026-07-14",
         "commit": "pending",
