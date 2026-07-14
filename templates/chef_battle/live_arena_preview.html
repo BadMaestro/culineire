@@ -3,113 +3,21 @@
 {% block title %}Live Arena (Preview) | CulinEire{% endblock %}
 {% block meta_description %}Live Arena broadcast preview — under construction.{% endblock %}
 
-{% block content %}
-<style>
-  .lap {
-    --s0:#07090A; --s1:#0D1113; --s2:#121719; --s3:#171D20;
-    --tp:#F4F3EE; --ts:#A8AFB1; --tm:#6F777A; --bd:rgba(255,255,255,.11);
-    --gr:#67B74A; --grd:#234B2A; --rd:#D8463E; --rdd:#5A2020; --gd:#D6A64B; --gdl:#F1D27A;
-    background:radial-gradient(120% 80% at 50% 0%, #0E1113 0%, #07090A 70%);
-    color:var(--tp); border-radius:14px; padding:14px; margin:1rem auto; max-width:1280px;
-    font-family:var(--font-sans, Inter, system-ui, sans-serif);
-  }
-  .lap * { box-sizing:border-box; }
-  .lap__ribbon { display:flex; justify-content:space-between; align-items:center; gap:.5rem;
-    font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; color:var(--gd);
-    border:1px dashed var(--bd); border-radius:8px; padding:.35rem .7rem; margin-bottom:12px; }
-  /* Matchup header */
-  .lap__match { display:grid; grid-template-columns:200px 1fr 200px; gap:12px; align-items:center; }
-  .lap__chef { background:var(--s2); border:1px solid var(--bd); border-radius:12px; overflow:hidden; }
-  .lap__chef--l { box-shadow:inset 0 0 0 1px rgba(103,183,74,.35), 0 0 22px rgba(103,183,74,.10); }
-  .lap__chef--r { box-shadow:inset 0 0 0 1px rgba(216,70,62,.35), 0 0 22px rgba(216,70,62,.10); }
-  .lap__portrait { aspect-ratio:3/4; background:linear-gradient(160deg,#1c2226,#0c0f11); display:flex;
-    align-items:flex-end; justify-content:center; color:var(--tm); font-size:.7rem; padding:6px; }
-  .lap__title { text-align:center; }
-  .lap__stars { color:var(--gd); letter-spacing:.4em; font-size:.7rem; }
-  .lap__h1 { font-family:var(--font-serif, 'Playfair Display', serif); font-weight:800;
-    font-size:clamp(1.6rem,3.2vw,2.6rem); margin:.1rem 0; letter-spacing:.02em; }
-  .lap__vs { display:inline-flex; align-items:center; gap:14px; margin-top:2px; }
-  .lap__beam { height:2px; width:80px; }
-  .lap__beam--l { background:linear-gradient(90deg, transparent, var(--gr)); }
-  .lap__beam--r { background:linear-gradient(90deg, var(--rd), transparent); }
-  .lap__vsmark { font-family:var(--font-serif, serif); font-weight:900; font-size:1.9rem;
-    color:var(--gd); text-shadow:0 2px 6px rgba(214,166,75,.5); }
-  .lap__meta { padding:8px 10px; font-size:.82rem; }
-  .lap__meta--l { text-align:left; } .lap__meta--r { text-align:right; }
-  .lap__num { font-size:.68rem; letter-spacing:.12em; text-transform:uppercase; }
-  .lap__num--l { color:var(--gr); } .lap__num--r { color:var(--rd); }
-  .lap__name { font-weight:700; font-size:1rem; margin:.1rem 0 .3rem; }
-  .lap__row { color:var(--ts); font-size:.78rem; line-height:1.5; }
-  .lap__row b { color:var(--tp); font-weight:600; }
-  .lap__theme { text-align:center; margin:12px auto 0; font-size:.82rem; color:var(--ts);
-    background:linear-gradient(90deg, rgba(103,183,74,.18), rgba(214,166,75,.20), rgba(216,70,62,.18));
-    border:1px solid var(--bd); border-radius:99px; padding:.3rem 1rem; display:inline-block; }
-  .lap__theme b { color:var(--gdl); }
-  /* Dual stage */
-  .lap__stage { position:relative; display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
-  .lap__panel { position:relative; aspect-ratio:16/9; border-radius:12px; overflow:hidden;
-    background:linear-gradient(155deg,#20272b,#0b0e10); border:1px solid var(--bd); }
-  .lap__panel--l { box-shadow:inset 0 0 0 1px rgba(103,183,74,.3); }
-  .lap__panel--r { box-shadow:inset 0 0 0 1px rgba(216,70,62,.3); }
-  .lap__panelfill { position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-    color:var(--tm); font-size:.8rem; text-align:center; gap:.4rem; flex-direction:column; }
-  .lap__live { position:absolute; top:10px; left:10px; background:var(--rd); color:#fff; font-size:.66rem;
-    font-weight:700; letter-spacing:.08em; padding:.15rem .5rem; border-radius:5px; }
-  .lap__vc { position:absolute; top:10px; right:10px; background:rgba(0,0,0,.5); color:var(--tp);
-    font-size:.72rem; padding:.15rem .5rem; border-radius:5px; }
-  .lap__rail { position:absolute; top:44px; right:10px; display:flex; flex-direction:column; gap:12px;
-    align-items:center; }
-  .lap__rail div { text-align:center; color:var(--tp); font-size:.72rem; }
-  .lap__rail span { display:block; font-size:1rem; }
-  .lap__stack { position:absolute; left:10px; bottom:10px; display:flex; align-items:center; gap:6px; }
-  .lap__dots { display:flex; }
-  .lap__dot { width:22px; height:22px; border-radius:50%; background:#2a3238; border:2px solid var(--s1);
-    margin-left:-8px; }
-  .lap__more { font-size:.7rem; color:var(--ts); }
-  .lap__cta { position:absolute; left:50%; bottom:10px; transform:translateX(-50%); border:0;
-    color:#fff; font-weight:700; font-size:.74rem; padding:.35rem .8rem; border-radius:8px; cursor:pointer; }
-  .lap__cta--l { background:var(--grd); box-shadow:0 0 0 1px var(--gr) inset; }
-  .lap__cta--r { background:var(--rdd); box-shadow:0 0 0 1px var(--rd) inset; }
-  .lap__role { position:absolute; right:10px; bottom:10px; color:var(--gd); font-size:.72rem; text-align:right; }
-  /* Timer plate */
-  .lap__timer { position:absolute; left:50%; bottom:-18px; transform:translateX(-50%); z-index:3;
-    background:linear-gradient(180deg,#10151a,#0a0d10); border:1px solid var(--gr); border-radius:6px;
-    padding:.4rem 1.4rem; text-align:center; clip-path:polygon(6% 0,94% 0,100% 50%,94% 100%,6% 100%,0 50%);
-    box-shadow:0 8px 24px rgba(0,0,0,.5); }
-  .lap__timer small { display:block; font-size:.6rem; letter-spacing:.14em; color:var(--tm); }
-  .lap__timer strong { font-variant-numeric:tabular-nums; font-size:1.5rem; letter-spacing:.08em; color:var(--tp); }
-  .lap__timer em { display:block; font-style:normal; font-size:.6rem; color:var(--tm); }
-  /* Chat */
-  .lap__chat { margin-top:30px; background:var(--s1); border:1px solid var(--bd); border-radius:12px; padding:12px; }
-  .lap__tabs { display:flex; gap:16px; border-bottom:1px solid var(--bd); padding-bottom:8px; margin-bottom:10px;
-    font-size:.8rem; }
-  .lap__tab { color:var(--tp); font-weight:600; } .lap__tab--muted { color:var(--tm); }
-  .lap__msgs { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px 18px; }
-  .lap__msg { display:flex; align-items:flex-start; gap:8px; font-size:.78rem; }
-  .lap__av { width:24px; height:24px; border-radius:50%; background:#2a3238; flex:0 0 24px; }
-  .lap__msg b { color:var(--tp); font-weight:600; } .lap__msg p { margin:.05rem 0 0; color:var(--ts); }
-  .lap__ts { margin-left:auto; color:var(--tm); font-size:.66rem; white-space:nowrap; }
-  .lap__composer { display:flex; gap:8px; margin-top:12px; }
-  .lap__composer input { flex:1; background:var(--s2); border:1px solid var(--bd); border-radius:8px;
-    padding:.5rem .7rem; color:var(--tp); }
-  .lap__send { background:var(--grd); box-shadow:0 0 0 1px var(--gr) inset; color:#fff; border:0;
-    border-radius:8px; padding:0 1.1rem; font-weight:700; cursor:pointer; }
-  @media (max-width:860px){
-    .lap__match{ grid-template-columns:1fr; } .lap__stage{ grid-template-columns:1fr; }
-    .lap__msgs{ grid-template-columns:1fr; } .lap__timer{ position:static; transform:none; margin:12px auto 0; display:inline-block; }
-  }
-</style>
+{% block extra_head %}
+<link href="{% static 'css/live_arena.css' %}?v=20260714a" rel="stylesheet">
+{% endblock %}
 
+{% block content %}
 <div class="lap">
   <div class="lap__ribbon">
     <span>&#9679; Live Arena — build preview</span>
-    {% if fx.is_fixture %}<span>Data below is a DEV FIXTURE — real battle data &amp; video wire in as we build</span>{% endif %}
+    {% if fx.is_fixture %}<span>Data below is a DEV FIXTURE — real battle data &amp; MediaMTX video wire in as we build</span>{% endif %}
   </div>
 
   {# ── Matchup header ── #}
   <div class="lap__match">
     <div class="lap__chef lap__chef--l">
-      <div class="lap__portrait">portrait</div>
+      {% if fx.left.avatar_url %}<img class="lap__portrait" src="{{ fx.left.avatar_url }}" alt="{{ fx.left.name }}">{% else %}<div class="lap__portrait lap__portrait--ph">portrait</div>{% endif %}
       <div class="lap__meta lap__meta--l">
         <div class="lap__num lap__num--l">{{ fx.left.num }}</div>
         <div class="lap__name">{{ fx.left.name }}</div>
@@ -131,7 +39,7 @@
     </div>
 
     <div class="lap__chef lap__chef--r">
-      <div class="lap__portrait">portrait</div>
+      {% if fx.right.avatar_url %}<img class="lap__portrait" src="{{ fx.right.avatar_url }}" alt="{{ fx.right.name }}">{% else %}<div class="lap__portrait lap__portrait--ph">portrait</div>{% endif %}
       <div class="lap__meta lap__meta--r">
         <div class="lap__num lap__num--r">{{ fx.right.num }}</div>
         <div class="lap__name">{{ fx.right.name }}</div>
@@ -144,33 +52,44 @@
 
   {# ── Dual live stage ── #}
   <div class="lap__stage">
-    <div class="lap__panel lap__panel--l">
-      <div class="lap__panelfill"><span>&#127909;</span> stream fallback (MediaMTX HLS wires here)</div>
-      <span class="lap__live">&#9679; LIVE</span>
+
+    <div class="lap__panel lap__panel--l" data-state="active">
+      <video class="lap__video" data-hls-url="{{ fx.left.playback_url|default:'' }}" muted playsinline></video>
+      <div class="lap__fallback"><span>&#127909;</span> Waiting for stream<br><small>MediaMTX HLS wires in here</small></div>
+      <div class="lap__hearts"></div>
+      <span class="lap__live">LIVE</span>
       <span class="lap__vc">&#128065; {{ fx.left.viewers }}</span>
       <div class="lap__rail">
-        <div><span>&#128077;</span>{{ fx.left.likes }}</div>
-        <div><span>&#128172;</span>{{ fx.left.comments }}</div>
-        <div><span>&#128081;</span>{{ fx.left.role }}</div>
+        <button class="lap__rail-item lap__react" data-i="0" type="button" aria-label="React with a heart"><span>&#128155;</span><b class="lap__react-n">{{ fx.left.likes }}</b></button>
+        <div class="lap__rail-item"><span>&#128172;</span>{{ fx.left.comments }}</div>
+        <div class="lap__rail-item"><span>&#128081;</span>{{ fx.left.role }}</div>
       </div>
       <div class="lap__stack"><div class="lap__dots"><div class="lap__dot"></div><div class="lap__dot"></div><div class="lap__dot"></div><div class="lap__dot"></div></div><span class="lap__more">+{{ fx.left.supporters }}</span></div>
       <button class="lap__cta lap__cta--l" disabled>Support Chef</button>
+      <div class="lap__overlay lap__overlay--reconnect">Reconnecting…</div>
+      <div class="lap__overlay lap__overlay--paused">Battle paused</div>
+      <div class="lap__overlay lap__overlay--hidden">Stream temporarily hidden by moderation</div>
     </div>
 
-    <div class="lap__panel lap__panel--r">
-      <div class="lap__panelfill"><span>&#127909;</span> stream fallback (MediaMTX HLS wires here)</div>
-      <span class="lap__live">&#9679; LIVE</span>
+    <div class="lap__panel lap__panel--r" data-state="active">
+      <video class="lap__video" data-hls-url="{{ fx.right.playback_url|default:'' }}" muted playsinline></video>
+      <div class="lap__fallback"><span>&#127909;</span> Waiting for stream<br><small>MediaMTX HLS wires in here</small></div>
+      <div class="lap__hearts"></div>
+      <span class="lap__live">LIVE</span>
       <span class="lap__vc">&#128065; {{ fx.right.viewers }}</span>
       <div class="lap__rail">
-        <div><span>&#128077;</span>{{ fx.right.likes }}</div>
-        <div><span>&#128172;</span>{{ fx.right.comments }}</div>
-        <div><span>&#128081;</span>{{ fx.right.role }}</div>
+        <button class="lap__rail-item lap__react" data-i="1" type="button" aria-label="React with a heart"><span>&#128155;</span><b class="lap__react-n">{{ fx.right.likes }}</b></button>
+        <div class="lap__rail-item"><span>&#128172;</span>{{ fx.right.comments }}</div>
+        <div class="lap__rail-item"><span>&#128081;</span>{{ fx.right.role }}</div>
       </div>
       <div class="lap__stack"><div class="lap__dots"><div class="lap__dot"></div><div class="lap__dot"></div><div class="lap__dot"></div><div class="lap__dot"></div></div><span class="lap__more">+{{ fx.right.supporters }}</span></div>
       <button class="lap__cta lap__cta--r" disabled>Support Chef</button>
+      <div class="lap__overlay lap__overlay--reconnect">Reconnecting…</div>
+      <div class="lap__overlay lap__overlay--paused">Battle paused</div>
+      <div class="lap__overlay lap__overlay--hidden">Stream temporarily hidden by moderation</div>
     </div>
 
-    <div class="lap__timer">
+    <div class="lap__timer" data-state="active">
       <small>TIME REMAINING</small>
       <strong>{{ fx.timer }}</strong>
       <em>remaining</em>
@@ -189,9 +108,44 @@
       {% endfor %}
     </div>
     <div class="lap__composer">
-      <input type="text" placeholder="Join the conversation..." disabled>
+      <input type="text" placeholder="Join the conversation..." aria-label="Chat message" disabled>
       <button class="lap__send" disabled>Send</button>
     </div>
   </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js"></script>
+<script>
+(function () {
+  // Attach HLS playback to any panel that has a data-hls-url; otherwise the
+  // deterministic fallback art stays visible. Wires to MediaMTX HLS output.
+  document.querySelectorAll('.lap__panel').forEach(function (panel) {
+    var video = panel.querySelector('.lap__video');
+    var url = video && video.getAttribute('data-hls-url');
+    if (!video || !url) return;
+    function goLive() { panel.classList.add('is-live'); }
+    if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = url; video.addEventListener('loadedmetadata', goLive);
+    } else if (window.Hls && window.Hls.isSupported()) {
+      var hls = new Hls({ lowLatencyMode: true });
+      hls.loadSource(url); hls.attachMedia(video);
+      hls.on(window.Hls.Events.MANIFEST_PARSED, goLive);
+    }
+  });
+
+  // Floating heart reaction (client-only preview; wires to BattleReaction later).
+  document.querySelectorAll('.lap__react').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var panel = btn.closest('.lap__panel');
+      var layer = panel && panel.querySelector('.lap__hearts');
+      if (!layer) return;
+      var h = document.createElement('span');
+      h.className = 'lap__heart'; h.textContent = '❤️';
+      h.style.left = (15 + Math.floor(Math.random() * 55)) + '%';
+      layer.appendChild(h);
+      setTimeout(function () { h.remove(); }, 2400);
+    });
+  });
+})();
+</script>
 {% endblock %}
