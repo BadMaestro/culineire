@@ -14,6 +14,7 @@ urlpatterns = [
     path("arena/ping/", views.arena_ping, name="arena_ping"),
     path("arena/state/", views.arena_state, name="arena_state"),
     path("arena/blast/", views.arena_blast, name="arena_blast"),
+    path("arena/react/", views.arena_react, name="arena_react"),
     path("guide/", views.battle_guide, name="guide"),
     path("rules/", views.battle_rules, name="rules"),
     path("enroll/", views.chef_enroll, name="chef_enroll"),

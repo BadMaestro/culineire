@@ -5697,3 +5697,50 @@ class LiveArenaPreviewTests(LiveArenaTrackerTests):
         U.objects.create_user("prev-nobody", "p@p.com", "pw")
         c = Client(); c.login(username="prev-nobody", password="pw")
         self.assertEqual(c.get("/chef-battle/master/live-arena/preview/").status_code, 404)
+
+
+class BattleReactionTests(TestCase):
+    """Live-arena heart reactions: count, per-side split, anti-farm, endpoint."""
+
+    def setUp(self):
+        from .models import Battle
+        U = get_user_model()
+        self.u = U.objects.create_user("react-u", password="pw")
+        self.a = RecipeAuthor.objects.create(user=self.u, name="Reactor", slug="reactor")
+        self.opp = RecipeAuthor.objects.create(
+            user=U.objects.create_user("react-o", password="pw"), name="Opp", slug="react-opp")
+        self.battle = Battle.objects.create(
+            challenger=self.a, opponent=self.opp, theme="T",
+            submission_deadline=timezone.now(), end_time=timezone.now())
+
+    def test_record_and_side_split(self):
+        from .reaction_service import record_battle_reaction, side_counts
+        record_battle_reaction(self.battle, "left", author=self.a)
+        record_battle_reaction(self.battle, "left", author=self.a)
+        record_battle_reaction(self.battle, "right", author=self.a)
+        self.assertEqual(side_counts(self.battle), {"left": 2, "right": 1})
+
+    def test_bad_side_raises(self):
+        from .reaction_service import record_battle_reaction
+        with self.assertRaises(ValueError):
+            record_battle_reaction(self.battle, "middle", author=self.a)
+
+    def test_rate_limited(self):
+        from .reaction_service import record_battle_reaction, REACTION_MAX_PER_WINDOW
+        for _ in range(REACTION_MAX_PER_WINDOW):
+            record_battle_reaction(self.battle, "left", session_key="sess-x")
+        with self.assertRaises(PermissionError):
+            record_battle_reaction(self.battle, "left", session_key="sess-x")
+
+    def test_endpoint_returns_count(self):
+        from django.test import Client
+        c = Client(); c.login(username="react-u", password="pw")
+        r = c.post("/chef-battle/arena/react/", {"battle_id": self.battle.pk, "side": "left"})
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()["count"], 1)
+
+    def test_endpoint_bad_side_400(self):
+        from django.test import Client
+        c = Client(); c.login(username="react-u", password="pw")
+        r = c.post("/chef-battle/arena/react/", {"battle_id": self.battle.pk, "side": "x"})
+        self.assertEqual(r.status_code, 400)

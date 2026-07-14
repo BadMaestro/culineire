@@ -2915,7 +2915,7 @@ def live_arena_preview(request):
         },
         "right": {
             "num": "CHEF #2", "name": "Chef Luca Moretti", "rank": "Sous Chef",
-            "clan": "Fire & Steel", "country": "Italy",
+            "clan": "Fire & Steel", "country": "Ireland",
             "viewers": "980", "likes": "1.8K", "comments": "275", "role": "Sous Chef",
             "supporters": 42,
         },
@@ -2929,3 +2929,27 @@ def live_arena_preview(request):
         ],
     }
     return render(request, "chef_battle/live_arena_preview.html", {"fx": fixture})
+
+
+@require_POST
+def arena_react(request):
+    """Record one 'heart' reaction on a battle stream side (live arena).
+    Public but rate-limited per author/session; returns the new side count."""
+    from django.shortcuts import get_object_or_404
+    from .models import Battle
+    from .reaction_service import record_battle_reaction
+
+    battle = get_object_or_404(Battle, pk=request.POST.get("battle_id"))
+    side = request.POST.get("side", "")
+    author = get_author_for_user(request.user)
+    if not request.session.session_key:
+        request.session.save()
+    try:
+        count = record_battle_reaction(
+            battle, side, author=author, session_key=request.session.session_key or ""
+        )
+    except ValueError:
+        return JsonResponse({"ok": False, "error": "bad_side"}, status=400)
+    except PermissionError:
+        return JsonResponse({"ok": False, "error": "rate_limited"}, status=429)
+    return JsonResponse({"ok": True, "side": side, "count": count})

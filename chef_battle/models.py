@@ -1938,3 +1938,30 @@ class LiveArenaStage(models.Model):
 
     def __str__(self):
         return f"{self.order:02d} {self.title}"
+
+
+class BattleReaction(models.Model):
+    """One 'heart' reaction tap on a battle stream side. Append-only; the
+    per-side count is a COUNT over rows (mirrors the like/reaction counter in
+    the live arena). Anti-farm is enforced in the endpoint, not the schema."""
+
+    class Side(models.TextChoices):
+        LEFT = "left", "Left (challenger)"
+        RIGHT = "right", "Right (opponent)"
+
+    battle = models.ForeignKey("Battle", on_delete=models.CASCADE, related_name="reactions")
+    side = models.CharField(max_length=8, choices=Side.choices, db_index=True)
+    author = models.ForeignKey(
+        RecipeAuthor, null=True, blank=True, on_delete=models.SET_NULL, related_name="battle_reactions"
+    )
+    session_key = models.CharField(max_length=40, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["battle", "side"]),
+            models.Index(fields=["battle", "created_at"]),
+        ]
+
+    def __str__(self):
+        return f"heart {self.side} on battle {self.battle_id}"
