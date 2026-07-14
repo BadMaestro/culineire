@@ -173,12 +173,14 @@
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js"></script>
 <script>
 (function () {
-  // HLS playback where a panel has a data-hls-url; else the fallback art stays.
-  document.querySelectorAll('.lap__panel').forEach(function (panel) {
+  // HLS playback: attach when a panel has a data-hls-url (at load OR when the
+  // URL arrives via snapshot polling). Idempotent per URL; else fallback stays.
+  function attachHls(panel) {
     var video = panel.querySelector('.lap__video');
     var url = video && video.getAttribute('data-hls-url');
-    if (!video || !url) return;
-    function goLive() { panel.classList.add('is-live'); }
+    if (!video || !url || video.dataset.hlsAttached === url) return;
+    video.dataset.hlsAttached = url;
+    function goLive() { panel.classList.add('is-live'); video.play().catch(function () {}); }
     if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = url; video.addEventListener('loadedmetadata', goLive);
     } else if (window.Hls && window.Hls.isSupported()) {
@@ -186,7 +188,8 @@
       hls.loadSource(url); hls.attachMedia(video);
       hls.on(window.Hls.Events.MANIFEST_PARSED, goLive);
     }
-  });
+  }
+  document.querySelectorAll('.lap__panel').forEach(attachHls);
 
   var root = document.querySelector('.lap');
   var battleId = root && root.getAttribute('data-battle-id');
@@ -276,6 +279,7 @@
         var video = panel.querySelector('.lap__video');
         if (video && d.playback_url && video.getAttribute('data-hls-url') !== d.playback_url) {
           video.setAttribute('data-hls-url', d.playback_url);
+          attachHls(panel);
         }
       });
       // Stage 13: map battle.state to per-panel degraded overlays.
