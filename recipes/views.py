@@ -2403,7 +2403,17 @@ def moderation_panel(request):
     sponsor_attention_count = get_sponsor_moderation_attention_count()
     sponsor_attention_breakdown = get_sponsor_moderation_attention_breakdown()
 
+    from chef_battle.models import Clan
+
+    pending_clans = list(
+        Clan.objects.select_related("founder")
+        .filter(moderation_status=Clan.Moderation.PENDING, is_active=True)
+        .prefetch_related("categories")
+        .order_by("-created_at")
+    )
+
     return render(request, "moderation/panel.html", {
+        "pending_clans": pending_clans,
         "pending_recipes": pending_recipes,
         "needs_changes_recipes": needs_changes_recipes,
         "rejected_recipes": rejected_recipes,
@@ -2717,6 +2727,26 @@ def moderate_recipe(request, slug):
 
     if action not in ("delete", "block") and recipe.pk:
         return redirect(recipe.get_absolute_url())
+    return redirect("recipes:moderation_panel")
+
+
+@require_POST
+@login_required
+def moderate_clan(request, slug):
+    if not is_moderator(request.user):
+        raise Http404
+    from chef_battle.models import Clan
+
+    clan = get_object_or_404(Clan, slug=slug)
+    action = request.POST.get("action")
+    if action == "approve":
+        clan.moderation_status = Clan.Moderation.APPROVED
+        clan.save(update_fields=["moderation_status"])
+        messages.success(request, f'Clan "{clan.name}" approved and is now live.')
+    elif action == "reject":
+        clan.moderation_status = Clan.Moderation.REJECTED
+        clan.save(update_fields=["moderation_status"])
+        messages.warning(request, f'Clan "{clan.name}" rejected.')
     return redirect("recipes:moderation_panel")
 
 

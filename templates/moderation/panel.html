@@ -274,6 +274,46 @@
 
         <div class="moderation-block">
             <h2 class="moderation-block__title">
+                Clans
+                {% if pending_clans %}<span class="moderation-badge moderation-badge--pending">{{ pending_clans|length }} pending</span>{% endif %}
+            </h2>
+
+            <div class="moderation-scroll moderation-scroll--clans">
+            {% if not pending_clans %}
+            <div class="moderation-empty">All clear &mdash; no Clans awaiting moderation.</div>
+            {% endif %}
+
+            {% for clan in pending_clans %}
+            <div class="moderation-card">
+                <div class="moderation-card__body">
+                    <div class="moderation-card__meta">
+                        <span class="author-studio-status author-studio-status--pending">Pending</span>
+                        {% if clan.founder %}<a class="moderation-card__author" href="{{ clan.founder.get_absolute_url }}">{{ clan.founder.name|default:"Unknown" }}</a>{% else %}<span class="moderation-card__author">Unknown</span>{% endif %}
+                        <span class="moderation-card__date">{{ clan.created_at|date:"j M Y" }}</span>
+                    </div>
+                    <h3 class="moderation-card__title">
+                        <a href="{% url 'chef_battle:clan_detail' clan.slug %}">{{ clan.crest_icon }} {{ clan.name }}</a>
+                    </h3>
+                    <p class="moderation-card__note">Categories:
+                        {% for cat in clan.categories.all %}{{ cat.name }}{% if not forloop.last %}, {% endif %}{% empty %}none{% endfor %}
+                    </p>
+                </div>
+                <div class="moderation-card__actions">
+                    <a class="mod-btn mod-btn--view" href="{% url 'chef_battle:clan_detail' clan.slug %}" target="_blank">View</a>
+                    <form action="{% url 'recipes:moderate_clan' clan.slug %}" method="post">{% csrf_token %}
+                        <button class="mod-btn mod-btn--reject" name="action" type="submit" value="reject">Reject</button>
+                    </form>
+                    <form action="{% url 'recipes:moderate_clan' clan.slug %}" method="post">{% csrf_token %}
+                        <button class="mod-btn mod-btn--approve" name="action" type="submit" value="approve">Approve</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+            </div>
+        </div>
+
+        <div class="moderation-block">
+            <h2 class="moderation-block__title">
                 Recipes
                 {% if pending_recipes %}<span class="moderation-badge moderation-badge--pending">{{ pending_recipes|length }} pending</span>{% endif %}
                 {% if needs_changes_recipes %}<span class="moderation-badge moderation-badge--needs_changes">{{ needs_changes_recipes|length }} needs changes</span>{% endif %}
