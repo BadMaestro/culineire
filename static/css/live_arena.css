@@ -12,6 +12,13 @@
   font-family:var(--font-sans, Inter, system-ui, sans-serif);
 }
 .lap * { box-sizing:border-box; }
+/* a11y: visible focus on every interactive control (brief WCAG 2.2 AA) */
+.lap a:focus-visible, .lap button:focus-visible, .lap input:focus-visible,
+.lap [tabindex]:focus-visible {
+  outline:2px solid var(--gdl); outline-offset:2px; border-radius:6px;
+}
+.lap__sr { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
+  clip:rect(0 0 0 0); white-space:nowrap; border:0; }
 .lap__ribbon { display:flex; justify-content:space-between; align-items:center; gap:.5rem;
   font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; color:var(--gd);
   border:1px dashed var(--bd); border-radius:8px; padding:.35rem .7rem; margin-bottom:12px; }

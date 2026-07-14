@@ -131,7 +131,7 @@
       <div class="lap__overlay lap__overlay--hidden">Stream temporarily hidden by moderation</div>
     </div>
 
-    <div class="lap__timer" data-state="active">
+    <div class="lap__timer" data-state="active" role="timer" aria-live="off" aria-label="Time remaining in the battle">
       <small>TIME REMAINING</small>
       <strong>{{ fx.timer }}</strong>
       <em>remaining</em>
@@ -278,6 +278,15 @@
           video.setAttribute('data-hls-url', d.playback_url);
         }
       });
+      // Stage 13: map battle.state to per-panel degraded overlays.
+      var st = s.battle.state || 'active';
+      var overlayState = st === 'paused' ? 'paused'
+        : (st === 'technical_interruption' || st === 'moderation_interruption') ? 'hidden'
+        : (st === 'awaiting_streams' || st === 'scheduled') ? 'reconnecting'
+        : 'active';
+      document.querySelectorAll('.lap__panel').forEach(function (p) { p.setAttribute('data-state', overlayState); });
+      var timerPlate = document.querySelector('.lap__timer');
+      if (timerPlate) timerPlate.setAttribute('data-state', st === 'paused' ? 'paused' : (remaining <= 60 ? 'critical' : 'active'));
       if (s.battle && typeof s.battle.remaining_seconds === 'number') {
         remaining = s.battle.remaining_seconds;
         if (timerEl) timerEl.textContent = fmt(remaining);
