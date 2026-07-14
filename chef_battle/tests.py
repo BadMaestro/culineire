@@ -5537,3 +5537,87 @@ class ClanScoringTests(TestCase):
         self.assertTrue(win_standing.rewards_pending)
         run_standing = ClanSeasonStanding.objects.get(clan=runner, season=self.season)
         self.assertEqual(run_standing.rank_position, 2)
+
+
+class ArenaObserverTests(TestCase):
+    """Arena Observer prize: champion nominates 2 clan members, advisory dispute
+    votes, and won_season-derived active/expiry window."""
+
+    def setUp(self):
+        from datetime import timedelta
+        from .models import Season, Faction, Clan, ClanMembership
+        from .clan_service import award_clan_contribution
+        now = timezone.now()
+        self.s1 = Season.objects.create(name="ObsS1", starts_at=now - timedelta(days=60),
+                                        ends_at=now - timedelta(days=1), status=Season.Status.ENDED)
+        self.s2 = Season.objects.create(name="ObsS2", starts_at=now - timedelta(days=1),
+                                        ends_at=now + timedelta(days=30), status=Season.Status.ACTIVE)
+        self.cat = Faction.objects.create(kind=Faction.Kind.CUISINE, name="ItObs", slug="it-obs")
+        self.founder = self._chef("obs-f")
+        self.clan = Clan.objects.create(founder=self.founder, name="ObsClan", slug="obs-clan",
+                                        moderation_status=Clan.Moderation.APPROVED)
+        self.clan.categories.add(self.cat)
+        self.members = [self.founder, self._chef("obs-m1"), self._chef("obs-m2")]
+        for m in self.members:
+            ClanMembership.objects.create(clan=self.clan, chef=m, status=ClanMembership.Status.ACTIVE)
+            award_clan_contribution(m, 5, self.s1)
+        award_clan_contribution(self.founder, 100, self.s1)  # founder = top contributor = champion
+        self.champion = self.founder
+        self.outsider = self._chef("obs-out")
+
+    def _chef(self, n):
+        User = get_user_model()
+        u = User.objects.create_user(f"obs-{n}", password="pw")
+        return RecipeAuthor.objects.create(user=u, name=f"Obs {n}", slug=f"obs-chef-{n}")
+
+    def test_champion_nominates_two_members(self):
+        from .observer_service import nominate_arena_observers, is_active_arena_observer
+        obs = nominate_arena_observers(self.champion, self.members[1], self.members[2], self.s1)
+        self.assertEqual(len(obs), 2)
+        self.assertTrue(is_active_arena_observer(self.members[1]))
+        self.assertTrue(is_active_arena_observer(self.members[2]))
+        self.assertFalse(is_active_arena_observer(self.outsider))
+
+    def test_non_champion_cannot_nominate(self):
+        from .observer_service import nominate_arena_observers, can_nominate_observers
+        self.assertFalse(can_nominate_observers(self.members[1], self.s1))
+        with self.assertRaises(ValueError):
+            nominate_arena_observers(self.members[1], self.members[2], self.outsider, self.s1)
+
+    def test_candidate_must_be_clan_member(self):
+        from .observer_service import nominate_arena_observers
+        with self.assertRaises(ValueError):
+            nominate_arena_observers(self.champion, self.outsider, self.members[1], self.s1)
+
+    def test_two_seats_max(self):
+        from .observer_service import nominate_arena_observers, can_nominate_observers
+        nominate_arena_observers(self.champion, self.members[1], self.members[2], self.s1)
+        self.assertFalse(can_nominate_observers(self.champion, self.s1))  # seats full
+
+    def test_role_expires_after_following_season(self):
+        from datetime import timedelta
+        from .models import Season
+        from .observer_service import nominate_arena_observers, is_active_arena_observer
+        nominate_arena_observers(self.champion, self.members[1], self.members[2], self.s1)
+        self.assertTrue(is_active_arena_observer(self.members[1]))
+        # A further season begins: s2 ends, s3 becomes active.
+        self.s2.status = Season.Status.ENDED
+        self.s2.save(update_fields=["status"])
+        Season.objects.create(name="ObsS3", starts_at=timezone.now() + timedelta(days=31),
+                              ends_at=timezone.now() + timedelta(days=60), status=Season.Status.ACTIVE)
+        self.assertFalse(is_active_arena_observer(self.members[1]))  # expired
+
+    def test_cast_advisory_vote_records_and_updates(self):
+        from .models import Battle, BattleReport
+        from .observer_service import nominate_arena_observers, cast_observer_vote, get_observer_votes
+        obs = nominate_arena_observers(self.champion, self.members[1], self.members[2], self.s1)[0]
+        b = Battle.objects.create(challenger=self.members[1], opponent=self.members[2], theme="Theme",
+                                  submission_deadline=timezone.now(), end_time=timezone.now())
+        rep = BattleReport.objects.create(battle=b, author=self.outsider, summary="dispute",
+                                          recommendation=BattleReport.Recommendation.NEEDS_REVIEW)
+        v = cast_observer_vote(obs, rep, BattleReport.Recommendation.APPROVE_PAYOUT, note="fair")
+        self.assertEqual(v.recommendation, "approve_payout")
+        self.assertEqual(len(get_observer_votes(rep)), 1)
+        cast_observer_vote(obs, rep, BattleReport.Recommendation.WITHHOLD)  # update, not duplicate
+        self.assertEqual(len(get_observer_votes(rep)), 1)
+        self.assertEqual(get_observer_votes(rep)[0].recommendation, "withhold")

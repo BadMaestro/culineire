@@ -1838,3 +1838,68 @@ class ClanSeasonStanding(models.Model):
 
     def __str__(self):
         return f"{self.clan} @ {self.season}: {self.total_points}"
+
+
+# ── Season Champion Reward: Arena Observers (Phase 6) ─────────────────────────
+# Non-cash prize: the winning clan's champion seats up to 2 clan members as
+# Arena Observers for the FOLLOWING season. Advisory voice in disputes only.
+# Canonical rules: docs/chef_battle/clans_alliances_rules.md sec 3.
+OBSERVER_SEATS_PER_SEASON = 2
+
+
+class SeasonArenaObserver(models.Model):
+    """One Arena Observer seat, granted by the winning clan's champion.
+
+    The role's active window is derived from `won_season`: an observer is active
+    only while the CURRENT active season is the one immediately following
+    `won_season`, so the seat auto-expires once the season after it begins. No
+    stored expiry flag to drift — see observer_service.is_active_arena_observer.
+    """
+
+    chef = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="arena_observer_roles")
+    nominated_by = models.ForeignKey(
+        RecipeAuthor, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="arena_observer_nominations",
+    )
+    clan = models.ForeignKey(Clan, on_delete=models.CASCADE, related_name="arena_observers")
+    won_season = models.ForeignKey(Season, on_delete=models.CASCADE, related_name="arena_observers")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["chef", "won_season"], name="unique_observer_per_chef_per_won_season"
+            ),
+        ]
+
+    def __str__(self):
+        return f"Observer {self.chef} (won {self.won_season})"
+
+
+class ObserverDisputeVote(models.Model):
+    """An Arena Observer's ADVISORY vote on a battle dispute (BattleReport).
+
+    Recorded and shown to the operator, but non-binding — final authority stays
+    with the owner/operator (rules sec 3). One vote per observer per report,
+    updatable."""
+
+    observer = models.ForeignKey(
+        SeasonArenaObserver, on_delete=models.CASCADE, related_name="dispute_votes"
+    )
+    battle_report = models.ForeignKey(
+        BattleReport, on_delete=models.CASCADE, related_name="observer_votes"
+    )
+    recommendation = models.CharField(max_length=32, choices=BattleReport.Recommendation.choices)
+    note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["observer", "battle_report"], name="unique_observer_vote_per_report"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.observer.chef} -> {self.recommendation} on report {self.battle_report_id}"
