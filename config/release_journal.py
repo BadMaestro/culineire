@@ -1,5 +1,23 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.217",
+        "date": "2026-07-14",
+        "commit": "pending",
+        "title": "Live Arena build tracker in the Master Console",
+        "section": "Chef Battles / Live Arena",
+        "summary": (
+            "Owner-visible progress tracker for the Live Arena implementation "
+            "(migration 0074/0075). LiveArenaStage seeds 16 dependency-ordered "
+            "stages (foundation -> frame -> live modules -> cross-cutting), each "
+            "tracked on two axes: backend presence (Bolt) and frontend presence "
+            "(GreenBear). Page at /chef-battle/master/live-arena/ (owner-gated, "
+            "linked from the Master Console) shows the backend x frontend matrix "
+            "with progress bars; statuses and notes update live from the console "
+            "with no deploy, each agent writing only its own column. Part of the "
+            "paired Phase 0 audit of the Live Arena master brief. 4 tests."
+        ),
+    },
+    {
         "version": "2.5.215",
         "date": "2026-07-14",
         "commit": "pending",
