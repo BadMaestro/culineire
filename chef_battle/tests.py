@@ -3965,7 +3965,8 @@ class ProfileMergeTests(TestCase):
         from chef_battle.selectors import get_author_battle_summary
         data = get_author_battle_summary(self.chef)
         self.assertEqual(
-            set(data.keys()), {"battle_profile", "recent_battles", "battles", "gift_display"})
+            set(data.keys()),
+            {"battle_profile", "recent_battles", "battles", "gift_display", "champion_badge"})
         self.assertIsNotNone(data["battle_profile"])
         self.assertIsInstance(data["gift_display"], list)
 
@@ -5375,3 +5376,40 @@ class FactionRewardTests(TestCase):
         # Only Italian (rank 1) chefs got rewards; French (rank 2) did not.
         self.assertTrue(SeasonReward.objects.filter(faction=italian, season=season).exists())
         self.assertFalse(SeasonReward.objects.filter(faction=french, season=season).exists())
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class ChampionBadgeSelectorTests(TestCase):
+    """Phase 6: get_champion_badge drives the avatar coin overlay."""
+
+    def test_none_when_not_champion(self):
+        from .selectors import get_champion_badge
+        User = get_user_model()
+        u = User.objects.create_user("cb-nochamp", password="pw")
+        chef = RecipeAuthor.objects.create(user=u, name="No Champ", slug="cb-nochamp")
+        self.assertIsNone(get_champion_badge(chef))
+
+    def test_badge_when_placement_one(self):
+        from .selectors import get_champion_badge
+        from .models import Faction, Season, SeasonReward
+        User = get_user_model()
+        u = User.objects.create_user("cb-champ", password="pw")
+        chef = RecipeAuthor.objects.create(user=u, name="Champ", slug="cb-champ")
+        now = timezone.now()
+        season = Season.objects.create(
+            name="Season 1", starts_at=now - timezone.timedelta(days=1),
+            ends_at=now, status=Season.Status.ENDED,
+        )
+        italian = Faction.objects.get(kind="cuisine", slug="italian")
+        SeasonReward.objects.create(chef=chef, faction=italian, season=season, placement=1, points_snapshot=50)
+        badge = get_champion_badge(chef)
+        self.assertEqual(badge["season_name"], "Season 1")
+        self.assertEqual(badge["faction_name"], "Italian")
+        self.assertEqual(badge["faction_kind"], "Cuisine")
+
+    def test_summary_includes_champion_badge_key(self):
+        from .selectors import get_author_battle_summary
+        User = get_user_model()
+        u = User.objects.create_user("cb-sum", password="pw")
+        chef = RecipeAuthor.objects.create(user=u, name="Sum", slug="cb-sum")
+        self.assertIn("champion_badge", get_author_battle_summary(chef))

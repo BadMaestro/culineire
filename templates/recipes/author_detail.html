@@ -22,7 +22,15 @@
         <div class="hero-copy">
             <span class="pill">{% if is_god_author %}IDDQD — (Bear)seeker Mode On{% else %}{{ author.name }}{% endif %}</span>
             <div class="hero-author-avatar-wrap">
-                <img alt="{{ author.name }}" class="hero-author-avatar" src="{{ author.display_avatar_url }}">
+                <span class="hero-author-avatar-badge">
+                    <img alt="{{ author.name }}" class="hero-author-avatar" src="{{ author.display_avatar_url }}">
+                    {% if champion_badge %}
+                    <img class="champion-coin"
+                         src="{% static 'images/chef_battle/season1_champion_coin.png' %}"
+                         alt="{{ champion_badge.season_name }} Champion"
+                         title="{{ champion_badge.season_name }} Champion · {{ champion_badge.faction_name }} {{ champion_badge.faction_kind }}">
+                    {% endif %}
+                </span>
             </div>
             <h1 class="hero-title {% if is_god_author %}author-name--greenbear{% endif %}">{% if is_god_author %}{{ author.name }}{% elif private_dashboard %}Author Dashboard{% else %}Author's Profile{% endif %}</h1>
             {% if is_god_author %}<p class="hero-subtitle" style="margin-top:0;">{% executive_badge author %}</p>{% endif %}

@@ -142,6 +142,30 @@ def get_author_battle_summary(author):
         "recent_battles": battles[:6],
         "battles": battles,
         "gift_display": gift_display,
+        "champion_badge": get_champion_badge(author),
+    }
+
+
+def get_champion_badge(author):
+    """Season-champion medal for a chef's avatar, or None.
+
+    Returns the most recent season the chef was crowned champion of (a
+    SeasonReward with placement=1, written at season close). Drives the coin
+    badge overlaid on the champion's avatar.
+    """
+    from .models import SeasonReward
+    reward = (
+        SeasonReward.objects.filter(chef=author, placement=1)
+        .select_related("faction", "season")
+        .order_by("-season__ends_at", "-created_at")
+        .first()
+    )
+    if reward is None:
+        return None
+    return {
+        "season_name": reward.season.name,
+        "faction_name": reward.faction.name,
+        "faction_kind": reward.faction.get_kind_display(),
     }
 
 
