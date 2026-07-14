@@ -1,5 +1,27 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.215",
+        "date": "2026-07-14",
+        "commit": "pending",
+        "title": "Arena Observer prize backend (Season Champion Recognition)",
+        "section": "Chef Battles / Clans",
+        "summary": (
+            "Backend for the non-cash season-champion prize (migration 0073). New "
+            "models SeasonArenaObserver + ObserverDisputeVote and observer_service: "
+            "the winning clan's champion (top contributor) seats up to 2 clan "
+            "members as Arena Observers for the following season. can_nominate_"
+            "observers / nominate_arena_observers validate champion, clan "
+            "membership, distinct pair and open window; is_active_arena_observer / "
+            "get_active_arena_observers derive the active window from won_season "
+            "(active only while the current season is its immediate successor, so "
+            "the seat auto-expires with no stored flag to drift). cast_observer_vote "
+            "records an ADVISORY, non-binding vote on a BattleReport (one per "
+            "observer per report, updatable); get_observer_votes lists them for the "
+            "operator. Dark-launched, no UI yet; GreenBear builds the nomination / "
+            "badge / dispute-vote UI on this API. 6 new tests."
+        ),
+    },
+    {
         "version": "2.5.213",
         "date": "2026-07-14",
         "commit": "pending",
