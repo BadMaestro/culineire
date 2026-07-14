@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Observer Disputes | Chef Battles | CulinEire{% endblock %}
+{% block meta_description %}Arena Observer advisory panel for open Chef Battle disputes.{% endblock %}
+
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260618-hero-menu" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero battle-room-hero--has-panel">
+  <div class="container">
+    <div class="battle-room-hero__copy">
+      <p class="battle-kicker">Arena Observer</p>
+      <h1>Dispute Panel</h1>
+      <p class="battle-room-hero__sub">Advisory recommendations &middot; not binding</p>
+    </div>
+  </div>
+</section>
+
+<div class="container" style="max-width: 760px; padding-block: 2.5rem;">
+
+  {% if not is_observer %}
+    <p>You do not hold an active Arena Observer seat this season.</p>
+    <p style="color:var(--color-muted); font-size:0.88rem;">
+      Arena Observers are seated by the winning clan&#x2019;s champion for one season. See the
+      <a href="{% url 'chef_battle:rules' %}#s23">Season Champion Recognition rules</a>.
+    </p>
+  {% else %}
+    <p style="font-size:0.88rem; color:var(--color-muted); margin-block-end:1.5rem;">
+      Your recommendation on each dispute is <strong>advisory only</strong> — it is recorded and shown to the
+      operator, but does not decide the outcome. The operator/owner makes the final call. You must disclose any
+      conflict of interest (see the <a href="{% url 'chef_battle:rules' %}#s23">rules</a>).
+    </p>
+
+    {% if not reports %}
+      <div style="background:#faf7f1; border:1px solid #e5ded3; border-radius:10px; padding:1rem 1.25rem; color:var(--color-muted);">No open disputes right now.</div>
+    {% endif %}
+
+    {% for report in reports %}
+    <div style="border:1px solid #e5ded3; border-radius:12px; padding:1.1rem 1.25rem; margin-block-end:1.25rem;">
+      <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--color-muted);">
+        <span>Battle #{{ report.battle_id }} &middot; reported by {{ report.author.name }}</span>
+        <span>{{ report.created_at|date:"j M Y" }}</span>
+      </div>
+      <p style="margin-block:0.5rem 0.5rem;">{{ report.summary }}</p>
+      {% if report.flags %}
+        <div style="margin-block-end:0.5rem;">
+          {% for f in report.flags %}<span style="font-size:0.72rem; background:#f6e4c8; color:#6e4e2c; padding:0.1rem 0.5rem; border-radius:6px; margin-inline-end:0.25rem;">{{ f }}</span>{% endfor %}
+        </div>
+      {% endif %}
+
+      {% with my_vote=report.my_vote %}
+      <form method="post" action="{% url 'chef_battle:observer_vote' report.id %}" style="margin-block-start:0.75rem; display:grid; gap:0.5rem;">{% csrf_token %}
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+          <select name="recommendation" required style="padding:0.4rem 0.6rem; border:1px solid #d8cfbf; border-radius:6px;">
+            {% for value, label in recommendations %}
+              <option value="{{ value }}" {% if my_vote and my_vote.recommendation == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" style="padding:0.4rem 1rem; border:0; border-radius:6px; background:#2c6e49; color:#fff; cursor:pointer;">{% if my_vote %}Update{% else %}Submit{% endif %} recommendation</button>
+          {% if my_vote %}<span style="font-size:0.78rem; color:#2c6e49;">✓ recorded</span>{% endif %}
+        </div>
+        <textarea name="note" placeholder="Optional note for the operator" rows="2" style="padding:0.4rem 0.6rem; border:1px solid #d8cfbf; border-radius:6px;">{% if my_vote %}{{ my_vote.note }}{% endif %}</textarea>
+      </form>
+      {% endwith %}
+    </div>
+    {% endfor %}
+  {% endif %}
+
+</div>
+{% endblock %}

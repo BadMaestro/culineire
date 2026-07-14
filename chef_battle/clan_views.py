@@ -71,6 +71,13 @@ def clan_home(request):
     )
     author = _author(request)
     my_membership = get_active_membership(author) if author else None
+
+    from .observer_service import is_active_arena_observer
+    from .observer_views import _eligible_won_season
+
+    viewer_is_observer = bool(author) and is_active_arena_observer(author)
+    viewer_can_nominate = bool(author) and _eligible_won_season(author) is not None
+
     return render(
         request,
         "chef_battle/clan_home.html",
@@ -82,6 +89,8 @@ def clan_home(request):
             "clans": clans,
             "my_membership": my_membership,
             "member_cap": CLAN_MEMBER_CAP,
+            "viewer_is_observer": viewer_is_observer,
+            "viewer_can_nominate": viewer_can_nominate,
         },
     )
 

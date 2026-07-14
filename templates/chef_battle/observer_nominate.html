@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Nominate Arena Observers | Chef Battles | CulinEire{% endblock %}
+{% block meta_description %}As champion of the winning clan, nominate two Arena Observers for the coming season.{% endblock %}
+
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260618-hero-menu" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero battle-room-hero--has-panel">
+  <div class="container">
+    <div class="battle-room-hero__copy">
+      <p class="battle-kicker">Season Champion Recognition</p>
+      <h1>Nominate Arena Observers</h1>
+      {% if eligible %}<p class="battle-room-hero__sub">{{ clan.crest_icon }} {{ clan.name }} &middot; champions of {{ won_season.name }}</p>{% endif %}
+    </div>
+  </div>
+</section>
+
+<div class="container" style="max-width: 680px; padding-block: 2.5rem;">
+
+  {% if not eligible %}
+    <p>You are not currently the champion of a winning clan with an open nomination window.</p>
+    <p style="color:var(--color-muted); font-size:0.88rem;">
+      The champion (top individual contributor) of each season&#x2019;s winning clan may seat two Arena Observers
+      for the following season. See the <a href="{% url 'chef_battle:rules' %}#s23">Season Champion Recognition rules</a>.
+    </p>
+    <p><a href="{% url 'chef_battle:clan_home' %}">&larr; Clans</a></p>
+  {% else %}
+
+    <p style="font-size:0.88rem; color:var(--color-muted); margin-block-end:1.5rem;">
+      As champion of <strong>{{ clan.name }}</strong>, you may nominate <strong>{{ seats }}</strong> members of your clan
+      to serve as <strong>Arena Observers</strong> for the coming season. An Observer gives an advisory voice in Chef
+      Battle disputes — it is not moderation and is never binding. A nominee must accept and pass eligibility before
+      the seat is confirmed. See the <a href="{% url 'chef_battle:rules' %}#s23">rules</a>.
+    </p>
+
+    {% if existing %}
+      <div style="background:#eef7f0; border:1px solid #cfe6d6; border-radius:10px; padding:1rem 1.25rem;">
+        <strong>Observers already seated for this season:</strong>
+        <ul style="margin-block:0.5rem 0;">
+          {% for o in existing %}<li>{{ o.chef.name }}</li>{% endfor %}
+        </ul>
+        <p style="font-size:0.82rem; color:var(--color-muted); margin:0;">Nominations for this season are complete.</p>
+      </div>
+    {% else %}
+      {% if error %}<div style="background:#fdecea; border:1px solid #f5c6cb; color:#a12; border-radius:8px; padding:0.7rem 1rem; margin-block-end:1.25rem;">{{ error }}</div>{% endif %}
+      <form method="post">{% csrf_token %}
+        <label style="display:block; font-weight:600; margin-block-end:0.3rem;">First Observer</label>
+        <select name="candidate_a" required style="width:100%; padding:0.55rem 0.7rem; border:1px solid #d8cfbf; border-radius:8px; margin-block-end:1.25rem;">
+          <option value="">— choose a clan member —</option>
+          {% for c in candidates %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+        </select>
+
+        <label style="display:block; font-weight:600; margin-block-end:0.3rem;">Second Observer</label>
+        <select name="candidate_b" required style="width:100%; padding:0.55rem 0.7rem; border:1px solid #d8cfbf; border-radius:8px; margin-block-end:1.5rem;">
+          <option value="">— choose a different clan member —</option>
+          {% for c in candidates %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+        </select>
+
+        <button type="submit" style="padding:0.6rem 1.4rem; border:0; border-radius:8px; background:#2c6e49; color:#fff; font-weight:600; cursor:pointer;">Seat these Observers</button>
+      </form>
+    {% endif %}
+  {% endif %}
+
+</div>
+{% endblock %}

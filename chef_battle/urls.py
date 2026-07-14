@@ -3,6 +3,7 @@ from django.urls import path
 from . import views
 from . import faction_views
 from . import clan_views
+from . import observer_views
 
 app_name = "chef_battle"
 
@@ -34,6 +35,9 @@ urlpatterns = [
     path("clans/<slug:slug>/", clan_views.clan_detail, name="clan_detail"),
     path("clans/<slug:slug>/join/", clan_views.clan_join, name="clan_join"),
     path("clans/<slug:slug>/alliance/", clan_views.alliance_action, name="alliance_action"),
+    path("observers/nominate/", observer_views.observer_nominate, name="observer_nominate"),
+    path("observers/disputes/", observer_views.observer_disputes, name="observer_disputes"),
+    path("observers/vote/<int:report_id>/", observer_views.observer_vote, name="observer_vote"),
     path("roadmap/", views.battlefield_progress, name="battlefield_progress"),
     path("rankings/", views.rankings, name="rankings"),
     path("challenges/", views.challenge_list, name="challenge_list"),

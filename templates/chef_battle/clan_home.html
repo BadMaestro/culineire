@@ -31,6 +31,12 @@
     {% else %}
       <a class="btn btn--primary" href="{% url 'chef_battle:clan_create' %}">Found a clan</a>
     {% endif %}
+    {% if viewer_can_nominate %}
+      <a class="btn btn--secondary" href="{% url 'chef_battle:observer_nominate' %}">👁 Nominate Arena Observers</a>
+    {% endif %}
+    {% if viewer_is_observer %}
+      <a class="btn btn--secondary" href="{% url 'chef_battle:observer_disputes' %}">👁 Observer dispute panel</a>
+    {% endif %}
   </div>
 
   {% if winner and active_season %}
