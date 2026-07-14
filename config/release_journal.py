@@ -1,5 +1,20 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.212",
+        "date": "2026-07-14",
+        "commit": "pending",
+        "title": "Chef Battle 'almost here' announcement image + newsfeed post",
+        "section": "Newsfeed / Chef Battles",
+        "summary": (
+            "Added the Chef Battle 'coming soon' promotional banner "
+            "(static/images/chef_battle/chef_battle_coming_soon.png) and published "
+            "a battle_event newsfeed entry announcing that Chef Battle is ~90% "
+            "complete with launch days away. The entry carries the themed banner "
+            "as its image_url so the Telegram channel post shows the on-topic "
+            "artwork rather than a generic image."
+        ),
+    },
+    {
         "version": "2.5.209",
         "date": "2026-07-14",
         "commit": "pending",
