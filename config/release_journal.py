@@ -1,5 +1,33 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.208",
+        "date": "2026-07-14",
+        "commit": "pending",
+        "title": "Arena rules: Clans, Alliances & Season Champion Reward sections",
+        "section": "Chef Battles / Rules",
+        "summary": (
+            "Added three new sections to the public arena rules page "
+            "(/chef-battle/rules/), recording the owner's Clans design so the "
+            "mechanic is locked into the official rules: "
+            "(21) Clans: a named team with a founder and members; the founder "
+            "picks up to 3 categories from the existing Cuisines and Specialties; "
+            "a Chef's own Specialty stays personal; the winning clan of a season "
+            "is the one whose members earned the highest combined seasonal "
+            "contribution. "
+            "(22) Alliances: clans may ally and call each other into battles, "
+            "turning a recipe duel into a cuisine-versus-cuisine contest; "
+            "introduced in stages, expanding over future seasons. "
+            "(23) Season Champion Reward: the winning clan's champion may "
+            "nominate 2 clan members as Arena Observers for the following season; "
+            "no nomination means empty seats with no fallback; the role is an "
+            "advisory voice in Chef Battle disputes only (not site moderation), "
+            "recorded for the operator but non-binding, expiring when that season "
+            "ends. All three are non-cash, skill-based and not gambling. "
+            "TOC, mobile jump and section count updated (23 sections). "
+            "Canonical rules also recorded in docs/chef_battle/clans_alliances_rules.md."
+        ),
+    },
+    {
         "version": "2.5.153",
         "date": "2026-07-08",
         "commit": "pending",
