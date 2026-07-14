@@ -91,12 +91,17 @@ The first two fire **inside Bolt's transaction** (a raise rolls back the season 
 
 ## 6. Rewards & legal posture
 
-Two legs, split by legal risk:
+**Owner decision (final): faction/season rewards are NON-CASH recognition only — no CBR, no `RewardRecord`, no payout path at all.** This removes the entire money/legal surface for factions. Winning and top factions and their chefs receive:
 
-- **Individual leg (may be real-value):** a chef's own fraud-gated contribution → discretionary **CBR `RewardRecord`** via `issue_reward()`, scaled by a **placement multiplier that is never zero** (1st ×1.5 … mid ×1.0 … last ×0.9). Flows through the existing Next-Battle-Unlock → PayoutRequest → DAC7 path; counts toward the same per-chef DAC7 aggregation. A top contributor in a last-place faction still earns solid CBR → the bottom of the ladder keeps playing.
-- **Collective leg (non-cash ONLY):** faction placement grants **cosmetic/prestige** only — a seasonal crest, a `PrestigeTitle`, a "championship star", `ChefArtifact`/`ChefCosmetic` badges. **No cash-convertible reward is ever tied to how the whole faction placed** — that would make a pooled "prize for the winning faction" (lottery: prize + chance + consideration) and breach anti-gambling rules §17.
+- **Legendary combat artifacts** — grant a `Rarity.LEGENDARY` `Artifact` as a `ChefArtifact` (reuse the existing artifact-grant path, cf. `drop_battle_artifacts`).
+- **A place in the Hall of Fame** — extend the existing `hall_of_fame` view / selectors to induct season faction champions.
+- **Permanent season medals** — awarded as a `ChefCosmetic` (or a `michelin_stars`-style permanent marker) that stays on the account forever.
 
-Rules surface: **new §20 "Culinary Factions"** that reuses/cross-references §15 (discretionary), §17 (anti-gambling), §18 (DAC7); §15–18 are **not edited** (locked legal work). Forbidden-language list extended with faction terms (`prize pool`, `jackpot`, `bet/stake on`, `back your cuisine`, `buy/boost points`, `guaranteed reward`).
+**No cash-convertible reward is tied to faction results.** The only path to a monetary reward is an **optional external sponsor's own initiative**, handled separately, out of scope for the core arena — treated as an occasional incentive, not a feature.
+
+Because there is no payout leg, the earlier CBR/placement-multiplier/DAC7 machinery for factions is dropped. `SeasonReward` becomes a thin audit record of the non-cash grants (artifact / hall-of-fame entry / medal cosmetic), with no monetary fields — consistent with its model definition. Anti-gambling §17 holds trivially: nothing of cash value is ever awarded for a faction outcome.
+
+Rules surface: **§20 "Culinary Factions"** states rewards are non-cash recognition (legendary artifacts, Hall of Fame, permanent medals) and that any monetary reward would only ever come from an optional external sponsor; §15–18 are **not edited** (locked legal work).
 
 ## 7. Keeping it fun & fair (game-design)
 
