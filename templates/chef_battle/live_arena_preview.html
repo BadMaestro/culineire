@@ -8,6 +8,7 @@
 {% endblock %}
 
 {% block content %}
+{% include "chef_battle/_live_arena_svg.html" %}
 {% with complete=request.GET.state %}
 <div class="lap {% if complete == 'complete' %}lap--winner{% endif %}"
      data-battle-id="{{ fx.battle_id|default:'' }}"
@@ -30,7 +31,7 @@
     <div class="lap__winner-hero">
       {% if fx.left.avatar_url %}<img class="lap__winner-portrait" src="{{ fx.left.avatar_url }}" alt="{{ fx.left.name }}">{% else %}<div class="lap__winner-portrait"></div>{% endif %}
       <div>
-        <div class="lap__shield">&#128737;&#65039;&#9752;&#65039;</div>
+        <svg class="lap__shield" viewBox="0 0 120 140" aria-label="Champion"><use href="#la-shield"></use></svg>
         <div class="lap__congrats">Congratulations,</div>
         <div class="lap__champ-name">{{ fx.left.name }}</div>
         <div class="lap__champ-meta">&#127859; <b>{{ fx.left.rank }}</b><br>&#127807; <b>{{ fx.left.clan }}</b><br>&#127482;&#127480; <b>{{ fx.left.country }}</b></div>
@@ -60,7 +61,7 @@
   {# ── Matchup header ── #}
   <div class="lap__match">
     <div class="lap__chef lap__chef--l">
-      {% if fx.left.avatar_url %}<img class="lap__portrait" src="{{ fx.left.avatar_url }}" alt="{{ fx.left.name }}">{% else %}<div class="lap__portrait lap__portrait--ph">portrait</div>{% endif %}
+      {% if fx.left.avatar_url %}<img class="lap__portrait" src="{{ fx.left.avatar_url }}" alt="{{ fx.left.name }}">{% else %}<svg class="lap__portrait" viewBox="0 0 120 160" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#la-chef"></use></svg>{% endif %}
       <div class="lap__meta lap__meta--l">
         <div class="lap__num lap__num--l">{{ fx.left.num }}</div>
         <div class="lap__name">{{ fx.left.name }}</div>
@@ -71,18 +72,18 @@
     </div>
 
     <div class="lap__title">
-      <div class="lap__stars">&#9733; &#9733; &#9733;</div>
+      <div class="lap__stars"><svg class="lap__ico"><use href="#la-star"></use></svg><svg class="lap__ico"><use href="#la-star"></use></svg><svg class="lap__ico"><use href="#la-star"></use></svg></div>
       <div class="lap__h1">CHEF&#8217;S BATTLE</div>
       <div class="lap__vs">
         <span class="lap__beam lap__beam--l"></span>
-        <span class="lap__vsmark">VS</span>
+        <svg class="lap__vsmark" viewBox="0 0 120 72" aria-label="versus"><use href="#la-vs"></use></svg>
         <span class="lap__beam lap__beam--r"></span>
       </div>
       <div><span class="lap__theme">Battle Theme: <b>{{ fx.theme }}</b></span></div>
     </div>
 
     <div class="lap__chef lap__chef--r">
-      {% if fx.right.avatar_url %}<img class="lap__portrait" src="{{ fx.right.avatar_url }}" alt="{{ fx.right.name }}">{% else %}<div class="lap__portrait lap__portrait--ph">portrait</div>{% endif %}
+      {% if fx.right.avatar_url %}<img class="lap__portrait" src="{{ fx.right.avatar_url }}" alt="{{ fx.right.name }}">{% else %}<svg class="lap__portrait" viewBox="0 0 120 160" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#la-chef"></use></svg>{% endif %}
       <div class="lap__meta lap__meta--r">
         <div class="lap__num lap__num--r">{{ fx.right.num }}</div>
         <div class="lap__name">{{ fx.right.name }}</div>
@@ -97,14 +98,14 @@
   <div class="lap__stage">
     <div class="lap__panel lap__panel--l" data-state="active">
       <video class="lap__video" data-hls-url="{{ fx.left.playback_url|default:'' }}" muted playsinline></video>
-      <div class="lap__fallback"><span>&#127909;</span> Waiting for stream<br><small>MediaMTX HLS wires in here</small></div>
+      <div class="lap__fallback"><svg class="lap__ico lap__fallback-ico"><use href="#la-flame"></use></svg> Waiting to go live<br><small>Stream connects here</small></div>
       <div class="lap__hearts"></div>
       <span class="lap__live">LIVE</span>
-      <span class="lap__vc">&#128065; {{ fx.left.viewers }}</span>
+      <span class="lap__vc"><svg class="lap__ico"><use href="#la-eye"></use></svg> <b class="lap__vc-n">{{ fx.left.viewers }}</b></span>
       <div class="lap__rail">
-        <button class="lap__rail-item lap__react" data-side="left" type="button" aria-label="React with a heart"><span>&#128155;</span><b class="lap__react-n">{{ fx.left.likes }}</b></button>
-        <div class="lap__rail-item"><span>&#128172;</span><b class="lap__comments-n">{{ fx.left.comments }}</b></div>
-        <div class="lap__rail-item"><span>&#128081;</span>{{ fx.left.role }}</div>
+        <button class="lap__rail-item lap__react" data-side="left" type="button" aria-label="React with a heart"><svg class="lap__ico"><use href="#la-heart"></use></svg><b class="lap__react-n">{{ fx.left.likes }}</b></button>
+        <div class="lap__rail-item"><svg class="lap__ico"><use href="#la-comment"></use></svg><b class="lap__comments-n">{{ fx.left.comments }}</b></div>
+        <div class="lap__rail-item"><svg class="lap__ico" style="color:var(--gd)"><use href="#la-crown"></use></svg>{{ fx.left.role }}</div>
       </div>
       <div class="lap__stack"><div class="lap__dots"><div class="lap__dot"></div><div class="lap__dot"></div><div class="lap__dot"></div><div class="lap__dot"></div></div><span class="lap__more">+{{ fx.left.supporters }}</span></div>
       <button class="lap__cta lap__cta--l" disabled>Support Chef</button>
@@ -115,14 +116,14 @@
 
     <div class="lap__panel lap__panel--r" data-state="active">
       <video class="lap__video" data-hls-url="{{ fx.right.playback_url|default:'' }}" muted playsinline></video>
-      <div class="lap__fallback"><span>&#127909;</span> Waiting for stream<br><small>MediaMTX HLS wires in here</small></div>
+      <div class="lap__fallback"><svg class="lap__ico lap__fallback-ico"><use href="#la-flame"></use></svg> Waiting to go live<br><small>Stream connects here</small></div>
       <div class="lap__hearts"></div>
       <span class="lap__live">LIVE</span>
-      <span class="lap__vc">&#128065; {{ fx.right.viewers }}</span>
+      <span class="lap__vc"><svg class="lap__ico"><use href="#la-eye"></use></svg> <b class="lap__vc-n">{{ fx.right.viewers }}</b></span>
       <div class="lap__rail">
-        <button class="lap__rail-item lap__react" data-side="right" type="button" aria-label="React with a heart"><span>&#128155;</span><b class="lap__react-n">{{ fx.right.likes }}</b></button>
-        <div class="lap__rail-item"><span>&#128172;</span><b class="lap__comments-n">{{ fx.right.comments }}</b></div>
-        <div class="lap__rail-item"><span>&#128081;</span>{{ fx.right.role }}</div>
+        <button class="lap__rail-item lap__react" data-side="right" type="button" aria-label="React with a heart"><svg class="lap__ico"><use href="#la-heart"></use></svg><b class="lap__react-n">{{ fx.right.likes }}</b></button>
+        <div class="lap__rail-item"><svg class="lap__ico"><use href="#la-comment"></use></svg><b class="lap__comments-n">{{ fx.right.comments }}</b></div>
+        <div class="lap__rail-item"><svg class="lap__ico" style="color:var(--gd)"><use href="#la-crown"></use></svg>{{ fx.right.role }}</div>
       </div>
       <div class="lap__stack"><div class="lap__dots"><div class="lap__dot"></div><div class="lap__dot"></div><div class="lap__dot"></div><div class="lap__dot"></div></div><span class="lap__more">+{{ fx.right.supporters }}</span></div>
       <button class="lap__cta lap__cta--r" disabled>Support Chef</button>
@@ -273,7 +274,7 @@
         var d = s[side]; if (!d) return;
         var panel = document.querySelector('.lap__panel--' + (side === 'left' ? 'l' : 'r'));
         if (!panel) return;
-        var vc = panel.querySelector('.lap__vc'); if (vc && d.viewers != null) vc.innerHTML = '\u{1F441} ' + d.viewers;
+        var vc = panel.querySelector('.lap__vc-n'); if (vc && d.viewers != null) vc.textContent = d.viewers;
         var rn = panel.querySelector('.lap__react-n'); if (rn && d.likes != null) rn.textContent = d.likes;
         var cn = panel.querySelector('.lap__comments-n'); if (cn && d.comments != null) cn.textContent = d.comments;
         var video = panel.querySelector('.lap__video');
