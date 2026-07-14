@@ -77,4 +77,6 @@ urlpatterns = [
     path("master/", views.master_console, name="master_console"),
     path("master/state/", views.master_state, name="master_state"),
     path("master/action/", views.master_action, name="master_action"),
+    path("master/live-arena/", views.live_arena_progress, name="live_arena_progress"),
+    path("master/live-arena/update/", views.live_arena_stage_update, name="live_arena_stage_update"),
 ]

@@ -2824,3 +2824,73 @@ def master_action(request):
                    "status_display": battle.get_status_display()},
     })
 
+
+
+# ── Live Arena build tracker (owner-visible progress matrix) ────────────────
+_STAGE_SCORE = {"absent": 0.0, "partial": 0.5, "present": 1.0}
+
+
+@arena_console_guard
+def live_arena_progress(request):
+    """Owner-visible Live Arena build tracker: every stage on two axes
+    (backend / frontend presence). Read here, updated live from the same page."""
+    from .models import LiveArenaStage
+
+    stages = list(LiveArenaStage.objects.all())
+    labels = dict(LiveArenaStage.Group.choices)
+
+    def pct(field):
+        if not stages:
+            return 0
+        return round(100 * sum(_STAGE_SCORE[getattr(s, field)] for s in stages) / len(stages))
+
+    groups = []
+    for g, _label in LiveArenaStage.Group.choices:
+        g_stages = [s for s in stages if s.phase_group == g]
+        if g_stages:
+            groups.append({"key": g, "label": labels.get(g, g), "stages": g_stages})
+
+    return render(request, "chef_battle/live_arena_progress.html", {
+        "groups": groups,
+        "backend_pct": pct("backend_status"),
+        "frontend_pct": pct("frontend_status"),
+        "status_choices": LiveArenaStage.Status.choices,
+        "total": len(stages),
+    })
+
+
+@arena_console_guard
+@require_POST
+def live_arena_stage_update(request):
+    """Live status/notes update for one stage column (backend|frontend), driven
+    by console buttons — no deploy. Each agent writes only its own column."""
+    from .models import LiveArenaStage
+
+    key = request.POST.get("key", "").strip()
+    column = request.POST.get("column", "").strip()
+    status = request.POST.get("status", "").strip()
+    notes = request.POST.get("notes")
+
+    if column not in ("backend", "frontend"):
+        return JsonResponse({"ok": False, "error": "bad column"}, status=400)
+    stage = LiveArenaStage.objects.filter(key=key).first()
+    if stage is None:
+        return JsonResponse({"ok": False, "error": "unknown stage"}, status=404)
+
+    fields = []
+    if status:
+        if status not in {c for c, _ in LiveArenaStage.Status.choices}:
+            return JsonResponse({"ok": False, "error": "bad status"}, status=400)
+        setattr(stage, f"{column}_status", status)
+        fields.append(f"{column}_status")
+    if notes is not None:
+        setattr(stage, f"{column}_notes", notes.strip())
+        fields.append(f"{column}_notes")
+    if fields:
+        stage.save(update_fields=fields + ["updated_at"])
+
+    return JsonResponse({
+        "ok": True, "key": key, "column": column,
+        "status": getattr(stage, f"{column}_status"),
+        "notes": getattr(stage, f"{column}_notes"),
+    })

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Live Arena Build Tracker | CulinEire{% endblock %}
+{% block meta_description %}Internal Live Arena implementation progress tracker.{% endblock %}
+
+{% block content %}
+<section class="page-section" style="max-width:1120px;margin-inline:auto;padding-block:2rem;color:var(--ink);">
+  <div style="margin-bottom:1.4rem;">
+    <p style="margin:0 0 .3rem;"><a href="{% url 'chef_battle:master_console' %}">&larr; Master Console</a></p>
+    <h1 style="margin:0;">Live Arena — Build Tracker</h1>
+    <p style="color:var(--muted);margin:.3rem 0 0;">{{ total }} stages, dependency-ordered. Each stage tracked on two axes: backend presence (Bolt) and frontend presence (GreenBear). Update live below.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.6rem;">
+    <div>
+      <div style="display:flex;justify-content:space-between;font-size:.85rem;"><strong>Backend</strong><span>{{ backend_pct }}%</span></div>
+      <div style="height:12px;background:var(--surface-muted,#eee);border-radius:99px;overflow:hidden;"><div style="height:100%;width:{{ backend_pct }}%;background:#67B74A;"></div></div>
+    </div>
+    <div>
+      <div style="display:flex;justify-content:space-between;font-size:.85rem;"><strong>Frontend</strong><span>{{ frontend_pct }}%</span></div>
+      <div style="height:12px;background:var(--surface-muted,#eee);border-radius:99px;overflow:hidden;"><div style="height:100%;width:{{ frontend_pct }}%;background:#D6A64B;"></div></div>
+    </div>
+  </div>
+
+  {% csrf_token %}
+  {% for group in groups %}
+  <h2 style="text-transform:capitalize;margin:1.4rem 0 .5rem;font-size:1.05rem;">{{ group.label }}</h2>
+  <div style="overflow-x:auto;">
+  <table class="la-table" style="width:100%;border-collapse:collapse;font-size:.88rem;">
+    <thead>
+      <tr style="text-align:left;border-bottom:1px solid var(--line,#ddd);">
+        <th style="padding:.5rem;width:2.5rem;">#</th>
+        <th style="padding:.5rem;">Stage</th>
+        <th style="padding:.5rem;width:9rem;">Backend</th>
+        <th style="padding:.5rem;">Backend notes</th>
+        <th style="padding:.5rem;width:9rem;">Frontend</th>
+        <th style="padding:.5rem;">Frontend notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in group.stages %}
+      <tr data-key="{{ s.key }}" style="border-bottom:1px solid var(--line,#eee);vertical-align:top;">
+        <td style="padding:.5rem;color:var(--muted);">{{ s.order }}</td>
+        <td style="padding:.5rem;"><strong>{{ s.title }}</strong><br><code style="font-size:.72rem;color:var(--muted);">{{ s.key }}</code></td>
+        <td style="padding:.5rem;">
+          <select class="la-status" data-col="backend">
+            {% for val, label in status_choices %}<option value="{{ val }}" {% if s.backend_status == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+          </select>
+        </td>
+        <td style="padding:.5rem;"><textarea class="la-notes" data-col="backend" rows="2" style="width:100%;font-size:.8rem;">{{ s.backend_notes }}</textarea></td>
+        <td style="padding:.5rem;">
+          <select class="la-status" data-col="frontend">
+            {% for val, label in status_choices %}<option value="{{ val }}" {% if s.frontend_status == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+          </select>
+        </td>
+        <td style="padding:.5rem;"><textarea class="la-notes" data-col="frontend" rows="2" style="width:100%;font-size:.8rem;">{{ s.frontend_notes }}</textarea></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% endfor %}
+
+  <p id="la-saved" style="color:#67B74A;font-size:.85rem;height:1.2rem;margin-top:.8rem;"></p>
+</section>
+
+<script>
+(function () {
+  var url = "{% url 'chef_battle:live_arena_stage_update' %}";
+  var token = document.querySelector('input[name=csrfmiddlewaretoken]').value;
+  var saved = document.getElementById('la-saved');
+
+  function post(row, col, extra) {
+    var body = new URLSearchParams();
+    body.set('key', row.getAttribute('data-key'));
+    body.set('column', col);
+    Object.keys(extra).forEach(function (k) { body.set(k, extra[k]); });
+    fetch(url, {
+      method: 'POST',
+      headers: {'X-CSRFToken': token, 'Content-Type': 'application/x-www-form-urlencoded'},
+      body: body.toString(),
+    }).then(function (r) { return r.json(); }).then(function (d) {
+      if (d.ok) { saved.textContent = 'Saved ' + d.key + ' (' + d.column + ') at ' + new Date().toLocaleTimeString(); }
+      else { saved.textContent = 'Error: ' + (d.error || 'failed'); saved.style.color = '#D84B4B'; }
+    }).catch(function () { saved.textContent = 'Network error'; saved.style.color = '#D84B4B'; });
+  }
+
+  document.querySelectorAll('.la-status').forEach(function (sel) {
+    sel.addEventListener('change', function () {
+      post(sel.closest('tr'), sel.getAttribute('data-col'), {status: sel.value});
+    });
+  });
+  document.querySelectorAll('.la-notes').forEach(function (ta) {
+    ta.addEventListener('blur', function () {
+      post(ta.closest('tr'), ta.getAttribute('data-col'), {notes: ta.value});
+    });
+  });
+})();
+</script>
+{% endblock %}
