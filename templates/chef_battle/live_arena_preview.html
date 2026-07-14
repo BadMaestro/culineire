@@ -9,7 +9,11 @@
 
 {% block content %}
 {% with complete=request.GET.state %}
-<div class="lap {% if complete == 'complete' %}lap--winner{% endif %}">
+<div class="lap {% if complete == 'complete' %}lap--winner{% endif %}"
+     data-battle-id="{{ fx.battle_id|default:'' }}"
+     data-sequence="{{ fx.sequence|default:0 }}"
+     data-remaining="{{ fx.remaining_seconds|default:0 }}"
+     data-csrf="{{ csrf_token }}">
   {% if complete == 'complete' %}<div class="lap__confetti" id="lap-confetti"></div>{% endif %}
 
   <div class="lap__ribbon">
@@ -98,8 +102,8 @@
       <span class="lap__live">LIVE</span>
       <span class="lap__vc">&#128065; {{ fx.left.viewers }}</span>
       <div class="lap__rail">
-        <button class="lap__rail-item lap__react" data-i="0" type="button" aria-label="React with a heart"><span>&#128155;</span><b class="lap__react-n">{{ fx.left.likes }}</b></button>
-        <div class="lap__rail-item"><span>&#128172;</span>{{ fx.left.comments }}</div>
+        <button class="lap__rail-item lap__react" data-side="left" type="button" aria-label="React with a heart"><span>&#128155;</span><b class="lap__react-n">{{ fx.left.likes }}</b></button>
+        <div class="lap__rail-item"><span>&#128172;</span><b class="lap__comments-n">{{ fx.left.comments }}</b></div>
         <div class="lap__rail-item"><span>&#128081;</span>{{ fx.left.role }}</div>
       </div>
       <div class="lap__stack"><div class="lap__dots"><div class="lap__dot"></div><div class="lap__dot"></div><div class="lap__dot"></div><div class="lap__dot"></div></div><span class="lap__more">+{{ fx.left.supporters }}</span></div>
@@ -116,8 +120,8 @@
       <span class="lap__live">LIVE</span>
       <span class="lap__vc">&#128065; {{ fx.right.viewers }}</span>
       <div class="lap__rail">
-        <button class="lap__rail-item lap__react" data-i="1" type="button" aria-label="React with a heart"><span>&#128155;</span><b class="lap__react-n">{{ fx.right.likes }}</b></button>
-        <div class="lap__rail-item"><span>&#128172;</span>{{ fx.right.comments }}</div>
+        <button class="lap__rail-item lap__react" data-side="right" type="button" aria-label="React with a heart"><span>&#128155;</span><b class="lap__react-n">{{ fx.right.likes }}</b></button>
+        <div class="lap__rail-item"><span>&#128172;</span><b class="lap__comments-n">{{ fx.right.comments }}</b></div>
         <div class="lap__rail-item"><span>&#128081;</span>{{ fx.right.role }}</div>
       </div>
       <div class="lap__stack"><div class="lap__dots"><div class="lap__dot"></div><div class="lap__dot"></div><div class="lap__dot"></div><div class="lap__dot"></div></div><span class="lap__more">+{{ fx.right.supporters }}</span></div>
@@ -184,17 +188,34 @@
     }
   });
 
-  // Floating heart reaction (client preview; wires to BattleReaction later).
+  var root = document.querySelector('.lap');
+  var battleId = root && root.getAttribute('data-battle-id');
+  var csrf = root && root.getAttribute('data-csrf');
+
+  // Heart reaction: always float a heart (optimistic); POST for real when a
+  // battle is live and reconcile the count from the server (429 = rate limited).
   document.querySelectorAll('.lap__react').forEach(function (btn) {
     btn.addEventListener('click', function () {
       var panel = btn.closest('.lap__panel');
       var layer = panel && panel.querySelector('.lap__hearts');
-      if (!layer) return;
-      var h = document.createElement('span');
-      h.className = 'lap__heart'; h.textContent = '❤️';
-      h.style.left = (15 + Math.floor(Math.random() * 55)) + '%';
-      layer.appendChild(h);
-      setTimeout(function () { h.remove(); }, 2400);
+      if (layer) {
+        var h = document.createElement('span');
+        h.className = 'lap__heart'; h.textContent = '❤️';
+        h.style.left = (15 + Math.floor(Math.random() * 55)) + '%';
+        layer.appendChild(h);
+        setTimeout(function () { h.remove(); }, 2400);
+      }
+      if (!battleId) return;
+      fetch('/chef-battle/arena/react/', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'battle_id=' + encodeURIComponent(battleId) + '&side=' + btn.getAttribute('data-side')
+      }).then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (!d || !d.ok) return;
+          var n = btn.querySelector('.lap__react-n');
+          if (n) n.textContent = d.count;
+        }).catch(function () {});
     });
   });
 
@@ -222,6 +243,56 @@
       s.style.animationDelay = (Math.random() * 2) + 's';
       cf.appendChild(s);
     }
+  }
+
+  // ── Timer interpolation (server remaining_seconds, tick between polls) ──
+  var timerEl = document.querySelector('.lap__timer strong');
+  var remaining = parseInt((root && root.getAttribute('data-remaining')) || '0', 10);
+  function fmt(s) {
+    s = Math.max(0, s | 0);
+    var h = (s / 3600) | 0, m = ((s % 3600) / 60) | 0, x = s % 60;
+    return [h, m, x].map(function (n) { return (n < 10 ? '0' : '') + n; }).join(':');
+  }
+  if (timerEl && remaining > 0) {
+    setInterval(function () {
+      if (remaining > 0) { remaining -= 1; timerEl.textContent = fmt(remaining); }
+    }, 1000);
+  }
+
+  // ── Snapshot polling (only when a real battle is live) ──
+  if (battleId) {
+    var seq = parseInt((root.getAttribute('data-sequence')) || '0', 10);
+    var apply = function (s) {
+      if (!s || !s.battle) return;
+      if (typeof s.sequence === 'number' && s.sequence < seq) return; // reject stale
+      if (typeof s.sequence === 'number') seq = s.sequence;
+      ['left', 'right'].forEach(function (side) {
+        var d = s[side]; if (!d) return;
+        var panel = document.querySelector('.lap__panel--' + (side === 'left' ? 'l' : 'r'));
+        if (!panel) return;
+        var vc = panel.querySelector('.lap__vc'); if (vc && d.viewers != null) vc.innerHTML = '\u{1F441} ' + d.viewers;
+        var rn = panel.querySelector('.lap__react-n'); if (rn && d.likes != null) rn.textContent = d.likes;
+        var cn = panel.querySelector('.lap__comments-n'); if (cn && d.comments != null) cn.textContent = d.comments;
+        var video = panel.querySelector('.lap__video');
+        if (video && d.playback_url && video.getAttribute('data-hls-url') !== d.playback_url) {
+          video.setAttribute('data-hls-url', d.playback_url);
+        }
+      });
+      if (s.battle && typeof s.battle.remaining_seconds === 'number') {
+        remaining = s.battle.remaining_seconds;
+        if (timerEl) timerEl.textContent = fmt(remaining);
+      }
+    };
+    var poll = function () {
+      fetch('/chef-battle/master/live-arena/snapshot/', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'sequence=' + seq
+      }).then(function (r) { return r.ok ? r.json() : null; })
+        .then(apply).catch(function () {})
+        .then(function () { setTimeout(poll, 2500); });
+    };
+    poll();
   }
 })();
 </script>
