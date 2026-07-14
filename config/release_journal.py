@@ -1,5 +1,24 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.223",
+        "date": "2026-07-14",
+        "commit": "pending",
+        "title": "Live Arena Phase 1: snapshot envelope + polling endpoint",
+        "section": "Chef Battles / Live Arena",
+        "summary": (
+            "Server-authoritative arena snapshot (arena_snapshot.py) with a "
+            "transport envelope (server_timestamp, sequence, full-state-on-"
+            "reconnect) and the exact frontend field shape agreed with GreenBear: "
+            "per-side chef {num, name, rank, clan, country=Ireland, avatar_url, "
+            "playback_url, viewers, likes=reaction_count, comments, supporters, "
+            "role}, theme, remaining_seconds, chat. Owner-gated polling endpoint "
+            "chef_battle:live_arena_snapshot; the preview page now renders real "
+            "battle data when a battle exists and falls back to dev fixtures "
+            "otherwise. Unblocks the frontend to bind real reactions + live "
+            "polling. 3 tests."
+        ),
+    },
+    {
         "version": "2.5.222",
         "date": "2026-07-14",
         "commit": "pending",
