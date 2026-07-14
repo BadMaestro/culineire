@@ -15,9 +15,9 @@ def chef_faction_line(author):
     Self-contained: queries factions directly so the recipes app / shared
     battle-context builder need not know about factions.
     """
-    from .faction_selectors import get_chef_factions
-    from .models import Faction
-    from .season_service import get_active_season
+    from chef_battle.faction_selectors import get_chef_factions
+    from chef_battle.models import Faction
+    from chef_battle.season_service import get_active_season
 
     season = get_active_season()
     factions = get_chef_factions(author, season) if (author and season) else {}
