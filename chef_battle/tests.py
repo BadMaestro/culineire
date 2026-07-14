@@ -5310,3 +5310,68 @@ class FactionBattleGateTests(TestCase):
         battle4 = self._battle(self.chef, self.opp_diff)
         n = award_battle_faction_contribution(self.chef, self.opp_diff, 5, battle=battle4)
         self.assertEqual(n, 0)  # cap reached -> both axes blocked
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class FactionRewardTests(TestCase):
+    """Phase 6: non-cash season rewards — Legendary artifact + Hall-of-Fame record."""
+
+    def test_champion_gets_legendary_and_seasonreward_record(self):
+        from .models import (
+            Artifact, ChefArtifact, ChefBattleProfile, Faction, FactionContribution,
+            FactionSeasonStanding, SeasonReward, FACTION_RANK_MEMBER_FLOOR,
+        )
+        from .season_service import create_season, close_season
+        Artifact.objects.create(name="Ancient Champion Relic", rarity=Artifact.Rarity.LEGENDARY)
+        User = get_user_model()
+        now = timezone.now()
+        season = create_season(
+            name="Rwd", starts_at=now - timezone.timedelta(days=1),
+            ends_at=now + timezone.timedelta(days=1), activate=True,
+        )
+        italian = Faction.objects.get(kind="cuisine", slug="italian")
+        chefs = []
+        for i in range(FACTION_RANK_MEMBER_FLOOR):
+            u = User.objects.create_user(f"rw-{i}", password="pw")
+            chef = RecipeAuthor.objects.create(user=u, name=f"RW {i}", slug=f"rw-{i}")
+            ChefBattleProfile.objects.create(author=chef, enrolled_at=now)
+            FactionContribution.objects.create(chef=chef, faction=italian, faction_kind="cuisine", season=season, points=10)
+            chefs.append(chef)
+
+        with self.captureOnCommitCallbacks(execute=True):
+            close_season(season)
+
+        st = FactionSeasonStanding.objects.get(faction=italian, season=season)
+        self.assertEqual(st.rank_position, 1)
+        self.assertFalse(st.rewards_pending)  # rewards issued
+        for chef in chefs:
+            self.assertTrue(
+                ChefArtifact.objects.filter(chef=chef, artifact__rarity="legendary").exists(),
+                f"{chef} should have a legendary artifact",
+            )
+            self.assertTrue(
+                SeasonReward.objects.filter(chef=chef, faction=italian, season=season, placement=1).exists()
+            )
+
+    def test_non_champion_faction_gets_no_rewards(self):
+        from .models import Artifact, ChefArtifact, ChefBattleProfile, Faction, FactionContribution, SeasonReward, FACTION_RANK_MEMBER_FLOOR
+        from .season_service import create_season, close_season
+        Artifact.objects.create(name="Relic2", rarity=Artifact.Rarity.LEGENDARY)
+        User = get_user_model()
+        now = timezone.now()
+        season = create_season(name="R2", starts_at=now - timezone.timedelta(days=1),
+                               ends_at=now + timezone.timedelta(days=1), activate=True)
+        italian = Faction.objects.get(kind="cuisine", slug="italian")
+        french = Faction.objects.get(kind="cuisine", slug="french")
+        # Italian wins (10 pts each), French is a distant second (1 pt each) — both >=5 members.
+        for i in range(FACTION_RANK_MEMBER_FLOOR):
+            for fac, pts, tag in ((italian, 10, "it"), (french, 1, "fr")):
+                u = User.objects.create_user(f"r2-{tag}-{i}", password="pw")
+                chef = RecipeAuthor.objects.create(user=u, name=f"R2 {tag}{i}", slug=f"r2-{tag}-{i}")
+                ChefBattleProfile.objects.create(author=chef, enrolled_at=now)
+                FactionContribution.objects.create(chef=chef, faction=fac, faction_kind="cuisine", season=season, points=pts)
+        with self.captureOnCommitCallbacks(execute=True):
+            close_season(season)
+        # Only Italian (rank 1) chefs got rewards; French (rank 2) did not.
+        self.assertTrue(SeasonReward.objects.filter(faction=italian, season=season).exists())
+        self.assertFalse(SeasonReward.objects.filter(faction=french, season=season).exists())

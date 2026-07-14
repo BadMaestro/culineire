@@ -18,7 +18,7 @@ from .models import (
     FactionMembership,
     FactionSeasonStanding,
 )
-from .season_signals import season_ended, season_started
+from .season_signals import season_ended, season_ended_committed, season_started
 
 logger = logging.getLogger(__name__)
 
@@ -92,6 +92,67 @@ def on_season_ended(sender, season, **kwargs):
         logger.exception("Faction season_ended finalisation failed for season pk=%s", season.pk)
 
 
+def _issue_rewards(season):
+    """Non-cash season rewards for the #1 faction on each axis: a Legendary
+    artifact for each active champion + a SeasonReward audit record (which the
+    Hall of Fame reads to list past champions). No tokens / no money path.
+    """
+    from django.db.models import Sum
+    from recipes.models import RecipeAuthor
+    from .models import Artifact, ChefArtifact, FactionSeasonStanding, SeasonReward
+    from .services import _pick_artifact
+
+    champions = (
+        FactionSeasonStanding.objects
+        .filter(season=season, rank_position=1, rewards_pending=True)
+        .select_related("faction")
+    )
+    for standing in champions:
+        member_ids = (
+            FactionContribution.objects
+            .filter(faction=standing.faction, season=season)
+            .values_list("chef", flat=True).distinct()
+        )
+        for chef in RecipeAuthor.objects.filter(pk__in=member_ids):
+            points = (
+                FactionContribution.objects
+                .filter(chef=chef, faction=standing.faction, season=season)
+                .aggregate(t=Sum("points"))["t"] or 0
+            )
+            # Legendary artifact (if the chef doesn't already own every legendary).
+            artifact = _pick_artifact(chef, {Artifact.Rarity.LEGENDARY: 1.0}, guaranteed=False)
+            if artifact is not None:
+                ChefArtifact.objects.create(
+                    chef=chef, artifact=artifact, source=ChefArtifact.Source.ADMIN_GRANT,
+                )
+            SeasonReward.objects.get_or_create(
+                chef=chef, faction=standing.faction, season=season,
+                defaults={"points_snapshot": points, "placement": standing.rank_position},
+            )
+        standing.rewards_pending = False
+        standing.save(update_fields=["rewards_pending"])
+
+    # Sponsor prizes are external/manual; just record who sponsored the season.
+    try:
+        from sponsors.services import get_sponsor_of_month
+        sponsor = get_sponsor_of_month()
+        if sponsor:
+            logger.info("Season %s champions presented by sponsor '%s'.", season.pk, sponsor)
+    except Exception:
+        pass
+
+
+def on_season_ended_committed(sender, season, **kwargs):
+    """Post-commit reward issuance (Legendary artifacts + Hall-of-Fame records).
+    Runs after the season close is durably committed, so a failure here can't
+    roll it back. Idempotent via the rewards_pending flag."""
+    try:
+        _issue_rewards(season)
+    except Exception:
+        logger.exception("Faction reward issuance failed for season pk=%s", season.pk)
+
+
 def connect():
     season_started.connect(on_season_started, dispatch_uid="factions_on_season_started")
     season_ended.connect(on_season_ended, dispatch_uid="factions_on_season_ended")
+    season_ended_committed.connect(on_season_ended_committed, dispatch_uid="factions_on_season_ended_committed")
