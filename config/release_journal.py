@@ -1,5 +1,22 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.222",
+        "date": "2026-07-14",
+        "commit": "pending",
+        "title": "Live Arena Phase 1: heart reactions backend",
+        "section": "Chef Battles / Live Arena",
+        "summary": (
+            "First Phase-1 data increment for the live arena. BattleReaction "
+            "(migration 0076) records append-only 'heart' taps per battle side; "
+            "reaction_service.record_battle_reaction aggregates the per-side count "
+            "with a per-source rolling rate limit (anti-farm). New endpoint "
+            "chef_battle:arena_react (POST battle_id + side) returns the new count "
+            "for the arena heart button. Preview fixture country corrected to "
+            "Ireland (owner decision). Next: arena_state snapshot envelope feeding "
+            "the preview with real data. 5 tests."
+        ),
+    },
+    {
         "version": "2.5.218",
         "date": "2026-07-14",
         "commit": "pending",
