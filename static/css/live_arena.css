@@ -193,7 +193,11 @@
   background:rgba(35,75,42,.4); border:1px solid var(--gr); border-radius:99px; padding:.35rem 1.2rem;
   color:var(--gr); font-weight:700; font-size:.82rem; width:max-content; }
 @media (max-width:860px){
+  .lap{ overflow-x:hidden; }
   .lap__winner{ grid-template-columns:1fr; }
   .lap__finalmetrics{ grid-template-columns:repeat(2,1fr); }
   .lap__sup{ grid-template-columns:1fr; }
+  /* Touch targets (brief: >=44px where practical) */
+  .lap__cta, .lap__send, .lap__tab, .lap__react { min-height:44px; }
+  .lap__composer input { min-height:44px; }
 }
