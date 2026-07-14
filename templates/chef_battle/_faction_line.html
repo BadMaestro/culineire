@@ -1,0 +1,7 @@
+{% if cuisine or specialty %}
+<div class="chef-faction-line" style="display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center; margin-block:0.75rem 0.25rem; font-size:0.95rem;">
+  {% if cuisine %}<span title="Cuisine — heritage">{{ cuisine.faction.crest_icon }} <strong>{{ cuisine.faction.name }}</strong> Cuisine</span>{% endif %}
+  {% if cuisine and specialty %}<span style="color:var(--color-muted);">&middot;</span>{% endif %}
+  {% if specialty %}<span title="Specialty — mastery">{{ specialty.faction.crest_icon }} <strong>{{ specialty.faction.name }}</strong> Specialty</span>{% endif %}
+</div>
+{% endif %}

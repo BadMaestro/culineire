@@ -12,6 +12,9 @@ battle_profile, arena_battles, arena_gift_display.
       <h2>Chef Battles Arena</h2>
     </div>
 
+    {# ── Faction lore line (current season Cuisine · Specialty) ── #}
+    {% chef_faction_line author %}
+
     {# ── Stats ── #}
     <div class="chef-profile-stats">
       <div class="battle-stat-card">
@@ -95,11 +98,13 @@ battle_profile, arena_battles, arena_gift_display.
     <div class="battle-actions">
       {% if can_manage_author_profile %}
       <a class="btn-secondary" href="{% url 'chef_battle:my_moves' %}">My Moves</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:faction_choose' %}">Choose Faction</a>
       {% else %}
       <a class="btn-secondary battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:challenge_create' %}?opponent={{ author.slug }}">Challenge This Chef</a>
       {% endif %}
       {% include '_enter_arena_btn.html' %}
       <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:faction_leaderboards' %}">Factions</a>
     </div>
 
   </div>

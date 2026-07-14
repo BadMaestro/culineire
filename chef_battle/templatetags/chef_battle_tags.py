@@ -6,3 +6,22 @@ register = template.Library()
 @register.filter
 def opponent_for(battle, author):
     return battle.opponent_for(author)
+
+
+@register.inclusion_tag("chef_battle/_faction_line.html")
+def chef_faction_line(author):
+    """Render a chef's current-season Cuisine · Specialty lore line.
+
+    Self-contained: queries factions directly so the recipes app / shared
+    battle-context builder need not know about factions.
+    """
+    from .faction_selectors import get_chef_factions
+    from .models import Faction
+    from .season_service import get_active_season
+
+    season = get_active_season()
+    factions = get_chef_factions(author, season) if (author and season) else {}
+    return {
+        "cuisine": factions.get(Faction.Kind.CUISINE.value),
+        "specialty": factions.get(Faction.Kind.SPECIALTY.value),
+    }
