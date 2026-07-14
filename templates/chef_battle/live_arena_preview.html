@@ -4,16 +4,55 @@
 {% block meta_description %}Live Arena broadcast preview — under construction.{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/live_arena.css' %}?v=20260714a" rel="stylesheet">
+<link href="{% static 'css/live_arena.css' %}?v=20260714b" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<div class="lap">
+{% with complete=request.GET.state %}
+<div class="lap {% if complete == 'complete' %}lap--winner{% endif %}">
+  {% if complete == 'complete' %}<div class="lap__confetti" id="lap-confetti"></div>{% endif %}
+
   <div class="lap__ribbon">
-    <span>&#9679; Live Arena — build preview</span>
-    {% if fx.is_fixture %}<span>Data below is a DEV FIXTURE — real battle data &amp; MediaMTX video wire in as we build</span>{% endif %}
+    <span>&#9679; Live Arena — build preview{% if fx.is_fixture %} · DEV FIXTURE data{% endif %}</span>
+    <span class="lap__state-toggle">
+      <a href="?" class="{% if complete != 'complete' %}is-on{% endif %}">Live</a>
+      <a href="?state=complete" class="{% if complete == 'complete' %}is-on{% endif %}">Winner</a>
+    </span>
   </div>
 
+  {% if complete == 'complete' %}
+  {# ── Battle Complete / Winner (reference frame 2) ── #}
+  <div class="lap__winner">
+    <div class="lap__winner-hero">
+      {% if fx.left.avatar_url %}<img class="lap__winner-portrait" src="{{ fx.left.avatar_url }}" alt="{{ fx.left.name }}">{% else %}<div class="lap__winner-portrait"></div>{% endif %}
+      <div>
+        <div class="lap__shield">&#128737;&#65039;&#9752;&#65039;</div>
+        <div class="lap__congrats">Congratulations,</div>
+        <div class="lap__champ-name">{{ fx.left.name }}</div>
+        <div class="lap__champ-meta">&#127859; <b>{{ fx.left.rank }}</b><br>&#127807; <b>{{ fx.left.clan }}</b><br>&#127482;&#127480; <b>{{ fx.left.country }}</b></div>
+      </div>
+    </div>
+    <div class="lap__runner">
+      <small>Runner-up</small>
+      <div class="lap__runner-name">{{ fx.right.name }}</div>
+      <div class="lap__runner-meta">{{ fx.right.rank }} &middot; {{ fx.right.clan }} &middot; {{ fx.right.country }}</div>
+    </div>
+  </div>
+
+  <div class="lap__winner-banner">WINNER</div>
+
+  <div class="lap__finalmetrics">
+    <div class="lap__fm lap__fm--win"><b>{{ fx.left.name|truncatewords:1 }} wins</b><small>Final result</small></div>
+    <div class="lap__fm"><b>{{ fx.left.likes }}</b><small>Likes</small></div>
+    <div class="lap__fm"><b>{{ fx.left.comments }}</b><small>Comments</small></div>
+    <div class="lap__fm"><b>{{ fx.left.viewers }}</b><small>Viewers</small></div>
+    <div class="lap__fm"><b>+{{ fx.left.supporters }}</b><small>Supports</small></div>
+    <div class="lap__fm lap__fm--win"><b>&#10003;</b><small>Victory confirmed</small></div>
+  </div>
+
+  <span class="lap__finished">&#9679; BATTLE FINISHED</span>
+
+  {% else %}
   {# ── Matchup header ── #}
   <div class="lap__match">
     <div class="lap__chef lap__chef--l">
@@ -52,7 +91,6 @@
 
   {# ── Dual live stage ── #}
   <div class="lap__stage">
-
     <div class="lap__panel lap__panel--l" data-state="active">
       <video class="lap__video" data-hls-url="{{ fx.left.playback_url|default:'' }}" muted playsinline></video>
       <div class="lap__fallback"><span>&#127909;</span> Waiting for stream<br><small>MediaMTX HLS wires in here</small></div>
@@ -95,30 +133,43 @@
       <em>remaining</em>
     </div>
   </div>
+  {% endif %}
 
-  {# ── Live chat ── #}
+  {# ── Live chat + Top Supporters (shared) ── #}
   <div class="lap__chat">
     <div class="lap__tabs">
-      <span class="lap__tab">&#9679; Live Chat</span>
-      <span class="lap__tab lap__tab--muted">&#127942; Top Supporters</span>
+      <button class="lap__tab is-active" data-pane="chat" type="button">&#9679; Live Chat</button>
+      <button class="lap__tab" data-pane="sup" type="button">&#127942; Top Supporters</button>
     </div>
-    <div class="lap__msgs">
-      {% for name, text in fx.chat %}
-      <div class="lap__msg"><div class="lap__av"></div><div><b>{{ name }}</b><p>{{ text }}</p></div><span class="lap__ts">Just now</span></div>
-      {% endfor %}
+
+    <div class="lap__pane is-active" data-pane="chat">
+      <div class="lap__msgs">
+        {% for name, text in fx.chat %}
+        <div class="lap__msg"><div class="lap__av"></div><div><b>{{ name }}</b><p>{{ text }}</p></div><span class="lap__ts">Just now</span></div>
+        {% endfor %}
+      </div>
     </div>
+
+    <div class="lap__pane" data-pane="sup">
+      <div class="lap__sup">
+        {% for name, text in fx.chat %}
+        <div class="lap__sup-row"><span class="lap__sup-rank">{{ forloop.counter }}</span><div class="lap__av"></div><span class="lap__sup-name">{{ name }}</span><span class="lap__sup-amt">supporter</span></div>
+        {% endfor %}
+      </div>
+    </div>
+
     <div class="lap__composer">
       <input type="text" placeholder="Join the conversation..." aria-label="Chat message" disabled>
       <button class="lap__send" disabled>Send</button>
     </div>
   </div>
 </div>
+{% endwith %}
 
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js"></script>
 <script>
 (function () {
-  // Attach HLS playback to any panel that has a data-hls-url; otherwise the
-  // deterministic fallback art stays visible. Wires to MediaMTX HLS output.
+  // HLS playback where a panel has a data-hls-url; else the fallback art stays.
   document.querySelectorAll('.lap__panel').forEach(function (panel) {
     var video = panel.querySelector('.lap__video');
     var url = video && video.getAttribute('data-hls-url');
@@ -133,7 +184,7 @@
     }
   });
 
-  // Floating heart reaction (client-only preview; wires to BattleReaction later).
+  // Floating heart reaction (client preview; wires to BattleReaction later).
   document.querySelectorAll('.lap__react').forEach(function (btn) {
     btn.addEventListener('click', function () {
       var panel = btn.closest('.lap__panel');
@@ -146,6 +197,32 @@
       setTimeout(function () { h.remove(); }, 2400);
     });
   });
+
+  // Chat / Top Supporters tabs.
+  var tabs = document.querySelectorAll('.lap__tab');
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      var target = tab.getAttribute('data-pane');
+      tabs.forEach(function (t) { t.classList.toggle('is-active', t === tab); });
+      document.querySelectorAll('.lap__pane').forEach(function (p) {
+        p.classList.toggle('is-active', p.getAttribute('data-pane') === target);
+      });
+    });
+  });
+
+  // Confetti on the winner state.
+  var cf = document.getElementById('lap-confetti');
+  if (cf && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    var colors = ['#67B74A', '#D6A64B', '#D8463E', '#F1D27A'];
+    for (var i = 0; i < 44; i++) {
+      var s = document.createElement('span');
+      s.style.left = Math.floor(Math.random() * 100) + '%';
+      s.style.background = colors[i % colors.length];
+      s.style.animationDuration = (2.5 + Math.random() * 2.5) + 's';
+      s.style.animationDelay = (Math.random() * 2) + 's';
+      cf.appendChild(s);
+    }
+  }
 })();
 </script>
 {% endblock %}

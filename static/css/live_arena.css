@@ -138,4 +138,62 @@
 }
 @media (prefers-reduced-motion: reduce){
   .lap__live::before, .lap__heart { animation:none; }
+  .lap__confetti span { animation:none; display:none; }
+}
+
+/* ── State toggle (dev preview) ── */
+.lap__state-toggle { display:flex; gap:8px; }
+.lap__state-toggle a { font-size:.68rem; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--tm); text-decoration:none; border:1px solid var(--bd); border-radius:6px; padding:.15rem .5rem; }
+.lap__state-toggle a.is-on { color:var(--gd); border-color:var(--gd); }
+
+/* ── Top Supporters tab ── */
+.lap__tab { background:none; border:0; cursor:pointer; font:inherit; color:var(--tm); font-weight:600; padding:0; }
+.lap__tab.is-active { color:var(--tp); }
+.lap__pane { display:none; }
+.lap__pane.is-active { display:block; }
+.lap__sup { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px 18px; }
+.lap__sup-row { display:flex; align-items:center; gap:8px; font-size:.8rem; }
+.lap__sup-rank { color:var(--gd); font-weight:700; width:1.4rem; }
+.lap__sup-name { color:var(--tp); font-weight:600; }
+.lap__sup-amt { margin-left:auto; color:var(--ts); }
+
+/* ── Winner / Battle Complete state ── */
+.lap--winner { position:relative; overflow:hidden; }
+.lap__confetti { position:absolute; inset:0; pointer-events:none; z-index:0; }
+.lap__confetti span { position:absolute; top:-10px; width:7px; height:12px; border-radius:2px;
+  opacity:.85; animation:lap-fall linear infinite; }
+@keyframes lap-fall { 0%{ transform:translateY(-10px) rotate(0);} 100%{ transform:translateY(120vh) rotate(360deg);} }
+.lap__winner { position:relative; z-index:1; display:grid; grid-template-columns:1.1fr .9fr; gap:16px;
+  align-items:center; background:linear-gradient(180deg, rgba(35,75,42,.35), rgba(7,9,10,.2));
+  border:1px solid rgba(214,166,75,.4); border-radius:14px; padding:18px; margin-top:6px; }
+.lap__winner-hero { display:flex; gap:14px; align-items:center; }
+.lap__winner-portrait { width:120px; aspect-ratio:3/4; border-radius:12px; object-fit:cover;
+  background:linear-gradient(160deg,#1c2226,#0c0f11); border:1px solid var(--bd); }
+.lap__shield { font-size:2.6rem; filter:drop-shadow(0 2px 6px rgba(214,166,75,.6)); }
+.lap__congrats { font-size:.8rem; color:var(--gd); text-transform:uppercase; letter-spacing:.08em; }
+.lap__champ-name { font-family:var(--font-serif,serif); font-weight:800; font-size:1.5rem; margin:.1rem 0 .4rem; }
+.lap__champ-meta { color:var(--ts); font-size:.82rem; line-height:1.6; }
+.lap__champ-meta b { color:var(--tp); }
+.lap__runner { background:var(--s2); border:1px solid var(--bd); border-radius:10px; padding:10px 12px; }
+.lap__runner small { color:var(--tm); text-transform:uppercase; letter-spacing:.06em; font-size:.66rem; }
+.lap__runner-name { color:var(--tp); font-weight:700; margin-top:.15rem; }
+.lap__runner-meta { color:var(--ts); font-size:.78rem; }
+.lap__winner-banner { position:relative; z-index:1; text-align:center; margin:14px 0;
+  font-family:var(--font-serif,serif); font-weight:900; font-size:clamp(2rem,6vw,3.4rem); letter-spacing:.14em;
+  color:var(--gdl); text-shadow:0 3px 14px rgba(214,166,75,.5);
+  background:linear-gradient(90deg, transparent, rgba(35,75,42,.5), transparent);
+  padding:.2rem 0; }
+.lap__finalmetrics { position:relative; z-index:1; display:grid; grid-template-columns:repeat(6,1fr); gap:8px; }
+.lap__fm { background:var(--s2); border:1px solid var(--bd); border-radius:10px; padding:10px; text-align:center; }
+.lap__fm b { display:block; color:var(--tp); font-size:1rem; }
+.lap__fm small { color:var(--tm); font-size:.68rem; text-transform:uppercase; letter-spacing:.04em; }
+.lap__fm--win b { color:var(--gr); }
+.lap__finished { position:relative; z-index:1; text-align:center; margin:14px auto 0; display:block;
+  background:rgba(35,75,42,.4); border:1px solid var(--gr); border-radius:99px; padding:.35rem 1.2rem;
+  color:var(--gr); font-weight:700; font-size:.82rem; width:max-content; }
+@media (max-width:860px){
+  .lap__winner{ grid-template-columns:1fr; }
+  .lap__finalmetrics{ grid-template-columns:repeat(2,1fr); }
+  .lap__sup{ grid-template-columns:1fr; }
 }
