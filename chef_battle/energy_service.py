@@ -107,6 +107,19 @@ def award_moves(
         except Exception:
             logger.exception("Faction contribution failed for author pk=%s", author.pk)
 
+    # Clan contribution — same earning events as factions, credited to the
+    # author's current active clan for the active season (owner's rule: season
+    # winner = clan with the highest combined member points). Same savepoint
+    # isolation so a clan failure never breaks the moves economy.
+    if transaction_type in _FACTION_EARN_TYPES:
+        try:
+            with transaction.atomic():
+                from chef_battle.clan_service import award_clan_contribution
+                from chef_battle.season_service import get_active_season
+                award_clan_contribution(author, amount, get_active_season(), source=reference)
+        except Exception:
+            logger.exception("Clan contribution failed for author pk=%s", author.pk)
+
     profile = _get_profile(author)
     if profile.infinite_moves:
         # Infinite-balance profiles (greenbear etc.) skip the cap

@@ -9,4 +9,6 @@ class ChefBattleConfig(AppConfig):
     def ready(self):
         from . import faction_receivers
         faction_receivers.connect()
+        from . import clan_receivers
+        clan_receivers.connect()
 

@@ -1,5 +1,29 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.209",
+        "date": "2026-07-14",
+        "commit": "pending",
+        "title": "Clans backend: models, ledger scoring, winner/champion selectors",
+        "section": "Chef Battles / Clans",
+        "summary": (
+            "Backend foundation for Clans & Alliances (Phase 6), built on "
+            "GreenBear's model spec. New models (migration 0072): Clan (founder, "
+            "name/slug, up to 3 Faction categories, moderation status), "
+            "ClanMembership (request/approve, one active clan per chef via a "
+            "partial unique constraint), Alliance + AllianceMembership (S1 "
+            "foundation, one active alliance per clan), and an event-sourced "
+            "ClanContribution ledger + ClanSeasonStanding board. Scoring "
+            "(clan_service.py) decides the season winner by the RAW SUM of a "
+            "clan's members' seasonal points (owner's rule), with a >=3 "
+            "active-member floor; selectors get_clan_leaderboard, "
+            "get_season_winning_clan and get_season_clan_champion feed the UI and "
+            "the Arena Observer prize. Earning is wired into award_moves alongside "
+            "faction contribution (same events, savepoint-isolated); a season-end "
+            "receiver freezes ClanSeasonStanding. Dark-launched (no UI yet); "
+            "GreenBear builds the clan UI on these selectors next. 6 new tests."
+        ),
+    },
+    {
         "version": "2.5.208",
         "date": "2026-07-14",
         "commit": "pending",

@@ -1683,3 +1683,158 @@ class SeasonReward(models.Model):
 
     def __str__(self):
         return f"SeasonReward {self.chef} / {self.faction} / {self.season}"
+
+
+# ── Clans & Alliances (Phase 6) ──────────────────────────────────────────────
+# A clan is the real *team* unit (distinct from a Faction, which is a category).
+# See docs/chef_battle/clans_alliances_rules.md (canonical) + clans_design.md.
+CLAN_MIN_CATEGORIES = 1               # a clan must declare at least one category
+CLAN_MAX_CATEGORIES = 3               # ...and at most three (validated in the service, not the DB)
+CLAN_ACTIVE_CONTRIBUTION_MIN = 1      # >= this many contributions in a season to count as an active member
+CLAN_RANK_MEMBER_FLOOR = 3           # >= this many active members for a clan to appear on the ranked board
+
+
+class Clan(models.Model):
+    """A named team of chefs. The name is the team (e.g. Fusion, Cyber Chef);
+    the categories it selects (up to 3 Faction rows, cuisines+specialties mixed)
+    are where it competes. Founder-created, so it carries moderation state."""
+
+    class Moderation(models.TextChoices):
+        PENDING = "pending", "Pending"
+        APPROVED = "approved", "Approved"
+        REJECTED = "rejected", "Rejected"
+
+    founder = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="founded_clans")
+    name = models.CharField(max_length=80)
+    slug = models.SlugField(max_length=80, unique=True)
+    crest_icon = models.CharField(max_length=8, blank=True)  # emoji crest
+    categories = models.ManyToManyField(Faction, related_name="clans", blank=True)
+    moderation_status = models.CharField(
+        max_length=16, choices=Moderation.choices, default=Moderation.PENDING, db_index=True
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class ClanMembership(models.Model):
+    """A chef's membership in a clan. request -> approve flow (status). A chef
+    may hold at most ONE active membership at a time (partial unique below)."""
+
+    class Role(models.TextChoices):
+        FOUNDER = "founder", "Founder"
+        MEMBER = "member", "Member"
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        ACTIVE = "active", "Active"
+
+    clan = models.ForeignKey(Clan, on_delete=models.CASCADE, related_name="memberships")
+    chef = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="clan_memberships")
+    role = models.CharField(max_length=16, choices=Role.choices, default=Role.MEMBER)
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.PENDING, db_index=True)
+    joined_at = models.DateTimeField(auto_now_add=True)
+    left_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            # One active clan per chef: only current (left_at IS NULL), active rows are exclusive.
+            models.UniqueConstraint(
+                fields=["chef"],
+                condition=models.Q(left_at__isnull=True, status="active"),
+                name="unique_active_clan_per_chef",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.chef} -> {self.clan} ({self.status})"
+
+
+class Alliance(models.Model):
+    """A grouping of clans that stand together (Season 1 foundation; the full
+    cuisine-vs-cuisine assist mechanic expands in later seasons)."""
+
+    name = models.CharField(max_length=80)
+    slug = models.SlugField(max_length=80, unique=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class AllianceMembership(models.Model):
+    """A clan's membership in an alliance. A clan may be in at most ONE active
+    alliance at a time (partial unique below)."""
+
+    alliance = models.ForeignKey(Alliance, on_delete=models.CASCADE, related_name="memberships")
+    clan = models.ForeignKey(Clan, on_delete=models.CASCADE, related_name="alliance_memberships")
+    joined_at = models.DateTimeField(auto_now_add=True)
+    left_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["clan"],
+                condition=models.Q(left_at__isnull=True),
+                name="unique_active_alliance_per_clan",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.clan} in {self.alliance}"
+
+
+class ClanContribution(models.Model):
+    """Append-only, immutable points ledger for clans (mirrors
+    FactionContribution). clan is denormalised at write time so points belong to
+    the clan as of the earning moment and survive the chef later leaving —
+    the owner's rule that points stay with the clan falls out for free."""
+
+    chef = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="clan_contributions")
+    clan = models.ForeignKey(Clan, on_delete=models.CASCADE, related_name="contributions")
+    season = models.ForeignKey(Season, on_delete=models.CASCADE, related_name="clan_contributions")
+    source_content_type = models.ForeignKey(
+        "contenttypes.ContentType", null=True, blank=True, on_delete=models.SET_NULL
+    )
+    source_object_id = models.PositiveIntegerField(null=True, blank=True)
+    points = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["clan", "season"]),
+            models.Index(fields=["chef", "season"]),
+        ]
+
+    def __str__(self):
+        return f"{self.chef} -> {self.clan} +{self.points} ({self.season})"
+
+
+class ClanSeasonStanding(models.Model):
+    """Per-clan, per-season board. Written only by the season receivers
+    (season_ended finalises total/active/rank from the ClanContribution ledger)."""
+
+    clan = models.ForeignKey(Clan, on_delete=models.CASCADE, related_name="season_standings")
+    season = models.ForeignKey(Season, on_delete=models.CASCADE, related_name="clan_standings")
+    total_points = models.IntegerField(default=0)
+    active_member_count = models.IntegerField(default=0)
+    rank_position = models.PositiveIntegerField(null=True, blank=True)
+    rewards_pending = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["rank_position", "-total_points"]
+        constraints = [
+            models.UniqueConstraint(fields=["clan", "season"], name="unique_clan_standing_per_season"),
+        ]
+
+    def __str__(self):
+        return f"{self.clan} @ {self.season}: {self.total_points}"

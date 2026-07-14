@@ -5413,3 +5413,127 @@ class ChampionBadgeSelectorTests(TestCase):
         u = User.objects.create_user("cb-sum", password="pw")
         chef = RecipeAuthor.objects.create(user=u, name="Sum", slug="cb-sum")
         self.assertIn("champion_badge", get_author_battle_summary(chef))
+
+
+class ClanScoringTests(TestCase):
+    """Clan ledger, leaderboard (raw-sum + member floor), winner & champion
+    selectors, one-active-clan constraint, and season-end standing finalisation."""
+
+    def setUp(self):
+        from datetime import timedelta
+        from .models import Season, Faction
+        User = get_user_model()
+        self.season = Season.objects.create(
+            name="Clan S1",
+            starts_at=timezone.now() - timedelta(days=1),
+            ends_at=timezone.now() + timedelta(days=30),
+            status=Season.Status.ACTIVE,
+        )
+        self.cat = Faction.objects.create(kind=Faction.Kind.CUISINE, name="ItalianClan", slug="italian-clan-t")
+        self._User = User
+
+    def _chef(self, n):
+        u = self._User.objects.create_user(f"clanchef-{n}", password="pw")
+        return RecipeAuthor.objects.create(user=u, name=f"Clan Chef {n}", slug=f"clan-chef-{n}")
+
+    def _clan(self, name, founder, approved=True):
+        from django.utils.text import slugify
+        from .models import Clan
+        c = Clan.objects.create(
+            founder=founder, name=name, slug=slugify(name),
+            moderation_status=Clan.Moderation.APPROVED if approved else Clan.Moderation.PENDING,
+        )
+        c.categories.add(self.cat)
+        return c
+
+    def _join(self, clan, chef, role=None):
+        from .models import ClanMembership
+        return ClanMembership.objects.create(
+            clan=clan, chef=chef,
+            role=role or ClanMembership.Role.MEMBER,
+            status=ClanMembership.Status.ACTIVE,
+        )
+
+    def _populate(self, clan, per_chef_points):
+        """Create len(per_chef_points) active members, each with one contribution."""
+        from .clan_service import award_clan_contribution
+        chefs = []
+        for i, pts in enumerate(per_chef_points):
+            chef = self._chef(f"{clan.slug}-{i}")
+            self._join(clan, chef)
+            award_clan_contribution(chef, pts, self.season)
+            chefs.append(chef)
+        return chefs
+
+    def test_award_credits_active_clan(self):
+        from .clan_service import award_clan_contribution
+        from .models import ClanContribution
+        founder = self._chef("f1")
+        clan = self._clan("Fusion", founder)
+        self._join(clan, founder, role="founder")
+        written = award_clan_contribution(founder, 5, self.season)
+        self.assertEqual(written, 5)
+        self.assertEqual(ClanContribution.objects.filter(clan=clan, chef=founder).count(), 1)
+
+    def test_award_without_active_clan_is_noop(self):
+        from .clan_service import award_clan_contribution
+        from .models import ClanContribution
+        loner = self._chef("loner")
+        self.assertEqual(award_clan_contribution(loner, 10, self.season), 0)
+        self.assertFalse(ClanContribution.objects.filter(chef=loner).exists())
+
+    def test_leaderboard_ranks_by_total_and_respects_floor(self):
+        from .clan_service import get_clan_leaderboard
+        big = self._clan("BigClan", self._chef("bigf"))
+        small = self._clan("SmallClan", self._chef("smallf"))
+        under = self._clan("UnderClan", self._chef("underf"))
+        self._populate(big, [10, 10, 10])      # total 30, 3 active
+        self._populate(small, [1, 1, 1])       # total 3, 3 active
+        self._populate(under, [50, 50])        # total 100 but only 2 active -> excluded
+        board = get_clan_leaderboard(self.season)
+        names = [r["clan"].name for r in board]
+        self.assertEqual(names, ["BigClan", "SmallClan"])
+        self.assertEqual(board[0]["rank_position"], 1)
+        self.assertEqual(board[0]["total_points"], 30)
+        self.assertNotIn("UnderClan", names)
+
+    def test_winning_clan_and_champion(self):
+        from .clan_service import get_season_winning_clan, get_season_clan_champion
+        from .clan_service import award_clan_contribution
+        winner = self._clan("Winners", self._chef("winf"))
+        loser = self._clan("Losers", self._chef("losf"))
+        chefs = self._populate(winner, [5, 5, 5])
+        self._populate(loser, [1, 1, 1])
+        # Push one winner chef to the top for the champion check.
+        award_clan_contribution(chefs[1], 100, self.season)
+        self.assertEqual(get_season_winning_clan(self.season), winner)
+        self.assertEqual(get_season_clan_champion(self.season, winner), chefs[1])
+
+    def test_one_active_clan_per_chef(self):
+        from django.db import transaction
+        from .models import ClanMembership
+        chef = self._chef("dual")
+        clan_a = self._clan("ClanA", self._chef("af"))
+        clan_b = self._clan("ClanB", self._chef("bf"))
+        self._join(clan_a, chef)
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                ClanMembership.objects.create(
+                    clan=clan_b, chef=chef,
+                    status=ClanMembership.Status.ACTIVE,
+                )
+
+    def test_season_ended_finalizes_clan_standings(self):
+        from .season_service import close_season
+        from .models import ClanSeasonStanding
+        winner = self._clan("FinalWin", self._chef("fwf"))
+        runner = self._clan("FinalRun", self._chef("frf"))
+        self._populate(winner, [9, 9, 9])
+        self._populate(runner, [2, 2, 2])
+        close_season(self.season)
+        win_standing = ClanSeasonStanding.objects.get(clan=winner, season=self.season)
+        self.assertEqual(win_standing.rank_position, 1)
+        self.assertEqual(win_standing.total_points, 27)
+        self.assertTrue(win_standing.rewards_pending)
+        run_standing = ClanSeasonStanding.objects.get(clan=runner, season=self.season)
+        self.assertEqual(run_standing.rank_position, 2)
