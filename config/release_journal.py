@@ -1,5 +1,22 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.218",
+        "date": "2026-07-14",
+        "commit": "pending",
+        "title": "Live Arena broadcast preview page (owner build canvas)",
+        "section": "Chef Battles / Live Arena",
+        "summary": (
+            "Owner-visible live preview of the new broadcast arena at "
+            "/chef-battle/master/live-arena/preview/ so the owner can watch the "
+            "arena take shape as it is built, rather than only a status matrix. "
+            "Renders the reference composition (green-left / gold VS / red-right "
+            "matchup header, dual live stage with fallback and overlays, central "
+            "timer plate, live chat) with dev fixtures, swapped for the real "
+            "arena_state snapshot and MediaMTX HLS video as Phase 1/2 land. "
+            "Owner-gated; linked prominently from the Master Console."
+        ),
+    },
+    {
         "version": "2.5.217",
         "date": "2026-07-14",
         "commit": "pending",
