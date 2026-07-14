@@ -5676,3 +5676,24 @@ class LiveArenaTrackerTests(TestCase):
         U.objects.create_user("la-nobody", "n@n.com", "pw")
         c = Client(); c.login(username="la-nobody", password="pw")
         self.assertEqual(c.get("/chef-battle/master/live-arena/").status_code, 404)
+
+
+class LiveArenaPreviewTests(LiveArenaTrackerTests):
+    """Preview page renders the broadcast composition for the owner."""
+
+    def test_preview_renders(self):
+        r = self.client.get("/chef-battle/master/live-arena/preview/")
+        self.assertEqual(r.status_code, 200)
+        h = r.content.decode()
+        self.assertIn("CHEF", h)
+        self.assertIn("Aidan Byrne", h)
+        self.assertIn("Battle Theme", h)
+        self.assertIn("TIME REMAINING", h)
+
+    def test_preview_owner_gated(self):
+        from django.test import Client
+        from django.contrib.auth import get_user_model
+        U = get_user_model()
+        U.objects.create_user("prev-nobody", "p@p.com", "pw")
+        c = Client(); c.login(username="prev-nobody", password="pw")
+        self.assertEqual(c.get("/chef-battle/master/live-arena/preview/").status_code, 404)

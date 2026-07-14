@@ -20,7 +20,10 @@
     <div class="amc-topbar__title">
       <p class="amc-kicker">CulinEire Arena Operator Control Deck</p>
       <h1>Arena Master Console</h1>
-      <p style="margin:.4rem 0 0;"><a href="{% url 'chef_battle:live_arena_progress' %}" style="display:inline-block;padding:.35rem .8rem;border:1px solid var(--centre-gold,#D6A64B);border-radius:8px;color:var(--centre-gold,#D6A64B);text-decoration:none;font-size:.82rem;">&#128225; Live Arena Build Tracker &rarr;</a></p>
+      <p style="margin:.4rem 0 0;display:flex;gap:.5rem;flex-wrap:wrap;">
+        <a href="{% url 'chef_battle:live_arena_preview' %}" style="display:inline-block;padding:.35rem .8rem;border:1px solid #67B74A;border-radius:8px;background:rgba(103,183,74,.12);color:#8fd873;text-decoration:none;font-size:.82rem;font-weight:600;">&#127909; Live Arena &mdash; watch it build &rarr;</a>
+        <a href="{% url 'chef_battle:live_arena_progress' %}" style="display:inline-block;padding:.35rem .8rem;border:1px solid var(--centre-gold,#D6A64B);border-radius:8px;color:var(--centre-gold,#D6A64B);text-decoration:none;font-size:.82rem;">&#128202; Build tracker</a>
+      </p>
     </div>
     <dl class="amc-topbar__meta">
       <div class="amc-meta-item">

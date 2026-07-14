@@ -2894,3 +2894,38 @@ def live_arena_stage_update(request):
         "status": getattr(stage, f"{column}_status"),
         "notes": getattr(stage, f"{column}_notes"),
     })
+
+
+@arena_console_guard
+def live_arena_preview(request):
+    """Live, buildable preview of the new broadcast arena (owner-visible canvas).
+
+    Renders the reference composition so the owner can watch the arena take
+    shape as we build. Data is dev fixtures for now (clearly labelled); each
+    field is swapped for the real arena_state snapshot as Phase 1/2 lands."""
+    fixture = {
+        "is_fixture": True,
+        "theme": "Modern Irish Comfort Food",
+        "timer": "23:41:08",
+        "left": {
+            "num": "CHEF #1", "name": "Chef Aidan Byrne", "rank": "Head Chef",
+            "clan": "The Green Apron", "country": "Ireland",
+            "viewers": "1.2K", "likes": "2.4K", "comments": "320", "role": "Head Chef",
+            "supporters": 68,
+        },
+        "right": {
+            "num": "CHEF #2", "name": "Chef Luca Moretti", "rank": "Sous Chef",
+            "clan": "Fire & Steel", "country": "Italy",
+            "viewers": "980", "likes": "1.8K", "comments": "275", "role": "Sous Chef",
+            "supporters": 42,
+        },
+        "chat": [
+            ("Aoife K.", "Go Aidan! The Green Apron all the way!"),
+            ("Marco Italia", "Forza Luca!"),
+            ("Clare B.", "Aidan's plating is on point"),
+            ("Sean Murphy", "That looks incredible!"),
+            ("Foodie Goddess", "Both chefs are absolute stars tonight"),
+            ("Riccardo", "Luca bringing the heat!"),
+        ],
+    }
+    return render(request, "chef_battle/live_arena_preview.html", {"fx": fixture})
