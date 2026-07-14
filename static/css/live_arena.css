@@ -20,6 +20,21 @@
 .lap__sr { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
   clip:rect(0 0 0 0); white-space:nowrap; border:0; }
 .lap__ico { width:1.05rem; height:1.05rem; display:inline-block; vertical-align:middle; }
+/* Chat feed always scrolls inside itself, never the page */
+.lap__msgs, .lap__sup { overflow-y:auto; }
+/* Fit-to-screen on desktop: the whole battle in ONE viewport, no page scroll —
+   matchup fixed, dual-stage flexes to fill, only the chat feed scrolls. */
+@media (min-width:1000px) and (min-height:720px) {
+  .lap:not(.lap--winner) { display:flex; flex-direction:column; max-height:calc(100vh - 78px);
+    margin-block:10px; }
+  .lap:not(.lap--winner) .lap__ribbon { flex:0 0 auto; margin-bottom:8px; }
+  .lap:not(.lap--winner) .lap__match { flex:0 0 auto; }
+  .lap:not(.lap--winner) .lap__stage { flex:1 1 auto; min-height:0; margin-top:10px; }
+  .lap:not(.lap--winner) .lap__panel { aspect-ratio:auto; height:100%; min-height:0; }
+  .lap:not(.lap--winner) .lap__chat { flex:0 0 auto; margin-top:24px; }
+  .lap:not(.lap--winner) .lap__msgs,
+  .lap:not(.lap--winner) .lap__sup { max-height:15vh; padding-right:4px; }
+}
 .lap__ribbon { display:flex; justify-content:space-between; align-items:center; gap:.5rem;
   font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; color:var(--gd);
   border:1px dashed var(--bd); border-radius:8px; padding:.35rem .7rem; margin-bottom:12px; }
