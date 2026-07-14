@@ -15,6 +15,7 @@ class CspNonceMiddleware:
             f"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
             f"font-src 'self' https://fonts.gstatic.com; "
             f"img-src 'self' data: blob:; "
+            f"media-src 'self' blob:; "
             f"connect-src 'self'; "
             f"frame-src https://challenges.cloudflare.com; "
             f"frame-ancestors 'none'; "
