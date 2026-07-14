@@ -1,5 +1,21 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.227",
+        "date": "2026-07-15",
+        "commit": "pending",
+        "title": "Live arena: fix video playback (self-host hls.js + CSP media blob)",
+        "section": "Chef Battles / Live Arena",
+        "summary": (
+            "Live HLS video was not playing because hls.js loaded from the "
+            "jsdelivr CDN, which the site CSP script-src does not allow, so Hls "
+            "was undefined. Self-hosted hls.min.js (1.5.13) as a static asset "
+            "(static/js/vendor/) referenced via {% static %}, and added "
+            "media-src 'self' blob: to the CSP so the MSE video blob URL is "
+            "permitted. Video now plays end-to-end from the self-hosted MediaMTX "
+            "HLS."
+        ),
+    },
+    {
         "version": "2.5.223",
         "date": "2026-07-14",
         "commit": "pending",
