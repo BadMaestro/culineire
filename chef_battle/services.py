@@ -435,6 +435,12 @@ def calculate_battle_result(battle: Battle) -> Battle:
             status=ChefArtifact.Status.AVAILABLE,
             source=ChefArtifact.Source.BATTLE_GIFT,
         ).update(status=ChefArtifact.Status.EXPIRED, expired_at=timezone.now())
+
+        # Return unused personal loadout artifacts to the chef's inventory.
+        ChefArtifact.objects.filter(
+            reserved_in_battle=battle,
+            status=ChefArtifact.Status.AVAILABLE,
+        ).update(reserved_in_battle=None)
         battle.result_reason = "Draw by public vote"
         battle.status = Battle.Status.COMPLETED
         battle.save(update_fields=["status", "result_reason", "updated_at"])
@@ -739,6 +745,7 @@ def award_moves(author, amount: int, reason: str) -> None:
 
 COMBAT_MOVES_MIN = 1
 COMBAT_MOVES_MAX = 5
+COMBAT_ARTIFACTS_PER_TYPE_LIMIT = 3
 COMBAT_HITS_TO_WIN = 3  # not used for victory — just for display drama
 
 
@@ -779,6 +786,10 @@ def submit_combat_action(
         raise ValueError(f"Not enough battle moves. You have {profile.battle_moves}.")
 
     # Validate artifact ownership and availability before touching the DB.
+    # A combat loadout is deliberately finite: a chef can bring at most three
+    # attack artifacts and three defence artifacts into one battle.  We track
+    # the loadout on ChefArtifact.reserved_in_battle while leaving unused
+    # artifacts available for the combat picker.
     chef_artifact = None
     if artifact_id is not None:
         try:
@@ -787,6 +798,36 @@ def submit_combat_action(
             )
         except ChefArtifact.DoesNotExist:
             raise ValueError("Artifact not available or does not belong to you.")
+
+        effect_type = (chef_artifact.artifact.effect_type or "").lower().replace("defence", "defense")
+        action_effect_type = "attack" if action_type == BattleCombatAction.ActionType.ATTACK else "defense"
+        if effect_type != action_effect_type:
+            raise ValueError("Choose an attack artifact for an attack or a defence artifact for a defence.")
+
+        if chef_artifact.reserved_in_battle_id not in (None, battle.pk):
+            raise ValueError("This artifact is already assigned to another battle.")
+
+        if chef_artifact.reserved_in_battle_id is None:
+            loadout_count = ChefArtifact.objects.filter(
+                chef=chef,
+                reserved_in_battle=battle,
+                artifact__effect_type__iexact=effect_type,
+            ).count()
+            # Older catalog rows use the British spelling.  Count both forms
+            # when assembling a defence loadout.
+            if effect_type == "defense":
+                loadout_count = ChefArtifact.objects.filter(
+                    chef=chef,
+                    reserved_in_battle=battle,
+                    artifact__effect_type__in=("defense", "defence"),
+                ).count()
+            if loadout_count >= COMBAT_ARTIFACTS_PER_TYPE_LIMIT:
+                raise ValueError(
+                    f"You can bring at most {COMBAT_ARTIFACTS_PER_TYPE_LIMIT} "
+                    f"{action_effect_type} artifacts into one battle."
+                )
+            chef_artifact.reserved_in_battle = battle
+            chef_artifact.save(update_fields=["reserved_in_battle"])
 
     # Validate target ingredient: must belong to the opponent, not be locked, not already eliminated.
     target_ingredient = None

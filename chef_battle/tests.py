@@ -4363,6 +4363,33 @@ class CombatArtifactTests(TestCase):
         with self.assertRaises(ValueError):
             submit_combat_action(self.battle, self.chef_a, "attack", 3, artifact_id=self.chef_artifact.pk)
 
+    def test_fourth_attack_artifact_is_rejected_for_one_battle(self):
+        """A battle loadout has three attack slots, independent of inventory size."""
+        from .models import Artifact
+        from .services import submit_combat_action
+
+        extras = []
+        for index in range(3):
+            artifact = Artifact.objects.create(
+                name=f"Attack Reserve {index}", rarity=Artifact.Rarity.COMMON,
+                effect_type="attack", effect_value=1, token_cost=10,
+            )
+            extras.append(ChefArtifact.objects.create(
+                chef=self.chef_a, artifact=artifact, status=ChefArtifact.Status.AVAILABLE,
+            ))
+
+        # Reserve the initial artifact and two extras in separate, unlocked
+        # draft actions.  The fourth distinct attack artifact must be refused.
+        submit_combat_action(self.battle, self.chef_a, "attack", 1, artifact_id=self.chef_artifact.pk)
+        action = self.battle.combat_actions.get(chef=self.chef_a, round_number=1)
+        action.delete()
+        for chef_artifact in extras[:2]:
+            submit_combat_action(self.battle, self.chef_a, "attack", 1, artifact_id=chef_artifact.pk)
+            self.battle.combat_actions.get(chef=self.chef_a, round_number=1).delete()
+
+        with self.assertRaisesMessage(ValueError, "at most 3 attack artifacts"):
+            submit_combat_action(self.battle, self.chef_a, "attack", 1, artifact_id=extras[2].pk)
+
     def test_combat_without_artifact_unchanged(self):
         from .services import submit_combat_action
         action = submit_combat_action(self.battle, self.chef_a, "attack", 2)

@@ -1,5 +1,17 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.243",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Chef Battles: finite attack and defence loadouts",
+        "section": "Chef Battles / Combat",
+        "summary": (
+            "Each chef can bring at most three attack artifacts and three "
+            "defence artifacts into a battle. The server enforces the limit "
+            "and returns unused loadout items to inventory after the battle."
+        ),
+    },
+    {
         "version": "2.5.242",
         "date": "2026-07-16",
         "commit": "pending",
