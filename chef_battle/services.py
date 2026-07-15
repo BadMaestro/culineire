@@ -1433,7 +1433,7 @@ def send_battle_artifact(*, sender_user, recipient, battle: Battle, artifact: Ar
 
     Total cost = artifact.token_cost * 2 (artifact price + delivery fee).
     The artifact is locked to this battle: it must be used here and cannot be
-    carried to the chef's inventory. If unused when the battle ends it is expired.
+    carried in the chef's knife and tool roll. If unused when the battle ends it is expired.
     Multiple deliveries of the same artifact to the same chef are allowed.
     """
     if battle.status not in Battle.ACTIVE_STATUSES:
@@ -1442,6 +1442,8 @@ def send_battle_artifact(*, sender_user, recipient, battle: Battle, artifact: Ar
         raise ValueError("Recipient must be a participant in this battle.")
     if not artifact.is_active:
         raise ValueError("This artifact is not available.")
+    if artifact.rarity == Artifact.Rarity.LEGENDARY:
+        raise ValueError("Legendary artifacts are prize-only and cannot be bought.")
 
     sender_author = getattr(sender_user, "recipe_author", None)
     if sender_author is None:

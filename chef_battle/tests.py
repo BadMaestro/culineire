@@ -4390,6 +4390,36 @@ class CombatArtifactTests(TestCase):
         with self.assertRaisesMessage(ValueError, "at most 3 attack artifacts"):
             submit_combat_action(self.battle, self.chef_a, "attack", 1, artifact_id=extras[2].pk)
 
+    def test_spectator_buys_exact_nonlegendary_artifact_with_delivery_fee(self):
+        from .models import TokenTransaction, TokenWallet, ViewerBattleGift
+        from .services import credit_tokens, send_battle_artifact
+
+        credit_tokens(self.chef_a, 100, TokenTransaction.TxType.ADMIN_GRANT)
+        gift = send_battle_artifact(
+            sender_user=self.chef_a.user, recipient=self.chef_b,
+            battle=self.battle, artifact=self.artifact,
+        )
+        self.assertEqual(gift.artifact_id, self.artifact.pk)
+        self.assertEqual(gift.delivery_fee, 50)
+        self.assertEqual(gift.tokens_spent, 100)
+        self.assertTrue(ViewerBattleGift.objects.filter(pk=gift.pk).exists())
+        self.assertEqual(TokenWallet.objects.get(chef=self.chef_a).balance, 0)
+
+    def test_legendary_artifact_cannot_be_bought_as_battle_gift(self):
+        from .models import Artifact, TokenTransaction
+        from .services import credit_tokens, send_battle_artifact
+
+        legendary = Artifact.objects.create(
+            name="Prize-only Blade", rarity=Artifact.Rarity.LEGENDARY,
+            effect_type="attack", effect_value=60, token_cost=400,
+        )
+        credit_tokens(self.chef_a, 1000, TokenTransaction.TxType.ADMIN_GRANT)
+        with self.assertRaisesMessage(ValueError, "prize-only"):
+            send_battle_artifact(
+                sender_user=self.chef_a.user, recipient=self.chef_b,
+                battle=self.battle, artifact=legendary,
+            )
+
     def test_combat_without_artifact_unchanged(self):
         from .services import submit_combat_action
         action = submit_combat_action(self.battle, self.chef_a, "attack", 2)

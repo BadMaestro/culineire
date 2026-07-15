@@ -1349,10 +1349,13 @@ def battle_detail(request, pk):
         {"type": k, "label": AppreciationGiftType(k).label, "cost": v, "emoji": APPRECIATION_GIFT_EMOJI.get(k, "🎁")}
         for k, v in APPRECIATION_GIFT_COST.items()
     ]
-    artifact_rarities = [
-        {"rarity": r, "label": Artifact.Rarity(r).label, "cost": Artifact.RARITY_TOKEN_COST[r]}
-        for r in Artifact.Rarity.values
-    ]
+    # Spectators choose the exact combat artifact. Legendary items remain
+    # earned prizes and are never sold or delivered as paid battle gifts.
+    giftable_artifacts = list(
+        Artifact.objects.filter(is_active=True)
+        .exclude(rarity=Artifact.Rarity.LEGENDARY)
+        .order_by("rarity", "name")
+    )
     viewer_token_balance = 0
     if viewer_author:
         from .models import TokenWallet
@@ -1408,7 +1411,7 @@ def battle_detail(request, pk):
         "viewer_has_moved": viewer_has_moved,
         "opponent_has_moved": opponent_has_moved,
         "appreciation_gifts": appreciation_gifts,
-        "artifact_rarities": artifact_rarities,
+        "giftable_artifacts": giftable_artifacts,
         "viewer_token_balance": viewer_token_balance,
         "active_statuses": Battle.ACTIVE_STATUSES,
         "battle_participants": [battle.challenger, battle.opponent],
@@ -2059,10 +2062,8 @@ def send_viewer_battle_gift_view(request, pk):
 
     POST params:
       recipient_slug — slug of the chef to receive the artifact
-      rarity         — one of: common, uncommon, rare, epic, legendary
-                       A random active artifact of that rarity is selected.
+      artifact_id    — exact non-legendary artifact chosen by the viewer.
     """
-    import random
     from .models import Artifact
     from .services import send_battle_artifact
 
@@ -2084,10 +2085,10 @@ def send_viewer_battle_gift_view(request, pk):
 
     battle = get_object_or_404(Battle, pk=pk)
     recipient_slug = request.POST.get("recipient_slug", "")
-    rarity = request.POST.get("rarity", "")
-
-    if rarity not in Artifact.Rarity.values:
-        messages.error(request, "Invalid artifact rarity.")
+    try:
+        artifact_id = int(request.POST.get("artifact_id", ""))
+    except (TypeError, ValueError):
+        messages.error(request, "Choose an artifact to send.")
         return redirect("chef_battle:battle_detail", pk=pk)
 
     recipient = get_object_or_404(RecipeAuthor, slug=recipient_slug)
@@ -2095,12 +2096,14 @@ def send_viewer_battle_gift_view(request, pk):
         messages.error(request, "Invalid recipient.")
         return redirect("chef_battle:battle_detail", pk=pk)
 
-    # Pick a random active artifact of the requested rarity.
-    candidates = list(Artifact.objects.filter(is_active=True, rarity=rarity))
-    if not candidates:
-        messages.error(request, "No artifacts available at this rarity. Please try another tier.")
+    try:
+        artifact = Artifact.objects.get(pk=artifact_id, is_active=True)
+    except Artifact.DoesNotExist:
+        messages.error(request, "This artifact is not available.")
         return redirect("chef_battle:battle_detail", pk=pk)
-    artifact = random.choice(candidates)
+    if artifact.rarity == Artifact.Rarity.LEGENDARY:
+        messages.error(request, "Legendary artifacts are prize-only and cannot be bought.")
+        return redirect("chef_battle:battle_detail", pk=pk)
 
     try:
         send_battle_artifact(

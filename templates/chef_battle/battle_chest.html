@@ -1,7 +1,7 @@
 ﻿{% extends "base.html" %}
 {% load static %}
 
-{% block title %}Battle Chest | Chef Battles | CulinEire{% endblock %}
+{% block title %}Knife &amp; Tool Roll | Chef Battles | CulinEire{% endblock %}
 {% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">{% endblock %}
 
 {% block content %}
@@ -9,8 +9,8 @@
   <div class="container">
     <div class="battle-room-hero__copy">
       <p class="battle-kicker">Chef Battles Arena</p>
-      <h1>&#x1F4BC; Battle Chest</h1>
-      <p class="battle-room-hero__sub">Your personal artifact inventory. {{ total }} item{{ total|pluralize }} owned.</p>
+      <h1>&#x1F5FA; Knife &amp; Tool Roll</h1>
+      <p class="battle-room-hero__sub">Your personal combat artifact roll. {{ total }} item{{ total|pluralize }} owned.</p>
       <div class="battle-actions">
         {% include '_enter_arena_btn.html' %}
         <a class="btn-primary" href="{% url 'chef_battle:artifact_gallery' %}">Browse Artifacts</a>
@@ -118,7 +118,7 @@
 
     {% if not total %}
     <div class="empty-state" style="margin-top:3rem;">
-      <p>Your chest is empty. Win battles or receive gifts to earn combat artifacts.</p>
+      <p>Your knife and tool roll is empty. Win battles or receive gifts to earn combat artifacts.</p>
       <div style="margin-top:1rem;">
         <a class="btn-primary" href="{% url 'chef_battle:artifact_gallery' %}">View All Artifacts</a>
       </div>

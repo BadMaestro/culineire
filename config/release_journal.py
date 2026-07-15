@@ -1,5 +1,17 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.244",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Chef Battles: named spectator artifact delivery",
+        "section": "Chef Battles / Live gifts",
+        "summary": (
+            "Spectators now choose the exact non-legendary artifact for a chef, "
+            "with the item price and matching delivery fee shown before purchase. "
+            "Legendary artifacts remain prize-only; chefs carry artifacts in a knife and tool roll."
+        ),
+    },
+    {
         "version": "2.5.243",
         "date": "2026-07-16",
         "commit": "pending",
