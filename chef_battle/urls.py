@@ -53,6 +53,7 @@ urlpatterns = [
     path("battles/<int:pk>/combat/", views.battle_combat_action, name="battle_combat_action"),
     path("battles/<int:pk>/state/", views.battle_state_poll, name="battle_state_poll"),
     path("battles/<int:pk>/changing-room/", views.battle_changing_room, name="battle_changing_room"),
+    path("battles/<int:pk>/recipe/", views.battle_recipe_attach, name="battle_recipe_attach"),
     path("battles/<int:pk>/changing-room/declare/", views.battle_declare_menu, name="battle_declare_menu"),
     path("battles/<int:pk>/biathlon/", views.biathlon, name="biathlon"),
     path("battles/<int:pk>/biathlon/lock/", views.biathlon_lock, name="biathlon_lock"),

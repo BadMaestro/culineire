@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Attach Battle Recipe | CulinEire{% endblock %}
+{% block content %}
+<section class="page-section"><div class="container">
+  <h1>Choose your battle recipe</h1>
+  <p>This recipe supplies the ingredient lines for your Changing Room declaration.</p>
+  <form method="post" class="battle-form">{% csrf_token %}
+    {{ form.recipe.errors }}
+    <label for="{{ form.recipe.id_for_label }}">{{ form.recipe.label }}</label>
+    {{ form.recipe }}
+    <button class="btn-primary" type="submit">Attach recipe</button>
+  </form>
+  <p><a class="btn-secondary" href="{% url 'recipes:recipe_create' %}">Create a new recipe</a></p>
+</div></section>
+{% endblock %}

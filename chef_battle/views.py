@@ -26,7 +26,7 @@ from recipes.authoring import get_author_for_user
 from recipes.models import RecipeAuthor
 
 from .access import arena_console_guard, chef_battle_guard, is_battle_visible
-from .forms import BattleChallengeForm, BattleEntryForm
+from .forms import BattleChallengeForm, BattleEntryForm, BattleRecipeAttachForm
 from .fraud import (
     gate_account_age,
     gate_age_verified,
@@ -2508,6 +2508,15 @@ def battle_changing_room(request, pk):
         raise PermissionDenied
     if battle.status != Battle.Status.MENU_LOCKED:
         return redirect("chef_battle:battle_detail", pk=pk)
+    entry = battle.entries.filter(author=viewer_author).first()
+    if not entry or not entry.recipe:
+        messages.info(request, "Attach your recipe before declaring your battle ingredients.")
+        return redirect("chef_battle:battle_recipe_attach", pk=pk)
+    recipe_ingredient_lines = [
+        {"index": index, "text": line.strip()}
+        for index, line in enumerate(entry.recipe.ingredients.splitlines())
+        if line.strip()
+    ]
 
     my_ingredients = list(
         battle.battle_ingredients.filter(chef=viewer_author).order_by("position")
@@ -2523,7 +2532,30 @@ def battle_changing_room(request, pk):
         "min_count": BattleIngredient.MIN_COUNT,
         "max_count": BattleIngredient.MAX_COUNT,
         "key_count": BattleIngredient.KEY_COUNT,
+        "recipe_ingredient_lines": recipe_ingredient_lines,
     })
+
+
+@login_required
+def battle_recipe_attach(request, pk):
+    battle = get_object_or_404(Battle, pk=pk)
+    author = get_author_for_user(request.user)
+    if not author or not battle.author_is_participant(author):
+        raise PermissionDenied
+    if battle.status not in {Battle.Status.SCHEDULED, Battle.Status.MENU_LOCKED}:
+        return redirect(battle.get_absolute_url())
+    entry = battle.entries.filter(author=author).first()
+    if request.method == "POST":
+        form = BattleRecipeAttachForm(request.POST, author=author)
+        if form.is_valid():
+            entry, _ = BattleEntry.objects.get_or_create(battle=battle, author=author)
+            entry.recipe = form.cleaned_data["recipe"]
+            entry.save(update_fields=["recipe", "updated_at"])
+            messages.success(request, "Recipe attached. You can now declare your battle ingredients.")
+            return redirect("chef_battle:battle_changing_room", pk=pk)
+    else:
+        form = BattleRecipeAttachForm(author=author, initial={"recipe": entry.recipe_id if entry else None})
+    return render(request, "chef_battle/recipe_attach.html", {"battle": battle, "form": form})
 
 
 @login_required
@@ -2536,12 +2568,18 @@ def battle_declare_menu(request, pk):
     if not viewer_author or not battle.author_is_participant(viewer_author):
         raise PermissionDenied
 
-    # Parse posted ingredient names and keys
-    names = request.POST.getlist("ingredient_name")
-    keys = set(request.POST.getlist("ingredient_key"))  # positions marked as key
+    entry = battle.entries.filter(author=viewer_author).select_related("recipe").first()
+    if not entry or not entry.recipe:
+        messages.error(request, "Attach your recipe before declaring ingredients.")
+        return redirect("chef_battle:battle_recipe_attach", pk=pk)
+    recipe_lines = entry.recipe.ingredients.splitlines()
+    selected = [int(value) for value in request.POST.getlist("ingredient_index") if value.isdigit()]
+    selected = [index for index in selected if 0 <= index < len(recipe_lines) and recipe_lines[index].strip()]
+    names = [recipe_lines[index].strip() for index in selected]
+    keys = set(request.POST.getlist("ingredient_key"))
     ingredients = [
-        {"name": name, "is_key": str(i) in keys}
-        for i, name in enumerate(names)
+        {"name": name, "is_key": str(index) in keys}
+        for index, name in zip(selected, names)
     ]
     try:
         declare_menu(battle=battle, chef=viewer_author, ingredients=ingredients)

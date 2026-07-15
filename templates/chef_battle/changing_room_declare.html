@@ -94,6 +94,16 @@
       {% csrf_token %}
 
       <div class="cr-ingredient-builder" id="cr-builder">
+        {% for ingredient in recipe_ingredient_lines %}
+        <div class="cr-ingredient-row" data-index="{{ forloop.counter0 }}">
+          <input type="checkbox" name="ingredient_index" value="{{ forloop.counter0 }}" class="cr-key-check">
+          <span class="cr-row-num">{{ forloop.counter }}</span>
+          <span class="cr-ingredient-input">{{ ingredient }}</span>
+          <label class="cr-key-label"><input type="checkbox" name="ingredient_key" value="{{ forloop.counter0 }}" class="cr-key-check"> &#x1F512; Lock</label>
+        </div>
+        {% endfor %}
+      </div>
+      <div hidden>
         {% for i in "12345"|make_list %}
         <div class="cr-ingredient-row" data-index="{{ forloop.counter0 }}">
           <span class="cr-row-num">{{ forloop.counter }}</span>
@@ -112,6 +122,7 @@
           <button type="button" class="cr-remove-btn" aria-label="Remove">&#x2715;</button>
         </div>
         {% endfor %}
+      </div>
       </div>
 
       <div class="cr-form-actions">

@@ -89,3 +89,12 @@ class BattleEntryForm(forms.ModelForm):
             entry.full_clean()
             entry.save()
         return entry
+
+
+class BattleRecipeAttachForm(forms.Form):
+    recipe = forms.ModelChoiceField(queryset=Recipe.objects.none(), label="Recipe for this battle")
+
+    def __init__(self, *args, author=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["recipe"].queryset = Recipe.objects.filter(author=author, is_deleted=False).order_by("-created_at")
+        self.fields["recipe"].widget.attrs["class"] = "authoring-control"
