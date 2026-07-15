@@ -2477,10 +2477,10 @@ def battle_set_ready(request, pk):
         battle.status = Battle.Status.MENU_LOCKED
         battle.save(update_fields=["challenger_ready", "opponent_ready", "status", "updated_at"])
         create_battle_event(
-            battle,
-            event_type="status_change",
-            note="Both chefs ready — battle advanced to menu declaration phase.",
-            author=author,
+            event_type=BattleEvent.EventType.MENU_LOCKED,
+            battle=battle,
+            actor=author,
+            message="Both chefs ready — battle advanced to menu declaration phase.",
         )
         messages.success(request, "Both chefs are ready! Declare your ingredients now.")
     else:

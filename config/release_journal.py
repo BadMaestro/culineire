@@ -1,5 +1,21 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.233",
+        "date": "2026-07-15",
+        "commit": "pending",
+        "title": "Fix battle_set_ready 500 (Chef's Road lifecycle blocker #1)",
+        "section": "Chef Battles / Lifecycle",
+        "summary": (
+            "First backend blocker on the end-to-end Chef's Road: pressing Ready "
+            "500'd because battle_set_ready called create_battle_event with a "
+            "positional battle arg (the signature is keyword-only) and the wrong "
+            "kwargs (note= / author= instead of message= / actor=), plus an "
+            "invalid event_type string. Fixed the call and added a MENU_LOCKED "
+            "BattleEvent.EventType (migration 0077). Both chefs ready now advances "
+            "SCHEDULED -> MENU_LOCKED cleanly. Test added."
+        ),
+    },
+    {
         "version": "2.5.232",
         "date": "2026-07-15",
         "commit": "pending",

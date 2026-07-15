@@ -392,6 +392,7 @@ class BattleEvent(models.Model):
         CHALLENGE_REFUSED = "challenge_refused", "Challenge Refused"
         CHALLENGE_EXPIRED = "challenge_expired", "Challenge Expired"
         BATTLE_STARTED = "battle_started", "Battle Started"
+        MENU_LOCKED = "menu_locked", "Menu Locked (both ready)"
         ENTRY_SUBMITTED = "entry_submitted", "Entry Submitted"
         BATTLE_REVEALED = "battle_revealed", "Battle Revealed"
         VOTE_CAST = "vote_cast", "Vote Cast"

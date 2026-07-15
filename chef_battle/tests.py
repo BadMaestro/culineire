@@ -5860,3 +5860,40 @@ class ArenaSnapshotTests(TestCase):
         r = self.client.get("/chef-battle/master/live-arena/preview/")
         self.assertEqual(r.status_code, 200)
         self.assertIn("Irish Comfort", r.content.decode())
+
+
+class BattleSetReadyTests(TestCase):
+    """Chef 'Ready' flow: both ready -> MENU_LOCKED without the create_battle_event 500."""
+
+    def setUp(self):
+        from django.test import Client
+        from .models import Battle
+        U = get_user_model()
+        self.uc = U.objects.create_user("ready-ch", password="pw")
+        self.uo = U.objects.create_user("ready-op", password="pw")
+        self.ch = RecipeAuthor.objects.create(user=self.uc, name="ReadyCh", slug="ready-ch")
+        self.op = RecipeAuthor.objects.create(user=self.uo, name="ReadyOp", slug="ready-op")
+        self.battle = Battle.objects.create(
+            challenger=self.ch, opponent=self.op, theme="T",
+            status=Battle.Status.SCHEDULED,
+            submission_deadline=timezone.now(), end_time=timezone.now())
+
+    def test_both_ready_advances_to_menu_locked(self):
+        from .models import Battle, BattleEvent
+        c = Client()
+        c.force_login(self.uc)
+        r1 = c.post(f"/chef-battle/battles/{self.battle.pk}/ready/")
+        self.assertEqual(r1.status_code, 302)
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.SCHEDULED)  # waiting for opponent
+        self.assertTrue(self.battle.challenger_ready)
+
+        c2 = Client()
+        c2.force_login(self.uo)
+        r2 = c2.post(f"/chef-battle/battles/{self.battle.pk}/ready/")
+        self.assertEqual(r2.status_code, 302)  # no 500
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.MENU_LOCKED)
+        self.assertTrue(
+            BattleEvent.objects.filter(battle=self.battle,
+                                       event_type=BattleEvent.EventType.MENU_LOCKED).exists())
