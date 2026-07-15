@@ -50,10 +50,21 @@ Local regression run on 2026-07-15: `BattleSetReadyTests` and
 | Cooking moderation/submission | `chef_battle/urls.py:60-62`, `chef_battle/views.py:1861-1920`, `chef_battle/services.py:1207-1230` | Moderator moves the battle to `cooking`; only participants can submit a confirmed photo. |
 | Presentation/voting/completion | `chef_battle/selectors.py:199-207` | Selector exposes the intended status sequence; browser pass must confirm every participant CTA. |
 
-Static candidate, not yet a confirmed defect: `fire_ingredient_shot()` creates a
-shot at `chef_battle/services.py:1103-1131` without rejecting a target index
-already used by an earlier shot. The rules should decide whether repeat shots
-are legal before this is filed as a bug.
+## Static continuation: cooking to rewards
+
+| Stage | Next step / guard | Source |
+| --- | --- | --- |
+| Cooking upload | Participant POSTs a photo and must confirm it is real; upload is stored as pending moderation and does not itself publish the entry. | `chef_battle/views.py:1889-1920`; `chef_battle/services.py:1302-1335` |
+| Presentation | Owner moderation promotes an approved entry to presentation; the detail page renders the revealed entries. | `chef_battle/services.py:2662`; `templates/chef_battle/battle_detail.html:195-204` |
+| Voting | Only revealed entries can be voted on. The vote endpoint accepts `active` or `voting`, and fraud/duplicate gates run before persistence. | `chef_battle/views.py:1487-1568`; `templates/chef_battle/battle_detail.html:288-299` |
+| Completion / ceremony | Result calculation moves the battle to completed; the detail page renders winner/score panels. | `chef_battle/services.py:410-435`; `templates/chef_battle/battle_detail.html:214-250` |
+| Rankings and Hall of Fame | Read-only public/guarded destinations after a completed battle. | `chef_battle/views.py:1571-1588,1927-1957`; `chef_battle/urls.py:43,63` |
+| Payout | Signed-in chef must have an author and reward agreement; eligibility is checked again on POST before a request is created. | `chef_battle/views.py:2157-2206`; `chef_battle/urls.py:70-71` |
+
+Biathlon repeat-shot rule: the lifecycle specification says the winner strikes
+three ingredients (`docs/chef_battle/battle_lifecycle.md:46-48`) but does not
+say that targets must be distinct. The implementation therefore remains a
+product-rule question, not a defect: `chef_battle/services.py:1103-1131`.
 
 ## Current next actions
 
