@@ -68,6 +68,22 @@ class ChefBattleServiceTests(TestCase):
         self.assertEqual(battle.opponent, self.chef_b)
         self.assertEqual(battle.events.count(), 2)
 
+    def test_accept_challenge_attaches_challenger_recipe_without_submitting_dish(self):
+        from recipes.models import Recipe
+        recipe = Recipe.objects.create(
+            title="Challenger dish", slug="challenger-dish", author=self.chef_a,
+            ingredients="lamb\npotatoes", method="Cook.", status=Recipe.Status.APPROVED,
+        )
+        challenge = self._challenge()
+        challenge.theme_recipe = recipe
+        challenge.save(update_fields=["theme_recipe"])
+
+        battle = accept_challenge(challenge)
+        entry = BattleEntry.objects.get(battle=battle, author=self.chef_a)
+
+        self.assertEqual(entry.recipe, recipe)
+        self.assertIsNone(entry.dish_submitted_at)
+
     def test_refuse_challenge_records_reputation_penalty(self):
         challenge = self._challenge()
 
@@ -5922,3 +5938,61 @@ class BattleEntrySubmitGuardTests(TestCase):
         r = self.client.post(f"/chef-battle/battles/{self.battle.pk}/submit/", {})
         self.assertEqual(r.status_code, 302)  # redirected by lifecycle guard, not processed
         self.assertEqual(self.battle.entries.count(), 0)
+
+    def test_submission_keeps_pre_attached_recipe_for_video(self):
+        from recipes.models import Recipe
+        from .forms import BattleEntryForm
+        recipe = Recipe.objects.create(
+            title="Attached dish", slug="attached-dish", author=self.ch,
+            ingredients="potato", method="Cook.", status=Recipe.Status.APPROVED)
+        entry = BattleEntry.objects.create(battle=self.battle, author=self.ch, recipe=recipe)
+
+        form = BattleEntryForm(
+            {"content_type": "video", "battle_statement": "Ready"},
+            instance=entry, author=self.ch, battle=self.battle)
+
+        self.assertTrue(form.is_valid(), form.errors)
+        saved = form.save()
+        self.assertEqual(saved.recipe_id, recipe.pk)
+        self.assertIsNotNone(saved.dish_submitted_at)
+
+
+class BiathlonRecipeSourceIndexTests(TestCase):
+    """Biathlon indices must remain stable when a recipe contains blank lines."""
+
+    def setUp(self):
+        from recipes.models import Recipe
+        User = get_user_model()
+        self.winner = RecipeAuthor.objects.create(
+            user=User.objects.create_user("source-winner", password="pw"),
+            name="Source Winner", slug="source-winner")
+        self.loser = RecipeAuthor.objects.create(
+            user=User.objects.create_user("source-loser", password="pw"),
+            name="Source Loser", slug="source-loser")
+        self.battle = Battle.objects.create(
+            challenger=self.winner, opponent=self.loser, theme="Source index",
+            status=Battle.Status.INGREDIENT_PENALTY, winner=self.winner, loser=self.loser,
+            submission_deadline=timezone.now(), end_time=timezone.now())
+        self.recipe = Recipe.objects.create(
+            title="Spaced ingredients", slug="spaced-ingredients", author=self.loser,
+            ingredients="eggs\n\nflour\nbutter", method="Mix.",
+            status=Recipe.Status.APPROVED)
+        self.battle.entries.create(author=self.loser, recipe=self.recipe)
+
+    def test_locks_shots_and_survivors_use_original_recipe_line_indices(self):
+        from .services import (
+            fire_ingredient_shot, get_biathlon_state, get_surviving_ingredients,
+            place_ingredient_lock,
+        )
+
+        place_ingredient_lock(battle=self.battle, chef=self.loser, ingredient_index=2)
+        shot = fire_ingredient_shot(battle=self.battle, shooter=self.winner, target_index=3)
+        state = get_biathlon_state(self.battle)
+
+        self.assertFalse(shot.bounced)
+        self.assertEqual(state["ingredients"], [
+            {"index": 0, "text": "eggs"},
+            {"index": 2, "text": "flour"},
+            {"index": 3, "text": "butter"},
+        ])
+        self.assertEqual(get_surviving_ingredients(self.battle, self.loser), ["eggs", "flour"])

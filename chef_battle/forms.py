@@ -64,6 +64,7 @@ class BattleEntryForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.author = author
         self.battle = battle
+        self._attached_recipe_id = self.instance.recipe_id if self.instance.pk else None
         self.fields["recipe"].queryset = Recipe.objects.filter(author=author, status=Recipe.Status.APPROVED, is_deleted=False).order_by("-created_at")
         for field in self.fields.values():
             if not isinstance(field.widget, forms.RadioSelect):
@@ -71,19 +72,20 @@ class BattleEntryForm(forms.ModelForm):
 
     def clean(self):
         cleaned = super().clean()
-        content_type = cleaned.get("content_type")
         recipe = cleaned.get("recipe")
 
-        if content_type == "photo" and not recipe:
+        if not recipe and not self._attached_recipe_id:
             self.add_error("recipe", "Choose a recipe for this battle.")
+        elif self._attached_recipe_id and recipe and recipe.pk != self._attached_recipe_id:
+            self.add_error("recipe", "The recipe is locked after you attach it for this battle.")
         return cleaned
 
     def save(self, commit=True):
         entry = super().save(commit=False)
         entry.author = self.author
         entry.battle = self.battle
-        if self.cleaned_data.get("content_type") != "photo":
-            entry.recipe = None
+        if self._attached_recipe_id:
+            entry.recipe_id = self._attached_recipe_id
         entry.dish_submitted_at = timezone.now()
         if commit:
             entry.full_clean()

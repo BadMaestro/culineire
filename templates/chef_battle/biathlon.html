@@ -46,9 +46,9 @@
     {% if not state.loser_locks_done %}
     <ol class="biathlon-ingredient-list">
       {% for ingredient in state.ingredients %}
-      {% with forloop.counter0 as idx %}
+      {% with ingredient.index as idx %}
       <li class="biathlon-ingredient{% if idx in state.locks %} biathlon-ingredient--locked{% endif %}">
-        <span class="biathlon-ingredient__text">{{ ingredient }}</span>
+        <span class="biathlon-ingredient__text">{{ ingredient.text }}</span>
         {% if idx in state.locks %}
         <span class="biathlon-ingredient__badge">&#x1F512; Locked</span>
         {% else %}
@@ -85,9 +85,9 @@
     {% elif not state.winner_shots_done %}
     <ol class="biathlon-ingredient-list">
       {% for ingredient in state.ingredients %}
-      {% with forloop.counter0 as idx %}
+      {% with ingredient.index as idx %}
       <li class="biathlon-ingredient{% if idx in state.shot_indices %} biathlon-ingredient--shot{% endif %}">
-        <span class="biathlon-ingredient__text">{{ ingredient }}</span>
+        <span class="biathlon-ingredient__text">{{ ingredient.text }}</span>
         {% if idx in state.shot_indices %}
           {% for shot in state.shots %}
           {% if shot.target_index == idx %}
@@ -114,9 +114,9 @@
     <h3 style="margin-block: 1rem 0.5rem;">Results</h3>
     <ol class="biathlon-ingredient-list">
       {% for ingredient in state.ingredients %}
-      {% with forloop.counter0 as idx %}
+      {% with ingredient.index as idx %}
       <li class="biathlon-ingredient{% if idx in state.shot_indices %} biathlon-ingredient--shot{% endif %}">
-        <span class="biathlon-ingredient__text">{{ ingredient }}</span>
+        <span class="biathlon-ingredient__text">{{ ingredient.text }}</span>
         {% if idx in state.shot_indices %}
           {% for shot in state.shots %}{% if shot.target_index == idx %}
           {% if shot.bounced %}

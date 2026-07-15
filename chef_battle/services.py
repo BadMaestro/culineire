@@ -176,6 +176,16 @@ def accept_challenge(challenge: BattleChallenge) -> Battle:
             end_time=end_time,
         )
 
+        # The challenger chose this recipe when issuing the challenge.  Attach
+        # it as soon as the battle exists; attaching a recipe is deliberately
+        # not the same event as submitting the cooked dish.
+        if challenge.theme_recipe_id:
+            BattleEntry.objects.create(
+                battle=battle,
+                author=challenge.challenger,
+                recipe=challenge.theme_recipe,
+            )
+
         create_battle_event(
             event_type=BattleEvent.EventType.CHALLENGE_ACCEPTED,
             challenge=challenge,
@@ -1078,6 +1088,20 @@ def declare_menu(*, battle: Battle, chef, ingredients: list[dict]) -> list[Battl
 
 # ── Biathlon ─────────────────────────────────────────────────────────────────
 
+def recipe_source_ingredient_lines(recipe) -> list[dict]:
+    """Return non-empty recipe ingredients while preserving their source indices.
+
+    Locks, shots and declared menu ingredients persist the line number from the
+    original recipe text.  Never compact this sequence: blank lines must not
+    silently retarget an existing lock or shot.
+    """
+    return [
+        {"index": index, "text": line.strip()}
+        for index, line in enumerate(recipe.ingredients.splitlines())
+        if line.strip()
+    ]
+
+
 def place_ingredient_lock(*, battle: Battle, chef, ingredient_index: int) -> IngredientLock:
     """Loser places a hidden lock on one of their ingredient lines."""
     if battle.status != Battle.Status.INGREDIENT_PENALTY:
@@ -1090,8 +1114,10 @@ def place_ingredient_lock(*, battle: Battle, chef, ingredient_index: int) -> Ing
     loser_entry = battle.entries.filter(author=chef).select_related("recipe").first()
     if not loser_entry or not loser_entry.recipe:
         raise ValueError("No recipe found for this entry.")
-    ingredients = [line for line in loser_entry.recipe.ingredients.splitlines() if line.strip()]
-    if ingredient_index < 0 or ingredient_index >= len(ingredients):
+    ingredient_indices = {
+        line["index"] for line in recipe_source_ingredient_lines(loser_entry.recipe)
+    }
+    if ingredient_index not in ingredient_indices:
         raise ValueError("Invalid ingredient index.")
     lock, created = IngredientLock.objects.get_or_create(
         battle=battle, chef=chef, ingredient_index=ingredient_index
@@ -1116,8 +1142,11 @@ def fire_ingredient_shot(*, battle: Battle, shooter, target_index: int) -> Ingre
     loser_entry = battle.entries.filter(author=loser).select_related("recipe").first()
     if not loser_entry or not loser_entry.recipe:
         raise ValueError("No loser recipe found.")
-    ingredients = [line for line in loser_entry.recipe.ingredients.splitlines() if line.strip()]
-    if target_index < 0 or target_index >= len(ingredients):
+    ingredients = {
+        line["index"]: line["text"]
+        for line in recipe_source_ingredient_lines(loser_entry.recipe)
+    }
+    if target_index not in ingredients:
         raise ValueError("Invalid ingredient index.")
     locked_indices = set(
         battle.ingredient_locks.filter(chef=loser).values_list("ingredient_index", flat=True)
@@ -1150,7 +1179,7 @@ def get_biathlon_state(battle: Battle) -> dict:
     loser_entry = battle.entries.filter(author=loser).select_related("recipe").first() if loser else None
     ingredients = []
     if loser_entry and loser_entry.recipe:
-        ingredients = [line for line in loser_entry.recipe.ingredients.splitlines() if line.strip()]
+        ingredients = recipe_source_ingredient_lines(loser_entry.recipe)
     locks = list(battle.ingredient_locks.filter(chef=loser).values_list("ingredient_index", flat=True))
     shots = list(battle.ingredient_shots.filter(shooter=winner).values("target_index", "bounced", "fired_at"))
     shot_indices = {s["target_index"] for s in shots}
@@ -1192,17 +1221,15 @@ def get_surviving_ingredients(battle: Battle, chef) -> list:
     )
     if not entry or not entry.recipe:
         return []
-    all_ingredients = [
-        line for line in entry.recipe.ingredients.splitlines() if line.strip()
-    ]
+    all_ingredients = recipe_source_ingredient_lines(entry.recipe)
     if battle.loser and chef.pk == battle.loser.pk:
         eliminated = set(
             battle.ingredient_shots
             .filter(bounced=False)
             .values_list("target_index", flat=True)
         )
-        return [ing for i, ing in enumerate(all_ingredients) if i not in eliminated]
-    return all_ingredients
+        return [line["text"] for line in all_ingredients if line["index"] not in eliminated]
+    return [line["text"] for line in all_ingredients]
 
 
 def approve_cooking_phase(battle: Battle, moderator) -> Battle:
