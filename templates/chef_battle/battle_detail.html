@@ -148,10 +148,6 @@
           {% else %}
           <p class="bd-phase-panel__body">&#x1F9E5; Declare your secret ingredient list in the Changing Room before combat begins.</p>
           <a class="btn-primary bd-phase-panel__cta" href="{% url 'chef_battle:battle_changing_room' battle.pk %}">Go to Changing Room &rarr;</a>
-          {% if can_submit %}
-          <p class="bd-phase-panel__body" style="margin-top:.6rem;">When your menu is set, submit the recipe you will cook:</p>
-          <a class="btn-secondary bd-phase-panel__cta" href="{% url 'chef_battle:battle_entry_submit' battle.pk %}">Submit Your Recipe &rarr;</a>
-          {% endif %}
           {% endif %}
         {% else %}
         <p class="bd-phase-panel__body">The chefs are declaring their recipes. The battle begins soon.</p>
