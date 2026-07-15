@@ -1,5 +1,19 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.239",
+        "date": "2026-07-15",
+        "commit": "pending",
+        "title": "Chef Road: recipe lifecycle and source-index biathlon",
+        "section": "Chef Battles / Core journey",
+        "summary": (
+            "A challenger recipe is attached when the challenge is accepted, "
+            "without counting as a dish submission. Attached recipes remain "
+            "stable through dish submission. Biathlon locks and shots now use "
+            "the original recipe line indices, so blank lines cannot retarget "
+            "ingredient actions."
+        ),
+    },
+    {
         "version": "2.5.235",
         "date": "2026-07-15",
         "commit": "pending",
