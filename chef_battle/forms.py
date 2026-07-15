@@ -84,6 +84,7 @@ class BattleEntryForm(forms.ModelForm):
         entry.battle = self.battle
         if self.cleaned_data.get("content_type") != "photo":
             entry.recipe = None
+        entry.dish_submitted_at = timezone.now()
         if commit:
             entry.full_clean()
             entry.save()

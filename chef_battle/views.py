@@ -1319,7 +1319,7 @@ def battle_detail(request, pk):
     can_submit = bool(
         viewer_author
         and battle.author_is_participant(viewer_author)
-        and not viewer_entry
+        and not (viewer_entry and viewer_entry.dish_submitted_at)
         and battle.status in {Battle.Status.MENU_LOCKED, Battle.Status.ACTIVE, Battle.Status.VOTING}
         and timezone.now() <= battle.submission_deadline
     )
@@ -1432,7 +1432,8 @@ def battle_entry_submit(request, pk):
     if battle.status in (Battle.Status.SCHEDULED, Battle.Status.MENU_LOCKED):
         messages.error(request, "Declare your menu and finish combat before submitting your dish.")
         return redirect(battle.get_absolute_url())
-    if battle.entries.filter(author=author).exists():
+    entry = battle.entries.filter(author=author).first()
+    if entry and entry.dish_submitted_at:
         messages.warning(request, "You have already submitted an entry for this battle.")
         return redirect(battle.get_absolute_url())
     if timezone.now() > battle.submission_deadline:
@@ -1440,7 +1441,7 @@ def battle_entry_submit(request, pk):
         return redirect(battle.get_absolute_url())
 
     if request.method == "POST":
-        form = BattleEntryForm(request.POST, author=author, battle=battle)
+        form = BattleEntryForm(request.POST, instance=entry, author=author, battle=battle)
         if form.is_valid():
             entry = form.save()
             reveal_entries_if_ready(battle)
@@ -1455,7 +1456,7 @@ def battle_entry_submit(request, pk):
             messages.success(request, "Battle entry submitted.")
             return redirect(battle.get_absolute_url())
     else:
-        form = BattleEntryForm(author=author, battle=battle)
+        form = BattleEntryForm(instance=entry, author=author, battle=battle)
 
     return render(request, "chef_battle/entry_form.html", {"battle": battle, "form": form})
 

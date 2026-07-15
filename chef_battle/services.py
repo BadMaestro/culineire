@@ -384,13 +384,14 @@ def submit_battle_entry(*, battle: Battle, author, recipe=None, article=None, ba
         article=article,
         battle_statement=battle_statement,
         is_late=is_late,
+        dish_submitted_at=now,
     )
     return entry
 
 
 def reveal_entries_if_ready(battle: Battle) -> None:
-    entries = list(battle.entries.all())
-    both_submitted = len(entries) == 2
+    entries = battle.entries.filter(dish_submitted_at__isnull=False)
+    both_submitted = entries.count() == 2
     deadline_passed = timezone.now() >= battle.submission_deadline
 
     if battle.status == Battle.Status.MENU_LOCKED:

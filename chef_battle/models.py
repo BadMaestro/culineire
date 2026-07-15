@@ -243,6 +243,12 @@ class BattleEntry(models.Model):
     article = models.ForeignKey(Article, on_delete=models.SET_NULL, null=True, blank=True, related_name="battle_entries")
     battle_statement = models.TextField(blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True)
+    dish_submitted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="When the chef submitted the finished battle dish; recipe attachment alone is not a dish submission.",
+    )
     is_revealed = models.BooleanField(default=False)
     is_late = models.BooleanField(default=False)
     cooked_photo = models.ImageField(upload_to="chef_battle/cooked/", null=True, blank=True)
