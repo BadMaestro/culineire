@@ -48,11 +48,10 @@ Reviewer: GreenBear (live walk as CrestedTen). Severity: HIGH / MED / LOW.
 - **LOW** — ingredient inputs are plain dark boxes; lock affordance ("🔒 Lock") is small.
 
 ## Cross-cutting (every page)
-- **HIGH** — The floating "Chef Battles Arena" menu panel appears on many pages and
-  **overlaps/clips primary content** (gifts, loadout, ingredient form). Needs a proper
-  responsive placement or to be folded into the real nav.
-- **HIGH** — Broken emoji glyphs (□) recur ("Battle Chest", "Changing Room"). Replace
-  the emoji with the owned SVG icon set.
+- ~~The floating "Chef Battles Arena" menu panel~~ — **NOT a bug. Owner-intentional
+  floating quick-nav (owner/god-user only). Do NOT "fix" or reposition it.**
+- **HIGH** — Broken emoji glyphs (□) recur ("Battle Chest" &#x1F4BC;, "Changing Room"
+  &#x1F9E5;). Some systems don't render these emoji — replace with the owned SVG icon set.
 - **MED** — Two visual worlds: the new Live Arena is premium dark broadcast; the rest of
   Chef Battles is pale beige/cream. Unify toward the broadcast system.
 
