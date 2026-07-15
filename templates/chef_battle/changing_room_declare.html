@@ -10,7 +10,7 @@
     {% include '_enter_arena_btn.html' %}
     <p class="battle-kicker battle-kicker--active">&#x1F9E5; Changing Room &middot; Declare Your Menu</p>
     <h1 class="battle-room-title">{{ battle.theme }}</h1>
-    <p class="battle-room-meta">vs {{ battle.opponent.name if request.user == battle.challenger.user else battle.challenger.name }}</p>
+    <p class="battle-room-meta">vs {% if request.user == battle.challenger.user %}{{ battle.opponent.name }}{% else %}{{ battle.challenger.name }}{% endif %}</p>
   </div>
 </section>
 
@@ -98,7 +98,7 @@
 
 </div>
 
-<script>
+<script nonce="{{ request.csp_nonce }}">
 (function () {
   const MIN = {{ min_count }};
   const MAX = {{ max_count }};

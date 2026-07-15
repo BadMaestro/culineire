@@ -141,14 +141,18 @@
       <div class="bd-phase-panel bd-phase-panel--menu-locked">
         <p class="bd-phase-panel__icon">&#x1F4CB;</p>
         <h2 class="bd-phase-panel__title">Declare Your Recipe</h2>
-        {% if can_submit %}
-        <p class="bd-phase-panel__body">Submit the recipe you will cook for this battle. Your entry stays hidden until both chefs have submitted or the deadline passes.</p>
-        <a class="btn-primary bd-phase-panel__cta" href="{% url 'chef_battle:battle_entry_submit' battle.pk %}">Submit Your Recipe &rarr;</a>
-        {% elif viewer_entry %}
-        <p class="bd-phase-panel__body">&#x2705; Recipe submitted. Waiting for your opponent.</p>
-        {% elif is_participant %}
-        <p class="bd-phase-panel__body">&#x1F9E5; Declare your secret ingredient list before combat begins.</p>
-        <a class="btn-primary bd-phase-panel__cta" href="{% url 'chef_battle:battle_changing_room' battle.pk %}">Go to Changing Room &rarr;</a>
+        {% if is_participant %}
+          {% if viewer_entry %}
+          <p class="bd-phase-panel__body">&#x2705; Recipe submitted. Waiting for your opponent.</p>
+          <a class="btn-secondary bd-phase-panel__cta" href="{% url 'chef_battle:battle_changing_room' battle.pk %}">Review your menu &rarr;</a>
+          {% else %}
+          <p class="bd-phase-panel__body">&#x1F9E5; Declare your secret ingredient list in the Changing Room before combat begins.</p>
+          <a class="btn-primary bd-phase-panel__cta" href="{% url 'chef_battle:battle_changing_room' battle.pk %}">Go to Changing Room &rarr;</a>
+          {% if can_submit %}
+          <p class="bd-phase-panel__body" style="margin-top:.6rem;">When your menu is set, submit the recipe you will cook:</p>
+          <a class="btn-secondary bd-phase-panel__cta" href="{% url 'chef_battle:battle_entry_submit' battle.pk %}">Submit Your Recipe &rarr;</a>
+          {% endif %}
+          {% endif %}
         {% else %}
         <p class="bd-phase-panel__body">The chefs are declaring their recipes. The battle begins soon.</p>
         {% endif %}
