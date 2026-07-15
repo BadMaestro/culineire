@@ -1,5 +1,19 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.235",
+        "date": "2026-07-15",
+        "commit": "pending",
+        "title": "Chef Road: block dish submit in pre-combat phases (lifecycle guard)",
+        "section": "Chef Battles / Lifecycle",
+        "summary": (
+            "battle_entry_submit had no status check, so a chef could submit the "
+            "dish entry during scheduled/menu_locked, skipping combat. Added a "
+            "lifecycle guard rejecting submission in the pre-combat phases so the "
+            "UI hiding the button and the server agree. Confirms the menu_locked "
+            "next-step is the Changing Room only. Test added."
+        ),
+    },
+    {
         "version": "2.5.233",
         "date": "2026-07-15",
         "commit": "pending",

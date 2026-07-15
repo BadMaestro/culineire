@@ -5897,3 +5897,28 @@ class BattleSetReadyTests(TestCase):
         self.assertTrue(
             BattleEvent.objects.filter(battle=self.battle,
                                        event_type=BattleEvent.EventType.MENU_LOCKED).exists())
+
+
+class BattleEntrySubmitGuardTests(TestCase):
+    """Dish entry cannot be submitted in pre-combat phases (lifecycle continuity)."""
+
+    def setUp(self):
+        from django.test import Client
+        from .models import Battle
+        U = get_user_model()
+        u = U.objects.create_user("submit-ch", password="pw")
+        self.ch = RecipeAuthor.objects.create(user=u, name="SubmitCh", slug="submit-ch")
+        self.op = RecipeAuthor.objects.create(
+            user=U.objects.create_user("submit-op", password="pw"), name="SubmitOp", slug="submit-op")
+        self.battle = Battle.objects.create(
+            challenger=self.ch, opponent=self.op, theme="T",
+            status=Battle.Status.MENU_LOCKED,
+            submission_deadline=timezone.now() + timezone.timedelta(hours=1),
+            end_time=timezone.now() + timezone.timedelta(hours=1))
+        self.client = Client(); self.client.force_login(u)
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_submit_blocked_in_menu_locked(self):
+        r = self.client.post(f"/chef-battle/battles/{self.battle.pk}/submit/", {})
+        self.assertEqual(r.status_code, 302)  # redirected by lifecycle guard, not processed
+        self.assertEqual(self.battle.entries.count(), 0)

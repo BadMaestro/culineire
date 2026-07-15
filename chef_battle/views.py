@@ -1426,6 +1426,12 @@ def battle_entry_submit(request, pk):
     battle = get_object_or_404(Battle, pk=pk)
     if not battle.author_is_participant(author):
         raise PermissionDenied
+    # Lifecycle guard: the dish entry is submitted after combat, never in the
+    # pre-combat phases. Keeps the Chef's Road ordered (declare menu + combat
+    # first) so the UI hiding the button and the server agree.
+    if battle.status in (Battle.Status.SCHEDULED, Battle.Status.MENU_LOCKED):
+        messages.error(request, "Declare your menu and finish combat before submitting your dish.")
+        return redirect(battle.get_absolute_url())
     if battle.entries.filter(author=author).exists():
         messages.warning(request, "You have already submitted an entry for this battle.")
         return redirect(battle.get_absolute_url())
