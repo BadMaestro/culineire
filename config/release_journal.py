@@ -1,5 +1,19 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.232",
+        "date": "2026-07-15",
+        "commit": "pending",
+        "title": "Master Console: safely delete unscored test battles",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "Added an owner-only Delete Test Battle control for the dark-launch "
+            "console. It permanently removes an unscored test battle, its "
+            "dependent events, reactions and linked challenge. The action is "
+            "disabled when Chef Battles is public and refuses scored battles, "
+            "protecting chef ratings, crowns and move ledgers."
+        ),
+    },
+    {
         "version": "2.5.230",
         "date": "2026-07-15",
         "commit": "pending",

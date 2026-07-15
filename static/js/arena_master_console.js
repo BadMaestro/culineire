@@ -363,6 +363,13 @@
       if (!cancelReason) return;
       fields.action = 'cancel';
       fields.reason = cancelReason;
+    } else if (kind === 'delete_test_battle') {
+      if (!window.confirm(
+        'DELETE TEST BATTLE #' + primary.id + '? This permanently removes the unscored '
+        + 'test battle, its events, reactions and linked challenge. It is only available '
+        + 'while Chef Battles is in test mode.'
+      )) return;
+      fields.action = 'delete_test_battle';
     } else {
       return;
     }

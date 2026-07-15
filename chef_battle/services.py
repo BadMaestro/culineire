@@ -2515,6 +2515,48 @@ def operator_cancel(*, battle_id, operator_author, reason, correlation_id=""):
     return battle
 
 
+def operator_delete_test_battle(*, battle_id, operator_author, correlation_id=""):
+    """Permanently remove unscored test data from the dark-launch console.
+
+    This is unavailable once Chef Battles is public. A scored result changes
+    chef profiles and move ledgers, so only battles without a winner or crown
+    can be erased safely. The linked challenge is removed as well, keeping the
+    test console and challenge inboxes clean.
+    """
+    _require_owner(operator_author)
+    if getattr(settings, "CHEF_BATTLE_ENABLED", False):
+        raise OperatorActionError(
+            "Test battle deletion is only available while Chef Battles is in test mode."
+        )
+
+    with transaction.atomic():
+        battle = _locked_battle(battle_id, expected_status=None)
+        if battle.winner_id or battle.loser_id or battle.crown_awarded:
+            raise OperatorActionError(
+                "This battle has a scored result and cannot be deleted safely."
+            )
+
+        deleted = {
+            "id": battle.pk,
+            "theme": battle.theme,
+            "status": battle.status,
+            "challenge_id": battle.challenge_id,
+        }
+        if battle.challenge_id:
+            BattleChallenge.objects.select_for_update().filter(
+                pk=battle.challenge_id
+            ).delete()
+        battle.delete()
+
+    logger.warning(
+        "Owner %s deleted unscored test battle #%s (correlation=%s).",
+        operator_author.slug,
+        deleted["id"],
+        correlation_id,
+    )
+    return deleted
+
+
 def operator_broadcast(*, operator_author, message, battle_id=None, correlation_id=""):
     """Owner-only public announcement into the battle event feed.
 

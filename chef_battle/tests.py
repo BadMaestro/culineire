@@ -2599,6 +2599,62 @@ class ArenaMasterActionTests(TestCase):
                        battle_id=done.pk, reason="x").status_code, 409)
 
     # ── broadcast ──
+    def test_test_battle_deletion_is_disabled_when_battles_are_public(self):
+        battle = self._battle(Battle.Status.CANCELLED)
+
+        response = self._post(
+            self.owner_user, action="delete_test_battle", battle_id=battle.pk,
+        )
+
+        self.assertEqual(response.status_code, 409)
+        battle.refresh_from_db()
+
+    @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_owner_deletes_unscored_test_battle_and_linked_challenge(self):
+        challenge = BattleChallenge.objects.create(
+            challenger=self.chef_a,
+            opponent=self.chef_b,
+            theme="Disposable test battle",
+            expires_at=timezone.now() + timezone.timedelta(hours=48),
+            status=BattleChallenge.Status.ACCEPTED,
+        )
+        battle = self._battle(Battle.Status.CANCELLED)
+        battle.challenge = challenge
+        battle.save(update_fields=["challenge"])
+        BattleEvent.objects.create(
+            battle=battle,
+            event_type=BattleEvent.EventType.BATTLE_STARTED,
+            message="Test-only event.",
+        )
+
+        response = self._post(
+            self.owner_user,
+            action="delete_test_battle",
+            battle_id=battle.pk,
+            correlation_id="delete-test-battle",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["deleted"]["id"], battle.pk)
+        self.assertFalse(Battle.objects.filter(pk=battle.pk).exists())
+        self.assertFalse(BattleChallenge.objects.filter(pk=challenge.pk).exists())
+        self.assertFalse(BattleEvent.objects.filter(battle_id=battle.pk).exists())
+
+    @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_scored_test_battle_cannot_be_deleted(self):
+        battle = self._battle(Battle.Status.COMPLETED)
+        battle.winner = self.chef_a
+        battle.loser = self.chef_b
+        battle.crown_awarded = True
+        battle.save(update_fields=["winner", "loser", "crown_awarded"])
+
+        response = self._post(
+            self.owner_user, action="delete_test_battle", battle_id=battle.pk,
+        )
+
+        self.assertEqual(response.status_code, 409)
+        self.assertTrue(Battle.objects.filter(pk=battle.pk).exists())
+
     def test_broadcast_creates_public_event(self):
         battle = self._battle()
         resp = self._post(self.owner_user, action="broadcast",

@@ -2565,6 +2565,7 @@ def master_console(request):
     return render(request, "chef_battle/arena_master_console.html", {
         "operator_author": author,
         "operator_is_owner": bool(author and author.slug == settings.OWNER_SLUG),
+        "console_test_mode": not settings.CHEF_BATTLE_ENABLED,
         "master_state": state,
         "primary_battle": state["battles"][0] if state["battles"] else None,
         "arena_data": {
@@ -2603,7 +2604,8 @@ def master_action(request):
 
     from .services import (
         OperatorActionError, operator_broadcast, operator_cancel,
-        operator_clear_fraud_flag, operator_emergency_stop, operator_end_stream,
+        operator_clear_fraud_flag, operator_delete_test_battle,
+        operator_emergency_stop, operator_end_stream,
         operator_force_status, operator_moderate_entry, operator_resume,
         operator_review_payout, operator_review_report, operator_set_fraud_flag,
         operator_submit_battle_report, operator_suspend_chef, operator_unsuspend_chef,
@@ -2654,7 +2656,7 @@ def master_action(request):
 
     id_fields = {
         "force_status": "battle_id", "emergency_stop": "battle_id",
-        "resume": "battle_id", "cancel": "battle_id",
+        "resume": "battle_id", "cancel": "battle_id", "delete_test_battle": "battle_id",
         "moderate_entry": "entry_id", "review_report": "report_id",
         "end_stream": "session_id",
     }
@@ -2696,6 +2698,14 @@ def master_action(request):
                 battle_id=parsed_id, operator_author=author,
                 reason=reason, correlation_id=correlation_id,
             )
+        elif action == "delete_test_battle":
+            deleted = operator_delete_test_battle(
+                battle_id=parsed_id, operator_author=author,
+                correlation_id=correlation_id,
+            )
+            return JsonResponse({"ok": True, "action": action,
+                                 "correlation_id": correlation_id,
+                                 "deleted": deleted})
         elif action == "moderate_entry":
             entry = operator_moderate_entry(
                 entry_id=parsed_id,

@@ -180,6 +180,10 @@
                   title="Resume a paused battle to its pre-pause phase">Resume</button>
           <button type="button" class="amc-btn amc-btn--danger" data-amc-action="cancel"
                   title="Cancel the battle permanently">End Battle</button>
+          {% if console_test_mode %}
+          <button type="button" class="amc-btn amc-btn--danger" data-amc-action="delete_test_battle"
+                  title="Permanently remove an unscored test battle and its linked challenge">Delete Test Battle</button>
+          {% endif %}
         </div>
         <h4 class="amc-panel__subtitle">Emulation</h4>
         <div class="amc-panel__actions">
