@@ -1,5 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.245",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Chef Battles: visible artifact Move effects",
+        "section": "Chef Battles / Knife and tool roll",
+        "summary": (
+            "Every artifact card in a chef's knife and tool roll now displays "
+            "its actual combat effect, such as Attack +5 Move or Defence +10 Move."
+        ),
+    },
+    {
         "version": "2.5.244",
         "date": "2026-07-16",
         "commit": "pending",

@@ -51,7 +51,7 @@
             <p class="artifact-card__rarity">{{ ca.artifact.get_rarity_display }}</p>
             <h3 class="artifact-card__name">{{ ca.artifact.name }}</h3>
             <p class="artifact-card__desc">{{ ca.artifact.description }}</p>
-            <p class="artifact-card__effect"><span class="artifact-card__effect-label">Effect:</span> {{ ca.artifact.effect }}</p>
+            <p class="artifact-card__effect"><span class="artifact-card__effect-label">Effect:</span> {{ ca.artifact.effect_label }}</p>
           </div>
         </article>
         {% endfor %}
@@ -81,6 +81,7 @@
             <p class="artifact-card__rarity">{{ ca.artifact.get_rarity_display }}</p>
             <h3 class="artifact-card__name">{{ ca.artifact.name }}</h3>
             <p class="artifact-card__desc">{{ ca.artifact.description }}</p>
+            <p class="artifact-card__effect"><span class="artifact-card__effect-label">Effect:</span> {{ ca.artifact.effect_label }}</p>
             <p style="font-size:0.78rem;color:var(--muted);margin:0.3rem 0 0;">Reserved for active battle</p>
           </div>
         </article>
@@ -108,6 +109,7 @@
           <div class="artifact-card__body">
             <p class="artifact-card__rarity">{{ ca.artifact.get_rarity_display }}</p>
             <h3 class="artifact-card__name" style="opacity:0.6;">{{ ca.artifact.name }}</h3>
+            <p class="artifact-card__effect"><span class="artifact-card__effect-label">Effect:</span> {{ ca.artifact.effect_label }}</p>
             <p style="font-size:0.78rem;color:var(--muted);margin:0;">{{ ca.get_status_display }}</p>
           </div>
         </article>

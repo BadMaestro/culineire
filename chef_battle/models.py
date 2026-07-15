@@ -497,6 +497,18 @@ class Artifact(models.Model):
     is_active = models.BooleanField(default=True)
     image = models.ImageField(upload_to="chef_battle/artifacts/", blank=True)
 
+    @property
+    def effect_label(self):
+        """Human-readable combat effect for every artifact card."""
+        effect_type = (self.effect_type or "").strip().lower()
+        labels = {
+            "attack": "Attack",
+            "defence": "Defence",
+            "defense": "Defence",
+        }
+        label = labels.get(effect_type, effect_type.replace("_", " ").title() or "Effect")
+        return f"{label} +{self.effect_value} Move"
+
     def __str__(self):
         return self.name
 

@@ -4420,6 +4420,9 @@ class CombatArtifactTests(TestCase):
                 battle=self.battle, artifact=legendary,
             )
 
+    def test_artifact_effect_label_includes_type_value_and_move(self):
+        self.assertEqual(self.artifact.effect_label, "Attack +5 Move")
+
     def test_combat_without_artifact_unchanged(self):
         from .services import submit_combat_action
         action = submit_combat_action(self.battle, self.chef_a, "attack", 2)
