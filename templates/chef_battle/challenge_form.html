@@ -102,6 +102,12 @@
         <div class="battle-form-section">
           <p class="battle-form-section__title">Theme and message</p>
           <div class="battle-form__field">
+            <label class="battle-form__label" for="{{ form.theme_recipe.id_for_label }}">{{ form.theme_recipe.label }}</label>
+            {{ form.theme_recipe }}
+            <p class="battle-form__help">{{ form.theme_recipe.help_text }}</p>
+            {% for e in form.theme_recipe.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
+          </div>
+          <div class="battle-form__field">
             <label class="battle-form__label" for="{{ form.theme.id_for_label }}">{{ form.theme.label }}</label>
             {{ form.theme }}
             <p class="battle-form__help">One compelling sentence. The Chefs and audience should understand the challenge instantly.</p>

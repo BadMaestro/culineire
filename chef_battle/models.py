@@ -110,6 +110,14 @@ class BattleChallenge(models.Model):
 
     challenger = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="sent_battle_challenges")
     opponent = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="received_battle_challenges")
+    theme_recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="themed_battle_challenges",
+        help_text="Recipe that inspired the challenge theme; it is never reused as the opponent's battle entry.",
+    )
     theme = models.CharField(max_length=180)
     message = models.TextField(blank=True)
     battle_type = models.CharField(max_length=16, choices=BattleType.choices, default=BattleType.PHOTO)

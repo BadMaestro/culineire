@@ -11,7 +11,7 @@ from .models import BattleChallenge, BattleEntry
 class BattleChallengeForm(forms.ModelForm):
     class Meta:
         model = BattleChallenge
-        fields = ("opponent", "theme", "battle_type", "message", "proposed_start_time")
+        fields = ("opponent", "theme_recipe", "theme", "battle_type", "message", "proposed_start_time")
         widgets = {
             "message": forms.Textarea(attrs={"rows": 4}),
             "proposed_start_time": forms.DateTimeInput(attrs={"type": "datetime-local"}),
@@ -21,6 +21,12 @@ class BattleChallengeForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.challenger = challenger
         self.fields["opponent"].queryset = RecipeAuthor.objects.filter(user__isnull=False).exclude(pk=getattr(challenger, "pk", None)).order_by("name")
+        self.fields["theme_recipe"].queryset = Recipe.objects.filter(
+            author=challenger, is_deleted=False
+        ).order_by("-created_at")
+        self.fields["theme_recipe"].required = True
+        self.fields["theme_recipe"].label = "Your recipe for this battle"
+        self.fields["theme_recipe"].help_text = "Your opponent will create or attach their own recipe after accepting."
         self.fields["theme"].widget.attrs.setdefault("placeholder", "Best Modern Irish Lamb Dish")
         for field in self.fields.values():
             field.widget.attrs.setdefault("class", "authoring-control")
