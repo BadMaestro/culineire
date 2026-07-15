@@ -169,7 +169,7 @@
         <p class="bd-phase-panel__icon">&#x1F3AF;</p>
         <h2 class="bd-phase-panel__title">Biathlon Phase</h2>
         {% if is_participant %}
-        <p class="bd-phase-panel__body">The combat winner fires shots at the loser's ingredient list. Head to the Biathlon Arena to lock or shoot.</p>
+        <p class="bd-phase-panel__body">Biathlon time: the combat <strong>winner fires shots</strong> at the loser's ingredients, and the <strong>loser locks 2</strong> to protect them. Head to the Biathlon Arena to take your move.</p>
         <a class="btn-primary bd-phase-panel__cta battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:biathlon' battle.pk %}">Go to Biathlon &rarr;</a>
         {% else %}
         <p class="bd-phase-panel__body">The combat winner is firing shots at the loser's ingredients.</p>
@@ -206,6 +206,7 @@
         {% else %}
         <h2 class="bd-phase-panel__title">Vote for Your Favourite Chef</h2>
         <p class="bd-phase-panel__body">One vote per person. Voting closes {{ battle.voting_deadline|date:"j M Y" }}. The audience decides the winner.</p>
+        <a class="btn-primary bd-phase-panel__cta" href="#battle-entries">Cast your vote &darr;</a>
         {% endif %}
       </div>
 
@@ -277,7 +278,7 @@
       </div>
 
       {% if entries %}
-      <div class="battle-entry-grid">
+      <div class="battle-entry-grid" id="battle-entries">
         {% for entry in entries %}
         <article class="battle-entry">
           <p class="battle-card__status">{{ entry.author.name }}</p>
