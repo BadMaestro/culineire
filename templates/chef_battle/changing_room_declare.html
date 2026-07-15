@@ -48,7 +48,41 @@
     <a class="btn-secondary bd-phase-panel__cta" href="{% url 'chef_battle:battle_detail' battle.pk %}">Back to Battle Room</a>
   </div>
 
+  {% elif recipe_ingredient_lines %}
+  {# Recipe-based declare (core): ingredients come from the chef's attached recipe. #}
+  <div class="bd-phase-panel bd-phase-panel--changing-room">
+    <p class="bd-phase-panel__icon">&#x1F9E5;</p>
+    <h2 class="bd-phase-panel__title">Declare Your Menu</h2>
+    <p class="bd-phase-panel__body">
+      These are the ingredients from <strong>your recipe</strong>. Choose which go into battle
+      ({{ min_count }}&ndash;{{ max_count }}) and lock exactly {{ key_count }} &mdash; locked
+      ingredients are hidden from your opponent and cannot be eliminated during combat.
+    </p>
+
+    <form method="post" action="{% url 'chef_battle:battle_declare_menu' battle.pk %}" id="cr-recipe-form">
+      {% csrf_token %}
+      <ul class="cr-recipe-list" id="cr-recipe-list">
+        {% for line in recipe_ingredient_lines %}
+        <li class="cr-recipe-item" data-index="{{ line.index }}">
+          <label class="cr-inc">
+            <input type="checkbox" name="ingredient_index" value="{{ line.index }}" class="cr-inc-check" checked>
+            <span class="cr-recipe-name">{{ line.text }}</span>
+          </label>
+          <label class="cr-lock">
+            <input type="checkbox" name="ingredient_key" value="{{ line.index }}" class="cr-lock-check">
+            &#x1F512; Lock
+          </label>
+        </li>
+        {% endfor %}
+      </ul>
+
+      <p class="cr-key-hint" id="cr-rk-hint"></p>
+      <button type="submit" class="btn-primary cr-submit-btn" id="cr-rk-submit">Lock In My Menu &rarr;</button>
+    </form>
+  </div>
+
   {% else %}
+  {# Fallback (pre recipe-core, or no recipe attached): free-text ingredient builder. #}
   <div class="bd-phase-panel bd-phase-panel--changing-room">
     <p class="bd-phase-panel__icon">&#x1F9E5;</p>
     <h2 class="bd-phase-panel__title">Declare Your Ingredients</h2>
@@ -103,6 +137,41 @@
   const MIN = {{ min_count }};
   const MAX = {{ max_count }};
   const KEY_REQUIRED = {{ key_count }};
+
+  // ── Recipe-based declare (core) ──────────────────────────────────────────
+  const recipeList = document.getElementById('cr-recipe-list');
+  if (recipeList) {
+    const rkHint = document.getElementById('cr-rk-hint');
+    const rkSubmit = document.getElementById('cr-rk-submit');
+    const items = () => recipeList.querySelectorAll('.cr-recipe-item');
+
+    function rkUpdate() {
+      let included = 0, locked = 0;
+      items().forEach(function (li) {
+        const inc = li.querySelector('.cr-inc-check');
+        const lock = li.querySelector('.cr-lock-check');
+        // A lock only applies to an included ingredient.
+        if (lock.checked && !inc.checked) inc.checked = true;
+        if (inc.checked) included++;
+        if (lock.checked) locked++;
+        li.classList.toggle('cr-recipe-item--locked', lock.checked);
+        li.classList.toggle('cr-recipe-item--out', !inc.checked);
+      });
+      let msg = '', cls = 'cr-key-hint', ok = true;
+      if (included < MIN) { msg = 'Select at least ' + MIN + ' ingredients (' + included + ' chosen).'; cls += ' cr-key-hint--warn'; ok = false; }
+      else if (included > MAX) { msg = 'Too many — max ' + MAX + ' (' + included + ' chosen).'; cls += ' cr-key-hint--error'; ok = false; }
+      else if (locked < KEY_REQUIRED) { msg = 'Lock ' + (KEY_REQUIRED - locked) + ' more ingredient(s).'; cls += ' cr-key-hint--warn'; ok = false; }
+      else if (locked > KEY_REQUIRED) { msg = 'Too many locked — unlock ' + (locked - KEY_REQUIRED) + '.'; cls += ' cr-key-hint--error'; ok = false; }
+      else { msg = included + ' ingredients, ' + KEY_REQUIRED + ' locked. Ready to submit.'; cls += ' cr-key-hint--ok'; }
+      if (rkHint) { rkHint.textContent = msg; rkHint.className = cls; }
+      if (rkSubmit) rkSubmit.disabled = !ok;
+    }
+    recipeList.addEventListener('change', rkUpdate);
+    rkUpdate();
+    return;
+  }
+
+  // ── Fallback: free-text builder ──────────────────────────────────────────
   const builder = document.getElementById('cr-builder');
   const addBtn  = document.getElementById('cr-add-btn');
   const counter = document.getElementById('cr-counter');
