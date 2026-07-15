@@ -39,6 +39,22 @@ test chefs.
 Local regression run on 2026-07-15: `BattleSetReadyTests` and
 `DeclareMenuServiceTests` — 12 tests passed.
 
+## Code route map (static pass)
+
+| Route / transition | Source of truth | QA reading |
+| --- | --- | --- |
+| Challenge create/respond | `chef_battle/urls.py:44-46`, `chef_battle/views.py:1179,1266` | Start and opponent-response endpoints are present. |
+| Ready → menu lock | `chef_battle/urls.py:64`, `chef_battle/views.py:2450-2494` | Both participant flags are required before `menu_locked`. |
+| Changing Room declaration | `chef_battle/urls.py:55-56`, `chef_battle/views.py:2502-2550`, `chef_battle/services.py:1014-1075` | Participant-only, final declaration; both declarations set `active`. |
+| Biathlon | `chef_battle/urls.py:57-59`, `chef_battle/views.py:1812-1863`, `chef_battle/services.py:1080-1141` | Endpoint is gated to `ingredient_penalty`; locks and shots are POST-only. |
+| Cooking moderation/submission | `chef_battle/urls.py:60-62`, `chef_battle/views.py:1861-1920`, `chef_battle/services.py:1207-1230` | Moderator moves the battle to `cooking`; only participants can submit a confirmed photo. |
+| Presentation/voting/completion | `chef_battle/selectors.py:199-207` | Selector exposes the intended status sequence; browser pass must confirm every participant CTA. |
+
+Static candidate, not yet a confirmed defect: `fire_ingredient_shot()` creates a
+shot at `chef_battle/services.py:1103-1131` without rejecting a target index
+already used by an earlier shot. The rules should decide whether repeat shots
+are legal before this is filed as a bug.
+
 ## Current next actions
 
 1. Re-run CrestedTen/Jam through Changing Room on v2.5.234 when a signed-in
