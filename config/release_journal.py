@@ -1,5 +1,22 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.229",
+        "date": "2026-07-15",
+        "commit": "pending",
+        "title": "Live arena preview: fix leaked comment + collapsed video stage",
+        "section": "Chef Battles / Live Arena",
+        "summary": (
+            "Two visible preview bugs fixed while GreenBear was rate-limited. "
+            "(1) The SVG sprite include used a multi-line {# #} comment, which "
+            "Django only supports single-line, so it rendered as literal text at "
+            "the top of the arena; switched to {% comment %}{% endcomment %}. "
+            "(2) The fit-to-screen media query let the dual video stage collapse "
+            "to near-zero height because the tall matchup portraits ate the "
+            "vertical space; capped portrait height to 132px and gave the stage a "
+            "40vh minimum so the video panels stay the dominant broadcast block."
+        ),
+    },
+    {
         "version": "2.5.227",
         "date": "2026-07-15",
         "commit": "pending",

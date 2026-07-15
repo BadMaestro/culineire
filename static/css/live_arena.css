@@ -29,7 +29,10 @@
     margin-block:10px; }
   .lap:not(.lap--winner) .lap__ribbon { flex:0 0 auto; margin-bottom:8px; }
   .lap:not(.lap--winner) .lap__match { flex:0 0 auto; }
-  .lap:not(.lap--winner) .lap__stage { flex:1 1 auto; min-height:0; margin-top:10px; }
+  /* Compact portraits so the matchup header stays short and the video stage
+     (the broadcast focal point) keeps the majority of the vertical space. */
+  .lap:not(.lap--winner) .lap__portrait { aspect-ratio:auto; height:132px; }
+  .lap:not(.lap--winner) .lap__stage { flex:1 1 auto; min-height:40vh; margin-top:10px; }
   .lap:not(.lap--winner) .lap__panel { aspect-ratio:auto; height:100%; min-height:0; }
   .lap:not(.lap--winner) .lap__chat { flex:0 0 auto; margin-top:24px; }
   .lap:not(.lap--winner) .lap__msgs,
