@@ -754,7 +754,7 @@ def submit_combat_action(
     Moves are NOT deducted yet — only on resolve.
     Raises ValueError on invalid input.
     """
-    if battle.status not in (Battle.Status.ACTIVE, Battle.Status.AWAITING_SUBMISSIONS):
+    if battle.status != Battle.Status.ACTIVE:
         raise ValueError("Combat actions are only allowed during an active battle.")
 
     if not battle.author_is_participant(chef):
@@ -988,17 +988,23 @@ def _resolve_round(battle: Battle, round_number: int) -> BattleRound | None:
             log_message=log_msg,
         )
 
-        # End combat phase when any chef reaches hits_to_win
+        # End combat phase when any chef reaches hits_to_win.  The combat
+        # winner immediately drives the recipe biathlon; do not leave a real
+        # battle in the legacy awaiting_submissions state with no winner.
         if new_c_hits >= COMBAT_HITS_TO_WIN or new_o_hits >= COMBAT_HITS_TO_WIN:
-            battle.status = Battle.Status.AWAITING_SUBMISSIONS
-            battle.save(update_fields=["status", "updated_at"])
+            if new_c_hits > new_o_hits:
+                battle.winner, battle.loser = battle.challenger, battle.opponent
+            else:
+                battle.winner, battle.loser = battle.opponent, battle.challenger
+            battle.status = Battle.Status.INGREDIENT_PENALTY
+            battle.save(update_fields=["winner", "loser", "status", "updated_at"])
             create_battle_event(
                 battle=battle,
                 event_type=BattleEvent.EventType.BATTLE_STARTED,
                 message=(
                     f"Combat phase complete! "
                     f"{battle.challenger.name} {new_c_hits}:{new_o_hits} {battle.opponent.name}. "
-                    f"Chefs now prepare their dishes."
+                    f"Ingredient biathlon is now open."
                 ),
             )
 

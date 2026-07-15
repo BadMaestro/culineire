@@ -186,16 +186,6 @@ def emulation_step(*, battle_id, operator_author, correlation_id="") -> dict:
             battle.refresh_from_db()
             rounds += 1
         last = battle.combat_rounds.order_by("-round_number").first()
-        # Combat decided who fires in the biathlon: record winner/loser and
-        # open the ingredient-penalty phase (the step the owner otherwise
-        # drives manually; no domain service owns this transition yet).
-        if last and battle.status == Battle.Status.AWAITING_SUBMISSIONS:
-            if last.challenger_hits >= last.opponent_hits:
-                battle.winner, battle.loser = alpha, beta
-            else:
-                battle.winner, battle.loser = beta, alpha
-            battle.status = Battle.Status.INGREDIENT_PENALTY
-            battle.save(update_fields=["winner", "loser", "status", "updated_at"])
         detail = {
             "note": f"combat resolved in {rounds} round(s)",
             "hits": f"{last.challenger_hits}:{last.opponent_hits}" if last else "0:0",

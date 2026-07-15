@@ -4368,6 +4368,17 @@ class CombatArtifactTests(TestCase):
         action = submit_combat_action(self.battle, self.chef_a, "attack", 2)
         self.assertIsNone(action.artifact_used_id)
 
+    def test_combat_winner_opens_recipe_biathlon(self):
+        from .services import submit_combat_action
+        for _ in range(3):
+            submit_combat_action(self.battle, self.chef_a, "attack", 5)
+            submit_combat_action(self.battle, self.chef_b, "defend", 1)
+
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.INGREDIENT_PENALTY)
+        self.assertEqual(self.battle.winner, self.chef_a)
+        self.assertEqual(self.battle.loser, self.chef_b)
+
     def test_battle_detail_context_includes_available_artifacts(self):
         self.client.force_login(self.chef_a.user)
         resp = self.client.get(reverse("chef_battle:battle_detail", args=[self.battle.pk]))
@@ -5938,6 +5949,12 @@ class BattleEntrySubmitGuardTests(TestCase):
         r = self.client.post(f"/chef-battle/battles/{self.battle.pk}/submit/", {})
         self.assertEqual(r.status_code, 302)  # redirected by lifecycle guard, not processed
         self.assertEqual(self.battle.entries.count(), 0)
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_menu_locked_detail_hides_submit_entry_action(self):
+        r = self.client.get(f"/chef-battle/battles/{self.battle.pk}/")
+        self.assertEqual(r.status_code, 200)
+        self.assertNotContains(r, "Submit Entry")
 
     def test_submission_keeps_pre_attached_recipe_for_video(self):
         from recipes.models import Recipe
