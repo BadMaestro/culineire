@@ -899,50 +899,56 @@ def _resolve_round(battle: Battle, round_number: int) -> BattleRound | None:
     prev_c_hits = prev.challenger_hits if prev else 0
     prev_o_hits = prev.opponent_hits if prev else 0
 
-    c_hit_landed = False
-    o_hit_landed = False
+    # A round is won by the chef whose committed Move power (plus any
+    # matching artifact) is higher.  A defender who withstands an attack
+    # therefore wins the round; defence is a real competitive choice, not a
+    # passive way to deny the attacker a point.
+    c_round_won = False
+    o_round_won = False
 
     if c_is_attacker and not o_is_attacker:
         # Challenger attacks, opponent defends
         if c_power > o_power * 1.5:
             outcome = BattleRound.Outcome.FULL_HIT
-            c_hit_landed = True
+            c_round_won = True
         elif c_power > o_power:
             outcome = BattleRound.Outcome.PARTIAL_HIT
-            c_hit_landed = True
+            c_round_won = True
         else:
             outcome = BattleRound.Outcome.BLOCKED
+            o_round_won = True
         attacker, defender = battle.challenger, battle.opponent
         attack_power, defence_power = c_power, o_power
     elif o_is_attacker and not c_is_attacker:
         # Opponent attacks, challenger defends
         if o_power > c_power * 1.5:
             outcome = BattleRound.Outcome.FULL_HIT
-            o_hit_landed = True
+            o_round_won = True
         elif o_power > c_power:
             outcome = BattleRound.Outcome.PARTIAL_HIT
-            o_hit_landed = True
+            o_round_won = True
         else:
             outcome = BattleRound.Outcome.BLOCKED
+            c_round_won = True
         attacker, defender = battle.opponent, battle.challenger
         attack_power, defence_power = o_power, c_power
     else:
         # Both attack or both defend — clash
         if c_power > o_power:
             outcome = BattleRound.Outcome.FULL_HIT
-            c_hit_landed = True
+            c_round_won = True
             attacker, defender = battle.challenger, battle.opponent
         elif o_power > c_power:
             outcome = BattleRound.Outcome.FULL_HIT
-            o_hit_landed = True
+            o_round_won = True
             attacker, defender = battle.opponent, battle.challenger
         else:
             outcome = BattleRound.Outcome.DRAW
             attacker, defender = battle.challenger, battle.opponent
         attack_power, defence_power = max(c_power, o_power), min(c_power, o_power)
 
-    new_c_hits = prev_c_hits + (1 if c_hit_landed else 0)
-    new_o_hits = prev_o_hits + (1 if o_hit_landed else 0)
+    new_c_hits = prev_c_hits + (1 if c_round_won else 0)
+    new_o_hits = prev_o_hits + (1 if o_round_won else 0)
 
     # Build log message
     outcome_labels = {
@@ -964,12 +970,12 @@ def _resolve_round(battle: Battle, round_number: int) -> BattleRound | None:
 
         # Eliminate targeted ingredients on successful hits
         now = timezone.now()
-        if c_hit_landed and challenger_action.target_ingredient_id:
+        if c_round_won and challenger_action.target_ingredient_id:
             BattleIngredient.objects.filter(
                 pk=challenger_action.target_ingredient_id,
                 is_key=False, is_eliminated=False,
             ).update(is_eliminated=True, eliminated_at=now, eliminated_by=battle.challenger)
-        if o_hit_landed and opponent_action.target_ingredient_id:
+        if o_round_won and opponent_action.target_ingredient_id:
             BattleIngredient.objects.filter(
                 pk=opponent_action.target_ingredient_id,
                 is_key=False, is_eliminated=False,
@@ -998,7 +1004,10 @@ def _resolve_round(battle: Battle, round_number: int) -> BattleRound | None:
         # End combat phase when any chef reaches hits_to_win.  The combat
         # winner immediately drives the recipe biathlon; do not leave a real
         # battle in the legacy awaiting_submissions state with no winner.
-        if new_c_hits >= COMBAT_HITS_TO_WIN or new_o_hits >= COMBAT_HITS_TO_WIN:
+        if (
+            max(new_c_hits, new_o_hits) >= COMBAT_HITS_TO_WIN
+            and new_c_hits != new_o_hits
+        ):
             if new_c_hits > new_o_hits:
                 battle.winner, battle.loser = battle.challenger, battle.opponent
             else:

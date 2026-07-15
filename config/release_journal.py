@@ -1,5 +1,18 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.242",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Chef Battles: artifact power decides every combat round",
+        "section": "Chef Battles / Combat",
+        "summary": (
+            "Combat now compares each chef's committed Move power plus the "
+            "matching attack or defence artifact bonus. A stronger defender "
+            "wins the round and receives the point; tied totals are bonus "
+            "rounds until a chef leads after reaching three wins."
+        ),
+    },
+    {
         "version": "2.5.241",
         "date": "2026-07-15",
         "commit": "pending",

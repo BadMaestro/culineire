@@ -4368,6 +4368,30 @@ class CombatArtifactTests(TestCase):
         action = submit_combat_action(self.battle, self.chef_a, "attack", 2)
         self.assertIsNone(action.artifact_used_id)
 
+    def test_stronger_defence_wins_the_round_and_scores_a_point(self):
+        from .models import Artifact, BattleRound, ChefArtifact
+        from .services import submit_combat_action
+        apron = Artifact.objects.create(
+            name="Common Apron", rarity=Artifact.Rarity.COMMON,
+            effect_type="defence", effect_value=5, token_cost=10,
+        )
+        defender_artifact = ChefArtifact.objects.create(
+            chef=self.chef_b, artifact=apron, status=ChefArtifact.Status.AVAILABLE,
+        )
+
+        # 3 Move + Apple Corer attack(5) loses to 4 Move + Apron defence(5).
+        submit_combat_action(
+            self.battle, self.chef_a, "attack", 3, artifact_id=self.chef_artifact.pk)
+        submit_combat_action(
+            self.battle, self.chef_b, "defend", 4, artifact_id=defender_artifact.pk)
+
+        round_obj = self.battle.combat_rounds.get(round_number=1)
+        self.assertEqual(round_obj.attack_power, 8)
+        self.assertEqual(round_obj.defence_power, 9)
+        self.assertEqual(round_obj.outcome, BattleRound.Outcome.BLOCKED)
+        self.assertEqual(round_obj.challenger_hits, 0)
+        self.assertEqual(round_obj.opponent_hits, 1)
+
     def test_combat_winner_opens_recipe_biathlon(self):
         from .services import submit_combat_action
         for _ in range(3):
