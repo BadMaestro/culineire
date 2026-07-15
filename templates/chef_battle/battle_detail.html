@@ -126,9 +126,7 @@
   <div class="container battle-layout">
     <div class="battle-main">
 
-      {# ══════════════════════════════════════════════════════════
-         Phase action panels — one per status
-      ══════════════════════════════════════════════════════════ #}
+      {% comment %} Phase action panels — one per status {% endcomment %}
 
       {% if battle.status == "scheduled" %}
       <div class="bd-phase-panel bd-phase-panel--scheduled">
@@ -268,9 +266,7 @@
       </div>
       {% endif %}
 
-      {# ══════════════════════════════════════════════════════════
-         Entries (visible from MENU_LOCKED onward, except CANCELLED)
-      ══════════════════════════════════════════════════════════ #}
+      {% comment %} Entries (visible from MENU_LOCKED onward, except CANCELLED) {% endcomment %}
 
       {% if battle.status != "scheduled" and battle.status != "cancelled" %}
       <div class="battle-section-header battle-section-header--spaced">
