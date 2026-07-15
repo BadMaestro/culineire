@@ -5974,6 +5974,43 @@ class BattleEntrySubmitGuardTests(TestCase):
         self.assertIsNotNone(saved.dish_submitted_at)
 
 
+class DrawRewardUnlockTests(TestCase):
+    """A draw is still an eligible completed journey for Next Battle Unlock."""
+
+    def test_draw_queues_pending_reward_after_completed_battle(self):
+        from .models import RewardRecord
+        User = get_user_model()
+        challenger = RecipeAuthor.objects.create(
+            user=User.objects.create_user("draw-ch", password="pw"),
+            name="Draw Challenger", slug="draw-ch")
+        opponent = RecipeAuthor.objects.create(
+            user=User.objects.create_user("draw-op", password="pw"),
+            name="Draw Opponent", slug="draw-op")
+        now = timezone.now()
+        battle = Battle.objects.create(
+            challenger=challenger, opponent=opponent, theme="Draw journey",
+            status=Battle.Status.VOTING, start_time=now - timezone.timedelta(days=1),
+            submission_deadline=now - timezone.timedelta(hours=12),
+            voting_deadline=now + timezone.timedelta(hours=1),
+            end_time=now + timezone.timedelta(hours=2))
+        BattleEntry.objects.create(
+            battle=battle, author=challenger,
+            moderation_status=BattleEntry.ModerationStatus.APPROVED)
+        BattleEntry.objects.create(
+            battle=battle, author=opponent,
+            moderation_status=BattleEntry.ModerationStatus.APPROVED)
+        reward = RewardRecord.objects.create(
+            recipient=challenger, reward_type=RewardRecord.RewardType.CBR,
+            tokens_granted=10, reason="Pending before draw")
+
+        from .services import calculate_battle_result
+        calculate_battle_result(battle)
+        reward.refresh_from_db()
+
+        self.assertEqual(battle.status, Battle.Status.COMPLETED)
+        self.assertEqual(reward.status, RewardRecord.Status.QUEUED)
+
+
 class BiathlonRecipeSourceIndexTests(TestCase):
     """Biathlon indices must remain stable when a recipe contains blank lines."""
 

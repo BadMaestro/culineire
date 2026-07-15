@@ -438,6 +438,13 @@ def calculate_battle_result(battle: Battle) -> Battle:
         battle.result_reason = "Draw by public vote"
         battle.status = Battle.Status.COMPLETED
         battle.save(update_fields=["status", "result_reason", "updated_at"])
+        # A completed draw still proves both chefs completed the required
+        # journey.  Run the same reward-unlock check as a decisive result.
+        try:
+            run_next_battle_unlock_for_chef(battle.challenger)
+            run_next_battle_unlock_for_chef(battle.opponent)
+        except Exception:
+            logger.exception("Next Battle Unlock check failed for drawn battle %s", battle.pk)
         return battle
 
     winner = battle.challenger if challenger_votes > opponent_votes else battle.opponent
