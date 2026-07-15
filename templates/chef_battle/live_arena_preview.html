@@ -172,7 +172,7 @@
 {% endwith %}
 
 <script src="{% static 'js/vendor/hls.min.js' %}"></script>
-<script>
+<script nonce="{{ request.csp_nonce }}">
 (function () {
   // HLS playback: attach when a panel has a data-hls-url (at load OR when the
   // URL arrives via snapshot polling). Idempotent per URL; else fallback stays.

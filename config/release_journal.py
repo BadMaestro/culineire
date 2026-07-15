@@ -1,5 +1,20 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.230",
+        "date": "2026-07-15",
+        "commit": "pending",
+        "title": "Live arena: add CSP nonce to inline script (fixes video/polling/reactions)",
+        "section": "Chef Battles / Live Arena",
+        "summary": (
+            "The live-arena preview inline <script> (HLS attach, snapshot polling, "
+            "heart reactions, tabs) had no nonce, so the site CSP (script-src "
+            "'self' 'nonce-...') blocked the whole block and none of the arena JS "
+            "ran - video panels stayed on fallback. Added "
+            "nonce=request.csp_nonce to the inline script, matching the rest of "
+            "the site. HLS video now attaches and plays."
+        ),
+    },
+    {
         "version": "2.5.229",
         "date": "2026-07-15",
         "commit": "pending",
