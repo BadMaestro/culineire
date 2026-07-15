@@ -1,5 +1,18 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.241",
+        "date": "2026-07-15",
+        "commit": "pending",
+        "title": "Chef Road: combat-to-biathlon and draw payout continuity",
+        "section": "Chef Battles / Core journey",
+        "summary": (
+            "A decisive combat round now records winner and loser and opens "
+            "the ingredient biathlon directly. A completed draw now also runs "
+            "Next Battle Unlock, allowing eligible pending CBR/LSR records to "
+            "enter payout review."
+        ),
+    },
+    {
         "version": "2.5.239",
         "date": "2026-07-15",
         "commit": "pending",
