@@ -97,7 +97,7 @@
   {# ── Dual live stage ── #}
   <div class="lap__stage">
     <div class="lap__panel lap__panel--l" data-state="active">
-      <video class="lap__video" data-hls-url="{{ fx.left.playback_url|default:'' }}" muted playsinline></video>
+      <video class="lap__video" data-hls-url="{{ fx.left.playback_url|default:'' }}" muted playsinline autoplay></video>
       <div class="lap__fallback"><svg class="lap__ico lap__fallback-ico"><use href="#la-flame"></use></svg> Waiting to go live<br><small>Stream connects here</small></div>
       <div class="lap__hearts"></div>
       <span class="lap__live">LIVE</span>
@@ -115,7 +115,7 @@
     </div>
 
     <div class="lap__panel lap__panel--r" data-state="active">
-      <video class="lap__video" data-hls-url="{{ fx.right.playback_url|default:'' }}" muted playsinline></video>
+      <video class="lap__video" data-hls-url="{{ fx.right.playback_url|default:'' }}" muted playsinline autoplay></video>
       <div class="lap__fallback"><svg class="lap__ico lap__fallback-ico"><use href="#la-flame"></use></svg> Waiting to go live<br><small>Stream connects here</small></div>
       <div class="lap__hearts"></div>
       <span class="lap__live">LIVE</span>
