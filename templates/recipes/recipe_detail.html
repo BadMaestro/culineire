@@ -55,6 +55,9 @@
                 <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
                 <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
                 <a class="btn-secondary" href="{% url 'sponsors:puzzle' %}">Sponsors</a>
+                {% if chef_battle_enabled and recipe.author and recipe.author.user and recipe.author.user != request.user %}
+                <a class="btn-primary" href="{% url 'chef_battle:challenge_create' %}?opponent={{ recipe.author.slug }}">Issue a Challenge</a>
+                {% endif %}
             </div>
         </div>
     {% if recipe.image_rights_status == 'ai_generated' %}<span aria-label="AI generated image" class="ai-image-badge ai-image-badge--watermark">AI</span>{% endif %}
