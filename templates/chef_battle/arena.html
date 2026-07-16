@@ -126,13 +126,27 @@
     {% endif %}
   </aside>
 
-  <footer class="arena-command-deck__crowd-rail">
-    <span>Kitchen doors are open.</span>
-    {% if viewer_author and not user_enrolled %}
-    <a class="ce-nav__link ce-nav__link--battle battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:chef_enroll' %}"><span class="chef-battle-cta__label">Join Chef Battles</span></a>
-    {% elif viewer_author %}
-    <a class="ce-nav__link ce-nav__link--battle battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:challenge_create' %}"><span class="chef-battle-cta__label">Issue a Challenge</span></a>
-    {% endif %}
+  <footer class="arena-command-deck__crowd-rail" aria-label="Arena actions">
+    <div class="arena-crowd-rail__status" role="status">
+      <svg class="arena-ico" aria-hidden="true"><use href="#ad-toque"></use></svg>
+      {% if active_battle %}
+        <span>Live kitchen: <b>{{ active_battle.theme }}</b></span>
+      {% elif user_enrolled %}
+        <span>Your station is ready. Choose an opponent when the kitchen calls.</span>
+      {% else %}
+        <span>The kitchen floor is open for the next challenge.</span>
+      {% endif %}
+    </div>
+    <div class="arena-crowd-rail__actions">
+      <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Browse rankings</a>
+      {% if viewer_author and not user_enrolled %}
+        <a class="ce-nav__link ce-nav__link--battle battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:chef_enroll' %}"><span class="chef-battle-cta__label">Join Chef Battles</span></a>
+      {% elif viewer_author %}
+        <a class="ce-nav__link ce-nav__link--battle battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:challenge_create' %}"><span class="chef-battle-cta__label">Issue a Challenge</span></a>
+      {% else %}
+        <a class="ce-nav__link ce-nav__link--battle battle-cursor-target js-battle-cursor-target" href="{% url 'login' %}?next={% url 'chef_battle:arena' %}"><span class="chef-battle-cta__label">Sign in to join</span></a>
+      {% endif %}
+    </div>
   </footer>
 </main>
 {% endblock %}
