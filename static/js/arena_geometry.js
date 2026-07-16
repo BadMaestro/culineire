@@ -28,8 +28,11 @@
       throw new RangeError('radiusStep must be positive');
     }
 
-    var startAngle = -Math.PI / 2 + (Math.PI * 2 * segmentIndex / segmentsPerRing);
-    var endAngle = -Math.PI / 2 + (Math.PI * 2 * (segmentIndex + 1) / segmentsPerRing);
+    // Half-segment offset keeps the octagon flat at the top and bottom,
+    // matching the arena reference instead of presenting a top vertex.
+    var orientationOffset = -Math.PI / 2 - (Math.PI / segmentsPerRing);
+    var startAngle = orientationOffset + (Math.PI * 2 * segmentIndex / segmentsPerRing);
+    var endAngle = orientationOffset + (Math.PI * 2 * (segmentIndex + 1) / segmentsPerRing);
     var innerRadius = ringIndex * radiusStep;
     var outerRadius = (ringIndex + 1) * radiusStep;
 

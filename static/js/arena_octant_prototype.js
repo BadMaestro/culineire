@@ -18,7 +18,7 @@
     }
     var config = Object.assign({
       cx: 240, cy: 240,
-      ringWidth: 28, cellsPerOctant: 1, octantIndex: 0,
+      ringWidth: 28, cellsPerOctant: 1, octantIndex: 0, startRingIndex: 1,
       stroke: '#8b7355', strokeWidth: 1.15
     }, options || {});
     if (!global.ArenaGeometry) {
@@ -32,7 +32,9 @@
     group.setAttribute('stroke-width', config.strokeWidth);
     group.setAttribute('vector-effect', 'non-scaling-stroke');
 
-    for (var ring = 0; ring < geometry.rings.length; ring++) {
+    // `stage` is one central medallion, not eight degenerate wedges.
+    // The final render layer owns that dedicated element.
+    for (var ring = config.startRingIndex; ring < geometry.rings.length; ring++) {
       for (var cell = 0; cell < config.cellsPerOctant; cell++) {
         var segmentIndex = config.octantIndex * config.cellsPerOctant + cell;
         var polygon = document.createElementNS(NS, 'polygon');
