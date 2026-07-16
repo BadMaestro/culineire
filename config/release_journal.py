@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.304",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Dark-launch the procedural Arena preview",
+        "section": "Chef Battles / Arena",
+        "summary": "The Arena page now carries a gated procedural preview: with ?proto=1 the polar-geometry renderer draws the full octagonal grid from the live read-model and refreshes the roster on a ten-second poll, while the default page remains exactly as before. Also hardened agent discovery: the identity endpoint is read-only and markdown negotiation now varies caches by Accept header.",
+    },
+    {
         "version": "2.5.303",
         "date": "2026-07-16",
         "commit": "pending",
