@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.258",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Challenges command label",
+        "section": "Chef Battles / Navigation",
+        "summary": "Simplified the command deck label from My Challenges to Challenges.",
+    },
+    {
         "version": "2.5.257",
         "date": "2026-07-16",
         "commit": "pending",
