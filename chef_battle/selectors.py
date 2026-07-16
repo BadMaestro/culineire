@@ -1064,3 +1064,50 @@ def _ledger_chain_status(LedgerEvent):
     }
     _LEDGER_CHAIN_CACHE.update(at=now, count=current_count, value=value)
     return value
+
+
+# ── Live Arena data panels (arena rebuild) ──────────────────────────────────
+def get_recent_battle_gifts(battle=None, limit: int = 6) -> list:
+    """Recent viewer battle gifts to competing chefs, newest first, for the
+    arena 'Recent Battle Gifts' panel. Empty list when none (empty-safe)."""
+    from .models import ViewerBattleGift
+    qs = ViewerBattleGift.objects.select_related("recipient", "artifact")
+    if battle is not None:
+        qs = qs.filter(battle=battle)
+    return [
+        {
+            "recipient": g.recipient.name,
+            "recipient_slug": g.recipient.slug,
+            "item": getattr(g.artifact, "name", "Artifact") if g.artifact_id else "Gift",
+            "tokens": g.tokens_spent,
+            "sent_at": g.sent_at.isoformat(),
+        }
+        for g in qs.order_by("-sent_at")[:limit]
+    ]
+
+
+def get_crown_streak() -> int:
+    """The current crown holder's win streak (0 if no active crown holder).
+    Feeds the arena 'Crown Streak' metric."""
+    from .models import ChefBattleProfile
+    holder = (
+        ChefBattleProfile.objects.filter(crown_until__gt=timezone.now())
+        .order_by("-crown_until")
+        .first()
+    )
+    return holder.win_streak if holder else 0
+
+
+def get_crown_ladder(limit: int = 8) -> list:
+    """Today's crown ladder: chefs ranked by crowns won today (desc). Real data
+    only — no invented standings. Feeds the arena 'Today's Crown Ladder' panel."""
+    from django.db.models import Count
+    from .models import Battle
+    start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    rows = (
+        Battle.objects.filter(crown_awarded=True, winner__isnull=False, end_time__gte=start)
+        .values("winner__name", "winner__slug")
+        .annotate(crowns=Count("id"))
+        .order_by("-crowns", "winner__name")[:limit]
+    )
+    return [{"name": r["winner__name"], "slug": r["winner__slug"], "crowns": r["crowns"]} for r in rows]

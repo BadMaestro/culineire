@@ -6150,3 +6150,52 @@ class BiathlonRecipeSourceIndexTests(TestCase):
             {"index": 3, "text": "butter"},
         ])
         self.assertEqual(get_surviving_ingredients(self.battle, self.loser), ["eggs", "flour"])
+
+
+class ArenaDataSelectorsTests(TestCase):
+    """Arena-rebuild data panels: recent gifts, crown streak, today's crown ladder."""
+
+    def setUp(self):
+        U = get_user_model()
+        self.a = RecipeAuthor.objects.create(user=U.objects.create_user("arena-a", password="pw"), name="Aidan", slug="arena-a")
+        self.b = RecipeAuthor.objects.create(user=U.objects.create_user("arena-b", password="pw"), name="Luca", slug="arena-b")
+        self.sender_user = U.objects.create_user("arena-s", password="pw")
+
+    def _battle(self, **kw):
+        from .models import Battle
+        d = dict(challenger=self.a, opponent=self.b, theme="T",
+                 submission_deadline=timezone.now(), end_time=timezone.now())
+        d.update(kw)
+        return Battle.objects.create(**d)
+
+    def test_recent_battle_gifts(self):
+        from .models import Artifact, ViewerBattleGift
+        from .selectors import get_recent_battle_gifts
+        battle = self._battle()
+        art = Artifact.objects.create(name="Artifact Set")
+        ViewerBattleGift.objects.create(battle=battle, recipient=self.a, sender=self.sender_user, artifact=art, tokens_spent=120)
+        rows = get_recent_battle_gifts(battle)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["recipient"], "Aidan")
+        self.assertEqual(rows[0]["item"], "Artifact Set")
+        self.assertEqual(rows[0]["tokens"], 120)
+        self.assertEqual(get_recent_battle_gifts(), rows)  # global recent also works
+
+    def test_crown_streak(self):
+        from .models import ChefBattleProfile
+        from .selectors import get_crown_streak
+        self.assertEqual(get_crown_streak(), 0)
+        ChefBattleProfile.objects.update_or_create(
+            author=self.a, defaults={"crown_until": timezone.now() + timezone.timedelta(hours=1), "win_streak": 3})
+        self.assertEqual(get_crown_streak(), 3)
+
+    def test_crown_ladder_today(self):
+        from .models import Battle
+        from .selectors import get_crown_ladder
+        self._battle(status=Battle.Status.COMPLETED, winner=self.a, crown_awarded=True)
+        self._battle(status=Battle.Status.COMPLETED, winner=self.a, crown_awarded=True)
+        self._battle(status=Battle.Status.COMPLETED, winner=self.b, crown_awarded=True)
+        ladder = get_crown_ladder()
+        self.assertEqual(ladder[0]["name"], "Aidan")
+        self.assertEqual(ladder[0]["crowns"], 2)
+        self.assertEqual(ladder[1]["crowns"], 1)
