@@ -2070,6 +2070,10 @@ class ArenaMasterConsoleAccessTests(TestCase):
         self.assertContains(resp, "arena-prototype-container")
         self.assertContains(resp, "arena_proto_gate.js")
         self.assertNotContains(resp, "/static/js/arena_puzzle.js")
+        # The procedural renderer draws entirely from this embedded payload;
+        # without it the grid would silently render empty.
+        self.assertContains(resp, "arena-data-json")
+        self.assertContains(resp, "arena_geometry.js")
 
 
 # ── AMC P02 — master_state read models ───────────────────────────────────────
