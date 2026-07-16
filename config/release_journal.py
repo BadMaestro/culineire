@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.278",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Correct Arena command-deck density",
+        "section": "Chef Battles / Arena",
+        "summary": "Corrected the first Arena command-deck responsive pass: metrics now remain readable in the side rail and the complete rank legend wraps inside its allocated floor header instead of clipping.",
+    },
+    {
         "version": "2.5.277",
         "date": "2026-07-16",
         "commit": "pending",

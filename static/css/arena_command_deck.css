@@ -52,15 +52,15 @@
 
 .arena-command-deck__phase-card { grid-area: phase; align-self: start; border-radius: 1rem; padding: 1.05rem; }
 .arena-command-deck__phase-name { margin: .55rem 0 .1rem; color: var(--arena-forest); font: 700 1.15rem/1.1 var(--font-display, Georgia, serif); }
-.arena-command-deck__metrics { grid-area: metrics; border-radius: 1rem; display: grid; grid-template-columns: repeat(3, 1fr); padding: .65rem; }
-.arena-metric { min-width: 0; padding: .1rem .75rem; text-align: center; border-left: 1px solid rgb(139 115 85 / .23); }
-.arena-metric:first-child { border-left: 0; }
-.arena-metric span { display: block; color: var(--arena-muted); font-size: .62rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-.arena-metric strong { display: block; margin-top: .18rem; color: var(--arena-cappuccino); font: 700 1.1rem/1 var(--font-display, Georgia, serif); }
+.arena-command-deck__metrics { grid-area: metrics; border-radius: 1rem; display: grid; grid-template-columns: 1fr; padding: .45rem .8rem; }
+.arena-metric { min-width: 0; padding: .45rem .1rem; display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; border-top: 1px solid rgb(139 115 85 / .23); }
+.arena-metric:first-child { border-top: 0; }
+.arena-metric span { color: var(--arena-muted); font-size: .61rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+.arena-metric strong { flex: 0 0 auto; color: var(--arena-cappuccino); font: 700 1.1rem/1 var(--font-display, Georgia, serif); }
 
 .arena-command-deck__floor { grid-area: floor; min-width: 0; padding: 1rem; border-radius: 1.25rem; overflow: hidden; background: linear-gradient(180deg, rgb(255 253 249 / .96), rgb(245 238 228 / .92)); }
 .arena-command-deck__floor-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: .65rem; }
-.arena-command-deck__floor .arena-legend { justify-content: flex-end; margin: 0; max-width: 60%; }
+.arena-command-deck__floor .arena-legend { justify-content: flex-end; flex-wrap: wrap; overflow: visible; margin: 0; max-width: 60%; }
 .arena-command-deck__floor .arena-puzzle-container { gap: .35rem; }
 .arena-command-deck__floor .arena-puzzle-label { order: 2; margin: 0; font-size: .72rem; }
 
@@ -88,8 +88,9 @@
   .arena-command-deck__header .btn-secondary { width: 100%; justify-content: center; }
   .arena-command-deck__phase-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .arena-phase-step { min-height: 2rem; font-size: .61rem; }
-  .arena-command-deck__metrics { width: 100%; }
-  .arena-metric { padding-inline: .35rem; }
+  .arena-command-deck__metrics { width: 100%; grid-template-columns: repeat(3, 1fr); padding: .65rem; }
+  .arena-metric { display: block; padding: .1rem .35rem; text-align: center; border-top: 0; border-left: 1px solid rgb(139 115 85 / .23); }
+  .arena-metric:first-child { border-left: 0; }
   .arena-metric span { font-size: .54rem; }
   .arena-command-deck__floor { padding: .7rem; border-radius: .9rem; }
   .arena-command-deck__floor .arena-legend { max-width: 100%; justify-content: flex-start; }
