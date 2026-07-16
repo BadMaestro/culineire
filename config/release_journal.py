@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.266",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Chef Battles widget icon system",
+        "section": "Chef Battles / Navigation",
+        "summary": "Replaced generic widget icons with purpose-drawn kitchen and battle SVGs using only CulinEire brand colours.",
+    },
+    {
         "version": "2.5.265",
         "date": "2026-07-16",
         "commit": "pending",

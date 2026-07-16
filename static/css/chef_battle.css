@@ -4546,3 +4546,33 @@ a.battle-home__pulse-msg:hover {
   .knife-roll-artifacts { grid-template-columns: 1fr; }
   .knife-roll-pagination { flex-wrap: wrap; }
 }
+
+/* Widget icon system — purpose-drawn kitchen/battle symbols, restricted to
+   the CulinEire colour tokens from the brand scheme. */
+.site-battle-widget .site-battle-widget__icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: 0 0 1.25rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: none;
+}
+
+.site-battle-widget__icon--challenges,
+.site-battle-widget__icon--rankings,
+.site-battle-widget__icon--console { color: var(--brand-dark, #6e4e2c); }
+.site-battle-widget__icon--season,
+.site-battle-widget__icon--room { color: var(--muted, #66746d); }
+.site-battle-widget__icon--treasury,
+.site-battle-widget__icon--gifts,
+.site-battle-widget__icon--roll { color: var(--brand, #8b7355); }
+.site-battle-widget__icon--artifacts { color: var(--ink, #1f2c25); }
+
+.site-battle-widget .site-battle-widget__console-link .site-battle-widget__icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex-basis: 1.15rem;
+}
