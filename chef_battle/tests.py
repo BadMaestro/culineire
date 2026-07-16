@@ -6213,6 +6213,11 @@ class ArenaPayloadWiringTests(TestCase):
         self.assertIn("metrics", p)
         self.assertIn("phase", p)
         self.assertIn("deadline", p)
+        self.assertIn("server_time", p)
+        # server_time is always present and a parseable ISO timestamp (never null)
+        self.assertIsNotNone(p["server_time"])
+        from django.utils.dateparse import parse_datetime
+        self.assertIsNotNone(parse_datetime(p["server_time"]))
         self.assertEqual(set(p["metrics"]), {"active_viewers", "public_votes", "battle_gifts"})
         self.assertIsInstance(p["crown_streak"], int)
         self.assertIsInstance(p["crown_ladder"], list)

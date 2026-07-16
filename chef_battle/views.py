@@ -1047,6 +1047,9 @@ def _build_arena_payload():
         "metrics": get_arena_metrics(active_battle),
         "phase": get_arena_phase(active_battle),
         "deadline": get_arena_deadline(active_battle),
+        # Authoritative server clock at payload build so clients can reconcile
+        # their own drift against deadline/phase (Ember #171). Never null.
+        "server_time": timezone.now().isoformat(),
     }
 
 
@@ -1089,6 +1092,7 @@ def arena(request):
         "metrics": payload["metrics"],
         "phase": payload["phase"],
         "deadline": payload["deadline"],
+        "server_time": payload["server_time"],
     }
 
     # Moderator-only preview of the active-battle centre (Phase 1 choreography).
@@ -1178,6 +1182,7 @@ def arena_state(request):
         "metrics": payload["metrics"],
         "phase": payload["phase"],
         "deadline": payload["deadline"],
+        "server_time": payload["server_time"],
     })
 
 

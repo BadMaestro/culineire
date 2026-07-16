@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.295",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Add authoritative Arena server time",
+        "section": "Chef Battles / Arena",
+        "summary": "The public Arena read-model now stamps an authoritative server_time ISO timestamp at payload build alongside the deadline and phase, so clients can reconcile their own clock drift against the countdown. It rides the same Arena poll payload and is always present.",
+    },
+    {
         "version": "2.5.294",
         "date": "2026-07-16",
         "commit": "pending",
