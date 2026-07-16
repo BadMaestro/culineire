@@ -86,7 +86,16 @@
         </div>
       </div>
     </div>
-    {% include "chef_battle/_arena_ring.html" %}
+    <div class="arena-floor-stage">
+      <nav class="arena-rank-spine" aria-label="Kitchen rank ladder">
+        {% for rank, chefs in rank_groups reversed %}
+          <a class="arena-rank-spine__step arena-rank-spine__step--{{ rank.value }}" href="{% url 'chef_battle:rankings' %}">
+            <span>{{ rank.label }}</span><b>{{ chefs|length }}</b>
+          </a>
+        {% endfor %}
+      </nav>
+      {% include "chef_battle/_arena_ring.html" %}
+    </div>
   </section>
 
   <aside class="arena-command-deck__ladder" aria-label="Today's crown ladder">

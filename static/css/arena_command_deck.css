@@ -74,6 +74,11 @@
 .arena-command-deck__floor .arena-legend { justify-content: flex-end; flex-wrap: wrap; overflow: visible; margin: 0; max-width: 60%; }
 .arena-command-deck__floor .arena-puzzle-container { gap: .35rem; }
 .arena-command-deck__floor .arena-puzzle-label { order: 2; margin: 0; font-size: .72rem; }
+.arena-floor-stage { position: relative; }
+.arena-rank-spine { position: absolute; z-index: 2; top: 8.5%; left: 50%; display: grid; gap: .16rem; width: min(10.75rem, 22%); transform: translateX(-50%); pointer-events: none; }
+.arena-rank-spine__step { min-height: 1.18rem; display: flex; align-items: center; justify-content: space-between; gap: .32rem; padding: .13rem .42rem; border: 1px solid rgb(139 115 85 / .45); border-radius: 999px; color: var(--arena-ink); font-size: clamp(.42rem, .6vw, .61rem); font-weight: 800; letter-spacing: .035em; line-height: 1; text-decoration: none; text-transform: uppercase; background: rgb(255 253 249 / .82); box-shadow: 0 .16rem .45rem rgb(31 44 37 / .08); pointer-events: auto; transition: background .18s ease, border-color .18s ease, color .18s ease; }
+.arena-rank-spine__step b { min-width: 1.05rem; display: grid; place-items: center; border-radius: 999px; color: var(--arena-cappuccino); font-size: .9em; background: var(--arena-cream); }
+.arena-rank-spine__step:hover, .arena-rank-spine__step:focus-visible { border-color: var(--arena-cappuccino); color: var(--arena-cappuccino); background: var(--arena-paper); }
 
 .arena-command-deck__ladder, .arena-command-deck__gifts { align-self: start; border-radius: 1rem; padding: 1.05rem; }
 .arena-command-deck__ladder { grid-area: ladder; }
@@ -124,6 +129,7 @@
   .arena-live-chef--opponent { flex-direction: row-reverse; }
   .arena-command-deck__floor .arena-legend { max-width: 100%; justify-content: flex-start; }
   .arena-command-deck__floor-head { gap: .55rem; }
+  .arena-rank-spine { display: none; }
   .arena-crowd-rail__actions { width: 100%; }
   .arena-crowd-rail__actions > * { flex: 1 1 0; text-align: center; justify-content: center; }
 }
