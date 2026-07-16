@@ -985,9 +985,9 @@
         href: center.battle_url,
         className: 'battle-cursor-target js-battle-cursor-target',
         ariaLabel: 'Open the live battle room',
-        label: center.battle_phase || 'Live battle',
+        label: center.status_display || center.battle_phase || 'Live battle',
         title: 'VS',
-        detail: 'Open battle room',
+        detail: center.theme || 'Open battle room',
       });
       appendStageChef(stage, 'Opponent', center.opponent || {}, 'arena-live-chef--opponent');
       return;

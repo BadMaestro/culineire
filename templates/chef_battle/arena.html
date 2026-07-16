@@ -46,9 +46,9 @@
   </section>
 
   <section class="arena-command-deck__metrics" aria-label="Arena metrics">
-    <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-eye"></use></svg>Active viewers</span><strong id="arena-metric-viewers">{{ spectator_count }}</strong></div>
-    <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-vote"></use></svg>Public votes</span><strong id="arena-metric-votes">—</strong></div>
-    <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>Battle gifts</span><strong id="arena-metric-gifts">—</strong></div>
+    <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-eye"></use></svg>Active viewers</span><strong id="arena-metric-viewers">{{ arena_data.metrics.active_viewers }}</strong></div>
+    <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-vote"></use></svg>Public votes</span><strong id="arena-metric-votes">{{ arena_data.metrics.public_votes }}</strong></div>
+    <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>Battle gifts</span><strong id="arena-metric-gifts">{{ arena_data.metrics.battle_gifts }}</strong></div>
     <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-crown"></use></svg>Crown streak</span><strong id="arena-crown-streak">{{ crown_streak|default:0 }}</strong></div>
   </section>
 
