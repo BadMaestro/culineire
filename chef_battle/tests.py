@@ -2068,12 +2068,15 @@ class ArenaMasterConsoleAccessTests(TestCase):
         resp = self.client.get(reverse("chef_battle:arena") + "?proto=1")
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "arena-prototype-container")
-        self.assertContains(resp, "arena_proto_gate.js")
-        self.assertNotContains(resp, "/static/js/arena_puzzle.js")
+        # Match on the filename stem only: ManifestStaticFilesStorage rewrites
+        # {% static %} URLs to "<name>.<hash>.js" in production, so asserting the
+        # exact "<name>.js" substring would spuriously fail there.
+        self.assertContains(resp, "arena_proto_gate")
+        self.assertNotContains(resp, "js/arena_puzzle")
         # The procedural renderer draws entirely from this embedded payload;
         # without it the grid would silently render empty.
         self.assertContains(resp, "arena-data-json")
-        self.assertContains(resp, "arena_geometry.js")
+        self.assertContains(resp, "arena_geometry")
 
 
 # ── AMC P02 — master_state read models ───────────────────────────────────────
