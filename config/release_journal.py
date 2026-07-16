@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.307",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Restore the free-seat plus on the Arena floor",
+        "section": "Chef Battles / Arena",
+        "summary": "The procedural arena preview again marks every free seat with a plus, drawn once with the grid and toggled in place by the live poll, so an open floor reads as an invitation rather than a dead grid. Owner-requested; matches the legacy floor behaviour.",
+    },
+    {
         "version": "2.5.306",
         "date": "2026-07-16",
         "commit": "pending",
