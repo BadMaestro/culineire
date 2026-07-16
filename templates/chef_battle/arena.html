@@ -78,7 +78,7 @@
       <a class="arena-live-centre arena-live-centre--crown" href="{{ arena_data.center.profile_url }}" aria-label="View crown holder profile">
         <span>Current holder</span><b>♛</b><em>View profile</em>
       </a>
-      <p class="arena-live-awaiting">{% if arena_data.center.crown_until %}Crown held until <time datetime="{{ arena_data.center.crown_until }}">{{ arena_data.center.crown_until|date:"j M Y, H:i" }}</time>.{% else %}The centre awaits the next challenge.{% endif %}</p>
+      <p class="arena-live-awaiting">The centre awaits the next challenge.</p>
     {% else %}
       <p class="arena-live-awaiting">No live battle is holding the centre.</p>
       <a class="arena-live-centre arena-live-centre--quiet" href="{% url 'chef_battle:rankings' %}">

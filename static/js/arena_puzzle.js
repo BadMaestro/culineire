@@ -1020,6 +1020,16 @@
     });
   }
 
+  function refreshArenaCrownWindow(data) {
+    var center = data && data.center;
+    if (!center || center.type !== 'crown') { return; }
+    var stage = document.getElementById('arena-live-stage');
+    var note = stage && stage.querySelector('.arena-live-awaiting');
+    if (!note) { return; }
+    var crownUntil = formatArenaDateTime(center.crown_until);
+    note.textContent = crownUntil ? 'Crown held until ' + crownUntil + '.' : 'The centre awaits the next challenge.';
+  }
+
   function refreshArenaLiveStage(data) {
     var stage = document.getElementById('arena-live-stage');
     var center = data && data.center;
@@ -1087,6 +1097,7 @@
           refreshArenaReadModel(data);
           refreshArenaDeadline(data);
           refreshArenaLiveStage(data);
+          refreshArenaCrownWindow(data);
           maybeCelebrate(data.latest_result);
         }
       })
@@ -1285,6 +1296,7 @@
     refreshArenaPanels(data);
     refreshArenaReadModel(data);
     refreshArenaDeadline(data);
+    refreshArenaCrownWindow(data);
     initBattleBlast(data.latest_result);
 
     // Dismiss tooltip on outside click

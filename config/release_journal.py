@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.294",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Format the Arena Crown holding window reliably",
+        "section": "Chef Battles / Arena",
+        "summary": "Corrected Crown expiry formatting: the public ISO timestamp is now formatted by the existing Arena read-model on initial load and poll refresh, avoiding an empty server-side date while preserving the no-expiry fallback.",
+    },
+    {
         "version": "2.5.293",
         "date": "2026-07-16",
         "commit": "pending",
