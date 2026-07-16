@@ -1,0 +1,72 @@
+{% load static %}
+{% comment %}
+Unified arena fragment — the merge of the legacy ring (_arena_ring.html) and the
+procedural prototype (_arena_proto_ring.html). Requires the same context as the
+legacy fragment: arena_data, viewer_author, user_enrolled.
+
+The tooltip and popup markup below is carried over unchanged from
+_arena_ring.html: arena_render.js drives the same elements by the same class
+names, so the interaction contract is preserved exactly.
+{% endcomment %}
+
+<div class="arena-render-container">
+  <p class="arena-puzzle-label">Click any chef to view their profile</p>
+  <svg id="arena-render" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg"
+       role="img" aria-label="Chef Battles Arena">
+    <title>Chef Battles Arena</title>
+  </svg>
+</div>
+
+{{ arena_data|json_script:"arena-data-json" }}
+
+<script nonce="{{ request.csp_nonce }}">
+window.ARENA_VIEWER = {
+  slug: "{{ viewer_author.slug|default:'' }}",
+  enrolled: {{ user_enrolled|yesno:"true,false" }}
+};
+</script>
+
+<div id="arena-tooltip" class="arena-tooltip" hidden aria-live="polite">
+  <button class="arena-tooltip__close" aria-label="Close">&#x2715;</button>
+  <img class="arena-tooltip__avatar" src="" alt="" width="60" height="60">
+  <div class="arena-tooltip__body">
+    <div class="arena-tooltip__name"></div>
+    <div class="arena-tooltip__rank"></div>
+    <div class="arena-tooltip__meta">
+      <span class="arena-tooltip__rating"></span>
+      <span class="arena-tooltip__badge arena-tooltip__badge--battle" hidden>&#9876; In Battle</span>
+      <span class="arena-tooltip__badge arena-tooltip__badge--online" hidden>&#9679; Online</span>
+    </div>
+    <div class="arena-tooltip__stats">
+      <span class="arena-tooltip__stat"><b class="js-chef-wins">0</b><span class="arena-tooltip__stat-lbl">W</span></span>
+      <span class="arena-tooltip__stat-sep"> &middot; </span>
+      <span class="arena-tooltip__stat"><b class="js-chef-losses">0</b><span class="arena-tooltip__stat-lbl">L</span></span>
+      <span class="arena-tooltip__stat-sep"> &middot; </span>
+      <span class="arena-tooltip__stat"><b class="js-chef-streak">0</b><span class="arena-tooltip__stat-lbl">Streak</span></span>
+    </div>
+    <div class="arena-tooltip__potential js-chef-potential" hidden>
+      <span class="arena-tooltip__potential-item arena-tooltip__potential-item--atk">ATK&nbsp;~<b class="js-chef-atk">0</b></span>
+      <span class="arena-tooltip__potential-sep"> &middot; </span>
+      <span class="arena-tooltip__potential-item arena-tooltip__potential-item--def">DEF&nbsp;~<b class="js-chef-def">0</b></span>
+    </div>
+  </div>
+  <div class="arena-tooltip__actions">
+    <a class="arena-tooltip__link" href="#">View Profile</a>
+    <a class="arena-tooltip__challenge js-challenge-btn" href="#" hidden>Challenge</a>
+  </div>
+</div>
+
+<div id="arena-battle-popup" class="arena-popup" hidden>
+  <div class="arena-popup__backdrop" id="arena-popup-backdrop"></div>
+  <div class="arena-popup__panel" role="dialog" aria-modal="true" aria-label="Live Battle">
+    <button class="arena-popup__close" id="arena-popup-close" aria-label="Close battle">&times;</button>
+    <div id="arena-popup-inner" class="arena-popup__inner">
+      <p class="arena-popup__loading">Loading...</p>
+    </div>
+  </div>
+</div>
+
+<link href="{% static 'css/arena_render.css' %}?v=20260716gbr1" rel="stylesheet">
+
+<script src="{% static 'js/arena_geometry.js' %}?v=20260716a"></script>
+<script src="{% static 'js/arena_render.js' %}?v=20260716gbr1"></script>

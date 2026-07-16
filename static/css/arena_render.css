@@ -1,0 +1,106 @@
+/*
+ * Unified arena renderer skin (arena_render.js).
+ *
+ * The renderer stamps structure only: data-ring, data-ring-kind, data-cell,
+ * data-occupancy, data-state. All colour lives here, so the palette can change
+ * without touching geometry or data binding.
+ *
+ * Ring shading is inherited from the legacy arena (RING_COLOURS in
+ * arena_puzzle.js): tiles darken toward the centre, so rank reads as depth —
+ * ring 1 is Culinary Master, ring 8 is Kitchen Porter.
+ */
+
+.arena-render-container {
+  width: min(100%, 960px);
+  margin-inline: auto;
+  padding: 0.9rem;
+  border: 1px solid rgba(139, 115, 85, 0.42);
+  border-radius: 18px;
+  background: radial-gradient(circle at 50% 46%, #f8f3e9 0, #ece2ce 46%, #c3cfdd 100%);
+}
+
+#arena-render {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  overflow: visible;
+}
+
+/* ---- cells ---- */
+
+#arena-render .arena-cell {
+  stroke: #fffdf7;
+  stroke-width: 1.1;
+  fill: #f4f1ec;
+  transition: fill 180ms ease, opacity 180ms ease;
+}
+
+#arena-render .arena-cell[data-occupancy="chef"],
+#arena-render .arena-cell[data-occupancy="spectator"] {
+  cursor: pointer;
+}
+
+#arena-render .arena-cell[data-occupancy="chef"]:hover,
+#arena-render .arena-cell[data-occupancy="spectator"]:hover {
+  opacity: 0.82;
+}
+
+/* Empty rank tiles — pale, darkening inward. */
+#arena-render [data-ring="8"][data-occupancy="empty"] { fill: #f4f1ec; }
+#arena-render [data-ring="7"][data-occupancy="empty"] { fill: #ede8df; }
+#arena-render [data-ring="6"][data-occupancy="empty"] { fill: #e4ddd1; }
+#arena-render [data-ring="5"][data-occupancy="empty"] { fill: #d8d0c0; }
+#arena-render [data-ring="4"][data-occupancy="empty"] { fill: #ccc1aa; }
+#arena-render [data-ring="3"][data-occupancy="empty"] { fill: #bfb49a; }
+#arena-render [data-ring="2"][data-occupancy="empty"] { fill: #a89878; }
+#arena-render [data-ring="1"][data-occupancy="empty"] { fill: #8f7c5c; }
+
+/* Occupied rank tiles sit one step darker than the empty seat beside them, so
+   an occupied ring still reads as a ring. The avatar is clipped over the top. */
+#arena-render [data-ring="8"][data-occupancy="chef"] { fill: #e4ddd1; }
+#arena-render [data-ring="7"][data-occupancy="chef"] { fill: #d8d0c0; }
+#arena-render [data-ring="6"][data-occupancy="chef"] { fill: #ccc1aa; }
+#arena-render [data-ring="5"][data-occupancy="chef"] { fill: #bfb49a; }
+#arena-render [data-ring="4"][data-occupancy="chef"] { fill: #a89878; }
+#arena-render [data-ring="3"][data-occupancy="chef"] { fill: #8f7c5c; }
+#arena-render [data-ring="2"][data-occupancy="chef"] { fill: #73603f; }
+#arena-render [data-ring="1"][data-occupancy="chef"] { fill: #5a4a2e; }
+
+/* Spectator galleries read cool against the warm floor. */
+#arena-render [data-ring-kind="spectator"][data-occupancy="empty"] { fill: #c5d3e8; }
+#arena-render [data-ring-kind="spectator"][data-occupancy="spectator"] { fill: #2a5fb0; }
+
+/* ---- state ---- */
+
+#arena-render [data-state="in-battle"] {
+  stroke: #f8d28a;
+  stroke-width: 2;
+}
+
+#arena-render [data-state="online"] {
+  stroke: rgba(63, 138, 52, 0.85);
+  stroke-width: 1.6;
+}
+
+/* ---- centre stage ---- */
+
+#arena-render .arena-stage {
+  fill: #9c7021;
+  stroke: #60451c;
+  stroke-width: 2;
+}
+
+#arena-render .arena-stage[data-state="crown"] { fill: #b8873a; }
+#arena-render .arena-stage[data-state="active_battle"] { fill: #974f36; }
+#arena-render .arena-stage[data-state="facing_pair"] { fill: #7c5a3a; }
+
+/* ---- occupants ---- */
+
+#arena-render .arena-occupant {
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #arena-render .arena-cell { transition: none; }
+}
