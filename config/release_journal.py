@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.259",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Compact recipe category filter",
+        "section": "Recipes / Navigation",
+        "summary": "Removed an oversized page-section gap between the recipe category row and its View All control.",
+    },
+    {
         "version": "2.5.258",
         "date": "2026-07-16",
         "commit": "pending",

@@ -62,7 +62,9 @@
 
 .recipe-list-page .category-nav-block {
   margin: 0;
-  gap: var(--recipe-list-section-gap, 1.25rem);
+  /* The category row and its View All control form one compact filter unit.
+     A page-section gap here created a conspicuous empty white band. */
+  gap: 0.3rem;
   /* Stick to the bottom edge of the sticky header so the filter bar
      stays visible while cards scroll underneath it */
   position: sticky;
@@ -967,7 +969,7 @@
   }
 
   .recipe-list-page .category-nav-block {
-    gap: var(--recipe-list-section-gap, 1.25rem);
+    gap: 0.3rem;
   }
 
   .recipe-list-hero {
