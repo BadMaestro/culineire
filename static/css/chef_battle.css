@@ -4688,10 +4688,10 @@ a.battle-home__pulse-msg:hover {
 .site-battle-widget .btn-primary {
   min-height: 3.55rem;
   margin-top: 0.72rem;
-  color: var(--surface, #fffdf9);
-  border: 1px solid var(--brand-dark, #6e4e2c);
+  color: var(--ink, #1f2c25);
+  border: 1px solid var(--brand, #8b7355);
   border-radius: 0.88rem;
-  background: linear-gradient(100deg, var(--brand-dark, #6e4e2c), var(--brand, #8b7355));
+  background: var(--surface-muted, #f2eadf);
   box-shadow: none;
   transition:
     background-color 0.32s ease,
@@ -4700,10 +4700,13 @@ a.battle-home__pulse-msg:hover {
 }
 .site-battle-widget .btn-primary:hover,
 .site-battle-widget .btn-primary:focus-visible {
-  background: color-mix(in srgb, var(--brand, #8b7355) 72%, var(--surface, #fffdf9));
-  border-color: rgb(255 255 255 / 0.24);
-  color: #ffffff;
+  background: var(--surface, #fffdf9);
+  border-color: var(--brand-dark, #6e4e2c);
+  color: var(--ink, #1f2c25);
   outline: none;
+}
+.site-battle-widget .btn-primary .btn-ripple {
+  background: rgb(110 78 44 / 0.30);
 }
 @media (max-width: 900px) {
   .site-battle-widget { width: min(17.75rem, calc(100vw - 1rem)); }

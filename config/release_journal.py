@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.271",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Correct Enter Arena interaction states",
+        "section": "Chef Battles / Navigation",
+        "summary": "Enter Arena now brightens from a muted surface on hover, while its separate click ripple uses a visible dark-bronze wave.",
+    },
+    {
         "version": "2.5.270",
         "date": "2026-07-16",
         "commit": "pending",
