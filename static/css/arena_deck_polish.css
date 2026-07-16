@@ -91,6 +91,20 @@
   padding:.5rem .9rem; color:var(--ad-ink2); font-size:.82rem;
 }
 
+/* ── Rank-spine over the ring: readability + tighter footprint (Ember #163 QA) ──
+   Compacting the 8 steps pulls the spine up out of the ring centre (less overlap
+   with the central chefs); near-solid fill + a soft group backdrop keeps labels
+   legible over the busy SVG. No repositioning of Ember's absolute anchor. */
+.arena-command-deck .arena-rank-spine {
+  gap:.12rem; padding:.22rem; border-radius:12px;
+  background:linear-gradient(180deg, rgba(31,44,37,.06), rgba(31,44,37,0));
+}
+.arena-command-deck .arena-rank-spine__step {
+  min-height:1.04rem; padding:.1rem .42rem;
+  background:rgba(255,253,249,.95); border-color:rgba(139,115,85,.55);
+  box-shadow:0 .12rem .4rem rgba(31,44,37,.15);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .arena-phase-step { transition:none; }
 }
