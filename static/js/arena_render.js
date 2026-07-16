@@ -30,6 +30,8 @@
   var pingTimer = null;
   // Latest centre payload, so a stage click knows which battle room to open.
   var stageCentre = null;
+  // Ring the viewer currently occupies, or null while they are off the floor.
+  var seatedRing = null;
 
   function el(tag, attrs) {
     var node = document.createElementNS(NS, tag);
@@ -115,6 +117,16 @@
     }));
     svg.appendChild(el('g', { 'data-arena-layer': 'occupants' }));
     svg.appendChild(el('g', { 'data-arena-layer': 'centre' }));
+
+    // One label, moved to whichever free seat is hovered — 368 hidden labels
+    // would cost the same DOM every poll for a thing only ever seen once.
+    var label = el('text', {
+      'text-anchor': 'middle', 'dominant-baseline': 'central',
+      'pointer-events': 'none', hidden: 'hidden',
+      class: 'arena-seat-label'
+    });
+    label.textContent = 'Sit here';
+    svg.appendChild(label);
   }
 
   /* ---------------------------------------------------------------- */
@@ -222,6 +234,7 @@
 
     // Clear every transient attribute first: a poll may free a cell, and a
     // stale occupancy left on it would outlive its occupant.
+    seatedRing = null;
     Array.prototype.forEach.call(svg.querySelectorAll('polygon[data-ring]'), function (polygon) {
       polygon.setAttribute('data-occupancy', 'empty');
       polygon.setAttribute('data-state', 'idle');
@@ -237,11 +250,46 @@
       polygon.setAttribute('data-state', assignment.state);
       polygon.setAttribute('data-entity-slug', entity.slug || '');
       polygon.chefRecord = assignment.occupancy === 'spectator' ? asSpectator(entity) : entity;
+      if (entity.slug && entity.slug === viewerSlug()) { seatedRing = assignment.ring; }
 
       appendOccupant(svg, occupants, assignment);
     });
 
+    markSeatable(svg, geometry);
     stampStage(svg, payload.center || { type: 'empty' });
+  }
+
+  function viewerSlug() {
+    return (global.ARENA_VIEWER && global.ARENA_VIEWER.slug) || '';
+  }
+
+  /**
+   * Which free seats this viewer may take. Derived from where they are sitting
+   * right now rather than from a hardcoded rule: a chef reseats inside their own
+   * rank ring, a spectator anywhere in the galleries. Anonymous visitors cannot
+   * sit at all, so they are never offered a seat.
+   */
+  function markSeatable(svg, geometry) {
+    var kindByRing = {};
+    geometry.rings.forEach(function (ring) { kindByRing[ring.index] = ring.kind; });
+
+    Array.prototype.forEach.call(svg.querySelectorAll('polygon[data-ring]'), function (polygon) {
+      var ring = Number(polygon.getAttribute('data-ring'));
+      var seatable = false;
+      if (viewerSlug() && polygon.getAttribute('data-occupancy') === 'empty') {
+        if (seatedRing !== null) {
+          seatable = kindByRing[seatedRing] === 'rank'
+            ? ring === seatedRing
+            : kindByRing[ring] === 'spectator';
+        } else {
+          // Not on the floor yet: a chef's rank ring is unknown until the
+          // payload seats them, so only the galleries can be offered.
+          seatable = kindByRing[ring] === 'spectator';
+        }
+      }
+      if (seatable) { polygon.setAttribute('data-seatable', 'true'); }
+      else { polygon.removeAttribute('data-seatable'); }
+    });
   }
 
   function asSpectator(spectator) {
@@ -362,7 +410,30 @@
     global.requestAnimationFrame(step);
   }
 
+  function showSeatLabel(svg, polygon) {
+    var label = svg.querySelector('.arena-seat-label');
+    if (!label) { return; }
+    var box = polygon.getBBox();
+    label.setAttribute('x', (box.x + box.width / 2).toFixed(2));
+    label.setAttribute('y', (box.y + box.height / 2).toFixed(2));
+    // Long copy in a small tile would spill over its neighbours; the outer
+    // galleries are roomy enough for words, the inner rank rings are not.
+    label.setAttribute('font-size', Math.min(9, Math.max(4, box.width * 0.16)).toFixed(1));
+    label.removeAttribute('hidden');
+  }
+
+  function hideSeatLabel(svg) {
+    var label = svg.querySelector('.arena-seat-label');
+    if (label) { label.setAttribute('hidden', 'hidden'); }
+  }
+
   function attachEvents(svg) {
+    svg.addEventListener('mouseover', function (event) {
+      var polygon = event.target.closest && event.target.closest('polygon[data-seatable]');
+      if (polygon) { showSeatLabel(svg, polygon); } else { hideSeatLabel(svg); }
+    });
+    svg.addEventListener('mouseleave', function () { hideSeatLabel(svg); });
+
     svg.addEventListener('click', function (event) {
       // The centre stage opens the live battle room, exactly as the legacy
       // centre cells did.

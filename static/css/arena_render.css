@@ -108,6 +108,33 @@
 #arena-render .arena-stage[data-state="active_battle"] { fill: var(--brand-dark); }
 #arena-render .arena-stage[data-state="facing_pair"] { fill: var(--brand); }
 
+/* ---- free seat, offered on hover only ---- */
+
+/* A free seat is plain until pointed at: the floor carries no permanent glyph,
+   and only a viewer who can actually take the seat is ever offered one. */
+#arena-render [data-seatable] {
+  cursor: pointer;
+}
+
+#arena-render [data-seatable]:hover {
+  fill: color-mix(in srgb, var(--brand) 30%, var(--surface));
+  stroke: var(--brand);
+  stroke-width: 1.8;
+}
+
+#arena-render .arena-seat-label {
+  fill: var(--surface);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: var(--brand-dark);
+  stroke-width: 2px;
+}
+
+#arena-render .arena-seat-label[hidden] {
+  display: none;
+}
+
 /* ---- occupants ---- */
 
 #arena-render .arena-occupant {
