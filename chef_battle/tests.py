@@ -4423,6 +4423,13 @@ class CombatArtifactTests(TestCase):
     def test_artifact_effect_label_includes_type_value_and_move(self):
         self.assertEqual(self.artifact.effect_label, "Attack +5 Move")
 
+    def test_knife_roll_uses_paginated_company_style_context(self):
+        self.client.force_login(self.chef_a.user)
+        response = self.client.get(reverse("chef_battle:battle_chest"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Your Combat Collection")
+        self.assertEqual(response.context["available_page"].paginator.per_page, 24)
+
     def test_combat_without_artifact_unchanged(self):
         from .services import submit_combat_action
         action = submit_combat_action(self.battle, self.chef_a, "attack", 2)

@@ -6,6 +6,7 @@ import logging
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
 from django.db.models import Q, Sum
@@ -2368,7 +2369,7 @@ def appreciation_gallery(request):
 
 @login_required
 def battle_chest(request):
-    """Chef's personal artifact inventory (backpack / chest)."""
+    """Chef's personal knife and tool roll, paginated for large collections."""
     from .models import ChefArtifact
 
     author = get_author_for_user(request.user)
@@ -2385,6 +2386,12 @@ def battle_chest(request):
     available = [c for c in all_owned if c.status == "available"]
     reserved  = [c for c in all_owned if c.status == "reserved"]
     consumed  = [c for c in all_owned if c.status in ("consumed", "expired", "reversed")]
+    available_page = Paginator(available, 24).get_page(request.GET.get("page"))
+    attack_count = sum(1 for item in available if item.artifact.effect_type == "attack")
+    defence_count = sum(
+        1 for item in available
+        if item.artifact.effect_type in ("defence", "defense")
+    )
 
     wallet = None
     try:
@@ -2394,6 +2401,9 @@ def battle_chest(request):
 
     return render(request, "chef_battle/battle_chest.html", {
         "available": available,
+        "available_page": available_page,
+        "attack_count": attack_count,
+        "defence_count": defence_count,
         "reserved": reserved,
         "consumed": consumed,
         "total": all_owned.count(),

@@ -1,5 +1,17 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.246",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Chef Battles: knife roll follows CulinEire page standards",
+        "section": "Chef Battles / Knife and tool roll",
+        "summary": (
+            "The knife and tool roll now uses the shared homepage Hero action include "
+            "and the Company Information document layout, with a clear summary and "
+            "24 artifacts per page instead of one unmanageable collection wall."
+        ),
+    },
+    {
         "version": "2.5.245",
         "date": "2026-07-16",
         "commit": "pending",

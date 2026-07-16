@@ -1,132 +1,99 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% load static %}
 
 {% block title %}Knife &amp; Tool Roll | Chef Battles | CulinEire{% endblock %}
-{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260716a" rel="stylesheet">{% endblock %}
 
 {% block content %}
-<section class="battle-room-hero battle-room-hero--has-panel">
-  <div class="container">
-    <div class="battle-room-hero__copy">
-      <p class="battle-kicker">Chef Battles Arena</p>
-      <h1>&#x1F5FA; Knife &amp; Tool Roll</h1>
-      <p class="battle-room-hero__sub">Your personal combat artifact roll. {{ total }} item{{ total|pluralize }} owned.</p>
-      <div class="battle-actions">
-        {% include '_enter_arena_btn.html' %}
-        <a class="btn-primary" href="{% url 'chef_battle:artifact_gallery' %}">Browse Artifacts</a>
-        <a class="btn-secondary" href="{% url 'chef_battle:changing_room' %}">Changing Room</a>
-        <a class="btn-secondary" href="{% url 'chef_battle:token_shop' %}">Get Tokens</a>
-      </div>
+<section class="hero hero--home hero--legal hero--has-battle">
+  <div aria-hidden="true" class="hero__background">
+    <picture><source srcset="{% static 'images/hero-battle.webp' %}" type="image/webp"><img alt="" width="1672" height="941" src="{% static 'images/hero-battle.png' %}"></picture>
+  </div>
+  <div aria-hidden="true" class="hero__overlay"></div>
+  <div class="container hero__inner">
+    <div class="hero-copy">
+      <span class="pill">Chef Battles</span>
+      <h1 class="hero-title">Knife &amp; Tool Roll</h1>
+      <p class="hero-subtitle">Your personal combat collection: {{ total }} artifact{{ total|pluralize }} earned, ready to choose with purpose.</p>
+      {% include 'includes/hero_actions.html' %}
     </div>
   </div>
 </section>
 
-<section class="page-section">
-  <div class="container battle-page">
+<section class="legal-shell legal-shell--company knife-roll-shell" aria-labelledby="knife-roll-title">
+  <div class="legal-intro legal-intro--policy">
+    <span class="legal-eyebrow">Chef Battles</span>
+    <h2 id="knife-roll-title">Your Combat Collection</h2>
+    <p>Every item carries its own Move effect. A chef may take up to three attack and three defence artifacts into one battle.</p>
+  </div>
 
-    {% if wallet %}
-    <div class="battle-wallet-strip">
-      <span>Token balance:</span>
-      <strong>{{ wallet.balance }}T</strong>
+  <div class="legal-summary-panel" aria-label="Knife and tool roll summary">
+    <div class="legal-summary-item"><span>Ready to use</span><strong>{{ available|length }}</strong></div>
+    <div class="legal-summary-item"><span>Attack artifacts</span><strong>{{ attack_count }}</strong></div>
+    <div class="legal-summary-item"><span>Defence artifacts</span><strong>{{ defence_count }}</strong></div>
+    <div class="legal-summary-item"><span>Tokens</span><strong>{% if wallet %}{{ wallet.balance }}T{% else %}0T{% endif %}</strong></div>
+  </div>
+
+  <details class="legal-mobile-jump">
+    <summary>Jump to a section</summary>
+    <div class="legal-mobile-jump__links">
+      <a href="#ready-artifacts">Ready artifacts</a>
+      {% if reserved %}<a href="#reserved-artifacts">Reserved for battle</a>{% endif %}
+      {% if consumed %}<a href="#history-artifacts">Used artifacts</a>{% endif %}
     </div>
-    {% endif %}
+  </details>
 
-    <div class="chest-section">
-      <h2 class="chest-section__title">
-        <span class="chest-status-dot chest-status-dot--available"></span>
-        Available ({{ available|length }})
-      </h2>
-      {% if available %}
-      <div class="artifact-grid">
-        {% for ca in available %}
-        <article class="artifact-card artifact-card--{{ ca.artifact.rarity }}">
-          <div class="artifact-card__image-wrap">
-            {% if ca.artifact.image %}
-            <img src="{{ ca.artifact.image.url }}" alt="{{ ca.artifact.name }}" class="artifact-card__image" loading="lazy">
-            {% else %}
-            <div class="artifact-card__placeholder">{{ ca.artifact.effect_type|slice:":1"|upper }}</div>
-            {% endif %}
+  <div class="legal-document-layout">
+    <aside class="legal-toc" aria-label="Knife and tool roll sections">
+      <span class="legal-toc__label">Your roll</span>
+      <nav>
+        <a href="#ready-artifacts">Ready artifacts</a>
+        {% if reserved %}<a href="#reserved-artifacts">Reserved for battle</a>{% endif %}
+        {% if consumed %}<a href="#history-artifacts">Used artifacts</a>{% endif %}
+      </nav>
+      <p>Effects shown here are the exact Move bonuses used in combat.</p>
+      <p><a href="{% url 'chef_battle:artifact_gallery' %}">Browse all artifacts</a></p>
+    </aside>
+
+    <div class="legal-card-grid legal-card-grid--document legal-document-main knife-roll-grid">
+      <article class="legal-card legal-card--section legal-card--section-wide" id="ready-artifacts">
+        <div class="section-header"><h2>Ready Artifacts</h2></div>
+        <div class="legal-card__content">
+          {% if available_page.object_list %}
+          <p class="page-subtitle">Showing {{ available_page.start_index }}–{{ available_page.end_index }} of {{ available|length }} artifacts ready for battle.</p>
+          <div class="knife-roll-artifacts">
+            {% for ca in available_page.object_list %}
+            <article class="legal-card knife-roll-card knife-roll-card--{{ ca.artifact.rarity }}">
+              {% if ca.artifact.image %}<img src="{{ ca.artifact.image.url }}" alt="" class="knife-roll-card__image" loading="lazy">{% endif %}
+              <div><span class="legal-card__label">{{ ca.artifact.get_rarity_display }}</span><h3>{{ ca.artifact.name }}</h3><p>{{ ca.artifact.effect_label }}</p></div>
+            </article>
+            {% endfor %}
           </div>
-          <div class="artifact-card__body">
-            <p class="artifact-card__rarity">{{ ca.artifact.get_rarity_display }}</p>
-            <h3 class="artifact-card__name">{{ ca.artifact.name }}</h3>
-            <p class="artifact-card__desc">{{ ca.artifact.description }}</p>
-            <p class="artifact-card__effect"><span class="artifact-card__effect-label">Effect:</span> {{ ca.artifact.effect_label }}</p>
-          </div>
-        </article>
-        {% endfor %}
-      </div>
-      {% else %}
-      <div class="empty-state"><p>No artifacts available. Visit the <a href="{% url 'chef_battle:artifact_gallery' %}">artifact gallery</a> to see what you can earn.</p></div>
+          {% if available_page.has_other_pages %}
+          <nav class="knife-roll-pagination" aria-label="Artifact pages">
+            {% if available_page.has_previous %}<a class="btn-secondary" href="?page={{ available_page.previous_page_number }}#ready-artifacts">Previous</a>{% endif %}
+            <span>Page {{ available_page.number }} of {{ available_page.paginator.num_pages }}</span>
+            {% if available_page.has_next %}<a class="btn-secondary" href="?page={{ available_page.next_page_number }}#ready-artifacts">Next</a>{% endif %}
+          </nav>
+          {% endif %}
+          {% else %}<p class="page-subtitle">No artifacts are ready yet.</p>{% endif %}
+        </div>
+      </article>
+
+      {% if reserved %}
+      <article class="legal-card legal-card--section legal-card--section-wide" id="reserved-artifacts">
+        <div class="section-header"><h2>Reserved for Battle</h2></div>
+        <div class="legal-card__content"><div class="knife-roll-artifacts">{% for ca in reserved %}<article class="legal-card knife-roll-card knife-roll-card--reserved"><div><span class="legal-card__label">{{ ca.artifact.get_rarity_display }}</span><h3>{{ ca.artifact.name }}</h3><p>{{ ca.artifact.effect_label }}</p></div></article>{% endfor %}</div></div>
+      </article>
+      {% endif %}
+
+      {% if consumed %}
+      <article class="legal-card legal-card--section legal-card--section-wide" id="history-artifacts">
+        <div class="section-header"><h2>Used / Expired</h2></div>
+        <div class="legal-card__content"><div class="knife-roll-artifacts">{% for ca in consumed %}<article class="legal-card knife-roll-card knife-roll-card--history"><div><span class="legal-card__label">{{ ca.get_status_display }}</span><h3>{{ ca.artifact.name }}</h3><p>{{ ca.artifact.effect_label }}</p></div></article>{% endfor %}</div></div>
+      </article>
       {% endif %}
     </div>
-
-    {% if reserved %}
-    <div class="chest-section">
-      <h2 class="chest-section__title">
-        <span class="chest-status-dot chest-status-dot--reserved"></span>
-        Reserved in Battle ({{ reserved|length }})
-      </h2>
-      <div class="artifact-grid">
-        {% for ca in reserved %}
-        <article class="artifact-card artifact-card--{{ ca.artifact.rarity }} artifact-card--reserved">
-          <div class="artifact-card__image-wrap">
-            {% if ca.artifact.image %}
-            <img src="{{ ca.artifact.image.url }}" alt="{{ ca.artifact.name }}" class="artifact-card__image" loading="lazy">
-            {% else %}
-            <div class="artifact-card__placeholder">{{ ca.artifact.effect_type|slice:":1"|upper }}</div>
-            {% endif %}
-          </div>
-          <div class="artifact-card__body">
-            <p class="artifact-card__rarity">{{ ca.artifact.get_rarity_display }}</p>
-            <h3 class="artifact-card__name">{{ ca.artifact.name }}</h3>
-            <p class="artifact-card__desc">{{ ca.artifact.description }}</p>
-            <p class="artifact-card__effect"><span class="artifact-card__effect-label">Effect:</span> {{ ca.artifact.effect_label }}</p>
-            <p style="font-size:0.78rem;color:var(--muted);margin:0.3rem 0 0;">Reserved for active battle</p>
-          </div>
-        </article>
-        {% endfor %}
-      </div>
-    </div>
-    {% endif %}
-
-    {% if consumed %}
-    <div class="chest-section">
-      <h2 class="chest-section__title">
-        <span class="chest-status-dot chest-status-dot--consumed"></span>
-        Used / Expired ({{ consumed|length }})
-      </h2>
-      <div class="artifact-grid">
-        {% for ca in consumed %}
-        <article class="artifact-card artifact-card--{{ ca.artifact.rarity }} artifact-card--consumed">
-          <div class="artifact-card__image-wrap">
-            {% if ca.artifact.image %}
-            <img src="{{ ca.artifact.image.url }}" alt="{{ ca.artifact.name }}" class="artifact-card__image" loading="lazy" style="opacity:0.45;">
-            {% else %}
-            <div class="artifact-card__placeholder" style="opacity:0.45;">{{ ca.artifact.effect_type|slice:":1"|upper }}</div>
-            {% endif %}
-          </div>
-          <div class="artifact-card__body">
-            <p class="artifact-card__rarity">{{ ca.artifact.get_rarity_display }}</p>
-            <h3 class="artifact-card__name" style="opacity:0.6;">{{ ca.artifact.name }}</h3>
-            <p class="artifact-card__effect"><span class="artifact-card__effect-label">Effect:</span> {{ ca.artifact.effect_label }}</p>
-            <p style="font-size:0.78rem;color:var(--muted);margin:0;">{{ ca.get_status_display }}</p>
-          </div>
-        </article>
-        {% endfor %}
-      </div>
-    </div>
-    {% endif %}
-
-    {% if not total %}
-    <div class="empty-state" style="margin-top:3rem;">
-      <p>Your knife and tool roll is empty. Win battles or receive gifts to earn combat artifacts.</p>
-      <div style="margin-top:1rem;">
-        <a class="btn-primary" href="{% url 'chef_battle:artifact_gallery' %}">View All Artifacts</a>
-      </div>
-    </div>
-    {% endif %}
-
   </div>
 </section>
 {% endblock %}
