@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.299",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Add the Arena floor environment plate",
+        "section": "Chef Battles / Arena",
+        "summary": "Introduced the first production Arena environment plate: a clean cinematic octagonal kitchen floor behind the existing live SVG cells. Real chefs, ranks, tooltip, popup and interaction layers remain above the image and unchanged.",
+    },
+    {
         "version": "2.5.298",
         "date": "2026-07-16",
         "commit": "pending",
