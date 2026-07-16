@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.303",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Keep internal traffic out of visitor statistics",
+        "section": "Monitoring",
+        "summary": "Monitoring no longer records the team's own traffic: any machine seen with a staff login is remembered for a week and its page views, including anonymous fetches such as manifest requests and diagnostic curls, stay out of the statistics. Fixed internal addresses (the production host itself) can be listed via a new setting. Genuinely suspicious probes are still recorded regardless of source.",
+    },
+    {
         "version": "2.5.302",
         "date": "2026-07-16",
         "commit": "pending",

@@ -167,6 +167,10 @@ MONITORING_ENABLED = env_bool("MONITORING_ENABLED", default=True)
 MONITORING_RETENTION_DAYS = env_int("MONITORING_RETENTION_DAYS", default=90)
 MONITORING_ANONYMIZE_IP = env_bool("MONITORING_ANONYMIZE_IP", default=True)
 MONITORING_BLOCK_SUSPICIOUS_PROBES = env_bool("MONITORING_BLOCK_SUSPICIOUS_PROBES", default=True)
+# Fixed internal addresses (e.g. the production host itself) whose traffic —
+# deploy checks, agent curls — must never appear in visitor statistics.
+# Staff machines are auto-learned in MonitoringMiddleware and need no entry.
+MONITORING_INTERNAL_IPS = env_list("MONITORING_INTERNAL_IPS", "")
 MONITORING_EXCLUDED_PATH_PREFIXES = [
     "/static/",
     "/media/",

@@ -44,11 +44,36 @@ def _is_append_slash_redirect_candidate(request) -> bool:
     return CommonMiddleware(lambda _request: None).should_redirect_with_slash(request)
 
 
+_INTERNAL_MARK_TTL = 7 * 24 * 3600  # staff machines stay excluded for a week per sighting
+
+
 class MonitoringMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
         excluded = getattr(settings, "MONITORING_EXCLUDED_PATH_PREFIXES", _DEFAULT_EXCLUDED)
         self._excluded = tuple(excluded)
+        # Internal traffic (the team's own machines and the server itself) must
+        # not pollute visitor statistics. Two mechanisms:
+        # 1. MONITORING_INTERNAL_IPS setting — fixed addresses (e.g. the
+        #    production host, whose own curls come back via the proxy).
+        # 2. Auto-learned: any ip_hash seen with an authenticated staff user is
+        #    remembered in cache, so anonymous hits from the same machine
+        #    (manifest.json fetches, diagnostic curls) are excluded too.
+        self._internal_hashes = frozenset(
+            hash_ip(ip.strip())
+            for ip in getattr(settings, "MONITORING_INTERNAL_IPS", ())
+            if ip.strip()
+        )
+
+    def _is_internal(self, ip_hash: str, user) -> bool:
+        if ip_hash in self._internal_hashes:
+            return True
+        from django.core.cache import cache
+        cache_key = f"monitoring:internal_ip:{ip_hash}"
+        if user is not None and user.is_staff:
+            cache.set(cache_key, True, _INTERNAL_MARK_TTL)
+            return True
+        return bool(cache.get(cache_key))
 
     def __call__(self, request):
         path = request.path
@@ -90,8 +115,7 @@ class MonitoringMiddleware:
 
         return response
 
-    @staticmethod
-    def _record_response(request, response, is_suspicious):
+    def _record_response(self, request, response, is_suspicious):
         if is_suspicious:
             return
 
@@ -100,6 +124,12 @@ class MonitoringMiddleware:
         status = response.status_code
         ip_hash = hash_ip(get_client_ip(request))
         user = request.user if hasattr(request, "user") and request.user.is_authenticated else None
+
+        # Team/server traffic stays out of the statistics entirely (page views
+        # and routine 403/404 noise). Genuinely suspicious probes are still
+        # recorded above regardless of source.
+        if self._is_internal(ip_hash, user):
+            return
         session_key = ""
         if hasattr(request, "session") and request.session.session_key:
             session_key = request.session.session_key

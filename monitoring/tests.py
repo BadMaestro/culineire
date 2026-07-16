@@ -17,8 +17,19 @@ def _make_response(status=200):
     return HttpResponse(status=status)
 
 
+class _SessionStub(dict):
+    """Dict-backed session stand-in: supports item assignment like the real
+    SessionStore (the middleware force-creates sessions for browser UAs)."""
+
+    def __init__(self, session_key=None):
+        super().__init__()
+        self.session_key = session_key
+
+
 class MiddlewareSkipTest(TestCase):
     def setUp(self):
+        from django.core.cache import cache
+        cache.clear()  # staff logins in other test classes mark 127.0.0.1 internal
         self.factory = RequestFactory()
         self.middleware = MonitoringMiddleware(lambda r: _make_response())
 
@@ -35,15 +46,47 @@ class MiddlewareSkipTest(TestCase):
     def test_records_normal_page(self):
         request = self.factory.get("/recipes/")
         request.user = type("AnonUser", (), {"is_authenticated": False})()
-        request.session = type("Session", (), {"session_key": "abc123"})()
+        request.session = _SessionStub("abc123")
         self.middleware(request)
         self.assertEqual(PageView.objects.filter(path="/recipes/").count(), 1)
+
+    def test_internal_ip_from_settings_excluded(self):
+        with override_settings(MONITORING_INTERNAL_IPS=["10.9.8.7"]):
+            middleware = MonitoringMiddleware(lambda r: _make_response())
+            request = self.factory.get("/recipes/", REMOTE_ADDR="10.9.8.7")
+            request.user = type("AnonUser", (), {"is_authenticated": False})()
+            request.session = _SessionStub("int1")
+            middleware(request)
+        self.assertEqual(PageView.objects.count(), 0)
+
+    def test_staff_machine_auto_learned_and_excluded(self):
+        from django.core.cache import cache
+        cache.clear()
+        staff = User.objects.create_user("mon-staff", password="pw", is_staff=True)
+        # 1) authenticated staff request: skipped AND marks the ip_hash
+        request = self.factory.get("/recipes/", REMOTE_ADDR="10.1.2.3")
+        request.user = staff
+        request.session = _SessionStub("s1")
+        self.middleware(request)
+        self.assertEqual(PageView.objects.count(), 0)
+        # 2) anonymous request from the SAME machine (e.g. manifest fetch, curl)
+        anon = self.factory.get("/manifest.json", REMOTE_ADDR="10.1.2.3")
+        anon.user = type("AnonUser", (), {"is_authenticated": False})()
+        anon.session = _SessionStub("s2")
+        self.middleware(anon)
+        self.assertEqual(PageView.objects.count(), 0)
+        # 3) a different visitor is still recorded
+        visitor = self.factory.get("/recipes/", REMOTE_ADDR="10.4.5.6")
+        visitor.user = type("AnonUser", (), {"is_authenticated": False})()
+        visitor.session = _SessionStub("s3")
+        self.middleware(visitor)
+        self.assertEqual(PageView.objects.count(), 1)
 
     def test_records_404_as_security_event(self):
         middleware = MonitoringMiddleware(lambda r: _make_response(404))
         request = self.factory.get("/nonexistent/page/")
         request.user = type("AnonUser", (), {"is_authenticated": False})()
-        request.session = type("Session", (), {"session_key": None})()
+        request.session = _SessionStub()
         middleware(request)
         self.assertEqual(
             SecurityEvent.objects.filter(event_type=SecurityEvent.EventType.NOT_FOUND).count(), 1
@@ -53,7 +96,7 @@ class MiddlewareSkipTest(TestCase):
         middleware = MonitoringMiddleware(lambda r: _make_response(404))
         request = self.factory.get("/about")
         request.user = type("AnonUser", (), {"is_authenticated": False})()
-        request.session = type("Session", (), {"session_key": None})()
+        request.session = _SessionStub()
 
         middleware(request)
 
@@ -64,7 +107,7 @@ class MiddlewareSkipTest(TestCase):
     def test_flags_suspicious_path(self):
         request = self.factory.get("/<script>alert(1)</script>")
         request.user = type("AnonUser", (), {"is_authenticated": False})()
-        request.session = type("Session", (), {"session_key": None})()
+        request.session = _SessionStub()
         self.middleware(request)
         self.assertEqual(
             SecurityEvent.objects.filter(event_type=SecurityEvent.EventType.SUSPICIOUS_REQUEST).count(), 1
@@ -85,7 +128,7 @@ class MiddlewareSkipTest(TestCase):
             REMOTE_ADDR="203.0.113.10",
         )
         request.user = type("AnonUser", (), {"is_authenticated": False})()
-        request.session = type("Session", (), {"session_key": None})()
+        request.session = _SessionStub()
 
         response = middleware(request)
 
@@ -101,7 +144,7 @@ class MiddlewareSkipTest(TestCase):
     def test_can_log_suspicious_probe_without_blocking(self):
         request = self.factory.get("/credentials.json")
         request.user = type("AnonUser", (), {"is_authenticated": False})()
-        request.session = type("Session", (), {"session_key": None})()
+        request.session = _SessionStub()
 
         response = self.middleware(request)
 
@@ -112,7 +155,7 @@ class MiddlewareSkipTest(TestCase):
     def test_url_encoded_traversal_is_critical_and_blocked(self):
         request = self.factory.get("/%2e%2e/%2e%2e/etc/passwd")
         request.user = type("AnonUser", (), {"is_authenticated": False})()
-        request.session = type("Session", (), {"session_key": None})()
+        request.session = _SessionStub()
 
         response = self.middleware(request)
 
