@@ -6210,6 +6210,50 @@ class ArenaPayloadWiringTests(TestCase):
         self.assertIn("crown_streak", p)
         self.assertIn("crown_ladder", p)
         self.assertIn("recent_gifts", p)
+        self.assertIn("metrics", p)
+        self.assertEqual(set(p["metrics"]), {"active_viewers", "public_votes", "battle_gifts"})
         self.assertIsInstance(p["crown_streak"], int)
         self.assertIsInstance(p["crown_ladder"], list)
         self.assertIsInstance(p["recent_gifts"], list)
+
+
+class ArenaMetricsTests(TestCase):
+    """get_arena_metrics: active viewers / public votes / battle gifts for top bar."""
+
+    def setUp(self):
+        U = get_user_model()
+        self.a = RecipeAuthor.objects.create(user=U.objects.create_user("met-a", password="pw"), name="A", slug="met-a")
+        self.b = RecipeAuthor.objects.create(user=U.objects.create_user("met-b", password="pw"), name="B", slug="met-b")
+        self.su = U.objects.create_user("met-s", password="pw")
+
+    def test_metrics_empty_and_counts(self):
+        from .models import Battle, Artifact, ViewerBattleGift
+        from .selectors import get_arena_metrics
+        self.assertEqual(get_arena_metrics(None), {"active_viewers": 0, "public_votes": 0, "battle_gifts": 0})
+        battle = Battle.objects.create(challenger=self.a, opponent=self.b, theme="T",
+                                       submission_deadline=timezone.now(), end_time=timezone.now())
+        art = Artifact.objects.create(name="MetArt")
+        ViewerBattleGift.objects.create(battle=battle, recipient=self.a, sender=self.su, artifact=art, tokens_spent=10)
+        ViewerBattleGift.objects.create(battle=battle, recipient=self.b, sender=self.su, artifact=art, tokens_spent=10)
+        m = get_arena_metrics(battle)
+        self.assertEqual(m["battle_gifts"], 2)
+        self.assertEqual(m["public_votes"], 0)
+        self.assertEqual(m["active_viewers"], 0)
+
+
+class ArenaCenterMetaTests(TestCase):
+    """_arena_center exposes real theme + public status_display (Ember #157)."""
+
+    def test_center_theme_and_status(self):
+        from chef_battle.views import _arena_center
+        from .models import Battle
+        U = get_user_model()
+        a = RecipeAuthor.objects.create(user=U.objects.create_user("ctr-a", password="pw"), name="A", slug="ctr-a")
+        b = RecipeAuthor.objects.create(user=U.objects.create_user("ctr-b", password="pw"), name="B", slug="ctr-b")
+        battle = Battle.objects.create(challenger=a, opponent=b, theme="Irish Stew",
+                                       status=Battle.Status.COOKING,
+                                       submission_deadline=timezone.now(), end_time=timezone.now())
+        c = _arena_center(battle)
+        self.assertEqual(c["theme"], "Irish Stew")
+        self.assertEqual(c["status_display"], "Cooking")
+        self.assertEqual(c["type"], "active_battle")

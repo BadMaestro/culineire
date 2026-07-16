@@ -47,6 +47,7 @@ from .fraud import (
 from .models import Artifact, Battle, BattleChatMessage, BattleChallenge, BattleEntry, BattleEvent, BattleIngredient, BattleVote, ChefArtifact, ChefBattleProfile, TokenWallet, VoteIntegrityEvent
 from .selectors import (
     get_active_battles,
+    get_arena_metrics,
     get_battle_vote_counts,
     get_crown_ladder,
     get_crown_streak,
@@ -786,6 +787,8 @@ def _arena_center(active_battle):
             # DB (TextChoices only wraps in-memory assignments) — .value here
             # crashed the arena for any real active battle (latent pre-P02 bug).
             "battle_phase": str(active_battle.status),
+            "status_display": active_battle.get_status_display(),
+            "theme": active_battle.theme,
             "battle_url": reverse("chef_battle:battle_detail", kwargs={"pk": active_battle.pk}),
             "popup_url": reverse("chef_battle:arena_battle_popup"),
             "challenger": {
@@ -1039,6 +1042,7 @@ def _build_arena_payload():
         "crown_streak": get_crown_streak(),
         "crown_ladder": get_crown_ladder(),
         "recent_gifts": get_recent_battle_gifts(active_battle),
+        "metrics": get_arena_metrics(active_battle),
     }
 
 
@@ -1078,6 +1082,7 @@ def arena(request):
         "crown_streak": payload["crown_streak"],
         "crown_ladder": payload["crown_ladder"],
         "recent_gifts": payload["recent_gifts"],
+        "metrics": payload["metrics"],
     }
 
     # Moderator-only preview of the active-battle centre (Phase 1 choreography).
@@ -1164,6 +1169,7 @@ def arena_state(request):
         "crown_streak": payload["crown_streak"],
         "crown_ladder": payload["crown_ladder"],
         "recent_gifts": payload["recent_gifts"],
+        "metrics": payload["metrics"],
     })
 
 

@@ -1111,3 +1111,20 @@ def get_crown_ladder(limit: int = 8) -> list:
         .order_by("-crowns", "winner__name")[:limit]
     )
     return [{"name": r["winner__name"], "slug": r["winner__slug"], "crowns": r["crowns"]} for r in rows]
+
+
+def get_arena_metrics(battle=None) -> dict:
+    """Top-bar live metrics for the active battle (arena rebuild): active
+    viewers (distinct heartbeats in 180s), total public votes, battle-gift
+    count. All zero when no active battle (empty-safe)."""
+    if battle is None:
+        return {"active_viewers": 0, "public_votes": 0, "battle_gifts": 0}
+    from .models import BattleViewerPresence, ViewerBattleGift
+    cutoff = timezone.now() - timezone.timedelta(seconds=180)
+    viewers = (
+        BattleViewerPresence.objects.filter(battle=battle, last_seen_at__gte=cutoff)
+        .values("viewer_hash").distinct().count()
+    )
+    votes = sum(get_battle_vote_counts(battle).values())
+    gifts = ViewerBattleGift.objects.filter(battle=battle).count()
+    return {"active_viewers": viewers, "public_votes": votes, "battle_gifts": gifts}
