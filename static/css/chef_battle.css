@@ -4717,3 +4717,33 @@ a.battle-home__pulse-msg:hover {
 @media (max-width: 900px) {
   .site-battle-widget { width: min(17.75rem, calc(100vw - 1rem)); }
 }
+
+/* Compact sidebar rhythm: it should sit beside the author pill, not outweigh it. */
+.site-battle-widget { width: 15rem; }
+.site-battle-widget__toggle { min-height: 2.7rem; padding: 0.55rem 0.65rem; }
+.site-battle-widget__label { font-size: 0.84rem; }
+.site-battle-widget__brand-icon { width: 1.05rem; height: 1.05rem; flex-basis: 1.05rem; }
+.site-battle-widget__body { gap: 0.38rem; padding: 0.55rem; }
+.site-battle-widget__section-title { margin-bottom: 0.4rem; font-size: 0.6rem; }
+.site-battle-widget__section--menu .site-battle-widget__menu {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+.site-battle-widget__menu a { min-height: 2.7rem; padding: 0.26rem 0.34rem; font-size: 0.69rem; }
+.site-battle-widget .site-battle-widget__icon,
+.site-battle-widget .site-battle-widget__console-link .site-battle-widget__icon {
+  width: 1.75rem;
+  height: 1.75rem;
+  flex-basis: 1.75rem;
+}
+.site-battle-widget__console-link {
+  min-height: 2.75rem;
+  margin-top: 0.35rem;
+  padding: 0.28rem 0.48rem;
+  font-size: 0.76rem;
+}
+.site-battle-widget .btn-primary { min-height: 2.95rem; margin-top: 0.46rem; font-size: 0.82rem; }
+@media (max-width: 900px) {
+  .site-battle-widget { width: min(15rem, calc(100vw - 1rem)); }
+}

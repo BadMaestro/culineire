@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.273",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Compact Chef Battles widget rhythm",
+        "section": "Chef Battles / Navigation",
+        "summary": "Reduced widget width, internal spacing, icon scale and row heights while preserving the two-column menu and comfortable clickable targets.",
+    },
+    {
         "version": "2.5.272",
         "date": "2026-07-16",
         "commit": "pending",
