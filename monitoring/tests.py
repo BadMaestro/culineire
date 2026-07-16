@@ -26,10 +26,14 @@ class _SessionStub(dict):
         self.session_key = session_key
 
 
+# RequestFactory defaults REMOTE_ADDR to 127.0.0.1; pin the internal-IP list to
+# empty so an ambient MONITORING_INTERNAL_IPS (e.g. the production .env listing
+# 127.0.0.1) can't classify these synthetic requests as internal and skip them.
+@override_settings(MONITORING_INTERNAL_IPS=[])
 class MiddlewareSkipTest(TestCase):
     def setUp(self):
         from django.core.cache import cache
-        cache.clear()  # staff logins in other test classes mark 127.0.0.1 internal
+        cache.clear()  # staff logins in other test classes mark ips internal in cache
         self.factory = RequestFactory()
         self.middleware = MonitoringMiddleware(lambda r: _make_response())
 

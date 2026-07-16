@@ -2293,7 +2293,9 @@ class ArenaMasterStateTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
         self.assertEqual(set(data.keys()),
-                         {"rings", "spectators", "center", "latest_result"})
+                         {"rings", "spectators", "center", "latest_result",
+                          "crown_streak", "crown_ladder", "recent_gifts", "metrics",
+                          "phase", "deadline", "server_time", "geometry"})
 
     def test_operator_fields_do_not_leak_into_public_arena(self):
         self._battle(Battle.Status.VOTING)
@@ -3863,7 +3865,9 @@ class ViewerPresenceTests(TestCase):
                                 REMOTE_ADDR="10.0.0.5", HTTP_USER_AGENT="A/1")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(set(resp.json().keys()),
-                         {"rings", "spectators", "center", "latest_result"})
+                         {"rings", "spectators", "center", "latest_result",
+                          "crown_streak", "crown_ladder", "recent_gifts", "metrics",
+                          "phase", "deadline", "server_time", "geometry"})
 
 
 @override_settings(CHEF_BATTLE_ENABLED=True)
