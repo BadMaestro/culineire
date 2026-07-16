@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.248",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Chef Battles: Knife Roll widget label",
+        "section": "Chef Battles / Navigation",
+        "summary": "The Chef Battles widget now calls the chef's artifact collection Knife Roll.",
+    },
+    {
         "version": "2.5.247",
         "date": "2026-07-16",
         "commit": "pending",
