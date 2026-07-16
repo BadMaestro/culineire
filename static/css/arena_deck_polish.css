@@ -1,0 +1,96 @@
+/* Arena command-deck POLISH LAYER — GreenBear (Senior FE), refines Ember's
+   arena_command_deck classes toward the owner reference. Loads AFTER
+   arena_command_deck.css. Refines (does not restructure) — coordinate with Ember
+   before restyling the same class in arena_command_deck.css.
+   Palette per arena_rebuild_plan.md sec 6 (warm CulinEire, gold accents). */
+
+.arena-command-deck {
+  --ad-s0:#faf6f0; --ad-s1:#fffdf9; --ad-s2:#f5eee4; --ad-s3:#f2eadf;
+  --ad-ink:#1f2c25; --ad-ink2:#42514a; --ad-mut:#66746d;
+  --ad-green:#3f8a34; --ad-red:#b23b34; --ad-gold:#d6a64b; --ad-gold-d:#9c7526;
+  --ad-line:rgba(31,44,37,.12);
+}
+
+/* shared panel look */
+.arena-command-deck__phase-card,
+.arena-command-deck__metrics,
+.arena-command-deck__ladder,
+.arena-command-deck__gifts {
+  background:linear-gradient(180deg,var(--ad-s1),var(--ad-s2));
+  border:1px solid var(--ad-line); border-radius:14px;
+  box-shadow:0 1px 0 rgba(255,255,255,.6) inset, 0 6px 18px rgba(31,44,37,.06);
+  padding:14px 16px;
+}
+.arena-panel__kicker {
+  font-size:.66rem; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--ad-gold-d); font-weight:700; margin:0 0 .4rem;
+}
+
+/* icons injected from _arena_deck_svg.html */
+.arena-ico { width:1.1rem; height:1.1rem; display:inline-block; vertical-align:middle; }
+
+/* ── Phase rail (A2) ── */
+.arena-command-deck__phase-rail {
+  display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; justify-content:center;
+}
+.arena-phase-step {
+  display:inline-flex; align-items:center; gap:.4rem;
+  font-size:.72rem; color:var(--ad-mut); font-weight:600;
+  background:var(--ad-s2); border:1px solid var(--ad-line); border-radius:999px;
+  padding:.3rem .7rem; white-space:nowrap; transition:all .2s;
+}
+.arena-phase-step b { color:var(--ad-ink2); font-weight:700; }
+.arena-phase-step.is-active {
+  color:#5a3f10; background:linear-gradient(180deg,#f6e2ad,#e9c877);
+  border-color:var(--ad-gold); box-shadow:0 2px 8px rgba(214,166,75,.35);
+}
+.arena-phase-step.is-active b { color:#4a340c; }
+
+/* ── Metrics band (A3) ── */
+.arena-command-deck__metrics { display:flex; gap:1.4rem; align-items:center; flex-wrap:wrap; }
+.arena-metric { display:flex; flex-direction:column; line-height:1.15; }
+.arena-metric span { font-size:.62rem; letter-spacing:.05em; text-transform:uppercase; color:var(--ad-mut); }
+.arena-metric strong { font-size:1.25rem; color:var(--ad-ink); font-variant-numeric:tabular-nums; }
+.arena-metric .arena-ico { color:var(--ad-gold-d); }
+
+/* ── Phase card (A4) ── */
+.arena-command-deck__phase-name { font-family:var(--font-serif,'Playfair Display',serif);
+  font-weight:800; font-size:1.35rem; color:var(--ad-ink); margin:.15rem 0 .3rem; }
+.arena-command-deck__phase-copy { color:var(--ad-ink2); font-size:.82rem; margin:0; }
+
+/* ── Focus cards + crown medallion (A8/A9/A10) ── */
+.arena-command-deck__live-stage {
+  display:flex; align-items:center; justify-content:center; gap:1rem; flex-wrap:wrap;
+}
+.arena-live-chef {
+  background:var(--ad-s1); border:1px solid var(--ad-line); border-radius:14px;
+  padding:12px 14px; min-width:150px; text-align:center;
+}
+.arena-live-chef--challenger { box-shadow:inset 0 0 0 1.5px rgba(63,138,52,.5), 0 0 20px rgba(63,138,52,.08); }
+.arena-live-chef--opponent   { box-shadow:inset 0 0 0 1.5px rgba(178,59,52,.5), 0 0 20px rgba(178,59,52,.08); }
+.arena-live-centre {
+  display:inline-flex; flex-direction:column; align-items:center; justify-content:center;
+  text-decoration:none; color:var(--ad-gold-d); font-weight:800; letter-spacing:.04em;
+}
+.arena-live-centre .arena-ico { width:2.6rem; height:2.6rem; filter:drop-shadow(0 2px 6px rgba(214,166,75,.5)); }
+
+/* ── Crown ladder (A11) ── */
+.arena-ladder-list { list-style:none; margin:0; padding:0; display:grid; gap:.35rem; }
+.arena-ladder-list li {
+  display:flex; align-items:center; gap:.5rem; font-size:.82rem; color:var(--ad-ink2);
+  padding:.35rem .1rem; border-bottom:1px solid var(--ad-line);
+}
+.arena-ladder-list li:last-child { border-bottom:0; }
+
+/* ── Gifts (A12) ── */
+.arena-command-deck__gift-copy { color:var(--ad-ink2); font-size:.8rem; margin:.2rem 0 0; }
+
+/* ── Crowd rail (A13) ── */
+.arena-command-deck__crowd-rail {
+  background:var(--ad-s3); border:1px solid var(--ad-line); border-radius:12px;
+  padding:.5rem .9rem; color:var(--ad-ink2); font-size:.82rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arena-phase-step { transition:none; }
+}
