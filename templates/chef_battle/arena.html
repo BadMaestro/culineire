@@ -47,7 +47,7 @@
   <section class="arena-command-deck__metrics" aria-label="Arena metrics">
     <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-eye"></use></svg>Active viewers</span><strong>{{ spectator_count }}</strong></div>
     <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-toque"></use></svg>Rank tiers</span><strong>{{ rank_groups|length }}</strong></div>
-    <div class="arena-metric"><span>Live battle</span><strong>{% if active_battle %}On{% else %}—{% endif %}</strong></div>
+    <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-crown"></use></svg>Crown streak</span><strong>{{ crown_streak|default:0 }}</strong></div>
   </section>
 
   <section class="arena-command-deck__floor" aria-label="Ranked arena floor">
@@ -89,19 +89,36 @@
     {% include "chef_battle/_arena_ring.html" %}
   </section>
 
-  <aside class="arena-command-deck__ladder" aria-label="Rank ladder">
-    <p class="arena-panel__kicker">Crown ladder</p>
+  <aside class="arena-command-deck__ladder" aria-label="Today's crown ladder">
+    <p class="arena-panel__kicker">Today's crown ladder</p>
     <ol class="arena-ladder-list">
-      {% for rank, chefs in rank_groups|slice:":4" %}
-      <li><span>{{ forloop.counter }}</span><b>{{ rank.label }}</b><em>{{ chefs|length }} chefs</em></li>
+      {% for chef in crown_ladder %}
+        <li>
+          <span>{{ forloop.counter }}</span>
+          <a href="{% url 'chef_battle:chef_profile' slug=chef.slug %}">{{ chef.name }}</a>
+          <em>{{ chef.crowns }} crown{{ chef.crowns|pluralize }}</em>
+        </li>
+      {% empty %}
+        <li class="arena-panel__empty">No crowns have been awarded today.</li>
       {% endfor %}
     </ol>
     <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">View rankings</a>
   </aside>
 
-  <aside class="arena-command-deck__gifts" aria-label="Battle gifts">
-    <p class="arena-panel__kicker">Battle gifts</p>
-    <p class="arena-command-deck__gift-copy">Support a chef from the live battle room. Gifts and artifacts keep their existing token and eligibility checks.</p>
+  <aside class="arena-command-deck__gifts" aria-label="Recent battle gifts">
+    <p class="arena-panel__kicker">Recent battle gifts</p>
+    <ul class="arena-gift-list">
+      {% for gift in recent_battle_gifts %}
+        <li>
+          <svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>
+          <span><a href="{% url 'chef_battle:chef_profile' slug=gift.recipient_slug %}">{{ gift.recipient }}</a><b>{{ gift.item }}</b></span>
+          <em>{{ gift.tokens }}T</em>
+        </li>
+      {% empty %}
+        <li class="arena-panel__empty">No battle gifts have been delivered yet.</li>
+      {% endfor %}
+    </ul>
+    <p class="arena-command-deck__gift-copy">Gifts use the existing shop, token and delivery checks; nothing is created from this page.</p>
     {% if active_battle %}
     <a class="btn-primary" href="#arena-puzzle">Open live battle</a>
     {% else %}
