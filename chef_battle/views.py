@@ -2344,6 +2344,12 @@ def artifact_gallery(request):
     })
 
 
+def artifact_detail(request, pk):
+    """Public, linkable reference page for one combat artifact."""
+    artifact = get_object_or_404(Artifact, pk=pk, is_active=True)
+    return render(request, "chef_battle/artifact_detail.html", {"artifact": artifact})
+
+
 def appreciation_gallery(request):
     """Public gallery of all appreciation gift types with cost and description."""
     from .models import (
@@ -2386,7 +2392,20 @@ def battle_chest(request):
     available = [c for c in all_owned if c.status == "available"]
     reserved  = [c for c in all_owned if c.status == "reserved"]
     consumed  = [c for c in all_owned if c.status in ("consumed", "expired", "reversed")]
-    available_page = Paginator(available, 24).get_page(request.GET.get("page"))
+    roll_filter = request.GET.get("filter", "all")
+    filter_map = {
+        "attack": ("attack",),
+        "defence": ("defence", "defense"),
+    }
+    if roll_filter in filter_map:
+        visible_available = [
+            item for item in available
+            if item.artifact.effect_type in filter_map[roll_filter]
+        ]
+    else:
+        roll_filter = "all"
+        visible_available = available
+    available_page = Paginator(visible_available, 24).get_page(request.GET.get("page"))
     attack_count = sum(1 for item in available if item.artifact.effect_type == "attack")
     defence_count = sum(
         1 for item in available
@@ -2401,7 +2420,9 @@ def battle_chest(request):
 
     return render(request, "chef_battle/battle_chest.html", {
         "available": available,
+        "visible_available": visible_available,
         "available_page": available_page,
+        "roll_filter": roll_filter,
         "attack_count": attack_count,
         "defence_count": defence_count,
         "reserved": reserved,
@@ -2426,10 +2447,16 @@ def changing_room(request):
 
     profile, _ = ChefBattleProfile.objects.get_or_create(author=author)
 
-    available_artifacts = (
+    available_artifacts = list(
         ChefArtifact.objects.filter(chef=author, status="available")
         .select_related("artifact")
         .order_by("artifact__rarity", "artifact__name")
+    )
+    available_artifacts_preview = available_artifacts[:6]
+    attack_artifact_count = sum(1 for item in available_artifacts if item.artifact.effect_type == "attack")
+    defence_artifact_count = sum(
+        1 for item in available_artifacts
+        if item.artifact.effect_type in ("defence", "defense")
     )
 
     from django.db import models as db_models
@@ -2450,6 +2477,9 @@ def changing_room(request):
     return render(request, "chef_battle/changing_room.html", {
         "profile": profile,
         "available_artifacts": available_artifacts,
+        "available_artifacts_preview": available_artifacts_preview,
+        "attack_artifact_count": attack_artifact_count,
+        "defence_artifact_count": defence_artifact_count,
         "my_active_battles": my_active_battles,
         "wallet": wallet,
         "energy_cap": ENERGY_CAP,

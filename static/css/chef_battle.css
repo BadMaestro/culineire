@@ -4041,6 +4041,11 @@ a.battle-home__pulse-msg:hover {
 .knife-roll-card--reserved { border-top-color: var(--brand); }
 .knife-roll-card--history { opacity: 0.62; }
 .knife-roll-pagination { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 1rem; color: var(--legal-muted); }
+.knife-roll-filter-bar { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.knife-roll-filter-bar .is-active, .knife-roll-summary-link.is-active { outline: 2px solid var(--legal-accent); outline-offset: -2px; }
+.knife-roll-summary-link { text-decoration: none; color: inherit; transition: transform 180ms ease, box-shadow 180ms ease; }
+.knife-roll-summary-link:hover, .knife-roll-summary-link:focus-visible { transform: translateY(-2px); box-shadow: var(--ce-card-shadow); }
+.knife-roll-detail-image { width: min(18rem, 100%); border-radius: var(--ce-card-radius); }
 
 @media (max-width: 900px) {
   .knife-roll-artifacts { grid-template-columns: repeat(2, minmax(0, 1fr)); }

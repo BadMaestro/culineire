@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ artifact.name }} | Chef Battles | CulinEire{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260716b" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="hero hero--home hero--legal hero--has-battle">
+  <div aria-hidden="true" class="hero__background"><picture><source srcset="{% static 'images/hero-battle.webp' %}" type="image/webp"><img alt="" width="1672" height="941" src="{% static 'images/hero-battle.png' %}"></picture></div>
+  <div aria-hidden="true" class="hero__overlay"></div>
+  <div class="container hero__inner"><div class="hero-copy"><span class="pill">{{ artifact.get_rarity_display }} Artifact</span><h1 class="hero-title">{{ artifact.name }}</h1><p class="hero-subtitle">{{ artifact.effect_label }} in Chef Battles combat.</p>{% include 'includes/hero_actions.html' %}</div></div>
+</section>
+<section class="legal-shell legal-shell--company knife-roll-shell">
+  <div class="legal-document-layout"><aside class="legal-toc"><span class="legal-toc__label">Artifact</span><nav><a href="{% url 'chef_battle:battle_chest' %}">Back to your roll</a><a href="{% url 'chef_battle:artifact_gallery' %}">All artifacts</a></nav></aside>
+  <div class="legal-card-grid legal-card-grid--document legal-document-main"><article class="legal-card legal-card--section legal-card--section-wide"><div class="section-header"><h2>Combat Effect</h2></div><div class="legal-card__content">{% if artifact.image %}<img src="{{ artifact.image.url }}" alt="{{ artifact.name }}" class="knife-roll-detail-image">{% endif %}<p class="page-subtitle"><strong>{{ artifact.effect_label }}</strong></p><p class="page-subtitle">{{ artifact.description }}</p><p class="page-subtitle">Rarity: <strong>{{ artifact.get_rarity_display }}</strong> · Catalogue price: <strong>{{ artifact.token_cost }}T</strong></p></div></article></div></div>
+</section>
+{% endblock %}

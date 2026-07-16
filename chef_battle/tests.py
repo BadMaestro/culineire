@@ -4430,6 +4430,15 @@ class CombatArtifactTests(TestCase):
         self.assertContains(response, "Your Combat Collection")
         self.assertEqual(response.context["available_page"].paginator.per_page, 24)
 
+    def test_knife_roll_filters_and_links_to_artifact_detail(self):
+        self.client.force_login(self.chef_a.user)
+        filtered = self.client.get(reverse("chef_battle:battle_chest"), {"filter": "attack"})
+        self.assertEqual(filtered.status_code, 200)
+        self.assertEqual(filtered.context["roll_filter"], "attack")
+        detail = self.client.get(reverse("chef_battle:artifact_detail", args=[self.artifact.pk]))
+        self.assertEqual(detail.status_code, 200)
+        self.assertContains(detail, "Attack +5 Move")
+
     def test_combat_without_artifact_unchanged(self):
         from .services import submit_combat_action
         action = submit_combat_action(self.battle, self.chef_a, "attack", 2)

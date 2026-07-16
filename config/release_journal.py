@@ -1,5 +1,17 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.247",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Chef Battles: interactive knife and tool roll",
+        "section": "Chef Battles / Knife and tool roll",
+        "summary": (
+            "Knife roll summary cards now work as filters, pagination keeps the selected "
+            "filter, and every artifact card opens a dedicated reference page with its "
+            "Move effect, rarity, description, and catalogue price."
+        ),
+    },
+    {
         "version": "2.5.246",
         "date": "2026-07-16",
         "commit": "pending",
