@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.265",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Keep recipe hero actions on one desktop row",
+        "section": "Recipes / Hero",
+        "summary": "Expanded the recipe hero action measure to the approved 900px desktop width so staff and navigation actions stay on one row.",
+    },
+    {
         "version": "2.5.264",
         "date": "2026-07-16",
         "commit": "pending",

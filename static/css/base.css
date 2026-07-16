@@ -5227,6 +5227,20 @@
   justify-content: flex-start;
 }
 
+/* Owner-approved recipe exception: staff actions live in the canonical hero
+   row, which needs the full 900px golden text measure rather than the normal
+   700px copy measure. Keep this desktop-only; mobile remains fluid below. */
+@media (min-width: 901px) {
+  .hero--recipe-detail.hero--has-battle .hero-copy {
+    max-width: 900px;
+  }
+
+  .hero--recipe-detail .hero__actions {
+    flex-wrap: nowrap;
+    width: max-content;
+  }
+}
+
 /* ── Group 2.1: Author row inside recipe detail hero ── */
 .hero-author {
   display: flex;
