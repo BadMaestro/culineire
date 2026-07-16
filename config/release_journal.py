@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.251",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Chef Battles arena command deck",
+        "section": "Chef Battles / Navigation",
+        "summary": "The floating arena widget now uses an opaque dark broadcast command-deck design with structured controls, strong hierarchy, and owned SVG icons.",
+    },
+    {
         "version": "2.5.250",
         "date": "2026-07-16",
         "commit": "pending",
