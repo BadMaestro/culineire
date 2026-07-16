@@ -28,6 +28,8 @@
 
   var pollTimer = null;
   var pingTimer = null;
+  // Latest centre payload, so a stage click knows which battle room to open.
+  var stageCentre = null;
 
   function el(tag, attrs) {
     var node = document.createElementNS(NS, tag);
@@ -230,7 +232,9 @@
   function stampStage(svg, center) {
     var stage = svg.querySelector('[data-arena-stage]');
     if (!stage) { return; }
+    stageCentre = center;
     stage.setAttribute('data-state', center.type || 'empty');
+    stage.style.cursor = center.popup_url ? 'pointer' : 'default';
     // Same key the command deck stamps on its own live stage, so the effects
     // layer can key both surfaces off one identity.
     stage.setAttribute('data-centre-key', global.ArenaDeck ? global.ArenaDeck.centreKey(center) : 'empty');
@@ -306,11 +310,50 @@
     if (tip) { tip.hidden = true; }
   }
 
+  /** One-shot ripple at the click point, in SVG user space. */
+  function fireRipple(svg, event) {
+    if (!svg.createSVGPoint || !svg.getScreenCTM) { return; }
+    var point = svg.createSVGPoint();
+    point.x = event.clientX;
+    point.y = event.clientY;
+    var ctm = svg.getScreenCTM();
+    if (!ctm) { return; }
+    var at = point.matrixTransform(ctm.inverse());
+    var circle = el('circle', {
+      cx: at.x.toFixed(1), cy: at.y.toFixed(1), r: '0',
+      fill: 'rgba(58,48,40,0.28)', 'pointer-events': 'none'
+    });
+    svg.appendChild(circle);
+
+    var MAX_R = 110;
+    var DURATION = 420;
+    var start = null;
+    function step(timestamp) {
+      if (!start) { start = timestamp; }
+      var progress = Math.min((timestamp - start) / DURATION, 1);
+      var eased = 1 - Math.pow(1 - progress, 3);
+      circle.setAttribute('r', (MAX_R * eased).toFixed(1));
+      circle.setAttribute('fill-opacity', (0.28 * (1 - progress)).toFixed(3));
+      if (progress < 1) { global.requestAnimationFrame(step); } else { circle.remove(); }
+    }
+    global.requestAnimationFrame(step);
+  }
+
   function attachEvents(svg) {
     svg.addEventListener('click', function (event) {
+      // The centre stage opens the live battle room, exactly as the legacy
+      // centre cells did.
+      var stage = event.target.closest && event.target.closest('[data-arena-stage]');
+      if (stage && stageCentre && stageCentre.popup_url) {
+        event.stopPropagation();
+        fireRipple(svg, event);
+        global.ArenaBattleRoom.open(stageCentre.popup_url, stageCentre.battle_url);
+        return;
+      }
       var polygon = event.target.closest && event.target.closest('polygon[data-ring]');
       if (!polygon || !polygon.chefRecord) { hideTooltip(); return; }
       event.stopPropagation();
+      fireRipple(svg, event);
       showTooltip(polygon.chefRecord, polygon);
     });
     document.addEventListener('click', function (event) {
@@ -346,6 +389,7 @@
         // decision and may change between polls.
         if (payload.geometry) { bind(svg, payload, payload.geometry); }
         if (global.ArenaDeck) { global.ArenaDeck.refresh(payload); }
+        if (global.ArenaBattleRoom) { global.ArenaBattleRoom.maybeCelebrate(payload.latest_result); }
       })
       .catch(function () { /* a dropped poll is retried on the next tick */ });
   }
@@ -364,6 +408,7 @@
     bind(svg, payload, geometry);
     attachEvents(svg);
     if (global.ArenaDeck) { global.ArenaDeck.refresh(payload); }
+    if (global.ArenaBattleRoom) { global.ArenaBattleRoom.init(payload.latest_result); }
 
     pollTimer = global.setInterval(function () { poll(svg); }, POLL_INTERVAL);
     pingTimer = global.setInterval(function () { post('/chef-battle/arena/ping/').catch(function () {}); }, PING_INTERVAL);
