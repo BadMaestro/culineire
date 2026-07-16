@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.289",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Bind the public Arena phase rail",
+        "section": "Chef Battles / Arena",
+        "summary": "The Arena phase rail and its current-phase card now render the public key, label and step supplied by the battle read-model, then clear safely to the real open-floor state when no battle is present. Existing polling updates the same elements in place without inventing a timer or phase.",
+    },
+    {
         "version": "2.5.288",
         "date": "2026-07-16",
         "commit": "pending",

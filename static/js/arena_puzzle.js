@@ -910,12 +910,25 @@
     }
     var phase = data.arena_phase || data.phase;
     var rail = document.getElementById('arena-phase-rail');
-    if (!rail || !phase || !phase.step) { return; }
+    var phaseName = document.getElementById('arena-current-phase');
+    var phaseCopy = document.getElementById('arena-current-phase-copy');
+    if (!rail) { return; }
     var steps = rail.querySelectorAll('[data-phase-step]');
+    if (!phase || !phase.step) {
+      for (var clearIndex = 0; clearIndex < steps.length; clearIndex++) {
+        steps[clearIndex].classList.remove('is-active');
+      }
+      rail.setAttribute('data-phase-key', '');
+      if (phaseName) { phaseName.textContent = 'Open floor'; }
+      if (phaseCopy) { phaseCopy.textContent = 'Choose a chef on the floor to inspect their profile or issue a challenge.'; }
+      return;
+    }
     for (var i = 0; i < steps.length; i++) {
       steps[i].classList.toggle('is-active', Number(steps[i].getAttribute('data-phase-step')) === Number(phase.step));
     }
     rail.setAttribute('data-phase-key', phase.key || '');
+    if (phaseName) { phaseName.textContent = phase.label || 'Battle in progress'; }
+    if (phaseCopy) { phaseCopy.textContent = 'The centre tile opens the live battle room, chat and public actions.'; }
   }
 
   function arenaCentreKey(center) {

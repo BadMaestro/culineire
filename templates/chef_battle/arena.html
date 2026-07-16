@@ -27,20 +27,21 @@
     <a class="btn-secondary" href="{% url 'chef_battle:home' %}">Back to Chef Battles</a>
   </header>
 
-  <section id="arena-phase-rail" class="arena-command-deck__phase-rail" aria-label="Battle lifecycle" data-phase-key="">
-    <span class="arena-phase-step{% if active_battle and active_battle.status in 'scheduled,menu_locked' %} is-active{% endif %}" data-phase-step="1">1 <b>Challenge</b></span>
-    <span class="arena-phase-step{% if active_battle and active_battle.status == 'active' %} is-active{% endif %}" data-phase-step="2">2 <b>Combat</b></span>
+  <section id="arena-phase-rail" class="arena-command-deck__phase-rail" aria-label="Battle lifecycle" data-phase-key="{{ arena_data.phase.key|default:'' }}">
+    <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == 1 %} is-active{% endif %}" data-phase-step="1">1 <b>Challenge</b></span>
+    <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == 2 %} is-active{% endif %}" data-phase-step="2">2 <b>Combat</b></span>
     <span class="arena-phase-step" data-phase-step="3">3 <b>Biathlon</b></span>
-    <span class="arena-phase-step{% if active_battle and active_battle.status in 'cooking,awaiting_submissions,ingredient_penalty' %} is-active{% endif %}" data-phase-step="4">4 <b>Cooking</b></span>
-    <span class="arena-phase-step{% if active_battle and active_battle.status in 'presentation,revealed,disputed,paused' %} is-active{% endif %}" data-phase-step="5">5 <b>Review</b></span>
-    <span class="arena-phase-step{% if active_battle and active_battle.status == 'voting' %} is-active{% endif %}" data-phase-step="6">6 <b>Voting</b></span>
-    <span class="arena-phase-step{% if active_battle and active_battle.status == 'completed' %} is-active{% endif %}" data-phase-step="7">7 <b>Crown</b></span>
+    <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == 3 %} is-active{% endif %}" data-phase-step="3">3 <b>Biathlon</b></span>
+    <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == 4 %} is-active{% endif %}" data-phase-step="4">4 <b>Cooking</b></span>
+    <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == 5 %} is-active{% endif %}" data-phase-step="5">5 <b>Review</b></span>
+    <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == 6 %} is-active{% endif %}" data-phase-step="6">6 <b>Voting</b></span>
+    <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == 7 %} is-active{% endif %}" data-phase-step="7">7 <b>Crown</b></span>
   </section>
 
   <section class="arena-command-deck__phase-card" aria-label="Current arena state">
     <p class="arena-panel__kicker">Current phase</p>
-    <p class="arena-command-deck__phase-name">{% if active_battle %}Battle in progress{% else %}Open floor{% endif %}</p>
-    <p class="arena-command-deck__phase-copy">
+    <p id="arena-current-phase" class="arena-command-deck__phase-name">{% if arena_data.phase %}{{ arena_data.phase.label }}{% else %}Open floor{% endif %}</p>
+    <p id="arena-current-phase-copy" class="arena-command-deck__phase-copy">
       {% if active_battle %}The centre tile opens the live battle room, chat and public actions.{% else %}Choose a chef on the floor to inspect their profile or issue a challenge.{% endif %}
     </p>
   </section>
