@@ -12,12 +12,21 @@
     };
   }
 
+  function lerp(start, end, amount) {
+    return {
+      x: start.x + (end.x - start.x) * amount,
+      y: start.y + (end.y - start.y) * amount
+    };
+  }
+
   /**
    * Return one no-fill arena cell as four vertices.
-   * `segmentIndex` may address any sector around the arena; callers decide
-   * how many segments form a ring through `segmentsPerRing`.
+   * `segmentIndex` may address any cell around the arena. The optional
+   * `sides` argument is supplied by the live geometry contract. Cells divide
+   * each straight octagonal edge through linear interpolation, never a curve.
    */
-  function cellVertices(centerX, centerY, ringIndex, segmentIndex, ringCount, segmentsPerRing, radiusStep) {
+  function cellVertices(centerX, centerY, ringIndex, segmentIndex, ringCount, segmentsPerRing, radiusStep, sides) {
+    sides = sides || 8;
     if (!Number.isInteger(ringIndex) || ringIndex < 0 || ringIndex >= ringCount) {
       throw new RangeError('ringIndex must be inside ringCount');
     }
@@ -27,22 +36,29 @@
     if (!(radiusStep > 0)) {
       throw new RangeError('radiusStep must be positive');
     }
+    if (!Number.isInteger(sides) || sides < 3 || segmentsPerRing % sides !== 0) {
+      throw new RangeError('segmentsPerRing must divide evenly across sides');
+    }
 
-    // Half-segment offset keeps the octagon flat at the top and bottom,
-    // matching the arena reference instead of presenting a top vertex.
-    var orientationOffset = -Math.PI / 2 - (Math.PI / segmentsPerRing);
-    var startAngle = orientationOffset + (Math.PI * 2 * segmentIndex / segmentsPerRing);
-    var endAngle = orientationOffset + (Math.PI * 2 * (segmentIndex + 1) / segmentsPerRing);
+    var cellsPerSide = segmentsPerRing / sides;
+    var sideIndex = Math.floor(segmentIndex / cellsPerSide);
+    var cellIndex = segmentIndex % cellsPerSide;
+    // Half-side offset creates a flat top/bottom. Every cell on a side uses
+    // lerp along one chord, preserving the actual polygon instead of a circle.
+    var orientationOffset = -Math.PI / 2 - (Math.PI / sides);
+    var angle0 = orientationOffset + (Math.PI * 2 * sideIndex / sides);
+    var angle1 = orientationOffset + (Math.PI * 2 * (sideIndex + 1) / sides);
     var innerRadius = ringIndex * radiusStep;
     var outerRadius = (ringIndex + 1) * radiusStep;
+    var cellStart = cellIndex / cellsPerSide;
+    var cellEnd = (cellIndex + 1) / cellsPerSide;
+    var innerStart = lerp(polar(centerX, centerY, innerRadius, angle0), polar(centerX, centerY, innerRadius, angle1), cellStart);
+    var innerEnd = lerp(polar(centerX, centerY, innerRadius, angle0), polar(centerX, centerY, innerRadius, angle1), cellEnd);
+    var outerStart = lerp(polar(centerX, centerY, outerRadius, angle0), polar(centerX, centerY, outerRadius, angle1), cellStart);
+    var outerEnd = lerp(polar(centerX, centerY, outerRadius, angle0), polar(centerX, centerY, outerRadius, angle1), cellEnd);
 
-    return [
-      polar(centerX, centerY, innerRadius, startAngle),
-      polar(centerX, centerY, outerRadius, startAngle),
-      polar(centerX, centerY, outerRadius, endAngle),
-      polar(centerX, centerY, innerRadius, endAngle)
-    ];
+    return [innerStart, outerStart, outerEnd, innerEnd];
   }
 
-  global.ArenaGeometry = { polar: polar, cellVertices: cellVertices };
+  global.ArenaGeometry = { polar: polar, lerp: lerp, cellVertices: cellVertices };
 })(window);

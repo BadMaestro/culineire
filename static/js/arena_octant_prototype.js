@@ -39,11 +39,12 @@
         var segmentIndex = config.octantIndex * config.cellsPerOctant + cell;
         var polygon = document.createElementNS(NS, 'polygon');
         polygon.setAttribute('points', global.ArenaGeometry.cellVertices(
-          config.cx, config.cy, ring, segmentIndex, geometry.rings.length, totalSegments, config.ringWidth
+          config.cx, config.cy, ring, segmentIndex, geometry.rings.length, totalSegments, config.ringWidth, geometry.sides
         ).map(pointString).join(' '));
         polygon.setAttribute('data-ring', String(geometry.rings[ring].index));
         polygon.setAttribute('data-ring-key', geometry.rings[ring].key || '');
         polygon.setAttribute('data-cell', String(cell));
+        polygon.setAttribute('vector-effect', 'non-scaling-stroke');
         group.appendChild(polygon);
       }
     }
