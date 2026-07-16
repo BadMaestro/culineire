@@ -1174,4 +1174,21 @@ def get_arena_deadline(battle=None) -> dict | None:
     deadline_iso, seconds_remaining = _battle_deadline(battle, timezone.now())
     if deadline_iso is None:
         return None
-    return {"deadline_iso": deadline_iso, "seconds_remaining": seconds_remaining}
+    # Explain what this particular countdown means, from the same per-phase
+    # source _battle_deadline draws on (Ember #176). Keeps the wording honest to
+    # the real deadline field in play rather than a generic "Live deadline".
+    if battle.status == Battle.Status.VOTING:
+        kind, label = "voting", "Public voting closes"
+    elif battle.status in (
+        Battle.Status.SCHEDULED, Battle.Status.MENU_LOCKED, Battle.Status.ACTIVE,
+        Battle.Status.AWAITING_SUBMISSIONS, Battle.Status.COOKING,
+    ):
+        kind, label = "submission", "Dish submission closes"
+    else:
+        kind, label = "battle", "Battle closes"
+    return {
+        "deadline_iso": deadline_iso,
+        "seconds_remaining": seconds_remaining,
+        "kind": kind,
+        "label": label,
+    }

@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.298",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Label the Arena deadline countdown",
+        "section": "Chef Battles / Arena",
+        "summary": "The public Arena deadline contract now carries a kind and human label derived from the same real per-phase deadline source, so the command deck can say what the countdown means (dish submission closes, public voting closes, or battle closes) instead of a generic deadline. It stays null when no deadline is set.",
+    },
+    {
         "version": "2.5.296",
         "date": "2026-07-16",
         "commit": "pending",

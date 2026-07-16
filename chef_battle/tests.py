@@ -6335,9 +6335,23 @@ class ArenaDeadlineTests(TestCase):
                                        status=Battle.Status.ACTIVE,
                                        submission_deadline=future, end_time=future)
         d = get_arena_deadline(battle)
-        self.assertEqual(set(d), {"deadline_iso", "seconds_remaining"})
+        self.assertEqual(set(d), {"deadline_iso", "seconds_remaining", "kind", "label"})
         self.assertEqual(d["deadline_iso"], future.isoformat())
         self.assertGreater(d["seconds_remaining"], 3000)
+        self.assertEqual(d["kind"], "submission")
+        self.assertEqual(d["label"], "Dish submission closes")
+
+    def test_voting_label(self):
+        from .models import Battle
+        from .selectors import get_arena_deadline
+        a, b = self._authors()
+        future = timezone.now() + timezone.timedelta(hours=1)
+        battle = Battle.objects.create(challenger=a, opponent=b, theme="T",
+                                       status=Battle.Status.VOTING,
+                                       submission_deadline=future, voting_deadline=future, end_time=future)
+        d = get_arena_deadline(battle)
+        self.assertEqual(d["kind"], "voting")
+        self.assertEqual(d["label"], "Public voting closes")
 
     def test_past_deadline_clamps_to_zero(self):
         from .models import Battle
