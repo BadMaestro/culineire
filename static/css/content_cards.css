@@ -70,7 +70,9 @@
   position: sticky;
   top: var(--header-h, 0px);
   z-index: 50;
-  background: var(--surface, #faf7f2);
+  /* Filters are part of the page canvas, not a white card. Shared by
+     Recipes, Articles and Pinch because all three use recipe-list-page. */
+  background: var(--bg, #faf6f0);
   padding-block: 0.65rem;
   margin-inline: calc(var(--container-padding, 1rem) * -1);
   padding-inline: var(--container-padding, 1rem);

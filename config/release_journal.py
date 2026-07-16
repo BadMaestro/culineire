@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.260",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Unified list filter backgrounds",
+        "section": "Recipes / Articles / Pinch",
+        "summary": "Category filters on all three collection pages now use the surrounding page background instead of a white card surface.",
+    },
+    {
         "version": "2.5.259",
         "date": "2026-07-16",
         "commit": "pending",

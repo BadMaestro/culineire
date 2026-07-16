@@ -1599,7 +1599,7 @@
     justify-content: center;
     width: 34px;
     padding: 0;
-    background: var(--surface, #faf7f2);
+    background: var(--bg, #faf6f0);
     border: none;
     color: #5a4a38;
     cursor: pointer;
