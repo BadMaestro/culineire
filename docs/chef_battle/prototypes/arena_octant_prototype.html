@@ -9,10 +9,20 @@
 <svg id="prototype" viewBox="0 0 480 480" aria-label="Full octagonal arena geometry"></svg></main>
 <script src="../../../static/js/arena_geometry.js"></script>
 <script src="../../../static/js/arena_octant_prototype.js"></script>
+<script src="../../../static/js/arena_data_sandbox.js"></script>
 <script>
   /* Standalone fixture only; production supplies the same-shaped arena_data.geometry. */
   const fixtureSegments = [1, 8, 8, 16, 16, 24, 24, 32, 32, 40, 48, 56, 64];
-  const geometry = { sides: 8, rings: fixtureSegments.map((segments, index) => ({ index, key: `fixture_${index}`, segments })) };
+  const geometry = { sides: 8, rings: fixtureSegments.map((segments, index) => ({
+    index, key: `fixture_${index}`, segments,
+    kind: index === 0 ? 'stage' : index < 9 ? 'rank' : 'spectator'
+  })) };
   window.ArenaOctantPrototype.drawFullArenaGrid(document.getElementById('prototype'), geometry);
+  const payload = {
+    rings: { fixture_1: [{ name: 'Aidan Byrne', slug: 'aidan', avatar_url: '', rank: 'fixture_1', in_battle: false }] },
+    spectators: [{ name: 'Maeve', avatar_url: '' }, { name: 'Niall', avatar_url: '' }],
+    center: { type: 'crown_holder', name: 'GreenBear', slug: 'greenbear', avatar_url: '' }
+  };
+  window.ArenaDataSandbox.bind(document.getElementById('prototype'), payload, geometry);
 </script>
 </html>

@@ -19,6 +19,18 @@
     };
   }
 
+  function cellCentroid(vertices) {
+    if (!Array.isArray(vertices) || vertices.length === 0) {
+      throw new TypeError('cellCentroid requires one or more vertices');
+    }
+    var total = vertices.reduce(function (total, point) {
+      total.x += point.x;
+      total.y += point.y;
+      return total;
+    }, { x: 0, y: 0 });
+    return { x: total.x / vertices.length, y: total.y / vertices.length };
+  }
+
   /**
    * Return one no-fill arena cell as four vertices.
    * `segmentIndex` may address any cell around the arena. The optional
@@ -66,5 +78,5 @@
     return [innerStart, outerStart, outerEnd, innerEnd];
   }
 
-  global.ArenaGeometry = { polar: polar, lerp: lerp, cellVertices: cellVertices };
+  global.ArenaGeometry = { polar: polar, lerp: lerp, cellCentroid: cellCentroid, cellVertices: cellVertices };
 })(window);

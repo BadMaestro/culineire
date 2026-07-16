@@ -42,9 +42,13 @@
       for (var cell = 0; cell < cellsPerOctant; cell++) {
         var segmentIndex = config.octantIndex * cellsPerOctant + cell;
         var polygon = document.createElementNS(NS, 'polygon');
-        polygon.setAttribute('points', global.ArenaGeometry.cellVertices(
+        var vertices = global.ArenaGeometry.cellVertices(
           config.cx, config.cy, ring, segmentIndex, geometry.rings.length, ringInfo.segments, config.ringWidth, geometry.sides, config.stageRadius
-        ).map(pointString).join(' '));
+        );
+        var centroid = global.ArenaGeometry.cellCentroid(vertices);
+        polygon.setAttribute('points', vertices.map(pointString).join(' '));
+        polygon.setAttribute('data-centroid-x', centroid.x.toFixed(2));
+        polygon.setAttribute('data-centroid-y', centroid.y.toFixed(2));
         polygon.setAttribute('data-ring', String(ringInfo.index));
         polygon.setAttribute('data-ring-key', ringInfo.key || '');
         polygon.setAttribute('data-ring-kind', ringInfo.kind || 'unknown');
