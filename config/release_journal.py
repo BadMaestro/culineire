@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.280",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Add live Arena chef focus stage",
+        "section": "Chef Battles / Arena",
+        "summary": "When a real battle is active, the Arena now presents its challenger and opponent in a compact central VS stage with the true theme and status, while retaining the existing SVG centre and battle-room entry point.",
+    },
+    {
         "version": "2.5.279",
         "date": "2026-07-16",
         "commit": "pending",

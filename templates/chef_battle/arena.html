@@ -50,6 +50,21 @@
   </section>
 
   <section class="arena-command-deck__floor" aria-label="Ranked arena floor">
+    {% if active_battle %}
+    <section class="arena-command-deck__live-stage" aria-label="Live chef battle">
+      <article class="arena-live-chef arena-live-chef--challenger">
+        <img src="{{ active_battle.challenger.display_avatar_url }}" alt="{{ active_battle.challenger.name }}" width="72" height="72">
+        <div><span>Challenger</span><strong>{{ active_battle.challenger.name }}</strong></div>
+      </article>
+      <a class="arena-live-centre battle-cursor-target js-battle-cursor-target" href="#arena-puzzle" aria-label="Open the live battle room">
+        <span>{{ active_battle.get_status_display }}</span><b>VS</b><em>{{ active_battle.theme }}</em>
+      </a>
+      <article class="arena-live-chef arena-live-chef--opponent">
+        <div><span>Opponent</span><strong>{{ active_battle.opponent.name }}</strong></div>
+        <img src="{{ active_battle.opponent.display_avatar_url }}" alt="{{ active_battle.opponent.name }}" width="72" height="72">
+      </article>
+    </section>
+    {% endif %}
     <div class="arena-command-deck__floor-head">
       <div>
         <p class="arena-panel__kicker">The kitchen floor</p>
