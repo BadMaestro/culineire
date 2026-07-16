@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.261",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Remove leaked Pinch template comment",
+        "section": "Pinch / Mobile navigation",
+        "summary": "Removed a multiline template comment that was rendered as visible text on the Pinch page.",
+    },
+    {
         "version": "2.5.260",
         "date": "2026-07-16",
         "commit": "pending",
