@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.302",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Add seat capacity to the Arena geometry contract",
+        "section": "Chef Battles / Arena",
+        "summary": "Each ring in the declarative Arena geometry now carries its seat capacity, derived from the live arena's existing ring counts and aligned to the eight-sided symmetry so every octant holds a whole number of cells. The procedural renderer reads cell density from the contract instead of hardcoding it.",
+    },
+    {
         "version": "2.5.301",
         "date": "2026-07-16",
         "commit": "pending",

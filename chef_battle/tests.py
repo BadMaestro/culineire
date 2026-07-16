@@ -6392,3 +6392,16 @@ class ArenaGeometryTests(TestCase):
             {r["key"] for r in rings[1:9]},
             {c for c, _ in ChefBattleProfile.Rank.choices},
         )
+
+    def test_segments_octant_divisible_and_monotonic(self):
+        from .selectors import get_arena_geometry
+        g = get_arena_geometry()
+        rings = g["rings"]
+        self.assertEqual(rings[0]["segments"], 1)  # stage is a single cell
+        seat_rings = rings[1:]
+        for r in seat_rings:
+            # whole number of cells per octant on the flat-sided octagon
+            self.assertEqual(r["segments"] % g["sides"], 0, r)
+        counts = [r["segments"] for r in seat_rings]
+        self.assertEqual(counts, sorted(counts))  # capacity never shrinks outward
+        self.assertEqual(counts[-1], 64)  # outermost spectator ring matches legacy

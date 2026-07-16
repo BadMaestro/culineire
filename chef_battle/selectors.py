@@ -1202,11 +1202,17 @@ def get_arena_geometry() -> dict:
     ranks from highest (innermost) to lowest, rings 9..12 are spectator
     seating (matches the 4 spectator rings the arena already renders)."""
     from .models import ChefBattleProfile
-    rings = [{"index": 0, "kind": "stage", "key": "stage", "label": "Centre Stage"}]
+    # Seat capacity per ring. Derived from the legacy circular layout's
+    # RING_COUNTS (arena_puzzle.js) rounded to the nearest multiple of 8 so
+    # every octant of the flat-sided octagon holds a whole number of cells
+    # (max drift ±2 seats per ring vs the legacy grid).
+    segments = {1: 8, 2: 8, 3: 16, 4: 16, 5: 24, 6: 24, 7: 32, 8: 32,
+                9: 40, 10: 48, 11: 56, 12: 64}
+    rings = [{"index": 0, "kind": "stage", "key": "stage", "label": "Centre Stage", "segments": 1}]
     # Rank choices are declared lowest-first in the model; the arena places
     # the highest rank closest to the stage, so walk them reversed.
     for i, (value, label) in enumerate(reversed(ChefBattleProfile.Rank.choices), start=1):
-        rings.append({"index": i, "kind": "rank", "key": value, "label": label})
+        rings.append({"index": i, "kind": "rank", "key": value, "label": label, "segments": segments[i]})
     for i in range(9, 13):
-        rings.append({"index": i, "kind": "spectator", "key": f"spectator_{i - 8}", "label": "Spectators"})
+        rings.append({"index": i, "kind": "spectator", "key": f"spectator_{i - 8}", "label": "Spectators", "segments": segments[i]})
     return {"sides": 8, "rings": rings}
