@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.257",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Chef Battles command deck hover correction",
+        "section": "Chef Battles / Navigation",
+        "summary": "Removed a stale dark hover state from the command deck controls; hover states now remain within the CulinEire cappuccino, blue, green, and bronze palette.",
+    },
+    {
         "version": "2.5.256",
         "date": "2026-07-16",
         "commit": "pending",

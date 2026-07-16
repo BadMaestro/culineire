@@ -4275,6 +4275,17 @@ a.battle-home__pulse-msg:hover {
 .site-battle-widget__console-link--room { border-color: #a4b8b7; background: #f1f5f1; }
 .site-battle-widget__console-link--roll .site-battle-widget__icon { color: #a16e36; }
 .site-battle-widget__console-link--room .site-battle-widget__icon { color: #527d70; }
+.site-battle-widget__console-link:hover,
+.site-battle-widget__console-link:focus-visible {
+  color: var(--brand-dark, #6e4e2c);
+  border-color: #6f9daa;
+  background: #edf4f3;
+  box-shadow: none;
+}
+.site-battle-widget__console-link--roll:hover,
+.site-battle-widget__console-link--roll:focus-visible { background: #f8f0e4; border-color: #b47a33; }
+.site-battle-widget__console-link--room:hover,
+.site-battle-widget__console-link--room:focus-visible { background: #f1f5f1; border-color: #527d70; }
 .site-battle-widget .btn-primary {
   min-height: 2.85rem;
   border: 1px solid #527d70;
