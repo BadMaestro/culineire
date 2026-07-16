@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.274",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Fix arena widget disclosure marker",
+        "section": "Chef Battles / Navigation",
+        "summary": "The header now uses an explicit up triangle while open and down triangle while closed, instead of relying on a CSS rotation state.",
+    },
+    {
         "version": "2.5.273",
         "date": "2026-07-16",
         "commit": "pending",

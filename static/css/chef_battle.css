@@ -4747,3 +4747,13 @@ a.battle-home__pulse-msg:hover {
 @media (max-width: 900px) {
   .site-battle-widget { width: min(15rem, calc(100vw - 1rem)); }
 }
+
+/* The disclosure marker is state text, not a rotated drawing: open ▲, closed ▼. */
+.site-battle-widget__toggle-icon::after {
+  content: "▲";
+  transform: none;
+}
+.site-battle-widget__details:not([open]) .site-battle-widget__toggle-icon::after {
+  content: "▼";
+  transform: none;
+}
