@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.267",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Align recipe Hero with homepage standard",
+        "section": "Recipes / Hero",
+        "summary": "Recipe Hero now uses the homepage height, type scale, spacing, action gap, and photo-control offset while keeping staff actions on one desktop row.",
+    },
+    {
         "version": "2.5.266",
         "date": "2026-07-16",
         "commit": "pending",

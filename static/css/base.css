@@ -5227,18 +5227,41 @@
   justify-content: flex-start;
 }
 
-/* Owner-approved recipe exception: staff actions live in the canonical hero
-   row, which needs the full 900px golden text measure rather than the normal
-   700px copy measure. Keep this desktop-only; mobile remains fluid below. */
+/* Recipe actions may use the unused portion of the golden 1120px hero
+   container so the staff controls remain in one desktop row. The copy itself
+   deliberately retains the shared 700px measure. */
 @media (min-width: 901px) {
-  .hero--recipe-detail.hero--has-battle .hero-copy {
-    max-width: 900px;
-  }
-
   .hero--recipe-detail .hero__actions {
     flex-wrap: nowrap;
     width: max-content;
   }
+}
+
+/* Recipe details use the homepage Hero's exact typography and vertical rhythm.
+   Only the photograph crop and the one-row staff-action allowance above differ. */
+.hero--home.hero--recipe-detail {
+  min-height: clamp(320px, 44vw, 533.39px);
+}
+
+.hero--home.hero--recipe-detail .hero__inner {
+  padding-block: clamp(1.8rem, 4vw, 49px);
+}
+
+.hero--home.hero--recipe-detail .hero-peek-btn {
+  top: clamp(1.8rem, 4vw, 49px);
+}
+
+.hero--home.hero--recipe-detail .hero-title {
+  font-size: clamp(2rem, 3.4vw, 3.2rem);
+  margin-block-end: 28.3px;
+}
+
+.hero--home.hero--recipe-detail .hero__actions {
+  gap: 0.65rem;
+}
+
+.hero--home.hero--recipe-detail .hero-copy .hero__actions {
+  padding-block-start: 0;
 }
 
 /* ── Group 2.1: Author row inside recipe detail hero ── */

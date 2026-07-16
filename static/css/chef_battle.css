@@ -3692,10 +3692,6 @@ a.battle-home__pulse-msg:hover {
 
 /* Keep the recipe-detail desktop action-row exception in sync with base.css. */
 @media (min-width: 901px) {
-  .hero--recipe-detail.hero--has-battle .hero-copy {
-    max-width: 900px;
-  }
-
   .hero--recipe-detail .hero__actions {
     flex-wrap: nowrap;
     width: max-content;
