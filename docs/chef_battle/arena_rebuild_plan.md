@@ -6,6 +6,24 @@
 presence heartbeat, state polling, artifact/gift safeguards and public routes
 remain the functional source of truth.
 
+## Implemented public read-model (2026-07-16)
+
+The command deck is now bound to real, public-safe data rather than placeholder
+copy. Preserve these fields in every later Arena change:
+
+- `metrics`: active viewers, public votes and battle gifts;
+- `phase`: `{key, label, step}` for the seven-step rail, or `null` when the
+  floor is open;
+- `deadline`: `{deadline_iso, seconds_remaining}` or `null`;
+- `server_time`: authoritative ISO timestamp supplied on every state payload;
+- `center`: real facing pair / active battle / Crown holder / empty state,
+  including `crown_until` when the Crown window is active;
+- `crown_ladder` and `recent_gifts`, both with explicit empty states.
+
+The frontend may interpolate a deadline only from the `deadline` +
+`server_time` pair and must resynchronise on every Arena state poll. It must not
+invent battles, countdowns, identities, gifts or audience counts.
+
 ## 1. Design intent
 
 The reference is a command view of a living culinary arena, not a static
@@ -124,4 +142,3 @@ there are more, it distributes records across available perimeter rings.
 - [ ] No shared hero, recipe, article or site-header CSS is changed.
 - [ ] `manage.py check`, template smoke check, diff check and production HTTP
       verification pass before each deploy.
-
