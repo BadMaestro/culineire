@@ -48,7 +48,10 @@ from .models import Artifact, Battle, BattleChatMessage, BattleChallenge, Battle
 from .selectors import (
     get_active_battles,
     get_battle_vote_counts,
+    get_crown_ladder,
+    get_crown_streak,
     get_expired_active_battles,
+    get_recent_battle_gifts,
     get_hall_of_fame_battles,
     get_hall_of_fame_chefs,
     get_public_events,
@@ -1033,6 +1036,9 @@ def _build_arena_payload():
         "spectators": _get_spectators(enrolled_author_ids),
         "center": _arena_center(active_battle),
         "latest_result": _arena_latest_result(),
+        "crown_streak": get_crown_streak(),
+        "crown_ladder": get_crown_ladder(),
+        "recent_gifts": get_recent_battle_gifts(active_battle),
     }
 
 
@@ -1069,6 +1075,9 @@ def arena(request):
         "spectators": spectators,
         "center": payload["center"],
         "latest_result": payload["latest_result"],
+        "crown_streak": payload["crown_streak"],
+        "crown_ladder": payload["crown_ladder"],
+        "recent_gifts": payload["recent_gifts"],
     }
 
     # Moderator-only preview of the active-battle centre (Phase 1 choreography).
@@ -1152,6 +1161,9 @@ def arena_state(request):
         "spectators": payload["spectators"],
         "center": payload["center"],
         "latest_result": payload["latest_result"],
+        "crown_streak": payload["crown_streak"],
+        "crown_ladder": payload["crown_ladder"],
+        "recent_gifts": payload["recent_gifts"],
     })
 
 

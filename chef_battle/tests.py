@@ -6199,3 +6199,17 @@ class ArenaDataSelectorsTests(TestCase):
         self.assertEqual(ladder[0]["name"], "Aidan")
         self.assertEqual(ladder[0]["crowns"], 2)
         self.assertEqual(ladder[1]["crowns"], 1)
+
+
+class ArenaPayloadWiringTests(TestCase):
+    """_build_arena_payload exposes the new arena panels for Ember's templates."""
+
+    def test_payload_has_arena_panels(self):
+        from chef_battle.views import _build_arena_payload
+        p = _build_arena_payload()
+        self.assertIn("crown_streak", p)
+        self.assertIn("crown_ladder", p)
+        self.assertIn("recent_gifts", p)
+        self.assertIsInstance(p["crown_streak"], int)
+        self.assertIsInstance(p["crown_ladder"], list)
+        self.assertIsInstance(p["recent_gifts"], list)
