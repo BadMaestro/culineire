@@ -46,6 +46,34 @@
 }
 .arena-phase-step.is-active b { color:#4a340c; }
 
+/* ── Phase rail polish (Ember #169): active phase unmistakable, inactive calm ── */
+.arena-command-deck__phase-rail .arena-phase-step.is-active {
+  transform:translateY(-1px) scale(1.03);
+  box-shadow:0 3px 10px rgba(214,166,75,.42), 0 0 0 1px var(--ad-gold) inset;
+}
+.arena-command-deck__phase-rail .arena-phase-step.is-active::before {
+  content:""; width:.42rem; height:.42rem; border-radius:50%;
+  background:#7a5514; box-shadow:0 0 0 2px rgba(255,255,255,.6);
+}
+.arena-command-deck__phase-rail .arena-phase-step:not(.is-active) { opacity:.9; }
+
+/* ── Deadline card clarity (Ember #177): value scannable, empty state calm ── */
+.arena-command-deck__phase-deadline {
+  display:flex; flex-direction:column; gap:.05rem; margin-top:.6rem;
+  padding:.45rem .6rem; border-radius:10px;
+  background:rgba(214,166,75,.10); border:1px solid rgba(214,166,75,.34);
+}
+.arena-command-deck__phase-deadline > span {
+  font-size:.6rem; letter-spacing:.07em; text-transform:uppercase; color:var(--ad-gold-d); font-weight:700;
+}
+.arena-command-deck__phase-deadline > strong {
+  font-variant-numeric:tabular-nums; font-size:1.05rem; color:var(--ad-ink); font-weight:800; line-height:1.15;
+}
+.arena-command-deck__phase-deadline.is-empty {
+  background:var(--ad-s2); border-color:var(--ad-line);
+}
+.arena-command-deck__phase-deadline.is-empty > strong { color:var(--ad-mut); font-weight:600; font-size:.92rem; }
+
 /* ── Metrics band (A3) ── */
 .arena-command-deck__metrics { display:flex; gap:1.4rem; align-items:center; flex-wrap:wrap; }
 .arena-metric { display:flex; flex-direction:column; line-height:1.15; }
