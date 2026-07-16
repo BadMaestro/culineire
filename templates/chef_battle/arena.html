@@ -9,50 +9,97 @@
 {% block extra_head %}
 <link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">
 <link href="{% static 'css/arena.css' %}?v=20260702b" rel="stylesheet">
+<link href="{% static 'css/arena_command_deck.css' %}?v=20260716a" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<section class="battle-room-hero">
-  <div class="container">
-    <p class="battle-kicker">Chef Battles Arena</p>
-    <h1>The Arena</h1>
-    <p class="battle-room-hero__sub">Every enrolled chef, ranked by tier around the ring. The active battle burns at the centre.</p>
-    <div class="battle-actions">
-      <a class="btn-primary" href="{% url 'chef_battle:home' %}">Back to Chef Battles</a>
-      {% if viewer_author and not user_enrolled %}
-      <a class="ce-nav__link ce-nav__link--battle battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:chef_enroll' %}">
-        <span class="chef-battle-cta__icon" aria-hidden="true"><svg fill="none" height="15" viewBox="0 0 24 24" width="15" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span>
-        <span class="chef-battle-cta__label">Join Chef Battles</span>
-      </a>
-      {% elif viewer_author %}
-      <a class="ce-nav__link ce-nav__link--battle battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:challenge_create' %}">
-        <span class="chef-battle-cta__icon" aria-hidden="true"><svg fill="none" height="15" viewBox="0 0 24 24" width="15" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5L3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="M2 2l20 20"/><path d="M3 14l6 6"/><path d="M14 3l7 7"/></svg></span>
-        <span class="chef-battle-cta__label">Issue a Challenge</span>
-      </a>
-      {% endif %}
-      <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">All-Time Rankings</a>
+<main class="arena-command-deck" aria-labelledby="arena-command-title">
+  <header class="arena-command-deck__header">
+    <div>
+      <p class="arena-command-deck__eyebrow">Chef Battles Arena</p>
+      <h1 id="arena-command-title">Emerald Hall</h1>
+      <p class="arena-command-deck__live-note">
+        {% if active_battle %}A live battle is holding the centre.{% else %}The ranked kitchen floor is open for the next challenge.{% endif %}
+      </p>
     </div>
-  </div>
-</section>
+    <a class="btn-secondary" href="{% url 'chef_battle:home' %}">Back to Chef Battles</a>
+  </header>
 
-<div class="arena-page">
+  <section class="arena-command-deck__phase-rail" aria-label="Battle lifecycle">
+    <span class="arena-phase-step">1 <b>Challenge</b></span>
+    <span class="arena-phase-step">2 <b>Combat</b></span>
+    <span class="arena-phase-step">3 <b>Biathlon</b></span>
+    <span class="arena-phase-step{% if active_battle %} is-active{% endif %}">4 <b>Cooking</b></span>
+    <span class="arena-phase-step">5 <b>Review</b></span>
+    <span class="arena-phase-step">6 <b>Voting</b></span>
+    <span class="arena-phase-step">7 <b>Crown</b></span>
+  </section>
 
-  <div class="arena-legend">
-    {% for rank, chefs in rank_groups %}
-    <div class="arena-legend__item arena-legend__item--{{ rank.value }}">
-      <span class="arena-legend__swatch"></span>
-      <span class="arena-legend__label">{{ rank.label }}</span>
-      <span class="arena-legend__count">{{ chefs|length }}</span>
+  <section class="arena-command-deck__phase-card" aria-label="Current arena state">
+    <p class="arena-panel__kicker">Current phase</p>
+    <p class="arena-command-deck__phase-name">{% if active_battle %}Battle in progress{% else %}Open floor{% endif %}</p>
+    <p class="arena-command-deck__phase-copy">
+      {% if active_battle %}The centre tile opens the live battle room, chat and public actions.{% else %}Choose a chef on the floor to inspect their profile or issue a challenge.{% endif %}
+    </p>
+  </section>
+
+  <section class="arena-command-deck__metrics" aria-label="Arena metrics">
+    <div class="arena-metric"><span>Active viewers</span><strong>{{ spectator_count }}</strong></div>
+    <div class="arena-metric"><span>Rank tiers</span><strong>{{ rank_groups|length }}</strong></div>
+    <div class="arena-metric"><span>Live battle</span><strong>{% if active_battle %}On{% else %}—{% endif %}</strong></div>
+  </section>
+
+  <section class="arena-command-deck__floor" aria-label="Ranked arena floor">
+    <div class="arena-command-deck__floor-head">
+      <div>
+        <p class="arena-panel__kicker">The kitchen floor</p>
+        <p class="arena-command-deck__floor-copy">Every occupied tile is a real enrolled chef. Select one for their battle profile.</p>
+      </div>
+      <div class="arena-legend" aria-label="Arena tier key">
+        {% for rank, chefs in rank_groups %}
+        <div class="arena-legend__item arena-legend__item--{{ rank.value }}">
+          <span class="arena-legend__swatch"></span>
+          <span class="arena-legend__label">{{ rank.label }}</span>
+          <span class="arena-legend__count">{{ chefs|length }}</span>
+        </div>
+        {% endfor %}
+        <div class="arena-legend__item arena-legend__item--spectator">
+          <span class="arena-legend__swatch"></span>
+          <span class="arena-legend__label">Spectators</span>
+          <span class="arena-legend__count">{{ spectator_count }}</span>
+        </div>
+      </div>
     </div>
-    {% endfor %}
-    <div class="arena-legend__item arena-legend__item--spectator">
-      <span class="arena-legend__swatch"></span>
-      <span class="arena-legend__label">Spectators</span>
-      <span class="arena-legend__count">{{ spectator_count }}</span>
-    </div>
-  </div>
+    {% include "chef_battle/_arena_ring.html" %}
+  </section>
 
-  {% include "chef_battle/_arena_ring.html" %}
+  <aside class="arena-command-deck__ladder" aria-label="Rank ladder">
+    <p class="arena-panel__kicker">Crown ladder</p>
+    <ol class="arena-ladder-list">
+      {% for rank, chefs in rank_groups|slice:":4" %}
+      <li><span>{{ forloop.counter }}</span><b>{{ rank.label }}</b><em>{{ chefs|length }} chefs</em></li>
+      {% endfor %}
+    </ol>
+    <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">View rankings</a>
+  </aside>
 
-</div>
+  <aside class="arena-command-deck__gifts" aria-label="Battle gifts">
+    <p class="arena-panel__kicker">Battle gifts</p>
+    <p class="arena-command-deck__gift-copy">Support a chef from the live battle room. Gifts and artifacts keep their existing token and eligibility checks.</p>
+    {% if active_battle %}
+    <a class="btn-primary" href="#arena-puzzle">Open live battle</a>
+    {% else %}
+    <a class="btn-secondary" href="{% url 'chef_battle:artifact_gallery' %}">Browse artifacts</a>
+    {% endif %}
+  </aside>
+
+  <footer class="arena-command-deck__crowd-rail">
+    <span>Kitchen doors are open.</span>
+    {% if viewer_author and not user_enrolled %}
+    <a class="ce-nav__link ce-nav__link--battle battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:chef_enroll' %}"><span class="chef-battle-cta__label">Join Chef Battles</span></a>
+    {% elif viewer_author %}
+    <a class="ce-nav__link ce-nav__link--battle battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:challenge_create' %}"><span class="chef-battle-cta__label">Issue a Challenge</span></a>
+    {% endif %}
+  </footer>
+</main>
 {% endblock %}

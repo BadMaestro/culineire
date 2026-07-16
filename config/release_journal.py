@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.277",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Start the Arena mosaic rebuild",
+        "section": "Chef Battles / Arena",
+        "summary": "Introduced the first responsive command-deck layer around the existing live SVG arena: lifecycle rail, real-data metrics, phase, ladder and gift panels, while retaining arena polling, chef cells, battle popup and legal gift controls. Added the reference mosaic and incremental assembly plan for the complete rebuild.",
+    },
+    {
         "version": "2.5.276",
         "date": "2026-07-16",
         "commit": "pending",
