@@ -936,24 +936,23 @@ def _arena_latest_result():
     }
 
 
-def _get_spectators(enrolled_author_ids, limit=40):
-    """Authors with token balance who are not enrolled chefs, up to `limit`."""
-    wallets = (
-        TokenWallet.objects
-        .select_related("chef")
-        .filter(balance__gt=0)
-        .exclude(chef_id__in=enrolled_author_ids)
-        .order_by("-balance")[:limit]
+def _get_spectators(online_cutoff, limit=208):
+    """Registered viewers currently present in the arena: authors with a battle
+    profile who are NOT enrolled chefs and whose last_seen_at is inside the
+    online window. A logged-in visitor simply occupies a free spectator-ring
+    cell, exactly as an enrolled chef occupies a cell in their rank ring."""
+    profiles = (
+        ChefBattleProfile.objects
+        .select_related("author")
+        .filter(enrolled_at__isnull=True, is_suspended=False,
+                last_seen_at__isnull=False, last_seen_at__gte=online_cutoff)
+        .order_by("-last_seen_at")[:limit]
     )
-    spectators = []
-    for w in wallets:
-        spectators.append({
-            "name": w.chef.name,
-            "slug": w.chef.slug,
-            "avatar_url": w.chef.display_avatar_url,
-            "tokens": w.balance,
-        })
-    return spectators
+    return [{
+        "name": p.author.name,
+        "slug": p.author.slug,
+        "avatar_url": p.author.display_avatar_url,
+    } for p in profiles]
 
 
 def arena_blast(request):
@@ -1039,7 +1038,7 @@ def _build_arena_payload():
             rank.value: [c for c in chefs_by_rank[rank.value] if c["is_online"]]
             for rank in ChefBattleProfile.Rank
         },
-        "spectators": _get_spectators(enrolled_author_ids),
+        "spectators": _get_spectators(online_cutoff),
         "center": _arena_center(active_battle),
         "latest_result": _arena_latest_result(),
         "crown_streak": get_crown_streak(),
@@ -1069,13 +1068,13 @@ def arena(request):
     if request.user.is_authenticated:
         viewer_author = get_author_for_user(request.user)
         if viewer_author:
-            ChefBattleProfile.objects.filter(
-                author=viewer_author, enrolled_at__isnull=False
-            ).update(last_seen_at=timezone.now())
-            try:
-                user_enrolled = bool(viewer_author.battle_profile.enrolled_at)
-            except ChefBattleProfile.DoesNotExist:
-                user_enrolled = False
+            # Any logged-in visitor takes a seat in the arena: enrolled chefs
+            # sit in their rank ring, everyone else in a spectator ring. Ensure
+            # a profile exists so a first-time viewer is placed immediately.
+            from .services import get_or_create_battle_profile
+            profile = get_or_create_battle_profile(viewer_author)
+            ChefBattleProfile.objects.filter(pk=profile.pk).update(last_seen_at=timezone.now())
+            user_enrolled = bool(profile.enrolled_at)
 
     payload = _build_arena_payload()
     active_battle = payload["active_battle"]
@@ -1144,9 +1143,10 @@ def arena_ping(request):
         return JsonResponse({"ok": False}, status=401)
     author = get_author_for_user(request.user)
     if author:
-        ChefBattleProfile.objects.filter(
-            author=author, enrolled_at__isnull=False
-        ).update(last_seen_at=timezone.now())
+        # Keep any logged-in viewer's seat warm, not just enrolled chefs.
+        from .services import get_or_create_battle_profile
+        profile = get_or_create_battle_profile(author)
+        ChefBattleProfile.objects.filter(pk=profile.pk).update(last_seen_at=timezone.now())
     return JsonResponse({"ok": True})
 
 
@@ -1163,15 +1163,16 @@ def arena_state(request):
     from .services import record_viewer_presence
     record_viewer_presence(request, battle=None)  # arena lobby surface
 
-    # The 20s poll also keeps the polling chef present, so an enrolled chef who
-    # sits on the arena stays online (and visible in the ring) without relying
-    # solely on the slower 60s ping heartbeat.
+    # The 20s poll also keeps the polling visitor present, so anyone sitting on
+    # the arena stays online (and visible in their cell) without relying solely
+    # on the slower 60s ping heartbeat. Enrolled chefs sit in their rank ring,
+    # everyone else in a spectator ring.
     if request.user.is_authenticated:
         viewer_author = get_author_for_user(request.user)
         if viewer_author:
-            ChefBattleProfile.objects.filter(
-                author=viewer_author, enrolled_at__isnull=False
-            ).update(last_seen_at=timezone.now())
+            from .services import get_or_create_battle_profile
+            profile = get_or_create_battle_profile(viewer_author)
+            ChefBattleProfile.objects.filter(pk=profile.pk).update(last_seen_at=timezone.now())
 
     payload = _build_arena_payload()
     return JsonResponse({

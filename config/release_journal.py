@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.308",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Arena spectators are the people actually watching",
+        "section": "Chef Battles / Arena",
+        "summary": "Any logged-in visitor now takes a seat in the arena: enrolled chefs sit in their rank ring and every other signed-in author sits in a spectator ring, shown with their own avatar while their presence is fresh. The spectator list is drawn from live arena presence rather than token balance, so the outer rings fill with the real audience.",
+    },
+    {
         "version": "2.5.307",
         "date": "2026-07-16",
         "commit": "pending",

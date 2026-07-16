@@ -6385,6 +6385,37 @@ class ArenaDeadlineTests(TestCase):
         self.assertEqual(d["seconds_remaining"], 0)
 
 
+class ArenaSpectatorTests(TestCase):
+    """_get_spectators: online logged-in non-chef authors occupy spectator cells."""
+
+    def _author(self, tag, enrolled=False, seen_secs_ago=10, suspended=False):
+        from .models import ChefBattleProfile
+        U = get_user_model()
+        a = RecipeAuthor.objects.create(
+            user=U.objects.create_user(f"spec-{tag}", password="pw"),
+            name=f"Spec {tag}", slug=f"spec-{tag}")
+        ChefBattleProfile.objects.update_or_create(author=a, defaults={
+            "enrolled_at": timezone.now() if enrolled else None,
+            "is_suspended": suspended,
+            "last_seen_at": (timezone.now() - timezone.timedelta(seconds=seen_secs_ago)
+                             if seen_secs_ago is not None else None),
+        })
+        return a
+
+    def test_online_viewers_only(self):
+        from chef_battle.views import _get_spectators
+        self._author("viewer", enrolled=False, seen_secs_ago=10)      # in
+        self._author("chef", enrolled=True, seen_secs_ago=10)          # out: enrolled
+        self._author("stale", enrolled=False, seen_secs_ago=9999)      # out: offline
+        self._author("never", enrolled=False, seen_secs_ago=None)      # out: never seen
+        self._author("suspended", enrolled=False, suspended=True)      # out: suspended
+        cutoff = timezone.now() - timezone.timedelta(seconds=180)
+        specs = _get_spectators(cutoff)
+        slugs = {s["slug"] for s in specs}
+        self.assertEqual(slugs, {"spec-viewer"})
+        self.assertEqual(set(specs[0]), {"name", "slug", "avatar_url"})
+
+
 class ArenaGeometryTests(TestCase):
     """get_arena_geometry: declarative ring structure for the procedural renderer."""
 
