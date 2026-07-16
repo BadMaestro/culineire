@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.306",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Arena occupants fall back to an initial",
+        "section": "Chef Battles / Arena",
+        "summary": "In the procedural arena preview an occupied tile whose chef has no avatar now renders the chef's initial instead of appearing empty, so a taken seat never reads as free.",
+    },
+    {
         "version": "2.5.305",
         "date": "2026-07-16",
         "commit": "pending",
