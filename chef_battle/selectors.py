@@ -1128,3 +1128,36 @@ def get_arena_metrics(battle=None) -> dict:
     votes = sum(get_battle_vote_counts(battle).values())
     gifts = ViewerBattleGift.objects.filter(battle=battle).count()
     return {"active_viewers": viewers, "public_votes": votes, "battle_gifts": gifts}
+
+
+# 7-step public phase rail for the arena rebuild. Maps a live Battle.status to
+# one visible rung: Challenge -> Combat -> Biathlon -> Cooking -> Mod Review ->
+# Voting -> Crown. Keys/labels/steps are the front-end contract (Ember #159).
+_ARENA_PHASE_RAIL = {
+    "scheduled": ("challenge", "Challenge", 1),
+    "menu_locked": ("challenge", "Challenge", 1),
+    "active": ("combat", "Combat", 2),
+    "ingredient_penalty": ("biathlon", "Biathlon", 3),
+    "awaiting_submissions": ("cooking", "Cooking", 4),
+    "revealed": ("cooking", "Cooking", 4),
+    "cooking": ("cooking", "Cooking", 4),
+    "presentation": ("mod_review", "Mod Review", 5),
+    "disputed": ("mod_review", "Mod Review", 5),
+    "voting": ("voting", "Voting", 6),
+    "completed": ("crown", "Crown", 7),
+}
+
+
+def get_arena_phase(battle=None) -> dict | None:
+    """Public phase-rail rung for the active battle (arena rebuild). Returns
+    {key, label, step} where step is 1..7 across the visible arc, or None when
+    no active battle. PAUSED resolves to the phase it was paused from so the
+    rail keeps its place during an emergency stop; unknown statuses fall back
+    to the opening Challenge rung."""
+    if battle is None:
+        return None
+    status = battle.status
+    if status == "paused" and battle.paused_from_status:
+        status = battle.paused_from_status
+    key, label, step = _ARENA_PHASE_RAIL.get(status, ("challenge", "Challenge", 1))
+    return {"key": key, "label": label, "step": step}

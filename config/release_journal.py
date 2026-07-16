@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.288",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Add Arena phase rail read-model",
+        "section": "Chef Battles / Arena",
+        "summary": "The public Arena read-model now exposes a phase rail entry (key, label, step 1..7) mapping the live battle state across Challenge, Combat, Biathlon, Cooking, Mod Review, Voting and Crown. It rides the same Arena poll payload as the top-bar metrics, resolves a paused battle to the phase it was paused from, and returns nothing when no battle is live.",
+    },
+    {
         "version": "2.5.286",
         "date": "2026-07-16",
         "commit": "pending",

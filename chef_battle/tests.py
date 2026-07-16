@@ -6211,6 +6211,7 @@ class ArenaPayloadWiringTests(TestCase):
         self.assertIn("crown_ladder", p)
         self.assertIn("recent_gifts", p)
         self.assertIn("metrics", p)
+        self.assertIn("phase", p)
         self.assertEqual(set(p["metrics"]), {"active_viewers", "public_votes", "battle_gifts"})
         self.assertIsInstance(p["crown_streak"], int)
         self.assertIsInstance(p["crown_ladder"], list)
@@ -6257,3 +6258,48 @@ class ArenaCenterMetaTests(TestCase):
         self.assertEqual(c["theme"], "Irish Stew")
         self.assertEqual(c["status_display"], "Cooking")
         self.assertEqual(c["type"], "active_battle")
+
+
+class ArenaPhaseTests(TestCase):
+    """get_arena_phase: 7-step public phase rail mapping (Ember #159)."""
+
+    def _battle(self, status, paused_from=""):
+        from .models import Battle
+        U = get_user_model()
+        import uuid
+        tag = uuid.uuid4().hex[:6]
+        a = RecipeAuthor.objects.create(user=U.objects.create_user(f"ph-a-{tag}", password="pw"), name="A", slug=f"ph-a-{tag}")
+        b = RecipeAuthor.objects.create(user=U.objects.create_user(f"ph-b-{tag}", password="pw"), name="B", slug=f"ph-b-{tag}")
+        return Battle.objects.create(challenger=a, opponent=b, theme="T", status=status,
+                                     paused_from_status=paused_from,
+                                     submission_deadline=timezone.now(), end_time=timezone.now())
+
+    def test_none_battle_is_null(self):
+        from .selectors import get_arena_phase
+        self.assertIsNone(get_arena_phase(None))
+
+    def test_status_maps_to_rung(self):
+        from .models import Battle
+        from .selectors import get_arena_phase
+        cases = {
+            Battle.Status.SCHEDULED: ("challenge", 1),
+            Battle.Status.MENU_LOCKED: ("challenge", 1),
+            Battle.Status.ACTIVE: ("combat", 2),
+            Battle.Status.INGREDIENT_PENALTY: ("biathlon", 3),
+            Battle.Status.COOKING: ("cooking", 4),
+            Battle.Status.PRESENTATION: ("mod_review", 5),
+            Battle.Status.VOTING: ("voting", 6),
+            Battle.Status.COMPLETED: ("crown", 7),
+        }
+        for status, (key, step) in cases.items():
+            ph = get_arena_phase(self._battle(status))
+            self.assertEqual(ph["key"], key, status)
+            self.assertEqual(ph["step"], step, status)
+            self.assertTrue(ph["label"])
+
+    def test_paused_resolves_to_paused_from(self):
+        from .models import Battle
+        from .selectors import get_arena_phase
+        ph = get_arena_phase(self._battle(Battle.Status.PAUSED, paused_from="voting"))
+        self.assertEqual(ph["key"], "voting")
+        self.assertEqual(ph["step"], 6)
