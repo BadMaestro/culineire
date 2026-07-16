@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.275",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Tighten arena menu spacing",
+        "section": "Chef Battles / Navigation",
+        "summary": "Centred Arena Menu and standardised its internal gaps to one compact spacing unit, further reducing the widget width and row density.",
+    },
+    {
         "version": "2.5.274",
         "date": "2026-07-16",
         "commit": "pending",

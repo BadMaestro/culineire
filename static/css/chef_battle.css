@@ -4757,3 +4757,33 @@ a.battle-home__pulse-msg:hover {
   content: "▼";
   transform: none;
 }
+
+/* One compact spacing unit throughout the arena menu. */
+.site-battle-widget { --widget-space: 0.3rem; width: 14rem; }
+.site-battle-widget__body { gap: var(--widget-space); padding: 0.45rem; }
+.site-battle-widget__section-title {
+  justify-content: center;
+  text-align: center;
+  margin-bottom: var(--widget-space);
+}
+.site-battle-widget__section--menu .site-battle-widget__menu { gap: var(--widget-space); }
+.site-battle-widget__menu a { min-height: 2.5rem; padding: 0.22rem 0.28rem; }
+.site-battle-widget .site-battle-widget__icon,
+.site-battle-widget .site-battle-widget__console-link .site-battle-widget__icon {
+  width: 1.55rem;
+  height: 1.55rem;
+  flex-basis: 1.55rem;
+}
+.site-battle-widget__console-link {
+  min-height: 2.5rem;
+  margin-top: var(--widget-space);
+  padding: 0.22rem 0.4rem;
+}
+.site-battle-widget .btn-primary {
+  min-height: 2.65rem;
+  margin-top: var(--widget-space);
+  padding: 0.42rem 0.6rem;
+}
+@media (max-width: 900px) {
+  .site-battle-widget { width: min(14rem, calc(100vw - 1rem)); }
+}
