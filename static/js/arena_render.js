@@ -169,9 +169,13 @@
     return assignments;
   }
 
+  function initialOf(entity) {
+    var source = (entity.name || entity.slug || '').trim();
+    return source ? source.charAt(0).toUpperCase() : '?';
+  }
+
   function appendOccupant(svg, layer, assignment) {
     var entity = assignment.entity || {};
-    if (!entity.avatar_url) { return; }
     var selector = '[data-ring="' + assignment.ring + '"][data-cell="' + assignment.cell + '"]';
     var polygon = svg.querySelector('polygon' + selector);
     if (!polygon) { return; }
@@ -183,14 +187,32 @@
       'data-entity-slug': entity.slug || '',
       class: 'arena-occupant'
     });
-    group.appendChild(el('image', {
-      href: entity.avatar_url,
-      x: (box.x + box.width / 2 - size / 2).toFixed(2),
-      y: (box.y + box.height / 2 - size / 2).toFixed(2),
-      width: size.toFixed(2), height: size.toFixed(2),
-      preserveAspectRatio: 'xMidYMid slice',
-      'pointer-events': 'none'
-    }));
+
+    if (entity.avatar_url) {
+      group.appendChild(el('image', {
+        href: entity.avatar_url,
+        x: (box.x + box.width / 2 - size / 2).toFixed(2),
+        y: (box.y + box.height / 2 - size / 2).toFixed(2),
+        width: size.toFixed(2), height: size.toFixed(2),
+        preserveAspectRatio: 'xMidYMid slice',
+        'pointer-events': 'none'
+      }));
+    } else {
+      // display_avatar_url always resolves to a photo or a default, so this is
+      // a guard rather than an expected path: a seat that is taken must never
+      // read as free, whatever the payload carries.
+      var initial = el('text', {
+        x: (box.x + box.width / 2).toFixed(2),
+        y: (box.y + box.height / 2).toFixed(2),
+        'text-anchor': 'middle', 'dominant-baseline': 'central',
+        'font-size': Math.max(6, size * 0.42).toFixed(1),
+        'pointer-events': 'none',
+        class: 'arena-occupant__initial'
+      });
+      initial.textContent = initialOf(entity);
+      group.appendChild(initial);
+    }
+
     layer.appendChild(group);
   }
 
