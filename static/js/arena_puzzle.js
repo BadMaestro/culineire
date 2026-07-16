@@ -893,6 +893,31 @@
     if (Object.prototype.hasOwnProperty.call(data, 'recent_gifts')) { refreshRecentGifts(data.recent_gifts); }
   }
 
+  function metricText(value) {
+    return value === null || typeof value === 'undefined' ? '—' : String(value);
+  }
+
+  function refreshArenaReadModel(data) {
+    if (!data) { return; }
+    var metrics = data.arena_metrics || data.metrics;
+    if (metrics) {
+      var viewers = document.getElementById('arena-metric-viewers');
+      var votes = document.getElementById('arena-metric-votes');
+      var gifts = document.getElementById('arena-metric-gifts');
+      if (viewers) { viewers.textContent = metricText(metrics.active_viewers); }
+      if (votes) { votes.textContent = metricText(metrics.public_votes); }
+      if (gifts) { gifts.textContent = metricText(metrics.battle_gifts); }
+    }
+    var phase = data.arena_phase || data.phase;
+    var rail = document.getElementById('arena-phase-rail');
+    if (!rail || !phase || !phase.step) { return; }
+    var steps = rail.querySelectorAll('[data-phase-step]');
+    for (var i = 0; i < steps.length; i++) {
+      steps[i].classList.toggle('is-active', Number(steps[i].getAttribute('data-phase-step')) === Number(phase.step));
+    }
+    rail.setAttribute('data-phase-key', phase.key || '');
+  }
+
   function arenaCentreKey(center) {
     if (!center) { return 'empty'; }
     if (center.type === 'active_battle' || center.type === 'facing_pair') {
@@ -1009,6 +1034,7 @@
           }
           drawArena(data);
           refreshArenaPanels(data);
+          refreshArenaReadModel(data);
           refreshArenaLiveStage(data);
           maybeCelebrate(data.latest_result);
         }
