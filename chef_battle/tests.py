@@ -2067,13 +2067,13 @@ class ArenaMasterConsoleAccessTests(TestCase):
     def test_procedural_arena_is_explicit_proto_gate(self):
         resp = self.client.get(reverse("chef_battle:arena") + "?proto=1")
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, "arena-prototype-container")
+        self.assertContains(resp, "arena-render-container")
         # Match on the filename stem only: ManifestStaticFilesStorage rewrites
         # {% static %} URLs to "<name>.<hash>.js" in production, so asserting the
         # exact "<name>.js" substring would spuriously fail there.
-        self.assertContains(resp, "arena_proto_gate")
+        self.assertContains(resp, "arena_render")
         self.assertNotContains(resp, "js/arena_puzzle")
-        # The procedural renderer draws entirely from this embedded payload;
+        # The unified renderer draws entirely from this embedded payload;
         # without it the grid would silently render empty.
         self.assertContains(resp, "arena-data-json")
         self.assertContains(resp, "arena_geometry")

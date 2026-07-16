@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.305",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Unified procedural Arena renderer behind ?proto=1",
+        "section": "Chef Battles / Arena",
+        "summary": "The ?proto=1 preview now runs a unified renderer that draws the procedural octagon and fills each tile with its chef, clipped to the cell outline, alongside the ported live command deck, battle-room popup, blast and ripple, and the effects layer on the unified floor. The default arena is unchanged.",
+    },
+    {
         "version": "2.5.304",
         "date": "2026-07-16",
         "commit": "pending",
