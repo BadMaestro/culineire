@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.256",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "CulinEire palette arena command deck",
+        "section": "Chef Battles / Navigation",
+        "summary": "The command deck now follows the CulinEire colour and font scheme: cappuccino surfaces, warm bronze, restrained blue and green accents, and no decorative layer outside its boundary.",
+    },
+    {
         "version": "2.5.255",
         "date": "2026-07-16",
         "commit": "pending",
