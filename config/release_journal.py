@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.268",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Generated Chef Battles navigation assets",
+        "section": "Chef Battles / Navigation",
+        "summary": "Replaced line-art widget symbols with nine generated culinary game icon assets, cropped to transparent PNGs and applied the site parchment, cappuccino, bronze and culinary-green palette to the navigation shell.",
+    },
+    {
         "version": "2.5.267",
         "date": "2026-07-16",
         "commit": "pending",
