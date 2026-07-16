@@ -2,8 +2,7 @@ import json
 import uuid
 
 from django.http import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_GET
 
 
 def _json(data, content_type="application/json"):
@@ -184,10 +183,9 @@ https://culineire.ie/messages/contact/
     return HttpResponse(content, content_type="text/markdown; charset=utf-8")
 
 
-@csrf_exempt
-@require_http_methods(["POST", "GET"])
+@require_GET
 def agent_identity(request):
-    """Anonymous identity endpoint for public read-only access."""
+    """Read-only anonymous identity metadata for public agent discovery."""
     assertion_id = str(uuid.uuid4())
     data = {
         "identity_type": "anonymous",

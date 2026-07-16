@@ -1,0 +1,22 @@
+{% load static %}
+{% comment %}
+Temporary dark-launch renderer. It intentionally shares the existing public
+arena_data payload but never loads arena_puzzle.js. The normal arena markup is
+kept untouched behind the default branch in arena.html.
+{% endcomment %}
+<div class="arena-prototype-container" data-arena-prototype="enabled">
+  <p class="arena-puzzle-label">Procedural arena preview â€” live roster updates every 10 seconds.</p>
+  <svg id="arena-prototype" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg"
+       role="img" aria-label="Procedural Chef Battles Arena">
+    <title>Chef Battles Arena procedural preview</title>
+  </svg>
+</div>
+
+<link href="{% static 'css/arena_proto.css' %}?v=20260716a" rel="stylesheet">
+
+{{ arena_data|json_script:"arena-data-json" }}
+
+<script src="{% static 'js/arena_geometry.js' %}?v=20260716a"></script>
+<script src="{% static 'js/arena_octant_prototype.js' %}?v=20260716a"></script>
+<script src="{% static 'js/arena_data_sandbox.js' %}?v=20260716b"></script>
+<script src="{% static 'js/arena_proto_gate.js' %}?v=20260716a"></script>

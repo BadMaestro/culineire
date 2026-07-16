@@ -2061,7 +2061,15 @@ class ArenaMasterConsoleAccessTests(TestCase):
         resp = self.client.get(reverse("chef_battle:arena"))
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "arena-puzzle")
+        self.assertNotContains(resp, "arena-prototype-container")
         self.assertNotContains(resp, "amc-page")
+
+    def test_procedural_arena_is_explicit_proto_gate(self):
+        resp = self.client.get(reverse("chef_battle:arena") + "?proto=1")
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "arena-prototype-container")
+        self.assertContains(resp, "arena_proto_gate.js")
+        self.assertNotContains(resp, "/static/js/arena_puzzle.js")
 
 
 # ── AMC P02 — master_state read models ───────────────────────────────────────

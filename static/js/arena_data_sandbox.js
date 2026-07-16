@@ -76,6 +76,15 @@
 
   function bind(svg, payload, geometry) {
     Array.prototype.forEach.call(svg.querySelectorAll('.arena-prototype-occupant, .arena-prototype-stage-label'), function (node) { node.remove(); });
+    // A poll may move or remove an entity. Clear every transient cell attribute
+    // before applying the next snapshot so a freed polygon cannot retain a
+    // stale occupant, state, or highlight from the previous payload.
+    Array.prototype.forEach.call(svg.querySelectorAll('[data-ring][data-cell]'), function (polygon) {
+      polygon.removeAttribute('data-occupancy');
+      polygon.removeAttribute('data-state');
+      polygon.removeAttribute('data-entity-slug');
+      polygon.removeAttribute('data-changed');
+    });
     var nextSlots = Object.create(null);
     buildAssignments(payload, geometry).forEach(function (assignment) {
       var key = assignment.ring + ':' + assignment.cell;

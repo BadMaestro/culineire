@@ -134,3 +134,15 @@ class MarkdownNegotiationTest(TestCase):
         self.assertIn("text/markdown", r["Content-Type"])
         self.assertIn("X-Markdown-Tokens", r)
         self.assertTrue(int(r["X-Markdown-Tokens"]) > 0)
+        self.assertIn("Accept", r["Vary"])
+
+
+class AgentIdentityTest(TestCase):
+    def test_identity_is_read_only_get(self):
+        r = self.client.get("/agent/identity")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(json.loads(r.content)["access_type"], "public")
+
+    def test_identity_rejects_post(self):
+        r = self.client.post("/agent/identity")
+        self.assertEqual(r.status_code, 405)

@@ -116,7 +116,11 @@
           </a>
         {% endfor %}
       </nav>
-      {% include "chef_battle/_arena_ring.html" %}
+      {% if request.GET.proto == '1' %}
+        {% include "chef_battle/_arena_proto_ring.html" %}
+      {% else %}
+        {% include "chef_battle/_arena_ring.html" %}
+      {% endif %}
     </div>
   </section>
 

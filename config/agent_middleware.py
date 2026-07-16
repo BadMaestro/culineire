@@ -8,6 +8,13 @@ _LINK_HEADERS = ", ".join([
 ])
 
 
+def _add_vary(response, value):
+    existing = [item.strip() for item in response.get("Vary", "").split(",") if item.strip()]
+    if value.lower() not in {item.lower() for item in existing}:
+        existing.append(value)
+        response["Vary"] = ", ".join(existing)
+
+
 class AgentLinkHeadersMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
@@ -45,6 +52,7 @@ class MarkdownNegotiationMiddleware:
             response.content = md.encode("utf-8")
             response["Content-Type"] = "text/markdown; charset=utf-8"
             response["X-Markdown-Tokens"] = str(max(1, len(md) // 4))
+            _add_vary(response, "Accept")
             if "Content-Length" in response:
                 del response["Content-Length"]
         except ImportError:
