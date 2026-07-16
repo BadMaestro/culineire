@@ -4598,7 +4598,14 @@ a.battle-home__pulse-msg:hover {
     color 0.18s ease;
 }
 .site-battle-widget__toggle:hover { background: rgb(58 44 30 / 0.08); color: #3a2c1e; }
-.site-battle-widget__label { font-family: var(--font-serif, Georgia, serif); font-size: 0.96rem; letter-spacing: 0; }
+.site-battle-widget__label {
+  color: var(--brand-dark, #6e4e2c);
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 0.96rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-shadow: none;
+}
 .site-battle-widget__brand-icon { color: var(--brand-dark, #6e4e2c); }
 .site-battle-widget__toggle-icon::after { color: var(--brand-dark, #6e4e2c); }
 .site-battle-widget__body { padding: 0.8rem; background: transparent; }
@@ -4647,6 +4654,8 @@ a.battle-home__pulse-msg:hover {
   filter: drop-shadow(0 0.12rem 0.18rem rgb(31 44 37 / 0.14));
 }
 .site-battle-widget__console-link {
+  position: relative;
+  overflow: hidden;
   min-height: 3.35rem;
   margin-top: 0.55rem;
   padding: 0.44rem 0.7rem;

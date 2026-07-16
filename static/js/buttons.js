@@ -18,6 +18,8 @@
         '.spm-visit-btn',
         '.spm-admin-approve',
         '.spm-admin-reject',
+        '.site-battle-widget__console-link',
+        '.site-battle-widget .btn-primary',
     ].join(', ');
 
     document.addEventListener('click', function (e) {
@@ -71,7 +73,8 @@
         }
         /* Header nav links — warm brown, skip Chef Battle */
         var navEl = e.target.closest(
-            '.ce-nav__link:not(.ce-nav__link--battle), .ce-nav__button, .ce-nav__text'
+            '.ce-nav__link:not(.ce-nav__link--battle), .ce-nav__button, .ce-nav__text, '
+            + '.site-battle-widget__menu a, .site-battle-widget__toggle'
         );
         if (navEl) {
             fireFloatingRipple(e.clientX, e.clientY, 'rgba(139, 115, 85, 0.22)');

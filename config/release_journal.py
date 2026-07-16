@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.270",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Wire widget buttons to existing click effects",
+        "section": "Chef Battles / Navigation",
+        "summary": "Widget menu and toggle now use the existing header floating ripple, while its large action buttons use the existing internal Hero-button ripple. The widget title now has dark bronze contrast on its light header.",
+    },
+    {
         "version": "2.5.269",
         "date": "2026-07-16",
         "commit": "pending",
