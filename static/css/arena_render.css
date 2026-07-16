@@ -2,21 +2,32 @@
  * Unified arena renderer skin (arena_render.js).
  *
  * The renderer stamps structure only: data-ring, data-ring-kind, data-cell,
- * data-occupancy, data-state. All colour lives here, so the palette can change
- * without touching geometry or data binding.
+ * data-occupancy, data-state. All colour lives here.
  *
- * Ring shading is inherited from the legacy arena (RING_COLOURS in
- * arena_puzzle.js): tiles darken toward the centre, so rank reads as depth —
- * ring 1 is Culinary Master, ring 8 is Kitchen Porter.
+ * Palette rule (CulinEire colour & font scheme v1): design tokens only, no raw
+ * colours. The floor is the brand's warm parchment + muted bronze — tiles
+ * darken toward the centre, so rank reads as depth: ring 1 is Culinary Master,
+ * ring 8 is Kitchen Porter. The eight steps are mixed from --brand rather than
+ * hardcoded, so a change to the brand token repaints the whole floor.
  */
 
 .arena-render-container {
+  --arena-seat: var(--surface-soft);
+  --arena-seam: var(--surface);
+  --arena-stage-ink: var(--brand-dark);
+  /* The scheme's bronze accent (--about-accent) is declared inside .about-deck,
+     so it does not exist on this page. Until it is promoted to :root, the
+     arena's accent is mixed from the brand token rather than restated as a raw
+     colour here. */
+  --arena-accent: color-mix(in srgb, var(--brand) 70%, var(--surface));
+
   width: min(100%, 960px);
   margin-inline: auto;
   padding: 0.9rem;
-  border: 1px solid rgba(139, 115, 85, 0.42);
+  border: 1px solid var(--border);
   border-radius: 18px;
-  background: radial-gradient(circle at 50% 46%, #f8f3e9 0, #ece2ce 46%, #c3cfdd 100%);
+  background: var(--bg);
+  box-shadow: var(--shadow-sm);
 }
 
 #arena-render {
@@ -30,9 +41,9 @@
 /* ---- cells ---- */
 
 #arena-render .arena-cell {
-  stroke: #fffdf7;
+  fill: var(--arena-seat);
+  stroke: var(--arena-seam);
   stroke-width: 1.1;
-  fill: #f4f1ec;
   transition: fill 180ms ease, opacity 180ms ease;
 }
 
@@ -46,73 +57,56 @@
   opacity: 0.82;
 }
 
-/* Empty rank tiles — pale, darkening inward. */
-#arena-render [data-ring="8"][data-occupancy="empty"] { fill: #f4f1ec; }
-#arena-render [data-ring="7"][data-occupancy="empty"] { fill: #ede8df; }
-#arena-render [data-ring="6"][data-occupancy="empty"] { fill: #e4ddd1; }
-#arena-render [data-ring="5"][data-occupancy="empty"] { fill: #d8d0c0; }
-#arena-render [data-ring="4"][data-occupancy="empty"] { fill: #ccc1aa; }
-#arena-render [data-ring="3"][data-occupancy="empty"] { fill: #bfb49a; }
-#arena-render [data-ring="2"][data-occupancy="empty"] { fill: #a89878; }
-#arena-render [data-ring="1"][data-occupancy="empty"] { fill: #8f7c5c; }
+/* Free rank seats: parchment, deepening toward the centre. */
+#arena-render [data-ring="8"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 6%, var(--surface)); }
+#arena-render [data-ring="7"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 12%, var(--surface)); }
+#arena-render [data-ring="6"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 18%, var(--surface)); }
+#arena-render [data-ring="5"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 26%, var(--surface)); }
+#arena-render [data-ring="4"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 34%, var(--surface)); }
+#arena-render [data-ring="3"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 44%, var(--surface)); }
+#arena-render [data-ring="2"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 56%, var(--surface)); }
+#arena-render [data-ring="1"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 70%, var(--surface)); }
 
-/* Occupied rank tiles sit one step darker than the empty seat beside them, so
-   an occupied ring still reads as a ring. The avatar is clipped over the top. */
-#arena-render [data-ring="8"][data-occupancy="chef"] { fill: #e4ddd1; }
-#arena-render [data-ring="7"][data-occupancy="chef"] { fill: #d8d0c0; }
-#arena-render [data-ring="6"][data-occupancy="chef"] { fill: #ccc1aa; }
-#arena-render [data-ring="5"][data-occupancy="chef"] { fill: #bfb49a; }
-#arena-render [data-ring="4"][data-occupancy="chef"] { fill: #a89878; }
-#arena-render [data-ring="3"][data-occupancy="chef"] { fill: #8f7c5c; }
-#arena-render [data-ring="2"][data-occupancy="chef"] { fill: #73603f; }
-#arena-render [data-ring="1"][data-occupancy="chef"] { fill: #5a4a2e; }
+/* A taken seat sits one step deeper than the free seat beside it, so an
+   occupied ring still reads as a ring behind its avatars. */
+#arena-render [data-ring="8"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--brand) 18%, var(--surface)); }
+#arena-render [data-ring="7"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--brand) 26%, var(--surface)); }
+#arena-render [data-ring="6"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--brand) 34%, var(--surface)); }
+#arena-render [data-ring="5"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--brand) 44%, var(--surface)); }
+#arena-render [data-ring="4"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--brand) 56%, var(--surface)); }
+#arena-render [data-ring="3"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--brand) 70%, var(--surface)); }
+#arena-render [data-ring="2"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--brand-dark) 80%, var(--surface)); }
+#arena-render [data-ring="1"][data-occupancy="chef"] { fill: var(--brand-dark); }
 
-/* Spectator galleries read cool against the warm floor. */
-#arena-render [data-ring-kind="spectator"][data-occupancy="empty"] { fill: #c5d3e8; }
-#arena-render [data-ring-kind="spectator"][data-occupancy="spectator"] { fill: #2a5fb0; }
+/* Spectator galleries read cooler than the floor, mixed off --ink so they stay
+   inside the palette. The scheme has no blue token; if the reference's slate
+   gallery becomes a brand colour, it belongs in base.css, not here. */
+#arena-render [data-ring-kind="spectator"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--ink) 10%, var(--surface-muted)); }
+#arena-render [data-ring-kind="spectator"][data-occupancy="spectator"] { fill: color-mix(in srgb, var(--ink) 55%, var(--surface)); }
 
 /* ---- state ---- */
 
 #arena-render [data-state="in-battle"] {
-  stroke: #f8d28a;
+  stroke: var(--arena-accent);
   stroke-width: 2;
 }
 
 #arena-render [data-state="online"] {
-  stroke: rgba(63, 138, 52, 0.85);
+  stroke: var(--brand);
   stroke-width: 1.6;
 }
 
 /* ---- centre stage ---- */
 
 #arena-render .arena-stage {
-  fill: #9c7021;
-  stroke: #60451c;
+  fill: var(--arena-stage-ink);
+  stroke: var(--brand-dark);
   stroke-width: 2;
 }
 
-#arena-render .arena-stage[data-state="crown"] { fill: #b8873a; }
-#arena-render .arena-stage[data-state="active_battle"] { fill: #974f36; }
-#arena-render .arena-stage[data-state="facing_pair"] { fill: #7c5a3a; }
-
-/* ---- free-seat hint ---- */
-
-/* Contrast is deliberately low: the "+" should read as an invitation on an
-   empty floor and disappear into the background once chefs fill the ring. */
-#arena-render .arena-cell-hint {
-  fill: rgba(60, 55, 45, 0.35);
-  font-family: Inter, sans-serif;
-  transition: opacity 180ms ease;
-}
-
-#arena-render [data-ring-kind="spectator"].arena-cell-hint {
-  fill: rgba(30, 55, 95, 0.3);
-}
-
-/* A taken seat shows its occupant, not an invitation. */
-#arena-render .arena-cell-hint:not([data-occupancy="empty"]) {
-  opacity: 0;
-}
+#arena-render .arena-stage[data-state="crown"] { fill: var(--arena-accent); }
+#arena-render .arena-stage[data-state="active_battle"] { fill: var(--brand-dark); }
+#arena-render .arena-stage[data-state="facing_pair"] { fill: var(--brand); }
 
 /* ---- occupants ---- */
 
@@ -122,11 +116,11 @@
 
 /* Fallback when a record carries no avatar: the seat still reads as taken. */
 #arena-render .arena-occupant__initial {
-  fill: #fffdf7;
-  font-family: Inter, sans-serif;
+  fill: var(--surface);
+  font-family: var(--font-sans);
   font-weight: 700;
   paint-order: stroke;
-  stroke: rgba(40, 30, 18, 0.55);
+  stroke: var(--ink);
   stroke-width: 1.2px;
 }
 
