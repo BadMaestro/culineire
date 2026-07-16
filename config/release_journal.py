@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.269",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Match arena widget interaction standards",
+        "section": "Chef Battles / Navigation",
+        "summary": "Arena-menu links now use the primary-header interaction timing, while its large action buttons use the Hero pill transition; no new animation language was introduced.",
+    },
+    {
         "version": "2.5.268",
         "date": "2026-07-16",
         "commit": "pending",
