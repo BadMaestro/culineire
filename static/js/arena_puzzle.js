@@ -1012,6 +1012,14 @@
     stage.appendChild(note);
   }
 
+  function formatArenaDateTime(value) {
+    var date = value ? new Date(value) : null;
+    if (!date || Number.isNaN(date.getTime())) { return ''; }
+    return date.toLocaleString(undefined, {
+      day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+  }
+
   function refreshArenaLiveStage(data) {
     var stage = document.getElementById('arena-live-stage');
     var center = data && data.center;
@@ -1043,7 +1051,8 @@
         title: 'Crown',
         detail: 'View profile',
       });
-      appendStageNote(stage, 'The centre awaits the next challenge.');
+      var crownUntil = formatArenaDateTime(center.crown_until);
+      appendStageNote(stage, crownUntil ? 'Crown held until ' + crownUntil + '.' : 'The centre awaits the next challenge.');
       return;
     }
     appendStageNote(stage, 'No live battle is holding the centre.');

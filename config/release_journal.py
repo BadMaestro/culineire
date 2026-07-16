@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.293",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Show the real Crown holding window",
+        "section": "Chef Battles / Arena",
+        "summary": "The Arena centre now states the Crown holding window when the public crown expiry exists, both on first render and after a centre refresh. When no expiry is supplied it retains the existing honest awaiting-challenge message.",
+    },
+    {
         "version": "2.5.292",
         "date": "2026-07-16",
         "commit": "pending",
