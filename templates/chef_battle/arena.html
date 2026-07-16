@@ -13,6 +13,7 @@
 {% endblock %}
 
 {% block content %}
+{% include "chef_battle/_arena_deck_svg.html" %}
 <main class="arena-command-deck" aria-labelledby="arena-command-title">
   <header class="arena-command-deck__header">
     <div>
@@ -44,8 +45,8 @@
   </section>
 
   <section class="arena-command-deck__metrics" aria-label="Arena metrics">
-    <div class="arena-metric"><span>Active viewers</span><strong>{{ spectator_count }}</strong></div>
-    <div class="arena-metric"><span>Rank tiers</span><strong>{{ rank_groups|length }}</strong></div>
+    <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-eye"></use></svg>Active viewers</span><strong>{{ spectator_count }}</strong></div>
+    <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-toque"></use></svg>Rank tiers</span><strong>{{ rank_groups|length }}</strong></div>
     <div class="arena-metric"><span>Live battle</span><strong>{% if active_battle %}On{% else %}—{% endif %}</strong></div>
   </section>
 

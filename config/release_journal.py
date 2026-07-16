@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.282",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Integrate Arena command-deck icon sprite",
+        "section": "Chef Battles / Arena",
+        "summary": "Integrated the coordinated CulinEire-owned Arena SVG sprite into the public command deck, starting with clear viewers and rank-tier metric icons while preserving existing interactions and the SVG battle floor.",
+    },
+    {
         "version": "2.5.280",
         "date": "2026-07-16",
         "commit": "pending",
