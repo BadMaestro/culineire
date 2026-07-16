@@ -65,7 +65,6 @@
     var step = radiusStepFor(geometry);
     var defs = el('defs', {});
     var cells = el('g', { 'data-arena-layer': 'cells' });
-    var hints = el('g', { 'data-arena-layer': 'hints' });
     var stageRing = geometry.rings[0];
 
     geometry.rings.forEach(function (ring) {
@@ -92,27 +91,6 @@
         });
         cells.appendChild(polygon);
 
-        // A free seat carries a "+", as the legacy floor did: an empty arena
-        // should read as an invitation, not as a dead grid. bind() hides it
-        // the moment the seat is taken.
-        var span = Math.max(
-          Math.abs(shape[1].x - shape[0].x), Math.abs(shape[1].y - shape[0].y),
-          Math.abs(shape[2].x - shape[1].x), Math.abs(shape[2].y - shape[1].y)
-        );
-        var hint = el('text', {
-          x: centroid.x.toFixed(2), y: centroid.y.toFixed(2),
-          'text-anchor': 'middle', 'dominant-baseline': 'central',
-          'font-size': Math.min(7, Math.max(3.5, span * 0.4)).toFixed(1),
-          'pointer-events': 'none',
-          'data-ring': String(ring.index),
-          'data-cell': String(segment),
-          'data-ring-kind': ring.kind || 'unknown',
-          'data-occupancy': 'empty',
-          class: 'arena-cell-hint'
-        });
-        hint.textContent = '+';
-        hints.appendChild(hint);
-
         // One clip path per cell, reused by whoever occupies it. Avatars are
         // clipped to the cell outline so an occupant fills its tile instead of
         // floating as a square inside it.
@@ -124,7 +102,6 @@
 
     svg.appendChild(defs);
     svg.appendChild(cells);
-    svg.appendChild(hints);
     svg.appendChild(el('circle', {
       cx: SVG_SIZE / 2, cy: SVG_SIZE / 2, r: STAGE_RADIUS,
       'data-ring': String(stageRing.index),
@@ -251,10 +228,6 @@
       polygon.removeAttribute('data-entity-slug');
       polygon.chefRecord = null;
     });
-    // A seat freed by this poll gets its "+" back.
-    Array.prototype.forEach.call(svg.querySelectorAll('.arena-cell-hint'), function (hint) {
-      hint.setAttribute('data-occupancy', 'empty');
-    });
 
     buildAssignments(payload, geometry).forEach(function (assignment) {
       var polygon = svg.querySelector('polygon[data-ring="' + assignment.ring + '"][data-cell="' + assignment.cell + '"]');
@@ -265,9 +238,6 @@
       polygon.setAttribute('data-entity-slug', entity.slug || '');
       polygon.chefRecord = assignment.occupancy === 'spectator' ? asSpectator(entity) : entity;
 
-      var hint = svg.querySelector('.arena-cell-hint[data-ring="' + assignment.ring + '"][data-cell="' + assignment.cell + '"]');
-      if (hint) { hint.setAttribute('data-occupancy', assignment.occupancy); }
-
       appendOccupant(svg, occupants, assignment);
     });
 
@@ -277,8 +247,8 @@
   function asSpectator(spectator) {
     return {
       name: spectator.name, slug: spectator.slug, avatar_url: spectator.avatar_url,
-      rank_label: 'Spectator', rating: spectator.tokens + ' tokens',
-      in_battle: false, is_online: false, is_spectator: true
+      rank_label: 'Spectator', rating: '',
+      in_battle: false, is_online: true, is_spectator: true
     };
   }
 
