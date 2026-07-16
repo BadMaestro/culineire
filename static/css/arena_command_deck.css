@@ -52,6 +52,10 @@
 
 .arena-command-deck__phase-card { grid-area: phase; align-self: start; border-radius: 1rem; padding: 1.05rem; }
 .arena-command-deck__phase-name { margin: .55rem 0 .1rem; color: var(--arena-forest); font: 700 1.15rem/1.1 var(--font-display, Georgia, serif); }
+.arena-command-deck__phase-deadline { display: grid; gap: .12rem; margin: .8rem 0 0; padding-top: .65rem; border-top: 1px solid rgb(139 115 85 / .23); }
+.arena-command-deck__phase-deadline span { color: var(--arena-gold); font-size: .62rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.arena-command-deck__phase-deadline strong { color: var(--arena-cappuccino); font: 700 .92rem/1.15 var(--font-display, Georgia, serif); font-variant-numeric: tabular-nums; }
+.arena-command-deck__phase-deadline.is-empty strong { color: var(--arena-muted); font-family: inherit; font-size: .72rem; font-weight: 600; }
 .arena-command-deck__metrics { grid-area: metrics; border-radius: 1rem; display: grid; grid-template-columns: 1fr; padding: .45rem .8rem; }
 .arena-metric { min-width: 0; padding: .45rem .1rem; display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; border-top: 1px solid rgb(139 115 85 / .23); }
 .arena-metric:first-child { border-top: 0; }

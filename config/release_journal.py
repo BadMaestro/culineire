@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.291",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Show the real Arena battle deadline",
+        "section": "Chef Battles / Arena",
+        "summary": "The Current phase card now shows a compact, tabular countdown sourced only from the public Arena deadline contract. It updates with the existing state poll and shows an honest no-deadline state when there is no current battle deadline; no client-side clock is invented.",
+    },
+    {
         "version": "2.5.290",
         "date": "2026-07-16",
         "commit": "pending",

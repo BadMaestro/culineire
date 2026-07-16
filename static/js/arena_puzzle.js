@@ -897,6 +897,34 @@
     return value === null || typeof value === 'undefined' ? '—' : String(value);
   }
 
+  function formatArenaRemaining(seconds) {
+    var total = Math.max(0, Number(seconds) || 0);
+    var days = Math.floor(total / 86400);
+    var hours = Math.floor((total % 86400) / 3600);
+    var minutes = Math.floor((total % 3600) / 60);
+    var secs = total % 60;
+    var clock = [hours, minutes, secs].map(function (value) {
+      return String(value).padStart(2, '0');
+    }).join(':');
+    return (days ? String(days) + 'd ' : '') + clock;
+  }
+
+  function refreshArenaDeadline(data) {
+    var panel = document.getElementById('arena-phase-deadline');
+    if (!panel) { return; }
+    var deadline = data && data.deadline;
+    var value = panel.querySelector('strong');
+    if (!deadline || typeof deadline.seconds_remaining === 'undefined') {
+      panel.classList.add('is-empty');
+      panel.setAttribute('data-deadline-iso', '');
+      if (value) { value.textContent = 'No active deadline'; }
+      return;
+    }
+    panel.classList.remove('is-empty');
+    panel.setAttribute('data-deadline-iso', deadline.deadline_iso || '');
+    if (value) { value.textContent = formatArenaRemaining(deadline.seconds_remaining) + ' remaining'; }
+  }
+
   function refreshArenaReadModel(data) {
     if (!data) { return; }
     var metrics = data.arena_metrics || data.metrics;
@@ -1048,6 +1076,7 @@
           drawArena(data);
           refreshArenaPanels(data);
           refreshArenaReadModel(data);
+          refreshArenaDeadline(data);
           refreshArenaLiveStage(data);
           maybeCelebrate(data.latest_result);
         }
@@ -1245,6 +1274,8 @@
     }
     drawArena(data);
     refreshArenaPanels(data);
+    refreshArenaReadModel(data);
+    refreshArenaDeadline(data);
     initBattleBlast(data.latest_result);
 
     // Dismiss tooltip on outside click
