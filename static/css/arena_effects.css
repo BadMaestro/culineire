@@ -1,0 +1,101 @@
+/* ────────────────────────────────────────────────────────────────────────
+   Arena EFFECTS LAYER — GreenBear (Senior FE).
+   Pure CSS/SVG-filter atmosphere over Ember's arena_command_deck classes.
+   ZERO image files, ZERO structural changes, does NOT touch Ember's JS.
+   Loads AFTER arena_deck_polish.css so it only adds glow/depth on top of the
+   established palette. All motion is gated behind prefers-reduced-motion.
+   Reuses the --ad-* palette vars declared on .arena-command-deck.
+   ──────────────────────────────────────────────────────────────────────── */
+
+/* ── A. Atmosphere: warm colosseum depth behind the whole deck ──
+   A soft radial pool of light on top, sinking to a warmer floor at the
+   bottom — reads as an overhead arena lamp. Non-interactive, sits under
+   all content. */
+.arena-command-deck {
+  position: relative;
+  isolation: isolate; /* keep the atmosphere z-index local to the deck */
+}
+.arena-command-deck::before {
+  content: "";
+  position: absolute;
+  inset: -2rem -1rem;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 70% at 50% -8%, rgba(214,166,75,.14), transparent 60%),
+    radial-gradient(90% 60% at 50% 108%, rgba(31,44,37,.06), transparent 55%);
+}
+
+/* ── B. Phase rail: active step breathes with a gold aura ── */
+.arena-phase-step.is-active {
+  box-shadow:
+    0 0 0 2px rgba(214,166,75,.35),
+    0 2px 10px rgba(214,166,75,.28);
+  animation: ad-phase-breathe 2.6s ease-in-out infinite;
+}
+@keyframes ad-phase-breathe {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(214,166,75,.30), 0 2px 8px rgba(214,166,75,.20); }
+  50%      { box-shadow: 0 0 0 3px rgba(214,166,75,.48), 0 3px 16px rgba(214,166,75,.40); }
+}
+
+/* ── C. Centre stage aura, keyed to what holds the centre ──
+   The live-stage carries data-centre-key: battle-* (live combat),
+   crown-* (a champion holds), or empty (open floor). */
+.arena-command-deck__live-stage {
+  position: relative;
+}
+.arena-command-deck__live-stage::after {
+  content: "";
+  position: absolute;
+  inset: -6%;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  transition: opacity .4s ease;
+}
+/* live battle: charged split of challenger-green / opponent-red */
+.arena-command-deck__live-stage[data-centre-key^="battle-"]::after {
+  background:
+    radial-gradient(60% 80% at 18% 50%, rgba(63,138,52,.22), transparent 62%),
+    radial-gradient(60% 80% at 82% 50%, rgba(178,59,52,.22), transparent 62%);
+  animation: ad-stage-pulse 3.4s ease-in-out infinite;
+}
+/* crown holder: steady gold nimbus */
+.arena-command-deck__live-stage[data-centre-key^="crown-"]::after {
+  background: radial-gradient(70% 80% at 50% 42%, rgba(214,166,75,.26), transparent 64%);
+  animation: ad-stage-pulse 4.6s ease-in-out infinite;
+}
+/* open floor: calm, faint warmth only */
+.arena-command-deck__live-stage[data-centre-key="empty"]::after {
+  background: radial-gradient(70% 80% at 50% 42%, rgba(214,166,75,.08), transparent 66%);
+}
+@keyframes ad-stage-pulse {
+  0%, 100% { opacity: .75; }
+  50%      { opacity: 1; }
+}
+
+/* ── D. Live combatants: edge glow by role ── */
+.arena-live-chef--challenger { filter: drop-shadow(0 0 8px rgba(63,138,52,.28)); }
+.arena-live-chef--opponent   { filter: drop-shadow(0 0 8px rgba(178,59,52,.28)); }
+.arena-live-chef--crown      { filter: drop-shadow(0 0 10px rgba(214,166,75,.40)); }
+
+/* the centre link gets a subtle inviting lift on hover (no layout shift) */
+.arena-live-centre { transition: filter .25s ease; }
+.arena-live-centre:hover,
+.arena-live-centre:focus-visible { filter: drop-shadow(0 3px 12px rgba(214,166,75,.45)); }
+
+/* ── E. Procedural floor ring (Ember's SVG grid): give the vector cells
+   depth without touching the JS. Scoped to the arena floor SVG only. */
+.arena-floor-stage svg [data-arena-prototype] polygon,
+.arena-floor-stage svg polygon[data-ring] {
+  transition: fill .3s ease, stroke .3s ease;
+}
+
+/* ── Accessibility: no motion when the user asks for none ── */
+@media (prefers-reduced-motion: reduce) {
+  .arena-phase-step.is-active,
+  .arena-command-deck__live-stage[data-centre-key^="battle-"]::after,
+  .arena-command-deck__live-stage[data-centre-key^="crown-"]::after {
+    animation: none;
+  }
+}
