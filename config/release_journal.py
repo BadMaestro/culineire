@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.276",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Align the four arena action buttons",
+        "section": "Chef Battles / Navigation",
+        "summary": "All four lower widget actions now share a left-aligned one-centimetre inset and identical vertical rhythm. Enter Arena uses the established Issue a Challenge CTA treatment and matching cutlery artwork.",
+    },
+    {
         "version": "2.5.275",
         "date": "2026-07-16",
         "commit": "pending",

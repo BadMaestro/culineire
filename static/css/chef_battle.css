@@ -4787,3 +4787,22 @@ a.battle-home__pulse-msg:hover {
 @media (max-width: 900px) {
   .site-battle-widget { width: min(14rem, calc(100vw - 1rem)); }
 }
+
+/* The four arena actions share one left edge and one gap. */
+.site-battle-widget__console-link,
+.site-battle-widget__enter-link {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  margin-bottom: 0;
+  padding-inline: 1cm;
+}
+.site-battle-widget__enter-link.ce-nav__link--battle {
+  min-height: 2.5rem;
+  margin-top: var(--widget-space);
+  border-radius: 0.8rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.site-battle-widget__enter-link .chef-battle-cta__label { text-align: left; }
