@@ -161,6 +161,35 @@
   }
 
   /* ------------------------------------------------------------------ */
+  /* Spectator placement â€” data-driven polar slot generator             */
+  /* ------------------------------------------------------------------ */
+  // Receives the real spectator records and ring capacities, then returns
+  // every available seat in angular order. No identity or count is invented:
+  // empty seats simply carry spectator:null. Keeping this pure makes adding
+  // future presence sources or different viewport rings safe and testable.
+  function buildSpectatorPolarSlots(spectators, ringNumbers) {
+    var slots = [];
+    var sourceIndex = 0;
+    for (var r = 0; r < ringNumbers.length; r++) {
+      var ring = ringNumbers[r];
+      var count = RING_COUNTS[ring];
+      var outerR = RING_RADII[ring][1];
+      var sweep = (2 * Math.PI) / count;
+      var offset = -Math.PI / 2 - sweep / 2;
+      for (var index = 0; index < count; index++) {
+        slots.push({
+          ring: ring,
+          index: index,
+          startAngle: offset + index * sweep + GAP / outerR,
+          endAngle: offset + (index + 1) * sweep - GAP / outerR,
+          spectator: spectators[sourceIndex++] || null,
+        });
+      }
+    }
+    return slots;
+  }
+
+  /* ------------------------------------------------------------------ */
   /* Teleport tracking — remember which slugs were in centre last render */
   /* ------------------------------------------------------------------ */
   var _prevCentreSlugs = {};   // {slug: true} for chefs shown in centre/facing last draw
@@ -242,63 +271,31 @@
     octPoly.setAttribute('points', octagonPoints(CX, CY, RING_RADII[12][1] + 10));
     drawCornerRings(group);
 
-    // Ring 9: spectators (outer ring, different colour scheme)
+    // Rings 9–12: spectator seats. Real spectators are distributed in polar
+    // order across the available rings instead of being silently capped at
+    // ring 9. The remaining slots retain the neutral empty-seat appearance.
     var spectators = data.spectators || [];
-    var s9count = RING_COUNTS[9];
-    var s9inner = RING_RADII[9][0];
-    var s9outer = RING_RADII[9][1];
-    var s9sweep = (2 * Math.PI) / s9count;
-    var s9offset = -Math.PI / 2 - s9sweep / 2;
-
-    for (var si = 0; si < s9count; si++) {
-      var s9start = s9offset + si * s9sweep + GAP / s9outer;
-      var s9end   = s9offset + (si + 1) * s9sweep - GAP / s9outer;
-      var s9path  = ringSegmentPath(CX, CY, s9inner + GAP, s9outer - GAP / 2, s9start, s9end);
-
-      var spec = spectators[si] || null;
-      var s9fill = spec ? RING_COLOURS.spectator : RING_COLOURS.spectator_empty;
-
-      var s9class = 'arena-cell arena-cell--spectator arena-cell--ring-9' + (spec ? ' arena-cell--has-spectator' : '');
-      var s9el = svgEl('path', {
-        d: s9path, fill: s9fill,
+    var spectatorSlots = buildSpectatorPolarSlots(spectators, [9, 10, 11, 12]);
+    for (var ss = 0; ss < spectatorSlots.length; ss++) {
+      var slot = spectatorSlots[ss];
+      var slotInner = RING_RADII[slot.ring][0];
+      var slotOuter = RING_RADII[slot.ring][1];
+      var slotPath = ringSegmentPath(CX, CY, slotInner + GAP, slotOuter - GAP / 2, slot.startAngle, slot.endAngle);
+      var slotClass = 'arena-cell arena-cell--spectator arena-cell--ring-' + slot.ring + (slot.spectator ? ' arena-cell--has-spectator' : '');
+      var slotEl = svgEl('path', {
+        d: slotPath,
+        fill: slot.spectator ? RING_COLOURS.spectator : RING_COLOURS.spectator_empty,
         stroke: '#fff', 'stroke-width': '1.5',
         filter: 'url(#arena-cell-shadow)',
-        cursor: spec ? 'pointer' : 'default',
-        class: s9class,
+        cursor: slot.spectator ? 'pointer' : 'default',
+        class: slotClass,
       });
-
-      attachSpectatorEvents(s9el, spec);
-      group.appendChild(s9el);
-
-      if (spec) {
-        appendAvatarToCell(group, spec, s9inner, s9outer, s9start, s9end);
+      attachSpectatorEvents(slotEl, slot.spectator);
+      group.appendChild(slotEl);
+      if (slot.spectator) {
+        appendAvatarToCell(group, slot.spectator, slotInner, slotOuter, slot.startAngle, slot.endAngle);
       } else {
-        addEmptyLabel(group, s9inner, s9outer, s9start, s9end);
-      }
-    }
-
-
-    // Rings 10-12: expanded spectator seating (all empty blue seats)
-    var extraSpectatorRings = [10, 11, 12];
-    for (var er = 0; er < extraSpectatorRings.length; er++) {
-      var ering = extraSpectatorRings[er];
-      var erCount = RING_COUNTS[ering];
-      var erInner = RING_RADII[ering][0];
-      var erOuter = RING_RADII[ering][1];
-      var erSweep = (2 * Math.PI) / erCount;
-      var erOffset = -Math.PI / 2 - erSweep / 2;
-      for (var ei = 0; ei < erCount; ei++) {
-        var erStart = erOffset + ei * erSweep + GAP / erOuter;
-        var erEnd   = erOffset + (ei + 1) * erSweep - GAP / erOuter;
-        var erPath  = ringSegmentPath(CX, CY, erInner + GAP, erOuter - GAP / 2, erStart, erEnd);
-        var erEl = svgEl('path', {
-          d: erPath, fill: RING_COLOURS.spectator_empty,
-          stroke: '#fff', 'stroke-width': '1.5',
-          filter: 'url(#arena-cell-shadow)',
-          cursor: 'default',
-          class: 'arena-cell arena-cell--spectator arena-cell--ring-' + ering,
-        });
-        group.appendChild(erEl);
+        addEmptyLabel(group, slotInner, slotOuter, slot.startAngle, slot.endAngle);
       }
     }
 

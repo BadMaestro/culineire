@@ -26,13 +26,13 @@
   </header>
 
   <section class="arena-command-deck__phase-rail" aria-label="Battle lifecycle">
-    <span class="arena-phase-step">1 <b>Challenge</b></span>
-    <span class="arena-phase-step">2 <b>Combat</b></span>
+    <span class="arena-phase-step{% if active_battle and active_battle.status in 'scheduled,menu_locked' %} is-active{% endif %}">1 <b>Challenge</b></span>
+    <span class="arena-phase-step{% if active_battle and active_battle.status == 'active' %} is-active{% endif %}">2 <b>Combat</b></span>
     <span class="arena-phase-step">3 <b>Biathlon</b></span>
-    <span class="arena-phase-step{% if active_battle %} is-active{% endif %}">4 <b>Cooking</b></span>
-    <span class="arena-phase-step">5 <b>Review</b></span>
-    <span class="arena-phase-step">6 <b>Voting</b></span>
-    <span class="arena-phase-step">7 <b>Crown</b></span>
+    <span class="arena-phase-step{% if active_battle and active_battle.status in 'cooking,awaiting_submissions,ingredient_penalty' %} is-active{% endif %}">4 <b>Cooking</b></span>
+    <span class="arena-phase-step{% if active_battle and active_battle.status in 'presentation,revealed,disputed,paused' %} is-active{% endif %}">5 <b>Review</b></span>
+    <span class="arena-phase-step{% if active_battle and active_battle.status == 'voting' %} is-active{% endif %}">6 <b>Voting</b></span>
+    <span class="arena-phase-step{% if active_battle and active_battle.status == 'completed' %} is-active{% endif %}">7 <b>Crown</b></span>
   </section>
 
   <section class="arena-command-deck__phase-card" aria-label="Current arena state">
