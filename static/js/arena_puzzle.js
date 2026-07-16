@@ -810,6 +810,89 @@
     }).catch(function () {});
   }
 
+  function profileHref(container, slug) {
+    var template = container && container.getAttribute('data-profile-template');
+    if (!template || !slug) { return '#'; }
+    return template.replace('arena-chef-slug', encodeURIComponent(slug));
+  }
+
+  function clearPanel(container) {
+    while (container && container.firstChild) { container.removeChild(container.firstChild); }
+  }
+
+  function appendPanelEmpty(container, message) {
+    var item = document.createElement('li');
+    item.className = 'arena-panel__empty';
+    item.textContent = message;
+    container.appendChild(item);
+  }
+
+  function refreshCrownLadder(ladder) {
+    var container = document.getElementById('arena-crown-ladder');
+    if (!container || !Array.isArray(ladder)) { return; }
+    clearPanel(container);
+    if (!ladder.length) {
+      appendPanelEmpty(container, 'No crowns have been awarded today.');
+      return;
+    }
+    for (var i = 0; i < ladder.length; i++) {
+      var chef = ladder[i] || {};
+      var item = document.createElement('li');
+      var position = document.createElement('span');
+      var link = document.createElement('a');
+      var crowns = document.createElement('em');
+      position.textContent = String(i + 1);
+      link.href = profileHref(container, chef.slug);
+      link.textContent = chef.name || 'Chef';
+      crowns.textContent = String(chef.crowns || 0) + ' crown' + (Number(chef.crowns) === 1 ? '' : 's');
+      item.appendChild(position);
+      item.appendChild(link);
+      item.appendChild(crowns);
+      container.appendChild(item);
+    }
+  }
+
+  function refreshRecentGifts(gifts) {
+    var container = document.getElementById('arena-recent-gifts');
+    if (!container || !Array.isArray(gifts)) { return; }
+    clearPanel(container);
+    if (!gifts.length) {
+      appendPanelEmpty(container, 'No battle gifts have been delivered yet.');
+      return;
+    }
+    for (var i = 0; i < gifts.length; i++) {
+      var gift = gifts[i] || {};
+      var item = document.createElement('li');
+      var icon = svgEl('svg', { 'class': 'arena-ico', 'aria-hidden': 'true' });
+      var use = svgEl('use', { href: '#ad-gift' });
+      var copy = document.createElement('span');
+      var recipient = document.createElement('a');
+      var artifact = document.createElement('b');
+      var tokens = document.createElement('em');
+      icon.appendChild(use);
+      recipient.href = profileHref(container, gift.recipient_slug);
+      recipient.textContent = gift.recipient || 'Chef';
+      artifact.textContent = gift.item || 'Gift';
+      tokens.textContent = String(gift.tokens || 0) + 'T';
+      copy.appendChild(recipient);
+      copy.appendChild(artifact);
+      item.appendChild(icon);
+      item.appendChild(copy);
+      item.appendChild(tokens);
+      container.appendChild(item);
+    }
+  }
+
+  function refreshArenaPanels(data) {
+    if (!data) { return; }
+    if (Object.prototype.hasOwnProperty.call(data, 'crown_streak')) {
+      var streak = document.getElementById('arena-crown-streak');
+      if (streak) { streak.textContent = String(data.crown_streak || 0); }
+    }
+    if (Object.prototype.hasOwnProperty.call(data, 'crown_ladder')) { refreshCrownLadder(data.crown_ladder); }
+    if (Object.prototype.hasOwnProperty.call(data, 'recent_gifts')) { refreshRecentGifts(data.recent_gifts); }
+  }
+
   function pollArenaState() {
     fetch('/chef-battle/arena/state/', {
       method: 'POST',
@@ -826,6 +909,7 @@
             for (var i = 0; i < oldClips.length; i++) { oldClips[i].remove(); }
           }
           drawArena(data);
+          refreshArenaPanels(data);
           maybeCelebrate(data.latest_result);
         }
       })
@@ -1021,6 +1105,7 @@
       try { data = JSON.parse(el.textContent); } catch (e) {}
     }
     drawArena(data);
+    refreshArenaPanels(data);
     initBattleBlast(data.latest_result);
 
     // Dismiss tooltip on outside click

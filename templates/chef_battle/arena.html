@@ -47,7 +47,7 @@
   <section class="arena-command-deck__metrics" aria-label="Arena metrics">
     <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-eye"></use></svg>Active viewers</span><strong>{{ spectator_count }}</strong></div>
     <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-toque"></use></svg>Rank tiers</span><strong>{{ rank_groups|length }}</strong></div>
-    <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-crown"></use></svg>Crown streak</span><strong>{{ crown_streak|default:0 }}</strong></div>
+    <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-crown"></use></svg>Crown streak</span><strong id="arena-crown-streak">{{ crown_streak|default:0 }}</strong></div>
   </section>
 
   <section class="arena-command-deck__floor" aria-label="Ranked arena floor">
@@ -91,7 +91,7 @@
 
   <aside class="arena-command-deck__ladder" aria-label="Today's crown ladder">
     <p class="arena-panel__kicker">Today's crown ladder</p>
-    <ol class="arena-ladder-list">
+    <ol id="arena-crown-ladder" class="arena-ladder-list" data-profile-template="{% url 'chef_battle:chef_profile' slug='arena-chef-slug' %}">
       {% for chef in crown_ladder %}
         <li>
           <span>{{ forloop.counter }}</span>
@@ -107,8 +107,8 @@
 
   <aside class="arena-command-deck__gifts" aria-label="Recent battle gifts">
     <p class="arena-panel__kicker">Recent battle gifts</p>
-    <ul class="arena-gift-list">
-      {% for gift in recent_battle_gifts %}
+    <ul id="arena-recent-gifts" class="arena-gift-list" data-profile-template="{% url 'chef_battle:chef_profile' slug='arena-chef-slug' %}">
+      {% for gift in recent_gifts %}
         <li>
           <svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>
           <span><a href="{% url 'chef_battle:chef_profile' slug=gift.recipient_slug %}">{{ gift.recipient }}</a><b>{{ gift.item }}</b></span>

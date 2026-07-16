@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.284",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Connect live Arena crown and gift panels",
+        "section": "Chef Battles / Arena",
+        "summary": "The public Arena now renders its crown streak, today's crown ladder and recent battle gifts from the real read-model, with profile links, honest empty states and safe in-place refreshes on the existing Arena polling cycle.",
+    },
+    {
         "version": "2.5.282",
         "date": "2026-07-16",
         "commit": "pending",
