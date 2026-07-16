@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.263",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Move recipe staff actions into hero",
+        "section": "Recipe details / Hero",
+        "summary": "Removed the standalone staff toolbar and placed its edit, delete, and Pinch actions inside the recipe hero.",
+    },
+    {
         "version": "2.5.262",
         "date": "2026-07-16",
         "commit": "pending",

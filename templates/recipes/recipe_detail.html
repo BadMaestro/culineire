@@ -58,6 +58,16 @@
                 {% if chef_battle_enabled and recipe.author and recipe.author.user and recipe.author.user != request.user %}
                 <a class="btn-primary" href="{% url 'chef_battle:challenge_create' %}?opponent={{ recipe.author.slug }}">Issue a Challenge</a>
                 {% endif %}
+                {% if can_manage_recipe %}
+                <a class="btn-secondary" href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit Recipe</a>
+                <a class="btn-secondary" href="{% url 'recipes:recipe_delete' recipe.slug %}">Delete Recipe</a>
+                {% if can_generate_ab %}
+                <form action="{% url 'pinch:generate_from_recipe' recipe.slug %}" method="post" style="display:contents">
+                    {% csrf_token %}
+                    <button class="btn-secondary" type="submit">{% if recipe_ab_exists %}View Pinch{% else %}Generate Pinch{% endif %}</button>
+                </form>
+                {% endif %}
+                {% endif %}
             </div>
         </div>
     {% if recipe.image_rights_status == 'ai_generated' %}<span aria-label="AI generated image" class="ai-image-badge ai-image-badge--watermark">AI</span>{% endif %}
@@ -74,22 +84,6 @@
         </ol>
     </div>
 </nav>
-
-{% if can_manage_recipe %}
-<div class="staff-bar">
-    <div class="container staff-bar__inner">
-        <span class="staff-bar__label">Staff</span>
-        <a class="btn-secondary" href="{% url 'recipes:recipe_edit' recipe.slug %}">Edit Recipe</a>
-        <a class="btn-secondary" href="{% url 'recipes:recipe_delete' recipe.slug %}">Delete Recipe</a>
-        {% if can_generate_ab %}
-        <form action="{% url 'pinch:generate_from_recipe' recipe.slug %}" method="post" style="display:contents">
-          {% csrf_token %}
-          <button class="btn-secondary" type="submit">{% if recipe_ab_exists %}View Pinch{% else %}Generate Pinch{% endif %}</button>
-        </form>
-        {% endif %}
-    </div>
-</div>
-{% endif %}
 
 <section class="section section--flush-top">
     <div class="container">
