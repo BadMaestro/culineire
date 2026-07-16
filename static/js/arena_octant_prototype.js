@@ -43,7 +43,13 @@
         ).map(pointString).join(' '));
         polygon.setAttribute('data-ring', String(geometry.rings[ring].index));
         polygon.setAttribute('data-ring-key', geometry.rings[ring].key || '');
+        polygon.setAttribute('data-ring-kind', geometry.rings[ring].kind || 'unknown');
         polygon.setAttribute('data-cell', String(cell));
+        polygon.setAttribute('data-sector', String(config.octantIndex));
+        // Data binding replaces these neutral values from the live payload.
+        // Effects may rely on attributes only; they must not parse payload.
+        polygon.setAttribute('data-occupancy', 'empty');
+        polygon.setAttribute('data-state', 'idle');
         polygon.setAttribute('vector-effect', 'non-scaling-stroke');
         group.appendChild(polygon);
       }
@@ -63,6 +69,9 @@
     stage.setAttribute('vector-effect', 'non-scaling-stroke');
     stage.setAttribute('data-ring', String(geometry.rings[0].index));
     stage.setAttribute('data-ring-key', geometry.rings[0].key);
+    stage.setAttribute('data-ring-kind', geometry.rings[0].kind);
+    stage.setAttribute('data-occupancy', 'stage');
+    stage.setAttribute('data-state', 'open');
     stage.setAttribute('data-arena-prototype', 'stage');
     svg.appendChild(stage);
     return stage;
