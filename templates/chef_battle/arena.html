@@ -51,21 +51,36 @@
   </section>
 
   <section class="arena-command-deck__floor" aria-label="Ranked arena floor">
+    <section id="arena-live-stage" class="arena-command-deck__live-stage" aria-label="Arena centre" data-centre-key="{% if active_battle %}battle-{{ active_battle.pk }}{% elif arena_data.center.type == 'crown' %}crown-{{ arena_data.center.name }}{% else %}empty{% endif %}">
     {% if active_battle %}
-    <section class="arena-command-deck__live-stage" aria-label="Live chef battle">
       <article class="arena-live-chef arena-live-chef--challenger">
         <img src="{{ active_battle.challenger.display_avatar_url }}" alt="{{ active_battle.challenger.name }}" width="72" height="72">
         <div><span>Challenger</span><strong>{{ active_battle.challenger.name }}</strong></div>
       </article>
-      <a class="arena-live-centre battle-cursor-target js-battle-cursor-target" href="#arena-puzzle" aria-label="Open the live battle room">
+      <a class="arena-live-centre battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:battle_detail' active_battle.pk %}" aria-label="Open the live battle room">
         <span>{{ active_battle.get_status_display }}</span><b>VS</b><em>{{ active_battle.theme }}</em>
       </a>
       <article class="arena-live-chef arena-live-chef--opponent">
         <div><span>Opponent</span><strong>{{ active_battle.opponent.name }}</strong></div>
         <img src="{{ active_battle.opponent.display_avatar_url }}" alt="{{ active_battle.opponent.name }}" width="72" height="72">
       </article>
-    </section>
+    {% elif arena_data.center.type == 'crown' %}
+      <article class="arena-live-chef arena-live-chef--crown">
+        <img src="{{ arena_data.center.avatar_url }}" alt="{{ arena_data.center.name }}" width="72" height="72">
+        <div><span>Crown holder</span><strong>{{ arena_data.center.name }}</strong></div>
+      </article>
+      <a class="arena-live-centre arena-live-centre--crown" href="{{ arena_data.center.profile_url }}" aria-label="View crown holder profile">
+        <span>Current holder</span><b>♛</b><em>View profile</em>
+      </a>
+      <p class="arena-live-awaiting">The centre awaits the next challenge.</p>
+    {% else %}
+      <p class="arena-live-awaiting">No live battle is holding the centre.</p>
+      <a class="arena-live-centre arena-live-centre--quiet" href="{% url 'chef_battle:rankings' %}">
+        <span>Arena centre</span><b>Open</b><em>Explore the ranks</em>
+      </a>
+      <p class="arena-live-awaiting">Choose a chef below to start a challenge.</p>
     {% endif %}
+    </section>
     <div class="arena-command-deck__floor-head">
       <div>
         <p class="arena-panel__kicker">The kitchen floor</p>

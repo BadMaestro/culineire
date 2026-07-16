@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.286",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Make the Arena centre stage live",
+        "section": "Chef Battles / Arena",
+        "summary": "The centre-stage context now presents only the real current state: a live challenger/opponent pair, the actual Crown Holder, or an explicit open-centre state. It refreshes when the centre occupant changes during the existing Arena poll while retaining the active battle link and the SVG arena as source of truth.",
+    },
+    {
         "version": "2.5.285",
         "date": "2026-07-16",
         "commit": "pending",

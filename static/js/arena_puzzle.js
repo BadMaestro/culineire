@@ -893,6 +893,105 @@
     if (Object.prototype.hasOwnProperty.call(data, 'recent_gifts')) { refreshRecentGifts(data.recent_gifts); }
   }
 
+  function arenaCentreKey(center) {
+    if (!center) { return 'empty'; }
+    if (center.type === 'active_battle' || center.type === 'facing_pair') {
+      return 'battle-' + String(center.battle_id || 'unknown');
+    }
+    if (center.type === 'crown') { return 'crown-' + String(center.name || 'holder'); }
+    return 'empty';
+  }
+
+  function appendStageChef(stage, label, chef, modifier) {
+    var card = document.createElement('article');
+    var image = document.createElement('img');
+    var copy = document.createElement('div');
+    var role = document.createElement('span');
+    var name = document.createElement('strong');
+    card.className = 'arena-live-chef' + (modifier ? ' ' + modifier : '');
+    image.src = chef.avatar_url || '';
+    image.alt = chef.name || 'Chef';
+    image.width = 72;
+    image.height = 72;
+    role.textContent = label;
+    name.textContent = chef.name || 'Chef';
+    copy.appendChild(role);
+    copy.appendChild(name);
+    card.appendChild(image);
+    card.appendChild(copy);
+    stage.appendChild(card);
+  }
+
+  function appendStageCentre(stage, options) {
+    var link = document.createElement('a');
+    var label = document.createElement('span');
+    var title = document.createElement('b');
+    var detail = document.createElement('em');
+    link.className = 'arena-live-centre' + (options.className ? ' ' + options.className : '');
+    link.href = options.href || '#arena-puzzle';
+    link.setAttribute('aria-label', options.ariaLabel);
+    label.textContent = options.label;
+    title.textContent = options.title;
+    detail.textContent = options.detail;
+    link.appendChild(label);
+    link.appendChild(title);
+    link.appendChild(detail);
+    stage.appendChild(link);
+  }
+
+  function appendStageNote(stage, text) {
+    var note = document.createElement('p');
+    note.className = 'arena-live-awaiting';
+    note.textContent = text;
+    stage.appendChild(note);
+  }
+
+  function refreshArenaLiveStage(data) {
+    var stage = document.getElementById('arena-live-stage');
+    var center = data && data.center;
+    if (!stage || !center) { return; }
+    var key = arenaCentreKey(center);
+    if (stage.getAttribute('data-centre-key') === key) { return; }
+    clearPanel(stage);
+    stage.setAttribute('data-centre-key', key);
+    if (center.type === 'active_battle' || center.type === 'facing_pair') {
+      appendStageChef(stage, 'Challenger', center.challenger || {}, 'arena-live-chef--challenger');
+      appendStageCentre(stage, {
+        href: center.battle_url,
+        className: 'battle-cursor-target js-battle-cursor-target',
+        ariaLabel: 'Open the live battle room',
+        label: center.battle_phase || 'Live battle',
+        title: 'VS',
+        detail: 'Open battle room',
+      });
+      appendStageChef(stage, 'Opponent', center.opponent || {}, 'arena-live-chef--opponent');
+      return;
+    }
+    if (center.type === 'crown') {
+      appendStageChef(stage, 'Crown holder', center, 'arena-live-chef--crown');
+      appendStageCentre(stage, {
+        href: center.profile_url,
+        className: 'arena-live-centre--crown',
+        ariaLabel: 'View crown holder profile',
+        label: 'Current holder',
+        title: 'Crown',
+        detail: 'View profile',
+      });
+      appendStageNote(stage, 'The centre awaits the next challenge.');
+      return;
+    }
+    appendStageNote(stage, 'No live battle is holding the centre.');
+    appendStageCentre(stage, {
+      href: '/chef-battle/rankings/',
+      className: 'arena-live-centre--quiet',
+      ariaLabel: 'Explore Arena ranks',
+      label: 'Arena centre',
+      title: 'Open',
+      detail: 'Explore the ranks',
+    });
+    appendStageNote(stage, 'Choose a chef below to start a challenge.');
+  }
+
   function pollArenaState() {
     fetch('/chef-battle/arena/state/', {
       method: 'POST',
@@ -910,6 +1009,7 @@
           }
           drawArena(data);
           refreshArenaPanels(data);
+          refreshArenaLiveStage(data);
           maybeCelebrate(data.latest_result);
         }
       })

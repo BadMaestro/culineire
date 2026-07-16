@@ -63,6 +63,7 @@
 .arena-command-deck__live-stage { display: grid; grid-template-columns: 1fr minmax(8rem, .8fr) 1fr; align-items: center; gap: .75rem; margin-bottom: 1rem; padding: .75rem; border: 1px solid rgb(139 115 85 / .32); border-radius: 1rem; background: linear-gradient(135deg, rgb(66 81 74 / .10), rgb(255 253 249 / .7), rgb(110 78 44 / .1)); }
 .arena-live-chef { display: flex; align-items: center; gap: .6rem; min-width: 0; }
 .arena-live-chef--opponent { justify-content: flex-end; text-align: right; }
+.arena-live-chef--crown { justify-content: flex-end; }
 .arena-live-chef img { width: 3.35rem; height: 3.35rem; border-radius: 50%; object-fit: cover; border: 2px solid var(--arena-gold); background: var(--arena-cream); }
 .arena-live-chef span, .arena-live-centre span { display: block; color: var(--arena-muted); font-size: .62rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
 .arena-live-chef strong { display: block; margin-top: .16rem; color: var(--arena-ink); font: 700 1rem/1.1 var(--font-display, Georgia, serif); overflow-wrap: anywhere; }
@@ -70,6 +71,9 @@
 .arena-live-centre:hover, .arena-live-centre:focus-visible { background: var(--arena-cream); border-color: var(--arena-cappuccino); }
 .arena-live-centre b { color: var(--arena-cappuccino); font: 800 1.35rem/1 var(--font-display, Georgia, serif); }
 .arena-live-centre em { max-width: 12ch; color: var(--arena-forest); font-size: .65rem; font-style: normal; line-height: 1.15; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.arena-live-centre--crown { border-color: var(--arena-cappuccino); background: linear-gradient(135deg, rgb(245 238 228 / .96), var(--arena-paper)); }
+.arena-live-centre--quiet { border-style: dashed; }
+.arena-live-awaiting { margin: 0; align-self: center; color: var(--arena-muted); font-size: .72rem; line-height: 1.35; text-align: center; }
 .arena-command-deck__floor-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: .65rem; }
 .arena-command-deck__floor .arena-legend { justify-content: flex-end; flex-wrap: wrap; overflow: visible; margin: 0; max-width: 60%; }
 .arena-command-deck__floor .arena-puzzle-container { gap: .35rem; }
