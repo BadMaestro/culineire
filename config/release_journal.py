@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.262",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Restore staff action contrast",
+        "section": "Recipe details / Staff tools",
+        "summary": "Made edit, delete, and Pinch actions readable against the dark staff toolbar on recipe detail pages.",
+    },
+    {
         "version": "2.5.261",
         "date": "2026-07-16",
         "commit": "pending",
