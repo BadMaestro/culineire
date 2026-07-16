@@ -95,6 +95,25 @@
 #arena-render .arena-stage[data-state="active_battle"] { fill: #974f36; }
 #arena-render .arena-stage[data-state="facing_pair"] { fill: #7c5a3a; }
 
+/* ---- free-seat hint ---- */
+
+/* Contrast is deliberately low: the "+" should read as an invitation on an
+   empty floor and disappear into the background once chefs fill the ring. */
+#arena-render .arena-cell-hint {
+  fill: rgba(60, 55, 45, 0.35);
+  font-family: Inter, sans-serif;
+  transition: opacity 180ms ease;
+}
+
+#arena-render [data-ring-kind="spectator"].arena-cell-hint {
+  fill: rgba(30, 55, 95, 0.3);
+}
+
+/* A taken seat shows its occupant, not an invitation. */
+#arena-render .arena-cell-hint:not([data-occupancy="empty"]) {
+  opacity: 0;
+}
+
 /* ---- occupants ---- */
 
 #arena-render .arena-occupant {
