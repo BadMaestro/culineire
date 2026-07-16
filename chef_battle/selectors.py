@@ -1192,3 +1192,21 @@ def get_arena_deadline(battle=None) -> dict | None:
         "kind": kind,
         "label": label,
     }
+
+
+def get_arena_geometry() -> dict:
+    """Declarative arena structure for the procedural (SVG/Canvas) renderer.
+    The frontend must not hardcode ring/rank counts — this is the single
+    source of truth it derives the polar grid from. Purely structural (no
+    per-request queries): ring 0 is the centre stage, rings 1..8 are chef
+    ranks from highest (innermost) to lowest, rings 9..12 are spectator
+    seating (matches the 4 spectator rings the arena already renders)."""
+    from .models import ChefBattleProfile
+    rings = [{"index": 0, "kind": "stage", "key": "stage", "label": "Centre Stage"}]
+    # Rank choices are declared lowest-first in the model; the arena places
+    # the highest rank closest to the stage, so walk them reversed.
+    for i, (value, label) in enumerate(reversed(ChefBattleProfile.Rank.choices), start=1):
+        rings.append({"index": i, "kind": "rank", "key": value, "label": label})
+    for i in range(9, 13):
+        rings.append({"index": i, "kind": "spectator", "key": f"spectator_{i - 8}", "label": "Spectators"})
+    return {"sides": 8, "rings": rings}

@@ -6214,6 +6214,7 @@ class ArenaPayloadWiringTests(TestCase):
         self.assertIn("phase", p)
         self.assertIn("deadline", p)
         self.assertIn("server_time", p)
+        self.assertIn("geometry", p)
         # server_time is always present and a parseable ISO timestamp (never null)
         self.assertIsNotNone(p["server_time"])
         from django.utils.dateparse import parse_datetime
@@ -6363,3 +6364,31 @@ class ArenaDeadlineTests(TestCase):
                                        submission_deadline=past, voting_deadline=past, end_time=past)
         d = get_arena_deadline(battle)
         self.assertEqual(d["seconds_remaining"], 0)
+
+
+class ArenaGeometryTests(TestCase):
+    """get_arena_geometry: declarative ring structure for the procedural renderer."""
+
+    def test_structure(self):
+        from .models import ChefBattleProfile
+        from .selectors import get_arena_geometry
+        g = get_arena_geometry()
+        self.assertEqual(g["sides"], 8)
+        rings = g["rings"]
+        # 1 stage + 8 ranks + 4 spectator rings, contiguous indices 0..12
+        self.assertEqual(len(rings), 13)
+        self.assertEqual([r["index"] for r in rings], list(range(13)))
+        self.assertEqual(rings[0]["kind"], "stage")
+        # rank rings walk the real model choices, highest rank innermost
+        self.assertEqual(rings[1]["key"], ChefBattleProfile.Rank.CULINARY_MASTER)
+        self.assertEqual(rings[8]["key"], ChefBattleProfile.Rank.KITCHEN_PORTER)
+        for r in rings[1:9]:
+            self.assertEqual(r["kind"], "rank")
+            self.assertTrue(r["label"])
+        for r in rings[9:]:
+            self.assertEqual(r["kind"], "spectator")
+        # every rank choice appears exactly once
+        self.assertEqual(
+            {r["key"] for r in rings[1:9]},
+            {c for c, _ in ChefBattleProfile.Rank.choices},
+        )

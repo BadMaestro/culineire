@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.301",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Add declarative Arena geometry read-model",
+        "section": "Chef Battles / Arena",
+        "summary": "The public Arena read-model now publishes the arena's structural geometry: an eight-sided radial grid of thirteen rings (centre stage, eight chef-rank rings from Culinary Master innermost to Kitchen Porter outermost, and four spectator rings) derived from the real rank model. The procedural renderer draws the polar grid from this single source of truth instead of hardcoding ring or rank counts.",
+    },
+    {
         "version": "2.5.299",
         "date": "2026-07-16",
         "commit": "pending",

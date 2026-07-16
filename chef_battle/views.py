@@ -50,6 +50,7 @@ from .selectors import (
     get_arena_metrics,
     get_arena_phase,
     get_arena_deadline,
+    get_arena_geometry,
     get_battle_vote_counts,
     get_crown_ladder,
     get_crown_streak,
@@ -1047,6 +1048,7 @@ def _build_arena_payload():
         "metrics": get_arena_metrics(active_battle),
         "phase": get_arena_phase(active_battle),
         "deadline": get_arena_deadline(active_battle),
+        "geometry": get_arena_geometry(),
         # Authoritative server clock at payload build so clients can reconcile
         # their own drift against deadline/phase (Ember #171). Never null.
         "server_time": timezone.now().isoformat(),
@@ -1092,6 +1094,7 @@ def arena(request):
         "metrics": payload["metrics"],
         "phase": payload["phase"],
         "deadline": payload["deadline"],
+        "geometry": payload["geometry"],
         "server_time": payload["server_time"],
     }
 
@@ -1182,6 +1185,7 @@ def arena_state(request):
         "metrics": payload["metrics"],
         "phase": payload["phase"],
         "deadline": payload["deadline"],
+        "geometry": payload["geometry"],
         "server_time": payload["server_time"],
     })
 
