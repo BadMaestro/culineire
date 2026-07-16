@@ -5,13 +5,13 @@
   main { width: min(92vw, 680px); } svg { width: 100%; background: #fffdf9; border: 1px solid #8b7355; border-radius: 18px; }
   p { color: #66746d; } .axis { stroke: #42514a; stroke-width: 1; stroke-dasharray: 4 5; }
 </style>
-<main><h1>One octagonal arena sector</h1><p>Vector-only, polar-coordinate prototype. Thin lines, no fill. Ring count and side count are supplied by <code>geometry</code>.</p>
-<svg id="prototype" viewBox="0 0 480 480" aria-label="One octant sector geometry"><line class="axis" x1="240" y1="240" x2="240" y2="36"/></svg></main>
+<main><h1>Procedural octagonal arena grid</h1><p>Vector-only, polar-coordinate prototype. Thin lines, no fill. Ring count and side count are supplied by <code>geometry</code>.</p>
+<svg id="prototype" viewBox="0 0 480 480" aria-label="Full octagonal arena geometry"></svg></main>
 <script src="../../../static/js/arena_geometry.js"></script>
 <script src="../../../static/js/arena_octant_prototype.js"></script>
 <script>
   /* Standalone fixture only; production supplies the same-shaped arena_data.geometry. */
   const geometry = { sides: 8, rings: Array.from({ length: 13 }, (_, index) => ({ index, key: `fixture_${index}` })) };
-  window.ArenaOctantPrototype.drawOctantSector(document.getElementById('prototype'), geometry);
+  window.ArenaOctantPrototype.drawFullArenaGrid(document.getElementById('prototype'), geometry);
 </script>
 </html>

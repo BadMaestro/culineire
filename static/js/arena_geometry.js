@@ -25,8 +25,9 @@
    * `sides` argument is supplied by the live geometry contract. Cells divide
    * each straight octagonal edge through linear interpolation, never a curve.
    */
-  function cellVertices(centerX, centerY, ringIndex, segmentIndex, ringCount, segmentsPerRing, radiusStep, sides) {
+  function cellVertices(centerX, centerY, ringIndex, segmentIndex, ringCount, segmentsPerRing, radiusStep, sides, innerRadiusOffset) {
     sides = sides || 8;
+    innerRadiusOffset = innerRadiusOffset || 0;
     if (!Number.isInteger(ringIndex) || ringIndex < 0 || ringIndex >= ringCount) {
       throw new RangeError('ringIndex must be inside ringCount');
     }
@@ -35,6 +36,9 @@
     }
     if (!(radiusStep > 0)) {
       throw new RangeError('radiusStep must be positive');
+    }
+    if (innerRadiusOffset < 0) {
+      throw new RangeError('innerRadiusOffset must not be negative');
     }
     if (!Number.isInteger(sides) || sides < 3 || segmentsPerRing % sides !== 0) {
       throw new RangeError('segmentsPerRing must divide evenly across sides');
@@ -48,8 +52,10 @@
     var orientationOffset = -Math.PI / 2 - (Math.PI / sides);
     var angle0 = orientationOffset + (Math.PI * 2 * sideIndex / sides);
     var angle1 = orientationOffset + (Math.PI * 2 * (sideIndex + 1) / sides);
-    var innerRadius = ringIndex * radiusStep;
-    var outerRadius = (ringIndex + 1) * radiusStep;
+    // Ring 0 is the centre stage. Ring 1 starts beyond its reserved radius,
+    // leaving a real hole for the crown/VS medallion in the renderer.
+    var innerRadius = ringIndex === 0 ? 0 : innerRadiusOffset + (ringIndex - 1) * radiusStep;
+    var outerRadius = ringIndex === 0 ? innerRadiusOffset : innerRadius + radiusStep;
     var cellStart = cellIndex / cellsPerSide;
     var cellEnd = (cellIndex + 1) / cellsPerSide;
     var innerStart = lerp(polar(centerX, centerY, innerRadius, angle0), polar(centerX, centerY, innerRadius, angle1), cellStart);
