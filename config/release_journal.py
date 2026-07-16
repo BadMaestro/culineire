@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.255",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Compact, closed arena command deck",
+        "section": "Chef Battles / Navigation",
+        "summary": "The command deck is now compact and visually closed with a dedicated lower metal cap; controls retain their touch-safe interactive size.",
+    },
+    {
         "version": "2.5.254",
         "date": "2026-07-16",
         "commit": "pending",
