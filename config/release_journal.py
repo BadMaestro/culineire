@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.292",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Correct the Arena phase rail",
+        "section": "Chef Battles / Arena",
+        "summary": "Removed a duplicate Biathlon step from the public Arena lifecycle rail, restoring the intended seven distinct real phases.",
+    },
+    {
         "version": "2.5.291",
         "date": "2026-07-16",
         "commit": "pending",
