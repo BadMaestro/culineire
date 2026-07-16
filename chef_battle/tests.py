@@ -6212,6 +6212,7 @@ class ArenaPayloadWiringTests(TestCase):
         self.assertIn("recent_gifts", p)
         self.assertIn("metrics", p)
         self.assertIn("phase", p)
+        self.assertIn("deadline", p)
         self.assertEqual(set(p["metrics"]), {"active_viewers", "public_votes", "battle_gifts"})
         self.assertIsInstance(p["crown_streak"], int)
         self.assertIsInstance(p["crown_ladder"], list)
@@ -6303,3 +6304,43 @@ class ArenaPhaseTests(TestCase):
         ph = get_arena_phase(self._battle(Battle.Status.PAUSED, paused_from="voting"))
         self.assertEqual(ph["key"], "voting")
         self.assertEqual(ph["step"], 6)
+
+
+class ArenaDeadlineTests(TestCase):
+    """get_arena_deadline: public countdown reusing _battle_deadline (Ember #166)."""
+
+    def _authors(self):
+        U = get_user_model()
+        import uuid
+        tag = uuid.uuid4().hex[:6]
+        a = RecipeAuthor.objects.create(user=U.objects.create_user(f"dl-a-{tag}", password="pw"), name="A", slug=f"dl-a-{tag}")
+        b = RecipeAuthor.objects.create(user=U.objects.create_user(f"dl-b-{tag}", password="pw"), name="B", slug=f"dl-b-{tag}")
+        return a, b
+
+    def test_none_battle_is_null(self):
+        from .selectors import get_arena_deadline
+        self.assertIsNone(get_arena_deadline(None))
+
+    def test_active_battle_submission_deadline(self):
+        from .models import Battle
+        from .selectors import get_arena_deadline
+        a, b = self._authors()
+        future = timezone.now() + timezone.timedelta(hours=1)
+        battle = Battle.objects.create(challenger=a, opponent=b, theme="T",
+                                       status=Battle.Status.ACTIVE,
+                                       submission_deadline=future, end_time=future)
+        d = get_arena_deadline(battle)
+        self.assertEqual(set(d), {"deadline_iso", "seconds_remaining"})
+        self.assertEqual(d["deadline_iso"], future.isoformat())
+        self.assertGreater(d["seconds_remaining"], 3000)
+
+    def test_past_deadline_clamps_to_zero(self):
+        from .models import Battle
+        from .selectors import get_arena_deadline
+        a, b = self._authors()
+        past = timezone.now() - timezone.timedelta(hours=1)
+        battle = Battle.objects.create(challenger=a, opponent=b, theme="T",
+                                       status=Battle.Status.VOTING,
+                                       submission_deadline=past, voting_deadline=past, end_time=past)
+        d = get_arena_deadline(battle)
+        self.assertEqual(d["seconds_remaining"], 0)

@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.290",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Add Arena deadline countdown read-model",
+        "section": "Chef Battles / Arena",
+        "summary": "The public Arena read-model now surfaces the active battle's real countdown as {deadline_iso, seconds_remaining}, reusing the existing per-phase deadline logic and clamping remaining seconds at zero. It rides the same Arena poll payload as the metrics and phase rail and returns nothing when no battle is live, so no timer is invented.",
+    },
+    {
         "version": "2.5.289",
         "date": "2026-07-16",
         "commit": "pending",

@@ -49,6 +49,7 @@ from .selectors import (
     get_active_battles,
     get_arena_metrics,
     get_arena_phase,
+    get_arena_deadline,
     get_battle_vote_counts,
     get_crown_ladder,
     get_crown_streak,
@@ -1045,6 +1046,7 @@ def _build_arena_payload():
         "recent_gifts": get_recent_battle_gifts(active_battle),
         "metrics": get_arena_metrics(active_battle),
         "phase": get_arena_phase(active_battle),
+        "deadline": get_arena_deadline(active_battle),
     }
 
 
@@ -1086,6 +1088,7 @@ def arena(request):
         "recent_gifts": payload["recent_gifts"],
         "metrics": payload["metrics"],
         "phase": payload["phase"],
+        "deadline": payload["deadline"],
     }
 
     # Moderator-only preview of the active-battle centre (Phase 1 choreography).
@@ -1174,6 +1177,7 @@ def arena_state(request):
         "recent_gifts": payload["recent_gifts"],
         "metrics": payload["metrics"],
         "phase": payload["phase"],
+        "deadline": payload["deadline"],
     })
 
 

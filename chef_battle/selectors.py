@@ -1161,3 +1161,17 @@ def get_arena_phase(battle=None) -> dict | None:
         status = battle.paused_from_status
     key, label, step = _ARENA_PHASE_RAIL.get(status, ("challenge", "Challenge", 1))
     return {"key": key, "label": label, "step": step}
+
+
+def get_arena_deadline(battle=None) -> dict | None:
+    """Public-safe countdown for the active battle (arena rebuild). Reuses the
+    existing per-phase deadline logic (_battle_deadline) and returns
+    {deadline_iso, seconds_remaining} where seconds_remaining is clamped at 0,
+    or None when there is no active battle or no deadline set. No invented
+    timer: this only surfaces the deadline the battle already carries."""
+    if battle is None:
+        return None
+    deadline_iso, seconds_remaining = _battle_deadline(battle, timezone.now())
+    if deadline_iso is None:
+        return None
+    return {"deadline_iso": deadline_iso, "seconds_remaining": seconds_remaining}
