@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.264",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Standardise recipe detail presentation",
+        "section": "Recipes / Detail page",
+        "summary": "Recipe pages now reuse the canonical hero-actions include and present their content in the site-standard warm document frame.",
+    },
+    {
         "version": "2.5.263",
         "date": "2026-07-16",
         "commit": "pending",

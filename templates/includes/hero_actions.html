@@ -19,5 +19,20 @@ heroes share the exact same classes as the main page. Do not fork per page.
         <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
         <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
         <a class="btn-secondary" href="{% url 'sponsors:puzzle' %}">Sponsors</a>
+        {% if hero_recipe %}
+            {% if chef_battle_enabled and hero_recipe.author and hero_recipe.author.user and hero_recipe.author.user != request.user %}
+            <a class="btn-primary" href="{% url 'chef_battle:challenge_create' %}?opponent={{ hero_recipe.author.slug }}">Issue a Challenge</a>
+            {% endif %}
+            {% if can_manage_recipe %}
+            <a class="btn-secondary" href="{% url 'recipes:recipe_edit' hero_recipe.slug %}">Edit Recipe</a>
+            <a class="btn-secondary" href="{% url 'recipes:recipe_delete' hero_recipe.slug %}">Delete Recipe</a>
+                {% if can_generate_ab %}
+                <form action="{% url 'pinch:generate_from_recipe' hero_recipe.slug %}" method="post" style="display:contents">
+                    {% csrf_token %}
+                    <button class="btn-secondary" type="submit">{% if recipe_ab_exists %}View Pinch{% else %}Generate Pinch{% endif %}</button>
+                </form>
+                {% endif %}
+            {% endif %}
+        {% endif %}
     </div>
 </div>

@@ -2753,6 +2753,46 @@
 
 /* ==== Recipe rebuilt layout ==== */
 
+/* Recipe detail follows the site's document-page rhythm: warm page ground,
+   one restrained content frame, then clearly separated working sections. */
+.recipe-detail-shell {
+  padding-block: clamp(1.25rem, 3vw, 2.5rem);
+  background: var(--bg, #faf6f0);
+}
+
+.recipe-detail-shell__container {
+  width: min(1180px, calc(100% - 2rem));
+  margin-inline: auto;
+}
+
+.recipe-detail-shell .detail-page {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--detail-radius-lg);
+  background: var(--surface);
+  box-shadow: var(--detail-shadow-soft);
+}
+
+.detail-page__back-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-inline: clamp(1rem, 2vw, 1.5rem);
+}
+
+.recipe-detail-shell .detail-page__back-link {
+  margin-block: 0.85rem 0.55rem;
+}
+
+.recipe-detail-shell .detail-gallery-block,
+.recipe-detail-shell .recipe-stats,
+.recipe-detail-shell .recipe-body,
+.recipe-detail-shell .recipe-extras,
+.recipe-detail-shell .recipe-footer {
+  border-inline: 0;
+}
+
 .recipe-stats {
   display: flex;
   flex-wrap: wrap;
@@ -2885,6 +2925,20 @@
   .recipe-extras,
   .recipe-footer {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .recipe-detail-shell {
+    padding-block: 0.85rem 1.5rem;
+  }
+
+  .recipe-detail-shell__container {
+    width: min(100% - 1rem, 1180px);
+  }
+
+  .recipe-detail-shell .detail-page {
+    border-radius: var(--detail-radius-md);
   }
 }
 
