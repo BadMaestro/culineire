@@ -4606,7 +4606,13 @@ a.battle-home__pulse-msg:hover {
   letter-spacing: 0;
   text-shadow: none;
 }
-.site-battle-widget__brand-icon { color: var(--brand-dark, #6e4e2c); }
+.site-battle-widget__brand-icon {
+  width: 1.2rem;
+  height: 1.2rem;
+  flex: 0 0 1.2rem;
+  object-fit: contain;
+  filter: none;
+}
 .site-battle-widget__toggle-icon::after { color: var(--brand-dark, #6e4e2c); }
 .site-battle-widget__body { padding: 0.8rem; background: transparent; }
 .site-battle-widget__section--menu { margin: 0; padding: 0; border: 0; }

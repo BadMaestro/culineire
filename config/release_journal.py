@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.272",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Use the CulinEire mark in arena widget",
+        "section": "Chef Battles / Navigation",
+        "summary": "Replaced the generic crossed-tools glyph beside Chef Battles Arena with the existing compact CulinEire logo mark.",
+    },
+    {
         "version": "2.5.271",
         "date": "2026-07-16",
         "commit": "pending",
