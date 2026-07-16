@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.296",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Anchor the Arena deadline to server time",
+        "section": "Chef Battles / Arena",
+        "summary": "The live Arena deadline now ticks smoothly between state polls using the authoritative deadline and server_time pair supplied by the public read-model. Each poll resynchronises the display; it stops cleanly when no active deadline exists.",
+    },
+    {
         "version": "2.5.295",
         "date": "2026-07-16",
         "commit": "pending",

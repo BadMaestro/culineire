@@ -909,12 +909,31 @@
     return (days ? String(days) + 'd ' : '') + clock;
   }
 
+  var arenaDeadlineTicker = null;
+  var arenaDeadlineAnchor = null;
+
+  function paintArenaDeadline() {
+    var panel = document.getElementById('arena-phase-deadline');
+    var value = panel && panel.querySelector('strong');
+    if (!panel || !value || !arenaDeadlineAnchor) { return; }
+    var elapsed = Math.max(0, (Date.now() - arenaDeadlineAnchor.receivedAt) / 1000);
+    var remaining = Math.max(0, Math.floor(arenaDeadlineAnchor.serverRemaining - elapsed));
+    value.textContent = formatArenaRemaining(remaining) + ' remaining';
+  }
+
+  function stopArenaDeadlineTicker() {
+    if (arenaDeadlineTicker) { window.clearInterval(arenaDeadlineTicker); }
+    arenaDeadlineTicker = null;
+    arenaDeadlineAnchor = null;
+  }
+
   function refreshArenaDeadline(data) {
     var panel = document.getElementById('arena-phase-deadline');
     if (!panel) { return; }
     var deadline = data && data.deadline;
     var value = panel.querySelector('strong');
     if (!deadline || typeof deadline.seconds_remaining === 'undefined') {
+      stopArenaDeadlineTicker();
       panel.classList.add('is-empty');
       panel.setAttribute('data-deadline-iso', '');
       if (value) { value.textContent = 'No active deadline'; }
@@ -922,7 +941,15 @@
     }
     panel.classList.remove('is-empty');
     panel.setAttribute('data-deadline-iso', deadline.deadline_iso || '');
-    if (value) { value.textContent = formatArenaRemaining(deadline.seconds_remaining) + ' remaining'; }
+    var deadlineAt = Date.parse(deadline.deadline_iso || '');
+    var serverAt = Date.parse(data.server_time || '');
+    var serverRemaining = Number(deadline.seconds_remaining);
+    if (!Number.isNaN(deadlineAt) && !Number.isNaN(serverAt)) {
+      serverRemaining = Math.max(0, Math.floor((deadlineAt - serverAt) / 1000));
+    }
+    arenaDeadlineAnchor = { receivedAt: Date.now(), serverRemaining: Math.max(0, serverRemaining || 0) };
+    paintArenaDeadline();
+    if (!arenaDeadlineTicker) { arenaDeadlineTicker = window.setInterval(paintArenaDeadline, 1000); }
   }
 
   function refreshArenaReadModel(data) {
