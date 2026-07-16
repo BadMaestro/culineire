@@ -1,6 +1,6 @@
 RELEASE_JOURNAL = [
     {
-        "version": "2.5.248",
+        "version": "2.5.249",
         "date": "2026-07-16",
         "commit": "pending",
         "title": "Chef Battles: Knife Roll widget label",

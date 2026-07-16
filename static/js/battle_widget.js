@@ -11,9 +11,11 @@
   var widget = document.getElementById('site-battle-widget');
   if (!widget) return;
   var handle = widget.querySelector('.site-battle-widget__toggle');
+  var details = widget.querySelector('.site-battle-widget__details');
   if (!handle) return;
 
   var STORE_KEY = 'battleWidgetTop';
+  var COLLAPSE_STORE_KEY = 'battleWidgetCollapsed';
   var DRAG_THRESHOLD = 12; // px of travel before a press becomes a drag
   var EDGE = 8;            // min gap from viewport top/bottom
 
@@ -29,6 +31,19 @@
 
   var saved = parseFloat(window.localStorage.getItem(STORE_KEY));
   if (!isNaN(saved)) applyTop(saved);
+
+  if (details) {
+    try {
+      if (window.localStorage.getItem(COLLAPSE_STORE_KEY) === 'true') {
+        details.open = false;
+      }
+    } catch (err) {}
+    details.addEventListener('toggle', function () {
+      try {
+        window.localStorage.setItem(COLLAPSE_STORE_KEY, details.open ? 'false' : 'true');
+      } catch (err) {}
+    });
+  }
 
   var pointerId = null;
   var startY = 0;

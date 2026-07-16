@@ -3689,6 +3689,9 @@ a.battle-home__pulse-msg:hover {
 .site-battle-widget__details:not([open]) .site-battle-widget__toggle-icon::after {
   transform: rotate(180deg);
 }
+.site-battle-widget__toggle-icon::after {
+  content: '\\25B2';
+}
 .site-battle-widget__body {
   padding: 0.55rem 0.75rem 0.6rem;
   display: flex;
@@ -3776,6 +3779,9 @@ a.battle-home__pulse-msg:hover {
   justify-content: center;
 }
 .site-battle-widget__menu a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
   color: inherit;
   text-decoration: none;
   font-size: 0.72rem;
@@ -4020,6 +4026,16 @@ a.battle-home__pulse-msg:hover {
   filter: drop-shadow(0 2px 4px rgb(0 0 0 / 0.5));
   pointer-events: none;
   z-index: 3;
+}
+.site-battle-widget__icon {
+  width: 0.9rem;
+  height: 0.9rem;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* Knife & Tool Roll — the Company Information document rhythm, for collections. */
