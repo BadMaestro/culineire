@@ -169,7 +169,7 @@
 }
 
 .arena-tooltip__name {
-  font-family: Georgia, serif;
+  font-family: var(--font-serif);
   font-size: 1rem;
   font-weight: 700;
   color: #2a2218;
@@ -425,7 +425,7 @@
 }
 
 .abp__theme {
-  font-family: Georgia, serif;
+  font-family: var(--font-serif);
   font-size: 1rem;
   font-weight: 700;
   color: #2a2218;
@@ -469,7 +469,7 @@
 }
 
 .abp__chef-name {
-  font-family: Georgia, serif;
+  font-family: var(--font-serif);
   font-size: 0.9rem;
   font-weight: 700;
   color: #2a2218;
@@ -562,7 +562,7 @@
 }
 
 .abp__vs {
-  font-family: Georgia, serif;
+  font-family: var(--font-serif);
   font-size: 1.35rem;
   font-weight: 900;
   color: #c8942a;

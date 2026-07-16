@@ -694,7 +694,7 @@
 }
 
 .antechamber-card__name {
-  font-family: Georgia, serif;
+  font-family: var(--font-serif);
   font-size: 0.95rem;
   font-weight: 700;
   color: #fff8ee;
@@ -725,7 +725,7 @@
 .antechamber-card__sep { color: rgba(255, 248, 238, 0.3); }
 
 .antechamber-vs {
-  font-family: Georgia, serif;
+  font-family: var(--font-serif);
   font-size: 1.35rem;
   font-weight: 900;
   color: rgba(255, 248, 238, 0.4);

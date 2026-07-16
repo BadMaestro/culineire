@@ -114,10 +114,12 @@
   pointer-events: none;
 }
 
-/* Fallback when a record carries no avatar: the seat still reads as taken. */
+/* Fallback when a record carries no avatar: the seat still reads as taken.
+   Serif, not sans — the initial stands in for a portrait, so it is display
+   type rather than UI type. */
 #arena-render .arena-occupant__initial {
   fill: var(--surface);
-  font-family: var(--font-sans);
+  font-family: var(--font-serif);
   font-weight: 700;
   paint-order: stroke;
   stroke: var(--ink);
