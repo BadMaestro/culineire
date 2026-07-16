@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.285",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Add Arena rank spine and action rail",
+        "section": "Chef Battles / Arena",
+        "summary": "Added a compact desktop rank spine drawn from the existing rank groups and a responsive action rail that presents the live kitchen state alongside genuine Rankings, enrolment, challenge or sign-in routes. Both components retain the site button interactions and hide safely on narrow screens where the floor needs priority.",
+    },
+    {
         "version": "2.5.284",
         "date": "2026-07-16",
         "commit": "pending",
