@@ -231,13 +231,9 @@
     var stage = svg.querySelector('[data-arena-stage]');
     if (!stage) { return; }
     stage.setAttribute('data-state', center.type || 'empty');
-    stage.setAttribute('data-centre-key', centreKey(center));
-  }
-
-  function centreKey(center) {
-    if (center.battle_id) { return 'battle-' + center.battle_id; }
-    if (center.type === 'crown') { return 'crown-' + (center.name || ''); }
-    return 'empty';
+    // Same key the command deck stamps on its own live stage, so the effects
+    // layer can key both surfaces off one identity.
+    stage.setAttribute('data-centre-key', global.ArenaDeck ? global.ArenaDeck.centreKey(center) : 'empty');
   }
 
   /* ---------------------------------------------------------------- */
@@ -341,10 +337,16 @@
     });
   }
 
-  function poll(svg, geometry) {
+  function poll(svg) {
     post('/chef-battle/arena/state/')
       .then(function (response) { return response.ok ? response.json() : null; })
-      .then(function (payload) { if (payload && payload.geometry) { bind(svg, payload, payload.geometry); } })
+      .then(function (payload) {
+        if (!payload) { return; }
+        // Geometry is re-read from every payload: ring capacity is a server
+        // decision and may change between polls.
+        if (payload.geometry) { bind(svg, payload, payload.geometry); }
+        if (global.ArenaDeck) { global.ArenaDeck.refresh(payload); }
+      })
       .catch(function () { /* a dropped poll is retried on the next tick */ });
   }
 
@@ -361,8 +363,9 @@
     drawGrid(svg, geometry);
     bind(svg, payload, geometry);
     attachEvents(svg);
+    if (global.ArenaDeck) { global.ArenaDeck.refresh(payload); }
 
-    pollTimer = global.setInterval(function () { poll(svg, geometry); }, POLL_INTERVAL);
+    pollTimer = global.setInterval(function () { poll(svg); }, POLL_INTERVAL);
     pingTimer = global.setInterval(function () { post('/chef-battle/arena/ping/').catch(function () {}); }, PING_INTERVAL);
   }
 
