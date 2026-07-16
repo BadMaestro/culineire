@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.250",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Header sign-in popover",
+        "section": "Accounts / Navigation",
+        "summary": "Desktop visitors can sign in from a compact form beside the Sign In link, without leaving the page they are reading.",
+    },
+    {
         "version": "2.5.249",
         "date": "2026-07-16",
         "commit": "pending",

@@ -309,9 +309,26 @@
                     Sign In
                 </a>
                 {% else %}
-                <a class="ce-nav__text" href="{% url 'login' %}">
-                    Sign In
-                </a>
+                <div class="ce-login-popover" data-login-popover>
+                    <a class="ce-nav__text" data-login-popover-trigger href="{% url 'login' %}" aria-expanded="false" aria-haspopup="dialog">Sign In</a>
+                    <section class="ce-login-popover__panel" data-login-popover-panel aria-label="Sign in to CulinEire" hidden>
+                        <p class="ce-login-popover__eyebrow">Welcome back</p>
+                        <h2>Sign In</h2>
+                        <form action="{% url 'login' %}" method="post">
+                            {% csrf_token %}
+                            <input name="next" type="hidden" value="{{ request.get_full_path }}">
+                            <label for="header-login-username">Username</label>
+                            <input autocomplete="username" id="header-login-username" name="username" required type="text">
+                            <label for="header-login-password">Password</label>
+                            <input autocomplete="current-password" id="header-login-password" name="password" required type="password">
+                            <button type="submit">Sign In</button>
+                        </form>
+                        <div class="ce-login-popover__links">
+                            <a href="{% url 'password_reset' %}">Forgot password?</a>
+                            <a href="{% url 'signup' %}">Join CulinEire</a>
+                        </div>
+                    </section>
+                </div>
                 {% endif %}
             </div>
             {% endif %}
@@ -399,7 +416,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v2.5.249</span>
+                <span class="footer-version">v2.5.250</span>
             </div>
         </div>
     </div>
@@ -452,6 +469,7 @@
 </div>
 
 <script defer src="{% static 'js/main.js' %}"></script>
+<script defer src="{% static 'js/header_login_popover.js' %}"></script>
 <script defer src="{% static 'js/presence.js' %}"></script>
 {{ hero_chef_promotions|json_script:"hero-chef-promotions" }}
 <script defer src="{% static 'js/hero_chef.js' %}"></script>
