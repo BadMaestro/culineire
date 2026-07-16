@@ -1,5 +1,29 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.254",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Generated arena command deck frame",
+        "section": "Chef Battles / Navigation",
+        "summary": "A CulinEire-generated metallic cyan-and-amber frame now powers the Chef Battles command deck while the controls remain real, accessible HTML links.",
+    },
+    {
+        "version": "2.5.253",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Chef Battles command deck visual reference",
+        "section": "Chef Battles / Navigation",
+        "summary": "The command deck adopts the approved metallic kitchen-battle reference: cyan and amber energy rails, illustrated control hierarchy, and a prominent arena launch control.",
+    },
+    {
+        "version": "2.5.252",
+        "date": "2026-07-16",
+        "commit": "pending",
+        "title": "Live Arena token alignment",
+        "section": "Chef Battles / Navigation",
+        "summary": "The Chef Battles command deck now directly uses the Live Arena broadcast colour tokens, surfaces, borders, and green primary action treatment.",
+    },
+    {
         "version": "2.5.251",
         "date": "2026-07-16",
         "commit": "pending",
