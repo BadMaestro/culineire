@@ -18,13 +18,12 @@
     }
     var config = Object.assign({
       cx: 240, cy: 240,
-      ringWidth: 28, stageRadius: 64, cellsPerOctant: 1, octantIndex: 0, startRingIndex: 1,
+      ringWidth: 28, stageRadius: 64, octantIndex: 0, startRingIndex: 1,
       stroke: '#8b7355', strokeWidth: 1.15
     }, options || {});
     if (!global.ArenaGeometry) {
       throw new Error('ArenaGeometry must load before the octant prototype.');
     }
-    var totalSegments = config.cellsPerOctant * geometry.sides;
     var group = document.createElementNS(NS, 'g');
     group.setAttribute('data-arena-prototype', 'octant');
     group.setAttribute('fill', 'none');
@@ -35,16 +34,21 @@
     // `stage` is one central medallion, not eight degenerate wedges.
     // The final render layer owns that dedicated element.
     for (var ring = config.startRingIndex; ring < geometry.rings.length; ring++) {
-      for (var cell = 0; cell < config.cellsPerOctant; cell++) {
-        var segmentIndex = config.octantIndex * config.cellsPerOctant + cell;
+      var ringInfo = geometry.rings[ring];
+      if (!Number.isInteger(ringInfo.segments) || ringInfo.segments % geometry.sides !== 0) {
+        throw new RangeError('Each non-stage ring must provide segments divisible by geometry.sides.');
+      }
+      var cellsPerOctant = ringInfo.segments / geometry.sides;
+      for (var cell = 0; cell < cellsPerOctant; cell++) {
+        var segmentIndex = config.octantIndex * cellsPerOctant + cell;
         var polygon = document.createElementNS(NS, 'polygon');
         polygon.setAttribute('points', global.ArenaGeometry.cellVertices(
-          config.cx, config.cy, ring, segmentIndex, geometry.rings.length, totalSegments, config.ringWidth, geometry.sides, config.stageRadius
+          config.cx, config.cy, ring, segmentIndex, geometry.rings.length, ringInfo.segments, config.ringWidth, geometry.sides, config.stageRadius
         ).map(pointString).join(' '));
-        polygon.setAttribute('data-ring', String(geometry.rings[ring].index));
-        polygon.setAttribute('data-ring-key', geometry.rings[ring].key || '');
-        polygon.setAttribute('data-ring-kind', geometry.rings[ring].kind || 'unknown');
-        polygon.setAttribute('data-cell', String(cell));
+        polygon.setAttribute('data-ring', String(ringInfo.index));
+        polygon.setAttribute('data-ring-key', ringInfo.key || '');
+        polygon.setAttribute('data-ring-kind', ringInfo.kind || 'unknown');
+        polygon.setAttribute('data-cell', String(segmentIndex));
         polygon.setAttribute('data-sector', String(config.octantIndex));
         // Data binding replaces these neutral values from the live payload.
         // Effects may rely on attributes only; they must not parse payload.
@@ -80,7 +84,7 @@
   function drawFullArenaGrid(svg, geometry, options) {
     var config = Object.assign({
       cx: 240, cy: 240, ringWidth: 13, stageRadius: 66,
-      cellsPerOctant: 3, stroke: '#8b7355', strokeWidth: 1.15
+      stroke: '#8b7355', strokeWidth: 1.15
     }, options || {});
     drawStage(svg, geometry, config);
     for (var octantIndex = 0; octantIndex < geometry.sides; octantIndex++) {

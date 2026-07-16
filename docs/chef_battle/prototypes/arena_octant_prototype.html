@@ -11,7 +11,8 @@
 <script src="../../../static/js/arena_octant_prototype.js"></script>
 <script>
   /* Standalone fixture only; production supplies the same-shaped arena_data.geometry. */
-  const geometry = { sides: 8, rings: Array.from({ length: 13 }, (_, index) => ({ index, key: `fixture_${index}` })) };
+  const fixtureSegments = [1, 8, 8, 16, 16, 24, 24, 32, 32, 40, 48, 56, 64];
+  const geometry = { sides: 8, rings: fixtureSegments.map((segments, index) => ({ index, key: `fixture_${index}`, segments })) };
   window.ArenaOctantPrototype.drawFullArenaGrid(document.getElementById('prototype'), geometry);
 </script>
 </html>
