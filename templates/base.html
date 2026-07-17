@@ -84,6 +84,20 @@
   .battle-blast.is-active .battle-blast__wave { animation:none; }
   .battle-blast__card { transition:none; }
 }
+/* Battle-starting banner. Corner-anchored and never modal: it lives for the
+   five minutes before a battle starts, so the reader must be able to keep
+   reading. Design tokens only, per the CulinEire colour scheme. */
+.battle-starting { position:fixed; z-index:9500; right:1rem; bottom:1rem; width:min(92vw, 320px); background:var(--surface); border:1px solid var(--brand); border-left:4px solid var(--brand-dark); border-radius:14px; box-shadow:var(--shadow-md); padding:.9rem 1rem; }
+.battle-starting[hidden] { display:none; }
+.battle-starting__badge { font-size:.68rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--surface); background:var(--brand-dark); border-radius:99px; padding:.16rem .6rem; display:inline-block; }
+.battle-starting__theme { font-family:var(--font-serif); font-size:1.05rem; font-weight:700; color:var(--ink); margin:.5rem 0 .1rem; }
+.battle-starting__chefs { font-size:.8rem; color:var(--muted); margin:0 0 .35rem; }
+.battle-starting__clock { font-size:1.5rem; font-weight:800; color:var(--brand-dark); font-variant-numeric:tabular-nums; margin:.1rem 0 .6rem; }
+.battle-starting__actions { display:flex; gap:.5rem; align-items:center; }
+.battle-starting__cta { flex:1; text-align:center; background:var(--brand-dark); color:var(--surface); text-decoration:none; border-radius:8px; padding:.42rem .8rem; font-size:.82rem; font-weight:600; transition:background .15s; }
+.battle-starting__cta:hover { background:var(--brand); }
+.battle-starting__dismiss { appearance:none; border:1px solid var(--line); background:var(--surface-soft); color:var(--muted); border-radius:8px; padding:.42rem .7rem; font-size:.78rem; cursor:pointer; }
+.battle-starting__dismiss:hover { background:var(--surface-muted); color:var(--ink); }
 </style>
 </head>
 <body{% block body_attrs %}{% endblock %}>
@@ -487,6 +501,26 @@
   </div>
 </div>
 
+{% if chef_battle_enabled %}
+{# Chefs are ready and the floor is filling. Deliberately NOT the .battle-blast
+   modal: that one is a one-shot celebration, while this runs for five minutes —
+   a modal would hold the whole site hostage until the battle starts. #}
+<aside class="battle-starting" id="battle-starting" hidden aria-live="polite">
+  <span class="battle-starting__badge">Battle starting</span>
+  <p class="battle-starting__theme" id="starting-theme"></p>
+  <p class="battle-starting__chefs" id="starting-chefs"></p>
+  <p class="battle-starting__clock" id="starting-clock"></p>
+  <div class="battle-starting__actions">
+    {% if user.is_authenticated %}
+      <a class="battle-starting__cta" id="starting-cta" href="{% url 'chef_battle:arena' %}">Take your seat</a>
+    {% else %}
+      <a class="battle-starting__cta" href="{% url 'signup' %}">Register to take a seat</a>
+    {% endif %}
+    <button class="battle-starting__dismiss" id="starting-dismiss" type="button">Not now</button>
+  </div>
+</aside>
+{% endif %}
+
 {% if active_battle_pip %}
 <div class="battle-pip" id="battle-pip"
      data-battle-url="{% url 'chef_battle:battle_detail' active_battle_pip.pk %}"
@@ -746,10 +780,74 @@
     }
   }
 
+  /* ---- battle starting: five-minute call to take a seat ---- */
+  var _startAnchor = null;   /* {receivedAt, remaining, battleId} */
+  var _startTicker = null;
+  var _dismissedId = null;
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function paintStarting() {
+    var el = document.getElementById('battle-starting');
+    var clock = document.getElementById('starting-clock');
+    if (!el || !clock || !_startAnchor) return;
+    var elapsed = Math.max(0, (Date.now() - _startAnchor.receivedAt) / 1000);
+    var left = Math.max(0, Math.floor(_startAnchor.remaining - elapsed));
+    clock.textContent = pad(Math.floor(left / 60)) + ':' + pad(left % 60);
+    /* At zero the battle begins whether or not the chefs pressed Ready, so the
+       banner has nothing left to invite anyone to. */
+    if (left <= 0) hideStarting();
+  }
+
+  function hideStarting() {
+    var el = document.getElementById('battle-starting');
+    if (el) el.setAttribute('hidden', '');
+    if (_startTicker) { clearInterval(_startTicker); _startTicker = null; }
+    _startAnchor = null;
+  }
+
+  function showStarting(starting) {
+    var el = document.getElementById('battle-starting');
+    if (!el || _dismissedId === starting.battle_id) return;
+
+    var theme = document.getElementById('starting-theme');
+    var chefs = document.getElementById('starting-chefs');
+    var cta = document.getElementById('starting-cta');
+    if (theme) theme.textContent = starting.theme || 'A battle is about to start';
+    if (chefs && starting.challenger && starting.opponent) {
+      chefs.textContent = starting.challenger.name + ' vs ' + starting.opponent.name;
+    }
+    if (cta && starting.battle_url) cta.setAttribute('data-battle-url', starting.battle_url);
+
+    /* Count down a server-issued duration by locally elapsed time, so a visitor
+       with a wrong clock still sees the right number. arena_state ships a
+       server_time to reconcile against; this endpoint needs none, because
+       seconds_remaining is computed as the response is built. */
+    _startAnchor = {
+      receivedAt: Date.now(),
+      remaining: Math.max(0, Number(starting.seconds_remaining) || 0),
+      battleId: starting.battle_id
+    };
+    el.removeAttribute('hidden');
+    paintStarting();
+    if (!_startTicker) _startTicker = setInterval(paintStarting, 1000);
+
+    var dismiss = document.getElementById('starting-dismiss');
+    if (dismiss) {
+      dismiss.onclick = function () {
+        _dismissedId = starting.battle_id;   /* this battle only; the next one still calls */
+        hideStarting();
+      };
+    }
+  }
+
   function poll() {
     fetch(POLL_URL, { method: 'GET', credentials: 'same-origin' })
       .then(function (r) { return r.json(); })
       .then(function (data) {
+        if (data.starting) { showStarting(data.starting); }
+        else { hideStarting(); }
+
         var result = data.latest_result;
         if (!result) return;
         if (!_initialized) {
