@@ -157,10 +157,21 @@ class Battle(models.Model):
         PAUSED = "paused", "Paused (Emergency Stop)"
         CANCELLED = "cancelled", "Cancelled"
         DISPUTED = "disputed", "Disputed"
+        # Start ritual: the readiness timer expired with only one chef ready,
+        # so the arena waits out a short grace period for the other to appear.
+        WAITING = "waiting", "Waiting for the second chef"
+        # The grace period expired: the chef who turned up takes the win, the
+        # absent one forfeits. No cooking happened.
+        WALKOVER = "walkover", "Walkover (opponent never appeared)"
+        # Neither chef turned up: no winner, both are penalised.
+        VOID = "void", "Void (neither chef appeared)"
 
     # Statuses that count as "in progress" for homepage panel and selectors
     ACTIVE_STATUSES = frozenset([
         Status.SCHEDULED,
+        # A battle waiting out the grace period for its second chef is still
+        # live in the arena — the floor should show it, not drop it.
+        Status.WAITING,
         Status.MENU_LOCKED,
         Status.ACTIVE,
         Status.AWAITING_SUBMISSIONS,
@@ -189,6 +200,9 @@ class Battle(models.Model):
     # E3 — readiness gate: both chefs press Ready before menu declaration
     challenger_ready = models.BooleanField(default=False)
     opponent_ready = models.BooleanField(default=False)
+    # Start ritual: when only one chef was ready at start_time the battle sits
+    # in WAITING until this moment, giving the other chef a last chance.
+    waiting_until = models.DateTimeField(null=True, blank=True, db_index=True)
     proposed_combat_time = models.DateTimeField(null=True, blank=True)
     combat_time_confirmed = models.BooleanField(default=False)
     # Emergency Stop (DG-03): set when status -> PAUSED, cleared on resume.

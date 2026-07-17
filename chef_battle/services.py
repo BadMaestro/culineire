@@ -346,6 +346,158 @@ def handle_no_show_battles() -> int:
     return count
 
 
+#: Grace period given to a missing chef once their opponent is ready and the
+#: start timer has run out (owner spec: "ВЭЙТИНГ 10 МИНУТ").
+START_RITUAL_GRACE = timezone.timedelta(minutes=10)
+
+
+def _award_walkover_win(battle: Battle, *, winner, loser) -> None:
+    """The start ritual expired with only one chef present. No cooking happened:
+    the chef who turned up takes the win and keeps their rewards, the absent one
+    is penalised. Mirrors the established forfeit mechanic — reputation hit for
+    the absentee, no rating change, since no dishes were ever judged."""
+    loser_profile = get_or_create_battle_profile(loser)
+    loser_profile.losses += 1
+    loser_profile.win_streak = 0
+    loser_profile.reputation = max(-1000, loser_profile.reputation - 10)
+    loser_profile.rank = rank_for_rating(loser_profile.rating)
+    loser_profile.save(update_fields=["losses", "win_streak", "reputation", "rank", "updated_at"])
+
+    winner_profile = get_or_create_battle_profile(winner)
+    winner_profile.wins += 1
+    winner_profile.win_streak += 1
+    winner_profile.rank = rank_for_rating(winner_profile.rating)
+    winner_profile.save(update_fields=["wins", "win_streak", "rank", "updated_at"])
+
+    battle.winner = winner
+    battle.loser = loser
+    battle.status = Battle.Status.WALKOVER
+    battle.waiting_until = None
+    battle.result_reason = f"Walkover: {loser.name} never appeared for the battle."[:120]
+    battle.save(update_fields=[
+        "winner", "loser", "status", "waiting_until", "result_reason", "updated_at",
+    ])
+    create_battle_event(
+        event_type=BattleEvent.EventType.BATTLE_FINISHED,
+        battle=battle,
+        actor=winner,
+        target=loser,
+        message=(
+            f"{winner.name} takes Chef Battle '{battle.theme}' by walkover: "
+            f"{loser.name} never appeared."
+        ),
+        is_public=True,
+        publish_to_news=True,
+    )
+
+
+def _void_battle_no_show(battle: Battle) -> None:
+    """Neither chef appeared. There is no winner, and both are penalised
+    (owner decision 2026-07-17: 'оба теряют очки')."""
+    for author in (battle.challenger, battle.opponent):
+        profile = get_or_create_battle_profile(author)
+        profile.win_streak = 0
+        profile.reputation = max(-1000, profile.reputation - 10)
+        profile.rank = rank_for_rating(profile.rating)
+        profile.save(update_fields=["win_streak", "reputation", "rank", "updated_at"])
+
+    battle.status = Battle.Status.VOID
+    battle.waiting_until = None
+    battle.result_reason = "Void: neither chef appeared for the battle."[:120]
+    battle.save(update_fields=["status", "waiting_until", "result_reason", "updated_at"])
+    create_battle_event(
+        event_type=BattleEvent.EventType.BATTLE_FINISHED,
+        battle=battle,
+        message=(
+            f"Chef Battle '{battle.theme}' is void: neither {battle.challenger.name} "
+            f"nor {battle.opponent.name} appeared."
+        ),
+        is_public=True,
+        publish_to_news=True,
+    )
+
+
+def _begin_combat(battle: Battle, *, reason: str) -> None:
+    """Both chefs are in: the battle starts."""
+    battle.status = Battle.Status.ACTIVE
+    battle.waiting_until = None
+    battle.save(update_fields=["status", "waiting_until", "updated_at"])
+    create_battle_event(
+        event_type=BattleEvent.EventType.BATTLE_STARTED,
+        battle=battle,
+        message=f"Chef Battle '{battle.theme}' has begun: {reason}",
+        is_public=True,
+    )
+
+
+def resolve_start_rituals() -> int:
+    """Drive the start ritual for battles whose readiness timer has run out.
+
+    The timer is a hard deadline (owner spec): when it reaches zero the battle
+    resolves whatever the chefs did, and pressing Ready only lets them start
+    sooner.
+
+      - both ready            -> the battle starts
+      - one ready             -> WAITING for a short grace period, then a
+                                 walkover to the chef who turned up
+      - neither ready         -> void, both penalised
+
+    Returns the number of battles resolved. Safe to run repeatedly.
+    """
+    now = timezone.now()
+    resolved = 0
+
+    # 1. Readiness timer expired.
+    due = Battle.objects.filter(
+        status=Battle.Status.SCHEDULED, start_time__lte=now,
+    ).select_related("challenger", "opponent")
+    for battle in due:
+        with transaction.atomic():
+            battle = _locked_battle(battle.pk, expected_status=None)
+            if battle.status != Battle.Status.SCHEDULED:
+                continue
+            if battle.challenger_ready and battle.opponent_ready:
+                _begin_combat(battle, reason="both chefs are ready.")
+            elif battle.challenger_ready or battle.opponent_ready:
+                battle.status = Battle.Status.WAITING
+                battle.waiting_until = now + START_RITUAL_GRACE
+                battle.save(update_fields=["status", "waiting_until", "updated_at"])
+                missing = battle.opponent if battle.challenger_ready else battle.challenger
+                create_battle_event(
+                    event_type=BattleEvent.EventType.BATTLE_STARTED,
+                    battle=battle,
+                    message=(
+                        f"Waiting for {missing.name} to appear for '{battle.theme}'. "
+                        f"The battle starts or is awarded when the wait runs out."
+                    ),
+                    is_public=True,
+                )
+            else:
+                _void_battle_no_show(battle)
+            resolved += 1
+
+    # 2. Grace period expired.
+    waiting = Battle.objects.filter(
+        status=Battle.Status.WAITING, waiting_until__lte=now,
+    ).select_related("challenger", "opponent")
+    for battle in waiting:
+        with transaction.atomic():
+            battle = _locked_battle(battle.pk, expected_status=None)
+            if battle.status != Battle.Status.WAITING:
+                continue
+            if battle.challenger_ready and battle.opponent_ready:
+                _begin_combat(battle, reason="the second chef appeared in time.")
+            elif battle.challenger_ready:
+                _award_walkover_win(battle, winner=battle.challenger, loser=battle.opponent)
+            elif battle.opponent_ready:
+                _award_walkover_win(battle, winner=battle.opponent, loser=battle.challenger)
+            else:
+                _void_battle_no_show(battle)
+            resolved += 1
+
+    return resolved
+
+
 def _award_forfeit_win(battle: Battle, *, winner, loser) -> None:
     loser_profile = get_or_create_battle_profile(loser)
     loser_profile.losses += 1

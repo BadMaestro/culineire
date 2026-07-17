@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.313",
+        "date": "2026-07-17",
+        "commit": "pending",
+        "title": "The battle start ritual",
+        "section": "Chef Battles / Arena",
+        "summary": "A scheduled battle now resolves on its own start timer, which is a hard deadline: both chefs ready starts it early, and when the clock runs out the arena acts on who actually turned up. One chef present means a short wait for the other, then a walkover to the chef who came — the absentee forfeits. If neither appears the battle is void and both are penalised. The sitewide blast now also carries the battle about to start, so visitors on any page are invited to take a seat with the real countdown.",
+    },
+    {
         "version": "2.5.312",
         "date": "2026-07-17",
         "commit": "pending",

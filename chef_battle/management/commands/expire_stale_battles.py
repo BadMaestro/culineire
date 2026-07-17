@@ -6,6 +6,7 @@ from chef_battle.services import (
     calculate_battle_result,
     expire_stale_challenges,
     handle_no_show_battles,
+    resolve_start_rituals,
 )
 
 
@@ -37,6 +38,18 @@ class Command(BaseCommand):
         else:
             expired = expire_stale_challenges()
             self.stdout.write(self.style.SUCCESS(f"Expired {expired} pending challenge(s)."))
+
+        # --- Start ritual: readiness timer / grace period ---
+        due_rituals = Battle.objects.filter(
+            status=Battle.Status.SCHEDULED, start_time__lte=now,
+        ).count() + Battle.objects.filter(
+            status=Battle.Status.WAITING, waiting_until__lte=now,
+        ).count()
+        if dry:
+            self.stdout.write(f"[dry-run] Would resolve {due_rituals} start ritual(s).")
+        else:
+            started = resolve_start_rituals()
+            self.stdout.write(self.style.SUCCESS(f"Resolved {started} start ritual(s)."))
 
         # --- Handle no-show battles ---
         no_show_battles = Battle.objects.filter(

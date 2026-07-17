@@ -1135,6 +1135,12 @@ def get_arena_metrics(battle=None) -> dict:
 # Voting -> Crown. Keys/labels/steps are the front-end contract (Ember #159).
 _ARENA_PHASE_RAIL = {
     "scheduled": ("challenge", "Challenge", 1),
+    # Still on the opening rung: the arena is waiting for the second chef.
+    "waiting": ("challenge", "Challenge", 1),
+    # Terminal without cooking, but the arc is over and a winner (or nobody)
+    # is on the stage — the rail rests on its last rung.
+    "walkover": ("crown", "Crown", 7),
+    "void": ("crown", "Crown", 7),
     "menu_locked": ("challenge", "Challenge", 1),
     "active": ("combat", "Combat", 2),
     "ingredient_penalty": ("biathlon", "Biathlon", 3),
@@ -1191,6 +1197,42 @@ def get_arena_deadline(battle=None) -> dict | None:
         "seconds_remaining": seconds_remaining,
         "kind": kind,
         "label": label,
+    }
+
+
+#: How long before a battle's start time the sitewide blast starts inviting
+#: visitors to take their seats (owner spec: a five-minute readiness window).
+BLAST_LEAD = timezone.timedelta(minutes=5)
+
+
+def get_starting_battle_blast() -> dict | None:
+    """The battle whose start ritual is counting down right now, for the
+    sitewide blast: enough to invite visitors to take a seat and to show the
+    real remaining time. None when nothing is about to start.
+
+    Rides the existing 45s sitewide blast poll — no new channel. The countdown
+    is the battle's own start_time, so a client showing it can never invent a
+    timer of its own."""
+    from .models import Battle
+    now = timezone.now()
+    battle = (
+        Battle.objects
+        .filter(status=Battle.Status.SCHEDULED,
+                start_time__gt=now, start_time__lte=now + BLAST_LEAD)
+        .select_related("challenger", "opponent")
+        .order_by("start_time")
+        .first()
+    )
+    if battle is None:
+        return None
+    return {
+        "battle_id": battle.pk,
+        "battle_url": battle.get_absolute_url(),
+        "theme": battle.theme,
+        "challenger": battle.challenger.name,
+        "opponent": battle.opponent.name,
+        "deadline_iso": battle.start_time.isoformat(),
+        "seconds_remaining": max(int((battle.start_time - now).total_seconds()), 0),
     }
 
 

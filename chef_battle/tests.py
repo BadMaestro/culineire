@@ -6411,6 +6411,146 @@ class ArenaDeadlineTests(TestCase):
         self.assertEqual(d["seconds_remaining"], 0)
 
 
+class StartRitualTests(TestCase):
+    """The start timer is a hard deadline: Ready only starts the battle sooner.
+    One no-show is a walkover, a double no-show voids and penalises both."""
+
+    def setUp(self):
+        U = get_user_model()
+        self.a = RecipeAuthor.objects.create(
+            user=U.objects.create_user("ritual-a", password="pw"), name="CrestedTen", slug="ritual-a")
+        self.b = RecipeAuthor.objects.create(
+            user=U.objects.create_user("ritual-b", password="pw"), name="Jam-Oliver", slug="ritual-b")
+
+    def _battle(self, *, challenger_ready=False, opponent_ready=False, started_ago_min=1):
+        from .models import Battle
+        return Battle.objects.create(
+            challenger=self.a, opponent=self.b, theme="Ritual",
+            status=Battle.Status.SCHEDULED,
+            challenger_ready=challenger_ready, opponent_ready=opponent_ready,
+            start_time=timezone.now() - timezone.timedelta(minutes=started_ago_min),
+            submission_deadline=timezone.now() + timezone.timedelta(hours=2),
+            end_time=timezone.now() + timezone.timedelta(hours=3),
+        )
+
+    def test_both_ready_at_deadline_starts_battle(self):
+        from .models import Battle
+        from .services import resolve_start_rituals
+        battle = self._battle(challenger_ready=True, opponent_ready=True)
+        self.assertEqual(resolve_start_rituals(), 1)
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.ACTIVE)
+
+    def test_one_ready_waits_then_walkover(self):
+        from .models import Battle
+        from .services import resolve_start_rituals
+        battle = self._battle(challenger_ready=True)
+        resolve_start_rituals()
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.WAITING)
+        self.assertIsNotNone(battle.waiting_until)
+
+        # Grace runs out with the opponent still absent.
+        Battle.objects.filter(pk=battle.pk).update(
+            waiting_until=timezone.now() - timezone.timedelta(seconds=1))
+        resolve_start_rituals()
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.WALKOVER)
+        self.assertEqual(battle.winner, self.a)
+        self.assertEqual(battle.loser, self.b)
+        # The chef who turned up gains the win; the absentee is penalised.
+        self.assertEqual(self.a.battle_profile.wins, 1)
+        self.assertEqual(self.b.battle_profile.losses, 1)
+        self.assertEqual(self.b.battle_profile.reputation, -10)
+
+    def test_late_chef_appears_during_grace_and_battle_starts(self):
+        from .models import Battle
+        from .services import resolve_start_rituals
+        battle = self._battle(challenger_ready=True)
+        resolve_start_rituals()
+        # The opponent presses Ready before the grace expires.
+        Battle.objects.filter(pk=battle.pk).update(
+            opponent_ready=True,
+            waiting_until=timezone.now() - timezone.timedelta(seconds=1))
+        resolve_start_rituals()
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.ACTIVE)
+        self.assertIsNone(battle.winner)
+
+    def test_neither_ready_voids_and_penalises_both(self):
+        from .models import Battle
+        from .services import resolve_start_rituals
+        battle = self._battle()
+        self.assertEqual(resolve_start_rituals(), 1)
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.VOID)
+        self.assertIsNone(battle.winner)
+        # Owner decision: both lose points on a double no-show.
+        self.assertEqual(self.a.battle_profile.reputation, -10)
+        self.assertEqual(self.b.battle_profile.reputation, -10)
+
+    def test_battle_before_its_start_time_is_untouched(self):
+        from .models import Battle
+        from .services import resolve_start_rituals
+        battle = self._battle(started_ago_min=-30)  # starts in 30 minutes
+        self.assertEqual(resolve_start_rituals(), 0)
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.SCHEDULED)
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class StartingBlastTests(TestCase):
+    """The sitewide blast also carries the battle that is about to start, so a
+    visitor on any page is invited to take a seat. Same 45s channel, no new one."""
+
+    def setUp(self):
+        U = get_user_model()
+        self.a = RecipeAuthor.objects.create(
+            user=U.objects.create_user("blast-a", password="pw"), name="CrestedTen", slug="blast-a")
+        self.b = RecipeAuthor.objects.create(
+            user=U.objects.create_user("blast-b", password="pw"), name="Jam-Oliver", slug="blast-b")
+
+    def _battle(self, starts_in_min):
+        from .models import Battle
+        return Battle.objects.create(
+            challenger=self.a, opponent=self.b, theme="Blast Ritual",
+            status=Battle.Status.SCHEDULED,
+            start_time=timezone.now() + timezone.timedelta(minutes=starts_in_min),
+            submission_deadline=timezone.now() + timezone.timedelta(hours=2),
+            end_time=timezone.now() + timezone.timedelta(hours=3),
+        )
+
+    def test_no_battle_starting_is_null(self):
+        from .selectors import get_starting_battle_blast
+        self.assertIsNone(get_starting_battle_blast())
+
+    def test_battle_inside_window_is_announced_with_real_countdown(self):
+        from .selectors import get_starting_battle_blast
+        battle = self._battle(starts_in_min=3)
+        blast = get_starting_battle_blast()
+        self.assertEqual(blast["battle_id"], battle.pk)
+        self.assertEqual(blast["theme"], "Blast Ritual")
+        self.assertEqual(blast["challenger"], "CrestedTen")
+        self.assertEqual(blast["opponent"], "Jam-Oliver")
+        self.assertEqual(blast["deadline_iso"], battle.start_time.isoformat())
+        self.assertGreater(blast["seconds_remaining"], 0)
+        self.assertLessEqual(blast["seconds_remaining"], 5 * 60)
+
+    def test_battle_further_out_than_the_window_is_not_announced(self):
+        from .selectors import get_starting_battle_blast
+        self._battle(starts_in_min=30)
+        self.assertIsNone(get_starting_battle_blast())
+
+    def test_blast_endpoint_keeps_result_and_adds_starting(self):
+        self._battle(starts_in_min=2)
+        resp = self.client.get(reverse("chef_battle:arena_blast"))
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        # The existing celebration contract is untouched.
+        self.assertIn("latest_result", data)
+        self.assertEqual(data["starting"]["theme"], "Blast Ritual")
+
+
 class ArenaSpectatorTests(TestCase):
     """_get_spectators: online logged-in non-chef authors occupy spectator cells."""
 

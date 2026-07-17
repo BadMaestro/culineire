@@ -51,6 +51,7 @@ from .selectors import (
     get_arena_phase,
     get_arena_deadline,
     get_arena_geometry,
+    get_starting_battle_blast,
     get_battle_vote_counts,
     get_crown_ladder,
     get_crown_streak,
@@ -956,11 +957,14 @@ def _get_spectators(online_cutoff, limit=208):
 
 
 def arena_blast(request):
-    """Ultra-lightweight sitewide blast poll — returns only the latest_result.
-    Used by sitewide_blast.js to show the win celebration on any page."""
+    """Ultra-lightweight sitewide blast poll — the win celebration plus any
+    battle about to start. Used by sitewide_blast.js on every page."""
     if not is_battle_visible(request):
         raise Http404
-    return JsonResponse({"latest_result": _arena_latest_result()})
+    return JsonResponse({
+        "latest_result": _arena_latest_result(),
+        "starting": get_starting_battle_blast(),
+    })
 
 
 def _build_arena_payload():
