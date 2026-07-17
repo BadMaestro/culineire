@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.309",
+        "date": "2026-07-17",
+        "commit": "pending",
+        "title": "Offer a free arena seat on hover",
+        "section": "Chef Battles / Arena",
+        "summary": "Hovering a free arena cell now offers a single \"Sit here\" label that follows the cursor, shown only where the viewer could actually sit (a chef over their own rank ring, a spectator over the stands). The static cache version was also bumped so returning visitors receive the current renderer instead of a stale cached copy.",
+    },
+    {
         "version": "2.5.308",
         "date": "2026-07-16",
         "commit": "pending",
