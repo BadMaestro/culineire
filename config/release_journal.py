@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.316",
+        "date": "2026-07-17",
+        "commit": "pending",
+        "title": "Moderation headings get the brand typeface back",
+        "section": "Moderation",
+        "summary": "Headings on the automation and sponsor review screens were quietly rendering in the body typeface instead of the brand serif. They referenced a font variable that was never declared anywhere, so the rule was discarded and the heading simply inherited the surrounding text. They now use the same brand serif as the rest of the site, which is what they were always meant to be.",
+    },
+    {
         "version": "2.5.315",
         "date": "2026-07-17",
         "commit": "pending",
