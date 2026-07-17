@@ -146,15 +146,23 @@
     if (!panel) { return; }
     var deadline = data && data.deadline;
     var value = panel.querySelector('strong');
+    var caption = byId('arena-deadline-label');
     if (!deadline || typeof deadline.seconds_remaining === 'undefined') {
       stopDeadlineTicker();
       panel.classList.add('is-empty');
       panel.setAttribute('data-deadline-iso', '');
+      panel.setAttribute('data-deadline-kind', '');
+      if (caption) { caption.textContent = 'Live deadline'; }
       if (value) { value.textContent = 'No active deadline'; }
       return;
     }
     panel.classList.remove('is-empty');
     panel.setAttribute('data-deadline-iso', deadline.deadline_iso || '');
+    // The server already works out what this particular countdown ends —
+    // submission, voting or the battle itself. Say that rather than "deadline",
+    // and re-say it on every poll: the phase changes under a running clock.
+    panel.setAttribute('data-deadline-kind', deadline.kind || '');
+    if (caption && deadline.label) { caption.textContent = deadline.label; }
     // Reconcile against the authoritative server clock so a client with a
     // skewed clock still counts down from the right number.
     var deadlineAt = Date.parse(deadline.deadline_iso || '');

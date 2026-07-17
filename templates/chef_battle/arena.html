@@ -44,8 +44,8 @@
     <p id="arena-current-phase-copy" class="arena-command-deck__phase-copy">
       {% if active_battle %}The centre tile opens the live battle room, chat and public actions.{% else %}Choose a chef on the floor to inspect their profile or issue a challenge.{% endif %}
     </p>
-    <p id="arena-phase-deadline" class="arena-command-deck__phase-deadline{% if not arena_data.deadline %} is-empty{% endif %}" data-deadline-iso="{{ arena_data.deadline.deadline_iso|default:'' }}">
-      <span>Live deadline</span>
+    <p id="arena-phase-deadline" class="arena-command-deck__phase-deadline{% if not arena_data.deadline %} is-empty{% endif %}" data-deadline-iso="{{ arena_data.deadline.deadline_iso|default:'' }}" data-deadline-kind="{{ arena_data.deadline.kind|default:'' }}">
+      <span id="arena-deadline-label">{{ arena_data.deadline.label|default:"Live deadline" }}</span>
       <strong>{% if arena_data.deadline %}{{ arena_data.deadline.seconds_remaining }} seconds remaining{% else %}No active deadline{% endif %}</strong>
     </p>
   </section>
