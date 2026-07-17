@@ -32,6 +32,9 @@
   var stageCentre = null;
   // Ring the viewer currently occupies, or null while they are off the floor.
   var seatedRing = null;
+  // Centre identity from the last bind; null until the first one, so a page
+  // load does not replay an arrival that happened before the viewer arrived.
+  var centreKey = null;
 
   function el(tag, attrs) {
     var node = document.createElementNS(NS, tag);
@@ -308,7 +311,27 @@
     stage.style.cursor = center.popup_url ? 'pointer' : 'default';
     // Same key the command deck stamps on its own live stage, so the effects
     // layer can key both surfaces off one identity.
-    stage.setAttribute('data-centre-key', global.ArenaDeck ? global.ArenaDeck.centreKey(center) : 'empty');
+    var key = global.ArenaDeck ? global.ArenaDeck.centreKey(center) : 'empty';
+    var arrived = centreKey !== null && centreKey !== key && key !== 'empty';
+    centreKey = key;
+    stage.setAttribute('data-centre-key', key);
+    if (arrived) { flashTeleport(svg); }
+  }
+
+  /**
+   * Chefs have just taken the centre. Fired on the centre's identity changing,
+   * not on anyone's slug: _arena_center() emits no slug, which is why the legacy
+   * flash — keyed on `!prevSlugs[chef.slug]` — was true on every poll and
+   * strobed instead of marking an arrival.
+   */
+  function flashTeleport(svg) {
+    var ring = el('circle', {
+      cx: SVG_SIZE / 2, cy: SVG_SIZE / 2, r: STAGE_RADIUS,
+      fill: 'none', 'pointer-events': 'none',
+      class: 'arena-teleport-flash'
+    });
+    svg.appendChild(ring);
+    global.setTimeout(function () { ring.remove(); }, 900);
   }
 
   /* ---------------------------------------------------------------- */
