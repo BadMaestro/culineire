@@ -1534,13 +1534,19 @@ def battle_vote(request, pk):
         messages.error(request, "Voting opens after entries are revealed.")
         return redirect(battle.get_absolute_url())
 
+    # Voting is registered-members-only (owner decision 2026-07-17): an anonymous
+    # visitor is a passer-by, not a voter. They are invited to sign in instead.
+    if not request.user.is_authenticated:
+        messages.error(request, "Voting is for registered members. Please sign in or create an account to vote.")
+        return redirect(f"{settings.LOGIN_URL}?next={battle.get_absolute_url()}")
+
     voted_for = get_object_or_404(RecipeAuthor, pk=request.POST.get("voted_for"))
     if voted_for.pk not in {battle.challenger_id, battle.opponent_id}:
         messages.error(request, "Choose one of the battle chefs.")
         return redirect(battle.get_absolute_url())
 
-    user = request.user if request.user.is_authenticated else None
-    voter_author = get_author_for_user(user) if user else None
+    user = request.user
+    voter_author = get_author_for_user(user)
 
     ip_hash = hash_request_value(get_client_ip(request) or "")
     ua_hash = hash_request_value(request.META.get("HTTP_USER_AGENT", ""))

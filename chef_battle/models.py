@@ -302,7 +302,10 @@ class BattleEntry(models.Model):
 
 class BattleVote(models.Model):
     battle = models.ForeignKey(Battle, on_delete=models.CASCADE, related_name="votes")
-    voter = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="battle_votes")
+    # Voting is registered-members-only: an anonymous visitor is a passer-by and
+    # cannot vote (owner decision 2026-07-17). A vote is always tied to a real
+    # account, so the FK is required and a deleted account takes its votes with it.
+    voter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="battle_votes")
     voted_for = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="battle_votes_received")
     ip_hash = models.CharField(max_length=64, blank=True)
     user_agent_hash = models.CharField(max_length=64, blank=True)
@@ -316,13 +319,7 @@ class BattleVote(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=["battle", "voter"],
-                condition=Q(voter__isnull=False),
                 name="one_authenticated_vote_per_battle",
-            ),
-            models.UniqueConstraint(
-                fields=["battle", "ip_hash", "user_agent_hash"],
-                condition=Q(voter__isnull=True) & ~Q(ip_hash="") & ~Q(user_agent_hash=""),
-                name="one_anonymous_vote_per_battle_device",
             ),
         ]
 

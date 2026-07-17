@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.311",
+        "date": "2026-07-17",
+        "commit": "pending",
+        "title": "Voting is for registered members only",
+        "section": "Chef Battles / Voting",
+        "summary": "Anonymous visitors can no longer vote in a battle: a passer-by is invited to sign in instead, and only a signed-in account can cast a ballot. The per-device anonymous constraint is retired while the connection fingerprints are kept, so duplicate-account abuse from one device is still caught. Historical anonymous ballots are removed by migration.",
+    },
+    {
         "version": "2.5.310",
         "date": "2026-07-17",
         "commit": "pending",

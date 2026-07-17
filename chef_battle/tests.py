@@ -334,14 +334,12 @@ class ChefBattleAntiAbuseTests(TestCase):
         with self.assertRaises(IntegrityError):
             BattleVote.objects.create(battle=self.battle, voter=self.voter1, voted_for=self.chef_a)
 
-    def test_duplicate_anonymous_vote_same_device_raises_integrity_error(self):
-        BattleVote.objects.create(
-            battle=self.battle, voter=None, voted_for=self.chef_a,
-            ip_hash="aaa", user_agent_hash="bbb",
-        )
+    def test_anonymous_vote_cannot_be_created(self):
+        # Voting is registered-members-only: the voter FK is required, so an
+        # anonymous ballot (voter=None) can no longer be stored at all.
         with self.assertRaises(IntegrityError):
             BattleVote.objects.create(
-                battle=self.battle, voter=None, voted_for=self.chef_b,
+                battle=self.battle, voter=None, voted_for=self.chef_a,
                 ip_hash="aaa", user_agent_hash="bbb",
             )
 
@@ -421,18 +419,16 @@ class VoteIntegrityEvidenceTests(TestCase):
         self.assertNotIn("constraint_rejected", public_html)
         self.assertNotIn(event.ip_hash, public_html)
 
-    def test_anonymous_duplicate_records_gate_event_not_vote(self):
+    def test_anonymous_vote_is_rejected_and_records_nothing(self):
+        # Registered-members-only: an anonymous POST never reaches the ballot
+        # path. It is redirected to sign in and stores neither a vote nor an
+        # integrity event.
         payload = {"voted_for": self.chef_a.pk}
-        self.client.post(self.url, payload, HTTP_USER_AGENT="anonymous-integrity-agent")
-        self.client.post(self.url, payload, HTTP_USER_AGENT="anonymous-integrity-agent")
-
-        self.assertEqual(BattleVote.objects.filter(battle=self.battle).count(), 1)
-        event = VoteIntegrityEvent.objects.get(battle=self.battle)
-        self.assertEqual(event.gate_code, "duplicate_device")
-        self.assertEqual(event.failed_gates, ["duplicate_device"])
-        self.assertFalse(event.is_authenticated)
-        self.assertEqual(len(event.ip_hash), 64)
-        self.assertEqual(len(event.user_agent_hash), 64)
+        resp = self.client.post(self.url, payload, HTTP_USER_AGENT="anonymous-integrity-agent")
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn("/accounts/login/", resp["Location"])
+        self.assertEqual(BattleVote.objects.filter(battle=self.battle).count(), 0)
+        self.assertEqual(VoteIntegrityEvent.objects.filter(battle=self.battle).count(), 0)
 
     def test_retention_defaults_to_90_days_and_purge_removes_only_expired(self):
         current = VoteIntegrityEvent.objects.create(
