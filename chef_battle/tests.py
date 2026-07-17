@@ -1298,8 +1298,11 @@ class BattleCompletionLedgerTests(TestCase):
 
     def test_ledger_event_created_on_battle_complete(self):
         battle = self._make_battle()
-        BattleVote.objects.create(battle=battle, voted_for=self.chef_a, ip_hash="x1", user_agent_hash="y1")
-        BattleVote.objects.create(battle=battle, voted_for=self.chef_a, ip_hash="x2", user_agent_hash="y2")
+        User = get_user_model()
+        v1 = User.objects.create_user("ledger-v1", password="pw")
+        v2 = User.objects.create_user("ledger-v2", password="pw")
+        BattleVote.objects.create(battle=battle, voter=v1, voted_for=self.chef_a, ip_hash="x1", user_agent_hash="y1")
+        BattleVote.objects.create(battle=battle, voter=v2, voted_for=self.chef_a, ip_hash="x2", user_agent_hash="y2")
         calculate_battle_result(battle)
         self.assertTrue(
             LedgerEvent.objects.filter(
@@ -2205,8 +2208,9 @@ class ArenaMasterStateTests(TestCase):
         for i, target in enumerate((self.chef_a, self.chef_b)):
             voter = User.objects.create_user(f"ms-voter-{i}", password="pw")
             BattleVote.objects.create(battle=battle, voter=voter, voted_for=target)
+        sus_voter = User.objects.create_user("ms-voter-sus", password="pw")
         BattleVote.objects.create(
-            battle=battle, voted_for=self.chef_a,
+            battle=battle, voter=sus_voter, voted_for=self.chef_a,
             ip_hash="h1", user_agent_hash="h2", is_suspicious=True,
         )
         data = self._owner_state()
