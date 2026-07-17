@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 from accounts.views import is_moderator
 from monitoring.tracker import get_client_ip
 from recipes.authoring import get_author_for_user
-from recipes.models import RecipeAuthor
+from recipes.models import Recipe, RecipeAuthor
 
 from .access import arena_console_guard, chef_battle_guard, is_battle_visible
 from .forms import BattleChallengeForm, BattleEntryForm, BattleRecipeAttachForm
@@ -1232,6 +1232,7 @@ def challenge_create(request):
         )
         return redirect("chef_battle:challenge_list")
 
+    inspired_by = None
     if request.method == "POST":
         form = BattleChallengeForm(request.POST, challenger=author)
         if form.is_valid():
@@ -1296,9 +1297,29 @@ def challenge_create(request):
                 initial["opponent"] = opp.pk
             except RecipeAuthor.DoesNotExist:
                 pass
+
+        # A challenge can start from someone else's recipe page.  That recipe
+        # seeds the theme and names the opponent, but it never becomes anyone's
+        # entry: the challenger still brings their own dish, chosen from
+        # theme_recipe.  Only an approved recipe can do this, since the
+        # audience has to be able to open what the theme refers to.
+        inspired_slug = request.GET.get("inspired_by")
+        if inspired_slug:
+            inspired_by = (
+                Recipe.objects.select_related("author")
+                .filter(slug=inspired_slug, status=Recipe.Status.APPROVED, is_deleted=False)
+                .first()
+            )
+            if inspired_by:
+                initial.setdefault("opponent", inspired_by.author_id)
+                initial.setdefault("theme", inspired_by.title[:180])
         form = BattleChallengeForm(challenger=author, initial=initial)
 
-    return render(request, "chef_battle/challenge_form.html", {"form": form})
+    return render(
+        request,
+        "chef_battle/challenge_form.html",
+        {"form": form, "inspired_by": inspired_by},
+    )
 
 
 @chef_battle_guard

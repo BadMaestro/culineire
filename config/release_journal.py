@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.317",
+        "date": "2026-07-17",
+        "commit": "pending",
+        "title": "Only a published recipe can carry a battle, and a recipe can now start one",
+        "section": "Chef Battles",
+        "summary": "A chef could issue a challenge with a recipe that was still a draft, or one moderation had already rejected, and accepting that challenge turned it into a battle entry anyway. The audience would then have been asked to vote on a recipe it could not open. Every recipe chooser in a battle now offers approved recipes only, and the status is checked again at the moment the battle is created, because a challenge stands for forty-eight hours and moderation can withdraw a recipe inside that window. A challenge can also now be started from a published recipe: that recipe names the chef being challenged and suggests the theme, while the challenger still brings a dish of their own.",
+    },
+    {
         "version": "2.5.316",
         "date": "2026-07-17",
         "commit": "pending",

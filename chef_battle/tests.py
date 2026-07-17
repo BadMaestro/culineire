@@ -84,6 +84,65 @@ class ChefBattleServiceTests(TestCase):
         self.assertEqual(entry.recipe, recipe)
         self.assertIsNone(entry.dish_submitted_at)
 
+    def test_accept_challenge_leaves_off_a_theme_recipe_that_lost_approval(self):
+        """A challenge stands for 48 hours and moderation can act inside that
+        window, so the recipe is re-checked when the battle is actually made."""
+        from recipes.models import Recipe
+        recipe = Recipe.objects.create(
+            title="Withdrawn dish", slug="withdrawn-dish", author=self.chef_a,
+            ingredients="lamb", method="Cook.", status=Recipe.Status.APPROVED,
+        )
+        challenge = self._challenge()
+        challenge.theme_recipe = recipe
+        challenge.save(update_fields=["theme_recipe"])
+
+        recipe.status = Recipe.Status.REJECTED
+        recipe.save(update_fields=["status"])
+
+        battle = accept_challenge(challenge)
+
+        self.assertFalse(
+            BattleEntry.objects.filter(battle=battle, author=self.chef_a).exists(),
+            "a rejected recipe must not become a battle entry the audience cannot open",
+        )
+
+    def test_challenge_form_offers_only_approved_recipes(self):
+        from recipes.models import Recipe
+        from .forms import BattleChallengeForm
+        approved = Recipe.objects.create(
+            title="Ready dish", slug="ready-dish", author=self.chef_a,
+            ingredients="lamb", method="Cook.", status=Recipe.Status.APPROVED,
+        )
+        for tag, status in (
+            ("draft", Recipe.Status.DRAFT),
+            ("pending", Recipe.Status.PENDING),
+            ("rejected", Recipe.Status.REJECTED),
+        ):
+            Recipe.objects.create(
+                title=f"Unready {tag}", slug=f"unready-{tag}", author=self.chef_a,
+                ingredients="lamb", method="Cook.", status=status,
+            )
+
+        offered = list(BattleChallengeForm(challenger=self.chef_a).fields["theme_recipe"].queryset)
+
+        self.assertEqual(offered, [approved])
+
+    def test_recipe_attach_form_offers_only_approved_recipes(self):
+        from recipes.models import Recipe
+        from .forms import BattleRecipeAttachForm
+        approved = Recipe.objects.create(
+            title="Attachable dish", slug="attachable-dish", author=self.chef_a,
+            ingredients="lamb", method="Cook.", status=Recipe.Status.APPROVED,
+        )
+        Recipe.objects.create(
+            title="Draft dish", slug="draft-dish", author=self.chef_a,
+            ingredients="lamb", method="Cook.", status=Recipe.Status.DRAFT,
+        )
+
+        offered = list(BattleRecipeAttachForm(author=self.chef_a).fields["recipe"].queryset)
+
+        self.assertEqual(offered, [approved])
+
     def test_refuse_challenge_records_reputation_penalty(self):
         challenge = self._challenge()
 
@@ -202,6 +261,80 @@ class ChefBattleChallengeCreateViewTests(TestCase):
         self.author = RecipeAuthor.objects.create(user=self.user, name="Challenge Owner", slug="challenge-owner")
         self.opponent = RecipeAuthor.objects.create(user=self.opponent_user, name="Challenge Opponent", slug="challenge-opponent")
         ChefBattleProfile.objects.create(author=self.author, battle_moves=10)
+
+    def _opponent_recipe(self, status=None):
+        from recipes.models import Recipe
+        return Recipe.objects.create(
+            title="Dingle Crab Toast", slug="dingle-crab-toast", author=self.opponent,
+            ingredients="crab\nbread", method="Toast.",
+            status=status or Recipe.Status.APPROVED,
+        )
+
+    def test_inspired_by_seeds_the_theme_and_names_the_recipe_author(self):
+        """The CTA on someone else's recipe page arrives here."""
+        recipe = self._opponent_recipe()
+        self.client.login(username="challenge-owner", password="pw")
+
+        response = self.client.get(
+            reverse("chef_battle:challenge_create") + f"?inspired_by={recipe.slug}"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        form = response.context["form"]
+        self.assertEqual(form.initial["theme"], "Dingle Crab Toast")
+        self.assertEqual(form.initial["opponent"], self.opponent.pk)
+        self.assertEqual(response.context["inspired_by"], recipe)
+
+    def test_inspired_by_never_offers_someone_elses_recipe_as_your_entry(self):
+        """theme_recipe becomes the challenger's own battle entry on accept, so
+        the recipe that inspired the theme must not leak into that choice."""
+        recipe = self._opponent_recipe()
+        self.client.login(username="challenge-owner", password="pw")
+
+        response = self.client.get(
+            reverse("chef_battle:challenge_create") + f"?inspired_by={recipe.slug}"
+        )
+
+        form = response.context["form"]
+        self.assertNotIn("theme_recipe", form.initial)
+        self.assertNotIn(recipe, form.fields["theme_recipe"].queryset)
+
+    def test_inspired_by_ignores_a_recipe_the_audience_cannot_open(self):
+        from recipes.models import Recipe
+        recipe = self._opponent_recipe(status=Recipe.Status.DRAFT)
+        self.client.login(username="challenge-owner", password="pw")
+
+        response = self.client.get(
+            reverse("chef_battle:challenge_create") + f"?inspired_by={recipe.slug}"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.context["inspired_by"])
+        self.assertNotIn("theme", response.context["form"].initial)
+
+    def test_inspired_by_ignores_an_unknown_slug(self):
+        self.client.login(username="challenge-owner", password="pw")
+
+        response = self.client.get(
+            reverse("chef_battle:challenge_create") + "?inspired_by=no-such-recipe"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.context["inspired_by"])
+
+    def test_explicit_opponent_wins_over_the_inspiring_recipes_author(self):
+        recipe = self._opponent_recipe()
+        User = get_user_model()
+        third_user = User.objects.create_user(username="third-chef", password="pw")
+        third = RecipeAuthor.objects.create(user=third_user, name="Third Chef", slug="third-chef")
+        self.client.login(username="challenge-owner", password="pw")
+
+        response = self.client.get(
+            reverse("chef_battle:challenge_create")
+            + f"?inspired_by={recipe.slug}&opponent={third.slug}"
+        )
+
+        self.assertEqual(response.context["form"].initial["opponent"], third.pk)
 
     def test_challenge_create_page_renders_guided_form_layout(self):
         self.client.login(username="challenge-owner", password="pw")

@@ -21,8 +21,11 @@ class BattleChallengeForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.challenger = challenger
         self.fields["opponent"].queryset = RecipeAuthor.objects.filter(user__isnull=False).exclude(pk=getattr(challenger, "pk", None)).order_by("name")
+        # Only an approved recipe can carry a battle: accepting the challenge
+        # attaches this one as the challenger's entry, and the audience has to
+        # be able to read what it is voting on.
         self.fields["theme_recipe"].queryset = Recipe.objects.filter(
-            author=challenger, is_deleted=False
+            author=challenger, status=Recipe.Status.APPROVED, is_deleted=False
         ).order_by("-created_at")
         self.fields["theme_recipe"].required = True
         self.fields["theme_recipe"].label = "Your recipe for this battle"
@@ -98,5 +101,7 @@ class BattleRecipeAttachForm(forms.Form):
 
     def __init__(self, *args, author=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["recipe"].queryset = Recipe.objects.filter(author=author, is_deleted=False).order_by("-created_at")
+        self.fields["recipe"].queryset = Recipe.objects.filter(
+            author=author, status=Recipe.Status.APPROVED, is_deleted=False
+        ).order_by("-created_at")
         self.fields["recipe"].widget.attrs["class"] = "authoring-control"

@@ -11,6 +11,7 @@ from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 
 from newsfeed.models import NewsFeedEntry
+from recipes.models import Recipe
 
 from .models import (
     APPRECIATION_GIFT_COST, Artifact, Battle, BattleChallenge, BattleCombatAction,
@@ -179,7 +180,13 @@ def accept_challenge(challenge: BattleChallenge) -> Battle:
         # The challenger chose this recipe when issuing the challenge.  Attach
         # it as soon as the battle exists; attaching a recipe is deliberately
         # not the same event as submitting the cooked dish.
-        if challenge.theme_recipe_id:
+        #
+        # Re-check the status here rather than trusting the choice made at
+        # challenge time: a challenge stands for 48 hours, and moderation can
+        # withdraw a recipe inside that window.  A battle carrying a recipe the
+        # audience cannot open is worse than one whose challenger has to attach
+        # an approved recipe again, so an unapproved theme recipe is left off.
+        if challenge.theme_recipe_id and challenge.theme_recipe.status == Recipe.Status.APPROVED:
             BattleEntry.objects.create(
                 battle=battle,
                 author=challenge.challenger,
