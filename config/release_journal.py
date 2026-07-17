@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.310",
+        "date": "2026-07-17",
+        "commit": "pending",
+        "title": "Align the purchases & VAT page with real chef payouts",
+        "section": "Legal",
+        "summary": "The purchases and VAT page now matches what the platform actually does: purchased tokens stay closed-loop and are never bought back, while a Chef may request a discretionary real-money buy-back of approved reward tokens. A new Chef Payouts section covers the Chef Reward Agreement, a rate locked at request time, Stripe Connect with identity verification, DAC7 reporting under EU Directive 2021/514, and the Chef's own tax responsibility.",
+    },
+    {
         "version": "2.5.309",
         "date": "2026-07-17",
         "commit": "pending",
