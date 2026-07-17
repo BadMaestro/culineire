@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.314",
+        "date": "2026-07-17",
+        "commit": "pending",
+        "title": "The countdown says what it is ending",
+        "section": "Chef Battles / Arena",
+        "summary": "The arena countdown now names the thing it is counting down to — dish submission, public voting, or the battle itself — instead of the generic 'Live deadline'. The wording is re-read on every refresh, because the phase can change while the clock is running.",
+    },
+    {
         "version": "2.5.313",
         "date": "2026-07-17",
         "commit": "pending",
