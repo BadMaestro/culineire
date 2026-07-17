@@ -2670,6 +2670,32 @@ class ArenaMasterActionTests(TestCase):
         self.assertFalse(BattleEvent.objects.filter(battle_id=battle.pk).exists())
 
     @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_cancel_in_test_mode_deletes_battle_and_returns_artifacts(self):
+        from chef_battle.models import Artifact, ChefArtifact
+        from chef_battle.services import operator_cancel
+        battle = self._battle(Battle.Status.ACTIVE)
+        art = Artifact.objects.create(name="Cancel Test Blade")
+        held = ChefArtifact.objects.create(
+            chef=self.chef_a, artifact=art,
+            status=ChefArtifact.Status.RESERVED, reserved_in_battle=battle,
+        )
+        BattleEvent.objects.create(
+            battle=battle, event_type=BattleEvent.EventType.BATTLE_STARTED,
+            message="trace",
+        )
+
+        operator_cancel(battle_id=battle.pk, operator_author=self.owner_author,
+                        reason="scrap this test battle")
+
+        # No trace of the battle anywhere.
+        self.assertFalse(Battle.objects.filter(pk=battle.pk).exists())
+        self.assertFalse(BattleEvent.objects.filter(battle_id=battle.pk).exists())
+        # Artifact is back in the chef's chest, unlinked from the battle.
+        held.refresh_from_db()
+        self.assertEqual(held.status, ChefArtifact.Status.AVAILABLE)
+        self.assertIsNone(held.reserved_in_battle_id)
+
+    @override_settings(CHEF_BATTLE_ENABLED=False)
     def test_scored_test_battle_cannot_be_deleted(self):
         battle = self._battle(Battle.Status.COMPLETED)
         battle.winner = self.chef_a

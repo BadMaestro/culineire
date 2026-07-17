@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.312",
+        "date": "2026-07-17",
+        "commit": "pending",
+        "title": "Cancel Battle erases a test battle and returns its artifacts",
+        "section": "Chef Battles / Arena",
+        "summary": "While Chef Battles is in test mode, the operator Cancel Battle control now erases an unscored battle completely — the battle, its linked challenge and every related record — leaving no trace anywhere, and returns every artifact the battle reserved, consumed or locked back to the owning chef's chest. A scored battle, or any battle once Chef Battles is public, still follows the safe mark-cancelled path.",
+    },
+    {
         "version": "2.5.311",
         "date": "2026-07-17",
         "commit": "pending",

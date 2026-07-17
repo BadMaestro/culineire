@@ -6,7 +6,7 @@ import logging
 from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.db import models
-from django.db.models import Count, F, Sum
+from django.db.models import Count, F, Q, Sum
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 
@@ -2573,12 +2573,52 @@ def operator_resume(*, battle_id, operator_author, correlation_id=""):
     return battle
 
 
+def _return_battle_artifacts_to_chest(battle):
+    """Return every artifact this battle reserved, consumed or locked back to the
+    owning chef's chest (AVAILABLE), clearing the battle links so nothing is left
+    stranded when the battle row is removed. Battle-gift artifacts delivered
+    inside the battle are returned the same way — the chef keeps them, available."""
+    (
+        ChefArtifact.objects
+        .filter(
+            Q(reserved_in_battle=battle)
+            | Q(consumed_in_battle=battle)
+            | Q(locked_to_battle=battle)
+        )
+        .update(
+            status=ChefArtifact.Status.AVAILABLE,
+            reserved_in_battle=None,
+            consumed_in_battle=None,
+            locked_to_battle=None,
+            consumed_at=None,
+            equipped=False,
+        )
+    )
+
+
 def operator_cancel(*, battle_id, operator_author, reason, correlation_id=""):
-    """Cancel a battle (owner-only). Follows the handle_no_show_battles
-    cancellation pattern: CANCELLED + result_reason + audit event."""
+    """Cancel a battle (owner-only).
+
+    In test mode (Chef Battles not yet public) an unscored battle is erased
+    completely — the owner's 'Cancel Battle' leaves no trace of it anywhere and
+    returns any artifacts it held to their chests. A scored battle, or any
+    battle once Chef Battles is public, follows the safe mark-CANCELLED pattern
+    (CANCELLED + result_reason + audit event) instead.
+    """
     _require_owner(operator_author)
     if not (reason or "").strip():
         raise OperatorActionError("Cancellation requires a reason.")
+
+    test_mode = not getattr(settings, "CHEF_BATTLE_ENABLED", False)
+    if test_mode:
+        battle = Battle.objects.filter(pk=battle_id).first()
+        if battle and not (battle.winner_id or battle.loser_id or battle.crown_awarded):
+            return operator_delete_test_battle(
+                battle_id=battle_id,
+                operator_author=operator_author,
+                correlation_id=correlation_id,
+            )
+
     with transaction.atomic():
         battle = _locked_battle(battle_id, expected_status=None)
         before = battle.status
@@ -2635,6 +2675,9 @@ def operator_delete_test_battle(*, battle_id, operator_author, correlation_id=""
             "status": battle.status,
             "challenge_id": battle.challenge_id,
         }
+        # Return artifacts to their chests before the battle row (and its
+        # SET_NULL links) disappear, or they would be stranded mid-battle.
+        _return_battle_artifacts_to_chest(battle)
         if battle.challenge_id:
             BattleChallenge.objects.select_for_update().filter(
                 pk=battle.challenge_id
