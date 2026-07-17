@@ -135,6 +135,26 @@
   display: none;
 }
 
+/* ---- teleport ---- */
+
+/* Chefs taking the centre. chef_battle.css carries a flash of the same name,
+   but its keyframes animate r: 0 -> 55 against the legacy 1740-unit viewBox —
+   inside this stage rather than around it. Scoped here to this renderer's own
+   geometry instead. */
+#arena-render .arena-teleport-flash {
+  stroke: var(--arena-accent);
+  animation: arena-render-teleport 0.7s ease-out forwards;
+}
+
+@keyframes arena-render-teleport {
+  0%   { r: 88;  opacity: 0.9; stroke-width: 5; }
+  100% { r: 165; opacity: 0;   stroke-width: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #arena-render .arena-teleport-flash { display: none; }
+}
+
 /* ---- occupants ---- */
 
 #arena-render .arena-occupant {
