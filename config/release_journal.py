@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.315",
+        "date": "2026-07-17",
+        "commit": "pending",
+        "title": "A battle about to start calls the whole site to its seats",
+        "section": "Chef Battles / Arena",
+        "summary": "Five minutes before a scheduled battle begins, every page of the site now carries a small corner banner naming the theme, both chefs and the real countdown, inviting members to take their seat and guests to register for one. It never blocks the page, so nobody is held hostage mid-recipe, and it dismisses per battle rather than forever: the next battle calls again. The teleport flash on the arena floor was also fixed — it had been firing every twenty seconds at nobody.",
+    },
+    {
         "version": "2.5.314",
         "date": "2026-07-17",
         "commit": "pending",
