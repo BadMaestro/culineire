@@ -751,7 +751,7 @@
 (function () {
   /* Sitewide blast — polls /chef-battle/arena/blast/ every 45s, fires the
      site-wide win celebration (.battle-blast overlay) on any page when a
-     new battle completes. The arena page has its own poller via arena_puzzle.js;
+     new battle completes. The arena page has its own poller via arena_render.js;
      this script is a no-op there (both run harmlessly — dedup by battle_id). */
   var POLL_URL = '{% url "chef_battle:arena_blast" %}';
   var POLL_INTERVAL = 45000;
