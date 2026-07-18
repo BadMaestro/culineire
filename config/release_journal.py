@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.323",
+        "date": "2026-07-18",
+        "commit": "pending",
+        "title": "A published recipe is rewarded once, not once per re-approval",
+        "section": "Chef Battles",
+        "summary": "Publishing a recipe, article or pinch grants battle-move energy and a season contribution to the author's faction and clan. Because editing an approved recipe sends it back for moderation, a chef could edit and have the same recipe re-approved repeatedly, and each re-approval paid the reward again - including the uncapped clan/faction season points, a way to farm a clan's standing. The reward is now paid once per object; likes are unaffected, keeping their own separate per-source daily limit.",
+    },
+    {
         "version": "2.5.322",
         "date": "2026-07-18",
         "commit": "pending",

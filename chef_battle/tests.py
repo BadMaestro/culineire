@@ -914,6 +914,56 @@ class EnergyServiceTests(TestCase):
         profile = ChefBattleProfile.objects.get(author=self.chef)
         self.assertEqual(profile.battle_moves, LIKE_ANTI_FARM_MAX_PER_SOURCE)
 
+    def test_content_publish_reward_is_once_per_object(self):
+        """A recipe can go unapproved -> approved many times (edit, re-approve).
+        The publish reward — moves AND the uncapped faction/clan contributions —
+        must be paid once per recipe, or a chef farms clan points by re-approving."""
+        from recipes.models import Recipe
+        from .energy_service import award_moves, EARN_RECIPE_PUBLISHED
+        from .models import BattleMoveTransaction, ChefBattleProfile
+        TxType = BattleMoveTransaction.TxType
+        recipe = Recipe.objects.create(
+            title="Farmable Dish", slug="farmable-dish", author=self.chef,
+            ingredients="lamb", method="Cook.", status=Recipe.Status.DRAFT,
+        )
+
+        first = award_moves(self.chef, EARN_RECIPE_PUBLISHED, TxType.RECIPE_PUBLISHED, reference=recipe)
+        second = award_moves(self.chef, EARN_RECIPE_PUBLISHED, TxType.RECIPE_PUBLISHED, reference=recipe)
+
+        self.assertEqual(first, 5)
+        self.assertEqual(second, 0, "re-approving the same recipe must not re-award")
+        profile = ChefBattleProfile.objects.get(author=self.chef)
+        self.assertEqual(profile.battle_moves, 5)
+        self.assertEqual(
+            BattleMoveTransaction.objects.filter(
+                chef=self.chef, transaction_type=TxType.RECIPE_PUBLISHED
+            ).count(),
+            1,
+        )
+
+    def test_publish_reward_guard_is_per_object(self):
+        """The once-per-object guard keys on the specific object, so publishing a
+        different recipe still rewards."""
+        from recipes.models import Recipe
+        from .energy_service import award_moves, EARN_RECIPE_PUBLISHED
+        from .models import BattleMoveTransaction, ChefBattleProfile
+        TxType = BattleMoveTransaction.TxType
+        r1 = Recipe.objects.create(
+            title="Dish One", slug="dish-one", author=self.chef,
+            ingredients="a", method="b", status=Recipe.Status.DRAFT,
+        )
+        r2 = Recipe.objects.create(
+            title="Dish Two", slug="dish-two", author=self.chef,
+            ingredients="a", method="b", status=Recipe.Status.DRAFT,
+        )
+
+        award_moves(self.chef, EARN_RECIPE_PUBLISHED, TxType.RECIPE_PUBLISHED, reference=r1)
+        second = award_moves(self.chef, EARN_RECIPE_PUBLISHED, TxType.RECIPE_PUBLISHED, reference=r2)
+
+        self.assertEqual(second, 5)
+        profile = ChefBattleProfile.objects.get(author=self.chef)
+        self.assertEqual(profile.battle_moves, 10)
+
     def test_spend_moves_deducts_balance(self):
         from .energy_service import award_moves, spend_moves
         from .models import BattleMoveTransaction, ChefBattleProfile

@@ -61,6 +61,12 @@ _FACTION_EARN_TYPES = frozenset({
     "recipe_published", "article_published", "pinch_published", "like_received",
 })
 
+# Content whose publish reward is once-per-object (idempotent). Deliberately
+# excludes like_received, which legitimately repeats under its own anti-farm gate.
+_ONCE_PER_OBJECT_TYPES = frozenset({
+    "recipe_published", "article_published", "pinch_published",
+})
+
 
 @transaction.atomic
 def award_moves(
@@ -89,6 +95,26 @@ def award_moves(
 
     from chef_battle.models import BattleMoveTransaction
     TxType = BattleMoveTransaction.TxType
+
+    # Publishing a piece of content rewards it ONCE. A recipe (or article/pinch)
+    # can transition unapproved -> approved many times — a chef edits an approved
+    # recipe, which flips it back to PENDING, a moderator re-approves, and the
+    # publish signal fires again. Without this guard each re-approval re-awards
+    # moves AND the uncapped faction/clan season contributions below, letting a
+    # chef farm clan points by editing and re-approving the same recipe. The
+    # reference's ContentType + pk are already recorded on every transaction, so
+    # a prior award for this exact object is a simple existence check. Likes are
+    # exempt: they carry their own per-source-per-day anti-farm gate and are
+    # meant to repeat.
+    if transaction_type in _ONCE_PER_OBJECT_TYPES and reference is not None:
+        from django.contrib.contenttypes.models import ContentType
+        if BattleMoveTransaction.objects.filter(
+            chef=author,
+            transaction_type=transaction_type,
+            reference_content_type=ContentType.objects.get_for_model(reference),
+            reference_object_id=reference.pk,
+        ).exists():
+            return 0
 
     # Anti-farming: max LIKE_ANTI_FARM_MAX_PER_SOURCE moves per unique liker per day
     if transaction_type == TxType.LIKE_RECEIVED and source_author is not None:
