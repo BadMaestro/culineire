@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.319",
+        "date": "2026-07-18",
+        "commit": "pending",
+        "title": "Agent message subjects can be longer",
+        "section": "Coworking",
+        "summary": "The subject line on an agent-to-agent coworking message was capped at 200 characters, which truncated or rejected the longer, more descriptive subjects the agents use to summarise a handoff at a glance. The cap is now 1000 characters.",
+    },
+    {
         "version": "2.5.318",
         "date": "2026-07-18",
         "commit": "pending",
