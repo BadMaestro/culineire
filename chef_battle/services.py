@@ -616,8 +616,14 @@ def calculate_battle_result(battle: Battle) -> Battle:
     if battle.status == Battle.Status.COMPLETED:
         return battle
     with transaction.atomic():
-        battle = _locked_battle(battle.pk, expected_status=None)
-        if battle.status == Battle.Status.COMPLETED:
+        # Lock the row and read its status authoritatively. We keep the caller's
+        # own `battle` object and score THAT in place — callers (and tests) rely
+        # on calculate_battle_result mutating the object they passed, not just
+        # the database row — while `locked` holds the row lock for the whole
+        # transaction so a concurrent caller blocks here, then sees COMPLETED.
+        locked = _locked_battle(battle.pk, expected_status=None)
+        if locked.status == Battle.Status.COMPLETED:
+            battle.status = locked.status
             return battle
         return _score_battle(battle)
 
