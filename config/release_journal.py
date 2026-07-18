@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.326",
+        "date": "2026-07-18",
+        "commit": "pending",
+        "title": "The arena crowd becomes the dark stands around the floor",
+        "section": "Chef Battles / Arena",
+        "summary": "The first pass at the darkened hall put the dark behind the arena, which left it visible only in the corners around the eight-sided floor - a black box rather than an amphitheatre. The dark now belongs to the crowd itself: the four spectator rings are the stands, deepening ring by ring as they fall away from the stage, with a taken seat lit like a face catching the stage light. The floor keeps its warm parchment, and its rank steps were deepened so the ranks read clearly instead of washing out to white.",
+    },
+    {
         "version": "2.5.325",
         "date": "2026-07-18",
         "commit": "pending",

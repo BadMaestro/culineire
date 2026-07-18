@@ -58,14 +58,14 @@
 }
 
 /* Free rank seats: parchment, deepening toward the centre. */
-#arena-render [data-ring="8"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 6%, var(--surface)); }
-#arena-render [data-ring="7"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 12%, var(--surface)); }
-#arena-render [data-ring="6"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 18%, var(--surface)); }
-#arena-render [data-ring="5"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 26%, var(--surface)); }
-#arena-render [data-ring="4"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 34%, var(--surface)); }
-#arena-render [data-ring="3"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 44%, var(--surface)); }
-#arena-render [data-ring="2"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 56%, var(--surface)); }
-#arena-render [data-ring="1"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 70%, var(--surface)); }
+#arena-render [data-ring="8"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 14%, var(--surface)); }
+#arena-render [data-ring="7"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 21%, var(--surface)); }
+#arena-render [data-ring="6"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 28%, var(--surface)); }
+#arena-render [data-ring="5"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 36%, var(--surface)); }
+#arena-render [data-ring="4"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 45%, var(--surface)); }
+#arena-render [data-ring="3"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 54%, var(--surface)); }
+#arena-render [data-ring="2"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 64%, var(--surface)); }
+#arena-render [data-ring="1"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 76%, var(--surface)); }
 
 /* A taken seat sits one step deeper than the free seat beside it, so an
    occupied ring still reads as a ring behind its avatars. */
@@ -209,6 +209,36 @@
      into shadow while the centre stays lit. */
   box-shadow: inset 0 0 90px 26px rgba(0, 0, 0, 0.55), var(--shadow-sm);
 }
+
+/* ----------------------------------------------------------------------------
+ * The stands are RINGS, not a backdrop.
+ *
+ * Painting the dark onto the container alone put it only in the four corners
+ * left over around an inscribed octagon: a black box with a pale slab in it,
+ * not an amphitheatre (owner's screenshot, 2026-07-18). In the mockup the dark
+ * IS the crowd — the outer rings themselves, packed with people, wrapping a lit
+ * floor. So the spectator rings (9-12, the 208 seats) become the dark stands
+ * and the rank floor (1-8) keeps its parchment. The bowl then reads from the
+ * geometry outward instead of from the frame inward.
+ * -------------------------------------------------------------------------- */
+#arena-render [data-ring-kind="spectator"][data-occupancy="empty"] {
+  fill: color-mix(in srgb, var(--arena-bowl) 88%, var(--ink));
+  stroke: color-mix(in srgb, var(--arena-bowl-edge) 70%, var(--arena-spot));
+}
+
+/* An occupied seat is a lit face in the dark: brighter than the stand around
+   it, so a full house reads as a crowd rather than a texture. */
+#arena-render [data-ring-kind="spectator"][data-occupancy="spectator"] {
+  fill: color-mix(in srgb, var(--arena-spot) 30%, var(--arena-bowl));
+  stroke: color-mix(in srgb, var(--arena-spot) 45%, var(--arena-bowl-edge));
+}
+
+/* Depth across the stands: the near ring catches the stage light, the far ring
+   falls away into the rim. Four steps, outermost darkest. */
+#arena-render [data-ring="9"]  { filter: brightness(1.18); }
+#arena-render [data-ring="10"] { filter: brightness(1.02); }
+#arena-render [data-ring="11"] { filter: brightness(0.88); }
+#arena-render [data-ring="12"] { filter: brightness(0.74); }
 
 /* The floor is lit FROM the bowl, not tinted: a warm halo under the SVG keeps
    every tile fill deriving from the brand token, which is the rule phase A
