@@ -233,6 +233,31 @@
   stroke: color-mix(in srgb, var(--arena-spot) 45%, var(--arena-bowl-edge));
 }
 
+/* ----------------------------------------------------------------------------
+ * Seams are mortar, not grout.
+ *
+ * --arena-seam was --surface, i.e. near-white, and the stroke is
+ * vector-effect: non-scaling-stroke — it stays 1.1 CSS px however far the SVG
+ * is scaled down. On a phone a floor tile is roughly 20px across, so a 1.1px
+ * white outline eats a large share of every tile and the whole floor collapses
+ * into white brickwork: the rank ladder was rendering correctly and simply
+ * could not be seen under it (owner's screenshots, 2026-07-18, three passes
+ * "nothing changes"). Dark mortar puts the tile back in charge of its colour.
+ * -------------------------------------------------------------------------- */
+.arena-render-container {
+  --arena-seam: color-mix(in srgb, var(--brand-dark) 55%, var(--surface));
+}
+
+#arena-render .arena-cell {
+  stroke-width: 0.7;
+}
+
+/* In the stands the mortar goes darker still, so the crowd reads as mass
+   rather than as a lit grid. */
+#arena-render [data-ring-kind="spectator"] {
+  stroke-width: 0.5;
+}
+
 /* Depth across the stands: the near ring catches the stage light, the far ring
    falls away into the rim. Four steps, outermost darkest. */
 #arena-render [data-ring="9"]  { filter: brightness(1.18); }

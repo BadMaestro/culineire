@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.327",
+        "date": "2026-07-18",
+        "commit": "pending",
+        "title": "Arena tiles get dark mortar, so the floor stops reading as white brickwork",
+        "section": "Chef Battles / Arena",
+        "summary": "On a phone the arena floor looked like flat white brickwork no matter how the rank colours were set. The outline around each tile was almost white and kept a fixed thickness however far the arena was scaled down, so on a small screen it covered much of every tile and drowned out the colour underneath. The seams are now dark mortar and thinner, which lets each ring show its own depth again - the rank ladder had been correct all along and simply could not be seen.",
+    },
+    {
         "version": "2.5.326",
         "date": "2026-07-18",
         "commit": "pending",
