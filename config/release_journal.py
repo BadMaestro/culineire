@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.319",
+        "date": "2026-07-18",
+        "commit": "pending",
+        "title": "Battle integrity hardening: frozen recipes, single scoring, artifacts returned",
+        "section": "Chef Battles",
+        "summary": "Three integrity fixes found in a battle-engine sweep. A recipe entered in a live battle is now locked from editing until the battle is over, so its ingredient lines cannot be reshuffled out from under the biathlon and it cannot be flipped out of published mid-vote. Scoring a battle now runs under a row lock and re-checks the status, so an overlapping cron run and operator click can no longer both award the same win and double a chef's rating and crown. And a decisive win now returns each chef's unused reserved artifacts to their chest, the same way a draw already did, instead of leaving them pinned to the finished battle forever.",
+    },
+    {
         "version": "2.5.318",
         "date": "2026-07-18",
         "commit": "pending",

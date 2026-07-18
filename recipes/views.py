@@ -1924,6 +1924,36 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
             return Recipe.objects.all()
         return Recipe.objects.filter(author=self.author)
 
+    def _battle_lock_redirect(self):
+        """If this recipe is competing in a live battle, block the edit.
+
+        A recipe entered in a running battle is frozen for its duration: the
+        biathlon targets its ingredient lines by index and its approved status
+        is what the audience votes on, so an edit would drift the indices and
+        could drop the dish to a not-found for everyone but the author. Returns
+        a redirect response to block on, or None to let the edit proceed.
+        """
+        from chef_battle.selectors import active_battle_locking_recipe
+        recipe = self.get_object()
+        battle = active_battle_locking_recipe(recipe)
+        if battle is None:
+            return None
+        messages.error(
+            self.request,
+            "This recipe is in a live Chef Battle right now, so it is locked "
+            "until the battle finishes. You can edit it again once the battle "
+            "is over.",
+        )
+        return redirect(recipe.get_absolute_url())
+
+    def get(self, request, *args, **kwargs):
+        blocked = self._battle_lock_redirect()
+        return blocked or super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        blocked = self._battle_lock_redirect()
+        return blocked or super().post(request, *args, **kwargs)
+
     def form_valid(self, form):
         if not _validate_recipe_gallery_uploads(form, self.request.FILES):
             return self.form_invalid(form)

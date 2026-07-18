@@ -577,7 +577,52 @@ def reveal_entries_if_ready(battle: Battle) -> None:
             battle.save(update_fields=["status", "updated_at"])
 
 
+def _release_battle_artifacts_on_finish(battle: Battle) -> None:
+    """Settle artifacts when a battle FINISHES (draw or decisive alike).
+
+    Unused BATTLE_GIFT artifacts locked to the battle expire; unused personal
+    loadout artifacts a chef reserved but never spent return to their chest
+    (reserved_in_battle cleared). Consumed/spent artifacts are left untouched.
+
+    Distinct from _return_battle_artifacts_to_chest, which is a FULL reset for a
+    test battle being erased. The decisive path used to expire the gifts but
+    never clear the reserves, so after almost every battle both chefs' unused
+    reserved artifacts stayed pinned to the finished battle forever and were
+    unusable in future ones — the draw path already did this, the win path did
+    not. This helper gives both outcomes the same settlement.
+    """
+    ChefArtifact.objects.filter(
+        locked_to_battle=battle,
+        status=ChefArtifact.Status.AVAILABLE,
+        source=ChefArtifact.Source.BATTLE_GIFT,
+    ).update(status=ChefArtifact.Status.EXPIRED, expired_at=timezone.now())
+    ChefArtifact.objects.filter(
+        reserved_in_battle=battle,
+        status=ChefArtifact.Status.AVAILABLE,
+    ).update(reserved_in_battle=None)
+
+
 def calculate_battle_result(battle: Battle) -> Battle:
+    """Score a finished battle exactly once.
+
+    The scoring runs under a row lock: overlapping triggers — a cron run landing
+    on the voting deadline while an operator clicks the manual trigger, or one
+    cron run overlapping the next — would each otherwise pass an unlocked status
+    check and both award the win, inflating ratings and crowns and corrupting the
+    one thing the whole site exists to protect. Lock the row, re-read the status
+    under the lock, and let only the first caller through; the rest block, then
+    see COMPLETED and return. Mirrors resolve_start_rituals, which already locks.
+    """
+    if battle.status == Battle.Status.COMPLETED:
+        return battle
+    with transaction.atomic():
+        battle = _locked_battle(battle.pk, expected_status=None)
+        if battle.status == Battle.Status.COMPLETED:
+            return battle
+        return _score_battle(battle)
+
+
+def _score_battle(battle: Battle) -> Battle:
     if battle.status == Battle.Status.COMPLETED:
         return battle
 
@@ -589,17 +634,7 @@ def calculate_battle_result(battle: Battle) -> Battle:
     opponent_votes = vote_counts.get(battle.opponent_id, 0)
 
     if challenger_votes == opponent_votes:
-        ChefArtifact.objects.filter(
-            locked_to_battle=battle,
-            status=ChefArtifact.Status.AVAILABLE,
-            source=ChefArtifact.Source.BATTLE_GIFT,
-        ).update(status=ChefArtifact.Status.EXPIRED, expired_at=timezone.now())
-
-        # Return unused personal loadout artifacts to the chef's inventory.
-        ChefArtifact.objects.filter(
-            reserved_in_battle=battle,
-            status=ChefArtifact.Status.AVAILABLE,
-        ).update(reserved_in_battle=None)
+        _release_battle_artifacts_on_finish(battle)
         battle.result_reason = "Draw by public vote"
         battle.status = Battle.Status.COMPLETED
         battle.save(update_fields=["status", "result_reason", "updated_at"])
@@ -678,12 +713,9 @@ def calculate_battle_result(battle: Battle) -> Battle:
         except Exception:
             logger.exception("Battle faction contribution failed for battle pk=%s", battle.pk)
 
-        # Expire unused BATTLE_GIFT artifacts locked to this battle.
-        ChefArtifact.objects.filter(
-            locked_to_battle=battle,
-            status=ChefArtifact.Status.AVAILABLE,
-            source=ChefArtifact.Source.BATTLE_GIFT,
-        ).update(status=ChefArtifact.Status.EXPIRED, expired_at=timezone.now())
+        # Expire unused gifts AND return unused reserved personal artifacts —
+        # the same settlement the draw path does.
+        _release_battle_artifacts_on_finish(battle)
 
         battle.winner = winner
         battle.loser = loser
