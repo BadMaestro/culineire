@@ -118,7 +118,6 @@
       'vector-effect': 'non-scaling-stroke',
       class: 'arena-stage'
     }));
-    svg.appendChild(el('g', { 'data-arena-layer': 'crowd' }));
     svg.appendChild(el('g', { 'data-arena-layer': 'occupants' }));
     svg.appendChild(el('g', { 'data-arena-layer': 'centre' }));
 
@@ -232,57 +231,6 @@
     layer.appendChild(group);
   }
 
-  // A hall is people, not tiles. Real spectators take seats as avatars, but
-  // there are never 208 of them online, and an arena of empty stone reads as
-  // an abandoned building rather than a packed house. Every seat with nobody
-  // in it gets a procedural silhouette — head and shoulders, no sprite — so
-  // the stands are a crowd and the live faces stand out inside it.
-  function appendCrowdFigure(svg, layer, ring, cell) {
-    var polygon = svg.querySelector('polygon[data-ring="' + ring + '"][data-cell="' + cell + '"]');
-    if (!polygon) { return; }
-    var box = polygon.getBBox();
-    var cx = box.x + box.width / 2;
-    var cy = box.y + box.height / 2;
-    var size = Math.min(box.width, box.height);
-    // Deterministic jitter from the seat's own coordinates: a crowd of
-    // identical figures reads as wallpaper, and Math.random() would reshuffle
-    // every 20s poll.
-    var wobble = ((ring * 37 + cell * 61) % 11) / 11 - 0.5;
-
-    var figure = el('g', { class: 'arena-crowd-figure', 'pointer-events': 'none' });
-    figure.appendChild(el('circle', {
-      cx: (cx + wobble * size * 0.14).toFixed(2),
-      cy: (cy - size * 0.16).toFixed(2),
-      r: (size * 0.17).toFixed(2),
-      class: 'arena-crowd-figure__head'
-    }));
-    figure.appendChild(el('ellipse', {
-      cx: (cx + wobble * size * 0.1).toFixed(2),
-      cy: (cy + size * 0.28).toFixed(2),
-      rx: (size * 0.31).toFixed(2),
-      ry: (size * 0.24).toFixed(2),
-      class: 'arena-crowd-figure__body'
-    }));
-    layer.appendChild(figure);
-  }
-
-  function fillCrowd(svg, geometry, assignments) {
-    var layer = svg.querySelector('[data-arena-layer="crowd"]');
-    if (!layer) { return; }
-    while (layer.firstChild) { layer.removeChild(layer.firstChild); }
-
-    var taken = {};
-    assignments.forEach(function (a) { taken[a.ring + ':' + a.cell] = true; });
-
-    geometry.rings.forEach(function (ring) {
-      if (ring.kind !== 'spectator') { return; }
-      for (var cell = 0; cell < ring.segments; cell++) {
-        if (taken[ring.index + ':' + cell]) { continue; }
-        appendCrowdFigure(svg, layer, ring.index, cell);
-      }
-    });
-  }
-
   function bind(svg, payload, geometry) {
     var occupants = svg.querySelector('[data-arena-layer="occupants"]');
     while (occupants.firstChild) { occupants.removeChild(occupants.firstChild); }
@@ -297,10 +245,7 @@
       polygon.chefRecord = null;
     });
 
-    var assignments = buildAssignments(payload, geometry);
-    fillCrowd(svg, geometry, assignments);
-
-    assignments.forEach(function (assignment) {
+    buildAssignments(payload, geometry).forEach(function (assignment) {
       var polygon = svg.querySelector('polygon[data-ring="' + assignment.ring + '"][data-cell="' + assignment.cell + '"]');
       if (!polygon) { return; }
       var entity = assignment.entity;

@@ -1,11 +1,11 @@
 RELEASE_JOURNAL = [
     {
-        "version": "2.5.328",
+        "version": "2.5.329",
         "date": "2026-07-18",
         "commit": "pending",
-        "title": "The arena stands fill with a crowd",
+        "title": "Remove the placeholder crowd from the arena stands",
         "section": "Chef Battles / Arena",
-        "summary": "The arena is meant to be a hall full of people, but only spectators who happen to be online took a seat, so the stands sat empty and the arena read as an abandoned building. Every seat with nobody in it now holds a figure in the crowd, lit warm as if by the stage, with the far rows falling away into the dark. Real spectators still appear as themselves, and their faces now stand out against a full house instead of an empty one.",
+        "summary": "The figures used to fill the empty spectator seats were crude shapes that spilled past their seats and looked nothing like a crowd. They are removed while a properly drawn crowd is prepared using the site's own illustration pipeline.",
     },
     {
         "version": "2.5.327",

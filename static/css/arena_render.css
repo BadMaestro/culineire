@@ -258,26 +258,8 @@
   stroke-width: 0.5;
 }
 
-/* ----------------------------------------------------------------------------
- * The crowd.
- *
- * Every spectator seat with nobody in it carries a procedural head-and-
- * shoulders figure (arena_render.js), so the stands read as a packed house
- * rather than empty stone — the owner's mockup is a hall full of faces. They
- * are lit warm, as if by the stage, and the ring-by-ring brightness below
- * makes the far rows fall away into the dark.
- * -------------------------------------------------------------------------- */
-#arena-render .arena-crowd-figure__head {
-  fill: color-mix(in srgb, var(--arena-spot) 42%, var(--arena-bowl));
-}
-
-#arena-render .arena-crowd-figure__body {
-  fill: color-mix(in srgb, var(--arena-spot) 26%, var(--arena-bowl-edge));
-}
-
 /* Depth across the stands: the near ring catches the stage light, the far ring
-   falls away into the rim. Four steps, outermost darkest. Applies to the seats
-   and to the crowd sitting in them alike. */
+   falls away into the rim. Four steps, outermost darkest. */
 #arena-render [data-ring="9"]  { filter: brightness(1.18); }
 #arena-render [data-ring="10"] { filter: brightness(1.02); }
 #arena-render [data-ring="11"] { filter: brightness(0.88); }
