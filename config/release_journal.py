@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.324",
+        "date": "2026-07-18",
+        "commit": "pending",
+        "title": "Revert the dark arena floor - the floor stays light parchment",
+        "section": "Chef Battles / Arena",
+        "summary": "The previous skin pass darkened the arena floor, but the owner's decision is that the floor is a light warm parchment - the dark belongs to the amphitheatre around it, not the playing floor. This reverts the floor to its light palette. The darker surround treatment is being built separately as part of the arena visual work.",
+    },
+    {
         "version": "2.5.323",
         "date": "2026-07-18",
         "commit": "pending",
