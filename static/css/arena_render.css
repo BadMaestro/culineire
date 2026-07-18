@@ -283,3 +283,10 @@
   #arena-render { filter: none; }
 }
 
+/* The preview crowd sits in shadow: dimmed and warmed toward the stage light,
+   so a real spectator's own avatar reads as a lit face among them rather than
+   as one more identical head. */
+#arena-render .arena-crowd-figure {
+  opacity: 0.55;
+  filter: saturate(0.5) brightness(0.72) sepia(0.28);
+}

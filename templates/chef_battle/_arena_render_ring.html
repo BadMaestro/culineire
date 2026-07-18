@@ -66,9 +66,23 @@ window.ARENA_VIEWER = {
   </div>
 </div>
 
-<link href="{% static 'css/arena_render.css' %}?v=20260718d-mortar" rel="stylesheet">
+{% comment %}
+The preview crowd filling seats nobody has taken yet. These are the site's own
+default avatars, the same three a member has before uploading a photo, served
+as 96px webp copies (under a kilobyte each) instead of the 2.3MB originals —
+three sources shared across 200-odd seats.
+{% endcomment %}
+<script nonce="{{ request.csp_nonce }}">
+window.ARENA_CROWD_FACES = [
+  "{% static 'images/crowd/neutral-96.webp' %}",
+  "{% static 'images/crowd/female-96.webp' %}",
+  "{% static 'images/crowd/male-96.webp' %}"
+];
+</script>
+
+<link href="{% static 'css/arena_render.css' %}?v=20260718g-faces" rel="stylesheet">
 
 <script src="{% static 'js/arena_geometry.js' %}?v=20260716a"></script>
 <script src="{% static 'js/arena_deck.js' %}?v=20260717gbr3"></script>
 <script src="{% static 'js/arena_battle_room.js' %}?v=20260716gbr2"></script>
-<script src="{% static 'js/arena_render.js' %}?v=20260717gbr3"></script>
+<script src="{% static 'js/arena_render.js' %}?v=20260718g-faces"></script>

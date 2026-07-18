@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.330",
+        "date": "2026-07-18",
+        "commit": "pending",
+        "title": "The arena stands fill with faces",
+        "section": "Chef Battles / Arena",
+        "summary": "Seats nobody has taken yet are filled with the site's own default avatars - the same faces a member has before uploading their own photo - so the arena reads as a full house instead of empty stone. They sit in shadow, dimmed and warmed by the stage light, so a real spectator appears as a lit face among the crowd. This is a preview of a full hall: as members arrive they replace these seats with their own avatars.",
+    },
+    {
         "version": "2.5.329",
         "date": "2026-07-18",
         "commit": "pending",

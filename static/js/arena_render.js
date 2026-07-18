@@ -118,6 +118,7 @@
       'vector-effect': 'non-scaling-stroke',
       class: 'arena-stage'
     }));
+    svg.appendChild(el('g', { 'data-arena-layer': 'crowd' }));
     svg.appendChild(el('g', { 'data-arena-layer': 'occupants' }));
     svg.appendChild(el('g', { 'data-arena-layer': 'centre' }));
 
@@ -184,6 +185,64 @@
     return assignments;
   }
 
+  // A hall is people. Real spectators sit as their own avatars, but there are
+  // never 208 of them online at once, and stands of empty stone read as an
+  // abandoned building rather than the packed house the arena is meant to be.
+  //
+  // The stand-ins are the site's own three default avatars — the same faces a
+  // member has before uploading a photo — so the preview crowd is made of the
+  // people this hall will actually hold. They are served as 96px webp copies
+  // (under a kilobyte each) rather than the 2.3MB originals: three shared
+  // sources across 200-odd seats is three requests either way, but at full
+  // size that is seven megabytes on a phone.
+  function crowdFaceFor(ring, cell) {
+    var faces = global.ARENA_CROWD_FACES || [];
+    if (!faces.length) { return null; }
+    // Derived from the seat itself. Math.random() would deal a new crowd on
+    // every 10s poll and the stands would shimmer.
+    return faces[(ring * 7 + cell * 3) % faces.length];
+  }
+
+  function appendCrowdFigure(svg, layer, ring, cell) {
+    var href = crowdFaceFor(ring, cell);
+    if (!href) { return; }
+    var polygon = svg.querySelector('polygon[data-ring="' + ring + '"][data-cell="' + cell + '"]');
+    if (!polygon) { return; }
+    var box = polygon.getBBox();
+    var size = Math.max(box.width, box.height);
+
+    var figure = el('g', {
+      'clip-path': 'url(#arena-clip-' + ring + '-' + cell + ')',
+      'pointer-events': 'none',
+      class: 'arena-crowd-figure'
+    });
+    figure.appendChild(el('image', {
+      href: href,
+      x: (box.x + box.width / 2 - size / 2).toFixed(2),
+      y: (box.y + box.height / 2 - size / 2).toFixed(2),
+      width: size.toFixed(2), height: size.toFixed(2),
+      preserveAspectRatio: 'xMidYMid slice'
+    }));
+    layer.appendChild(figure);
+  }
+
+  function fillCrowd(svg, geometry, assignments) {
+    var layer = svg.querySelector('[data-arena-layer="crowd"]');
+    if (!layer) { return; }
+    while (layer.firstChild) { layer.removeChild(layer.firstChild); }
+
+    var taken = {};
+    assignments.forEach(function (a) { taken[a.ring + ':' + a.cell] = true; });
+
+    geometry.rings.forEach(function (ring) {
+      if (ring.kind !== 'spectator') { return; }
+      for (var cell = 0; cell < ring.segments; cell++) {
+        if (taken[ring.index + ':' + cell]) { continue; }
+        appendCrowdFigure(svg, layer, ring.index, cell);
+      }
+    });
+  }
+
   function initialOf(entity) {
     var source = (entity.name || entity.slug || '').trim();
     return source ? source.charAt(0).toUpperCase() : '?';
@@ -245,7 +304,10 @@
       polygon.chefRecord = null;
     });
 
-    buildAssignments(payload, geometry).forEach(function (assignment) {
+    var assignments = buildAssignments(payload, geometry);
+    fillCrowd(svg, geometry, assignments);
+
+    assignments.forEach(function (assignment) {
       var polygon = svg.querySelector('polygon[data-ring="' + assignment.ring + '"][data-cell="' + assignment.cell + '"]');
       if (!polygon) { return; }
       var entity = assignment.entity;
