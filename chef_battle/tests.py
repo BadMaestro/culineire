@@ -449,6 +449,43 @@ class ChefBattleChallengeCreateViewTests(TestCase):
 
         self.assertEqual(response.context["form"].initial["opponent"], third.pk)
 
+    @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_issue_challenge_cta_shows_only_where_the_click_would_work(self):
+        """The recipe-page CTA (spec [23]) must appear exactly when the challenge
+        view would accept it: for a battle-visible viewer, on someone else's
+        approved recipe. Never on your own recipe, never for anonymous."""
+        from recipes.models import Recipe
+        recipe = Recipe.objects.create(
+            title="Someone Elses Dish", slug="someone-elses-dish", author=self.opponent,
+            ingredients="crab", method="Toast.", status=Recipe.Status.APPROVED,
+        )
+        url = reverse("recipes:recipe_detail", args=[recipe.slug])
+        expected_href = (
+            reverse("chef_battle:challenge_create")
+            + f"?opponent={self.opponent.slug}&inspired_by={recipe.slug}"
+        )
+
+        # staff viewer (battle_visible under dark launch), not the recipe's author
+        self.client.login(username="challenge-owner", password="pw")
+        shown = self.client.get(url)
+        self.assertContains(shown, "Issue a Challenge")
+        self.assertContains(shown, expected_href)
+
+        # anonymous never sees it
+        self.client.logout()
+        self.assertNotContains(self.client.get(url), "Issue a Challenge")
+
+        # the author never sees it on their own recipe
+        own = Recipe.objects.create(
+            title="Owners Own Dish", slug="owners-own-dish", author=self.author,
+            ingredients="lamb", method="Cook.", status=Recipe.Status.APPROVED,
+        )
+        self.client.login(username="challenge-owner", password="pw")
+        self.assertNotContains(
+            self.client.get(reverse("recipes:recipe_detail", args=[own.slug])),
+            "Issue a Challenge",
+        )
+
     def test_challenge_create_page_renders_guided_form_layout(self):
         self.client.login(username="challenge-owner", password="pw")
 

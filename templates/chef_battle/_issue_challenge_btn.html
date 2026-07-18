@@ -1,0 +1,20 @@
+{% comment %}
+  "Issue a Challenge" CTA for a recipe detail page — the second entry point into
+  a battle (spec [23]): challenge THIS recipe's author, with their dish seeding
+  the theme, while you still bring your own.
+
+  Gated to appear exactly when the challenge view will accept the click:
+    - battle_visible: the same predicate the view enforces (is_battle_visible),
+      so the button never leads to a 404;
+    - recipe approved: an unapproved recipe is ignored by ?inspired_by and there
+      is nothing for the audience to open;
+    - not your own recipe: you cannot challenge yourself.
+
+  Expects `recipe` in context. Include with {% include %}, never inline a one-off.
+{% endcomment %}
+{% if battle_visible and user.is_authenticated and recipe.status == 'approved' and recipe.author and recipe.author.user_id and recipe.author.user_id != user.id %}
+<a class="btn-secondary recipe-challenge-cta"
+   href="{% url 'chef_battle:challenge_create' %}?opponent={{ recipe.author.slug }}&inspired_by={{ recipe.slug }}">
+    Issue a Challenge
+</a>
+{% endif %}

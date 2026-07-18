@@ -2723,11 +2723,23 @@ def master_console(request):
         "console_test_mode": not settings.CHEF_BATTLE_ENABLED,
         "master_state": state,
         "primary_battle": state["battles"][0] if state["battles"] else None,
+        # Full payload, same shape the public arena embeds: the console now
+        # renders the procedural arena fragment too, and arena_render.js bails
+        # early without `geometry` while arena_deck.js needs the metric/phase/
+        # deadline/crown keys. A subset here would leave the console arena blank.
         "arena_data": {
             "rings": payload["rings"],
             "spectators": payload["spectators"],
             "center": payload["center"],
             "latest_result": payload["latest_result"],
+            "crown_streak": payload["crown_streak"],
+            "crown_ladder": payload["crown_ladder"],
+            "recent_gifts": payload["recent_gifts"],
+            "metrics": payload["metrics"],
+            "phase": payload["phase"],
+            "deadline": payload["deadline"],
+            "geometry": payload["geometry"],
+            "server_time": payload["server_time"],
         },
         "viewer_author": author,
         "user_enrolled": False,

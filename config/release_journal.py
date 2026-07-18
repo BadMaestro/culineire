@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.321",
+        "date": "2026-07-18",
+        "commit": "pending",
+        "title": "One arena: the procedural build is now the only one, plus a challenge button on recipes",
+        "section": "Chef Battles / Arena",
+        "summary": "The arena no longer forks. The procedural, code-drawn arena is now what everyone sees at /chef-battle/arena/ - the old ?proto=1 switch is gone, and a plain visit no longer shows the previous build. The Master Console renders the same procedural arena, so its data now carries the full arena payload it needs. The retired renderer and its unreachable prototype sandbox have been removed. Recipe pages also gain an Issue a Challenge button that starts a battle from that recipe, shown only where the challenge would actually work.",
+    },
+    {
         "version": "2.5.320",
         "date": "2026-07-18",
         "commit": "pending",
