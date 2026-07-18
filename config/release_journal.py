@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.328",
+        "date": "2026-07-18",
+        "commit": "pending",
+        "title": "The arena stands fill with a crowd",
+        "section": "Chef Battles / Arena",
+        "summary": "The arena is meant to be a hall full of people, but only spectators who happen to be online took a seat, so the stands sat empty and the arena read as an abandoned building. Every seat with nobody in it now holds a figure in the crowd, lit warm as if by the stage, with the far rows falling away into the dark. Real spectators still appear as themselves, and their faces now stand out against a full house instead of an empty one.",
+    },
+    {
         "version": "2.5.327",
         "date": "2026-07-18",
         "commit": "pending",
