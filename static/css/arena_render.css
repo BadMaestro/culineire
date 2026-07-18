@@ -177,3 +177,54 @@
   #arena-render .arena-cell { transition: none; }
 }
 
+
+/* ============================================================================
+ * PHASE B — the dark bowl around a lit floor.
+ *
+ * Phase A (v2.5.322, reverted in v2.5.324) darkened the wrong surface: it
+ * overrode --surface / --brand / --ink inside this container, and those are the
+ * tokens every tile fill is mixed from, so it repainted the FLOOR. The owner
+ * settled this on 2026-07-16 and again with the 2026-07-18 mockup: the floor
+ * stays warm parchment, there is no dark floor theme.
+ *
+ * What is dark is the BOWL the floor sits in — the stands, the crowd in shadow,
+ * green-black walls with gold rim lights. So nothing below touches a floor
+ * token: this styles the container around the SVG, and the spotlight is thrown
+ * onto the parchment rather than mixed into it.
+ * ========================================================================== */
+.arena-render-container {
+  --arena-bowl: #0e1a12;      /* deep green-black the stands sit in */
+  --arena-bowl-edge: #05100a; /* rim, darkest, so the bowl reads as depth */
+  --arena-spot: #d9a441;      /* warm gold of the overhead spotlight */
+
+  /* Gold pooling over the stage, falling away into a dark bowl. */
+  background:
+    radial-gradient(120% 95% at 50% 42%,
+      color-mix(in srgb, var(--arena-spot) 22%, transparent) 0%,
+      transparent 56%),
+    radial-gradient(115% 115% at 50% 48%,
+      var(--arena-bowl) 0%, var(--arena-bowl-edge) 100%);
+  border-color: color-mix(in srgb, var(--arena-spot) 26%, var(--arena-bowl-edge));
+  /* The inset shadow is what turns a flat dark panel into a bowl: the rim falls
+     into shadow while the centre stays lit. */
+  box-shadow: inset 0 0 90px 26px rgba(0, 0, 0, 0.55), var(--shadow-sm);
+}
+
+/* The floor is lit FROM the bowl, not tinted: a warm halo under the SVG keeps
+   every tile fill deriving from the brand token, which is the rule phase A
+   broke. */
+#arena-render {
+  filter: drop-shadow(0 0 30px color-mix(in srgb, var(--arena-spot) 30%, transparent));
+}
+
+/* Crown at the centre catches the spotlight. */
+#arena-render .arena-stage[data-state="crown"],
+#arena-render .arena-stage[data-state="active_battle"],
+#arena-render .arena-stage[data-state="facing_pair"] {
+  filter: drop-shadow(0 0 9px color-mix(in srgb, var(--arena-spot) 70%, transparent));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #arena-render { filter: none; }
+}
+

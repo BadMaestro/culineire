@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.325",
+        "date": "2026-07-18",
+        "commit": "pending",
+        "title": "The arena now sits in a dark bowl, lit from above",
+        "section": "Chef Battles / Arena",
+        "summary": "The arena floor keeps its warm parchment, and the darkness moves where it belongs: the hall around the floor. The playing floor now sits inside a deep green-black bowl with a gold rim, with a warm spotlight pooling over the centre and the outer edge falling into shadow, so the arena reads as a lit stage in an amphitheatre rather than a flat panel. Nothing about the floor palette changed - ranks still read as depth from the innermost ring outward.",
+    },
+    {
         "version": "2.5.324",
         "date": "2026-07-18",
         "commit": "pending",
