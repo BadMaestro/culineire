@@ -1258,3 +1258,33 @@ def get_arena_geometry() -> dict:
     for i in range(9, 13):
         rings.append({"index": i, "kind": "spectator", "key": f"spectator_{i - 8}", "label": "Spectators", "segments": segments[i]})
     return {"sides": 8, "rings": rings}
+
+
+# A recipe entered in a battle is frozen for the battle's duration: the biathlon
+# targets its ingredient lines by row index, and its approved status is what makes
+# it visible to voters, so editing it mid-battle would drift those indices and
+# could 404 the dish out from under the audience. "Over" is a small terminal set;
+# every other status still holds the recipe, INCLUDING ingredient_penalty (the live
+# biathlon phase) and paused (an emergency stop that can resume) — neither of which
+# is in ACTIVE_STATUSES, which is why this does not reuse it.
+_BATTLE_CONCLUDED_STATUSES = frozenset([
+    Battle.Status.COMPLETED,
+    Battle.Status.CANCELLED,
+    Battle.Status.VOID,
+    Battle.Status.WALKOVER,
+])
+
+
+def active_battle_locking_recipe(recipe):
+    """Return a still-running battle this recipe is entered in, or ``None``.
+
+    Used to stop a recipe being edited while it is competing.
+    """
+    if recipe is None or getattr(recipe, "pk", None) is None:
+        return None
+    return (
+        Battle.objects.filter(entries__recipe=recipe)
+        .exclude(status__in=_BATTLE_CONCLUDED_STATUSES)
+        .distinct()
+        .first()
+    )

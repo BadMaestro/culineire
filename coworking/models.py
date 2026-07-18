@@ -81,7 +81,7 @@ class CoworkingMessage(models.Model):
     to_agent = models.ForeignKey(
         CoworkingAgent, on_delete=models.CASCADE, related_name="received_messages"
     )
-    subject = models.CharField(max_length=200, blank=True)
+    subject = models.CharField(max_length=1000, blank=True)
     body = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     read_at = models.DateTimeField(null=True, blank=True)

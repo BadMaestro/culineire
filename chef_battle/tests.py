@@ -172,6 +172,83 @@ class ChefBattleServiceTests(TestCase):
         self.assertEqual(loser_profile.battle_moves, 1)    # MOVES_BATTLE_PARTICIPATION(1)
         self.assertEqual(loser_profile.losses, 1)
 
+    def test_calculate_battle_result_is_idempotent_under_a_repeat_call(self):
+        """A cron run and an operator click (or two overlapping cron runs) can
+        both fire calculate_battle_result on the same battle. Only the first may
+        score it; the rest must be no-ops, or ratings and crowns double."""
+        battle = accept_challenge(self._challenge())
+        BattleVote.objects.create(battle=battle, voter=self.voter, voted_for=self.chef_a)
+
+        # Two callers each hold their OWN stale copy of the battle — the real
+        # race (cron process + operator process), not one shared object. Both
+        # see a not-yet-completed status in memory; without the locked re-check
+        # both would pass the guard and award the win twice.
+        first = Battle.objects.get(pk=battle.pk)
+        second = Battle.objects.get(pk=battle.pk)
+        calculate_battle_result(first)
+        calculate_battle_result(second)
+
+        winner_profile = self.chef_a.battle_profile
+        loser_profile = self.chef_b.battle_profile
+        winner_profile.refresh_from_db()
+        loser_profile.refresh_from_db()
+        self.assertEqual(winner_profile.wins, 1)
+        self.assertEqual(winner_profile.crown_count, 1)
+        self.assertEqual(winner_profile.battle_moves, 11)
+        self.assertEqual(loser_profile.losses, 1)
+
+    def test_decisive_win_returns_unused_reserved_artifacts(self):
+        """The draw path returned unused reserved personal artifacts to the chest
+        but the (far more common) decisive path did not, pinning them to the
+        finished battle forever. Both outcomes must settle the same way."""
+        from chef_battle.models import Artifact, ChefArtifact
+        battle = accept_challenge(self._challenge())
+        artifact = Artifact.objects.create(name="Unused Loadout Blade")
+        reserved = ChefArtifact.objects.create(
+            chef=self.chef_a, artifact=artifact,
+            status=ChefArtifact.Status.AVAILABLE, reserved_in_battle=battle,
+        )
+        BattleVote.objects.create(battle=battle, voter=self.voter, voted_for=self.chef_a)
+
+        calculate_battle_result(battle)
+
+        reserved.refresh_from_db()
+        self.assertIsNone(
+            reserved.reserved_in_battle,
+            "an unused reserved artifact must return to the chef after a decisive win",
+        )
+
+    @override_settings(SECURE_SSL_REDIRECT=False)
+    def test_recipe_is_locked_from_edits_while_in_a_live_battle(self):
+        """A recipe entered in a running battle is frozen: editing it would drift
+        the biathlon's line indices and could flip it out of APPROVED, 404-ing the
+        dish out from under the audience mid-vote."""
+        from recipes.models import Recipe
+        from chef_battle.selectors import active_battle_locking_recipe
+
+        recipe = Recipe.objects.create(
+            title="Live Battle Dish", slug="live-battle-dish", author=self.chef_a,
+            ingredients="lamb\npotato\nmint", method="Cook.", status=Recipe.Status.APPROVED,
+        )
+        challenge = self._challenge()
+        challenge.theme_recipe = recipe
+        challenge.save(update_fields=["theme_recipe"])
+        battle = accept_challenge(challenge)
+
+        self.assertEqual(active_battle_locking_recipe(recipe), battle)
+
+        self.client.force_login(self.user_a)
+        edit_url = reverse("recipes:recipe_edit", args=[recipe.slug])
+        blocked = self.client.get(edit_url)
+        self.assertEqual(blocked.status_code, 302)
+        self.assertIn(recipe.get_absolute_url(), blocked["Location"])
+
+        # Once the battle is over the recipe is editable again.
+        battle.status = Battle.Status.COMPLETED
+        battle.save(update_fields=["status"])
+        self.assertIsNone(active_battle_locking_recipe(recipe))
+        self.assertEqual(self.client.get(edit_url).status_code, 200)
+
     def test_matchup_is_limited_to_adjacent_ranks(self):
         profile_a = ChefBattleProfile.objects.create(
             author=self.chef_a,
