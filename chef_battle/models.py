@@ -116,7 +116,11 @@ class BattleChallenge(models.Model):
         null=True,
         blank=True,
         related_name="themed_battle_challenges",
-        help_text="Recipe that inspired the challenge theme; it is never reused as the opponent's battle entry.",
+        help_text=(
+            "The challenger's own recipe for this battle. On accept it becomes the "
+            "challenger's battle entry, so it must be one of their approved recipes. "
+            "It is never reused as the opponent's entry: the opponent brings their own."
+        ),
     )
     theme = models.CharField(max_length=180)
     message = models.TextField(blank=True)

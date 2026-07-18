@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.318",
+        "date": "2026-07-18",
+        "commit": "pending",
+        "title": "Staff reach the arena they can already see, and battle buttons match the gate",
+        "section": "Chef Battles / Arena",
+        "summary": "During dark launch, staff were shown the arena panels but the battle views themselves turned them away with a not-found page, because the view gate omitted staff while the panel-preview flag included them. The view gate now lets staff in too, matching what they already see; the Arena Master Console stays superuser-only, so this does not open the console to staff. Templates also gain a battle_visible flag computed from that same view gate, so any button linking into a battle view is shown exactly when the view will accept it. Also clarifies the challenge recipe help text, which described only what the field is not.",
+    },
+    {
         "version": "2.5.317",
         "date": "2026-07-17",
         "commit": "pending",

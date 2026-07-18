@@ -197,6 +197,20 @@ def battle_widget_context(request):
     }
 
 
+def battle_visibility(request):
+    """Expose the *view's* Chef Battle gate to templates.
+
+    Any control that links into a guarded battle view — the "Issue a Challenge"
+    button, arena links — must gate on THIS value, computed from the very
+    function the views enforce (``is_battle_visible``), so a visible button
+    always leads somewhere rather than to a 404.  Re-implementing the same
+    condition inline in a template would be free to drift from the view; calling
+    the view's own predicate cannot.
+    """
+    from chef_battle.access import is_battle_visible
+    return {"battle_visible": is_battle_visible(request)}
+
+
 def site_url(request):
     """Inject SITE_URL into every template context for canonical / OG URLs."""
     site_domain = str(settings.SITE_DOMAIN).strip().rstrip("/")

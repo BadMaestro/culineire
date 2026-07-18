@@ -12,14 +12,20 @@ def is_battle_visible(request) -> bool:
     """
     Chef Battles is visible when:
     - CHEF_BATTLE_ENABLED is True (public launch), OR
-    - the user is superuser, or has bearseeker privileges (dark launch preview).
+    - the user is staff, superuser, or has bearseeker privileges
+      (dark launch preview).
+
+    Staff see the arena during dark launch, matching the panel-preview flag
+    (``chef_battle_enabled``) they already get; the Arena Master Console stays
+    behind ``has_arena_console_access`` (superuser only), so this does not open
+    the console to staff.
     """
     if getattr(settings, "CHEF_BATTLE_ENABLED", False):
         return True
     user = getattr(request, "user", None)
     if not user or not user.is_authenticated:
         return False
-    if user.is_superuser:
+    if user.is_staff or user.is_superuser:
         return True
     author = getattr(user, "recipe_author_profile", None)
     return bool(author and author.has_bearseeker_privileges)

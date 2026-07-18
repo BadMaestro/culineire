@@ -250,6 +250,42 @@ class ChefBattleAccessTests(TestCase):
         # challenge_list requires login → redirect to login page
         self.assertEqual(response.status_code, 302)
 
+    @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_battle_visible_lets_staff_in_but_never_anonymous(self):
+        """Staff see the arena during dark launch (owner decision), and the
+        button that links into it must be shown to them — battle_visible is the
+        exact predicate the guarded views enforce, so a shown button always
+        leads somewhere. Anonymous visitors never see it. Asserted with the
+        public flag off, where the gate actually decides."""
+        from django.test import RequestFactory
+        from django.contrib.auth.models import AnonymousUser
+        from config.context_processors import battle_visibility
+
+        request = RequestFactory().get("/")
+
+        request.user = self.staff
+        self.assertTrue(
+            battle_visibility(request)["battle_visible"],
+            "staff see the arena during dark launch, so the button must show for them",
+        )
+
+        request.user = AnonymousUser()
+        self.assertFalse(battle_visibility(request)["battle_visible"])
+
+    @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_staff_see_the_arena_but_not_the_master_console(self):
+        """The two-tier rule: dark-launch staff reach the arena, but the Arena
+        Master Console (Mothership) stays behind has_arena_console_access, which
+        needs a superuser. A bare staff user must not cross that line."""
+        from django.test import RequestFactory
+        from chef_battle.access import is_battle_visible, has_arena_console_access
+
+        request = RequestFactory().get("/")
+        request.user = self.staff
+
+        self.assertTrue(is_battle_visible(request))
+        self.assertFalse(has_arena_console_access(request))
+
 
 @override_settings(SECURE_SSL_REDIRECT=False, CHEF_BATTLE_ENABLED=True)
 class ChefBattleChallengeCreateViewTests(TestCase):
