@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.322",
+        "date": "2026-07-18",
+        "commit": "pending",
+        "title": "Arena gets its dark amphitheatre skin (phase A of the mockup pass)",
+        "section": "Chef Battles / Arena",
+        "summary": "First visual pass toward the design mockup, still fully procedural. The arena floor was a flat warm parchment; it now reads as a lit, dark-stone amphitheatre. The change is a palette swap scoped to the arena container (the site-wide brand tokens are untouched) plus a warm gold spotlight over the stage, an edge vignette that sinks the floor into a bowl, and a bloom on the crown. No sprites, no images: colour, SVG gradients and a filter only.",
+    },
+    {
         "version": "2.5.321",
         "date": "2026-07-18",
         "commit": "pending",
