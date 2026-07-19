@@ -1236,27 +1236,56 @@ def get_starting_battle_blast() -> dict | None:
     }
 
 
+# Spectator seating, outermost part of the bowl. Ring 9 is the front row
+# (closest to the chefs), each ring further out adds one octant's worth of
+# seats. Four rings gave a shallow rim; the measured mockup puts the stands
+# at ~1.6x the floor radius, which needs real depth behind the front row —
+# hence eight rings. Ordered front-to-back so the renderer can scale and
+# brighten by position in this list without knowing the absolute indices.
+SPECTATOR_RING_SEGMENTS = (40, 48, 56, 64, 72, 80, 88, 96)
+
+_FIRST_SPECTATOR_RING = 9
+
+
+def spectator_capacity() -> int:
+    """Total spectator seats the arena can draw — the sum of the seating
+    rings. Callers must derive their query limit from this instead of
+    hardcoding a number, so adding a ring never leaves seats unfillable."""
+    return sum(SPECTATOR_RING_SEGMENTS)
+
+
 def get_arena_geometry() -> dict:
     """Declarative arena structure for the procedural (SVG/Canvas) renderer.
     The frontend must not hardcode ring/rank counts — this is the single
     source of truth it derives the polar grid from. Purely structural (no
     per-request queries): ring 0 is the centre stage, rings 1..8 are chef
-    ranks from highest (innermost) to lowest, rings 9..12 are spectator
-    seating (matches the 4 spectator rings the arena already renders)."""
+    ranks from highest (innermost) to lowest, and the rings after those are
+    spectator seating (see SPECTATOR_RING_SEGMENTS)."""
     from .models import ChefBattleProfile
     # Seat capacity per ring. Derived from the legacy circular layout's
     # RING_COUNTS (arena_puzzle.js) rounded to the nearest multiple of 8 so
     # every octant of the flat-sided octagon holds a whole number of cells
     # (max drift ±2 seats per ring vs the legacy grid).
-    segments = {1: 8, 2: 8, 3: 16, 4: 16, 5: 24, 6: 24, 7: 32, 8: 32,
-                9: 40, 10: 48, 11: 56, 12: 64}
+    segments = {1: 8, 2: 8, 3: 16, 4: 16, 5: 24, 6: 24, 7: 32, 8: 32}
     rings = [{"index": 0, "kind": "stage", "key": "stage", "label": "Centre Stage", "segments": 1}]
     # Rank choices are declared lowest-first in the model; the arena places
     # the highest rank closest to the stage, so walk them reversed.
     for i, (value, label) in enumerate(reversed(ChefBattleProfile.Rank.choices), start=1):
         rings.append({"index": i, "kind": "rank", "key": value, "label": label, "segments": segments[i]})
-    for i in range(9, 13):
-        rings.append({"index": i, "kind": "spectator", "key": f"spectator_{i - 8}", "label": "Spectators", "segments": segments[i]})
+    for row, seats in enumerate(SPECTATOR_RING_SEGMENTS, start=1):
+        index = _FIRST_SPECTATOR_RING + row - 1
+        rings.append({
+            "index": index,
+            "kind": "spectator",
+            "key": f"spectator_{row}",
+            "label": "Spectators",
+            "segments": seats,
+            # 1 = front row nearest the chefs, counting outwards. The renderer
+            # sizes and lights faces by this instead of by absolute index, so
+            # inserting a ring does not silently reshade every row behind it.
+            "row": row,
+            "rows_total": len(SPECTATOR_RING_SEGMENTS),
+        })
     return {"sides": 8, "rings": rings}
 
 

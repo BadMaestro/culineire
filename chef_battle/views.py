@@ -51,6 +51,7 @@ from .selectors import (
     get_arena_phase,
     get_arena_deadline,
     get_arena_geometry,
+    spectator_capacity,
     get_starting_battle_blast,
     get_battle_vote_counts,
     get_crown_ladder,
@@ -937,11 +938,16 @@ def _arena_latest_result():
     }
 
 
-def _get_spectators(online_cutoff, limit=208):
+def _get_spectators(online_cutoff, limit=None):
     """Registered viewers currently present in the arena: authors with a battle
     profile who are NOT enrolled chefs and whose last_seen_at is inside the
     online window. A logged-in visitor simply occupies a free spectator-ring
-    cell, exactly as an enrolled chef occupies a cell in their rank ring."""
+    cell, exactly as an enrolled chef occupies a cell in their rank ring.
+
+    The default limit is the arena's own seat count, so widening the stands in
+    get_arena_geometry fills the new rows instead of leaving them empty."""
+    if limit is None:
+        limit = spectator_capacity()
     profiles = (
         ChefBattleProfile.objects
         .select_related("author")

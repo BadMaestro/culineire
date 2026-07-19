@@ -6924,9 +6924,11 @@ class ArenaGeometryTests(TestCase):
         g = get_arena_geometry()
         self.assertEqual(g["sides"], 8)
         rings = g["rings"]
-        # 1 stage + 8 ranks + 4 spectator rings, contiguous indices 0..12
-        self.assertEqual(len(rings), 13)
-        self.assertEqual([r["index"] for r in rings], list(range(13)))
+        from .selectors import SPECTATOR_RING_SEGMENTS
+        # 1 stage + 8 ranks + the spectator rings, contiguous from 0
+        total = 9 + len(SPECTATOR_RING_SEGMENTS)
+        self.assertEqual(len(rings), total)
+        self.assertEqual([r["index"] for r in rings], list(range(total)))
         self.assertEqual(rings[0]["kind"], "stage")
         # rank rings walk the real model choices, highest rank innermost
         self.assertEqual(rings[1]["key"], ChefBattleProfile.Rank.CULINARY_MASTER)
@@ -6953,4 +6955,32 @@ class ArenaGeometryTests(TestCase):
             self.assertEqual(r["segments"] % g["sides"], 0, r)
         counts = [r["segments"] for r in seat_rings]
         self.assertEqual(counts, sorted(counts))  # capacity never shrinks outward
-        self.assertEqual(counts[-1], 64)  # outermost spectator ring matches legacy
+
+    def test_spectator_rows_are_numbered_front_to_back(self):
+        from .selectors import get_arena_geometry, SPECTATOR_RING_SEGMENTS
+        rings = [r for r in get_arena_geometry()["rings"] if r["kind"] == "spectator"]
+        self.assertEqual(len(rings), len(SPECTATOR_RING_SEGMENTS))
+        # row 1 is the front row nearest the chefs and holds the fewest seats
+        self.assertEqual([r["row"] for r in rings],
+                         list(range(1, len(SPECTATOR_RING_SEGMENTS) + 1)))
+        self.assertEqual(rings[0]["segments"], min(SPECTATOR_RING_SEGMENTS))
+        for r in rings:
+            self.assertEqual(r["rows_total"], len(SPECTATOR_RING_SEGMENTS))
+
+    def test_spectator_capacity_matches_the_drawn_seats(self):
+        """The query limit must not drift from the geometry: every seat the
+        renderer draws has to be fillable, and none beyond it fetched."""
+        from .selectors import get_arena_geometry, spectator_capacity
+        drawn = sum(r["segments"] for r in get_arena_geometry()["rings"]
+                    if r["kind"] == "spectator")
+        self.assertEqual(spectator_capacity(), drawn)
+
+    def test_get_spectators_defaults_to_full_capacity(self):
+        from unittest import mock
+        from chef_battle import views
+        from .selectors import spectator_capacity
+        with mock.patch.object(views, "ChefBattleProfile") as profile:
+            views._get_spectators(timezone.now())
+        sliced = profile.objects.select_related.return_value.filter.return_value.order_by.return_value
+        self.assertEqual(sliced.__getitem__.call_args[0][0],
+                         slice(None, spectator_capacity()))
