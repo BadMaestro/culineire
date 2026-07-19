@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.337",
+        "date": "2026-07-19",
+        "commit": "pending",
+        "title": "Moderators can open the arena build board, and the stands gained depth",
+        "section": "Moderation",
+        "summary": "The build board is a moderation tool, but it was gated on the privilege-granting check, which only superusers pass — every bearseeker moderator got a 404 on a page built for them. It now uses the same moderator gate as the rest of the moderation panel; the Master Console stays where it was. Separately the arena's seating went from four rings to eight, so the stands have real depth behind the front row, and the spectator query limit is derived from that instead of a hardcoded 208.",
+    },
+    {
         "version": "2.5.336",
         "date": "2026-07-19",
         "commit": "pending",

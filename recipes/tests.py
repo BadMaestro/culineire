@@ -3939,6 +3939,26 @@ class ArenaBuildPlanTests(TestCase):
     def test_anonymous_gets_404(self):
         self.assertEqual(self.client.get(reverse("recipes:arena_build_plan")).status_code, 404)
 
+    def test_bearseeker_moderator_sees_the_board(self):
+        """Moderators watch the arena being built — the board is a moderation
+        tool, not the Mothership. It was briefly gated on the privilege-granting
+        check, which only lets superusers through, and 404'd every bearseeker."""
+        User = get_user_model()
+        user = User.objects.create_user(username="abp-mod", password="pw")
+        RecipeAuthor.objects.create(user=user, name="Mod", slug="abp-mod",
+                                    has_bearseeker_privileges=True)
+        self.client.login(username="abp-mod", password="pw")
+        self.assertEqual(
+            self.client.get(reverse("recipes:arena_build_plan")).status_code, 200)
+
+    def test_plain_author_still_gets_404(self):
+        User = get_user_model()
+        user = User.objects.create_user(username="abp-plain", password="pw")
+        RecipeAuthor.objects.create(user=user, name="Plain", slug="abp-plain")
+        self.client.login(username="abp-plain", password="pw")
+        self.assertEqual(
+            self.client.get(reverse("recipes:arena_build_plan")).status_code, 404)
+
     def test_board_renders_two_lanes_and_start(self):
         self.client.login(username="abp-boss", password="pw")
         resp = self.client.get(reverse("recipes:arena_build_plan"))

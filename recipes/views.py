@@ -2771,15 +2771,21 @@ def _arena_build_context():
     }
 
 
+# The build board is a moderation tool: every moderator watches the arena being
+# built, same tier as the rest of /recipes/moderation/. It is NOT the Mothership
+# (Arena Master Console), which stays behind has_arena_console_access. Guarding
+# it with can_grant_bearseeker_privileges was wrong — that gate is about handing
+# OUT privileges and only lets superusers through, so bearseeker moderators got
+# a 404 on a page meant for them.
 def arena_build_plan(request):
-    if not _can_grant_bearseeker_privileges(request.user):
+    if not is_moderator(request.user):
         raise Http404
     return render(request, "moderation/arena_build_plan.html", _arena_build_context())
 
 
 @require_POST
 def arena_build_start(request):
-    if not _can_grant_bearseeker_privileges(request.user):
+    if not is_moderator(request.user):
         raise Http404
     stage_id = (request.POST.get("stage") or "").strip()
     stage = next((s for s in ARENA_BUILD_STAGES if s["id"] == stage_id), None)
