@@ -78,7 +78,12 @@
   // the integral of that scale, so rows crowd together as they recede the way
   // they do in the photograph, rather than sitting at even spacing.
   var CONVERGENCE = 0.51;
-  var VERTICAL_SQUASH = 0.437;
+  // Not the photograph's 0.437 height-to-width: that is the ratio of the
+  // FINISHED octagon, while this number squashes the span the projection is
+  // laid out across, and the projection's own vertical curve already eats some
+  // of it. Solved from the live page - our floor came out 0.585 against the
+  // picture's 0.437, so 0.437 x 0.437 / 0.585 = 0.327.
+  var VERTICAL_SQUASH = 0.327;
 
   function projector() {
     var k = CONVERGENCE;
