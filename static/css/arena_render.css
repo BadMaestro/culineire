@@ -389,7 +389,30 @@
   width: auto;
   height: 172%;
   aspect-ratio: 1;
-  transform: translate(-50%, -50%) translateY(var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1)) rotateX(56deg);
+  /* 64deg, not the 56 of the spec: the backdrop photograph compresses its floor
+     to 0.437, and acos(0.437) is 64. The camera angle is now whatever the
+     picture was shot at, because the picture is the hall. */
+  transform: translate(-50%, -50%) translateY(var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1)) rotateX(64deg);
+}
+
+/* ----------------------------------------------------------------------------
+ * The hall is a photograph.
+ *
+ * Order #6, owner's decision: stop programming the geometry of the bowl, the
+ * tiers and the crowd. They never change, so they are a still image; what does
+ * change every ten seconds — the floor, where each tile is a chef with a state,
+ * a click and a card — stays as our SVG on top of it.
+ *
+ * placeBackdrop() in arena_render.js scales and slides the image so its painted
+ * floor sits exactly under ours. Nothing here hardcodes a size: the raster
+ * follows the octagon, since a photograph can be scaled freely and the ring
+ * contract cannot.
+ * -------------------------------------------------------------------------- */
+.page--arena .arena-render-container {
+  background-image: url("/static/images/chef_battle/arena/hall-bg-v1.webp");
+  background-repeat: no-repeat;
+  background-size: var(--arena-backdrop-size, cover);
+  background-position: var(--arena-backdrop-x, 50%) var(--arena-backdrop-y, 50%);
 }
 
 .page--arena .arena-puzzle-label {

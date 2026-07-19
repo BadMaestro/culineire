@@ -785,6 +785,56 @@
     }
 
     billboardFaces(svg);
+    placeBackdrop(svg);
+  }
+
+  // The hall is a photograph now, not geometry we draw.
+  //
+  // Order #6: we stopped programming the bowl, the tiers and the crowd — they
+  // are a still image behind the floor. What is still code is the floor
+  // itself, because every tile is a chef with a state, a click and a card.
+  //
+  // So the two have to line up, and it is the RASTER that moves: a photograph
+  // can be scaled and cropped freely, while our octagon is tied to the ring
+  // contract. These three numbers are measured off the image, not guessed —
+  // Otsu threshold, largest lit region, its box:
+  //   the painted floor spans 0.602 of the image width,
+  //   its centre sits at 0.499 / 0.615 of the image,
+  //   it is compressed to 0.437, so the camera reads acos(0.437) = 64 degrees.
+  // Re-measure all three if the backdrop is ever redrawn.
+  var BACKDROP_FLOOR_WIDTH = 0.602;
+  var BACKDROP_FLOOR_CX = 0.499;
+  var BACKDROP_FLOOR_CY = 0.615;
+
+  function placeBackdrop(svg) {
+    var container = svg.parentElement;
+    if (!container) { return; }
+
+    var cells = svg.querySelectorAll('.arena-cell[data-ring-kind="rank"]');
+    if (!cells.length) { return; }
+
+    var left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
+    for (var i = 0; i < cells.length; i++) {
+      var box = cells[i].getBoundingClientRect();
+      if (box.left < left) { left = box.left; }
+      if (box.right > right) { right = box.right; }
+      if (box.top < top) { top = box.top; }
+      if (box.bottom > bottom) { bottom = box.bottom; }
+    }
+    var ourWidth = right - left;
+    if (!(ourWidth > 0)) { return; }
+
+    // Scale the photograph so its painted floor is exactly as wide as ours,
+    // then slide it so the two floors share a centre.
+    var frame = container.getBoundingClientRect();
+    var imageWidth = ourWidth / BACKDROP_FLOOR_WIDTH;
+    var imageHeight = imageWidth * (1024 / 1536);
+    var x = (left + right) / 2 - frame.left - imageWidth * BACKDROP_FLOOR_CX;
+    var y = (top + bottom) / 2 - frame.top - imageHeight * BACKDROP_FLOOR_CY;
+
+    container.style.setProperty('--arena-backdrop-size', imageWidth.toFixed(1) + 'px auto');
+    container.style.setProperty('--arena-backdrop-x', x.toFixed(1) + 'px');
+    container.style.setProperty('--arena-backdrop-y', y.toFixed(1) + 'px');
   }
 
   // Billboarding: a face lying on the tilted floor plane is squashed, and a

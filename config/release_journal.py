@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.348",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "The hall becomes a photograph, the floor stays code",
+        "section": "Chef Battles",
+        "summary": "Eight releases went into drawing a bowl, tiers and a crowd that never change. They are now one still image behind the arena, and the floor - where every tile is a chef with a state and a click - stays as the SVG on top of it. Alignment test, measured on production.",
+    },
+    {
         "version": "2.5.347",
         "date": "2026-07-20",
         "commit": "pending",
