@@ -1,0 +1,108 @@
+/*
+ * Arena hall — the mockup's framing, route-scoped to the arena page.
+ *
+ * The mockup (docs/chef_battle/arena_mockup_spec.md) is a dark broadcast hall:
+ * deep green-black room, gold light, HUD panels floating around a lit arena.
+ * Our page was the inverse — a light parchment page holding the arena inside a
+ * white 960px card, which is why the two never read as the same place however
+ * the arena itself was painted.
+ *
+ * The command deck already derives every panel colour from its own custom
+ * properties (--arena-ink/-forest/-muted/-gold/-cappuccino/-paper/-cream in
+ * arena_command_deck.css), so the whole HUD flips to dark glass by overriding
+ * the tokens once. Only the handful of rules that hardcoded raw parchment
+ * values need explicit overrides below. Scoped to .page--arena throughout:
+ * the Master Console (.page--amc) keeps its light operational look.
+ */
+
+/* ---- the hall is the page ---- */
+
+.page--arena {
+  background:
+    radial-gradient(90rem 44rem at 50% 30%, rgb(217 164 65 / 0.09), transparent 62%),
+    radial-gradient(130% 120% at 50% 40%, #0d1a12 0%, #050d08 100%);
+  background-attachment: fixed;
+}
+
+/* ---- one token flip turns the deck dark ---- */
+
+.page--arena .arena-command-deck {
+  --arena-ink: #e9dfc8;
+  --arena-forest: #cfc4a6;
+  --arena-muted: #97a08c;
+  --arena-gold: #d9a441;
+  --arena-cappuccino: #e0b662;
+  --arena-paper: #0f1a13;
+  --arena-cream: #16241a;
+  width: min(100% - 1.5rem, 1780px);
+}
+
+/* Panels: the deck paints these with raw parchment values, so the token flip
+   cannot reach them — dark glass with a gold hairline instead. */
+.page--arena .arena-command-deck__header,
+.page--arena .arena-command-deck__phase-card,
+.page--arena .arena-command-deck__metrics,
+.page--arena .arena-command-deck__ladder,
+.page--arena .arena-command-deck__gifts,
+.page--arena .arena-command-deck__crowd-rail,
+.page--arena .arena-command-deck__phase-rail {
+  border-color: rgb(217 164 65 / 0.28);
+  background: rgb(10 18 12 / 0.82);
+  box-shadow: 0 0.55rem 1.6rem rgb(0 0 0 / 0.45);
+}
+
+.page--arena .arena-phase-step.is-active {
+  box-shadow: inset 0 0 0 1px rgb(217 164 65 / 0.35);
+}
+
+/* ---- the floor card dissolves into the hall ---- */
+
+/* The white card around the arena was the "container" the owner named: the
+   scene must sit in the room, not in a frame. The dark plate of
+   .arena-floor-stage and the bowl gradient of .arena-render-container remain
+   the scene's own lighting. */
+.page--arena .arena-command-deck__floor {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0.25rem;
+}
+
+.page--arena .arena-command-deck__live-stage {
+  border-color: rgb(217 164 65 / 0.3);
+  background: linear-gradient(135deg, rgb(29 77 51 / 0.28), rgb(10 18 12 / 0.85), rgb(122 31 36 / 0.24));
+}
+
+.page--arena .arena-live-centre {
+  background: rgb(10 18 12 / 0.9);
+  box-shadow: inset 0 0 0 2px rgb(217 164 65 / 0.18);
+}
+
+.page--arena .arena-live-centre:hover,
+.page--arena .arena-live-centre:focus-visible {
+  background: #16241a;
+}
+
+.page--arena .arena-live-centre--crown {
+  background: linear-gradient(135deg, rgb(217 164 65 / 0.16), rgb(10 18 12 / 0.92));
+}
+
+/* ---- rank spine: gold pills over the hall, as in the mockup ---- */
+
+.page--arena .arena-rank-spine__step {
+  border-color: rgb(217 164 65 / 0.4);
+  color: #e9dfc8;
+  background: rgb(10 18 12 / 0.85);
+  box-shadow: 0 0.16rem 0.45rem rgb(0 0 0 / 0.4);
+}
+
+.page--arena .arena-rank-spine__step b {
+  color: #0f1a13;
+  background: #d9a441;
+}
+
+.page--arena .arena-rank-spine__step:hover,
+.page--arena .arena-rank-spine__step:focus-visible {
+  color: #f0c46a;
+  background: #16241a;
+}

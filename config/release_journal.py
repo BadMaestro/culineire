@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.333",
+        "date": "2026-07-19",
+        "commit": "pending",
+        "title": "The arena page becomes the hall",
+        "section": "Chef Battles / Arena",
+        "summary": "The arena was a tilted picture squeezed inside a white card on a light page - nothing like the design, which is a dark broadcast hall with the arena filling the room. The whole arena page is now that hall: deep green-black room with warm gold light, every panel around the arena turned to dark glass, and the arena itself sized to fill the scene instead of sitting in a square box with dead bands above and below. Faces in the crowd now stand upright and round instead of lying flattened on the tilted floor - people in a hall look at the camera. The Master Console keeps its flat overhead view on purpose: it is an operations tool, and a map is the right view for operating on seats.",
+    },
+    {
         "version": "2.5.332",
         "date": "2026-07-19",
         "commit": "pending",

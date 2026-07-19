@@ -290,28 +290,97 @@
  * size in the frame; the origin sits below centre so the far side lifts away
  * from the viewer rather than the near side dropping out of the container.
  * -------------------------------------------------------------------------- */
-.arena-render-container {
+/* The camera is scoped to the arena page. The Master Console keeps the plan
+   view on purpose: it is an operational tool, and a straight-down map is the
+   right projection for operating on seats.
+
+   Sizing: a square SVG tilted by rotateX(56deg) draws only cos(56) = 0.56 of
+   its height, so a square layout box leaves dead bands above and below the
+   scene — the "squeezed in its container" look. Instead the container takes
+   the scene's height and the SVG is oversized so its *projected* height fills
+   it: 1 / cos(56deg) = 1.79, less a little perspective bulge, gives 172%.
+   The stands run off the container's sides like they run off the mockup's
+   frame; overflow:hidden is that frame. */
+.page--arena .arena-render-container {
   perspective: 1500px;
-  perspective-origin: 50% 32%;
+  perspective-origin: 50% 30%;
+  position: relative;
+  width: 100%;
+  max-width: none;
+  height: clamp(360px, 44vw, 80vh);
+  padding: 0;
+  border: 0;
+  border-radius: 1rem;
+  overflow: hidden;
 }
 
-#arena-render {
-  transform: rotateX(56deg) scale(1.32);
-  transform-origin: 50% 58%;
+.page--arena #arena-render {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: auto;
+  height: 172%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%) rotateX(56deg);
+}
+
+.page--arena .arena-puzzle-label {
+  position: absolute;
+  top: 0.7rem;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  text-align: center;
+}
+
+/* Billboarding. The tilt lays every face down on the floor plane, squashing
+   it to 0.56 of its height — but people in a hall look at the camera, they do
+   not lie on the floor. Portraits, seat labels and fallback initials are
+   pre-stretched by 1/cos(56deg) so the projection returns them round and
+   upright. */
+.page--arena #arena-render image,
+.page--arena #arena-render .arena-occupant__initial,
+.page--arena #arena-render .arena-seat-label {
+  transform: scaleY(1.79);
+  transform-origin: center;
+  transform-box: fill-box;
 }
 
 /* Below the desktop breakpoint the arena is already small; a 56deg tilt turns
    the far rows into unclickable slivers on a phone, so the camera stands up
-   toward a plan view as the viewport narrows. */
+   toward a plan view as the viewport narrows. Projected-height and billboard
+   factors follow the angle: 1/cos(38) = 1.27, 1/cos(26) = 1.11. */
 @media (max-width: 900px) {
-  #arena-render {
-    transform: rotateX(38deg) scale(1.12);
+  .page--arena .arena-render-container {
+    height: clamp(320px, 62vw, 72vh);
+  }
+
+  .page--arena #arena-render {
+    height: 127%;
+    transform: translate(-50%, -50%) rotateX(38deg);
+  }
+
+  .page--arena #arena-render image,
+  .page--arena #arena-render .arena-occupant__initial,
+  .page--arena #arena-render .arena-seat-label {
+    transform: scaleY(1.27);
   }
 }
 
 @media (max-width: 640px) {
-  #arena-render {
-    transform: rotateX(26deg) scale(1.05);
+  .page--arena .arena-render-container {
+    height: clamp(300px, 88vw, 70vh);
+  }
+
+  .page--arena #arena-render {
+    height: 111%;
+    transform: translate(-50%, -50%) rotateX(26deg);
+  }
+
+  .page--arena #arena-render image,
+  .page--arena #arena-render .arena-occupant__initial,
+  .page--arena #arena-render .arena-seat-label {
+    transform: scaleY(1.11);
   }
 }
 
