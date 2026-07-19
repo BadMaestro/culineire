@@ -352,7 +352,7 @@
    view on purpose: it is an operational tool, and a straight-down map is the
    right projection for operating on seats.
 
-   Sizing: a square SVG tilted by rotateX(56deg) draws only cos(56) = 0.56 of
+   Sizing: a square SVG tilted by draws only cos(56) = 0.56 of
    its height, so a square layout box leaves dead bands above and below the
    scene — the "squeezed in its container" look.
 
@@ -389,10 +389,11 @@
   width: auto;
   height: 172%;
   aspect-ratio: 1;
-  /* 64deg, not the 56 of the spec: the backdrop photograph compresses its floor
-     to 0.437, and acos(0.437) is 64. The camera angle is now whatever the
-     picture was shot at, because the picture is the hall. */
-  transform: translate(-50%, -50%) translateY(var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1)) rotateX(64deg);
+  /* No rotateX any more. A tilt foreshortens the plane but leaves the far edge
+     as wide as the near one — measured 1.000 against the photograph's 0.51.
+     The camera now lives in projector() in arena_render.js, which converges
+     the floor properly. This rule only scales and centres what it draws. */
+  transform: translate(-50%, -50%) translateY(var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1));
 }
 
 /* ----------------------------------------------------------------------------
@@ -459,7 +460,7 @@
 
   .page--arena #arena-render {
     height: 127%;
-    transform: translate(-50%, -50%) translateY(var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1)) rotateX(38deg);
+    transform: translate(-50%, -50%) translateY(var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1));
   }
 
   .page--arena #arena-render image,
@@ -476,7 +477,7 @@
 
   .page--arena #arena-render {
     height: 111%;
-    transform: translate(-50%, -50%) translateY(var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1)) rotateX(26deg);
+    transform: translate(-50%, -50%) translateY(var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1));
   }
 
   .page--arena #arena-render image,
@@ -503,4 +504,16 @@
 #arena-render .arena-crowd-figure {
   opacity: 0.55;
   filter: saturate(0.5) brightness(0.72) sepia(0.28);
+}
+
+/* ----------------------------------------------------------------------------
+ * With the backdrop in place the crowd is in the photograph, so drawing our own
+ * stands on top of it doubles the audience. The seats stay in the geometry —
+ * they are still where a live spectator will be placed over the picture — we
+ * only stop painting them. Remove the backdrop and the old rendering returns
+ * on its own; nothing here is deleted.
+ * -------------------------------------------------------------------------- */
+.page--arena.has-arena-backdrop #arena-render [data-ring-kind="spectator"],
+.page--arena.has-arena-backdrop #arena-render .arena-crowd-figure {
+  display: none;
 }

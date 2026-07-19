@@ -57,6 +57,50 @@
     });
   }
 
+  /* ---------------------------------------------------------------- */
+  /* Projection — the floor is a plane seen from a camera, not a plan   */
+  /* ---------------------------------------------------------------- */
+
+  // We never had perspective. The scene was a flat octagon tilted by a CSS
+  // rotateX, which foreshortens it but does not make the far side NARROWER:
+  // measured on production, our near and far edges came out 103.1px and
+  // 103.1px, a ratio of exactly 1.000, while the hall photograph behind it
+  // converges to 0.51. A parent `perspective` did not change that at any value
+  // from 1500 down to 300 — so the fix is a real projection, not a parameter.
+  //
+  // CONVERGENCE is the single number that describes it: how wide the far edge
+  // is compared with the near one. 0.51 is measured off the backdrop; change
+  // the picture and this is the one value to re-measure.
+  //
+  // For a floor point at depth v (-1 far, +1 near) the width scale is
+  //   s(v) = A / (B - v),  B = (1+k)/(1-k),  A = B - 1
+  // which gives exactly s(-1) = k and s(+1) = 1. The vertical positions are
+  // the integral of that scale, so rows crowd together as they recede the way
+  // they do in the photograph, rather than sitting at even spacing.
+  var CONVERGENCE = 0.51;
+  var VERTICAL_SQUASH = 0.437;
+
+  function projector() {
+    var k = CONVERGENCE;
+    var B = (1 + k) / (1 - k);
+    var A = B - 1;
+    var half = SVG_SIZE / 2;
+    var span = half - OUTER_MARGIN;
+    var full = A * Math.log((B + 1) / (B - 1));
+
+    return function (point) {
+      var dx = point.x - half;
+      var dy = point.y - half;
+      var v = Math.max(-1, Math.min(1, dy / span));
+      var scale = A / (B - v);
+      var travel = A * Math.log((B + 1) / (B - v));
+      return {
+        x: half + dx * scale,
+        y: half + ((2 * travel / full) - 1) * span * VERTICAL_SQUASH
+      };
+    };
+  }
+
   function radiusStepFor(geometry) {
     var usable = (SVG_SIZE / 2) - OUTER_MARGIN - STAGE_RADIUS;
     return usable / Math.max(1, geometry.rings.length - 1);
@@ -68,10 +112,11 @@
 
   // The octagon at a given radius, as an SVG points string.
   function ringOutline(radius, sides) {
+    var project = projector();
     var points = [];
     for (var i = 0; i < sides; i++) {
       var angle = (Math.PI * 2 * i) / sides - Math.PI / 2;
-      points.push(global.ArenaGeometry.polar(SVG_SIZE / 2, SVG_SIZE / 2, radius, angle));
+      points.push(project(global.ArenaGeometry.polar(SVG_SIZE / 2, SVG_SIZE / 2, radius, angle)));
     }
     return points.map(pointString).join(' ');
   }
@@ -114,6 +159,7 @@
 
   function drawGrid(svg, geometry) {
     var step = radiusStepFor(geometry);
+    var project = projector();
     var defs = el('defs', {});
     var cells = el('g', { 'data-arena-layer': 'cells' });
     var stageRing = geometry.rings[0];
@@ -126,7 +172,10 @@
           geometry.rings.length, ring.segments, step, geometry.sides, STAGE_RADIUS
         );
         var centroid = global.ArenaGeometry.cellCentroid(vertices);
-        var shape = inset(vertices, centroid);
+        // Project after the plan-space maths, never before: the geometry
+        // contract owns the rings, the projection only draws them.
+        var shape = inset(vertices, centroid).map(project);
+        centroid = project(centroid);
         var polygon = el('polygon', {
           points: shape.map(pointString).join(' '),
           'data-ring': String(ring.index),
@@ -835,6 +884,10 @@
     container.style.setProperty('--arena-backdrop-size', imageWidth.toFixed(1) + 'px auto');
     container.style.setProperty('--arena-backdrop-x', x.toFixed(1) + 'px');
     container.style.setProperty('--arena-backdrop-y', y.toFixed(1) + 'px');
+    // Tells the stylesheet the crowd is in the picture now, so we stop drawing
+    // our own on top of it. A flag, not a deletion: without the backdrop the
+    // page renders exactly as it did before.
+    document.body.classList.add('has-arena-backdrop');
   }
 
   // Billboarding: a face lying on the tilted floor plane is squashed, and a

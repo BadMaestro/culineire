@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.349",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "The floor gets a camera instead of a tilt",
+        "section": "Chef Battles",
+        "summary": "The arena was a flat octagon leaned back, which shortens it but leaves the far edge as wide as the near one. Measured against the hall photograph: ours 1.000, the picture 0.51. The floor is now drawn through a real projection with the convergence as its one number.",
+    },
+    {
         "version": "2.5.348",
         "date": "2026-07-20",
         "commit": "pending",
