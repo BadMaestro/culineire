@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.334",
+        "date": "2026-07-19",
+        "commit": "pending",
+        "title": "The Arena Build board is reachable from the moderation panel",
+        "section": "Moderation",
+        "summary": "The build board shipped without a way in: it had a page but no link. It now sits in the moderation panel next to Arena Console Plan.",
+    },
+    {
         "version": "2.5.332",
         "date": "2026-07-19",
         "commit": "pending",

@@ -3965,6 +3965,15 @@ class ArenaBuildPlanTests(TestCase):
                 ).exists()
             )
 
+
+    def test_moderation_panel_links_to_the_board(self):
+        """The board is unreachable unless the panel offers it, next to Arena Console Plan."""
+        self.client.login(username="abp-boss", password="pw")
+        resp = self.client.get(reverse("recipes:moderation_panel"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, reverse("recipes:arena_build_plan"))
+        self.assertContains(resp, "Arena Build Plan")
+
     def test_start_unknown_stage_400(self):
         self.client.login(username="abp-boss", password="pw")
         resp = self.client.post(reverse("recipes:arena_build_start"), {"stage": "nope"})
