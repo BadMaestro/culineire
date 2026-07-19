@@ -112,3 +112,27 @@ class OwnerPasteBoxTests(TestCase):
         c = Client(); c.login(username="nobody", password="pw")
         self.assertEqual(c.get("/coworking/").status_code, 404)
         self.assertEqual(c.post("/coworking/send-message/", {"to_agent": "bolt", "body": "x"}).status_code, 404)
+
+
+class CoworkingAgentListCoercionTests(TestCase):
+    """A string in a list-typed JSON field made the dashboard render it one
+    character per <li>. save() must coerce a stray string/None into a list."""
+
+    def test_string_blocker_is_coerced_to_a_single_item_list(self):
+        a = CoworkingAgent.objects.create(agent_id="bolt", label="Bolt")
+        a.blockers = "Weekly usage limit"
+        a.key_facts = ""
+        a.save()
+        a.refresh_from_db()
+        self.assertEqual(a.blockers, ["Weekly usage limit"])
+        self.assertEqual(a.key_facts, [])
+
+    def test_proper_list_is_left_untouched(self):
+        a = CoworkingAgent.objects.create(
+            agent_id="greenbear", label="GB",
+            key_facts=["one", "two"], blockers=[],
+        )
+        a.save()
+        a.refresh_from_db()
+        self.assertEqual(a.key_facts, ["one", "two"])
+        self.assertEqual(a.blockers, [])

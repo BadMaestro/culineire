@@ -41,8 +41,24 @@ class CoworkingAgent(models.Model):
     class Meta:
         ordering = ["agent_id"]
 
+    # These JSON fields are lists by contract, and the dashboard iterates them.
+    _LIST_FIELDS = ("task_files_touched", "key_facts", "decisions_made", "blockers")
+
     def __str__(self):
         return self.label or self.agent_id
+
+    def save(self, *args, **kwargs):
+        # An agent that assigns a plain string to one of these fields directly
+        # (bypassing coworking_update, which appends to a list) would make the
+        # dashboard render it one character per <li>. Coerce a stray string or
+        # None into a list here so bad input can never break the board again.
+        for field in self._LIST_FIELDS:
+            value = getattr(self, field)
+            if isinstance(value, str):
+                setattr(self, field, [value] if value.strip() else [])
+            elif value is None:
+                setattr(self, field, [])
+        super().save(*args, **kwargs)
 
     def touch(self):
         self.last_seen = timezone.now()
