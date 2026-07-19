@@ -2760,6 +2760,51 @@ ARENA_BUILD_STAGES = [
                 "a traffic fact, not missing work - the arena is closed to everyone but "
                 "staff/moderators until launch.",
     },
+    # ── Stages 12+ come from the owner's decision of 2026-07-20 to stop building
+    # the hall in code. Everything above assumed the whole arena was drawn by the
+    # renderer; from here the scenery is a picture and the code owns only what
+    # has to change while people watch.
+    {
+        "n": 12, "id": "backdrop", "title": "The hall becomes a picture, not code",
+        "date": "2026-07-20",
+        "backend": {"who": "Bolt", "done": True, "ref": "n/a",
+                    "task": "No backend change: the backdrop is an asset, the seating contract is untouched"},
+        "frontend": {"who": "GB", "done": False, "ref": "placeBackdrop",
+                     "task": "Generated hall image behind the floor; the raster is scaled to the "
+                             "SVG rather than the other way round. Frame 1 accepted on style; "
+                             "SVG stands are switched off under it so the crowd is not drawn twice"},
+        "depends": "Frontend only. Owner: do not program the geometry of the stands.",
+        "note": "Budget for generating the backdrop: 5 calls, owner-approved. 2 spent (frame 2 "
+                "was a mistake, kept but unused), 3 frozen. A final high-quality render needs a "
+                "separate yes from the owner.",
+    },
+    {
+        "n": 13, "id": "projection", "title": "True perspective for the floor",
+        "date": "2026-07-20", "version": "v2.5.349",
+        "backend": {"who": "Bolt", "done": True, "ref": "geometry contract",
+                    "task": "No backend change: the contract describes rings, the renderer projects them"},
+        "frontend": {"who": "GB", "done": False, "ref": "arena_render.js",
+                     "task": "The floor never had perspective - it was a tilted plane with both "
+                             "edges the same length (ratio 1.00) while the mockup converges to 0.51. "
+                             "Every ring vertex is now projected, convergence is one parameter"},
+        "depends": "Frontend. Acceptance = the 8 corners of our octagon within 2% of the drawn one.",
+        "note": "This is what makes the far rings smaller on their own, which is what the hand-tuned "
+                "face sizes and brightness ladder were faking.",
+    },
+    {
+        "n": 14, "id": "mobile", "title": "Mobile arena is its own scene",
+        "date": "2026-07-20",
+        "backend": {"who": "Bolt", "done": False, "ref": "ring rosters",
+                    "task": "Chefs grouped per rank ring for the tap-through list"},
+        "frontend": {"who": "GB", "done": False, "ref": "mobile layout",
+                     "task": "Floor large, rings as arcs, crowd as a band; tapping a ring opens the "
+                             "list of that rank's chefs"},
+        "depends": "Frontend list depends on backend serving chefs grouped by ring.",
+        "note": "Owner's decision 2026-07-20, and it is not a style choice: at 390px an outer-ring "
+                "tile is about 34px wide and 8px tall once the floor is foreshortened. Nobody can "
+                "tap that, and the tile is how a chef's card is opened. Start only after the "
+                "desktop backdrop is accepted - two moving floors at once is how we lose a day.",
+    },
 ]
 
 

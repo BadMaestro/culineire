@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.350",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "The build board catches up with the change of approach",
+        "section": "Moderation",
+        "summary": "The board still described an arena drawn entirely in code, which stopped being the plan when the owner ruled that the hall becomes a picture. Three stages are added: the backdrop and the switching-off of the SVG stands under it, the floor's true perspective (it never had any - both edges were the same length while the mockup converges to 0.51), and the mobile arena as its own scene, where tapping a ring opens that rank's chefs. The mobile stage carries the number that forced it: at 390px an outer tile is about 34px wide and 8px tall, which no finger can hit.",
+    },
+    {
         "version": "2.5.349",
         "date": "2026-07-20",
         "commit": "pending",
