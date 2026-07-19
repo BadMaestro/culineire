@@ -13,7 +13,9 @@ import sys
 
 # env_bool in config/settings.py compares lowercased to "true" — "1" is False.
 os.environ["CHEF_BATTLE_ENABLED"] = "true"
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+# tools.dev_settings also signs every request in as a superuser, so the gated
+# pages (arena, build board, console) can be looked at without a login step.
+os.environ["DJANGO_SETTINGS_MODULE"] = "tools.dev_settings"
 
 if __name__ == "__main__":
     here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -22,5 +24,5 @@ if __name__ == "__main__":
     from django.core.management import execute_from_command_line
 
     execute_from_command_line(
-        ["manage.py", "runserver", "127.0.0.1:8011", "--noreload"]
+        ["manage.py", "runserver", os.environ.get("ARENA_DEV_ADDR", "127.0.0.1:8012"), "--noreload"]
     )

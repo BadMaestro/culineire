@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.342",
+        "date": "2026-07-19",
+        "commit": "pending",
+        "title": "The arena scene loses its invented green",
+        "section": "Chef Battles",
+        "summary": "The bowl, its rim and the spotlight were still #0e1a12 / #05100a / #d9a441 - an emerald-and-yellow-gold pair that appears nowhere in the CulinEire scheme, whose brand core is parchment, ink and muted bronze. They now derive from the hall tokens. The per-ring brightness list in CSS is gone too: it was written for four spectator rings, silently covered none of the four added when the stands went eight deep, and is replaced by the row/rows_total fall-off the faces already use.",
+    },
+    {
         "version": "2.5.341",
         "date": "2026-07-19",
         "commit": "pending",

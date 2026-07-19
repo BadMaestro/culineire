@@ -46,6 +46,12 @@
   .abp-foot { display:flex; align-items:center; gap:1rem; padding:.7rem 1rem; border-top:1px dashed var(--line,#e3ddcf); flex-wrap:wrap; }
   .abp-dep { flex:1; font-size:.8rem; color:var(--muted); min-width:220px; }
   .abp-dep b { color:var(--ink,#3d2917); }
+  /* A stage can be green and still carry a caveat the reader must not miss —
+     e.g. every seat is filled, but by stand-ins, because nobody is online yet. */
+  .abp-note { margin:.5rem 0 0; padding:.55rem .7rem; border-radius:8px; font-size:.82rem;
+              color:var(--ink,#3d2917); background:var(--surface-soft,#f5eee4);
+              border-left:3px solid var(--brand,#8b7355); }
+  .abp-note b { color:var(--brand-dark,#6e4e2c); }
   .abp-start { border:0; cursor:pointer; font-weight:800; letter-spacing:.08em; padding:.7rem 1.6rem; border-radius:10px; background:#d21f1f; color:#fff; font-size:.95rem; box-shadow:0 2px 0 #8f1414; transition:transform .08s, filter .12s; }
   .abp-start:hover { filter:brightness(1.08); }
   .abp-start:active { transform:translateY(2px); box-shadow:0 0 0 #8f1414; }
@@ -100,6 +106,10 @@
           <p class="abp-lane__head" style="margin-top:.3rem;">{{ s.frontend.ref }}</p>
         </div>
       </div>
+
+      {% if s.note %}
+      <p class="abp-note"><b>Важно:</b> {{ s.note }}</p>
+      {% endif %}
 
       <div class="abp-foot">
         <p class="abp-dep"><b>Зависимость:</b> {{ s.depends }}</p>

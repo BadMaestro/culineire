@@ -2673,7 +2673,7 @@ ARENA_BUILD_STAGES = [
         "n": 3, "id": "renderer", "title": "Procedural renderer (SVG octagon)",
         "date": "2026-07-16",
         "backend": {"who": "Bolt", "done": True, "ref": "get_arena_geometry",
-                    "task": "Declarative geometry: 8 rank rings + 4 spectator rings, segment counts"},
+                    "task": "Declarative geometry: 8 rank rings + spectator rings, segment counts"},
         "frontend": {"who": "GB/Ember", "done": True, "ref": "arena_render.js",
                      "task": "Polar SVG grid drawn from the contract, no hardcoded rings"},
         "depends": "Frontend renderer depends on backend get_arena_geometry.",
@@ -2724,30 +2724,41 @@ ARENA_BUILD_STAGES = [
     },
     {
         "n": 9, "id": "proportions", "title": "Proportions (floor 0.63, stands 1.6R deep)",
-        "date": "2026-07-19",
-        "backend": {"who": "Bolt", "done": False, "ref": "extend get_arena_geometry",
-                    "task": "Add spectator rings so the stands go ~1.6x floor radius deep (deeper crowd)"},
+        "date": "2026-07-19", "version": "v2.5.337",
+        "backend": {"who": "Bolt", "done": True, "ref": "SPECTATOR_RING_SEGMENTS",
+                    "task": "Stands went 4 rings -> 8 (40..96), 544 seats; the query limit is derived "
+                            "from the geometry instead of a hardcoded 208. Verified live: 544 seats drawn"},
         "frontend": {"who": "GB", "done": False, "ref": "layout",
-                     "task": "Shrink floor to ~0.63 of frame, expand stands using the new rings"},
+                     "task": "Shrink floor to ~0.63 of frame, expand stands using the new rings. "
+                             "Measured 2026-07-19: floor still 0.956 of frame at 1920px"},
         "depends": "Frontend proportions DEPEND ON backend adding deeper spectator rings.",
     },
     {
         "n": 10, "id": "faces", "title": "Face framing (round portraits, depth)",
-        "date": "2026-07-19",
+        "date": "2026-07-19", "version": "v2.5.338",
         "backend": {"who": "Bolt", "done": True, "ref": "avatar url in payload",
                     "task": "Spectator avatar_url already in payload; no backend change"},
-        "frontend": {"who": "GB", "done": False, "ref": "round clip",
-                     "task": "Round portrait clip (not seat-shaped slice), front row bigger/brighter"},
+        "frontend": {"who": "GB", "done": False, "ref": "arena-face-clip",
+                     "task": "Round clip and size-by-depth SHIPPED (v2.5.338, faces 28-50px, "
+                             "0.05-0.07R). Still missing the lighting half: measured 2026-07-19, "
+                             "all 544 faces are opacity 1 / filter none, so the back rows are as "
+                             "bright as the front and the depth does not read"},
         "depends": "Frontend only. Avatar data already provided.",
     },
     {
-        "n": 11, "id": "crowd", "title": "208 live avatars on the stands",
-        "date": "2026-07-19",
-        "backend": {"who": "Bolt", "done": True, "ref": "spectators payload",
-                    "task": "Up to 208 real spectators + count; filler count = 208 - len(spectators)"},
-        "frontend": {"who": "GB", "done": False, "ref": "fill + silhouettes",
-                     "task": "Fill rings with real avatars + procedural silhouette fillers for a full house"},
+        "n": 11, "id": "crowd", "title": "Live avatars on the stands (544 seats)",
+        "date": "2026-07-19", "version": "v2.5.340",
+        "backend": {"who": "Bolt", "done": True, "ref": "spectator_capacity()",
+                    "task": "Real spectators up to the arena's own seat count (now 544, derived "
+                            "from the geometry); fillers take the remaining seats"},
+        "frontend": {"who": "GB", "done": True, "ref": "crowdFaceFor + crowd webp",
+                     "task": "All 544 seats occupied; a real viewer's avatar replaces the stand-in "
+                             "when they are online. Stand-ins rebuilt for the dark hall (v2.5.340), "
+                             "face contrast 12.0-14.3:1"},
         "depends": "Frontend fill depends on backend spectator payload (done).",
+        "note": "Seats are full, but every face is a stand-in: 0 real spectators online. That is "
+                "a traffic fact, not missing work - the arena is closed to everyone but "
+                "staff/moderators until launch.",
     },
 ]
 

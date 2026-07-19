@@ -193,9 +193,16 @@
  * onto the parchment rather than mixed into it.
  * ========================================================================== */
 .arena-render-container {
-  --arena-bowl: #0e1a12;      /* deep green-black the stands sit in */
-  --arena-bowl-edge: #05100a; /* rim, darkest, so the bowl reads as depth */
-  --arena-spot: #d9a441;      /* warm gold of the overhead spotlight */
+  /* The bowl and its light come from the site scheme, not from a hand-picked
+     pair. They were #0e1a12 / #05100a / #d9a441 — an emerald-and-yellow-gold
+     set that appears nowhere in CulinEire's tokens, whose brand core is warm
+     parchment, ink and muted bronze (the reference PDF states it outright:
+     "--legal-green is brand/bronze, not green"). --hall-* are declared on
+     .page--arena in arena_hall.css, which wraps this scene; the fallbacks keep
+     the container correct if it is ever rendered outside that page. */
+  --arena-bowl: var(--hall-deep, color-mix(in srgb, var(--ink) 74%, #000));
+  --arena-bowl-edge: var(--hall-edge, color-mix(in srgb, var(--ink) 38%, #000));
+  --arena-spot: var(--hall-bronze, #b47a33);
 
   /* Gold pooling over the stage, falling away into a dark bowl. */
   background:
@@ -217,7 +224,7 @@
  * left over around an inscribed octagon: a black box with a pale slab in it,
  * not an amphitheatre (owner's screenshot, 2026-07-18). In the mockup the dark
  * IS the crowd — the outer rings themselves, packed with people, wrapping a lit
- * floor. So the spectator rings (9-12, the 208 seats) become the dark stands
+ * floor. So the spectator rings (9 and outward, 544 seats) become the dark stands
  * and the rank floor (1-8) keeps its parchment. The bowl then reads from the
  * geometry outward instead of from the frame inward.
  * -------------------------------------------------------------------------- */
@@ -259,11 +266,18 @@
 }
 
 /* Depth across the stands: the near ring catches the stage light, the far ring
-   falls away into the rim. Four steps, outermost darkest. */
-#arena-render [data-ring="9"]  { filter: brightness(1.18); }
-#arena-render [data-ring="10"] { filter: brightness(1.02); }
-#arena-render [data-ring="11"] { filter: brightness(0.88); }
-#arena-render [data-ring="12"] { filter: brightness(0.74); }
+   falls away into the rim.
+
+   This was a ladder of one rule per ring, hand-written for rings 9-12 back when
+   the stands were four rings deep. They are eight now (get_arena_geometry,
+   40..96 seats) and the four new rings inherited no brightness at all: the back
+   of the hall lit up as brightly as the front row. A list of ring numbers in CSS
+   cannot survive the contract changing, so the fall-off is driven from
+   row / rows_total in arena_render.js instead — the same numbers the faces use,
+   one mechanism, no list to forget. */
+#arena-render [data-ring-kind="spectator"] {
+  filter: brightness(var(--row-light, 1));
+}
 
 /* The floor is lit FROM the bowl, not tinted: a warm halo under the SVG keeps
    every tile fill deriving from the brand token, which is the rule phase A
