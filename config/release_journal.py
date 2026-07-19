@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.343",
+        "date": "2026-07-19",
+        "commit": "pending",
+        "title": "The crowd stopped sitting like eggs in a carton",
+        "section": "Chef Battles",
+        "summary": "Every stand-in face carried the studio background it was photographed on and landed dead centre of its seat, on a fixed stride that repeated the same head every third chair. The backgrounds are cut away and the hall is dealt by a hash, so no row repeats.",
+    },
+    {
         "version": "2.5.342",
         "date": "2026-07-19",
         "commit": "pending",

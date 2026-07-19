@@ -201,12 +201,42 @@
   // (under a kilobyte each) rather than the 2.3MB originals: three shared
   // sources across 200-odd seats is three requests either way, but at full
   // size that is seven megabytes on a phone.
+  // Seat the crowd. The face has to be decided by the seat, not by chance:
+  // Math.random() would deal a new hall on every 10s poll and the stands would
+  // shimmer. But arithmetic on the seat number is not enough either — the old
+  // (ring * 7 + cell * 3) walked the list in a fixed stride, so the same face
+  // landed every third seat and the rows read as a repeating pattern rather
+  // than a crowd. The owner's word for it was eggs in a carton.
+  //
+  // A hash scatters the same three or twelve faces without any visible
+  // period, and stays put across polls because it is still a pure function of
+  // the seat.
+  function seatHash(ring, cell) {
+    var h = (ring + 1) * 0x9e3779b1 ^ (cell + 1) * 0x85ebca6b;
+    h ^= h >>> 15;
+    h = Math.imul(h, 0x2545f491);
+    h ^= h >>> 13;
+    return (h >>> 0);
+  }
+
   function crowdFaceFor(ring, cell) {
     var faces = global.ARENA_CROWD_FACES || [];
     if (!faces.length) { return null; }
-    // Derived from the seat itself. Math.random() would deal a new crowd on
-    // every 10s poll and the stands would shimmer.
-    return faces[(ring * 7 + cell * 3) % faces.length];
+    return faces[seatHash(ring, cell) % faces.length];
+  }
+
+  // Nobody in a hall sits perfectly on the centre of their seat, and a grid of
+  // heads on exact centres is what made the stands read as a carton. Each face
+  // is nudged off centre by a fraction of the seat, and its size varies a
+  // little around the row's own size — both from the same seat hash, so they
+  // never move between polls.
+  function seatJitter(ring, cell) {
+    var h = seatHash(ring, cell);
+    return {
+      x: (((h >>> 4) & 0xff) / 255 - 0.5),
+      y: (((h >>> 12) & 0xff) / 255 - 0.5),
+      scale: 0.9 + ((h >>> 20) & 0xff) / 255 * 0.2
+    };
   }
 
   // Face size, from the measured mockup (docs/chef_battle/arena_mockup_spec.md
@@ -262,8 +292,13 @@
     var polygon = svg.querySelector('polygon[data-ring="' + ring + '"][data-cell="' + cell + '"]');
     if (!polygon) { return; }
     var box = polygon.getBBox();
+    var jitter = seatJitter(ring, cell);
     // A portrait sits IN its seat, so it never grows past the seat either.
-    var size = Math.min(faceDiameter(geometry, ring, radius), Math.max(box.width, box.height));
+    var size = Math.min(faceDiameter(geometry, ring, radius) * jitter.scale,
+                        Math.max(box.width, box.height));
+    // Off-centre by up to a fifth of the seat in each direction.
+    var offsetX = jitter.x * box.width * 0.4;
+    var offsetY = jitter.y * box.height * 0.4;
 
     var figure = el('g', {
       'pointer-events': 'none',
@@ -273,11 +308,13 @@
     // in objectBoundingBox units serves every face whatever its size.
     var image = el('image', {
       href: href,
-      x: (box.x + box.width / 2 - size / 2).toFixed(2),
-      y: (box.y + box.height / 2 - size / 2).toFixed(2),
+      x: (box.x + box.width / 2 - size / 2 + offsetX).toFixed(2),
+      y: (box.y + box.height / 2 - size / 2 + offsetY).toFixed(2),
       width: size.toFixed(2), height: size.toFixed(2),
-      'clip-path': 'url(#arena-face-clip)',
-      preserveAspectRatio: 'xMidYMid slice'
+      // The portraits are cut out now, so the seat behind them shows through.
+      // No circular clip: a round mask over a head-and-shoulders cut-out chops
+      // the shoulders off and puts the carton back.
+      preserveAspectRatio: 'xMidYMid meet'
     });
     image.style.filter = faceLighting(geometry, ring);
     figure.appendChild(image);
