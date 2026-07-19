@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.346",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "The crowd got its faces back",
+        "section": "Chef Battles",
+        "summary": "Cutting the studio background away ate the heads with it — hair and shoulders went, leaving pale scraps in the seats — and because the cut was taken from the dark originals it silently undid an earlier brightening. The cut is now tight enough to keep the head, and the lift is applied after it rather than before.",
+    },
+    {
         "version": "2.5.345",
         "date": "2026-07-20",
         "commit": "pending",
