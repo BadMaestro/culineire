@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.340",
+        "date": "2026-07-19",
+        "commit": "pending",
+        "title": "The stand-in crowd can be seen in the dark",
+        "section": "Chef Battles",
+        "summary": "The three default faces filling empty seats were made for a light page and sank into the dark stands. They are regenerated brighter and more contrasted, so a face six pixels wide still reads as a person.",
+    },
+    {
         "version": "2.5.339",
         "date": "2026-07-19",
         "commit": "pending",
