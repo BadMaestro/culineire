@@ -367,3 +367,41 @@ class SecurityHeaderTests(TestCase):
         self.assertEqual(response.headers["X-Frame-Options"], "DENY")
         self.assertEqual(response.headers["X-Content-Type-Options"], "nosniff")
         self.assertEqual(response.headers["Referrer-Policy"], "same-origin")
+
+
+class TemplateCommentHygieneTests(TestCase):
+    """A multi-line {# #} is not a comment — it is page text.
+
+    Django's short comment closes at the end of its own line. Spread one over
+    several lines and every line lands in the rendered HTML. That is how three
+    lines of a developer note about the battle-start banner ended up printed
+    under the footer of the live site, spotted by the owner on a phone on
+    2026-07-20. The rule cannot be "remember it", because it looks correct in
+    every editor — so it is asserted here instead.
+    """
+
+    def test_no_multiline_short_comments_in_templates(self):
+        from pathlib import Path
+
+        from django.conf import settings
+
+        offenders = []
+        roots = [Path(d) for d in settings.TEMPLATES[0]["DIRS"]]
+        for root in roots:
+            for path in root.rglob("*.html"):
+                for number, line in enumerate(
+                    path.read_text(encoding="utf-8", errors="ignore").splitlines(), 1
+                ):
+                    if "{#" not in line:
+                        continue
+                    # Everything after the opening marker has to close on the
+                    # same line; a bare "{#" leaks the lines that follow it.
+                    if "#}" not in line.split("{#", 1)[1]:
+                        offenders.append(f"{path}:{number}: {line.strip()[:70]}")
+
+        self.assertEqual(
+            offenders,
+            [],
+            "Multi-line {# #} renders as visible page text. Use "
+            "{% comment %}...{% endcomment %}:\n" + "\n".join(offenders),
+        )

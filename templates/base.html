@@ -430,7 +430,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v2.5.346</span>
+                <span class="footer-version">v2.5.347</span>
             </div>
         </div>
     </div>
@@ -502,9 +502,15 @@
 </div>
 
 {% if chef_battle_enabled %}
-{# Chefs are ready and the floor is filling. Deliberately NOT the .battle-blast
-   modal: that one is a one-shot celebration, while this runs for five minutes —
-   a modal would hold the whole site hostage until the battle starts. #}
+{% comment %}
+Chefs are ready and the floor is filling. Deliberately NOT the .battle-blast
+modal: that one is a one-shot celebration, while this runs for five minutes —
+a modal would hold the whole site hostage until the battle starts.
+
+{% comment %}, not {# #}: the short form closes at the end of its own line, so
+a multi-line one is not a comment at all — Django printed these three lines to
+the page, under the footer, for every visitor who could see Chef Battles.
+{% endcomment %}
 <aside class="battle-starting" id="battle-starting" hidden aria-live="polite">
   <span class="battle-starting__badge">Battle starting</span>
   <p class="battle-starting__theme" id="starting-theme"></p>

@@ -165,8 +165,10 @@
                 <rect height="38" rx="8" width="76" x="22" y="38"/>
                 {# Liquid surface #}
                 <ellipse cx="60" cy="42" rx="33" ry="5" class="gen-pot__liquid"/>
-                {# Spoon - drawn before rim so rim sits on top, hiding the mid-handle at rim level.
-                   Pivot at liquid surface (60,42): handle rises above rim, bowl stirs inside. #}
+                {% comment %}
+                Spoon - drawn before rim so rim sits on top, hiding the mid-handle at rim level.
+                Pivot at liquid surface (60,42): handle rises above rim, bowl stirs inside.
+                {% endcomment %}
                 <g class="gen-spoon" style="transform-origin: 60px 42px;">
                     <rect class="gen-spoon__handle" height="20" rx="1.5" width="3" x="58.5" y="22"/>
                     <ellipse class="gen-spoon__bowl" cx="60" cy="60" rx="4" ry="6"/>

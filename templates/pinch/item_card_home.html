@@ -23,8 +23,10 @@
     <p class="ab-home-card__title">{{ item.title }}</p>
   </div>
 
-  {# Slide-up sheet — must come BEFORE MORE and CLOSE so the CSS general
-     sibling combinator (~) can hide MORE and reveal CLOSE when is-open fires #}
+  {% comment %}
+  Slide-up sheet — must come BEFORE MORE and CLOSE so the CSS general
+  sibling combinator (~) can hide MORE and reveal CLOSE when is-open fires
+  {% endcomment %}
   <div class="ab-card__sheet" id="ab-sheet-{{ item.pk }}"
        role="dialog" aria-label="More info" aria-hidden="true">
     <div class="ab-sheet__body">

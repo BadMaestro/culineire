@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.347",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "A developer note stops printing itself under the footer",
+        "section": "Site",
+        "summary": "Three lines about the battle-start banner were rendering as visible text at the bottom of every page that could see Chef Battles - the owner found it browsing on a phone. Django's short comment {# #} closes at the end of its own line, so a multi-line one is not a comment at all and every line reaches the page. Two more were leaking the same way, in the recipe generator and the Pinch card. All three are now {% comment %} blocks, and a test walks the template tree so the next one fails in CI instead of on the site.",
+    },
+    {
         "version": "2.5.346",
         "date": "2026-07-20",
         "commit": "pending",
