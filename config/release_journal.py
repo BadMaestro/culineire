@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.344",
+        "date": "2026-07-19",
+        "commit": "pending",
+        "title": "The rank ladder stops sitting on the crown holder",
+        "section": "Chef Battles",
+        "summary": "The eight rank pills ran straight across the centre of the arena. Measured on the live page: the stage begins 32.2% down the floor container and the ladder ran from 8.5% to 44.8%, so it covered the crown holder. It was not merely anchored too low - at 36.3% tall it did not fit in the space above the stage at all. The steps are compacted and the anchor raised, in proportions of the container rather than pixels, so the clearance survives the scene being refitted. Verified at 1280 and 1920: no overlap.",
+    },
+    {
         "version": "2.5.343",
         "date": "2026-07-19",
         "commit": "pending",

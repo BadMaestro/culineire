@@ -120,6 +120,40 @@
 
 /* ---- rank spine: gold pills over the hall, as in the mockup ---- */
 
+/*
+ * The spine sat ON the centre stage. Measured on the live page at 1280px:
+ * the stage begins 32.2% down the floor container, and the spine ran from 8.5%
+ * to 44.8% — 12.6% of overlap, right across the crown holder.
+ *
+ * It is not simply anchored too low: at 36.3% tall it does not FIT in the 32.2%
+ * above the stage, so moving it up alone would push it out of the frame. The
+ * eight steps are compacted until the stack clears the stage, and the anchor
+ * rides up with them. The tuning was done against the mockup, where the ladder
+ * is a tight column of small caps above the crown, not a stack of buttons.
+ *
+ * These are proportions of the container, not fixed pixels, so they hold as the
+ * scene is refitted (arena_render.js sizes the SVG to the container).
+ */
+.page--arena .arena-rank-spine {
+  top: 2.4%;
+  gap: 0.1rem;
+  padding: 0.16rem;
+  width: min(9.5rem, 20%);
+}
+
+/* The step box is what sets the stack's height, so it is the thing that has to
+   shrink; the label then grows back inside it as the viewport widens, where
+   there is room to spare (measured: 10px of clearance at 1280, 122px at 1920). */
+.page--arena .arena-rank-spine__step {
+  min-height: 0.82rem;
+  padding: 0.05rem 0.34rem;
+  font-size: clamp(0.42rem, 0.56vw, 0.62rem);
+}
+
+.page--arena .arena-rank-spine__step b {
+  min-width: 0.85rem;
+}
+
 .page--arena .arena-rank-spine__step {
   border-color: rgb(180 122 51 / 0.4);
   color: var(--hall-text);
