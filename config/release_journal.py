@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.331",
+        "date": "2026-07-19",
+        "commit": "pending",
+        "title": "The arena is seen from the stands, not from above",
+        "section": "Chef Battles / Arena",
+        "summary": "The arena was drawn straight down onto a flat plan, which is why it never looked like the hall in the design. It is now seen from a raised seat looking across the floor, the way the design shows it, so the arena reads as a room with depth: the far side sits back, the near side comes forward, and the crowd wraps around a lit floor. Nothing about the seating changed - the same rings, the same seats, the same places - only the point of view. On phones the view stands up closer to overhead, so seats in the far rows stay large enough to tap.",
+    },
+    {
         "version": "2.5.330",
         "date": "2026-07-18",
         "commit": "pending",

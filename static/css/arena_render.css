@@ -272,6 +272,49 @@
   filter: drop-shadow(0 0 30px color-mix(in srgb, var(--arena-spot) 30%, transparent));
 }
 
+/* ----------------------------------------------------------------------------
+ * Camera.
+ *
+ * The measured gap between the mockup and this renderer was never colour: the
+ * mockup is drawn in perspective and we were drawing a plan view. Its floor
+ * octagon measures 800 x 450 px, a vertical compression of 0.56 — and
+ * cos(56deg) = 0.56, so the picture is taken from about 34deg above the floor
+ * plane (docs/chef_battle/arena_mockup_spec.md, section 1).
+ *
+ * This is a projection, not a geometry change: get_arena_geometry still owns
+ * the rings and segments, arena_geometry.js still lays them out flat, and the
+ * whole scene is then tilted as one plane. Hit testing follows the transform,
+ * so seats stay clickable where they are drawn.
+ *
+ * The scale compensates the height the tilt costs, keeping the arena the same
+ * size in the frame; the origin sits below centre so the far side lifts away
+ * from the viewer rather than the near side dropping out of the container.
+ * -------------------------------------------------------------------------- */
+.arena-render-container {
+  perspective: 1500px;
+  perspective-origin: 50% 32%;
+}
+
+#arena-render {
+  transform: rotateX(56deg) scale(1.32);
+  transform-origin: 50% 58%;
+}
+
+/* Below the desktop breakpoint the arena is already small; a 56deg tilt turns
+   the far rows into unclickable slivers on a phone, so the camera stands up
+   toward a plan view as the viewport narrows. */
+@media (max-width: 900px) {
+  #arena-render {
+    transform: rotateX(38deg) scale(1.12);
+  }
+}
+
+@media (max-width: 640px) {
+  #arena-render {
+    transform: rotateX(26deg) scale(1.05);
+  }
+}
+
 /* Crown at the centre catches the spotlight. */
 #arena-render .arena-stage[data-state="crown"],
 #arena-render .arena-stage[data-state="active_battle"],
