@@ -807,11 +807,18 @@
       var left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
       for (var i = 0; i < cells.length; i++) {
         var box = cells[i].getBoundingClientRect();
+        // A hidden cell reports a zero rect at the origin. Counting those
+        // dragged the measured floor up to the top-left corner of the window
+        // and the fit collapsed the arena to a twenty-pixel smudge — which is
+        // exactly what shipped for one release once the stands were hidden
+        // under the backdrop.
+        if (!box.width || !box.height) { continue; }
         if (box.left < left) { left = box.left; }
         if (box.right > right) { right = box.right; }
         if (box.top < top) { top = box.top; }
         if (box.bottom > bottom) { bottom = box.bottom; }
       }
+      if (!(right > left)) { return; }
 
       var frame = container.getBoundingClientRect();
       var width = right - left, height = bottom - top;
@@ -865,6 +872,7 @@
     var left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
     for (var i = 0; i < cells.length; i++) {
       var box = cells[i].getBoundingClientRect();
+      if (!box.width || !box.height) { continue; }
       if (box.left < left) { left = box.left; }
       if (box.right > right) { right = box.right; }
       if (box.top < top) { top = box.top; }
