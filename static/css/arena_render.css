@@ -298,27 +298,23 @@
    its height, so a square layout box leaves dead bands above and below the
    scene — the "squeezed in its container" look.
 
-   The first fix sized the SVG off the container's HEIGHT alone (height:172%,
-   aspect-ratio:1), which makes its width 1.72x the container's height and
-   ignores the container's width completely. On a wide viewport that put the
-   octagon 202px past each side and 216px past the bottom at 1920, so
-   overflow:hidden cut the FLOOR off, not just the stands. Measured, not
-   guessed: container 1123x845, octagon 1528x945.
+   Sizing the SVG off the container's HEIGHT alone (height:172%) makes its
+   width 1.72x the container's height and never looks at the container's own
+   width: at 1920 the octagon ran 202px past each side and 216px past the
+   bottom, and overflow:hidden cut the FLOOR off, not the stands the older
+   comment here promised. Sizing off a measured width/height constant instead
+   (v2.5.336) overshot by 251px a side, because perspective is not a constant
+   scale — a taller element is magnified more, so the octagon's share of its
+   own box changes with its size and no constant is right twice.
 
-   Now the scene is sized off BOTH axes: min(width-fit, height-fit). The two
-   --arena-fit-* factors are the octagon's measured on-screen size as a
-   fraction of the SVG's own box, at this breakpoint's tilt — the projection
-   plus the viewBox's own margin, taken off the live page rather than derived,
-   because perspective (not just rotateX) decides the final extent. 98cq
-   instead of 100cq leaves a hairline so the octagon never kisses the frame.
-   Re-measure these two numbers if the tilt or perspective changes. */
+   The height below is only a starting size. The final fit is measured on the
+   live page by fitScene() in arena_render.js, which reads the octagon's real
+   on-screen box and writes --arena-fit. Nothing here needs re-measuring when
+   the tilt or the ring count changes; the fit follows. */
 .page--arena .arena-render-container {
   perspective: 1500px;
   perspective-origin: 50% 30%;
   position: relative;
-  container-type: size;
-  --arena-fit-w: 0.72;
-  --arena-fit-h: 0.421;
   width: 100%;
   max-width: none;
   height: clamp(360px, 44vw, 80vh);
@@ -332,10 +328,10 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: min(calc(98cqw / var(--arena-fit-w)), calc(98cqh / var(--arena-fit-h)));
-  height: auto;
+  width: auto;
+  height: 172%;
   aspect-ratio: 1;
-  transform: translate(-50%, -50%) rotateX(56deg);
+  transform: translate(-50%, -50%) scale(var(--arena-fit, 1)) rotateX(56deg);
 }
 
 .page--arena .arena-puzzle-label {
@@ -367,12 +363,11 @@
 @media (max-width: 900px) {
   .page--arena .arena-render-container {
     height: clamp(320px, 62vw, 72vh);
-    --arena-fit-w: 0.804;
-    --arena-fit-h: 0.639;
   }
 
   .page--arena #arena-render {
-    transform: translate(-50%, -50%) rotateX(38deg);
+    height: 127%;
+    transform: translate(-50%, -50%) scale(var(--arena-fit, 1)) rotateX(38deg);
   }
 
   .page--arena #arena-render image,
@@ -385,12 +380,11 @@
 @media (max-width: 640px) {
   .page--arena .arena-render-container {
     height: clamp(300px, 88vw, 70vh);
-    --arena-fit-w: 0.892;
-    --arena-fit-h: 0.806;
   }
 
   .page--arena #arena-render {
-    transform: translate(-50%, -50%) rotateX(26deg);
+    height: 111%;
+    transform: translate(-50%, -50%) scale(var(--arena-fit, 1)) rotateX(26deg);
   }
 
   .page--arena #arena-render image,

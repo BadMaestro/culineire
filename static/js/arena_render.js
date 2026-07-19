@@ -566,11 +566,53 @@
         if (!payload) { return; }
         // Geometry is re-read from every payload: ring capacity is a server
         // decision and may change between polls.
-        if (payload.geometry) { bind(svg, payload, payload.geometry); }
+        if (payload.geometry) { bind(svg, payload, payload.geometry); fitScene(svg); }
         if (global.ArenaDeck) { global.ArenaDeck.refresh(payload); }
         if (global.ArenaBattleRoom) { global.ArenaBattleRoom.maybeCelebrate(payload.latest_result); }
       })
       .catch(function () { /* a dropped poll is retried on the next tick */ });
+  }
+
+  // Fit the tilted scene inside its frame.
+  //
+  // This cannot be done in CSS. A square SVG tilted by rotateX draws cos(angle)
+  // of its height, but the container also carries perspective:1500px, and
+  // perspective is not a constant scale — the nearer half of a tall element is
+  // magnified more than a short one, so the octagon's final on-screen size is
+  // not a fixed fraction of the SVG's own box. Sizing off a measured constant
+  // was tried in v2.5.336 and overshot by 251px a side: the constant taken at
+  // one size is wrong at the next.
+  //
+  // So measure the thing itself. Read the octagon's real on-screen box, scale
+  // by whichever axis runs out first, and repeat once — the second pass lands
+  // on the residue the changed perspective leaves behind. Two passes measure
+  // under 1px of drift, so there is no third.
+  function fitScene(svg) {
+    var container = svg.parentElement;
+    if (!container) { return; }
+
+    for (var pass = 0; pass < 2; pass++) {
+      var cells = svg.querySelectorAll('.arena-cell');
+      if (!cells.length) { return; }
+
+      var left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
+      for (var i = 0; i < cells.length; i++) {
+        var box = cells[i].getBoundingClientRect();
+        if (box.left < left) { left = box.left; }
+        if (box.right > right) { right = box.right; }
+        if (box.top < top) { top = box.top; }
+        if (box.bottom > bottom) { bottom = box.bottom; }
+      }
+
+      var frame = container.getBoundingClientRect();
+      var width = right - left, height = bottom - top;
+      if (!(width > 0) || !(height > 0)) { return; }
+
+      // 0.98 keeps a hairline so the octagon never touches the frame edge.
+      var factor = Math.min(frame.width / width, frame.height / height) * 0.98;
+      var current = parseFloat(svg.style.getPropertyValue('--arena-fit')) || 1;
+      svg.style.setProperty('--arena-fit', (current * factor).toFixed(4));
+    }
   }
 
   function init() {
@@ -586,6 +628,11 @@
     drawGrid(svg, geometry);
     bind(svg, payload, geometry);
     attachEvents(svg);
+    fitScene(svg);
+    // The frame is fluid, so the fit is re-measured whenever it changes size.
+    if (global.ResizeObserver && svg.parentElement) {
+      new global.ResizeObserver(function () { fitScene(svg); }).observe(svg.parentElement);
+    }
     if (global.ArenaDeck) { global.ArenaDeck.refresh(payload); }
     if (global.ArenaBattleRoom) { global.ArenaBattleRoom.init(payload.latest_result); }
 
