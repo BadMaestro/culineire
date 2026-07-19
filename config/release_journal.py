@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.332",
+        "date": "2026-07-19",
+        "commit": "pending",
+        "title": "Arena Build board + coworking card fix",
+        "section": "Moderation",
+        "summary": "A new owner-only Arena Build board at /recipes/moderation/arena-build-plan/ lays every arena stage oldest-first in two lanes -- backend (Bolt) on the left, frontend (GB) on the right -- with each stage's dependency and a green done/100% badge once it is in production. Each unfinished stage carries a big red START button that fires a live coworking message to both agents to get to work; pressing it again re-sends. Also fixes the coworking dashboard, where an agent card that stored a plain string in a list field rendered one letter per line -- the model now coerces such a value into a list.",
+    },
+    {
         "version": "2.5.331",
         "date": "2026-07-19",
         "commit": "pending",

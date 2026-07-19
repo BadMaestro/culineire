@@ -19,6 +19,8 @@ urlpatterns = [
         views.arena_master_console_plan,
         name="arena_master_console_plan",
     ),
+    path("moderation/arena-build-plan/", views.arena_build_plan, name="arena_build_plan"),
+    path("moderation/arena-build-plan/start/", views.arena_build_start, name="arena_build_start"),
     path("moderation/site-research/", views.site_research_progress, name="site_research_progress"),
     path("moderation/deployment-journal/", views.deployment_journal, name="deployment_journal"),
     path("moderation/generate/", views.generate_recipe_view, name="generate_recipe"),

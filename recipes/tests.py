@@ -3926,3 +3926,46 @@ class RecipeStudioModeratorAccessTests(TestCase):
             content_type="application/json",
         )
         self.assertEqual(resp.status_code, 403)
+
+
+@override_settings(SECURE_SSL_REDIRECT=False)
+class ArenaBuildPlanTests(TestCase):
+    """Owner-gated arena build board + the START signal to both agents."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.boss = User.objects.create_user(username="abp-boss", password="pw", is_superuser=True, is_staff=True)
+
+    def test_anonymous_gets_404(self):
+        self.assertEqual(self.client.get(reverse("recipes:arena_build_plan")).status_code, 404)
+
+    def test_board_renders_two_lanes_and_start(self):
+        self.client.login(username="abp-boss", password="pw")
+        resp = self.client.get(reverse("recipes:arena_build_plan"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Arena Build Plan")
+        self.assertContains(resp, "Backend")
+        self.assertContains(resp, "Frontend")
+        self.assertContains(resp, "готово 100%")
+        self.assertContains(resp, "START")
+        self.assertContains(resp, "Зависимость")
+
+    def test_start_signals_both_agents(self):
+        from coworking.models import CoworkingMessage
+        self.client.login(username="abp-boss", password="pw")
+        resp = self.client.post(reverse("recipes:arena_build_start"), {"stage": "perspective"})
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertTrue(data["ok"])
+        self.assertEqual(sorted(data["signalled"]), ["bolt", "greenbear"])
+        for agent in ("bolt", "greenbear"):
+            self.assertTrue(
+                CoworkingMessage.objects.filter(
+                    to_agent__agent_id=agent, subject__startswith="START stage 8"
+                ).exists()
+            )
+
+    def test_start_unknown_stage_400(self):
+        self.client.login(username="abp-boss", password="pw")
+        resp = self.client.post(reverse("recipes:arena_build_start"), {"stage": "nope"})
+        self.assertEqual(resp.status_code, 400)

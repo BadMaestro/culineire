@@ -2647,6 +2647,172 @@ def arena_master_console_plan(request):
     )
 
 
+# Arena build stages, oldest first. Each stage splits into a BACKEND lane (Bolt)
+# and a FRONTEND lane (GB); the frontend lane names what backend it depends on.
+# "done" means shipped AND deployed to production (green on the board).
+ARENA_BUILD_STAGES = [
+    {
+        "n": 1, "id": "gate", "title": "Access gate & dark launch",
+        "date": "2026-07-01",
+        "backend": {"who": "Bolt", "done": True, "ref": "flag + is_battle_visible",
+                    "task": "CHEF_BATTLE_ENABLED flag, is_battle_visible gate, staff/superuser preview"},
+        "frontend": {"who": "GB", "done": True, "ref": "guarded views",
+                     "task": "Arena hidden from the public until launch"},
+        "depends": "Frontend depends on backend gate (is_battle_visible).",
+    },
+    {
+        "n": 2, "id": "contracts", "title": "Read-model contracts",
+        "date": "2026-07-15",
+        "backend": {"who": "Bolt", "done": True, "ref": "selectors.py",
+                    "task": "geometry, phase, deadline, spectators, blast, crown ladder, recent gifts"},
+        "frontend": {"who": "GB", "done": True, "ref": "arena_deck.js",
+                     "task": "Panels/deck consume the one poll payload"},
+        "depends": "Frontend deck depends on backend payload keys.",
+    },
+    {
+        "n": 3, "id": "renderer", "title": "Procedural renderer (SVG octagon)",
+        "date": "2026-07-16",
+        "backend": {"who": "Bolt", "done": True, "ref": "get_arena_geometry",
+                    "task": "Declarative geometry: 8 rank rings + 4 spectator rings, segment counts"},
+        "frontend": {"who": "GB/Ember", "done": True, "ref": "arena_render.js",
+                     "task": "Polar SVG grid drawn from the contract, no hardcoded rings"},
+        "depends": "Frontend renderer depends on backend get_arena_geometry.",
+    },
+    {
+        "n": 4, "id": "merge", "title": "Full arena merge (one arena)",
+        "date": "2026-07-18", "version": "v2.5.321",
+        "backend": {"who": "Bolt", "done": True, "ref": "master_console payload",
+                    "task": "Master Console gets the full arena payload (geometry etc.)"},
+        "frontend": {"who": "GB", "done": True, "ref": "?proto removed",
+                     "task": "?proto gate removed, legacy renderer + sandbox deleted"},
+        "depends": "Frontend legacy removal depends on backend AMC payload.",
+    },
+    {
+        "n": 5, "id": "spectators", "title": "Spectator selection limit (208)",
+        "date": "2026-07-18",
+        "backend": {"who": "Bolt", "done": True, "ref": "_get_spectators(limit=208)",
+                    "task": "208 = sum of spectator ring seats (40+48+56+64)"},
+        "frontend": {"who": "GB", "done": False, "ref": "fill stands",
+                     "task": "Place up to 208 real avatars, split 40/48/56/64 by ring"},
+        "depends": "Frontend fill depends on backend limit (done). Frontend still to build.",
+    },
+    {
+        "n": 6, "id": "skin", "title": "Dark amphitheatre skin (light floor, dark stands)",
+        "date": "2026-07-18", "version": "v2.5.326",
+        "backend": {"who": "Bolt", "done": True, "ref": "n/a",
+                    "task": "No backend change (palette is scoped CSS)"},
+        "frontend": {"who": "GB", "done": True, "ref": "arena_render.css",
+                     "task": "Floor stays light parchment; dark moved into the spectator stands"},
+        "depends": "Frontend only. Owner rule: floor light, dark = the stands.",
+    },
+    {
+        "n": 7, "id": "spec", "title": "Mockup measurement spec",
+        "date": "2026-07-19",
+        "backend": {"who": "Bolt", "done": True, "ref": "n/a", "task": "No backend change"},
+        "frontend": {"who": "GB", "done": True, "ref": "docs/chef_battle/arena_mockup_spec.md",
+                     "task": "Measured mockup: 56 deg camera, floor 0.63 of frame, faces d~0.06R"},
+        "depends": "Frontend research. Feeds stages 8-10.",
+    },
+    {
+        "n": 8, "id": "perspective", "title": "Perspective / camera tilt (56 deg)",
+        "date": "2026-07-19",
+        "backend": {"who": "Bolt", "done": True, "ref": "geometry stable",
+                    "task": "Geometry contract stable; perspective is a render transform, no backend change"},
+        "frontend": {"who": "GB", "done": False, "ref": "rotateX / projection",
+                     "task": "Tilt the flat octagon into a bowl (cos56=0.56), billboard avatars upright"},
+        "depends": "Frontend perspective depends on the stable geometry contract (done).",
+    },
+    {
+        "n": 9, "id": "proportions", "title": "Proportions (floor 0.63, stands 1.6R deep)",
+        "date": "2026-07-19",
+        "backend": {"who": "Bolt", "done": False, "ref": "extend get_arena_geometry",
+                    "task": "Add spectator rings so the stands go ~1.6x floor radius deep (deeper crowd)"},
+        "frontend": {"who": "GB", "done": False, "ref": "layout",
+                     "task": "Shrink floor to ~0.63 of frame, expand stands using the new rings"},
+        "depends": "Frontend proportions DEPEND ON backend adding deeper spectator rings.",
+    },
+    {
+        "n": 10, "id": "faces", "title": "Face framing (round portraits, depth)",
+        "date": "2026-07-19",
+        "backend": {"who": "Bolt", "done": True, "ref": "avatar url in payload",
+                    "task": "Spectator avatar_url already in payload; no backend change"},
+        "frontend": {"who": "GB", "done": False, "ref": "round clip",
+                     "task": "Round portrait clip (not seat-shaped slice), front row bigger/brighter"},
+        "depends": "Frontend only. Avatar data already provided.",
+    },
+    {
+        "n": 11, "id": "crowd", "title": "208 live avatars on the stands",
+        "date": "2026-07-19",
+        "backend": {"who": "Bolt", "done": True, "ref": "spectators payload",
+                    "task": "Up to 208 real spectators + count; filler count = 208 - len(spectators)"},
+        "frontend": {"who": "GB", "done": False, "ref": "fill + silhouettes",
+                     "task": "Fill rings with real avatars + procedural silhouette fillers for a full house"},
+        "depends": "Frontend fill depends on backend spectator payload (done).",
+    },
+]
+
+
+def _arena_build_context():
+    stages = []
+    done_count = 0
+    for s in ARENA_BUILD_STAGES:
+        done = bool(s["backend"]["done"] and s["frontend"]["done"])
+        if done:
+            done_count += 1
+        stages.append({**s, "done": done})
+    return {
+        "stages": stages,
+        "total": len(stages),
+        "done_count": done_count,
+        "prod_version": "v2.5.326",
+    }
+
+
+def arena_build_plan(request):
+    if not _can_grant_bearseeker_privileges(request.user):
+        raise Http404
+    return render(request, "moderation/arena_build_plan.html", _arena_build_context())
+
+
+@require_POST
+def arena_build_start(request):
+    if not _can_grant_bearseeker_privileges(request.user):
+        raise Http404
+    stage_id = (request.POST.get("stage") or "").strip()
+    stage = next((s for s in ARENA_BUILD_STAGES if s["id"] == stage_id), None)
+    if stage is None:
+        return JsonResponse({"ok": False, "error": "Unknown stage."}, status=400)
+
+    from coworking.models import CoworkingMessage
+    from django.utils import timezone
+    ts = timezone.now().strftime("%H:%M:%S")
+    subject = "START stage %d: %s -- ПОДНИМИТЕ ЖОПЫ, РАБОТАЙТЕ" % (stage["n"], stage["title"])
+    body = (
+        "ВЛАДЕЛЕЦ НАЖАЛ START. Немедленно вскакивайте и работайте по этой стадии до зелёного "
+        "(готово, запушено, задеплоено на прод).\n\n"
+        "СТАДИЯ %d: %s\n"
+        "BACKEND (%s): %s\n"
+        "FRONTEND (%s): %s\n"
+        "ЗАВИСИМОСТЬ: %s\n\n"
+        "Backend делает свою часть, отдаёт контракт -> Frontend строит поверх. Сотрудничайте "
+        "живыми сообщениями, без пульса. Как задеплоите на прод -- отчитайтесь, пункт станет "
+        "зелёным. Время сигнала: %s.\n-- Owner via Arena Build board"
+    ) % (
+        stage["n"], stage["title"],
+        stage["backend"]["who"], stage["backend"]["task"],
+        stage["frontend"]["who"], stage["frontend"]["task"],
+        stage["depends"], ts,
+    )
+    sent = []
+    for agent in ("bolt", "greenbear"):
+        try:
+            m = CoworkingMessage.send(from_agent="owner", to_agent=agent, subject=subject, body=body)
+            sent.append(agent)
+        except Exception:
+            pass
+    return JsonResponse({"ok": True, "stage": stage["n"], "signalled": sent, "at": ts})
+
+
 def site_research_progress(request):
     if not _can_view_site_update_plan(request.user):
         raise Http404

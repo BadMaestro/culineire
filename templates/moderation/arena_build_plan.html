@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Arena Build Plan | CulinEire{% endblock %}
+{% block meta_description %}Internal Arena construction board.{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+<link href="{% static 'css/moderation.css' %}" rel="stylesheet">
+<style nonce="{{ request.csp_nonce }}">
+  .abp-shell { max-width: 1120px; margin-inline: auto; }
+  .abp-head { display:flex; justify-content:space-between; align-items:flex-end; gap:1rem; flex-wrap:wrap; margin-bottom:1.4rem; }
+  .abp-head h1 { margin:.2rem 0; font-family:var(--font-serif); }
+  .abp-kicker { text-transform:uppercase; letter-spacing:.1em; font-size:.72rem; color:var(--muted); }
+  .abp-count { text-align:right; }
+  .abp-count strong { font-size:2.2rem; font-family:var(--font-serif); color:#2e7d43; }
+  .abp-count span { display:block; font-size:.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; }
+  .abp-legend { display:flex; gap:1rem; flex-wrap:wrap; font-size:.78rem; color:var(--muted); margin-bottom:1.2rem; }
+  .abp-legend b { display:inline-block; width:.8rem; height:.8rem; border-radius:3px; vertical-align:middle; margin-right:.3rem; }
+
+  .abp-stage { border:1px solid var(--line,#e3ddcf); border-radius:14px; margin-bottom:1rem; overflow:hidden; background:var(--surface,#fff); }
+  .abp-stage.is-done { border-color:#2e7d43; box-shadow:0 0 0 1px #2e7d4322; }
+  .abp-stage__bar { display:flex; align-items:center; gap:.8rem; padding:.7rem 1rem; background:var(--surface-soft,#f6f2e8); }
+  .abp-stage.is-done .abp-stage__bar { background:#eaf5ec; }
+  .abp-num { flex:0 0 auto; width:2rem; height:2rem; border-radius:50%; display:grid; place-items:center; font-weight:700; background:var(--brand-dark,#7d5518); color:#fff; }
+  .abp-stage.is-done .abp-num { background:#2e7d43; }
+  .abp-stage__title { flex:1; }
+  .abp-stage__title h2 { margin:0; font-size:1.02rem; }
+  .abp-stage__date { font-size:.72rem; color:var(--muted); }
+  .abp-status { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; padding:.28rem .6rem; border-radius:99px; }
+  .abp-status.done { background:#2e7d43; color:#fff; }
+  .abp-status.wip  { background:#c0504d; color:#fff; }
+
+  .abp-lanes { display:grid; grid-template-columns:1fr 1fr; gap:0; }
+  @media (max-width:720px){ .abp-lanes { grid-template-columns:1fr; } }
+  .abp-lane { padding:.85rem 1rem; }
+  .abp-lane--be { border-right:1px solid var(--line,#e3ddcf); }
+  @media (max-width:720px){ .abp-lane--be { border-right:0; border-bottom:1px solid var(--line,#e3ddcf); } }
+  .abp-lane__head { font-size:.7rem; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin-bottom:.3rem; }
+  .abp-lane__who { font-weight:700; }
+  .abp-lane__task { font-size:.86rem; color:var(--ink,#3d2917); margin:.25rem 0; }
+  .abp-tick { font-size:.74rem; font-weight:700; }
+  .abp-tick.y { color:#2e7d43; }
+  .abp-tick.n { color:#c0504d; }
+
+  .abp-foot { display:flex; align-items:center; gap:1rem; padding:.7rem 1rem; border-top:1px dashed var(--line,#e3ddcf); flex-wrap:wrap; }
+  .abp-dep { flex:1; font-size:.8rem; color:var(--muted); min-width:220px; }
+  .abp-dep b { color:var(--ink,#3d2917); }
+  .abp-start { border:0; cursor:pointer; font-weight:800; letter-spacing:.08em; padding:.7rem 1.6rem; border-radius:10px; background:#d21f1f; color:#fff; font-size:.95rem; box-shadow:0 2px 0 #8f1414; transition:transform .08s, filter .12s; }
+  .abp-start:hover { filter:brightness(1.08); }
+  .abp-start:active { transform:translateY(2px); box-shadow:0 0 0 #8f1414; }
+  .abp-start.is-done { background:#2e7d43; box-shadow:0 2px 0 #1f5730; cursor:default; }
+  .abp-fire { font-size:.76rem; color:#2e7d43; min-width:160px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="page-section moderation-page">
+  <div class="container moderation-shell abp-shell">
+    <a class="mon-back-link" href="{% url 'recipes:moderation_panel' %}">Back to Moderation Panel</a>
+
+    <div class="abp-head">
+      <div>
+        <p class="abp-kicker">Internal build board &middot; prod {{ prod_version }}</p>
+        <h1>Arena Build Plan</h1>
+        <p class="automation-summary">Every arena stage, oldest first. Left lane = BACKEND (Bolt), right lane = FRONTEND (GB). Green = done, pushed and deployed to production.</p>
+      </div>
+      <div class="abp-count"><strong>{{ done_count }}/{{ total }}</strong><span>stages green</span></div>
+    </div>
+
+    <div class="abp-legend">
+      <span><b style="background:#2e7d43;"></b>Done 100% (in prod)</span>
+      <span><b style="background:#c0504d;"></b>Not ready</span>
+      <span>Press <b style="background:#d21f1f;"></b>START to signal Bolt + GB to jump on it.</span>
+    </div>
+
+    {% csrf_token %}
+    {% for s in stages %}
+    <article class="abp-stage {% if s.done %}is-done{% endif %}" id="stage-{{ s.id }}">
+      <div class="abp-stage__bar">
+        <span class="abp-num">{{ s.n }}</span>
+        <div class="abp-stage__title">
+          <h2>{{ s.title }}</h2>
+          <span class="abp-stage__date">{{ s.date }}{% if s.version %} &middot; {{ s.version }}{% endif %}</span>
+        </div>
+        <span class="abp-status {% if s.done %}done{% else %}wip{% endif %}">{% if s.done %}готово 100%{% else %}не готово{% endif %}</span>
+      </div>
+
+      <div class="abp-lanes">
+        <div class="abp-lane abp-lane--be">
+          <p class="abp-lane__head">Backend</p>
+          <p class="abp-lane__who">{{ s.backend.who }} <span class="abp-tick {% if s.backend.done %}y{% else %}n{% endif %}">{% if s.backend.done %}&#10003; done{% else %}&#9679; todo{% endif %}</span></p>
+          <p class="abp-lane__task">{{ s.backend.task }}</p>
+          <p class="abp-lane__head" style="margin-top:.3rem;">{{ s.backend.ref }}</p>
+        </div>
+        <div class="abp-lane abp-lane--fe">
+          <p class="abp-lane__head">Frontend</p>
+          <p class="abp-lane__who">{{ s.frontend.who }} <span class="abp-tick {% if s.frontend.done %}y{% else %}n{% endif %}">{% if s.frontend.done %}&#10003; done{% else %}&#9679; todo{% endif %}</span></p>
+          <p class="abp-lane__task">{{ s.frontend.task }}</p>
+          <p class="abp-lane__head" style="margin-top:.3rem;">{{ s.frontend.ref }}</p>
+        </div>
+      </div>
+
+      <div class="abp-foot">
+        <p class="abp-dep"><b>Зависимость:</b> {{ s.depends }}</p>
+        <span class="abp-fire" id="fire-{{ s.id }}" role="status" aria-live="polite"></span>
+        {% if s.done %}
+        <button class="abp-start is-done" type="button" disabled>ГОТОВО</button>
+        {% else %}
+        <button class="abp-start" type="button" data-stage="{{ s.id }}" data-n="{{ s.n }}">START</button>
+        {% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ request.csp_nonce }}">
+(function(){
+  var url = "{% url 'recipes:arena_build_start' %}";
+  function csrf(){ var el=document.querySelector('input[name=csrfmiddlewaretoken]'); return el?el.value:''; }
+  document.querySelectorAll('.abp-start[data-stage]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var stage=btn.getAttribute('data-stage');
+      var fire=document.getElementById('fire-'+stage);
+      btn.disabled=true; if(fire){fire.textContent='сигнал летит...';}
+      var body=new URLSearchParams(); body.append('stage',stage); body.append('csrfmiddlewaretoken',csrf());
+      fetch(url,{method:'POST',headers:{'X-CSRFToken':csrf()},body:body,credentials:'same-origin'})
+        .then(function(r){return r.json();})
+        .then(function(d){
+          if(d && d.ok){ if(fire){fire.textContent='сигнал улетел обоим ('+d.at+') — подняли жопы';} }
+          else { if(fire){fire.textContent='ошибка: '+((d&&d.error)||'?');} }
+        })
+        .catch(function(){ if(fire){fire.textContent='сеть недоступна';} })
+        .finally(function(){ btn.disabled=false; });
+    });
+  });
+})();
+</script>
+{% endblock %}
