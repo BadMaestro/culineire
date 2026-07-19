@@ -279,6 +279,50 @@
   filter: brightness(var(--row-light, 1));
 }
 
+/* ----------------------------------------------------------------------------
+ * The walkway, and the light along its edge.
+ *
+ * In the mockup the parchment does not run straight into the crowd: a pale
+ * grey walkway circles the floor, and the boundary carries a bronze rim light
+ * on each side. That line is what tells a lit floor from a dark hall — without
+ * it the outermost rank ring simply fades into the stands and the arena reads
+ * as one continuous slab.
+ *
+ * Neutral grey, not blue. The scheme has no cool token at all; --muted is the
+ * nearest neutral and is mixed toward the bowl so the walkway sits in shadow
+ * rather than glowing. The rim is --hall-bronze, the site's own bronze, not
+ * the yellow gold this file used to invent.
+ * -------------------------------------------------------------------------- */
+#arena-render .arena-walkway {
+  fill: none;
+  stroke: color-mix(in srgb, var(--muted) 62%, var(--arena-bowl));
+  stroke-width: 13;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.85;
+}
+
+#arena-render .arena-rim {
+  fill: none;
+  stroke: var(--arena-spot);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The inner edge takes the stage light full on; the outer edge only catches
+   it, so the walkway reads as a raised lip rather than a drawn outline. */
+#arena-render .arena-rim--inner {
+  opacity: 0.9;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--arena-spot) 70%, transparent));
+}
+
+#arena-render .arena-rim--outer {
+  opacity: 0.55;
+  stroke-width: 1.1;
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--arena-spot) 45%, transparent));
+}
+
 /* The floor is lit FROM the bowl, not tinted: a warm halo under the SVG keeps
    every tile fill deriving from the brand token, which is the rule phase A
    broke. */

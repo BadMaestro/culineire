@@ -66,6 +66,52 @@
   /* Grid — drawn once from geometry, then only re-stamped by bind()   */
   /* ---------------------------------------------------------------- */
 
+  // The octagon at a given radius, as an SVG points string.
+  function ringOutline(radius, sides) {
+    var points = [];
+    for (var i = 0; i < sides; i++) {
+      var angle = (Math.PI * 2 * i) / sides - Math.PI / 2;
+      points.push(global.ArenaGeometry.polar(SVG_SIZE / 2, SVG_SIZE / 2, radius, angle));
+    }
+    return points.map(pointString).join(' ');
+  }
+
+  // The walkway, and the light along its edges.
+  //
+  // In the mockup the floor does not run straight into the crowd: a pale grey
+  // walkway circles it, and the boundary carries a bronze rim light on both
+  // sides — that line is what separates a lit floor from a dark hall instead
+  // of letting the parchment fade into the stands.
+  //
+  // Both are one outline at the floor's outer radius: a wide neutral stroke
+  // for the walkway, a thin bronze stroke over it for the rim. Drawn between
+  // the cells and the crowd so faces sit in front of it, never behind.
+  function drawWalkway(svg, geometry, step) {
+    var lastRank = 0;
+    geometry.rings.forEach(function (ring) {
+      if (ring.kind === 'rank' && ring.index > lastRank) { lastRank = ring.index; }
+    });
+    if (!lastRank) { return; }
+
+    var radius = STAGE_RADIUS + lastRank * step;
+    var sides = geometry.sides || 8;
+    var band = el('g', { 'data-arena-layer': 'walkway', 'pointer-events': 'none' });
+
+    band.appendChild(el('polygon', {
+      points: ringOutline(radius + step * 0.34, sides),
+      class: 'arena-walkway'
+    }));
+    band.appendChild(el('polygon', {
+      points: ringOutline(radius, sides),
+      class: 'arena-rim arena-rim--inner'
+    }));
+    band.appendChild(el('polygon', {
+      points: ringOutline(radius + step * 0.68, sides),
+      class: 'arena-rim arena-rim--outer'
+    }));
+    svg.appendChild(band);
+  }
+
   function drawGrid(svg, geometry) {
     var step = radiusStepFor(geometry);
     var defs = el('defs', {});
@@ -113,6 +159,7 @@
 
     svg.appendChild(defs);
     svg.appendChild(cells);
+    drawWalkway(svg, geometry, step);
     svg.appendChild(el('circle', {
       cx: SVG_SIZE / 2, cy: SVG_SIZE / 2, r: STAGE_RADIUS,
       'data-ring': String(stageRing.index),
@@ -279,6 +326,21 @@
   var FACE_DIM = 0.35;
   var FACE_DESATURATE = 0.28;
 
+  // The seats fall into the dark on the same curve as the faces sitting in
+  // them. arena_render.css reads --row-light; it used to hold a hand-written
+  // ladder of ring numbers, which stopped covering the stands the moment they
+  // grew from four rows to eight. One source of depth, written from here.
+  function lightRows(svg, geometry) {
+    geometry.rings.forEach(function (ring) {
+      if (ring.kind !== 'spectator') { return; }
+      var light = (1 - FACE_DIM * rowDepth(geometry, ring.index)).toFixed(3);
+      var seats = svg.querySelectorAll('polygon[data-ring="' + ring.index + '"]');
+      Array.prototype.forEach.call(seats, function (seat) {
+        seat.style.setProperty('--row-light', light);
+      });
+    });
+  }
+
   function faceLighting(geometry, ring) {
     var depth = rowDepth(geometry, ring);
     var brightness = 1 - FACE_DIM * depth;
@@ -399,6 +461,8 @@
       polygon.removeAttribute('data-entity-slug');
       polygon.chefRecord = null;
     });
+
+    lightRows(svg, geometry);
 
     var assignments = buildAssignments(payload, geometry);
     fillCrowd(svg, geometry, assignments);

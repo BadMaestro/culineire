@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.345",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "A walkway and a bronze rim between the floor and the crowd",
+        "section": "Chef Battles",
+        "summary": "The parchment ran straight into the stands with nothing between them, so the arena read as one slab. The mockup's grey walkway now circles the floor with a bronze rim light along each edge, and the seats fade into the dark on the same curve as the faces sitting in them.",
+    },
+    {
         "version": "2.5.344",
         "date": "2026-07-19",
         "commit": "pending",
