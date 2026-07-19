@@ -347,13 +347,24 @@
    it to 0.56 of its height — but people in a hall look at the camera, they do
    not lie on the floor. Portraits, seat labels and fallback initials are
    pre-stretched by 1/cos(56deg) so the projection returns them round and
-   upright. */
+   upright.
+
+   The constant is right only for an orthographic tilt. The CROWD faces are
+   corrected per face instead, from their own measured box, by
+   billboardFaces() in arena_render.js — under perspective the squash depends
+   on the seat's distance from the camera, so one number cannot serve the
+   front row and the back row at once. The rule below still supplies the
+   transform-box those inline corrections are measured against. */
 .page--arena #arena-render image,
 .page--arena #arena-render .arena-occupant__initial,
 .page--arena #arena-render .arena-seat-label {
   transform: scaleY(1.79);
   transform-origin: center;
   transform-box: fill-box;
+}
+
+.page--arena #arena-render .arena-crowd-figure image {
+  transform: scaleY(1);
 }
 
 /* Below the desktop breakpoint the arena is already small; a 56deg tilt turns

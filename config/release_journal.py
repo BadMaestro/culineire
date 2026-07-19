@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.338",
+        "date": "2026-07-19",
+        "commit": "pending",
+        "title": "The crowd became faces instead of cropped slices",
+        "section": "Chef Battles",
+        "summary": "Every spectator portrait was scaled to its seat and cut to the seat's shape, so the stands read as a mosaic of half-heads. Portraits are now round, sized to the measured mockup, and each one is straightened by its own measurement rather than a single constant.",
+    },
+    {
         "version": "2.5.337",
         "date": "2026-07-19",
         "commit": "pending",

@@ -105,6 +105,12 @@
       }
     });
 
+    // One clip for every crowd portrait. objectBoundingBox units mean the same
+    // path fits a face of any size, so the front row and the back row share it.
+    var faceClip = el('clipPath', { id: 'arena-face-clip', clipPathUnits: 'objectBoundingBox' });
+    faceClip.appendChild(el('circle', { cx: '0.5', cy: '0.5', r: '0.5' }));
+    defs.appendChild(faceClip);
+
     svg.appendChild(defs);
     svg.appendChild(cells);
     svg.appendChild(el('circle', {
@@ -203,24 +209,58 @@
     return faces[(ring * 7 + cell * 3) % faces.length];
   }
 
-  function appendCrowdFigure(svg, layer, ring, cell) {
+  // Face size, from the measured mockup (docs/chef_battle/arena_mockup_spec.md
+  // §4): a portrait is 0.06 of the floor's own radius, 0.07 in the front row
+  // and 0.05 in the back. We were drawing them at 0.14-0.20 R_floor — the
+  // avatar was scaled to the seat's larger side and sliced by the seat, so the
+  // stands read as a mosaic of cropped heads instead of a crowd of people.
+  var FACE_NEAR = 0.07;
+  var FACE_FAR = 0.05;
+
+  function floorRadius(svg, geometry) {
+    var step = radiusStepFor(geometry);
+    var last = 0;
+    geometry.rings.forEach(function (ring) {
+      if (ring.kind === 'rank' && ring.index > last) { last = ring.index; }
+    });
+    return STAGE_RADIUS + last * step;
+  }
+
+  // Spectator rings run from the floor edge outward; the nearest row carries
+  // the largest face. Ring order, not screen position, decides the step — the
+  // rows are concentric, so it is the same thing and it survives a change in
+  // ring count.
+  function faceDiameter(geometry, ring, radius) {
+    var spectators = geometry.rings.filter(function (r) { return r.kind === 'spectator'; });
+    if (!spectators.length) { return radius * FACE_NEAR; }
+    var first = spectators[0].index;
+    var last = spectators[spectators.length - 1].index;
+    var span = Math.max(1, last - first);
+    var depth = Math.min(1, Math.max(0, (ring - first) / span));
+    return radius * (FACE_NEAR + (FACE_FAR - FACE_NEAR) * depth);
+  }
+
+  function appendCrowdFigure(svg, layer, ring, cell, geometry, radius) {
     var href = crowdFaceFor(ring, cell);
     if (!href) { return; }
     var polygon = svg.querySelector('polygon[data-ring="' + ring + '"][data-cell="' + cell + '"]');
     if (!polygon) { return; }
     var box = polygon.getBBox();
-    var size = Math.max(box.width, box.height);
+    // A portrait sits IN its seat, so it never grows past the seat either.
+    var size = Math.min(faceDiameter(geometry, ring, radius), Math.max(box.width, box.height));
 
     var figure = el('g', {
-      'clip-path': 'url(#arena-clip-' + ring + '-' + cell + ')',
       'pointer-events': 'none',
       class: 'arena-crowd-figure'
     });
+    // Round portrait, not a slice of the seat's polygon. One shared clip path
+    // in objectBoundingBox units serves every face whatever its size.
     figure.appendChild(el('image', {
       href: href,
       x: (box.x + box.width / 2 - size / 2).toFixed(2),
       y: (box.y + box.height / 2 - size / 2).toFixed(2),
       width: size.toFixed(2), height: size.toFixed(2),
+      'clip-path': 'url(#arena-face-clip)',
       preserveAspectRatio: 'xMidYMid slice'
     }));
     layer.appendChild(figure);
@@ -234,11 +274,12 @@
     var taken = {};
     assignments.forEach(function (a) { taken[a.ring + ':' + a.cell] = true; });
 
+    var radius = floorRadius(svg, geometry);
     geometry.rings.forEach(function (ring) {
       if (ring.kind !== 'spectator') { return; }
       for (var cell = 0; cell < ring.segments; cell++) {
         if (taken[ring.index + ':' + cell]) { continue; }
-        appendCrowdFigure(svg, layer, ring.index, cell);
+        appendCrowdFigure(svg, layer, ring.index, cell, geometry, radius);
       }
     });
   }
@@ -622,6 +663,36 @@
       var drift = (frame.top + frame.bottom) / 2 - (top + bottom) / 2;
       var shift = parseFloat(svg.style.getPropertyValue('--arena-shift-y')) || 0;
       svg.style.setProperty('--arena-shift-y', (shift + drift).toFixed(2) + 'px');
+    }
+
+    billboardFaces(svg);
+  }
+
+  // Billboarding: a face lying on the tilted floor plane is squashed, and a
+  // person in a hall looks at the camera instead. The old fix pre-stretched
+  // every face by the same 1/cos(56deg) = 1.79, which only works for an
+  // orthographic tilt. Under perspective the squash depends on how far the
+  // seat is from the camera: measured on prod, the front row came out 0.75
+  // wide-to-tall (over-corrected) while the back rows came out 1.16-1.34
+  // (under-corrected). No single number is right for both.
+  //
+  // So each face is corrected by its own measurement: multiply its current
+  // stretch by its rendered width/height until the box is square. One pass
+  // lands it; the second is the residue.
+  function billboardFaces(svg) {
+    var faces = svg.querySelectorAll('.arena-crowd-figure image');
+    if (!faces.length) { return; }
+
+    for (var pass = 0; pass < 2; pass++) {
+      for (var i = 0; i < faces.length; i++) {
+        var face = faces[i];
+        var box = face.getBoundingClientRect();
+        if (!(box.width > 0) || !(box.height > 0)) { continue; }
+        var current = parseFloat(face.getAttribute('data-billboard')) || 1;
+        var corrected = current * (box.width / box.height);
+        face.setAttribute('data-billboard', corrected.toFixed(4));
+        face.style.transform = 'scaleY(' + corrected.toFixed(4) + ')';
+      }
     }
   }
 
