@@ -40,7 +40,7 @@ from accounts.views import (
 from config.email_utils import build_absolute_url, send_template_mail
 from articles.models import Article, ArticleImage
 from collection.models import SavedArticle, SavedContent, SavedRecipe
-from config.release_journal import build_git_journal
+from config.release_journal import RELEASE_JOURNAL, build_git_journal
 from config.turnstile import verify_turnstile
 from monitoring.tracker import get_client_ip, hash_ip, track_event
 from .allergens import build_present_allergen_items
@@ -2718,7 +2718,7 @@ ARENA_BUILD_STAGES = [
         "date": "2026-07-19",
         "backend": {"who": "Bolt", "done": True, "ref": "geometry stable",
                     "task": "Geometry contract stable; perspective is a render transform, no backend change"},
-        "frontend": {"who": "GB", "done": False, "ref": "rotateX / projection",
+        "frontend": {"who": "GB", "done": True, "ref": "rotateX / projection",
                      "task": "Tilt the flat octagon into a bowl (cos56=0.56), billboard avatars upright"},
         "depends": "Frontend perspective depends on the stable geometry contract (done).",
     },
@@ -2764,7 +2764,10 @@ def _arena_build_context():
         "stages": stages,
         "total": len(stages),
         "done_count": done_count,
-        "prod_version": "v2.5.326",
+        # Track the real latest release so the board header never goes stale
+        # again (it was pinned to v2.5.326 while prod had moved several releases
+        # past it). RELEASE_JOURNAL is newest-first.
+        "prod_version": "v" + RELEASE_JOURNAL[0]["version"],
     }
 
 

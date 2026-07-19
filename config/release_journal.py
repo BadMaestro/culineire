@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.334",
+        "date": "2026-07-19",
+        "commit": "pending",
+        "title": "Arena Build board: mark the camera stage green, un-pin the version",
+        "section": "Moderation",
+        "summary": "The camera/perspective stage is live on production, so it now shows green on the Arena Build board (7 of 11 stages complete). The board's production-version label was hard-coded and had gone stale several releases behind; it now reads the latest release automatically so it can never drift again.",
+    },
+    {
         "version": "2.5.333",
         "date": "2026-07-19",
         "commit": "pending",
