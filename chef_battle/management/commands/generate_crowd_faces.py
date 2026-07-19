@@ -53,7 +53,15 @@ PROMPT = (
 )
 
 
-def fetch_transparent_png(prompt: str) -> bytes:
+# Cheapest tier, deliberately NOT settings.OPENAI_IMAGE_QUALITY. That setting
+# is "medium" on production because a recipe's hero photo is looked at; these
+# are drawn 6-20px wide in the stands, where the difference between quality
+# tiers is invisible and the difference in the bill is not. Overridable with
+# --quality if a face ever needs to be looked at closely.
+DEFAULT_QUALITY = "low"
+
+
+def fetch_transparent_png(prompt: str, quality: str) -> bytes:
     """OpenAI image generation, forced to a transparent-background PNG."""
     api_key = getattr(settings, "OPENAI_API_KEY", "")
     if not api_key:
@@ -63,7 +71,7 @@ def fetch_transparent_png(prompt: str) -> bytes:
         "prompt": prompt,
         "n": 1,
         "size": "1024x1024",
-        "quality": getattr(settings, "OPENAI_IMAGE_QUALITY", "low"),
+        "quality": quality,
         "background": "transparent",
         "output_format": "png",
     }
@@ -121,13 +129,29 @@ class Command(BaseCommand):
                             help="Output edge in pixels (default 96).")
         parser.add_argument("--limit", type=int, default=0,
                             help="Draw at most this many (0 = all).")
+        parser.add_argument("--quality", choices=["low", "medium", "high"],
+                            default=DEFAULT_QUALITY,
+                            help="Image quality tier (default low — these are drawn tiny).")
+        parser.add_argument("--out", default="",
+                            help="Write here instead of static/images/crowd. On the "
+                                 "server that directory belongs to root while this "
+                                 "command runs as deploy, so draw to a scratch path "
+                                 "and commit the files rather than chowning the tree.")
 
     def handle(self, *args, **options):
-        dest_dir = Path(settings.BASE_DIR) / "static" / "images" / "crowd"
+        dest_dir = Path(options["out"]) if options["out"] else (
+            Path(settings.BASE_DIR) / "static" / "images" / "crowd"
+        )
         dest_dir.mkdir(parents=True, exist_ok=True)
 
         subjects = FACES[: options["limit"]] if options["limit"] else FACES
+        quality = options["quality"]
         drawn = 0
+
+        self.stdout.write(
+            f"model {getattr(settings, 'OPENAI_IMAGE_MODEL', 'gpt-image-1')}, "
+            f"quality {quality}, size 1024x1024, {len(subjects)} face(s)"
+        )
 
         for index, subject in enumerate(subjects, start=1):
             dest = dest_dir / f"face-{index:02d}.webp"
@@ -137,9 +161,10 @@ class Command(BaseCommand):
 
             self.stdout.write(f"  draw  {dest.name} — {subject} …", ending="")
             self.stdout.flush()
-            raw = fetch_transparent_png(PROMPT.format(subject=subject))
+            raw = fetch_transparent_png(PROMPT.format(subject=subject), quality)
             dest.write_bytes(to_seat_size(raw, options["size"]))
             drawn += 1
             self.stdout.write(self.style.SUCCESS(f" {dest.stat().st_size} bytes"))
 
         self.stdout.write(self.style.SUCCESS(f"\nDrawn {drawn} of {len(subjects)}."))
+
