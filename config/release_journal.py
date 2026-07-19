@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.341",
+        "date": "2026-07-19",
+        "commit": "pending",
+        "title": "The back rows step back into the dark",
+        "section": "Chef Battles",
+        "summary": "Every face in the stands burned at the same brightness, so the far rows shone as hard as the front and the perspective read flat. Brightness and colour now fall away row by row, using the row number the server already publishes.",
+    },
+    {
         "version": "2.5.340",
         "date": "2026-07-19",
         "commit": "pending",

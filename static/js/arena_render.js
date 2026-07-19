@@ -226,18 +226,34 @@
     return STAGE_RADIUS + last * step;
   }
 
-  // Spectator rings run from the floor edge outward; the nearest row carries
-  // the largest face. Ring order, not screen position, decides the step — the
-  // rows are concentric, so it is the same thing and it survives a change in
-  // ring count.
+  // How far back a seat sits, 0 at the front row and 1 at the back. The server
+  // puts row / rows_total in the geometry contract for exactly this, so depth
+  // never has to be inferred from an absolute ring index that shifts whenever
+  // the stands get deeper.
+  function rowDepth(geometry, ring) {
+    var record = null;
+    geometry.rings.forEach(function (r) { if (r.index === ring) { record = r; } });
+    if (!record || !record.row || !record.rows_total || record.rows_total < 2) { return 0; }
+    return Math.min(1, Math.max(0, (record.row - 1) / (record.rows_total - 1)));
+  }
+
   function faceDiameter(geometry, ring, radius) {
-    var spectators = geometry.rings.filter(function (r) { return r.kind === 'spectator'; });
-    if (!spectators.length) { return radius * FACE_NEAR; }
-    var first = spectators[0].index;
-    var last = spectators[spectators.length - 1].index;
-    var span = Math.max(1, last - first);
-    var depth = Math.min(1, Math.max(0, (ring - first) / span));
-    return radius * (FACE_NEAR + (FACE_FAR - FACE_NEAR) * depth);
+    return radius * (FACE_NEAR + (FACE_FAR - FACE_NEAR) * rowDepth(geometry, ring));
+  }
+
+  // Depth of light. Size alone does not read as distance: with every face at
+  // full brightness the back row shines as hard as the front and the
+  // perspective flattens out. The mockup (§4) drops roughly 35% of brightness
+  // from the near row to the far one, and lets the far rows fall toward the
+  // hall's own colour, so the crowd recedes instead of standing in a wall.
+  var FACE_DIM = 0.35;
+  var FACE_DESATURATE = 0.28;
+
+  function faceLighting(geometry, ring) {
+    var depth = rowDepth(geometry, ring);
+    var brightness = 1 - FACE_DIM * depth;
+    var saturation = 1 - FACE_DESATURATE * depth;
+    return 'brightness(' + brightness.toFixed(3) + ') saturate(' + saturation.toFixed(3) + ')';
   }
 
   function appendCrowdFigure(svg, layer, ring, cell, geometry, radius) {
@@ -255,14 +271,16 @@
     });
     // Round portrait, not a slice of the seat's polygon. One shared clip path
     // in objectBoundingBox units serves every face whatever its size.
-    figure.appendChild(el('image', {
+    var image = el('image', {
       href: href,
       x: (box.x + box.width / 2 - size / 2).toFixed(2),
       y: (box.y + box.height / 2 - size / 2).toFixed(2),
       width: size.toFixed(2), height: size.toFixed(2),
       'clip-path': 'url(#arena-face-clip)',
       preserveAspectRatio: 'xMidYMid slice'
-    }));
+    });
+    image.style.filter = faceLighting(geometry, ring);
+    figure.appendChild(image);
     layer.appendChild(figure);
   }
 
