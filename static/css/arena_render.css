@@ -331,7 +331,7 @@
   width: auto;
   height: 172%;
   aspect-ratio: 1;
-  transform: translate(-50%, -50%) scale(var(--arena-fit, 1)) rotateX(56deg);
+  transform: translate(-50%, -50%) translateY(var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1)) rotateX(56deg);
 }
 
 .page--arena .arena-puzzle-label {
@@ -367,7 +367,7 @@
 
   .page--arena #arena-render {
     height: 127%;
-    transform: translate(-50%, -50%) scale(var(--arena-fit, 1)) rotateX(38deg);
+    transform: translate(-50%, -50%) translateY(var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1)) rotateX(38deg);
   }
 
   .page--arena #arena-render image,
@@ -384,7 +384,7 @@
 
   .page--arena #arena-render {
     height: 111%;
-    transform: translate(-50%, -50%) scale(var(--arena-fit, 1)) rotateX(26deg);
+    transform: translate(-50%, -50%) translateY(var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1)) rotateX(26deg);
   }
 
   .page--arena #arena-render image,

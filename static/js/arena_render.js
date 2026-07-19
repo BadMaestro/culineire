@@ -612,6 +612,16 @@
       var factor = Math.min(frame.width / width, frame.height / height) * 0.98;
       var current = parseFloat(svg.style.getPropertyValue('--arena-fit')) || 1;
       svg.style.setProperty('--arena-fit', (current * factor).toFixed(4));
+
+      // Fitting is not centring. perspective-origin sits at 30% height, which
+      // lifts the far side rather than dropping the near one — so the tilted
+      // octagon settles low in the frame and its bottom row is cut while the
+      // top of the frame stands empty. Measured at 1920 before this: 63px cut
+      // off the bottom with 189px spare above. Nudge the whole scene by the
+      // difference between the two centres, in screen space.
+      var drift = (frame.top + frame.bottom) / 2 - (top + bottom) / 2;
+      var shift = parseFloat(svg.style.getPropertyValue('--arena-shift-y')) || 0;
+      svg.style.setProperty('--arena-shift-y', (shift + drift).toFixed(2) + 'px');
     }
   }
 
