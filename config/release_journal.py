@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.336",
+        "date": "2026-07-19",
+        "commit": "pending",
+        "title": "The arena stopped cutting its own floor off",
+        "section": "Chef Battles",
+        "summary": "The tilted arena was sized off the container's height alone, so on a wide screen it ran 202px past each side and 216px past the bottom and the frame cut the floor off. It is now sized off whichever axis runs out first, and the octagon fits whole at every width.",
+    },
+    {
         "version": "2.5.335",
         "date": "2026-07-19",
         "commit": "pending",

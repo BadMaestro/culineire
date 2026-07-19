@@ -296,15 +296,29 @@
 
    Sizing: a square SVG tilted by rotateX(56deg) draws only cos(56) = 0.56 of
    its height, so a square layout box leaves dead bands above and below the
-   scene — the "squeezed in its container" look. Instead the container takes
-   the scene's height and the SVG is oversized so its *projected* height fills
-   it: 1 / cos(56deg) = 1.79, less a little perspective bulge, gives 172%.
-   The stands run off the container's sides like they run off the mockup's
-   frame; overflow:hidden is that frame. */
+   scene — the "squeezed in its container" look.
+
+   The first fix sized the SVG off the container's HEIGHT alone (height:172%,
+   aspect-ratio:1), which makes its width 1.72x the container's height and
+   ignores the container's width completely. On a wide viewport that put the
+   octagon 202px past each side and 216px past the bottom at 1920, so
+   overflow:hidden cut the FLOOR off, not just the stands. Measured, not
+   guessed: container 1123x845, octagon 1528x945.
+
+   Now the scene is sized off BOTH axes: min(width-fit, height-fit). The two
+   --arena-fit-* factors are the octagon's measured on-screen size as a
+   fraction of the SVG's own box, at this breakpoint's tilt — the projection
+   plus the viewBox's own margin, taken off the live page rather than derived,
+   because perspective (not just rotateX) decides the final extent. 98cq
+   instead of 100cq leaves a hairline so the octagon never kisses the frame.
+   Re-measure these two numbers if the tilt or perspective changes. */
 .page--arena .arena-render-container {
   perspective: 1500px;
   perspective-origin: 50% 30%;
   position: relative;
+  container-type: size;
+  --arena-fit-w: 0.72;
+  --arena-fit-h: 0.421;
   width: 100%;
   max-width: none;
   height: clamp(360px, 44vw, 80vh);
@@ -318,8 +332,8 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: auto;
-  height: 172%;
+  width: min(calc(98cqw / var(--arena-fit-w)), calc(98cqh / var(--arena-fit-h)));
+  height: auto;
   aspect-ratio: 1;
   transform: translate(-50%, -50%) rotateX(56deg);
 }
@@ -353,10 +367,11 @@
 @media (max-width: 900px) {
   .page--arena .arena-render-container {
     height: clamp(320px, 62vw, 72vh);
+    --arena-fit-w: 0.804;
+    --arena-fit-h: 0.639;
   }
 
   .page--arena #arena-render {
-    height: 127%;
     transform: translate(-50%, -50%) rotateX(38deg);
   }
 
@@ -370,10 +385,11 @@
 @media (max-width: 640px) {
   .page--arena .arena-render-container {
     height: clamp(300px, 88vw, 70vh);
+    --arena-fit-w: 0.892;
+    --arena-fit-h: 0.806;
   }
 
   .page--arena #arena-render {
-    height: 111%;
     transform: translate(-50%, -50%) rotateX(26deg);
   }
 
