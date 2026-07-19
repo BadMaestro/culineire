@@ -15,25 +15,56 @@
  * the Master Console (.page--amc) keeps its light operational look.
  */
 
+/* ---- the hall palette, derived from the site tokens ---- */
+
+/*
+ * Every colour below comes from the site's own scheme (the design tokens in
+ * base.css :root, mirrored in CulinEire_colour_font_scheme.pdf). The hall was
+ * originally painted in an invented emerald/gold pair (#0d1a12, #16241a,
+ * #d9a441) that appears nowhere in the scheme — the brand core is warm
+ * parchment + ink + muted bronze, and the PDF says so outright ("--legal-green
+ * is brand/bronze, not green").
+ *
+ * A dark room needs shades darker than --ink and light text lighter than
+ * --muted, and the scheme has no tokens for either, so they are mixed from the
+ * tokens here rather than picked by eye. Change --ink or --brand and the whole
+ * hall follows.
+ *
+ * --hall-bronze is the site's own accent bronze. It lives in base.css as
+ * --about-accent but is declared inside a component selector, not :root, so it
+ * cannot be referenced from here — the value is repeated with this note
+ * instead of inventing a second gold.
+ */
+.page--arena {
+  --hall-deep: color-mix(in srgb, var(--ink) 74%, #000);
+  --hall-edge: color-mix(in srgb, var(--ink) 38%, #000);
+  --hall-panel: color-mix(in srgb, var(--ink) 62%, #000);
+  --hall-raised: color-mix(in srgb, var(--ink) 88%, #000);
+  --hall-bronze: #b47a33;
+  --hall-bronze-lift: color-mix(in srgb, var(--hall-bronze) 72%, var(--surface-soft));
+  --hall-text: var(--surface-soft);
+  --hall-text-dim: color-mix(in srgb, var(--surface-muted) 62%, var(--muted));
+}
+
 /* ---- the hall is the page ---- */
 
 .page--arena {
   background:
-    radial-gradient(90rem 44rem at 50% 30%, rgb(217 164 65 / 0.09), transparent 62%),
-    radial-gradient(130% 120% at 50% 40%, #0d1a12 0%, #050d08 100%);
+    radial-gradient(90rem 44rem at 50% 30%, rgb(180 122 51 / 0.10), transparent 62%),
+    radial-gradient(130% 120% at 50% 40%, var(--hall-deep) 0%, var(--hall-edge) 100%);
   background-attachment: fixed;
 }
 
 /* ---- one token flip turns the deck dark ---- */
 
 .page--arena .arena-command-deck {
-  --arena-ink: #e9dfc8;
-  --arena-forest: #cfc4a6;
-  --arena-muted: #97a08c;
-  --arena-gold: #d9a441;
-  --arena-cappuccino: #e0b662;
-  --arena-paper: #0f1a13;
-  --arena-cream: #16241a;
+  --arena-ink: var(--hall-text);
+  --arena-forest: var(--surface-muted);
+  --arena-muted: var(--hall-text-dim);
+  --arena-gold: var(--hall-bronze);
+  --arena-cappuccino: var(--hall-bronze-lift);
+  --arena-paper: var(--hall-panel);
+  --arena-cream: var(--hall-raised);
   width: min(100% - 1.5rem, 1780px);
 }
 
@@ -46,13 +77,13 @@
 .page--arena .arena-command-deck__gifts,
 .page--arena .arena-command-deck__crowd-rail,
 .page--arena .arena-command-deck__phase-rail {
-  border-color: rgb(217 164 65 / 0.28);
-  background: rgb(10 18 12 / 0.82);
+  border-color: rgb(180 122 51 / 0.28);
+  background: rgb(24 35 29 / 0.82);
   box-shadow: 0 0.55rem 1.6rem rgb(0 0 0 / 0.45);
 }
 
 .page--arena .arena-phase-step.is-active {
-  box-shadow: inset 0 0 0 1px rgb(217 164 65 / 0.35);
+  box-shadow: inset 0 0 0 1px rgb(180 122 51 / 0.35);
 }
 
 /* ---- the floor card dissolves into the hall ---- */
@@ -69,40 +100,40 @@
 }
 
 .page--arena .arena-command-deck__live-stage {
-  border-color: rgb(217 164 65 / 0.3);
-  background: linear-gradient(135deg, rgb(29 77 51 / 0.28), rgb(10 18 12 / 0.85), rgb(122 31 36 / 0.24));
+  border-color: rgb(180 122 51 / 0.3);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--ink) 90%, transparent), rgb(24 35 29 / 0.85), color-mix(in srgb, var(--brand-dark) 34%, transparent));
 }
 
 .page--arena .arena-live-centre {
-  background: rgb(10 18 12 / 0.9);
-  box-shadow: inset 0 0 0 2px rgb(217 164 65 / 0.18);
+  background: rgb(24 35 29 / 0.9);
+  box-shadow: inset 0 0 0 2px rgb(180 122 51 / 0.18);
 }
 
 .page--arena .arena-live-centre:hover,
 .page--arena .arena-live-centre:focus-visible {
-  background: #16241a;
+  background: var(--hall-raised);
 }
 
 .page--arena .arena-live-centre--crown {
-  background: linear-gradient(135deg, rgb(217 164 65 / 0.16), rgb(10 18 12 / 0.92));
+  background: linear-gradient(135deg, rgb(180 122 51 / 0.16), rgb(24 35 29 / 0.92));
 }
 
 /* ---- rank spine: gold pills over the hall, as in the mockup ---- */
 
 .page--arena .arena-rank-spine__step {
-  border-color: rgb(217 164 65 / 0.4);
-  color: #e9dfc8;
-  background: rgb(10 18 12 / 0.85);
+  border-color: rgb(180 122 51 / 0.4);
+  color: var(--hall-text);
+  background: rgb(24 35 29 / 0.85);
   box-shadow: 0 0.16rem 0.45rem rgb(0 0 0 / 0.4);
 }
 
 .page--arena .arena-rank-spine__step b {
-  color: #0f1a13;
-  background: #d9a441;
+  color: var(--hall-panel);
+  background: var(--hall-bronze);
 }
 
 .page--arena .arena-rank-spine__step:hover,
 .page--arena .arena-rank-spine__step:focus-visible {
-  color: #f0c46a;
-  background: #16241a;
+  color: var(--hall-bronze-lift);
+  background: var(--hall-raised);
 }

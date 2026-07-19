@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.339",
+        "date": "2026-07-19",
+        "commit": "pending",
+        "title": "The arena hall is painted in the site's own colours",
+        "section": "Chef Battles",
+        "summary": "The hall had been painted in an invented emerald-and-gold pair (#0d1a12, #16241a, #d9a441) that appears nowhere in the CulinEire scheme, whose brand core is warm parchment, ink and muted bronze. Every colour now derives from the design tokens: the room is mixed down from --ink, the accents are the site's own bronze, and the text is --surface-soft. Text contrast measured at 14:1.",
+    },
+    {
         "version": "2.5.338",
         "date": "2026-07-19",
         "commit": "pending",
