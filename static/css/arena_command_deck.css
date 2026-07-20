@@ -173,9 +173,15 @@
   }
 
   .arena-command-deck {
-    width: 100%;
+    /* Out of the page's content column entirely. width:100% only fills
+       whatever the wrapper allows, which at 1280 was 853px - the hall grew to
+       full height and stayed in a column. The negative margin is the standard
+       way out of a centred container without touching the shell markup. */
+    width: 100vw;
     max-width: none;
-    margin: 0;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    margin-block: 0;
     display: block;
     position: relative;
     min-height: 100vh;
