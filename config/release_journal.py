@@ -5,6 +5,14 @@ RELEASE_JOURNAL = [
         "commit": "pending",
         "title": "The arena stops being a box on a page",
         "section": "Chef Battles",
+        "summary": "The widest gap to the reference was never the camera or the palette. The hall was a 1520px card with rounded corners holding a 960px picture in the middle of an ordinary page, while the reference is a room you stand in. The deck is released from its width and the scene from the 960px cap and its card treatment. Nothing is restructured - the grid columns are what put the side panels around the floor. Height is 100svh rather than 100vh so a phone does not gain a scrollbar when the browser chrome slides away.",
+    },
+    {
+        "version": "2.5.361",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "The arena stops being a box on a page",
+        "section": "Chef Battles",
         "summary": "The widest gap to the reference was never the camera or the palette. The hall was a 1520px card with rounded corners holding a 960px picture, sitting in the middle of an ordinary page, while the reference is a room you stand in. The deck is released from its width and the scene from its 960px cap and its card treatment; nothing is restructured, because the grid columns are what put the panels around the floor. Height is 100svh rather than 100vh so a phone does not gain a scrollbar when the browser chrome slides away.",
     },
     {
