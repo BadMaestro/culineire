@@ -1,5 +1,21 @@
 # Arena mockup — measured specification
 
+> **STATUS: HISTORICAL_CONCEPT_REFERENCE** (set 2026-07-20, per the owner's
+> Arena 2D audit closure — see `docs/ai/audits/arena_2d/SHARED/CURRENT_ARENA_SOURCE_OF_TRUTH.md`).
+> The owner has since decided the future Arena direction is a simpler 2D
+> interface, not the perspective camera measured below. This document is no
+> longer implementation acceptance criteria.
+>
+> **Still valid to read from here:** the original product hierarchy (ranks,
+> rows, HUD panel layout intent), the rank-ring concept, the chef-versus-chef
+> centre-stage concept, and the Crown Holder concept.
+>
+> **No longer valid — do not implement from this document:** the 56-degree
+> camera perspective (§1), any 3D geometry requirement, photographic hall
+> matching, or a generated/procedural crowd requirement. These describe the
+> abandoned cinematic direction, retired by the owner and confirmed removed in
+> the Arena 2D audit (`docs/ai/audits/arena_2d/SHARED/MASTER_EXISTING_SYSTEM_AUDIT.md`).
+
 Source: the owner's arena mockup, delivered 2026-07-18 (1280 × 720).
 Measured 2026-07-19 by GreenBear, off the image itself.
 
