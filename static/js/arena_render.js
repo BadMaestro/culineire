@@ -854,7 +854,14 @@
       // pulling the floor in pulls more hall into view with it. No transform
       // scale anywhere — the grid and the picture move together, which is what
       // keeps a click on the tile it is drawn on.
-      var factor = Math.min(frame.width / width, frame.height / height) * FLOOR_SHARE;
+      // The share is of the frame's WIDTH — that is how the mockup states it.
+      // Taking min() of both axes first let the shorter one decide, and on a
+      // 1123x845 frame that produced 0.494 of the width instead of the 0.66
+      // asked for. Height still gets a say, but only as a limit: the floor may
+      // not grow past the frame it sits in.
+      var byWidth = frame.width * FLOOR_SHARE / width;
+      var byHeight = frame.height * 0.98 / height;
+      var factor = Math.min(byWidth, byHeight);
       var current = parseFloat(svg.style.getPropertyValue('--arena-fit')) || 1;
       svg.style.setProperty('--arena-fit', (current * factor).toFixed(4));
 
