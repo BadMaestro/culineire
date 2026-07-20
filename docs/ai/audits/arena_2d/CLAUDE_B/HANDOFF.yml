@@ -3,7 +3,7 @@ handoff:
   lane: "Integration, QA, Documentation and Dead-Code Audit"
   branch: "audit/arena-2d-claude-b"
   base_commit: "726e338076462982185e3caa7564cc37977a18c9"
-  report_commit: "This handoff is committed atomically with the initial lane report; use the branch HEAD."
+  report_commit: "6445263989dd2c1fb69ff759b36d1d46bd90411e"
   status: "COMPLETE"
   scope_audited:
     - "Cross-module route, access, template, static and endpoint integration"
