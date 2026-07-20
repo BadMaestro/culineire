@@ -1,27 +1,52 @@
 # Arena mockup — measured specification
 
-> **Status: `HISTORICAL_CONCEPT_REFERENCE` (set 2026-07-20, Arena 2D audit
-> closure — see `docs/ai/audits/arena_2d/SHARED/CURRENT_ARENA_SOURCE_OF_TRUTH.md`).**
+> **Status: `HISTORICAL_CONCEPT_REFERENCE` (set 2026-07-20, expanded
+> 2026-07-20 during Arena documentation-authority finalization — see
+> `docs/ai/audits/arena_2d/SHARED/CURRENT_ARENA_SOURCE_OF_TRUTH.md`, the
+> single active entry point for Arena decisions).**
 > The owner's decision behind the Arena 2D audit cancelled the 3D/cinematic
 > presentation direction this document describes. It is kept as a historical
-> record, not an implementation target.
+> record, not an implementation target. **The entire body below, including
+> every raw HEX colour value, is historical measurement of a cancelled
+> mockup — none of it is an active requirement.**
 >
-> **Still valid, may be used when designing the 2D Arena:**
-> - The original product hierarchy (§7 HUD panel list, §8 fighters concept).
-> - The rank-ring concept (ring 1 `culinary_master` → ring 8 `kitchen_porter`,
->   §3).
-> - The chef-versus-chef concept: challenger left / opponent right (§8).
-> - The Crown Holder concept (crown at centre, §2/§8).
+> **Preserved — the only parts still usable when designing the 2D Arena:**
+> - The product information hierarchy (§7 HUD panel list: what information
+>   exists, not its 3D framing/positions).
+> - The eight-rank concept (ring 1 `culinary_master` → ring 8 `kitchen_porter`,
+>   §3 — the rank list and order, not the ring/row geometry).
+> - The chef-versus-chef concept (§8 — two chefs, one battle).
+> - Challenger-left / opponent-right **semantic placement** (§8 — a layout
+>   concept only, not a colour mandate; see `MANIFEST_DELTA.md`'s current
+>   visual-direction section for what colour rule actually applies).
+> - The Crown Holder concept (crown at centre, §2/§8 — the concept of a
+>   crown state, not its rendered position or bloom effect).
 >
-> **No longer valid — do not implement, do not treat as acceptance criteria:**
+> **Explicitly invalidated — not usable, not a source of colour or
+> acceptance criteria, regardless of what the body text below says:**
+> - Every raw HEX colour value in this document, including but not limited
+>   to all of §5's sampled palette table (`#e8e0d0`, `#d9c9a8`, `#b09a72`,
+>   `#9aa8b4`, `#0d1a12`, `#050d08`, `#d9a441`, `#f0c46a`, `#1d4d33`,
+>   `#7a1f24`) and any other hex literal anywhere else in the file.
+> - The sampled palette section (§5) in its entirety.
+> - Dark hall and spectator-stand styling (§5, §6).
+> - Green challenger styling and red opponent styling as colour values
+>   (§5, §8) — only the left/right placement concept survives, see above.
+> - Gold glow, spotlight, vignette, and rim lighting (§6).
+> - Photographic hall/backdrop matching (§2, §5's hall/stands imagery, §6).
 > - The 56-degree camera perspective (§1).
 > - Any 3D geometry requirement (§1, the `perspective`/`rotateX` transform).
-> - Photographic hall/backdrop matching (§2, §5's hall/stands imagery, §6).
 > - The generated-crowd requirement (§3's row/face rendering as drawn here).
 > - Any of this document's measurements used as pass/fail acceptance
 >   criteria for the 2D rebuild — the audit's own contracts
 >   (`docs/ai/audits/arena_2d/SHARED/MASTER_EXISTING_SYSTEM_AUDIT.md`,
 >   "Required 2D data contracts") govern acceptance instead.
+>
+> **Only the official CulinEire colour and font scheme
+> (`CulinEire_colour_font_scheme.pdf` and the `:root` tokens in `base.css`)
+> is authoritative for the future 2D Arena's colours and typography.** No
+> colour or font value from this document may be reintroduced, sampled, or
+> approximated for the 2D implementation.
 
 Source: the owner's arena mockup, delivered 2026-07-18 (1280 × 720).
 Measured 2026-07-19 by GreenBear, off the image itself.

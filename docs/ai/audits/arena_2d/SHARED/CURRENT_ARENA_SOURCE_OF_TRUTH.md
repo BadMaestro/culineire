@@ -12,6 +12,18 @@ older summary of the audit that doesn't cite this file.
 - **Closure record:** `AUDIT_CLOSURE.yml` in this folder — machine-readable
   status of this closure pass.
 
+## Documentation authority — read in this order
+
+1. Read this file (`CURRENT_ARENA_SOURCE_OF_TRUTH.md`) first, every session.
+2. Use `MASTER_EXISTING_SYSTEM_AUDIT.md` for detailed evidence and
+   file-by-file classification.
+3. Use `DELTA_RECONCILIATION.yml` for the audit's own history (what changed
+   between the original audit base and the current base, and why).
+4. Treat everything else — old summaries, handoffs, the mockup spec, and
+   individual lane reports (`CLAUDE_A/`, `CLAUDE_B/`, `CODEX/` folders) — as
+   **evidence**, not current instructions. If any of them conflicts with
+   this file, this file wins.
+
 ## What is decided
 
 - **Direction: proceed with a simple, responsive 2D Arena.** The 3D/
