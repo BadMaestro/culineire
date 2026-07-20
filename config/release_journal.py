@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.377",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "Full-bleed reaches the phone too",
+        "section": "Chef Battles",
+        "summary": "The arena filling the screen was gated at 901px, so a phone kept the old boxed floor with a border and a light card background while desktop was already edge to edge. Floor sizing and the hall's colour now apply at every width; only the panel overlay stays desktop-only, since below 900px there is no room beside the floor to float them over it.",
+    },
+    {
         "version": "2.5.376",
         "date": "2026-07-20",
         "commit": "pending",
