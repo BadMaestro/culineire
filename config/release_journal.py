@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.356",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "The panels become glass, and the last raw colours leave the arena",
+        "section": "Chef Battles",
+        "summary": "The deck's panels were flat cards on a hall. They are dark glass now, with a bronze edge lit along the top and shadowed along the bottom, and the crown medallion throws a glow behind itself. The edge is stacked inset shadows, not a gradient border-image, which would have looked identical and silently switched border-radius off. The scheme's accent bronze was only declared inside the About component, so the arena kept its own copy of the hex; it is a root token now and the copy is gone, and shadows are mixed from the ink instead of plain black, which read cold against a warm scheme.",
+    },
+    {
         "version": "2.5.357",
         "date": "2026-07-20",
         "commit": "pending",

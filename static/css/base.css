@@ -45,6 +45,13 @@
     --brand-mid: #8b7355;
     --brand-soft: rgb(139 115 85 / 0.08);
     --border: #e2d9cc;
+    /* The scheme's accent bronze. It already existed as --about-accent, but
+       declared inside the About component, so anything outside that block had
+       to restate the value — the arena did, and a second copy of a brand colour
+       is how palettes drift. Declared here once; --about-accent now points at
+       it rather than repeating it. */
+    --accent-bronze: #b47a33;
+    --accent-bronze-dark: #60401f;
 
     /* Scrollbars */
     --scrollbar-size: 4px;
@@ -3932,8 +3939,8 @@
   --about-line: rgb(70 55 38 / 0.16);
   --about-paper: #f6f0e8;
   --about-card: #fffdf8;
-  --about-accent: #b47a33;
-  --about-accent-dark: #60401f;
+  --about-accent: var(--accent-bronze);
+  --about-accent-dark: var(--accent-bronze-dark);
   background:
     linear-gradient(180deg, rgb(246 240 232 / 0.94), rgb(238 230 218 / 0.9)),
     var(--about-paper);
@@ -4499,8 +4506,8 @@
   --about-line: rgb(70 55 38 / 0.16);
   --about-paper: #f6f0e8;
   --about-card: #fffdf8;
-  --about-accent: #b47a33;
-  --about-accent-dark: #60401f;
+  --about-accent: var(--accent-bronze);
+  --about-accent-dark: var(--accent-bronze-dark);
   width: min(1180px, calc(100% - 2rem));
   margin: clamp(2.5rem, 7vw, 5rem) auto;
   color: var(--about-ink);

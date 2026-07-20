@@ -30,27 +30,31 @@
  * tokens here rather than picked by eye. Change --ink or --brand and the whole
  * hall follows.
  *
- * --hall-bronze is the site's own accent bronze. It lives in base.css as
- * --about-accent but is declared inside a component selector, not :root, so it
- * cannot be referenced from here — the value is repeated with this note
- * instead of inventing a second gold.
+ * --hall-bronze is the site's own accent bronze, --accent-bronze. It used to be
+ * declared only inside the About component, so this file restated the hex; it is
+ * a root token now and nothing here holds a copy of a brand colour.
+ *
+ * --hall-shade is the shadow ink. Shadows were plain black, which reads cold
+ * against a warm parchment scheme — it is mixed from --ink so the room's shadows
+ * belong to the room.
  */
 .page--arena {
   --hall-deep: color-mix(in srgb, var(--ink) 74%, #000);
   --hall-edge: color-mix(in srgb, var(--ink) 38%, #000);
   --hall-panel: color-mix(in srgb, var(--ink) 62%, #000);
   --hall-raised: color-mix(in srgb, var(--ink) 88%, #000);
-  --hall-bronze: #b47a33;
+  --hall-bronze: var(--accent-bronze);
   --hall-bronze-lift: color-mix(in srgb, var(--hall-bronze) 72%, var(--surface-soft));
   --hall-text: var(--surface-soft);
   --hall-text-dim: color-mix(in srgb, var(--surface-muted) 62%, var(--muted));
+  --hall-shade: color-mix(in srgb, var(--ink) 45%, #000);
 }
 
 /* ---- the hall is the page ---- */
 
 .page--arena {
   background:
-    radial-gradient(90rem 44rem at 50% 30%, rgb(180 122 51 / 0.10), transparent 62%),
+    radial-gradient(90rem 44rem at 50% 30%, color-mix(in srgb, var(--hall-bronze) 10%, transparent), transparent 62%),
     radial-gradient(130% 120% at 50% 40%, var(--hall-deep) 0%, var(--hall-edge) 100%);
   background-attachment: fixed;
 }
@@ -94,8 +98,8 @@
   box-shadow:
     inset 0 1px 0 0 color-mix(in srgb, var(--hall-bronze) 55%, transparent),
     inset 0 0 0 1px color-mix(in srgb, var(--hall-bronze) 26%, transparent),
-    inset 0 -1px 0 0 rgb(0 0 0 / 0.5),
-    0 0.55rem 1.6rem rgb(0 0 0 / 0.45);
+    inset 0 -1px 0 0 color-mix(in srgb, var(--hall-shade) 70%, transparent),
+    0 0.55rem 1.6rem color-mix(in srgb, var(--hall-shade) 62%, transparent);
   backdrop-filter: blur(12px) saturate(1.15);
 }
 
@@ -116,7 +120,7 @@
 }
 
 .page--arena .arena-phase-step.is-active {
-  box-shadow: inset 0 0 0 1px rgb(180 122 51 / 0.35);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hall-bronze) 35%, transparent);
 }
 
 /* ---- the floor card dissolves into the hall ---- */
@@ -133,13 +137,18 @@
 }
 
 .page--arena .arena-command-deck__live-stage {
-  border-color: rgb(180 122 51 / 0.3);
-  background: linear-gradient(135deg, color-mix(in srgb, var(--ink) 90%, transparent), rgb(24 35 29 / 0.85), color-mix(in srgb, var(--brand-dark) 34%, transparent));
+  border-color: color-mix(in srgb, var(--hall-bronze) 30%, transparent);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--ink) 90%, transparent),
+    color-mix(in srgb, var(--hall-raised) 85%, transparent),
+    color-mix(in srgb, var(--brand-dark) 34%, transparent)
+  );
 }
 
 .page--arena .arena-live-centre {
-  background: rgb(24 35 29 / 0.9);
-  box-shadow: inset 0 0 0 2px rgb(180 122 51 / 0.18);
+  background: color-mix(in srgb, var(--hall-raised) 90%, transparent);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--hall-bronze) 18%, transparent);
 }
 
 .page--arena .arena-live-centre:hover,
@@ -148,7 +157,11 @@
 }
 
 .page--arena .arena-live-centre--crown {
-  background: linear-gradient(135deg, rgb(180 122 51 / 0.16), rgb(24 35 29 / 0.92));
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--hall-bronze) 16%, transparent),
+    color-mix(in srgb, var(--hall-raised) 92%, transparent)
+  );
 }
 
 /* ---- the polish layer's own palette, re-pointed for the dark hall ---- */
@@ -177,13 +190,13 @@
   --ad-mut: var(--hall-text-dim);
   --ad-gold: var(--hall-bronze);
   --ad-gold-d: var(--brand-dark);
-  --ad-line: rgb(180 122 51 / 0.28);
+  --ad-line: color-mix(in srgb, var(--hall-bronze) 28%, transparent);
 }
 
 /* The card carries the crown holder's portrait, so it gets a little more
    presence than a plain panel: a bronze hairline and a shadow to lift it. */
 .page--arena .arena-live-chef {
-  box-shadow: 0 0.4rem 1.2rem rgb(0 0 0 / 0.35);
+  box-shadow: 0 0.4rem 1.2rem color-mix(in srgb, var(--hall-shade) 52%, transparent);
 }
 
 /* The crown sits at the centre of the floor, and in the reference it is the one
@@ -257,10 +270,10 @@
 }
 
 .page--arena .arena-rank-spine__step {
-  border-color: rgb(180 122 51 / 0.4);
+  border-color: color-mix(in srgb, var(--hall-bronze) 40%, transparent);
   color: var(--hall-text);
-  background: rgb(24 35 29 / 0.85);
-  box-shadow: 0 0.16rem 0.45rem rgb(0 0 0 / 0.4);
+  background: color-mix(in srgb, var(--hall-raised) 85%, transparent);
+  box-shadow: 0 0.16rem 0.45rem color-mix(in srgb, var(--hall-shade) 56%, transparent);
 }
 
 .page--arena .arena-rank-spine__step b {
