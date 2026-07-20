@@ -177,15 +177,24 @@
        whatever the wrapper allows, which at 1280 was 853px - the hall grew to
        full height and stayed in a column. The negative margin is the standard
        way out of a centred container without touching the shell markup. */
-    width: 100vw;
+    /* #main-content already has no padding on this route, so plain 100% is the
+       full width - and unlike the 100vw breakout it does not count the
+       scrollbar, which was pushing 11px of horizontal scroll onto the page.
+       Measured: document 1291 wide in a 1280 window. */
+    width: 100%;
     max-width: none;
-    margin-left: calc(50% - 50vw);
-    margin-right: calc(50% - 50vw);
-    margin-block: 0;
+    margin: 0;
     padding: 0;
     display: block;
     position: relative;
-    min-height: 100vh;
+
+    /* The site header is sticky and 146px tall, so a 100vh deck starts below
+       it and runs 146px past the bottom of the window: the floor sat that far
+       below centre and the supporter ticker fell off the screen entirely.
+       The arena gets the window minus the header. */
+    height: calc(100svh - var(--arena-header-h, 146px));
+    min-height: 30rem;
+    overflow: hidden;
     color: var(--hall-text, #f5eee4);
   }
 

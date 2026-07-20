@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.368",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "The arena sits in the window it was given",
+        "section": "Chef Battles",
+        "summary": "The arena was told to be as tall as the window, but it starts below a sticky header - so it ran that far past the bottom, the floor sat low and the supporter ticker fell off the screen. It now takes the window minus the header, and the page stopped scrolling sideways.",
+    },
+    {
         "version": "2.5.367",
         "date": "2026-07-20",
         "commit": "pending",
