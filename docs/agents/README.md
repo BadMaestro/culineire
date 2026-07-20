@@ -21,3 +21,13 @@ and into the agent's memory folder too, so the copies do not drift.
 The two copies:
 - repository — `docs/agents/` (this folder), readable by everyone;
 - Bolt's memory folder, loaded automatically at the start of a session.
+
+## What else lives here
+
+- `memory/` — the full memory folder, every rule and reference note, not just the
+  two headline documents. It used to exist on one machine only.
+- `claude-config/` — the agent settings and `PROJECT_STATE.md`: permission lists,
+  dev-server launch config, and the operational context note. No secrets: the
+  files name environment variables, they never carry values.
+
+`.env` and its backups stay out of git and always will.

@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.375",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "Everything the agents work from is in the repository",
+        "section": "Site",
+        "summary": "The rules, the reference notes, the session history and the agent settings lived on one machine, in one private folder. Losing that folder lost the project's working memory, and the other agent could not read any of it. All 108 notes are in docs/agents/memory now, the settings in docs/agents/claude-config, and the local test panel is tracked. Secrets stay out: the copied files name environment variables, they never carry values, and .env and its backups remain untracked.",
+    },
+    {
         "version": "2.5.374",
         "date": "2026-07-20",
         "commit": "pending",
