@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.356",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "The panels become glass, and the crown is lit",
+        "section": "Chef Battles",
+        "summary": "The deck's panels were flat cards sitting on a hall. They are dark glass now - blurred, with a bronze edge lit along the top and shadowed along the bottom - and the crown medallion throws a soft glow behind itself, which is what the reference lights the room around. The metal edge is drawn with stacked inset shadows rather than a gradient border-image: that would have looked identical and silently switched border-radius off, returning square corners nobody would have connected to it. On phones the blur is dropped for a more opaque glass, since it costs a composite on every scroll frame while the hall behind it never moves.",
+    },
+    {
         "version": "2.5.355",
         "date": "2026-07-20",
         "commit": "pending",

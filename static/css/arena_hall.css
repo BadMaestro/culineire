@@ -69,7 +69,13 @@
 }
 
 /* Panels: the deck paints these with raw parchment values, so the token flip
-   cannot reach them — dark glass with a gold hairline instead. */
+   cannot reach them — dark glass over the hall instead.
+
+   The metal edge is drawn with two stacked box-shadows rather than
+   border-image. A gradient border-image is the obvious way to get a bronze
+   edge that catches the light, and it silently switches border-radius off —
+   the panels would come back with square corners and nobody would connect the
+   two. Two inset rings cost nothing and keep the radius. */
 .page--arena .arena-command-deck__header,
 .page--arena .arena-command-deck__phase-card,
 .page--arena .arena-command-deck__metrics,
@@ -77,9 +83,36 @@
 .page--arena .arena-command-deck__gifts,
 .page--arena .arena-command-deck__crowd-rail,
 .page--arena .arena-command-deck__phase-rail {
-  border-color: rgb(180 122 51 / 0.28);
-  background: rgb(24 35 29 / 0.82);
-  box-shadow: 0 0.55rem 1.6rem rgb(0 0 0 / 0.45);
+  border-color: transparent;
+  background:
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--hall-raised) 78%, transparent),
+      color-mix(in srgb, var(--hall-deep) 86%, transparent)
+    );
+  /* lit top edge, shadowed bottom edge, then the panel's own drop shadow */
+  box-shadow:
+    inset 0 1px 0 0 color-mix(in srgb, var(--hall-bronze) 55%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--hall-bronze) 26%, transparent),
+    inset 0 -1px 0 0 rgb(0 0 0 / 0.5),
+    0 0.55rem 1.6rem rgb(0 0 0 / 0.45);
+  backdrop-filter: blur(12px) saturate(1.15);
+}
+
+/* Blur is a compositing cost on every scroll frame, and the hall behind these
+   panels is a still image — on a phone the same look is achieved by making the
+   glass more opaque instead. */
+@media (max-width: 900px) {
+  .page--arena .arena-command-deck__header,
+  .page--arena .arena-command-deck__phase-card,
+  .page--arena .arena-command-deck__metrics,
+  .page--arena .arena-command-deck__ladder,
+  .page--arena .arena-command-deck__gifts,
+  .page--arena .arena-command-deck__crowd-rail,
+  .page--arena .arena-command-deck__phase-rail {
+    background: color-mix(in srgb, var(--hall-deep) 94%, transparent);
+    backdrop-filter: none;
+  }
 }
 
 .page--arena .arena-phase-step.is-active {
@@ -151,6 +184,40 @@
    presence than a plain panel: a bronze hairline and a shadow to lift it. */
 .page--arena .arena-live-chef {
   box-shadow: 0 0.4rem 1.2rem rgb(0 0 0 / 0.35);
+}
+
+/* The crown sits at the centre of the floor, and in the reference it is the one
+   thing the room is lit around. The glow is thrown behind the medallion rather
+   than added to it, so the portrait keeps its own contrast. */
+.page--arena .arena-live-centre--crown {
+  position: relative;
+  isolation: isolate;
+}
+
+.page--arena .arena-live-centre--crown::before {
+  content: "";
+  position: absolute;
+  inset: -55%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--hall-bronze) 42%, transparent) 0%,
+    color-mix(in srgb, var(--hall-bronze) 14%, transparent) 45%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .page--arena .arena-live-centre--crown::before {
+    animation: hall-crown-breathe 6s ease-in-out infinite;
+  }
+}
+
+@keyframes hall-crown-breathe {
+  0%, 100% { opacity: 0.75; transform: scale(0.97); }
+  50%      { opacity: 1;    transform: scale(1.03); }
 }
 
 /* ---- rank spine: gold pills over the hall, as in the mockup ---- */
