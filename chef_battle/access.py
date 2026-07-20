@@ -12,13 +12,26 @@ def is_battle_visible(request) -> bool:
     """
     Chef Battles is visible when:
     - CHEF_BATTLE_ENABLED is True (public launch), OR
-    - the user is staff, superuser, or has bearseeker privileges
-      (dark launch preview).
+    - the user is staff/superuser (dark-launch operator preview), OR
+    - the user has a RecipeAuthor at all (owner's rule, 2026-07-20: any
+      registered author may visit and watch the arena — chef enrollment is
+      NOT required, only registration as an author. Voting is a separate,
+      stricter check elsewhere; this function only gates being able to see
+      the page).
 
-    Staff see the arena during dark launch, matching the panel-preview flag
-    (``chef_battle_enabled``) they already get; the Arena Master Console stays
-    behind ``has_arena_console_access`` (superuser only), so this does not open
-    the console to staff.
+    Chef enrollment (ChefBattleProfile.enrolled_at) must never be a condition
+    here: an author who has never fought a single battle still gets to watch.
+    Anonymous visitors are only let in once CHEF_BATTLE_ENABLED goes True
+    (public launch) — until then this function is the entire dark-launch gate.
+
+    ``has_bearseeker_privileges`` used to be checked here separately from
+    "has a RecipeAuthor", but it is itself a field ON RecipeAuthor — any
+    account with the flag already has an author row, so it was strictly
+    redundant once "any author" is the rule. Dropped rather than kept
+    alongside a check it can never add anything to.
+
+    The Arena Master Console stays behind ``has_arena_console_access``
+    (superuser only), so none of this opens the console to staff or authors.
     """
     if getattr(settings, "CHEF_BATTLE_ENABLED", False):
         return True
@@ -28,7 +41,7 @@ def is_battle_visible(request) -> bool:
     if user.is_staff or user.is_superuser:
         return True
     author = getattr(user, "recipe_author_profile", None)
-    return bool(author and author.has_bearseeker_privileges)
+    return author is not None
 
 
 def has_arena_console_access(request) -> bool:

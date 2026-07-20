@@ -2889,14 +2889,24 @@ ARENA_BUILD_STAGES = [
     {
         "n": 4, "id": "fighters", "title": "The two chefs flank the crown",
         "date": "2026-07-20",
-        "backend": {"who": "Bolt", "done": False, "ref": "centre payload",
-                    "task": "Challenger and opponent with name, country and photo in the centre payload"},
+        "backend": {"who": "Bolt", "done": True, "ref": "_arena_center()",
+                    "task": "Challenger and opponent with name and photo in the centre payload"},
         "frontend": {"who": "GB", "done": False, "ref": "centre panels",
                      "task": "Coloured panels either side of the crown - challenger green, opponent "
                              "red - each with photo, name and flag, as drawn in the mockup"},
-        "depends": "Frontend depends on the centre payload carrying both fighters.",
+        "depends": "Frontend only now - the payload shape already exists.",
         "criterion": "Challenger panel green on the left, opponent panel red on the right "
                      "(manifest section 4 — the one manifest rule still live for the arena).",
+        "note": "RECHECKED 2026-07-20: chef_battle/views.py _arena_center() already returns "
+                "challenger.name/avatar_url and opponent.name/avatar_url whenever an active_battle "
+                "or facing_pair exists - this was reported as 'no backend data' but the shape has "
+                "existed since before this session. Which side is green/red is structural (challenger "
+                "vs opponent), not something the backend needs to add. 'country' was in the original "
+                "task text but RecipeAuthor has no country field anywhere in the schema - not adding "
+                "one silently; that is a real new field needing its own decision, not a byproduct of "
+                "this stage. The mockup's flag/photo panel can be built now against name+avatar_url; "
+                "there is simply no active_battle in prod right now to exercise it against, which is a "
+                "data-state gap (no live battle), not a missing capability.",
     },
     {
         "n": 5, "id": "ranklabels", "title": "The rank column lies on the floor",

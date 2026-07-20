@@ -5187,6 +5187,31 @@ class ArenaDarkLaunchTests(TestCase):
         response = self.client.post(reverse("chef_battle:arena_state"))
         self.assertEqual(response.status_code, 200)
 
+    def test_plain_author_sees_the_arena_during_dark_launch(self):
+        """Owner's rule 2026-07-20: any registered author may visit and watch
+        the arena, no chef enrollment and no staff/superuser/bearseeker
+        needed. Before this fix a plain author got 404 here — which is why
+        three test accounts needed a staff grant just to be seen in the
+        stands, something the rule says should not have been necessary."""
+        User = get_user_model()
+        plain_user = User.objects.create_user(username="adl-plain-author", password="pw")
+        RecipeAuthor.objects.create(user=plain_user, name="ADL Plain Author", slug="adl-plain-author")
+        self.client.login(username="adl-plain-author", password="pw")
+
+        response = self.client.get(reverse("chef_battle:arena"))
+        self.assertEqual(response.status_code, 200)
+
+    def test_authenticated_user_without_an_author_profile_still_hidden(self):
+        """The rule is "any registered AUTHOR", not "any logged-in account" —
+        a user who never created a RecipeAuthor row is not yet a registered
+        author and must still 404 during dark launch."""
+        User = get_user_model()
+        User.objects.create_user(username="adl-no-author", password="pw")
+        self.client.login(username="adl-no-author", password="pw")
+
+        response = self.client.get(reverse("chef_battle:arena"))
+        self.assertEqual(response.status_code, 404)
+
 
 @override_settings(SECURE_SSL_REDIRECT=False, CHEF_BATTLE_ENABLED=True)
 class TokenChargebackServiceTests(TestCase):
