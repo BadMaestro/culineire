@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.352",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "The arena is looked at from straight above",
+        "section": "Chef Battles",
+        "summary": "The owner settled the camera: no tilt at all. The floor is a plan view again, which makes the grid and any top-down artwork line up exactly and puts every click where the tile is drawn. The projection stays in the code, switched off by a single number.",
+    },
+    {
         "version": "2.5.351",
         "date": "2026-07-20",
         "commit": "pending",

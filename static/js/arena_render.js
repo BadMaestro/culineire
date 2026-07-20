@@ -77,7 +77,11 @@
   // which gives exactly s(-1) = k and s(+1) = 1. The vertical positions are
   // the integral of that scale, so rows crowd together as they recede the way
   // they do in the photograph, rather than sitting at even spacing.
-  var CONVERGENCE = 0.1267;
+  // 0 = flat. The owner's call: the arena is looked at from straight above, so
+  // there is no tilt and no convergence at all. The projection below is kept
+  // whole rather than deleted - put a number back in here and the camera
+  // returns without rewriting anything.
+  var CONVERGENCE = 0;
   // Neither number is the measurement itself. CONVERGENCE describes the whole
   // depth span, while what has to match is the OCTAGON's own far and near
   // edges, which sit at 0.59 of that span - and VERTICAL_SQUASH acts on the
@@ -86,10 +90,14 @@
   // far edge 0.51 of the near one, height 0.437 of the width. Solving one at a
   // time moved the other, which is why an earlier pass matched the height
   // exactly and pushed the corners further out.
-  var VERTICAL_SQUASH = 0.127;
+  var VERTICAL_SQUASH = 1;
 
   function projector() {
     var k = CONVERGENCE;
+    // Flat: a plan view, drawn exactly as the geometry contract lays it out.
+    if (!(k > 0) || k >= 1) {
+      return function (point) { return { x: point.x, y: point.y }; };
+    }
     var B = (1 + k) / (1 - k);
     var A = B - 1;
     var half = SVG_SIZE / 2;

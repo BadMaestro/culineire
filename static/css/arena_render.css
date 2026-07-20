@@ -410,7 +410,11 @@
  * contract cannot.
  * -------------------------------------------------------------------------- */
 .page--arena .arena-render-container {
-  background-image: url("/static/images/chef_battle/arena/hall-bg-v1.webp");
+  /* No backdrop while the arena is a plan view: the frames we have were drawn
+     from a tilted camera and their floor cannot be re-angled by cropping.
+     The placement code stays live and takes a top-down frame the moment one
+     exists - one line back and it is on again. */
+  background-image: none;
   background-repeat: no-repeat;
   background-size: var(--arena-backdrop-size, cover);
   background-position: var(--arena-backdrop-x, 50%) var(--arena-backdrop-y, 50%);
