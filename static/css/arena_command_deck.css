@@ -228,6 +228,17 @@
      edges removes the question: the stage IS the frame, and the renderer
      centres the octagon inside it by measurement. */
   .arena-command-deck__floor > .arena-floor-stage,
+  /* The picture is square and its painted floor is a fixed share of it, so the
+     image can only be as wide as the floor allows: on a 1910x934 frame the
+     floor tops out at 915px (its own height is the limit) and the hall reaches
+     1875px, leaving 18px bare at each side. Scaling further would crop the
+     octagon top and bottom, which a plan view cannot afford.
+     So the edge is carried by colour instead - the hall's own darkest tone,
+     which is what the picture fades to at its border anyway. */
+  .page--arena .arena-command-deck__floor .arena-render-container {
+    background-color: var(--hall-edge, #0b120e);
+  }
+
   .page--arena .arena-command-deck__floor .arena-render-container {
     position: absolute;
     inset: 0;
