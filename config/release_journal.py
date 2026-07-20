@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.378",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "Self-vote blocked at the database, arena tokens, manifest in the repo",
+        "section": "Chef Battles",
+        "summary": "BattleVote.clean() blocked a chef voting for themselves, but Django never calls clean() from save() - a CheckConstraint now enforces it directly, backed by a denormalised voter_author field (the constraint cannot join voter's User row to voted_for's RecipeAuthor row). Request fingerprint hashes moved from bare SHA-256 to HMAC keyed on SECRET_KEY. The arena build board is rewritten: 13 finished stages collapse into one archive line, the 7 live stages each carry a written acceptance criterion instead of none, and two of them (fullbleed, hud) turned out to already be built and working once measured rather than eyeballed. 89 live raw hex colours across the arena stylesheets (183 minus comment-only matches) are down to 35, mostly documented exceptions where no green/red/blue token exists anywhere in the scheme. The owner's product manifest and co-developer protocol now live in docs/agents/, with a delta document recording where they're stale against shipped code.",
+    },
+    {
         "version": "2.5.377",
         "date": "2026-07-20",
         "commit": "pending",
