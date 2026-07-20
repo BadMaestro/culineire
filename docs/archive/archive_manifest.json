@@ -1,0 +1,1316 @@
+{
+  "archive_version": "2026-07-20",
+  "base_commit": "167d54579777933ad3a0f667afe6154e1b4d0d7b",
+  "active_markdown_allowlist": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md",
+    "docs/CURRENT_EXECUTION_PLAN.md",
+    "docs/TECHNICAL_STANDARDS.md"
+  ],
+  "archived": [
+    {
+      "original_path": "DEPLOYMENT_SECURITY.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/DEPLOYMENT_SECURITY.md",
+      "sha256": "47ac048966b81d06b9132f5f8bdc6a2c8ffee8b692cbe71fe3a44aa48e944f1f",
+      "authority": "historical",
+      "retention_reason": "operational_security_reference"
+    },
+    {
+      "original_path": "README.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/README.md",
+      "sha256": "a67cbcdf3b82a48abcabc92d6d973a39e726286d86989492c2161945abc9cf6e",
+      "authority": "historical",
+      "retention_reason": "project_documentation"
+    },
+    {
+      "original_path": "chef_battle/fixtures/README.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/chef_battle/fixtures/README.md",
+      "sha256": "eebec5b3df0fc12c202180ec1798bb5309365c81e261aac69e2cf5a64cbe1eec",
+      "authority": "historical",
+      "retention_reason": "test_fixture_reference"
+    },
+    {
+      "original_path": "coworking/AGENT_INSTRUCTIONS.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/coworking/AGENT_INSTRUCTIONS.md",
+      "sha256": "2e521fd0d7317e7174c3af6345fef0916adc8dfb76af46c0312058915ea098be",
+      "authority": "historical",
+      "retention_reason": "operational_runbook"
+    },
+    {
+      "original_path": "coworking/ONBOARDING.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/coworking/ONBOARDING.md",
+      "sha256": "5af6b030fd79d43e75cd48d4c0df3df3716384a057d8aa6f716b18811d5a10d1",
+      "authority": "historical",
+      "retention_reason": "operational_runbook"
+    },
+    {
+      "original_path": "deploy/DEPLOY_UBUNTU_NGINX_UNIT.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/deploy/DEPLOY_UBUNTU_NGINX_UNIT.md",
+      "sha256": "adee0650bf33f801f626772a7cbd0313ad9ed3a384fa0afd4230def01490d05d",
+      "authority": "historical",
+      "retention_reason": "operational_runbook"
+    },
+    {
+      "original_path": "deploy/LINODE_DEPLOY_HANDOFF.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/deploy/LINODE_DEPLOY_HANDOFF.md",
+      "sha256": "3f0d1dd1833bc8f1df0f6623c616d84c208105c002fa4aa5aec7c30bf01aadd7",
+      "authority": "historical",
+      "retention_reason": "operational_runbook"
+    },
+    {
+      "original_path": "docs/agents/CHEF_COMBATS_MANIFEST.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/CHEF_COMBATS_MANIFEST.md",
+      "sha256": "6a5359af19fce6a92e5813fcb5fc8189979dbdb9a9fe257f1be4968eb05a521c",
+      "authority": "historical",
+      "retention_reason": "superseded_agent_protocol"
+    },
+    {
+      "original_path": "docs/agents/CLAUDE_RULES.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/CLAUDE_RULES.md",
+      "sha256": "357d9082b119054656bfede38d86314f11f5ad2ee54a6156d3a504976158136c",
+      "authority": "historical",
+      "retention_reason": "superseded_agent_protocol"
+    },
+    {
+      "original_path": "docs/agents/GOLDEN_RULES.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/GOLDEN_RULES.md",
+      "sha256": "80e528848d2336fcc025871f9b9c9a1dc021db8d3d5fb76d1ff10d784d8a5a3b",
+      "authority": "historical",
+      "retention_reason": "superseded_agent_protocol"
+    },
+    {
+      "original_path": "docs/agents/MANIFEST_DELTA.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/MANIFEST_DELTA.md",
+      "sha256": "1f221553ba5cc71465284421a9f5c5a3e2bb44d53e8c9d5b457eb42bb5c62d04",
+      "authority": "historical",
+      "retention_reason": "superseded_agent_protocol"
+    },
+    {
+      "original_path": "docs/agents/MASTER_WORKFLOW.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/MASTER_WORKFLOW.md",
+      "sha256": "f0ad3ef394f3e0df9dc524d6682a31919de25238c2bb09e9a2ebccf606ffd240",
+      "authority": "historical",
+      "retention_reason": "superseded_agent_protocol"
+    },
+    {
+      "original_path": "docs/agents/README.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/README.md",
+      "sha256": "aa7740c33dd425a6a2c5375cf133509daaefd75aed0f2e23d8e99d766ae4d1ee",
+      "authority": "historical",
+      "retention_reason": "superseded_agent_protocol"
+    },
+    {
+      "original_path": "docs/agents/claude-config/PROJECT_STATE.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/claude-config/PROJECT_STATE.md",
+      "sha256": "281c27b6ec60ef760b308b9ca0b4cb8960a0f395a6a55b3fd2915f8b1d1f14f5",
+      "authority": "historical",
+      "retention_reason": "agent_operational_config"
+    },
+    {
+      "original_path": "docs/agents/memory/GOLDEN_RULES.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/GOLDEN_RULES.md",
+      "sha256": "87eee3d399554173768b26ced2c8f97d1a941844e2160697654164c5f523856b",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/HANDOFF_TO_GREENBEAR.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/HANDOFF_TO_GREENBEAR.md",
+      "sha256": "536a99a0b6e05ea94046bb4d0705ec8904d0219d6968a84c46799660f4840b75",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/MASTER_WORKFLOW.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/MASTER_WORKFLOW.md",
+      "sha256": "f0ad3ef394f3e0df9dc524d6682a31919de25238c2bb09e9a2ebccf606ffd240",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/MEMORY.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/MEMORY.md",
+      "sha256": "852a3045c6719923afafa99beb3b7207957ea71f82ce0b362f31c28b4cbd608a",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/chef_battle_arena_real_mechanic.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/chef_battle_arena_real_mechanic.md",
+      "sha256": "38625e17dc60791eeb92c40e037c2d706167d4bf40ce21f25fb99b85a938a578",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/chef_battle_business_model.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/chef_battle_business_model.md",
+      "sha256": "2fbbe98d3abe8e55d0bb187c857dae89b171bd88d4a17cabd747541ae4fdc378",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/chef_battle_complete_specification.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/chef_battle_complete_specification.md",
+      "sha256": "a17283b5ad6f84aef74ee11c88d99cd427bd157997dddcd2420b35f894a3cf3c",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/chef_battle_concept.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/chef_battle_concept.md",
+      "sha256": "bbc3d430ce729a7bdea3ef2db4551379f8d2d8d26ed22dec39190c1c20b14247",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/chef_battle_legal_compliance.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/chef_battle_legal_compliance.md",
+      "sha256": "418244362121095a73ce726904dd48dd5a2bfa97b5b1c6306f9ac8a8dd07e9f7",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_always_ask.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_always_ask.md",
+      "sha256": "3c42a5b475cc82e1e41683683b1ec841449d1264f18c54bbb9dc0fdf016e5fdf",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_always_push.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_always_push.md",
+      "sha256": "dc1343480e4bfd17c913e2feef04e002b15dd421ca83ce61571ee2c58ab6b88a",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_app_architecture.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_app_architecture.md",
+      "sha256": "488c3929390668d827eb1082eb9adfdbbe69b6d75e92ae8ddcdfaf76c0288977",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_arena_floor_light.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_arena_floor_light.md",
+      "sha256": "72aca0a4b61943c23982dd69df4a1e2219cf4be72257dd12182e51663a34b71c",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_audit_before_new_code.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_audit_before_new_code.md",
+      "sha256": "dd459ac6f3420c11a41bbdc81e05002dfe98a083824d678881cb2bb10dfc589d",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_audit_intentional.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_audit_intentional.md",
+      "sha256": "7d9d006ac68fae40547d13aac2ddd8577cff474d76fb025a81d81b31fee05976",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_blue_annotations.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_blue_annotations.md",
+      "sha256": "1d4ab11eaf5cadf5a0e3e24a8e49783486db8fb6702443ec314fec9ef1cc06b3",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_button_design_system.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_button_design_system.md",
+      "sha256": "d1faa1b6810a8a76c5b5b869cee14eb708f46860224e502c8881759104df4ce3",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_canonical_hero.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_canonical_hero.md",
+      "sha256": "8ebb06eafa08fbddd2b70f819327395b2c1a72f4ab5c5ff6c55d2d4b1be1aea9",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_check_before_acting.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_check_before_acting.md",
+      "sha256": "a107e85b7cd339fefa31f2741f96da726922eee98e1f9eb75396abb971f9e057",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_colour_scheme_is_law.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_colour_scheme_is_law.md",
+      "sha256": "4a59c16685d2d1d39dfc29fdb0a6ce8dab25d4d9a6f38fda94bace6363192926",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_commit_approval.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_commit_approval.md",
+      "sha256": "1e5b6a264dc8951d8f59d8d949196c0e905fdf742a96c0286fd441c344614f67",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_commit_only_after_local_test.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_commit_only_after_local_test.md",
+      "sha256": "f55710907b3f23690c86b48e76b83a303e81cb72d7e36e31ac8b8bdde522fee9",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_constant_communication.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_constant_communication.md",
+      "sha256": "1d700f87ec048a97a8508894b1a02a05851ddd7d117cd804d6a0b3e0569f3f63",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_deploy_authorization.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_deploy_authorization.md",
+      "sha256": "455f332ccf51738bafc711cf74e5373bf4872ea746f23a081f80c9b623455df0",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_deploy_autonomy.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_deploy_autonomy.md",
+      "sha256": "7fe456a93ca1aa71e1179b2846a1c0eb34046d22a55ff52bd58f9aac51fd9601",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_distributed_testing.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_distributed_testing.md",
+      "sha256": "8070305a0fad15878bfb5033edfc884fbf14a00d8dbf4ae762772fc0537db721",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_do_exactly_as_asked.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_do_exactly_as_asked.md",
+      "sha256": "a0ceb3d6680e56d899cca2ebd4124be6dabbb5b302be5d2e263baa2dca5e667d",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_enter_arena_button.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_enter_arena_button.md",
+      "sha256": "5ae03ae0b5da576b63ce8893bd67424e29e6a11ef5b3fbb380aa4780f22a7eb1",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_exact_filters_on_delete.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_exact_filters_on_delete.md",
+      "sha256": "7cb802394ac033e972cdced393e84e1f61b8c1c5dbbafbe5db929f5b24743307",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_fix_bugs_then_resume.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_fix_bugs_then_resume.md",
+      "sha256": "fddb406ef971e51d43952f9a4f6a1ae8bdaff8b090f87391f685650a5f1b829c",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_fix_side_issues.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_fix_side_issues.md",
+      "sha256": "5822c8077a2149c1343b3a2d9dcb73ea5e15e2bb9f76ee8c4285babc914d9ec4",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_follow_output_format.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_follow_output_format.md",
+      "sha256": "65316ed9fc3ee0519c85d32589afd1480b9976801fe8c9023f4f913974080441",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_gb_facts_need_evidence.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_gb_facts_need_evidence.md",
+      "sha256": "a3be28ffea5092abd9593e30e9fc406dd8b46ea95e303536c79e731d3c8d4b60",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_git_untracked.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_git_untracked.md",
+      "sha256": "659e4111f5733e468b42ff8eec6b508daafa860015887b120dc4cf4103dbf0c1",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_god_mode_css.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_god_mode_css.md",
+      "sha256": "d62d152ce79af6f4b0069548827090f10c8effc385f3bd6bf525571abd242b0d",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_greenbear_account_untouchable.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_greenbear_account_untouchable.md",
+      "sha256": "64f6044649f3a5b0e9c8216bdb8358442f11b7794df3559e0902bfad027b0799",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_greenbear_page_untouchable.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_greenbear_page_untouchable.md",
+      "sha256": "6bb7a71a974f1799ddcc656a2a74af2add448a16033009a3ac81506a68aa840e",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_hard_refresh.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_hard_refresh.md",
+      "sha256": "d63eb1b76e8b9cbd1a6f5beed0a4af7a14b07165eca3795cf4f3ca63a6d318a8",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_hero_locked.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_hero_locked.md",
+      "sha256": "4f7eabaea6fb9e01f4b2843480207159a978e2547a1debb30377efdf98ce4925",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_image_generation.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_image_generation.md",
+      "sha256": "c264d0227a627adb1603925065d9a8be6a9173148cd50ac10273a9c520c26177",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_independent_audit.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_independent_audit.md",
+      "sha256": "f751045fa4c3b73a8adc6cc122909313660f411ee01c9012274bc9907f8ba456",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_language.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_language.md",
+      "sha256": "f2cbf195d14a39fb74a2893a22a6b866a3f5ffdca11c2e06519963ba4fe9a085",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_log_every_step.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_log_every_step.md",
+      "sha256": "088635ddd733ec0cdde169c89d6155136996a34082d799d2dc9a95a9e9bd4b54",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_never_run_as_root_on_server.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_never_run_as_root_on_server.md",
+      "sha256": "4c65425357ea04455d72a282c3eea7a372f25d1da3cad38af47f349f32add2a3",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_no_dashes.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_no_dashes.md",
+      "sha256": "5a9ee13c12d50780e45f1e1e0679133c34d88c340547b29ad6ec88b429e98519",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_no_django_admin.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_no_django_admin.md",
+      "sha256": "cdb026c6c299752651dd2731e455a50cfc54d381e946bbdee80536e2da8540d1",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_no_hacks.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_no_hacks.md",
+      "sha256": "c4eb6a6dfe9f2089ffea1badd92c879c1e72b39a8421c4ef544d2edf16232e97",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_no_local_testing.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_no_local_testing.md",
+      "sha256": "f39b6b10f26efee6b3e71a9a4d51f901fd9fbc40e96c2c11afc51bc1d97e77b5",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_no_speculation_about_agents.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_no_speculation_about_agents.md",
+      "sha256": "58a596d250ad7d5b23fd92fc64ae01e3b3565100cf78ec55e4ec572fa37d113e",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_no_unauthorized_changes.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_no_unauthorized_changes.md",
+      "sha256": "d1f50b6100800bc3f29ea7fc2227864d912538b076edacdae3b9da9e30e88df8",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_occams_razor.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_occams_razor.md",
+      "sha256": "88d3bcedcc0c621a5584a5083ff53daaaef6694f6610447ce2111d28dfe7d396",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_pingpong_protocol.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_pingpong_protocol.md",
+      "sha256": "5e92792badf3613c6ab75424d0454c2190e5cc67f5a3954567c3200c112afe36",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_preload_tools.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_preload_tools.md",
+      "sha256": "2d13cdf4ce30899a5cff57a7e293ff1e7efb9b0d615563f45cca540e9f7d2bff",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_prod_is_the_only_truth.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_prod_is_the_only_truth.md",
+      "sha256": "02f3a481f7e2a8318ca190c027ccd71ff058e6dbd1b9b0dce4a67899f0154c20",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_prod_safety.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_prod_safety.md",
+      "sha256": "3caa23cd53ad1c8f935316ce2c2ed37446f1dd8695f37fe1a28759923c9bdc05",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_save_decisions_immediately.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_save_decisions_immediately.md",
+      "sha256": "224c6b9a41fb5ca2b49fddf59310c7c3d0799a08b0b6aa65d73430394fc6f57b",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_sqlite_masks_prod_bugs.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_sqlite_masks_prod_bugs.md",
+      "sha256": "fa996aadb6f930688a7460dee02f51d35357c9cfde8cf82aa5efb2fd72c9a706",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_ssh_deploy_method.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_ssh_deploy_method.md",
+      "sha256": "4cb24f047315e4f3320966694aa48b5782002f8e166f4b10a53929c8566947e2",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_ssh_deploy_user.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_ssh_deploy_user.md",
+      "sha256": "d9df3c0916765ccf2938dc26b8d5633f67ed131ad22bad2e1cf96e60b06d4c92",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_static_images.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_static_images.md",
+      "sha256": "2b021e5f50b119d704499eee532ce24da86e33239abbbf1a8f87d3d208fb91a8",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_style_sync.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_style_sync.md",
+      "sha256": "c88023568fe5728e2daf570de3b70794b0c1485e08295ec1f9c26dec641da8ae",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_subordinate_first.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_subordinate_first.md",
+      "sha256": "bc4b88078801546ccaf5ee07639ea6fafbfd1674c03f62212537a301102a1928",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_verify_before_confirming.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_verify_before_confirming.md",
+      "sha256": "650cf12715e20d7296fdb9417c6f5b71717438f9dd143d3ffb779105ff969e60",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_verify_before_speaking.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_verify_before_speaking.md",
+      "sha256": "560fd20bd2169187f3d009620085ebba83e753635fdd104777f57b525919f342",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_version_bump.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_version_bump.md",
+      "sha256": "87c98eee06de96212fbd3bda9b7c5ab1ea86950315e93f4a3aff344130e86ce3",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_work_in_main.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_work_in_main.md",
+      "sha256": "72bf6c6d40c8f3736d3d2bff114cea3f325118fa15a9ba24996999125dc30f7c",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/feedback_work_like_greenbear.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/feedback_work_like_greenbear.md",
+      "sha256": "c90e55fa85169ab046d4a002786f1fde03e02af8c2d47769d0603b8472e21d6f",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/golden_rule_author_can_visit_arena.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/golden_rule_author_can_visit_arena.md",
+      "sha256": "733594f6ea41db4f8178ec12c3dd6ec062f5ae1cedd660b15b4ee5b9541e826b",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/incident_cache_ownership_500.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/incident_cache_ownership_500.md",
+      "sha256": "79bbad7530c7bd171683433ac744c11310ed34cf40571f0d3281928edfc74b95",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_arena_hall_plan.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_arena_hall_plan.md",
+      "sha256": "969e804e1f683e7079e012aea641d1871ec0fb616d7a5792f21dfc0005cb71ba",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_arena_hidden_until_release.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_arena_hidden_until_release.md",
+      "sha256": "8b296a018b8b2a0ed8b747910d2f2493e3bc771c5779ca367d85985ab23d1659",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_arena_mobile_decision.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_arena_mobile_decision.md",
+      "sha256": "68bc1ec76e6c6de7bf8f4cbdfc47dc13c1cd945c4275eb5649e7d66eb5cc59b3",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_arena_no_hero.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_arena_no_hero.md",
+      "sha256": "549af2b11e1979c0d6a630d733a2da88ef653e1927f62c3c0891b2c14b487c39",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_battle_biathlon_rules.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_battle_biathlon_rules.md",
+      "sha256": "6c47d749fb59f31e15780f5c364998012de22d31e0ec8fe5446372c0a2a6e25e",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_battle_full_mechanics.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_battle_full_mechanics.md",
+      "sha256": "b08954ea02bf0bac1711abc24f8b3b372b241b5d79b90a1a60de162fa127c564",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_battle_gifts_tokens.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_battle_gifts_tokens.md",
+      "sha256": "179fec6476b4d0f7a3081b40577f464eebcccd93efe5b8ef8aed85bea007c1b9",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_battle_ingredient_combat.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_battle_ingredient_combat.md",
+      "sha256": "c8a1803ebc58d6311c142a9104e1f7ef18bea8a548968c3627a54210b802bda0",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_battle_levels_slots.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_battle_levels_slots.md",
+      "sha256": "45dc2e52748349ce6cb237bf7bee82535739ade85c8220b1a028746e2d455771",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_chefs_battle.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_chefs_battle.md",
+      "sha256": "c583f48580947f153c70c3ab4050f1852b25ec51a42986d2e7be92601bd5b629",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_chefs_battle_audit_2026_07_02.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_chefs_battle_audit_2026_07_02.md",
+      "sha256": "1154e3340853db337c59e1e26ff767d19d9ab2c4c13268ebd6d8036851353f01",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_chefs_battle_core_principle.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_chefs_battle_core_principle.md",
+      "sha256": "af7d2376a8590433fb9bbc18671ec0bbb1dda0fcce95d07f8401f27b8156e629",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_chefs_battle_entries.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_chefs_battle_entries.md",
+      "sha256": "89c9b78c6fcfdb31b3d7186355e76194ba0cfb12bf9600eb5f9fdf9b43f0b89f",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_chefs_battle_phase_map.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_chefs_battle_phase_map.md",
+      "sha256": "e6ff1e443573e89a3c1e4294dc46811359bf25acc494670a18e3fe47ef8fc391",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_core_design_recipe_flow_state.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_core_design_recipe_flow_state.md",
+      "sha256": "75e0ad5a52203abbfaa6b53f3fdfb946b6bde13a2a745dbfab75f3e540b6e3c0",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_deploy_workflow.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_deploy_workflow.md",
+      "sha256": "6aad7f9e36981b17ebaaeb8d419dbbd366e0dee0354a9e116d690d483cd5f9e8",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_greenbear.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_greenbear.md",
+      "sha256": "5aa837da3e1d0106bdc2e0889cdf8bbebcdfade867a3a11c0f9b56f754c6f28b",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_greenbear_golden_state.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_greenbear_golden_state.md",
+      "sha256": "82b24913abc61b1b10ed60591cd188c3333cda6878dfcc6af6d808c2ca91ad9f",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_greenbear_manual_mode.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_greenbear_manual_mode.md",
+      "sha256": "98abc766ee8042c500300e4f8007a4b4ef3702eb09ec939d02ddb01501f93621",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_live_arena_handoff.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_live_arena_handoff.md",
+      "sha256": "f12b7b57cdb80ef0ec805420f0a3f9bb2c4c2b3fdc9eb2890125b767393a3563",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_nginx_unit_config.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_nginx_unit_config.md",
+      "sha256": "52d4be818984fc02efe95698a21354398f1d3b801bc13f6f285b0fc016bba927",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_phase6_split.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_phase6_split.md",
+      "sha256": "6cdfc3f32e3ec45df1f346e41aabcd2016d2fad9df0db55ab2d92df0016a5b61",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_session_2026_07_10_battle_gaps.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_session_2026_07_10_battle_gaps.md",
+      "sha256": "3034a82af568462dbe16de745fbb8be5c5a33a9a184a20e9422731d1ced9184e",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_session_2026_07_16_procedural_arena.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_session_2026_07_16_procedural_arena.md",
+      "sha256": "fcc618f8aa5211119fde6c7a91cb65babe488a801e0a37fb148fcbcdf17ec3b0",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_session_2026_07_17_state.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_session_2026_07_17_state.md",
+      "sha256": "8462557cc24a9c0316c9a25022557333051e0c3e79dcbbadd5b8ea1db1370d20",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_session_2026_07_19_state.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_session_2026_07_19_state.md",
+      "sha256": "0fa45012e065e1ce7fdcb52e5937d22c68328ef50f51a957c6e1697936adde7b",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_session_2026_07_20_state.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_session_2026_07_20_state.md",
+      "sha256": "e759f3d803ec97296c1117893794910fb503e25f103c27abf7ace28212677afb",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/project_workstation.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/project_workstation.md",
+      "sha256": "8f5a31746d0b54207f1f4304aec2fe6000203bd72d2d87ac794808e5dce87de4",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/reference_arena_build_board.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/reference_arena_build_board.md",
+      "sha256": "c631cec0d337e99e041c57a09eba74ed32cbf2834a74ca432603cf5fedcbbbec",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/reference_arena_proto_link.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/reference_arena_proto_link.md",
+      "sha256": "7fd98b25460373861593c3cd3bea918151c6c0849600079f24bdabcbc0a5f373",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/reference_chef_battle_tz.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/reference_chef_battle_tz.md",
+      "sha256": "19d0085b10e3fbeeb896905b9972ad890bf7acacfaac11da4315278f1bdc7e0d",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/reference_cowork_agent_id_case.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/reference_cowork_agent_id_case.md",
+      "sha256": "eb718b3ab34fbdd271f89dd54535e4513a2ba2eff733ff00b7ca4494735e13cc",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/reference_cowork_message_inbox.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/reference_cowork_message_inbox.md",
+      "sha256": "8466b7b73c3b28ea4e3cf6eafb305505b7664a3afafc95d5078e56a53021c988",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/reference_coworking_app.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/reference_coworking_app.md",
+      "sha256": "f43a8815e82c5f1a4107a580822a6ee59048ff553f7ecf50c786aff4f0ae04a9",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/reference_deploy_restarted_lies.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/reference_deploy_restarted_lies.md",
+      "sha256": "622c62145eb844e723387502b703e4c1a770e3c50ae043a670b4d0306c684831",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/reference_journal_locations.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/reference_journal_locations.md",
+      "sha256": "65d8517dda55e595a1eb965a5011cc6aee3c4720327fcc3bedfdc22d46b88186",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/reference_maintenance_mode.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/reference_maintenance_mode.md",
+      "sha256": "b7548bfe389893df7a9bed714d6e1597d36d245f49a2256862523e5f7c8d43f9",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/reference_post_newsfeed.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/reference_post_newsfeed.md",
+      "sha256": "40175d032100d12376dee71b8eb148ece1127c988127a9d1d441bbfc4b9e4d2b",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/reference_regression_gotchas.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/reference_regression_gotchas.md",
+      "sha256": "5df296bb05a86566ffb88dd6f5e83528158391f0f3a44d467c563b3f6b9dbe6f",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/agents/memory/reference_run_tests_server.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/agents/memory/reference_run_tests_server.md",
+      "sha256": "bbab8f6b3f7d6a8b282ea982c79ad8eca91bbf207ec108c3221b9f8f378a4ebb",
+      "authority": "historical",
+      "retention_reason": "agent_memory_reference"
+    },
+    {
+      "original_path": "docs/ai/audits/arena_2d/CLAUDE_A/DELTA_REVIEW.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/ai/audits/arena_2d/CLAUDE_A/DELTA_REVIEW.md",
+      "sha256": "4eda4e39853b385e82ec56011adfd7304c46a737cb7a8e2cf4d4b73e0023cf70",
+      "authority": "historical",
+      "retention_reason": "audit_evidence"
+    },
+    {
+      "original_path": "docs/ai/audits/arena_2d/CLAUDE_A/EVIDENCE.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/ai/audits/arena_2d/CLAUDE_A/EVIDENCE.md",
+      "sha256": "7194bc96e97a4dbc064ca8907bd85755b51f765c0d1f6334164ec3a1c72c2466",
+      "authority": "historical",
+      "retention_reason": "audit_evidence"
+    },
+    {
+      "original_path": "docs/ai/audits/arena_2d/CLAUDE_A/FEATURE_MAP.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/ai/audits/arena_2d/CLAUDE_A/FEATURE_MAP.md",
+      "sha256": "a85ee44ab3163eb9fc3810d5580f85d08d94f7a641768088002cfaad78964892",
+      "authority": "historical",
+      "retention_reason": "audit_evidence"
+    },
+    {
+      "original_path": "docs/ai/audits/arena_2d/CLAUDE_A/FILE_INVENTORY.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/ai/audits/arena_2d/CLAUDE_A/FILE_INVENTORY.md",
+      "sha256": "fe63a88e00ce29ef35eb712e338d87a2ebf2f570fa4e9300fdd54039892dbc04",
+      "authority": "historical",
+      "retention_reason": "audit_evidence"
+    },
+    {
+      "original_path": "docs/ai/audits/arena_2d/CLAUDE_A/PEER_REVIEW.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/ai/audits/arena_2d/CLAUDE_A/PEER_REVIEW.md",
+      "sha256": "44c84657da92adcddd0cb636aecadf2624e000e4462773f07710c0091b2dd9b3",
+      "authority": "historical",
+      "retention_reason": "audit_evidence"
+    },
+    {
+      "original_path": "docs/ai/audits/arena_2d/CLAUDE_A/RISKS.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/ai/audits/arena_2d/CLAUDE_A/RISKS.md",
+      "sha256": "26b0969e39ea1ced32e9fca0e7b226ca202075852fd4b3457232e441dce7c90c",
+      "authority": "historical",
+      "retention_reason": "audit_evidence"
+    },
+    {
+      "original_path": "docs/ai/audits/arena_2d/SHARED/CURRENT_ARENA_SOURCE_OF_TRUTH.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/ai/audits/arena_2d/SHARED/CURRENT_ARENA_SOURCE_OF_TRUTH.md",
+      "sha256": "7e91caa08edb499d0fc9188b3d63c3010ec86f1fe6ee221b14babc284779eba7",
+      "authority": "historical",
+      "retention_reason": "audit_evidence"
+    },
+    {
+      "original_path": "docs/ai/audits/arena_2d/SHARED/MASTER_EXISTING_SYSTEM_AUDIT.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/ai/audits/arena_2d/SHARED/MASTER_EXISTING_SYSTEM_AUDIT.md",
+      "sha256": "4c93412203e66f080a97d162fc0aec5f4b6833ccc52aa463e03926414867f91a",
+      "authority": "historical",
+      "retention_reason": "audit_evidence"
+    },
+    {
+      "original_path": "docs/chef_battle/ARENA_HALL_PLAN.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/ARENA_HALL_PLAN.md",
+      "sha256": "08dc2bd7e7804139308eae912c2c39dc148b04ee142f213b787d8c7e04482081",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/ARENA_INTERACTION_PARITY_AUDIT_REPORT.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/ARENA_INTERACTION_PARITY_AUDIT_REPORT.md",
+      "sha256": "8557d29a71e7b8ba57277e4db400f0491e102564c0dc96e02af35f5c011d9ba8",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/arena_data_layer_spec.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/arena_data_layer_spec.md",
+      "sha256": "0c2b651ba70265bb211771000e8bacc1ce8aaf4e43c0bcd5adba3b79b1ae81f8",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/arena_master_console/P00_BASELINE_REPORT.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/arena_master_console/P00_BASELINE_REPORT.md",
+      "sha256": "af469085f0a3a22f4e49edf45a196bdd9781166c7ff30b3986da65b5dea866ce",
+      "authority": "historical",
+      "retention_reason": "audit_evidence"
+    },
+    {
+      "original_path": "docs/chef_battle/arena_master_console/P00_P05_COMPLIANCE_AUDIT_REPORT.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/arena_master_console/P00_P05_COMPLIANCE_AUDIT_REPORT.md",
+      "sha256": "3b679412a08deca6b4c164111932c72e479bc5678f93a413528a5064f2736c34",
+      "authority": "historical",
+      "retention_reason": "audit_evidence"
+    },
+    {
+      "original_path": "docs/chef_battle/arena_master_console/P00_P05_COMPLIANCE_AUDIT_WORKLOG.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/arena_master_console/P00_P05_COMPLIANCE_AUDIT_WORKLOG.md",
+      "sha256": "6dedab0a28c84f0c419e0a996bf68db4f600abddb9216e5a94c7282538feac36",
+      "authority": "historical",
+      "retention_reason": "audit_evidence"
+    },
+    {
+      "original_path": "docs/chef_battle/arena_master_console/P01_VISUAL_REPORT.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/arena_master_console/P01_VISUAL_REPORT.md",
+      "sha256": "052b667f6975e58901c8ceb56d8923cb61d1c20e18cb6d22a188c28f1de68d81",
+      "authority": "historical",
+      "retention_reason": "audit_evidence"
+    },
+    {
+      "original_path": "docs/chef_battle/arena_master_console/P02_QUERY_REPORT.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/arena_master_console/P02_QUERY_REPORT.md",
+      "sha256": "27d43a9f248aed72d90d4977443ed5c208629f6f849d5432b954ded06a6a9c5d",
+      "authority": "historical",
+      "retention_reason": "audit_evidence"
+    },
+    {
+      "original_path": "docs/chef_battle/arena_master_console/P03_AUDIT_REPORT.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/arena_master_console/P03_AUDIT_REPORT.md",
+      "sha256": "05585eabb55899fc60d1468e56e71fcf7168d5b43d0e979a421226d22c2deff7",
+      "authority": "historical",
+      "retention_reason": "audit_evidence"
+    },
+    {
+      "original_path": "docs/chef_battle/arena_master_console/P04_COMBAT_REPORT.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/arena_master_console/P04_COMBAT_REPORT.md",
+      "sha256": "96898a1b2bbdc2855e9c286e6416cbe199f37cac2ac70fb407505a8c5839106d",
+      "authority": "historical",
+      "retention_reason": "audit_evidence"
+    },
+    {
+      "original_path": "docs/chef_battle/arena_master_console/P05_SAFETY_REPORT.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/arena_master_console/P05_SAFETY_REPORT.md",
+      "sha256": "b7368847a63a6da3b573fdf6db89f36eec42609738e79017df7a4cf25b45590c",
+      "authority": "historical",
+      "retention_reason": "audit_evidence"
+    },
+    {
+      "original_path": "docs/chef_battle/arena_master_console/P06_PRIVACY_REPORT.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/arena_master_console/P06_PRIVACY_REPORT.md",
+      "sha256": "0fd34eeca5d4c11f11dfd92546ff15e9aad96ab76314f13c47c68041f5a6c4d9",
+      "authority": "historical",
+      "retention_reason": "audit_evidence"
+    },
+    {
+      "original_path": "docs/chef_battle/arena_master_console/P06_WORKLOG.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/arena_master_console/P06_WORKLOG.md",
+      "sha256": "0295058dab729638c7ee3ade2568f00b63a0c06d22e009169b59a726c1383ebb",
+      "authority": "historical",
+      "retention_reason": "audit_evidence"
+    },
+    {
+      "original_path": "docs/chef_battle/arena_master_console/P07_RECONCILIATION_REPORT.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/arena_master_console/P07_RECONCILIATION_REPORT.md",
+      "sha256": "9ee0587de874696c3e16515a86dad8414bdd89b65b10ea97aa75534b215c08f8",
+      "authority": "historical",
+      "retention_reason": "audit_evidence"
+    },
+    {
+      "original_path": "docs/chef_battle/arena_master_console/P08_LEDGER_AUDIT.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/arena_master_console/P08_LEDGER_AUDIT.md",
+      "sha256": "c9f1aab3b2a3fad23277c4f89e3446cf9dea8534f21d22f76df4279148c2f918",
+      "authority": "historical",
+      "retention_reason": "audit_evidence"
+    },
+    {
+      "original_path": "docs/chef_battle/arena_master_console/P09_ACCEPTANCE_REPORT.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/arena_master_console/P09_ACCEPTANCE_REPORT.md",
+      "sha256": "dbaabe238eb209fde4f3c88c545e0c69b3c641018f4152fd4b013b9fa23c1164",
+      "authority": "historical",
+      "retention_reason": "audit_evidence"
+    },
+    {
+      "original_path": "docs/chef_battle/arena_master_console/P09_PERFORMANCE_REPORT.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/arena_master_console/P09_PERFORMANCE_REPORT.md",
+      "sha256": "54f333351e7a842da345f78c8c1bd965846c59215304f3ba1e97096f8882da29",
+      "authority": "historical",
+      "retention_reason": "audit_evidence"
+    },
+    {
+      "original_path": "docs/chef_battle/arena_master_console/P09_SECURITY_REVIEW.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/arena_master_console/P09_SECURITY_REVIEW.md",
+      "sha256": "457d73e13b5bf1a29fddda0deb5097d8ac340cb91b0893bbdca13a5261c4e9f6",
+      "authority": "historical",
+      "retention_reason": "audit_evidence"
+    },
+    {
+      "original_path": "docs/chef_battle/arena_mockup_spec.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/arena_mockup_spec.md",
+      "sha256": "70bdee75b1fb27212cd076e1c449ec2c4672adfdc15f72aea9644c3f6d336f66",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/arena_rebuild_plan.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/arena_rebuild_plan.md",
+      "sha256": "2116b22ea30633ac961416a86d2f74286742f46631bf9268ac1b55ee9e20567c",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/artifact_1_developer_prompt.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/artifact_1_developer_prompt.md",
+      "sha256": "73e7a0213e8a0a7d8126121df861118da62e73d8dae60fdbc28340e1b3502a8a",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/artifact_2_backlog.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/artifact_2_backlog.md",
+      "sha256": "d6d689b720cdbe9fc4915a67f99a5dea6d7a83fc7f662ca7fc7a14a83cdc6bcc",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/artifact_3_models_rules.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/artifact_3_models_rules.md",
+      "sha256": "9cf68413597cf60d0070778118a0f0aff2334451bc3e9963f69b3ec32ac09ed1",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/audience_gifts.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/audience_gifts.md",
+      "sha256": "c2b5ef6e71dcb9230396f5deabf3ca0533cfb7af480085b1826771a6514311b9",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/battle_chat.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/battle_chat.md",
+      "sha256": "ac2dd7c054437fcd5fd9a6b0d78e0b7cf38d3f3329e7c73b0874f0c8f604ac64",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/battle_lifecycle.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/battle_lifecycle.md",
+      "sha256": "252163da40489ac7437dcb8710f197f7be6194b40811cf4b9d6936e5df070062",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/battle_rules.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/battle_rules.md",
+      "sha256": "712bdae069e0498e69ed45602180f68d8d2d0b4b3d15dededdd42d08fd588c30",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/chef_journey_map.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/chef_journey_map.md",
+      "sha256": "981ddbf33106fed967e0e8de8335da471b3bdfbd1736f2ffa73a58799a6bcb68",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/chef_levels.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/chef_levels.md",
+      "sha256": "fead602c79a4ff99f5fb2f0a67bdee07f92b8fb3c4875ca3505a2e5a04cfe0f8",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/clans_alliances_rules.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/clans_alliances_rules.md",
+      "sha256": "13e1172fdbf902e870447526241acf32f84b65b049cc4505df0cc369f51436e5",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/clans_design.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/clans_design.md",
+      "sha256": "4709dc10e0ba936bb668d1aa922a938292b82d8bd613c93788dd3dc9dd39d5e3",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/claude_master_prompt.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/claude_master_prompt.md",
+      "sha256": "cb195d08b104464fd569e7e1b2bba5f443aa67fc923d35ed175bceeed6a414f0",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/combat_items.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/combat_items.md",
+      "sha256": "e4f0f79a5841852d125f683d0288fbc96200636ea5b3a8cd3ace3d878848ee6b",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/cuisines_design.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/cuisines_design.md",
+      "sha256": "7e5e84d817038843192dd16330bdd4d388602454c3d8a119d0a967a32e7d2928",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/developer_role.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/developer_role.md",
+      "sha256": "f7b577b82291c118a9037a83054d7572b512e181c9ff1a5ac19cdab98a304e90",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/executive_summary.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/executive_summary.md",
+      "sha256": "e4a74e49e74842d6d6150c1a637b0bdbab645773379a9cda7997b93819124873",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/hall_of_fame.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/hall_of_fame.md",
+      "sha256": "82a65fdc025716f7af2986e911799fe73ab39f46f5acd2f1b7b691b2c9c0eee5",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/ingredient_combat.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/ingredient_combat.md",
+      "sha256": "d3f9f08f2790e2553e29e53c6d0723e9f6bd00323dd9eb82433d686549420ea8",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/live_arena_frontend_audit.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/live_arena_frontend_audit.md",
+      "sha256": "5dd5c95a898a5ee326177af67493f1259bea8307da13b1a49f46f258e3df8fe7",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/moves_economy.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/moves_economy.md",
+      "sha256": "fb2ef326b97f7c2eb260ab5016ea43ffe57b51246f6db61b921a52914bf9bd4b",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/operational_constraints.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/operational_constraints.md",
+      "sha256": "be56f2425133a33ed0872cac3d5023a6b4b5dcfdd4bf892b3dc4d921f4f0456a",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/project_discipline_addendum.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/project_discipline_addendum.md",
+      "sha256": "55a899a050b55e1c2234a5ab7966c54f4d568c61a9c13336ccf9aeed47f5544f",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/response_format.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/response_format.md",
+      "sha256": "497b6e206bdf2f5607f907ed7227bca10ad24501a80cfbe0d58a6cc65cc574db",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/token_economy.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/token_economy.md",
+      "sha256": "a3e9d05de47b15d16c8d4a30872296796fe2c98328554d59314d7e555511e787",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/tz_main.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/tz_main.md",
+      "sha256": "45007073f2e1e9bdc71db695e00ce1d0a1f65c9abbaa4a2b785fc9691a0946c9",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/chef_battle/ui_polish_backlog.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/ui_polish_backlog.md",
+      "sha256": "ed7287f59d491331a968892a3fbfa8240ef0434ed176e09e8a364da5f5a6fb2f",
+      "authority": "historical",
+      "retention_reason": "product_design_reference"
+    },
+    {
+      "original_path": "docs/external_setup_checklist.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/external_setup_checklist.md",
+      "sha256": "fb8cefe3ca06b43b8468a59adaa3149ab5872f8c4f7250688162e8c931f77ab6",
+      "authority": "historical",
+      "retention_reason": "operational_checklist"
+    },
+    {
+      "original_path": "docs/month1_decisions.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/month1_decisions.md",
+      "sha256": "68576a8b08059fb2a89ed788a3e275c70f0b4aedc3a3f0356227c18a315a9df2",
+      "authority": "historical",
+      "retention_reason": "operational_checklist"
+    },
+    {
+      "original_path": "docs/sponsor_stripe_live_readiness.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/sponsor_stripe_live_readiness.md",
+      "sha256": "eb701206450d5c11d07eda3d92230ac75802914289784c72beb703f6e3885e90",
+      "authority": "historical",
+      "retention_reason": "operational_checklist"
+    },
+    {
+      "original_path": "docs/stripe_sponsors_checklist.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/docs/stripe_sponsors_checklist.md",
+      "sha256": "fd71ef3fa6e7c2001413e71d2da7eb32af67f0a182141c5c781f7490145aff4c",
+      "authority": "historical",
+      "retention_reason": "operational_checklist"
+    },
+    {
+      "original_path": "recipes/fixtures/IMAGE_STYLE_ANCHOR.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/recipes/fixtures/IMAGE_STYLE_ANCHOR.md",
+      "sha256": "69eb8675e8baf68d533f7250a0fa0007a16ee62123cb6f613bdea21fda472b2c",
+      "authority": "historical",
+      "retention_reason": "test_fixture_reference"
+    },
+    {
+      "original_path": "recipes/fixtures/barm_brack_image_prompts.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/recipes/fixtures/barm_brack_image_prompts.md",
+      "sha256": "05891e0574bcfe9d43cd2a3aca39ea81dc7bb03f7e14701eea5c5e98bb347db7",
+      "authority": "historical",
+      "retention_reason": "test_fixture_reference"
+    },
+    {
+      "original_path": "recipes/fixtures/dublin_coddle_image_prompts.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/recipes/fixtures/dublin_coddle_image_prompts.md",
+      "sha256": "3d22a0487cd9aa755c6e32e7e95aba3258b4883d93889a2dde3eb30de30d0f1f",
+      "authority": "historical",
+      "retention_reason": "test_fixture_reference"
+    },
+    {
+      "original_path": "sponsors/README.md",
+      "archive_path": "docs/archive/pre-constitution-reset-2026-07-20/sponsors/README.md",
+      "sha256": "eb06f9e583b62ca53bc3e641bc6d628312b2f2f8f61c0e1b6d2cde0edabe0a5d",
+      "authority": "historical",
+      "retention_reason": "project_documentation"
+    }
+  ],
+  "exceptions_requiring_owner_decision": [
+    {
+      "original_path": "content_prompts/README.md",
+      "reason": "machine_required",
+      "evidence": "recipes/views.py:164 calls (base_dir / 'content_prompts' / 'README.md').exists() at runtime to compute a 'done'/'pending' status badge on an internal roadmap/moderation dashboard. Archiving this file would silently flip that badge to 'pending' even though the underlying capability is unchanged. Not moved pending owner decision: either (a) update the view's check to a new canonical path once one exists, or (b) explicitly approve keeping this one file active outside the five-file allowlist as a machine-required exception.",
+      "kept_active": true
+    }
+  ]
+}
