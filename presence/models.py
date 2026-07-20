@@ -29,16 +29,26 @@ class PresenceEvent(models.Model):
 
     @classmethod
     def resolve_event_type(cls, user):
-        """Return event type for a user, or None if not privileged."""
+        """Return an event type for the owner, or None for everyone else.
+
+        This announcement belongs to one account. It is how GreenBear tells the
+        whole site he has arrived, and the owner has never granted it to anyone
+        else: "это его уникальная способность оповестить весь сайт" (2026-07-20).
+
+        It had been widened to fire for staff, superusers and bearseekers as
+        well, so a bearseeker signing in raised the same popup and looked, to
+        the owner, exactly like someone signing in as him. The ADMIN type is
+        kept only so rows already in the table still render; nothing creates a
+        new one.
+
+        Do not add branches here. Anything touching GreenBear's account or his
+        presence on the site is the owner's decision alone.
+        """
         if not user or not getattr(user, "is_authenticated", False):
             return None
         author = getattr(user, "recipe_author_profile", None)
         if author and author.slug == settings.OWNER_SLUG:
             return cls.OWNER
-        if user.is_staff or user.is_superuser:
-            return cls.ADMIN
-        if author and getattr(author, "has_bearseeker_privileges", False):
-            return cls.ADMIN
         return None
 
     @classmethod
