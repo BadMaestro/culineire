@@ -149,3 +149,104 @@
   .arena-command-deck__floor { animation: arena-command-deck-breathe 8s ease-in-out infinite; }
   @keyframes arena-command-deck-breathe { 50% { box-shadow: 0 .7rem 2rem rgb(66 81 74 / .12); } }
 }
+
+/* ----------------------------------------------------------------------------
+ * Stage 16 — the HUD frames the arena instead of standing beside it.
+ *
+ * The deck was a grid: the floor in the middle column, the panels in columns
+ * either side, all of it inside a 1520px page with a light parchment
+ * background. That is a page ABOUT an arena. In the mockup the hall IS the
+ * screen and the panels float on top of it, which is what makes it read as a
+ * broadcast rather than a dashboard.
+ *
+ * So above the mobile breakpoint the grid is dropped: the floor becomes the
+ * whole viewport and every panel is placed over it at the position measured
+ * off the mockup (docs/chef_battle/arena_mockup_spec.md, section 7). Below
+ * that breakpoint the grid stays exactly as it was — on a phone there is no
+ * room beside the floor, and stacking is the right answer there.
+ * -------------------------------------------------------------------------- */
+@media (min-width: 901px) {
+  .page--arena {
+    /* The hall runs to every edge, so the page behind it is the hall's own
+       dark rather than the site's parchment. */
+    background: var(--hall-edge, #0b120e);
+  }
+
+  .arena-command-deck {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    display: block;
+    position: relative;
+    min-height: 100vh;
+    color: var(--hall-text, #f5eee4);
+  }
+
+  /* The floor fills the screen; everything else sits over it. */
+  .arena-command-deck__floor {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .arena-command-deck__floor-head { display: none; }
+
+  .arena-floor-stage {
+    width: 100%;
+    height: 100vh;
+  }
+
+  /* Panels: dark glass over the hall, bronze edge, placed by the mockup's own
+     proportions rather than by a grid cell. */
+  .arena-command-deck__header,
+  .arena-command-deck__phase-card,
+  .arena-command-deck__metrics,
+  .arena-command-deck__ladder,
+  .arena-command-deck__gifts,
+  .arena-command-deck__phase-rail,
+  .arena-command-deck__crowd-rail {
+    position: absolute;
+    z-index: 3;
+    margin: 0;
+    border: 1px solid color-mix(in srgb, var(--hall-bronze, #b47a33) 55%, transparent);
+    border-radius: .7rem;
+    background: color-mix(in srgb, var(--hall-panel, #16211b) 78%, transparent);
+    backdrop-filter: blur(9px) saturate(1.1);
+    -webkit-backdrop-filter: blur(9px) saturate(1.1);
+    box-shadow: 0 .8rem 2rem rgb(0 0 0 / .45);
+    color: var(--hall-text, #f5eee4);
+  }
+
+  .arena-command-deck__header  { left: 2%;  top: 8%;  width: 21%; }
+  .arena-command-deck__phase-card { left: 2%; top: 25%; width: 21%; }
+  .arena-command-deck__phase-rail { left: 50%; top: 3%; transform: translateX(-50%);
+                                    width: 44%; display: flex; justify-content: center;
+                                    flex-wrap: nowrap; gap: .3rem; }
+  .arena-command-deck__metrics { right: 2%; top: 8%; width: 21%; }
+  .arena-command-deck__ladder  { left: 2%;  bottom: 8%; width: 21%; }
+  .arena-command-deck__gifts   { right: 2%; bottom: 8%; width: 21%; }
+  .arena-command-deck__crowd-rail { left: 50%; bottom: 2%; transform: translateX(-50%);
+                                    width: 56%; }
+
+  /* Panel text was written for a light card; on glass it needs the hall's own
+     foreground or it disappears. */
+  .arena-command-deck__header *,
+  .arena-command-deck__phase-card *,
+  .arena-command-deck__metrics *,
+  .arena-command-deck__ladder *,
+  .arena-command-deck__gifts *,
+  .arena-command-deck__crowd-rail * {
+    color: inherit;
+    border-color: color-mix(in srgb, var(--hall-bronze, #b47a33) 35%, transparent);
+  }
+
+  .arena-command-deck__metrics strong { color: var(--hall-bronze, #b47a33); }
+}

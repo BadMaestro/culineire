@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.365",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "The panels move onto the hall",
+        "section": "Chef Battles",
+        "summary": "The arena had panels standing beside it in a grid, on a page of light parchment - a dashboard about an arena. They now float on the hall itself as dark glass with a bronze edge, placed where the mockup puts them. Phones keep the stacked layout.",
+    },
+    {
         "version": "2.5.364",
         "date": "2026-07-20",
         "commit": "pending",
