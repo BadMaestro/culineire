@@ -118,6 +118,41 @@
   background: linear-gradient(135deg, rgb(180 122 51 / 0.16), rgb(24 35 29 / 0.92));
 }
 
+/* ---- the polish layer's own palette, re-pointed for the dark hall ---- */
+
+/*
+ * The crown holder's card stayed white while the hall went dark, so the owner's
+ * name sat in near-invisible light type on a light panel — the one place on the
+ * page that shows his avatar, and the one that read worst.
+ *
+ * The card itself was not the bug. arena_deck_polish.css declares a second
+ * palette (--ad-*) on .arena-command-deck and paints a dozen components from
+ * it, and the hall's flip re-points only the FIRST palette (--arena-*). So every
+ * one of those components is a white panel waiting to be noticed; the crown card
+ * is simply the one with a face on it.
+ *
+ * Re-pointing the palette fixes all of them at once. Patching the card would
+ * have fixed exactly one, and left the rest to be found by the owner.
+ */
+.page--arena .arena-command-deck {
+  --ad-s0: var(--hall-deep);
+  --ad-s1: var(--hall-raised);
+  --ad-s2: var(--hall-panel);
+  --ad-s3: var(--hall-panel);
+  --ad-ink: var(--hall-text);
+  --ad-ink2: var(--surface-muted);
+  --ad-mut: var(--hall-text-dim);
+  --ad-gold: var(--hall-bronze);
+  --ad-gold-d: var(--brand-dark);
+  --ad-line: rgb(180 122 51 / 0.28);
+}
+
+/* The card carries the crown holder's portrait, so it gets a little more
+   presence than a plain panel: a bronze hairline and a shadow to lift it. */
+.page--arena .arena-live-chef {
+  box-shadow: 0 0.4rem 1.2rem rgb(0 0 0 / 0.35);
+}
+
 /* ---- rank spine: gold pills over the hall, as in the mockup ---- */
 
 /*

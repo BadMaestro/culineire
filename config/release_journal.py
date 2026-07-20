@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.355",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "The crown holder stops being a white card in a dark hall",
+        "section": "Chef Battles",
+        "summary": "The owner's own name sat in near-invisible light type on a white panel - the one place on the arena that shows his avatar. The card was not the bug: the deck's polish layer declares a second palette and paints a dozen components from it, while the hall only re-pointed the first, so every one of those panels was a white block waiting to be noticed. Re-pointing that palette fixes them together instead of one at a time.",
+    },
+    {
         "version": "2.5.354",
         "date": "2026-07-20",
         "commit": "pending",
