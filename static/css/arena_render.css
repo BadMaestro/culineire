@@ -413,7 +413,7 @@
   /* A plan-view hall for a plan-view arena. The tilted frames could not be
      re-angled by cropping; this one is drawn from straight overhead, so its
      floor and ours are the same shape by construction. */
-  background-image: url("/static/images/chef_battle/arena/hall-bg-v2-plan.webp");
+  background-image: url("/static/images/chef_battle/arena/hall-bg-v3-final.webp");
   background-repeat: no-repeat;
   background-size: var(--arena-backdrop-size, cover);
   background-position: var(--arena-backdrop-x, 50%) var(--arena-backdrop-y, 50%);

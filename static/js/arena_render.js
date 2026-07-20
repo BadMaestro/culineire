@@ -874,14 +874,14 @@
   //   its centre sits at 0.499 / 0.615 of the image,
   //   it is compressed to 0.437, so the camera reads acos(0.437) = 64 degrees.
   // Re-measure all three if the backdrop is ever redrawn.
-  // Measured off hall-bg-v2-plan.webp with the Otsu/largest-region detector:
-  // the painted floor spans 0.520 of the image and sits at its centre, and it
-  // is a regular octagon - mean edge 0.409 of its width against the ideal
-  // 0.414, height and width equal to within 0.4%. Re-measure these if the
-  // picture is redrawn.
-  var BACKDROP_FLOOR_WIDTH = 0.520;
-  var BACKDROP_FLOOR_CX = 0.5065;
-  var BACKDROP_FLOOR_CY = 0.4999;
+  // Measured off hall-bg-v3-final.webp with tools/measure_floor_corners.py:
+  // floor 0.4883 of the image wide, centred at 0.4990 / 0.4894, and its eight
+  // edges 0.410 0.420 0.409 0.434 0.423 0.404 0.426 0.426 of that width - a
+  // 6.9% spread against the ideal 0.414 (the cheap draft ran 23.2%). All eight
+  // listed rather than averaged: a mean hides exactly the corner that misses.
+  var BACKDROP_FLOOR_WIDTH = 0.4883;
+  var BACKDROP_FLOOR_CX = 0.4990;
+  var BACKDROP_FLOOR_CY = 0.4894;
 
   function placeBackdrop(svg) {
     var container = svg.parentElement;

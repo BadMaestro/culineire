@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.354",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "The hall is drawn properly now",
+        "section": "Chef Battles",
+        "summary": "The backdrop was a cheap draft standing in for the real thing. Redrawn at full quality from the same description: the crowd reads as people rather than dots, and the floor came out a truer octagon - its eight edges spread 6.9% where the draft spread 23.2%.",
+    },
+    {
         "version": "2.5.353",
         "date": "2026-07-20",
         "commit": "pending",
