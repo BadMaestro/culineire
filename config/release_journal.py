@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.369",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "The board admits the hall is finished, and the session table is swept",
+        "section": "Moderation",
+        "summary": "The backdrop stage was still open on the board while the hall has been live in production for hours, with our octagon landing within 2% of the painted one. It is closed, and its note now records what the frames actually cost: 4 of the 12 the owner allowed, of which two were drawn under a camera tilt he later retired. Separately, 63 rows left the session table - 43 expired and 20 belonging to accounts that no longer exist. Live sessions of real people were left alone; signing the owner out of his own tabs to tidy a table would be the worse outcome.",
+    },
+    {
         "version": "2.5.368",
         "date": "2026-07-20",
         "commit": "pending",

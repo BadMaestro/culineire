@@ -2781,14 +2781,18 @@ ARENA_BUILD_STAGES = [
         "date": "2026-07-20",
         "backend": {"who": "Bolt", "done": True, "ref": "n/a",
                     "task": "No backend change: the backdrop is an asset, the seating contract is untouched"},
-        "frontend": {"who": "GB", "done": False, "ref": "placeBackdrop",
-                     "task": "Generated hall image behind the floor; the raster is scaled to the "
-                             "SVG rather than the other way round. Frame 1 accepted on style; "
-                             "SVG stands are switched off under it so the crowd is not drawn twice"},
+        "frontend": {"who": "GB", "done": True, "ref": "placeBackdrop",
+                     "task": "The hall image sits behind the floor and the raster is scaled to the "
+                             "SVG rather than the other way round, so the picture follows the grid. "
+                             "SVG stands are switched off under it, so the crowd is not drawn twice. "
+                             "Live on prod as hall-bg-v3-final.webp; the eight corners of our "
+                             "octagon land within 2% of the painted one"},
         "depends": "Frontend only. Owner: do not program the geometry of the stands.",
-        "note": "Budget for generating the backdrop: 5 calls, owner-approved. 2 spent (frame 2 "
-                "was a mistake, kept but unused), 3 frozen. A final high-quality render needs a "
-                "separate yes from the owner.",
+        "note": "The owner allowed 12 generated frames; 4 were spent. Frames 1 and 2 were drawn "
+                "under a camera tilt that the owner then retired, frame 3 found the shape, frame 4 "
+                "is the one in production. Eight are unused and no more are needed: the hall did "
+                "not soften when the camera stepped back. Every paid frame is kept in "
+                "shared/arena_frames.",
     },
     {
         "n": 13, "id": "projection", "title": "True perspective for the floor",
