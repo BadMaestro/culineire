@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.360",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "Two releases were both called 2.5.356",
+        "section": "Site",
+        "summary": "A rebase took a version number the other agent had already used, so the journal carried the same release twice and listed the one after it out of order. The superseded entry described a deploy that was stopped and redone, and is gone; the recent block is back in order. Only the recent block was touched - older entries carry historical version strings that are not numbers, and sorting the whole list would have scrambled them.",
+    },
+    {
         "version": "2.5.359",
         "date": "2026-07-20",
         "commit": "pending",
@@ -16,14 +24,6 @@ RELEASE_JOURNAL = [
         "summary": "Pressing START on the spectator stage sent both agents a brief describing 208 seats across four rings - a contract that had been replaced three days earlier by 544 across eight. The stage now describes what is actually there, and carries the hole that pressing START exposed: switching the SVG stands off under the backdrop took the real viewers with them, so a logged-in visitor currently cannot see themselves in the arena at all.",
     },
     {
-        "version": "2.5.356",
-        "date": "2026-07-20",
-        "commit": "pending",
-        "title": "The panels become glass, and the last raw colours leave the arena",
-        "section": "Chef Battles",
-        "summary": "The deck's panels were flat cards on a hall. They are dark glass now, with a bronze edge lit along the top and shadowed along the bottom, and the crown medallion throws a glow behind itself. The edge is stacked inset shadows, not a gradient border-image, which would have looked identical and silently switched border-radius off. The scheme's accent bronze was only declared inside the About component, so the arena kept its own copy of the hex; it is a root token now and the copy is gone, and shadows are mixed from the ink instead of plain black, which read cold against a warm scheme.",
-    },
-    {
         "version": "2.5.357",
         "date": "2026-07-20",
         "commit": "pending",
@@ -35,9 +35,9 @@ RELEASE_JOURNAL = [
         "version": "2.5.356",
         "date": "2026-07-20",
         "commit": "pending",
-        "title": "The panels become glass, and the crown is lit",
+        "title": "The panels become glass, and the last raw colours leave the arena",
         "section": "Chef Battles",
-        "summary": "The deck's panels were flat cards sitting on a hall. They are dark glass now - blurred, with a bronze edge lit along the top and shadowed along the bottom - and the crown medallion throws a soft glow behind itself, which is what the reference lights the room around. The metal edge is drawn with stacked inset shadows rather than a gradient border-image: that would have looked identical and silently switched border-radius off, returning square corners nobody would have connected to it. On phones the blur is dropped for a more opaque glass, since it costs a composite on every scroll frame while the hall behind it never moves.",
+        "summary": "The deck's panels were flat cards on a hall. They are dark glass now, with a bronze edge lit along the top and shadowed along the bottom, and the crown medallion throws a glow behind itself. The edge is stacked inset shadows, not a gradient border-image, which would have looked identical and silently switched border-radius off. The scheme's accent bronze was only declared inside the About component, so the arena kept its own copy of the hex; it is a root token now and the copy is gone, and shadows are mixed from the ink instead of plain black, which read cold against a warm scheme.",
     },
     {
         "version": "2.5.355",
