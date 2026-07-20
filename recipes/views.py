@@ -2688,13 +2688,22 @@ ARENA_BUILD_STAGES = [
         "depends": "Frontend legacy removal depends on backend AMC payload.",
     },
     {
-        "n": 5, "id": "spectators", "title": "Spectator selection limit (208)",
+        "n": 5, "id": "spectators", "title": "Real viewers are seen in the stands",
         "date": "2026-07-18",
-        "backend": {"who": "Bolt", "done": True, "ref": "_get_spectators(limit=208)",
-                    "task": "208 = sum of spectator ring seats (40+48+56+64)"},
-        "frontend": {"who": "GB", "done": False, "ref": "fill stands",
-                     "task": "Place up to 208 real avatars, split 40/48/56/64 by ring"},
-        "depends": "Frontend fill depends on backend limit (done). Frontend still to build.",
+        "backend": {"who": "Bolt", "done": True, "ref": "spectator_capacity()",
+                    "task": "Online non-chef viewers, limited by the arena's own seat count "
+                            "(544 across 8 rings since v2.5.337). Seat assignment is not in the "
+                            "contract on purpose - where a face sits is presentation"},
+        "frontend": {"who": "GB", "done": False, "ref": "overlay on the backdrop",
+                     "task": "Draw REAL viewers over the backdrop, front rows first. The painted "
+                             "crowd is part of the image now, so stand-ins must not be drawn on "
+                             "top of it - only people who are actually online"},
+        "depends": "Frontend overlay depends on the spectator payload (done).",
+        "note": "This stage read '208 seats, rings 40/48/56/64' until 2026-07-20 - the contract "
+                "it described had been replaced three days earlier and the board kept issuing "
+                "orders against numbers that no longer existed. Worse, switching the SVG stands "
+                "off under the backdrop took the real viewers with them: right now a logged-in "
+                "visitor cannot see themselves in the arena at all.",
     },
     {
         "n": 6, "id": "skin", "title": "Dark amphitheatre skin (light floor, dark stands)",

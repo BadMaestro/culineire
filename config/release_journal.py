@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.358",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "The board stops issuing orders against numbers that no longer exist",
+        "section": "Moderation",
+        "summary": "Pressing START on the spectator stage sent both agents a brief describing 208 seats across four rings - a contract that had been replaced three days earlier by 544 across eight. The stage now describes what is actually there, and carries the hole that pressing START exposed: switching the SVG stands off under the backdrop took the real viewers with them, so a logged-in visitor currently cannot see themselves in the arena at all.",
+    },
+    {
         "version": "2.5.356",
         "date": "2026-07-20",
         "commit": "pending",
