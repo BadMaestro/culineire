@@ -410,11 +410,10 @@
  * contract cannot.
  * -------------------------------------------------------------------------- */
 .page--arena .arena-render-container {
-  /* No backdrop while the arena is a plan view: the frames we have were drawn
-     from a tilted camera and their floor cannot be re-angled by cropping.
-     The placement code stays live and takes a top-down frame the moment one
-     exists - one line back and it is on again. */
-  background-image: none;
+  /* A plan-view hall for a plan-view arena. The tilted frames could not be
+     re-angled by cropping; this one is drawn from straight overhead, so its
+     floor and ours are the same shape by construction. */
+  background-image: url("/static/images/chef_battle/arena/hall-bg-v2-plan.webp");
   background-repeat: no-repeat;
   background-size: var(--arena-backdrop-size, cover);
   background-position: var(--arena-backdrop-x, 50%) var(--arena-backdrop-y, 50%);

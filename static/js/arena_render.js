@@ -874,9 +874,14 @@
   //   its centre sits at 0.499 / 0.615 of the image,
   //   it is compressed to 0.437, so the camera reads acos(0.437) = 64 degrees.
   // Re-measure all three if the backdrop is ever redrawn.
-  var BACKDROP_FLOOR_WIDTH = 0.602;
-  var BACKDROP_FLOOR_CX = 0.499;
-  var BACKDROP_FLOOR_CY = 0.615;
+  // Measured off hall-bg-v2-plan.webp with the Otsu/largest-region detector:
+  // the painted floor spans 0.520 of the image and sits at its centre, and it
+  // is a regular octagon - mean edge 0.409 of its width against the ideal
+  // 0.414, height and width equal to within 0.4%. Re-measure these if the
+  // picture is redrawn.
+  var BACKDROP_FLOOR_WIDTH = 0.520;
+  var BACKDROP_FLOOR_CX = 0.5065;
+  var BACKDROP_FLOOR_CY = 0.4999;
 
   function placeBackdrop(svg) {
     var container = svg.parentElement;
@@ -901,7 +906,7 @@
     // then slide it so the two floors share a centre.
     var frame = container.getBoundingClientRect();
     var imageWidth = ourWidth / BACKDROP_FLOOR_WIDTH;
-    var imageHeight = imageWidth * (1024 / 1536);
+    var imageHeight = imageWidth;  // the plan-view frame is square
     var x = (left + right) / 2 - frame.left - imageWidth * BACKDROP_FLOOR_CX;
     var y = (top + bottom) / 2 - frame.top - imageHeight * BACKDROP_FLOOR_CY;
 

@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.353",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "A hall drawn from the same place the arena is looked at",
+        "section": "Chef Battles",
+        "summary": "The backdrop is redrawn from directly overhead, so its floor is a regular octagon like ours instead of a shape no projection could match. Measured at 0.409 mean edge against the ideal 0.414, and square to within 0.4%.",
+    },
+    {
         "version": "2.5.352",
         "date": "2026-07-20",
         "commit": "pending",
