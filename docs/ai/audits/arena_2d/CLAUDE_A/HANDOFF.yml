@@ -1,0 +1,94 @@
+handoff:
+  agent_id: "CLAUDE_A"
+  lane: "Frontend and Presentation Audit"
+  branch: "audit/arena-2d-claude-a"
+  base_commit: "2a28e4b2c3be0e1baad7340e06aa1f020931e025"
+  report_commit: ""
+  status: "COMPLETE"
+
+  scope_audited:
+    - "templates/chef_battle/ (all 51 files, extends/include graph)"
+    - "static/css/arena*.css (9 files) plus arena-relevant blocks in chef_battle.css and base.css"
+    - "static/js/arena*.js (7 files) plus battle_cursor.js's one arena-related comment"
+    - "static/images/chef_battle/arena/ (4 assets)"
+    - "URL/view wiring for chef_battle/urls.py arena* routes and recipes/urls.py arena-master-console-plan / arena-build-plan"
+    - "The 2026-07-01, 2026-07-16, 2026-07-18/19 project documents describing prior arena directions, reconciled against current code"
+
+  existing_functionality_confirmed:
+    - feature: "Arena floor render (ring/segment placement, occupant photos, tooltip, click, polling)"
+      implementation: "arena_geometry.js + arena_deck.js + arena_battle_room.js + arena_render.js (ring/occupant portion) + _arena_render_ring.html"
+      classification: "REUSE_AS_IS / KEEP_AND_REUSE"
+    - feature: "Command-deck HUD (phase rail, metrics, deadline, crown ladder, gifts, crowd rail)"
+      implementation: "arena.html + arena_command_deck.css + arena_deck.js"
+      classification: "REUSE_WITH_PRESENTATION_CHANGE"
+    - feature: "Access gate (any registered author can visit)"
+      implementation: "chef_battle/access.py is_battle_visible() (backend, CODEX lane) — confirmed shipped v2.5.380, verified via CoWork message #1840 this session"
+      classification: "REUSE_AS_IS"
+
+  reusable_components:
+    - component: "Ring/segment geometry math"
+      file: "static/js/arena_geometry.js"
+      reuse_method: "Import unchanged into a 2D renderer; no camera coupling found"
+    - component: "HUD panel data binding"
+      file: "static/js/arena_deck.js"
+      reuse_method: "Keep unchanged; reads arena_data JSON, no SVG/camera dependency"
+    - component: "Battle popup lifecycle"
+      file: "static/js/arena_battle_room.js"
+      reuse_method: "Keep unchanged; independent of floor camera model"
+    - component: "HUD icon sprite defs"
+      file: "templates/chef_battle/_arena_deck_svg.html"
+      reuse_method: "Keep unchanged; palette-neutral currentColor icons"
+
+  backend_functionality_to_preserve:
+    - "arena_data context contract: metrics{active_viewers,public_votes,battle_gifts}, phase{key,label,step}, deadline{deadline_iso,seconds_remaining}, server_time, center{type,name,avatar_url,profile_url,crown_until}, crown_ladder, recent_gifts — all currently consumed directly by arena.html and arena_deck.js; do not rename these keys without a frontend-side change in lockstep."
+    - "is_battle_visible() any-registered-author gate (chef_battle/access.py) — shipped this session, must not regress to a staff-only gate."
+    - "_arena_center() / _arena_latest_result() helpers (chef_battle/views.py) feeding the live-stage and blast-celebration UI."
+
+  frontend_blocks_to_preserve:
+    - "static/js/arena_geometry.js (ring/segment math)"
+    - "static/js/arena_deck.js (HUD binding)"
+    - "static/js/arena_battle_room.js (popup lifecycle)"
+    - "templates/chef_battle/_arena_deck_svg.html (icon defs)"
+    - "templates/chef_battle/arena.html page shell / context bindings (visual rules inside its linked CSS are replaceable, the Django template logic and context variable names are not)"
+    - "arena_render.js's occupant-placement, tooltip-fill, and arena/state + arena/ping polling logic (NOT its camera/backdrop-matching portion — see three_d_presentation_candidates)"
+
+  three_d_presentation_candidates:
+    - "static/js/arena_render.js: CONVERGENCE variable and projector() tilt math (already inert at CONVERGENCE=0, but the branch exists and should be deleted rather than carried forward)"
+    - "static/js/arena_render.js: placeBackdrop()-equivalent logic, billboardFaces(), the --arena-backdrop-size/-x/-y custom-property writes, has-arena-backdrop class toggle"
+    - "static/css/arena_render.css: lines 419-513 (background-image url for hall-bg-v3-final.webp, --arena-backdrop-* consumption, .has-arena-backdrop rule block)"
+    - "static/images/chef_battle/arena/hall-bg-v3-final.webp (the photographic hall background itself)"
+    - "docs/chef_battle/arena_mockup_spec.md — the entire perspective/tilt measured spec (2026-07-19), now superseded by the current 2D direction; treat as historical record only"
+    - "USER_DECISION_REQUIRED: whether retiring the photographic-hall look (not just the tilt, which is already retired) is actually in scope for this 2D pivot, since it was the most recently completed and verified work this session (see RISKS.md R1)"
+
+  duplicate_candidates:
+    - "arena_deck_polish.css vs arena_command_deck.css — not diffed line-by-line this pass; possible unmerged polish layer"
+    - "chef_battle.css .site-battle-widget's own --arena-* custom-property block vs base.css's documented single --arena-* namespace (flagged primarily for CLAUDE_B design-system lane)"
+
+  dead_code_candidates:
+    - "static/js/arena_octant_prototype.js — only loaded by a docs/ prototype HTML, not any production template; still tracked in recipes/views.py's hex-cleanup ledger as containing 2 remaining hex literals, so it is known-but-unused rather than forgotten"
+    - "static/images/chef_battle/arena/hall-bg-v1.webp — zero references found in CSS/JS/templates"
+    - "static/images/chef_battle/arena/hall-bg-v2-plan.webp — zero references found in CSS/JS/templates"
+
+  confirmed_dead_code:
+    - "static/js/arena_puzzle.js — file does not exist in the working tree (deleted at commit b17508d3); only stale mentions remain in a comment (battle_cursor.js:10) and historical, already-'done' roadmap-detail strings in chef_battle/views.py (l.303-323). A regression test (chef_battle/tests.py:2406-2407) actively asserts it is NOT loaded."
+    - "templates/chef_battle/_arena_ring.html — deleted at commit b17508d3, superseded by _arena_render_ring.html per that file's own header comment"
+
+  genuinely_missing_functionality:
+    - "A distinct 'you are viewing anonymously, sign in to vote/challenge' frontend state, separate from the existing 'Sign in to join' CTA — relevant once the golden rule's anonymous-viewer endgame goes live (see RISKS.md R5)"
+
+  unknown_or_unresolved:
+    - "static/css/arena_effects.css and arena_deck_polish.css — load site and general purpose confirmed, full rule sets not read this pass"
+    - "static/css/arena_hall.css — history as a two-owner conflict file (GOLDEN_RULES.md) makes this the single highest-priority file for a full read before any 2D edit; not fully read this pass"
+    - "static/images/chef_battle/arena/arena-floor-plate-v1.png — referenced and live (arena_command_deck.css:89) but not visually inspected; unknown whether it depicts a flat texture (2D-safe) or an angled/perspective plate (3D-specific)"
+    - "Whether Submission / Hidden submission / Reveal phases have any dedicated frontend template at all, or live entirely inside battle_detail.html's generic phase panels — not traced this pass, belongs partly to CODEX's template-context-contract lane"
+
+  production_risks:
+    - "See RISKS.md R1-R7 in full. Highest-priority: R1 (accidental deletion of verified, recently-shipped backdrop work without an explicit owner call) and R3 (arena_hall.css's history as an unresolved two-owner conflict file)."
+
+  tests_run:
+    - command: "grep for js/arena_puzzle in chef_battle/tests.py"
+      result: "Confirmed test asserts absence of arena_puzzle and presence of arena_render — used as evidence, not executed via manage.py this pass (read-only repository inspection only; no python manage.py test run performed in this audit session)."
+
+  production_files_modified: false
+  safe_to_begin_cleanup: false
+  safe_to_begin_2d_implementation: false
