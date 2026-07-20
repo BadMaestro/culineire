@@ -26,20 +26,32 @@
     "secondary_6_core": 0.405,
     "linode_1_core": 0.059
   },
+  "machine_map_resolution": {
+    "resolved_by": "owner, direct instruction, 2026-07-20",
+    "status": "RESOLVED",
+    "assignment": {
+      "primary_8_core": "Bolt",
+      "secondary_6_core": "GreenBear",
+      "linode_1_core": "Ember (owner's suggestion -- linode_1_core is a shared cloud server, not tied to one agent's own workstation, so any agent may execute this shard)"
+    },
+    "note": "Role assignment is by owner decision, not re-derived from the live nproc evidence gathered earlier in this session. That evidence (GreenBear's own machine reported 8 logical cores via nproc, not 6; Bolt never reported a core count; Bolt and Ember reported the same hostname DESKTOP-ODD5QN8) is preserved below for the record, not overwritten -- the owner's assignment is authoritative regardless of the underlying hardware headroom."
+  },
   "shards": {
     "primary_8_core": {
-      "machine_id": "UNRESOLVED",
-      "machine_id_candidates": ["GREENBEAR (confirmed 8 logical cores via nproc)"],
+      "owner_agent": "Bolt",
+      "machine_id": "DESKTOP-ODD5QN8 (per Bolt's bootstrap; logical core count not independently confirmed by Bolt this session)",
       "manifest": ["chef_battle", "articles", "legal"],
       "test_count": 766
     },
     "secondary_6_core": {
-      "machine_id": "UNRESOLVED",
-      "machine_id_note": "No agent has confirmed a 6-core machine this session. Bolt has not reported a logical core count. Ember reported 8 logical cores on machine 'DESKTOP-ODD5QN8' -- the same machine name Bolt reported for his own bootstrap, with no core count given. This is flagged as an open item, see blockers.",
+      "owner_agent": "GreenBear",
+      "machine_id": "GREENBEAR",
+      "machine_id_note": "Confirmed via direct nproc on this machine: 8 logical cores, not 6. Recorded as evidence, not acted on -- shard content is sized to the 6/15 target share per the owner's role assignment above, independent of this machine's actual idle CPU headroom.",
       "manifest": ["monitoring", "newsfeed", "pinch", "recipes", "sponsors"],
       "test_count": 579
     },
     "linode_1_core": {
+      "owner_agent": "Ember (or any agent, per owner -- shared cloud server)",
       "machine_id": "80.85.84.156 (deploy@, production Linode)",
       "machine_id_note": "Confirmed via direct SSH: nproc=1, /proc/cpuinfo processor count=1.",
       "manifest": ["sandbox", "messaging", "presence", "collection", "coworking", "accounts", "config", "agent_discovery"],
