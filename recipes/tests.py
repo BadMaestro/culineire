@@ -3972,18 +3972,34 @@ class ArenaBuildPlanTests(TestCase):
 
     def test_start_signals_both_agents(self):
         from coworking.models import CoworkingMessage
+        from recipes.views import ARENA_BUILD_STAGES
+        stage = next(s for s in ARENA_BUILD_STAGES if s["id"] == "fullbleed")
         self.client.login(username="abp-boss", password="pw")
-        resp = self.client.post(reverse("recipes:arena_build_start"), {"stage": "perspective"})
+        resp = self.client.post(reverse("recipes:arena_build_start"), {"stage": "fullbleed"})
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
         self.assertTrue(data["ok"])
         self.assertEqual(sorted(data["signalled"]), ["bolt", "greenbear"])
+        expected_subject_prefix = "START stage %d" % stage["n"]
         for agent in ("bolt", "greenbear"):
             self.assertTrue(
                 CoworkingMessage.objects.filter(
-                    to_agent__agent_id=agent, subject__startswith="START stage 8"
+                    to_agent__agent_id=agent, subject__startswith=expected_subject_prefix
                 ).exists()
             )
+
+    def test_frozen_stage_cannot_be_started(self):
+        """LATER stages carry no START button and must reject a direct POST —
+        the owner's freeze must hold even if someone posts the id by hand."""
+        self.client.login(username="abp-boss", password="pw")
+        resp = self.client.post(reverse("recipes:arena_build_start"), {"stage": "mobile"})
+        self.assertEqual(resp.status_code, 400)
+
+    def test_board_shows_the_archive_summary_and_frozen_group(self):
+        self.client.login(username="abp-boss", password="pw")
+        resp = self.client.get(reverse("recipes:arena_build_plan"))
+        self.assertContains(resp, "Foundation of the arena")
+        self.assertContains(resp, "заморожено")
 
 
     def test_moderation_panel_links_to_the_board(self):

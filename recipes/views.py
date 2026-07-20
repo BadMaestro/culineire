@@ -2647,10 +2647,12 @@ def arena_master_console_plan(request):
     )
 
 
-# Arena build stages, oldest first. Each stage splits into a BACKEND lane (Bolt)
-# and a FRONTEND lane (GB); the frontend lane names what backend it depends on.
-# "done" means shipped AND deployed to production (green on the board).
-ARENA_BUILD_STAGES = [
+# Stages 1-13 are done and deployed. The board used to keep all 18 stages at
+# equal size, which mixed history ("camera tilt — retired") with the work
+# still open, and buried the seven that matter under eleven that don't.
+# Collapsed here into one line; the source-of-truth stage dicts below are kept
+# so nothing is lost, only folded out of the board's default view.
+ARENA_ARCHIVE_STAGES = [
     {
         "n": 1, "id": "gate", "title": "Access gate & dark launch",
         "date": "2026-07-01",
@@ -2807,34 +2809,55 @@ ARENA_BUILD_STAGES = [
         "note": "This is what makes the far rings smaller on their own, which is what the hand-tuned "
                 "face sizes and brightness ladder were faking.",
     },
+]
+
+_ARCHIVE_DONE = sum(
+    1 for s in ARENA_ARCHIVE_STAGES if s["backend"]["done"] and s["frontend"]["done"]
+)
+ARENA_ARCHIVE_SUMMARY = {
+    "count": len(ARENA_ARCHIVE_STAGES),
+    "done_count": _ARCHIVE_DONE,
+    "span": "%s ... %s" % (ARENA_ARCHIVE_STAGES[0]["date"], ARENA_ARCHIVE_STAGES[-1]["date"]),
+    "title": "Foundation of the arena, %d stages" % len(ARENA_ARCHIVE_STAGES),
+}
+
+# Live stages, renumbered from the closing of stage 13. Owner rule from the
+# 2026-07-20 manifest review: every stage carries its own acceptance criterion
+# so it cannot be swapped for a more convenient one partway through (this board
+# had exactly that happen once, on the backdrop-alignment check).
+ARENA_BUILD_STAGES = [
     {
-        "n": 14, "id": "mobile", "title": "Mobile arena is its own scene",
-        "date": "2026-07-20",
-        "backend": {"who": "Bolt", "done": False, "ref": "ring rosters",
-                    "task": "Chefs grouped per rank ring for the tap-through list"},
-        "frontend": {"who": "GB", "done": False, "ref": "mobile layout",
-                     "task": "Floor large, rings as arcs, crowd as a band; tapping a ring opens the "
-                             "list of that rank's chefs"},
-        "depends": "Frontend list depends on backend serving chefs grouped by ring.",
-        "note": "Owner's decision 2026-07-20, and it is not a style choice: at 390px an outer-ring "
-                "tile is about 34px wide and 8px tall once the floor is foreshortened. Nobody can "
-                "tap that, and the tile is how a chef's card is opened. Start only after the "
-                "desktop backdrop is accepted - two moving floors at once is how we lose a day.",
-    },
-    {
-        "n": 15, "id": "fullbleed", "title": "The arena fills the screen",
+        "n": 1, "id": "fullbleed", "title": "The arena fills the screen",
         "date": "2026-07-20",
         "backend": {"who": "Bolt", "done": True, "ref": "n/a", "task": "No backend change"},
         "frontend": {"who": "GB", "done": False, "ref": "arena page shell",
                      "task": "Take the arena out of its boxed container - full-bleed, no border, "
                              "no rounded corner, no page margin. In the mockup the hall IS the screen"},
         "depends": "Frontend only.",
+        "criterion": "Arena reaches the frame edge at 1920px and 390px. No horizontal scroll at either width.",
         "note": "Measured against the mockup 2026-07-20: this is the single biggest gap left, and it "
                 "has nothing to do with the camera. Ours sits in a 1123px box in the middle of an "
                 "ordinary page; the mockup's arena is the whole frame.",
     },
     {
-        "n": 16, "id": "hud", "title": "HUD frames the arena instead of sitting under it",
+        "n": 2, "id": "spectators", "title": "Real viewers are seen in the stands",
+        "date": "2026-07-18",
+        "backend": {"who": "Bolt", "done": True, "ref": "spectator_capacity()",
+                    "task": "Online non-chef viewers, limited by the arena's own seat count "
+                            "(544 across 8 rings since v2.5.337). Seat assignment is not in the "
+                            "contract on purpose - where a face sits is presentation"},
+        "frontend": {"who": "GB", "done": False, "ref": "overlay on the backdrop",
+                     "task": "Draw REAL viewers over the backdrop, front rows first. The painted "
+                             "crowd is part of the image now, so stand-ins must not be drawn on "
+                             "top of it - only people who are actually online"},
+        "depends": "Frontend overlay depends on the spectator payload (done).",
+        "criterion": "A logged-in visitor sees themselves seated in the stands. 8 rings, 544 seats total.",
+        "note": "The painted crowd took the real viewers with it when the SVG stands were switched "
+                "off under the backdrop: right now a logged-in visitor cannot see themselves in the "
+                "arena at all.",
+    },
+    {
+        "n": 3, "id": "hud", "title": "HUD frames the arena instead of sitting under it",
         "date": "2026-07-20",
         "backend": {"who": "Bolt", "done": True, "ref": "existing payload",
                     "task": "Phase, counters, ladder and gifts are already in the poll payload"},
@@ -2843,9 +2866,11 @@ ARENA_BUILD_STAGES = [
                              "top-right, crown ladder bottom-left, gifts bottom-right, supporter "
                              "ticker along the bottom. Dark glass, backdrop-filter, bronze edge"},
         "depends": "Frontend. Bolt owns the panel styling in arena_hall.css, GB the placement.",
+        "criterion": "Title top-left, phase rail top-centre, counters top-right, crown ladder "
+                     "bottom-left, gifts bottom-right — all present and positioned, not stacked below the arena.",
     },
     {
-        "n": 17, "id": "fighters", "title": "The two chefs flank the crown",
+        "n": 4, "id": "fighters", "title": "The two chefs flank the crown",
         "date": "2026-07-20",
         "backend": {"who": "Bolt", "done": False, "ref": "centre payload",
                     "task": "Challenger and opponent with name, country and photo in the centre payload"},
@@ -2853,15 +2878,68 @@ ARENA_BUILD_STAGES = [
                      "task": "Coloured panels either side of the crown - challenger green, opponent "
                              "red - each with photo, name and flag, as drawn in the mockup"},
         "depends": "Frontend depends on the centre payload carrying both fighters.",
+        "criterion": "Challenger panel green on the left, opponent panel red on the right "
+                     "(manifest section 4 — the one manifest rule still live for the arena).",
     },
     {
-        "n": 18, "id": "ranklabels", "title": "The rank column lies on the floor",
+        "n": 5, "id": "ranklabels", "title": "The rank column lies on the floor",
         "date": "2026-07-20",
         "backend": {"who": "Bolt", "done": True, "ref": "ring keys", "task": "Ring keys already published"},
         "frontend": {"who": "GB", "done": False, "ref": "overlay column",
                      "task": "KITCHEN PORTER down to CULINARY MASTER as a column of pills over the "
                              "centre of the floor, the way the mockup places it"},
         "depends": "Frontend only.",
+        "criterion": "Rank column readable over the light floor: contrast ratio measured >= 7:1, "
+                     "reported as a number, not eyeballed.",
+    },
+    {
+        "n": 6, "id": "tokens", "title": "Raw colours become design tokens",
+        "date": "2026-07-20",
+        "backend": {"who": "Bolt", "done": True, "ref": "n/a", "task": "No backend change"},
+        "frontend": {"who": "GB", "done": False, "ref": "arena*.css / arena*.js",
+                     "task": "183 raw hex literals across the arena stylesheets replaced with the "
+                             "nearest existing :root token from base.css. No shade is invented and "
+                             "the owner is not asked - nearest existing token wins"},
+        "depends": "Frontend only. CLAUDE_RULES section 3: zero tolerance for raw hex.",
+        "criterion": "grep -c for a hex literal returns 0 across every arena.css / arena_render.css / "
+                     "arena_hall.css / arena_command_deck.css / arena_deck_polish.css / "
+                     "arena_master_console*.css / arena_octant_prototype.js file.",
+        "note": "Counted 2026-07-20: arena.css 94, arena_command_deck.css 26, arena_deck_polish.css 18, "
+                "arena_master_console_plan.css 17, arena_master_console.css 11, arena_hall.css 8, "
+                "arena_render.css 7, arena_octant_prototype.js 2.",
+    },
+    {
+        "n": 7, "id": "integrity", "title": "Vote integrity holds without the service layer",
+        "date": "2026-07-20", "version": "v2.5.376",
+        "backend": {"who": "Bolt", "done": True, "ref": "CheckConstraint + HMAC",
+                    "task": "Self-vote now blocked by a database CheckConstraint, not only "
+                            "BattleVote.clean() (which save() never calls). Request hashes moved "
+                            "from a bare SHA-256 to HMAC keyed on SECRET_KEY"},
+        "frontend": {"who": "GB", "done": True, "ref": "n/a", "task": "No frontend change"},
+        "depends": "Closed both lanes. Found during the manifest review, not assigned by the owner.",
+        "criterion": "Writing a self-vote straight through .save() raises IntegrityError. "
+                     "New vote rows carry hash_scheme=v2.",
+    },
+]
+
+# Frozen by the owner until the stages above go green. Kept visible so the
+# work is not forgotten, but without a START button — pressing it here would
+# violate the freeze the same way building it would.
+ARENA_LATER_STAGES = [
+    {
+        "n": 8, "id": "mobile", "title": "Mobile arena is its own scene",
+        "date": "2026-07-20",
+        "backend": {"who": "Bolt", "done": False, "ref": "ring rosters",
+                    "task": "Chefs grouped per rank ring for the tap-through list"},
+        "frontend": {"who": "GB", "done": False, "ref": "mobile layout",
+                     "task": "Floor large, rings as arcs, crowd as a band; tapping a ring opens the "
+                             "list of that rank's chefs"},
+        "depends": "Frontend list depends on backend serving chefs grouped by ring.",
+        "criterion": "A rank ring is tappable at 390px width and opens that rank's chef list.",
+        "note": "Owner's decision 2026-07-20, and it is not a style choice: at 390px an outer-ring "
+                "tile is about 34px wide and 8px tall once the floor is foreshortened. Nobody can "
+                "tap that, and the tile is how a chef's card is opened. Start only after the "
+                "desktop backdrop is accepted - two moving floors at once is how we lose a day.",
     },
 ]
 
@@ -2873,10 +2951,16 @@ def _arena_build_context():
         if done:
             done_count += 1
         stages.append({**s, "done": done})
+    later_stages = [
+        {**s, "done": bool(s["backend"]["done"] and s["frontend"]["done"])}
+        for s in ARENA_LATER_STAGES
+    ]
     return {
         "stages": stages,
         "total": len(stages),
         "done_count": done_count,
+        "archive": ARENA_ARCHIVE_SUMMARY,
+        "later_stages": later_stages,
         # Track the real latest release so the board header never goes stale
         # again (it was pinned to v2.5.326 while prod had moved several releases
         # past it). RELEASE_JOURNAL is newest-first.

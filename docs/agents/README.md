@@ -12,6 +12,9 @@ only one person can see are not rules.
 |------|------------|
 | `GOLDEN_RULES.md` | The analysis of what keeps going wrong and the rules against it. Read first. |
 | `MASTER_WORKFLOW.md` | Who we are, the stack, the server, the exact deploy commands. |
+| `CHEF_COMBATS_MANIFEST.md` | The owner's product/architecture manifest for Chef Combats. Written before most of `chef_battle` existed — read `MANIFEST_DELTA.md` alongside it, not instead of it. |
+| `CLAUDE_RULES.md` | The owner's co-developer protocol: peer collaboration, design-token discipline, handoff format. Section 2 (equal engineers, no manager) is the current standing rule between Bolt and GB. |
+| `MANIFEST_DELTA.md` | Where the two documents above disagree with the code as it actually stands, and what the owner ruled on each disagreement. Read this before halting work or refusing a file because of something either manifest says. |
 
 Keeping them current is part of the work, not paperwork: every rule in
 `GOLDEN_RULES.md` exists because something broke in production and cost the owner

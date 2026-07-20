@@ -57,6 +57,13 @@
   .abp-start:active { transform:translateY(2px); box-shadow:0 0 0 #8f1414; }
   .abp-start.is-done { background:#2e7d43; box-shadow:0 2px 0 #1f5730; cursor:default; }
   .abp-fire { font-size:.76rem; color:#2e7d43; min-width:160px; }
+  .abp-archive { border:1px dashed var(--line,#e3ddcf); border-radius:14px; padding:.8rem 1.1rem; margin-bottom:1.4rem; color:var(--muted); font-size:.86rem; }
+  .abp-archive strong { color:var(--ink,#3d2917); }
+  .abp-group-head { font-size:.78rem; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin:1.6rem 0 .6rem; }
+  .abp-stage.is-frozen { opacity:.72; }
+  .abp-criterion { margin:.5rem 1rem 0; padding:.5rem .7rem; border-radius:8px; font-size:.8rem; background:var(--surface-soft,#f5eee4); }
+  .abp-criterion b { color:var(--brand-dark,#6e4e2c); }
+  .abp-frozen-tag { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; padding:.28rem .6rem; border-radius:99px; background:var(--muted,#9c8f75); color:#fff; }
 </style>
 {% endblock %}
 
@@ -79,6 +86,8 @@
       <span><b style="background:#c0504d;"></b>Not ready</span>
       <span>Press <b style="background:#d21f1f;"></b>START to signal Bolt + GB to jump on it.</span>
     </div>
+
+    <p class="abp-archive"><strong>{{ archive.title }}</strong> &middot; {{ archive.done_count }}/{{ archive.count }} green &middot; {{ archive.span }}. Collapsed — this work is done and deployed.</p>
 
     {% csrf_token %}
     {% for s in stages %}
@@ -107,6 +116,10 @@
         </div>
       </div>
 
+      {% if s.criterion %}
+      <p class="abp-criterion"><b>Приёмка:</b> {{ s.criterion }}</p>
+      {% endif %}
+
       {% if s.note %}
       <p class="abp-note"><b>Важно:</b> {{ s.note }}</p>
       {% endif %}
@@ -122,6 +135,45 @@
       </div>
     </article>
     {% endfor %}
+
+    {% if later_stages %}
+    <p class="abp-group-head">Заморожено владельцем — не запускать, пока стадии выше не зелёные</p>
+    {% for s in later_stages %}
+    <article class="abp-stage is-frozen {% if s.done %}is-done{% endif %}" id="stage-{{ s.id }}">
+      <div class="abp-stage__bar">
+        <span class="abp-num">{{ s.n }}</span>
+        <div class="abp-stage__title">
+          <h2>{{ s.title }}</h2>
+          <span class="abp-stage__date">{{ s.date }}{% if s.version %} &middot; {{ s.version }}{% endif %}</span>
+        </div>
+        <span class="abp-frozen-tag">заморожено</span>
+      </div>
+
+      <div class="abp-lanes">
+        <div class="abp-lane abp-lane--be">
+          <p class="abp-lane__head">Backend</p>
+          <p class="abp-lane__who">{{ s.backend.who }} <span class="abp-tick {% if s.backend.done %}y{% else %}n{% endif %}">{% if s.backend.done %}&#10003; done{% else %}&#9679; todo{% endif %}</span></p>
+          <p class="abp-lane__task">{{ s.backend.task }}</p>
+        </div>
+        <div class="abp-lane abp-lane--fe">
+          <p class="abp-lane__head">Frontend</p>
+          <p class="abp-lane__who">{{ s.frontend.who }} <span class="abp-tick {% if s.frontend.done %}y{% else %}n{% endif %}">{% if s.frontend.done %}&#10003; done{% else %}&#9679; todo{% endif %}</span></p>
+          <p class="abp-lane__task">{{ s.frontend.task }}</p>
+        </div>
+      </div>
+
+      {% if s.criterion %}
+      <p class="abp-criterion"><b>Приёмка:</b> {{ s.criterion }}</p>
+      {% endif %}
+      {% if s.note %}
+      <p class="abp-note"><b>Важно:</b> {{ s.note }}</p>
+      {% endif %}
+      <div class="abp-foot">
+        <p class="abp-dep"><b>Зависимость:</b> {{ s.depends }}</p>
+      </div>
+    </article>
+    {% endfor %}
+    {% endif %}
   </div>
 </section>
 {% endblock %}
