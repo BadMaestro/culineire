@@ -370,8 +370,11 @@
    on-screen box and writes --arena-fit. Nothing here needs re-measuring when
    the tilt or the ring count changes; the fit follows. */
 .page--arena .arena-render-container {
-  perspective: 1500px;
-  perspective-origin: 50% 30%;
+  /* No perspective. The camera was retired by the owner - the arena is looked
+     at from straight above - and CONVERGENCE=0 already flattens the projection
+     numerically. Leaving the 3D context behind it cost nothing visually but
+     kept every child on its own compositing layer and invited the next reader
+     to "just raise the perspective a bit" for depth that is not coming back. */
   position: relative;
   width: 100%;
   max-width: none;

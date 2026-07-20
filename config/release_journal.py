@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.376",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "The last of the 3D leaves the arena",
+        "section": "Chef Battles",
+        "summary": "The camera was retired days ago and the projection already draws flat, but the 3D context it needed was still declared - costing nothing to look at while quietly inviting the next person to turn depth back on.",
+    },
+    {
         "version": "2.5.375",
         "date": "2026-07-20",
         "commit": "pending",
