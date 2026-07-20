@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.362",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "A black square stops lying across the hall",
+        "section": "Chef Battles",
+        "summary": "Going full-bleed exposed the scene's old dark plate - a flat fill and a floor texture, drawn to give the arena a surface back when the page around it was light parchment. Inside the old 960px card its edges were never visible; across a full-screen hall it read as a black square over the middle of the room, which is how the owner photographed it on a phone. The hall image is the surface now, so the plate is cleared on this page and kept for the Master Console, which has no backdrop behind it.",
+    },
+    {
         "version": "2.5.361",
         "date": "2026-07-20",
         "commit": "pending",

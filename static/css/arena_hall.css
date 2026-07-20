@@ -99,6 +99,27 @@
   box-shadow: none;
 }
 
+/*
+ * The scene used to sit on its own dark plate — a flat fill plus a floor
+ * texture, drawn to give the arena a surface back when the page around it was
+ * light parchment. Inside the old 960px card nobody saw its edges. With the
+ * arena full-bleed it became exactly what the owner photographed: a black
+ * square lying across the middle of the hall.
+ *
+ * The hall image is the surface now, so the plate has nothing left to do.
+ * Cleared rather than deleted: the plate still serves the Master Console, which
+ * has no backdrop behind it.
+ */
+.page--arena .arena-floor-stage {
+  overflow: visible;
+  border-radius: 0;
+  background: transparent;
+}
+
+.page--arena .arena-floor-stage::before {
+  content: none;
+}
+
 /* ---- one token flip turns the deck dark ---- */
 
 .page--arena .arena-command-deck {
