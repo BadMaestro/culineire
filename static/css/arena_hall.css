@@ -59,6 +59,46 @@
   background-attachment: fixed;
 }
 
+/* ---- the arena stops being a box on a page ---- */
+
+/*
+ * The largest gap to the reference was never the camera or the palette: the
+ * hall was a 1520px card with rounded corners and a 960px picture inside it,
+ * sitting in the middle of an ordinary page. The reference is a room you are
+ * standing in.
+ *
+ * Nothing is restructured to get there. The deck keeps its grid — the columns
+ * that hold the side panels are what puts them around the floor — it is only
+ * released from its width, and the container inside it from the 960px cap and
+ * the card treatment that drew the box.
+ *
+ * 100svh, not 100vh: on a phone the browser chrome slides away, and vh is the
+ * tall measurement, so the arena would sit taller than the visible window and
+ * push a scrollbar onto a page that should have none.
+ */
+.page--arena #main-content {
+  padding: 0;
+}
+
+.page--arena .arena-command-deck {
+  width: 100%;
+  max-width: none;
+  min-height: 100svh;
+  margin: 0;
+  padding: 0.75rem clamp(0.75rem, 1.6vw, 1.5rem) 1rem;
+  align-content: start;
+}
+
+.page--arena .arena-render-container {
+  width: 100%;
+  max-width: none;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
 /* ---- one token flip turns the deck dark ---- */
 
 .page--arena .arena-command-deck {
