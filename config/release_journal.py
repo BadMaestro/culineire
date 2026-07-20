@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.379",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "Real spectators stop being stretched into ghosts",
+        "section": "Chef Battles",
+        "summary": "The 3D camera was retired days ago, but a leftover scaleY(1.79/1.27/1.11) billboard rule kept stretching every real occupant photo vertically. Caught live: three real test spectators (julija-golovina, culin-eire, denis-golovin) rendered as tall thin rectangles instead of square portraits. Rule removed entirely -- a flat camera needs no un-squashing.",
+    },
+    {
         "version": "2.5.378",
         "date": "2026-07-20",
         "commit": "pending",

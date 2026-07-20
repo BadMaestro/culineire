@@ -431,34 +431,20 @@
   text-align: center;
 }
 
-/* Billboarding. The tilt lays every face down on the floor plane, squashing
-   it to 0.56 of its height — but people in a hall look at the camera, they do
-   not lie on the floor. Portraits, seat labels and fallback initials are
-   pre-stretched by 1/cos(56deg) so the projection returns them round and
-   upright.
+/* Billboarding is retired with the tilt. It existed to un-squash faces that a
+   3D camera laid flat on the floor plane — with CONVERGENCE=0 the camera is a
+   strict top-down plan view, so nothing is squashed and nothing needs
+   stretching back. This rule was left in place after perspective.css:373 was
+   deleted and it silently stretched every REAL occupant photo (chefs and
+   spectators alike, not just the crowd filler) by 1.79x vertically: three real
+   test spectators measured 87x155 / 81x144 / 78x139 on screen against a square
+   49.11x49.11 SVG box. billboardFaces() in arena_render.js is unaffected — it
+   only touches .arena-crowd-figure and self-corrects to whatever box it
+   actually measures, so it already converges to 1 with a flat camera; nothing
+   there needed changing. */
 
-   The constant is right only for an orthographic tilt. The CROWD faces are
-   corrected per face instead, from their own measured box, by
-   billboardFaces() in arena_render.js — under perspective the squash depends
-   on the seat's distance from the camera, so one number cannot serve the
-   front row and the back row at once. The rule below still supplies the
-   transform-box those inline corrections are measured against. */
-.page--arena #arena-render image,
-.page--arena #arena-render .arena-occupant__initial,
-.page--arena #arena-render .arena-seat-label {
-  transform: scaleY(1.79);
-  transform-origin: center;
-  transform-box: fill-box;
-}
-
-.page--arena #arena-render .arena-crowd-figure image {
-  transform: scaleY(1);
-}
-
-/* Below the desktop breakpoint the arena is already small; a 56deg tilt turns
-   the far rows into unclickable slivers on a phone, so the camera stands up
-   toward a plan view as the viewport narrows. Projected-height and billboard
-   factors follow the angle: 1/cos(38) = 1.27, 1/cos(26) = 1.11. */
+/* Below the desktop breakpoint the arena is already small; kept as its own
+   query for the container sizing (unrelated to billboarding). */
 @media (max-width: 900px) {
   .page--arena .arena-render-container {
     height: clamp(320px, 62vw, 72vh);
@@ -467,12 +453,6 @@
   .page--arena #arena-render {
     height: 127%;
     transform: translate(-50%, -50%) translateY(var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1));
-  }
-
-  .page--arena #arena-render image,
-  .page--arena #arena-render .arena-occupant__initial,
-  .page--arena #arena-render .arena-seat-label {
-    transform: scaleY(1.27);
   }
 }
 
@@ -484,12 +464,6 @@
   .page--arena #arena-render {
     height: 111%;
     transform: translate(-50%, -50%) translateY(var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1));
-  }
-
-  .page--arena #arena-render image,
-  .page--arena #arena-render .arena-occupant__initial,
-  .page--arena #arena-render .arena-seat-label {
-    transform: scaleY(1.11);
   }
 }
 
