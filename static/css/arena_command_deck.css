@@ -96,7 +96,10 @@
 /* Dark pills on a light floor, as in the mockup - the pale-on-pale version
    read as a stack of blank strips with only the counts visible. */
 .arena-rank-spine__step { min-height: 1.18rem; display: flex; align-items: center; justify-content: space-between; gap: .32rem; padding: .13rem .42rem; border: 1px solid var(--hall-bronze, #b47a33); border-radius: 999px; color: var(--hall-text, #f5eee4); font-size: clamp(.5rem, .72vw, .74rem); font-weight: 800; letter-spacing: .035em; line-height: 1; text-decoration: none; text-transform: uppercase; background: var(--hall-panel, #16211b); box-shadow: 0 .2rem .5rem rgb(0 0 0 / .35); pointer-events: auto; transition: background .18s ease, border-color .18s ease, color .18s ease; }
-.arena-rank-spine__step b { min-width: 1.05rem; display: grid; place-items: center; border-radius: 999px; color: var(--hall-bronze, #b47a33); font-size: .9em; background: var(--hall-raised, #1d2a23); }
+/* The count in --hall-text, not bronze: bronze on the dark plate measured
+   4.8:1 against the 7:1 the column is held to. The label beside it reads
+   15.2:1, so the number was the one thing in the column still under the bar. */
+.arena-rank-spine__step b { min-width: 1.05rem; display: grid; place-items: center; border-radius: 999px; color: var(--hall-text, #f5eee4); font-size: .9em; background: var(--hall-raised, #1d2a23); }
 .arena-rank-spine__step:hover, .arena-rank-spine__step:focus-visible { border-color: var(--hall-bronze-lift, #d09a55); color: var(--hall-bronze-lift, #d09a55); background: var(--hall-raised, #1d2a23); }
 
 .arena-command-deck__ladder, .arena-command-deck__gifts { align-self: start; border-radius: 1rem; padding: 1.05rem; }
