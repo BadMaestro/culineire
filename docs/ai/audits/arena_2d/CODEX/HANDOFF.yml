@@ -1,0 +1,66 @@
+handoff:
+  agent_id: "CODEX"
+  lane: "Backend and Domain Audit"
+  branch: "audit/arena-2d-codex"
+  base_commit: "726e338076462982185e3caa7564cc37977a18c9"
+  report_commit: "This handoff is committed atomically with the initial lane report; use the branch HEAD."
+  status: "PARTIAL"
+  scope_audited:
+    - "Models, migrations, services, selectors, views, URLs, forms, access guards, backend tests, Arena payload contracts"
+  existing_functionality_confirmed:
+    - feature: "Challenge and battle lifecycle"
+      implementation: "BattleChallenge/Battle plus transactional services and action views"
+      classification: "REUSE_AS_IS"
+    - feature: "Submission, reveal, moderation and voting"
+      implementation: "BattleEntry/BattleVote with server-side phase, identity and integrity enforcement"
+      classification: "REUSE_AS_IS"
+    - feature: "Rating, crown, rankings and statistics"
+      implementation: "Single scoring service and profile/selectors"
+      classification: "REUSE_AS_IS"
+    - feature: "Arena read model"
+      implementation: "_build_arena_payload plus public selectors and JSON state"
+      classification: "KEEP_BACKEND_REPLACE_FRONTEND"
+  reusable_components:
+    - component: "Arena payload and state endpoint"
+      file: "chef_battle/views.py"
+      reuse_method: "Retain and bind new 2D presentation to existing keys"
+    - component: "Phase/deadline/metrics/crown/gifts selectors"
+      file: "chef_battle/selectors.py"
+      reuse_method: "Reuse without business-rule changes"
+    - component: "Live broadcast snapshot"
+      file: "chef_battle/arena_snapshot.py"
+      reuse_method: "Keep separate contract; adapt only if 2D genuinely consumes it"
+  backend_functionality_to_preserve:
+    - "All access and participant/operator permission checks"
+    - "Battle.status, deadlines, readiness, pause and terminal-state semantics"
+    - "Challenge eligibility, expiry and cooldown"
+    - "Submission secrecy, reveal and moderation gates"
+    - "Vote integrity and pseudonymous rejection evidence"
+    - "Idempotent scoring, ratings, crowns, events, rewards and ledgers"
+    - "Gift/token/artifact transaction rules"
+    - "Viewer heartbeat privacy semantics"
+  frontend_blocks_to_preserve: []
+  three_d_presentation_candidates:
+    - "get_arena_geometry ring/segment output, subject to partner confirmation of active consumers"
+  duplicate_candidates:
+    - "Public Arena payload and Live Arena snapshot contain overlapping battle/participant facts but are not proven duplicates because audiences and permissions differ"
+  dead_code_candidates: []
+  confirmed_dead_code: []
+  genuinely_missing_functionality: []
+  unknown_or_unresolved:
+    - "Fresh focused tests could not start/finish in the current local PostgreSQL environment"
+    - "Frontend responsive, accessibility, static-load and exact 3D boundaries belong to partner lanes"
+  production_risks:
+    - "Frontend reimplementation of server rules"
+    - "Data leakage from unrevealed/moderated entries"
+    - "Weakening dark-launch or console gates"
+    - "Accidental coupling of 2D layout to legacy geometry"
+    - "Arena Master Console regression if the shared renderer partial is removed wholesale"
+  tests_run:
+    - command: "Static URL/symbol/caller/test searches"
+      result: "PASS"
+    - command: "manage.py check, migration dry-run, selected backend tests"
+      result: "INCONCLUSIVE: no output; terminated after extended wait"
+  production_files_modified: false
+  safe_to_begin_cleanup: false
+  safe_to_begin_2d_implementation: false

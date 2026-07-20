@@ -1,0 +1,33 @@
+# CODEX Backend Feature Map
+
+| Feature | Current status | Primary files | Data source | Existing action or URL | Permission source | Tests | Classification | Confidence | Future 2D recommendation |
+|---|---|---|---|---|---|---|---|---|---|
+| Arena page entry | Implemented, dark-launch gated | `views.py`, `urls.py` | `_build_arena_payload` | `chef_battle:arena` | `chef_battle_guard` | `ChefBattleAccessTests`, `ArenaDarkLaunchTests` | KEEP_BACKEND_REPLACE_FRONTEND | confirmed | Preserve URL/guard/payload; replace composition only |
+| Arena access control | Implemented | `access.py` | settings/user/author | all guarded endpoints | `is_battle_visible` | access/dark-launch tests | REUSE_AS_IS | confirmed | Do not duplicate in templates/JS |
+| Chef Battle profile | Implemented | `models.py`, `selectors.py`, `views.py` | `ChefBattleProfile`, author summary | `chef_profile` redirect/author anchor | battle visibility | `ProfileMergeTests` | REUSE_AS_IS | confirmed | Reuse profile contract |
+| Rank display and placement | Implemented | `models.py`, `services.py`, `selectors.py` | rating/rank queryset | `rankings` | public when battle visible | rules/ranking tests | REUSE_WITH_PRESENTATION_CHANGE | confirmed | Keep ladder/rating rules unchanged |
+| Challenge creation | Implemented | `forms.py`, `views.py`, `services.py` | profiles/approved recipes | `challenge_create` | login, eligibility, rank/cooldown | challenge view/service tests | REUSE_AS_IS | confirmed | 2D CTA calls existing URL |
+| Challenge acceptance/refusal | Implemented | `services.py`, `views.py` | `BattleChallenge` | `challenge_respond` | recipient and POST guards | service/cooldown tests | REUSE_AS_IS | confirmed | Keep transitions atomic |
+| Challenge expiry | Implemented | `services.py`, command/test coverage | `expires_at` | scheduled/service invocation | system process | `ChefBattleExpiryTests` | REUSE_AS_IS | confirmed | Display state only |
+| Battle room | Implemented | `views.py`, `urls.py` | Battle/entries/votes/combat | `battle_detail` and action URLs | guard plus participant checks | numerous view/security tests | KEEP_BACKEND_REPLACE_FRONTEND | confirmed | Preserve action routes/context |
+| Battle phase state | Implemented | `models.py`, `selectors.py`, `services.py` | `Battle.status` | `battle_state_poll`, `arena_state` | guard | `ArenaPhaseTests`, lifecycle tests | REUSE_AS_IS | confirmed | `Battle.status` remains sole truth |
+| Timers and deadlines | Implemented | `models.py`, `selectors.py`, services | deadline fields | state endpoints | guard | `BattleTimerTests`, `ArenaDeadlineTests` | REUSE_AS_IS | confirmed | Render server-derived deadline |
+| Submission | Implemented | `services.py`, `views.py`, models | `BattleEntry` | `battle_entry_submit`, cooking submit | participant/status/deadline | `EntrySubmissionTests`, guard tests | REUSE_AS_IS | confirmed | Keep validations server-side |
+| Hidden submission and reveal | Implemented | `BattleEntry.is_revealed`, service/view | entries | battle detail/state | phase rules | service tests | REUSE_AS_IS | confirmed | 2D must not expose unrevealed content |
+| Moderation review | Implemented | services/views/AMC | moderation fields/reports | cooking moderation and master action | staff/console guard | moderation/security tests | REUSE_AS_IS | confirmed | Preserve moderation gates |
+| Public voting | Implemented | models/views/selectors | `BattleVote` | `battle_vote` | registered user, voting status | anti-abuse/voting tests | REUSE_WITH_PRESENTATION_CHANGE | confirmed | Post to existing endpoint |
+| Duplicate/self-vote protection | Implemented | model constraint, `clean`, vote view/fraud | voter and pseudonymous evidence | `battle_vote` | server-side gates | anti-abuse/integrity tests | REUSE_AS_IS | confirmed | Never reproduce solely in JS |
+| Battle result/rating update | Implemented, idempotent | `services.py` | votes/profiles/battle | lifecycle/operator invocation | transactional service | service/ledger tests | REUSE_AS_IS | confirmed | Do not touch scoring source |
+| Win/loss statistics | Implemented | profile fields/scoring/selectors | profiles/battles | rankings/profile | visibility | service/profile tests | REUSE_AS_IS | confirmed | Re-present only |
+| Crown holder/duration/streak | Implemented | profile/battle fields, services/selectors | `crown_until`, counts/streak | Arena payload/rankings | server rules | `CrownTests`, Arena data tests | REUSE_AS_IS | confirmed | Keep award/expiry semantics |
+| Rankings | Implemented | selector/view | profiles | `rankings` | guard | ranking tests | REUSE_WITH_PRESENTATION_CHANGE | confirmed | Reuse queryset/order |
+| Battle gifts | Implemented | gift models/services/views/selectors | wallet/artifact/gift rows | gift endpoints | auth, balance, eligibility | gift/economy/artifact tests | REUSE_AS_IS | confirmed | Keep transaction service |
+| Artifact shop connection | Implemented | models/services/views | artifact catalogue/wallet | artifacts/gallery/detail/gift | guarded views | artifact tests | REUSE_AS_IS | confirmed | Link existing routes |
+| Battle events/notifications | Implemented | `BattleEvent`, `_notify_chef`, inbox/poll | events/messages | poll/inbox | user visibility | service and security tests | REUSE_AS_IS | probable | Preserve event creation and poll contract |
+| Viewer statistics | Implemented | presence model/service/selectors | hashed heartbeat rows | `arena_ping`, metrics/state | arena guard | metrics/spectator tests | REUSE_AS_IS | confirmed | Keep heartbeat semantics |
+| Empty Arena state | Implemented, empty-safe | selectors/payload | no active battle | `arena`, `arena_state` | guard | Arena payload/data tests | REUSE_WITH_PRESENTATION_CHANGE | confirmed | 2D supplies new empty layout |
+| Unauthenticated state | Intentionally hidden until public launch flag | access guard | settings/auth | returns 404 when disabled | `is_battle_visible` | dark-launch tests | REUSE_AS_IS | confirmed | Product decision, not missing code |
+| Permission-restricted state | Implemented | access plus participant/operator gates | user/profile/settings | action endpoints | decorators/services | access/security tests | REUSE_AS_IS | confirmed | Keep server enforcement |
+| Responsive Arena behaviour | Backend-independent | template/CSS/JS | same payload | same page | same guard | frontend lane | UNKNOWN | unresolved | CLAUDE_A owns conclusion |
+
+The backend required by the future 2D Arena is present. No required backend feature in this lane is proven `MISSING`; frontend discoverability or layout gaps must not be misclassified as backend absence.
