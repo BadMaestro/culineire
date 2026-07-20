@@ -1,0 +1,56 @@
+{
+  "cowork_and_test_pool_handoff": {
+    "agent": "GreenBear",
+    "work_package": "C",
+    "status": "COMPLETE",
+    "branch": "ops/cowork-test-pool-reset",
+    "base_commit": "7c2e1731e0daad2d2406fae2c12aef3459c493d1",
+    "commit_history": ["bf22850a", "8d27ea3a"],
+    "pushed": true,
+    "agents_connected": ["Ember", "GreenBear", "Bolt"],
+    "round_trip_passed": true,
+    "old_tasks_closed_or_archived": true,
+    "identities_preserved": true,
+    "connections_preserved": true,
+    "machine_map": {
+      "primary_8_core": "Bolt",
+      "secondary_6_core": "GreenBear",
+      "linode_1_core": "Ember"
+    },
+    "machine_map_resolution": {
+      "resolved_by": "owner, direct instruction, 2026-07-20",
+      "basis": "Owner role assignment is authoritative over automatically-detected hostname/nproc evidence, per explicit owner instruction: 'Не использовать имена компьютеров как доказательство физической машины. Карта владельца имеет приоритет над автоматически обнаруженным hostname.'",
+      "hostname_evidence_preserved_not_acted_on": {
+        "greenbear_machine": "GREENBEAR, nproc=8 (not 6 -- recorded as evidence only, not used to override the owner's assignment)",
+        "bolt_machine": "DESKTOP-ODD5QN8, core count not independently confirmed by Bolt",
+        "ember_machine": "DESKTOP-ODD5QN8 (same hostname as Bolt reported), nproc=8",
+        "linode_machine": "80.85.84.156, nproc=1, confirmed via direct SSH"
+      }
+    },
+    "target_share": {
+      "primary_8_core_bolt": 0.5333,
+      "secondary_6_core_greenbear": 0.4000,
+      "linode_1_core_ember": 0.0667
+    },
+    "test_collection_count": 1429,
+    "test_collection_method": "django.test.utils.get_runner(settings)().build_suite([label]) per app, summed; cross-checked against a single full-repo build_suite([]) call. Discovery only -- zero tests executed, zero database created for the count itself.",
+    "shard_method": "deterministic",
+    "shard_method_note": "Initial split is deterministic by app-level test-collection count (no historical duration data exists yet). Refine to historical-duration once a full-suite run publishes per-shard durations, per AGENTS.md section 9.",
+    "shard_manifest_path": "ops/test_pool/shard_manifest.json",
+    "duplicate_test_execution": false,
+    "omitted_tests": [],
+    "full_suite_run": false,
+    "full_suite_run_note": "Per instruction, no full 1429-test suite was run. One small connectivity proof was run instead (see below).",
+    "connectivity_proof": {
+      "command": "manage.py test sandbox messaging --verbosity=2",
+      "executed_on": "80.85.84.156 (the linode_1_core shard's own assigned apps)",
+      "result": "OK, 6/6 passed, 4.454s",
+      "isolation": "Django's own isolated test_culineire database, created and destroyed automatically. No production data read or written."
+    },
+    "production_code_modified": false,
+    "markdown_modified": false,
+    "merge_performed": false,
+    "deployment_performed": false,
+    "blockers": []
+  }
+}
