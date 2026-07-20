@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.372",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "The demo battle becomes a command instead of a script on the server",
+        "section": "Chef Battles",
+        "summary": "Every HUD panel in the reference carries battle content - phase, countdown, two chefs, votes, gifts - and with nothing running the layout was being positioned against empty boxes. demo_battle creates one through the real path, a challenge then accept_challenge, so what appears is a battle the site itself would have made. It ships through git rather than being copied onto the server as a throwaway. Dry run by default, --run to create, --end to close it, and it refuses to start a second while one is live.",
+    },
+    {
         "version": "2.5.371",
         "date": "2026-07-20",
         "commit": "pending",
