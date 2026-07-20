@@ -911,7 +911,13 @@
     // Tells the stylesheet the crowd is in the picture now, so we stop drawing
     // our own on top of it. A flag, not a deletion: without the backdrop the
     // page renders exactly as it did before.
-    document.body.classList.add('has-arena-backdrop');
+    //
+    // Only when a picture is actually there. Setting it unconditionally hid the
+    // stands against a backdrop that had been switched off, and the arena
+    // shipped one release with an empty hall around it.
+    var painted = getComputedStyle(container).backgroundImage;
+    document.body.classList.toggle('has-arena-backdrop',
+      !!painted && painted !== 'none');
   }
 
   // Billboarding: a face lying on the tilted floor plane is squashed, and a
