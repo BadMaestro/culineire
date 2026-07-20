@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.364",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "An address can be freed for good",
+        "section": "Accounts",
+        "summary": "Registering an address that had been deleted was refused as already taken: the login row survived while its author profile was gone, so nothing on the site could see the account, and the only thing it still did was block its own address. purge_account removes both halves and the author's content in one transaction, by address or as a sweep of every profile-less login row. It prints what it will remove and refuses a superuser without --force, so clearing a stale signup is not one typo away from deleting the owner.",
+    },
+    {
         "version": "2.5.363",
         "date": "2026-07-20",
         "commit": "pending",
