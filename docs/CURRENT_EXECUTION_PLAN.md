@@ -5,11 +5,21 @@ document:
   id: "current-execution-plan"
   version: "1.0.0"
   status: "ACTIVE_AFTER_OWNER_MERGE"
-  phase: "Documentation Reset and Coordination Reboot"
+  phase: "Documentation Reset COMPLETE -- next stage is fresh-session bootstrap"
   owner: "CulinEire Product Owner"
   canonical_path: "/docs/CURRENT_EXECUTION_PLAN.md"
-  last_updated: "2026-07-20"
+  last_updated: "2026-07-21"
 ```
+
+**Documentation Reset and Coordination Reboot is complete** (integration
+commit recorded in git history: `integration/documentation-reset` merged to
+`main`). All three work packages (A: Ember, B: Bolt, C: GreenBear) reported
+`COMPLETE` and were merged without conflict. See section 6 for the verified
+gate values. The next stage is a fresh-session bootstrap by all three agents
+against the new `main` -- no agent should continue planning or implementation
+work from a pre-reset session's context; re-read the five active documents
+and re-post the cold-start record per `AGENTS.md` section 3 before any
+further work.
 
 ## 1. Immediate objective
 
@@ -259,6 +269,29 @@ documentation_reset_gate:
   production_code_modified: false
   arena_implementation_started: false
 ```
+
+**Verified true, integration commit on `main` (2026-07-21):**
+
+```yaml
+documentation_reset_gate_actual:
+  five_active_markdown_files_present: true          # AGENTS.md, CLAUDE.md, docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md, docs/CURRENT_EXECUTION_PLAN.md, docs/TECHNICAL_STANDARDS.md all present, confirmed on disk
+  additional_active_project_instruction_markdown: 0  # content_prompts/README.md remains active but is a runtime existence-check dependency (recipes/views.py:164), not an instruction document -- owner classified it NON_AUTHORITATIVE_RUNTIME_EXCEPTION, may_define_project_rules: false
+  legacy_markdown_archived: true                     # 185 of 191 tracked *.md files moved via git mv, 100% rename-detected (zero content change) into docs/archive/pre-constitution-reset-2026-07-20/
+  archive_manifest_complete: true                    # docs/archive/archive_manifest.json: base_commit, five-file allowlist, 185 archived entries (sha256 + retention_reason each), one exception entry
+  archive_exceptions_owner_resolved: true             # both flagged items resolved by direct owner instruction: content_prompts/README.md KEEP_AT_RUNTIME_PATH; root README.md KEEP_ARCHIVED (not restored)
+  cowork_identities_preserved: true                   # per ops/test_pool/work_package_c_report.json: identities_preserved true, agents_connected [Ember, GreenBear, Bolt]
+  cowork_connections_preserved: true                  # same source: connections_preserved true
+  all_pollers_connected: true                         # Bolt's own poller confirmed active (cron job, 3-min interval) this session; WP C report confirms all three
+  three_way_round_trip_confirmed: true                 # WP C report: round_trip_passed true; independently reproduced this session via direct ACK exchanges with both GreenBear and Ember on the bootstrap and Work Package B threads
+  highest_priority_message_rule_verified: true         # demonstrated in practice this session: incoming GreenBear messages about an independent, concurrent audit-closure merge were read and acknowledged before proceeding with Work Package B
+  distributed_test_machine_map_confirmed: true         # ops/test_pool/shard_manifest.json: weights 8:6:1, target_share/actual_share both recorded, machine_map owner-resolved with hostname evidence preserved (not silently overridden)
+  non_overlapping_shard_method_confirmed: true          # shard_manifest.json: deterministic split by test-collection count (1429 tests, cross-checked two ways), explicit note to refine to historical-duration once real timings exist; zero duplicate/omitted tests
+  production_code_modified: false                      # verified: git diff --name-only <previous main 7c2e1731>..<integration HEAD> -- '*.py' '*.html' '*.css' '*.js' returned empty; no migrations, no settings changed
+  arena_implementation_started: false                   # no template, CSS, JS, or view code touched by any of the three work packages
+```
+
+Next stage: fresh-session bootstrap by all three agents against the new
+`main` (section 7 below), not new 2D implementation work.
 
 ## 7. First technical gate after documentation reset
 
