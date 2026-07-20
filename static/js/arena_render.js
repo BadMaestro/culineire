@@ -819,7 +819,13 @@
     if (!container) { return; }
 
     for (var pass = 0; pass < 2; pass++) {
-      var cells = svg.querySelectorAll('.arena-cell');
+      // The RANK cells, not every cell. FLOOR_SHARE is stated as a share of
+      // the frame taken by the floor, but this measured the whole disc -
+      // spectator rings included, hidden or not - so the floor itself came out
+      // at 0.28 of the frame instead of 0.66. Two things followed: the arena
+      // looked small, and the backdrop, which is sized off the floor, ended up
+      // narrower than the window with dark bars down both sides.
+      var cells = svg.querySelectorAll('.arena-cell[data-ring-kind="rank"]');
       if (!cells.length) { return; }
 
       var left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;

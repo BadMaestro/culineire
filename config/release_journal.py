@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.371",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "The floor takes the room it was promised",
+        "section": "Chef Battles",
+        "summary": "The arena was being sized by the whole seating disc rather than the floor, so the floor came out less than half the size it was set to and the hall behind it stopped short of the screen edges. The rank pills go dark on the pale floor, the way the mockup has them, instead of pale on pale.",
+    },
+    {
         "version": "2.5.370",
         "date": "2026-07-20",
         "commit": "pending",
