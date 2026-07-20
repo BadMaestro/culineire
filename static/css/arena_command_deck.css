@@ -237,9 +237,13 @@
     border-radius: 0;
   }
 
-  .page--arena .arena-command-deck__floor .arena-render-container {
-    background-size: cover;
-  }
+  /* NO background-size here. arena_render.js measures our floor and publishes
+     --arena-backdrop-size so the painted floor lands exactly on ours;
+     `cover` threw that away and re-scaled the picture to the frame instead.
+     On a 1920 screen that blew the painted floor up while ours stayed put, and
+     the two came apart with bare orange showing right and below.
+     It also fooled my own check: I was reading the variable and calling it a
+     match while the browser was drawing something else entirely. */
 
   /* Panels: dark glass over the hall, bronze edge, placed by the mockup's own
      proportions rather than by a grid cell. */
