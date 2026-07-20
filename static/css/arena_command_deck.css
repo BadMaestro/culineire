@@ -224,17 +224,26 @@
 
   /* Pinned rather than centred. Flex centring left the stage 884px wide and
      387px from the left on a 1280px screen - the octagon sat well right of
-     centre, which is what the arena looked "spilled" from. Pinning to all four
-     edges removes the question: the stage IS the frame, and the renderer
-     centres the octagon inside it by measurement. */
+     centre. Pinning to all four edges removes the question: the stage IS the
+     frame, and the renderer centres the octagon inside it by measurement. */
   .arena-command-deck__floor > .arena-floor-stage,
+  .page--arena .arena-command-deck__floor .arena-render-container {
+    position: absolute;
+    inset: 0;
+    width: auto;
+    height: auto;
+    max-width: none;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+  }
+
   /* The picture is square and its painted floor is a fixed share of it, so the
      image can only be as wide as the floor allows: on a 1910x934 frame the
-     floor tops out at 915px (its own height is the limit) and the hall reaches
-     1875px, leaving 18px bare at each side. Scaling further would crop the
-     octagon top and bottom, which a plan view cannot afford.
-     So the edge is carried by colour instead - the hall's own darkest tone,
-     which is what the picture fades to at its border anyway. */
+     floor tops out at 915px and the hall reaches 1875px, leaving 18px bare at
+     each side. Scaling further would crop the octagon top and bottom, which a
+     plan view cannot afford - so the edge is carried by colour instead, the
+     hall's own darkest tone, which is what the picture fades to anyway. */
   .page--arena .arena-command-deck__floor .arena-render-container {
     background-color: var(--hall-edge, #0b120e);
   }
