@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.380",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "Any registered author can visit the arena",
+        "section": "Chef Battles",
+        "summary": "is_battle_visible() required staff, superuser, or bearseeker privileges during dark launch, so a plain author got 404 -- exactly why three test accounts needed a staff grant just to be seen in the stands. Owner's rule: any registered author may visit and watch, chef enrollment is never a condition for visibility, only for participation. has_bearseeker_privileges is itself a RecipeAuthor field and added nothing once 'any author' is the rule, so it was dropped rather than kept as a no-op check.",
+    },
+    {
         "version": "2.5.379",
         "date": "2026-07-20",
         "commit": "pending",
