@@ -200,9 +200,9 @@
      "--legal-green is brand/bronze, not green"). --hall-* are declared on
      .page--arena in arena_hall.css, which wraps this scene; the fallbacks keep
      the container correct if it is ever rendered outside that page. */
-  --arena-bowl: var(--hall-deep, color-mix(in srgb, var(--ink) 74%, #000));
-  --arena-bowl-edge: var(--hall-edge, color-mix(in srgb, var(--ink) 38%, #000));
-  --arena-spot: var(--hall-bronze, #b47a33);
+  --arena-bowl: var(--hall-deep, color-mix(in srgb, var(--ink) 74%, black));
+  --arena-bowl-edge: var(--hall-edge, color-mix(in srgb, var(--ink) 38%, black));
+  --arena-spot: var(--hall-bronze, var(--accent-bronze));
 
   /* Gold pooling over the stage, falling away into a dark bowl. */
   background:
@@ -538,6 +538,6 @@
    them apart from the faces behind them. */
 .page--arena.has-arena-backdrop #arena-render [data-ring-kind="spectator"][data-occupancy="spectator"] {
   fill: transparent;
-  stroke: var(--hall-bronze, #b47a33);
+  stroke: var(--hall-bronze, var(--accent-bronze));
   stroke-width: 1.4;
 }

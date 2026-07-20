@@ -53,6 +53,27 @@
     --accent-bronze: #b47a33;
     --accent-bronze-dark: #60401f;
 
+    /* Arena hall dark palette — arena_hall.css, arena_render.css,
+       arena_master_console*.css, arena_command_deck.css and arena_deck_polish.css
+       all draw the arena's dark stands/console surface from this set instead of
+       repeating hex. Deliberately NOT named --arena-* : chef_battle.css already
+       scopes --arena-muted/--arena-gold/etc to .site-battle-widget with
+       DIFFERENT values (a dark floating widget), and .arena-command-deck
+       re-scopes --arena-gold/--arena-muted again with a THIRD, light set for
+       its own HUD text. Reusing those names here would have resolved to
+       whichever of the other two happened to cascade in, silently. Values
+       equal the widget's dark set (not new colours, just a name that can't collide). */
+    --hall-dark-0: #07090a;
+    --hall-dark-1: #0d1113;
+    --hall-dark-2: #121719;
+    --hall-text: #f4f3ee;
+    --hall-muted: #a8afb1;
+    --hall-border: rgb(255 255 255 / 0.11);
+    --hall-green: #67b74a;
+    --hall-red: #d8463e;
+    --hall-gold: #d6a64b;
+    --hall-gold-light: #f1d27a;
+
     /* Scrollbars */
     --scrollbar-size: 4px;
     --scrollbar-thumb: rgb(200 169 110 / 0.46);

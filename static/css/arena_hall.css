@@ -39,15 +39,15 @@
  * belong to the room.
  */
 .page--arena {
-  --hall-deep: color-mix(in srgb, var(--ink) 74%, #000);
-  --hall-edge: color-mix(in srgb, var(--ink) 38%, #000);
-  --hall-panel: color-mix(in srgb, var(--ink) 62%, #000);
-  --hall-raised: color-mix(in srgb, var(--ink) 88%, #000);
+  --hall-deep: color-mix(in srgb, var(--ink) 74%, black);
+  --hall-edge: color-mix(in srgb, var(--ink) 38%, black);
+  --hall-panel: color-mix(in srgb, var(--ink) 62%, black);
+  --hall-raised: color-mix(in srgb, var(--ink) 88%, black);
   --hall-bronze: var(--accent-bronze);
   --hall-bronze-lift: color-mix(in srgb, var(--hall-bronze) 72%, var(--surface-soft));
   --hall-text: var(--surface-soft);
   --hall-text-dim: color-mix(in srgb, var(--surface-muted) 62%, var(--muted));
-  --hall-shade: color-mix(in srgb, var(--ink) 45%, #000);
+  --hall-shade: color-mix(in srgb, var(--ink) 45%, black);
 }
 /* ---- the hall is the page ---- */
 

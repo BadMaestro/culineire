@@ -5,9 +5,23 @@
    Palette per arena_rebuild_plan.md sec 6 (warm CulinEire, gold accents). */
 
 .arena-command-deck {
-  --ad-s0:#faf6f0; --ad-s1:#fffdf9; --ad-s2:#f5eee4; --ad-s3:#f2eadf;
-  --ad-ink:#1f2c25; --ad-ink2:#42514a; --ad-mut:#66746d;
-  --ad-green:#3f8a34; --ad-red:#b23b34; --ad-gold:#d6a64b; --ad-gold-d:#9c7526;
+  /* s1/s2/s3/ink/ink2/mut used to restate --surface/--surface-soft/
+     --surface-muted/--ink/--ink-soft/--muted byte-for-byte — a second copy of
+     a brand colour, which is how palettes drift once one of the two is edited
+     and the other is forgotten. gold matches --hall-gold exactly for the same
+     reason. green/red/gold-d have no existing token to point at: no green or
+     red exists anywhere in :root (checked, see MANIFEST_DELTA.md), and gold-d
+     is a shade darker than any declared gold. Those three stay local. */
+  --ad-s0: var(--ce-card-bg);
+  --ad-s1: var(--surface);
+  --ad-s2: var(--surface-soft);
+  --ad-s3: var(--surface-muted);
+  --ad-ink: var(--ink);
+  --ad-ink2: var(--ink-soft);
+  --ad-mut: var(--muted);
+  --ad-green:#3f8a34; --ad-red:#b23b34;
+  --ad-gold: var(--hall-gold);
+  --ad-gold-d:#9c7526;
   --ad-line:rgba(31,44,37,.12);
 }
 /* shared panel look */
@@ -38,10 +52,10 @@
 }
 .arena-phase-step b { color:var(--ad-ink2); font-weight:700; }
 .arena-phase-step.is-active {
-  color:#5a3f10; background:linear-gradient(180deg,#f6e2ad,#e9c877);
+  color:color-mix(in srgb, var(--ad-gold), black 55%); background:linear-gradient(180deg,color-mix(in srgb, var(--ad-gold), white 55%),color-mix(in srgb, var(--ad-gold), white 20%));
   border-color:var(--ad-gold); box-shadow:0 2px 8px rgba(214,166,75,.35);
 }
-.arena-phase-step.is-active b { color:#4a340c; }
+.arena-phase-step.is-active b { color:color-mix(in srgb, var(--ad-gold), black 65%); }
 /* ── Phase rail polish (Ember #169): active phase unmistakable, inactive calm ── */
 .arena-command-deck__phase-rail .arena-phase-step.is-active {
   transform:translateY(-1px) scale(1.03);
@@ -49,7 +63,7 @@
 }
 .arena-command-deck__phase-rail .arena-phase-step.is-active::before {
   content:""; width:.42rem; height:.42rem; border-radius:50%;
-  background:#7a5514; box-shadow:0 0 0 2px rgba(255,255,255,.6);
+  background:color-mix(in srgb, var(--ad-gold), black 30%); box-shadow:0 0 0 2px rgba(255,255,255,.6);
 }
 .arena-command-deck__phase-rail .arena-phase-step:not(.is-active) { opacity:.9; }
 /* ── Deadline card clarity (Ember #177): value scannable, empty state calm ── */

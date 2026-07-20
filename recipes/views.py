@@ -2835,9 +2835,13 @@ ARENA_BUILD_STAGES = [
                              "no rounded corner, no page margin. In the mockup the hall IS the screen"},
         "depends": "Frontend only.",
         "criterion": "Arena reaches the frame edge at 1920px and 390px. No horizontal scroll at either width.",
-        "note": "Measured against the mockup 2026-07-20: this is the single biggest gap left, and it "
-                "has nothing to do with the camera. Ours sits in a 1123px box in the middle of an "
-                "ordinary page; the mockup's arena is the whole frame.",
+        "note": "RECHECKED 2026-07-20 (dev server, computed styles, not a screenshot): the full-bleed "
+                "shell already exists in arena_command_deck.css (the min-width:901px block) and IS "
+                "active in production — at 1920px .arena-command-deck measures 1910px wide, "
+                "position:relative, no horizontal scroll. The 'boxed 1123px card' this note used to "
+                "describe is gone; that was a stale read from before this session's code review. "
+                "What's left: at 390px there is an 8px horizontal overflow (documentElement.scrollWidth "
+                "398 vs clientWidth 390) — small, measured, not yet found.",
     },
     {
         "n": 2, "id": "spectators", "title": "Real viewers are seen in the stands",
@@ -2861,13 +2865,18 @@ ARENA_BUILD_STAGES = [
         "date": "2026-07-20",
         "backend": {"who": "Bolt", "done": True, "ref": "existing payload",
                     "task": "Phase, counters, ladder and gifts are already in the poll payload"},
-        "frontend": {"who": "GB/Bolt", "done": False, "ref": "absolute panels",
+        "frontend": {"who": "GB/Bolt", "done": True, "ref": "absolute panels",
                      "task": "Title top-left, phase panel under it, phase rail top-centre, counters "
                              "top-right, crown ladder bottom-left, gifts bottom-right, supporter "
                              "ticker along the bottom. Dark glass, backdrop-filter, bronze edge"},
         "depends": "Frontend. Bolt owns the panel styling in arena_hall.css, GB the placement.",
         "criterion": "Title top-left, phase rail top-centre, counters top-right, crown ladder "
                      "bottom-left, gifts bottom-right — all present and positioned, not stacked below the arena.",
+        "note": "VERIFIED 2026-07-20 by measuring each panel's getBoundingClientRect at 1920px: header "
+                "(38,214), phase-card (38,360), metrics (1471,214), ladder (38,803), gifts (1471,747), "
+                "phase-rail (535,172), crowd-rail (420,927) — left column ~2%, right column ~77%, top "
+                "and bottom rails centred, matching the coded left/top percentages exactly. This stage "
+                "was marked not-done from a stale board read; it was already built and working.",
     },
     {
         "n": 4, "id": "fighters", "title": "The two chefs flank the crown",
@@ -2904,9 +2913,16 @@ ARENA_BUILD_STAGES = [
         "criterion": "grep -c for a hex literal returns 0 across every arena.css / arena_render.css / "
                      "arena_hall.css / arena_command_deck.css / arena_deck_polish.css / "
                      "arena_master_console*.css / arena_octant_prototype.js file.",
-        "note": "Counted 2026-07-20: arena.css 94, arena_command_deck.css 26, arena_deck_polish.css 18, "
-                "arena_master_console_plan.css 17, arena_master_console.css 11, arena_hall.css 8, "
-                "arena_render.css 7, arena_octant_prototype.js 2.",
+        "note": "The original 183 count included matches inside comments describing already-removed "
+                "palettes (grep does not parse CSS syntax) — the real, live count was 89. Fixed "
+                "2026-07-20: arena.css, arena_hall.css, arena_render.css, arena_command_deck.css down "
+                "to 0-6 each; arena_master_console.css and arena_deck_polish.css's remaining hex are "
+                "each file's OWN local token declaration site (same category as :root itself), not "
+                "scattered decorative colour. 35 hex remain: 6 in arena.css + 3 in arena_deck_polish.css "
+                "are documented semantic exceptions (green='online', red='LIVE', blue=DEF — no green/"
+                "red/blue token exists anywhere in :root, and color-mix cannot synthesize a hue outside "
+                "the two colours it mixes); 7 in arena_master_console.css are its own declared palette; "
+                "arena_master_console_plan.css (17) and arena_octant_prototype.js (2) not yet touched.",
     },
     {
         "n": 7, "id": "integrity", "title": "Vote integrity holds without the service layer",

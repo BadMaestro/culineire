@@ -2,17 +2,20 @@
 .page--arena {
   background:
     radial-gradient(75rem 38rem at 50% 16%, rgb(226 217 204 / .55), transparent 63%),
-    var(--surface, #faf6f0);
+    var(--surface, var(--ce-card-bg));
 }
 
 .arena-command-deck {
-  --arena-ink: #1f2c25;
-  --arena-forest: #42514a;
-  --arena-muted: #66746d;
-  --arena-gold: #8b7355;
-  --arena-cappuccino: #6e4e2c;
-  --arena-paper: #fffdf9;
-  --arena-cream: #f5eee4;
+  /* Every value below restated an existing global token byte-for-byte —
+     ink/ink-soft/muted/brand/brand-dark/surface/surface-soft. Pointed at the
+     real tokens instead of a second copy of each. */
+  --arena-ink: var(--ink);
+  --arena-forest: var(--ink-soft);
+  --arena-muted: var(--muted);
+  --arena-gold: var(--brand);
+  --arena-cappuccino: var(--brand-dark);
+  --arena-paper: var(--surface);
+  --arena-cream: var(--surface-soft);
   width: min(100% - 2rem, 1520px);
   margin: 1.25rem auto 4rem;
   display: grid;
@@ -82,8 +85,8 @@
 .arena-command-deck__floor .arena-legend { justify-content: flex-end; flex-wrap: wrap; overflow: visible; margin: 0; max-width: 60%; }
 .arena-command-deck__floor .arena-puzzle-container { gap: .35rem; }
 .arena-command-deck__floor .arena-puzzle-label { order: 2; margin: 0; font-size: .72rem; }
-.arena-floor-stage { position: relative; isolation: isolate; overflow: hidden; border-radius: 1.1rem; background: #151b17; }
-.arena-floor-stage::before { content: ""; position: absolute; z-index: -1; inset: 0; background: #151b17 url('/static/images/chef_battle/arena/arena-floor-plate-v1.png') center / cover no-repeat; }
+.arena-floor-stage { position: relative; isolation: isolate; overflow: hidden; border-radius: 1.1rem; background: var(--hall-dark-2); }
+.arena-floor-stage::before { content: ""; position: absolute; z-index: -1; inset: 0; background: var(--hall-dark-2) url('/static/images/chef_battle/arena/arena-floor-plate-v1.png') center / cover no-repeat; }
 .arena-floor-stage .arena-puzzle-container { position: relative; z-index: 1; }
 .arena-floor-stage #arena-puzzle { position: relative; z-index: 1; }
 /* The rank column. Position and width are set from arena_render.js against the
@@ -95,12 +98,12 @@
 .arena-rank-spine { position: absolute; z-index: 2; top: 8.5%; left: 50%; display: grid; gap: .16rem; width: min(10.75rem, 22%); transform: translateX(-50%); pointer-events: none; }
 /* Dark pills on a light floor, as in the mockup - the pale-on-pale version
    read as a stack of blank strips with only the counts visible. */
-.arena-rank-spine__step { min-height: 1.18rem; display: flex; align-items: center; justify-content: space-between; gap: .32rem; padding: .13rem .42rem; border: 1px solid var(--hall-bronze, #b47a33); border-radius: 999px; color: var(--hall-text, #f5eee4); font-size: clamp(.5rem, .72vw, .74rem); font-weight: 800; letter-spacing: .035em; line-height: 1; text-decoration: none; text-transform: uppercase; background: var(--hall-panel, #16211b); box-shadow: 0 .2rem .5rem rgb(0 0 0 / .35); pointer-events: auto; transition: background .18s ease, border-color .18s ease, color .18s ease; }
+.arena-rank-spine__step { min-height: 1.18rem; display: flex; align-items: center; justify-content: space-between; gap: .32rem; padding: .13rem .42rem; border: 1px solid var(--hall-bronze, var(--accent-bronze)); border-radius: 999px; color: var(--hall-text, var(--surface-soft)); font-size: clamp(.5rem, .72vw, .74rem); font-weight: 800; letter-spacing: .035em; line-height: 1; text-decoration: none; text-transform: uppercase; background: var(--hall-panel, var(--hall-dark-1)); box-shadow: 0 .2rem .5rem rgb(0 0 0 / .35); pointer-events: auto; transition: background .18s ease, border-color .18s ease, color .18s ease; }
 /* The count in --hall-text, not bronze: bronze on the dark plate measured
    4.8:1 against the 7:1 the column is held to. The label beside it reads
    15.2:1, so the number was the one thing in the column still under the bar. */
-.arena-rank-spine__step b { min-width: 1.05rem; display: grid; place-items: center; border-radius: 999px; color: var(--hall-text, #f5eee4); font-size: .9em; background: var(--hall-raised, #1d2a23); }
-.arena-rank-spine__step:hover, .arena-rank-spine__step:focus-visible { border-color: var(--hall-bronze-lift, #d09a55); color: var(--hall-bronze-lift, #d09a55); background: var(--hall-raised, #1d2a23); }
+.arena-rank-spine__step b { min-width: 1.05rem; display: grid; place-items: center; border-radius: 999px; color: var(--hall-text, var(--surface-soft)); font-size: .9em; background: var(--hall-raised, var(--hall-dark-2)); }
+.arena-rank-spine__step:hover, .arena-rank-spine__step:focus-visible { border-color: var(--hall-bronze-lift, var(--hall-gold-light)); color: var(--hall-bronze-lift, var(--hall-gold-light)); background: var(--hall-raised, var(--hall-dark-2)); }
 
 .arena-command-deck__ladder, .arena-command-deck__gifts { align-self: start; border-radius: 1rem; padding: 1.05rem; }
 .arena-command-deck__ladder { grid-area: ladder; }
@@ -184,7 +187,7 @@
    the panels stack in their own grid rows and there is no room beside the
    floor to float them over it. */
 .page--arena {
-  background: var(--hall-edge, #0b120e);
+  background: var(--hall-edge, var(--hall-dark-0));
 }
 
 .arena-command-deck {
@@ -220,8 +223,21 @@
   margin: 0;
   border: 0;
   border-radius: 0;
-  background-color: var(--hall-edge, #0b120e);
+  /* The picture is square and its painted floor is a fixed share of it, so the
+     image can only be as wide as the floor allows: on a 1910x934 frame the
+     floor tops out at 915px and the hall reaches 1875px, leaving 18px bare at
+     each side. Scaling further would crop the octagon top and bottom, which a
+     plan view cannot afford - so the edge is carried by colour instead, the
+     hall's own darkest tone, which is what the picture fades to anyway. */
+  background-color: var(--hall-edge, var(--hall-dark-0));
 }
+
+/* NO background-size on the render container. arena_render.js measures our
+   floor and publishes --arena-backdrop-size so the painted floor lands
+   exactly on ours; `cover` threw that away and re-scaled the picture to the
+   frame instead. On a 1920 screen that blew the painted floor up while ours
+   stayed put, and the two came apart with bare orange showing right and
+   below. */
 
 @media (min-width: 901px) {
   .arena-command-deck {
@@ -234,7 +250,7 @@
     height: calc(100svh - var(--arena-header-h, 146px));
     min-height: 30rem;
     overflow: hidden;
-    color: var(--hall-text, #f5eee4);
+    color: var(--hall-text, var(--surface-soft));
   }
 
   /* The floor fills the screen; everything else sits over it. */
@@ -258,13 +274,13 @@
     position: absolute;
     z-index: 3;
     margin: 0;
-    border: 1px solid color-mix(in srgb, var(--hall-bronze, #b47a33) 55%, transparent);
+    border: 1px solid color-mix(in srgb, var(--hall-bronze, var(--accent-bronze)) 55%, transparent);
     border-radius: .7rem;
-    background: color-mix(in srgb, var(--hall-panel, #16211b) 78%, transparent);
+    background: color-mix(in srgb, var(--hall-panel, var(--hall-dark-1)) 78%, transparent);
     backdrop-filter: blur(9px) saturate(1.1);
     -webkit-backdrop-filter: blur(9px) saturate(1.1);
     box-shadow: 0 .8rem 2rem rgb(0 0 0 / .45);
-    color: var(--hall-text, #f5eee4);
+    color: var(--hall-text, var(--surface-soft));
   }
 
   .arena-command-deck__header  { left: 2%;  top: 8%;  width: 21%; }
@@ -287,8 +303,8 @@
   .arena-command-deck__gifts *,
   .arena-command-deck__crowd-rail * {
     color: inherit;
-    border-color: color-mix(in srgb, var(--hall-bronze, #b47a33) 35%, transparent);
+    border-color: color-mix(in srgb, var(--hall-bronze, var(--accent-bronze)) 35%, transparent);
   }
 
-  .arena-command-deck__metrics strong { color: var(--hall-bronze, #b47a33); }
+  .arena-command-deck__metrics strong { color: var(--hall-bronze, var(--accent-bronze)); }
 }

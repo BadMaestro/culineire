@@ -14,7 +14,9 @@
   --amc-muted: #9aa593;
   --amc-gold: #c8942a;
   --amc-gold-soft: rgb(200 148 42 / 0.14);
+  --amc-gold-light: color-mix(in srgb, var(--amc-gold), white 15%);
   --amc-danger: #b3402e;
+  --amc-danger-light: color-mix(in srgb, var(--amc-danger), white 25%);
   --amc-radius: 10px;
 
   background: var(--amc-bg);
@@ -92,7 +94,7 @@
 
 .amc-link:hover,
 .amc-link:focus-visible {
-  color: #e0b054;
+  color: var(--amc-gold-light);
 }
 
 .amc-badge {
@@ -355,7 +357,7 @@
 
 .amc-btn--danger {
   border-color: rgb(179 64 46 / 0.4);
-  color: #c96b5b;
+  color: var(--amc-danger-light);
 }
 
 /* ── System footer ───────────────────────────────────────────────── */
@@ -551,7 +553,7 @@
 
 .amc-badge--danger {
   border-color: rgb(179 64 46 / 0.5);
-  color: #c96b5b;
+  color: var(--amc-danger-light);
   background: rgb(179 64 46 / 0.12);
 }
 

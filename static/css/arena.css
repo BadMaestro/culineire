@@ -1,5 +1,24 @@
 /* Chef Battles Arena — concentric octagonal ring of chefs */
 
+/* Rank-ladder swatches derived from the site's own warm-card tokens, not
+   invented colours: eight steps from --ce-card-accent (darkest) to
+   --surface-muted (lightest) via color-mix, matching the lightness
+   progression the hand-picked hex values used to have (culinary_master
+   darkest -> kitchen_porter lightest). This is the same derivation technique
+   already used elsewhere in the codebase (see base.css --about-* tokens).
+   Declared at :root, not scoped to .arena-legend, because the tooltip's
+   [data-rank] rules read the same ladder from a different part of the DOM. */
+:root {
+  --arena-rank-1: color-mix(in srgb, var(--ce-card-accent), var(--surface-muted) 10%);
+  --arena-rank-2: color-mix(in srgb, var(--ce-card-accent), var(--surface-muted) 28%);
+  --arena-rank-3: var(--brand);
+  --arena-rank-4: color-mix(in srgb, var(--ce-card-accent), var(--surface-muted) 58%);
+  --arena-rank-5: color-mix(in srgb, var(--ce-card-accent), var(--surface-muted) 70%);
+  --arena-rank-6: color-mix(in srgb, var(--ce-card-accent), var(--surface-muted) 80%);
+  --arena-rank-7: color-mix(in srgb, var(--ce-card-accent), var(--surface-muted) 88%);
+  --arena-rank-8: color-mix(in srgb, var(--ce-card-accent), var(--surface-muted) 94%);
+}
+
 .arena-page {
   max-width: 100%;
   margin: 0 auto;
@@ -21,10 +40,10 @@
   gap: 0.35rem;
   padding: 0.28rem 0.55rem;
   border-radius: 999px;
-  background: #f4f1ec;
-  border: 1px solid #e0d8c8;
+  background: var(--surface-soft);
+  border: 1px solid var(--ce-card-border);
   font-size: 0.72rem;
-  color: #3a3028;
+  color: var(--ce-card-accent);
   white-space: nowrap;
 }
 
@@ -32,22 +51,24 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #8f7c5c;
+  background: var(--arena-rank-3);
 }
 
-.arena-legend__item--culinary_master .arena-legend__swatch { background: #5a4a2e; }
-.arena-legend__item--executive_chef .arena-legend__swatch { background: #73603f; }
-.arena-legend__item--head_chef .arena-legend__swatch { background: #8f7c5c; }
-.arena-legend__item--sous_chef .arena-legend__swatch { background: #a89878; }
-.arena-legend__item--chef_de_partie .arena-legend__swatch { background: #bfb49a; }
-.arena-legend__item--commis_chef .arena-legend__swatch { background: #ccc1aa; }
-.arena-legend__item--prep_cook .arena-legend__swatch { background: #d8d0c0; }
-.arena-legend__item--kitchen_porter .arena-legend__swatch { background: #e4ddd1; }
+.arena-legend__item--culinary_master .arena-legend__swatch { background: var(--arena-rank-1); }
+.arena-legend__item--executive_chef .arena-legend__swatch { background: var(--arena-rank-2); }
+.arena-legend__item--head_chef .arena-legend__swatch { background: var(--arena-rank-3); }
+.arena-legend__item--sous_chef .arena-legend__swatch { background: var(--arena-rank-4); }
+.arena-legend__item--chef_de_partie .arena-legend__swatch { background: var(--arena-rank-5); }
+.arena-legend__item--commis_chef .arena-legend__swatch { background: var(--arena-rank-6); }
+.arena-legend__item--prep_cook .arena-legend__swatch { background: var(--arena-rank-7); }
+.arena-legend__item--kitchen_porter .arena-legend__swatch { background: var(--arena-rank-8); }
+/* Spectator blue is one of the five semantic exceptions — see the note near
+   the bottom of this file. No blue token exists at :root to mix from. */
 .arena-legend__item--spectator .arena-legend__swatch { background: #2a5fb0; }
 
 .arena-legend__count {
   font-weight: 700;
-  color: #c8942a;
+  color: var(--accent-bronze);
 }
 
 .arena-puzzle-container {
@@ -59,7 +80,7 @@
 
 .arena-puzzle-label {
   font-size: 0.85rem;
-  color: var(--color-muted, #6b6258);
+  color: var(--muted);
   text-align: center;
 }
 
@@ -109,8 +130,8 @@
 .arena-tooltip {
   position: absolute;
   z-index: 200;
-  background: #fff;
-  border: 1px solid #e0d8c8;
+  background: var(--surface);
+  border: 1px solid var(--ce-card-border);
   border-radius: 14px;
   box-shadow: 0 6px 28px rgba(0,0,0,0.14);
   padding: 1.1rem 1rem 1rem;
@@ -126,13 +147,13 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 3px;
-  background: #c8942a;
+  background: var(--accent-bronze);
   border-radius: 14px 14px 0 0;
 }
 
-[data-rank="culinary_master"] .arena-tooltip__rank { color: #b07a18; font-weight: 700; }
-[data-rank="executive_chef"]  .arena-tooltip__rank { color: #73603f; font-weight: 600; }
-[data-rank="head_chef"]       .arena-tooltip__rank { color: #8f7c5c; }
+[data-rank="culinary_master"] .arena-tooltip__rank { color: var(--accent-bronze-dark); font-weight: 700; }
+[data-rank="executive_chef"]  .arena-tooltip__rank { color: var(--arena-rank-2); font-weight: 600; }
+[data-rank="head_chef"]       .arena-tooltip__rank { color: var(--brand); }
 
 .arena-tooltip__close {
   position: absolute;
@@ -141,7 +162,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #b0a090;
+  color: var(--ce-card-muted-soft);
   font-size: 0.9rem;
   line-height: 1;
   padding: 0.15rem 0.3rem;
@@ -150,8 +171,8 @@
 }
 
 .arena-tooltip__close:hover {
-  color: #3a3028;
-  background: #f4f1ec;
+  color: var(--ce-card-accent);
+  background: var(--surface-soft);
 }
 
 .arena-tooltip__avatar {
@@ -159,7 +180,7 @@
   height: 60px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2.5px solid #e0d8c8;
+  border: 2.5px solid var(--ce-card-border);
   align-self: center;
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
 }
@@ -172,13 +193,13 @@
   font-family: var(--font-serif);
   font-size: 1rem;
   font-weight: 700;
-  color: #2a2218;
+  color: var(--ce-card-ink);
   letter-spacing: 0.01em;
 }
 
 .arena-tooltip__rank {
   font-size: 0.78rem;
-  color: #8f7c5c;
+  color: var(--brand);
   margin-top: 0.2rem;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -195,7 +216,7 @@
 
 .arena-tooltip__rating {
   font-size: 0.73rem;
-  color: #9c8f80;
+  color: var(--ce-card-muted-soft);
 }
 
 .arena-tooltip__badge {
@@ -207,9 +228,15 @@
 
 .arena-tooltip__badge--battle {
   background: rgba(200,148,42,0.14);
-  color: #a07010;
+  color: var(--accent-bronze-dark);
 }
 
+/* "Online" green, one of six semantic exceptions in this file: no green/red/
+   blue token exists at :root, and color-mix cannot synthesize a hue outside
+   the two colours it's given, so mixing warm bronze tokens can't produce
+   green. Rewriting these to a bronze token would erase the green=online /
+   red=live / blue=DEF convention users already read at a glance. Left as raw
+   hex on purpose pending a real semantic token set from the owner. */
 .arena-tooltip__badge--online {
   background: rgba(34,197,94,0.12);
   color: #16a34a;
@@ -223,8 +250,8 @@
   font-weight: 600;
   padding: 0.45rem 0.9rem;
   border-radius: 999px;
-  background: #c8942a;
-  color: #fff !important;
+  background: var(--accent-bronze);
+  color: var(--surface) !important;
   text-decoration: none;
   line-height: 1;
   transition: background 0.18s;
@@ -232,8 +259,8 @@
 
 .arena-tooltip__link:hover,
 .arena-tooltip__link:focus-visible {
-  background: #a87a20;
-  color: #fff !important;
+  background: var(--accent-bronze-dark);
+  color: var(--surface) !important;
 }
 
 /* --- Stats row (W / L / Streak) --- */
@@ -244,7 +271,7 @@
   gap: 0.1rem;
   margin-top: 0.5rem;
   font-size: 0.72rem;
-  color: #9c8f80;
+  color: var(--ce-card-muted-soft);
 }
 .arena-tooltip__stat {
   display: inline-flex;
@@ -254,16 +281,16 @@
 .arena-tooltip__stat b {
   font-size: 0.9rem;
   font-weight: 700;
-  color: #3a3028;
+  color: var(--ce-card-accent);
 }
 .arena-tooltip__stat-lbl {
   font-size: 0.6rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #b0a090;
+  color: var(--ce-card-muted-soft);
 }
 .arena-tooltip__stat-sep {
-  color: #d4c8b4;
+  color: var(--ce-card-border);
 }
 
 /* --- Artifact potential row --- */
@@ -279,7 +306,7 @@
 .arena-tooltip__potential-item--atk { color: #b03a2a; }
 .arena-tooltip__potential-item--def { color: #2a55b0; }
 .arena-tooltip__potential b { font-weight: 700; }
-.arena-tooltip__potential-sep { color: #d4c8b4; }
+.arena-tooltip__potential-sep { color: var(--ce-card-border); }
 
 /* --- Action buttons row --- */
 .arena-tooltip__actions {
@@ -300,16 +327,16 @@
   padding: 0.45rem 0.9rem;
   border-radius: 999px;
   background: transparent;
-  color: #c8942a !important;
-  border: 1.5px solid #c8942a;
+  color: var(--accent-bronze) !important;
+  border: 1.5px solid var(--accent-bronze);
   text-decoration: none;
   line-height: 1;
   transition: background 0.18s, color 0.18s;
 }
 .arena-tooltip__challenge:hover,
 .arena-tooltip__challenge:focus-visible {
-  background: #c8942a;
-  color: #fff !important;
+  background: var(--accent-bronze);
+  color: var(--surface) !important;
 }
 
 @media (max-width: 640px) {
@@ -346,7 +373,7 @@
 .arena-popup__panel {
   position: relative;
   z-index: 1;
-  background: #fff;
+  background: var(--surface);
   border-radius: 18px;
   box-shadow: 0 16px 60px rgba(0, 0, 0, 0.28);
   width: min(680px, calc(100vw - 2rem));
@@ -366,7 +393,7 @@
   border: none;
   cursor: pointer;
   font-size: 1.25rem;
-  color: #8f7c5c;
+  color: var(--brand);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -378,8 +405,8 @@
 }
 
 .arena-popup__close:hover {
-  background: #f4f1ec;
-  color: #2a2218;
+  background: var(--surface-soft);
+  color: var(--ce-card-ink);
 }
 
 .arena-popup__inner {
@@ -390,7 +417,7 @@
 
 .arena-popup__loading {
   text-align: center;
-  color: #9c8f80;
+  color: var(--ce-card-muted-soft);
   font-size: 0.9rem;
   padding: 3rem 0;
 }
@@ -409,7 +436,7 @@
 
 .abp__live {
   background: #d64040;
-  color: #fff;
+  color: var(--surface);
   font-size: 0.6rem;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -428,18 +455,18 @@
   font-family: var(--font-serif);
   font-size: 1rem;
   font-weight: 700;
-  color: #2a2218;
+  color: var(--ce-card-ink);
   flex: 1;
 }
 
 .abp__timer {
   font-size: 0.73rem;
-  color: #9c8f80;
+  color: var(--ce-card-muted-soft);
 }
 
 .abp__phase {
   font-size: 0.68rem;
-  color: #b0a090;
+  color: var(--ce-card-muted-soft);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -464,7 +491,7 @@
   height: 72px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #e0d8c8;
+  border: 3px solid var(--ce-card-border);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
 }
 
@@ -472,13 +499,13 @@
   font-family: var(--font-serif);
   font-size: 0.9rem;
   font-weight: 700;
-  color: #2a2218;
+  color: var(--ce-card-ink);
   text-align: center;
 }
 
 .abp__chef-votes {
   font-size: 0.7rem;
-  color: #9c8f80;
+  color: var(--ce-card-muted-soft);
 }
 
 .abp__artifacts {
@@ -491,14 +518,14 @@
 .abp__artifact {
   width: 28px;
   height: 28px;
-  background: #f4f1ec;
-  border: 1px solid #e0d8c8;
+  background: var(--surface-soft);
+  border: 1px solid var(--ce-card-border);
   border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.75rem;
-  color: #8f7c5c;
+  color: var(--brand);
   cursor: default;
 }
 
@@ -513,8 +540,8 @@
 
 .abp__vote-btn {
   appearance: none;
-  background: #c8942a;
-  color: #fff;
+  background: var(--accent-bronze);
+  color: var(--surface);
   border: none;
   border-radius: 999px;
   padding: 0.4rem 1rem;
@@ -525,7 +552,7 @@
   white-space: nowrap;
 }
 
-.abp__vote-btn:hover { background: #a87a20; }
+.abp__vote-btn:hover { background: var(--accent-bronze-dark); }
 
 .abp__gifts {
   display: flex;
@@ -538,8 +565,8 @@
 
 .abp__gift-btn {
   appearance: none;
-  background: #f4f1ec;
-  border: 1px solid #e0d8c8;
+  background: var(--surface-soft);
+  border: 1px solid var(--ce-card-border);
   border-radius: 6px;
   width: 32px;
   height: 32px;
@@ -552,7 +579,7 @@
   line-height: 1;
 }
 
-.abp__gift-btn:hover { background: #ede8de; }
+.abp__gift-btn:hover { background: var(--ce-card-border-soft); }
 
 .abp__vs-col {
   display: flex;
@@ -565,7 +592,7 @@
   font-family: var(--font-serif);
   font-size: 1.35rem;
   font-weight: 900;
-  color: #c8942a;
+  color: var(--accent-bronze);
   text-shadow: 0 1px 6px rgba(200, 148, 42, 0.3);
 }
 
@@ -577,7 +604,7 @@
 }
 
 .abp__chat {
-  border-top: 1px solid #f0ece4;
+  border-top: 1px solid var(--ce-card-border-soft);
   padding-top: 1rem;
   margin-bottom: 1rem;
 }
@@ -587,7 +614,7 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #b0a090;
+  color: var(--ce-card-muted-soft);
   margin-bottom: 0.55rem;
 }
 
@@ -602,27 +629,27 @@
 
 .abp__chat-msg {
   font-size: 0.82rem;
-  color: #3a3028;
+  color: var(--ce-card-accent);
   line-height: 1.45;
 }
 
 .abp__chat-who {
-  color: #c8942a;
+  color: var(--accent-bronze);
   font-weight: 700;
   margin-right: 0.3em;
 }
 
-.abp__chat-body { color: #3a3028; }
+.abp__chat-body { color: var(--ce-card-accent); }
 
 .abp__chat-time {
   font-size: 0.63rem;
-  color: #c0b4a4;
+  color: var(--ce-card-border);
   margin-left: 0.45em;
 }
 
 .abp__chat-empty {
   font-size: 0.78rem;
-  color: #b0a090;
+  color: var(--ce-card-muted-soft);
   font-style: italic;
   text-align: center;
   padding: 0.5rem 0;
@@ -635,22 +662,22 @@
 
 .abp__chat-input {
   flex: 1;
-  border: 1px solid #e0d8c8;
+  border: 1px solid var(--ce-card-border);
   border-radius: 999px;
   padding: 0.42rem 0.9rem;
   font-size: 0.82rem;
-  color: #2a2218;
-  background: #faf8f4;
+  color: var(--ce-card-ink);
+  background: var(--ce-card-bg);
   outline: none;
   transition: border-color 0.15s;
 }
 
-.abp__chat-input:focus { border-color: #c8942a; }
+.abp__chat-input:focus { border-color: var(--accent-bronze); }
 
 .abp__chat-send {
   appearance: none;
-  background: #c8942a;
-  color: #fff;
+  background: var(--accent-bronze);
+  color: var(--surface);
   border: none;
   border-radius: 999px;
   padding: 0.42rem 1.1rem;
@@ -660,15 +687,15 @@
   transition: background 0.18s;
 }
 
-.abp__chat-send:hover { background: #a87a20; }
+.abp__chat-send:hover { background: var(--accent-bronze-dark); }
 
 .abp__chat-login {
   font-size: 0.78rem;
-  color: #9c8f80;
+  color: var(--ce-card-muted-soft);
   text-align: center;
 }
 
-.abp__chat-login a { color: #c8942a; text-decoration: underline; }
+.abp__chat-login a { color: var(--accent-bronze); text-decoration: underline; }
 
 .abp__footer {
   display: flex;
@@ -677,13 +704,13 @@
   flex-wrap: wrap;
   gap: 0.5rem;
   padding-top: 0.9rem;
-  border-top: 1px solid #f0ece4;
+  border-top: 1px solid var(--ce-card-border-soft);
 }
 
 .abp__full-link {
   font-size: 0.8rem;
   font-weight: 700;
-  color: #c8942a;
+  color: var(--accent-bronze);
   text-decoration: none;
 }
 
@@ -691,12 +718,12 @@
 
 .abp__participant-note {
   font-size: 0.7rem;
-  color: #9c8f80;
+  color: var(--ce-card-muted-soft);
 }
 
 .abp--empty .abp__empty-msg {
   text-align: center;
-  color: #9c8f80;
+  color: var(--ce-card-muted-soft);
   font-size: 0.9rem;
   padding: 2rem 0;
 }
@@ -712,8 +739,8 @@
   flex-direction: column;
   gap: 0.4rem;
   padding: 0.75rem;
-  background: #2a211a;
-  border: 1px solid #c8942a;
+  background: var(--ce-card-ink);
+  border: 1px solid var(--accent-bronze);
   border-radius: 12px;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
 }
@@ -723,13 +750,13 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #c8942a;
+  color: var(--accent-bronze);
 }
 .arena-demo-panel__btn {
   appearance: none;
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.06);
-  color: #f7f2ea;
+  color: var(--surface-soft);
   border-radius: 8px;
   padding: 0.45rem 0.6rem;
   font-size: 0.8rem;
@@ -740,7 +767,7 @@
 }
 .arena-demo-panel__btn:hover {
   background: rgba(200, 148, 42, 0.22);
-  border-color: #c8942a;
+  border-color: var(--accent-bronze);
 }
 .arena-demo-panel__note {
   margin: 0.25rem 0 0;
