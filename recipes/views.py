@@ -2830,18 +2830,26 @@ ARENA_BUILD_STAGES = [
         "n": 1, "id": "fullbleed", "title": "The arena fills the screen",
         "date": "2026-07-20",
         "backend": {"who": "Bolt", "done": True, "ref": "n/a", "task": "No backend change"},
-        "frontend": {"who": "GB", "done": False, "ref": "arena page shell",
+        "frontend": {"who": "GB", "done": True, "ref": "arena page shell",
                      "task": "Take the arena out of its boxed container - full-bleed, no border, "
                              "no rounded corner, no page margin. In the mockup the hall IS the screen"},
         "depends": "Frontend only.",
         "criterion": "Arena reaches the frame edge at 1920px and 390px. No horizontal scroll at either width.",
-        "note": "RECHECKED 2026-07-20 (dev server, computed styles, not a screenshot): the full-bleed "
-                "shell already exists in arena_command_deck.css (the min-width:901px block) and IS "
-                "active in production — at 1920px .arena-command-deck measures 1910px wide, "
-                "position:relative, no horizontal scroll. The 'boxed 1123px card' this note used to "
-                "describe is gone; that was a stale read from before this session's code review. "
-                "What's left: at 390px there is an 8px horizontal overflow (documentElement.scrollWidth "
-                "398 vs clientWidth 390) — small, measured, not yet found.",
+        "note": "CLOSED 2026-07-20, v2.5.377/378, confirmed live on prod by GB via the owner's START "
+                "click: 1920 measures 1910x934, border/radius/margin 0, 8/8 corners within 2% (worst "
+                "0.83%); 390 measures 390x344, the octagon itself does not overflow (arenaRight == "
+                "clientWidth). The full-bleed rules used to sit entirely inside "
+                "@media (min-width: 901px), so a phone kept the old boxed card with a border while "
+                "desktop was already edge to edge — floor/stage/background sizing is now unconditional, "
+                "only the floating panel overlay stays desktop-only (below 900px there's no room beside "
+                "the floor to float them over it). GB also found and removed the leftover "
+                "arena_render.css:373 perspective declaration (CONVERGENCE=0 zeroed the tilt numerically "
+                "but the 3D context was still declared) — v2.5.376. "
+                "A separate 8px document overflow at 390 (scrollWidth 406 vs clientWidth 390) is NOT "
+                "the arena: GB traced it to .ce-author-panel__menu in the site header holding "
+                "display:grid with no [open] condition, so the closed profile-menu <details> still "
+                "occupies layout space. Shared file (base.css/header), not GB's or Bolt's alone — "
+                "whoever picks it up next should search for that selector.",
     },
     {
         "n": 2, "id": "spectators", "title": "Real viewers are seen in the stands",
