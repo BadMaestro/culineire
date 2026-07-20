@@ -1,0 +1,71 @@
+handoff:
+  agent_id: "CLAUDE_B"
+  lane: "Integration, QA, Documentation and Dead-Code Audit"
+  branch: "audit/arena-2d-claude-b"
+  base_commit: "726e338076462982185e3caa7564cc37977a18c9"
+  report_commit: "This handoff is committed atomically with the initial lane report; use the branch HEAD."
+  status: "COMPLETE"
+  scope_audited:
+    - "Cross-module route, access, template, static and endpoint integration"
+    - "Automated coverage and focused safe test execution"
+    - "Documentation and design-system conflicts"
+    - "CSS load order, JavaScript event/fetch graph and static references"
+    - "Duplicate and suspected dead-code classification"
+    - "Deployment and regression surface"
+  existing_functionality_confirmed:
+    - feature: "Arena entry, dark launch and suspension gates"
+      implementation: "Named URLs and server-side guards"
+      classification: "REUSE_AS_IS"
+    - feature: "Shared Arena payload, state polling, phase/deadline/metrics"
+      implementation: "_build_arena_payload plus deck/renderer consumers"
+      classification: "REUSE_WITH_PRESENTATION_CHANGE"
+    - feature: "Battle popup, chat, voting and gift delegation"
+      implementation: "Separate battle-room module and existing endpoints"
+      classification: "REUSE_WITH_SMALL_ADAPTATION"
+  reusable_components:
+    - component: "Arena data and URL contracts"
+      file: "chef_battle/views.py; chef_battle/urls.py"
+      reuse_method: "Preserve unchanged behind new presentation."
+    - component: "Battle room integration"
+      file: "static/js/arena_battle_room.js"
+      reuse_method: "Retain as a renderer-independent module."
+    - component: "Phase/metrics/deadline updater"
+      file: "static/js/arena_deck.js"
+      reuse_method: "Reuse after selector-contract adaptation."
+  backend_functionality_to_preserve:
+    - "All access, permission, eligibility, vote, challenge, gift and notification rules."
+    - "_build_arena_payload field meanings and state endpoint behaviour."
+    - "Registered viewer presence and profile/rank/crown authorities."
+  frontend_blocks_to_preserve:
+    - "Battle room popup behaviour and server delegation."
+    - "Honest empty states, sign-in/join/challenge links and ranking/artifact navigation."
+    - "Accessible dialog/tooltip semantics subject to browser verification."
+  three_d_presentation_candidates:
+    - "Procedural ring geometry, projector, perspective, crowd placement and seat coordinates."
+    - "Hall/floor photographic assets and cinematic effect layer."
+    - "Legacy live-arena preview and octant prototype."
+  duplicate_candidates:
+    - "Overlapping Arena selectors across command deck, polish, hall, render and arena CSS."
+    - "Renderer/deck behaviour ported from the absent legacy arena_puzzle implementation."
+    - "Multiple hall backdrop iterations."
+  dead_code_candidates:
+    - "hall-bg-v1.webp"
+    - "hall-bg-v2-plan.webp"
+  confirmed_dead_code: []
+  genuinely_missing_functionality: []
+  unknown_or_unresolved:
+    - "Browser-level responsive, keyboard and screen-reader behaviour."
+    - "Runtime/deployment references for old visual assets."
+    - "Exact backend authority for every payload field pending CODEX peer report."
+  production_risks:
+    - "CSS cascade order and operator console dependency on shared renderer."
+    - "Dark-launch/permission regression."
+    - "Loss of polling, popup or action delegation during wholesale renderer replacement."
+  tests_run:
+    - command: "Repository-venv manage.py check with audit-only environment paths"
+      result: "PASS: System check identified no issues (0 silenced)."
+    - command: "Focused Arena dark-launch, payload wiring, geometry and selector tests"
+      result: "PASS: 15/15 tests."
+  production_files_modified: false
+  safe_to_begin_cleanup: false
+  safe_to_begin_2d_implementation: false

@@ -1,0 +1,34 @@
+# CLAUDE_B File Inventory
+
+This inventory covers integration-critical and classification-relevant files. `UNKNOWN` is used where runtime reachability was not proven. Nothing is authorised for deletion.
+
+| File | Purpose | Loaded or called by | Calls or loads | Current responsibility | 3D-specific | Reusable | Duplicate candidate | Dead-code status | Evidence | Recommended future action |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `chef_battle/urls.py` | Public/operator route registry | Project URL configuration | Arena, state, ping, blast, reaction, popup, console views | Stable entry points | No | Yes | No | Active | Lines 12-17 and 83-86 | DO_NOT_TOUCH |
+| `chef_battle/access.py` | Visibility and console gates | Views/context | Settings and user/author flags | Dark launch and suspension boundary | No | Yes | No | Active | `is_battle_visible`, `arena_console_guard`, `chef_battle_guard` | DO_NOT_TOUCH |
+| `chef_battle/views.py` | Arena payload and endpoints | URL routes | Selectors/models/templates | Real data contract and actions | No | Yes | No | Active | `_build_arena_payload` 976-1061; `arena` 1068-1143; state/ping 1146-1190 | KEEP_UNCHANGED |
+| `templates/chef_battle/arena.html` | Public Arena composition | `arena()` | Six CSS layers, SVG symbols, renderer partial, rankings/challenge/artifact URLs | HUD, lifecycle rail, floor, ladder, gifts, actions | Partly | Partly | No | Active | Lines 9-20, 32-40, 120, 124-182 | KEEP_BACKEND_REPLACE_PRESENTATION |
+| `templates/chef_battle/_arena_render_ring.html` | Shared renderer contract | Public Arena and master console | JSON payload; geometry/deck/battle-room/render JS | Tooltip/popup/crowd and scene bootstrapping | Yes | Interaction contract only | No | Active | Lines 12-27, 29-67, 75-88 | KEEP_BACKEND_REPLACE_PRESENTATION |
+| `static/js/arena_geometry.js` | Procedural ring geometry | Renderer partial | Geometry API | Coordinate/ring generation | Yes | No for 2D layout | No | Active | Partial line 85; renderer consumes geometry | ISOLATE_AS_LEGACY |
+| `static/js/arena_render.js` | Procedural rendering and interaction | Renderer partial | Geometry, payload, DOM, state endpoint | Scene projection, occupants, tooltip, polling | Mostly | Interaction/data parsing portions | Yes (with split modules) | Active | Header; lines 627-1050 interaction/poll path | EXTRACT_REUSABLE_COMPONENT |
+| `static/js/arena_deck.js` | Phase/metrics/deadline/crown/gift HUD updates | Renderer partial | Payload DOM updates | Non-geometric live HUD behaviour | No | Yes | Duplicates renderer-era behaviour | Active | Partial line 86; module header says ported from legacy | CONSOLIDATE_LATER |
+| `static/js/arena_battle_room.js` | Popup/chat/blast integration | Renderer partial | Popup/chat endpoints | Existing battle-room interaction | No | Yes | Ported from legacy renderer | Active | Partial line 87; fetch/listener graph lines 48-197 | KEEP_AND_REUSE |
+| `static/css/arena.css` | Legacy arena, tooltip and popup skin | `arena.html` and console | Broad `.arena-*` selectors | Interaction and popup presentation | Partly | Popup/a11y pieces | Yes | Active | Template line 11; 108 raw colour occurrences | EXTRACT_REUSABLE_COMPONENT |
+| `static/css/arena_command_deck.css` | Main Arena grid/HUD/floor | `arena.html` | Hall asset and renderer selectors | Base composition plus later cinematic rules | Partly | Some panels | Yes | Active | Template line 12; duplicate-selector comments lines 89-93 | KEEP_BACKEND_REPLACE_PRESENTATION |
+| `static/css/arena_deck_polish.css` | Cascade overrides | `arena.html` after command deck | Same HUD selectors | Visual refinement | Yes | Low | Yes | Active | Header lines 2-4; template line 13 | CONSOLIDATE_LATER |
+| `static/css/arena_effects.css` | Glow/depth/effects | `arena.html` | HUD/scene selectors | Decorative cinematic atmosphere | Yes | No | No | Active | Header lines 3-5; template line 14 | ISOLATE_AS_LEGACY |
+| `static/css/arena_hall.css` | Hall background and cinematic override layer | `arena.html` last | Hall asset and same HUD selectors | Final cascade owner for hall scene | Yes | No | Yes | Active | Template line 15; header lines 12 and 81-84 | ISOLATE_AS_LEGACY |
+| `static/css/arena_render.css` | Procedural projection skin | Renderer partial | CSS custom geometry and SVG selectors | Perspective/crowd/seat projection | Yes | Low | Yes | Active | Partial line 83; comments lines 342-439 | ISOLATE_AS_LEGACY |
+| `static/images/chef_battle/arena/hall-bg-v3-final.webp` | Current photographic hall | `arena_hall.css` | None | Cinematic backdrop | Yes | No | Asset variants | Active | `arena_hall.css` and repository state docs | ISOLATE_AS_LEGACY |
+| `static/images/chef_battle/arena/hall-bg-v1.webp` | Earlier backdrop | No active production reference found | None | Historical visual iteration | Yes | No | Yes | DEAD_CODE_CANDIDATE | Repository-wide static search found filename only in historical material | REVIEW_FOR_REMOVAL |
+| `static/images/chef_battle/arena/hall-bg-v2-plan.webp` | Plan backdrop | No active production reference found | None | Historical visual iteration | Yes | No | Yes | DEAD_CODE_CANDIDATE | Repository-wide static search found filename only in historical material | REVIEW_FOR_REMOVAL |
+| `static/images/chef_battle/arena/arena-floor-plate-v1.png` | Earlier floor plate | `arena_command_deck.css` fallback | None | Floor background beneath procedural renderer | Yes | No | No | Active | CSS lines 85-86 | ISOLATE_AS_LEGACY |
+| `docs/chef_battle/prototypes/arena_octant_prototype.html` + `static/js/arena_octant_prototype.js` | Standalone geometry experiment | Documentation prototype only | Direct relative prototype script | Historical experiment | Yes | No | No | Not production-dead; docs-active | Prototype line 11; no production template reference | ISOLATE_AS_LEGACY |
+| `templates/chef_battle/live_arena_preview.html`, `_live_arena_svg.html`, `static/css/live_arena.css` | Owner-only build preview | Guarded live Arena preview URL | SVG and stage data | Abandoned-plan visualization/tracker | Yes | No | Overlaps public Arena goal | Active guarded route | URLs 83-86; views 3016-3086 | ISOLATE_AS_LEGACY |
+| `templates/chef_battle/arena_master_console.html` + CSS/JS | Operator console | Guarded master routes | Shared renderer and operator endpoints | Operational control surface | No (embedded ring is) | Yes | No | Active | Template lines 12-13, 89, 513; access tests | DO_NOT_TOUCH |
+
+## Classification cautions
+
+- No item meets the protocol's `CONFIRMED_DEAD_CODE` standard.
+- `battle_cursor.js` says it is isolated and “safe to remove”, but it is actively loaded by `base.html` and targeted by Arena/navigation classes; documentation comments are not removal evidence.
+- The old `arena_puzzle.js` is referenced in comments but is absent from the current tree. This is historical naming, not a removable file.
