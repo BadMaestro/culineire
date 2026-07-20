@@ -1,0 +1,24 @@
+agent_status:
+  agent_id: "BOLT"
+  lane: "Backend and Domain Audit"
+  branch: "audit/arena-2d-bolt"
+  base_commit: "2a28e4b2c3be0e1baad7340e06aa1f020931e025"
+  status: "AUDITING"
+  current_area: "chef_battle backend: models, services, selectors, views, access, fraud, migrations"
+  files_reviewed: 12
+  findings_count: 35
+  blockers: []
+  dependencies_on_peers:
+    - reporting_agent: "BOLT"
+      partner_agent: "GREENBEAR"
+      topic: "Whether any currently-shipped frontend rendering (arena_render.js projection/billboard logic) depends on backend geometry contract fields that a future 2D rebuild would remove."
+      required_information: "Confirmation of exactly which selectors.py get_arena_geometry() fields are still read by arena_render.js after any 2D simplification."
+      status: "OPEN"
+    - reporting_agent: "BOLT"
+      partner_agent: "CLAUDE_B (EMBER)"
+      topic: "Test coverage mapping -- which of the 465 chef_battle tests exercise presentation-only concerns (would be safe to retire in a 2D rebuild) versus backend/business-rule concerns (must survive any rebuild)."
+      required_information: "A pass over chef_battle/tests.py classifying tests by what they actually assert, not by filename proximity to 'arena'."
+      status: "OPEN"
+  last_completed_action: "Backend feature inventory and evidence-gathering pass across chef_battle/{models,services,selectors,views,access,fraud}.py and migrations/."
+  next_action: "Complete FEATURE_MAP.md classification for remaining required_features not yet covered with line-level evidence; commit initial report; await CLAUDE_A and CLAUDE_B initial reports for peer review phase."
+  production_files_modified: false

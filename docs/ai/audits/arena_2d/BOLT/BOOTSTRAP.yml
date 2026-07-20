@@ -1,0 +1,78 @@
+documentation_bootstrap:
+  agent_id: "BOLT"
+  lane: "Backend and Domain Audit (maps to protocol placeholder CODEX)"
+  identity_mapping_note: >-
+    The audit protocol's runtime_identity lists placeholder ids
+    CODEX/CLAUDE_A/CLAUDE_B, but this project's valid_agents are
+    EMBER/BOLT/GREENBEAR. The lane descriptions match this project's
+    pre-existing, owner-confirmed file-boundary division one to one:
+    CODEX (models/services/selectors/views/urls/permissions/migrations)
+    = Bolt's existing lane; CLAUDE_A (templates/CSS/JS/SVG presentation)
+    = GreenBear's existing lane; CLAUDE_B (integration/QA/docs/dead-code)
+    = Ember's existing lane. Confirmed with the user directly this
+    session ("Ты bolT. Ты Claude Code.") before proceeding. Audit output
+    directory used: docs/ai/audits/arena_2d/BOLT (adapted from the
+    protocol's docs/ai/audits/arena_2d/CODEX placeholder to this
+    project's actual agent name).
+  branch: "audit/arena-2d-bolt"
+  commit: "2a28e4b2c3be0e1baad7340e06aa1f020931e025"
+
+  documents_read:
+    - path: "CLAUDE.md"
+      relevance: "Project-wide rules for AI agents; real model field names for Recipe/Article; states current code beats older roadmaps."
+    - path: "docs/agents/GOLDEN_RULES.md"
+      relevance: "Behavioural rules distilled from a three-week incident history; rule on version-collision protocol and prod-is-truth discipline apply to this audit's own conduct."
+    - path: "docs/agents/MASTER_WORKFLOW.md"
+      relevance: "Stack, server, deploy commands -- confirms Django 5.2 / Python 3.12 / Postgres / vanilla JS, no HTMX/Alpine, matching this session's own verified findings."
+    - path: "docs/agents/CLAUDE_RULES.md"
+      relevance: "Section 2 confirms the current equal-engineers protocol (no manager). Section 3 line 19 ALREADY states 'Flat 2D Dashboard Only: Completely abandon the 3D perspective layout' -- this is the same directive as AUDIT.txt's current_decision, already present in the repository before this audit began, not a new instruction."
+    - path: "docs/agents/CHEF_COMBATS_MANIFEST.md"
+      relevance: "Owner's product/architecture manifest; known partially stale, see MANIFEST_DELTA.md."
+    - path: "docs/agents/MANIFEST_DELTA.md"
+      relevance: "Records where the manifest above disagrees with shipped code (phases already built, HTMX/Alpine not adopted, floor stays light, equal-engineers in force)."
+    - path: "docs/chef_battle/arena_mockup_spec.md"
+      relevance: "The measured visual-target spec cited directly by static/css/arena_render.css, arena_command_deck.css, arena_hall.css, and static/js/arena_render.js. IMPORTANT CONFLICT -- see conflicts_found below."
+    - path: "recipes/views.py (ARENA_BUILD_STAGES)"
+      relevance: "Live, code-resident task-state / build-status board, not a static document. Authoritative for current stage-by-stage status per this session's own SOURCE_OF_TRUTH_MAP.md finding."
+    - path: "chef_battle/access.py"
+      relevance: "Arena and console visibility gates; directly relevant to 'Arena access control' required feature."
+    - path: "chef_battle/models.py, chef_battle/services.py, chef_battle/selectors.py, chef_battle/fraud.py, chef_battle/views.py"
+      relevance: "Primary backend source files for this lane's audit; partially already read in depth earlier this session (self-vote constraint, hash scheme, centre payload, spectator selectors)."
+    - path: "chef_battle/migrations/ (84 files, latest 0083)"
+      relevance: "Confirms current schema state; migration 0083 (self-vote CheckConstraint + hash_scheme) verified applied against this exact base commit earlier this session."
+    - path: "docs/agents/memory/golden_rule_author_can_visit_arena.md"
+      relevance: "Current, code-confirmed rule for arena visibility and voting eligibility (any registered author, not just enrolled chefs)."
+    - path: "AUDIT.txt (C:/Users/golov/Desktop/AUDIT.txt)"
+      relevance: "The current explicit user instruction defining this audit's scope and rules. NOT tracked in the repository (confirmed: git ls-files does not list it) -- treated as an explicit current user instruction per the protocol's own repository_truth_rule, not as repository content."
+
+  conflicts_found:
+    - document_a: "AUDIT.txt (external user instruction, this session)"
+      document_b: "docs/chef_battle/arena_mockup_spec.md"
+      conflict: >-
+        AUDIT.txt states the previous cinematic/pseudo-3D Arena direction
+        is no longer the target and the future direction is a simpler 2D
+        interface. docs/chef_battle/arena_mockup_spec.md -- still cited
+        as the measured design target by 5 live code locations
+        (recipes/views.py:2723, static/css/arena_command_deck.css:178,
+        arena_hall.css:4, arena_render.css:340, static/js/arena_render.js:356)
+        -- explicitly states "The mockup is drawn in perspective" and
+        gives a target camera angle of "theta = 56 deg from vertical."
+        This is a genuine, unresolved conflict between the current user
+        instruction and a document the current code still treats as
+        authoritative. Not resolved in this bootstrap; logged for
+        RISKS.md and the shared synthesis. Does NOT mean current CODE is
+        3D -- see the immediately following item.
+    - document_a: "docs/agents/CLAUDE_RULES.md line 19"
+      document_b: "AUDIT.txt current_decision"
+      conflict: >-
+        Not actually a conflict -- noted here because it could look like
+        one. CLAUDE_RULES.md line 19 already states "Flat 2D Dashboard
+        Only: Completely abandon the 3D perspective layout. No
+        perspective, no rotateX(), no dynamic 3D SVG." This is the SAME
+        directive AUDIT.txt gives, already committed to the repository
+        (docs: bring the owner's manifest into the repository, this
+        session, commit 584979a4) before this audit began. Recorded so
+        the shared synthesis does not mistake this for a new decision
+        that needs separate resolution.
+
+  status: "complete"

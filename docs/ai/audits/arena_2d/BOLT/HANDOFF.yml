@@ -1,0 +1,102 @@
+handoff:
+  agent_id: "BOLT"
+  lane: "Backend and Domain Audit"
+  branch: "audit/arena-2d-bolt"
+  base_commit: "2a28e4b2c3be0e1baad7340e06aa1f020931e025"
+  report_commit: "PENDING -- set at commit time, see this branch's own git log"
+  status: "PARTIAL"
+
+  scope_audited:
+    - "chef_battle/models.py"
+    - "chef_battle/services.py"
+    - "chef_battle/selectors.py"
+    - "chef_battle/views.py"
+    - "chef_battle/access.py"
+    - "chef_battle/fraud.py"
+    - "chef_battle/migrations/ (latest: 0083)"
+    - "31 of the 35 protocol-required features, with file:line evidence"
+
+  existing_functionality_confirmed:
+    - feature: "Arena access control"
+      implementation: "chef_battle/access.py:11-32 is_battle_visible()"
+      classification: "REUSE_AS_IS"
+    - feature: "Public voting, duplicate-vote and self-vote protection"
+      implementation: "chef_battle/views.py:1559 battle_vote, chef_battle/fraud.py gates, chef_battle/models.py CheckConstraint (DB-level, this session)"
+      classification: "REUSE_AS_IS"
+    - feature: "Battle result, rating, crown award"
+      implementation: "chef_battle/services.py:621-691 calculate_battle_result"
+      classification: "REUSE_AS_IS"
+    - feature: "Arena geometry contract (rings, segments, rank mapping)"
+      implementation: "chef_battle/selectors.py get_arena_geometry()"
+      classification: "KEEP_BACKEND_REPLACE_FRONTEND"
+    - feature: "Centre-stage (fighters/crown) payload"
+      implementation: "chef_battle/views.py:783-824 _arena_center()"
+      classification: "REUSE_AS_IS"
+
+  reusable_components:
+    - component: "Arena geometry contract"
+      file: "chef_battle/selectors.py"
+      reuse_method: "A future 2D frontend consumes the same ring/segment/rank JSON shape currently consumed by arena_render.js; no backend change needed to switch presentation."
+    - component: "Centre-stage payload"
+      file: "chef_battle/views.py:783-824"
+      reuse_method: "Already carries name+photo for both fighters and the crown holder; a 2D fighters panel can render directly from this without a backend change."
+    - component: "Access gate"
+      file: "chef_battle/access.py"
+      reuse_method: "Independent of presentation entirely; no interaction with a 2D rebuild expected."
+
+  backend_functionality_to_preserve:
+    - "chef_battle/access.py is_battle_visible() and has_arena_console_access() -- exact current logic"
+    - "chef_battle/models.py CheckConstraint chef_cannot_vote_for_themselves and the voter_author denormalisation reasoning"
+    - "chef_battle/services.py hash_request_value (HMAC scheme) and the hash_scheme versioning"
+    - "chef_battle/selectors.py get_arena_geometry() contract shape (ring/segment counts, rank-to-ring mapping) -- the DATA, not any rendering of it"
+    - "chef_battle/services.py calculate_battle_result, accept_challenge, refuse_challenge, expire_stale_challenges, submit_battle_entry, reveal_entries_if_ready -- all confirmed REUSE_AS_IS"
+
+  frontend_blocks_to_preserve:
+    - "None asserted by this lane -- out of scope. See CLAUDE_A's (GreenBear's) FEATURE_MAP.md for frontend block classifications."
+
+  three_d_presentation_candidates:
+    - "None found in the BACKEND. Confirmed this pass: chef_battle/selectors.py contains no coordinates, angles, or projection math -- only declarative ring/segment counts. All perspective/rotateX/projection logic lives in static/css/arena_render.css and static/js/arena_render.js (GreenBear's lane), and even there, current live code contains ONLY comments narrating removed 3D transforms, not active perspective/rotateX declarations (grep-confirmed this session, see EVIDENCE.md item 1)."
+
+  duplicate_candidates:
+    - "Not yet identified in the backend lane at the depth reviewed this pass. No file in FILE_INVENTORY.md was classified as a confirmed duplicate."
+
+  dead_code_candidates:
+    - "None classified as DEAD_CODE_CANDIDATE or CONFIRMED_DEAD_CODE this pass. Twelve adjacent-subsystem files (arena_snapshot.py, energy_service.py, stripe_services.py, observer_service.py/observer_views.py, clan_*.py, faction_*.py, season_service.py/season_signals.py, reaction_service.py, token_config.py, forms.py, admin.py) remain UNKNOWN_PENDING_RUNTIME_CHECK -- confirmed import-clean via manage.py check, not individually traced for callers or duplication. Per the protocol's default_rule, UNKNOWN is not promoted to a stronger claim without more evidence."
+
+  confirmed_dead_code: []
+
+  genuinely_missing_functionality:
+    - "Notifications delivery mechanism (_notify_chef) not fully traced -- may be complete, may have a gap; UNKNOWN pending a dedicated pass, not classified as MISSING without more evidence."
+
+  unknown_or_unresolved:
+    - "chef_battle/arena_snapshot.py -- purpose and overlap with selectors.py not yet traced"
+    - "11 adjacent-subsystem backend files -- see dead_code_candidates note"
+    - "Which of the 465 chef_battle tests assert backend-only behaviour vs presentation-specific outcomes -- dependency logged against CLAUDE_B (Ember)"
+    - "Whether static/js/arena_render.js reads any selectors.py geometry field that a simplified 2D contract might drop -- dependency logged against CLAUDE_A (GreenBear)"
+
+  production_risks:
+    - "See RISKS.md items 1-5 in full. Highest-priority: the arena_mockup_spec.md vs AUDIT.txt conflict (item 1) requires an explicit owner decision before any 2D implementation begins; the access.py fix lacks live non-staff E2E confirmation (item 2)."
+
+  tests_run:
+    - command: "python manage.py check"
+      result: "System check identified no issues (0 silenced)."
+    - command: "python manage.py makemigrations --check --dry-run"
+      result: "No changes detected"
+    - command: "grep -c '^    def test_' chef_battle/tests.py"
+      result: "465"
+    - command: "(prior to this audit, same commit lineage) manage.py test chef_battle recipes presence --noinput --parallel 8"
+      result: "697 tests, 0 failures, 2 skipped"
+
+  production_files_modified: false
+  safe_to_begin_cleanup: false
+  safe_to_begin_2d_implementation: false
+
+  reason_not_safe_yet: >-
+    Two blocking items remain open per this lane alone: (1) the
+    documentation conflict on the visual target is unresolved and requires
+    an explicit owner decision (RISKS.md item 1); (2) this is a PARTIAL
+    report from one of three lanes -- per the protocol's completion_gate,
+    the audit is not complete until all three lane reports exist, all
+    three peer reviews exist, and the shared synthesis is produced. This
+    handoff should be read alongside CLAUDE_A's and CLAUDE_B's reports,
+    not in isolation.
