@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.374",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "The rules the agents work by now live in the repository",
+        "section": "Site",
+        "summary": "The working rules existed only inside one agent's private memory folder: a lost folder or a new session would have taken them, and the other agent could not read them at all. They are in docs/agents/ now. GOLDEN_RULES.md carries the three-week analysis behind them - 727 commits in main of which one in three undoes the last, 39 collided version numbers - and the rules written against each pattern.",
+    },
+    {
         "version": "2.5.372",
         "date": "2026-07-20",
         "commit": "pending",

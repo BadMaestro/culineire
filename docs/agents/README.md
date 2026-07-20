@@ -1,0 +1,23 @@
+# How the agents on this project work
+
+Read `GOLDEN_RULES.md` first — before any work, after every limit, after every
+context compaction. Then `MASTER_WORKFLOW.md` for the commands.
+
+These live in the repository on purpose. They used to exist only inside one
+agent's private memory folder, which meant a lost folder or a new session took
+the rules with it, and the other agent could not read them at all. Rules that
+only one person can see are not rules.
+
+| File | What it is |
+|------|------------|
+| `GOLDEN_RULES.md` | The analysis of what keeps going wrong and the rules against it. Read first. |
+| `MASTER_WORKFLOW.md` | Who we are, the stack, the server, the exact deploy commands. |
+
+Keeping them current is part of the work, not paperwork: every rule in
+`GOLDEN_RULES.md` exists because something broke in production and cost the owner
+time or money. When a new one is learned the same way, it goes in immediately —
+and into the agent's memory folder too, so the copies do not drift.
+
+The two copies:
+- repository — `docs/agents/` (this folder), readable by everyone;
+- Bolt's memory folder, loaded automatically at the start of a session.
