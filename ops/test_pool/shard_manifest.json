@@ -1,0 +1,70 @@
+{
+  "manifest_version": "1.0.0",
+  "generated_by": "GreenBear",
+  "generated_at": "2026-07-20T22:02:08Z",
+  "commit": "7c2e1731e0daad2d2406fae2c12aef3459c493d1",
+  "constitution_version": "1.0.0",
+  "source": "AGENTS.md section 9 (distributed test constitution), TECHNICAL_STANDARDS.md section 10.2",
+  "test_runner": "django.test.runner.DiscoverRunner",
+  "database_engine": "django.db.backends.postgresql",
+  "shard_method": "deterministic",
+  "shard_method_note": "No historical per-app duration data exists yet. Split is deterministic by test-collection count (discovery only, zero tests executed, zero DB writes) via django.test.utils.get_runner(settings)().build_suite([label]).countTestCases() per app. Refine to historical-duration once a full-suite run publishes durations, per AGENTS.md section 9 rule 'Split by historical duration when timing data exists.'",
+  "test_collection_count": 1429,
+  "test_collection_method": "Django DiscoverRunner.build_suite() called per app label, summed; cross-checked against a single build_suite([]) full-repo discovery call, both returned 1429. No test executed, no database created or written to for this count.",
+  "weights": {
+    "primary_8_core": 8,
+    "secondary_6_core": 6,
+    "linode_1_core": 1
+  },
+  "target_share": {
+    "primary_8_core": 0.5333,
+    "secondary_6_core": 0.4000,
+    "linode_1_core": 0.0667
+  },
+  "actual_share": {
+    "primary_8_core": 0.536,
+    "secondary_6_core": 0.405,
+    "linode_1_core": 0.059
+  },
+  "shards": {
+    "primary_8_core": {
+      "machine_id": "UNRESOLVED",
+      "machine_id_candidates": ["GREENBEAR (confirmed 8 logical cores via nproc)"],
+      "manifest": ["chef_battle", "articles", "legal"],
+      "test_count": 766
+    },
+    "secondary_6_core": {
+      "machine_id": "UNRESOLVED",
+      "machine_id_note": "No agent has confirmed a 6-core machine this session. Bolt has not reported a logical core count. Ember reported 8 logical cores on machine 'DESKTOP-ODD5QN8' -- the same machine name Bolt reported for his own bootstrap, with no core count given. This is flagged as an open item, see blockers.",
+      "manifest": ["monitoring", "newsfeed", "pinch", "recipes", "sponsors"],
+      "test_count": 579
+    },
+    "linode_1_core": {
+      "machine_id": "80.85.84.156 (deploy@, production Linode)",
+      "machine_id_note": "Confirmed via direct SSH: nproc=1, /proc/cpuinfo processor count=1.",
+      "manifest": ["sandbox", "messaging", "presence", "collection", "coworking", "accounts", "config", "agent_discovery"],
+      "test_count": 84,
+      "note": "Deliberately the lightest/simplest apps per project convention (feedback_distributed_testing.md), so the shard leaves headroom for the server's live production request handling during the run."
+    }
+  },
+  "duplicate_tests": [],
+  "omitted_tests": [],
+  "app_test_counts_reference": {
+    "accounts": 12,
+    "agent_discovery": 21,
+    "articles": 263,
+    "chef_battle": 469,
+    "collection": 6,
+    "config": 21,
+    "coworking": 12,
+    "legal": 34,
+    "messaging": 3,
+    "monitoring": 30,
+    "newsfeed": 48,
+    "pinch": 70,
+    "presence": 6,
+    "recipes": 222,
+    "sandbox": 3,
+    "sponsors": 209
+  }
+}
