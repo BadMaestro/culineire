@@ -228,3 +228,178 @@ documentation_authority_finalization:
   implementation_started: false
   ready_for_2d_planning: true
   ready_for_2d_code: false
+
+# The section above is the original first-pass result (task
+# arena-2d-doc-authority-finalization). It is PRESERVED AS HISTORY, not
+# rewritten, per the follow-up task's explicit instruction not to present the
+# first pass as though it had been complete. The section below is the
+# follow-up (task arena-2d-doc-authority-finalization-followup).
+
+documentation_authority_followup:
+  previous_status: "PARTIAL"
+  final_status: "COMPLETE"
+  branch: "docs/arena-2d-authority-finalization"
+  previous_commit: "581786a8765fa2ec54b1ab5f802b49a023b2a2f7"
+  final_commit: ""  # filled in after commit, see git log
+
+  newly_authorized_file:
+    path: "docs/agents/memory/GOLDEN_RULES.md"
+    resolution: "SYNCHRONIZED_MIRROR"
+    resolution_reasoning: >
+      The file itself states, in its own text (lines 15-17, present before
+      this task touched it): "Копия этого файла лежит в репозитории:
+      docs/agents/GOLDEN_RULES.md... Правишь одну копию — правь обе, иначе
+      разъедутся" ("fix one copy, fix both, or they drift apart"). This is
+      the file self-declaring itself an active, intentional mirror of the
+      canonical docs/agents/GOLDEN_RULES.md, not a historical snapshot — so
+      SYNCHRONIZED_MIRROR was used, not SUPERSEDED_MEMORY_COPY. Confirmed
+      independently: docs/agents/README.md documents docs/agents/memory/ as
+      "the full memory folder... It used to exist on one machine only" and
+      states new rules must go "into the agent's memory folder too, so the
+      copies do not drift" — this is the documented intended mechanism, and
+      it had simply not been re-run since the one-time bulk-import commit
+      726e3380 ("everything the agents work from is in the repository").
+      No code path loads this file automatically (grep across *.py, *.json,
+      *.sh, *.yml, *.yaml for "agents/memory" found no loader) — the mirror
+      is read by other agents directly, not by a script, but the README
+      establishes it as the documented mechanism by which GreenBear and
+      Ember can read Bolt's rules at all.
+    references_checked:
+      - "git grep -n 'docs/agents/memory/GOLDEN_RULES' across *.md/*.py/*.txt — zero references by exact path"
+      - "git grep -n 'agents/memory' across *.py/*.json/*.sh/*.yml/*.yaml — only a release_journal.py changelog entry describing the historical bulk-import; no active loader"
+      - "docs/agents/README.md — documents docs/agents/memory/ as the intentional mirror mechanism and states copies must be kept in sync"
+      - "git log --follow -- docs/agents/memory/GOLDEN_RULES.md — last touched at 726e3380 (before this session's fixes), confirming it drifted rather than being actively maintained"
+      - "Diffed against docs/agents/GOLDEN_RULES.md's pre-fix content — identical Arena-acceptance-criterion text (Rule 6, and the historical-incident line referencing it), confirming true duplication, not divergent authorship"
+    changes_applied:
+      - "Added an explicit 'this file is a mirror, not an independent source of rules' note directly under the existing self-reference line, stating the canonical docs/agents/GOLDEN_RULES.md wins on conflict."
+      - "Annotated the 'five patterns' historical-incident narrative (item 5) with the same 3D-era/retired note applied to the canonical copy."
+      - "Replaced Rule 6's concrete eight-corner/2%-tolerance photographic-backdrop criterion with the same replacement text used in the canonical copy: acceptance criteria come from CURRENT_ARENA_SOURCE_OF_TRUTH.md, the current owner-approved 2D task contract, and approved responsive/accessibility criteria; the general principle (don't swap the criterion mid-course) is retained."
+    scope_note: >
+      This task authorized only the Arena 3D-acceptance-criterion conflict
+      in this file. The same file also contains other content that has
+      drifted from the canonical docs/agents/GOLDEN_RULES.md and was NOT
+      touched here because it is unrelated to the Arena 3D/2D direction and
+      was not named in this task's scope: Rule 4 here still reads
+      "Сначала подчинённый, потом я" (the old subordinate-first hierarchy,
+      superseded 2026-07-20 by the equal-engineers protocol in the
+      canonical copy), the "Как я работаю с GreenBear" section still
+      describes the old order-giving relationship, and the closing "Что
+      закрыто решением владельца" section still says the Arena is hidden
+      from everyone except staff/superuser (superseded by the any-author
+      access rule). None of these were in this task's global_conflict_scan
+      search terms and none concern the 3D/2D direction, so none were
+      edited. Flagging for a separate, explicitly-scoped follow-up task if
+      a full re-sync of this file is wanted.
+
+  absent_requested_files:
+    - path: "ARENA_2D_AUDIT_FINAL_SUMMARY.md"
+      status: "NOT_APPLICABLE_FILE_ABSENT"
+      created: false
+      verification:
+        tracked_file_search: "git ls-files | grep -i ARENA_2D_AUDIT_FINAL_SUMMARY — no output, not tracked"
+        filesystem_search: "find \"E:/CulinEire Project/CulinEire\" -iname '*ARENA_2D_AUDIT_FINAL_SUMMARY*' — no output, not on disk under the project tree"
+        history_search: "git log --all --oneline --diff-filter=A -- '*ARENA_2D_AUDIT_FINAL_SUMMARY*' — no output, never tracked on any branch"
+    - path: "ARENA_2D_AUDIT_HANDOFF_FOR_INDEPENDENT_REVIEW.md"
+      status: "NOT_APPLICABLE_FILE_ABSENT"
+      created: false
+      verification:
+        tracked_file_search: "git ls-files | grep -i ARENA_2D_AUDIT_HANDOFF_FOR_INDEPENDENT_REVIEW — no output, not tracked"
+        filesystem_search: "find \"E:/CulinEire Project/CulinEire\" -iname '*ARENA_2D_AUDIT_HANDOFF_FOR_INDEPENDENT_REVIEW*' — no output, not on disk under the project tree"
+        history_search: "git log --all --oneline --diff-filter=A -- '*ARENA_2D_AUDIT_HANDOFF_FOR_INDEPENDENT_REVIEW*' — no output, never tracked on any branch"
+
+  global_conflict_scan:
+    terms_searched:
+      - "восемь углов"
+      - "eight corners"
+      - "2% tolerance"
+      - "56-degree"
+      - "56°"
+      - "photographic backdrop"
+      - "dark esports"
+      - "dark stands"
+      - "green challenger"
+      - "red opponent"
+    results:
+      - term: "восемь углов"
+        matches:
+          - path: "docs/agents/GOLDEN_RULES.md:54"
+            classification: "HISTORICAL_AND_CLEARLY_MARKED"
+          - path: "docs/agents/memory/GOLDEN_RULES.md:65 (post-edit line number)"
+            classification: "HISTORICAL_AND_CLEARLY_MARKED"
+      - term: "eight corners"
+        matches: []
+      - term: "2% tolerance"
+        matches: []
+        note: "Exact phrase not present anywhere; broader 'допуск 2%' checked separately below."
+      - term: "56-degree"
+        matches:
+          - path: "docs/ai/audits/arena_2d/SHARED/CURRENT_ARENA_SOURCE_OF_TRUTH.md:33"
+            classification: "VALID_CURRENT_RULE"
+            note: "States it is retired; this is the current, correct statement of that fact."
+          - path: "docs/ai/audits/arena_2d/SHARED/MASTER_EXISTING_SYSTEM_AUDIT.md:173"
+            classification: "VALID_CURRENT_RULE"
+            note: "Describes the historical conflict as already resolved by this closure pass."
+          - path: "docs/chef_battle/arena_mockup_spec.md:37"
+            classification: "HISTORICAL_AND_CLEARLY_MARKED"
+            note: "Inside the file's HISTORICAL_CONCEPT_REFERENCE invalidation banner."
+      - term: "56°"
+        matches:
+          - path: "docs/agents/memory/project_arena_mobile_decision.md:28"
+            classification: "HISTORICAL_AND_CLEARLY_MARKED"
+            note: "Session-log memory entry, past tense, describing a prior incident."
+          - path: "docs/agents/memory/project_session_2026_07_19_state.md:39"
+            classification: "HISTORICAL_AND_CLEARLY_MARKED"
+            note: "Session-log memory entry, past tense."
+          - path: "docs/chef_battle/arena_mockup_spec.md:84"
+            classification: "HISTORICAL_AND_CLEARLY_MARKED"
+            note: "Body measurement under the file's historical banner."
+          - path: "docs/chef_battle/arena_mockup_spec.md:204"
+            classification: "HISTORICAL_AND_CLEARLY_MARKED"
+      - term: "photographic backdrop"
+        matches: []
+        note: "Existing text reads 'photographic hall/backdrop matching' — not a contiguous match for the exact search term."
+      - term: "dark esports"
+        matches:
+          - path: "docs/agents/CHEF_COMBATS_MANIFEST.md:4"
+            classification: "SUPERSEDED_AND_CLEARLY_MARKED"
+          - path: "docs/agents/CHEF_COMBATS_MANIFEST.md:64"
+            classification: "SUPERSEDED_AND_CLEARLY_MARKED"
+      - term: "dark stands"
+        matches:
+          - path: "docs/agents/MANIFEST_DELTA.md:16"
+            classification: "SUPERSEDED_AND_CLEARLY_MARKED"
+          - path: "docs/agents/MANIFEST_DELTA.md:35"
+            classification: "SUPERSEDED_AND_CLEARLY_MARKED"
+      - term: "green challenger"
+        matches:
+          - path: "docs/agents/MANIFEST_DELTA.md:36"
+            classification: "SUPERSEDED_AND_CLEARLY_MARKED"
+          - path: "docs/chef_battle/arena_mockup_spec.md:33"
+            classification: "HISTORICAL_AND_CLEARLY_MARKED"
+      - term: "red opponent"
+        matches:
+          - path: "docs/agents/MANIFEST_DELTA.md:36"
+            classification: "SUPERSEDED_AND_CLEARLY_MARKED"
+          - path: "docs/chef_battle/arena_mockup_spec.md:33"
+            classification: "HISTORICAL_AND_CLEARLY_MARKED"
+      - term: "допуск 2% (broader check, exact term above had zero hits)"
+        matches:
+          - path: "docs/agents/GOLDEN_RULES.md:98"
+            classification: "HISTORICAL_AND_CLEARLY_MARKED"
+            note: "Quoted only to state it is retired."
+          - path: "docs/agents/memory/GOLDEN_RULES.md (post-edit)"
+            classification: "HISTORICAL_AND_CLEARLY_MARKED"
+            note: "Quoted only to state it is retired, synchronized with the canonical copy in this task."
+          - path: "docs/agents/memory/project_session_2026_07_20_state.md:37"
+            classification: "HISTORICAL_AND_CLEARLY_MARKED"
+            note: "Session-log memory entry, describing what was measured in a past session, out of this task's scope (memory logs, not a live rule document)."
+
+  additional_active_conflicts_found: []
+  additional_conflicts_out_of_scope_flagged_only:
+    - "docs/agents/memory/GOLDEN_RULES.md's own Rule 4 / 'Как я работаю с GreenBear' section / staff-superuser access line — drifted from canonical for reasons unrelated to the Arena 3D/2D direction; not in this task's search terms; not edited; see newly_authorized_file.scope_note above."
+    - "docs/chef_battle/artifact_1_developer_prompt.md, claude_master_prompt.md, tz_main.md, ui_polish_backlog.md — pre-existing product-spec documents with 'premium dark' language, reported in the previous PARTIAL pass, still out of scope, not re-scanned this pass since 'premium dark'/'dark esports' as a joint term was not in this follow-up task's required search-term list (only 'dark esports' was, and that term does not appear in these four files — they use the phrase 'premium dark' without 'esports' adjacent)."
+
+  production_code_modified: false
+  implementation_started: false
+  ready_for_2d_planning: true
+  ready_for_2d_code: false
