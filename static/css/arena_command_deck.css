@@ -172,7 +172,12 @@
     background: var(--hall-edge, #0b120e);
   }
 
-  .arena-command-deck {
+  /* `body` in the selector on purpose. arena_hall.css carries
+     `.page--arena .arena-command-deck { width:100%; padding: .75rem clamp(...) }`
+     and loads after this file, so an equally specific rule here loses silently:
+     measured on prod, the deck stayed 1246px with padding and the hall inside
+     it 853px. Adding the element beats it without touching Bolt's file. */
+  body.page--arena .arena-command-deck {
     /* Out of the page's content column entirely. width:100% only fills
        whatever the wrapper allows, which at 1280 was 853px - the hall grew to
        full height and stayed in a column. The negative margin is the standard
@@ -182,6 +187,7 @@
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
     margin-block: 0;
+    padding: 0;
     display: block;
     position: relative;
     min-height: 100vh;
