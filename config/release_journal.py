@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.363",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "Rank becomes readable again",
+        "section": "Chef Battles",
+        "summary": "The first arena said rank without a word: the floor ran from deep bronze at the centre out to almost-white at the rim. Painting the hall dark took that contrast with it - the eight steps survived but sat between 0.90 and 0.65 in brightness, which is nothing on a lit floor, so rank stopped being visible. The steps are widened, not re-hued, and the floor stays light. The walkway between the floor and the crowd is pushed to the coolest colour the scheme actually has rather than the blue it once was: the scheme has no blue, and inventing one is how the arena grew its own palette last time.",
+    },
+    {
         "version": "2.5.362",
         "date": "2026-07-20",
         "commit": "pending",
