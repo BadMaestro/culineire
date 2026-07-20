@@ -2723,13 +2723,16 @@ ARENA_BUILD_STAGES = [
         "depends": "Frontend research. Feeds stages 8-10.",
     },
     {
-        "n": 8, "id": "perspective", "title": "Perspective / camera tilt (56 deg)",
-        "date": "2026-07-19",
+        "n": 8, "id": "perspective", "title": "Camera tilt — RETIRED by the owner",
+        "date": "2026-07-20", "version": "v2.5.352",
         "backend": {"who": "Bolt", "done": True, "ref": "geometry stable",
-                    "task": "Geometry contract stable; perspective is a render transform, no backend change"},
-        "frontend": {"who": "GB", "done": True, "ref": "rotateX / projection",
-                     "task": "Tilt the flat octagon into a bowl (cos56=0.56), billboard avatars upright"},
-        "depends": "Frontend perspective depends on the stable geometry contract (done).",
+                    "task": "Geometry contract stable; the camera was only ever a render transform"},
+        "frontend": {"who": "GB", "done": True, "ref": "CONVERGENCE = 0",
+                     "task": "Tilt built, then switched off on the owner's word: the arena is looked "
+                             "at from straight above. Switched off by one number, not deleted"},
+        "depends": "Closed. Depth of hall is out of scope while the view is a plan.",
+        "note": "The tilt is NOT what made the mockup read as an arena — composition and content do, "
+                "and both work from directly above. Reopen only if the owner asks for depth back.",
     },
     {
         "n": 9, "id": "proportions", "title": "Proportions (floor 0.63, stands 1.6R deep)",
@@ -2737,9 +2740,9 @@ ARENA_BUILD_STAGES = [
         "backend": {"who": "Bolt", "done": True, "ref": "SPECTATOR_RING_SEGMENTS",
                     "task": "Stands went 4 rings -> 8 (40..96), 544 seats; the query limit is derived "
                             "from the geometry instead of a hardcoded 208. Verified live: 544 seats drawn"},
-        "frontend": {"who": "GB", "done": False, "ref": "layout",
-                     "task": "Shrink floor to ~0.63 of frame, expand stands using the new rings. "
-                             "Measured 2026-07-19: floor still 0.956 of frame at 1920px"},
+        "frontend": {"who": "GB", "done": True, "ref": "FLOOR_SHARE = 0.66",
+                     "task": "One constant says how much of the frame width the floor takes. "
+                             "Measured on prod 2026-07-20: 0.657 at both 1920 and 390"},
         "depends": "Frontend proportions DEPEND ON backend adding deeper spectator rings.",
     },
     {
@@ -2792,7 +2795,7 @@ ARENA_BUILD_STAGES = [
         "date": "2026-07-20", "version": "v2.5.349",
         "backend": {"who": "Bolt", "done": True, "ref": "geometry contract",
                     "task": "No backend change: the contract describes rings, the renderer projects them"},
-        "frontend": {"who": "GB", "done": False, "ref": "arena_render.js",
+        "frontend": {"who": "GB", "done": True, "ref": "arena_render.js",
                      "task": "The floor never had perspective - it was a tilted plane with both "
                              "edges the same length (ratio 1.00) while the mockup converges to 0.51. "
                              "Every ring vertex is now projected, convergence is one parameter"},
@@ -2814,8 +2817,49 @@ ARENA_BUILD_STAGES = [
                 "tap that, and the tile is how a chef's card is opened. Start only after the "
                 "desktop backdrop is accepted - two moving floors at once is how we lose a day.",
     },
+    {
+        "n": 15, "id": "fullbleed", "title": "The arena fills the screen",
+        "date": "2026-07-20",
+        "backend": {"who": "Bolt", "done": True, "ref": "n/a", "task": "No backend change"},
+        "frontend": {"who": "GB", "done": False, "ref": "arena page shell",
+                     "task": "Take the arena out of its boxed container - full-bleed, no border, "
+                             "no rounded corner, no page margin. In the mockup the hall IS the screen"},
+        "depends": "Frontend only.",
+        "note": "Measured against the mockup 2026-07-20: this is the single biggest gap left, and it "
+                "has nothing to do with the camera. Ours sits in a 1123px box in the middle of an "
+                "ordinary page; the mockup's arena is the whole frame.",
+    },
+    {
+        "n": 16, "id": "hud", "title": "HUD frames the arena instead of sitting under it",
+        "date": "2026-07-20",
+        "backend": {"who": "Bolt", "done": True, "ref": "existing payload",
+                    "task": "Phase, counters, ladder and gifts are already in the poll payload"},
+        "frontend": {"who": "GB/Bolt", "done": False, "ref": "absolute panels",
+                     "task": "Title top-left, phase panel under it, phase rail top-centre, counters "
+                             "top-right, crown ladder bottom-left, gifts bottom-right, supporter "
+                             "ticker along the bottom. Dark glass, backdrop-filter, bronze edge"},
+        "depends": "Frontend. Bolt owns the panel styling in arena_hall.css, GB the placement.",
+    },
+    {
+        "n": 17, "id": "fighters", "title": "The two chefs flank the crown",
+        "date": "2026-07-20",
+        "backend": {"who": "Bolt", "done": False, "ref": "centre payload",
+                    "task": "Challenger and opponent with name, country and photo in the centre payload"},
+        "frontend": {"who": "GB", "done": False, "ref": "centre panels",
+                     "task": "Coloured panels either side of the crown - challenger green, opponent "
+                             "red - each with photo, name and flag, as drawn in the mockup"},
+        "depends": "Frontend depends on the centre payload carrying both fighters.",
+    },
+    {
+        "n": 18, "id": "ranklabels", "title": "The rank column lies on the floor",
+        "date": "2026-07-20",
+        "backend": {"who": "Bolt", "done": True, "ref": "ring keys", "task": "Ring keys already published"},
+        "frontend": {"who": "GB", "done": False, "ref": "overlay column",
+                     "task": "KITCHEN PORTER down to CULINARY MASTER as a column of pills over the "
+                             "centre of the floor, the way the mockup places it"},
+        "depends": "Frontend only.",
+    },
 ]
-
 
 def _arena_build_context():
     stages = []

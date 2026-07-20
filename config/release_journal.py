@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.359",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "A real viewer can be seen in the stands again",
+        "section": "Chef Battles",
+        "summary": "Hiding the painted-over seats hid live people with them: an avatar is cut to the shape of its seat, and a hidden seat has no shape, so anyone watching rendered at nothing at all. Seats are now clear rather than absent, and a live viewer carries a bronze edge against the painted crowd.",
+    },
+    {
         "version": "2.5.358",
         "date": "2026-07-20",
         "commit": "pending",

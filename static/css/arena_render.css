@@ -516,7 +516,25 @@
  * only stop painting them. Remove the backdrop and the old rendering returns
  * on its own; nothing here is deleted.
  * -------------------------------------------------------------------------- */
-.page--arena.has-arena-backdrop #arena-render [data-ring-kind="spectator"],
 .page--arena.has-arena-backdrop #arena-render .arena-crowd-figure {
   display: none;
+}
+
+/* An empty seat shows the photograph through it. NOT display:none — the seat's
+   outline is what a real viewer's avatar is clipped to, and a hidden element
+   has no geometry, so the clip collapsed and a live spectator rendered at 0x0.
+   Measured on prod before this: one real viewer inserted into the stands came
+   out zero pixels wide. Making it transparent keeps the shape and hides the
+   tile. */
+.page--arena.has-arena-backdrop #arena-render [data-ring-kind="spectator"][data-occupancy="empty"] {
+  fill: transparent;
+  stroke: transparent;
+}
+
+/* A live viewer sits ON the painted crowd, so they carry a bronze edge to tell
+   them apart from the faces behind them. */
+.page--arena.has-arena-backdrop #arena-render [data-ring-kind="spectator"][data-occupancy="spectator"] {
+  fill: transparent;
+  stroke: var(--hall-bronze, #b47a33);
+  stroke-width: 1.4;
 }
