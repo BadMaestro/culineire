@@ -200,7 +200,11 @@
   .arena-command-deck__floor-head { display: none; }
 
   .arena-floor-stage,
-  .arena-command-deck__floor .arena-render-container {
+  /* Three classes on purpose. arena_render.css sets the container's size under
+     `.page--arena .arena-render-container` and loads AFTER this file, so a
+     two-class selector here loses the cascade silently and the hall stays in
+     its 853x563 box while everything around it says full-bleed. */
+  .page--arena .arena-command-deck__floor .arena-render-container {
     width: 100%;
     max-width: none;
     height: 100vh;
@@ -211,7 +215,7 @@
   /* The hall has to reach the edges too, not just the box it is drawn in.
      Left at its own clamped height the picture sat in a 563px band with the
      page showing above and below it. */
-  .arena-command-deck__floor .arena-render-container {
+  .page--arena .arena-command-deck__floor .arena-render-container {
     background-size: cover;
   }
 
