@@ -10,7 +10,6 @@
   --ad-green:#3f8a34; --ad-red:#b23b34; --ad-gold:#d6a64b; --ad-gold-d:#9c7526;
   --ad-line:rgba(31,44,37,.12);
 }
-
 /* shared panel look */
 .arena-command-deck__phase-card,
 .arena-command-deck__metrics,
@@ -25,10 +24,8 @@
   font-size:.66rem; letter-spacing:.09em; text-transform:uppercase;
   color:var(--ad-gold-d); font-weight:700; margin:0 0 .4rem;
 }
-
 /* icons injected from _arena_deck_svg.html */
 .arena-ico { width:1.1rem; height:1.1rem; display:inline-block; vertical-align:middle; }
-
 /* ── Phase rail (A2) ── */
 .arena-command-deck__phase-rail {
   display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; justify-content:center;
@@ -45,7 +42,6 @@
   border-color:var(--ad-gold); box-shadow:0 2px 8px rgba(214,166,75,.35);
 }
 .arena-phase-step.is-active b { color:#4a340c; }
-
 /* ── Phase rail polish (Ember #169): active phase unmistakable, inactive calm ── */
 .arena-command-deck__phase-rail .arena-phase-step.is-active {
   transform:translateY(-1px) scale(1.03);
@@ -56,7 +52,6 @@
   background:#7a5514; box-shadow:0 0 0 2px rgba(255,255,255,.6);
 }
 .arena-command-deck__phase-rail .arena-phase-step:not(.is-active) { opacity:.9; }
-
 /* ── Deadline card clarity (Ember #177): value scannable, empty state calm ── */
 .arena-command-deck__phase-deadline {
   display:flex; flex-direction:column; gap:.05rem; margin-top:.6rem;
@@ -73,19 +68,16 @@
   background:var(--ad-s2); border-color:var(--ad-line);
 }
 .arena-command-deck__phase-deadline.is-empty > strong { color:var(--ad-mut); font-weight:600; font-size:.92rem; }
-
 /* ── Metrics band (A3) ── */
 .arena-command-deck__metrics { display:flex; gap:1.4rem; align-items:center; flex-wrap:wrap; }
 .arena-metric { display:flex; flex-direction:column; line-height:1.15; }
 .arena-metric span { font-size:.62rem; letter-spacing:.05em; text-transform:uppercase; color:var(--ad-mut); }
 .arena-metric strong { font-size:1.25rem; color:var(--ad-ink); font-variant-numeric:tabular-nums; }
 .arena-metric .arena-ico { color:var(--ad-gold-d); }
-
 /* ── Phase card (A4) ── */
 .arena-command-deck__phase-name { font-family:var(--font-serif,'Playfair Display',serif);
   font-weight:800; font-size:1.35rem; color:var(--ad-ink); margin:.15rem 0 .3rem; }
 .arena-command-deck__phase-copy { color:var(--ad-ink2); font-size:.82rem; margin:0; }
-
 /* ── Focus cards + crown medallion (A8/A9/A10) ── */
 .arena-command-deck__live-stage {
   display:flex; align-items:center; justify-content:center; gap:1rem; flex-wrap:wrap;
@@ -101,7 +93,6 @@
   text-decoration:none; color:var(--ad-gold-d); font-weight:800; letter-spacing:.04em;
 }
 .arena-live-centre .arena-ico { width:2.6rem; height:2.6rem; filter:drop-shadow(0 2px 6px rgba(214,166,75,.5)); }
-
 /* ── Crown ladder (A11) ── */
 .arena-ladder-list { list-style:none; margin:0; padding:0; display:grid; gap:.35rem; }
 .arena-ladder-list li {
@@ -109,30 +100,13 @@
   padding:.35rem .1rem; border-bottom:1px solid var(--ad-line);
 }
 .arena-ladder-list li:last-child { border-bottom:0; }
-
 /* ── Gifts (A12) ── */
 .arena-command-deck__gift-copy { color:var(--ad-ink2); font-size:.8rem; margin:.2rem 0 0; }
-
 /* ── Crowd rail (A13) ── */
 .arena-command-deck__crowd-rail {
   background:var(--ad-s3); border:1px solid var(--ad-line); border-radius:12px;
   padding:.5rem .9rem; color:var(--ad-ink2); font-size:.82rem;
 }
-
-/* ── Rank-spine over the ring: readability + tighter footprint (Ember #163 QA) ──
-   Compacting the 8 steps pulls the spine up out of the ring centre (less overlap
-   with the central chefs); near-solid fill + a soft group backdrop keeps labels
-   legible over the busy SVG. No repositioning of Ember's absolute anchor. */
-.arena-command-deck .arena-rank-spine {
-  gap:.12rem; padding:.22rem; border-radius:12px;
-  background:linear-gradient(180deg, rgba(31,44,37,.06), rgba(31,44,37,0));
-}
-.arena-command-deck .arena-rank-spine__step {
-  min-height:1.04rem; padding:.1rem .42rem;
-  background:rgba(255,253,249,.95); border-color:rgba(139,115,85,.55);
-  box-shadow:0 .12rem .4rem rgba(31,44,37,.15);
-}
-
 @media (prefers-reduced-motion: reduce) {
   .arena-phase-step { transition:none; }
 }

@@ -86,6 +86,12 @@
 .arena-floor-stage::before { content: ""; position: absolute; z-index: -1; inset: 0; background: #151b17 url('/static/images/chef_battle/arena/arena-floor-plate-v1.png') center / cover no-repeat; }
 .arena-floor-stage .arena-puzzle-container { position: relative; z-index: 1; }
 .arena-floor-stage #arena-puzzle { position: relative; z-index: 1; }
+/* The rank column. Position and width are set from arena_render.js against the
+   measured floor - the band between its near edge and the crown - because only
+   the renderer knows how big the floor came out. Everything visual stays here,
+   and this is the only file that describes this column at all: it used to be
+   restated in arena_deck_polish.css and again in arena_hall.css, three rules
+   for one element in three files. */
 .arena-rank-spine { position: absolute; z-index: 2; top: 8.5%; left: 50%; display: grid; gap: .16rem; width: min(10.75rem, 22%); transform: translateX(-50%); pointer-events: none; }
 .arena-rank-spine__step { min-height: 1.18rem; display: flex; align-items: center; justify-content: space-between; gap: .32rem; padding: .13rem .42rem; border: 1px solid rgb(139 115 85 / .45); border-radius: 999px; color: var(--arena-ink); font-size: clamp(.42rem, .6vw, .61rem); font-weight: 800; letter-spacing: .035em; line-height: 1; text-decoration: none; text-transform: uppercase; background: rgb(255 253 249 / .82); box-shadow: 0 .16rem .45rem rgb(31 44 37 / .08); pointer-events: auto; transition: background .18s ease, border-color .18s ease, color .18s ease; }
 .arena-rank-spine__step b { min-width: 1.05rem; display: grid; place-items: center; border-radius: 999px; color: var(--arena-cappuccino); font-size: .9em; background: var(--arena-cream); }

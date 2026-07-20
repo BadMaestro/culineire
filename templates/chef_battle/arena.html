@@ -111,7 +111,7 @@
     </div>
     <div class="arena-floor-stage">
       <nav class="arena-rank-spine" aria-label="Kitchen rank ladder">
-        {% for rank, chefs in rank_groups reversed %}
+        {% for rank, chefs in rank_groups %}
           <a class="arena-rank-spine__step arena-rank-spine__step--{{ rank.value }}" href="{% url 'chef_battle:rankings' %}">
             <span>{{ rank.label }}</span><b>{{ chefs|length }}</b>
           </a>

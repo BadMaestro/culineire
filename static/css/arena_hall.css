@@ -49,7 +49,6 @@
   --hall-text-dim: color-mix(in srgb, var(--surface-muted) 62%, var(--muted));
   --hall-shade: color-mix(in srgb, var(--ink) 45%, #000);
 }
-
 /* ---- the hall is the page ---- */
 
 .page--arena {
@@ -58,7 +57,6 @@
     radial-gradient(130% 120% at 50% 40%, var(--hall-deep) 0%, var(--hall-edge) 100%);
   background-attachment: fixed;
 }
-
 /* ---- the arena stops being a box on a page ---- */
 
 /*
@@ -79,7 +77,6 @@
 .page--arena #main-content {
   padding: 0;
 }
-
 /* Layout used to live here too — width, padding, min-height — while
    arena_command_deck.css set the same properties for the same element. Two
    files describing one layout is what put the octagon off the side of the
@@ -95,7 +92,6 @@
   background: transparent;
   box-shadow: none;
 }
-
 /*
  * The scene used to sit on its own dark plate — a flat fill plus a floor
  * texture, drawn to give the arena a surface back when the page around it was
@@ -112,11 +108,9 @@
   border-radius: 0;
   background: transparent;
 }
-
 .page--arena .arena-floor-stage::before {
   content: none;
 }
-
 /* ---- the floor edge ---- */
 
 /*
@@ -140,7 +134,6 @@
   stroke: color-mix(in srgb, var(--muted) 82%, var(--surface-muted));
   opacity: 1;
 }
-
 /* ---- one token flip turns the deck dark ---- */
 
 .page--arena .arena-command-deck {
@@ -152,7 +145,6 @@
   --arena-paper: var(--hall-panel);
   --arena-cream: var(--hall-raised);
 }
-
 /* Panels: the deck paints these with raw parchment values, so the token flip
    cannot reach them — dark glass over the hall instead.
 
@@ -183,7 +175,6 @@
     0 0.55rem 1.6rem color-mix(in srgb, var(--hall-shade) 62%, transparent);
   backdrop-filter: blur(12px) saturate(1.15);
 }
-
 /* Blur is a compositing cost on every scroll frame, and the hall behind these
    panels is a still image — on a phone the same look is achieved by making the
    glass more opaque instead. */
@@ -199,11 +190,9 @@
     backdrop-filter: none;
   }
 }
-
 .page--arena .arena-phase-step.is-active {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hall-bronze) 35%, transparent);
 }
-
 /* ---- the floor card dissolves into the hall ---- */
 
 /* The white card around the arena was the "container" the owner named: the
@@ -216,7 +205,6 @@
   box-shadow: none;
   padding: 0.25rem;
 }
-
 .page--arena .arena-command-deck__live-stage {
   border-color: color-mix(in srgb, var(--hall-bronze) 30%, transparent);
   background: linear-gradient(
@@ -226,17 +214,14 @@
     color-mix(in srgb, var(--brand-dark) 34%, transparent)
   );
 }
-
 .page--arena .arena-live-centre {
   background: color-mix(in srgb, var(--hall-raised) 90%, transparent);
   box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--hall-bronze) 18%, transparent);
 }
-
 .page--arena .arena-live-centre:hover,
 .page--arena .arena-live-centre:focus-visible {
   background: var(--hall-raised);
 }
-
 .page--arena .arena-live-centre--crown {
   background: linear-gradient(
     135deg,
@@ -244,7 +229,6 @@
     color-mix(in srgb, var(--hall-raised) 92%, transparent)
   );
 }
-
 /* ---- the polish layer's own palette, re-pointed for the dark hall ---- */
 
 /*
@@ -273,13 +257,11 @@
   --ad-gold-d: var(--brand-dark);
   --ad-line: color-mix(in srgb, var(--hall-bronze) 28%, transparent);
 }
-
 /* The card carries the crown holder's portrait, so it gets a little more
    presence than a plain panel: a bronze hairline and a shadow to lift it. */
 .page--arena .arena-live-chef {
   box-shadow: 0 0.4rem 1.2rem color-mix(in srgb, var(--hall-shade) 52%, transparent);
 }
-
 /* The crown sits at the centre of the floor, and in the reference it is the one
    thing the room is lit around. The glow is thrown behind the medallion rather
    than added to it, so the portrait keeps its own contrast. */
@@ -287,7 +269,6 @@
   position: relative;
   isolation: isolate;
 }
-
 .page--arena .arena-live-centre--crown::before {
   content: "";
   position: absolute;
@@ -302,68 +283,12 @@
   );
   pointer-events: none;
 }
-
 @media (prefers-reduced-motion: no-preference) {
   .page--arena .arena-live-centre--crown::before {
     animation: hall-crown-breathe 6s ease-in-out infinite;
   }
 }
-
 @keyframes hall-crown-breathe {
   0%, 100% { opacity: 0.75; transform: scale(0.97); }
   50%      { opacity: 1;    transform: scale(1.03); }
-}
-
-/* ---- rank spine: gold pills over the hall, as in the mockup ---- */
-
-/*
- * The spine sat ON the centre stage. Measured on the live page at 1280px:
- * the stage begins 32.2% down the floor container, and the spine ran from 8.5%
- * to 44.8% — 12.6% of overlap, right across the crown holder.
- *
- * It is not simply anchored too low: at 36.3% tall it does not FIT in the 32.2%
- * above the stage, so moving it up alone would push it out of the frame. The
- * eight steps are compacted until the stack clears the stage, and the anchor
- * rides up with them. The tuning was done against the mockup, where the ladder
- * is a tight column of small caps above the crown, not a stack of buttons.
- *
- * These are proportions of the container, not fixed pixels, so they hold as the
- * scene is refitted (arena_render.js sizes the SVG to the container).
- */
-.page--arena .arena-rank-spine {
-  top: 2.4%;
-  gap: 0.1rem;
-  padding: 0.16rem;
-  width: min(9.5rem, 20%);
-}
-
-/* The step box is what sets the stack's height, so it is the thing that has to
-   shrink; the label then grows back inside it as the viewport widens, where
-   there is room to spare (measured: 10px of clearance at 1280, 122px at 1920). */
-.page--arena .arena-rank-spine__step {
-  min-height: 0.82rem;
-  padding: 0.05rem 0.34rem;
-  font-size: clamp(0.42rem, 0.56vw, 0.62rem);
-}
-
-.page--arena .arena-rank-spine__step b {
-  min-width: 0.85rem;
-}
-
-.page--arena .arena-rank-spine__step {
-  border-color: color-mix(in srgb, var(--hall-bronze) 40%, transparent);
-  color: var(--hall-text);
-  background: color-mix(in srgb, var(--hall-raised) 85%, transparent);
-  box-shadow: 0 0.16rem 0.45rem color-mix(in srgb, var(--hall-shade) 56%, transparent);
-}
-
-.page--arena .arena-rank-spine__step b {
-  color: var(--hall-panel);
-  background: var(--hall-bronze);
-}
-
-.page--arena .arena-rank-spine__step:hover,
-.page--arena .arena-rank-spine__step:focus-visible {
-  color: var(--hall-bronze-lift);
-  background: var(--hall-raised);
 }

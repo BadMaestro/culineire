@@ -943,6 +943,46 @@
     var painted = getComputedStyle(container).backgroundImage;
     document.body.classList.toggle('has-arena-backdrop',
       !!painted && painted !== 'none');
+
+    placeRankSpine(svg);
+  }
+
+  // The rank column lies ON the floor in the mockup, between its top edge and
+  // the crown - not floating above the scene as a separate list. Where that is
+  // depends on how large the floor came out, which only the renderer knows, so
+  // it is placed by measurement here rather than guessed at as a percentage in
+  // CSS.
+  function placeRankSpine(svg) {
+    var spine = document.querySelector('.arena-rank-spine');
+    var container = svg.parentElement;
+    if (!spine || !container) { return; }
+
+    var cells = svg.querySelectorAll('.arena-cell[data-ring-kind="rank"]');
+    if (!cells.length) { return; }
+    var top = Infinity, bottom = -Infinity, left = Infinity, right = -Infinity;
+    for (var i = 0; i < cells.length; i++) {
+      var box = cells[i].getBoundingClientRect();
+      if (!box.width || !box.height) { continue; }
+      if (box.top < top) { top = box.top; }
+      if (box.bottom > bottom) { bottom = box.bottom; }
+      if (box.left < left) { left = box.left; }
+      if (box.right > right) { right = box.right; }
+    }
+    if (!(right > left)) { return; }
+
+    var stage = svg.querySelector('.arena-stage');
+    var crownTop = stage ? stage.getBoundingClientRect().top : (top + bottom) / 2;
+    var frame = container.getBoundingClientRect();
+    var height = spine.getBoundingClientRect().height;
+
+    // Sit in the band between the floor's near edge and the crown, centred in
+    // it, so the column never covers the centre it is a legend for.
+    var band = crownTop - top;
+    var offset = top - frame.top + Math.max(6, (band - height) / 2);
+
+    spine.style.top = offset.toFixed(1) + 'px';
+    spine.style.left = ((left + right) / 2 - frame.left).toFixed(1) + 'px';
+    spine.style.width = Math.min(0.34 * (right - left), 190).toFixed(1) + 'px';
   }
 
   // Billboarding: a face lying on the tilted floor plane is squashed, and a

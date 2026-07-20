@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.370",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "The rank ladder lies on the floor it describes",
+        "section": "Chef Battles",
+        "summary": "The list of kitchen ranks floated above the arena as a separate column, reading bottom rank last. It now lies on the floor between its near edge and the crown, in the order the mockup shows, and it is described in one stylesheet instead of three.",
+    },
+    {
         "version": "2.5.369",
         "date": "2026-07-20",
         "commit": "pending",
