@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import logging
 
 from django.conf import settings
@@ -82,9 +83,24 @@ def rank_for_rating(rating: int) -> str:
 
 
 def hash_request_value(value: str) -> str:
+    """Pseudonymise one piece of request metadata (IP, user agent, session key).
+
+    Keyed with SECRET_KEY, not a bare digest. A bare SHA-256 of an IP address is
+    reversible in practice — the entire IPv4 space is four billion candidates,
+    which rehashes faster than it takes to read this sentence, so anyone holding
+    the table could recover the addresses. HMAC makes the same walk impossible
+    without the key. The output stays 64 hex chars, so the column is unchanged.
+
+    Rows written by the old recipe are labelled HASH_SCHEME_LEGACY and are not
+    comparable with these; the fraud gates filter on the label before matching.
+    """
     if not value:
         return ""
-    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+    return hmac.new(
+        settings.SECRET_KEY.encode("utf-8"),
+        value.encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
 
 
 def create_battle_event(

@@ -15,6 +15,17 @@ def vote_integrity_expires_at():
     return timezone.now() + timezone.timedelta(days=90)
 
 
+# Which recipe currently produces request fingerprints (see
+# services.hash_request_value). "v1" was a bare SHA-256 of the value, which is
+# not anonymisation: the whole IPv4 space rehashes in seconds, so an ip_hash
+# could be walked back to the address it came from. "v2" is HMAC keyed on
+# SECRET_KEY, which cannot. Old rows keep their v1 label rather than being
+# rewritten — the input is gone, so they cannot be recomputed — and the fraud
+# gates only ever compare hashes carrying the same label.
+HASH_SCHEME_LEGACY = "v1"
+HASH_SCHEME_CURRENT = "v2"
+
+
 class ChefBattleProfile(models.Model):
     class Rank(models.TextChoices):
         KITCHEN_PORTER = "kitchen_porter", "Kitchen Porter"
@@ -325,9 +336,29 @@ class BattleVote(models.Model):
     # account, so the FK is required and a deleted account takes its votes with it.
     voter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="battle_votes")
     voted_for = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="battle_votes_received")
+    # The voter's own author row, denormalised from RecipeAuthor.user at write
+    # time. It exists for one reason: a database CheckConstraint cannot join, so
+    # "voter is not voted_for" is unexpressible while the two sides live in
+    # different tables (voter is a User, voted_for a RecipeAuthor). Comparing
+    # those two ids directly would be worse than no constraint at all — it would
+    # miss every real self-vote and reject an honest one whenever a user id
+    # happened to equal an author id. Nullable because rows written before this
+    # field existed cannot be filled in, and because a voter need not have an
+    # author profile at all; the constraint therefore only bites when it is set.
+    voter_author = models.ForeignKey(
+        RecipeAuthor,
+        on_delete=models.CASCADE,
+        related_name="battle_votes_cast",
+        null=True,
+        blank=True,
+    )
     ip_hash = models.CharField(max_length=64, blank=True)
     user_agent_hash = models.CharField(max_length=64, blank=True)
     session_key_hash = models.CharField(max_length=64, blank=True)
+    # Which recipe produced the three hashes above. Values from different schemes
+    # are not comparable, so the fraud gates must filter on this before matching
+    # one fingerprint against another. See services.hash_request_value.
+    hash_scheme = models.CharField(max_length=8, default=HASH_SCHEME_CURRENT, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_suspicious = models.BooleanField(default=False)
     moderation_note = models.TextField(blank=True)
@@ -338,6 +369,10 @@ class BattleVote(models.Model):
             models.UniqueConstraint(
                 fields=["battle", "voter"],
                 name="one_authenticated_vote_per_battle",
+            ),
+            models.CheckConstraint(
+                condition=~models.Q(voter_author=models.F("voted_for")),
+                name="chef_cannot_vote_for_themselves",
             ),
         ]
 
@@ -367,6 +402,7 @@ class VoteIntegrityEvent(models.Model):
     ip_hash = models.CharField(max_length=64, blank=True)
     user_agent_hash = models.CharField(max_length=64, blank=True)
     session_key_hash = models.CharField(max_length=64, blank=True)
+    hash_scheme = models.CharField(max_length=8, default=HASH_SCHEME_CURRENT, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     expires_at = models.DateTimeField(default=vote_integrity_expires_at, db_index=True)
 

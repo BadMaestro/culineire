@@ -1613,6 +1613,9 @@ def battle_vote(request, pk):
     vote = BattleVote(
         battle=battle,
         voter=user,
+        # Denormalised so the database can enforce "no self-vote" on its own —
+        # a CheckConstraint cannot reach RecipeAuthor.user to work it out.
+        voter_author=voter_author,
         voted_for=voted_for,
         ip_hash=ip_hash,
         user_agent_hash=ua_hash,

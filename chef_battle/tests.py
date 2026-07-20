@@ -6984,3 +6984,103 @@ class ArenaGeometryTests(TestCase):
         sliced = profile.objects.select_related.return_value.filter.return_value.order_by.return_value
         self.assertEqual(sliced.__getitem__.call_args[0][0],
                          slice(None, spectator_capacity()))
+
+
+class VoteIntegrityConstraintTests(TransactionTestCase):
+    """The self-vote ban has to survive a caller that skips the service layer.
+
+    Every guard against self-voting used to live in Python: the fraud gate in
+    fraud.gate_self_vote and BattleVote.clean(). Django does not call clean()
+    from save(), so a management command, a shell session, a data migration or
+    a future view that builds a BattleVote directly wrote the row unchallenged.
+    These tests go around the service layer on purpose — that is the hole.
+    """
+
+    def setUp(self):
+        User = get_user_model()
+        self.user_a = User.objects.create_user(username="con-chef-a", password="pw")
+        self.user_b = User.objects.create_user(username="con-chef-b", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=self.user_a, name="Con Chef A", slug="con-chef-a")
+        self.chef_b = RecipeAuthor.objects.create(user=self.user_b, name="Con Chef B", slug="con-chef-b")
+        self.battle = accept_challenge(BattleChallenge.objects.create(
+            challenger=self.chef_a,
+            opponent=self.chef_b,
+            theme="Constraint theme",
+            expires_at=timezone.now() + timezone.timedelta(hours=24),
+        ))
+
+    def test_database_rejects_a_self_vote_written_straight_through_save(self):
+        vote = BattleVote(
+            battle=self.battle,
+            voter=self.user_a,
+            voter_author=self.chef_a,
+            voted_for=self.chef_a,
+        )
+
+        with self.assertRaises(IntegrityError):
+            vote.save()
+
+    def test_database_accepts_a_vote_for_the_opponent(self):
+        BattleVote.objects.create(
+            battle=self.battle,
+            voter=self.user_a,
+            voter_author=self.chef_a,
+            voted_for=self.chef_b,
+        )
+
+        self.assertEqual(BattleVote.objects.count(), 1)
+
+    def test_a_voter_without_an_author_profile_is_not_blocked(self):
+        """voter_author is nullable: a reader who never wrote a recipe has no
+        author row, and the constraint must let their vote through rather than
+        rejecting everyone it cannot identify."""
+        User = get_user_model()
+        reader = User.objects.create_user(username="con-reader", password="pw")
+
+        BattleVote.objects.create(
+            battle=self.battle,
+            voter=reader,
+            voter_author=None,
+            voted_for=self.chef_a,
+        )
+
+        self.assertEqual(BattleVote.objects.count(), 1)
+
+
+class RequestHashTests(TestCase):
+    """A stored ip_hash must not be reversible back to the IP it came from."""
+
+    def test_hash_is_keyed_and_not_a_bare_digest(self):
+        import hashlib
+        from .services import hash_request_value
+
+        ip = "203.0.113.7"
+        bare = hashlib.sha256(ip.encode("utf-8")).hexdigest()
+
+        stored = hash_request_value(ip)
+
+        # The whole IPv4 space can be run through a bare SHA-256 in seconds, so
+        # matching that digest would mean the address is recoverable from the
+        # table. It must not match, and must still fit the 64-char column.
+        self.assertNotEqual(stored, bare)
+        self.assertEqual(len(stored), 64)
+
+    def test_the_same_value_still_hashes_the_same_way(self):
+        """Fraud gates match one fingerprint against another, so the function
+        has to stay deterministic within a single key."""
+        from .services import hash_request_value
+
+        self.assertEqual(hash_request_value("203.0.113.7"), hash_request_value("203.0.113.7"))
+        self.assertNotEqual(hash_request_value("203.0.113.7"), hash_request_value("203.0.113.8"))
+
+    def test_empty_value_stays_empty(self):
+        from .services import hash_request_value
+
+        self.assertEqual(hash_request_value(""), "")
+
+    def test_new_votes_are_labelled_with_the_current_scheme(self):
+        """Old rows carry v1 hashes that cannot be recomputed. Gates compare
+        only within one label, so new rows must say which recipe made them."""
+        from .models import HASH_SCHEME_CURRENT
+
+        self.assertEqual(BattleVote._meta.get_field("hash_scheme").default, HASH_SCHEME_CURRENT)

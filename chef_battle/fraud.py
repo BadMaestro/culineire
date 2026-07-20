@@ -69,11 +69,13 @@ def gate_account_age(user, min_days: int = 1) -> GateResult:
 
 def gate_vote_rate_ip(ip_hash: str, battle_id: int, max_per_hour: int = 3) -> GateResult:
     """Reject if this IP hash already cast more than max_per_hour votes in this battle."""
-    from .models import BattleVote
+    from .models import HASH_SCHEME_CURRENT, BattleVote
     cutoff = timezone.now() - timezone.timedelta(hours=1)
     count = BattleVote.objects.filter(
         battle_id=battle_id,
         ip_hash=ip_hash,
+        # Two hashes only mean "same IP" when the same recipe produced them.
+        hash_scheme=HASH_SCHEME_CURRENT,
         created_at__gte=cutoff,
     ).count()
     if count >= max_per_hour:
@@ -90,13 +92,14 @@ def gate_vote_rate_ip(ip_hash: str, battle_id: int, max_per_hour: int = 3) -> Ga
 
 def gate_duplicate_device(ip_hash: str, ua_hash: str, battle_id: int) -> GateResult:
     """Reject if this exact device fingerprint already voted in this battle."""
-    from .models import BattleVote
+    from .models import HASH_SCHEME_CURRENT, BattleVote
     if not ip_hash or not ua_hash:
         return GateResult("duplicate_device", True, "Anonymous vote without full fingerprint — skipped.")
     exists = BattleVote.objects.filter(
         battle_id=battle_id,
         ip_hash=ip_hash,
         user_agent_hash=ua_hash,
+        hash_scheme=HASH_SCHEME_CURRENT,
         voter__isnull=True,
     ).exists()
     if exists:
