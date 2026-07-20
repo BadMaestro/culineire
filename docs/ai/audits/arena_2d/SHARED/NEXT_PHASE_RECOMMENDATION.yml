@@ -1,0 +1,29 @@
+next_phase_recommendation:
+  audit_status: "COMPLETE_PENDING_OWNER_REVIEW"
+  safe_to_begin_cleanup: false
+  safe_to_begin_2d_implementation: false
+  owner_approval_required: true
+  recommended_phase: "Contract-preserving 2D Arena frontend reconstruction"
+  prerequisites:
+    - "Owner approves shared audit and boundary"
+    - "Owner chooses popup, canonical room, or both"
+    - "Owner decides privileged preview scope"
+    - "Responsive/accessibility acceptance criteria exist"
+    - "Context/test conflicts are explicitly scheduled"
+  preserve_unchanged:
+    - "Backend domain and integrity rules"
+    - "Access and transaction rules"
+    - "URLs, payload meanings, polling and action endpoints"
+    - "Broadcast snapshot contract"
+  implementation_split:
+    backend_domain_guardian:
+      scope: ["Contract tests", "Approved context/test fixes only"]
+    frontend_2d_owner:
+      scope: ["Semantic 2D template", "Single token stylesheet", "Accessible controls"]
+    integration_qa_owner:
+      scope: ["Action parity", "AMC compatibility", "Browser/a11y regression"]
+  cleanup_candidates_for_later_review:
+    - "hall-bg-v1.webp"
+    - "hall-bg-v2-plan.webp"
+    - "Legacy CSS after 2D parity"
+  confirmed_dead_code: []
