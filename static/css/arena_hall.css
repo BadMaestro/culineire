@@ -120,38 +120,24 @@
   content: none;
 }
 
-/* ---- rank has to be readable from across the room ---- */
+/* ---- the floor edge ---- */
 
 /*
- * The first arena said rank without a word: the floor ran from deep bronze at
- * the centre out to almost-white at the rim, and a glance told you where
- * Culinary Master sat. Painting the hall dark took the contrast with it — the
- * eight steps survived but landed between 0.90 and 0.65 in brightness, which
- * is nothing on a lit floor. Rank stopped being visible at all.
+ * A deep bronze funnel used to sit here: eight widened steps running from
+ * almost-black at the centre out to parchment at the rim, so rank could be read
+ * from the floor alone. It was taken from the FIRST arena, which the owner had
+ * shown while asking about colour — not from the reference we are building to.
+ * In the reference the floor is even cream and rank is read from the pills, so
+ * the funnel was drift, and it went out the same evening it went in.
  *
- * The steps are widened, not re-hued: the same brand bronze, further apart. The
- * floor stays light, which is the owner's standing rule — deepening the middle
- * of a parchment floor is not the same as a dark floor, and the outermost rings
- * get lighter here, not darker.
- */
-.page--arena #arena-render [data-ring="8"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 8%,  var(--surface)); }
-.page--arena #arena-render [data-ring="7"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 19%, var(--surface)); }
-.page--arena #arena-render [data-ring="6"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 31%, var(--surface)); }
-.page--arena #arena-render [data-ring="5"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 44%, var(--surface)); }
-.page--arena #arena-render [data-ring="4"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 58%, var(--surface)); }
-.page--arena #arena-render [data-ring="3"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 72%, var(--surface)); }
-.page--arena #arena-render [data-ring="2"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand) 86%, var(--surface)); }
-.page--arena #arena-render [data-ring="1"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--brand-dark) 82%, var(--surface)); }
-
-/*
- * The walkway between the floor and the crowd was the other thing that said
- * where the chefs' ground ends. It used to be frankly blue; the scheme has no
- * blue and inventing one is how the arena grew its own palette last time, so
- * this is the coolest colour the scheme does have — --muted, a grey-green —
- * pushed away from the warm floor rather than toward a hue we do not own.
+ * The renderer's own eight steps stay as they are. If rank ever needs to be
+ * louder on the floor, that is a decision about the reference, not a gradient
+ * to widen quietly.
  *
- * If the reference's slate really is wanted, it belongs in base.css as a brand
- * colour, agreed once, not mixed by eye here.
+ * The walkway between the floor and the crowd is the one thing kept from that
+ * pass: the reference has it, and it marks where the chefs' ground ends. Its
+ * colour is --muted, the coolest the scheme holds. The reference's band looks
+ * slate; the scheme has no blue, so none is mixed here.
  */
 .page--arena #arena-render .arena-walkway {
   stroke: color-mix(in srgb, var(--muted) 82%, var(--surface-muted));

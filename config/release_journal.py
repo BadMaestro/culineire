@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.366",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "The bronze funnel on the floor goes back out",
+        "section": "Chef Battles",
+        "summary": "A widened bronze gradient had been added to the floor, running from almost-black at the centre out to parchment at the rim. It came from the first arena, which the owner had shown while asking about colour - not from the reference being built to, where the floor is even cream and rank is read from the pills. It was drift, and it goes out the same evening it went in. The walkway is kept: the reference has it, and its colour is the coolest token the scheme holds.",
+    },
+    {
         "version": "2.5.365",
         "date": "2026-07-20",
         "commit": "pending",
