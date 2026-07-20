@@ -1,5 +1,28 @@
 # Arena mockup — measured specification
 
+> **Status: `HISTORICAL_CONCEPT_REFERENCE` (set 2026-07-20, Arena 2D audit
+> closure — see `docs/ai/audits/arena_2d/SHARED/CURRENT_ARENA_SOURCE_OF_TRUTH.md`).**
+> The owner's decision behind the Arena 2D audit cancelled the 3D/cinematic
+> presentation direction this document describes. It is kept as a historical
+> record, not an implementation target.
+>
+> **Still valid, may be used when designing the 2D Arena:**
+> - The original product hierarchy (§7 HUD panel list, §8 fighters concept).
+> - The rank-ring concept (ring 1 `culinary_master` → ring 8 `kitchen_porter`,
+>   §3).
+> - The chef-versus-chef concept: challenger left / opponent right (§8).
+> - The Crown Holder concept (crown at centre, §2/§8).
+>
+> **No longer valid — do not implement, do not treat as acceptance criteria:**
+> - The 56-degree camera perspective (§1).
+> - Any 3D geometry requirement (§1, the `perspective`/`rotateX` transform).
+> - Photographic hall/backdrop matching (§2, §5's hall/stands imagery, §6).
+> - The generated-crowd requirement (§3's row/face rendering as drawn here).
+> - Any of this document's measurements used as pass/fail acceptance
+>   criteria for the 2D rebuild — the audit's own contracts
+>   (`docs/ai/audits/arena_2d/SHARED/MASTER_EXISTING_SYSTEM_AUDIT.md`,
+>   "Required 2D data contracts") govern acceptance instead.
+
 Source: the owner's arena mockup, delivered 2026-07-18 (1280 × 720).
 Measured 2026-07-19 by GreenBear, off the image itself.
 

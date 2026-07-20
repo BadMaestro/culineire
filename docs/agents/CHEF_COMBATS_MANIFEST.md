@@ -1,3 +1,12 @@
+> **Read `MANIFEST_DELTA.md` before following this document literally.** It
+> was written before most of `chef_battle` existed and five of its rules
+> have been overridden or overtaken by production code and owner decisions
+> (§1 HTMX/Alpine, §2 Track A/B split, §4 dark esports UI, §6 phase gate —
+> see the table there). The most visually significant override: **§4's
+> "Dark Premium Culinary UI" is superseded — the approved interface uses
+> the official CulinEire parchment, ink, and muted-bronze token system, not
+> an independent dark palette.** See the inline note on §4 below.
+
 # AI AGENT INSTRUCTIONS: THE CHEF COMBATS ENGINE SPECIFICATION
 
 ## CRITICAL: REASONING & IDENTITY ALIGNMENT
@@ -48,6 +57,18 @@ If any agent generates code that violates these structural laws, the task is a *
 ---
 
 ## 4. DESIGN LAYER & COMPONENT MAP (UI/UX)
+
+> **SUPERSEDED (owner decision, recorded in `MANIFEST_DELTA.md` and
+> `docs/ai/audits/arena_2d/SHARED/CURRENT_ARENA_SOURCE_OF_TRUTH.md`):** the
+> "Dark Premium Culinary UI" direction below, including the independent
+> dark esports layout, is **not** the approved design system. The Arena
+> floor is light parchment; dark is scoped to the spectator stands only.
+> All components use the site's existing parchment / ink / muted-bronze
+> token vocabulary (`--brand`, `--ink`, etc. in `base.css`), not a
+> standalone dark palette invented for this feature. **The one part of
+> this section still followed:** challenger accented green on the left,
+> opponent accented red on the right.
+
 When rendering templates or styling components, adhere strictly to the **Dark Premium Culinary UI** ethos[cite: 14]:
 * **Left Side / Challenger:** Accentuated with sharp Irish Green tones[cite: 14].
 * **Right Side / Opponent:** Accentuated with competitive Red or Amber combat indicators[cite: 14].

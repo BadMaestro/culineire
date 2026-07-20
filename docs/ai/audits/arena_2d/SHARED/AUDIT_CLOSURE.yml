@@ -1,0 +1,65 @@
+audit_closure:
+  repository_base: "2a28e4b2"
+  original_audit_base: "726e3380"
+  delta_classification: "MINOR_AMENDMENT"
+  master_updated: true
+  current_source_of_truth_created: true
+  three_d_spec_marked_historical: true
+  active_documentation_conflicts_resolved: true
+  production_code_modified: false
+  implementation_started: false
+  ready_for_2d_implementation_planning: true
+  ready_for_2d_code: false
+
+  owner_decisions_recorded:
+    arena_direction: "Proceed with a simple responsive 2D Arena."
+    backend_boundary: >
+      Preserve existing Chef Battle domain logic, models, services,
+      selectors, URLs, permissions, voting, crown, ranking, gifts,
+      notifications and state transitions.
+    old_3d_direction: "Cancelled as an implementation target."
+    dead_code: >
+      Do not delete suspected legacy files during the first 2D
+      implementation. Isolate them and audit deletion separately after
+      the new interface is stable.
+    shared_renderer: >
+      Do not remove _arena_render_ring.html until the Arena Master
+      Console has been decoupled or given a compatible replacement.
+    confirmed_template_context_defect: >
+      crown_streak, crown_ladder and recent_gifts may be fixed as a
+      separate, tested defect task before or during the first
+      integration phase.
+
+  owner_decisions_still_open:
+    - "Embedded popup, canonical battle-room navigation, or both."
+    - "Whether the privileged Live Arena SVG/CSS preview remains."
+    - "2D information hierarchy and responsive/accessibility acceptance matrix."
+    - "Timing of the stale proto-gate test correction."
+    - "Whether old candidate assets receive a later deletion-proof audit."
+
+  documents_updated:
+    - path: "docs/ai/audits/arena_2d/SHARED/MASTER_EXISTING_SYSTEM_AUDIT.md"
+      change: "Authoritative base changed to 2a28e4b2; delta amendments, new risks, and contract changes folded in as an appended section; all original conclusions preserved verbatim."
+    - path: "docs/ai/audits/arena_2d/SHARED/CURRENT_ARENA_SOURCE_OF_TRUTH.md"
+      change: "Created new."
+    - path: "docs/ai/audits/arena_2d/SHARED/AUDIT_CLOSURE.yml"
+      change: "Created new (this file)."
+    - path: "docs/chef_battle/arena_mockup_spec.md"
+      change: "Marked HISTORICAL_CONCEPT_REFERENCE with explicit retained/prohibited use lists; body preserved unchanged."
+    - path: "docs/agents/GOLDEN_RULES.md"
+      change: "Corrected the 'closed by owner decision' line that said Arena visibility is staff/superuser-only; now states the current any-RecipeAuthor rule."
+    - path: "docs/agents/CHEF_COMBATS_MANIFEST.md"
+      change: "Added a top-of-file banner and an inline note on the Dark Premium UI section superseding the independent dark-esports presentation direction in favor of the approved parchment/ink/muted-bronze token system, so the override is visible without cross-referencing MANIFEST_DELTA.md first."
+
+  documents_not_modified:
+    - "docs/agents/MANIFEST_DELTA.md — already correctly documents the owner's override; no change required."
+
+  prohibited_actions_respected:
+    - "No Python application code changed."
+    - "No templates changed."
+    - "No CSS or JavaScript changed."
+    - "No migrations created."
+    - "No assets deleted."
+    - "No audit branch merged into main wholesale."
+    - "No visual rebuild started."
+    - "No deploy performed."

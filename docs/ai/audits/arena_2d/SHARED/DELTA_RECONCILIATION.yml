@@ -1,0 +1,99 @@
+delta_reconciliation:
+  audited_base: "726e3380"
+  intended_base: "2a28e4b2"
+  agents_completed:
+    - "CODEX"
+    - "CLAUDE_A"
+    - "CLAUDE_B"
+
+  changed_files_reviewed:
+    - "chef_battle/access.py"
+    - "chef_battle/fraud.py"
+    - "chef_battle/migrations/0083_vote_self_vote_constraint_and_hash_scheme.py"
+    - "chef_battle/models.py"
+    - "chef_battle/services.py"
+    - "chef_battle/tests.py"
+    - "chef_battle/views.py"
+    - "config/release_journal.py"
+    - "docs/agents/CHEF_COMBATS_MANIFEST.md"
+    - "docs/agents/CLAUDE_RULES.md"
+    - "docs/agents/GOLDEN_RULES.md"
+    - "docs/agents/MANIFEST_DELTA.md"
+    - "docs/agents/README.md"
+    - "docs/agents/memory/golden_rule_author_can_visit_arena.md"
+    - "recipes/tests.py"
+    - "recipes/views.py"
+    - "static/css/arena.css"
+    - "static/css/arena_command_deck.css"
+    - "static/css/arena_deck_polish.css"
+    - "static/css/arena_hall.css"
+    - "static/css/arena_master_console.css"
+    - "static/css/arena_render.css"
+    - "static/css/base.css"
+    - "templates/base.html"
+    - "templates/moderation/arena_build_plan.html"
+
+  conclusions_unchanged:
+    - "The backend/domain layer remains the preservation boundary for a future 2D reconstruction."
+    - "No Arena payload key, polling URL, action endpoint, public Arena template, JavaScript contract, or broadcast snapshot contract changed in the delta."
+    - "Procedural rings, seat geometry, renderer fitting, crowd placement, hall imagery, and cinematic presentation remain THREE_D_PRESENTATION_ONLY."
+    - "The six active Arena stylesheets remain overlapping duplicate/consolidation candidates and are not deletion-safe."
+    - "The Arena Master Console still depends on the shared renderer partial, so wholesale renderer removal remains unsafe."
+    - "Battle-room and deck behavior remain reusable only with small presentation/accessibility adaptation."
+    - "No file qualifies as CONFIRMED_DEAD_CODE; old hall assets remain candidates only and the octant prototype retains a documented caller."
+    - "Browser accessibility, responsive interaction, cascade, and visual acceptance evidence remain incomplete."
+    - "Owner approval remains mandatory before 2D implementation or cleanup."
+
+  conclusions_amended:
+    - "Dark-launch Arena visibility now includes every authenticated user with a RecipeAuthor; Chef Battle enrollment, staff, superuser, and bearseeker privilege are not required for an ordinary author. Anonymous users and authenticated users without an author remain hidden while the public flag is off."
+    - "Vote self-protection now includes a database CheckConstraint via BattleVote.voter_author, in addition to Python fraud and validation gates."
+    - "New request fingerprints use HMAC-SHA256 keyed by SECRET_KEY and carry hash scheme v2; historical hashes remain labelled v1 and comparisons are scheme-scoped."
+    - "Arena color literals were substantially redirected to shared/derived tokens, reducing but not eliminating the independent palette conflict or six-sheet ownership risk."
+    - "The current legacy shell is flatter and full-bleed across desktop/mobile; removed perspective/occupant stretching does not change its legacy-presentation classification."
+    - "The Arena build board now distinguishes archived, live, and frozen stages with criteria; it is operational documentation, not implementation authority or browser evidence."
+
+  new_risks:
+    - "Migration 0083 intentionally stops if historical self-votes exist and would require an owner data decision; production data was not queried during reconciliation."
+    - "Nullable voter_author means future vote-writing paths must populate it for author users to receive DB-level self-vote enforcement."
+    - "SECRET_KEY rotation changes HMAC outputs while the v2 label does not encode key generation; operational key continuity affects fraud comparisons."
+    - "Legacy v1 and current v2 fingerprints are intentionally not cross-compared, creating a limited transition boundary for duplicate/rate detection."
+    - "Global --hall-* tokens may make the legacy dark palette appear canonical and may be reused accidentally by a future 2D implementation."
+    - "GOLDEN_RULES.md still describes staff/superuser-only visibility while the implementation and dedicated memory rule allow any author."
+    - "CHEF_COMBATS_MANIFEST.md prescribes a dark premium/esports direction while MANIFEST_DELTA.md records the owner's light parchment override; the manifest alone is unsafe authority."
+    - "Build-board completion claims have no new browser, accessibility, screenshot, or automated viewport evidence."
+
+  contract_changes:
+    - "is_battle_visible: public flag OR authenticated staff/superuser OR authenticated user with any RecipeAuthor."
+    - "BattleVote: adds nullable voter_author and database constraint voter_author != voted_for."
+    - "BattleVote and VoteIntegrityEvent: add indexed hash_scheme with current default v2."
+    - "hash_request_value: bare SHA-256 replaced by deterministic HMAC-SHA256 keyed with SECRET_KEY."
+    - "Fraud IP/device comparisons: restricted to HASH_SCHEME_CURRENT."
+    - "Internal Arena build-board context: archive, stages, later_stages, criterion, and frozen-stage behavior."
+    - "Presentation variables: shared hall and rank token vocabulary; no public data/action contract change."
+
+  unresolved_conflicts:
+    - "Repository access guidance conflicts: the current implementation allows any RecipeAuthor, while GOLDEN_RULES.md retains older staff/superuser-only wording."
+    - "Visual-direction documentation conflicts unless CHEF_COMBATS_MANIFEST.md is read together with MANIFEST_DELTA.md."
+    - "The original audit's stale proto-gate test conflict remains unchanged."
+    - "The original probable initial crown_ladder/recent_gifts/crown_streak context mismatch remains unchanged."
+    - "Production migration readiness for historical self-votes is unknown because no production data check was authorised or performed."
+
+  master_synthesis:
+    path: "docs/ai/audits/arena_2d/SHARED/MASTER_EXISTING_SYSTEM_AUDIT.md"
+    branch: "audit/arena-2d-codex"
+    commit: "b147843c0c61966e69da884c35cd78916b22b467"
+    created_after_peer_reviews: true
+    based_on_target_commit: false
+    status: "REQUIRES_UPDATE"
+    verification:
+      audited_base_used: "726e338076462982185e3caa7564cc37977a18c9"
+      peer_review_commits:
+        CODEX: "9bf4e0f87661b065da90ccb73b59c313e9b0b5c3"
+        CLAUDE_A: "ddf7bc53d211ce7e091f2e82336257f7a1bb2db6"
+        CLAUDE_B: "35d991f5ee8540cda4f8a15ef3b8aa9d68728b14"
+      includes_findings_from_all_three_lanes: true
+      evidence: "The synthesis commit timestamp follows all three peer-review commits and the master document contains backend, frontend, integration, test, design-system, and dead-code findings."
+
+  overall_classification: "MINOR_AMENDMENT"
+  safe_to_request_owner_decisions: true
+  safe_to_begin_2d_implementation: false
