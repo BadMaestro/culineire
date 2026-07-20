@@ -199,18 +199,25 @@
     border-radius: 0;
     background: none;
     box-shadow: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: block;
+    padding: 0;
   }
 
   .arena-command-deck__floor-head { display: none; }
 
-  .arena-floor-stage,
+  /* Pinned rather than centred. Flex centring left the stage 884px wide and
+     387px from the left on a 1280px screen - the octagon sat well right of
+     centre, which is what the arena looked "spilled" from. Pinning to all four
+     edges removes the question: the stage IS the frame, and the renderer
+     centres the octagon inside it by measurement. */
+  .arena-command-deck__floor > .arena-floor-stage,
   .page--arena .arena-command-deck__floor .arena-render-container {
-    width: 100%;
+    position: absolute;
+    inset: 0;
+    width: auto;
+    height: auto;
     max-width: none;
-    height: 100vh;
+    margin: 0;
     border: 0;
     border-radius: 0;
   }
