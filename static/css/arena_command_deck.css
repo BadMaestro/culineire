@@ -199,9 +199,20 @@
 
   .arena-command-deck__floor-head { display: none; }
 
-  .arena-floor-stage {
+  .arena-floor-stage,
+  .arena-command-deck__floor .arena-render-container {
     width: 100%;
+    max-width: none;
     height: 100vh;
+    border: 0;
+    border-radius: 0;
+  }
+
+  /* The hall has to reach the edges too, not just the box it is drawn in.
+     Left at its own clamped height the picture sat in a 563px band with the
+     page showing above and below it. */
+  .arena-command-deck__floor .arena-render-container {
+    background-size: cover;
   }
 
   /* Panels: dark glass over the hall, bronze edge, placed by the mockup's own
