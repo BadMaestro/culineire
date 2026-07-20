@@ -80,18 +80,15 @@
   padding: 0;
 }
 
-.page--arena .arena-command-deck {
-  width: 100%;
-  max-width: none;
-  min-height: 100svh;
-  margin: 0;
-  padding: 0.75rem clamp(0.75rem, 1.6vw, 1.5rem) 1rem;
-  align-content: start;
-}
+/* Layout used to live here too — width, padding, min-height — while
+   arena_command_deck.css set the same properties for the same element. Two
+   files describing one layout is what put the octagon off the side of the
+   screen: whichever stylesheet loaded last won, and neither of us could see
+   the other's rule. Layout now belongs to arena_command_deck.css alone; this
+   file paints. */
 
 .page--arena .arena-render-container {
-  width: 100%;
-  max-width: none;
+  /* Frame only, no sizing: the size is set with the rest of the layout. */
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -154,7 +151,6 @@
   --arena-cappuccino: var(--hall-bronze-lift);
   --arena-paper: var(--hall-panel);
   --arena-cream: var(--hall-raised);
-  width: min(100% - 1.5rem, 1780px);
 }
 
 /* Panels: the deck paints these with raw parchment values, so the token flip

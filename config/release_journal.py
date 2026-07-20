@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.367",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "One arena, described in one place",
+        "section": "Chef Battles",
+        "summary": "Two stylesheets had been setting the same widths and padding for the same arena, each unaware of the other, and whichever loaded last decided what you saw - which is how the octagon ended up off the side of the screen. Layout now lives in one file and the other paints.",
+    },
+    {
         "version": "2.5.366",
         "date": "2026-07-20",
         "commit": "pending",
