@@ -240,7 +240,7 @@ documentation_authority_followup:
   final_status: "COMPLETE"
   branch: "docs/arena-2d-authority-finalization"
   previous_commit: "581786a8765fa2ec54b1ab5f802b49a023b2a2f7"
-  final_commit: ""  # filled in after commit, see git log
+  final_commit: "6b4cc330df0e37d4fdb141682235647016ca9978"
 
   newly_authorized_file:
     path: "docs/agents/memory/GOLDEN_RULES.md"
