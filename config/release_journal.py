@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.357",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "The camera steps back and the hall comes into view",
+        "section": "Chef Battles",
+        "summary": "The floor was pressed against the edges of its frame and the hall behind it survived as thin strips - it read as looking down a hatch. The floor now takes about two thirds of the width, which leaves the hall visible and room beside it for the panels.",
+    },
+    {
         "version": "2.5.356",
         "date": "2026-07-20",
         "commit": "pending",

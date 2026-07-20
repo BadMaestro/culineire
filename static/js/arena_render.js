@@ -81,6 +81,8 @@
   // there is no tilt and no convergence at all. The projection below is kept
   // whole rather than deleted - put a number back in here and the camera
   // returns without rewriting anything.
+  var FLOOR_SHARE = 0.66;
+
   var CONVERGENCE = 0;
   // Neither number is the measurement itself. CONVERGENCE describes the whole
   // depth span, while what has to match is the OCTAGON's own far and near
@@ -840,8 +842,19 @@
       var width = right - left, height = bottom - top;
       if (!(width > 0) || !(height > 0)) { return; }
 
-      // 0.98 keeps a hairline so the octagon never touches the frame edge.
-      var factor = Math.min(frame.width / width, frame.height / height) * 0.98;
+      // How much of the frame the FLOOR is allowed to take. It used to be 0.98
+      // — a hairline off filling the container — and the result read as
+      // looking down a hatch: the floor pressed against the edges and the hall
+      // behind it survived only as thin strips. The mockup gives the floor
+      // about two thirds of the width and spends the rest on the hall and on
+      // room for the panels.
+      //
+      // The whole scene is fitted by this one number, so the backdrop follows:
+      // placeBackdrop sizes the picture from the floor we just measured, and
+      // pulling the floor in pulls more hall into view with it. No transform
+      // scale anywhere — the grid and the picture move together, which is what
+      // keeps a click on the tile it is drawn on.
+      var factor = Math.min(frame.width / width, frame.height / height) * FLOOR_SHARE;
       var current = parseFloat(svg.style.getPropertyValue('--arena-fit')) || 1;
       svg.style.setProperty('--arena-fit', (current * factor).toFixed(4));
 
