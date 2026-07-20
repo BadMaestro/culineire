@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.351",
+        "date": "2026-07-20",
+        "commit": "pending",
+        "title": "The floor lands on the hall it is standing in",
+        "section": "Chef Battles",
+        "summary": "The projection was solved against the two measurements taken off the backdrop at once - how far the octagon narrows into the distance and how tall it stands - because fixing either one alone kept pushing the other out.",
+    },
+    {
         "version": "2.5.350",
         "date": "2026-07-20",
         "commit": "pending",
