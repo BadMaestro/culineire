@@ -1,0 +1,277 @@
+{
+  "arena_gate_synthesis": {
+    "synthesized_by": "Bolt",
+    "synthesis_branch": "audit/arena-gate-synthesis",
+    "base_commit": "d852fff53b8de0f7fcd46897c4ce287c6abe8a0d",
+    "method_note": "Both source reports were read directly from their exact commits via git show, not from branch tips. Every carried-forward finding was independently re-verified against the working tree at base_commit (grep/read of the actual code), not merely copied. Two source claims did not survive verification and are corrected below. No audit branch was merged into main; no production code or Markdown was modified by this synthesis.",
+
+    "source_commits": {
+      "backend_audit": {
+        "agent": "Bolt",
+        "branch": "audit/arena-backend-gates",
+        "commit": "be5495b5fa67a209c60534412128c7e4200b0f85",
+        "path": "ops/audits/arena_backend_gate_report.json",
+        "read_method": "git show be5495b5...:ops/audits/arena_backend_gate_report.json"
+      },
+      "frontend_audit": {
+        "agent": "GreenBear",
+        "branch": "audit/arena-frontend-gates",
+        "commit": "7061155782f6de35306b7408485670393f8752f7",
+        "path": "ops/audits/arena_frontend_gate_report.json",
+        "read_method": "git show 7061155782...:ops/audits/arena_frontend_gate_report.json"
+      }
+    },
+
+    "live_journal_read_evidence": {
+      "arena_build_plan": {
+        "url": "/recipes/moderation/arena-build-plan/ (recipes:arena_build_plan)",
+        "source_of_truth_in_repo": "recipes/views.py:2828 ARENA_BUILD_STAGES (7 live stages) + :2962 ARENA_LATER_STAGES (stage 8, owner-frozen)",
+        "read_method": "Page is moderator-gated (recipes/views.py:3011 is_moderator); read the backing data structure directly from source at base_commit.",
+        "stage_status_at_base_commit": [
+          {"n": 1, "id": "fullbleed", "backend_done": true, "frontend_done": true, "overall": "DONE (v2.5.377/378)"},
+          {"n": 2, "id": "spectators", "backend_done": true, "frontend_done": false, "overall": "frontend OPEN (GB) — real online viewers not drawn over backdrop"},
+          {"n": 3, "id": "hud", "backend_done": true, "frontend_done": true, "overall": "DONE (verified by getBoundingClientRect 2026-07-20)"},
+          {"n": 4, "id": "fighters", "backend_done": true, "frontend_done": false, "overall": "frontend OPEN (GB) — centre challenger/opponent panels; no live battle in prod to exercise"},
+          {"n": 5, "id": "ranklabels", "backend_done": true, "frontend_done": false, "overall": "frontend OPEN (GB) — rank column over floor, contrast >=7:1 required"},
+          {"n": 6, "id": "tokens", "backend_done": true, "frontend_done": false, "overall": "frontend OPEN (GB) — raw hex -> tokens; 89 live hex down to ~35, documented exceptions remain"},
+          {"n": 7, "id": "integrity", "backend_done": true, "frontend_done": true, "overall": "DONE (v2.5.376 — self-vote DB CheckConstraint + HMAC hashes)"},
+          {"n": 8, "id": "mobile", "backend_done": false, "frontend_done": false, "overall": "OWNER-FROZEN until desktop backdrop accepted (ARENA_LATER_STAGES)"}
+        ]
+      },
+      "deployment_journal": {
+        "url": "/recipes/moderation/deployment-journal/ (recipes:deployment_journal)",
+        "source_of_truth_in_repo": "config/release_journal.py RELEASE_JOURNAL (newest-first)",
+        "read_method": "Page is moderator-gated; read RELEASE_JOURNAL directly from source at base_commit.",
+        "latest_version_recorded": "2.5.380",
+        "relevant_recent_entries": [
+          {"version": "2.5.380", "title": "Any registered author can visit the arena", "commit_field": "pending", "relevance": "DECISIVE for backend F1 — documents the explicit owner rule that any registered author (not only staff/superuser/bearseeker) may visit and watch the arena during dark launch; chef enrollment gates participation, not visibility."},
+          {"version": "2.5.379", "title": "Real spectators stop being stretched into ghosts", "commit_field": "pending", "relevance": "Frontend spectator rendering (build stage 2 area) — scaleY billboard stretch removed."},
+          {"version": "2.5.378", "title": "Self-vote blocked at the database, arena tokens, manifest in the repo", "commit_field": "pending", "relevance": "Confirms build stage 7 (integrity) done; records token progress 89->35 hex (build stage 6, still open)."},
+          {"version": "2.5.377", "title": "Full-bleed reaches the phone too", "commit_field": "pending", "relevance": "Confirms build stage 1 (fullbleed) done incl. mobile."},
+          {"version": "2.5.376", "title": "The last of the 3D leaves the arena", "commit_field": "pending", "relevance": "Removed leftover perspective/3D context; supports frontend two_dimensional_compliance = clean."}
+        ],
+        "data_hygiene_note": "RELEASE_JOURNAL entries 2.5.376 through 2.5.380 all carry commit=\"pending\" — their real commit hashes were never backfilled. Not fixed by this synthesis (Markdown/journal edits out of scope); flagged so a future owner-approved task records them."
+      }
+    },
+
+    "confirmed_findings": [
+      {
+        "id": "CF1",
+        "origin": "backend F4 + F6",
+        "severity": "medium-high",
+        "title": "Arena Hall initial-render context defect: crown_streak / crown_ladder / recent_gifts always empty on first paint",
+        "verified": "YES — re-confirmed at base_commit. templates/chef_battle/arena.html reads {{ crown_streak|default:0 }} (line 58), {% for chef in crown_ladder %} (line 127), {% for gift in recent_gifts %} (line 143) as TOP-LEVEL variables. chef_battle/views.py arena() render() call (lines 1135-1142) passes only: rank_groups, spectator_count, active_battle, arena_data, viewer_author, user_enrolled. The three values exist only nested inside arena_data. Django silently resolves the undefined top-level names to empty, so crown streak renders 0 and both loops hit their {% empty %} branch on every initial load until the first arena_state poll repaints via JS.",
+        "not_tracked_in": "Not mentioned in ARENA_BUILD_STAGES or RELEASE_JOURNAL — this is a genuinely new, un-tracked defect.",
+        "recommended_fix_side": "View-side (Bolt): add crown_streak/crown_ladder/recent_gifts to the top-level render context, matching what arena.html already expects. Chosen over editing the template so backend/Python stays in Bolt's lane and arena.html (GB build-stage territory) is not touched."
+      },
+      {
+        "id": "CF2",
+        "origin": "backend F2",
+        "severity": "medium",
+        "title": "arena_react has no visibility gate",
+        "verified": "YES — chef_battle/views.py:3158-3159 shows @require_POST as the only decorator on arena_react; no @chef_battle_guard and no is_battle_visible() check in the body. Docstring says 'Public but rate-limited'. During dark launch an anonymous user can POST reactions for any battle_id while the arena page itself 404s them.",
+        "owner_decision_gate": "Is this endpoint intentionally public, or should it inherit is_battle_visible() like its sibling arena_* endpoints? Fix is one decorator either way; needs intent confirmation before changing."
+      },
+      {
+        "id": "CF3",
+        "origin": "backend F3 (CORRECTED — see conflicting_evidence)",
+        "severity": "low-medium",
+        "title": "battle_chat_poll has no visibility gate (read-only chat leak); battle_chat_send IS gated",
+        "verified": "PARTIAL/CORRECTED — battle_chat_poll (chef_battle/views.py:2055-2056) carries only @ratelimit(GET), no @chef_battle_guard/@login_required, so an anonymous visitor can poll and read chat for any battle id even while battle_detail 404s them. HOWEVER battle_chat_send (views.py:2017-2020) DOES carry @chef_battle_guard + @require_POST + @ratelimit — contrary to the backend audit's claim that it had 'no gate'. The real gap is a read-only leak on the poll endpoint only, narrower and lower-severity than the source report stated.",
+        "owner_decision_gate": "Should battle_chat_poll inherit @chef_battle_guard to match the page it serves, or is public read intentional? Confirm before changing."
+      },
+      {
+        "id": "CF4",
+        "origin": "frontend F2",
+        "severity": "medium",
+        "title": "arena_battle_popup.html live-battle popup lacks modal accessibility",
+        "verified": "YES — templates/chef_battle/arena_battle_popup.html has 0 aria-/role/tabindex attributes. static/js/arena_battle_room.js:198 implements Escape-to-close, but grep found no focus trap, no initial focus entry, no aria-modal, and no focus-return-on-close. TECHNICAL_STANDARDS.md section 6 requires all of focus entry, focus trap, Escape, close controls, and focus return.",
+        "caveat": "Static-evidence only (no live screen-reader run); the deficiency in the source markup is nonetheless direct and confirmed."
+      },
+      {
+        "id": "CF5",
+        "origin": "frontend F3",
+        "severity": "low",
+        "title": "battle_detail.html has markedly lower accessibility instrumentation",
+        "verified": "YES — templates/chef_battle/battle_detail.html has 4 aria-/role/tabindex occurrences vs 20 in arena.html and 21 in arena_master_console.html. A closer manual pass is warranted before Battle Room is called acceptance-ready.",
+        "caveat": "A raw attribute count is a proxy, not a WCAG verdict; treat as a flag to review, not a proven barrier."
+      },
+      {
+        "id": "CF6",
+        "origin": "backend F5",
+        "severity": "low",
+        "title": "Stale test name test_procedural_arena_is_explicit_proto_gate",
+        "verified": "YES — no ?proto=1 gate exists in chef_battle/views.py (grep for 'proto' returns nothing). The test at chef_battle/tests.py (~line 2395) passes only because the ring content now renders unconditionally; the name and any docs implying a proto gate are stale."
+      }
+    ],
+
+    "already_resolved_findings": [
+      {
+        "id": "AR1",
+        "origin": "backend F1 (rated HIGH in the source report)",
+        "title": "recipe_author_without_staff arena access = true",
+        "resolution": "SUPERSEDED BY EXPLICIT OWNER DECISION — not a defect. RELEASE_JOURNAL v2.5.380 ('Any registered author can visit the arena') and the inline comment at chef_battle/access.py:43-44 (dated 2026-07-20) both document the owner's rule that any registered author may visit and watch during dark launch; enrollment gates participation, not visibility. The CODE is intentional and correct. The stale side is docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md:123-138, whose arena_visibility matrix still says recipe_author_without_staff: false.",
+        "residual_action": "Reconcile the written contract to match the owner decision. This is a Markdown edit, explicitly OUT OF SCOPE for this synthesis — surfaced as an owner_decision, not actioned.",
+        "note": "Master Console access is unaffected — it stays superuser+owner/flag-only via the separate has_arena_console_access gate."
+      },
+      {
+        "id": "AR2",
+        "origin": "frontend F1 (partial)",
+        "title": "Raw hex colours across arena stylesheets",
+        "resolution": "IN PROGRESS, ALREADY TRACKED as ARENA_BUILD_STAGES stage 6 ('tokens', GB-owned, frontend_done=false). Live raw-hex count has been driven 89 -> ~35 (recount at base_commit: arena.css 6, arena_hall.css 3, arena_render.css 3, arena_command_deck.css 0, arena_deck_polish.css 5, arena_master_console.css 8, arena_master_console_plan.css 17, arena_effects.css 0 — counts include comment and local-declaration matches). Remaining are documented semantic exceptions (green=online / red=LIVE / blue=DEF, no such hue token exists) plus each file's own local palette-declaration site.",
+        "residual_action": "Finish stage 6 to its stated criterion (grep hex == 0 except documented exceptions) and get the open owner ruling on the independent dark palette (see conflicting_evidence CE3). Rolled into greenbear_work_package, not re-opened as a new finding."
+      }
+    ],
+
+    "conflicting_evidence": [
+      {
+        "id": "CE1",
+        "topic": "battle_chat_send gating",
+        "backend_audit_claim": "battle_chat_send (views.py:2020) gate: NONE; anonymous can POST as 'Anonymous'.",
+        "verified_reality": "battle_chat_send carries @chef_battle_guard (views.py:2017) at base_commit — it IS gated. The backend audit's F3 overstated the gap. Only battle_chat_poll is ungated (read-only). Resolved in favour of the code; CF3 reflects the corrected, narrower finding.",
+        "resolution": "Code wins. Synthesis carries the corrected version."
+      },
+      {
+        "id": "CE2",
+        "topic": "author-without-staff arena visibility: contract vs owner decision",
+        "contract_says": "docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md:123-138 — recipe_author_without_staff: false pre-release.",
+        "owner_decision_says": "RELEASE_JOURNAL v2.5.380 + access.py:43-44 comment (2026-07-20) — any registered author may visit.",
+        "resolution": "Owner decision wins (source-of-truth order: owner instruction outranks the product contract). Contract doc is stale and needs reconciliation (see AR1)."
+      },
+      {
+        "id": "CE3",
+        "topic": "canonical Arena palette: warm parchment (base.css tokens) vs independent dark near-black palette",
+        "evidence": "frontend audit + recount confirm arena_hall.css / arena_master_console.css define their own dark palette (#07090a-#1d2819 range) distinct from base.css warm-parchment light tokens. AGENTS.md section 11 / TECHNICAL_STANDARDS.md section 7 warn against an independent dark Arena token system, but the arena has visibly been built dark and the owner has been iterating on that dark hall live (build stages, journal).",
+        "resolution": "UNRESOLVED — needs an explicit owner ruling on which palette is canonical for the public 2D Hall before stage-6 token migration can pick target tokens. Blocks the palette half of greenbear_work_package."
+      }
+    ],
+
+    "implementation_order": [
+      "0. OWNER DECISIONS FIRST (gate several packages): (a) reconcile CHEF_BATTLE_PRODUCT_CONTRACT_2D.md author-visibility matrix to the v2.5.380 rule [AR1/CE2]; (b) arena_react + battle_chat_poll — intentionally public or gate them [CF2/CF3]; (c) canonical palette ruling parchment-vs-dark [CE3]; (d) navigation contract full-page-vs-popup [frontend F4].",
+      "1. BOLT — CF1 initial-render context fix (no owner decision needed; safest, highest-value, fully independent) + its regression test + CF6 stale-test rename.",
+      "2. BOLT — CF2/CF3 endpoint gating, but ONLY after owner decision (b). Same file as step 1 so sequenced within Bolt's lane.",
+      "3. GREENBEAR — CF4 popup accessibility (no owner decision needed) first; then stage-6 token completion after owner decision (c); then CF5 battle_detail a11y pass.",
+      "4. EMBER — live-browser + targeted-test verification of the above once identity=ember is restored; closes the frontend audit's own 'no live verification' blocker. Pending identity restoration.",
+      "No package merges to main without owner instruction; no deploys."
+    ],
+
+    "bolt_work_package": {
+      "agent": "Bolt",
+      "branch": "impl/arena-backend-context-and-gates (to be created from origin/main when authorised)",
+      "owned_files": ["chef_battle/views.py", "chef_battle/tests.py"],
+      "tasks": [
+        {"id": "CF1", "task": "Add crown_streak, crown_ladder, recent_gifts to the arena() top-level render context (they already exist in the payload / arena_data). Do not restructure arena.html — the template already reads them top-level.", "owner_decision_required": false},
+        {"id": "CF1-test", "task": "Add a template-render-level regression test that renders arena.html with seeded crown-streak/ladder/gift data and asserts the real values appear in the HTML on first paint (not just that _build_arena_payload() has the keys — the existing ArenaPayloadWiringTests gap).", "owner_decision_required": false},
+        {"id": "CF6", "task": "Rename test_procedural_arena_is_explicit_proto_gate to reflect that ring content renders unconditionally now; adjust its assertions/comment accordingly.", "owner_decision_required": false},
+        {"id": "CF2", "task": "Gate arena_react with is_battle_visible()/@chef_battle_guard IF owner confirms it should not be public.", "owner_decision_required": true},
+        {"id": "CF3", "task": "Gate battle_chat_poll with @chef_battle_guard IF owner confirms chat read should not be public.", "owner_decision_required": true}
+      ],
+      "tests": ["chef_battle.tests.ArenaPayloadWiringTests (extend)", "chef_battle.tests.ChefBattleAccessTests", "chef_battle.tests.ArenaDarkLaunchTests", "new arena.html render test class"],
+      "dependencies": ["Owner decision (b) for CF2/CF3 only. CF1/CF1-test/CF6 have no dependency."],
+      "cross_package_note": "GreenBear must NOT switch arena.html's crown_streak/crown_ladder/recent_gifts reads to arena_data.* — Bolt is making the top-level context authoritative for those three.",
+      "done_criteria": ["crown streak/ladder/gifts show real seeded values in rendered arena.html before any JS poll (asserted by test)", "renamed test passes and no longer implies a proto gate", "if owner approves gating: anonymous request to arena_react/battle_chat_poll returns 404 during dark launch, covered by tests", "git diff --check clean; only owned files changed; no Markdown; no deploy"]
+    },
+
+    "greenbear_work_package": {
+      "agent": "GreenBear",
+      "branch": "impl/arena-frontend-a11y-tokens (to be created from origin/main when authorised)",
+      "owned_files": [
+        "static/css/arena.css", "static/css/arena_hall.css", "static/css/arena_render.css",
+        "static/css/arena_command_deck.css", "static/css/arena_deck_polish.css",
+        "static/css/arena_master_console.css", "static/css/arena_master_console_plan.css",
+        "static/css/arena_effects.css",
+        "static/js/arena_battle_room.js", "static/js/arena_octant_prototype.js",
+        "templates/chef_battle/arena_battle_popup.html", "templates/chef_battle/battle_detail.html"
+      ],
+      "tasks": [
+        {"id": "CF4", "task": "Add role/aria-modal, initial focus entry, focus trap, and focus-return-on-close to arena_battle_popup.html + arena_battle_room.js, preserving the existing Escape handler (js:198).", "owner_decision_required": false},
+        {"id": "AR2/stage6", "task": "Complete ARENA_BUILD_STAGES stage 6: drive remaining raw hex to the criterion (grep hex==0 except documented semantic exceptions), using nearest existing base.css :root token.", "owner_decision_required": "partial — palette ruling CE3 needed before choosing dark-vs-parchment target tokens"},
+        {"id": "CF5", "task": "Raise battle_detail.html aria/role/tabindex coverage toward parity with arena.html.", "owner_decision_required": false}
+      ],
+      "tests": ["Manual/live a11y verification (keyboard, focus order, Escape, focus return) — coordinate with Ember's live pass", "no Python source owned; no unit-test file owned"],
+      "dependencies": ["Owner decision (c) palette ruling for the token half of stage 6.", "Owner decision (d) navigation contract before any deeper Battle Room restructuring (CF5 aria pass itself does not need it)."],
+      "cross_package_note": "Do not edit chef_battle/views.py or chef_battle/tests.py (Bolt). Do not touch arena.html's crown_streak/crown_ladder/recent_gifts context reads (Bolt owns that fix in the view).",
+      "done_criteria": ["popup is keyboard-operable: focus enters on open, is trapped, Escape and a visible close control both close, focus returns to the opener — verified live", "stage-6 hex criterion met per its own acceptance line", "battle_detail.html a11y coverage raised and spot-verified", "git diff --check clean; only owned files; no Markdown; no deploy"]
+    },
+
+    "ember_work_package": {
+      "agent": "Ember",
+      "status": "BLOCKED — pending identity=ember restoration (no active poller/session this round; machine linode_1_core).",
+      "branch": "verify/arena-live-and-shard (to be created from origin/main when authorised)",
+      "owned_files": ["ops/audits/arena_frontend_live_verification.json (NEW)", "ops/test_pool/arena_targeted_shard_result.json (NEW)"],
+      "tasks": [
+        {"id": "EV1", "task": "Live-browser verification of the frontend findings the static audit could not confirm: responsive overflow at 360/390/440/768/1280px, keyboard/focus behaviour of the popup after GB's CF4 fix, prefers-reduced-motion across arena CSS. Record results as JSON artifact.", "owner_decision_required": false},
+        {"id": "EV2", "task": "Execute the targeted test matrix below as the linode shard (1/15 timed share) and record pass/fail/duration to ops/test_pool JSON — do not run the full ~1500 suite, do not duplicate Bolt's focused runs.", "owner_decision_required": false}
+      ],
+      "tests": ["see targeted_test_matrix"],
+      "dependencies": ["identity=ember restored", "Bolt CF1 and GB CF4 landed on a shared integration point before live re-verification is meaningful (can do a baseline pass before, a confirming pass after)"],
+      "cross_package_note": "Writes only NEW files under ops/ — zero source-code overlap with Bolt or GreenBear.",
+      "done_criteria": ["live verification JSON records real device widths tested and pass/fail per finding with evidence", "shard result JSON records tests_collected/passed/failed/duration", "git diff --check clean; only the two new ops/ files; no Markdown; no deploy"]
+    },
+
+    "file_ownership_matrix": {
+      "chef_battle/views.py": "Bolt",
+      "chef_battle/tests.py": "Bolt",
+      "static/css/arena.css": "GreenBear",
+      "static/css/arena_hall.css": "GreenBear",
+      "static/css/arena_render.css": "GreenBear",
+      "static/css/arena_command_deck.css": "GreenBear",
+      "static/css/arena_deck_polish.css": "GreenBear",
+      "static/css/arena_master_console.css": "GreenBear",
+      "static/css/arena_master_console_plan.css": "GreenBear",
+      "static/css/arena_effects.css": "GreenBear",
+      "static/js/arena_battle_room.js": "GreenBear",
+      "static/js/arena_octant_prototype.js": "GreenBear",
+      "templates/chef_battle/arena_battle_popup.html": "GreenBear",
+      "templates/chef_battle/battle_detail.html": "GreenBear",
+      "ops/audits/arena_frontend_live_verification.json": "Ember (new)",
+      "ops/test_pool/arena_targeted_shard_result.json": "Ember (new)",
+      "templates/chef_battle/arena.html": "RESERVED — GreenBear build-stage territory (stages 2/4/5); NOT modified by any of these gate-fix packages. Bolt's CF1 fix stays in views.py precisely to avoid touching it.",
+      "docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md": "OWNER — needs the AR1/CE2 author-visibility reconciliation; no agent edits it under these packages.",
+      "conflicts": []
+    },
+
+    "targeted_test_matrix": {
+      "bolt": [
+        "chef_battle.tests.ChefBattleAccessTests",
+        "chef_battle.tests.ArenaDarkLaunchTests",
+        "chef_battle.tests.ArenaPayloadWiringTests",
+        "chef_battle.tests.ArenaDataSelectorsTests",
+        "NEW arena.html initial-render test (crown_streak/crown_ladder/recent_gifts visible on first paint)"
+      ],
+      "greenbear": [
+        "Live keyboard/focus verification of arena_battle_popup after CF4 (no owned unit-test file)",
+        "Visual/token verification for stage-6 completion"
+      ],
+      "ember": [
+        "chef_battle.tests.ChefBattleAccessTests",
+        "chef_battle.tests.ArenaDarkLaunchTests",
+        "chef_battle.tests.ArenaMasterConsoleAccessTests",
+        "chef_battle.tests.ArenaMasterStateTests",
+        "chef_battle.tests.ArenaMasterActionTests",
+        "chef_battle.tests.ArenaDataSelectorsTests",
+        "chef_battle.tests.ArenaPayloadWiringTests"
+      ],
+      "no_overlap_rule": "Bolt runs its focused subset during development; Ember runs the broader arena access/contract set once as the linode shard at the integration gate. The full ~1500-suite is NOT run three times.",
+      "baseline_evidence": "Bolt already ran the 7 arena access/contract classes at base_commit this session: 77 tests, 77 passed, 0 failed, 251.8s (local SQLite dev). That is the green baseline these packages must not regress."
+    },
+
+    "deployment_journal_requirements": {
+      "applies_when": "Only at each future owner-authorised deploy of one of these packages — NOT part of this synthesis (no deploy performed).",
+      "per_deploy_checklist": [
+        "Prepend a RELEASE_JOURNAL entry in config/release_journal.py (title, date, section 'Chef Battles', summary) — and backfill the real commit hash (do not leave commit=\"pending\" as entries 2.5.376-380 currently are).",
+        "Bump the patch version in templates/base.html footer before the deploy.",
+        "After release, hand-sync the relevant ARENA_BUILD_STAGES done-flags in recipes/views.py (e.g. stage 6 frontend_done once tokens complete) — the board does not auto-detect completion.",
+        "Deploy via the approved non-root deploy account and the repository-approved procedure; run collectstatic --no-input for any CSS/JS change (GreenBear/Ember packages); verify the live hashed file with curl, since 'RESTARTED' does not prove new static shipped.",
+        "Every production-affecting package carries a rollback note (git revert path; no migrations expected in CF1/CF2/CF3/CF4/CF5)."
+      ],
+      "migration_note": "None of CF1-CF6 requires a database migration (context wiring, decorators, template attributes, CSS tokens, test rename). If CF2/CF3 gating is approved it is decorator-only. Confirm before claiming migration-free at deploy time."
+    },
+
+    "blockers": [
+      "Owner decisions (a)-(d) in implementation_order step 0 gate CF2/CF3 (Bolt), the palette half of stage 6 (GreenBear), and deeper Battle Room frontend work — CF1, CF6, CF4, CF5 do NOT need them and can proceed once implementation is authorised.",
+      "Ember work package is blocked pending identity=ember restoration.",
+      "This synthesis authorises no implementation, merge, or deploy — it waits on owner go-ahead to open the impl/* branches."
+    ]
+  }
+}
