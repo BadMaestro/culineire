@@ -1,69 +1,61 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Arena Build Plan | CulinEire{% endblock %}
-{% block meta_description %}Internal Arena construction board.{% endblock %}
+{% block title %}Arena Release Plan | CulinEire{% endblock %}
+{% block meta_description %}Internal sequential Arena release plan.{% endblock %}
 
 {% block extra_head %}
 <meta name="robots" content="noindex, nofollow">
 <link href="{% static 'css/moderation.css' %}" rel="stylesheet">
 <style nonce="{{ request.csp_nonce }}">
-  .abp-shell { max-width: 1120px; margin-inline: auto; }
-  .abp-head { display:flex; justify-content:space-between; align-items:flex-end; gap:1rem; flex-wrap:wrap; margin-bottom:1.4rem; }
+  .abp-shell { max-width:1180px; margin-inline:auto; }
+  .abp-head { margin-bottom:1.5rem; }
   .abp-head h1 { margin:.2rem 0; font-family:var(--font-serif); }
-  .abp-kicker { text-transform:uppercase; letter-spacing:.1em; font-size:.72rem; color:var(--muted); }
-  .abp-count { text-align:right; }
-  .abp-count strong { font-size:2.2rem; font-family:var(--font-serif); color:#2e7d43; }
-  .abp-count span { display:block; font-size:.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; }
-  .abp-legend { display:flex; gap:1rem; flex-wrap:wrap; font-size:.78rem; color:var(--muted); margin-bottom:1.2rem; }
-  .abp-legend b { display:inline-block; width:.8rem; height:.8rem; border-radius:3px; vertical-align:middle; margin-right:.3rem; }
-
-  .abp-stage { border:1px solid var(--line,#e3ddcf); border-radius:14px; margin-bottom:1rem; overflow:hidden; background:var(--surface,#fff); }
-  .abp-stage.is-done { border-color:#2e7d43; box-shadow:0 0 0 1px #2e7d4322; }
-  .abp-stage__bar { display:flex; align-items:center; gap:.8rem; padding:.7rem 1rem; background:var(--surface-soft,#f6f2e8); }
-  .abp-stage.is-done .abp-stage__bar { background:#eaf5ec; }
-  .abp-num { flex:0 0 auto; width:2rem; height:2rem; border-radius:50%; display:grid; place-items:center; font-weight:700; background:var(--brand-dark,#7d5518); color:#fff; }
-  .abp-stage.is-done .abp-num { background:#2e7d43; }
+  .abp-kicker, .abp-label { color:var(--muted); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; }
+  .abp-summary { max-width:76ch; }
+  .abp-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.7rem; margin:1.1rem 0; }
+  .abp-metric { border:1px solid var(--line); border-radius:12px; padding:.8rem; background:var(--surface); }
+  .abp-metric strong { display:block; color:var(--brand-dark); font-family:var(--font-serif); font-size:1.25rem; }
+  .abp-metric span { color:var(--muted); font-size:.7rem; letter-spacing:.06em; text-transform:uppercase; }
+  .abp-rule { border-left:3px solid var(--brand); margin:.8rem 0 1.5rem; padding:.6rem .8rem; background:var(--surface-soft); }
+  .abp-rule p { margin:.2rem 0; font-size:.84rem; }
+  .abp-stage { border:1px solid var(--line); border-radius:14px; margin-bottom:1rem; overflow:hidden; background:var(--surface); }
+  .abp-stage.is-done { border-color:var(--brand); }
+  .abp-stage.is-active { box-shadow:0 0 0 2px color-mix(in srgb,var(--brand) 35%,transparent); }
+  .abp-stage.is-blocked, .abp-stage.is-frozen { border-style:dashed; }
+  .abp-stage__bar { display:flex; align-items:center; gap:.8rem; padding:.8rem 1rem; background:var(--surface-soft); }
+  .abp-num { align-items:center; background:var(--brand-dark); border-radius:50%; color:var(--surface); display:flex; flex:0 0 2.2rem; height:2.2rem; justify-content:center; font-weight:700; }
   .abp-stage__title { flex:1; }
-  .abp-stage__title h2 { margin:0; font-size:1.02rem; }
-  .abp-stage__date { font-size:.72rem; color:var(--muted); }
-  .abp-status { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; padding:.28rem .6rem; border-radius:99px; }
-  .abp-status.done { background:#2e7d43; color:#fff; }
-  .abp-status.wip  { background:#c0504d; color:#fff; }
-
-  .abp-lanes { display:grid; grid-template-columns:1fr 1fr; gap:0; }
-  @media (max-width:720px){ .abp-lanes { grid-template-columns:1fr; } }
-  .abp-lane { padding:.85rem 1rem; }
-  .abp-lane--be { border-right:1px solid var(--line,#e3ddcf); }
-  @media (max-width:720px){ .abp-lane--be { border-right:0; border-bottom:1px solid var(--line,#e3ddcf); } }
-  .abp-lane__head { font-size:.7rem; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin-bottom:.3rem; }
-  .abp-lane__who { font-weight:700; }
-  .abp-lane__task { font-size:.86rem; color:var(--ink,#3d2917); margin:.25rem 0; }
-  .abp-tick { font-size:.74rem; font-weight:700; }
-  .abp-tick.y { color:#2e7d43; }
-  .abp-tick.n { color:#c0504d; }
-
-  .abp-foot { display:flex; align-items:center; gap:1rem; padding:.7rem 1rem; border-top:1px dashed var(--line,#e3ddcf); flex-wrap:wrap; }
-  .abp-dep { flex:1; font-size:.8rem; color:var(--muted); min-width:220px; }
-  .abp-dep b { color:var(--ink,#3d2917); }
-  /* A stage can be green and still carry a caveat the reader must not miss —
-     e.g. every seat is filled, but by stand-ins, because nobody is online yet. */
-  .abp-note { margin:.5rem 0 0; padding:.55rem .7rem; border-radius:8px; font-size:.82rem;
-              color:var(--ink,#3d2917); background:var(--surface-soft,#f5eee4);
-              border-left:3px solid var(--brand,#8b7355); }
-  .abp-note b { color:var(--brand-dark,#6e4e2c); }
-  .abp-start { border:0; cursor:pointer; font-weight:800; letter-spacing:.08em; padding:.7rem 1.6rem; border-radius:10px; background:#d21f1f; color:#fff; font-size:.95rem; box-shadow:0 2px 0 #8f1414; transition:transform .08s, filter .12s; }
-  .abp-start:hover { filter:brightness(1.08); }
-  .abp-start:active { transform:translateY(2px); box-shadow:0 0 0 #8f1414; }
-  .abp-start.is-done { background:#2e7d43; box-shadow:0 2px 0 #1f5730; cursor:default; }
-  .abp-fire { font-size:.76rem; color:#2e7d43; min-width:160px; }
-  .abp-archive { border:1px dashed var(--line,#e3ddcf); border-radius:14px; padding:.8rem 1.1rem; margin-bottom:1.4rem; color:var(--muted); font-size:.86rem; }
-  .abp-archive strong { color:var(--ink,#3d2917); }
-  .abp-group-head { font-size:.78rem; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin:1.6rem 0 .6rem; }
-  .abp-stage.is-frozen { opacity:.72; }
-  .abp-criterion { margin:.5rem 1rem 0; padding:.5rem .7rem; border-radius:8px; font-size:.8rem; background:var(--surface-soft,#f5eee4); }
-  .abp-criterion b { color:var(--brand-dark,#6e4e2c); }
-  .abp-frozen-tag { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; padding:.28rem .6rem; border-radius:99px; background:var(--muted,#9c8f75); color:#fff; }
+  .abp-stage__title h2, .abp-stage__title h3 { font-size:1.05rem; margin:0; }
+  .abp-status { border:1px solid currentColor; border-radius:99px; color:var(--muted); font-size:.68rem; font-weight:800; letter-spacing:.06em; padding:.3rem .6rem; text-transform:uppercase; }
+  .abp-status--done { color:var(--brand-dark); }
+  .abp-status--active { color:var(--brand); }
+  .abp-status--blocked { color:var(--danger,var(--brand-dark)); }
+  .abp-stage__body { padding:.9rem 1rem 1rem; }
+  .abp-purpose { font-size:.92rem; margin:.1rem 0 .8rem; }
+  .abp-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.8rem 1.2rem; }
+  .abp-field { min-width:0; }
+  .abp-field p { font-size:.84rem; margin:.15rem 0; overflow-wrap:anywhere; }
+  .abp-field ul { margin:.3rem 0 0; padding-left:1.1rem; }
+  .abp-field li { font-size:.82rem; margin:.2rem 0; }
+  .abp-blocker { border-left:3px solid var(--danger,var(--brand-dark)); padding-left:.55rem; }
+  .abp-workstreams { border-top:1px solid var(--line); margin-top:1rem; padding-top:.9rem; }
+  .abp-workstream { border:1px solid var(--line); border-radius:10px; margin:.6rem 0; padding:.75rem; }
+  .abp-workstream__head { display:flex; gap:.6rem; justify-content:space-between; }
+  .abp-workstream h3 { font-size:.92rem; margin:0; }
+  .abp-workstream p, .abp-workstream li { font-size:.8rem; }
+  .abp-deferred { border:1px dashed var(--brand); border-radius:14px; margin:1.5rem 0; padding:1rem; background:var(--surface-soft); }
+  .abp-deferred h2 { font-size:1.1rem; margin:.1rem 0 .4rem; }
+  .abp-legacy { border:1px solid var(--line); border-radius:14px; margin-top:1.5rem; padding:.9rem 1rem; }
+  .abp-legacy > summary { cursor:pointer; font-family:var(--font-serif); font-size:1.2rem; font-weight:700; }
+  .abp-legacy-note { color:var(--muted); font-size:.82rem; }
+  .abp-legacy-card { border-top:1px solid var(--line); padding:1rem 0; }
+  .abp-legacy-card h3 { margin:.1rem 0; }
+  .abp-legacy-lanes { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
+  .abp-legacy-lanes p { font-size:.82rem; }
+  .abp-note { background:var(--surface-soft); border-left:3px solid var(--brand); font-size:.8rem; padding:.55rem .7rem; }
+  @media (max-width:800px) { .abp-metrics, .abp-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+  @media (max-width:560px) { .abp-metrics, .abp-grid, .abp-legacy-lanes { grid-template-columns:1fr; } .abp-stage__bar, .abp-workstream__head { align-items:flex-start; flex-wrap:wrap; } }
 </style>
 {% endblock %}
 
@@ -72,133 +64,106 @@
   <div class="container moderation-shell abp-shell">
     <a class="mon-back-link" href="{% url 'recipes:moderation_panel' %}">Back to Moderation Panel</a>
 
-    <div class="abp-head">
-      <div>
-        <p class="abp-kicker">Internal build board &middot; prod {{ prod_version }}</p>
-        <h1>Arena Build Plan</h1>
-        <p class="automation-summary">Every arena stage, oldest first. Left lane = BACKEND (Bolt), right lane = FRONTEND (GB). Green = done, pushed and deployed to production.</p>
+    <header class="abp-head">
+      <p class="abp-kicker">Internal release control · prod {{ prod_version }}</p>
+      <h1>Arena Build Plan</h1>
+      <p class="automation-summary abp-summary">A strict, evidence-based delivery pipeline. Green means the full stage acceptance gate is satisfied—not merely coded or pushed.</p>
+      <div class="abp-metrics" aria-label="Arena release summary">
+        <div class="abp-metric"><strong>{{ done_count }}/{{ total }}</strong><span>Delivery stages complete</span></div>
+        <div class="abp-metric"><strong>{{ active_stage.n }} — {{ active_stage.title }}</strong><span>Active stage</span></div>
+        <div class="abp-metric"><strong>{{ release_readiness }}</strong><span>Release readiness</span></div>
+        <div class="abp-metric"><strong>{{ blocker_count }}</strong><span>Current blockers</span></div>
       </div>
-      <div class="abp-count"><strong>{{ done_count }}/{{ total }}</strong><span>stages green</span></div>
-    </div>
+      <p class="abp-label">Last verified update: {{ last_verified }}</p>
+    </header>
 
-    <div class="abp-legend">
-      <span><b style="background:#2e7d43;"></b>Done 100% (in prod)</span>
-      <span><b style="background:#c0504d;"></b>Not ready</span>
-      <span>Press <b style="background:#d21f1f;"></b>START to signal Bolt + GB to jump on it.</span>
-    </div>
+    <section aria-labelledby="current-plan-title">
+      <h2 id="current-plan-title">Current Arena Release Plan</h2>
+      <p class="abp-summary">Strict sequential delivery pipeline for the current Arena release.</p>
+      <div class="abp-rule">
+        <p>Exactly one stage may be active. A later stage cannot be done while an earlier required stage is incomplete.</p>
+        <p>Release readiness becomes READY only after Stages 1–7 are DONE. Stage 8 is deployment and post-deploy verification.</p>
+      </div>
 
-    <p class="abp-archive"><strong>{{ archive.title }}</strong> &middot; {{ archive.done_count }}/{{ archive.count }} green &middot; {{ archive.span }}. Collapsed — this work is done and deployed.</p>
-
-    {% csrf_token %}
-    {% for s in stages %}
-    <article class="abp-stage {% if s.done %}is-done{% endif %}" id="stage-{{ s.id }}">
-      <div class="abp-stage__bar">
-        <span class="abp-num">{{ s.n }}</span>
-        <div class="abp-stage__title">
-          <h2>{{ s.title }}</h2>
-          <span class="abp-stage__date">{{ s.date }}{% if s.version %} &middot; {{ s.version }}{% endif %}</span>
+      {% for s in stages %}
+      <article class="abp-stage {% if s.status == 'DONE' %}is-done{% elif s.status == 'IN PROGRESS' %}is-active{% elif s.status == 'BLOCKED' %}is-blocked{% elif s.status == 'FROZEN' %}is-frozen{% endif %}" id="release-stage-{{ s.n }}" data-release-stage="{{ s.n }}" data-status="{{ s.status }}">
+        <div class="abp-stage__bar">
+          <span class="abp-num">{{ s.n }}</span>
+          <div class="abp-stage__title"><h2>{{ s.title }}</h2></div>
+          <span class="abp-status {% if s.status == 'DONE' %}abp-status--done{% elif s.status == 'IN PROGRESS' %}abp-status--active{% elif s.status == 'BLOCKED' %}abp-status--blocked{% endif %}">{{ s.status }}</span>
         </div>
-        <span class="abp-status {% if s.done %}done{% else %}wip{% endif %}">{% if s.done %}готово 100%{% else %}не готово{% endif %}</span>
-      </div>
+        <div class="abp-stage__body">
+          <p class="abp-purpose"><strong>Purpose:</strong> {{ s.purpose }}</p>
+          <div class="abp-grid">
+            <div class="abp-field"><span class="abp-label">Owner / owners</span><p>{{ s.owners }}</p></div>
+            <div class="abp-field"><span class="abp-label">Dependencies</span><p>{{ s.dependencies }}</p></div>
+            <div class="abp-field"><span class="abp-label">Branch evidence</span><p>{{ s.branch }}</p></div>
+            <div class="abp-field"><span class="abp-label">Commit evidence</span><p>{{ s.commit }}</p></div>
+            <div class="abp-field"><span class="abp-label">Verification evidence</span><p>{{ s.verification }}</p></div>
+            <div class="abp-field"><span class="abp-label">Last updated</span><p>{{ s.updated }}</p></div>
+            <div class="abp-field"><span class="abp-label">Acceptance criteria</span><ul>{% for item in s.criteria %}<li>{{ item }}</li>{% endfor %}</ul></div>
+            <div class="abp-field {% if s.blockers %}abp-blocker{% endif %}"><span class="abp-label">Blockers</span>{% if s.blockers %}<ul>{% for item in s.blockers %}<li>{{ item }}</li>{% endfor %}</ul>{% else %}<p>None recorded.</p>{% endif %}</div>
+          </div>
+          <div class="abp-field"><span class="abp-label">Next required action</span><p>{{ s.next_action }}</p></div>
 
-      <div class="abp-lanes">
-        <div class="abp-lane abp-lane--be">
-          <p class="abp-lane__head">Backend</p>
-          <p class="abp-lane__who">{{ s.backend.who }} <span class="abp-tick {% if s.backend.done %}y{% else %}n{% endif %}">{% if s.backend.done %}&#10003; done{% else %}&#9679; todo{% endif %}</span></p>
-          <p class="abp-lane__task">{{ s.backend.task }}</p>
-          <p class="abp-lane__head" style="margin-top:.3rem;">{{ s.backend.ref }}</p>
+          {% if s.workstreams %}
+          <section class="abp-workstreams" aria-label="Stage 3 workstreams">
+            <span class="abp-label">Implementation workstreams</span>
+            {% for w in s.workstreams %}
+            <article class="abp-workstream">
+              <div class="abp-workstream__head"><h3>{{ w.id }} · {{ w.title }}</h3><span class="abp-status">{{ w.status }}</span></div>
+              <p><strong>Owner:</strong> {{ w.owner }}</p>
+              <ul>{% for item in w.requirements %}<li>{{ item }}</li>{% endfor %}</ul>
+              <p><strong>Evidence / blocker:</strong> {{ w.evidence }}</p>
+            </article>
+            {% endfor %}
+          </section>
+          {% endif %}
         </div>
-        <div class="abp-lane abp-lane--fe">
-          <p class="abp-lane__head">Frontend</p>
-          <p class="abp-lane__who">{{ s.frontend.who }} <span class="abp-tick {% if s.frontend.done %}y{% else %}n{% endif %}">{% if s.frontend.done %}&#10003; done{% else %}&#9679; todo{% endif %}</span></p>
-          <p class="abp-lane__task">{{ s.frontend.task }}</p>
-          <p class="abp-lane__head" style="margin-top:.3rem;">{{ s.frontend.ref }}</p>
+      </article>
+      {% endfor %}
+    </section>
+
+    <aside class="abp-deferred" aria-labelledby="deferred-title">
+      <span class="abp-status">FROZEN — OUT OF CURRENT RELEASE SCOPE</span>
+      <h2 id="deferred-title">Mobile Arena as a separate scene</h2>
+      <p>Owner decision dated 2026-07-20. This deferred scope is not a current release blocker and is excluded from the 8-stage denominator.</p>
+      <p><strong>Future requirements:</strong> mobile floor; rank-ring arcs; crowd band; tappable rank rings; chef list grouped by rank.</p>
+    </aside>
+
+    <details class="abp-legacy">
+      <summary>Legacy Arena Milestones</summary>
+      <p class="abp-legacy-note">Historical feature cards, collapsed by default. Their dates, descriptions, evidence, and production notes are preserved; they do not affect active-stage counters or release readiness.</p>
+      <p class="abp-legacy-note"><strong>{{ archive.title }}</strong> · {{ archive.done_count }}/{{ archive.count }} historically green · {{ archive.span }}.</p>
+
+      {% for s in legacy_stages %}
+      <article class="abp-legacy-card" id="legacy-stage-{{ s.id }}">
+        <span class="abp-label">Historical milestone {{ s.n }} · {{ s.date }}{% if s.version %} · {{ s.version }}{% endif %}</span>
+        <h3>{{ s.title }}</h3>
+        <div class="abp-legacy-lanes">
+          <div><strong>Backend · {{ s.backend.who }} · {% if s.backend.done %}done{% else %}not done{% endif %}</strong><p>{{ s.backend.task }}</p><p>{{ s.backend.ref }}</p></div>
+          <div><strong>Frontend · {{ s.frontend.who }} · {% if s.frontend.done %}done{% else %}not done{% endif %}</strong><p>{{ s.frontend.task }}</p><p>{{ s.frontend.ref }}</p></div>
         </div>
-      </div>
+        <p><strong>Dependency:</strong> {{ s.depends }}</p>
+        {% if s.criterion %}<p><strong>Acceptance:</strong> {{ s.criterion }}</p>{% endif %}
+        {% if s.note %}<p class="abp-note"><strong>Production note / evidence:</strong> {{ s.note }}</p>{% endif %}
+      </article>
+      {% endfor %}
 
-      {% if s.criterion %}
-      <p class="abp-criterion"><b>Приёмка:</b> {{ s.criterion }}</p>
-      {% endif %}
-
-      {% if s.note %}
-      <p class="abp-note"><b>Важно:</b> {{ s.note }}</p>
-      {% endif %}
-
-      <div class="abp-foot">
-        <p class="abp-dep"><b>Зависимость:</b> {{ s.depends }}</p>
-        <span class="abp-fire" id="fire-{{ s.id }}" role="status" aria-live="polite"></span>
-        {% if s.done %}
-        <button class="abp-start is-done" type="button" disabled>ГОТОВО</button>
-        {% else %}
-        <button class="abp-start" type="button" data-stage="{{ s.id }}" data-n="{{ s.n }}">START</button>
-        {% endif %}
-      </div>
-    </article>
-    {% endfor %}
-
-    {% if later_stages %}
-    <p class="abp-group-head">Заморожено владельцем — не запускать, пока стадии выше не зелёные</p>
-    {% for s in later_stages %}
-    <article class="abp-stage is-frozen {% if s.done %}is-done{% endif %}" id="stage-{{ s.id }}">
-      <div class="abp-stage__bar">
-        <span class="abp-num">{{ s.n }}</span>
-        <div class="abp-stage__title">
-          <h2>{{ s.title }}</h2>
-          <span class="abp-stage__date">{{ s.date }}{% if s.version %} &middot; {{ s.version }}{% endif %}</span>
+      {% for s in legacy_later_stages %}
+      <article class="abp-legacy-card" id="legacy-stage-{{ s.id }}">
+        <span class="abp-label">Historical deferred milestone {{ s.n }} · {{ s.date }}</span>
+        <h3>{{ s.title }}</h3>
+        <div class="abp-legacy-lanes">
+          <div><strong>Backend · {{ s.backend.who }}</strong><p>{{ s.backend.task }}</p></div>
+          <div><strong>Frontend · {{ s.frontend.who }}</strong><p>{{ s.frontend.task }}</p></div>
         </div>
-        <span class="abp-frozen-tag">заморожено</span>
-      </div>
-
-      <div class="abp-lanes">
-        <div class="abp-lane abp-lane--be">
-          <p class="abp-lane__head">Backend</p>
-          <p class="abp-lane__who">{{ s.backend.who }} <span class="abp-tick {% if s.backend.done %}y{% else %}n{% endif %}">{% if s.backend.done %}&#10003; done{% else %}&#9679; todo{% endif %}</span></p>
-          <p class="abp-lane__task">{{ s.backend.task }}</p>
-        </div>
-        <div class="abp-lane abp-lane--fe">
-          <p class="abp-lane__head">Frontend</p>
-          <p class="abp-lane__who">{{ s.frontend.who }} <span class="abp-tick {% if s.frontend.done %}y{% else %}n{% endif %}">{% if s.frontend.done %}&#10003; done{% else %}&#9679; todo{% endif %}</span></p>
-          <p class="abp-lane__task">{{ s.frontend.task }}</p>
-        </div>
-      </div>
-
-      {% if s.criterion %}
-      <p class="abp-criterion"><b>Приёмка:</b> {{ s.criterion }}</p>
-      {% endif %}
-      {% if s.note %}
-      <p class="abp-note"><b>Важно:</b> {{ s.note }}</p>
-      {% endif %}
-      <div class="abp-foot">
-        <p class="abp-dep"><b>Зависимость:</b> {{ s.depends }}</p>
-      </div>
-    </article>
-    {% endfor %}
-    {% endif %}
+        <p><strong>Dependency:</strong> {{ s.depends }}</p>
+        {% if s.criterion %}<p><strong>Acceptance:</strong> {{ s.criterion }}</p>{% endif %}
+        {% if s.note %}<p class="abp-note"><strong>Historical note:</strong> {{ s.note }}</p>{% endif %}
+      </article>
+      {% endfor %}
+    </details>
   </div>
 </section>
-{% endblock %}
-
-{% block extra_js %}
-<script nonce="{{ request.csp_nonce }}">
-(function(){
-  var url = "{% url 'recipes:arena_build_start' %}";
-  function csrf(){ var el=document.querySelector('input[name=csrfmiddlewaretoken]'); return el?el.value:''; }
-  document.querySelectorAll('.abp-start[data-stage]').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      var stage=btn.getAttribute('data-stage');
-      var fire=document.getElementById('fire-'+stage);
-      btn.disabled=true; if(fire){fire.textContent='сигнал летит...';}
-      var body=new URLSearchParams(); body.append('stage',stage); body.append('csrfmiddlewaretoken',csrf());
-      fetch(url,{method:'POST',headers:{'X-CSRFToken':csrf()},body:body,credentials:'same-origin'})
-        .then(function(r){return r.json();})
-        .then(function(d){
-          if(d && d.ok){ if(fire){fire.textContent='сигнал улетел обоим ('+d.at+') — подняли жопы';} }
-          else { if(fire){fire.textContent='ошибка: '+((d&&d.error)||'?');} }
-        })
-        .catch(function(){ if(fire){fire.textContent='сеть недоступна';} })
-        .finally(function(){ btn.disabled=false; });
-    });
-  });
-})();
-</script>
 {% endblock %}

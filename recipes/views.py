@@ -2825,7 +2825,7 @@ ARENA_ARCHIVE_SUMMARY = {
 # 2026-07-20 manifest review: every stage carries its own acceptance criterion
 # so it cannot be swapped for a more convenient one partway through (this board
 # had exactly that happen once, on the backdrop-alignment check).
-ARENA_BUILD_STAGES = [
+ARENA_LEGACY_BUILD_STAGES = [
     {
         "n": 1, "id": "fullbleed", "title": "The arena fills the screen",
         "date": "2026-07-20",
@@ -2959,7 +2959,7 @@ ARENA_BUILD_STAGES = [
 # Frozen by the owner until the stages above go green. Kept visible so the
 # work is not forgotten, but without a START button — pressing it here would
 # violate the freeze the same way building it would.
-ARENA_LATER_STAGES = [
+ARENA_LEGACY_LATER_STAGES = [
     {
         "n": 8, "id": "mobile", "title": "Mobile arena is its own scene",
         "date": "2026-07-20",
@@ -2977,24 +2977,168 @@ ARENA_LATER_STAGES = [
     },
 ]
 
+ARENA_RELEASE_STAGES = [
+    {
+        "n": 1, "id": "baseline", "title": "Project Baseline & Governance", "status": "DONE",
+        "purpose": "Establish the canonical technical and operational baseline.",
+        "owners": "Owner, Bolt, GreenBear, Ember",
+        "criteria": ["Five canonical documents are active.", "Legacy Markdown archive is complete.",
+                     "CoWork governance and agent ownership rules are established.",
+                     "Repository baseline commit is recorded."],
+        "dependencies": "None — this is the release baseline.", "blockers": [],
+        "branch": "main", "commit": "d852fff53b8de0f7fcd46897c4ce287c6abe8a0d",
+        "verification": "Canonical active set and documentation reset verified on main.",
+        "updated": "2026-07-21T11:45:58.810Z", "next_action": "Retain as the immutable baseline for this release.",
+    },
+    {
+        "n": 2, "id": "spec-lock", "title": "Audit & Technical Specification Lock", "status": "DONE",
+        "purpose": "Identify defects, lock product decisions, and establish implementation scope.",
+        "owners": "Bolt, GreenBear, audit agents, Owner",
+        "criteria": ["Backend audit complete.", "Frontend audit complete.", "Corrected synthesis complete.",
+                     "Owner access, layout, token, popup, Battle Room, and Master Console decisions recorded."],
+        "dependencies": "Stage 1 governance baseline.", "blockers": [],
+        "branch": "audit branches / synthesis", "commit": "be5495b… · 7061155… · 1586ec2…",
+        "verification": "Backend be5495b5; frontend 70611557; synthesis 1586ec2e recorded in Git.",
+        "updated": "2026-07-21T11:45:58.810Z", "next_action": "Use the locked synthesis as the implementation authority.",
+    },
+    {
+        "n": 3, "id": "implementation", "title": "Arena Implementation", "status": "IN PROGRESS",
+        "purpose": "Implement every approved backend and frontend release requirement.",
+        "owners": "Bolt coordinating backend; Ember frontend package complete but unverified",
+        "criteria": ["All mandatory workstreams complete.",
+                     "Every blocker resolved or explicitly removed from release scope by the owner.",
+                     "All implementation branches committed and pushed.", "No overlapping file ownership.",
+                     "No merge to main; verification remains pending until Stage 5."],
+        "dependencies": "Stages 1 and 2 DONE.",
+        "blockers": ["3D: owner must select or reject the country/flag data model."],
+        "branch": "impl/arena-access-and-context · impl/arena-frontend-a11y-tokens-ember",
+        "commit": "ce43242b65fc3d0ca8a259544ab4d1ffb9f7eaf8 · 0dbac5e99c1c1071da966d1ede36926e489600ed",
+        "verification": "Both remote tips verified 2026-07-21; implementation remains unverified until Stage 5.",
+        "updated": "2026-07-21T11:45:58.810Z",
+        "next_action": "Resolve 3D, complete or verify 3C and 3E, then confirm all Stage 3 gates.",
+        "workstreams": [
+            {"id": "3A", "title": "Backend access and initial-render context", "owner": "Bolt",
+             "status": "IN PROGRESS — VERIFY ACTUAL GIT STATE",
+             "requirements": ["Arena Hall and Battle Room staff/superuser-only.",
+                              "arena_react and battle_chat_poll access-gated; battle_chat_send protection preserved.",
+                              "Top-level crown_streak, crown_ladder, and recent_gifts context corrected.",
+                              "Regression-test definitions added."],
+             "evidence": "Remote branch impl/arena-access-and-context at ce43242b65fc3d0ca8a259544ab4d1ffb9f7eaf8; pushed. Owned-file scope and diff-check evidence require review; UNVERIFIED until Stage 5."},
+            {"id": "3B", "title": "Frontend accessibility and token migration", "owner": "Ember",
+             "status": "IMPLEMENTATION COMPLETE — UNVERIFIED",
+             "requirements": ["Popup focus entry, trap, Escape close, visible close, and focus return.",
+                              "Popup remains preview/navigation only; Battle Room remains a separate full page.",
+                              "Independent dark palette removed in favour of official light/parchment tokens.",
+                              "Raw colours removed except documented technical exceptions."],
+             "evidence": "impl/arena-frontend-a11y-tokens-ember at 0dbac5e99c1c1071da966d1ede36926e489600ed; pushed; tests run: 0."},
+            {"id": "3C", "title": "Real spectator overlay", "owner": "Unassigned",
+             "status": "NOT STARTED OR UNVERIFIED",
+             "requirements": ["Display real online viewers over the painted backdrop, front rows first.",
+                              "Do not draw artificial stand-ins; retain eight rings and 544 seats.",
+                              "A logged-in visitor can see themselves seated."],
+             "evidence": "No current branch, commit, or verification evidence recorded."},
+            {"id": "3D", "title": "Chef confrontation panels", "owner": "Owner decision required",
+             "status": "BLOCKED BY PRODUCT DATA DECISION",
+             "requirements": ["Challenger left; opponent right; photo and name displayed.",
+                              "Display a flag only after an approved country-data source exists."],
+             "evidence": "RecipeAuthor has no approved country field; country/flag data model must be selected or rejected."},
+            {"id": "3E", "title": "Rank floor column", "owner": "Unassigned",
+             "status": "NOT STARTED OR UNVERIFIED",
+             "requirements": ["Display KITCHEN PORTER through CULINARY MASTER over the floor.",
+                              "Measure contrast at 7:1 or higher and record numeric evidence."],
+             "evidence": "No current branch, commit, or numeric contrast evidence recorded."},
+            {"id": "3F", "title": "Legacy completed production capabilities", "owner": "Bolt / GreenBear",
+             "status": "DONE — HISTORICAL EVIDENCE",
+             "requirements": ["Full-bleed Arena layout.", "HUD positioned around the Arena.",
+                              "Database self-vote protection.", "Versioned HMAC vote hashing."],
+             "evidence": "Production history retained in Legacy Arena Milestones and Deployment Journal."},
+        ],
+    },
+    {
+        "n": 4, "id": "integration", "title": "Integration & Code Review", "status": "NOT STARTED",
+        "purpose": "Combine approved implementation commits without releasing them.", "owners": "Integration owner (unassigned)",
+        "criteria": ["One temporary integration branch with exact backend and frontend commits recorded.",
+                     "Merge conflicts resolved; scope review complete; no unrelated files included.",
+                     "Security and access policy reviewed; integration commit created.", "No production deployment."],
+        "dependencies": "Stage 3 DONE.", "blockers": [], "branch": "Not created", "commit": "Not recorded",
+        "verification": "Not started.", "updated": "2026-07-21T11:45:58.810Z",
+        "next_action": "After Stage 3 closes, create the temporary integration branch and perform review.",
+    },
+    {
+        "n": 5, "id": "verification", "title": "Distributed Verification", "status": "BLOCKED",
+        "purpose": "Verify the integration commit across the available proper test machines.",
+        "owners": "Bolt (8-core), GreenBear (6-core)",
+        "criteria": ["One run_id and one explicit test manifest.", "Non-overlapping test shards.",
+                     "Bolt and GreenBear machines used efficiently; Linode 1-core excluded from application/project suites.",
+                     "All results aggregated with zero unexplained failures.",
+                     "Exact test counts, durations, and failures recorded."],
+        "dependencies": "Stage 4 integration commit.",
+        "blockers": ["GreenBear 6-core environment is currently rate-limited."],
+        "branch": "Integration branch not created", "commit": "Integration commit not recorded",
+        "verification": "No run_id, manifest, shards, counts, durations, or results yet.",
+        "updated": "2026-07-21T11:45:58.810Z",
+        "next_action": "Restore GreenBear capacity, then execute the approved distributed manifest.",
+    },
+    {
+        "n": 6, "id": "live-qa", "title": "Live Functional & Accessibility QA", "status": "NOT STARTED",
+        "purpose": "Verify the release candidate through real user flows and supported viewport sizes.",
+        "owners": "QA owner (unassigned)",
+        "criteria": ["Staff/superuser access verified and registered non-staff denied.",
+                     "Arena Hall initial render and Battle Room full-page navigation verified.",
+                     "Popup keyboard entry, trap, Escape, close, and focus return verified.",
+                     "Responsive checks at 390px and 1920px with no Arena-caused horizontal overflow.",
+                     "Reduced motion, numeric contrast, and Master Console compatibility verified."],
+        "dependencies": "Stage 5 DONE with zero unexplained failures.", "blockers": [],
+        "branch": "Release-candidate branch not recorded", "commit": "Release-candidate commit not recorded",
+        "verification": "Not started.", "updated": "2026-07-21T11:45:58.810Z",
+        "next_action": "After distributed verification, execute the live QA matrix and record evidence.",
+    },
+    {
+        "n": 7, "id": "owner-acceptance", "title": "Owner Acceptance & Release Candidate", "status": "NOT STARTED",
+        "purpose": "Present one fully verified release candidate to the owner.", "owners": "Owner and release coordinator",
+        "criteria": ["Stages 1 through 6 DONE with no unresolved release blocker.",
+                     "Final commit SHA and complete change, test, and QA evidence recorded.",
+                     "Known limitations and rollback plan prepared.", "Owner explicitly approves or rejects release."],
+        "dependencies": "Stages 1–6 DONE.", "blockers": [], "branch": "Not selected", "commit": "Not recorded",
+        "verification": "Readiness result: NOT READY.", "updated": "2026-07-21T11:45:58.810Z",
+        "next_action": "Complete Stages 3–6 before requesting owner acceptance.",
+    },
+    {
+        "n": 8, "id": "deployment", "title": "Deployment & Post-Deploy Verification", "status": "FROZEN",
+        "purpose": "Deploy the approved release candidate and verify production.", "owners": "Owner-approved deployer",
+        "criteria": ["Owner approval recorded and approved commit deployed.",
+                     "Deployment Journal and version updated where required.",
+                     "collectstatic performed where required; migration status verified.",
+                     "Production access policy and smoke checks passed; rollback path verified.",
+                     "Arena Build Plan updated to RELEASED."],
+        "dependencies": "Stage 7 DONE with explicit owner approval.",
+        "blockers": ["Requires explicit owner release approval."], "branch": "Not approved", "commit": "Not approved",
+        "verification": "Frozen; no deployment or production verification performed.",
+        "updated": "2026-07-21T11:45:58.810Z", "next_action": "Wait for explicit owner release approval.",
+    },
+]
+
+
 def _arena_build_context():
-    stages = []
-    done_count = 0
-    for s in ARENA_BUILD_STAGES:
-        done = bool(s["backend"]["done"] and s["frontend"]["done"])
-        if done:
-            done_count += 1
-        stages.append({**s, "done": done})
-    later_stages = [
+    legacy_stages = [
         {**s, "done": bool(s["backend"]["done"] and s["frontend"]["done"])}
-        for s in ARENA_LATER_STAGES
+        for s in ARENA_LEGACY_BUILD_STAGES
+    ]
+    legacy_later_stages = [
+        {**s, "done": bool(s["backend"]["done"] and s["frontend"]["done"])}
+        for s in ARENA_LEGACY_LATER_STAGES
     ]
     return {
-        "stages": stages,
-        "total": len(stages),
-        "done_count": done_count,
+        "stages": ARENA_RELEASE_STAGES,
+        "total": len(ARENA_RELEASE_STAGES),
+        "done_count": sum(s["status"] == "DONE" for s in ARENA_RELEASE_STAGES),
+        "active_stage": next(s for s in ARENA_RELEASE_STAGES if s["status"] == "IN PROGRESS"),
+        "blocker_count": sum(len(s["blockers"]) for s in ARENA_RELEASE_STAGES),
+        "release_readiness": "NOT READY",
+        "last_verified": "2026-07-21T11:45:58.810Z",
         "archive": ARENA_ARCHIVE_SUMMARY,
-        "later_stages": later_stages,
+        "legacy_stages": legacy_stages,
+        "legacy_later_stages": legacy_later_stages,
         # Track the real latest release so the board header never goes stale
         # again (it was pinned to v2.5.326 while prod had moved several releases
         # past it). RELEASE_JOURNAL is newest-first.
@@ -3019,7 +3163,7 @@ def arena_build_start(request):
     if not is_moderator(request.user):
         raise Http404
     stage_id = (request.POST.get("stage") or "").strip()
-    stage = next((s for s in ARENA_BUILD_STAGES if s["id"] == stage_id), None)
+    stage = next((s for s in ARENA_LEGACY_BUILD_STAGES if s["id"] == stage_id), None)
     if stage is None:
         return JsonResponse({"ok": False, "error": "Unknown stage."}, status=400)
 
