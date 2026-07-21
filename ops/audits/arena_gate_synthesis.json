@@ -5,6 +5,30 @@
     "base_commit": "d852fff53b8de0f7fcd46897c4ce287c6abe8a0d",
     "method_note": "Both source reports were read directly from their exact commits via git show, not from branch tips. Every carried-forward finding was independently re-verified against the working tree at base_commit (grep/read of the actual code), not merely copied. Two source claims did not survive verification and are corrected below. No audit branch was merged into main; no production code or Markdown was modified by this synthesis.",
 
+    "owner_correction_notice": {
+      "applied": "2026-07-21, second synthesis commit",
+      "ruling": "Direct owner ruling REVERSES this document's original access classification. Current production access for Arena Hall, Battle Room, and Arena Master Console must be STAFF_OR_SUPERUSER_ONLY; public/registered-author access is NOT_RELEASED.",
+      "authority_order": [
+        "1. Current direct owner decision",
+        "2. The five canonical documents",
+        "3. The current Arena Build Plan",
+        "4. Historical Deployment Journal entries"
+      ],
+      "superseded_evidence": "RELEASE_JOURNAL v2.5.380 ('Any registered author can visit the arena') is classified HISTORICAL_SUPERSEDED_RULE and MAY NOT override current owner policy.",
+      "what_changed_in_this_document": [
+        "The original AR1 (which called registered-author access an intended owner decision and the product contract the 'stale' side) is WITHDRAWN. It was wrong.",
+        "Registered-author access to the Arena is now classified as a CONFIRMED CURRENT DEFECT (new finding CF0).",
+        "The product contract (CHEF_BATTLE_PRODUCT_CONTRACT_2D.md:123-138, recipe_author_without_staff: false) is AUTHORITATIVE AND CORRECT — it is NOT marked stale.",
+        "Conflicting-evidence CE2 resolution is flipped: current owner policy + the canonical contract win; the code is the defect.",
+        "The permission implementation package and targeted-test matrix are updated to fix the over-exposure and to invert the tests that currently assert the defective behaviour."
+      ],
+      "unchanged_by_this_correction": [
+        "CF1 initial-render context defect (still confirmed).",
+        "CF3 / CE1 correction: battle_chat_send IS protected (@chef_battle_guard); battle_chat_poll needs separate assessment.",
+        "CF2 arena_react has no gate; CF4/CF5 accessibility; CF6 stale test name."
+      ]
+    },
+
     "source_commits": {
       "backend_audit": {
         "agent": "Bolt",
@@ -44,7 +68,7 @@
         "read_method": "Page is moderator-gated; read RELEASE_JOURNAL directly from source at base_commit.",
         "latest_version_recorded": "2.5.380",
         "relevant_recent_entries": [
-          {"version": "2.5.380", "title": "Any registered author can visit the arena", "commit_field": "pending", "relevance": "DECISIVE for backend F1 — documents the explicit owner rule that any registered author (not only staff/superuser/bearseeker) may visit and watch the arena during dark launch; chef enrollment gates participation, not visibility."},
+          {"version": "2.5.380", "title": "Any registered author can visit the arena", "commit_field": "pending", "classification": "HISTORICAL_SUPERSEDED_RULE", "relevance": "Per the owner correction, this entry does NOT establish current policy. It is a historical/superseded rule and may not widen access beyond staff/superuser. The code that implements it (access.py:43-44) is therefore a defect, not intended behaviour."},
           {"version": "2.5.379", "title": "Real spectators stop being stretched into ghosts", "commit_field": "pending", "relevance": "Frontend spectator rendering (build stage 2 area) — scaleY billboard stretch removed."},
           {"version": "2.5.378", "title": "Self-vote blocked at the database, arena tokens, manifest in the repo", "commit_field": "pending", "relevance": "Confirms build stage 7 (integrity) done; records token progress 89->35 hex (build stage 6, still open)."},
           {"version": "2.5.377", "title": "Full-bleed reaches the phone too", "commit_field": "pending", "relevance": "Confirms build stage 1 (fullbleed) done incl. mobile."},
@@ -54,14 +78,41 @@
       }
     },
 
+    "arena_access_permission_matrix": {
+      "owner_required_policy": "Arena Hall, Battle Room, all their polling endpoints, and all privileged actions: STAFF_OR_SUPERUSER_ONLY during dark launch. Anonymous and registered-author-without-staff must be denied. Master Console: staff/superuser-only maximum (currently stricter — superuser+owner/flag — which is within bound).",
+      "current_code_behaviour_dark_launch": {
+        "note": "CHEF_BATTLE_ENABLED=False (dark launch). Rows marked DEFECT are wider than owner policy allows.",
+        "arena_hall__arena/": {"anon": "404", "author_non_staff": "200 DEFECT", "staff": "200 OK", "superuser": "200 OK"},
+        "battle_room__battles/<pk>/": {"anon": "404", "author_non_staff": "200 DEFECT", "staff": "200 OK", "superuser": "200 OK"},
+        "arena_ping / arena_state / arena_blast": {"anon": "404", "author_non_staff": "200 DEFECT", "staff": "200 OK", "superuser": "200 OK", "gate": "manual is_battle_visible() check"},
+        "arena_react": {"anon": "200 DEFECT (worst — no gate at all)", "author_non_staff": "200 DEFECT", "staff": "200", "superuser": "200", "gate": "@require_POST only"},
+        "battle_state_poll": {"anon": "302->login", "author_non_staff": "200 DEFECT", "staff": "200 OK", "superuser": "200 OK", "gate": "@chef_battle_guard + @login_required"},
+        "battle_chat_send": {"anon": "404 (gated)", "author_non_staff": "200 DEFECT", "staff": "200", "superuser": "200", "gate": "@chef_battle_guard + @require_POST + @ratelimit — SEND IS PROTECTED"},
+        "battle_chat_poll": {"anon": "200 DEFECT (worst — no visibility gate)", "author_non_staff": "200 DEFECT", "staff": "200", "superuser": "200", "gate": "@ratelimit only — needs separate assessment"},
+        "master_console + master/* + live-arena/*": {"anon": "404", "author_non_staff": "404", "staff": "404", "superuser": "404 unless owner-slug or ARENA_MASTER_CONSOLE_ENABLED+flag", "verdict": "WITHIN BOUND — stricter than staff/superuser, not over-exposed"}
+      },
+      "root_cause": "chef_battle/access.py:43-44 — is_battle_visible() returns True for any user with a recipe_author_profile during dark launch. That single branch is what lets non-staff authors into everything gated by chef_battle_guard/is_battle_visible (Hall, Battle Room, arena_ping/state/blast, battle_state_poll, battle_chat_send). arena_react (no gate) and battle_chat_poll (ratelimit only) are separately even wider (anonymous)."
+    },
+
     "confirmed_findings": [
+      {
+        "id": "CF0",
+        "origin": "OWNER RULING (reverses original AR1) + backend F1 evidence",
+        "severity": "HIGH — release-gate defect",
+        "title": "Production Arena is accessible wider than owner policy allows: registered non-staff authors can reach Arena Hall + Battle Room during dark launch",
+        "verified": "YES — chef_battle/access.py:36-44. During dark launch (CHEF_BATTLE_ENABLED=False), is_battle_visible() returns True for any account holding a recipe_author_profile (lines 43-44), so a plain registered author with no staff flag reaches the Arena Hall, Battle Room, arena_ping/state/blast, battle_state_poll, and battle_chat_send. Owner policy requires staff/superuser-only pre-release. This is exactly the release-gate defect the product contract's own escalation rule (CHEF_BATTLE_PRODUCT_CONTRACT_2D.md section 5) describes.",
+        "policy_source": "Direct owner ruling 2026-07-21 (staff/superuser-only, not released) + CHEF_BATTLE_PRODUCT_CONTRACT_2D.md:123-138 (recipe_author_without_staff: false). The v2.5.380 journal rule to the contrary is historical/superseded and does not apply.",
+        "contract_status": "The product contract is AUTHORITATIVE AND CORRECT on this point. It must NOT be marked stale.",
+        "fix_side": "Backend (Bolt): remove the recipe_author_profile branch from is_battle_visible() so that during dark launch only is_staff/is_superuser pass; update the docstring that cites the superseded 2026-07-20 rule. Then invert the tests that currently assert an author gets 200 (see targeted_test_matrix).",
+        "related": "CF2 (arena_react, anonymous) and CF3 (battle_chat_poll, anonymous) are additional, separate over-exposure gaps beyond the author-access root cause."
+      },
       {
         "id": "CF1",
         "origin": "backend F4 + F6",
         "severity": "medium-high",
         "title": "Arena Hall initial-render context defect: crown_streak / crown_ladder / recent_gifts always empty on first paint",
         "verified": "YES — re-confirmed at base_commit. templates/chef_battle/arena.html reads {{ crown_streak|default:0 }} (line 58), {% for chef in crown_ladder %} (line 127), {% for gift in recent_gifts %} (line 143) as TOP-LEVEL variables. chef_battle/views.py arena() render() call (lines 1135-1142) passes only: rank_groups, spectator_count, active_battle, arena_data, viewer_author, user_enrolled. The three values exist only nested inside arena_data. Django silently resolves the undefined top-level names to empty, so crown streak renders 0 and both loops hit their {% empty %} branch on every initial load until the first arena_state poll repaints via JS.",
-        "not_tracked_in": "Not mentioned in ARENA_BUILD_STAGES or RELEASE_JOURNAL — this is a genuinely new, un-tracked defect.",
+        "not_tracked_in": "Not mentioned in ARENA_BUILD_STAGES or RELEASE_JOURNAL — a genuinely new, un-tracked defect.",
         "recommended_fix_side": "View-side (Bolt): add crown_streak/crown_ladder/recent_gifts to the top-level render context, matching what arena.html already expects. Chosen over editing the template so backend/Python stays in Bolt's lane and arena.html (GB build-stage territory) is not touched."
       },
       {
@@ -70,15 +121,15 @@
         "severity": "medium",
         "title": "arena_react has no visibility gate",
         "verified": "YES — chef_battle/views.py:3158-3159 shows @require_POST as the only decorator on arena_react; no @chef_battle_guard and no is_battle_visible() check in the body. Docstring says 'Public but rate-limited'. During dark launch an anonymous user can POST reactions for any battle_id while the arena page itself 404s them.",
-        "owner_decision_gate": "Is this endpoint intentionally public, or should it inherit is_battle_visible() like its sibling arena_* endpoints? Fix is one decorator either way; needs intent confirmation before changing."
+        "action": "Under the owner's staff/superuser-only policy this must be gated with is_battle_visible()/@chef_battle_guard like its sibling arena_* endpoints. Fix is one decorator/guard."
       },
       {
         "id": "CF3",
-        "origin": "backend F3 (CORRECTED — see conflicting_evidence)",
+        "origin": "backend F3 (CORRECTED — see conflicting_evidence CE1)",
         "severity": "low-medium",
         "title": "battle_chat_poll has no visibility gate (read-only chat leak); battle_chat_send IS gated",
-        "verified": "PARTIAL/CORRECTED — battle_chat_poll (chef_battle/views.py:2055-2056) carries only @ratelimit(GET), no @chef_battle_guard/@login_required, so an anonymous visitor can poll and read chat for any battle id even while battle_detail 404s them. HOWEVER battle_chat_send (views.py:2017-2020) DOES carry @chef_battle_guard + @require_POST + @ratelimit — contrary to the backend audit's claim that it had 'no gate'. The real gap is a read-only leak on the poll endpoint only, narrower and lower-severity than the source report stated.",
-        "owner_decision_gate": "Should battle_chat_poll inherit @chef_battle_guard to match the page it serves, or is public read intentional? Confirm before changing."
+        "verified": "CONFIRMED/CORRECTED — battle_chat_poll (chef_battle/views.py:2055-2056) carries only @ratelimit(GET), no @chef_battle_guard/@login_required, so an anonymous visitor can poll and read chat for any battle id even while battle_detail 404s them. battle_chat_send (views.py:2017-2020) DOES carry @chef_battle_guard + @require_POST + @ratelimit — contrary to the backend audit's claim that it had 'no gate'. battle_chat_send is PROTECTED; only battle_chat_poll needs separate assessment.",
+        "action": "Assess battle_chat_poll separately: under staff/superuser-only policy it should inherit @chef_battle_guard to match the page it serves."
       },
       {
         "id": "CF4",
@@ -107,19 +158,19 @@
 
     "already_resolved_findings": [
       {
-        "id": "AR1",
-        "origin": "backend F1 (rated HIGH in the source report)",
-        "title": "recipe_author_without_staff arena access = true",
-        "resolution": "SUPERSEDED BY EXPLICIT OWNER DECISION — not a defect. RELEASE_JOURNAL v2.5.380 ('Any registered author can visit the arena') and the inline comment at chef_battle/access.py:43-44 (dated 2026-07-20) both document the owner's rule that any registered author may visit and watch during dark launch; enrollment gates participation, not visibility. The CODE is intentional and correct. The stale side is docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md:123-138, whose arena_visibility matrix still says recipe_author_without_staff: false.",
-        "residual_action": "Reconcile the written contract to match the owner decision. This is a Markdown edit, explicitly OUT OF SCOPE for this synthesis — surfaced as an owner_decision, not actioned.",
-        "note": "Master Console access is unaffected — it stays superuser+owner/flag-only via the separate has_arena_console_access gate."
-      },
-      {
         "id": "AR2",
         "origin": "frontend F1 (partial)",
         "title": "Raw hex colours across arena stylesheets",
         "resolution": "IN PROGRESS, ALREADY TRACKED as ARENA_BUILD_STAGES stage 6 ('tokens', GB-owned, frontend_done=false). Live raw-hex count has been driven 89 -> ~35 (recount at base_commit: arena.css 6, arena_hall.css 3, arena_render.css 3, arena_command_deck.css 0, arena_deck_polish.css 5, arena_master_console.css 8, arena_master_console_plan.css 17, arena_effects.css 0 — counts include comment and local-declaration matches). Remaining are documented semantic exceptions (green=online / red=LIVE / blue=DEF, no such hue token exists) plus each file's own local palette-declaration site.",
         "residual_action": "Finish stage 6 to its stated criterion (grep hex == 0 except documented exceptions) and get the open owner ruling on the independent dark palette (see conflicting_evidence CE3). Rolled into greenbear_work_package, not re-opened as a new finding."
+      }
+    ],
+
+    "withdrawn_findings": [
+      {
+        "id": "AR1 (WITHDRAWN)",
+        "was": "Originally classified registered-author arena access as an intended owner decision (per journal v2.5.380) and the product contract as the 'stale' side.",
+        "withdrawn_reason": "Reversed by direct owner ruling 2026-07-21: staff/superuser-only is the current policy; the v2.5.380 rule is historical/superseded and cannot widen access. Registered-author access is a CONFIRMED CURRENT DEFECT (now CF0). The product contract is authoritative and correct — not stale."
       }
     ],
 
@@ -129,14 +180,14 @@
         "topic": "battle_chat_send gating",
         "backend_audit_claim": "battle_chat_send (views.py:2020) gate: NONE; anonymous can POST as 'Anonymous'.",
         "verified_reality": "battle_chat_send carries @chef_battle_guard (views.py:2017) at base_commit — it IS gated. The backend audit's F3 overstated the gap. Only battle_chat_poll is ungated (read-only). Resolved in favour of the code; CF3 reflects the corrected, narrower finding.",
-        "resolution": "Code wins. Synthesis carries the corrected version."
+        "resolution": "Code wins. Synthesis carries the corrected version. battle_chat_send PROTECTED; battle_chat_poll needs separate assessment."
       },
       {
         "id": "CE2",
-        "topic": "author-without-staff arena visibility: contract vs owner decision",
+        "topic": "author-without-staff arena visibility: current owner policy vs superseded journal entry",
         "contract_says": "docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md:123-138 — recipe_author_without_staff: false pre-release.",
-        "owner_decision_says": "RELEASE_JOURNAL v2.5.380 + access.py:43-44 comment (2026-07-20) — any registered author may visit.",
-        "resolution": "Owner decision wins (source-of-truth order: owner instruction outranks the product contract). Contract doc is stale and needs reconciliation (see AR1)."
+        "superseded_journal_says": "RELEASE_JOURNAL v2.5.380 + access.py:43-44 comment (2026-07-20) — any registered author may visit.",
+        "resolution": "FLIPPED by owner correction. Current owner ruling (staff/superuser-only, not released) and the canonical contract WIN. The v2.5.380 journal entry is HISTORICAL_SUPERSEDED_RULE and may not override current policy. The CODE (access.py author branch) is the defect (CF0). The contract is NOT stale."
       },
       {
         "id": "CE3",
@@ -147,29 +198,36 @@
     ],
 
     "implementation_order": [
-      "0. OWNER DECISIONS FIRST (gate several packages): (a) reconcile CHEF_BATTLE_PRODUCT_CONTRACT_2D.md author-visibility matrix to the v2.5.380 rule [AR1/CE2]; (b) arena_react + battle_chat_poll — intentionally public or gate them [CF2/CF3]; (c) canonical palette ruling parchment-vs-dark [CE3]; (d) navigation contract full-page-vs-popup [frontend F4].",
-      "1. BOLT — CF1 initial-render context fix (no owner decision needed; safest, highest-value, fully independent) + its regression test + CF6 stale-test rename.",
-      "2. BOLT — CF2/CF3 endpoint gating, but ONLY after owner decision (b). Same file as step 1 so sequenced within Bolt's lane.",
-      "3. GREENBEAR — CF4 popup accessibility (no owner decision needed) first; then stage-6 token completion after owner decision (c); then CF5 battle_detail a11y pass.",
-      "4. EMBER — live-browser + targeted-test verification of the above once identity=ember is restored; closes the frontend audit's own 'no live verification' blocker. Pending identity restoration.",
+      "0. OWNER DECISIONS that gate parts of the work: (a) canonical palette ruling parchment-vs-dark [CE3]; (b) navigation contract full-page-vs-popup [frontend F4]. NOTE: the author-visibility question is NO LONGER an open decision — the owner has ruled staff/superuser-only, so CF0 is a fix task, not a pending decision.",
+      "1. BOLT — CF0 access fix (release-gate; restore staff/superuser-only in is_battle_visible; gate arena_react [CF2] and assess battle_chat_poll [CF3]) + invert the tests that currently assert author access. Highest priority — this is the production over-exposure.",
+      "2. BOLT — CF1 initial-render context fix + regression test + CF6 stale-test rename (independent, no owner decision needed).",
+      "3. GREENBEAR — CF4 popup accessibility (no owner decision needed) first; then stage-6 token completion after owner decision (a); then CF5 battle_detail a11y pass.",
+      "4. EMBER — live-browser + targeted-test verification of the above once identity=ember is restored; must include an explicit check that a plain author gets 404 on Hall/Battle Room after CF0 lands. Pending identity restoration.",
       "No package merges to main without owner instruction; no deploys."
     ],
 
     "bolt_work_package": {
       "agent": "Bolt",
-      "branch": "impl/arena-backend-context-and-gates (to be created from origin/main when authorised)",
-      "owned_files": ["chef_battle/views.py", "chef_battle/tests.py"],
+      "branch": "impl/arena-access-and-context (to be created from origin/main when authorised)",
+      "owned_files": ["chef_battle/access.py", "chef_battle/views.py", "chef_battle/tests.py"],
       "tasks": [
+        {"id": "CF0", "task": "Restore staff/superuser-only Arena visibility during dark launch: remove the recipe_author_profile branch from is_battle_visible() (access.py:43-44) so only is_staff/is_superuser pass when CHEF_BATTLE_ENABLED is False; update the docstring that cites the superseded 2026-07-20 rule.", "owner_decision_required": false, "priority": "release-gate — highest"},
+        {"id": "CF0-tests", "task": "INVERT the tests that currently assert the defective behaviour: chef_battle.tests.ArenaDarkLaunchTests.test_plain_author_sees_the_arena_during_dark_launch must assert a plain author now gets 404; adjust ChefBattleAccessTests / test_battle_visible_lets_staff_in_but_never_anonymous accordingly. Add coverage that staff and superuser still get 200 and anonymous still gets 404 on Hall, Battle Room, arena_ping/state/blast, battle_state_poll, battle_chat_send.", "owner_decision_required": false},
+        {"id": "CF2", "task": "Gate arena_react with is_battle_visible()/@chef_battle_guard (staff/superuser-only policy).", "owner_decision_required": false},
+        {"id": "CF3", "task": "Assess and gate battle_chat_poll with @chef_battle_guard to match the page it serves; keep battle_chat_send as-is (already protected).", "owner_decision_required": false},
         {"id": "CF1", "task": "Add crown_streak, crown_ladder, recent_gifts to the arena() top-level render context (they already exist in the payload / arena_data). Do not restructure arena.html — the template already reads them top-level.", "owner_decision_required": false},
-        {"id": "CF1-test", "task": "Add a template-render-level regression test that renders arena.html with seeded crown-streak/ladder/gift data and asserts the real values appear in the HTML on first paint (not just that _build_arena_payload() has the keys — the existing ArenaPayloadWiringTests gap).", "owner_decision_required": false},
-        {"id": "CF6", "task": "Rename test_procedural_arena_is_explicit_proto_gate to reflect that ring content renders unconditionally now; adjust its assertions/comment accordingly.", "owner_decision_required": false},
-        {"id": "CF2", "task": "Gate arena_react with is_battle_visible()/@chef_battle_guard IF owner confirms it should not be public.", "owner_decision_required": true},
-        {"id": "CF3", "task": "Gate battle_chat_poll with @chef_battle_guard IF owner confirms chat read should not be public.", "owner_decision_required": true}
+        {"id": "CF1-test", "task": "Add a template-render-level regression test that renders arena.html with seeded crown-streak/ladder/gift data and asserts the real values appear in the HTML on first paint (the existing ArenaPayloadWiringTests gap).", "owner_decision_required": false},
+        {"id": "CF6", "task": "Rename test_procedural_arena_is_explicit_proto_gate to reflect that ring content renders unconditionally now; adjust assertions/comment.", "owner_decision_required": false}
       ],
-      "tests": ["chef_battle.tests.ArenaPayloadWiringTests (extend)", "chef_battle.tests.ChefBattleAccessTests", "chef_battle.tests.ArenaDarkLaunchTests", "new arena.html render test class"],
-      "dependencies": ["Owner decision (b) for CF2/CF3 only. CF1/CF1-test/CF6 have no dependency."],
+      "tests": ["chef_battle.tests.ChefBattleAccessTests (update)", "chef_battle.tests.ArenaDarkLaunchTests (invert author case)", "chef_battle.tests.ArenaMasterConsoleAccessTests", "chef_battle.tests.ArenaPayloadWiringTests (extend)", "new arena.html render test class"],
+      "dependencies": ["None — the CF0 policy is now decided by the owner. All Bolt tasks can proceed once implementation is authorised."],
       "cross_package_note": "GreenBear must NOT switch arena.html's crown_streak/crown_ladder/recent_gifts reads to arena_data.* — Bolt is making the top-level context authoritative for those three.",
-      "done_criteria": ["crown streak/ladder/gifts show real seeded values in rendered arena.html before any JS poll (asserted by test)", "renamed test passes and no longer implies a proto gate", "if owner approves gating: anonymous request to arena_react/battle_chat_poll returns 404 during dark launch, covered by tests", "git diff --check clean; only owned files changed; no Markdown; no deploy"]
+      "done_criteria": [
+        "During dark launch: anonymous AND registered non-staff author both get 404 on arena/, battles/<pk>/, arena_ping/state/blast, arena_react, battle_state_poll, battle_chat_send, battle_chat_poll; only staff and superuser get through — asserted by tests",
+        "crown streak/ladder/gifts show real seeded values in rendered arena.html before any JS poll (asserted by test)",
+        "renamed test passes and no longer implies a proto gate",
+        "git diff --check clean; only owned files changed; no Markdown; no deploy"
+      ]
     },
 
     "greenbear_work_package": {
@@ -189,8 +247,8 @@
         {"id": "CF5", "task": "Raise battle_detail.html aria/role/tabindex coverage toward parity with arena.html.", "owner_decision_required": false}
       ],
       "tests": ["Manual/live a11y verification (keyboard, focus order, Escape, focus return) — coordinate with Ember's live pass", "no Python source owned; no unit-test file owned"],
-      "dependencies": ["Owner decision (c) palette ruling for the token half of stage 6.", "Owner decision (d) navigation contract before any deeper Battle Room restructuring (CF5 aria pass itself does not need it)."],
-      "cross_package_note": "Do not edit chef_battle/views.py or chef_battle/tests.py (Bolt). Do not touch arena.html's crown_streak/crown_ladder/recent_gifts context reads (Bolt owns that fix in the view).",
+      "dependencies": ["Owner decision (a) palette ruling for the token half of stage 6.", "Owner decision (b) navigation contract before any deeper Battle Room restructuring (CF5 aria pass itself does not need it)."],
+      "cross_package_note": "Do not edit chef_battle/access.py, chef_battle/views.py or chef_battle/tests.py (Bolt). Do not touch arena.html's crown_streak/crown_ladder/recent_gifts context reads (Bolt owns that fix in the view).",
       "done_criteria": ["popup is keyboard-operable: focus enters on open, is trapped, Escape and a visible close control both close, focus returns to the opener — verified live", "stage-6 hex criterion met per its own acceptance line", "battle_detail.html a11y coverage raised and spot-verified", "git diff --check clean; only owned files; no Markdown; no deploy"]
     },
 
@@ -200,16 +258,18 @@
       "branch": "verify/arena-live-and-shard (to be created from origin/main when authorised)",
       "owned_files": ["ops/audits/arena_frontend_live_verification.json (NEW)", "ops/test_pool/arena_targeted_shard_result.json (NEW)"],
       "tasks": [
+        {"id": "EV0", "task": "After CF0 lands, live-verify the access policy: confirm a plain registered author receives 404 on Arena Hall and Battle Room, staff/superuser receive 200, anonymous 404. Record as evidence.", "owner_decision_required": false},
         {"id": "EV1", "task": "Live-browser verification of the frontend findings the static audit could not confirm: responsive overflow at 360/390/440/768/1280px, keyboard/focus behaviour of the popup after GB's CF4 fix, prefers-reduced-motion across arena CSS. Record results as JSON artifact.", "owner_decision_required": false},
         {"id": "EV2", "task": "Execute the targeted test matrix below as the linode shard (1/15 timed share) and record pass/fail/duration to ops/test_pool JSON — do not run the full ~1500 suite, do not duplicate Bolt's focused runs.", "owner_decision_required": false}
       ],
       "tests": ["see targeted_test_matrix"],
-      "dependencies": ["identity=ember restored", "Bolt CF1 and GB CF4 landed on a shared integration point before live re-verification is meaningful (can do a baseline pass before, a confirming pass after)"],
+      "dependencies": ["identity=ember restored", "Bolt CF0/CF1 and GB CF4 landed on a shared integration point before live re-verification is meaningful (can do a baseline pass before, a confirming pass after)"],
       "cross_package_note": "Writes only NEW files under ops/ — zero source-code overlap with Bolt or GreenBear.",
-      "done_criteria": ["live verification JSON records real device widths tested and pass/fail per finding with evidence", "shard result JSON records tests_collected/passed/failed/duration", "git diff --check clean; only the two new ops/ files; no Markdown; no deploy"]
+      "done_criteria": ["live access verification records author=404, staff/superuser=200, anon=404 on Hall/Battle Room after CF0", "live verification JSON records real device widths tested and pass/fail per finding with evidence", "shard result JSON records tests_collected/passed/failed/duration", "git diff --check clean; only the two new ops/ files; no Markdown; no deploy"]
     },
 
     "file_ownership_matrix": {
+      "chef_battle/access.py": "Bolt",
       "chef_battle/views.py": "Bolt",
       "chef_battle/tests.py": "Bolt",
       "static/css/arena.css": "GreenBear",
@@ -227,17 +287,19 @@
       "ops/audits/arena_frontend_live_verification.json": "Ember (new)",
       "ops/test_pool/arena_targeted_shard_result.json": "Ember (new)",
       "templates/chef_battle/arena.html": "RESERVED — GreenBear build-stage territory (stages 2/4/5); NOT modified by any of these gate-fix packages. Bolt's CF1 fix stays in views.py precisely to avoid touching it.",
-      "docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md": "OWNER — needs the AR1/CE2 author-visibility reconciliation; no agent edits it under these packages.",
+      "docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md": "AUTHORITATIVE AND CORRECT on the staff/superuser-only access policy — NOT stale, NOT edited by any package. No reconciliation is needed; the defect is in code (access.py), not in this document.",
       "conflicts": []
     },
 
     "targeted_test_matrix": {
       "bolt": [
-        "chef_battle.tests.ChefBattleAccessTests",
-        "chef_battle.tests.ArenaDarkLaunchTests",
-        "chef_battle.tests.ArenaPayloadWiringTests",
+        "chef_battle.tests.ChefBattleAccessTests (update to staff/superuser-only)",
+        "chef_battle.tests.ArenaDarkLaunchTests (INVERT the author case: author now 404)",
+        "chef_battle.tests.ArenaMasterConsoleAccessTests",
+        "chef_battle.tests.ArenaPayloadWiringTests (extend)",
         "chef_battle.tests.ArenaDataSelectorsTests",
-        "NEW arena.html initial-render test (crown_streak/crown_ladder/recent_gifts visible on first paint)"
+        "NEW arena.html initial-render test (crown_streak/crown_ladder/recent_gifts visible on first paint)",
+        "NEW/updated coverage: arena_react + battle_chat_poll deny anonymous and non-staff author"
       ],
       "greenbear": [
         "Live keyboard/focus verification of arena_battle_popup after CF4 (no owned unit-test file)",
@@ -250,26 +312,28 @@
         "chef_battle.tests.ArenaMasterStateTests",
         "chef_battle.tests.ArenaMasterActionTests",
         "chef_battle.tests.ArenaDataSelectorsTests",
-        "chef_battle.tests.ArenaPayloadWiringTests"
+        "chef_battle.tests.ArenaPayloadWiringTests",
+        "LIVE: plain author 404 on Hall/Battle Room; staff/superuser 200; anon 404 (post-CF0)"
       ],
       "no_overlap_rule": "Bolt runs its focused subset during development; Ember runs the broader arena access/contract set once as the linode shard at the integration gate. The full ~1500-suite is NOT run three times.",
-      "baseline_evidence": "Bolt already ran the 7 arena access/contract classes at base_commit this session: 77 tests, 77 passed, 0 failed, 251.8s (local SQLite dev). That is the green baseline these packages must not regress."
+      "baseline_evidence": "Bolt already ran the 7 arena access/contract classes at base_commit this session: 77 tests, 77 passed, 0 failed, 251.8s (local SQLite dev). NOTE: that green baseline includes test_plain_author_sees_the_arena_during_dark_launch, which asserts the DEFECTIVE behaviour and must be inverted by CF0 — after the fix that specific test flips, which is expected, not a regression."
     },
 
     "deployment_journal_requirements": {
       "applies_when": "Only at each future owner-authorised deploy of one of these packages — NOT part of this synthesis (no deploy performed).",
       "per_deploy_checklist": [
-        "Prepend a RELEASE_JOURNAL entry in config/release_journal.py (title, date, section 'Chef Battles', summary) — and backfill the real commit hash (do not leave commit=\"pending\" as entries 2.5.376-380 currently are).",
+        "Prepend a RELEASE_JOURNAL entry in config/release_journal.py (title, date, section 'Chef Battles', summary) — and backfill the real commit hash (do not leave commit=\"pending\" as entries 2.5.376-380 currently are). The CF0 deploy entry should record that Arena access was returned to staff/superuser-only, explicitly superseding the v2.5.380 rule.",
         "Bump the patch version in templates/base.html footer before the deploy.",
         "After release, hand-sync the relevant ARENA_BUILD_STAGES done-flags in recipes/views.py (e.g. stage 6 frontend_done once tokens complete) — the board does not auto-detect completion.",
         "Deploy via the approved non-root deploy account and the repository-approved procedure; run collectstatic --no-input for any CSS/JS change (GreenBear/Ember packages); verify the live hashed file with curl, since 'RESTARTED' does not prove new static shipped.",
-        "Every production-affecting package carries a rollback note (git revert path; no migrations expected in CF1/CF2/CF3/CF4/CF5)."
+        "Every production-affecting package carries a rollback note (git revert path; no migrations expected in CF0/CF1/CF2/CF3/CF4/CF5)."
       ],
-      "migration_note": "None of CF1-CF6 requires a database migration (context wiring, decorators, template attributes, CSS tokens, test rename). If CF2/CF3 gating is approved it is decorator-only. Confirm before claiming migration-free at deploy time."
+      "migration_note": "None of CF0-CF6 requires a database migration (visibility branch removal, context wiring, decorators, template attributes, CSS tokens, test rename). Confirm before claiming migration-free at deploy time.",
+      "release_gate_priority": "CF0 is a production over-exposure defect. It should be the first package deployed once fixed and tested, ahead of the cosmetic/accessibility packages."
     },
 
     "blockers": [
-      "Owner decisions (a)-(d) in implementation_order step 0 gate CF2/CF3 (Bolt), the palette half of stage 6 (GreenBear), and deeper Battle Room frontend work — CF1, CF6, CF4, CF5 do NOT need them and can proceed once implementation is authorised.",
+      "Owner decisions (a) canonical palette and (b) navigation contract gate the stage-6 palette half and deeper Battle Room work only. CF0, CF1, CF2, CF3, CF4, CF5, CF6 do NOT need any pending decision — the access policy is now ruled.",
       "Ember work package is blocked pending identity=ember restoration.",
       "This synthesis authorises no implementation, merge, or deploy — it waits on owner go-ahead to open the impl/* branches."
     ]
