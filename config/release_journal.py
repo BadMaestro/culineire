@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.382",
+        "date": "2026-07-21",
+        "commit": "PENDING_COMMIT",
+        "title": "Arena Build Plan records the backend access workstream (Stage 3A)",
+        "section": "Moderation / Deployment",
+        "summary": "Documentation-only deploy: Stage 3 workstream 3A (Backend access and initial-render context, owner Bolt) is now recorded on the Arena Build Plan as IMPLEMENTATION COMPLETE — UNVERIFIED AND NOT DEPLOYED. It captures source branch impl/arena-access-and-context at ce43242b65fc3d0ca8a259544ab4d1ffb9f7eaf8 (pushed; not merged to main; not deployed): the registered-author dark-launch access branch is removed so Arena Hall and Battle Room are staff/superuser-only via @chef_battle_guard and is_battle_visible(); arena_react and battle_chat_poll now check is_battle_visible(); battle_chat_send is unchanged and keeps its existing @chef_battle_guard; and top-level crown_streak, crown_ladder, and recent_gifts are supplied in the initial-render context. Tests run: zero by owner policy; static verification was owned-file scope plus git diff --check. IMPORTANT: the backend commit ce43242b was NOT integrated or deployed in this step — only the Arena Build Plan page status data was changed. Changed release file: recipes/views.py. Static evidence: Python compilation, Django system check, and build-plan context assertions (8 stages, 2 complete, Stage 3 the sole active stage, readiness NOT READY, 3A status and evidence visible) passed; application and project suites were not run. Result: successful. Rollback: revert this commit on main, push the revert, and rerun /srv/culineire/scripts/deploy.sh followed by the restricted Unit restart if required.",
+    },
+    {
         "version": "2.5.381",
         "date": "2026-07-21",
         "commit": "e7520529",
