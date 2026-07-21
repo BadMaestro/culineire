@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.381",
+        "date": "2026-07-21",
+        "commit": "e7520529",
+        "title": "Arena Build Plan becomes a sequential release pipeline",
+        "section": "Moderation / Deployment",
+        "summary": "Source ops/arena-build-plan-sequential-rewrite at e752052909a86da6c7a07975e365bb75ed29cfb1 fast-forwarded origin/main from d852fff53b8de0f7fcd46897c4ce287c6abe8a0d without conflicts or history rewriting. The production deploy used /srv/culineire/scripts/deploy.sh; Django check, migrations and collectstatic completed, then Unit was restarted separately with the deploy user's restricted sudo. Production checkout and deployed commit were e752052909a86da6c7a07975e365bb75ed29cfb1 and clean. Changed release files: recipes/views.py and templates/moderation/arena_build_plan.html. Static evidence: Python compilation, Django template syntax, sequential-stage assertions and git diff --check passed; application/project suites were not run. Authenticated live verification confirmed 8 current stages, 2 complete, Stage 3 active, readiness NOT READY, deferred mobile scope, and collapsed Legacy Arena Milestones; the old 3/7 board is gone. Result: successful. Rollback: revert e752052909a86da6c7a07975e365bb75ed29cfb1 on main, push the revert, and rerun /srv/culineire/scripts/deploy.sh followed by the restricted Unit restart if required.",
+    },
+    {
         "version": "2.5.380",
         "date": "2026-07-20",
         "commit": "pending",
