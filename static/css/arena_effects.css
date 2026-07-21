@@ -22,20 +22,20 @@
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(120% 70% at 50% -8%, rgba(214,166,75,.14), transparent 60%),
-    radial-gradient(90% 60% at 50% 108%, rgba(31,44,37,.06), transparent 55%);
+    radial-gradient(120% 70% at 50% -8%, color-mix(in srgb, var(--accent-bronze) 14%, transparent), transparent 60%),
+    radial-gradient(90% 60% at 50% 108%, color-mix(in srgb, var(--ink) 6%, transparent), transparent 55%);
 }
 
 /* ── B. Phase rail: active step breathes with a gold aura ── */
 .arena-phase-step.is-active {
   box-shadow:
-    0 0 0 2px rgba(214,166,75,.35),
-    0 2px 10px rgba(214,166,75,.28);
+    0 0 0 2px color-mix(in srgb, var(--accent-bronze) 35%, transparent),
+    0 2px 10px color-mix(in srgb, var(--accent-bronze) 28%, transparent);
   animation: ad-phase-breathe 2.6s ease-in-out infinite;
 }
 @keyframes ad-phase-breathe {
-  0%, 100% { box-shadow: 0 0 0 2px rgba(214,166,75,.30), 0 2px 8px rgba(214,166,75,.20); }
-  50%      { box-shadow: 0 0 0 3px rgba(214,166,75,.48), 0 3px 16px rgba(214,166,75,.40); }
+  0%, 100% { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-bronze) 30%, transparent), 0 2px 8px color-mix(in srgb, var(--accent-bronze) 20%, transparent); }
+  50%      { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-bronze) 48%, transparent), 0 3px 16px color-mix(in srgb, var(--accent-bronze) 40%, transparent); }
 }
 
 /* ── C. Centre stage aura, keyed to what holds the centre ──
@@ -56,18 +56,18 @@
 /* live battle: charged split of challenger-green / opponent-red */
 .arena-command-deck__live-stage[data-centre-key^="battle-"]::after {
   background:
-    radial-gradient(60% 80% at 18% 50%, rgba(63,138,52,.22), transparent 62%),
-    radial-gradient(60% 80% at 82% 50%, rgba(178,59,52,.22), transparent 62%);
+    radial-gradient(60% 80% at 18% 50%, color-mix(in srgb, var(--brand) 22%, transparent), transparent 62%),
+    radial-gradient(60% 80% at 82% 50%, color-mix(in srgb, var(--brand-dark) 22%, transparent), transparent 62%);
   animation: ad-stage-pulse 3.4s ease-in-out infinite;
 }
 /* crown holder: steady gold nimbus */
 .arena-command-deck__live-stage[data-centre-key^="crown-"]::after {
-  background: radial-gradient(70% 80% at 50% 42%, rgba(214,166,75,.26), transparent 64%);
+  background: radial-gradient(70% 80% at 50% 42%, color-mix(in srgb, var(--accent-bronze) 26%, transparent), transparent 64%);
   animation: ad-stage-pulse 4.6s ease-in-out infinite;
 }
 /* open floor: calm, faint warmth only */
 .arena-command-deck__live-stage[data-centre-key="empty"]::after {
-  background: radial-gradient(70% 80% at 50% 42%, rgba(214,166,75,.08), transparent 66%);
+  background: radial-gradient(70% 80% at 50% 42%, color-mix(in srgb, var(--accent-bronze) 8%, transparent), transparent 66%);
 }
 @keyframes ad-stage-pulse {
   0%, 100% { opacity: .75; }
@@ -75,14 +75,14 @@
 }
 
 /* ── D. Live combatants: edge glow by role ── */
-.arena-live-chef--challenger { filter: drop-shadow(0 0 8px rgba(63,138,52,.28)); }
-.arena-live-chef--opponent   { filter: drop-shadow(0 0 8px rgba(178,59,52,.28)); }
-.arena-live-chef--crown      { filter: drop-shadow(0 0 10px rgba(214,166,75,.40)); }
+.arena-live-chef--challenger { filter: drop-shadow(0 0 8px color-mix(in srgb, var(--brand) 28%, transparent)); }
+.arena-live-chef--opponent   { filter: drop-shadow(0 0 8px color-mix(in srgb, var(--brand-dark) 28%, transparent)); }
+.arena-live-chef--crown      { filter: drop-shadow(0 0 10px color-mix(in srgb, var(--accent-bronze) 40%, transparent)); }
 
 /* the centre link gets a subtle inviting lift on hover (no layout shift) */
 .arena-live-centre { transition: filter .25s ease; }
 .arena-live-centre:hover,
-.arena-live-centre:focus-visible { filter: drop-shadow(0 3px 12px rgba(214,166,75,.45)); }
+.arena-live-centre:focus-visible { filter: drop-shadow(0 3px 12px color-mix(in srgb, var(--accent-bronze) 45%, transparent)); }
 
 /* ── E. Procedural floor: give the vector cells depth without touching the JS.
    Keyed on the data attributes the renderer stamps (data-occupancy, data-state,
@@ -93,7 +93,7 @@
 
 /* An occupied tile lifts off the floor; an empty seat stays flat. */
 .arena-floor-stage svg polygon[data-occupancy="chef"] {
-  filter: drop-shadow(0 1px 2px rgba(40, 30, 18, .35));
+  filter: drop-shadow(0 1px 2px color-mix(in srgb, var(--ink) 35%, transparent));
 }
 
 /* A chef in a live fight is the one thing on the floor that moves. */
@@ -112,12 +112,12 @@
 }
 
 .arena-floor-stage svg .arena-stage[data-centre-key^="battle-"] {
-  filter: drop-shadow(0 0 14px rgba(178, 59, 52, .45));
+  filter: drop-shadow(0 0 14px color-mix(in srgb, var(--brand-dark) 45%, transparent));
   animation: ad-stage-pulse 3.2s ease-in-out infinite;
 }
 
 .arena-floor-stage svg .arena-stage[data-centre-key^="crown-"] {
-  filter: drop-shadow(0 0 16px rgba(214, 166, 75, .5));
+  filter: drop-shadow(0 0 16px color-mix(in srgb, var(--accent-bronze) 50%, transparent));
 }
 
 /* ── Accessibility: no motion when the user asks for none ── */

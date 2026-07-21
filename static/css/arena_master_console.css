@@ -4,19 +4,19 @@
 
 .amc-page {
   /* Local tokens (dark green/gold, aligned with the reference and the
-     existing battle gold #c8942a used across chef_battle surfaces) */
-  --amc-bg: #10160f;
-  --amc-surface: #172015;
-  --amc-surface-soft: #1d2819;
-  --amc-line: rgb(200 148 42 / 0.22);
-  --amc-line-soft: rgb(200 148 42 / 0.12);
-  --amc-ink: #e8e4d8;
-  --amc-muted: #9aa593;
-  --amc-gold: #c8942a;
-  --amc-gold-soft: rgb(200 148 42 / 0.14);
-  --amc-gold-light: color-mix(in srgb, var(--amc-gold), white 15%);
-  --amc-danger: #b3402e;
-  --amc-danger-light: color-mix(in srgb, var(--amc-danger), white 25%);
+     existing battle gold var(--accent-bronze) used across chef_battle surfaces) */
+  --amc-bg: var(--bg);
+  --amc-surface: var(--surface);
+  --amc-surface-soft: var(--surface-soft);
+  --amc-line: color-mix(in srgb, var(--accent-bronze) 22%, transparent);
+  --amc-line-soft: color-mix(in srgb, var(--accent-bronze) 12%, transparent);
+  --amc-ink: var(--ink);
+  --amc-muted: var(--muted);
+  --amc-gold: var(--accent-bronze);
+  --amc-gold-soft: color-mix(in srgb, var(--accent-bronze) 14%, transparent);
+  --amc-gold-light: color-mix(in srgb, var(--amc-gold), var(--surface) 15%);
+  --amc-danger: var(--brand-dark);
+  --amc-danger-light: color-mix(in srgb, var(--amc-danger), var(--surface) 25%);
   --amc-radius: 10px;
 
   background: var(--amc-bg);
@@ -203,7 +203,7 @@
   justify-content: center;
   min-height: 320px;
   background:
-    radial-gradient(ellipse at center, rgb(200 148 42 / 0.06), transparent 65%),
+    radial-gradient(ellipse at center, color-mix(in srgb, var(--accent-bronze) 6%, transparent), transparent 65%),
     var(--amc-surface-soft);
   border: 1px solid var(--amc-line-soft);
   border-radius: var(--amc-radius);
@@ -356,7 +356,7 @@
 }
 
 .amc-btn--danger {
-  border-color: rgb(179 64 46 / 0.4);
+  border-color: color-mix(in srgb, var(--brand-dark) 40%, transparent);
   color: var(--amc-danger-light);
 }
 
@@ -552,9 +552,9 @@
 }
 
 .amc-badge--danger {
-  border-color: rgb(179 64 46 / 0.5);
+  border-color: color-mix(in srgb, var(--brand-dark) 50%, transparent);
   color: var(--amc-danger-light);
-  background: rgb(179 64 46 / 0.12);
+  background: color-mix(in srgb, var(--brand-dark) 12%, transparent);
 }
 
 .amc-phase-rail__step--active {

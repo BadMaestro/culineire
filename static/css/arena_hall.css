@@ -1,158 +1,25 @@
-/*
- * Arena hall — the mockup's framing, route-scoped to the arena page.
+/* Arena Hall presentation boundary.
  *
- * The mockup (docs/chef_battle/arena_mockup_spec.md) is a dark broadcast hall:
- * deep green-black room, gold light, HUD panels floating around a lit arena.
- * Our page was the inverse — a light parchment page holding the arena inside a
- * white 960px card, which is why the two never read as the same place however
- * the arena itself was painted.
- *
- * The command deck already derives every panel colour from its own custom
- * properties (--arena-ink/-forest/-muted/-gold/-cappuccino/-paper/-cream in
- * arena_command_deck.css), so the whole HUD flips to dark glass by overriding
- * the tokens once. Only the handful of rules that hardcoded raw parchment
- * values need explicit overrides below. Scoped to .page--arena throughout:
- * the Master Console (.page--amc) keeps its light operational look.
+ * Layout belongs to arena_command_deck.css. This final cascade layer keeps the
+ * hall in the shared CulinEire parchment language and intentionally declares
+ * no private hall palette.
  */
 
-/* ---- the hall palette, derived from the site tokens ---- */
-
-/*
- * Every colour below comes from the site's own scheme (the design tokens in
- * base.css :root, mirrored in CulinEire_colour_font_scheme.pdf). The hall was
- * originally painted in an invented emerald/gold pair (#0d1a12, #16241a,
- * #d9a441) that appears nowhere in the scheme — the brand core is warm
- * parchment + ink + muted bronze, and the PDF says so outright ("--legal-green
- * is brand/bronze, not green").
- *
- * A dark room needs shades darker than --ink and light text lighter than
- * --muted, and the scheme has no tokens for either, so they are mixed from the
- * tokens here rather than picked by eye. Change --ink or --brand and the whole
- * hall follows.
- *
- * --hall-bronze is the site's own accent bronze, --accent-bronze. It used to be
- * declared only inside the About component, so this file restated the hex; it is
- * a root token now and nothing here holds a copy of a brand colour.
- *
- * --hall-shade is the shadow ink. Shadows were plain black, which reads cold
- * against a warm parchment scheme — it is mixed from --ink so the room's shadows
- * belong to the room.
- */
 .page--arena {
-  --hall-deep: color-mix(in srgb, var(--ink) 74%, black);
-  --hall-edge: color-mix(in srgb, var(--ink) 38%, black);
-  --hall-panel: color-mix(in srgb, var(--ink) 62%, black);
-  --hall-raised: color-mix(in srgb, var(--ink) 88%, black);
-  --hall-bronze: var(--accent-bronze);
-  --hall-bronze-lift: color-mix(in srgb, var(--hall-bronze) 72%, var(--surface-soft));
-  --hall-text: var(--surface-soft);
-  --hall-text-dim: color-mix(in srgb, var(--surface-muted) 62%, var(--muted));
-  --hall-shade: color-mix(in srgb, var(--ink) 45%, black);
-}
-/* ---- the hall is the page ---- */
-
-.page--arena {
+  color: var(--ink);
   background:
-    radial-gradient(90rem 44rem at 50% 30%, color-mix(in srgb, var(--hall-bronze) 10%, transparent), transparent 62%),
-    radial-gradient(130% 120% at 50% 40%, var(--hall-deep) 0%, var(--hall-edge) 100%);
-  background-attachment: fixed;
+    radial-gradient(circle at 50% 18%, var(--brand-soft), transparent 42%),
+    linear-gradient(180deg, var(--bg), var(--surface-soft));
 }
-/* ---- the arena stops being a box on a page ---- */
 
-/*
- * The largest gap to the reference was never the camera or the palette: the
- * hall was a 1520px card with rounded corners and a 960px picture inside it,
- * sitting in the middle of an ordinary page. The reference is a room you are
- * standing in.
- *
- * Nothing is restructured to get there. The deck keeps its grid — the columns
- * that hold the side panels are what puts them around the floor — it is only
- * released from its width, and the container inside it from the 960px cap and
- * the card treatment that drew the box.
- *
- * 100svh, not 100vh: on a phone the browser chrome slides away, and vh is the
- * tall measurement, so the arena would sit taller than the visible window and
- * push a scrollbar onto a page that should have none.
- */
 .page--arena #main-content {
   padding: 0;
 }
-/* Layout used to live here too — width, padding, min-height — while
-   arena_command_deck.css set the same properties for the same element. Two
-   files describing one layout is what put the octagon off the side of the
-   screen: whichever stylesheet loaded last won, and neither of us could see
-   the other's rule. Layout now belongs to arena_command_deck.css alone; this
-   file paints. */
-
-.page--arena .arena-render-container {
-  /* Frame only, no sizing: the size is set with the rest of the layout. */
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-}
-/*
- * The scene used to sit on its own dark plate — a flat fill plus a floor
- * texture, drawn to give the arena a surface back when the page around it was
- * light parchment. Inside the old 960px card nobody saw its edges. With the
- * arena full-bleed it became exactly what the owner photographed: a black
- * square lying across the middle of the hall.
- *
- * The hall image is the surface now, so the plate has nothing left to do.
- * Cleared rather than deleted: the plate still serves the Master Console, which
- * has no backdrop behind it.
- */
-.page--arena .arena-floor-stage {
-  overflow: visible;
-  border-radius: 0;
-  background: transparent;
-}
-.page--arena .arena-floor-stage::before {
-  content: none;
-}
-/* ---- the floor edge ---- */
-
-/*
- * A deep bronze funnel used to sit here: eight widened steps running from
- * almost-black at the centre out to parchment at the rim, so rank could be read
- * from the floor alone. It was taken from the FIRST arena, which the owner had
- * shown while asking about colour — not from the reference we are building to.
- * In the reference the floor is even cream and rank is read from the pills, so
- * the funnel was drift, and it went out the same evening it went in.
- *
- * The renderer's own eight steps stay as they are. If rank ever needs to be
- * louder on the floor, that is a decision about the reference, not a gradient
- * to widen quietly.
- *
- * The walkway between the floor and the crowd is the one thing kept from that
- * pass: the reference has it, and it marks where the chefs' ground ends. Its
- * colour is --muted, the coolest the scheme holds. The reference's band looks
- * slate; the scheme has no blue, so none is mixed here.
- */
-.page--arena #arena-render .arena-walkway {
-  stroke: color-mix(in srgb, var(--muted) 82%, var(--surface-muted));
-  opacity: 1;
-}
-/* ---- one token flip turns the deck dark ---- */
 
 .page--arena .arena-command-deck {
-  --arena-ink: var(--hall-text);
-  --arena-forest: var(--surface-muted);
-  --arena-muted: var(--hall-text-dim);
-  --arena-gold: var(--hall-bronze);
-  --arena-cappuccino: var(--hall-bronze-lift);
-  --arena-paper: var(--hall-panel);
-  --arena-cream: var(--hall-raised);
+  color: var(--ink);
 }
-/* Panels: the deck paints these with raw parchment values, so the token flip
-   cannot reach them — dark glass over the hall instead.
 
-   The metal edge is drawn with two stacked box-shadows rather than
-   border-image. A gradient border-image is the obvious way to get a bronze
-   edge that catches the light, and it silently switches border-radius off —
-   the panels would come back with square corners and nobody would connect the
-   two. Two inset rings cost nothing and keep the radius. */
 .page--arena .arena-command-deck__header,
 .page--arena .arena-command-deck__phase-card,
 .page--arena .arena-command-deck__metrics,
@@ -160,24 +27,86 @@
 .page--arena .arena-command-deck__gifts,
 .page--arena .arena-command-deck__crowd-rail,
 .page--arena .arena-command-deck__phase-rail {
-  border-color: transparent;
-  background:
-    linear-gradient(
-      160deg,
-      color-mix(in srgb, var(--hall-raised) 78%, transparent),
-      color-mix(in srgb, var(--hall-deep) 86%, transparent)
-    );
-  /* lit top edge, shadowed bottom edge, then the panel's own drop shadow */
-  box-shadow:
-    inset 0 1px 0 0 color-mix(in srgb, var(--hall-bronze) 55%, transparent),
-    inset 0 0 0 1px color-mix(in srgb, var(--hall-bronze) 26%, transparent),
-    inset 0 -1px 0 0 color-mix(in srgb, var(--hall-shade) 70%, transparent),
-    0 0.55rem 1.6rem color-mix(in srgb, var(--hall-shade) 62%, transparent);
-  backdrop-filter: blur(12px) saturate(1.15);
+  border-color: var(--line-strong);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
 }
-/* Blur is a compositing cost on every scroll frame, and the hall behind these
-   panels is a still image — on a phone the same look is achieved by making the
-   glass more opaque instead. */
+
+.page--arena .arena-command-deck__floor {
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+}
+
+.page--arena .arena-command-deck__live-stage {
+  border-color: var(--line-strong);
+  background: linear-gradient(135deg, var(--surface-soft), var(--surface));
+}
+
+.page--arena .arena-floor-stage,
+.page--arena .arena-render-container {
+  border-color: var(--line-strong);
+  background: var(--surface-soft);
+  box-shadow: none;
+}
+
+.page--arena .arena-floor-stage::before {
+  content: none;
+}
+
+.page--arena #arena-render .arena-walkway {
+  stroke: var(--border);
+  opacity: 1;
+}
+
+.page--arena .arena-live-centre,
+.page--arena .arena-live-centre--crown {
+  border-color: var(--accent-bronze);
+  color: var(--ink);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 2px var(--brand-soft);
+}
+
+.page--arena .arena-live-centre:hover,
+.page--arena .arena-live-centre:focus-visible {
+  border-color: var(--brand-dark);
+  background: var(--surface-soft);
+}
+
+.page--arena .arena-live-chef {
+  border-color: var(--line-strong);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.page--arena .arena-phase-step.is-active,
+.page--arena .arena-rank-spine__step:hover,
+.page--arena .arena-rank-spine__step:focus-visible {
+  border-color: var(--accent-bronze);
+  color: var(--brand-dark);
+  background: var(--surface-soft);
+}
+
+.page--arena .arena-rank-spine__step,
+.page--arena .arena-rank-spine__step b {
+  border-color: var(--line-strong);
+  color: var(--ink);
+  background: var(--surface);
+  box-shadow: none;
+}
+
+.page--arena .arena-render-container {
+  --arena-bowl: var(--surface-soft);
+  --arena-bowl-edge: var(--surface-muted);
+  --arena-spot: var(--accent-bronze);
+}
+
+.page--arena .arena-command-deck :focus-visible,
+.page--arena .arena-popup__panel :focus-visible {
+  outline: 3px solid var(--accent-bronze);
+  outline-offset: 3px;
+}
+
 @media (max-width: 900px) {
   .page--arena .arena-command-deck__header,
   .page--arena .arena-command-deck__phase-card,
@@ -186,109 +115,17 @@
   .page--arena .arena-command-deck__gifts,
   .page--arena .arena-command-deck__crowd-rail,
   .page--arena .arena-command-deck__phase-rail {
-    background: color-mix(in srgb, var(--hall-deep) 94%, transparent);
-    backdrop-filter: none;
+    background: var(--surface);
   }
 }
-.page--arena .arena-phase-step.is-active {
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hall-bronze) 35%, transparent);
-}
-/* ---- the floor card dissolves into the hall ---- */
 
-/* The white card around the arena was the "container" the owner named: the
-   scene must sit in the room, not in a frame. The dark plate of
-   .arena-floor-stage and the bowl gradient of .arena-render-container remain
-   the scene's own lighting. */
-.page--arena .arena-command-deck__floor {
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-  padding: 0.25rem;
-}
-.page--arena .arena-command-deck__live-stage {
-  border-color: color-mix(in srgb, var(--hall-bronze) 30%, transparent);
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--ink) 90%, transparent),
-    color-mix(in srgb, var(--hall-raised) 85%, transparent),
-    color-mix(in srgb, var(--brand-dark) 34%, transparent)
-  );
-}
-.page--arena .arena-live-centre {
-  background: color-mix(in srgb, var(--hall-raised) 90%, transparent);
-  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--hall-bronze) 18%, transparent);
-}
-.page--arena .arena-live-centre:hover,
-.page--arena .arena-live-centre:focus-visible {
-  background: var(--hall-raised);
-}
-.page--arena .arena-live-centre--crown {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--hall-bronze) 16%, transparent),
-    color-mix(in srgb, var(--hall-raised) 92%, transparent)
-  );
-}
-/* ---- the polish layer's own palette, re-pointed for the dark hall ---- */
-
-/*
- * The crown holder's card stayed white while the hall went dark, so the owner's
- * name sat in near-invisible light type on a light panel — the one place on the
- * page that shows his avatar, and the one that read worst.
- *
- * The card itself was not the bug. arena_deck_polish.css declares a second
- * palette (--ad-*) on .arena-command-deck and paints a dozen components from
- * it, and the hall's flip re-points only the FIRST palette (--arena-*). So every
- * one of those components is a white panel waiting to be noticed; the crown card
- * is simply the one with a face on it.
- *
- * Re-pointing the palette fixes all of them at once. Patching the card would
- * have fixed exactly one, and left the rest to be found by the owner.
- */
-.page--arena .arena-command-deck {
-  --ad-s0: var(--hall-deep);
-  --ad-s1: var(--hall-raised);
-  --ad-s2: var(--hall-panel);
-  --ad-s3: var(--hall-panel);
-  --ad-ink: var(--hall-text);
-  --ad-ink2: var(--surface-muted);
-  --ad-mut: var(--hall-text-dim);
-  --ad-gold: var(--hall-bronze);
-  --ad-gold-d: var(--brand-dark);
-  --ad-line: color-mix(in srgb, var(--hall-bronze) 28%, transparent);
-}
-/* The card carries the crown holder's portrait, so it gets a little more
-   presence than a plain panel: a bronze hairline and a shadow to lift it. */
-.page--arena .arena-live-chef {
-  box-shadow: 0 0.4rem 1.2rem color-mix(in srgb, var(--hall-shade) 52%, transparent);
-}
-/* The crown sits at the centre of the floor, and in the reference it is the one
-   thing the room is lit around. The glow is thrown behind the medallion rather
-   than added to it, so the portrait keeps its own contrast. */
-.page--arena .arena-live-centre--crown {
-  position: relative;
-  isolation: isolate;
-}
-.page--arena .arena-live-centre--crown::before {
-  content: "";
-  position: absolute;
-  inset: -55%;
-  z-index: -1;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--hall-bronze) 42%, transparent) 0%,
-    color-mix(in srgb, var(--hall-bronze) 14%, transparent) 45%,
-    transparent 70%
-  );
-  pointer-events: none;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .page--arena .arena-live-centre--crown::before {
-    animation: hall-crown-breathe 6s ease-in-out infinite;
+@media (prefers-reduced-motion: reduce) {
+  .page--arena *,
+  .page--arena *::before,
+  .page--arena *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
-}
-@keyframes hall-crown-breathe {
-  0%, 100% { opacity: 0.75; transform: scale(0.97); }
-  50%      { opacity: 1;    transform: scale(1.03); }
 }

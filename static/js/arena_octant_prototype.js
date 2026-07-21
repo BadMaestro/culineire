@@ -19,7 +19,7 @@
     var config = Object.assign({
       cx: 240, cy: 240,
       ringWidth: 28, stageRadius: 64, octantIndex: 0, startRingIndex: 1,
-      stroke: '#8b7355', strokeWidth: 1.15
+      stroke: 'var(--brand)', strokeWidth: 1.15
     }, options || {});
     if (!global.ArenaGeometry) {
       throw new Error('ArenaGeometry must load before the octant prototype.');
@@ -88,7 +88,7 @@
   function drawFullArenaGrid(svg, geometry, options) {
     var config = Object.assign({
       cx: 240, cy: 240, ringWidth: 13, stageRadius: 66,
-      stroke: '#8b7355', strokeWidth: 1.15
+      stroke: 'var(--brand)', strokeWidth: 1.15
     }, options || {});
     drawStage(svg, geometry, config);
     for (var octantIndex = 0; octantIndex < geometry.sides; octantIndex++) {
