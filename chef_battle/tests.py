@@ -2396,7 +2396,10 @@ class ArenaMasterConsoleAccessTests(TestCase):
         self.assertNotContains(resp, "arena-prototype-container")
         self.assertNotContains(resp, "amc-page")
 
-    def test_procedural_arena_is_explicit_proto_gate(self):
+    def test_arena_renders_unified_ring_renderer(self):
+        # There is no longer a ?proto=1 gate: the unified ring renderer
+        # (_arena_render_ring.html) is included unconditionally. The ?proto=1
+        # query param is inert and kept here only to prove it changes nothing.
         resp = self.client.get(reverse("chef_battle:arena") + "?proto=1")
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "arena-render-container")
@@ -5187,29 +5190,52 @@ class ArenaDarkLaunchTests(TestCase):
         response = self.client.post(reverse("chef_battle:arena_state"))
         self.assertEqual(response.status_code, 200)
 
-    def test_plain_author_sees_the_arena_during_dark_launch(self):
-        """Owner's rule 2026-07-20: any registered author may visit and watch
-        the arena, no chef enrollment and no staff/superuser/bearseeker
-        needed. Before this fix a plain author got 404 here — which is why
-        three test accounts needed a staff grant just to be seen in the
-        stands, something the rule says should not have been necessary."""
+    def test_plain_author_hidden_from_arena_during_dark_launch(self):
+        """Owner ruling 2026-07-21 (and the standing product contract): the
+        Arena is not publicly released, so access during dark launch is
+        STAFF/SUPERUSER ONLY. A plain registered author who is not staff must
+        404 — the superseded v2.5.380 "any author may visit" rule no longer
+        applies. This inverts the previous test that asserted a 200 here."""
         User = get_user_model()
         plain_user = User.objects.create_user(username="adl-plain-author", password="pw")
         RecipeAuthor.objects.create(user=plain_user, name="ADL Plain Author", slug="adl-plain-author")
         self.client.login(username="adl-plain-author", password="pw")
 
         response = self.client.get(reverse("chef_battle:arena"))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 404)
 
     def test_authenticated_user_without_an_author_profile_still_hidden(self):
-        """The rule is "any registered AUTHOR", not "any logged-in account" —
-        a user who never created a RecipeAuthor row is not yet a registered
-        author and must still 404 during dark launch."""
+        """An ordinary logged-in account with no author profile is hidden
+        during dark launch — same as a plain author now: staff/superuser
+        only."""
         User = get_user_model()
         User.objects.create_user(username="adl-no-author", password="pw")
         self.client.login(username="adl-no-author", password="pw")
 
         response = self.client.get(reverse("chef_battle:arena"))
+        self.assertEqual(response.status_code, 404)
+
+    def test_arena_react_hidden_from_anonymous(self):
+        """CF2: arena_react was public (rate-limited only); during dark launch
+        it must 404 for anonymous, same gate as the arena it belongs to."""
+        response = self.client.post(reverse("chef_battle:arena_react"))
+        self.assertEqual(response.status_code, 404)
+
+    def test_arena_react_hidden_from_plain_author(self):
+        User = get_user_model()
+        plain_user = User.objects.create_user(username="adl-react-author", password="pw")
+        RecipeAuthor.objects.create(user=plain_user, name="ADL React Author", slug="adl-react-author")
+        self.client.login(username="adl-react-author", password="pw")
+        response = self.client.post(reverse("chef_battle:arena_react"))
+        self.assertEqual(response.status_code, 404)
+
+    def test_battle_chat_poll_hidden_from_anonymous(self):
+        """CF3: battle_chat_poll had only a rate limit and leaked chat to
+        anonymous. The visibility gate now fires before the battle lookup, so
+        an anonymous visitor 404s even for a non-existent battle id."""
+        response = self.client.get(
+            reverse("chef_battle:battle_chat_poll", kwargs={"pk": 1})
+        )
         self.assertEqual(response.status_code, 404)
 
 
@@ -6626,6 +6652,53 @@ class ArenaPayloadWiringTests(TestCase):
         self.assertIsInstance(p["crown_streak"], int)
         self.assertIsInstance(p["crown_ladder"], list)
         self.assertIsInstance(p["recent_gifts"], list)
+
+
+class ArenaInitialRenderContextTests(TestCase):
+    """CF1: arena.html reads crown_streak / crown_ladder / recent_gifts as
+    TOP-LEVEL template variables on the first server-rendered paint, before
+    the JS poll repaints from arena_state. The view must therefore expose
+    them at the top level of the render context, not only nested inside
+    arena_data — otherwise the streak silently renders 0 and the lists render
+    empty on load regardless of the real data."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.super_user = User.objects.create_superuser(
+            username="airc-super", password="pw", email="airc@example.com"
+        )
+        # Crown holder with a live streak of 3 — a different account from the
+        # viewer, so this exercises the real payload, not the viewer's profile.
+        holder_user = User.objects.create_user(username="airc-holder", password="pw")
+        self.holder = RecipeAuthor.objects.create(
+            user=holder_user, name="Crown Holder", slug="airc-holder"
+        )
+        from .models import ChefBattleProfile
+        ChefBattleProfile.objects.update_or_create(
+            author=self.holder,
+            defaults={
+                "crown_until": timezone.now() + timezone.timedelta(hours=1),
+                "win_streak": 3,
+            },
+        )
+
+    def test_top_level_context_matches_arena_data(self):
+        self.client.login(username="airc-super", password="pw")
+        response = self.client.get(reverse("chef_battle:arena"))
+        self.assertEqual(response.status_code, 200)
+        # The three panels must be present at the top level of the context...
+        for key in ("crown_streak", "crown_ladder", "recent_gifts"):
+            self.assertIn(key, response.context)
+            self.assertEqual(response.context[key], response.context["arena_data"][key])
+
+    def test_real_crown_streak_paints_on_first_load(self):
+        self.client.login(username="airc-super", password="pw")
+        response = self.client.get(reverse("chef_battle:arena"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["crown_streak"], 3)
+        # Before the fix this element rendered 0 (undefined top-level var); the
+        # real streak must now appear on the initial paint.
+        self.assertContains(response, 'arena-crown-streak">3</strong>')
 
 
 class ArenaMetricsTests(TestCase):

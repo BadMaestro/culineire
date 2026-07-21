@@ -1137,6 +1137,14 @@ def arena(request):
         "spectator_count": len(spectators),
         "active_battle": active_battle,
         "arena_data": arena_data,
+        # arena.html reads these three at the top level for the first
+        # server-rendered paint (crown streak, crown ladder, recent gifts),
+        # before the JS poll repaints from arena_state. They also live inside
+        # arena_data for the embedded JSON blob. Without them at top level the
+        # streak silently renders 0 and both lists render empty on load.
+        "crown_streak": arena_data["crown_streak"],
+        "crown_ladder": arena_data["crown_ladder"],
+        "recent_gifts": arena_data["recent_gifts"],
         "viewer_author": viewer_author,
         "user_enrolled": user_enrolled,
     })
@@ -2056,6 +2064,12 @@ def battle_chat_send(request, pk):
 def battle_chat_poll(request, pk):
     from django.http import JsonResponse
     from .models import BattleChatMessage
+    # Match the Battle Room page gate: chat is not readable by anyone who
+    # cannot see the battle itself (staff/superuser during dark launch). The
+    # sibling battle_chat_send already carries @chef_battle_guard; this poll
+    # endpoint previously had only a rate limit, leaking chat to anonymous.
+    if not is_battle_visible(request):
+        raise Http404
     if getattr(request, "limited", False):
         return JsonResponse({"error": "rate_limited"}, status=429)
     battle = get_object_or_404(Battle, pk=pk)
@@ -3158,7 +3172,15 @@ def live_arena_snapshot(request):
 @require_POST
 def arena_react(request):
     """Record one 'heart' reaction on a battle stream side (live arena).
-    Public but rate-limited per author/session; returns the new side count."""
+    Gated to the arena audience (staff/superuser during dark launch,
+    everyone once CHEF_BATTLE_ENABLED); rate-limited per author/session;
+    returns the new side count."""
+    # Same visibility gate as arena_state/arena_ping (not the full guard,
+    # whose suspended-POST banner would stack on every reaction click). Before
+    # this the endpoint was public, reachable by anonymous users while the
+    # arena page itself 404s them during dark launch.
+    if not is_battle_visible(request):
+        raise Http404
     from django.shortcuts import get_object_or_404
     from .models import Battle
     from .reaction_service import record_battle_reaction

@@ -12,36 +12,30 @@ def is_battle_visible(request) -> bool:
     """
     Chef Battles is visible when:
     - CHEF_BATTLE_ENABLED is True (public launch), OR
-    - the user is staff/superuser (dark-launch operator preview), OR
-    - the user has a RecipeAuthor at all (owner's rule, 2026-07-20: any
-      registered author may visit and watch the arena — chef enrollment is
-      NOT required, only registration as an author. Voting is a separate,
-      stricter check elsewhere; this function only gates being able to see
-      the page).
+    - the user is staff/superuser (dark-launch operator preview).
 
-    Chef enrollment (ChefBattleProfile.enrolled_at) must never be a condition
-    here: an author who has never fought a single battle still gets to watch.
-    Anonymous visitors are only let in once CHEF_BATTLE_ENABLED goes True
-    (public launch) — until then this function is the entire dark-launch gate.
+    Pre-release policy (owner ruling 2026-07-21, and the standing product
+    contract CHEF_BATTLE_PRODUCT_CONTRACT_2D.md section 5): the Arena is NOT
+    publicly released. Until an explicit release decision, access is
+    STAFF/SUPERUSER ONLY. A registered author who is not staff — like any
+    ordinary authenticated user, and like an anonymous visitor — must NOT be
+    let in during dark launch. Chef enrollment is a participation state, never
+    a visibility grant.
 
-    ``has_bearseeker_privileges`` used to be checked here separately from
-    "has a RecipeAuthor", but it is itself a field ON RecipeAuthor — any
-    account with the flag already has an author row, so it was strictly
-    redundant once "any author" is the rule. Dropped rather than kept
-    alongside a check it can never add anything to.
+    The earlier "any registered author may visit and watch" rule (release
+    journal v2.5.380, 2026-07-20) is superseded and does not widen access
+    here; the author branch it added has been removed.
 
     The Arena Master Console stays behind ``has_arena_console_access``
-    (superuser only), so none of this opens the console to staff or authors.
+    (superuser + owner/flag), which is stricter than this gate — so nothing
+    here opens the console to a bare staff user.
     """
     if getattr(settings, "CHEF_BATTLE_ENABLED", False):
         return True
     user = getattr(request, "user", None)
     if not user or not user.is_authenticated:
         return False
-    if user.is_staff or user.is_superuser:
-        return True
-    author = getattr(user, "recipe_author_profile", None)
-    return author is not None
+    return bool(user.is_staff or user.is_superuser)
 
 
 def has_arena_console_access(request) -> bool:
