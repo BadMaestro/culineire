@@ -1,0 +1,165 @@
+{
+  "base_commit": "d852fff53b8de0f7fcd46897c4ce287c6abe8a0d",
+  "audited_by": "Bolt",
+  "branch": "audit/arena-backend-gates",
+  "audit_type": "read-only, no fixes applied",
+  "routes_and_endpoints": [
+    {"route": "arena/", "view": "arena (chef_battle/views.py:1067)", "gate": "@chef_battle_guard", "anon": "404", "auth_non_author": "404", "author_non_staff": "200", "staff": "200", "superuser": "200"},
+    {"route": "arena/battle-popup/", "view": "arena_battle_popup (views.py:828)", "gate": "@chef_battle_guard", "anon": "404", "auth_non_author": "404", "author_non_staff": "200", "staff": "200", "superuser": "200"},
+    {"route": "arena/ping/", "view": "arena_ping (views.py:1146)", "gate": "@require_POST + manual is_battle_visible check (line 1150)", "anon": "404", "auth_non_author": "404", "author_non_staff": "200", "staff": "200", "superuser": "200"},
+    {"route": "arena/state/", "view": "arena_state (views.py:1165)", "gate": "@require_POST + ratelimit + manual is_battle_visible check (line 1169)", "anon": "404", "auth_non_author": "404", "author_non_staff": "200", "staff": "200", "superuser": "200"},
+    {"route": "arena/blast/", "view": "arena_blast (views.py:965)", "gate": "manual is_battle_visible check (line 968), no decorator", "anon": "404", "auth_non_author": "404", "author_non_staff": "200", "staff": "200", "superuser": "200"},
+    {"route": "arena/react/", "view": "arena_react (views.py:3159)", "gate": "@require_POST only -- NO visibility check", "anon": "200 (rate-limited)", "auth_non_author": "200", "author_non_staff": "200", "staff": "200", "superuser": "200", "flag": "reachable by anonymous while the page embedding it (arena/) 404s them"},
+    {"route": "battles/<pk>/", "view": "battle_detail (views.py:1364)", "gate": "@chef_battle_guard", "anon": "404", "auth_non_author": "404", "author_non_staff": "200", "staff": "200", "superuser": "200"},
+    {"route": "battles/<pk>/state/", "view": "battle_state_poll (views.py:1838)", "gate": "@chef_battle_guard + @login_required", "anon": "302->login", "auth_non_author": "404", "author_non_staff": "200", "staff": "200", "superuser": "200"},
+    {"route": "battles/<pk>/chat/send/", "view": "battle_chat_send (views.py:2020)", "gate": "NONE", "anon": "200 (writes as 'Anonymous')", "auth_non_author": "200", "author_non_staff": "200", "staff": "200", "superuser": "200", "flag": "no chef_battle_guard/is_battle_visible check at all, unlike the page (battle_detail) it is attached to"},
+    {"route": "battles/<pk>/chat/poll/", "view": "battle_chat_poll (views.py:2056)", "gate": "@ratelimit only -- NO visibility/auth check", "anon": "200", "auth_non_author": "200", "author_non_staff": "200", "staff": "200", "superuser": "200"},
+    {"route": "master/", "view": "master_console (views.py:2716)", "gate": "@arena_console_guard", "anon": "404", "auth_non_author": "404", "author_non_staff": "404", "staff": "404", "superuser": "200 only if owner-slug OR (ARENA_MASTER_CONSOLE_ENABLED and author.has_arena_console_access), else 404"},
+    {"route": "master/state/", "view": "master_state (views.py:2760)", "gate": "@arena_console_guard + @require_POST", "anon": "404", "auth_non_author": "404", "author_non_staff": "404", "staff": "404", "superuser": "same rule as master/"},
+    {"route": "master/action/", "view": "master_action (views.py:2769)", "gate": "@arena_console_guard + @require_POST", "anon": "404", "auth_non_author": "404", "author_non_staff": "404", "staff": "404", "superuser": "same rule as master/; owner-only writes re-checked inside per DG-02 (lines 2773-2777)"},
+    {"route": "master/live-arena/", "view": "live_arena_progress (views.py:3020)", "gate": "@arena_console_guard", "anon": "404", "auth_non_author": "404", "author_non_staff": "404", "staff": "404", "superuser": "same rule as master/"},
+    {"route": "master/live-arena/preview/", "view": "live_arena_preview (views.py:3086)", "gate": "@arena_console_guard, GET-only, no writes", "anon": "404", "auth_non_author": "404", "author_non_staff": "404", "staff": "404", "superuser": "same rule as master/"},
+    {"route": "master/live-arena/snapshot/", "view": "live_arena_snapshot (views.py:3144)", "gate": "@arena_console_guard + @require_POST", "anon": "404", "auth_non_author": "404", "author_non_staff": "404", "staff": "404", "superuser": "same rule as master/"},
+    {"route": "master/live-arena/update/", "view": "live_arena_stage_update (views.py:3050)", "gate": "@arena_console_guard + @require_POST", "anon": "404", "auth_non_author": "404", "author_non_staff": "404", "staff": "404", "superuser": "same rule as master/"}
+  ],
+  "permission_matrix": {
+    "guard_functions": {
+      "is_battle_visible": "chef_battle/access.py:11-44 -- True if settings.CHEF_BATTLE_ENABLED, OR user.is_staff/is_superuser, OR user simply has a recipe_author_profile at all (lines 43-44) -- ANY registered author, staff or not.",
+      "has_arena_console_access": "chef_battle/access.py:47-66 -- requires is_superuser AND a RecipeAuthor AND (author.slug == settings.OWNER_SLUG OR (settings.ARENA_MASTER_CONSOLE_ENABLED AND author.has_arena_console_access))",
+      "chef_battle_guard": "chef_battle/access.py:82-106 -- Http404 if not is_battle_visible(request)",
+      "arena_console_guard": "chef_battle/access.py:69-79 -- Http404 if not has_arena_console_access(request)",
+      "settings": "config/settings.py:322 OWNER_SLUG='greenbear'; :334 CHEF_BATTLE_ENABLED default False; :338 ARENA_MASTER_CONSOLE_ENABLED default False"
+    },
+    "contract_deviation": {
+      "documented_requirement": "docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md:123-138 -- arena_visibility.recipe_author_without_staff must be false pre-release; 'If production behaviour differs, treat it as a release-gate defect.'",
+      "actual_code": "chef_battle/access.py:16-20,43-44 implements recipe_author_without_staff = true, per an inline comment citing an owner decision dated 2026-07-20",
+      "test_confirming_it": "chef_battle/tests.py:5190 ArenaDarkLaunchTests.test_plain_author_sees_the_arena_during_dark_launch -- passing, confirms 200 for a plain non-staff author",
+      "scope": "Applies to Arena Hall + Battle Room (everything gated purely by chef_battle_guard/is_battle_visible). Does NOT apply to Arena Master Console, which remains superuser+owner/flag-only via the separate has_arena_console_access gate.",
+      "classification": "This is a release-gate defect per the contract's own escalation rule, OR a superseding owner decision not yet reflected in the contract document -- Bolt did not modify code or docs; flagging per audit scope, not resolving."
+    },
+    "additional_gaps": [
+      "arena_react (views.py:3159) has no visibility/auth gate at all -- docstring says 'Public but rate-limited' (line 3161). Reachable by fully anonymous users while the embedding page (arena/) 404s them for the same anonymous visitor.",
+      "battle_chat_send and battle_chat_poll (views.py:2020, 2056) have no chef_battle_guard/is_battle_visible check, unlike battle_detail which gates the page they're attached to. Anonymous or non-eligible visitors can POST/poll chat for any battle ID even while battle_detail for that battle 404s them."
+    ]
+  },
+  "initial_context_defect": {
+    "confirmed": true,
+    "template": "templates/chef_battle/arena.html",
+    "template_references": [
+      "line 58: {{ crown_streak|default:0 }} (top-level)",
+      "line 127: {% for chef in crown_ladder %} (top-level)",
+      "line 143: {% for gift in recent_gifts %} (top-level)"
+    ],
+    "view": "chef_battle/views.py: arena() (1067-1142), payload built by _build_arena_payload() (976-1064)",
+    "actual_render_context_keys": "rank_groups, spectator_count, active_battle, arena_data, viewer_author, user_enrolled (render() call, lines 1135-1142)",
+    "nesting": "crown_streak/crown_ladder/recent_gifts ARE present in the payload (lines 1054-1056) but only nested inside arena_data (lines 1095-1108) -- never at top level of the render context",
+    "effect": "Django silently resolves the undefined top-level variables to empty. {{ crown_streak|default:0 }} always renders '0'; the crown_ladder and recent_gifts loops always iterate zero items and fall through to their {% empty %} branches ('No crowns have been awarded today.' / 'No battle gifts have been delivered yet.') on every initial page load, regardless of real data, until the first arena_state poll overwrites the DOM via JS. No error, no 500, nothing logged -- silent and permanent on first paint.",
+    "scope_note": "arena_master_console.html does not reference crown_streak/crown_ladder/recent_gifts anywhere -- this defect is isolated to the public Arena Hall template.",
+    "existing_test_gap": "chef_battle/tests.py:6607-6628 ArenaPayloadWiringTests.test_payload_has_arena_panels only asserts the raw _build_arena_payload() dict has these keys -- never renders arena.html or inspects actual template context/HTML output.",
+    "minimal_safe_fix_contract_not_implemented": "Either (a) add crown_streak/crown_ladder/recent_gifts to the arena() view's top-level render context alongside arena_data, matching what the template already expects, or (b) change the template to read arena_data.crown_streak / arena_data.crown_ladder / arena_data.recent_gifts to match the existing nested contract. No code changed by this audit."
+  },
+  "privileged_preview": {
+    "proto_gate_exists": false,
+    "note": "No ?proto=1-gated code path exists in current views.py (grep for 'proto' returns no matches). _arena_render_ring.html now renders unconditionally for every visitor who passes chef_battle_guard (arena.html:120), regardless of any proto query param.",
+    "stale_test": "chef_battle/tests.py:2395-2409 test_procedural_arena_is_explicit_proto_gate still requests ?proto=1 and asserts 200/content, but only because that content now renders unconditionally -- test name is misleading, there is no proto gate anymore. Currently passing (not a failure), just mislabeled.",
+    "demo_vs_preview": {
+      "location": "chef_battle/views.py:1114",
+      "gate": "if request.GET.get('demo') == 'vs' and is_moderator(request.user):",
+      "leak_to_non_staff": "Not observed -- gated on is_moderator(request.user) in addition to the outer chef_battle_guard; if condition fails for non-moderators, arena_data['center'] is left unmodified and the normal arena renders."
+    },
+    "master_live_arena_previews": {
+      "routes": ["master/live-arena/preview/ (GET, no writes)", "master/live-arena/snapshot/ (@require_POST)", "master/live-arena/update/ (@require_POST)"],
+      "gate": "@arena_console_guard on all three",
+      "csrf": "No csrf_exempt applied to any of these (csrf_exempt is only used at token_stripe_webhook, views.py:686) -- Django's default CSRF protection applies to their POST endpoints.",
+      "method_restrictions": "live_arena_preview has no explicit @require_GET but performs no writes, only render(); the two write endpoints correctly use @require_POST."
+    }
+  },
+  "polling_contracts": {
+    "arena_state_endpoint": "chef_battle/views.py:1163-1201, returns top-level bare keys: rings, spectators, center, latest_result, crown_streak, crown_ladder, recent_gifts, metrics, phase, deadline, geometry, server_time -- sourced from the same _build_arena_payload()",
+    "initial_context_shape": "arena() view nests the identical key set one level under arena_data (lines 1095-1108), then json_script's the whole arena_data dict into the DOM at templates/chef_battle/_arena_render_ring.html:20",
+    "mismatch": "Polling response is a flat dict (crown_streak bare); initial-render JS blob nests the same fields one level under arena_data (arena_data.crown_streak). The arena.html template's structural reads (arena_data.phase, arena_data.metrics, arena_data.center, arena_data.deadline) correctly use the nested initial-context shape, but its crown_streak/crown_ladder/recent_gifts reads use the bare/top-level name that only exists in the arena_state POLLING JSON contract, not in the initial arena_data contract -- i.e. those three template lines look like they were written against the wrong contract.",
+    "existing_test_gap": "chef_battle/tests.py:2623 ArenaMasterStateTests.test_public_arena_state_keys_unchanged verifies arena_state's own JSON key set hasn't drifted, but does not cross-check against the initial arena_data template context, so it would not catch this mismatch."
+  },
+  "master_console_dependencies": {
+    "_arena_render_ring.html": {
+      "consumers": [
+        "templates/chef_battle/arena.html:120 (Arena Hall)",
+        "templates/chef_battle/arena_master_console.html:89 (Arena Master Console)"
+      ],
+      "other_repo_references": "none found (whole-repo grep)",
+      "master_console_depends_on_it": true,
+      "contract_note": "docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md:120-121 and chef_battle/access.py:33-34 both state this shared renderer must not be removed until the Master Console is decoupled or has a compatible replacement -- not touched by this audit."
+    }
+  },
+  "targeted_tests": {
+    "command": "venv/Scripts/python.exe manage.py test chef_battle.tests.ChefBattleAccessTests chef_battle.tests.ArenaDarkLaunchTests chef_battle.tests.ArenaMasterConsoleAccessTests chef_battle.tests.ArenaMasterStateTests chef_battle.tests.ArenaMasterActionTests chef_battle.tests.ArenaDataSelectorsTests chef_battle.tests.ArenaPayloadWiringTests -v 2",
+    "environment": "local SQLite dev settings (in-memory test DB), not production",
+    "tests_collected": 77,
+    "tests_passed": 77,
+    "tests_failed": 0,
+    "duration_seconds": 251.815,
+    "result": "PASS",
+    "note": "This is a targeted subset per the audit scope, not the full ~1500-test suite. No duplicate full-suite run performed. Not coordinated as a shard with GreenBear/Ember -- ad hoc local run for this audit only."
+  },
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "high",
+      "title": "Arena Hall/Battle Room access contract deviates from docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md",
+      "detail": "Contract requires recipe_author_without_staff: false pre-release; actual code (chef_battle/access.py:43-44) grants access to any registered author regardless of staff status, per an inline comment citing an owner decision dated 2026-07-20. Confirmed by a passing test (ArenaDarkLaunchTests.test_plain_author_sees_the_arena_during_dark_launch). The contract document itself says this exact situation should be 'treat[ed] as a release-gate defect' if production differs -- but there is also comment evidence this was an explicit later owner decision. Owner Product Owner needs to confirm which is current: the contract, or the code comment, and reconcile the written contract if the code is intentional."
+    },
+    {
+      "id": "F2",
+      "severity": "medium",
+      "title": "arena_react has no visibility/auth gate",
+      "detail": "views.py:3159, docstring says 'Public but rate-limited'. Anonymous users can hit this endpoint while the Arena Hall page itself 404s them during dark launch. Scope/intent unclear -- flagging, not fixing."
+    },
+    {
+      "id": "F3",
+      "severity": "medium",
+      "title": "battle_chat_send / battle_chat_poll have no chef_battle_guard check",
+      "detail": "views.py:2020, 2056. Unlike battle_detail (the page these are attached to), these endpoints have no visibility gate -- anonymous/non-eligible users can post ('Anonymous') and poll chat for any battle ID even when battle_detail 404s them for that same battle."
+    },
+    {
+      "id": "F4",
+      "severity": "medium",
+      "title": "Initial-render context defect: crown_streak/crown_ladder/recent_gifts always empty on first paint",
+      "detail": "arena.html reads these as top-level variables; the arena() view only ever nests them under arena_data. Silent, permanent wrong-data bug on every initial page load until the first JS poll. See initial_context_defect section for full detail and minimal fix contract (not implemented)."
+    },
+    {
+      "id": "F5",
+      "severity": "low",
+      "title": "test_procedural_arena_is_explicit_proto_gate is a stale/misleading test name",
+      "detail": "chef_battle/tests.py:2395-2409 -- no proto gate exists anymore in the code; the test still passes only because the content it checks now renders unconditionally. Not a functional bug, but the test name and any documentation referencing a ?proto=1 gate are stale."
+    },
+    {
+      "id": "F6",
+      "severity": "informational",
+      "title": "arena_state vs initial arena_data payload shape mismatch",
+      "detail": "Polling JSON is flat; initial-render JS blob is nested under arena_data. Plausible root cause tying into F4 -- the three affected template lines appear to have been written against the polling contract instead of the initial-render contract."
+    }
+  ],
+  "recommended_implementation_packages": [
+    {
+      "package": "Fix initial-render context defect (F4/F6)",
+      "scope": "Either add crown_streak/crown_ladder/recent_gifts to arena()'s top-level render context, or change arena.html to read them via arena_data.*. Add a template-render-level test asserting real (non-empty, non-default) values appear in rendered HTML on first paint, not just in the raw payload dict.",
+      "owner_decision_needed": "Which side of the contract (view vs template) is authoritative going forward."
+    },
+    {
+      "package": "Reconcile F1 -- product contract vs implemented author-visibility rule",
+      "scope": "Either update docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md's arena_visibility matrix to reflect the 2026-07-20 owner decision (author-without-staff: true), or correct the code back to the written contract. Pure documentation/decision-recording, or a code change -- Product Owner call.",
+      "owner_decision_needed": "Confirm which is current and update the losing side."
+    },
+    {
+      "package": "Close the F2/F3 gate gaps on arena_react and battle_chat_send/poll",
+      "scope": "Decide whether these should be gated by chef_battle_guard/is_battle_visible like their sibling pages, or are intentionally public; add explicit tests either way.",
+      "owner_decision_needed": "Intent confirmation before any code change."
+    },
+    {
+      "package": "Rename/update stale test F5",
+      "scope": "Low priority; rename test_procedural_arena_is_explicit_proto_gate to reflect that content renders unconditionally now, and check for stale ?proto=1 references elsewhere in docs.",
+      "owner_decision_needed": "none -- housekeeping"
+    }
+  ],
+  "blockers": []
+}
