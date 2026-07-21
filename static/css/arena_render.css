@@ -194,15 +194,15 @@
  * ========================================================================== */
 .arena-render-container {
   /* The bowl and its light come from the site scheme, not from a hand-picked
-     pair. They were #0e1a12 / #05100a / #d9a441 — an emerald-and-yellow-gold
+     pair. They were legacy emerald and yellow-gold values — an
      set that appears nowhere in CulinEire's tokens, whose brand core is warm
      parchment, ink and muted bronze (the reference PDF states it outright:
      "--legal-green is brand/bronze, not green"). --hall-* are declared on
      .page--arena in arena_hall.css, which wraps this scene; the fallbacks keep
      the container correct if it is ever rendered outside that page. */
-  --arena-bowl: var(--hall-deep, color-mix(in srgb, var(--ink) 74%, black));
-  --arena-bowl-edge: var(--hall-edge, color-mix(in srgb, var(--ink) 38%, black));
-  --arena-spot: var(--hall-bronze, var(--accent-bronze));
+  --arena-bowl: var(--surface-soft);
+  --arena-bowl-edge: var(--surface-muted);
+  --arena-spot: var(--accent-bronze);
 
   /* Gold pooling over the stage, falling away into a dark bowl. */
   background:
@@ -214,7 +214,7 @@
   border-color: color-mix(in srgb, var(--arena-spot) 26%, var(--arena-bowl-edge));
   /* The inset shadow is what turns a flat dark panel into a bowl: the rim falls
      into shadow while the centre stays lit. */
-  box-shadow: inset 0 0 90px 26px rgba(0, 0, 0, 0.55), var(--shadow-sm);
+  box-shadow: inset 0 0 90px 26px var(--brand-soft), var(--shadow-sm);
 }
 
 /* ----------------------------------------------------------------------------
@@ -290,8 +290,8 @@
  *
  * Neutral grey, not blue. The scheme has no cool token at all; --muted is the
  * nearest neutral and is mixed toward the bowl so the walkway sits in shadow
- * rather than glowing. The rim is --hall-bronze, the site's own bronze, not
- * the yellow gold this file used to invent.
+ * rather than glowing. The rim uses the site's own bronze, not an Arena-local
+ * colour.
  * -------------------------------------------------------------------------- */
 #arena-render .arena-walkway {
   fill: none;
@@ -512,6 +512,6 @@
    them apart from the faces behind them. */
 .page--arena.has-arena-backdrop #arena-render [data-ring-kind="spectator"][data-occupancy="spectator"] {
   fill: transparent;
-  stroke: var(--hall-bronze, var(--accent-bronze));
+  stroke: var(--accent-bronze);
   stroke-width: 1.4;
 }

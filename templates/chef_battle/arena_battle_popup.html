@@ -28,25 +28,6 @@
         {% endfor %}
       </div>
       {% endif %}
-      {% if can_vote and not has_voted %}
-      <form method="post" action="{% url 'chef_battle:battle_vote' battle.pk %}" class="abp__vote-form">
-        {% csrf_token %}
-        <input type="hidden" name="voted_for" value="{{ battle.challenger.pk }}">
-        <button type="submit" class="abp__vote-btn">Vote {{ battle.challenger.name|truncatewords:1 }}</button>
-      </form>
-      {% endif %}
-      {% if viewer_author and not is_participant and viewer_token_balance > 0 %}
-      <div class="abp__gifts">
-        {% for gift in appreciation_gifts %}{% if viewer_token_balance >= gift.cost %}
-        <form method="post" action="{% url 'chef_battle:send_appreciation_gift' battle.pk %}" class="abp__gift-form">
-          {% csrf_token %}
-          <input type="hidden" name="recipient_slug" value="{{ battle.challenger.slug }}">
-          <input type="hidden" name="gift_type" value="{{ gift.type }}">
-          <button type="submit" class="abp__gift-btn" title="{{ gift.label }} ({{ gift.cost }}T)">{{ gift.emoji }}</button>
-        </form>
-        {% endif %}{% endfor %}
-      </div>
-      {% endif %}
     </div>
 
     <div class="abp__vs-col">
@@ -66,59 +47,12 @@
         {% endfor %}
       </div>
       {% endif %}
-      {% if can_vote and not has_voted %}
-      <form method="post" action="{% url 'chef_battle:battle_vote' battle.pk %}" class="abp__vote-form">
-        {% csrf_token %}
-        <input type="hidden" name="voted_for" value="{{ battle.opponent.pk }}">
-        <button type="submit" class="abp__vote-btn">Vote {{ battle.opponent.name|truncatewords:1 }}</button>
-      </form>
-      {% endif %}
-      {% if viewer_author and not is_participant and viewer_token_balance > 0 %}
-      <div class="abp__gifts">
-        {% for gift in appreciation_gifts %}{% if viewer_token_balance >= gift.cost %}
-        <form method="post" action="{% url 'chef_battle:send_appreciation_gift' battle.pk %}" class="abp__gift-form">
-          {% csrf_token %}
-          <input type="hidden" name="recipient_slug" value="{{ battle.opponent.slug }}">
-          <input type="hidden" name="gift_type" value="{{ gift.type }}">
-          <button type="submit" class="abp__gift-btn" title="{{ gift.label }} ({{ gift.cost }}T)">{{ gift.emoji }}</button>
-        </form>
-        {% endif %}{% endfor %}
-      </div>
-      {% endif %}
     </div>
 
-  </div>
-
-  {% if has_voted %}<p class="abp__voted-note">Your vote is recorded.</p>{% endif %}
-
-  <div class="abp__chat">
-    <div class="abp__chat-title">Live Chat</div>
-    <div class="abp__chat-messages" id="abp-chat-messages">
-      {% for msg in recent_chat %}
-      <div class="abp__chat-msg" data-id="{{ msg.pk }}">
-        <b class="abp__chat-who">{{ msg.display_name }}</b>
-        <span class="abp__chat-body">{{ msg.body }}</span>
-        <span class="abp__chat-time">{{ msg.created_at|time:"H:i" }}</span>
-      </div>
-      {% empty %}
-      <p class="abp__chat-empty">No messages yet. Say something!</p>
-      {% endfor %}
-    </div>
-    {% if request.user.is_authenticated %}
-    <form class="abp__chat-form" id="abp-chat-form"
-          data-url="{% url 'chef_battle:battle_chat_send' battle.pk %}"
-          data-poll-url="{% url 'chef_battle:battle_chat_poll' battle.pk %}">
-      {% csrf_token %}
-      <input class="abp__chat-input" name="body" type="text" placeholder="Say something..." maxlength="280" autocomplete="off">
-      <button type="submit" class="abp__chat-send">Send</button>
-    </form>
-    {% else %}
-    <p class="abp__chat-login"><a href="{% url 'account_login' %}">Sign in to chat</a></p>
-    {% endif %}
   </div>
 
   <div class="abp__footer">
-    <a href="{{ battle.get_absolute_url }}" class="abp__full-link">Full Battle Room &#8594;</a>
+    <a href="{{ battle.get_absolute_url }}" class="abp__full-link">Open full-screen Battle Room &#8594;</a>
     {% if is_participant %}<span class="abp__participant-note">You are in this battle.</span>{% endif %}
   </div>
 

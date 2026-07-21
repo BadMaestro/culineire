@@ -1,7 +1,7 @@
 /* Arena command deck — route-scoped composition around the existing SVG arena. */
 .page--arena {
   background:
-    radial-gradient(75rem 38rem at 50% 16%, rgb(226 217 204 / .55), transparent 63%),
+    radial-gradient(75rem 38rem at 50% 16%, color-mix(in srgb, var(--border) 55%, transparent), transparent 63%),
     var(--surface, var(--ce-card-bg));
 }
 
@@ -38,9 +38,9 @@
 .arena-command-deck__gifts,
 .arena-command-deck__crowd-rail,
 .arena-command-deck__phase-rail {
-  border: 1px solid rgb(139 115 85 / .28);
-  background: rgb(255 253 249 / .9);
-  box-shadow: 0 .55rem 1.6rem rgb(31 44 37 / .08);
+  border: 1px solid color-mix(in srgb, var(--brand) 28%, transparent);
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  box-shadow: 0 .55rem 1.6rem color-mix(in srgb, var(--ink) 8%, transparent);
 }
 
 .arena-command-deck__header { grid-area: header; display: flex; justify-content: space-between; gap: 1rem; align-items: center; padding: 1.1rem 1.25rem; border-radius: 1.1rem; }
@@ -51,42 +51,42 @@
 .arena-command-deck__phase-rail { grid-area: phase-rail; border-radius: 1rem; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); padding: .45rem; gap: .35rem; }
 .arena-phase-step { border-radius: .65rem; border: 1px solid transparent; color: var(--arena-muted); display: flex; align-items: center; justify-content: center; gap: .32rem; min-height: 2.3rem; font-size: .68rem; white-space: nowrap; }
 .arena-phase-step b { font-weight: 750; }
-.arena-phase-step.is-active { color: var(--arena-ink); border-color: rgb(66 81 74 / .45); background: var(--arena-cream); box-shadow: inset 0 0 0 1px rgb(255 253 249 / .9); }
+.arena-phase-step.is-active { color: var(--arena-ink); border-color: color-mix(in srgb, var(--ink-soft) 45%, transparent); background: var(--arena-cream); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--surface) 90%, transparent); }
 
 .arena-command-deck__phase-card { grid-area: phase; align-self: start; border-radius: 1rem; padding: 1.05rem; }
 .arena-command-deck__phase-name { margin: .55rem 0 .1rem; color: var(--arena-forest); font: 700 1.15rem/1.1 var(--font-serif); }
-.arena-command-deck__phase-deadline { display: grid; gap: .12rem; margin: .8rem 0 0; padding-top: .65rem; border-top: 1px solid rgb(139 115 85 / .23); }
+.arena-command-deck__phase-deadline { display: grid; gap: .12rem; margin: .8rem 0 0; padding-top: .65rem; border-top: 1px solid color-mix(in srgb, var(--brand) 23%, transparent); }
 .arena-command-deck__phase-deadline span { color: var(--arena-gold); font-size: .62rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
 .arena-command-deck__phase-deadline strong { color: var(--arena-cappuccino); font: 700 .92rem/1.15 var(--font-serif); font-variant-numeric: tabular-nums; }
 .arena-command-deck__phase-deadline.is-empty strong { color: var(--arena-muted); font-family: inherit; font-size: .72rem; font-weight: 600; }
 .arena-command-deck__metrics { grid-area: metrics; border-radius: 1rem; display: grid; grid-template-columns: 1fr; padding: .45rem .8rem; }
-.arena-metric { min-width: 0; padding: .45rem .1rem; display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; border-top: 1px solid rgb(139 115 85 / .23); }
+.arena-metric { min-width: 0; padding: .45rem .1rem; display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; border-top: 1px solid color-mix(in srgb, var(--brand) 23%, transparent); }
 .arena-metric:first-child { border-top: 0; }
 .arena-metric span { color: var(--arena-muted); font-size: .61rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
 .arena-ico { width: 1em; height: 1em; margin-right: .28rem; vertical-align: -.16em; color: var(--arena-gold); fill: currentColor; }
 .arena-metric strong { flex: 0 0 auto; color: var(--arena-cappuccino); font: 700 1.1rem/1 var(--font-serif); }
 
-.arena-command-deck__floor { grid-area: floor; min-width: 0; padding: 1rem; border-radius: 1.25rem; overflow: hidden; background: linear-gradient(180deg, rgb(255 253 249 / .96), rgb(245 238 228 / .92)); }
-.arena-command-deck__live-stage { display: grid; grid-template-columns: 1fr minmax(8rem, .8fr) 1fr; align-items: center; gap: .75rem; margin-bottom: 1rem; padding: .75rem; border: 1px solid rgb(139 115 85 / .32); border-radius: 1rem; background: linear-gradient(135deg, rgb(66 81 74 / .10), rgb(255 253 249 / .7), rgb(110 78 44 / .1)); }
+.arena-command-deck__floor { grid-area: floor; min-width: 0; padding: 1rem; border-radius: 1.25rem; overflow: hidden; background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, transparent), color-mix(in srgb, var(--surface-soft) 92%, transparent)); }
+.arena-command-deck__live-stage { display: grid; grid-template-columns: 1fr minmax(8rem, .8fr) 1fr; align-items: center; gap: .75rem; margin-bottom: 1rem; padding: .75rem; border: 1px solid color-mix(in srgb, var(--brand) 32%, transparent); border-radius: 1rem; background: linear-gradient(135deg, color-mix(in srgb, var(--ink-soft) 10%, transparent), color-mix(in srgb, var(--surface) 70%, transparent), color-mix(in srgb, var(--brand-dark) 10%, transparent)); }
 .arena-live-chef { display: flex; align-items: center; gap: .6rem; min-width: 0; }
 .arena-live-chef--opponent { justify-content: flex-end; text-align: right; }
 .arena-live-chef--crown { justify-content: flex-end; }
 .arena-live-chef img { width: 3.35rem; height: 3.35rem; border-radius: 50%; object-fit: cover; border: 2px solid var(--arena-gold); background: var(--arena-cream); }
 .arena-live-chef span, .arena-live-centre span { display: block; color: var(--arena-muted); font-size: .62rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
 .arena-live-chef strong { display: block; margin-top: .16rem; color: var(--arena-ink); font: 700 1rem/1.1 var(--font-serif); overflow-wrap: anywhere; }
-.arena-live-centre { min-height: 4.35rem; display: grid; place-items: center; align-content: center; gap: .05rem; border: 1px solid var(--arena-gold); border-radius: .85rem; color: var(--arena-ink); text-align: center; text-decoration: none; background: var(--arena-paper); box-shadow: inset 0 0 0 2px rgb(255 253 249 / .82); transition: border-color .18s ease, background .18s ease; }
+.arena-live-centre { min-height: 4.35rem; display: grid; place-items: center; align-content: center; gap: .05rem; border: 1px solid var(--arena-gold); border-radius: .85rem; color: var(--arena-ink); text-align: center; text-decoration: none; background: var(--arena-paper); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--surface) 82%, transparent); transition: border-color .18s ease, background .18s ease; }
 .arena-live-centre:hover, .arena-live-centre:focus-visible { background: var(--arena-cream); border-color: var(--arena-cappuccino); }
 .arena-live-centre b { color: var(--arena-cappuccino); font: 800 1.35rem/1 var(--font-serif); }
 .arena-live-centre em { max-width: 12ch; color: var(--arena-forest); font-size: .65rem; font-style: normal; line-height: 1.15; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.arena-live-centre--crown { border-color: var(--arena-cappuccino); background: linear-gradient(135deg, rgb(245 238 228 / .96), var(--arena-paper)); }
+.arena-live-centre--crown { border-color: var(--arena-cappuccino); background: linear-gradient(135deg, color-mix(in srgb, var(--surface-soft) 96%, transparent), var(--arena-paper)); }
 .arena-live-centre--quiet { border-style: dashed; }
 .arena-live-awaiting { margin: 0; align-self: center; color: var(--arena-muted); font-size: .72rem; line-height: 1.35; text-align: center; }
 .arena-command-deck__floor-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: .65rem; }
 .arena-command-deck__floor .arena-legend { justify-content: flex-end; flex-wrap: wrap; overflow: visible; margin: 0; max-width: 60%; }
 .arena-command-deck__floor .arena-puzzle-container { gap: .35rem; }
 .arena-command-deck__floor .arena-puzzle-label { order: 2; margin: 0; font-size: .72rem; }
-.arena-floor-stage { position: relative; isolation: isolate; overflow: hidden; border-radius: 1.1rem; background: var(--hall-dark-2); }
-.arena-floor-stage::before { content: ""; position: absolute; z-index: -1; inset: 0; background: var(--hall-dark-2) url('/static/images/chef_battle/arena/arena-floor-plate-v1.png') center / cover no-repeat; }
+.arena-floor-stage { position: relative; isolation: isolate; overflow: hidden; border-radius: 1.1rem; background: var(--surface-soft); }
+.arena-floor-stage::before { content: ""; position: absolute; z-index: -1; inset: 0; background: var(--surface-soft) url('/static/images/chef_battle/arena/arena-floor-plate-v1.png') center / cover no-repeat; }
 .arena-floor-stage .arena-puzzle-container { position: relative; z-index: 1; }
 .arena-floor-stage #arena-puzzle { position: relative; z-index: 1; }
 /* The rank column. Position and width are set from arena_render.js against the
@@ -98,25 +98,25 @@
 .arena-rank-spine { position: absolute; z-index: 2; top: 8.5%; left: 50%; display: grid; gap: .16rem; width: min(10.75rem, 22%); transform: translateX(-50%); pointer-events: none; }
 /* Dark pills on a light floor, as in the mockup - the pale-on-pale version
    read as a stack of blank strips with only the counts visible. */
-.arena-rank-spine__step { min-height: 1.18rem; display: flex; align-items: center; justify-content: space-between; gap: .32rem; padding: .13rem .42rem; border: 1px solid var(--hall-bronze, var(--accent-bronze)); border-radius: 999px; color: var(--hall-text, var(--surface-soft)); font-size: clamp(.5rem, .72vw, .74rem); font-weight: 800; letter-spacing: .035em; line-height: 1; text-decoration: none; text-transform: uppercase; background: var(--hall-panel, var(--hall-dark-1)); box-shadow: 0 .2rem .5rem rgb(0 0 0 / .35); pointer-events: auto; transition: background .18s ease, border-color .18s ease, color .18s ease; }
-/* The count in --hall-text, not bronze: bronze on the dark plate measured
+.arena-rank-spine__step { min-height: 1.18rem; display: flex; align-items: center; justify-content: space-between; gap: .32rem; padding: .13rem .42rem; border: 1px solid var(--accent-bronze); border-radius: 999px; color: var(--ink); font-size: clamp(.5rem, .72vw, .74rem); font-weight: 800; letter-spacing: .035em; line-height: 1; text-decoration: none; text-transform: uppercase; background: var(--surface); box-shadow: 0 .2rem .5rem color-mix(in srgb, var(--ink) 35%, transparent); pointer-events: auto; transition: background .18s ease, border-color .18s ease, color .18s ease; }
+/* The count uses the official ink token for reliable contrast; bronze measured
    4.8:1 against the 7:1 the column is held to. The label beside it reads
    15.2:1, so the number was the one thing in the column still under the bar. */
-.arena-rank-spine__step b { min-width: 1.05rem; display: grid; place-items: center; border-radius: 999px; color: var(--hall-text, var(--surface-soft)); font-size: .9em; background: var(--hall-raised, var(--hall-dark-2)); }
-.arena-rank-spine__step:hover, .arena-rank-spine__step:focus-visible { border-color: var(--hall-bronze-lift, var(--hall-gold-light)); color: var(--hall-bronze-lift, var(--hall-gold-light)); background: var(--hall-raised, var(--hall-dark-2)); }
+.arena-rank-spine__step b { min-width: 1.05rem; display: grid; place-items: center; border-radius: 999px; color: var(--ink); font-size: .9em; background: var(--surface-soft); }
+.arena-rank-spine__step:hover, .arena-rank-spine__step:focus-visible { border-color: var(--brand-dark); color: var(--brand-dark); background: var(--surface-soft); }
 
 .arena-command-deck__ladder, .arena-command-deck__gifts { align-self: start; border-radius: 1rem; padding: 1.05rem; }
 .arena-command-deck__ladder { grid-area: ladder; }
 .arena-command-deck__gifts { grid-area: gifts; }
 .arena-ladder-list { list-style: none; padding: 0; margin: .75rem 0 1rem; display: grid; gap: .35rem; }
-.arena-ladder-list li { display: grid; grid-template-columns: 1.35rem 1fr auto; align-items: center; gap: .35rem; border-bottom: 1px solid rgb(139 115 85 / .17); padding-bottom: .35rem; font-size: .72rem; }
+.arena-ladder-list li { display: grid; grid-template-columns: 1.35rem 1fr auto; align-items: center; gap: .35rem; border-bottom: 1px solid color-mix(in srgb, var(--brand) 17%, transparent); padding-bottom: .35rem; font-size: .72rem; }
 .arena-ladder-list li span { color: var(--arena-gold); font-weight: 800; }
 .arena-ladder-list li a { min-width: 0; overflow: hidden; color: var(--arena-forest); font-weight: 750; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
 .arena-ladder-list li a:hover, .arena-ladder-list li a:focus-visible { color: var(--arena-cappuccino); text-decoration: underline; }
 .arena-ladder-list li em { color: var(--arena-muted); font-style: normal; font-size: .65rem; }
 .arena-panel__empty { display: block !important; padding: .15rem 0 .4rem !important; color: var(--arena-muted); font-size: .72rem; line-height: 1.45; }
 .arena-gift-list { display: grid; gap: .5rem; margin: .75rem 0 .8rem; padding: 0; list-style: none; }
-.arena-gift-list li { display: grid; grid-template-columns: 1.1rem minmax(0, 1fr) auto; align-items: center; gap: .38rem; padding-bottom: .45rem; border-bottom: 1px solid rgb(139 115 85 / .17); }
+.arena-gift-list li { display: grid; grid-template-columns: 1.1rem minmax(0, 1fr) auto; align-items: center; gap: .38rem; padding-bottom: .45rem; border-bottom: 1px solid color-mix(in srgb, var(--brand) 17%, transparent); }
 .arena-gift-list .arena-ico { width: .9rem; margin: 0; color: var(--arena-gold); }
 .arena-gift-list span { min-width: 0; display: grid; gap: .06rem; }
 .arena-gift-list a { overflow: hidden; color: var(--arena-forest); font-size: .71rem; font-weight: 750; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
@@ -145,7 +145,7 @@
   .arena-command-deck__phase-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .arena-phase-step { min-height: 2rem; font-size: .61rem; }
   .arena-command-deck__metrics { width: 100%; grid-template-columns: repeat(3, 1fr); padding: .65rem; }
-  .arena-metric { display: block; padding: .1rem .35rem; text-align: center; border-top: 0; border-left: 1px solid rgb(139 115 85 / .23); }
+  .arena-metric { display: block; padding: .1rem .35rem; text-align: center; border-top: 0; border-left: 1px solid color-mix(in srgb, var(--brand) 23%, transparent); }
   .arena-metric:first-child { border-left: 0; }
   .arena-metric span { font-size: .54rem; }
   .arena-command-deck__floor { padding: .7rem; border-radius: .9rem; }
@@ -161,7 +161,7 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .arena-command-deck__floor { animation: arena-command-deck-breathe 8s ease-in-out infinite; }
-  @keyframes arena-command-deck-breathe { 50% { box-shadow: 0 .7rem 2rem rgb(66 81 74 / .12); } }
+  @keyframes arena-command-deck-breathe { 50% { box-shadow: 0 .7rem 2rem color-mix(in srgb, var(--ink-soft) 12%, transparent); } }
 }
 
 /* ----------------------------------------------------------------------------
@@ -187,7 +187,7 @@
    the panels stack in their own grid rows and there is no room beside the
    floor to float them over it. */
 .page--arena {
-  background: var(--hall-edge, var(--hall-dark-0));
+  background: var(--surface-muted);
 }
 
 .arena-command-deck {
@@ -229,7 +229,7 @@
      each side. Scaling further would crop the octagon top and bottom, which a
      plan view cannot afford - so the edge is carried by colour instead, the
      hall's own darkest tone, which is what the picture fades to anyway. */
-  background-color: var(--hall-edge, var(--hall-dark-0));
+  background-color: var(--surface-muted);
 }
 
 /* NO background-size on the render container. arena_render.js measures our
@@ -250,7 +250,7 @@
     height: calc(100svh - var(--arena-header-h, 146px));
     min-height: 30rem;
     overflow: hidden;
-    color: var(--hall-text, var(--surface-soft));
+    color: var(--ink);
   }
 
   /* The floor fills the screen; everything else sits over it. */
@@ -274,13 +274,13 @@
     position: absolute;
     z-index: 3;
     margin: 0;
-    border: 1px solid color-mix(in srgb, var(--hall-bronze, var(--accent-bronze)) 55%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
     border-radius: .7rem;
-    background: color-mix(in srgb, var(--hall-panel, var(--hall-dark-1)) 78%, transparent);
+    background: color-mix(in srgb, var(--surface) 78%, transparent);
     backdrop-filter: blur(9px) saturate(1.1);
     -webkit-backdrop-filter: blur(9px) saturate(1.1);
-    box-shadow: 0 .8rem 2rem rgb(0 0 0 / .45);
-    color: var(--hall-text, var(--surface-soft));
+    box-shadow: 0 .8rem 2rem color-mix(in srgb, var(--ink) 45%, transparent);
+    color: var(--ink);
   }
 
   .arena-command-deck__header  { left: 2%;  top: 8%;  width: 21%; }
@@ -303,8 +303,8 @@
   .arena-command-deck__gifts *,
   .arena-command-deck__crowd-rail * {
     color: inherit;
-    border-color: color-mix(in srgb, var(--hall-bronze, var(--accent-bronze)) 35%, transparent);
+    border-color: color-mix(in srgb, var(--accent-bronze) 35%, transparent);
   }
 
-  .arena-command-deck__metrics strong { color: var(--hall-bronze, var(--accent-bronze)); }
+  .arena-command-deck__metrics strong { color: var(--accent-bronze); }
 }

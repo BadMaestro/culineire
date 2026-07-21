@@ -2,16 +2,15 @@
  * Battle room popup + battle blast.
  *
  * Ported from arena_puzzle.js so both survive the legacy renderer's removal.
- * The popup embeds the server-rendered battle room fragment and drives its
- * chat; the blast celebrates a finished battle for everyone watching the
+ * The popup embeds a server-rendered preview and links to the full-screen
+ * Battle Room; the blast celebrates a finished battle for everyone watching the
  * arena, not only the two participants.
  */
 (function (global) {
   'use strict';
 
-  var CHAT_POLL_INTERVAL = 10000;
-
-  var chatTimer = null;
+  var previousFocus = null;
+  var popupRequestId = 0;
   // null = not yet initialised from the page's own data. Only a *change* after
   // that first snapshot is a fresh result worth celebrating, so a reload never
   // replays the last battle's blast.
@@ -19,9 +18,31 @@
 
   function byId(id) { return document.getElementById(id); }
 
-  function csrfToken() {
-    var match = document.cookie.match(/csrftoken=([^;]+)/);
-    return match ? match[1] : '';
+  function popupPanel() {
+    var popup = byId('arena-battle-popup');
+    return popup ? popup.querySelector('[role="dialog"]') : null;
+  }
+
+  function focusableElements() {
+    var panel = popupPanel();
+    if (!panel) { return []; }
+    return Array.prototype.filter.call(panel.querySelectorAll(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), ' +
+      'textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    ), function (element) {
+      return !element.hidden && element.getAttribute('aria-hidden') !== 'true';
+    });
+  }
+
+  function focusPopup() {
+    var closeBtn = byId('arena-popup-close');
+    var panel = popupPanel();
+    if (closeBtn) {
+      closeBtn.focus();
+    } else if (panel) {
+      panel.setAttribute('tabindex', '-1');
+      panel.focus();
+    }
   }
 
   /* ---- popup ---- */
@@ -41,22 +62,27 @@
       if (battleUrl) { global.location.href = battleUrl; }
       return;
     }
+    var requestId = ++popupRequestId;
     setLoading(inner, 'Loading battle...');
+    previousFocus = document.activeElement;
     popup.hidden = false;
     document.body.style.overflow = 'hidden';
+    focusPopup();
 
     fetch(popupUrl, { credentials: 'same-origin' })
       .then(function (response) { return response.ok ? response.text() : null; })
       .then(function (html) {
+        if (requestId !== popupRequestId || popup.hidden) { return; }
         if (!html) {
           setLoading(inner, 'No active battle right now.');
           return;
         }
         // Server-rendered fragment from our own view.
         inner.innerHTML = html;
-        initChat(inner);
+        focusPopup();
       })
       .catch(function () {
+        if (requestId !== popupRequestId || popup.hidden) { return; }
         setLoading(inner, 'Could not load battle.');
         if (battleUrl) {
           var link = document.createElement('a');
@@ -69,84 +95,14 @@
 
   function close() {
     var popup = byId('arena-battle-popup');
-    if (popup) { popup.hidden = true; }
+    if (!popup || popup.hidden) { return; }
+    popupRequestId += 1;
+    popup.hidden = true;
     document.body.style.overflow = '';
-    if (chatTimer) {
-      global.clearInterval(chatTimer);
-      chatTimer = null;
+    if (previousFocus && typeof previousFocus.focus === 'function' && document.contains(previousFocus)) {
+      previousFocus.focus();
     }
-  }
-
-  /* ---- popup chat ---- */
-
-  function appendMessage(box, message) {
-    var row = document.createElement('div');
-    var who = document.createElement('b');
-    var body = document.createElement('span');
-    var time = document.createElement('span');
-    row.className = 'abp__chat-msg';
-    row.setAttribute('data-id', message.id);
-    who.className = 'abp__chat-who';
-    body.className = 'abp__chat-body';
-    time.className = 'abp__chat-time';
-    // textContent, not innerHTML: chat bodies are user input.
-    who.textContent = message.display_name;
-    body.textContent = message.body;
-    time.textContent = message.created_at;
-    row.appendChild(who);
-    row.appendChild(body);
-    row.appendChild(time);
-    box.appendChild(row);
-  }
-
-  function initChat(container) {
-    var form = container.querySelector('#abp-chat-form');
-    var box = container.querySelector('#abp-chat-messages');
-    if (!form || !box) { return; }
-
-    var pollUrl = form.getAttribute('data-poll-url');
-    var sendUrl = form.getAttribute('data-url');
-    var lastId = 0;
-    Array.prototype.forEach.call(box.querySelectorAll('[data-id]'), function (node) {
-      var id = parseInt(node.getAttribute('data-id'), 10);
-      if (id > lastId) { lastId = id; }
-    });
-    box.scrollTop = box.scrollHeight;
-
-    function pollChat() {
-      if (!pollUrl) { return; }
-      fetch(pollUrl + '?since=' + lastId, { credentials: 'same-origin' })
-        .then(function (response) { return response.ok ? response.json() : null; })
-        .then(function (data) {
-          if (!data || !data.messages || !data.messages.length) { return; }
-          var empty = box.querySelector('.abp__chat-empty');
-          if (empty) { empty.remove(); }
-          data.messages.forEach(function (message) {
-            appendMessage(box, message);
-            if (message.id > lastId) { lastId = message.id; }
-          });
-          box.scrollTop = box.scrollHeight;
-        })
-        .catch(function () {});
-    }
-
-    pollChat();
-    chatTimer = global.setInterval(pollChat, CHAT_POLL_INTERVAL);
-
-    form.addEventListener('submit', function (event) {
-      event.preventDefault();
-      var input = form.querySelector('input[name="body"]');
-      if (!input || !input.value.trim()) { return; }
-      fetch(sendUrl, {
-        method: 'POST',
-        body: new FormData(form),
-        credentials: 'same-origin',
-        headers: { 'X-CSRFToken': csrfToken() }
-      }).then(function () {
-        input.value = '';
-        global.setTimeout(pollChat, 400);
-      }).catch(function () {});
-    });
+    previousFocus = null;
   }
 
   /* ---- battle blast ---- */
@@ -195,7 +151,29 @@
     if (closeBtn) { closeBtn.addEventListener('click', close); }
     if (backdrop) { backdrop.addEventListener('click', close); }
     document.addEventListener('keydown', function (event) {
-      if (event.key === 'Escape') { close(); }
+      var popup = byId('arena-battle-popup');
+      if (!popup || popup.hidden) { return; }
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        close();
+        return;
+      }
+      if (event.key !== 'Tab') { return; }
+      var focusable = focusableElements();
+      if (!focusable.length) {
+        event.preventDefault();
+        focusPopup();
+        return;
+      }
+      var first = focusable[0];
+      var last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     });
   }
 

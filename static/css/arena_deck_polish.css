@@ -8,7 +8,7 @@
   /* s1/s2/s3/ink/ink2/mut used to restate --surface/--surface-soft/
      --surface-muted/--ink/--ink-soft/--muted byte-for-byte — a second copy of
      a brand colour, which is how palettes drift once one of the two is edited
-     and the other is forgotten. gold matches --hall-gold exactly for the same
+     and the other is forgotten. gold now resolves to the official bronze token for the same
      reason. green/red/gold-d have no existing token to point at: no green or
      red exists anywhere in :root (checked, see MANIFEST_DELTA.md), and gold-d
      is a shade darker than any declared gold. Those three stay local. */
@@ -19,10 +19,10 @@
   --ad-ink: var(--ink);
   --ad-ink2: var(--ink-soft);
   --ad-mut: var(--muted);
-  --ad-green:#3f8a34; --ad-red:#b23b34;
-  --ad-gold: var(--hall-gold);
-  --ad-gold-d:#9c7526;
-  --ad-line:rgba(31,44,37,.12);
+  --ad-green:var(--brand); --ad-red:var(--brand-dark);
+  --ad-gold: var(--accent-bronze);
+  --ad-gold-d:var(--accent-bronze-dark);
+  --ad-line:color-mix(in srgb, var(--ink) 12%, transparent);
 }
 /* shared panel look */
 .arena-command-deck__phase-card,
@@ -31,7 +31,7 @@
 .arena-command-deck__gifts {
   background:linear-gradient(180deg,var(--ad-s1),var(--ad-s2));
   border:1px solid var(--ad-line); border-radius:14px;
-  box-shadow:0 1px 0 rgba(255,255,255,.6) inset, 0 6px 18px rgba(31,44,37,.06);
+  box-shadow:0 1px 0 color-mix(in srgb, var(--surface) 60%, transparent) inset, 0 6px 18px color-mix(in srgb, var(--ink) 6%, transparent);
   padding:14px 16px;
 }
 .arena-panel__kicker {
@@ -52,25 +52,25 @@
 }
 .arena-phase-step b { color:var(--ad-ink2); font-weight:700; }
 .arena-phase-step.is-active {
-  color:color-mix(in srgb, var(--ad-gold), black 55%); background:linear-gradient(180deg,color-mix(in srgb, var(--ad-gold), white 55%),color-mix(in srgb, var(--ad-gold), white 20%));
-  border-color:var(--ad-gold); box-shadow:0 2px 8px rgba(214,166,75,.35);
+  color:var(--brand-dark); background:linear-gradient(180deg,color-mix(in srgb, var(--ad-gold), var(--surface) 55%),color-mix(in srgb, var(--ad-gold), var(--surface) 20%));
+  border-color:var(--ad-gold); box-shadow:0 2px 8px color-mix(in srgb, var(--accent-bronze) 35%, transparent);
 }
-.arena-phase-step.is-active b { color:color-mix(in srgb, var(--ad-gold), black 65%); }
-/* ── Phase rail polish (Ember #169): active phase unmistakable, inactive calm ── */
+.arena-phase-step.is-active b { color:var(--brand-dark); }
+/* ── Phase rail polish (phase rail): active phase unmistakable, inactive calm ── */
 .arena-command-deck__phase-rail .arena-phase-step.is-active {
   transform:translateY(-1px) scale(1.03);
-  box-shadow:0 3px 10px rgba(214,166,75,.42), 0 0 0 1px var(--ad-gold) inset;
+  box-shadow:0 3px 10px color-mix(in srgb, var(--accent-bronze) 42%, transparent), 0 0 0 1px var(--ad-gold) inset;
 }
 .arena-command-deck__phase-rail .arena-phase-step.is-active::before {
   content:""; width:.42rem; height:.42rem; border-radius:50%;
-  background:color-mix(in srgb, var(--ad-gold), black 30%); box-shadow:0 0 0 2px rgba(255,255,255,.6);
+  background:color-mix(in srgb, var(--ad-gold), var(--brand-dark) 30%); box-shadow:0 0 0 2px color-mix(in srgb, var(--surface) 60%, transparent);
 }
 .arena-command-deck__phase-rail .arena-phase-step:not(.is-active) { opacity:.9; }
-/* ── Deadline card clarity (Ember #177): value scannable, empty state calm ── */
+/* ── Deadline card clarity (deadline card): value scannable, empty state calm ── */
 .arena-command-deck__phase-deadline {
   display:flex; flex-direction:column; gap:.05rem; margin-top:.6rem;
   padding:.45rem .6rem; border-radius:10px;
-  background:rgba(214,166,75,.10); border:1px solid rgba(214,166,75,.34);
+  background:color-mix(in srgb, var(--accent-bronze) 10%, transparent); border:1px solid color-mix(in srgb, var(--accent-bronze) 34%, transparent);
 }
 .arena-command-deck__phase-deadline > span {
   font-size:.6rem; letter-spacing:.07em; text-transform:uppercase; color:var(--ad-gold-d); font-weight:700;
@@ -100,13 +100,13 @@
   background:var(--ad-s1); border:1px solid var(--ad-line); border-radius:14px;
   padding:12px 14px; min-width:150px; text-align:center;
 }
-.arena-live-chef--challenger { box-shadow:inset 0 0 0 1.5px rgba(63,138,52,.5), 0 0 20px rgba(63,138,52,.08); }
-.arena-live-chef--opponent   { box-shadow:inset 0 0 0 1.5px rgba(178,59,52,.5), 0 0 20px rgba(178,59,52,.08); }
+.arena-live-chef--challenger { box-shadow:inset 0 0 0 1.5px color-mix(in srgb, var(--brand) 50%, transparent), 0 0 20px color-mix(in srgb, var(--brand) 8%, transparent); }
+.arena-live-chef--opponent   { box-shadow:inset 0 0 0 1.5px color-mix(in srgb, var(--brand-dark) 50%, transparent), 0 0 20px color-mix(in srgb, var(--brand-dark) 8%, transparent); }
 .arena-live-centre {
   display:inline-flex; flex-direction:column; align-items:center; justify-content:center;
   text-decoration:none; color:var(--ad-gold-d); font-weight:800; letter-spacing:.04em;
 }
-.arena-live-centre .arena-ico { width:2.6rem; height:2.6rem; filter:drop-shadow(0 2px 6px rgba(214,166,75,.5)); }
+.arena-live-centre .arena-ico { width:2.6rem; height:2.6rem; filter:drop-shadow(0 2px 6px color-mix(in srgb, var(--accent-bronze) 50%, transparent)); }
 /* ── Crown ladder (A11) ── */
 .arena-ladder-list { list-style:none; margin:0; padding:0; display:grid; gap:.35rem; }
 .arena-ladder-list li {
