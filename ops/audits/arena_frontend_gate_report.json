@@ -1,0 +1,162 @@
+{
+  "arena_frontend_gate_audit": {
+    "agent": "GreenBear",
+    "base_commit": "d852fff53b8de0f7fcd46897c4ce287c6abe8a0d",
+    "branch": "audit/arena-frontend-gates",
+    "method_note": "Read-only static inspection (grep/read) of the working tree at base_commit. No server was started and no browser rendering was performed in this pass; responsive/keyboard/screen-reader claims below are static-evidence-based, not live-browser-verified. Dynamic Django/JS references may not appear in static grep, per TECHNICAL_STANDARDS.md section 4 -- absence of a match is reported as 'no evidence found', not as 'confirmed absent'.",
+    "surface_map": {
+      "arena_hall": {
+        "url": "arena/ (chef_battle:arena)",
+        "view": "chef_battle/views.py:1067 def arena(request), decorated @chef_battle_guard",
+        "template": "templates/chef_battle/arena.html",
+        "status": "implemented"
+      },
+      "battle_room": {
+        "url": "battles/<int:pk>/ (chef_battle:battle_detail)",
+        "view": "chef_battle/views.py, def battle_detail",
+        "template": "templates/chef_battle/battle_detail.html",
+        "status": "implemented"
+      },
+      "arena_master_console": {
+        "urls": [
+          "master/live-arena/ (chef_battle:live_arena_progress)",
+          "master/live-arena/preview/ (chef_battle:live_arena_preview)",
+          "master/live-arena/snapshot/ (chef_battle:live_arena_snapshot)",
+          "master/live-arena/update/ (chef_battle:live_arena_stage_update)"
+        ],
+        "views": "chef_battle/views.py:3018 live_arena_progress, :3086 live_arena_preview -- both decorated @arena_console_guard",
+        "templates": [
+          "templates/chef_battle/arena_master_console.html",
+          "templates/chef_battle/live_arena_progress.html",
+          "templates/chef_battle/live_arena_preview.html"
+        ],
+        "status": "implemented",
+        "note": "Access-control correctness of @chef_battle_guard / @arena_console_guard (staff/superuser-only enforcement) is explicitly out of scope for this frontend audit -- Bolt's audit/arena-backend-gates covers access control per CoWork message #1943."
+      }
+    },
+    "navigation_and_battle_room": {
+      "hall_to_battle_room": "Normal server-rendered <a href> link, not an iframe or embed: templates/chef_battle/arena.html:68 `<a class=\"arena-live-centre ...\" href=\"{% url 'chef_battle:battle_detail' active_battle.pk %}\">`.",
+      "iframe_or_embed_usage": "No iframe usage found via grep in templates/chef_battle/*.html for arena/battle content.",
+      "ajax_fragment": "templates/chef_battle/arena_battle_popup.html is an AJAX-loaded HTML fragment (no full-page wrapper), driven by static/js/arena_battle_room.js -- this is the closest thing to an 'embedded presentation' in the codebase, distinct from full navigation to battle_detail.",
+      "product_contract_reference": "CHEF_BATTLE_PRODUCT_CONTRACT_2D.md section 4.2 leaves 'canonical navigation, embedded presentation, or both' as owner-approved; both patterns already coexist in code today (full-page battle_detail.html AND the arena_battle_popup.html fragment) -- this decision has not been closed by an owner ruling that I could find in the five active documents."
+    },
+    "two_dimensional_compliance": {
+      "normal_flow_2d": "Confirmed for arena.html and battle_detail.html -- no rotateX/rotateY/perspective/transform3d/translateZ found in arena-relevant CSS or templates.",
+      "isolated_3d_remnant_found": "templates/chef_battle/enroll_success.html:128-129 uses `transform: rotateY(...)` on a card-flip confetti animation. This is NOT part of Arena Hall / Battle Room / Master Console -- it is the chef-enrollment success page. Flagged for completeness only; out of Arena 2D scope.",
+      "official_tokens_source": "static/css/base.css (:root) -- e.g. --bg, --surface, --ink, --ink-soft, --brand, --accent-bronze, plus legacy --hall-dark-0/1/2 and --hall-text variables also defined there.",
+      "raw_color_usage_found": true,
+      "raw_color_examples": [
+        "static/css/arena.css:67 #2a5fb0 (raw hex, not a token)",
+        "static/css/arena.css:103 rgba(200, 148, 42, 0.85)",
+        "static/css/arena_deck_polish.css:22 #3f8a34, #b23b34",
+        "static/css/arena_hall.css:23-24 #0d1a12, #16241a, #d9a441",
+        "static/css/arena_master_console.css:7-10 #c8942a, #10160f, #172015, #1d2819",
+        "static/css/arena_render.css:197 #0e1a12, #05100a, #d9a441"
+      ],
+      "independent_dark_palette_risk": "arena_hall.css and arena_master_console.css define their own dark near-black palette (#07090a-#1d2819 range) distinct from base.css's warm-parchment light tokens -- matches the AGENTS.md section 11 / TECHNICAL_STANDARDS.md section 7 warning about an 'independent dark Arena visual system' and legacy --hall-* variables not becoming official 2D tokens by default. This needs an explicit owner ruling on which palette is canonical for the public 2D Hall.",
+      "stylesheet_count": "8 arena-prefixed CSS files found (arena.css, arena_command_deck.css, arena_deck_polish.css, arena_effects.css, arena_hall.css, arena_master_console.css, arena_master_console_plan.css, arena_render.css) -- more than the 'six overlapping' figure cited in AGENTS.md section 13, consistent with it being a floor not a ceiling. Per contract, these are consolidation candidates, not automatic-deletion candidates."
+    },
+    "responsive_findings": [
+      "static/css/arena.css: 2 @media rules; fixed widths found at lines 138 (220px), 342 (640px), 737 (210px), 778 (900px), 782 (320px) on what appear to be layout containers -- risk of overflow on narrow viewports not verified live.",
+      "static/css/arena_command_deck.css: 4 @media rules, includes breakpoints at 1199px and 767px (typical tablet/mobile split) plus fixed widths at 901px.",
+      "static/css/arena_hall.css: 2 @media rules; fixed width 900px at line 181.",
+      "static/css/arena_master_console.css: 5 @media rules; fixed widths up to 1500px (397), 1300px, 1100px, 700px -- console is desktop-oriented, consistent with its staff-only purpose, but not verified against a real narrow-viewport render in this pass.",
+      "No live-browser check was performed (no dev server started in this read-only pass) -- treat overflow/clipping claims as static-evidence risk flags, not confirmed defects."
+    ],
+    "accessibility_findings": {
+      "notes": [
+        "templates/chef_battle/arena.html: 20 aria-/role=/tabindex occurrences -- reasonably instrumented, includes aria-hidden on decorative SVG icons and aria-label on interactive links (e.g. line 68, 80).",
+        "templates/chef_battle/arena_master_console.html: 21 occurrences -- similarly instrumented.",
+        "templates/chef_battle/battle_detail.html: only 4 occurrences -- notably lower density than the Hall/Console templates; worth a closer manual pass before calling it acceptance-ready.",
+        "templates/chef_battle/arena_battle_popup.html: 0 aria-/role=/tabindex occurrences in the fragment itself. This fragment functions as a popup/live-battle preview injected via JS (static/js/arena_battle_room.js).",
+        "static/js/arena_battle_room.js:197-198 implements Escape-to-close (`if (event.key === 'Escape') { close(); }`), satisfying the Escape requirement, but no evidence in the JS or the fragment template of a focus trap, initial focus entry, or focus-return-on-close -- TECHNICAL_STANDARDS.md section 6 requires all of: focus entry, focus trap where appropriate, Escape, close controls, and focus return. Only Escape and (presumably) a close control are evidenced."
+      ],
+      "reduced_motion": "prefers-reduced-motion is referenced in 6 of the 8 arena CSS files (arena_command_deck, arena_deck_polish, arena_effects, arena_hall, arena_master_console, arena_render) -- arena.css and arena_master_console_plan.css were not checked individually for this and should be re-verified before sign-off.",
+      "headings": "arena.html has exactly one <h1> at the point checked; full heading-level nesting (h2-h6 order) was not exhaustively traced in this pass.",
+      "no_wcag_claim": "No WCAG conformance level is asserted here -- these are raw evidence points only, per instruction not to claim compliance without evidence."
+    },
+    "existing_components_to_reuse": [
+      "templates/chef_battle/_arena_render_ring.html -- shared ring renderer, currently consumed by exactly 2 templates (see below).",
+      "templates/chef_battle/_arena_deck_svg.html, _live_arena_svg.html -- SVG partials for the command-deck/live visuals.",
+      "templates/chef_battle/_arena_observer_badge.html, _battle_wordmark.html, _author_battle_section.html -- smaller reusable partials.",
+      "templates/_enter_arena_btn.html -- shared entry-point button, referenced project-wide per AGENTS.md's 'Enter Arena button' mention.",
+      "static/js/arena_battle_room.js -- battle popup / live update driver (208 lines); has an existing Escape-close handler to build on rather than reimplement.",
+      "static/css/base.css -- canonical token source; any new 2D work should consume its --bg/--surface/--ink/--brand/--accent-bronze tokens rather than the arena-local dark palettes."
+    ],
+    "master_console_compatibility": {
+      "_arena_render_ring_consumers": [
+        "templates/chef_battle/arena.html",
+        "templates/chef_battle/arena_master_console.html"
+      ],
+      "implication": "Confirms AGENTS.md section 13 / product contract section 13: _arena_render_ring.html cannot be removed or restructured for the public 2D Hall rework without a compatible replacement for the Master Console, since both templates share it directly."
+    },
+    "targeted_tests": {
+      "executed": false,
+      "reason": "No Django test database / environment was set up in this read-only worktree pass, and this session's Bash access to migrate/DB operations was separately gated by the owner this session -- running even a targeted `manage.py test` was not attempted to stay strictly within the read-only audit instruction. Listed here as an evidence gap rather than a claimed PASS.",
+      "relevant_existing_tests_found_in_chef_battle_tests_py": [
+        "test_staff_see_the_arena_but_not_the_master_console (line ~353) -- overlaps Bolt's access-control scope, not re-run here",
+        "test_public_arena_unchanged_for_anonymous (line ~2392)",
+        "test_procedural_arena_is_explicit_proto_gate (line ~2399)",
+        "test_public_arena_state_keys_unchanged (line ~2623)",
+        "test_operator_fields_do_not_leak_into_public_arena (line ~2633)",
+        "test_public_arena_unchanged_no_analytics_leak (line ~3820)",
+        "test_arena_lobby_counted_separately (line ~4192)",
+        "test_public_polls_unbroken_and_arena_json_clean (line ~4222)",
+        "test_author_page_shows_arena_for_enrolled_chef (line ~4379)",
+        "test_author_page_no_arena_for_non_chef (line ~4385)"
+      ],
+      "suggested_command_not_run": "python manage.py test chef_battle.tests -v2 (or narrower -k/--tag filtering by name if available) -- left for the owner or a follow-up task with DB access to actually execute."
+    },
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "medium",
+        "area": "design_tokens",
+        "summary": "All 8 arena-prefixed CSS files use raw hex/rgb/rgba colors instead of the official tokens in static/css/base.css, including two files (arena_hall.css, arena_master_console.css) that define an independent dark near-black palette.",
+        "evidence": "See two_dimensional_compliance.raw_color_examples and independent_dark_palette_risk above.",
+        "contract_reference": "TECHNICAL_STANDARDS.md section 7 ('No raw colours'), section 12 ('Do not introduce raw HEX, RGB, HSL'); AGENTS.md section 11."
+      },
+      {
+        "id": "F2",
+        "severity": "medium",
+        "area": "accessibility",
+        "summary": "arena_battle_popup.html (the live battle popup fragment) has zero aria-/role-/tabindex attributes and its driver JS only implements Escape-to-close, with no evidence of focus trap or focus return.",
+        "evidence": "templates/chef_battle/arena_battle_popup.html full-file grep = 0 matches; static/js/arena_battle_room.js:197-198.",
+        "contract_reference": "TECHNICAL_STANDARDS.md section 6 (modals require focus entry, focus trap where appropriate, Escape, close controls, focus return)."
+      },
+      {
+        "id": "F3",
+        "severity": "low",
+        "area": "accessibility",
+        "summary": "battle_detail.html has markedly fewer aria-/role-/tabindex occurrences (4) than arena.html (20) or arena_master_console.html (21).",
+        "evidence": "grep -c counts cited in accessibility_findings.",
+        "contract_reference": "TECHNICAL_STANDARDS.md section 6."
+      },
+      {
+        "id": "F4",
+        "severity": "low",
+        "area": "navigation_contract",
+        "summary": "Both a full-page Battle Room (battle_detail.html) and an AJAX-loaded popup fragment (arena_battle_popup.html) exist simultaneously; the product contract explicitly leaves 'canonical navigation, embedded presentation, or both' as an open owner decision, and no ruling closing it was found in the five active documents.",
+        "evidence": "CHEF_BATTLE_PRODUCT_CONTRACT_2D.md section 4.2 and section 15; both templates coexist in the current tree.",
+        "contract_reference": "CHEF_BATTLE_PRODUCT_CONTRACT_2D.md sections 4.2, 15."
+      },
+      {
+        "id": "F5",
+        "severity": "info",
+        "area": "css_consolidation",
+        "summary": "8 arena-prefixed stylesheets found (more than the 'six overlapping' figure in AGENTS.md section 13) -- confirmed as consolidation candidates only, not flagged for deletion.",
+        "evidence": "static/css/arena*.css listing.",
+        "contract_reference": "AGENTS.md section 13."
+      }
+    ],
+    "recommended_implementation_packages": [
+      "Token migration package: replace raw hex/rgb in the 8 arena CSS files with base.css tokens, and get an explicit owner ruling on whether arena_hall.css/arena_master_console.css's dark palette becomes an approved alternate token set or is retired in favor of the warm-parchment tokens (F1).",
+      "Popup accessibility package: add role/aria-modal, initial focus, focus trap, and focus-return to arena_battle_popup.html + arena_battle_room.js, without touching its existing Escape handler (F2).",
+      "Battle Room accessibility pass: audit and raise battle_detail.html's aria/role/tabindex coverage to parity with arena.html (F3).",
+      "Navigation contract closure: owner decision needed on canonical vs embedded Battle Room presentation before further Battle Room frontend work proceeds (F4)."
+    ],
+    "blockers": [
+      "No live-browser or Django-test verification was performed in this pass (read-only static audit only, per task scope and this session's separately gated DB/Bash access) -- responsive and accessibility findings above are static-evidence risk flags, not confirmed via rendering or automated tests."
+    ]
+  }
+}
