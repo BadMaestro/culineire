@@ -20,15 +20,28 @@
   .abp-rule { border-left:3px solid var(--brand); margin:.8rem 0 1.5rem; padding:.6rem .8rem; background:var(--surface-soft); }
   .abp-rule p { margin:.2rem 0; font-size:.84rem; }
   .abp-stage { border:1px solid var(--line); border-radius:14px; margin-bottom:1rem; overflow:hidden; background:var(--surface); }
-  .abp-stage.is-done { border-color:var(--brand); }
+  .abp-stage.is-done { border-color:var(--hall-green); }
   .abp-stage.is-active { box-shadow:0 0 0 2px color-mix(in srgb,var(--brand) 35%,transparent); }
   .abp-stage.is-blocked, .abp-stage.is-frozen { border-style:dashed; }
   .abp-stage__bar { display:flex; align-items:center; gap:.8rem; padding:.8rem 1rem; background:var(--surface-soft); }
+  /* Each stage is a native disclosure element: completed ones start collapsed so
+     finished work stops crowding the board, the rest stay open. Native disclosure
+     keeps it keyboard operable without any JavaScript. */
+  summary.abp-stage__bar { cursor:pointer; list-style:none; }
+  summary.abp-stage__bar::-webkit-details-marker { display:none; }
+  summary.abp-stage__bar::after { content:""; flex:0 0 auto; width:.5rem; height:.5rem; border:solid var(--muted); border-width:0 2px 2px 0; transform:rotate(45deg); transition:transform .15s ease; }
+  .abp-stage[open] > summary.abp-stage__bar::after { transform:rotate(-135deg); }
+  summary.abp-stage__bar:focus-visible { outline:2px solid var(--brand); outline-offset:-2px; }
+  /* Completed = green. --hall-green is mid-tone, so it carries the border and the
+     bar tint, while text and the number badge use it mixed toward --ink to keep
+     readable contrast. */
+  .abp-stage.is-done > summary.abp-stage__bar { background:color-mix(in srgb,var(--hall-green) 16%,var(--surface-soft)); }
+  .abp-stage.is-done .abp-num { background:color-mix(in srgb,var(--hall-green) 60%,var(--ink)); }
   .abp-num { align-items:center; background:var(--brand-dark); border-radius:50%; color:var(--surface); display:flex; flex:0 0 2.2rem; height:2.2rem; justify-content:center; font-weight:700; }
   .abp-stage__title { flex:1; }
   .abp-stage__title h2, .abp-stage__title h3 { font-size:1.05rem; margin:0; }
   .abp-status { border:1px solid currentColor; border-radius:99px; color:var(--muted); font-size:.68rem; font-weight:800; letter-spacing:.06em; padding:.3rem .6rem; text-transform:uppercase; }
-  .abp-status--done { color:var(--brand-dark); }
+  .abp-status--done { color:color-mix(in srgb,var(--hall-green) 45%,var(--ink)); }
   .abp-status--active { color:var(--brand); }
   .abp-status--blocked { color:var(--danger,var(--brand-dark)); }
   .abp-stage__body { padding:.9rem 1rem 1rem; }
@@ -56,6 +69,7 @@
   .abp-note { background:var(--surface-soft); border-left:3px solid var(--brand); font-size:.8rem; padding:.55rem .7rem; }
   @media (max-width:800px) { .abp-metrics, .abp-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
   @media (max-width:560px) { .abp-metrics, .abp-grid, .abp-legacy-lanes { grid-template-columns:1fr; } .abp-stage__bar, .abp-workstream__head { align-items:flex-start; flex-wrap:wrap; } }
+  @media (prefers-reduced-motion:reduce) { summary.abp-stage__bar::after { transition:none; } }
 </style>
 {% endblock %}
 
@@ -86,12 +100,12 @@
       </div>
 
       {% for s in stages %}
-      <article class="abp-stage {% if s.status == 'DONE' %}is-done{% elif s.status == 'IN PROGRESS' %}is-active{% elif s.status == 'BLOCKED' %}is-blocked{% elif s.status == 'FROZEN' %}is-frozen{% endif %}" id="release-stage-{{ s.n }}" data-release-stage="{{ s.n }}" data-status="{{ s.status }}">
-        <div class="abp-stage__bar">
+      <details class="abp-stage {% if s.status == 'DONE' %}is-done{% elif s.status == 'IN PROGRESS' %}is-active{% elif s.status == 'BLOCKED' %}is-blocked{% elif s.status == 'FROZEN' %}is-frozen{% endif %}" id="release-stage-{{ s.n }}" data-release-stage="{{ s.n }}" data-status="{{ s.status }}"{% if s.status != 'DONE' %} open{% endif %}>
+        <summary class="abp-stage__bar">
           <span class="abp-num">{{ s.n }}</span>
           <div class="abp-stage__title"><h2>{{ s.title }}</h2></div>
           <span class="abp-status {% if s.status == 'DONE' %}abp-status--done{% elif s.status == 'IN PROGRESS' %}abp-status--active{% elif s.status == 'BLOCKED' %}abp-status--blocked{% endif %}">{{ s.status }}</span>
-        </div>
+        </summary>
         <div class="abp-stage__body">
           <p class="abp-purpose"><strong>Purpose:</strong> {{ s.purpose }}</p>
           <div class="abp-grid">
@@ -120,7 +134,7 @@
           </section>
           {% endif %}
         </div>
-      </article>
+      </details>
       {% endfor %}
     </section>
 
