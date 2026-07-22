@@ -399,29 +399,6 @@
   transform: translate(-50%, -50%) translateY(var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1));
 }
 
-/* ----------------------------------------------------------------------------
- * The hall is a photograph.
- *
- * Order #6, owner's decision: stop programming the geometry of the bowl, the
- * tiers and the crowd. They never change, so they are a still image; what does
- * change every ten seconds — the floor, where each tile is a chef with a state,
- * a click and a card — stays as our SVG on top of it.
- *
- * placeBackdrop() in arena_render.js scales and slides the image so its painted
- * floor sits exactly under ours. Nothing here hardcodes a size: the raster
- * follows the octagon, since a photograph can be scaled freely and the ring
- * contract cannot.
- * -------------------------------------------------------------------------- */
-.page--arena .arena-render-container {
-  /* A plan-view hall for a plan-view arena. The tilted frames could not be
-     re-angled by cropping; this one is drawn from straight overhead, so its
-     floor and ours are the same shape by construction. */
-  background-image: url("/static/images/chef_battle/arena/hall-bg-v3-final.webp");
-  background-repeat: no-repeat;
-  background-size: var(--arena-backdrop-size, cover);
-  background-position: var(--arena-backdrop-x, 50%) var(--arena-backdrop-y, 50%);
-}
-
 .page--arena .arena-puzzle-label {
   position: absolute;
   top: 0.7rem;
@@ -484,34 +461,4 @@
 #arena-render .arena-crowd-figure {
   opacity: 0.55;
   filter: saturate(0.5) brightness(0.72) sepia(0.28);
-}
-
-/* ----------------------------------------------------------------------------
- * With the backdrop in place the crowd is in the photograph, so drawing our own
- * stands on top of it doubles the audience. The seats stay in the geometry —
- * they are still where a live spectator will be placed over the picture — we
- * only stop painting them. Remove the backdrop and the old rendering returns
- * on its own; nothing here is deleted.
- * -------------------------------------------------------------------------- */
-.page--arena.has-arena-backdrop #arena-render .arena-crowd-figure {
-  display: none;
-}
-
-/* An empty seat shows the photograph through it. NOT display:none — the seat's
-   outline is what a real viewer's avatar is clipped to, and a hidden element
-   has no geometry, so the clip collapsed and a live spectator rendered at 0x0.
-   Measured on prod before this: one real viewer inserted into the stands came
-   out zero pixels wide. Making it transparent keeps the shape and hides the
-   tile. */
-.page--arena.has-arena-backdrop #arena-render [data-ring-kind="spectator"][data-occupancy="empty"] {
-  fill: transparent;
-  stroke: transparent;
-}
-
-/* A live viewer sits ON the painted crowd, so they carry a bronze edge to tell
-   them apart from the faces behind them. */
-.page--arena.has-arena-backdrop #arena-render [data-ring-kind="spectator"][data-occupancy="spectator"] {
-  fill: transparent;
-  stroke: var(--accent-bronze);
-  stroke-width: 1.4;
 }

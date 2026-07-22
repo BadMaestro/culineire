@@ -223,21 +223,10 @@
   margin: 0;
   border: 0;
   border-radius: 0;
-  /* The picture is square and its painted floor is a fixed share of it, so the
-     image can only be as wide as the floor allows: on a 1910x934 frame the
-     floor tops out at 915px and the hall reaches 1875px, leaving 18px bare at
-     each side. Scaling further would crop the octagon top and bottom, which a
-     plan view cannot afford - so the edge is carried by colour instead, the
-     hall's own darkest tone, which is what the picture fades to anyway. */
+  /* The neutral parchment boundary remains visible around the top-down SVG;
+     the illustrated stands and crowd are rendered by the arena itself. */
   background-color: var(--surface-muted);
 }
-
-/* NO background-size on the render container. arena_render.js measures our
-   floor and publishes --arena-backdrop-size so the painted floor lands
-   exactly on ours; `cover` threw that away and re-scaled the picture to the
-   frame instead. On a 1920 screen that blew the painted floor up while ours
-   stayed put, and the two came apart with bare orange showing right and
-   below. */
 
 @media (min-width: 901px) {
   .arena-command-deck {

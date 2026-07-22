@@ -23,6 +23,16 @@
     return popup ? popup.querySelector('[role="dialog"]') : null;
   }
 
+  function mountPopupAtDocumentRoot() {
+    var popup = byId('arena-battle-popup');
+    if (popup && popup.parentElement !== document.body) {
+      // The renderer lives inside an isolated stacking context. A fixed child
+      // cannot escape that context regardless of its own z-index, so mount the
+      // modal at the document root where it can sit above site navigation.
+      document.body.appendChild(popup);
+    }
+  }
+
   function focusableElements() {
     var panel = popupPanel();
     if (!panel) { return []; }
@@ -142,6 +152,7 @@
 
   function init(initialResult) {
     lastSeenResultId = initialResult ? initialResult.battle_id : null;
+    mountPopupAtDocumentRoot();
 
     var dismiss = byId('blast-dismiss');
     if (dismiss) { dismiss.addEventListener('click', dismissBlast); }

@@ -355,7 +355,10 @@
 .arena-popup {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  /* The popup is mounted directly under <body> by arena_battle_room.js, so
+     this layer sits above every navigation surface without changing the
+     header's own pointer behaviour. */
+  z-index: 10000;
   display: flex;
   align-items: flex-start;
   justify-content: center;

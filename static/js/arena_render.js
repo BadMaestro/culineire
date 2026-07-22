@@ -855,11 +855,9 @@
       // about two thirds of the width and spends the rest on the hall and on
       // room for the panels.
       //
-      // The whole scene is fitted by this one number, so the backdrop follows:
-      // placeBackdrop sizes the picture from the floor we just measured, and
-      // pulling the floor in pulls more hall into view with it. No transform
-      // scale anywhere — the grid and the picture move together, which is what
-      // keeps a click on the tile it is drawn on.
+      // The whole illustrated scene is fitted by this one number. No transform
+      // scale is applied outside the SVG, so hit testing remains aligned with
+      // the tile that is drawn.
       // The share is of the frame's WIDTH — that is how the mockup states it.
       // Taking min() of both axes first let the shorter one decide, and on a
       // 1123x845 frame that produced 0.494 of the width instead of the 0.66
@@ -883,73 +881,6 @@
     }
 
     billboardFaces(svg);
-    placeBackdrop(svg);
-  }
-
-  // The hall is a photograph now, not geometry we draw.
-  //
-  // Order #6: we stopped programming the bowl, the tiers and the crowd — they
-  // are a still image behind the floor. What is still code is the floor
-  // itself, because every tile is a chef with a state, a click and a card.
-  //
-  // So the two have to line up, and it is the RASTER that moves: a photograph
-  // can be scaled and cropped freely, while our octagon is tied to the ring
-  // contract. These three numbers are measured off the image, not guessed —
-  // Otsu threshold, largest lit region, its box:
-  //   the painted floor spans 0.602 of the image width,
-  //   its centre sits at 0.499 / 0.615 of the image,
-  //   it is compressed to 0.437, so the camera reads acos(0.437) = 64 degrees.
-  // Re-measure all three if the backdrop is ever redrawn.
-  // Measured off hall-bg-v3-final.webp with tools/measure_floor_corners.py:
-  // floor 0.4883 of the image wide, centred at 0.4990 / 0.4894, and its eight
-  // edges 0.410 0.420 0.409 0.434 0.423 0.404 0.426 0.426 of that width - a
-  // 6.9% spread against the ideal 0.414 (the cheap draft ran 23.2%). All eight
-  // listed rather than averaged: a mean hides exactly the corner that misses.
-  var BACKDROP_FLOOR_WIDTH = 0.4883;
-  var BACKDROP_FLOOR_CX = 0.4990;
-  var BACKDROP_FLOOR_CY = 0.4894;
-
-  function placeBackdrop(svg) {
-    var container = svg.parentElement;
-    if (!container) { return; }
-
-    var cells = svg.querySelectorAll('.arena-cell[data-ring-kind="rank"]');
-    if (!cells.length) { return; }
-
-    var left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
-    for (var i = 0; i < cells.length; i++) {
-      var box = cells[i].getBoundingClientRect();
-      if (!box.width || !box.height) { continue; }
-      if (box.left < left) { left = box.left; }
-      if (box.right > right) { right = box.right; }
-      if (box.top < top) { top = box.top; }
-      if (box.bottom > bottom) { bottom = box.bottom; }
-    }
-    var ourWidth = right - left;
-    if (!(ourWidth > 0)) { return; }
-
-    // Scale the photograph so its painted floor is exactly as wide as ours,
-    // then slide it so the two floors share a centre.
-    var frame = container.getBoundingClientRect();
-    var imageWidth = ourWidth / BACKDROP_FLOOR_WIDTH;
-    var imageHeight = imageWidth;  // the plan-view frame is square
-    var x = (left + right) / 2 - frame.left - imageWidth * BACKDROP_FLOOR_CX;
-    var y = (top + bottom) / 2 - frame.top - imageHeight * BACKDROP_FLOOR_CY;
-
-    container.style.setProperty('--arena-backdrop-size', imageWidth.toFixed(1) + 'px auto');
-    container.style.setProperty('--arena-backdrop-x', x.toFixed(1) + 'px');
-    container.style.setProperty('--arena-backdrop-y', y.toFixed(1) + 'px');
-    // Tells the stylesheet the crowd is in the picture now, so we stop drawing
-    // our own on top of it. A flag, not a deletion: without the backdrop the
-    // page renders exactly as it did before.
-    //
-    // Only when a picture is actually there. Setting it unconditionally hid the
-    // stands against a backdrop that had been switched off, and the arena
-    // shipped one release with an empty hall around it.
-    var painted = getComputedStyle(container).backgroundImage;
-    document.body.classList.toggle('has-arena-backdrop',
-      !!painted && painted !== 'none');
-
     placeRankSpine(svg);
   }
 
