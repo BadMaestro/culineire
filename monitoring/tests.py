@@ -385,6 +385,7 @@ class ServerMetricsPageTest(TestCase):
         self.assertContains(response, "Could not read Linode")
 
 
+
 class ServerMetricsSeriesTest(SimpleTestCase):
     def test_polyline_scales_to_the_series_maximum(self):
         """CPU on this Linode is reported above 100%, so a fixed 0-100 axis would
@@ -415,3 +416,42 @@ class ServerMetricsSeriesTest(SimpleTestCase):
         data = host_metrics()
         self.assertIn("disk", data)
         self.assertIn("memory", data)
+
+
+class ServerMetricsCacheResilienceTest(SimpleTestCase):
+    """A single root-owned cache file made /monitoring/server/ return 500 on
+    2026-07-22. The page whose job is to report that the server is unhappy must
+    not be the thing that falls over when the server is unhappy.
+
+    Tested at the helper level on purpose. Patching django.core.cache globally
+    also breaks MonitoringMiddleware, which reaches for the same cache on every
+    request -- that would test Django's middleware stack, not this fix.
+    """
+
+    def test_cache_get_swallows_backend_errors(self):
+        from unittest.mock import patch
+
+        from .server_metrics import _cache_get
+
+        with patch("monitoring.server_metrics.cache.get", side_effect=PermissionError("denied")):
+            self.assertIsNone(_cache_get())
+
+    def test_cache_set_swallows_backend_errors(self):
+        from unittest.mock import patch
+
+        from .server_metrics import _cache_set
+
+        with patch("monitoring.server_metrics.cache.set", side_effect=PermissionError("denied")):
+            _cache_set({"configured": False}, 60)  # must not raise
+
+    def test_linode_metrics_returns_a_payload_when_the_cache_is_dead(self):
+        from unittest.mock import patch
+
+        from .server_metrics import linode_metrics
+
+        with patch("monitoring.server_metrics.cache.get", side_effect=PermissionError("denied")), \
+             patch("monitoring.server_metrics.cache.set", side_effect=PermissionError("denied")), \
+             patch.dict("os.environ", {"LINODE_API_TOKEN": "", "LINODE_INSTANCE_ID": ""}, clear=False):
+            result = linode_metrics()
+        self.assertFalse(result["configured"])
+        self.assertIn("series", result)

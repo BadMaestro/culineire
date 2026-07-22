@@ -95,6 +95,27 @@ class Series:
         return " ".join(coords)
 
 
+def _cache_get():
+    """Never let the cache backend break the health page.
+
+    Learned the hard way on 2026-07-22: a single cache file left owned by root
+    (written by a diagnostic run as the wrong user) made every request to this
+    page raise PermissionError and return 500. The page whose entire job is to
+    tell you the server is unhappy must not be the thing that falls over.
+    """
+    try:
+        return cache.get(CACHE_KEY)
+    except Exception:  # noqa: BLE001 - a broken cache is not a broken page
+        return None
+
+
+def _cache_set(value, seconds):
+    try:
+        cache.set(CACHE_KEY, value, seconds)
+    except Exception:  # noqa: BLE001
+        pass
+
+
 def _token() -> str:
     return (os.getenv("LINODE_API_TOKEN") or "").strip()
 
@@ -136,7 +157,7 @@ def linode_metrics(force: bool = False) -> dict:
     monitoring page that says it cannot reach the API right now.
     """
     if not force:
-        cached = cache.get(CACHE_KEY)
+        cached = _cache_get()
         if cached is not None:
             return cached
 
@@ -150,7 +171,7 @@ def linode_metrics(force: bool = False) -> dict:
             "series": [],
             "fetched_at": None,
         }
-        cache.set(CACHE_KEY, result, 60)
+        _cache_set(result, 60)
         return result
 
     try:
@@ -182,7 +203,7 @@ def linode_metrics(force: bool = False) -> dict:
     except Exception as exc:  # noqa: BLE001 - never let the health page be the outage
         result = {"configured": True, "error": f"Linode API unreachable: {exc}", "series": [], "fetched_at": None}
 
-    cache.set(CACHE_KEY, result, CACHE_SECONDS)
+    _cache_set(result, CACHE_SECONDS)
     return result
 
 
