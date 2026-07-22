@@ -357,7 +357,7 @@ class ServerMetricsPageTest(TestCase):
         client.force_login(self.staff)
         response = client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Server health")
+        self.assertContains(response, "Server Health")
 
     def test_page_works_without_a_linode_token(self):
         """Host readings must still render, and the page must explain the gap."""
