@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.386",
         "date": "2026-07-22",
-        "commit": "PENDING_COMMIT",
+        "commit": "ac311379",
         "title": "Completed Arena Build Plan stages collapse and turn green",
         "section": "Moderation / Deployment",
         "summary": "Owner request. On /recipes/moderation/arena-build-plan/ every release stage now renders as a native disclosure element instead of a plain article: stages with status DONE start collapsed so finished work stops crowding the board, and every other stage stays open. No JavaScript is involved, so the header stays keyboard operable for free; a CSS chevron shows open/closed state, the summary carries a visible focus ring, and the rotation is disabled under prefers-reduced-motion. Completed stages are now green rather than the brand bronze: the border and the header tint use the existing :root token --hall-green, while the status badge and the number bubble mix that token toward --ink because --hall-green is a mid-tone and small text on it would fall to roughly 2.2:1 contrast. No raw colour was introduced and no new token was invented. Changed file: templates/moderation/arena_build_plan.html. Static evidence: Django template render check confirmed 8 stage disclosures, 8 summary headers, both DONE stages collapsed and the other six open, no leftover article stage markup, and the green plus reduced-motion rules present; Python compilation and manage.py check passed; application and project suites were not run. Stage statuses, counts, readiness and all Stage 3A/3B evidence are untouched — this is presentation only. Rollback: revert this commit on main, push, rerun /srv/culineire/scripts/deploy.sh, then the restricted Unit restart.",
