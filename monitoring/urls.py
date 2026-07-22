@@ -9,6 +9,7 @@ urlpatterns = [
     path("traffic/", views.traffic_detail, name="traffic_detail"),
     path("activity/", views.activity_detail, name="activity_detail"),
     path("security/", views.security_detail, name="security_detail"),
+    path("server/", views.server_metrics, name="server_metrics"),
     path("export/", views.export_detail, name="export_detail"),
     path("clear/", views.clear_stats, name="clear_stats"),
     path("profanity/", views.profanity_list, name="profanity_list"),

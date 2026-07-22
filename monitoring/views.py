@@ -17,6 +17,7 @@ from django.http import JsonResponse
 from accounts.views import is_moderator
 
 from .models import PageView, ProfanityWord, SecurityEvent, UserActivity
+from .server_metrics import host_metrics, linode_metrics
 from .tracker import BOT_UA_MARKERS, SUSPICIOUS_PATH_MARKERS, path_contains_marker
 
 DETAIL_PAGE_SIZE = 100
@@ -844,3 +845,26 @@ def profanity_words_api(request):
         return HttpResponseForbidden()
     from config.profanity import get_word_list
     return JsonResponse({"words": get_word_list()})
+
+
+def server_metrics(request):
+    """Mirror of the Linode panel, plus the host readings Linode does not show.
+
+    Deliberately read-only. The owner asked for emergency controls here too; those
+    are a separate work package, because an endpoint that restarts services needs
+    its own review of authentication, CSRF, rate limiting and audit logging, and
+    bolting it onto a dashboard is how such things go wrong.
+    """
+    _require_moderator(request)
+
+    remote = linode_metrics(force=request.GET.get("refresh") == "1")
+    return render(
+        request,
+        "monitoring/server_metrics.html",
+        {
+            "linode": remote,
+            "host": host_metrics(),
+            "chart_width": 640,
+            "chart_height": 120,
+        },
+    )

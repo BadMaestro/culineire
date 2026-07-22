@@ -324,3 +324,94 @@ class CleanupCommandTest(TestCase):
         call_command("cleanup_monitoring", "--days=90", "--dry-run", verbosity=0)
 
         self.assertEqual(PageView.objects.count(), 1)
+
+
+class ServerMetricsPageTest(TestCase):
+    """The health mirror added after the 2026-07-22 disk-full outage.
+
+    The point of these tests is that the page must survive the very conditions it
+    exists to report on: no Linode token, an unreachable API, an API that answers
+    with rubbish. A monitoring page that 500s during an incident is worse than no
+    monitoring page at all.
+    """
+
+    def setUp(self):
+        from django.core.cache import cache
+
+        cache.delete("monitoring:linode:stats")
+        User = get_user_model()
+        self.staff = User.objects.create_user("srv-staff", password="pw", is_staff=True)
+        self.plain = User.objects.create_user("srv-plain", password="pw")
+        self.url = "/monitoring/server/"
+
+    def test_anonymous_gets_404(self):
+        self.assertEqual(Client().get(self.url).status_code, 404)
+
+    def test_non_moderator_gets_404(self):
+        client = Client()
+        client.force_login(self.plain)
+        self.assertEqual(client.get(self.url).status_code, 404)
+
+    def test_moderator_gets_page(self):
+        client = Client()
+        client.force_login(self.staff)
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Server health")
+
+    def test_page_works_without_a_linode_token(self):
+        """Host readings must still render, and the page must explain the gap."""
+        from unittest.mock import patch
+
+        client = Client()
+        client.force_login(self.staff)
+        with patch.dict("os.environ", {"LINODE_API_TOKEN": "", "LINODE_INSTANCE_ID": ""}, clear=False):
+            response = client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Not connected yet")
+
+    def test_api_failure_does_not_break_the_page(self):
+        from unittest.mock import patch
+
+        client = Client()
+        client.force_login(self.staff)
+        with patch.dict(
+            "os.environ",
+            {"LINODE_API_TOKEN": "x" * 10, "LINODE_INSTANCE_ID": "1"},
+            clear=False,
+        ), patch("monitoring.server_metrics._fetch", side_effect=OSError("network is down")):
+            response = client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Could not read Linode")
+
+
+class ServerMetricsSeriesTest(SimpleTestCase):
+    def test_polyline_scales_to_the_series_maximum(self):
+        """CPU on this Linode is reported above 100%, so a fixed 0-100 axis would
+        clip the exact spike worth looking at."""
+        from .server_metrics import Series
+
+        s = Series(key="cpu", label="CPU", unit="%", points=[(0, 0.0), (1, 116.0)])
+        points = s.polyline(width=100, height=10).split()
+        self.assertEqual(len(points), 2)
+        self.assertTrue(points[0].endswith(",10.0"))  # lowest value sits on the floor
+        self.assertTrue(points[1].endswith(",0.0"))   # the peak reaches the top
+
+    def test_polyline_is_empty_for_a_single_point(self):
+        from .server_metrics import Series
+
+        self.assertEqual(Series(key="x", label="X", unit="%", points=[(0, 5.0)]).polyline(), "")
+
+    def test_series_ignores_null_samples(self):
+        """Linode returns nulls for gaps; they must not become zeroes."""
+        from .server_metrics import _series_from
+
+        s = _series_from([[1000, 5.0], [2000, None], [3000, 7.0]], "cpu", "CPU", "%")
+        self.assertEqual(s.values, [5.0, 7.0])
+
+    def test_host_metrics_never_raises(self):
+        from .server_metrics import host_metrics
+
+        data = host_metrics()
+        self.assertIn("disk", data)
+        self.assertIn("memory", data)
