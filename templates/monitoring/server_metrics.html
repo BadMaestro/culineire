@@ -1,159 +1,147 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Server health | CulinEire{% endblock %}
-{% block meta_description %}Internal server health mirror.{% endblock %}
+{% block og_image %}{{ SITE_URL }}{% static 'images/hero-monitoring.png' %}{% endblock %}
+{% block og_image_secure_url %}{{ SITE_URL }}{% static 'images/hero-monitoring.png' %}{% endblock %}
+{% block twitter_image %}{{ SITE_URL }}{% static 'images/hero-monitoring.png' %}{% endblock %}
+
+{% block title %}Server Health | CulinEire{% endblock %}
+{% block meta_description %}CulinEire internal server health and infrastructure metrics.{% endblock %}
 {% block robots %}noindex, nofollow{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/monitoring.css' %}" rel="stylesheet">
-<style>
-  /* Every colour below is an existing base.css token. The design constitution
-     forbids raw hex and a second palette, and a health page is exactly where a
-     stray colour would go unnoticed. */
-  .srv-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); margin-block: 1.25rem; }
-  .srv-card { border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); padding: 1rem 1.1rem; }
-  .srv-card__label { margin: 0; color: var(--muted); font-size: .7rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
-  .srv-card__value { margin: .35rem 0 0; font-family: var(--font-serif); font-size: 1.75rem; line-height: 1.1; color: var(--ink); }
-  .srv-card__note { margin: .3rem 0 0; color: var(--muted); font-size: .8rem; }
-  .srv-bar { height: .5rem; margin-top: .6rem; border-radius: var(--radius-pill); background: var(--surface-muted); overflow: hidden; }
-  .srv-bar__fill { height: 100%; background: var(--brand); }
-  .srv-bar__fill--warning { background: var(--accent-bronze); }
-  .srv-bar__fill--critical { background: var(--hall-red); }
-  .srv-state { display: inline-block; margin-left: .4rem; padding: .1rem .45rem; border-radius: var(--radius-pill); font-size: .65rem; font-weight: 800; text-transform: uppercase; }
-  .srv-state--ok { background: color-mix(in srgb, var(--hall-green) 18%, transparent); color: var(--ink); }
-  .srv-state--warning { background: color-mix(in srgb, var(--accent-bronze) 22%, transparent); color: var(--ink); }
-  .srv-state--critical { background: color-mix(in srgb, var(--hall-red) 22%, transparent); color: var(--ink); }
-  .srv-chart { margin-block: .6rem; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); padding: .7rem .9rem; }
-  .srv-chart__head { display: flex; flex-wrap: wrap; gap: .75rem; align-items: baseline; justify-content: space-between; }
-  .srv-chart__title { margin: 0; font-family: var(--font-serif); font-size: .95rem; color: var(--ink); }
-  .srv-chart__stats { margin: 0; color: var(--muted); font-size: .8rem; font-variant-numeric: tabular-nums; }
-  /* Fixed height, not aspect-ratio scaling. With height:auto a 640x120 viewBox
-     stretched to about 360px tall on a 1900px screen, so one chart filled the
-     window and comparing two meant scrolling. preserveAspectRatio="none" already
-     allows non-uniform scaling, so pinning the height simply makes them readable
-     side by side, the way the Linode panel shows them. */
-  .srv-chart__svg { display: block; width: 100%; height: 130px; margin-top: .5rem; }
-  @media (max-width: 700px) { .srv-chart__svg { height: 100px; } }
-  .srv-notice { border: 1px solid var(--border); border-left: 3px solid var(--accent-bronze); border-radius: var(--radius-sm); background: var(--surface-soft); padding: .9rem 1rem; margin-block: 1rem; color: var(--ink-soft); }
-  .srv-notice code { background: var(--surface-muted); padding: .1rem .3rem; border-radius: .2rem; }
-</style>
+<link href="{% static 'css/monitoring.css' %}?v=20260722a" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<main class="mon-wrap" id="main-content">
 
-  <h1>Server health</h1>
-  <p class="srv-card__note">
-    Mirror of the Linode panel plus the readings Linode does not show.
-    Disk, memory and swap come from the machine itself &mdash; those are the numbers
-    that predicted the outage on 22 July, and none of them appear on Linode&rsquo;s graphs.
-  </p>
+<section class="hero hero--home hero--monitoring hero--has-battle">
+    <div aria-hidden="true" class="hero__background">
+        <picture><source srcset="{% static 'images/hero-monitoring.webp' %}" type="image/webp"><img alt="" width="1672" height="941" src="{% static 'images/hero-monitoring.png' %}"></picture>
+    </div>
+    <div aria-hidden="true" class="hero__overlay"></div>
+    <div class="container hero__inner">
+        <div class="hero-copy hero-copy--center">
+            <span class="pill">Infrastructure</span>
+            <h1 class="hero-title">Server Health</h1>
+            <p class="hero-subtitle">Live readings from the machine, and the Linode panel mirrored here</p>
+            <div class="hero__actions">
+                <a class="btn-primary" href="{% url 'monitoring:dashboard' %}">Monitoring Dashboard</a>
+                <a class="btn-secondary" href="?refresh=1">Refresh Metrics</a>
+                <a class="btn-secondary" href="{% url 'recipes:moderation_panel' %}">Moderation Panel</a>
+            </div>
+        </div>
+    </div>
+</section>
 
-  {# ---- host readings: always available, no API needed ---- #}
-  <h2>This machine, right now</h2>
-  <div class="srv-grid">
+<section class="page-section mon-page">
+  <div class="container mon-shell">
 
-    {% if host.disk %}
-    <section class="srv-card" aria-labelledby="srv-disk-label">
-      <p class="srv-card__label" id="srv-disk-label">
-        Disk
-        <span class="srv-state srv-state--{{ host.disk.state }}">{{ host.disk.state }}</span>
-      </p>
-      <p class="srv-card__value">{{ host.disk.used_pct }}%</p>
-      <p class="srv-card__note">{{ host.disk.free_gb }} GB free of {{ host.disk.total_gb }} GB</p>
-      <div class="srv-bar" role="img" aria-label="Disk {{ host.disk.used_pct }} percent full">
-        <div class="srv-bar__fill{% if host.disk.state == 'warning' %} srv-bar__fill--warning{% elif host.disk.state == 'critical' %} srv-bar__fill--critical{% endif %}"
-             style="width: {{ host.disk.used_pct }}%"></div>
+    <div class="mon-back-row">
+      <a class="mon-back-link" href="{% url 'monitoring:dashboard' %}">Back to Monitoring Dashboard</a>
+      {% if linode.fetched_at %}<span class="srv-stamp">Linode data fetched {{ linode.fetched_at|date:"H:i" }} UTC, cached 5 min</span>{% endif %}
+    </div>
+
+    {# ---- this machine: the readings Linode does not show at all ---- #}
+    <div class="mon-section">
+      <h2 class="mon-section__title">This Machine</h2>
+
+      <div class="mon-cards">
+
+        {% if host.disk %}
+        <div class="mon-card{% if host.disk.state == 'warning' %} mon-card--warn{% elif host.disk.state == 'critical' %} mon-card--critical{% else %} mon-card--green{% endif %}">
+          <span class="mon-card__value">{{ host.disk.used_pct }}%</span>
+          <span class="mon-card__label">Disk Used</span>
+          <span class="mon-card__sub">{{ host.disk.free_gb }} GB free of {{ host.disk.total_gb }} GB</span>
+          <span class="srv-meter" role="img" aria-label="Disk {{ host.disk.used_pct }} percent full">
+            <span class="srv-meter__fill srv-meter__fill--{{ host.disk.state }}" style="width: {{ host.disk.used_pct }}%"></span>
+          </span>
+          <span class="mon-card__open">At 100% PostgreSQL cannot checkpoint</span>
+        </div>
+        {% endif %}
+
+        {% if host.memory %}
+        <div class="mon-card">
+          <span class="mon-card__value">{{ host.memory.used_pct }}%</span>
+          <span class="mon-card__label">Memory Used</span>
+          <span class="mon-card__sub">{{ host.memory.available_mb }} MB available of {{ host.memory.total_mb }} MB</span>
+          <span class="srv-meter" role="img" aria-label="Memory {{ host.memory.used_pct }} percent used">
+            <span class="srv-meter__fill" style="width: {{ host.memory.used_pct }}%"></span>
+          </span>
+        </div>
+        {% endif %}
+
+        {% if host.swap %}
+        <div class="mon-card">
+          <span class="mon-card__value">{{ host.swap.used_mb }}<small> MB</small></span>
+          <span class="mon-card__label">Swap In Use</span>
+          <span class="mon-card__sub">of {{ host.swap.total_mb }} MB ({{ host.swap.used_pct }}%)</span>
+          <span class="srv-meter" role="img" aria-label="Swap {{ host.swap.used_pct }} percent used">
+            <span class="srv-meter__fill" style="width: {{ host.swap.used_pct }}%"></span>
+          </span>
+          <span class="mon-card__open">Sustained use is the memory ceiling showing</span>
+        </div>
+        {% endif %}
+
+        {% if host.load %}
+        <div class="mon-card">
+          <span class="mon-card__value">{{ host.load.five }}</span>
+          <span class="mon-card__label">Load Average</span>
+          <span class="mon-card__sub">1 min {{ host.load.one }} &middot; 15 min {{ host.load.fifteen }}</span>
+          <span class="mon-card__open">One core: 1.00 is fully committed</span>
+        </div>
+        {% endif %}
+
       </div>
-      <p class="srv-card__note">At 100% PostgreSQL cannot checkpoint and the site returns 500.</p>
-    </section>
-    {% endif %}
+    </div>
 
-    {% if host.memory %}
-    <section class="srv-card" aria-labelledby="srv-mem-label">
-      <p class="srv-card__label" id="srv-mem-label">Memory</p>
-      <p class="srv-card__value">{{ host.memory.used_pct }}%</p>
-      <p class="srv-card__note">{{ host.memory.available_mb }} MB available of {{ host.memory.total_mb }} MB</p>
-      <div class="srv-bar" role="img" aria-label="Memory {{ host.memory.used_pct }} percent used">
-        <div class="srv-bar__fill" style="width: {{ host.memory.used_pct }}%"></div>
-      </div>
-    </section>
-    {% endif %}
+    {# ---- Linode mirror ---- #}
+    <div class="mon-section">
+      <h2 class="mon-section__title">Linode &mdash; Last 24 Hours</h2>
 
-    {% if host.swap %}
-    <section class="srv-card" aria-labelledby="srv-swap-label">
-      <p class="srv-card__label" id="srv-swap-label">Swap</p>
-      <p class="srv-card__value">{{ host.swap.used_mb }} MB</p>
-      <p class="srv-card__note">of {{ host.swap.total_mb }} MB ({{ host.swap.used_pct }}%)</p>
-      <div class="srv-bar" role="img" aria-label="Swap {{ host.swap.used_pct }} percent used">
-        <div class="srv-bar__fill" style="width: {{ host.swap.used_pct }}%"></div>
-      </div>
-      <p class="srv-card__note">Sustained swap use on a 1 GB box is the memory ceiling showing.</p>
-    </section>
-    {% endif %}
+      {% if not linode.configured %}
+        <p class="srv-notice">
+          <strong>Not connected yet.</strong> {{ linode.error }}
+          Create a token with <code>linodes:read_only</code> and add
+          <code>LINODE_API_TOKEN</code> and <code>LINODE_INSTANCE_ID</code> to the server environment.
+          The readings above keep working without it.
+        </p>
+      {% elif linode.error %}
+        <p class="srv-notice"><strong>Could not read Linode right now.</strong> {{ linode.error }}</p>
+      {% endif %}
 
-    {% if host.load %}
-    <section class="srv-card" aria-labelledby="srv-load-label">
-      <p class="srv-card__label" id="srv-load-label">Load average</p>
-      <p class="srv-card__value">{{ host.load.five }}</p>
-      <p class="srv-card__note">1 min {{ host.load.one }} &middot; 5 min {{ host.load.five }} &middot; 15 min {{ host.load.fifteen }}</p>
-      <p class="srv-card__note">One core: 1.00 means fully committed.</p>
-    </section>
-    {% endif %}
+      {% for s in linode.series %}
+        <div class="srv-chart">
+          <div class="srv-chart__head">
+            <h3 class="srv-chart__title">{{ s.label }}</h3>
+            <p class="srv-chart__stats">
+              <span>max <strong>{{ s.maximum|floatformat:2 }}</strong></span>
+              <span>avg <strong>{{ s.average|floatformat:2 }}</strong></span>
+              <span>last <strong>{{ s.last|floatformat:2 }}</strong> {{ s.unit }}</span>
+            </p>
+          </div>
+          {% with pts=s.polyline %}
+            {% if pts %}
+              <svg class="srv-chart__svg" viewBox="0 0 {{ chart_width }} {{ chart_height }}"
+                   preserveAspectRatio="none" role="img"
+                   aria-label="{{ s.label }} over the last 24 hours. Maximum {{ s.maximum|floatformat:2 }} {{ s.unit }}, average {{ s.average|floatformat:2 }}, latest {{ s.last|floatformat:2 }}.">
+                <polyline class="srv-chart__area" points="{{ pts }} {{ chart_width }},{{ chart_height }} 0,{{ chart_height }}" />
+                <polyline class="srv-chart__line" points="{{ pts }}" />
+              </svg>
+            {% else %}
+              <p class="srv-notice">No samples returned for this metric.</p>
+            {% endif %}
+          {% endwith %}
+        </div>
+      {% endfor %}
+    </div>
+
+    <p class="srv-footnote">
+      This page is read-only. Emergency controls are deliberately not here: an endpoint that restarts
+      production services needs its own review of authorisation, CSRF, rate limiting and audit logging.
+    </p>
 
   </div>
+</section>
 
-  {# ---- Linode mirror ---- #}
-  <h2>Linode, last 24 hours</h2>
-
-  {% if not linode.configured %}
-    <div class="srv-notice">
-      <p><strong>Not connected yet.</strong> {{ linode.error }}</p>
-      <p>Create a token in Linode with <code>linodes:read_only</code> and add both lines to
-        <code>/srv/culineire/shared/alert.env</code>:</p>
-      <p><code>LINODE_API_TOKEN=...</code><br><code>LINODE_INSTANCE_ID=97395032</code></p>
-      <p>The host readings above keep working without it.</p>
-    </div>
-  {% elif linode.error %}
-    <div class="srv-notice"><p><strong>Could not read Linode right now.</strong> {{ linode.error }}</p></div>
-  {% else %}
-    <p class="srv-card__note">
-      Fetched {{ linode.fetched_at|date:"Y-m-d H:i" }} UTC, cached for 5 minutes.
-      <a href="?refresh=1">Refresh now</a>
-    </p>
-  {% endif %}
-
-  {% for s in linode.series %}
-    <section class="srv-chart" aria-labelledby="srv-chart-{{ s.key }}">
-      <div class="srv-chart__head">
-        <h3 class="srv-chart__title" id="srv-chart-{{ s.key }}">{{ s.label }}</h3>
-        <p class="srv-chart__stats">
-          max {{ s.maximum|floatformat:2 }} &middot;
-          avg {{ s.average|floatformat:2 }} &middot;
-          last {{ s.last|floatformat:2 }} {{ s.unit }}
-        </p>
-      </div>
-      {% with pts=s.polyline %}
-        {% if pts %}
-          <svg class="srv-chart__svg" viewBox="0 0 {{ chart_width }} {{ chart_height }}"
-               preserveAspectRatio="none" role="img"
-               aria-label="{{ s.label }} over the last 24 hours. Maximum {{ s.maximum|floatformat:2 }} {{ s.unit }}, average {{ s.average|floatformat:2 }}, latest {{ s.last|floatformat:2 }}.">
-            <polyline points="{{ pts }}" fill="none" stroke="var(--brand)" stroke-width="2"
-                      stroke-linejoin="round" stroke-linecap="round" />
-          </svg>
-        {% else %}
-          <p class="srv-card__note">No samples returned for this metric.</p>
-        {% endif %}
-      {% endwith %}
-    </section>
-  {% endfor %}
-
-  <p class="srv-card__note">
-    This page is read-only. Emergency controls were asked for and are deliberately not here yet:
-    an endpoint that restarts production services needs its own review of authorisation, CSRF,
-    rate limiting and audit logging rather than being attached to a dashboard.
-  </p>
-
-</main>
 {% endblock %}

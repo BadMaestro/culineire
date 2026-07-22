@@ -1182,3 +1182,126 @@
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 160px), 1fr));
   }
 }
+
+/* ==========================================================================
+   Server health page (/monitoring/server/)
+   Added 2026-07-22. Everything reuses the mon-* system above; only the pieces
+   that did not exist yet live here -- a meter bar and a chart. All colour comes
+   from base.css tokens, per the design constitution: no raw hex, no second
+   palette. Previously this page carried its own <style> block, which is exactly
+   how a parallel design language starts.
+   ========================================================================== */
+
+.srv-stamp {
+  color: var(--muted);
+  font-size: .78rem;
+}
+
+/* Meter inside a mon-card: the numeric percentage is the fact, the bar is the
+   glance. Slotted into the card grid rather than floated, so it inherits the
+   card's own spacing. */
+.srv-meter {
+  display: block;
+  height: .4rem;
+  margin: .5rem 0 .1rem;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+  overflow: hidden;
+}
+.srv-meter__fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--brand);
+}
+.srv-meter__fill--warning { background: var(--accent-bronze); }
+.srv-meter__fill--critical { background: var(--hall-red); }
+
+/* Chart card. Kept visually lighter than mon-card because five of them stack:
+   at card weight the page reads as a wall rather than a panel. */
+.srv-chart {
+  margin-block: .7rem;
+  padding: .8rem 1rem .6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+.srv-chart__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem 1rem;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.srv-chart__title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  color: var(--ink);
+}
+.srv-chart__stats {
+  display: flex;
+  gap: 1rem;
+  margin: 0;
+  color: var(--muted);
+  font-size: .76rem;
+  font-variant-numeric: tabular-nums;
+}
+.srv-chart__stats strong { color: var(--ink-soft); font-weight: 700; }
+
+/* Fixed height, not aspect-ratio scaling. With height:auto a 640x120 viewBox
+   stretched to roughly 360px on a 1900px screen, so a single chart filled the
+   window and comparing two meant scrolling. preserveAspectRatio="none" already
+   permits the non-uniform scale, so pinning the height distorts nothing that
+   was not already distorted -- it just makes the set readable together. */
+.srv-chart__svg {
+  display: block;
+  width: 100%;
+  height: 120px;
+  margin-top: .5rem;
+}
+.srv-chart__line {
+  fill: none;
+  stroke: var(--brand);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+/* The filled area is what turns a thin line into something readable at a glance.
+   Deliberately faint: it should say "how much" without competing with the line. */
+.srv-chart__area {
+  fill: color-mix(in srgb, var(--brand) 12%, transparent);
+  stroke: none;
+}
+
+.srv-notice {
+  margin: .5rem 0;
+  padding: .8rem 1rem;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-bronze);
+  border-radius: var(--radius-sm);
+  background: var(--surface-soft);
+  color: var(--ink-soft);
+  font-size: .85rem;
+  line-height: 1.5;
+}
+.srv-notice code {
+  padding: .05rem .3rem;
+  border-radius: .2rem;
+  background: var(--surface-muted);
+  font-size: .95em;
+}
+
+.srv-footnote {
+  margin-top: 1.2rem;
+  color: var(--muted);
+  font-size: .78rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 700px) {
+  .srv-chart__svg { height: 96px; }
+  .srv-chart__stats { gap: .6rem; font-size: .72rem; }
+}
