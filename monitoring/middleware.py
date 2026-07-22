@@ -66,14 +66,33 @@ class MonitoringMiddleware:
         )
 
     def _is_internal(self, ip_hash: str, user) -> bool:
+        """Whether this request should be excluded from the public stats.
+
+        Every cache call here is guarded, and that is not defensive padding.
+        This middleware runs on EVERY request, so an unreachable cache backend
+        raised from this method returns 500 for the entire site, not for one
+        page. It happened on 2026-07-22: a single .djcache file left owned by
+        root (written by a diagnostic run as the wrong user) made the web worker,
+        which runs as deploy, unable to write, and pages began failing.
+
+        Failing to remember that an IP is internal only costs a slightly noisier
+        statistics table. Failing to serve the site costs the site. The trade is
+        not close.
+        """
         if ip_hash in self._internal_hashes:
             return True
         from django.core.cache import cache
         cache_key = f"monitoring:internal_ip:{ip_hash}"
         if user is not None and user.is_staff:
-            cache.set(cache_key, True, _INTERNAL_MARK_TTL)
+            try:
+                cache.set(cache_key, True, _INTERNAL_MARK_TTL)
+            except Exception:  # noqa: BLE001 - a broken cache must not break the site
+                pass
             return True
-        return bool(cache.get(cache_key))
+        try:
+            return bool(cache.get(cache_key))
+        except Exception:  # noqa: BLE001
+            return False
 
     def __call__(self, request):
         path = request.path

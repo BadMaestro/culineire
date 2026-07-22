@@ -455,3 +455,42 @@ class ServerMetricsCacheResilienceTest(SimpleTestCase):
             result = linode_metrics()
         self.assertFalse(result["configured"])
         self.assertIn("series", result)
+
+
+class MiddlewareCacheResilienceTest(TestCase):
+    """MonitoringMiddleware runs on every request, so an unreachable cache here
+    returns 500 for the WHOLE SITE, not one page.
+
+    Proven the hard way on 2026-07-22: one .djcache file owned by root, written
+    by a diagnostic run as the wrong user, made the deploy worker unable to write
+    it. Losing the internal-IP memory only makes the stats slightly noisier.
+    Losing the site is not comparable.
+    """
+
+    def test_site_still_serves_when_the_cache_backend_is_dead(self):
+        from unittest.mock import patch
+
+        with patch("django.core.cache.cache.get", side_effect=PermissionError("denied")), \
+             patch("django.core.cache.cache.set", side_effect=PermissionError("denied")):
+            response = Client().get("/")
+        self.assertEqual(response.status_code, 200)
+
+    def test_is_internal_returns_false_rather_than_raising(self):
+        from unittest.mock import patch
+
+        from .middleware import MonitoringMiddleware
+
+        mw = MonitoringMiddleware(lambda request: None)
+        with patch("django.core.cache.cache.get", side_effect=PermissionError("denied")):
+            self.assertFalse(mw._is_internal("some-hash", None))
+
+    def test_staff_marking_survives_an_unwritable_cache(self):
+        from unittest.mock import patch
+
+        from .middleware import MonitoringMiddleware
+
+        User = get_user_model()
+        staff = User.objects.create_user("mw-cache-staff", password="pw", is_staff=True)
+        mw = MonitoringMiddleware(lambda request: None)
+        with patch("django.core.cache.cache.set", side_effect=PermissionError("denied")):
+            self.assertTrue(mw._is_internal("some-hash", staff))

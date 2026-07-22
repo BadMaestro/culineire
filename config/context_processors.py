@@ -3,10 +3,34 @@ from django.core.cache import cache
 from django.urls import reverse
 
 
+def _cache_get(key):
+    """Read the cache without ever being able to break the page.
+
+    These context processors run on EVERY rendered page, so an exception raised
+    here returns 500 for the whole site. That is not hypothetical: on 2026-07-22
+    a single .djcache file left owned by root (a diagnostic run as the wrong
+    user) stopped the deploy worker from writing, and pages started failing.
+
+    Missing the cache costs one extra query. Raising costs the site.
+    """
+    try:
+        return cache.get(key)
+    except Exception:  # noqa: BLE001 - a broken cache is not a broken page
+        return None
+
+
+def _cache_set(key, value, seconds):
+    try:
+        cache.set(key, value, seconds)
+    except Exception:  # noqa: BLE001
+        pass
+
+
+
 def hero_chef_promotions(request):
     """Build cached promotional messages for the animated hero chef."""
     cache_key = "hero_chef_promotions_v1"
-    promotions = cache.get(cache_key)
+    promotions = _cache_get(cache_key)
     if promotions is None:
         try:
             from articles.models import Article
@@ -65,7 +89,7 @@ def hero_chef_promotions(request):
                 "text": "I don’t accept tips! Want to thank me?",
                 "url": "https://buymeacoffee.com/bearcave",
             })
-            cache.set(cache_key, promotions, 300)
+            _cache_set(cache_key, promotions, 300)
         except Exception:
             promotions = [{
                 "text": "I don’t accept tips! Want to thank me?",
@@ -90,7 +114,7 @@ def hero_battle_panel(request):
         return {}
     from django.core.cache import cache
     cache_key = "hero_battle_panel_data"
-    data = cache.get(cache_key)
+    data = _cache_get(cache_key)
     if data is None:
         try:
             from django.utils import timezone
@@ -122,7 +146,7 @@ def hero_battle_panel(request):
                 "battle_crown_holder": battle_crown_holder,
                 "battle_events": battle_events,
             }
-            cache.set(cache_key, data, 60)
+            _cache_set(cache_key, data, 60)
         except Exception:
             data = {"active_battles": [], "battle_crown_holder": None, "battle_events": []}
     return data
@@ -162,7 +186,7 @@ def battle_widget_context(request):
     if not enabled:
         return {}
     cache_key = "battle_widget_v1"
-    data = cache.get(cache_key)
+    data = _cache_get(cache_key)
     if data is None:
         try:
             from chef_battle.models import Battle, BattleEvent, ChefBattleProfile
@@ -187,7 +211,7 @@ def battle_widget_context(request):
                 .order_by("-created_at")[:5]
             )
             data = {"active": active, "leaders": leaders, "events": events}
-            cache.set(cache_key, data, 60)
+            _cache_set(cache_key, data, 60)
         except Exception:
             data = {"active": [], "leaders": [], "events": []}
     from chef_battle.access import has_arena_console_access
