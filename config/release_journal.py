@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.389",
+        "date": "2026-07-22",
+        "commit": "pending",
+        "title": "Stage 3B authoritative tracking synchronization",
+        "section": "Moderation / Deployment",
+        "summary": "Documentation/state synchronization only; no product behaviour, authentication, data, migration, or test state changed. The Arena Build Plan now records Stage 3B exactly as DEPLOYED — AUTHENTICATED PRODUCTION RE-QA PASSED 19/19. Ember remediation source db017dad1ced81925be4f125d3639a6c20fb8eeb was deployed as 388f7776b433929902476f12891834eebb36f1c1, with CoWork evidence 2029/2030/2031. GreenBear's authenticated production re-QA reported 19/19 PASS, with synthesis in CoWork 2035/2036/2037. The verified-scope limitation remains explicit: production had no active battle, the popup was opened programmatically, and creating a demo battle was prohibited, so the live-battle tile click path itself was not exercised. This does not claim Stage 3 completion: Stage 3 remains IN PROGRESS, completed stages remains 2, release readiness remains NOT READY, and 3C, 3D, and 3E remain OPEN. CF5 remains OPEN and UNASSIGNED and is neither closed nor reinterpreted. GreenBear is unavailable because its limit is exhausted; Bolt remains IDLE as emergency reserve. This v2.5.389 correction follows the already-published v2.5.388 entry and supersedes only its stale Stage 3B tracking wording. Changed tracking files: recipes/views.py and config/release_journal.py. Validation: static syntax checks, tracking-state assertions, and git diff --check; no test suite or browser QA was run. Rollback: revert the documentation commits, push the revert, rerun /srv/culineire/scripts/deploy.sh, and verify the restricted Unit service is active.",
+    },
+    {
         "version": "2.5.388",
         "date": "2026-07-22",
         "commit": "fef2c1cc",
