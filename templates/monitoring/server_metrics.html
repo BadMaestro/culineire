@@ -24,11 +24,17 @@
   .srv-state--ok { background: color-mix(in srgb, var(--hall-green) 18%, transparent); color: var(--ink); }
   .srv-state--warning { background: color-mix(in srgb, var(--accent-bronze) 22%, transparent); color: var(--ink); }
   .srv-state--critical { background: color-mix(in srgb, var(--hall-red) 22%, transparent); color: var(--ink); }
-  .srv-chart { margin-block: 1rem; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); padding: 1rem 1.1rem; }
+  .srv-chart { margin-block: .6rem; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); padding: .7rem .9rem; }
   .srv-chart__head { display: flex; flex-wrap: wrap; gap: .75rem; align-items: baseline; justify-content: space-between; }
-  .srv-chart__title { margin: 0; font-family: var(--font-serif); font-size: 1.05rem; color: var(--ink); }
+  .srv-chart__title { margin: 0; font-family: var(--font-serif); font-size: .95rem; color: var(--ink); }
   .srv-chart__stats { margin: 0; color: var(--muted); font-size: .8rem; font-variant-numeric: tabular-nums; }
-  .srv-chart__svg { display: block; width: 100%; height: auto; margin-top: .6rem; }
+  /* Fixed height, not aspect-ratio scaling. With height:auto a 640x120 viewBox
+     stretched to about 360px tall on a 1900px screen, so one chart filled the
+     window and comparing two meant scrolling. preserveAspectRatio="none" already
+     allows non-uniform scaling, so pinning the height simply makes them readable
+     side by side, the way the Linode panel shows them. */
+  .srv-chart__svg { display: block; width: 100%; height: 130px; margin-top: .5rem; }
+  @media (max-width: 700px) { .srv-chart__svg { height: 100px; } }
   .srv-notice { border: 1px solid var(--border); border-left: 3px solid var(--accent-bronze); border-radius: var(--radius-sm); background: var(--surface-soft); padding: .9rem 1rem; margin-block: 1rem; color: var(--ink-soft); }
   .srv-notice code { background: var(--surface-muted); padding: .1rem .3rem; border-radius: .2rem; }
 </style>
