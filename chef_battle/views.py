@@ -3,6 +3,7 @@ from __future__ import annotations
 from django.conf import settings
 import json
 import logging
+from pathlib import Path
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -11,7 +12,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
 from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
-from django.http import Http404, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -26,7 +27,7 @@ from monitoring.tracker import get_client_ip
 from recipes.authoring import get_author_for_user
 from recipes.models import Recipe, RecipeAuthor
 
-from .access import arena_console_guard, chef_battle_guard, is_battle_visible
+from .access import arena_console_guard, chef_battle_guard, is_battle_visible, valid_share_token
 from .forms import BattleChallengeForm, BattleEntryForm, BattleRecipeAttachForm
 from .fraud import (
     gate_account_age,
@@ -1064,28 +1065,14 @@ def _build_arena_payload():
     }
 
 
-@chef_battle_guard
-def arena(request):
-    # DG-04: page view is a lobby presence heartbeat (poll continues it)
-    from .services import record_viewer_presence
-    record_viewer_presence(request, battle=None)
+def _arena_page_context(request, *, viewer_author, user_enrolled, allow_demo):
+    """Read-only assembly of everything chef_battle/arena.html needs.
 
-    # Mark the viewing chef present BEFORE building the ring, so an enrolled
-    # chef appears in their own arena immediately on page load instead of only
-    # after the first 20s poll.
-    viewer_author = None
-    user_enrolled = False
-    if request.user.is_authenticated:
-        viewer_author = get_author_for_user(request.user)
-        if viewer_author:
-            # Any logged-in visitor takes a seat in the arena: enrolled chefs
-            # sit in their rank ring, everyone else in a spectator ring. Ensure
-            # a profile exists so a first-time viewer is placed immediately.
-            from .services import get_or_create_battle_profile
-            profile = get_or_create_battle_profile(viewer_author)
-            ChefBattleProfile.objects.filter(pk=profile.pk).update(last_seen_at=timezone.now())
-            user_enrolled = bool(profile.enrolled_at)
-
+    Built purely from _build_arena_payload() with no database writes, so the
+    live arena() view and the token-gated read-only preview share one source of
+    truth for what the page shows. Only arena() does the presence writes; the
+    preview passes viewer_author=None, user_enrolled=False and allow_demo=False.
+    """
     payload = _build_arena_payload()
     active_battle = payload["active_battle"]
     enrolled = payload["enrolled"]
@@ -1110,8 +1097,8 @@ def arena(request):
     # Moderator-only preview of the active-battle centre (Phase 1 choreography).
     # /chef-battle/arena/?demo=vs stages the two-cell VS centre using two real
     # enrolled chefs, so the owner can see and tune it without an active battle.
-    # No DB writes; never shown to non-moderators.
-    if request.GET.get("demo") == "vs" and is_moderator(request.user):
+    # No DB writes; never shown to non-moderators, and never on the share link.
+    if allow_demo and request.GET.get("demo") == "vs" and is_moderator(request.user):
         demo_pair = list(enrolled[:2])
         if len(demo_pair) >= 2:
             arena_data["center"] = {
@@ -1132,7 +1119,7 @@ def arena(request):
         for rank in ChefBattleProfile.Rank
     ]
 
-    return render(request, "chef_battle/arena.html", {
+    return {
         "rank_groups": rank_groups,
         "spectator_count": len(spectators),
         "active_battle": active_battle,
@@ -1147,7 +1134,106 @@ def arena(request):
         "recent_gifts": arena_data["recent_gifts"],
         "viewer_author": viewer_author,
         "user_enrolled": user_enrolled,
-    })
+    }
+
+
+@chef_battle_guard
+def arena(request):
+    # DG-04: page view is a lobby presence heartbeat (poll continues it)
+    from .services import record_viewer_presence
+    record_viewer_presence(request, battle=None)
+
+    # Mark the viewing chef present BEFORE building the ring, so an enrolled
+    # chef appears in their own arena immediately on page load instead of only
+    # after the first 20s poll.
+    viewer_author = None
+    user_enrolled = False
+    if request.user.is_authenticated:
+        viewer_author = get_author_for_user(request.user)
+        if viewer_author:
+            # Any logged-in visitor takes a seat in the arena: enrolled chefs
+            # sit in their rank ring, everyone else in a spectator ring. Ensure
+            # a profile exists so a first-time viewer is placed immediately.
+            from .services import get_or_create_battle_profile
+            profile = get_or_create_battle_profile(viewer_author)
+            ChefBattleProfile.objects.filter(pk=profile.pk).update(last_seen_at=timezone.now())
+            user_enrolled = bool(profile.enrolled_at)
+
+    context = _arena_page_context(
+        request, viewer_author=viewer_author, user_enrolled=user_enrolled, allow_demo=True,
+    )
+    return render(request, "chef_battle/arena.html", context)
+
+
+# Vendored copy of Ember's isolated visual-shell prototype, for the read-only
+# share preview below. This is NOT the prototype branch merged into main: only
+# the two self-contained reference files (HTML + its own CSS) are carried here
+# to be served. The prototype remains a composition reference; nothing consumes
+# it as production Arena code. See ops/audits/arena_visual_integration_plan.json.
+_PROTOTYPE_DIR = Path(settings.BASE_DIR) / "ops" / "prototypes" / "arena_visual_shell"
+
+# The site loads its display/interface faces from Google Fonts in base.html; the
+# prototype is served standalone (it does not extend base.html), so the same
+# link is injected into its <head> to keep the preview faithful to the mockup.
+_PROTOTYPE_FONTS = (
+    '<link rel="preconnect" href="https://fonts.googleapis.com">'
+    '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+    '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?'
+    "family=Playfair+Display:wght@400;600;700&family=Libre+Bodoni:wght@400&"
+    'family=Inter:wght@400;500;600&display=swap">'
+)
+
+
+def arena_preview_current(request, share_token):
+    """Read-only, token-gated snapshot of the CURRENT production Arena.
+
+    Same principle as the build-board share link: the URL segment is the
+    credential (ARENA_PREVIEW_SHARE_TOKEN), the route 404s when the token is
+    unset or wrong, and the response is noindex. It renders the real arena.html
+    from real data via _arena_page_context — the arena draws itself entirely
+    from the embedded JSON on load, so the page is a faithful snapshot even
+    though the live pollers 404 for an anonymous holder (their failures are
+    swallowed by the renderer's own catch handlers).
+
+    No writes: unlike arena(), this records no presence and creates no profile.
+    It does not widen Arena access — /chef-battle/arena/ itself stays
+    staff/superuser only. This is a picture of the hall, shared by link.
+    """
+    if not valid_share_token(share_token, getattr(settings, "ARENA_PREVIEW_SHARE_TOKEN", "")):
+        raise Http404
+    context = _arena_page_context(
+        request, viewer_author=None, user_enrolled=False, allow_demo=False,
+    )
+    context["is_share_preview"] = True
+    response = render(request, "chef_battle/arena.html", context)
+    response["X-Robots-Tag"] = "noindex, nofollow, noarchive"
+    return response
+
+
+def arena_preview_prototype(request, share_token):
+    """Read-only, token-gated view of Ember's isolated visual-shell prototype.
+
+    Serves the vendored self-contained prototype (its CSS inlined, the site's
+    Google Fonts injected) behind the same ARENA_PREVIEW_SHARE_TOKEN gate. It is
+    a composition reference, not the production Arena, and is labelled as such by
+    the prototype's own masthead ("Isolated visual prototype").
+    """
+    if not valid_share_token(share_token, getattr(settings, "ARENA_PREVIEW_SHARE_TOKEN", "")):
+        raise Http404
+    try:
+        html = (_PROTOTYPE_DIR / "index.html").read_text(encoding="utf-8")
+        css = (_PROTOTYPE_DIR / "prototype.css").read_text(encoding="utf-8")
+    except OSError:
+        raise Http404
+    # Self-contain the response: replace the relative stylesheet link with the
+    # inlined CSS, and inject the fonts. No other asset is referenced.
+    html = html.replace(
+        '<link rel="stylesheet" href="prototype.css">',
+        _PROTOTYPE_FONTS + "<style>" + css + "</style>",
+    )
+    response = HttpResponse(html)
+    response["X-Robots-Tag"] = "noindex, nofollow, noarchive"
+    return response
 
 
 @require_POST
