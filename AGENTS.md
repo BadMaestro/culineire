@@ -3,7 +3,7 @@
 ```yaml
 document:
   id: "culineire-agent-constitution"
-  version: "1.1.0"
+  version: "1.2.0"
   status: "ACTIVE_AFTER_OWNER_MERGE"
   owner: "CulinEire Product Owner"
   canonical_path: "/AGENTS.md"
@@ -85,7 +85,7 @@ bootstrap:
   machine: ""
   branch: ""
   commit: ""
-  constitution_version: "1.1.0"
+  constitution_version: "1.2.0"
   documents_read:
     - "AGENTS.md"
     - "docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md"
@@ -398,3 +398,33 @@ completion:
 ```
 
 Truth is more important than a green status.
+
+## 15. Command integrity
+
+This section governs the commands agents are given, not the code they write. A
+command that repeats itself, loops back on itself, or carries work belonging to
+another task costs the receiving agent real budget and invites the wrong action.
+
+1. Each action may appear in a command only once. Repetition, reworded
+   duplication, circular execution, and instructions that return the agent to an
+   earlier action are prohibited.
+
+2. Every command must have one primary objective and contain only actions
+   directly necessary to achieve it.
+
+3. Before publication, the command author must review the complete command three
+   times:
+   - **Scope review:** remove anything unrelated to the current task.
+   - **Sequence review:** confirm prerequisites, order, consistency, and
+     completion path.
+   - **Integrity review:** detect duplication, loops, ambiguity, unsafe
+     assumptions, governance conflicts, unnecessary reporting, and token-wasting
+     instructions.
+
+4. A command may be published only when all three reviews pass and the command
+   author is fully confident that the instruction is correct, minimal,
+   sequential, and consistent with the current task and canonical governance.
+
+5. If any uncertainty, contradiction, missing evidence, or unresolved weakness
+   remains, do not issue the command. Report the blocker to the owner instead of
+   guessing.
