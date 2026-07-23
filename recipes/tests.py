@@ -4014,3 +4014,44 @@ class ArenaBuildPlanTests(TestCase):
         self.client.login(username="abp-boss", password="pw")
         resp = self.client.post(reverse("recipes:arena_build_start"), {"stage": "nope"})
         self.assertEqual(resp.status_code, 400)
+
+
+@override_settings(SECURE_SSL_REDIRECT=False)
+class ArenaBuildPlanPublicLinkTests(TestCase):
+    """The unlisted share link (owner request 2026-07-23).
+
+    The board is readable by anyone holding the URL. What these pin down is the
+    boundary around that: it is read-only, it stays out of search results, and
+    it opens nothing else — least of all the Arena, which is still staff-only
+    during dark launch."""
+
+    def test_anonymous_can_read_the_board(self):
+        resp = self.client.get(reverse("recipes:arena_build_plan_public"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Arena Build Plan")
+
+    def test_response_asks_crawlers_to_stay_away(self):
+        """The link is unlisted, not secret. Obscurity only holds while the URL
+        stays out of indexes, so the header is part of the feature."""
+        resp = self.client.get(reverse("recipes:arena_build_plan_public"))
+        self.assertEqual(resp["X-Robots-Tag"], "noindex, nofollow, noarchive")
+
+    def test_public_route_shows_the_whole_board(self):
+        """The same board, not a trimmed copy — a shared link that quietly
+        dropped workstreams would be worse than no link. Checked by content, not
+        byte-for-byte against the moderator page: a signed-in response also
+        carries session-driven chrome the anonymous one has no reason to."""
+        resp = self.client.get(reverse("recipes:arena_build_plan_public"))
+        for marker in ["Arena Build Plan", "Arena Implementation", "NOT READY"]:
+            self.assertContains(resp, marker)
+
+    def test_the_start_control_is_not_reachable_from_the_public_link(self):
+        """Reading the board must never become driving it: the START endpoint
+        keeps its own moderator gate and its own URL under moderation/."""
+        resp = self.client.post(reverse("recipes:arena_build_start"), {"stage": "merge"})
+        self.assertEqual(resp.status_code, 404)
+
+    def test_publishing_the_board_does_not_widen_arena_access(self):
+        """The Arena stays staff/superuser only. A share link for the plan is
+        not a share link for the unreleased product."""
+        self.assertEqual(self.client.get(reverse("chef_battle:arena")).status_code, 404)

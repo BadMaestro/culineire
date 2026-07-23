@@ -19,6 +19,11 @@ urlpatterns = [
         views.arena_master_console_plan,
         name="arena_master_console_plan",
     ),
+    # Unlisted read-only mirror of the board (owner request, 2026-07-23): anyone
+    # holding the direct link may read it. It is linked from nowhere on the site
+    # and answers with X-Robots-Tag: noindex, nofollow. The moderator route below
+    # keeps the operator controls; this one exposes none of them.
+    path("arena-build-plan/", views.arena_build_plan_public, name="arena_build_plan_public"),
     path("moderation/arena-build-plan/", views.arena_build_plan, name="arena_build_plan"),
     path("moderation/arena-build-plan/start/", views.arena_build_start, name="arena_build_start"),
     path("moderation/site-research/", views.site_research_progress, name="site_research_progress"),

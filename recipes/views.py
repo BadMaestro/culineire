@@ -3170,6 +3170,29 @@ def arena_build_plan(request):
     return render(request, "moderation/arena_build_plan.html", _arena_build_context())
 
 
+def arena_build_plan_public(request):
+    """Unlisted read-only mirror of the build board, for sharing by direct link.
+
+    Owner request, 2026-07-23. Access control is the link itself: nothing on the
+    site points here, no sitemap entry exists, and the response carries
+    X-Robots-Tag so crawlers that do meet the URL leave it alone. That is
+    obscurity, not authentication — anyone holding the link, and anyone they
+    forward it to, can read the board. Stated plainly because the board carries
+    branch names, commit hashes and open blockers.
+
+    It renders exactly the same read-only template as the moderator route. The
+    operator controls live behind arena_build_start, which is a separate POST
+    endpoint under moderation/ and keeps its own is_moderator gate, so nothing
+    here can start a stage or message an agent.
+
+    This does not touch Arena visibility: the Arena itself stays staff/superuser
+    only during dark launch.
+    """
+    response = render(request, "moderation/arena_build_plan.html", _arena_build_context())
+    response["X-Robots-Tag"] = "noindex, nofollow, noarchive"
+    return response
+
+
 @require_POST
 def arena_build_start(request):
     if not is_moderator(request.user):
