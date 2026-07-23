@@ -4014,3 +4014,70 @@ class ArenaBuildPlanTests(TestCase):
         self.client.login(username="abp-boss", password="pw")
         resp = self.client.post(reverse("recipes:arena_build_start"), {"stage": "nope"})
         self.assertEqual(resp.status_code, 400)
+
+
+SHARE_TOKEN = "test-share-token-4Wg7pQ2xLm"
+
+
+@override_settings(SECURE_SSL_REDIRECT=False, ARENA_BUILD_PLAN_SHARE_TOKEN=SHARE_TOKEN)
+class ArenaBuildPlanShareLinkTests(TestCase):
+    """The secret share link (owner request 2026-07-23).
+
+    The URL is the credential. What these pin down is the boundary around it:
+    the wrong token opens nothing, an unconfigured token means the route does
+    not exist at all, the page is read-only, it stays out of search results,
+    and it opens nothing else — least of all the Arena, which is still
+    staff-only during dark launch."""
+
+    def url(self, token=SHARE_TOKEN):
+        return reverse("recipes:arena_build_plan_public", args=[token])
+
+    def test_the_right_token_opens_the_board(self):
+        resp = self.client.get(self.url())
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Arena Build Plan")
+
+    def test_a_wrong_token_is_a_404(self):
+        self.assertEqual(self.client.get(self.url("not-the-token")).status_code, 404)
+
+    def test_a_near_miss_token_is_a_404(self):
+        """One character short, and one character different: a prefix match must
+        not be a match. This is what the constant-time comparison is for."""
+        self.assertEqual(self.client.get(self.url(SHARE_TOKEN[:-1])).status_code, 404)
+        self.assertEqual(self.client.get(self.url(SHARE_TOKEN[:-1] + "X")).status_code, 404)
+
+    @override_settings(ARENA_BUILD_PLAN_SHARE_TOKEN="")
+    def test_with_no_token_configured_the_link_does_not_exist(self):
+        """The default is off. An unconfigured deployment must not accidentally
+        serve the board to a caller who guessed an empty segment."""
+        self.assertEqual(self.client.get(self.url()).status_code, 404)
+        self.assertEqual(self.client.get("/recipes/arena-build-plan//").status_code, 404)
+
+    def test_the_bare_path_without_a_token_is_not_a_route(self):
+        self.assertEqual(self.client.get("/recipes/arena-build-plan/").status_code, 404)
+
+    def test_response_asks_crawlers_to_stay_away(self):
+        """Secrecy only holds while the URL stays out of indexes, so the header
+        is part of the feature, not decoration."""
+        resp = self.client.get(self.url())
+        self.assertEqual(resp["X-Robots-Tag"], "noindex, nofollow, noarchive")
+
+    def test_the_link_shows_the_whole_board(self):
+        """The same board, not a trimmed copy — a shared link that quietly
+        dropped workstreams would be worse than no link. Checked by content, not
+        byte-for-byte against the moderator page: a signed-in response also
+        carries session-driven chrome the anonymous one has no reason to."""
+        resp = self.client.get(self.url())
+        for marker in ["Arena Build Plan", "Arena Implementation", "NOT READY"]:
+            self.assertContains(resp, marker)
+
+    def test_the_start_control_is_not_reachable_from_the_share_link(self):
+        """Reading the board must never become driving it: the START endpoint
+        keeps its own moderator gate and its own URL under moderation/."""
+        resp = self.client.post(reverse("recipes:arena_build_start"), {"stage": "merge"})
+        self.assertEqual(resp.status_code, 404)
+
+    def test_sharing_the_board_does_not_widen_arena_access(self):
+        """The Arena stays staff/superuser only. A share link for the plan is
+        not a share link for the unreleased product."""
+        self.assertEqual(self.client.get(reverse("chef_battle:arena")).status_code, 404)

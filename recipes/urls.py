@@ -19,6 +19,13 @@ urlpatterns = [
         views.arena_master_console_plan,
         name="arena_master_console_plan",
     ),
+    # Unlisted read-only mirror of the board (owner request, 2026-07-23). The
+    # secret IS the path segment, taken from ARENA_BUILD_PLAN_SHARE_TOKEN; with
+    # no token configured the route 404s for everybody. Linked from nowhere and
+    # served with X-Robots-Tag. The moderator route below keeps the operator
+    # controls; this one exposes none of them.
+    path("arena-build-plan/<str:share_token>/", views.arena_build_plan_public,
+         name="arena_build_plan_public"),
     path("moderation/arena-build-plan/", views.arena_build_plan, name="arena_build_plan"),
     path("moderation/arena-build-plan/start/", views.arena_build_start, name="arena_build_start"),
     path("moderation/site-research/", views.site_research_progress, name="site_research_progress"),
