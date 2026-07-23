@@ -3,11 +3,11 @@
 ```yaml
 document:
   id: "culineire-agent-constitution"
-  version: "1.0.0"
+  version: "1.1.0"
   status: "ACTIVE_AFTER_OWNER_MERGE"
   owner: "CulinEire Product Owner"
   canonical_path: "/AGENTS.md"
-  last_updated: "2026-07-20"
+  last_updated: "2026-07-23"
 ```
 
 ## 1. Authority
@@ -85,7 +85,7 @@ bootstrap:
   machine: ""
   branch: ""
   commit: ""
-  constitution_version: "1.0.0"
+  constitution_version: "1.1.0"
   documents_read:
     - "AGENTS.md"
     - "docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md"
@@ -315,13 +315,27 @@ to one of the five active documents.
 
 ## 11. Design constitution
 
+- The Product Owner-approved Arena mockup is the settled visual target.
 - The Arena implementation target is a normal-flow, responsive **2D interface**.
-- The abandoned 3D/cinematic direction is not an implementation target.
-- No perspective transforms, photographic hall matching, generated crowd, projector fitting, or mockup-sampled raw palette may define the new Arena.
-- Use the official CulinEire design system only.
-- Use existing semantic CSS tokens.
-- Do not introduce raw HEX, RGB, HSL, or a parallel Arena token system.
-- Brand direction: warm parchment, natural ink, muted bronze, soft neutral surfaces.
+  Positioned and layered composition is permitted where it reproduces the
+  approved mockup without breaking responsiveness or semantic structure.
+- The abandoned approach is a true 3D rendering engine or interactive 3D
+  camera, not the approved fixed cinematic composition.
+- Responsive 2D perspective and depth simulation, including CSS transforms such
+  as `perspective` and `rotateX`, SVG, images, and photographic or illustrated
+  hall alignment, may reproduce the approved mockup. Image-fitting technique is
+  an implementation choice that must remain responsive and robust.
+- Use the official CulinEire design system. Centrally defined, official named
+  Arena tokens may be derived from the approved mockup; they are part of that
+  design system, not a detached parallel visual system.
+- Do not scatter raw HEX, RGB, or HSL literals through the implementation.
+- Arena palette direction: dark hall atmosphere, gold accents, a light parchment
+  Arena floor, a green challenger accent, and a red opponent accent. The general
+  site palette outside the Arena remains unchanged.
+- Atmospheric crowd presentation may match the approved mockup but must not
+  impersonate real, authenticated, registered, or online users. The eight
+  interactive rings retain 544 real-viewer-only seats, filled front rows first,
+  with logged-in self-seating and no synthetic interactive occupants.
 - Typography: existing Playfair Display and Inter usage.
 - Accessibility, responsive behaviour, keyboard operation, reduced motion, and readable contrast are acceptance requirements, not optional polish.
 

@@ -105,8 +105,16 @@ Do not make deletion decisions from one search.
 - Reuse existing components and contracts.
 - Use semantic HTML and normal flow.
 - Use CSS Grid/Flexbox for the 2D Arena.
-- Use existing custom properties only.
-- No raw colours.
+- Reuse existing custom properties where they fit. The Arena may introduce
+  centrally defined official named Arena tokens derived from the Product
+  Owner-approved mockup.
+- Arena tokens remain part of the official CulinEire design system; do not create
+  a detached parallel visual system.
+- Do not scatter raw colour literals. Encode Arena colours through the centrally
+  defined named tokens.
+- Responsive 2D may use perspective, `rotateX`, layered CSS/SVG composition, and
+  images to reproduce the approved fixed cinematic angle. Do not introduce a
+  true 3D rendering engine or interactive 3D camera.
 - Avoid `!important` cascade warfare.
 - Consolidate only after parity is proven.
 - One interactive behaviour has one event owner.
@@ -119,20 +127,27 @@ Do not make deletion decisions from one search.
 
 ## 7. Design tokens
 
-Use only official site tokens.
+Use only official design-system tokens, including centrally defined official
+Arena tokens derived from the Product Owner-approved mockup.
 
-Direction:
+Arena direction:
 
-- warm parchment;
-- natural ink;
-- muted bronze;
-- soft neutral surfaces;
+- dark hall atmosphere;
+- gold accents;
+- light parchment Arena floor;
+- green challenger accent;
+- red opponent accent;
 - Playfair Display;
 - Inter.
 
+The general site palette outside the Arena remains unchanged.
+
 Legacy `--hall-*` compatibility variables do not become official 2D tokens merely because they exist globally.
 
-Do not copy colours from old mockups, screenshots, historical specs, or dark Arena styles.
+Colours may be derived from the Product Owner-approved mockup only when encoded
+as centrally defined official named Arena tokens. Do not scatter raw literals or
+treat colours from unapproved screenshots, historical specs, or legacy dark
+Arena styles as design-system authority.
 
 ## 8. Security and integrity
 
