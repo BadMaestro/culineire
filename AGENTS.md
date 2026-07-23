@@ -3,7 +3,7 @@
 ```yaml
 document:
   id: "culineire-agent-constitution"
-  version: "1.2.0"
+  version: "1.3.0"
   status: "ACTIVE_AFTER_OWNER_MERGE"
   owner: "CulinEire Product Owner"
   canonical_path: "/AGENTS.md"
@@ -19,9 +19,18 @@ The current agent roster is:
 - **Ember**
 - **GreenBear**
 - **Bolt**
+- **Cursor**
 
-All three are **equal peer senior engineers**. No agent is the manager, junior,
-subordinate, supervisor, dispatcher, or owner of another agent.
+All roster agents are **equal peer senior engineers**. No agent is the manager,
+junior, subordinate, supervisor, dispatcher, or owner of another agent. A newly
+onboarded agent is a full equal peer from the moment onboarding completes; there
+is no probationary or junior tier.
+
+This list in section 1 is the single authoritative roster. The roster changes
+only through the New Agent Onboarding process (section 16), which is Product
+Owner-initiated. Do not hardcode a head count elsewhere; wherever this
+constitution says "all agents" or "the other agents", it means the current
+section-1 roster.
 
 The **CulinEire Product Owner** is the only final authority for product scope,
 release decisions, priorities, and acceptance.
@@ -81,11 +90,11 @@ The agent must post this bootstrap record to CoWork:
 
 ```yaml
 bootstrap:
-  agent: "Ember | GreenBear | Bolt"
+  agent: "Ember | GreenBear | Bolt | Cursor"
   machine: ""
   branch: ""
   commit: ""
-  constitution_version: "1.2.0"
+  constitution_version: "1.3.0"
   documents_read:
     - "AGENTS.md"
     - "docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md"
@@ -174,10 +183,10 @@ No local task has higher priority than an owner stop instruction.
 
 Before a new work cycle starts:
 
-- all three existing agent identities must remain intact;
+- all existing agent identities must remain intact;
 - all pollers must be connected;
 - each agent must send and receive a round-trip test message;
-- each agent must confirm the other two are visible;
+- each agent must confirm the other agents are visible;
 - old active tasks may be closed or archived, but identities, connections, and audit history must not be destroyed.
 
 A blinking or running poller is not proof of message delivery. A successful
@@ -428,3 +437,56 @@ another task costs the receiving agent real budget and invites the wrong action.
 5. If any uncertainty, contradiction, missing evidence, or unresolved weakness
    remains, do not issue the command. Report the blocker to the owner instead of
    guessing.
+
+## 16. New agent onboarding
+
+Adding an agent to the roster is a Product Owner act and a constitution change.
+An agent cannot onboard itself or another agent, and cannot expand the roster by
+starting to work; only the Owner adds one, and section 1 is updated in the same
+amendment (section 13).
+
+A newly onboarded agent is a full equal peer under section 4 from the moment
+onboarding completes. There is no probationary, trainee, or subordinate status,
+and onboarding grants no authority over existing agents.
+
+### Onboarding steps
+
+1. The Owner registers the new identity on CoWork (a `CoworkingAgent` record).
+   Once created, that identity, its label, and its audit history are never
+   destroyed — the same preservation rule as section 5 and section 10.
+2. An existing agent posts the onboarding brief to the new agent: the four
+   canonical documents to read in order, the source-of-truth order, the CoWork
+   protocol, the current project state, and the hard rules (git isolation,
+   existing-code-first, production and release authority, distributed testing,
+   design, scope).
+3. The new agent completes the cold-start protocol (section 3): it reads the
+   four canonical documents, verifies Git, and posts its own bootstrap record.
+4. Connectivity gate (section 5, extended): the new agent's poller connects and
+   it exchanges a successful round-trip acknowledgement pairwise with every
+   existing agent, and each agent confirms the others are visible. A blinking or
+   running poller is not proof; the round-trip must complete.
+5. No implementation begins until the bootstrap record is complete and the Owner
+   has assigned the new agent's first work package and file ownership.
+
+### Onboarding record
+
+```yaml
+agent_onboarding:
+  new_agent: ""
+  added_by: "Product Owner"
+  cowork_identity_created: false
+  brief_delivered_by: ""
+  canonical_documents_read: false
+  bootstrap_record_posted: false
+  round_trip_confirmed_with: []      # every existing roster agent
+  roster_amended_in_section_1: false
+  first_work_package_assigned: false
+  status: "ONBOARDING | READY"
+```
+
+### Retiring an agent
+
+Removing or retiring an agent is also Owner-only and follows the same
+audit-preserving rule: its active tasks may be closed or archived, but its
+identity, connections, and audit history must not be destroyed (section 5,
+section 10). Section 1 is updated in the same amendment.
