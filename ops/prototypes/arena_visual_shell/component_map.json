@@ -1,0 +1,96 @@
+{
+  "prototype": "CulinEire Arena visual shell",
+  "status": "isolated design evidence only",
+  "production_integration_authorized": false,
+  "components": [
+    {
+      "prototype_selector": ".arena-masthead",
+      "purpose": "Compact branded show header",
+      "production_surface": "base site header plus Arena route state",
+      "expected_files": [
+        "templates/chef_battle/arena.html",
+        "static/css/arena_command_deck.css"
+      ]
+    },
+    {
+      "prototype_selector": ".broadcast-ribbon, .phase-track",
+      "purpose": "Battle identity, seven-phase lifecycle, and presentation-state rail",
+      "production_surface": ".arena-command-deck__phase-rail",
+      "expected_files": [
+        "templates/chef_battle/arena.html",
+        "static/css/arena_command_deck.css",
+        "static/css/arena_deck_polish.css"
+      ]
+    },
+    {
+      "prototype_selector": ".arena-stage, .arena-stage__atmosphere, .arena-stage__architecture",
+      "purpose": "Single dark hall and abstract non-user atmospheric crowd layer",
+      "production_surface": ".page--arena, .arena-command-deck, .arena-render-container",
+      "expected_files": [
+        "static/css/arena_hall.css",
+        "static/css/arena_effects.css",
+        "static/css/arena_render.css"
+      ]
+    },
+    {
+      "prototype_selector": ".arena-floor",
+      "purpose": "Dominant parchment octagonal Arena floor with cinematic 2D depth",
+      "production_surface": "#arena-render within .arena-floor-stage",
+      "expected_files": [
+        "static/css/arena_render.css",
+        "static/js/arena_render.js"
+      ]
+    },
+    {
+      "prototype_selector": ".confrontation-zone, .chef-position, .crown-focus",
+      "purpose": "Integrated challenger-left, Crown Holder centre, and opponent-right composition",
+      "production_surface": "#arena-live-stage and server-bound active battle/crown context",
+      "expected_files": [
+        "templates/chef_battle/arena.html",
+        "static/css/arena_command_deck.css",
+        "static/css/arena_deck_polish.css"
+      ]
+    },
+    {
+      "prototype_selector": ".rank-progression",
+      "purpose": "Eight-rank progression remains part of the floor at every viewport",
+      "production_surface": ".arena-rank-spine plus renderer position telemetry",
+      "expected_files": [
+        "templates/chef_battle/arena.html",
+        "static/css/arena_command_deck.css",
+        "static/js/arena_render.js",
+        "chef_battle/tests.py"
+      ]
+    },
+    {
+      "prototype_selector": ".interface-rail, .show-panel",
+      "purpose": "Side information shares the stage frame instead of floating as unrelated cards",
+      "production_surface": "phase, metrics, ladder, and gifts panels",
+      "expected_files": [
+        "templates/chef_battle/arena.html",
+        "static/css/arena_command_deck.css",
+        "static/css/arena_deck_polish.css"
+      ]
+    },
+    {
+      "prototype_selector": ".lower-broadcast",
+      "purpose": "Integrated status, ticker, and call-to-action rail",
+      "production_surface": ".arena-command-deck__crowd-rail",
+      "expected_files": [
+        "templates/chef_battle/arena.html",
+        "static/css/arena_command_deck.css"
+      ]
+    }
+  ],
+  "expected_production_files": [
+    "templates/chef_battle/arena.html",
+    "static/css/arena.css",
+    "static/css/arena_command_deck.css",
+    "static/css/arena_deck_polish.css",
+    "static/css/arena_effects.css",
+    "static/css/arena_hall.css",
+    "static/css/arena_render.css",
+    "static/js/arena_render.js",
+    "chef_battle/tests.py"
+  ]
+}

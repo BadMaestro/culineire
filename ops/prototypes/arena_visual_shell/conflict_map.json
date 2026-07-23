@@ -1,0 +1,51 @@
+{
+  "prototype_branch": "design/arena-visual-shell-prototype",
+  "greenbear_worktree_accessed": false,
+  "greenbear_worktree_dependency": false,
+  "known_stage_3e_files": [
+    {
+      "path": "templates/chef_battle/arena.html",
+      "prototype_modified": false,
+      "future_integration_overlap": "HIGH",
+      "reason": "The shell composition and rank-zone markup both map here.",
+      "integration_rule": "Wait for Stage 3E recovery and verification; rebase an integration branch and reconcile semantics manually."
+    },
+    {
+      "path": "static/css/arena_command_deck.css",
+      "prototype_modified": false,
+      "future_integration_overlap": "HIGH",
+      "reason": "The shell grid, panel integration, rank responsiveness, and lower rail map here.",
+      "integration_rule": "Preserve GreenBear's accepted rank behavior while replacing shell-only layout rules under a separately authorized task."
+    },
+    {
+      "path": "static/js/arena_render.js",
+      "prototype_modified": false,
+      "future_integration_overlap": "MEDIUM",
+      "reason": "The final rank and confrontation overlays may need renderer position telemetry.",
+      "integration_rule": "Do not copy prototype geometry into the renderer; extend only after Stage 3E commit ownership is resolved."
+    },
+    {
+      "path": "chef_battle/tests.py",
+      "prototype_modified": false,
+      "future_integration_overlap": "MEDIUM",
+      "reason": "Future integration requires responsive/semantic regression coverage and must retain Stage 3E tests.",
+      "integration_rule": "Append focused shell assertions without rewriting or weakening GreenBear's Stage 3E acceptance tests."
+    },
+    {
+      "path": "ops/audits/stage_3e_rank_column.json",
+      "prototype_modified": false,
+      "future_integration_overlap": "NONE",
+      "reason": "This remains Stage 3E evidence, not visual-shell source.",
+      "integration_rule": "Read only after the Stage 3E verification task is separately resumed; never rewrite it during shell integration."
+    }
+  ],
+  "prototype_only_paths": [
+    "ops/prototypes/arena_visual_shell/index.html",
+    "ops/prototypes/arena_visual_shell/prototype.css",
+    "ops/prototypes/arena_visual_shell/component_map.json",
+    "ops/prototypes/arena_visual_shell/conflict_map.json",
+    "ops/prototypes/arena_visual_shell/design_decision_record.json",
+    "ops/prototypes/arena_visual_shell/screenshots/"
+  ],
+  "stage_3e_gate_preserved": true
+}

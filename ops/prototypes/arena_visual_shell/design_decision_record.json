@@ -1,0 +1,89 @@
+{
+  "record": "ARENA_VISUAL_SHELL_DESIGN_PROTOTYPE",
+  "version": 1,
+  "date": "2026-07-23",
+  "authority": [
+    "Product Owner-approved Arena mockup",
+    "docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md version 1.1.0",
+    "AGENTS.md version 1.1.0",
+    "Current Arena screenshot: C:/Users/golov/Desktop/Capture7.PNG"
+  ],
+  "problem_statement": [
+    "The current centre is visually empty and structurally weak.",
+    "Side panels read as detached cards.",
+    "The page reads as multiple interface blocks rather than one show Arena."
+  ],
+  "decisions": [
+    {
+      "id": "composition",
+      "decision": "Use one edge-to-edge broadcast shell with the Arena floor occupying the primary visual layer.",
+      "reason": "The floor must carry the visual hierarchy; information panels frame it rather than compete with it."
+    },
+    {
+      "id": "central_zone",
+      "decision": "Place challenger-left, Crown Holder centre, and opponent-right inside one confrontation band over the floor.",
+      "reason": "This removes the dead centre and gives live data an intentional future binding location."
+    },
+    {
+      "id": "rank_zone",
+      "decision": "Keep the complete eight-rank progression centred over the far half of the floor at desktop, tablet, and mobile.",
+      "reason": "Rank progression is Arena structure, not optional desktop decoration."
+    },
+    {
+      "id": "side_interfaces",
+      "decision": "Use paired vertical interface rails with connector frames, shared materials, and matched rhythm.",
+      "reason": "Status, metrics, ladder, and gifts should feel attached to the stage architecture."
+    },
+    {
+      "id": "lower_broadcast",
+      "decision": "Use one lower rail for status, ticker, and calls to action.",
+      "reason": "The bottom edge completes the broadcast frame and avoids isolated floating controls."
+    },
+    {
+      "id": "depth",
+      "decision": "Use static CSS perspective, rotateX, gradients, shadows, and layered HTML.",
+      "reason": "These reproduce the approved cinematic 2D composition without a true 3D engine or interactive camera."
+    },
+    {
+      "id": "crowd",
+      "decision": "Represent hall energy only with abstract aria-hidden light texture.",
+      "reason": "Atmospheric depth is allowed, but synthetic people, seats, identities, and user impersonation are prohibited."
+    },
+    {
+      "id": "content",
+      "decision": "Use labels such as Participant binding, Rank position, and Activity position.",
+      "reason": "The prototype demonstrates structure without inventing chefs, viewers, flags, or production data."
+    }
+  ],
+  "token_strategy": {
+    "rule": "All raw color values are centralized as named prototype Arena tokens in :root; implementation rules consume variables only.",
+    "palette": [
+      "dark hall",
+      "gold structure",
+      "light parchment floor",
+      "green challenger",
+      "red opponent"
+    ],
+    "production_note": "Prototype token names are design evidence; official production token adoption requires a separate integration task."
+  },
+  "responsive_behavior": {
+    "desktop_1280x720": "Viewport-filling show shell; paired side rails overlap the stage edge; floor remains dominant; lower broadcast rail remains visible.",
+    "tablet_768": "Core scene remains first; full confrontation and rank structures remain on the floor; side rails become a paired two-column support band.",
+    "mobile_390": "Core scene remains first; confrontation compresses to three columns; all eight ranks remain visible; side rails stack below without hiding essential structure; lower actions remain available.",
+    "horizontal_overflow_rule": "The isolated prototype must have no document-level horizontal overflow at any target width."
+  },
+  "accessibility": [
+    "Semantic header, navigation, main, sections, asides, ordered lists, description lists, and footer.",
+    "Visible focus indication.",
+    "Neutral decorative atmosphere and floor layers are aria-hidden.",
+    "No essential structure is hidden at mobile.",
+    "Reduced-motion media query disables non-essential transition and animation duration."
+  ],
+  "non_goals": [
+    "No production Arena integration.",
+    "No real battle or demo data.",
+    "No Stage 3C, 3D, or 3E completion claim.",
+    "No production browser session.",
+    "No backend, model, template, CSS, JavaScript, or test modification outside the prototype directory."
+  ]
+}

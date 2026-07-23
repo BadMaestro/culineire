@@ -1,0 +1,60 @@
+{
+  "prototype": "CulinEire Arena visual shell",
+  "validated_at": "2026-07-23",
+  "validation_scope": "isolated prototype artifacts only",
+  "static_validation": {
+    "utf8_content": "PASS",
+    "html_structure": "PASS",
+    "rank_progression_contract": "PASS — 8/8 labels in exact contract order",
+    "json_files": "PASS",
+    "css_syntax_and_balanced_blocks": "PASS",
+    "raw_color_values_outside_root_tokens": 0,
+    "responsive_rules": "PASS",
+    "reduced_motion_rule": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "browser_validation": {
+    "stylesheet_rule_count": 131,
+    "browser_warnings_or_errors": 0,
+    "viewports": [
+      {
+        "name": "desktop",
+        "width": 1280,
+        "height": 720,
+        "document_horizontal_overflow": false,
+        "visible_rank_labels": 8,
+        "screenshot": "screenshots/desktop-1280x720.jpg"
+      },
+      {
+        "name": "tablet",
+        "width": 768,
+        "height": 1198,
+        "document_horizontal_overflow": false,
+        "visible_rank_labels": 8,
+        "screenshot": "screenshots/tablet-768.jpg"
+      },
+      {
+        "name": "mobile",
+        "width": 390,
+        "height": 844,
+        "document_horizontal_overflow": false,
+        "visible_rank_labels": 8,
+        "screenshot": "screenshots/mobile-390x844.jpg",
+        "lower_modules_screenshot": "screenshots/mobile-390x844-lower.jpg",
+        "capture_normalization": "Browser capture at the 390 CSS-pixel viewport produced 375x812 content images; both were resampled at the same aspect ratio to the requested 390x844 artifact size."
+      }
+    ]
+  },
+  "prohibited_checks": {
+    "project_test_suites_run": 0,
+    "chef_battle_test_suites_run": 0,
+    "distributed_test_suites_run": 0,
+    "production_browser_sessions": 0
+  },
+  "scope_result": {
+    "prototype_only": true,
+    "production_arena_files_modified": false,
+    "greenbear_worktree_accessed": false,
+    "stage_3e_gate_preserved": true
+  }
+}

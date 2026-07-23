@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Isolated CulinEire Arena visual shell prototype using neutral structural content.">
+  <title>CulinÉire Arena — Visual Shell Prototype</title>
+  <link rel="stylesheet" href="prototype.css">
+</head>
+<body>
+  <div class="arena-shell">
+    <header class="arena-masthead">
+      <a class="arena-brand" href="#arena-stage" aria-label="CulinÉire Arena prototype home">
+        <span class="arena-brand__mark" aria-hidden="true">K</span>
+        <span class="arena-brand__word">
+          <strong>CulinÉire</strong>
+          <small>Honouring Irish culinary heritage</small>
+        </span>
+      </a>
+
+      <p class="prototype-flag">
+        <span aria-hidden="true"></span>
+        Isolated visual prototype
+      </p>
+
+      <nav class="arena-nav" aria-label="Prototype navigation">
+        <a class="is-current" href="#arena-stage" aria-current="page">Arena</a>
+        <a href="#rank-zone">Ranks</a>
+        <a href="#lower-rail">Broadcast</a>
+      </nav>
+    </header>
+
+    <section class="broadcast-ribbon" aria-label="Battle lifecycle">
+      <div class="broadcast-ribbon__identity">
+        <span class="broadcast-ribbon__eyebrow">Chef Battles Arena</span>
+        <strong>Emerald Hall</strong>
+        <span class="live-marker"><i aria-hidden="true"></i> Live shell</span>
+      </div>
+
+      <ol class="phase-track">
+        <li><span>1</span><b>Challenge</b></li>
+        <li><span>2</span><b>Combat</b></li>
+        <li><span>3</span><b>Biathlon</b></li>
+        <li class="is-active"><span>4</span><b>Cooking</b></li>
+        <li><span>5</span><b>Review</b></li>
+        <li><span>6</span><b>Voting</b></li>
+        <li><span>7</span><b>Crown</b></li>
+      </ol>
+
+      <div class="broadcast-ribbon__mode">
+        <span>Presentation mode</span>
+        <strong>Neutral data</strong>
+      </div>
+    </section>
+
+    <main id="arena-stage" class="arena-stage">
+      <div class="arena-stage__atmosphere" aria-hidden="true"></div>
+      <div class="arena-stage__architecture" aria-hidden="true"></div>
+
+      <aside class="interface-rail interface-rail--left" aria-label="Arena status interface">
+        <section class="show-panel show-panel--status">
+          <header class="show-panel__header">
+            <span class="panel-icon" aria-hidden="true">◆</span>
+            <div>
+              <p>Current phase</p>
+              <h2>Cooking</h2>
+            </div>
+            <strong class="phase-timer">08:37</strong>
+          </header>
+          <div class="phase-gauge" aria-label="Cooking phase progress">
+            <span></span>
+          </div>
+          <dl class="compact-facts">
+            <div><dt>Next</dt><dd>Moderator review</dd></div>
+            <div><dt>Floor state</dt><dd>Presentation shell</dd></div>
+          </dl>
+        </section>
+
+        <section class="show-panel show-panel--ladder">
+          <header class="show-panel__title">
+            <div>
+              <p>Broadcast module</p>
+              <h2>Crown ladder</h2>
+            </div>
+            <span aria-hidden="true">♛</span>
+          </header>
+          <ol class="neutral-ladder">
+            <li><span>01</span><b>Rank position</b><em>—</em></li>
+            <li><span>02</span><b>Rank position</b><em>—</em></li>
+            <li><span>03</span><b>Rank position</b><em>—</em></li>
+          </ol>
+          <button type="button" class="panel-action">Open rankings</button>
+        </section>
+      </aside>
+
+      <section class="arena-core" aria-labelledby="arena-core-title">
+        <div class="arena-core__heading">
+          <p>Live cooking in progress</p>
+          <h1 id="arena-core-title">The floor holds the show</h1>
+          <span>One scene · one hierarchy · neutral structure</span>
+        </div>
+
+        <div class="floor-wrap" aria-hidden="true">
+          <div class="floor-glow"></div>
+          <div class="arena-floor">
+            <div class="arena-floor__grid"></div>
+            <div class="arena-floor__inner"></div>
+            <div class="arena-floor__crown-bed"></div>
+          </div>
+        </div>
+
+        <section class="confrontation-zone" aria-label="Chef confrontation positions">
+          <article class="chef-position chef-position--challenger">
+            <div class="chef-position__portrait" aria-hidden="true">
+              <span>C</span>
+            </div>
+            <div class="chef-position__copy">
+              <p>Challenger position</p>
+              <h2>Participant binding</h2>
+              <span>Photo + name</span>
+            </div>
+          </article>
+
+          <div class="crown-focus">
+            <span class="crown-focus__halo" aria-hidden="true"></span>
+            <span class="crown-focus__icon" aria-hidden="true">♛</span>
+            <p>Crown Holder</p>
+            <strong>Focal binding</strong>
+          </div>
+
+          <article class="chef-position chef-position--opponent">
+            <div class="chef-position__copy">
+              <p>Opponent position</p>
+              <h2>Participant binding</h2>
+              <span>Photo + name</span>
+            </div>
+            <div class="chef-position__portrait" aria-hidden="true">
+              <span>O</span>
+            </div>
+          </article>
+        </section>
+
+        <nav id="rank-zone" class="rank-progression" aria-label="Kitchen rank progression">
+          <p class="rank-progression__label">Kitchen rank progression</p>
+          <ol>
+            <li><span>Kitchen Porter</span></li>
+            <li><span>Prep Chef</span></li>
+            <li><span>Commis Chef</span></li>
+            <li><span>Chef de Partie</span></li>
+            <li><span>Sous Chef</span></li>
+            <li><span>Head Chef</span></li>
+            <li><span>Executive Chef</span></li>
+            <li><span>Culinary Master</span></li>
+          </ol>
+        </nav>
+      </section>
+
+      <aside class="interface-rail interface-rail--right" aria-label="Arena broadcast interface">
+        <section class="show-panel show-panel--metrics">
+          <header class="show-panel__title">
+            <div>
+              <p>Live signals</p>
+              <h2>Arena pulse</h2>
+            </div>
+            <span aria-hidden="true">◉</span>
+          </header>
+          <dl class="metric-grid">
+            <div><dt>Viewers</dt><dd>—</dd></div>
+            <div><dt>Votes</dt><dd>—</dd></div>
+            <div><dt>Gifts</dt><dd>—</dd></div>
+            <div><dt>Streak</dt><dd>—</dd></div>
+          </dl>
+        </section>
+
+        <section class="show-panel show-panel--gifts">
+          <header class="show-panel__title">
+            <div>
+              <p>Broadcast module</p>
+              <h2>Battle gifts</h2>
+            </div>
+            <span aria-hidden="true">◇</span>
+          </header>
+          <ul class="neutral-activity">
+            <li><span aria-hidden="true">✦</span><p><b>Activity position</b><small>Gift binding</small></p><em>—</em></li>
+            <li><span aria-hidden="true">✦</span><p><b>Activity position</b><small>Gift binding</small></p><em>—</em></li>
+            <li><span aria-hidden="true">✦</span><p><b>Activity position</b><small>Gift binding</small></p><em>—</em></li>
+          </ul>
+          <button type="button" class="panel-action panel-action--accent">Gift action</button>
+        </section>
+      </aside>
+    </main>
+
+    <footer id="lower-rail" class="lower-broadcast" aria-label="Arena activity and actions">
+      <div class="lower-broadcast__signal">
+        <span aria-hidden="true">✦</span>
+        <strong>Broadcast status</strong>
+        <p>The stage, side information, and action rail share one visual frame.</p>
+      </div>
+      <div class="activity-ticker" aria-label="Prototype activity ticker">
+        <span>Phase signal</span>
+        <span>Rank movement</span>
+        <span>Crowd energy</span>
+      </div>
+      <div class="lower-broadcast__actions">
+        <button type="button" class="secondary-action">View format</button>
+        <button type="button" class="primary-action">Primary action</button>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>
