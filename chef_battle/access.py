@@ -1,11 +1,30 @@
 from __future__ import annotations
 
+import secrets
 from functools import wraps
 
 from django.conf import settings
 from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import redirect
+
+
+def valid_share_token(provided, expected) -> bool:
+    """Constant-time check for an unlisted share-link path segment.
+
+    The credential is the URL segment itself, so this is the whole gate. Two
+    rules make it safe: an empty or unset ``expected`` never matches (a
+    misconfigured deployment must not serve to a caller who guessed an empty
+    segment), and the comparison is constant-time (a plain ``==`` leaks the
+    secret's prefix through timing on an endpoint anyone can reach).
+
+    It is obscurity, not authentication: whoever holds the link, and whoever
+    they forward it to, gets in. Rotation is changing the configured value.
+    """
+    expected = (expected or "").strip()
+    if not expected:
+        return False
+    return secrets.compare_digest(str(provided), expected)
 
 
 def is_battle_visible(request) -> bool:

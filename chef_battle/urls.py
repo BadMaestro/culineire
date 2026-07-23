@@ -15,6 +15,14 @@ urlpatterns = [
     path("arena/state/", views.arena_state, name="arena_state"),
     path("arena/blast/", views.arena_blast, name="arena_blast"),
     path("arena/react/", views.arena_react, name="arena_react"),
+    # Read-only, token-gated preview links (owner request, 2026-07-23). The
+    # secret is the <token> segment, from ARENA_PREVIEW_SHARE_TOKEN; unset means
+    # both 404. Neither widens Arena access — /chef-battle/arena/ stays
+    # staff/superuser only during dark launch.
+    path("preview/arena/<str:share_token>/", views.arena_preview_current,
+         name="arena_preview_current"),
+    path("preview/prototype/<str:share_token>/", views.arena_preview_prototype,
+         name="arena_preview_prototype"),
     path("guide/", views.battle_guide, name="guide"),
     path("rules/", views.battle_rules, name="rules"),
     path("enroll/", views.chef_enroll, name="chef_enroll"),

@@ -7308,3 +7308,105 @@ class ArenaRankColumnTests(TestCase):
             body = line.split("{", 1)[1]
             self.assertNotRegex(body, r"#[0-9a-fA-F]{3,8}\b")
             self.assertNotRegex(body, r"\brgba?\(")
+
+
+PREVIEW_TOKEN = "test-preview-token-9Kd3pR7xQn"
+
+
+@override_settings(SECURE_SSL_REDIRECT=False, ARENA_PREVIEW_SHARE_TOKEN=PREVIEW_TOKEN)
+class ArenaPreviewShareLinkTests(TestCase):
+    """The two token-gated Arena preview links (owner request 2026-07-23).
+
+    The URL segment is the credential. These pin the boundary: the right token
+    opens the page, a wrong or unset token opens nothing, the response stays out
+    of search results, and — the load-bearing one — sharing a picture of the
+    Arena must never widen access to the Arena itself, which is staff-only
+    during dark launch."""
+
+    def current_url(self, token=PREVIEW_TOKEN):
+        return reverse("chef_battle:arena_preview_current", args=[token])
+
+    def prototype_url(self, token=PREVIEW_TOKEN):
+        return reverse("chef_battle:arena_preview_prototype", args=[token])
+
+    # ---- current-arena preview ------------------------------------------
+
+    def test_current_arena_preview_opens_with_the_right_token(self):
+        resp = self.client.get(self.current_url())
+        self.assertEqual(resp.status_code, 200)
+        # The arena bootstraps its whole render from this embedded JSON blob, so
+        # its presence is what makes the snapshot a real arena and not a shell.
+        self.assertContains(resp, 'id="arena-data-json"')
+
+    def test_current_arena_preview_is_read_only(self):
+        """arena() records presence and may create a profile; the preview must
+        do neither. A GET by an anonymous holder writes nothing."""
+        from .models import BattleViewerPresence, ChefBattleProfile
+        before_presence = BattleViewerPresence.objects.count()
+        before_profiles = ChefBattleProfile.objects.count()
+        self.client.get(self.current_url())
+        self.assertEqual(BattleViewerPresence.objects.count(), before_presence)
+        self.assertEqual(ChefBattleProfile.objects.count(), before_profiles)
+
+    def test_current_arena_preview_rejects_a_wrong_token(self):
+        self.assertEqual(self.client.get(self.current_url("nope")).status_code, 404)
+
+    def test_current_arena_preview_rejects_a_near_miss(self):
+        self.assertEqual(self.client.get(self.current_url(PREVIEW_TOKEN[:-1])).status_code, 404)
+
+    # ---- prototype preview ----------------------------------------------
+
+    def test_prototype_preview_opens_with_the_right_token(self):
+        resp = self.client.get(self.prototype_url())
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode()
+        # It is the vendored prototype, self-labelled, with its CSS inlined
+        # rather than linked (no external prototype.css request is possible).
+        self.assertIn("Isolated visual prototype", body)
+        self.assertIn("<style>", body)
+        self.assertNotIn('href="prototype.css"', body)
+
+    def test_prototype_preview_rejects_a_wrong_token(self):
+        self.assertEqual(self.client.get(self.prototype_url("nope")).status_code, 404)
+
+    # ---- shared gate behaviour ------------------------------------------
+
+    @override_settings(ARENA_PREVIEW_SHARE_TOKEN="")
+    def test_no_token_configured_means_both_previews_do_not_exist(self):
+        self.assertEqual(self.client.get(self.current_url()).status_code, 404)
+        self.assertEqual(self.client.get(self.prototype_url()).status_code, 404)
+
+    def test_both_previews_are_noindex(self):
+        for url in (self.current_url(), self.prototype_url()):
+            resp = self.client.get(url)
+            self.assertEqual(resp["X-Robots-Tag"], "noindex, nofollow, noarchive")
+
+    def test_the_build_plan_token_does_not_open_the_arena_previews(self):
+        """The two tokens are separate secrets. Holding one must not grant the
+        other, or splitting them was pointless."""
+        with override_settings(ARENA_BUILD_PLAN_SHARE_TOKEN="a-different-secret-value"):
+            self.assertEqual(
+                self.client.get(self.current_url("a-different-secret-value")).status_code, 404)
+
+    def test_previews_do_not_widen_arena_access(self):
+        """The load-bearing guarantee: a share link for a picture of the Arena
+        is not a share link for the Arena. Anonymous access to the real arena
+        stays 404 during dark launch."""
+        self.assertEqual(self.client.get(reverse("chef_battle:arena")).status_code, 404)
+
+
+class ValidShareTokenTests(TestCase):
+    """The constant-time gate under both share links."""
+
+    def test_empty_expected_never_matches(self):
+        from .access import valid_share_token
+        self.assertFalse(valid_share_token("", ""))
+        self.assertFalse(valid_share_token("anything", ""))
+        self.assertFalse(valid_share_token("anything", "   "))
+
+    def test_exact_match_only(self):
+        from .access import valid_share_token
+        self.assertTrue(valid_share_token("s3cret", "s3cret"))
+        self.assertFalse(valid_share_token("s3cre", "s3cret"))
+        self.assertFalse(valid_share_token("s3cretx", "s3cret"))
+        self.assertFalse(valid_share_token("S3cret", "s3cret"))

@@ -343,6 +343,12 @@ ARENA_MASTER_CONSOLE_ENABLED = env_bool("ARENA_MASTER_CONSOLE_ENABLED", default=
 # repository is not a secret. Generate with `python -c "import secrets;
 # print(secrets.token_urlsafe(24))"` and set it in the server .env.
 ARENA_BUILD_PLAN_SHARE_TOKEN = os.getenv("ARENA_BUILD_PLAN_SHARE_TOKEN", "").strip()
+# Secret path segment for the two read-only Arena preview links:
+# /chef-battle/preview/arena/<token>/ (current production Arena snapshot) and
+# /chef-battle/preview/prototype/<token>/ (Ember's visual-shell reference).
+# Same rules as the build-plan token: no default in code, and empty means the
+# routes 404 for everyone.
+ARENA_PREVIEW_SHARE_TOKEN = os.getenv("ARENA_PREVIEW_SHARE_TOKEN", "").strip()
 # Feature flags — must remain False until external review is complete:
 # ENABLE_STRIPE_CONNECT_PAYOUTS: requires legal/accounting sign-off before enabling.
 # ENABLE_LIVE_VIDEO: requires video provider infrastructure + content-safety legal review.
