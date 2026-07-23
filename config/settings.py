@@ -336,6 +336,13 @@ CHEF_BATTLE_ENABLED = env_bool("CHEF_BATTLE_ENABLED", default=False)
 # Off => all console URLs 404 for everyone including the owner. See
 # docs/chef_battle/arena_master_console/P00_CONTRACTS.yaml.
 ARENA_MASTER_CONSOLE_ENABLED = env_bool("ARENA_MASTER_CONSOLE_ENABLED", default=False)
+# Secret path segment for the read-only Arena Build Plan share link:
+# /recipes/arena-build-plan/<token>/. Empty (the default) means the share link
+# does not exist at all — every token 404s, including an empty one. It is
+# deliberately NOT given a default value in code: a token committed to the
+# repository is not a secret. Generate with `python -c "import secrets;
+# print(secrets.token_urlsafe(24))"` and set it in the server .env.
+ARENA_BUILD_PLAN_SHARE_TOKEN = os.getenv("ARENA_BUILD_PLAN_SHARE_TOKEN", "").strip()
 # Feature flags — must remain False until external review is complete:
 # ENABLE_STRIPE_CONNECT_PAYOUTS: requires legal/accounting sign-off before enabling.
 # ENABLE_LIVE_VIDEO: requires video provider infrastructure + content-safety legal review.

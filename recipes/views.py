@@ -3170,24 +3170,33 @@ def arena_build_plan(request):
     return render(request, "moderation/arena_build_plan.html", _arena_build_context())
 
 
-def arena_build_plan_public(request):
-    """Unlisted read-only mirror of the build board, for sharing by direct link.
+def arena_build_plan_public(request, share_token):
+    """Read-only mirror of the build board behind an unguessable path segment.
 
-    Owner request, 2026-07-23. Access control is the link itself: nothing on the
-    site points here, no sitemap entry exists, and the response carries
-    X-Robots-Tag so crawlers that do meet the URL leave it alone. That is
-    obscurity, not authentication — anyone holding the link, and anyone they
-    forward it to, can read the board. Stated plainly because the board carries
-    branch names, commit hashes and open blockers.
+    Owner request, 2026-07-23. The credential is the URL: the secret lives in
+    ARENA_BUILD_PLAN_SHARE_TOKEN and never in the repository, because a token
+    committed to Git is not a token. With the setting empty the whole route
+    disappears — every request 404s, including one carrying an empty segment,
+    which is why the emptiness is checked before the comparison.
 
-    It renders exactly the same read-only template as the moderator route. The
-    operator controls live behind arena_build_start, which is a separate POST
-    endpoint under moderation/ and keeps its own is_moderator gate, so nothing
-    here can start a stage or message an agent.
+    The comparison is constant-time. A plain == leaks the token's prefix through
+    timing, and this endpoint is reachable by anyone.
 
-    This does not touch Arena visibility: the Arena itself stays staff/superuser
-    only during dark launch.
+    What the link is NOT: a login. Whoever receives it, and whoever they forward
+    it to, reads branch names, commit hashes and open blockers. Rotation is
+    changing the env value; there is nothing to revoke per person.
+
+    It renders the same read-only template as the moderator route. Operator
+    controls live behind arena_build_start — a separate POST endpoint under
+    moderation/ with its own is_moderator gate — so nothing here can start a
+    stage or message an agent. Arena visibility is untouched: the Arena itself
+    stays staff/superuser only during dark launch.
     """
+    import secrets
+
+    expected = getattr(settings, "ARENA_BUILD_PLAN_SHARE_TOKEN", "")
+    if not expected or not secrets.compare_digest(str(share_token), str(expected)):
+        raise Http404
     response = render(request, "moderation/arena_build_plan.html", _arena_build_context())
     response["X-Robots-Tag"] = "noindex, nofollow, noarchive"
     return response
