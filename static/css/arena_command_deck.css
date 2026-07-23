@@ -95,13 +95,23 @@
    and this is the only file that describes this column at all: it used to be
    restated in arena_deck_polish.css and again in arena_hall.css, three rules
    for one element in three files. */
-.arena-rank-spine { position: absolute; z-index: 2; top: 8.5%; left: 50%; display: grid; gap: .16rem; width: min(10.75rem, 22%); transform: translateX(-50%); pointer-events: none; }
+.arena-rank-spine { position: absolute; z-index: 2; top: 8.5%; left: 50%; width: min(10.75rem, 22%); transform: translateX(-50%); pointer-events: none; }
+/* The steps became <li> under an <ol> so the ladder is an ordered progression
+   in the markup too; the stacking that used to live on the <nav> moves to the
+   list, and the list's own marker/indent is removed. */
+.arena-rank-spine__list { display: grid; gap: .16rem; margin: 0; padding: 0; list-style: none; }
+.arena-rank-spine__item { display: block; min-width: 0; }
 /* Dark pills on a light floor, as in the mockup - the pale-on-pale version
    read as a stack of blank strips with only the counts visible. */
 .arena-rank-spine__step { min-height: 1.18rem; display: flex; align-items: center; justify-content: space-between; gap: .32rem; padding: .13rem .42rem; border: 1px solid var(--accent-bronze); border-radius: 999px; color: var(--ink); font-size: clamp(.5rem, .72vw, .74rem); font-weight: 800; letter-spacing: .035em; line-height: 1; text-decoration: none; text-transform: uppercase; background: var(--surface); box-shadow: 0 .2rem .5rem color-mix(in srgb, var(--ink) 35%, transparent); pointer-events: auto; transition: background .18s ease, border-color .18s ease, color .18s ease; }
 /* The count uses the official ink token for reliable contrast; bronze measured
-   4.8:1 against the 7:1 the column is held to. The label beside it reads
-   15.2:1, so the number was the one thing in the column still under the bar. */
+   below the 7:1 the column is held to. Measured against the shipped tokens:
+   --ink #1f2c25 on --surface #fffdf9 = 14.30:1 (label), and on --surface-soft
+   #f5eee4 = 12.62:1 (the count's own pill). The earlier comment here said
+   15.2:1, which no computation reproduced; the numbers above are recomputed
+   from base.css by ArenaRankColumnTests, so this comment can no longer drift
+   away from the deployed values without a test failing. Evidence is recorded
+   in ops/audits/stage_3e_rank_column.json. */
 .arena-rank-spine__step b { min-width: 1.05rem; display: grid; place-items: center; border-radius: 999px; color: var(--ink); font-size: .9em; background: var(--surface-soft); }
 .arena-rank-spine__step:hover, .arena-rank-spine__step:focus-visible { border-color: var(--brand-dark); color: var(--brand-dark); background: var(--surface-soft); }
 
@@ -154,7 +164,17 @@
   .arena-live-chef--opponent { flex-direction: row-reverse; }
   .arena-command-deck__floor .arena-legend { max-width: 100%; justify-content: flex-start; }
   .arena-command-deck__floor-head { gap: .55rem; }
-  .arena-rank-spine { display: none; }
+  /* Stage 3E: the complete rank ladder stays available on a phone. It was
+     display:none here, which removed all eight ranks below 768px. Instead of
+     hiding it, the column stops being an overlay on the floor and becomes a
+     compact wrapped row in normal flow: every rank is still present and
+     readable, nothing covers the crown, and the chips wrap rather than pushing
+     the page sideways. placeRankSpine() clears its measured inline top/left/
+     width at this width so the stylesheet, not the renderer, owns the layout. */
+  .arena-rank-spine { position: static; width: 100%; margin: .15rem 0 .4rem; transform: none; }
+  .arena-rank-spine__list { display: flex; flex-wrap: wrap; gap: .25rem; }
+  .arena-rank-spine__item { flex: 1 1 auto; }
+  .arena-rank-spine__step { min-height: 1.5rem; padding: .2rem .5rem; font-size: .58rem; }
   .arena-crowd-rail__actions { width: 100%; }
   .arena-crowd-rail__actions > * { flex: 1 1 0; text-align: center; justify-content: center; }
 }

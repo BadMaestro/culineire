@@ -110,12 +110,25 @@
       </div>
     </div>
     <div class="arena-floor-stage">
+      {# Stage 3E: the ladder is an ordered progression, so it is marked up as
+         one. The order carries meaning (lowest rank first, as declared on
+         ChefBattleProfile.Rank), which an <ol> conveys to assistive tech
+         instead of leaving it to visual stacking alone. #}
       <nav class="arena-rank-spine" aria-label="Kitchen rank ladder">
-        {% for rank, chefs in rank_groups %}
-          <a class="arena-rank-spine__step arena-rank-spine__step--{{ rank.value }}" href="{% url 'chef_battle:rankings' %}">
-            <span>{{ rank.label }}</span><b>{{ chefs|length }}</b>
-          </a>
-        {% endfor %}
+        <ol class="arena-rank-spine__list">
+          {% for rank, chefs in rank_groups %}
+            <li class="arena-rank-spine__item">
+              {# The count is a bare numeral on screen; the label spells out what
+                 it counts for a screen reader, so the rank never reads as a
+                 number with no noun. #}
+              <a class="arena-rank-spine__step arena-rank-spine__step--{{ rank.value }}"
+                 href="{% url 'chef_battle:rankings' %}"
+                 aria-label="{{ rank.label }} — {{ chefs|length }} chef{{ chefs|length|pluralize }}">
+                <span class="arena-rank-spine__name">{{ rank.label }}</span><b aria-hidden="true">{{ chefs|length }}</b>
+              </a>
+            </li>
+          {% endfor %}
+        </ol>
       </nav>
       {% include "chef_battle/_arena_render_ring.html" %}
     </div>

@@ -1,5 +1,8 @@
 import json
+import re
+from pathlib import Path
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
@@ -7182,3 +7185,126 @@ class RequestHashTests(TestCase):
         from .models import HASH_SCHEME_CURRENT
 
         self.assertEqual(BattleVote._meta.get_field("hash_scheme").default, HASH_SCHEME_CURRENT)
+
+
+class ArenaRankColumnTests(TestCase):
+    """Stage 3E — the rank floor column.
+
+    Three things are pinned here because each of them has silently regressed
+    before: the ladder must show every rank the model declares, in the model's
+    own order; it must survive the mobile breakpoint instead of being switched
+    off; and its contrast must be provable from the deployed tokens rather than
+    asserted in a CSS comment."""
+
+    CSS_DECK = Path(settings.BASE_DIR) / "static" / "css" / "arena_command_deck.css"
+    CSS_BASE = Path(settings.BASE_DIR) / "static" / "css" / "base.css"
+
+    def setUp(self):
+        User = get_user_model()
+        User.objects.create_superuser(
+            username="arc-super", password="pw", email="arc@example.com"
+        )
+        self.client.login(username="arc-super", password="pw")
+
+    # ---- membership and order -------------------------------------------
+
+    def test_every_model_rank_renders_exactly_once_in_model_order(self):
+        """Owner ruling OPTION_A: ChefBattleProfile.Rank is the authoritative
+        rank set. No rank may be dropped and none invented, and the ladder is
+        ordered, so position matters as much as membership."""
+        response = self.client.get(reverse("chef_battle:arena"))
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode()
+
+        spine = html.split('class="arena-rank-spine"', 1)[1].split("</nav>", 1)[0]
+        labels = [label for _value, label in ChefBattleProfile.Rank.choices]
+
+        for label in labels:
+            self.assertEqual(
+                spine.count(">" + label + "<"), 1,
+                f"{label} must appear exactly once in the rank column",
+            )
+
+        positions = [spine.index(">" + label + "<") for label in labels]
+        self.assertEqual(
+            positions, sorted(positions),
+            "the rank column must follow the model's declared order",
+        )
+
+    def test_rank_set_matches_the_owner_ruling(self):
+        """Guards the exact conflict that blocked this workstream: a command
+        listed 'Culinary Legend' and omitted 'Prep Chef'. The owner ruled the
+        model governs, so this fails loudly if the enum is edited to match a
+        document instead of the other way round."""
+        labels = [label for _value, label in ChefBattleProfile.Rank.choices]
+        self.assertEqual(labels, [
+            "Kitchen Porter", "Prep Chef", "Commis Chef", "Chef de Partie",
+            "Sous Chef", "Head Chef", "Executive Chef", "Culinary Master",
+        ])
+
+    def test_ladder_is_marked_up_as_an_ordered_progression(self):
+        response = self.client.get(reverse("chef_battle:arena"))
+        spine = response.content.decode().split('class="arena-rank-spine"', 1)[1].split("</nav>", 1)[0]
+        self.assertIn('<ol class="arena-rank-spine__list">', spine)
+        self.assertEqual(spine.count('class="arena-rank-spine__item"'), len(ChefBattleProfile.Rank.choices))
+
+    def test_each_step_is_screen_reader_readable(self):
+        """The count renders as a bare numeral. Without a label a screen reader
+        reads a number with no noun, so every step carries its own aria-label."""
+        response = self.client.get(reverse("chef_battle:arena"))
+        spine = response.content.decode().split('class="arena-rank-spine"', 1)[1].split("</nav>", 1)[0]
+        for _value, label in ChefBattleProfile.Rank.choices:
+            self.assertIn(f'aria-label="{label} —', spine)
+
+    # ---- responsive ------------------------------------------------------
+
+    def test_mobile_breakpoint_does_not_hide_the_rank_column(self):
+        """It used to be `display: none` below 768px, which removed the whole
+        progression on a phone. Stage 3E requires all eight ranks to stay."""
+        css = self.CSS_DECK.read_text(encoding="utf-8")
+        mobile = css.split("@media (max-width: 767px)", 1)[1].split("\n}", 1)[0]
+        self.assertNotIn("display: none", mobile.split(".arena-rank-spine", 1)[1].split(";", 1)[0] + ";")
+        self.assertIn(".arena-rank-spine { position: static", mobile)
+        self.assertIn("flex-wrap: wrap", mobile.split(".arena-rank-spine__list", 1)[1])
+
+    # ---- contrast --------------------------------------------------------
+
+    @staticmethod
+    def _relative_luminance(hex_colour):
+        """WCAG 2.1 relative luminance of an #rrggbb colour."""
+        r, g, b = (int(hex_colour[i:i + 2], 16) / 255 for i in (1, 3, 5))
+        chan = [c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4 for c in (r, g, b)]
+        return 0.2126 * chan[0] + 0.7152 * chan[1] + 0.0722 * chan[2]
+
+    @classmethod
+    def _token(cls, name):
+        css = cls.CSS_BASE.read_text(encoding="utf-8")
+        match = re.search(r"^\s*--" + re.escape(name) + r":\s*(#[0-9a-fA-F]{6})\s*;", css, re.M)
+        assert match, f"token --{name} not found as a hex literal in base.css"
+        return match.group(1).lower()
+
+    def test_rank_label_contrast_is_at_least_7_to_1(self):
+        """Stage 3E acceptance requires recorded numeric evidence, not a CSS
+        comment. This computes the ratio from the tokens that actually ship, so
+        the evidence cannot drift away from the deployed values."""
+        foreground = self._token("ink")            # .arena-rank-spine__step color
+        background = self._token("surface")        # .arena-rank-spine__step background
+        light = self._relative_luminance(background)
+        dark = self._relative_luminance(foreground)
+        ratio = (max(light, dark) + 0.05) / (min(light, dark) + 0.05)
+
+        self.assertGreaterEqual(
+            round(ratio, 2), 7.0,
+            f"rank label contrast {ratio:.2f}:1 ({foreground} on {background}) is below the 7:1 bar",
+        )
+
+    def test_rank_column_uses_tokens_not_raw_colour_literals(self):
+        """The Arena palette is tokenised; a raw literal here would both break
+        the token system and make the contrast evidence above meaningless."""
+        css = self.CSS_DECK.read_text(encoding="utf-8")
+        rules = [line for line in css.splitlines() if ".arena-rank-spine" in line and "{" in line]
+        self.assertTrue(rules)
+        for line in rules:
+            body = line.split("{", 1)[1]
+            self.assertNotRegex(body, r"#[0-9a-fA-F]{3,8}\b")
+            self.assertNotRegex(body, r"\brgba?\(")

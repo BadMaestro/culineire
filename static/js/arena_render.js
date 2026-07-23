@@ -894,6 +894,17 @@
     var container = svg.parentElement;
     if (!spine || !container) { return; }
 
+    // Stage 3E: below the deck's mobile breakpoint the ladder is no longer an
+    // overlay on the floor - it becomes a compact wrapped row in normal flow.
+    // A measured position would fight that, and an inline style beats the
+    // stylesheet, so the measurements are cleared here rather than recomputed.
+    if (window.matchMedia && window.matchMedia('(max-width: 767px)').matches) {
+      spine.style.top = '';
+      spine.style.left = '';
+      spine.style.width = '';
+      return;
+    }
+
     var cells = svg.querySelectorAll('.arena-cell[data-ring-kind="rank"]');
     if (!cells.length) { return; }
     var top = Infinity, bottom = -Infinity, left = Infinity, right = -Infinity;
