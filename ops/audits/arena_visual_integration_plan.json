@@ -1,0 +1,161 @@
+{
+  "record": "ARENA_VISUAL_INTEGRATION_PLAN",
+  "version": 1,
+  "workstream": "3G",
+  "recorded_by": "GreenBear",
+  "recorded_at": "2026-07-23",
+  "authorised_by": "CulinEire Product Owner",
+  "base_commit": "2fd70161db7a9eb8b37b528543a28f955b805fe4",
+
+  "origin": {
+    "reference_branch": "design/arena-visual-shell-prototype",
+    "reference_commit": "8ec421c0693ea3199f2d8d566bb8ed7a52d234f5",
+    "reference_paths": "ops/prototypes/arena_visual_shell/",
+    "history": "The prototype exists because the command BUILD_ISOLATED_ARENA_VISUAL_SHELL_PROTOTYPE asked for a standalone visual shell, where the owner's actual intent was to strengthen the existing Arena while keeping its real structure. The owner has recorded that as a command-authoring error, not an Ember decision.",
+    "role": "COMPOSITION REFERENCE ONLY",
+    "explicitly_not": "A new frontend, and not a branch to be merged into main.",
+    "merge_policy": "design/arena-visual-shell-prototype must never be merged into main. Nothing is copied from it verbatim; each borrowed idea is re-expressed against existing components and official tokens."
+  },
+
+  "accepted_from_the_prototype": [
+    {"id": "confrontation-band", "idea": "Challenger left, Crown Holder centre, opponent right in one connected band over the floor.", "reason": "Removes the dead centre and matches product contract section 12.", "slice": "R3"},
+    {"id": "attached-rails", "idea": "Side panels connect to the stage architecture instead of floating as detached cards.", "reason": "The page currently reads as separate interface blocks rather than one Arena.", "slice": "R2"},
+    {"id": "lower-broadcast-rail", "idea": "One lower rail closes the frame and collects status and actions.", "reason": "Removes isolated floating controls at the bottom edge.", "slice": "R2"},
+    {"id": "phase-stepper", "idea": "Challenge - Combat - Biathlon - Cooking - Review - Voting - Crown across the top.", "reason": "Server battle statuses already exist; the viewer gains orientation at near-zero cost.", "slice": "R6"},
+    {"id": "ranks-on-every-viewport", "idea": "The complete eight-rank progression stays visible at every width.", "reason": "Independently reached by Stage 3E and already shipped in commit 2fd70161.", "slice": "already done"}
+  ],
+
+  "rejected_from_the_prototype": [
+    {"id": "private-palette", "rejected": "37 self-named tokens (--arena-night-*, --arena-gold-*, --arena-floor-*, own green #1f6842 and red #a33d35).", "reason": "A parallel visual system detached from the design system is prohibited by product contract section 12 and technical standards section 7.", "replacement": "Official CulinEire tokens; where no official equivalent exists, a centrally defined official named Arena token."},
+    {"id": "invented-logo", "rejected": "A self-drawn K mark in the masthead.", "reason": "The project has an official brand asset.", "replacement": "static/images/logo.svg"},
+    {"id": "invented-icons", "rejected": "Self-drawn iconography.", "reason": "Not part of the design system.", "replacement": "Existing project elements, or nothing."},
+    {"id": "round-floor", "rejected": "A round/elliptical floor with the octagon demoted to a decorative clip-path in the logo.", "reason": "The Arena floor is a flat-sided octagon in the authoritative geometry: selectors.get_arena_geometry() returns sides: 8 and every ring holds a whole number of cells per octant. A round floor cannot carry the 8 rings of 40/48/56/64/72/80/88/96 seats.", "replacement": "Keep the existing octagonal geometry."},
+    {"id": "removed-stands", "rejected": "Crowd energy represented only by abstract aria-hidden light texture, with no seats at all.", "reason": "Product contract section 12 requires the eight interactive rings and 544 real-viewer seats to coexist with non-impersonating atmosphere. The prototype resolved that tension by deleting one side of it, which would silently cancel workstream 3C.", "replacement": "Owner decision D2 below."},
+    {"id": "placeholder-content", "rejected": "Participant binding / Rank position / Activity position placeholders.", "reason": "Correct for an isolated prototype, meaningless in production.", "replacement": "Real server-authoritative data."}
+  ],
+
+  "already_correct_in_the_prototype": [
+    {"item": "Typography", "detail": "--font-display Playfair Display and --font-interface Inter are already the official faces. Nothing to change. Libre Bodoni is introduced only on an explicit owner decision."},
+    {"item": "Isolation", "detail": "No application file was modified; the whole prototype lives under ops/prototypes/."},
+    {"item": "Self-declared conflicts", "detail": "conflict_map.json marks templates/chef_battle/arena.html and static/css/arena_command_deck.css as HIGH future overlap and instructs that Stage 3E tests must not be rewritten or weakened."}
+  ],
+
+  "working_principle": "One layer, one branch, one gate, one journal entry. No single large design merge. Every slice must end in a state that can be deployed or reverted with one git revert. Reason: the Arena is already deployed under dark launch, 3A and 3B carry verified evidence, and _arena_render_ring.html is shared with the Arena Master Console.",
+
+  "slices": [
+    {
+      "id": "R0",
+      "title": "Component correspondence map",
+      "status": "NOT STARTED",
+      "deliverable": "ops/audits/arena_visual_integration_map.json",
+      "content": "For each prototype block: target existing component, action (replaces / improves / discarded), the official token replacing the prototype token, and the risk to existing behaviour.",
+      "production_files_changed": [],
+      "gate": "Owner approval of the map. R1 does not start until the map is approved.",
+      "rollback": "Not applicable - no production code."
+    },
+    {
+      "id": "R1",
+      "title": "Tokens",
+      "status": "NOT STARTED",
+      "depends_on": ["R0"],
+      "files": ["static/css/base.css", "the Arena stylesheets that consume the tokens"],
+      "rule": "Zero raw hex/rgb/hsl in Arena rules. The Stage 3E test test_rank_column_uses_tokens_not_raw_colour_literals is extended to cover the new rules.",
+      "reason_for_ordering": "Colour is the only change that alters the whole Arena at once. Isolated first, a palette error is immediately visible and revertible without dragging markup with it.",
+      "gate": ["Visual check at 1920/768/390", "Existing Arena tests green", "Contrast >= 7:1 recorded numerically in ops/audits/"],
+      "rollback": "git revert of the single commit."
+    },
+    {
+      "id": "R2",
+      "title": "Stage frame - rails and lower broadcast bar",
+      "status": "NOT STARTED",
+      "depends_on": ["R1"],
+      "files": ["static/css/arena_command_deck.css", "templates/chef_battle/arena.html (wrappers only)"],
+      "hard_constraint": "Panel data, links, event handlers and DOM targets are not touched. The frame changes, the contents do not. Technical standards section 6 requires one event owner per behaviour.",
+      "reason_for_ordering": "Pure wrapper work: the largest share of the presence effect at the lowest risk.",
+      "gate": ["Responsive 1920/768/390 with no horizontal overflow", "Master Console unaffected", "No duplicate listeners"],
+      "rollback": "git revert of the single commit."
+    },
+    {
+      "id": "R3",
+      "title": "Confrontation band",
+      "status": "NOT STARTED",
+      "depends_on": ["R2"],
+      "files": ["templates/chef_battle/arena.html", "static/css/arena_command_deck.css", "static/js/arena_render.js (positioning only)"],
+      "data": "Real participant name and photo from RecipeAuthor.display_avatar_url. No placeholders.",
+      "country_flag": "OUT OF SCOPE - blocked on owner decision D3. The composition must accept a flag later without being rebuilt.",
+      "relation_to_3D": "Closes the compositional half of 3D. 3D itself stays OPEN until the country data source is decided.",
+      "gate": ["Authenticated QA", "Server-side data-binding verification", "Production has no active battle and creating a demo battle is prohibited by AGENTS.md section 8, so the live-battle path is verified server-side, and that limitation is recorded rather than smoothed over"],
+      "rollback": "git revert of the single commit."
+    },
+    {
+      "id": "R4",
+      "title": "Rank column placement",
+      "status": "OWNER DECISION REQUIRED",
+      "decision_ref": "D1",
+      "option_A": {"description": "Keep the existing side column.", "state": "Already in main at 2fd70161: contrast 14.30:1 recorded, mobile hide removed, 7 tests green.", "work": "none", "risk": "none"},
+      "option_B": {"description": "Adopt the prototype's centred stack.", "cost": "Rework of just-completed work, fresh contrast measurements, rewritten ArenaRankColumnTests.", "constraint": "Ember's own conflict_map.json instructs that Stage 3E acceptance tests must not be weakened."},
+      "greenbear_recommendation": "Option A, re-evaluated after R2-R3 if the column starts to fight the new composition. Reason: 3E is the only Stage 3 workstream one step from closing, and reworking finished work for aesthetics before any workstream closes is how Stage 3 has been standing still."
+    },
+    {
+      "id": "R5",
+      "title": "Stands and real spectators",
+      "status": "OWNER DECISION REQUIRED",
+      "decision_ref": "D2",
+      "if_stands_stay": {
+        "work": "The prototype's light texture becomes an atmospheric layer UNDER the real rings. Real seats stay interactive. Synthetic figures are drawn only in free seats and never impersonate a user. The renderer starts taking seating from ArenaSeat instead of the transient _get_spectators list.",
+        "consumes": "impl/arena-3c-spectator-backend at 95386c8c, including migration 0084_arenaseat",
+        "open_sub_question": "May a viewer choose a specific free seat, or is the front-most free seat always assigned? Only assignment is implemented."
+      },
+      "if_stands_removed": {
+        "work": "3C is closed as removed from scope, the branch remains an artifact, migration 0084 never reaches production.",
+        "requirement": "This must be recorded as an explicit owner decision, not quietly dropped."
+      }
+    },
+    {
+      "id": "R6",
+      "title": "Phase stepper",
+      "status": "NOT STARTED",
+      "depends_on": ["R3"],
+      "files": ["templates/chef_battle/arena.html", "static/css/arena_command_deck.css"],
+      "data": "Existing server-authoritative battle statuses. No new data, no new model.",
+      "reason_for_ordering": "Cheapest and safest - the natural finishing pass once the heavy layers have settled."
+    }
+  ],
+
+  "gates_common_to_every_slice": [
+    "Targeted tests for the slice pass.",
+    "manage.py check clean, plus migration checks when migrations exist.",
+    "Responsive at 1920 / 768 / 390 with no document-level horizontal overflow.",
+    "Accessibility: semantics, keyboard operation, visible focus, prefers-reduced-motion, and contrast recorded numerically.",
+    "Distributed 8:6:1 verification with a shared TEST_RUN_ID before integration into main (AGENTS.md section 9).",
+    "Arena Master Console compatibility checked on any slice touching _arena_render_ring.html or shared styles (product contract section 13).",
+    "Dark launch preserved: staff/superuser only. No slice may widen Arena access."
+  ],
+
+  "journals": {
+    "rule": "Every slice is recorded in all three records.",
+    "targets": [
+      {"record": "Deployment Journal", "path": "config/release_journal.py", "content": "version, date, commit, changed files, what was verified, what was NOT verified, rollback"},
+      {"record": "Arena Build Plan", "path": "recipes/views.py", "content": "workstream 3G slice status, branch, commit, evidence, next_action"},
+      {"record": "Evidence artifacts", "path": "ops/audits/", "content": "contrast numbers, viewport results, screenshots, the correspondence map"}
+    ],
+    "honesty_rule": "Anything not verified is stated plainly, in the manner of the 3B record that keeps the unexercised live-battle tile click path visible."
+  },
+
+  "open_decisions_blocking_progress": [
+    {"id": "D1", "question": "Rank column: keep the existing side column (A) or adopt the prototype's centred stack (B)?", "blocks": "R4", "blocks_start_of_work": false},
+    {"id": "D2", "question": "Do the stands stay? 544 real seats plus non-impersonating atmosphere, or a clean floor with 3C removed from scope?", "blocks": "R5", "note": "Must be settled before R5 begins, or the frame is laid twice."},
+    {"id": "D3", "question": "Country/flag data source - select or reject.", "blocks": "3D closure", "note": "RecipeAuthor has no approved country field. Pre-existing blocker, not introduced by 3G."},
+    {"id": "D4", "question": "Distributed 8:6:1 gate: wake Bolt and Ember, or issue an explicit written exemption from AGENTS.md section 9 per slice?", "blocks": "every merge into main", "note": "This session reaches one machine and has no CoWork channel. Running the whole suite serially on one box and calling it a gate would be a constitution breach dressed as a green result."}
+  ],
+
+  "sequence": "R0 -> R1 -> R2 -> R3 -> R6, with R4 and R5 resolved by owner decision alongside. R4 and R5 do not block R1-R3.",
+
+  "explicit_non_goals": [
+    "No merge of design/arena-visual-shell-prototype into main.",
+    "No verbatim copying of prototype CSS.",
+    "No removal of _arena_render_ring.html or of suspected legacy Arena code.",
+    "No widening of Arena access.",
+    "No claim that any Stage 3 workstream is complete by virtue of this plan existing."
+  ]
+}
