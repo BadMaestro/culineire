@@ -27,18 +27,19 @@
     "linode_1_core": 0.059
   },
   "machine_map_resolution": {
-    "resolved_by": "owner, direct instruction, 2026-07-20",
+    "resolved_by": "owner, direct instruction, 2026-07-20; re-mapped 2026-07-23 after roster change",
     "status": "RESOLVED",
+    "reassignment_2026_07_23": "Bolt and Ember are on weekly limits. Owner re-mapped the pool: Cursor now sits on Bolt's former machine (DESKTOP-ODD5QN8, the primary 8-core) — Bolt will relocate to a different computer when he returns from limit. GreenBear keeps the secondary 6-core. The linode_1_core is the production Linode itself (80.85.84.156) — it may still take a shard, run by either active agent over SSH, but kept the LIGHTEST/proportionally-smallest share because it is slower than the workstations AND serves live production during the run. Even wall-clock split is the goal. Constitution is now v1.3.0.",
     "assignment": {
-      "primary_8_core": "Bolt",
+      "primary_8_core": "Cursor (was Bolt)",
       "secondary_6_core": "GreenBear",
-      "linode_1_core": "Ember (owner's suggestion -- linode_1_core is a shared cloud server, not tied to one agent's own workstation, so any agent may execute this shard)"
+      "linode_1_core": "Cursor or GreenBear (shared production Linode; lightest apps; test DB is separate, cache is locmem under IS_TESTING, so no file-cache risk)"
     },
     "note": "Role assignment is by owner decision, not re-derived from the live nproc evidence gathered earlier in this session. That evidence (GreenBear's own machine reported 8 logical cores via nproc, not 6; Bolt never reported a core count; Bolt and Ember reported the same hostname DESKTOP-ODD5QN8) is preserved below for the record, not overwritten -- the owner's assignment is authoritative regardless of the underlying hardware headroom."
   },
   "shards": {
     "primary_8_core": {
-      "owner_agent": "Bolt",
+      "owner_agent": "Cursor (was Bolt)",
       "machine_id": "DESKTOP-ODD5QN8 (per Bolt's bootstrap; logical core count not independently confirmed by Bolt this session)",
       "manifest": ["chef_battle", "articles", "legal"],
       "test_count": 766
@@ -51,7 +52,7 @@
       "test_count": 579
     },
     "linode_1_core": {
-      "owner_agent": "Ember (or any agent, per owner -- shared cloud server)",
+      "owner_agent": "Cursor or GreenBear (shared production Linode)",
       "machine_id": "80.85.84.156 (deploy@, production Linode)",
       "machine_id_note": "Confirmed via direct SSH: nproc=1, /proc/cpuinfo processor count=1.",
       "manifest": ["sandbox", "messaging", "presence", "collection", "coworking", "accounts", "config", "agent_discovery"],
