@@ -3,11 +3,11 @@
 ```yaml
 document:
   id: "chef-battle-product-contract-2d"
-  version: "1.0.0"
+  version: "1.1.0"
   status: "ACTIVE_AFTER_OWNER_MERGE"
   owner: "CulinEire Product Owner"
   canonical_path: "/docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md"
-  last_updated: "2026-07-20"
+  last_updated: "2026-07-23"
 ```
 
 ## 1. Product definition
@@ -84,12 +84,18 @@ Purpose:
 
 Direction:
 
-- responsive 2D;
-- normal document flow;
-- no camera simulation;
-- no photographic backdrop matching;
-- no generated crowd requirement;
-- no independent dark esports visual system.
+- the Product Owner-approved Arena mockup is the settled visual target;
+- responsive 2D in normal document flow, with positioned and layered composition
+  permitted where it reproduces the approved mockup without breaking responsiveness;
+- the mockup's fixed angled, cinematic composition is approved: perspective and
+  depth may be simulated with CSS, SVG, and images, but there is no true 3D engine
+  or interactive camera;
+- the photographic or painted hall atmosphere, dark cinematic setting, gold
+  accents, light parchment floor, and visual hierarchy follow the approved mockup
+  through official named Arena tokens;
+- atmospheric crowd presentation may reproduce the mockup, but it must remain
+  distinct from real interactive viewer seats and must never impersonate a
+  registered or online user.
 
 ### 4.2 Battle Room / Battle Broadcast
 
@@ -296,27 +302,45 @@ Winning a battle does not automatically create a monetary payout.
 
 The public Arena must:
 
-- use the official CulinEire design system;
-- use existing tokens;
-- use warm parchment, natural ink, muted bronze, and soft neutral surfaces;
+- treat the Product Owner-approved mockup as the settled visual target;
+- use the official CulinEire design system, with official named Arena tokens
+  derived from the approved mockup rather than scattered raw colour literals;
+- use the approved Arena palette of a dark hall, gold accents, and a light
+  parchment floor; this does not change the site-wide palette outside the Arena;
 - use existing Playfair Display and Inter typography;
 - be semantic, responsive, accessible, keyboard-operable, and reduced-motion aware;
 - have explicit loading, empty, hidden, unauthorised, error, and active states;
-- keep challenger-left and opponent-right as semantic placement only, without mandating raw green/red panels;
+- reproduce the mockup's perspective, depth, fixed angled cinematic composition,
+  photographic or painted hall atmosphere, and hierarchy through responsive 2D
+  techniques such as CSS transforms, SVG, and images; `perspective` and `rotateX`
+  are permitted, but a true 3D engine and an interactive camera are not required;
+- keep the challenger on the left in the approved green confrontation panel and
+  the opponent on the right in the approved red confrontation panel, integrated
+  around the central Crown Holder focal area;
+- display each battle participant's real photo and name; display a country flag
+  only after the Product Owner approves a country-data source;
+- keep atmospheric crowd presentation separate from interactive viewer seating:
+  atmospheric figures may match the mockup but may not impersonate real users,
+  while the eight interactive rings retain 544 real-viewer seats, assign front
+  rows first, and let a logged-in viewer see themselves seated;
+- display the rank column from KITCHEN PORTER through CULINARY MASTER and retain
+  recorded numeric contrast evidence of at least 7:1;
 - preserve backend payload and action contracts;
 - avoid duplicate JavaScript listeners and duplicate selectors.
 
 The public Arena must not be defined by:
 
-- 3D perspective;
-- `rotateX`;
-- camera angles;
-- photographic hall alignment;
-- projector or billboard fitting;
-- generated spectator crowds;
-- raw mockup-sampled colours;
-- independent dark game styling;
-- hard-coded coordinate choreography.
+- a true 3D rendering engine or an interactive camera;
+- synthetic occupants presented as registered, online, or otherwise real users
+  in the 544 interactive viewer seats;
+- an independent visual system detached from the approved mockup and official
+  named Arena tokens;
+- scattered raw colour literals instead of those tokens;
+- brittle fixed-pixel coordinate choreography that breaks responsive behaviour.
+
+Image-based hall atmosphere and responsive fitting techniques are implementation
+choices. Positioned or layered composition is permitted when it robustly
+reproduces the approved mockup across the supported viewport classes.
 
 ## 13. Protected existing dependencies
 

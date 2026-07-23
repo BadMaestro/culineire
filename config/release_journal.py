@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.390",
+        "date": "2026-07-23",
+        "commit": "pending",
+        "title": "Arena contract and Stage 3 tracking follow the settled owner-approved mockup",
+        "section": "Chef Battles / Moderation / Deployment",
+        "summary": "Product-contract and tracking synchronization only; no Arena product code, CSS, JavaScript, template, model, data model, authentication, migration, or test state changed. The Product Owner ruled that the previously approved 2D Arena mockup is the settled visual target: 2D excludes a true 3D engine, but permits responsive perspective and depth simulation, the fixed angled cinematic composition, photographic or painted hall atmosphere, dark setting, gold accents, light parchment floor, and the mockup hierarchy through official named Arena tokens. The contract now separates atmospheric crowd presentation from the eight interactive rings / 544 real-viewer seats: atmospheric figures may match the mockup but must not impersonate registered or online users; interactive seats remain real-viewer-only, front rows first, with self-seating. It preserves challenger-left / opponent-right green-red composition, real photo and name requirements, flags only after an approved country-data source, and the KITCHEN PORTER through CULINARY MASTER rank column with recorded >=7:1 contrast evidence. The Arena Build Plan no longer presents the approved mockup direction as unresolved. Workstreams 3C, 3D, and 3E remain OPEN and now record their source-supported partial deployed implementation and exact remaining gaps; 3D remains blocked specifically on the Product Owner's country/flag data-source decision. No Stage 3 implementation workstream was completed by this synchronization. Stage 3 remains IN PROGRESS, completed stages remains 2, release readiness remains NOT READY, and CF5 remains OPEN and UNASSIGNED. GreenBear supplied the line-level review specification in CoWork message 2048. Changed authorized files: docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md, recipes/views.py (ARENA_RELEASE_STAGES only), and config/release_journal.py. Validation: complete diff review, Python syntax/static state assertions, authorized-file check, and git diff --check; no test suite or browser QA was run. Rollback: revert the documentation/tracking commits, push the revert, rerun /srv/culineire/scripts/deploy.sh, and verify the restricted Unit service is active.",
+    },
+    {
         "version": "2.5.389",
         "date": "2026-07-22",
         "commit": "34de9eba",
