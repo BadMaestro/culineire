@@ -398,3 +398,47 @@ completion:
 ```
 
 Truth is more important than a green status.
+
+## Cursor Cloud specific instructions
+
+These are non-authoritative operational notes for the Cursor Cloud dev
+environment only. They do not amend the constitution or change any product
+rule, authority, or release policy.
+
+### Stack / how to run
+
+- Django 5.2 monolith, Python 3.12, dependencies in `requirements.txt`
+  (pinned mirror in `requirements-lock.txt`). No Node/JS build step.
+- Dependencies are installed into a virtualenv at `.venv/` (created by the
+  startup update script). Run everything through it, e.g.
+  `.venv/bin/python manage.py <cmd>`.
+- Config is read from `.env` (git-ignored, loaded via `python-dotenv`). A
+  development `.env` already exists in this environment. `DJANGO_SECRET_KEY`
+  is mandatory — Django refuses to boot without it. If `.env` is ever missing,
+  recreate it from `.env.example` and set a random `DJANGO_SECRET_KEY`.
+- Dev uses zero external services: the DB auto-defaults to local **SQLite**
+  (`db.sqlite3`) when `DATABASE_URL` is empty, email uses the console backend,
+  and the cache is filesystem-based. PostgreSQL is production-only.
+- Standard commands (see `manage.py`):
+  - Migrate: `.venv/bin/python manage.py migrate`
+  - Run dev server: `.venv/bin/python manage.py runserver 127.0.0.1:8000`
+  - System checks: `.venv/bin/python manage.py check`
+  - Tests (per app, preferred in the dev loop): `.venv/bin/python manage.py test <app>`
+
+### Non-obvious caveats
+
+- Chef Battle / Arena pages are feature-flagged off (`CHEF_BATTLE_ENABLED`
+  defaults False) and are staff/superuser-only, so `/chef-battle/…` returns
+  404 on a plain `runserver`. To view the Arena locally, run
+  `.venv/bin/python tools/devserver_arena.py` (serves on `127.0.0.1:8012`,
+  turns the flag on for that process only and auto-signs-in as a superuser).
+  Never point that tool at a real environment.
+- Signup works out of the box: the committed Cloudflare Turnstile keys are the
+  dev test keys that always pass, and email confirmation is off by default, so
+  a new account is created and logged in immediately.
+- `manage.py test` sets `IS_TESTING`, which switches to a local-memory cache,
+  silences logs, and blocks outbound Telegram/email — no external calls happen
+  during tests.
+- Known pre-existing test discrepancy (not an environment problem): a couple of
+  `recipes.tests.ArenaBuildPlanTests` assertions expect Cyrillic strings the
+  template renders in English, so they fail regardless of setup.
